@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Qualified BaroCAD Curves in Three</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; width: 800px; height: 480px; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Two native Curve files · one Three scene</h1>
+  <p>Both files retain <code>wide_64</code>. Only the display bindings are qualified.</p>
+  <canvas id="view" width="800" height="480"></canvas>
+  <button id="reject" type="button">Try invalid projection</button>
+  <button id="dispose" type="button">Dispose loaded display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import {
+    Color, Group, OrthographicCamera, Scene, WebGLRenderer,
+  } from 'three';
+  import { validateWideAdaptiveCurveSamples } from '@barocss/cad';
+  import { BaroCADLoader } from '../dist/three.js';
+  import { loadBaroCadModelSet, prepareBaroCadModelSetPrimitiveDisplayV1 } from '../dist/model-set.js';
+
+  const canvas = document.querySelector('#view');
+  const status = document.querySelector('#status');
+  const base = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001 };
+  const wide = { ...base, curveDisplay: { version: 1, chordToleranceMM: 0.1, maxSegments: 512, maxDepth: 16 } };
+  const manifest = { format: 'barocad-model-set', version: 0, entries: [
+    { aliasId: 'left', url: 'curve-wide-v1.barocad', options: wide },
+    { aliasId: 'right', url: 'curve-wide-v1-peer.barocad', options: wide },
+    { aliasId: 'floor', url: 'model-set-primitive-surface.barocad', options: base },
+  ] };
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const countColors = pixels => {
+    let cyan = 0, magenta = 0, surface = 0;
+    for (let index = 0; index < pixels.length; index += 4) {
+      const r = pixels[index], g = pixels[index + 1], b = pixels[index + 2];
+      if (r < 60 && g > 150 && b > 150) cyan++;
+      if (r > 150 && g < 70 && b > 150) magenta++;
+      if ((Math.abs(r - 16) > 12 || Math.abs(g - 27) > 12 || Math.abs(b - 44) > 12) &&
+          !(r < 60 && g > 150 && b > 150) && !(r > 150 && g < 70 && b > 150)) surface++;
+    }
+    return { cyan, magenta, surface };
+  };
+  const scene = new Scene();
+  scene.background = new Color(0x101b2c);
+  const callerChild = new Group();
+  scene.add(callerChild);
+  const camera = new OrthographicCamera(-0.045, 0.045, 0.027, -0.027, 0.01, 1);
+  camera.position.set(0.035, 0.03, 0.15);
+  camera.lookAt(0.035, 0, 0);
+  const renderer = new WebGLRenderer({ canvas, antialias: false, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1);
+  renderer.setSize(800, 480, false);
+  const readPixels = () => {
+    renderer.render(scene, camera);
+    const gl = renderer.getContext();
+    const pixels = new Uint8Array(canvas.width * canvas.height * 4);
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('WebGL readPixels failed');
+    return pixels;
+  };
+  let set, display, accepted = [], evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    set = await loadBaroCadModelSet(manifest, { baseURL: new URL('./', location.href).href });
+    display = prepareBaroCadModelSetPrimitiveDisplayV1(set);
+    const projectedCurves = display.filter(entry => entry.kind === 'curve');
+    if (display.length !== 4 || projectedCurves.length !== 2 ||
+        !projectedCurves.every(entry => entry.sampleVersion === 1 && entry.sample.curve.id === 'wide_64' &&
+          entry.sample.curve.controlPoints.length === 64 && entry.sample.pointsMM.length === 40)) {
+      throw new Error('Actual wide Curve projection differs from the frozen contract');
+    }
+    projectedCurves.forEach(entry => validateWideAdaptiveCurveSamples(entry.sample));
+    for (const [index, member] of set.entries.entries()) {
+      const loaded = new BaroCADLoader(manifest.entries[index].options).parse(member.result.source);
+      const bindings = display.filter(entry => entry.binding.aliasId === member.aliasId);
+      for (const binding of bindings) {
+        const object = loaded.group.children.find(child => child.name === binding.binding.geometryId);
+        if (!object) throw new Error('Three object has no qualified native binding');
+        object.userData.displayGeometryId = binding.binding.displayGeometryId;
+        if (object.isLine) object.material.color.setHex(member.aliasId === 'left' ? 0x00ffff : 0xff00ff);
+      }
+      if (member.aliasId === 'right') loaded.group.position.x = 0.04;
+      scene.add(loaded.group);
+      accepted.push(loaded);
+    }
+    const pixels = readPixels();
+    evidence = {
+      sourceBytes: set.entries.slice(0, 2).map(entry => new TextEncoder().encode(entry.result.source).length),
+      originalCurveIds: set.entries.slice(0, 2).map(entry => entry.result.model.objects[0].id),
+      originalSignedZero: set.entries.slice(0, 2).map(entry => Object.is(entry.result.model.objects[0].controlPoints[0][0], -0)),
+      originalDomains: projectedCurves.map(entry => entry.sample.domain),
+      displayIds: projectedCurves.map(entry => entry.binding.displayGeometryId),
+      bindings: display.map(entry => entry.binding),
+      sampleVersions: projectedCurves.map(entry => entry.sampleVersion),
+      sourceAndSamplesUnrenamed: projectedCurves.every(entry => entry.sample.curve.id === 'wide_64'),
+      threeLines: accepted.flatMap(result => result.group.children).filter(object => object.isLine).length,
+      threeSurfaces: accepted.flatMap(result => result.group.children).filter(object => object.isMesh).length,
+      webgl2: renderer.getContext() instanceof WebGL2RenderingContext,
+      coloredPixels: countColors(pixels), pixelHash: hash(pixels), callerChildRetained: scene.children.includes(callerChild),
+    };
+    window.__baroCadPrimitiveV1Evidence = evidence;
+    show();
+  } catch (error) {
+    accepted.forEach(result => result.dispose());
+    renderer.dispose();
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroCadPrimitiveV1Error = String(error);
+  }
+  document.querySelector('#reject').onclick = () => {
+    if (!evidence) return;
+    const before = hash(readPixels());
+    let invalidRejected = false, overCapacityRejected = false;
+    try { prepareBaroCadModelSetPrimitiveDisplayV1({ ...set, entries: [set.entries[0],
+      { ...set.entries[1], aliasId: 'left' }, set.entries[2]] }); }
+    catch { invalidRejected = true; }
+    try { prepareBaroCadModelSetPrimitiveDisplayV1({ ...set, entries: [...set.entries,
+      { ...set.entries[2], aliasId: 'extra' }] }); }
+    catch { overCapacityRejected = true; }
+    Object.assign(evidence, { invalidRejected, overCapacityRejected,
+      priorSceneRetained: accepted.length === 3 && scene.children.includes(callerChild),
+      priorPixelsRetained: hash(readPixels()) === before });
+    show();
+  };
+  document.querySelector('#dispose').onclick = () => {
+    if (!evidence) return;
+    accepted.forEach(result => { result.dispose(); result.dispose(); });
+    renderer.dispose();
+    Object.assign(evidence, { loadedDisplayRemoved: scene.children.length === 1,
+      callerChildRetained: scene.children.includes(callerChild), callerCanvasRetained: document.body.contains(canvas),
+      nativeSourcesRetained: set.entries.slice(0, 2).every(entry => entry.result.model.objects[0].id === 'wide_64') });
+    show();
+  };
+</script>
+</html>
