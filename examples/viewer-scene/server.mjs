@@ -8,9 +8,10 @@ const files = new Map([
   ['/bundle.js', { body: bundle.outputFiles[0].contents, type: 'text/javascript' }],
   ['/', { body: await readFile(new URL('index.html', import.meta.url)), type: 'text/html' }],
   ['/two-surfaces.barocad', { body: await readFile(new URL('two-surfaces.barocad', import.meta.url)), type: 'text/plain' }],
+  ['/weighted-curve.barocad', { body: await readFile(new URL('weighted-curve.barocad', import.meta.url)), type: 'text/plain' }],
 ]);
 const server = createServer((request, response) => {
-  const file = files.get(request.url);
+  const file = files.get(new URL(request.url, 'http://127.0.0.1').pathname);
   if (!file) { response.writeHead(404).end(); return; }
   response.writeHead(200, { 'content-type': `${file.type}; charset=utf-8`, 'cache-control': 'no-store' }).end(file.body);
 });

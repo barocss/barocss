@@ -20,6 +20,7 @@
     .measure label { display: block; margin: 7px 0; color: #c7d3e2; }
     .measure select, .measure input { box-sizing: border-box; width: 100%; padding: 6px; border: 1px solid #587399; border-radius: 4px; background: #101a29; color: white; }
     .measure .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .measure summary { cursor: pointer; font-size: 16px; font-weight: 700; }
     @media(max-width:850px) { .layout { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -46,6 +47,15 @@
         <button id="pick-second">Use next click for second point</button>
         <button id="measure">Measure native points</button>
       </section>
+      <details class="measure" aria-label="Native Curve chord measurement">
+        <summary>Native Curve chord</summary>
+        <div class="hint">Curves stay in the native model and are not drawn. Enter original parameters. The result is a straight chord, not Curve arc length.</div>
+        <label>First Curve<select id="first-curve"></select></label>
+        <label>First parameter<input id="first-t" type="number" step="any" value="0.25"></label>
+        <label>Second Curve<select id="second-curve"></select></label>
+        <label>Second parameter<input id="second-t" type="number" step="any" value="0.75"></label>
+        <button id="measure-curve">Measure native Curve chord</button>
+      </details>
       <pre id="state" aria-live="polite">Loading native source…</pre>
     </aside>
   </div>

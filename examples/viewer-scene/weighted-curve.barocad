@@ -1,0 +1,32 @@
+@model native_loader_demo {
+  version: 0;
+  length-unit: mm;
+
+  @surface #rational_panel {
+    type: nurbs;
+    degree-u: 1;
+    degree-v: 1;
+    knots-u: [2,2,5,5];
+    knots-v: [10,10,20,20];
+    control-points: [[[-0,0,0],[0,0,40]],[[100,0,0],[100,0,40]]];
+    weights: [[1,0.7071067811865476],[1,1]];
+  }
+
+  @surface #flat_panel {
+    type: nurbs;
+    degree-u: 1;
+    degree-v: 1;
+    knots-u: [0,0,1,1];
+    knots-v: [0,0,1,1];
+    control-points: [[[0,70,0],[0,70,40]],[[100,70,0],[100,70,40]]];
+    weights: [[1,1],[1,1]];
+  }
+
+  @curve #reference_edge {
+    type: nurbs;
+    degree: 1;
+    knots: [0,0,1,1];
+    control-points: [[0,0,0],[100,0,0]];
+    weights: [1,0.5];
+  }
+}
