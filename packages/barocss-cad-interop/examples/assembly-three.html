@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native CAD assembly in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Native CAD assembly · Three.js</h1>
+  <p>Each body keeps its original source. The CAD assembly owns instance placement.</p>
+  <canvas id="view" width="800" height="520"></canvas>
+  <button id="reject" type="button">Try invalid candidates</button>
+  <button id="dispose" type="button">Dispose display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Color, Group, OrthographicCamera, Scene, Vector3, WebGLRenderer } from 'three';
+  import { parseCadAssembly, queryCadAssemblyInstancePoint } from '@barocss/cad';
+  import { createBaroCadAssemblyThreeDisplay } from '@barocss/cad-interop/three-assembly';
+
+  const canvas = document.querySelector('#view');
+  const status = document.querySelector('#status');
+  const scene = new Scene(); scene.background = new Color(0x101b2c);
+  const marker = new Group(); marker.name = 'caller-marker'; scene.add(marker);
+  const camera = new OrthographicCamera(-0.12, 0.12, 0.078, -0.078, 0.001, 2);
+  camera.position.set(0.025, 0.045, 1); camera.lookAt(0.025, 0.045, 0);
+  const renderer = new WebGLRenderer({ canvas, antialias: false, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1); renderer.setSize(800, 520, false);
+  const native = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.01,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } };
+  const options = { native, basis: 'authored-xyz-matches-rhyup' };
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const render = () => {
+    renderer.render(scene, camera);
+    const bytes = new Uint8Array(canvas.width * canvas.height * 4), gl = renderer.getContext();
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('WebGL readPixels failed');
+    return bytes;
+  };
+  const nonBackground = bytes => {
+    let count = 0;
+    for (let i = 0; i < bytes.length; i += 4) {
+      if (bytes[i] !== 16 || bytes[i + 1] !== 27 || bytes[i + 2] !== 44) count++;
+    }
+    return count;
+  };
+  let assembly, display, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    const response = await fetch(new URL('./assembly-three-data/revision0.cad-assembly.json', location.href));
+    if (!response.ok) throw new Error('Assembly file fetch failed');
+    const source = await response.text();
+    assembly = parseCadAssembly(source);
+    display = createBaroCadAssemblyThreeDisplay(assembly, options);
+    if (display.bindings.length !== 6 || new Set(display.bindings.map(binding => binding.object)).size !== 6 ||
+        display.bindings.filter(binding => binding.reference.geometryId === 'shared_curve').length !== 3) {
+      throw new Error('Three assembly lost native instances or shared references');
+    }
+    for (const [index, binding] of display.bindings.entries()) {
+      if (binding.object.isLine) binding.object.material.color.setHex([0x00f5ff, 0xffdc50, 0xff7a80][index % 3]);
+    }
+    scene.add(display.root);
+    display.root.updateMatrixWorld(true);
+    const pointBinding = display.bindings.find(binding => binding.instanceId === 'child');
+    const point = queryCadAssemblyInstancePoint(assembly, {
+      assemblyId: 'native_assembly', assemblyRevision: 0, instanceId: 'child',
+      reference: pointBinding.reference, query: { kind: 'curve', parameter: 2 },
+    });
+    const scenePoint = new Vector3(...point.originalLocalPointMM.map(value => value * native.unitsPerMillimeter))
+      .applyMatrix4(pointBinding.instanceGroup.matrixWorld);
+    if (point.assemblyPointMM.some((value, axis) =>
+      Math.abs(scenePoint.getComponent(axis) - value * native.unitsPerMillimeter) > 1e-10)) {
+      throw new Error('Three instance world point differs from native assembly point');
+    }
+    const visibleByInstance = [];
+    for (const binding of display.bindings) {
+      for (const other of display.bindings) other.instanceGroup.visible = other === binding;
+      visibleByInstance.push({ id: binding.instanceId, pixels: nonBackground(render()) });
+    }
+    for (const binding of display.bindings) binding.instanceGroup.visible = true;
+    const pixels = render();
+    if (visibleByInstance.filter(entry => entry.pixels > 20).length < 4 || nonBackground(pixels) < 100 ||
+        !(renderer.getContext() instanceof WebGL2RenderingContext)) {
+      throw new Error('Native assembly Mesh/Line placements are not visibly rendered in WebGL2');
+    }
+    evidence = { fileBytes: new TextEncoder().encode(source).length,
+      assemblyId: assembly.assembly.assemblyId, assemblyRevision: assembly.assembly.revision,
+      instanceIds: display.bindings.map(binding => binding.instanceId),
+      sharedCurveAssetIds: display.bindings.filter(binding => binding.reference.geometryId === 'shared_curve')
+        .map(binding => binding.reference.assetId),
+      childNativePointMM: point.assemblyPointMM, childScenePoint: scenePoint.toArray(),
+      visibleByInstance, visiblePixels: nonBackground(pixels), pixelHash: hash(pixels),
+      webgl2: true, callerMarkerRetained: scene.children.includes(marker), refused: 0, disposed: false };
+    window.__baroAssemblyThreeEvidence = evidence;
+    show();
+    document.querySelector('#reject').onclick = () => {
+      const acceptedHash = hash(render());
+      const forged = structuredClone(assembly);
+      forged.instances[0].worldMatrix[3] += 1;
+      const stale = structuredClone(assembly);
+      stale.assembly.instances[0].reference.documentRevision++;
+      let refused = 0;
+      for (const action of [
+        () => createBaroCadAssemblyThreeDisplay(forged, options),
+        () => createBaroCadAssemblyThreeDisplay(stale, options),
+        () => createBaroCadAssemblyThreeDisplay(assembly, { ...options, basis: 'unknown' }),
+        () => parseCadAssembly('{"schema":"barocss-cad-assembly","schema":"barocss-cad-assembly"}'),
+      ]) { try { action(); } catch { refused++; } }
+      if (refused !== 4 || hash(render()) !== acceptedHash || !scene.children.includes(display.root)) {
+        throw new Error('Invalid assembly candidate changed the accepted frame');
+      }
+      evidence.refused = refused; evidence.acceptedFrameRetained = true; show();
+    };
+    document.querySelector('#dispose').onclick = () => {
+      display.dispose(); display.dispose();
+      const after = render();
+      if (scene.children.includes(display.root) || !scene.children.includes(marker) ||
+          display.root.children.length !== 0 || nonBackground(after) !== 0) {
+        throw new Error('Assembly display disposal changed caller resources');
+      }
+      evidence.disposed = true; evidence.callerMarkerRetained = true;
+      evidence.afterDisposePixels = nonBackground(after); show();
+    };
+  } catch (error) {
+    display?.dispose();
+    evidence = { error: String(error), stack: error.stack };
+    window.__baroAssemblyThreeEvidence = evidence;
+    show();
+  }
+</script>
