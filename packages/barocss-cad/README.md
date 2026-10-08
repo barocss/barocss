@@ -6095,3 +6095,46 @@ node examples/cad-nurbs/curve-wide-control-polygon-demo.mjs --source /tmp/barocs
 Native readiness, Integration adoption, actual consumer use and publication
 remain separate. Topology/solid/manufacturing certification and a legacy
 document-history layer are not added.
+
+## Wide native Curve reversal
+
+`reverseCurveWide(curve,{curveId})` admits positive clamped nonperiodic native
+Curves of degree1..3 with2..64 poles and at most70 knots, XYZ±10000mm and
+existing positive weight bounds. Explicit output ID is ASCII1..48 and differs
+from the original. This profile reuses the original guarded reflection,
+coefficient-copy, provenance, source and native observation calculation. The
+older31-pole API keeps its admission, DTO, limits and output.
+
+Control points and weights reverse by exact copies. Original domain endpoint
+bits stay; interior knots use the existing guarded `u=a+(b-v)` reflection.
+Collapsed/cancelled/unordered or unrepresented values refuse rather than snap.
+Original geometry and caller files stay intact. Output source0/mm/raw authored
+XYZ has a new explicitly supplied Curve ID, with no axis or unit conversion.
+Generated interior knot bits and double-reversal bit equality are not certified.
+
+Result retains `{original,options,curve,source,sourceVersion,model,originalSource,
+originalModel,provenance,report}`. Report DTO is
+`barocss-native-wide-reversed-curve`, version0/mm/authored XYZ, with original
+parameter correspondence, point comparisons, negative D1 comparisons and
+original/mapped/reversed native guard states. Source strings are regenerated
+actual geometry, not recovery of unavailable caller formatting/model name.
+No topology/sewn wire/solid/G1/G2/global accuracy/manufacturing certificate is
+implied. Copied CPU data uses GC; no renderer resources or disposal.
+
+At most256 knot/quarter/midpoint observations and64 guard records are admitted.
+Inputs allow32768 values/depth8/arrays128/fields16/strings128; owned data524288
+values/depth32/arrays4096/fields64/source262144. Native/source limits apply.
+`validateWideReversedCurveResult(result)` reconstructs originals/options/source,
+coefficients/reflection maps/point-D1/guards/report. Descriptor/getter/symbol/
+hidden/foreign/sparse/cyclic/nonfinite/unsafe arithmetic/capacity/tamper failures
+refuse atomically. Diagnostics are INPUT, IDENTITY, DOMAIN, REPRESENTABILITY,
+BUDGET, NATIVE, BINDING and OWNED.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/curve-wide-reversal-demo.mjs --source /tmp/barocss-wide-reversal
+```
+
+The single actual file/compiled flow uses the previously produced64-pole source.
+Native readiness, Integration adoption, actual consumer use and publication
+remain separate; no legacy document-history layer is introduced.
