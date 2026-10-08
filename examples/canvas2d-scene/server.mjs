@@ -4,10 +4,16 @@ import { fileURLToPath } from 'node:url';
 import { resolve, sep, extname } from 'node:path';
 
 const root = resolve(fileURLToPath(new URL('../..', import.meta.url)));
-const mime = { '.html': 'text/html', '.mjs': 'text/javascript', '.js': 'text/javascript', '.json': 'application/json' };
+const mime = { '.html': 'text/html', '.mjs': 'text/javascript', '.js': 'text/javascript', '.json': 'application/json', '.png': 'image/png' };
 const server = createServer(async (request, response) => {
   try {
     const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
+    if (pathname === '/examples/canvas2d-scene/oversize-url-test.png') {
+      response.writeHead(200, { 'content-type': 'image/png', 'cache-control': 'no-store' });
+      response.write(Buffer.alloc(5 * 1024 * 1024));
+      response.end(Buffer.alloc(4 * 1024 * 1024));
+      return;
+    }
     const filePath = pathname === '/' ? '/examples/canvas2d-scene/index.html' :
       pathname.endsWith('/') ? `${pathname}index.html` : pathname;
     const path = resolve(root, `.${filePath}`);

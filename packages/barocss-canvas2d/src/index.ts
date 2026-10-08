@@ -10,6 +10,8 @@ export type { PathObservation, FillObservation, PathSample } from './path.js';
 export { createPathBuilder } from './path-builder.js';
 export type { PathBuilder } from './path-builder.js';
 export { decodeImageBlob } from './image-decode.js';
+export { loadImageURL } from './image-url.js';
+export type { ImageURLLoadOptions } from './image-url.js';
 export { createDisplayTree, createDisplayTreeFromScene } from './display-tree.js';
 export type { DisplayTree, StageHandle, ContainerHandle, SpriteHandle, PathHandle, RectHandle, DisplayHandle, ContainerSpec, SpriteSpec, PathSpec, PathPaint, RectSpec, RectPaint, PointerEventType, DisplayPointerEvent, PointerInput, PointerListener } from './display-tree.js';
 export { createTicker } from './ticker.js';
