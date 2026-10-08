@@ -2,6 +2,8 @@ import { compileCadModel, sampleCurveAdaptive, tessellateSurface, validateAdapti
 import type { AdaptiveCurveSamplingResult, ApproximationReport, CadDiagnostic, Model } from '@barocss/cad';
 import { prepareCadPreviewMesh } from './packet.js';
 import type { CadPreviewPacket, PreparedCadMesh } from './packet.js';
+import { readAbortableBaroCadSource, throwIfBaroCadAborted, validateBaroCadTransport } from './transport.js';
+import type { BaroCadLoadTransportOptions } from './transport.js';
 export { BaroCadLoadAbortError } from './transport.js';
 export type { BaroCadLoadProgress, BaroCadLoadTransportOptions } from './transport.js';
 
@@ -170,4 +172,20 @@ export function parseBaroCadSource(source: string, options: BaroCadParseOptions)
     source, model: compiled.model, diagnostics: [], surfaces: previews, curves: curvePreviews,
     unrenderedCurveIds: parsedOptions.curveDisplay ? [] : nativeCurves.map(curve => curve.id),
   };
+}
+
+/** Load bounded native source without creating a renderer object. */
+export async function loadBaroCadSource(
+  url: string,
+  options: BaroCadParseOptions,
+  transport: BaroCadLoadTransportOptions = {},
+): Promise<BaroCadNativeResult> {
+  const parsedOptions = parseOptions(options);
+  const request = validateBaroCadTransport(url, transport);
+  const source = await readAbortableBaroCadSource(request);
+  throwIfBaroCadAborted(request.signal);
+  const result = parseBaroCadSource(source, parsedOptions);
+  await Promise.resolve();
+  throwIfBaroCadAborted(request.signal);
+  return result;
 }

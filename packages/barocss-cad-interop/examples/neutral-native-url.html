@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>BaroCAD neutral URL loader</title>
+<style>
+  body { font: 16px/1.5 system-ui, sans-serif; margin: 2rem; max-width: 54rem; }
+  pre { white-space: pre-wrap; background: #f1f4f8; padding: 1rem; }
+</style>
+<h1>BaroCAD neutral URL loader</h1>
+<p>The native source, model, and preview data load without a renderer.</p>
+<pre id="status">Loading…</pre>
+<script type="module">
+  import { loadBaroCadSource } from '@barocss/cad-interop/native';
+
+  const url = new URL('./two-surfaces.barocad', location.href).href;
+  const options = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { chordToleranceMM: 0.1, maxSegments: 128, maxDepth: 16 } };
+  const status = document.querySelector('#status');
+  try {
+    let cancelled = false;
+    try {
+      await loadBaroCadSource(url, options, { onProgress: () => false });
+    } catch (error) {
+      cancelled = error.name === 'AbortError' && error.code === 'ABORT_ERR';
+      if (!cancelled) throw error;
+    }
+    if (!cancelled) throw new Error('Progress cancellation did not stop the first load');
+    const result = await loadBaroCadSource(url, options);
+    const evidence = {
+      cancelled,
+      modelIds: result.model.objects.map(object => object.id),
+      surfaceIds: result.surfaces.map(surface => surface.surfaceId),
+      curveIds: result.curves.map(curve => curve.curveId),
+      signedZero: Object.is(result.model.objects[0].controlPoints[0][0][0], -0),
+      surfaceCount: result.surfaces.length,
+      curveCount: result.curves.length,
+    };
+    window.__baroCadNeutralEvidence = evidence;
+    status.textContent = JSON.stringify(evidence, null, 2);
+  } catch (error) {
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroCadNeutralError = String(error);
+  }
+</script>
+</html>
