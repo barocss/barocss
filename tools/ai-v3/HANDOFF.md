@@ -1,3 +1,53 @@
+# Current owner goal — public 3D library family (2026-10-08)
+
+The active goal is our own reusable public GPU, CAD, native Loader and Motion
+libraries: [#660](https://github.com/barocss/barocss/issues/660). Editor/gallery/demos
+are reference consumers. The owner activated the replacement Codex goal; the
+previous failed replacement is historical evidence. Commercial CAD remains the
+full geometry/topology/features/constraints/documents/assemblies/exchange pillar
+under [#503](https://github.com/barocss/barocss/issues/503), not a fixture-only goal.
+
+GPU owns its package and sole serial local product/root/shared/policy/lock
+integration. CAD owns its package/native examples; Loader owns interop/adapters.
+The explicitly owner-created Motion Work owns only new `packages/barocss-motion/`
+and `examples/motion-scene/` under [#659](https://github.com/barocss/barocss/issues/659).
+Planner owns scopes/Issues/manuals/coordination. No other permanent Work, scheduler
+or model change is authorized. Spatial/Interaction/Physics remain planned.
+
+Libraries use own algorithms and documented version/unit/frame/identity/ownership/
+resource/lifecycle/error contracts. External projects are references or explicitly
+requested renderer consumers, not replacement kernels. Public configuration means
+`private:false`, public access and real compiled JS/declarations; repository `src`
+development stays explicit. Native source/topology stays authoritative; display
+buffers/GLB/animated poses are separate. Motion must not mutate native CAD models.
+
+Source0 Surface PreviewPacket preserves authored XYZ and declares Y-up; native
+Loader658 scales that convention once. Z-up needs an explicit host adapter.
+Only separate native-face-mesh `part-xyz` uses `(x,z,-y)` in its display adapter.
+Motion's own `part-xyz`/seconds/mm contract needs explicit consumer frame mapping;
+never silently retag old packets or assume one universal CAD up axis.
+
+ALL work/bugs/followups/deferred validation are tracked in GitHub Issues. Claim
+bounded scopes, preserve other lanes and immutable parents, reconcile each child
+once, and record exact task/merge SHAs/actual receipts. Native CAD completion and
+integrated availability reach both GPU and Loader once. GPU merges serially.
+
+Current prototype gate: implement → affected build → ONE short actual API/source/
+demo/browser flow → continue. Preserve first failures. Broad units/readers/packed/
+archive/parity/full guards/gallery/workspace/performance/certification and Review
+campaigns are deferred to a separately scheduled phase. Never `verify-local.py`
+or a standing Review gate. Docs-only reversible edits need exact path/diff checks,
+not product builds. Do not claim unrun targets or professional/CAD completion.
+
+Preserve user scenes/drafts/tabs/hosts, paused629, render/kiosk and approved
+Release0.12.2. Local public configuration is not npm publication. Actual publication,
+product push/PR/deploy/release needs separate authority. Keep monitor cadence,
+notifications, models and paused supervisor state. This section and newer Issue
+contracts supersede conflicting old goal/private/no-Motion/broad-gate text below,
+which is retained as historical policy/evidence.
+
+---
+
 # BaroCSS Work handoff (current: 2026-10-06)
 
 ## Current owner decision: parallel GPU and CAD (2026-10-06)
