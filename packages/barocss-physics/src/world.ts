@@ -1,13 +1,15 @@
-import type { Body, PhysicsCcdHit, PhysicsContact, PhysicsEvent, PhysicsJointState, PhysicsState, PhysicsWorld, PhysicsWorldConfig, PhysicsRayHit, Vec3 } from './types.js';
+import type { Body, PhysicsCcdHit, PhysicsContact, PhysicsEvent, PhysicsJointState, PhysicsPairStats, PhysicsState, PhysicsWorld, PhysicsWorldConfig, PhysicsRayHit, Vec3 } from './types.js';
 import { MAX_BODIES, MAX_STEPS, MAX_STEP_DISPLACEMENT_M, SOLVER_PASSES } from './limits.js';
 import { error, record, fields, finite, vector, parseBody, parseCommands, copyBody, copyShape, queryRecord, queryVector, queryNumber, includeSensors } from './validation.js';
 import { add, scale, inverseInertia, advanceOrientation } from './math.js';
 import { parseJoints, projectJoint } from './joints.js';
 import { detect, solve, validateResult, sphereOverlaps, rayDistance } from './collision.js';
 import { ccdFixtures, sweepSphere } from './ccd.js';
+import { bodyBounds, boundsOverlap } from './broadphase.js';
 
 function publicState(bodies: Body[], contacts: PhysicsContact[], events: PhysicsEvent[],
-  joints: PhysicsJointState[], ccdHits: PhysicsCcdHit[], stepIndex: number, dt: number): PhysicsState {
+  joints: PhysicsJointState[], ccdHits: PhysicsCcdHit[], pairStats: PhysicsPairStats,
+  stepIndex: number, dt: number): PhysicsState {
   return {
     stepIndex, timeSeconds: stepIndex * dt,
     bodies: bodies.map(({ id, kind, shape: collider, positionM, velocityMps, orientation, angularVelocityRadps, inertiaKgM2, inertiaDiagonalKgM2, sensor, ccd }) =>
@@ -23,12 +25,17 @@ function publicState(bodies: Body[], contacts: PhysicsContact[], events: Physics
     joints: joints.map((joint) => ({ ...joint, linearImpulseNs: [...joint.linearImpulseNs],
       angularImpulseNms: [...joint.angularImpulseNms] })),
     ccdHits: ccdHits.map((hit) => ({ ...hit, normalFixtureToBody: [...hit.normalFixtureToBody] })),
+    pairStats: { ...pairStats },
   };
 }
 
 export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
   const input = record(config, 'world');
-  fields(input, ['fixedStepSeconds', 'gravityMps2', 'bodies', 'joints'], 'world');
+  fields(input, ['fixedStepSeconds', 'gravityMps2', 'bodies', 'joints', 'broadPhase'], 'world');
+  if (Object.hasOwn(input, 'broadPhase') && input.broadPhase !== 'aabb') {
+    error('INVALID_CONFIG', 'broadPhase must be aabb when present');
+  }
+  const useAabb = input.broadPhase === 'aabb';
   const dt = finite(input.fixedStepSeconds, 1 / 240, 1 / 30, 'fixedStepSeconds');
   const gravity = vector(input.gravityMps2, -1000, 1000, 'gravityMps2');
   if (!Array.isArray(input.bodies) || input.bodies.length < 1 || input.bodies.length > MAX_BODIES) {
@@ -59,6 +66,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
   let contacts: PhysicsContact[] = [];
   let events: PhysicsEvent[] = [];
   let ccdHits: PhysicsCcdHit[] = [];
+  let pairStats: PhysicsPairStats = { eligiblePairs: 0, candidatePairs: 0, aabbTests: 0 };
   let jointStates: PhysicsJointState[] = joints.map((joint) => ({ id: joint.id, kind: joint.kind,
     aId: bodies[joint.aIndex].id, bId: bodies[joint.bIndex].id,
     linearImpulseNs: [0, 0, 0], angularImpulseNms: [0, 0, 0],
@@ -68,7 +76,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
   let disposed = false;
   const ensureActive = () => { if (disposed) error('DISPOSED', 'world is disposed'); };
   return {
-    getState() { ensureActive(); return publicState(bodies, contacts, events, jointStates, ccdHits, stepIndex, dt); },
+    getState() { ensureActive(); return publicState(bodies, contacts, events, jointStates, ccdHits, pairStats, stepIndex, dt); },
     step(fixedStepSeconds, commands = []) {
       ensureActive();
       if (fixedStepSeconds !== dt) error('INVALID_STEP', 'step must equal configured fixedStepSeconds');
@@ -108,12 +116,23 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
       }
       const hit = ccdIndex < 0 ? null : sweepSphere(bodies[ccdIndex], next[ccdIndex], fixtures);
       const nextCcdHits = hit ? [hit] : [];
+      const nextPairStats: PhysicsPairStats = { eligiblePairs: 0, candidatePairs: 0, aabbTests: 0 };
       const found = new Map<string, PhysicsContact>();
       const sensed = new Map<string, Omit<PhysicsEvent, 'phase'>>();
       const nextJoints = jointStates.map((joint) => ({ ...joint,
         linearImpulseNs: [0, 0, 0] as Vec3, angularImpulseNms: [0, 0, 0] as Vec3 }));
+      const bounds = useAabb ? next.map(bodyBounds) : null;
       for (let pass = 0; pass < SOLVER_PASSES; pass++) {
+        if (bounds && pass > 0) for (let index = 0; index < next.length; index++) {
+          if (next[index].kind !== 'static') bounds[index] = bodyBounds(next[index]);
+        }
         for (const [aIndex, bIndex] of pairs) {
+          nextPairStats.eligiblePairs++;
+          if (bounds) {
+            nextPairStats.aabbTests++;
+            if (!boundsOverlap(bounds[aIndex], bounds[bIndex])) continue;
+          }
+          nextPairStats.candidatePairs++;
           const a = next[aIndex], b = next[bIndex];
           const hit = detect(a, b);
           if (!hit) continue;
@@ -134,6 +153,10 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
           const resolved = solve(a, b, hit);
           contact.impulseNs += resolved.normalImpulseNs;
           contact.tangentImpulseNs = add(contact.tangentImpulseNs, resolved.tangentImpulseNs);
+          if (bounds) {
+            bounds[aIndex] = bodyBounds(a);
+            bounds[bIndex] = bodyBounds(b);
+          }
         }
         for (let index = 0; index < joints.length; index++) {
           const reaction = projectJoint(joints[index], next, bodies, dt);
@@ -163,9 +186,10 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
       events = nextEvents;
       jointStates = nextJoints;
       ccdHits = nextCcdHits;
+      pairStats = nextPairStats;
       activePairs = nextActive;
       stepIndex++;
-      return publicState(bodies, contacts, events, jointStates, ccdHits, stepIndex, dt);
+      return publicState(bodies, contacts, events, jointStates, ccdHits, pairStats, stepIndex, dt);
     },
     overlapSphere(input) {
       ensureActive();

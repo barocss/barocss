@@ -14,6 +14,7 @@ node examples/physics-scene/oriented-colliders-probe.mjs
 node examples/physics-scene/friction-stack-probe.mjs
 node examples/physics-scene/joints-probe.mjs
 node examples/physics-scene/ccd-probe.mjs
+node examples/physics-scene/broadphase-probe.mjs
 node examples/physics-scene/server.mjs
 ```
 
@@ -32,3 +33,5 @@ The compiled `friction-stack-probe.mjs` compares zero and nonzero point friction
 The compiled `joints-probe.mjs` checks a static-anchored fixed sphere under gravity, a Z hinge with a ±0.5 radian limit, an offset local anchor, copied reaction output, invalid joint configs and failed-step retention. The visible SVG scene remains the original sphere/floor host. The joint profile is a bounded projection solver, not a CAD assembly constraint or general robotics joint system.
 
 The compiled `ccd-probe.mjs` reproduces a fast sphere crossing a thin box under discrete stepping, then checks that opt-in CCD records an entry fraction and stops at contact. It also checks an oriented box, no-hit output, copied hit state, unsupported configuration refusal and failed-step retention. The SVG scene still renders the original bounded sphere/floor case.
+
+The compiled `broadphase-probe.mjs` compares direct and optional AABB pair filtering for 32 bodies over 120 steps. It checks copied pair statistics, exact accepted pose/contact agreement in the fixed workload, oriented box and capsule bounds, a contact cascade within one solver pass, kinematic movement, CCD, refusal and disposal. It prints candidate counts, local wall time and heap-use change. These measurements describe this run only; heap-use change is not total allocation.
