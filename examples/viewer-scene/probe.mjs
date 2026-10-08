@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { parseBaroCadSource } from '@barocss/cad-interop/native';
+import { parseBaroCadSource } from '../../packages/barocss-cad-interop/dist/native.js';
 import { createViewer } from '../../packages/barocss-viewer/dist/index.js';
 
 const source = readFileSync(new URL('two-surfaces.barocad', import.meta.url), 'utf8');

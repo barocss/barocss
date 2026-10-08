@@ -15,6 +15,13 @@ Open <http://127.0.0.1:52165/>. Click each surface to inspect its qualified ID
 and approximate triangle U/V. Fit, Orbit, Pan and Zoom change the camera. The
 native source and model remain in `viewer.getState().native`.
 
+The canvas also uses `viewer.attachPointerControls`: primary drag orbits,
+Shift+primary drag pans, and the wheel zooms. The example sets
+`touch-action:none` on its canvas. A drag does not trigger the existing
+click-to-select handler; a click without drag still selects a Surface.
+The adapter owns only its canvas listeners and can be stopped with
+`window.viewerDemo.controls.dispose()`.
+
 The measurement panel accepts two qualified native Surface parameters. Its
 initial values include an interior point on the nonunit weighted Surface.
 Press **Measure native points** to show the native XYZ points and

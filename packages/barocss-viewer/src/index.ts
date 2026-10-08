@@ -17,6 +17,8 @@ import type { MeshCamera, MeshLighting, PreviewPacket, PrimitiveSceneEntryV1,
 type Vec3 = [number, number, number];
 type Quat = [number, number, number, number];
 export interface ViewerOptions { mmToSceneUnit: number; background: Vec3; lighting?: MeshLighting }
+export interface ViewerPointerControlOptions { onError?: (error: unknown) => void }
+export interface ViewerPointerControls { dispose(): void }
 export interface NativeLoadOptions { sourceVersion: 0; countU: number; countV: number }
 export interface ViewerNativeCurveLoadOptions extends NativeLoadOptions {
   curveDisplay: { chordToleranceMM: number; maxSegments: number; maxDepth: number };
@@ -1102,6 +1104,130 @@ export class Viewer {
     check(packets.length + curves.length === 1, 'Unknown displayed geometry reference');
     this.setView(fittedCamera(packets, curves, this.options.mmToSceneUnit,
       this.canvas.width, this.canvas.height, this.motion, this.geometryMotion));
+  }
+  attachPointerControls(options: ViewerPointerControlOptions = {}): ViewerPointerControls {
+    this.live();
+    check(options !== null && typeof options === 'object'
+      && Object.getPrototypeOf(options) === Object.prototype,
+    'Pointer control options must be plain data');
+    const keys = Reflect.ownKeys(options);
+    check(keys.length <= 1 && keys.every(key => key === 'onError'),
+      'Pointer control options have unsupported fields');
+    const value = ownRecord(options, keys as string[], 'Pointer control options');
+    check(value.onError === undefined || typeof value.onError === 'function',
+      'Pointer control onError must be a function');
+    const onError = value.onError as ((error: unknown) => void) | undefined;
+    const canvas = this.canvas;
+    type Gesture = { id: number; x: number; y: number; startX: number; startY: number;
+      mode: 'orbit' | 'pan'; dragged: boolean };
+    let active: Gesture | null = null;
+    let suppressClick = false;
+    let disposed = false;
+    const report = (error: unknown): void => { onError?.(error); };
+    const rect = (): DOMRect => {
+      const value = canvas.getBoundingClientRect();
+      check(Number.isFinite(value.width) && Number.isFinite(value.height)
+        && value.width > 0 && value.height > 0,
+      'Pointer controls require a visible CSS canvas');
+      return value;
+    };
+    const end = (): void => {
+      const gesture = active;
+      active = null;
+      if (gesture && canvas.hasPointerCapture(gesture.id)) {
+        try { canvas.releasePointerCapture(gesture.id); } catch { /* Capture was already lost. */ }
+      }
+    };
+    const down = (event: PointerEvent): void => {
+      if (disposed || active || !event.isPrimary || event.button !== 0) return;
+      try {
+        rect();
+        check(Number.isFinite(event.clientX) && Number.isFinite(event.clientY),
+          'Pointer coordinates must be finite');
+        canvas.setPointerCapture(event.pointerId);
+        active = { id: event.pointerId, x: event.clientX, y: event.clientY,
+          startX: event.clientX, startY: event.clientY,
+          mode: event.shiftKey ? 'pan' : 'orbit', dragged: false };
+        suppressClick = false;
+        event.preventDefault();
+      } catch (error) { report(error); }
+    };
+    const move = (event: PointerEvent): void => {
+      const gesture = active;
+      if (disposed || !gesture || event.pointerId !== gesture.id) return;
+      if (!canvas.hasPointerCapture(gesture.id)) { active = null; return; }
+      if (event.pointerType === 'mouse' && (event.buttons & 1) === 0) { end(); return; }
+      try {
+        const bounds = rect();
+        check(Number.isFinite(event.clientX) && Number.isFinite(event.clientY),
+          'Pointer coordinates must be finite');
+        const dx = event.clientX - gesture.x, dy = event.clientY - gesture.y;
+        if (dx === 0 && dy === 0) return;
+        if (gesture.mode === 'orbit') {
+          this.orbit(Math.max(-Math.PI * 2, Math.min(Math.PI * 2, 2 * Math.PI * dx / bounds.width)),
+            Math.max(-Math.PI, Math.min(Math.PI, Math.PI * dy / bounds.height)));
+        } else {
+          const camera = this.camera;
+          const distance = Math.hypot(...subtract(camera.eye, camera.target));
+          const perPixel = 2 * distance * Math.tan(camera.fovYDegrees * Math.PI / 360) / bounds.height;
+          check(Number.isFinite(perPixel), 'Pointer pan scale must be finite');
+          this.pan(Math.max(-1000, Math.min(1000, -dx * perPixel)),
+            Math.max(-1000, Math.min(1000, dy * perPixel)));
+        }
+        gesture.x = event.clientX; gesture.y = event.clientY;
+        gesture.dragged ||= Math.hypot(event.clientX - gesture.startX,
+          event.clientY - gesture.startY) > 3;
+        event.preventDefault();
+      } catch (error) { end(); report(error); }
+    };
+    const up = (event: PointerEvent): void => {
+      if (!active || event.pointerId !== active.id) return;
+      suppressClick = active.dragged;
+      end();
+    };
+    const cancel = (event: PointerEvent): void => {
+      if (active?.id === event.pointerId) { suppressClick = false; end(); }
+    };
+    const lost = (event: PointerEvent): void => {
+      if (active?.id === event.pointerId) active = null;
+    };
+    const click = (event: MouseEvent): void => {
+      if (!suppressClick) return;
+      suppressClick = false;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    };
+    const wheel = (event: WheelEvent): void => {
+      if (disposed) return;
+      try {
+        const bounds = rect();
+        check(Number.isFinite(event.deltaY) && [0, 1, 2].includes(event.deltaMode),
+          'Wheel delta must be finite in a supported mode');
+        const pixels = event.deltaY * (event.deltaMode === 1 ? 16
+          : event.deltaMode === 2 ? bounds.height : 1);
+        this.zoom(Math.max(0.1, Math.min(10, Math.exp(-pixels * 0.001))));
+        event.preventDefault();
+      } catch (error) { report(error); }
+    };
+    canvas.addEventListener('pointerdown', down);
+    canvas.addEventListener('pointermove', move);
+    canvas.addEventListener('pointerup', up);
+    canvas.addEventListener('pointercancel', cancel);
+    canvas.addEventListener('lostpointercapture', lost);
+    canvas.addEventListener('click', click, true);
+    canvas.addEventListener('wheel', wheel, { passive: false });
+    return { dispose: (): void => {
+      if (disposed) return;
+      disposed = true;
+      end();
+      canvas.removeEventListener('pointerdown', down);
+      canvas.removeEventListener('pointermove', move);
+      canvas.removeEventListener('pointerup', up);
+      canvas.removeEventListener('pointercancel', cancel);
+      canvas.removeEventListener('lostpointercapture', lost);
+      canvas.removeEventListener('click', click, true);
+      canvas.removeEventListener('wheel', wheel);
+    } };
   }
   setView(input: MeshCamera): void {
     this.live(); const camera = validateMeshCamera(input);
