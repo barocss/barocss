@@ -75,11 +75,14 @@ export function parseBody(value: unknown): Body {
   const kind = input.kind;
   fields(input, kind === 'dynamic'
     ? ['id', 'kind', 'shape', 'positionM', 'velocityMps', 'massKg', 'restitution',
-      'orientation', 'angularVelocityRadps', 'inertiaKgM2', 'friction']
+      'orientation', 'angularVelocityRadps', 'inertiaKgM2', 'friction', 'ccd']
     : ['id', 'kind', 'shape', 'positionM', 'restitution', 'orientation', 'sensor', 'friction'], 'body');
   if (Object.hasOwn(input, 'sensor') && input.sensor !== true) error('INVALID_CONFIG', 'sensor must be true');
   const sensor = input.sensor === true;
   const parsedShape = shape(input.shape);
+  if (Object.hasOwn(input, 'ccd') && (input.ccd !== true || parsedShape.kind !== 'sphere')) {
+    error('INVALID_CONFIG', 'ccd is supported for dynamic spheres only and must be true');
+  }
   const positionM = vector(input.positionM, -10000, 10000, 'positionM');
   const restitution = finite(input.restitution, 0, 1, 'restitution');
   const material = Object.hasOwn(input, 'friction') ? friction(input.friction) : { static: 0, dynamic: 0 };
@@ -108,6 +111,7 @@ export function parseBody(value: unknown): Body {
       : undefined;
   const inertia = inertiaDiagonalKgM2 ?? [inertiaKgM2!, inertiaKgM2!, inertiaKgM2!];
   return { id: input.id, kind, shape: parsedShape, positionM, sensor,
+    ...(input.ccd === true ? { ccd: true as const } : {}),
     velocityMps: vector(input.velocityMps, -1000, 1000, 'velocityMps'),
     orientation,
     angularVelocityRadps: Object.hasOwn(input, 'angularVelocityRadps') ? angularVector(input.angularVelocityRadps) : [0, 0, 0],

@@ -19,7 +19,7 @@ export type PhysicsShape = SphereShape | BoxShape | CapsuleShape;
 export type PhysicsFriction = { static: number; dynamic: number };
 export type PhysicsBodyConfig =
   | { id: string; kind: 'dynamic'; shape: PhysicsShape; positionM: Vec3; velocityMps: Vec3; massKg: number; restitution: number;
-      orientation?: Quat; angularVelocityRadps?: Vec3; inertiaKgM2?: number; friction?: PhysicsFriction }
+      orientation?: Quat; angularVelocityRadps?: Vec3; inertiaKgM2?: number; friction?: PhysicsFriction; ccd?: true }
   | { id: string; kind: 'static' | 'kinematic'; shape: PhysicsShape; positionM: Vec3; restitution: number;
       orientation?: Quat; sensor?: true; friction?: PhysicsFriction };
 export type PhysicsStepCommand =
@@ -49,6 +49,7 @@ export interface PhysicsBodyState {
   inertiaKgM2?: number;
   inertiaDiagonalKgM2?: Vec3;
   sensor?: boolean;
+  ccd?: true;
 }
 export interface PhysicsContact {
   aId: string;
@@ -74,6 +75,12 @@ export interface PhysicsJointState {
   angularImpulseNms: Vec3;
   angleRad?: number;
 }
+export interface PhysicsCcdHit {
+  bodyId: string;
+  fixtureId: string;
+  toiFraction: number;
+  normalFixtureToBody: Vec3;
+}
 export interface PhysicsState {
   stepIndex: number;
   timeSeconds: number;
@@ -81,6 +88,7 @@ export interface PhysicsState {
   contacts: PhysicsContact[];
   events: PhysicsEvent[];
   joints: PhysicsJointState[];
+  ccdHits: PhysicsCcdHit[];
 }
 export interface PhysicsOverlapSphereQuery { centerM: Vec3; radiusM: number; includeSensors?: boolean }
 export interface PhysicsRayQuery { originM: Vec3; direction: Vec3; maxDistanceM: number; includeSensors?: boolean }
