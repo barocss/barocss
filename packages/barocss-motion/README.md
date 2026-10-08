@@ -104,3 +104,18 @@ Both inputs must be validated v0 clips with the same context ID and exact `(targ
 At weight 0 or 1, the result copies the corresponding existing clip sample without component arithmetic. This preserves sampled signed zeros and quaternion signs. `weight: -0` selects the source and is returned as `+0`; signed-zero input times remain signed. Interior translation and scale are componentwise linear. Interior rotation uses the same shortest-path SLERP and near-equal normalization rule as keyed sampling. Returned poses and arrays are independent copies. Computed translation, scale and quaternion values must stay finite and inside the v0 bounds.
 
 Invalid clips, times or weight throw `MotionBlendError` with code `INVALID_INPUT`. Context or target/property mismatches use `INCOMPATIBLE_CLIPS`; unsafe computed values use `UNSAFE_RESULT`. Error messages name the field and do not include caller data. The function has no player state, timer, marker events, asset migration, renderer operation, or CAD source mutation.
+
+## Cubic timing for clip sampling
+
+```js
+import { evaluateMotionTiming, sampleMotionClipWithTiming } from '@barocss/motion';
+
+const timing = { kind: 'cubic-bezier', x1: 0.25, y1: 0.1, x2: 0.25, y2: 1 };
+const evaluation = evaluateMotionTiming(0.5, timing);
+const sample = sampleMotionClipWithTiming(clip, 2, timing);
+// sample.inputTimeSeconds remains 2; sample.sampledTimeSeconds is eased.
+```
+
+The progress and four control values must be finite in `[0, 1]`. The cubic has fixed `(0, 0)` and `(1, 1)` endpoints. This bounded family has a monotone X axis and no Y overshoot. `evaluateMotionTiming` returns a fresh `{progress,easedProgress,parameter,iterations,xResidual}` record. A bracketed bisection uses at most 64 steps and requires computed X residual at most `1e-9`; the residual describes this calculation, not a global numerical certificate. Endpoints return exact 0 or 1 with zero steps. The result copies a negative-zero input progress, while its eased zero is positive zero.
+
+`sampleMotionClipWithTiming` requires an actual validated v0 clip and a finite input time within its original duration. It maps only the requested sample time, then uses the existing sampler and returns independent `{contextId,inputTimeSeconds,sampledTimeSeconds,poses}` data. Exact input endpoints retain their time bits and existing key/quaternion sample values. A zero-duration clip stays at zero. The clip, keys, player and marker seconds/events do not change. No clock, per-track easing, file schema or renderer is included. Invalid inputs throw `MotionTimingError` with `INVALID_INPUT`; unsafe computed results use `UNSAFE_RESULT`. Timing must be an exact plain own-data record; getters and extra fields are refused without reading caller getters.

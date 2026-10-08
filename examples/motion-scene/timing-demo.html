@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BaroCSS Motion · Cubic timing</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./style.css">
+  <style>
+    .timing-values { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 16px; color: #a8bbc9; font-size: 13px; }
+    .timing-values strong { color: #77e8cf; font-variant-numeric: tabular-nums; }
+    #timing-status { display: block; color: #a8bbc9; margin-top: 14px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <main class="layout">
+    <header>
+      <div class="eyebrow">BAROCSS / MOTION TIMING</div>
+      <h1>Authored time changes the sampled pose.</h1>
+      <p>The caller sets the input time. A bounded cubic curve maps it to a sampled time for the same two-part clip.</p>
+    </header>
+    <div class="stage-wrap">
+      <canvas id="stage" aria-label="3D two-part scene sampled with cubic timing"></canvas>
+      <div class="stage-label"><span class="live-dot"></span> sample-assembly · part XYZ · mm</div>
+      <div class="part-label part-a">PART A <small>box</small></div>
+      <div class="part-label part-b">PART B <small>sphere</small></div>
+      <div id="loading" role="status">Loading clip and renderer…</div>
+    </div>
+    <section class="control-panel" aria-label="Timing controls">
+      <div class="transport">
+        <label for="curve">Curve</label>
+        <select id="curve"><option value="ease">Ease</option><option value="identity">Identity</option><option value="flat">Flat X</option></select>
+      </div>
+      <label class="seek-row" for="input-time"><span>Input time</span><input id="input-time" type="range" min="0" max="4" step="0.01" value="2"><span>4.00 s</span></label>
+      <div class="sample-buttons">
+        <button type="button" data-time="0">Start</button>
+        <button type="button" data-time="2">Midpoint</button>
+        <button type="button" data-time="4">End</button>
+        <button type="button" id="try-invalid">Try invalid curve</button>
+      </div>
+      <div class="timing-values"><span>Input <strong id="input-value">—</strong></span><span>Sampled <strong id="sampled-value">—</strong></span><span>Progress <strong id="progress-value">—</strong></span><span>Eased <strong id="eased-value">—</strong></span></div>
+      <output id="timing-status" role="status">Loading…</output>
+    </section>
+    <section class="readout"><div><span class="eyebrow">OWNED POSES</span></div><pre id="poses"></pre></section>
+    <footer>Timing and poses come from @barocss/motion · Three.js displays the poses</footer>
+  </main>
+  <script type="module" src="./timing-demo.js"></script>
+</body>
+</html>
