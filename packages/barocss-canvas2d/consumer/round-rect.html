@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><link rel="icon" href="data:,">
+<title>Canvas2D rounded rectangle consumer</title>
+<style>
+  body { margin: 20px; font: 14px system-ui; background: #f4f6fa; }
+  button, input { margin: 0 8px 8px 0; }
+  canvas { display: block; width: 120px; height: 90px; background: white; }
+  pre { white-space: pre-wrap; background: white; padding: 8px; }
+</style>
+<h1>Public rounded rectangle builder</h1>
+<button id="shrink">Set radius 5</button><button id="expand">Set radius 20</button>
+<button id="save">Save document</button><label>Open document <input id="open" type="file" accept="application/json,.json"></label>
+<p id="status" role="status"></p><canvas id="scene" width="240" height="180"></canvas><pre id="observation"></pre>
+<script type="importmap">{"imports":{"@barocss/canvas2d":"../dist/index.js","@barocss/canvas2d/document":"../dist/document.js"}}</script>
+<script type="module" src="./round-rect.mjs"></script>
+</html>
