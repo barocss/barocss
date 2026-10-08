@@ -10,6 +10,7 @@ export type PathBuilder = {
   rect(x: number, y: number, width: number, height: number): PathBuilder;
   roundRect(x: number, y: number, width: number, height: number, radius: number): PathBuilder;
   circle(cx: number, cy: number, radius: number): PathBuilder;
+  ellipse(cx: number, cy: number, radiusX: number, radiusY: number): PathBuilder;
   clear(): PathBuilder;
   build(): PathCommand[];
 };
@@ -103,6 +104,18 @@ export function createPathBuilder(): PathBuilder {
       const right = scalar(x + r), left = scalar(x - r), bottom = scalar(y + r), top = scalar(y - r);
       const k = 4 * (Math.SQRT2 - 1) / 3, a = scalar(x + k * r), b = scalar(x - k * r);
       const c = scalar(y + k * r), d = scalar(y - k * r);
+      return append([{ kind: 'M', x: right, y },
+        { kind: 'C', c1x: right, c1y: c, c2x: a, c2y: bottom, x, y: bottom },
+        { kind: 'C', c1x: b, c1y: bottom, c2x: left, c2y: c, x: left, y },
+        { kind: 'C', c1x: left, c1y: d, c2x: b, c2y: top, x, y: top },
+        { kind: 'C', c1x: a, c1y: top, c2x: right, c2y: d, x: right, y },
+        { kind: 'Z' }]);
+    },
+    ellipse(cx: number, cy: number, radiusX: number, radiusY: number) {
+      const x = scalar(cx), y = scalar(cy), rx = positive(radiusX), ry = positive(radiusY);
+      const right = scalar(x + rx), left = scalar(x - rx), bottom = scalar(y + ry), top = scalar(y - ry);
+      const k = 4 * (Math.SQRT2 - 1) / 3, a = scalar(x + k * rx), b = scalar(x - k * rx);
+      const c = scalar(y + k * ry), d = scalar(y - k * ry);
       return append([{ kind: 'M', x: right, y },
         { kind: 'C', c1x: right, c1y: c, c2x: a, c2y: bottom, x, y: bottom },
         { kind: 'C', c1x: b, c1y: bottom, c2x: left, c2y: c, x: left, y },
