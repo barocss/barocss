@@ -483,3 +483,20 @@ geometry progress. Each source uses the existing 262144-byte/4096-chunk
 strict UTF-8 transport; four sources cap the set at 1048576 bytes. Results
 are plain owned data and need no renderer `dispose()`. See
 `examples/model-set-native.html` for a two-file browser readout.
+
+### Project qualified sets into a display scene
+
+`prepareBaroCadModelSetDisplay(set)` copies at most four total source0
+Surface packets and gives each copy a unique ASCII display `surfaceId`.
+Each `{ packet, binding }` contains exact `aliasId`, original `modelId`,
+original `surfaceId`, source URL and derived `displaySurfaceId`. The input
+native Models, packets and IDs stay unchanged. Invalid packet/native bindings
+and wider sets reject before any GPU work. This neutral helper does not import
+`@barocss/gpu` or allocate WebGL objects.
+
+`examples/model-set-gpu.html` passes these copies to the existing own GPU
+`mountMeshScene` API. The example supplies the second asset's display
+translation explicitly. The translation is not a native CAD placement or an
+assembly relation. A GPU packet label is not a native identity; resolve it
+through the binding before any native query. Viewer native measurement and
+multi-model adoption remain separate work.
