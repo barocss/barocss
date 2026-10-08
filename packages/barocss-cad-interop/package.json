@@ -35,6 +35,7 @@
     "test:native": "pnpm --filter @barocss/cad build:library && pnpm build:library && node test/native-loader.test.mjs",
     "test:babylon": "pnpm --filter @barocss/cad build:library && pnpm build:library && node test/babylon-loader.test.mjs",
     "test:curve": "node test/curve-loader.test.mjs",
+    "test:abortable": "node test/abortable-loader.test.mjs",
     "test:integration": "pnpm --filter @barocss/cad build:library && pnpm --filter @barocss/gpu build:library && pnpm build:library && node --test test/cad-integration.test.mjs"
   },
   "dependencies": {

@@ -5,6 +5,8 @@ import {
 import type { LoadingManager } from 'three';
 import { parseBaroCadSource } from './native.js';
 import type { BaroCadNativeResult, BaroCadParseOptions } from './native.js';
+import { readAbortableBaroCadSource, throwIfBaroCadAborted, validateBaroCadTransport } from './transport.js';
+import type { BaroCadLoadTransportOptions } from './transport.js';
 
 export interface BaroCadThreeResult extends BaroCadNativeResult {
   /** Surface Mesh and optional Curve Line children. Dispose each child's geometry and material. */
@@ -79,6 +81,23 @@ export class BaroCADLoader extends Loader {
       for (const geometry of geometries) geometry.dispose();
       for (const material of materials) material.dispose();
     } };
+  }
+
+  /** Explicit bounded URL transport. Existing Loader.load/loadAsync behavior is unchanged. */
+  async loadAbortable(url: string, transport: BaroCadLoadTransportOptions): Promise<BaroCadThreeResult> {
+    const request = validateBaroCadTransport(url, transport);
+    const source = await readAbortableBaroCadSource(request);
+    throwIfBaroCadAborted(request.signal);
+    let result: BaroCadThreeResult | undefined;
+    try {
+      result = this.parse(source);
+      await Promise.resolve();
+      throwIfBaroCadAborted(request.signal);
+      return result;
+    } catch (error) {
+      result?.dispose();
+      throw error;
+    }
   }
 
   load(
