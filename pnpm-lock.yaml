@@ -183,6 +183,8 @@ importers:
 
   packages/barocss-motion: {}
 
+  packages/barocss-physics: {}
+
   packages/barocss-render:
     dependencies:
       react:

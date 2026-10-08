@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23143e4b'/%3E%3Ctext x='8' y='24' fill='white' font-size='23' font-family='sans-serif' font-weight='bold'%3EB%3C/text%3E%3C/svg%3E">
+  <title>BaroCSS Physics — 낙하와 접촉</title>
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="masthead">
+      <div class="brand"><span class="brand-mark">B</span><span>BaroCSS <strong>Physics</strong></span><span class="badge">PROTOTYPE 01</span></div>
+      <div class="header-note">고정 시간 간격 · 3D 위치 계산 · 화면은 측면 투영</div>
+    </header>
+    <section class="intro">
+      <div>
+        <p class="eyebrow">첫 번째 물리 실험</p>
+        <h1>중력으로 떨어지고,<br><em>고정된 받침에 닿습니다.</em></h1>
+        <p class="lead">엔진은 구의 위치와 속도, 접촉을 계산합니다. 이 화면은 그 결과를 그리는 호스트 예제입니다.</p>
+      </div>
+      <div class="formula"><span>01 / WORLD</span><strong>Δt = 1/120 s</strong><small>g = −9.81 m/s²<br>질량 = 1 kg · 반지름 = 0.16 m</small></div>
+    </section>
+    <div class="workspace">
+      <section class="viewport" aria-label="물리 장면">
+        <div class="viewport-top"><span><i class="live-dot"></i> LIVE SIMULATION</span><span>ORTHOGRAPHIC SIDE VIEW <b>Y ↑</b></span></div>
+        <div class="scene-wrap">
+          <svg id="scene" viewBox="0 0 800 480" role="img" aria-label="구가 고정된 받침으로 떨어지는 측면 투영">
+            <defs><pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M 50 0 L 0 0 0 50" fill="none" stroke="#d8e3e8" stroke-width="1"/></pattern><filter id="shadow"><feGaussianBlur stdDeviation="8"/></filter></defs>
+            <rect width="800" height="480" fill="#f4f8f9"/><rect width="800" height="480" fill="url(#grid)"/>
+            <line x1="80" x2="80" y1="58" y2="420" class="axis"/><line x1="80" x2="732" y1="420" y2="420" class="axis"/>
+            <text x="92" y="74" class="axis-label">Y · m</text><text x="702" y="410" class="axis-label">X · m</text>
+            <line x1="80" x2="720" y1="360" y2="360" class="measure-line"/><text x="92" y="351" class="measure-label">받침 위 0.40 m</text>
+            <ellipse id="ball-shadow" cx="400" cy="359" rx="34" ry="7" fill="#326a75" opacity="0.16" filter="url(#shadow)"/>
+            <rect x="235" y="360" width="330" height="60" rx="4" fill="#284f60"/><rect x="235" y="360" width="330" height="10" rx="3" fill="#38a4a6"/>
+            <text x="400" y="398" text-anchor="middle" class="fixture-text">FIXTURE · 고정된 받침</text>
+            <line id="height-line" x1="603" x2="603" y1="96" y2="360" stroke="#1c9f9d" stroke-width="2" stroke-dasharray="5 5"/>
+            <circle id="ball" cx="400" cy="90" r="24" fill="#ed783f" stroke="#a8442c" stroke-width="3"/>
+            <circle id="ball-glint" cx="392" cy="82" r="7" fill="#ffe2c5" opacity=".75"/>
+            <text id="ball-label" x="434" y="88" class="ball-label">PART · 이동하는 구</text>
+          </svg>
+          <div id="contact-flash" class="contact-flash">접촉 감지</div>
+        </div>
+        <div class="viewport-bottom"><span>위치 계산: Physics</span><span>구·받침 형태: 화면 표시용</span></div>
+      </section>
+      <aside class="inspector">
+        <div class="panel-head"><span>STATE INSPECTOR</span><span id="run-state" class="state-pill">RUNNING</span></div>
+        <div class="metric primary"><span>구의 중심 높이</span><div><strong id="height">2.200</strong><small>m</small></div></div>
+        <div class="metric"><span>수직 속도</span><div><strong id="velocity">0.000</strong><small>m/s</small></div></div>
+        <div class="metric"><span>시뮬레이션 시간</span><div><strong id="time">0.000</strong><small>s</small></div></div>
+        <div class="metric"><span>고정 스텝</span><div><strong id="step-index">0</strong><small>회</small></div></div>
+        <div class="contact-panel"><span>CONTACT</span><strong id="contact-state">대기 중</strong><small id="contact-detail">구와 받침 사이에 아직 접촉이 없습니다.</small></div>
+        <div class="controls"><button id="toggle" type="button">일시 정지</button><button id="step" type="button">한 단계</button><button id="reset" type="button">처음부터</button></div>
+        <p class="key-hint">Space: 일시 정지 / 재생 · →: 한 단계 · R: 처음부터</p>
+      </aside>
+    </div>
+    <footer><span>이 예제는 물리 상태를 확인하는 도구입니다. CAD 형상 충돌의 정확성을 인증하지 않습니다.</span><a href="https://github.com/barocss/barocss/issues/751">범위와 검증 기준 ↗</a></footer>
+  </main>
+</body>
+</html>
