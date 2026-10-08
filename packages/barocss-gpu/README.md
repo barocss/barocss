@@ -688,3 +688,46 @@ directory, optionally `BAROCSS_PRIMITIVE_PORT`, and run
 loopback URL and press **Run native primitive flow**. It uses two genuine native
 Surfaces and two weighted, asymmetric Curves with nonunit original domains.
 Root/lock adoption, Viewer consumer adoption and publication remain separate.
+
+## Explicit wide primitive scene v1 (#725)
+
+`mountPrimitiveSceneV1(canvas,{version:1,entries},options)` adds an explicit scene
+envelope and `PrimitiveSceneRendererV1`. Surface entries keep the old fields.
+Each Curve entry now requires `sampleVersion:0|1`, exactly matching its native
+sample report. Version0 uses the original CAD sampler validator; version1 uses
+`validateWideAdaptiveCurveSamples` on the full own native wide record. Its source
+version remains0. Old `mountPrimitiveScene` and its16-pole/v0 reader continue to
+reject v1 envelopes/records/additional fields, with their old capacities.
+
+V1 uses the same GPU backend and declared frame/pose/resource contracts. It admits
+1..4 distinct native objects, up to4096 segments/4097 points per wide Curve, and
+16384 segments/16388 points across the scene. The wide native profile is positive
+open-clamped degree1..3, up to64 original poles/70 knots. Its snapshot admission is
+2097152 values/depth32/8192 array elements/64 record fields/262144-character source
+strings. Legacy samples retain their own smaller per-record profile. Native
+validation must precede GPU allocation, and all native source/coefficients/IDs,
+original parameter/D1-guard/quality data remain owned copies. No fit, edge identity
+or global/manufacturing certificate is inferred.
+
+`entries`/`options`/actual Float32 `bounds` return copies. `update` takes the same
+explicit v1 envelope and stages the complete candidate. Mismatched sample/source/
+scene versions, tampered/getter/budget/unsafe pose/Float32 data preserve the prior
+entire scene/pixels. Resize/render/readPixels/dispose inherit the same single
+context/shared depth lifecycle; no new renderer or copied CAD span kernel exists.
+Normals/indices apply only to Surfaces and line width remains1 device pixel.
+
+One actual compiled native-record/GPU/WebGL flow uses saved real CAD696 records:
+
+```sh
+BAROCSS_WIDE_NATIVE_RECORD=/actual/wide.owned-result.json \
+BAROCSS_LEGACY_NATIVE_RECORD=/actual/legacy.v0-owned-result.json \
+BAROCSS_PRIMITIVE_V1_EVIDENCE=/unique/output \
+BAROCSS_PRIMITIVE_V1_PORT=52193 \
+node packages/barocss-gpu/tests/primitive-scene-v1-flow.mjs
+```
+
+Open the printed loopback URL and press **Run wide native scene flow**. Actual
+old-reader refusal,64-pole/nonunit/C0 source record, independent line/mesh buffers,
+pixels/TRS/bounds/depth, candidate retention and owned cleanup are recorded.
+Native API completion, Integration/Viewer/Loader adoption and publication remain
+separate. Only the compatible compiled own-CAD producer can satisfy this new API.

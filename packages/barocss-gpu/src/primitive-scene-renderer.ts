@@ -1,5 +1,5 @@
-import {validateAdaptiveCurveSamples} from '@barocss/cad';
-import type {AdaptiveCurveSamplingResult} from '@barocss/cad';
+import {validateAdaptiveCurveSamples,validateWideAdaptiveCurveSamples} from '@barocss/cad';
+import type {AdaptiveCurveSamplingResult,WideAdaptiveCurveSamplingResult} from '@barocss/cad';
 import {GPUError} from './renderer.js';
 import type {UpdateResult} from './renderer.js';
 import {validateMeshOptions} from './mesh-packet.js';
@@ -15,8 +15,14 @@ export type PrimitiveSceneEntry=
  |{kind:'surface';packet:PreviewPacket;color:RGB;transform?:MeshSceneTransform}
  |{kind:'curve';sample:AdaptiveCurveSamplingResult;basis:'authored-xyz-matches-rhyup';color:RGB;transform?:MeshSceneTransform};
 export type PrimitiveSceneOptions=MeshSceneOptions;
+export type PrimitiveSceneEntryV1=
+ |Extract<PrimitiveSceneEntry,{kind:'surface'}>
+ |(Extract<PrimitiveSceneEntry,{kind:'curve'}>&{sampleVersion:0})
+ |{kind:'curve';sampleVersion:1;sample:WideAdaptiveCurveSamplingResult;basis:'authored-xyz-matches-rhyup';color:RGB;transform?:MeshSceneTransform};
+export interface PrimitiveSceneInputV1 {version:1;entries:PrimitiveSceneEntryV1[]}
+type NativeCurveSample=AdaptiveCurveSamplingResult|WideAdaptiveCurveSamplingResult;
 interface Primitive {
- entry:PrimitiveSceneEntry;positions:Float32Array;normals?:Float32Array;indices?:Uint16Array;bounds:MeshSceneBounds;
+ entry:PrimitiveSceneEntry|PrimitiveSceneEntryV1;positions:Float32Array;normals?:Float32Array;indices?:Uint16Array;bounds:MeshSceneBounds;
 }
 interface Draw extends Primitive {vao:WebGLVertexArrayObject|null;buffers:WebGLBuffer[];program:WebGLProgram|null}
 interface Frame {draws:Draw[];options:PrimitiveSceneOptions;programs:WebGLProgram[];framebuffer:WebGLFramebuffer|null;color:WebGLTexture|null;depth:WebGLRenderbuffer|null;width:number;height:number}
@@ -43,24 +49,24 @@ function record(input:unknown,allowed:string[],required=allowed):Record<string,u
  return Object.fromEntries((keys as string[]).map(k=>[k,descriptors[k].value]));
 }
 /** Snapshot before native validation: never invoke an input accessor or keep caller data. */
-function sampleSnapshot(input:unknown):AdaptiveCurveSamplingResult {
- let budget=262144;const stack=new WeakSet<object>();
+function sampleSnapshot(input:unknown,wide=false):NativeCurveSample {
+ let budget=wide?2097152:262144;const depthLimit=wide?32:24,arrayLimit=wide?8192:4096,stack=new WeakSet<object>();
  const copy=(value:unknown,depth:number):unknown=>{
-  check(--budget>=0&&depth<=24,'Native Curve snapshot exceeds value/depth limits');
+  check(--budget>=0&&depth<=depthLimit,'Native Curve snapshot exceeds value/depth limits');
   if(typeof value==='number'){check(Number.isFinite(value),'Native Curve numbers must be finite');return value;}
   if(typeof value==='string'){check(value.length<=262144,'Native Curve string exceeds limit');return value;}
   if(value===null||typeof value==='boolean')return value;
   check(value!==null&&typeof value==='object'&&!stack.has(value),'Native Curve requires acyclic plain data');
   const array=Array.isArray(value),proto=Object.getPrototypeOf(value),keys=Reflect.ownKeys(value),descriptors=Object.getOwnPropertyDescriptors(value);
   check(array?proto===Array.prototype:proto===Object.prototype||proto===null,'Native Curve data have a foreign prototype');
-  check(keys.length<=(array?4097:64)&&keys.every(k=>typeof k==='string'&&k.length<=128&&'value'in descriptors[k]&&(array&&k==='length'||descriptors[k].enumerable)),'Native Curve has getters, hidden, symbolic or excessive fields');
+  check(keys.length<=(array?arrayLimit+1:64)&&keys.every(k=>typeof k==='string'&&k.length<=128&&'value'in descriptors[k]&&(array&&k==='length'||descriptors[k].enumerable)),'Native Curve has getters, hidden, symbolic or excessive fields');
   stack.add(value);let result:unknown;
-  if(array){const length=descriptors.length.value;check(Number.isInteger(length)&&length>=0&&length<=4096&&keys.length===length+1,'Native Curve arrays must be dense and bounded');result=Array.from({length},(_,i)=>{check(Object.hasOwn(descriptors,String(i)),'Native Curve array is sparse');return copy(descriptors[String(i)].value,depth+1);});}
+  if(array){const length=descriptors.length.value;check(Number.isInteger(length)&&length>=0&&length<=arrayLimit&&keys.length===length+1,'Native Curve arrays must be dense and bounded');result=Array.from({length},(_,i)=>{check(Object.hasOwn(descriptors,String(i)),'Native Curve array is sparse');return copy(descriptors[String(i)].value,depth+1);});}
   else result=Object.fromEntries((keys as string[]).map(k=>[k,copy(descriptors[k].value,depth+1)]));
   stack.delete(value);return result;
- };return copy(input,0) as AdaptiveCurveSamplingResult;
+ };return copy(input,0) as NativeCurveSample;
 }
-function curvePositions(sample:AdaptiveCurveSamplingResult,options:MeshOptions,pose?:MeshSceneTransform):Float32Array {
+function curvePositions(sample:NativeCurveSample,options:MeshOptions,pose?:MeshSceneTransform):Float32Array {
  const rotate=pose?sceneRotation(pose):null,converted:number[]=[];
  for(const raw of sample.pointsMM){
   const point=pose?rotate!(raw[0]*pose.scale[0],raw[1]*pose.scale[1],raw[2]*pose.scale[2]):raw;
@@ -74,7 +80,7 @@ function curvePositions(sample:AdaptiveCurveSamplingResult,options:MeshOptions,p
  }
  return positions;
 }
-function prepare(input:unknown,optionsInput:unknown):{primitives:Primitive[];options:PrimitiveSceneOptions}{
+function prepare(input:unknown,optionsInput:unknown,sceneVersion:0|1=0):{primitives:Primitive[];options:PrimitiveSceneOptions}{
  const common=record(optionsInput,['mmToSceneUnit','translate','background','camera'],['mmToSceneUnit','translate','background']);
  const white=validateMeshOptions({...common,color:[1,1,1]});
  const options={mmToSceneUnit:white.mmToSceneUnit,translate:[...white.translate] as Vec3,background:[...white.background] as RGB,...(white.camera?{camera:structuredClone(white.camera)}:{})};
@@ -84,9 +90,9 @@ function prepare(input:unknown,optionsInput:unknown):{primitives:Primitive[];opt
  let curvePoints=0,curveSegments=0;const ids=new Set<string>(),primitives:Primitive[]=[];
  for(let i=0;i<length;i++){
   const d=Object.getOwnPropertyDescriptor(input,String(i));check(d&&'value'in d&&d.enumerable,'Primitive entries must be own data');
-  const tag=record(d.value,['kind','packet','sample','basis','color','transform'],['kind','color']),hasPose=Object.hasOwn(tag,'transform');
+  const tag=record(d.value,['kind','packet','sample','basis','color','transform',...(sceneVersion===1?['sampleVersion']:[])],['kind','color']),hasPose=Object.hasOwn(tag,'transform');
   check(tag.kind==='surface'||tag.kind==='curve','Unsupported primitive kind');
-  const keys=tag.kind==='surface'?['kind','packet','color']:['kind','sample','basis','color'];if(hasPose)keys.push('transform');
+  const keys=tag.kind==='surface'?['kind','packet','color']:['kind','sample','basis','color',...(sceneVersion===1?['sampleVersion']:[])];if(hasPose)keys.push('transform');
   const entry=record(d.value,keys);
   if(tag.kind==='surface'){
    const mesh=prepareSceneMesh(entry.packet,{...options,color:entry.color},entry.transform,hasPose);
@@ -94,29 +100,35 @@ function prepare(input:unknown,optionsInput:unknown):{primitives:Primitive[];opt
    primitives.push({entry:{kind:'surface',packet:mesh.packet,color:[...mesh.options.color],...(mesh.transform?{transform:mesh.transform}:{})},positions:mesh.positions,normals:mesh.normals,indices:mesh.indices,bounds:mesh.displayBounds});
   }else{
    check(entry.basis==='authored-xyz-matches-rhyup','Curve authored XYZ must explicitly match renderer Y-up XYZ');
-   const opts=validateMeshOptions({...options,color:entry.color}),pose=hasPose?prepareSceneTransform(entry.transform):undefined,sample=sampleSnapshot(entry.sample);
+   const sampleVersion=sceneVersion===0?0:entry.sampleVersion;check(sampleVersion===0||sampleVersion===1,'Unsupported native Curve sampleVersion');
+   const opts=validateMeshOptions({...options,color:entry.color}),pose=hasPose?prepareSceneTransform(entry.transform):undefined,sample=sampleSnapshot(entry.sample,sampleVersion===1);
    check(sample!==null&&typeof sample==='object'&&Array.isArray(sample.pointsMM)&&sample.pointsMM.length>=2,'Native Curve sampling result required');
+   check(sample.report?.dto?.version===sampleVersion&&sample.sourceVersion===0,'Curve sampling DTO/version does not match the declared profile');
    curvePoints+=sample.pointsMM.length;curveSegments+=sample.pointsMM.length-1;
-   check(curvePoints<=4096&&curveSegments<=4092,'Scene Curve point/segment budget exceeded');
-   validateAdaptiveCurveSamples(sample);
+   check(curvePoints<=(sceneVersion===1?16388:4096)&&curveSegments<=(sceneVersion===1?16384:4092),'Scene Curve point/segment budget exceeded');
+   check(sample.pointsMM.length<=(sampleVersion===1?4097:1025),'Curve sample point capacity exceeded');
+   if(sampleVersion===1)validateWideAdaptiveCurveSamples(sample as WideAdaptiveCurveSamplingResult);else validateAdaptiveCurveSamples(sample as AdaptiveCurveSamplingResult);
    check(!ids.has(sample.curve.id),'Primitive native IDs must be distinct');ids.add(sample.curve.id);
    const positions=curvePositions(sample,opts,pose);
-   primitives.push({entry:{kind:'curve',sample,basis:'authored-xyz-matches-rhyup',color:[...opts.color],...(pose?{transform:pose}:{})},positions,bounds:displayBounds(positions)});
+   const fields={basis:'authored-xyz-matches-rhyup' as const,color:[...opts.color] as RGB,...(pose?{transform:pose}:{})};
+   const owned:PrimitiveSceneEntry|PrimitiveSceneEntryV1=sampleVersion===1?{kind:'curve',sampleVersion:1,sample:sample as WideAdaptiveCurveSamplingResult,...fields}:sceneVersion===1?{kind:'curve',sampleVersion:0,sample:sample as AdaptiveCurveSamplingResult,...fields}:{kind:'curve',sample:sample as AdaptiveCurveSamplingResult,...fields};
+   primitives.push({entry:owned,positions,bounds:displayBounds(positions)});
   }
  }
  return{primitives,options};
 }
+function prepareV1(input:unknown,options:unknown):ReturnType<typeof prepare>{const envelope=record(input,['version','entries']);check(envelope.version===1,'Only explicit primitive scene version1 is supported');return prepare(envelope.entries,options,1);}
 
 /** Genuine sampled native Curves and Surface packets share one candidate frame/depth. */
-export class PrimitiveSceneRenderer {
+class PrimitiveSceneBackend {
  private readonly gl:WebGL2RenderingContext;private accepted:Frame|null=null;private disposed=false;private lost=false;
  private readonly onLoss=(event:Event)=>{event.preventDefault();this.lost=true;};
- constructor(private readonly canvas:HTMLCanvasElement,entries:PrimitiveSceneEntry[],options:PrimitiveSceneOptions){
-  const prepared=prepare(entries,options);this.dimensions(canvas.width,canvas.height);
+ constructor(private readonly canvas:HTMLCanvasElement,prepared:ReturnType<typeof prepare>){
+  this.dimensions(canvas.width,canvas.height);
   const gl=canvas.getContext('webgl2',{alpha:false,antialias:false,depth:true,preserveDrawingBuffer:true});check(gl&&!gl.isContextLost(),'WebGL2 is unavailable');this.gl=gl;canvas.addEventListener('webglcontextlost',this.onLoss);
   let frame:Frame|null=null;try{frame=this.create(prepared.primitives,prepared.options,canvas.width,canvas.height);this.present(frame);this.accepted=frame;}catch(error){if(frame)this.release(frame);this.dispose();throw error;}
  }
- get entries():PrimitiveSceneEntry[]{this.live();return this.accepted!.draws.map(d=>structuredClone(d.entry));}
+ protected copyEntries():(PrimitiveSceneEntry|PrimitiveSceneEntryV1)[]{this.live();return this.accepted!.draws.map(d=>structuredClone(d.entry));}
  get options():PrimitiveSceneOptions{this.live();return structuredClone(this.accepted!.options);}
  get bounds():MeshSceneBounds{this.live();const draws=this.accepted!.draws;return{min:[0,1,2].map(a=>Math.min(...draws.map(d=>d.bounds.min[a]))) as Vec3,max:[0,1,2].map(a=>Math.max(...draws.map(d=>d.bounds.max[a]))) as Vec3};}
  private live(){check(!this.disposed,'Primitive renderer is disposed');check(!this.lost&&!this.gl.isContextLost(),'WebGL2 context is lost; mount a new renderer');}
@@ -148,8 +160,8 @@ export class PrimitiveSceneRenderer {
   }catch(error){this.release(frame);throw error;}
  }
  private present(frame:Frame){this.live();const gl=this.gl;gl.disable(gl.SCISSOR_TEST);gl.bindFramebuffer(gl.READ_FRAMEBUFFER,frame.framebuffer);gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER,null);gl.blitFramebuffer(0,0,frame.width,frame.height,0,0,this.canvas.width,this.canvas.height,gl.COLOR_BUFFER_BIT,gl.NEAREST);this.checkGL();gl.bindFramebuffer(gl.FRAMEBUFFER,null);}
- update(entries:PrimitiveSceneEntry[],options:PrimitiveSceneOptions):UpdateResult{
-  let frame:Frame|null=null;try{this.live();const p=prepare(entries,options);frame=this.create(p.primitives,p.options,this.canvas.width,this.canvas.height);this.present(frame);const prior=this.accepted!;this.accepted=frame;this.release(prior);return{ok:true};}
+ protected updatePrepared(candidate:()=>ReturnType<typeof prepare>):UpdateResult{
+  let frame:Frame|null=null;try{this.live();const p=candidate();frame=this.create(p.primitives,p.options,this.canvas.width,this.canvas.height);this.present(frame);const prior=this.accepted!;this.accepted=frame;this.release(prior);return{ok:true};}
   catch(error){if(frame)this.release(frame);if(!this.disposed&&!this.lost&&!this.gl.isContextLost()&&this.accepted){try{this.present(this.accepted);}catch{this.lost=true;}}return{ok:false,error:error instanceof Error?error:new GPUError('Primitive scene update failed')};}
  }
  resize(width=this.canvas.width,height=this.canvas.height):void{
@@ -162,4 +174,15 @@ export class PrimitiveSceneRenderer {
  private release(frame:Frame){const gl=this.gl;if(!gl.isContextLost()){if(frame.programs.includes(gl.getParameter(gl.CURRENT_PROGRAM)))gl.useProgram(null);if(frame.draws.some(d=>d.vao&&gl.getParameter(gl.VERTEX_ARRAY_BINDING)===d.vao))gl.bindVertexArray(null);for(const[target,binding]of[[gl.READ_FRAMEBUFFER,gl.READ_FRAMEBUFFER_BINDING],[gl.DRAW_FRAMEBUFFER,gl.DRAW_FRAMEBUFFER_BINDING]]as const)if(frame.framebuffer&&gl.getParameter(binding)===frame.framebuffer)gl.bindFramebuffer(target,null);}for(const d of frame.draws){for(const b of d.buffers)gl.deleteBuffer(b);if(d.vao)gl.deleteVertexArray(d.vao);}for(const program of frame.programs)gl.deleteProgram(program);if(frame.framebuffer)gl.deleteFramebuffer(frame.framebuffer);if(frame.depth)gl.deleteRenderbuffer(frame.depth);if(frame.color)gl.deleteTexture(frame.color);}
  dispose():void{if(this.disposed)return;this.disposed=true;this.canvas.removeEventListener('webglcontextlost',this.onLoss);if(this.accepted)this.release(this.accepted);this.accepted=null;}
 }
+export class PrimitiveSceneRenderer extends PrimitiveSceneBackend {
+ constructor(canvas:HTMLCanvasElement,entries:PrimitiveSceneEntry[],options:PrimitiveSceneOptions){super(canvas,prepare(entries,options));}
+ get entries():PrimitiveSceneEntry[]{return this.copyEntries() as PrimitiveSceneEntry[];}
+ update(entries:PrimitiveSceneEntry[],options:PrimitiveSceneOptions):UpdateResult{return this.updatePrepared(()=>prepare(entries,options));}
+}
+export class PrimitiveSceneRendererV1 extends PrimitiveSceneBackend {
+ constructor(canvas:HTMLCanvasElement,input:PrimitiveSceneInputV1,options:PrimitiveSceneOptions){super(canvas,prepareV1(input,options));}
+ get entries():PrimitiveSceneEntryV1[]{return this.copyEntries() as PrimitiveSceneEntryV1[];}
+ update(input:PrimitiveSceneInputV1,options:PrimitiveSceneOptions):UpdateResult{return this.updatePrepared(()=>prepareV1(input,options));}
+}
 export function mountPrimitiveScene(canvas:HTMLCanvasElement,entries:PrimitiveSceneEntry[],options:PrimitiveSceneOptions):PrimitiveSceneRenderer{return new PrimitiveSceneRenderer(canvas,entries,options);}
+export function mountPrimitiveSceneV1(canvas:HTMLCanvasElement,input:PrimitiveSceneInputV1,options:PrimitiveSceneOptions):PrimitiveSceneRendererV1{return new PrimitiveSceneRendererV1(canvas,input,options);}
