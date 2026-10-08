@@ -9,6 +9,7 @@ import { correctPersistentPair, solvePersistentPoint, warmStartPoint } from './p
 import type { PointImpulse } from './persistent-box-contact.js';
 import { admitCcd, sweepSphere } from './ccd.js';
 import { sweepSpherePair } from './ccd-pair.js';
+import { axisAlignedBox, rejectAngularBoxCommand, sweepDynamicBox } from './ccd-box.js';
 import { bodyBounds, boundsOverlap } from './broadphase.js';
 import { dormantPair, filterAllowsPair, wakeOnContact } from './scene-profile.js';
 import { updateSleeping, wakeForActions } from './sleep.js';
@@ -72,6 +73,9 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
   if (new Set(bodies.map((body) => body.id)).size !== bodies.length) error('INVALID_CONFIG', 'duplicate body ID');
   const joints = parseJoints(Object.hasOwn(input, 'joints') ? input.joints : [], bodies);
   const ccd = admitCcd(bodies, joints.length, gravity);
+  if (ccd.kind === 'box-pair' && usePersistentBox) {
+    error('INVALID_CONFIG', 'box CCD excludes persistent-box-v1');
+  }
   const disabledPairs = new Set(joints.map((joint) =>
     [bodies[joint.aIndex].id, bodies[joint.bIndex].id].sort().join('\u0000')));
   const pairs: Array<[number, number]> = [];
@@ -106,6 +110,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
       if (fixedStepSeconds !== dt) error('INVALID_STEP', 'step must equal configured fixedStepSeconds');
       if (stepIndex >= MAX_STEPS) error('WORLD_LIMIT', 'world step limit reached');
       const actions = parseCommands(commands, bodies);
+      if (ccd.kind === 'box-pair') rejectAngularBoxCommand(actions.get(bodies[ccd.boxIndex].id));
       const next = bodies.map(copyBody);
       const nextSleepFrames = sleepFrames.slice();
       if (largeMode) wakeForActions(next, contacts, actions, nextSleepFrames);
@@ -145,7 +150,10 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
         ? sweepSphere(bodies[ccd.sphereIndex], next[ccd.sphereIndex], ccd.fixtures)
         : ccd.kind === 'sphere-pair'
           ? sweepSpherePair(bodies[ccd.sphereIndex], next[ccd.sphereIndex],
-            bodies[ccd.otherIndex], next[ccd.otherIndex]) : null;
+            bodies[ccd.otherIndex], next[ccd.otherIndex])
+          : ccd.kind === 'box-pair'
+            ? sweepDynamicBox(bodies[ccd.boxIndex], next[ccd.boxIndex],
+              next[ccd.fixtureIndex]) : null;
       const nextCcdHits = hit ? [hit] : [];
       const nextPairStats: PhysicsPairStats = { eligiblePairs: 0, candidatePairs: 0, aabbTests: 0 };
       const found = new Map<string, PhysicsContact>();
@@ -245,6 +253,9 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
         return { ...(current ?? previous!), phase: current ? previous ? 'stay' : 'begin' : 'end' };
       });
       validateResult(next, nextContacts);
+      if (ccd.kind === 'box-pair' && !axisAlignedBox(next[ccd.boxIndex])) {
+        error('NUMERIC_LIMIT', 'box CCD contact rotated outside the admitted profile');
+      }
       if (nextJoints.some((joint) => [...joint.linearImpulseNs, ...joint.angularImpulseNms].some((value) =>
         !Number.isFinite(value)) || (joint.angleRad !== undefined && !Number.isFinite(joint.angleRad)))) {
         error('NUMERIC_LIMIT', 'unsafe joint reaction');

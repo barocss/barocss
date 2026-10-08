@@ -53,7 +53,8 @@ assert.deepEqual(noHit.step(dt).ccdHits, []);
 noHit.dispose();
 
 refuses(() => create([{ ...sphere(true), ccd: false }, floor()]), 'INVALID_CONFIG');
-refuses(() => create([{ ...sphere(true), shape: floor().shape }, floor()]), 'INVALID_CONFIG');
+refuses(() => create([{ ...sphere(true), shape: floor().shape,
+  orientation: [0, 0, Math.sin(Math.PI / 8), Math.cos(Math.PI / 8)] }, floor()]), 'INVALID_CONFIG');
 refuses(() => create([sphere(true), { ...floor(), sensor: true }]), 'INVALID_CONFIG');
 refuses(() => create([sphere(true), floor(), sphere(false)]), 'INVALID_CONFIG');
 refuses(() => create([sphere(true), floor(), { ...floor('fixture:second'), kind: 'kinematic' }]), 'INVALID_CONFIG');

@@ -91,8 +91,9 @@ export function parseBody(value: unknown, largeMode = false): Body {
   if (Object.hasOwn(input, 'sensor') && input.sensor !== true) error('INVALID_CONFIG', 'sensor must be true');
   const sensor = input.sensor === true;
   const parsedShape = shape(input.shape);
-  if (Object.hasOwn(input, 'ccd') && (input.ccd !== true || parsedShape.kind !== 'sphere')) {
-    error('INVALID_CONFIG', 'ccd is supported for dynamic spheres only and must be true');
+  if (Object.hasOwn(input, 'ccd') && (input.ccd !== true ||
+    (parsedShape.kind !== 'sphere' && parsedShape.kind !== 'box'))) {
+    error('INVALID_CONFIG', 'ccd is supported for dynamic spheres or boxes only and must be true');
   }
   const positionM = vector(input.positionM, -10000, 10000, 'positionM');
   const restitution = finite(input.restitution, 0, 1, 'restitution');
