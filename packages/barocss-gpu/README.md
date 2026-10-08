@@ -592,7 +592,8 @@ normalized RGB. `MeshSceneOptions` is `MeshOptions` without color: shared camera
 mmToSceneUnit, scene-unit translation and background. It keeps native packets and
 indices separate, uses one WebGL2 context/shared depth buffer, and draws each
 object with its own color. No synthetic combined packet, scene graph, native
-picking/topology, edge overlay or per-object transform is inferred.
+picking/topology or edge overlay is inferred. Optional explicit display transforms
+are described below; omitted transforms retain this original lowering path.
 
 `MeshSceneRenderer.update(entries,options)` returns UpdateResult. All data and
 Float32 geometry pass existing admission before candidate adoption. Failure keeps
@@ -604,3 +605,44 @@ competing renderers on that canvas. Context loss refuses explicitly; mount a new
 renderer rather than assuming automatic restoration. The existing frame limits
 (4096 per axis/4194304 pixels) and per-packet workloads remain; at most4 packets.
 Lazy first mount lets a Viewer remain empty until a supported source is admitted.
+
+## Explicit per-entry display poses (#670)
+
+`MeshSceneEntry.transform` optionally supplies the complete
+`{translationMm,rotationXYZW,scale}` pose in the original packet's declared
+right-handed Y-up XYZ frame. No axis conversion is inferred. Translation is
+finite within ±10000 mm; each scale is in [0.001,100]; the XYZW quaternion has
+components in [-1,1] and unit norm within 1e-9. Computation normalizes that
+quaternion, while owned pose copies retain its authored components and signed
+zeros. Explicit undefined, unknown fields, sparse arrays and accessors refuse.
+
+Positions use `commonTranslate + mmToSceneUnit * (translationMm + R * (scale *
+nativePositionMm))`. Normals use `normalize(R * (nativeNormal / scale))`.
+Original packets, UV, native IDs, winding and bounds remain unchanged. Derived
+Float64 and Float32 geometry must both retain finite positive triangle area and
+normal agreement. Final positions remain within ±1000 scene units; there is no
+clamp or reflection support. With no transform, the old compiler/Float32 path is
+used exactly, including its normal values and refusal behavior.
+
+The renderer's `bounds` getter returns owned `{min,max}` copies computed from
+the actual Float32 display vertices across all entries, in scene units. These
+are display extrema, not native Surface bounds or tight NURBS extents. `entries`
+returns copied original packets, colors and any authored poses. Resize retains
+the accepted execution arrays and poses. Failed poses, second entries or display
+lowering preserve the entire previous entries/options/bounds/frame. Viewer hosts
+own their Motion frame mapping, fit and picking; the GPU owns no player or timer.
+
+One genuine native CAD packet/WebGL flow consumes the compiled GPU export:
+
+```sh
+REPO_DEPS_ROOT=/path/to/existing/dependencies \
+BAROCSS_MESH_TRANSFORM_EVIDENCE=/unique/evidence \
+BAROCSS_MESH_TRANSFORM_PORT=52191 \
+node packages/barocss-gpu/tests/mesh-scene-transform-flow.mjs
+```
+
+Open the printed loopback URL and press **Run display transform flow**. The
+receipt covers actual uploaded buffers, independently expected transformed
+positions/normals/bounds, original metadata, visible frames/shared depth,
+invalid pose and Float32 collapse retention, copied getters and disposal.
+Broader validation and npm publication are separate states.

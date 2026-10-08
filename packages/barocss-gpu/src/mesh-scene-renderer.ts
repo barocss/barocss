@@ -1,15 +1,17 @@
 import {GPUError} from './renderer.js';
 import type {UpdateResult} from './renderer.js';
-import {requireMeshExecution} from './gpu-compiler.js';
+import {prepareSceneMesh} from './mesh-scene-transform.js';
+import type {MeshSceneTransform,MeshSceneBounds,SceneMesh} from './mesh-scene-transform.js';
 import {validateMeshOptions} from './mesh-packet.js';
 import type {PreviewPacket,MeshOptions} from './mesh-packet.js';
-import type {RGB} from './scene.js';
+import type {RGB,Vec3} from './scene.js';
 import {prepareCamera} from './camera.js';
 import {MESH_SHADERS} from './mesh-shaders.js';
 
-export interface MeshSceneEntry {packet:PreviewPacket;color:RGB}
+export interface MeshSceneEntry {packet:PreviewPacket;color:RGB;transform?:MeshSceneTransform}
 export type MeshSceneOptions=Omit<MeshOptions,'color'>;
-type Mesh=ReturnType<typeof requireMeshExecution>;
+export type {MeshSceneTransform,MeshSceneBounds} from './mesh-scene-transform.js';
+type Mesh=SceneMesh;
 interface Draw {mesh:Mesh;vao:WebGLVertexArrayObject|null;buffers:WebGLBuffer[]}
 interface Frame {
  draws:Draw[];options:MeshSceneOptions;program:WebGLProgram|null;
@@ -31,7 +33,7 @@ function prepare(entriesInput:unknown,optionsInput:unknown):{meshes:Mesh[];optio
  requireValue(Number.isInteger(length)&&length>=1&&length<=4,'Mesh scene needs1..4 original packets');
  requireValue(Reflect.ownKeys(entriesInput).length===length+1,'Mesh scene entries must be dense without extra fields');
  const ids=new Set<string>(),meshes:Mesh[]=[];
- for(let i=0;i<length;i++){const d=Object.getOwnPropertyDescriptor(entriesInput,String(i));requireValue(d&&'value'in d&&d.enumerable,'Mesh scene entries must be own data');const entry=record(d.value,['packet','color'],'Mesh scene entry'),mesh=requireMeshExecution(entry.packet,{...options,color:entry.color});requireValue(!ids.has(mesh.packet.surfaceId),'Mesh scene original surface IDs must be distinct');ids.add(mesh.packet.surfaceId);meshes.push(mesh);}
+ for(let i=0;i<length;i++){const d=Object.getOwnPropertyDescriptor(entriesInput,String(i));requireValue(d&&'value'in d&&d.enumerable,'Mesh scene entries must be own data');const keys=['packet','color'],hasTransform=d.value!==null&&typeof d.value==='object'&&Object.hasOwn(d.value,'transform');if(hasTransform)keys.push('transform');const entry=record(d.value,keys,'Mesh scene entry'),mesh=prepareSceneMesh(entry.packet,{...options,color:entry.color},entry.transform,hasTransform);requireValue(!ids.has(mesh.packet.surfaceId),'Mesh scene original surface IDs must be distinct');ids.add(mesh.packet.surfaceId);meshes.push(mesh);}
  return{meshes,options};
 }
 /** Separate original packets share one canvas, context, candidate frame and depth buffer. */
@@ -45,8 +47,9 @@ export class MeshSceneRenderer {
   if(!gl||gl.isContextLost())throw new GPUError('WebGL2 is unavailable');this.gl=gl;canvas.addEventListener('webglcontextlost',this.onLoss);
   let candidate:Frame|null=null;try{candidate=this.create(prepared.meshes,prepared.options,canvas.width,canvas.height);this.present(candidate);this.accepted=candidate;}catch(error){if(candidate)this.release(candidate);this.dispose();throw error;}
  }
- get entries():MeshSceneEntry[]{this.live();return this.accepted!.draws.map(d=>({packet:structuredClone(d.mesh.packet),color:[...d.mesh.options.color]}));}
+ get entries():MeshSceneEntry[]{this.live();return this.accepted!.draws.map(d=>({packet:structuredClone(d.mesh.packet),color:[...d.mesh.options.color],...(d.mesh.transform?{transform:structuredClone(d.mesh.transform)}:{})}));}
  get options():MeshSceneOptions {this.live();return structuredClone(this.accepted!.options);}
+ get bounds():MeshSceneBounds {this.live();const bounds=this.accepted!.draws.map(d=>d.mesh.displayBounds);return{min:[0,1,2].map(axis=>Math.min(...bounds.map(b=>b.min[axis]))) as Vec3,max:[0,1,2].map(axis=>Math.max(...bounds.map(b=>b.max[axis]))) as Vec3};}
  private live(){if(this.disposed)throw new GPUError('Mesh scene renderer is disposed');if(this.lost||this.gl.isContextLost())throw new GPUError('WebGL2 context is lost; mount a new renderer');}
  private dimensions(width:number,height:number){if(!Number.isInteger(width)||!Number.isInteger(height)||width<1||height<1||width>4096||height>4096||width*height>4194304)throw new GPUError('Buffer dimensions exceed limits');}
  private check(){const error=this.gl.getError();if(error!==this.gl.NO_ERROR)throw new GPUError('WebGL2 error 0x'+error.toString(16));if(this.gl.isContextLost())throw new GPUError('WebGL2 context is lost');}
