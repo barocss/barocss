@@ -49,6 +49,7 @@ export type SpriteHandle = {
   setTransform(transform: Transform): void;
   setLayer(layer: number): void;
   setAnchor(x: number, y: number): void;
+  setSize(width: number, height: number): void;
   setOpacity(opacity: number): void;
   setSourceRect(rect: SourceRect | null): void;
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
@@ -276,6 +277,9 @@ export function createDisplayTree(contextId: string): DisplayTree {
         ...common(record),
         onPointer(type, listener) { return onPointer(record, type, listener); },
         setAnchor(x: number, y: number) { mutate(record, { ...(record.data as ImageNodeV6), anchorX: x, anchorY: y }); },
+        setSize(width: number, height: number) {
+          mutate(record, { ...(record.data as ImageNodeV6), width, height });
+        },
         setOpacity(opacity: number) { mutate(record, { ...(record.data as ImageNodeV6), opacity }); },
         setSourceRect(rect: SourceRect | null) {
           const { sourceRect: _prior, ...withoutCrop } = record.data as ImageNodeV6;
