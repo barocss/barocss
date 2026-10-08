@@ -5919,7 +5919,11 @@ file contains those two original objects. Root solving scales only a derived
 four-coefficient homogeneous plane numerator, never the native geometry.
 Nonzero underflow or collapsed distinct adjacent scalar coefficients refuse.
 
-The derivative numerator is quadratic in Bernstein form. Its roots use the
+A safely strict same-sign cubic Bernstein hull excludes support roots directly.
+The report records that exclusion and that a derivative search was not needed;
+uncertain signs never become a false no-hit. An all-zero numerator likewise
+needs no stationary search. Otherwise the derivative numerator is quadratic
+in Bernstein form. Its roots use the
 existing own quadratic solver. Actual derivative-root brackets divide the
 normalized cubic domain into monotone intervals and critical brackets. Each
 critical bracket must exclude a support root with a strict sign and derivative
