@@ -65,6 +65,31 @@ or a second canvas. The Surface is display geometry, not a certified fluid
 collision obstacle. `examples/viewer-fluid-scene` exercises the actual Physics
 and native Surface path in Chromium WebGL2.
 
+For one qualified native Surface, compile an opaque CSS-shaped material with
+`@barocss/gpu` and bind it through Viewer:
+
+```js
+import { compileMeshMaterial } from '@barocss/gpu';
+
+const compiled = compileMeshMaterial(source);
+if (!compiled.ok) throw new Error('Material source was refused');
+const ref = viewer.getState().surfaces[0];
+viewer.setSurfaceMaterial(ref, { material: compiled.material,
+  uniforms: { timeSeconds: 1 } });
+viewer.setSurfaceMaterial(ref, null); // restore default Surface appearance
+```
+
+The host owns time and uniform updates. `getState().surfaceMaterial` returns a
+copy of the accepted binding. The initial profile requires exactly one visible
+qualified native Surface, no Curves, through `loadModelSet` or `loadDocument`.
+Legacy `loadNative` and raw packets refuse material binding. Camera, fit and
+display pose changes retain it through GPU's complete-frame update, including
+an accepted fluid layer. Selecting the bound Surface or hiding it requires an
+explicit material clear first. Particle-only updates retain the material.
+Successful scene replacement and Viewer clear remove it; failed requests keep
+the accepted binding and pixels. `examples/viewer-surface-material` runs the
+actual native/compiled-material/Physics path in Chromium WebGL2.
+
 For a source0 file served over HTTP, call `await viewer.loadNativeUrl(url,
 loadOptions, { signal, onProgress })`. The transport reports received bytes and
 supports caller cancellation; the same native source, display limits and

@@ -12,7 +12,7 @@ import { mountMeshScene, mountPrimitiveScene, mountPrimitiveSceneV1, mountPrimit
   PrimitiveSceneRendererV2, PrimitiveViewport, prepareMesh,
   validateMeshCamera, validatePreviewPacket } from '@barocss/gpu';
 import type { MeshCamera, MeshLighting, PreviewPacket, PrimitiveSceneEntryV1,
-  PrimitiveSceneEntryV2, ParticleLayerV0 } from '@barocss/gpu';
+  PrimitiveSceneEntryV2, PrimitiveSceneFrameV0, MeshMaterialBinding, ParticleLayerV0 } from '@barocss/gpu';
 
 type Vec3 = [number, number, number];
 type Quat = [number, number, number, number];
@@ -27,6 +27,7 @@ export interface ViewerNativeCurveLoadOptionsV1 extends NativeLoadOptions {
   curveDisplay: { version: 1; chordToleranceMM: number; maxSegments: number; maxDepth: number };
 }
 export interface ViewerRef { modelId: string; surfaceId: string }
+export interface ViewerSurfaceMaterial { ref: ViewerRef; binding: MeshMaterialBinding }
 export type ViewerGeometryRef =
   | ({ kind: 'surface' } & ViewerRef)
   | ({ kind: 'curve' } & ViewerCurveRef);
@@ -174,6 +175,7 @@ export interface ViewerState {
   surfaceCurveMeasurement: ViewerNativeSurfaceCurveMeasurement | null;
   nativeMeasurement: ViewerNativePointDistance | null;
   fluidFrame: ViewerFluidFrameV0 | null;
+  surfaceMaterial: ViewerSurfaceMaterial | null;
 }
 
 const PALETTE: Vec3[] = [[0.14, 0.58, 0.86], [0.95, 0.57, 0.22], [0.36, 0.72, 0.49], [0.72, 0.48, 0.87]];
@@ -523,6 +525,7 @@ export class Viewer {
   private nativeMeasurement: ViewerNativePointDistance | null = null;
   private fluidFrame: ViewerFluidFrameV0 | null = null;
   private particleLayer: ParticleLayerV0 | null = null;
+  private surfaceMaterial: ViewerSurfaceMaterial | null = null;
   private camera: MeshCamera = validateMeshCamera(INITIAL_CAMERA);
   private selected: ViewerRef | null = null;
   private selectedGeometry: ViewerGeometryRef | null = null;
@@ -573,7 +576,8 @@ export class Viewer {
     geometryMotion: ViewerGeometryMotionState | null = this.geometryMotion,
     qualified = this.modelSet !== null || this.document !== null,
     hiddenGeometry = this.hiddenGeometry,
-    particleLayer: ParticleLayerV0 | null = this.particleLayer): void {
+    particleLayer: ParticleLayerV0 | null = this.particleLayer,
+    surfaceMaterial: ViewerSurfaceMaterial | null = this.surfaceMaterial): void {
     const packets = allPackets.filter(entry => !hiddenGeometry.some(hidden => sameGeometryRef(hidden,
       { kind: 'surface', modelId: entry.modelId, surfaceId: entry.packet.surfaceId })));
     const curves = allCurves.filter(entry => !hiddenGeometry.some(hidden => sameGeometryRef(hidden,
@@ -616,7 +620,12 @@ export class Viewer {
       const input = { version: 2 as const, entries };
       if (this.renderer instanceof PrimitiveSceneRendererV2
         || this.renderer instanceof PrimitiveViewport) {
-        const result = this.renderer.update(input, options, particleLayer);
+        const result = surfaceMaterial
+          ? this.renderer.updateFrame({ version: 0, scene: input, options,
+            particles: particleLayer, materials: [{ ref: {
+              modelId: surfaceMaterial.ref.modelId, geometryId: surfaceMaterial.ref.surfaceId },
+              binding: surfaceMaterial.binding }] } satisfies PrimitiveSceneFrameV0)
+          : this.renderer.update(input, options, particleLayer);
         if (!result.ok) throw result.error;
       } else {
         const prior = this.renderer;
@@ -727,14 +736,14 @@ export class Viewer {
     check(packets.length + curves.length >= 1 && packets.length + curves.length <= 4,
       'Viewer requires 1..4 total display objects');
     const camera = fittedCamera(packets, curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
-    this.present(packets, curves, camera, null, null, null, null, qualified, [], null);
+    this.present(packets, curves, camera, null, null, null, null, qualified, [], null, null);
     this.packets = packets; this.curves = curves; this.camera = camera;
     this.selected = null; this.selectedGeometry = null; this.native = native; this.modelSet = modelSet;
     this.document = document; this.documentBodies = documentBodies;
     this.hiddenGeometry = [];
     this.measurement = null; this.motion = null; this.geometryMotion = null; this.curveMeasurement = null;
     this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
-    this.fluidFrame = null; this.particleLayer = null;
+    this.fluidFrame = null; this.particleLayer = null; this.surfaceMaterial = null;
   }
   private admitNative(native: BaroCadNativeResult,
     options: NativeLoadOptions | ViewerNativeCurveLoadOptions | ViewerNativeCurveLoadOptionsV1): void {
@@ -828,7 +837,7 @@ export class Viewer {
   setPackets(input: ViewerPacket[]): void { this.live(); this.accept(input, null); this.sceneRequest++; }
   clear(): void {
     this.live();
-    this.present([], [], this.camera, null, null, null, null, false, [], null);
+    this.present([], [], this.camera, null, null, null, null, false, [], null, null);
     this.packets = []; this.curves = []; this.native = null; this.modelSet = null;
     this.document = null; this.documentBodies = [];
     this.hiddenGeometry = [];
@@ -836,7 +845,7 @@ export class Viewer {
     this.measurement = null; this.curveMeasurement = null;
     this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
     this.motion = null; this.geometryMotion = null;
-    this.fluidFrame = null; this.particleLayer = null;
+    this.fluidFrame = null; this.particleLayer = null; this.surfaceMaterial = null;
     this.sceneRequest++;
   }
   setFluidFrame(input: ViewerFluidFrameV0 | null): void {
@@ -896,6 +905,25 @@ export class Viewer {
     this.fluidFrame = { version: 0, contextId: data.contextId, sceneRevision: data.sceneRevision,
       stepIndex: data.stepIndex, particleCount: 256, positionsM };
     this.particleLayer = layer;
+  }
+  setSurfaceMaterial(inputRef: ViewerRef, binding: MeshMaterialBinding | null): void {
+    this.live();
+    check(!this.contextLost, 'Cannot change Surface material after WebGL2 context loss');
+    const ref = parseRef(inputRef);
+    check(this.modelSet !== null || this.document !== null,
+      'Surface material requires a qualified native scene');
+    check(this.packets.length === 1 && this.curves.length === 0 &&
+      sameRef(ref, { modelId: this.packets[0].modelId, surfaceId: this.packets[0].packet.surfaceId }) &&
+      this.visible({ kind: 'surface', ...ref }),
+    'Surface material requires the one visible qualified native Surface');
+    check(!sameRef(ref, this.selected), 'Clear Surface selection before binding material');
+    check(this.renderer instanceof PrimitiveSceneRendererV2 || this.renderer instanceof PrimitiveViewport,
+      'Surface material requires a qualified GPU scene');
+    const result = this.renderer.setMaterial({ modelId: ref.modelId, geometryId: ref.surfaceId }, binding);
+    if (!result.ok) throw result.error;
+    const accepted = this.renderer.materials.find(item => item.ref.modelId === ref.modelId
+      && item.ref.geometryId === ref.surfaceId);
+    this.surfaceMaterial = accepted ? { ref, binding: accepted.binding } : null;
   }
   private nativeModel(modelId: string): BaroCadNativeResult['model'] | null {
     if (this.document) {
@@ -1149,6 +1177,9 @@ export class Viewer {
     const hidden = inventory.filter(ref => !requested.some(value => sameGeometryRef(value, ref)));
     check(!this.fluidFrame || requested.some(ref => ref.kind === 'surface'),
       'Clear fluid layer before hiding the native Surface');
+    check(!this.surfaceMaterial || requested.some(ref => ref.kind === 'surface'
+      && sameRef(ref, this.surfaceMaterial!.ref)),
+    'Clear Surface material before hiding the native Surface');
     const selection = this.selectedGeometry && !hidden.some(ref => sameGeometryRef(ref, this.selectedGeometry!))
       ? this.selectedGeometry : null;
     const selected = selection?.kind === 'surface'
@@ -1498,6 +1529,8 @@ export class Viewer {
     check(selected === null || this.packets.some(entry => this.visible({ kind: 'surface',
       modelId: entry.modelId, surfaceId: entry.packet.surfaceId }) && sameRef(
       { modelId: entry.modelId, surfaceId: entry.packet.surfaceId }, selected)), 'Unknown surface reference');
+    check(!sameRef(selected, this.surfaceMaterial?.ref ?? null),
+      'Clear Surface material before selecting the bound Surface');
     const geometrySelection: ViewerGeometryRef | null = selected
       ? { kind: 'surface', ...selected } : null;
     if (this.renderer) this.present(this.packets, this.curves, this.camera, selected, this.motion,
@@ -1512,6 +1545,8 @@ export class Viewer {
     if (selection?.kind === 'surface') {
       check(this.packets.some(entry => entry.modelId === selection.modelId
         && entry.packet.surfaceId === selection.surfaceId), 'Unknown displayed Surface reference');
+      check(!sameRef(selection, this.surfaceMaterial?.ref ?? null),
+        'Clear Surface material before selecting the bound Surface');
     } else if (selection?.kind === 'curve') {
       check(this.curves.some(entry => entry.modelId === selection.modelId
         && entry.sample.curve.id === selection.curveId), 'Unknown displayed Curve reference');
@@ -1543,12 +1578,14 @@ export class Viewer {
       documentBodies: this.documentBodies, measurement: this.measurement,
       curveMeasurement: this.curveMeasurement, surfaceCurveMeasurement: this.surfaceCurveMeasurement,
       nativeMeasurement: this.nativeMeasurement, motion: this.motion,
-      geometryMotion: this.geometryMotion, fluidFrame: this.fluidFrame });
+      geometryMotion: this.geometryMotion, fluidFrame: this.fluidFrame,
+      surfaceMaterial: this.surfaceMaterial });
   }
   readPixels(): Uint8Array { this.live(); check(this.renderer, 'Viewer has no geometry'); return this.renderer.readPixels(); }
   dispose(): void { if (this.disposed) return; this.disposed = true;
     this.canvas.removeEventListener('webglcontextlost', this.onContextLost);
-    this.renderer?.dispose(); this.renderer = null; this.fluidFrame = null; this.particleLayer = null; }
+    this.renderer?.dispose(); this.renderer = null; this.fluidFrame = null; this.particleLayer = null;
+    this.surfaceMaterial = null; }
 }
 
 export function createViewer(canvas: HTMLCanvasElement, options: ViewerOptions): Viewer {
