@@ -72,6 +72,15 @@ restores the identity display pose and keeps the camera and selection. A
 successful `loadNative` or `setPackets` also clears the Motion pose. Sampling
 and playback time remain with the caller.
 
+`applyGeometryMotionFrame(frame, bindings, {basis:'part-xyz-matches-rhyup'})`
+accepts one tagged Surface or Curve binding for every displayed object. It uses
+the same caller-owned Motion frame and TRS limits as `applyMotionFrame`.
+`getState().geometryMotion` copies the accepted frame, bindings and display
+poses. A successful call to either Motion method clears the other pose state.
+`resetMotion()` and successful scene replacement clear both. Curve GPU pixels,
+fit, approximate `pickGeometry()` and selection follow the tagged display pose;
+native point measurements stay in authored XYZ/mm.
+
 `getState().native` contains a copied native model and the exact source string.
 For two points on the accepted native model, call
 `measureNativeSurfacePoints({modelId,surfaceId,u,v}, {modelId,surfaceId,u,v})`.

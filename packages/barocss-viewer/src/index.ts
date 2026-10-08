@@ -42,6 +42,16 @@ export interface ViewerMotionState {
   bindings: ViewerMotionBinding[];
   displayPoses: ViewerDisplayPose[];
 }
+export interface ViewerGeometryMotionBinding { contextId: string; targetId: string; ref: ViewerGeometryRef }
+export interface ViewerGeometryDisplayPose {
+  ref: ViewerGeometryRef; translationMm: Vec3; rotationXYZW: Quat; scale: Vec3
+}
+export interface ViewerGeometryMotionState {
+  basis: 'part-xyz-matches-rhyup';
+  frame: MotionFrame;
+  bindings: ViewerGeometryMotionBinding[];
+  displayPoses: ViewerGeometryDisplayPose[];
+}
 export interface ViewerCurveRef { modelId: string; curveId: string }
 export interface ViewerNativeCurveParameter extends ViewerCurveRef { t: number }
 export interface ViewerNativeCurvePoint { ref: ViewerCurveRef; t: number; pointMM: Vec3 }
@@ -105,6 +115,7 @@ export interface ViewerState {
   native: BaroCadNativeResult | null;
   measurement: ViewerNativeSurfaceMeasurement | null;
   motion: ViewerMotionState | null;
+  geometryMotion: ViewerGeometryMotionState | null;
   curveMeasurement: ViewerNativeCurveMeasurement | null;
   surfaceCurveMeasurement: ViewerNativeSurfaceCurveMeasurement | null;
   nativeMeasurement: ViewerNativePointDistance | null;
@@ -296,6 +307,32 @@ function parseMotionBindings(input: unknown, frame: MotionFrame, packets: Viewer
     'Motion bindings must cover every Viewer surface exactly once');
   return bindings;
 }
+function geometryKey(ref: ViewerGeometryRef): string {
+  return ref.kind === 'surface' ? `surface\0${ref.modelId}\0${ref.surfaceId}`
+    : `curve\0${ref.modelId}\0${ref.curveId}`;
+}
+function parseGeometryMotionBindings(input: unknown, frame: MotionFrame,
+  packets: ViewerPacket[], curves: ViewerCurveEntry[]): ViewerGeometryMotionBinding[] {
+  const count = packets.length + curves.length;
+  const bindings = denseArray(input, count, 'Geometry Motion bindings').map(raw => {
+    const value = ownRecord(raw, ['contextId', 'targetId', 'ref'], 'Geometry Motion binding');
+    const contextId = motionId(value.contextId, 'Binding contextId');
+    check(contextId === frame.contextId, 'Binding contextId differs from Motion frame');
+    return { contextId, targetId: motionId(value.targetId, 'Binding targetId'),
+      ref: parseGeometryRef(value.ref) };
+  });
+  const targets = new Set(bindings.map(binding => binding.targetId));
+  const refs = new Set(bindings.map(binding => geometryKey(binding.ref)));
+  check(targets.size === count && refs.size === count, 'Geometry Motion bindings must be one-to-one');
+  check(frame.poses.length === count && frame.poses.every(pose => targets.has(pose.targetId)),
+    'Motion frame must cover every bound target exactly once');
+  check(packets.every(entry => refs.has(geometryKey({ kind: 'surface', modelId: entry.modelId,
+    surfaceId: entry.packet.surfaceId })))
+    && curves.every(entry => refs.has(geometryKey({ kind: 'curve', modelId: entry.modelId,
+      curveId: entry.sample.curve.id }))),
+  'Geometry Motion bindings must cover every displayed object exactly once');
+  return bindings;
+}
 function add(a: Vec3, b: Vec3): Vec3 { return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]; }
 function subtract(a: Vec3, b: Vec3): Vec3 { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
 function multiply(a: Vec3, n: number): Vec3 { return [a[0] * n, a[1] * n, a[2] * n]; }
@@ -306,10 +343,21 @@ function rotated(q: Quat, v: Vec3): Vec3 {
   const t = multiply(cross([q[0], q[1], q[2]], v), 2);
   return add(v, add(multiply(t, q[3]), cross([q[0], q[1], q[2]], t)));
 }
-function displayVertex(native: Vec3, pose: ViewerDisplayPose | undefined, mmToSceneUnit: number): Vec3 {
+type DisplayTransform = Pick<ViewerDisplayPose, 'translationMm' | 'rotationXYZW' | 'scale'>;
+function displayVertex(native: Vec3, pose: DisplayTransform | undefined, mmToSceneUnit: number): Vec3 {
   if (!pose) return multiply(native, mmToSceneUnit);
   const scaled = native.map((value, axis) => value * pose.scale[axis]) as Vec3;
   return multiply(add(pose.translationMm, rotated(pose.rotationXYZW, scaled)), mmToSceneUnit);
+}
+function surfacePose(ref: ViewerRef, motion: ViewerMotionState | null,
+  geometryMotion: ViewerGeometryMotionState | null): DisplayTransform | undefined {
+  return geometryMotion?.displayPoses.find(value => value.ref.kind === 'surface'
+    && sameRef(value.ref, ref)) ?? motion?.displayPoses.find(value => sameRef(value.ref, ref));
+}
+function curvePose(ref: ViewerCurveRef, geometryMotion: ViewerGeometryMotionState | null):
+  DisplayTransform | undefined {
+  return geometryMotion?.displayPoses.find(value => value.ref.kind === 'curve'
+    && value.ref.modelId === ref.modelId && value.ref.curveId === ref.curveId);
 }
 
 interface ViewerCurveEntry {
@@ -322,11 +370,10 @@ function isGpuCurveSample(sample: BaroCadNativeResult['curves'][number]['sample'
 }
 
 function fittedCamera(packets: ViewerPacket[], curves: ViewerCurveEntry[], scale: number, width: number, height: number,
-  motion: ViewerMotionState | null = null): MeshCamera {
+  motion: ViewerMotionState | null = null, geometryMotion: ViewerGeometryMotionState | null = null): MeshCamera {
   const low: Vec3 = [Infinity, Infinity, Infinity], high: Vec3 = [-Infinity, -Infinity, -Infinity];
   for (const entry of packets) {
-    const pose = motion?.displayPoses.find(value => sameRef(value.ref,
-      { modelId: entry.modelId, surfaceId: entry.packet.surfaceId }));
+    const pose = surfacePose({ modelId: entry.modelId, surfaceId: entry.packet.surfaceId }, motion, geometryMotion);
     for (let offset = 0; offset < entry.packet.positions.length; offset += 3) {
       const point = displayVertex(entry.packet.positions.slice(offset, offset + 3) as Vec3, pose, scale);
       for (let axis = 0; axis < 3; axis++) {
@@ -336,8 +383,9 @@ function fittedCamera(packets: ViewerPacket[], curves: ViewerCurveEntry[], scale
     }
   }
   for (const entry of curves) {
+    const pose = curvePose({ modelId: entry.modelId, curveId: entry.sample.curve.id }, geometryMotion);
     for (const raw of entry.sample.pointsMM) {
-      const point = multiply(raw as Vec3, scale);
+      const point = displayVertex(raw as Vec3, pose, scale);
       for (let axis = 0; axis < 3; axis++) {
         low[axis] = Math.min(low[axis], point[axis]);
         high[axis] = Math.max(high[axis], point[axis]);
@@ -381,6 +429,7 @@ export class Viewer {
   private selected: ViewerRef | null = null;
   private selectedGeometry: ViewerGeometryRef | null = null;
   private motion: ViewerMotionState | null = null;
+  private geometryMotion: ViewerGeometryMotionState | null = null;
   private disposed = false;
   private contextLost = false;
   private readonly onContextLost = (): void => { this.contextLost = true; };
@@ -399,10 +448,11 @@ export class Viewer {
     return { mmToSceneUnit: this.options.mmToSceneUnit, translate: [0, 0, 0] as Vec3,
       background: this.options.background, camera };
   }
-  private gpuEntries(packets: ViewerPacket[], selected: ViewerRef | null, motion: ViewerMotionState | null) {
+  private gpuEntries(packets: ViewerPacket[], selected: ViewerRef | null, motion: ViewerMotionState | null,
+    geometryMotion: ViewerGeometryMotionState | null) {
     return packets.map((entry, index) => {
       const ref = { modelId: entry.modelId, surfaceId: entry.packet.surfaceId };
-      const pose = motion?.displayPoses.find(value => sameRef(value.ref, ref));
+      const pose = surfacePose(ref, motion, geometryMotion);
       return { packet: entry.packet,
         color: sameRef(ref, selected) ? SELECTED_COLOR : PALETTE[index],
         ...(pose ? { transform: { translationMm: pose.translationMm,
@@ -410,16 +460,22 @@ export class Viewer {
     });
   }
   private present(packets: ViewerPacket[], curves: ViewerCurveEntry[], camera: MeshCamera, selected: ViewerRef | null,
-    motion: ViewerMotionState | null, geometrySelection: ViewerGeometryRef | null = this.selectedGeometry): void {
-    const surfaces = this.gpuEntries(packets, selected, motion), options = this.gpuOptions(camera);
+    motion: ViewerMotionState | null, geometrySelection: ViewerGeometryRef | null = this.selectedGeometry,
+    geometryMotion: ViewerGeometryMotionState | null = this.geometryMotion): void {
+    const surfaces = this.gpuEntries(packets, selected, motion, geometryMotion), options = this.gpuOptions(camera);
     if (curves.length) {
       const entries = [
         ...surfaces.map(entry => ({ kind: 'surface' as const, ...entry })),
-        ...curves.map((entry, index) => ({ kind: 'curve' as const, sample: entry.sample,
-          basis: 'authored-xyz-matches-rhyup' as const,
-          color: geometrySelection?.kind === 'curve' && geometrySelection.modelId === entry.modelId
-            && geometrySelection.curveId === entry.sample.curve.id
-            ? SELECTED_COLOR : PALETTE[(packets.length + index) % PALETTE.length] })),
+        ...curves.map((entry, index) => {
+          const pose = curvePose({ modelId: entry.modelId, curveId: entry.sample.curve.id }, geometryMotion);
+          return { kind: 'curve' as const, sample: entry.sample,
+            basis: 'authored-xyz-matches-rhyup' as const,
+            color: geometrySelection?.kind === 'curve' && geometrySelection.modelId === entry.modelId
+              && geometrySelection.curveId === entry.sample.curve.id
+              ? SELECTED_COLOR : PALETTE[(packets.length + index) % PALETTE.length],
+            ...(pose ? { transform: { translationMm: pose.translationMm,
+              rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {}) };
+        }),
       ];
       if (this.renderer instanceof PrimitiveSceneRenderer) {
         const result = this.renderer.update(entries, options);
@@ -473,10 +529,10 @@ export class Viewer {
     check(packets.length + curves.length >= 1 && packets.length + curves.length <= 4,
       'Viewer requires 1..4 total display objects');
     const camera = fittedCamera(packets, curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
-    this.present(packets, curves, camera, null, null, null);
+    this.present(packets, curves, camera, null, null, null, null);
     this.packets = packets; this.curves = curves; this.camera = camera;
     this.selected = null; this.selectedGeometry = null; this.native = native;
-    this.measurement = null; this.motion = null; this.curveMeasurement = null;
+    this.measurement = null; this.motion = null; this.geometryMotion = null; this.curveMeasurement = null;
     this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
   }
   loadNative(source: string, input: NativeLoadOptions | ViewerNativeCurveLoadOptions): void {
@@ -545,13 +601,54 @@ export class Viewer {
           'Transformed Viewer position exceeds GPU scene bounds');
       }
     }
-    this.present(this.packets, this.curves, this.camera, this.selected, motion);
+    this.present(this.packets, this.curves, this.camera, this.selected, motion, this.selectedGeometry, null);
     this.motion = motion;
+    this.geometryMotion = null;
+  }
+  applyGeometryMotionFrame(input: MotionFrame, inputBindings: ViewerGeometryMotionBinding[],
+    inputOptions: { basis: 'part-xyz-matches-rhyup' }): void {
+    this.live(); check(this.packets.length + this.curves.length > 0, 'Viewer has no geometry');
+    const basis = ownRecord(inputOptions, ['basis'], 'Motion basis');
+    check(basis.basis === 'part-xyz-matches-rhyup', 'Motion part XYZ/mm basis must explicitly match Viewer Y-up/mm');
+    const frame = parseMotionFrame(input);
+    const bindings = parseGeometryMotionBindings(inputBindings, frame, this.packets, this.curves);
+    const poses = new Map(frame.poses.map(pose => [pose.targetId, pose]));
+    const displayPoses: ViewerGeometryDisplayPose[] = bindings.map(binding => {
+      const pose = poses.get(binding.targetId)!;
+      return { ref: binding.ref,
+        translationMm: pose.translation ?? [0, 0, 0] as Vec3,
+        rotationXYZW: pose.rotation ?? [0, 0, 0, 1] as Quat,
+        scale: pose.scale ?? [1, 1, 1] as Vec3 };
+    });
+    const geometryMotion: ViewerGeometryMotionState = {
+      basis: 'part-xyz-matches-rhyup', frame, bindings, displayPoses,
+    };
+    const withinBounds = (point: Vec3): void => check(point.every(value =>
+      Number.isFinite(value) && Math.abs(value) <= 1000), 'Transformed Viewer position exceeds GPU scene bounds');
+    for (const entry of this.packets) {
+      const pose = surfacePose({ modelId: entry.modelId, surfaceId: entry.packet.surfaceId }, null, geometryMotion);
+      for (let offset = 0; offset < entry.packet.positions.length; offset += 3) {
+        withinBounds(displayVertex(entry.packet.positions.slice(offset, offset + 3) as Vec3,
+          pose, this.options.mmToSceneUnit));
+      }
+    }
+    for (const entry of this.curves) {
+      const pose = curvePose({ modelId: entry.modelId, curveId: entry.sample.curve.id }, geometryMotion);
+      for (const point of entry.sample.pointsMM) {
+        withinBounds(displayVertex(point as Vec3, pose, this.options.mmToSceneUnit));
+      }
+    }
+    this.present(this.packets, this.curves, this.camera, this.selected, null,
+      this.selectedGeometry, geometryMotion);
+    this.motion = null;
+    this.geometryMotion = geometryMotion;
   }
   resetMotion(): void {
     this.live();
-    if (this.motion) this.present(this.packets, this.curves, this.camera, this.selected, null);
+    if (this.motion || this.geometryMotion) this.present(this.packets, this.curves, this.camera,
+      this.selected, null, this.selectedGeometry, null);
     this.motion = null;
+    this.geometryMotion = null;
   }
   measureNativeCurvePoints(firstInput: ViewerNativeCurveParameter,
     secondInput: ViewerNativeCurveParameter): ViewerNativeCurveMeasurement {
@@ -648,7 +745,7 @@ export class Viewer {
   fit(): void {
     this.live(); check(this.packets.length + this.curves.length > 0, 'Viewer has no geometry');
     this.setView(fittedCamera(this.packets, this.curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height,
-      this.motion));
+      this.motion, this.geometryMotion));
   }
   setView(input: MeshCamera): void {
     this.live(); const camera = validateMeshCamera(input);
@@ -696,8 +793,8 @@ export class Viewer {
     let best: ViewerPick | null = null;
     for (const entry of this.packets) {
       const { positions, indices, parameters } = entry.packet, scale = this.options.mmToSceneUnit;
-      const pose = this.motion?.displayPoses.find(value => sameRef(value.ref,
-        { modelId: entry.modelId, surfaceId: entry.packet.surfaceId }));
+      const pose = surfacePose({ modelId: entry.modelId, surfaceId: entry.packet.surfaceId },
+        this.motion, this.geometryMotion);
       for (let offset = 0; offset < indices.length; offset += 3) {
         const vertex = (index: number): Vec3 => displayVertex(positions.slice(index * 3, index * 3 + 3) as Vec3,
           pose, scale);
@@ -762,9 +859,10 @@ export class Viewer {
       depth: depth(surface.positionScene), distance: 0 });
     for (const entry of this.curves) {
       const sample = entry.sample;
+      const pose = curvePose({ modelId: entry.modelId, curveId: sample.curve.id }, this.geometryMotion);
       for (let index = 0; index + 1 < sample.pointsMM.length; index++) {
-        const displayed = (pointMM: number[]): Vec3 => pointMM.map(value =>
-          Math.fround(value * this.options.mmToSceneUnit)) as Vec3;
+        const displayed = (pointMM: number[]): Vec3 => displayVertex(pointMM as Vec3,
+          pose, this.options.mmToSceneUnit).map(Math.fround) as Vec3;
         const a = displayed(sample.pointsMM[index]);
         const b = displayed(sample.pointsMM[index + 1]);
         const view = (position: Vec3): Vec3 => {
@@ -876,7 +974,8 @@ export class Viewer {
       selected: this.selected, selectedGeometry: this.selectedGeometry,
       native: this.native, measurement: this.measurement,
       curveMeasurement: this.curveMeasurement, surfaceCurveMeasurement: this.surfaceCurveMeasurement,
-      nativeMeasurement: this.nativeMeasurement, motion: this.motion });
+      nativeMeasurement: this.nativeMeasurement, motion: this.motion,
+      geometryMotion: this.geometryMotion });
   }
   readPixels(): Uint8Array { this.live(); check(this.renderer, 'Viewer has no geometry'); return this.renderer.readPixels(); }
   dispose(): void { if (this.disposed) return; this.disposed = true;
