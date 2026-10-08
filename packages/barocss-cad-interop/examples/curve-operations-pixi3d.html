@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native Curve operations in Pixi3D</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+  button { margin: 8px 8px 8px 0; padding: 7px 12px; }
+</style>
+<main>
+  <h1>Native Curve operations in Pixi3D</h1>
+  <p>Cyan: reversal. Magenta: interval. Yellow: 31 to 64 pole refinement. Lines are display samples.</p>
+  <div id="view"></div>
+  <button id="reject">Try invalid candidates</button><button id="dispose">Dispose loaded display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Application, DRAW_MODES, Graphics } from 'pixi.js';
+  import { Camera, Color, Container3D, Mesh3D } from 'pixi3d/pixi7';
+  import { BaroCADPixi3DLoader } from '../dist/pixi3d.js';
+  import { createCurveOperationCases, displayOptions } from './curve-operations-fixture.mjs';
+
+  const status = document.querySelector('#status');
+  const app = new Application({ width: 800, height: 500, background: '#142236', antialias: true,
+    preserveDrawingBuffer: true });
+  document.querySelector('#view').append(app.view);
+  const marker = new Graphics().beginFill(0xfbbf24).drawCircle(20, 20, 6).endFill();
+  app.stage.addChild(marker);
+  const camera = Camera.main ?? new Camera(app.renderer);
+  camera.orthographic = true;
+  camera.orthographicSize = 0.02;
+  camera.position.set(0, 0, 0.35);
+  const loader = new BaroCADPixi3DLoader(displayOptions);
+  const acceptedOptions = JSON.stringify(displayOptions);
+  const cases = createCurveOperationCases();
+  const accepted = [];
+  const pixels = () => {
+    const data = new Uint8Array(800 * 500 * 4);
+    const gl = app.view.getContext('webgl2');
+    gl.readPixels(0, 0, 800, 500, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    return data;
+  };
+  const hash = data => data.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  try {
+    const stagedSource = await (await fetch(new URL('./curve-display.barocad', location.href))).text();
+    for (const item of cases) {
+      const url = new URL(`./curve-operations-data/${item.key}.barocad`, location.href).href;
+      const result = await loader.loadAbortable(url);
+      if (result.source !== item.result.source) throw new Error(`Operation source mismatch: ${item.key}`);
+      if (result.renderedSurfaces.length !== 0 || result.renderedCurves.length !== 1 ||
+          result.unrenderedCurveIds.length !== 0) throw new Error(`Expected one rendered Curve: ${item.key}`);
+      const binding = result.renderedCurves[0];
+      const mesh = binding.mesh;
+      const positions = mesh.geometry.positions.buffer;
+      const indices = mesh.geometry.indices.buffer;
+      if (binding.curveId !== item.result.curve.id || result.model.objects[0].id !== item.result.curve.id ||
+          binding.sampleReport.dto.version !== 1 || mesh.material.drawMode !== DRAW_MODES.LINE_STRIP)
+        throw new Error(`Curve source/line mode mismatch: ${item.key}`);
+      if (positions.length !== result.curves[0].positions.length ||
+          positions.some((value, index) => !Object.is(value, result.curves[0].positions[index])) ||
+          indices.length !== result.curves[0].sample.pointsMM.length ||
+          indices.some((value, index) => value !== index)) throw new Error(`Copied display buffer mismatch: ${item.key}`);
+      if (JSON.stringify(binding.nativeParameters) !== JSON.stringify(result.curves[0].sample.parameters) ||
+          JSON.stringify(binding.nativeIntervals) !== JSON.stringify(result.curves[0].sample.segments.map(segment => segment.domain)))
+        throw new Error(`Native parameter binding mismatch: ${item.key}`);
+      if (item.key === 'refined' && (!Object.is(item.result.original.controlPoints[0][0], -0) ||
+          !Object.is(result.curves[0].sample.domain[0], -0))) throw new Error('Refined Curve lost signed zero');
+      mesh.material.baseColor = new Color((item.color >> 16) / 255,
+        ((item.color >> 8) & 255) / 255, (item.color & 255) / 255);
+      // Explicit host display rotation: native XYZ and source data are unchanged.
+      result.root.rotationQuaternion.setEulerAngles(90, 0, 0);
+      result.root.position.set(-0.015, item.key === 'reversed' ? 0.014 : item.key === 'interval' ? 0.004 : -0.008, 0);
+      app.stage.addChild(result.root);
+      accepted.push({ item, result, binding, mesh, source: result.source });
+    }
+    app.renderer.render(app.stage);
+    const firstPixels = pixels();
+    const colored = { cyan: 0, magenta: 0, yellow: 0 };
+    for (let i = 0; i < firstPixels.length; i += 4) {
+      const [r, g, b] = firstPixels.subarray(i, i + 3);
+      if (r < 100 && g > 150 && b > 150) colored.cyan++;
+      if (r > 150 && g < 100 && b > 150) colored.magenta++;
+      if (r > 150 && g > 150 && b < 100) colored.yellow++;
+    }
+    if (Object.values(colored).some(count => count === 0)) throw new Error('One output Curve has no visible pixels');
+    const evidence = {
+      target: 'Pixi3D 2.5.0 / PixiJS 7.2.4 WebGL2',
+      webgl2: app.view.getContext('webgl2') instanceof WebGL2RenderingContext,
+      sourceBasis: 'authored XYZ', hostDisplayRotationXDegrees: 90, unitsPerMillimeter: 0.001,
+      cases: accepted.map(({ item, result, binding }) => ({
+        key: item.key, originalId: item.result.original.id, outputId: binding.curveId,
+        originalPoles: item.result.original.controlPoints.length,
+        outputPoles: result.model.objects[0].controlPoints.length,
+        sampleCount: result.curves[0].sample.pointsMM.length,
+        lineMode: binding.mesh.material.drawMode,
+        domainStartSignedZero: Object.is(result.curves[0].sample.domain[0], -0),
+        exactSource: result.source === item.result.source,
+      })),
+      visiblePixels: colored, pixelHash: hash(firstPixels), callerMarkerRetained: app.stage.children.includes(marker),
+    };
+    window.__baroPixiCurveOperationEvidence = evidence;
+    status.textContent = JSON.stringify(evidence, null, 2);
+    document.querySelector('#reject').onclick = () => {
+      const source = accepted[0].source;
+      const candidates = [
+        () => loader.parse('@model invalid {}'),
+        () => new BaroCADPixi3DLoader({ ...displayOptions, sourceVersion: 1 }).parse(source),
+        () => new BaroCADPixi3DLoader({ ...displayOptions,
+          curveDisplay: { ...displayOptions.curveDisplay, version: 2 } }).parse(source),
+        () => new BaroCADPixi3DLoader({ ...displayOptions,
+          curveDisplay: { chordToleranceMM: 0.1, maxSegments: 512, maxDepth: 16 } }).parse(source),
+        () => new BaroCADPixi3DLoader({ ...displayOptions,
+          curveDisplay: { ...displayOptions.curveDisplay, maxSegments: 4093 } }).parse(source),
+        () => { const forged = structuredClone(cases[0].result); forged.source += ' '; cases[0].validate(forged); },
+        () => {
+          const add = Container3D.prototype.addChild;
+          const destroy = Mesh3D.prototype.destroy;
+          let meshAdds = 0;
+          let destroyed = 0;
+          let failure;
+          Container3D.prototype.addChild = function (...children) {
+            if (children[0] instanceof Mesh3D && ++meshAdds === 2) throw new Error('injected second-mesh failure');
+            return add.apply(this, children);
+          };
+          Mesh3D.prototype.destroy = function (...args) { destroyed++; return destroy.apply(this, args); };
+          try { loader.parse(stagedSource); } catch (error) { failure = error; }
+          finally {
+            Container3D.prototype.addChild = add;
+            Mesh3D.prototype.destroy = destroy;
+          }
+          evidence.stagedResourcesReleased = destroyed >= 2;
+          if (failure && evidence.stagedResourcesReleased) throw failure;
+        },
+      ];
+      let refused = 0;
+      for (const candidate of candidates) { try { candidate(); } catch { refused++; } }
+      app.renderer.render(app.stage);
+      evidence.invalidCandidatesRefused = refused;
+      evidence.acceptedMeshesRetained = accepted.every(({ result, mesh }) =>
+        app.stage.children.includes(result.root) && !mesh.destroyed);
+      evidence.acceptedSourcesRetained = accepted.every(({ item, source }) => item.result.source === source);
+      evidence.acceptedOptionsRetained = JSON.stringify(displayOptions) === acceptedOptions;
+      evidence.acceptedPixelsRetained = hash(pixels()) === evidence.pixelHash;
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+    document.querySelector('#dispose').onclick = () => {
+      for (const { result } of accepted) { result.dispose(); result.dispose(); }
+      app.renderer.render(app.stage);
+      evidence.disposed = accepted.every(({ result, mesh }) =>
+        !app.stage.children.includes(result.root) && mesh.destroyed);
+      evidence.callerMarkerRetained = app.stage.children.includes(marker);
+      evidence.callerRendererAndCanvasRetained = app.renderer.gl instanceof WebGL2RenderingContext &&
+        document.querySelector('#view').contains(app.view);
+      evidence.nativeSourcesRetained = accepted.every(({ item, source }) => item.result.source === source);
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+  } catch (error) {
+    for (const { result } of accepted) result.dispose();
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroPixiCurveOperationError = String(error);
+  }
+</script>
+</html>

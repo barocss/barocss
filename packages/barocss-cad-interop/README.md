@@ -576,7 +576,8 @@ become a certified topology edge or exact NURBS intersection.
 Babylon also accepts version 1 through the same neutral result in a caller-owned
 right-handed Scene. It creates a `LinesMesh` with original parameter metadata;
 its approximate chord pick retains the original Curve ID. Display GLB export
-also accepts explicit version 1; Pixi3D continues to reject Curve display. The package example
+also accepts explicit version 1. Pinned Pixi3D has a separate v1 line path;
+the package example
 `examples/curve-wide-v1.barocad` is the exact 2631-byte source0 fixture from
 the integrated CAD #696 flow. Run `node examples/curve-wide-v1-verify.mjs`
 after building CAD and this package for the compiled native/Three acceptance
@@ -717,11 +718,15 @@ app.stage.addChild(result.root);
 result.dispose();
 ```
 
-The supported profile is 1–4 source0 Surfaces with `countU` and `countV`
-from 2 to 17. The adapter creates one owned `Mesh3D` for each Surface and
+With no `curveDisplay`, the supported profile is 1–4 source0 Surfaces with
+`countU` and `countV` from 2 to 17. The adapter creates one owned `Mesh3D` for each Surface and
 returns exact `{ surfaceId, mesh }` pairs in `renderedSurfaces`. Native Curves
-remain in `model` and `unrenderedCurveIds`; `curveDisplay` is rejected for
-this adapter. The source0 authored XYZ/Y-up intent is retained. The explicit
+remain in `model` and `unrenderedCurveIds`. Explicit `curveDisplay.version:1`
+also renders bounded source0 Curves as Pixi3D `LINE_STRIP` meshes with copied
+Float32 positions and sequential indices. `renderedCurves` binds each mesh
+to the loaded output Curve ID, native parameters/intervals and sample report.
+The older three-field Curve display profile still refuses. There is no Pixi
+Curve pick API. The source0 authored XYZ/Y-up intent is retained. The explicit
 scale changes millimetres to caller units once. Native U/V stays in the
 neutral Surface packet and is never declared as texture UV. Float32 display
 positions and triangles are derived data, not editable CAD geometry.
@@ -737,6 +742,12 @@ renderer, stage, camera, lights, controllers and unrelated children.
 
 Run `examples/pixi3d-native.html` through a browser module server to see the
 two Surface preview, original IDs, invalid-source retention and disposal.
+`examples/curve-operations-pixi3d.html` loads the actual #792 public CAD
+reversal, interval and wide-refinement output sources over HTTP into one
+Pixi3D 2.5.0/PixiJS 7.2.4 Application. It checks native IDs, sample-v1
+parameters, copied buffers, visible lines, refusal/retention and owned
+disposal. The host applies an explicit display rotation and poses; native
+source coordinates do not change. `./pixi3d-document` remains Surface-only.
 
 ### Display selected document Surfaces in Pixi3D
 
