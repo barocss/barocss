@@ -9,5 +9,7 @@ export type { Scene, SceneV0, SceneV1, SceneV2, SceneV3, SceneV4, SceneV5, Scene
 export type { PathObservation, FillObservation, PathSample } from './path.js';
 export { createDisplayTree, createDisplayTreeFromScene } from './display-tree.js';
 export type { DisplayTree, StageHandle, ContainerHandle, SpriteHandle, DisplayHandle, ContainerSpec, SpriteSpec, PointerEventType, DisplayPointerEvent, PointerInput, PointerListener } from './display-tree.js';
+export { createTicker } from './ticker.js';
+export type { Canvas2DTicker, FrameScheduler, TickInfo, TickListener } from './ticker.js';
 export { booleanOrthogonalPolygons } from './boolean.js';
 export type { PolygonContour, PolygonOperand, PolygonOperation, PolygonBooleanResult } from './boolean.js';
