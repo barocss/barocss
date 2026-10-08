@@ -1,3 +1,26 @@
+# Latest owner decision: autonomous Integration order (2026-10-08)
+
+Under [#674](https://github.com/barocss/barocss/issues/674), Planner monitors
+Issue evidence, adds useful candidates and checks the direction of [#660](https://github.com/barocss/barocss/issues/660).
+Planner is not an assignment or adoption gate. Execute Integration chooses its
+next serial integration work and order from actual ready native receipts and
+dependencies. Module authors choose scoped work in their owned packages/examples,
+freeze contracts in Issues and report clean native results. Candidate Issues
+#678–#688 do not impose a fixed sequence. Agree cross-module interfaces in
+Issues; do not infer a missing backend or dependency is ready.
+
+Execute Integration remains the sole writer to the local integration branch and
+shared root, lock, static and current policy paths. Reconcile each immutable
+parent-to-child delta once, run one affected build and short actual flow, and
+record exact first failures, limits and receipts in the responsible Issue.
+The existing 10-minute monitor refills candidates and checks direction; it is
+not an approval gate. No broader validation, publication, product push/PR,
+release, new Work, model, supervisor or schedule change follows from this
+order decision. This section supersedes older Planner-priority and fixed-queue
+statements below; the older text remains historical evidence.
+
+---
+
 # Current owner-approved Integration role (2026-10-08)
 
 The owner approved [#674](https://github.com/barocss/barocss/issues/674).
