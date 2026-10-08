@@ -3,8 +3,11 @@ import { parseBaroCadSource } from '@barocss/cad-interop/native';
 import type { BaroCadNativeResult } from '@barocss/cad-interop/native';
 import { mountMeshScene, prepareMesh, validateMeshCamera, validatePreviewPacket } from '@barocss/gpu';
 import type { MeshCamera, PreviewPacket } from '@barocss/gpu';
+import { MOTION_LIMITS } from '@barocss/motion';
+import type { MotionFrame } from '@barocss/motion';
 
 type Vec3 = [number, number, number];
+type Quat = [number, number, number, number];
 export interface ViewerOptions { mmToSceneUnit: number; background: Vec3 }
 export interface NativeLoadOptions { sourceVersion: 0; countU: number; countV: number }
 export interface ViewerRef { modelId: string; surfaceId: string }
@@ -22,6 +25,14 @@ export interface ViewerNativeSurfaceMeasurement {
   distanceMM: number;
   space: 'native-authored';
   certification: 'not-certified';
+}
+export interface ViewerMotionBinding { contextId: string; targetId: string; ref: ViewerRef }
+export interface ViewerDisplayPose { ref: ViewerRef; translationMm: Vec3; rotationXYZW: Quat; scale: Vec3 }
+export interface ViewerMotionState {
+  basis: 'part-xyz-matches-rhyup';
+  frame: MotionFrame;
+  bindings: ViewerMotionBinding[];
+  displayPoses: ViewerDisplayPose[];
 }
 export interface ViewerPick {
   ref: ViewerRef;
@@ -43,11 +54,13 @@ export interface ViewerState {
   selected: ViewerRef | null;
   native: BaroCadNativeResult | null;
   measurement: ViewerNativeSurfaceMeasurement | null;
+  motion: ViewerMotionState | null;
 }
 
 const PALETTE: Vec3[] = [[0.14, 0.58, 0.86], [0.95, 0.57, 0.22], [0.36, 0.72, 0.49], [0.72, 0.48, 0.87]];
 const INITIAL_CAMERA: MeshCamera = { eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: 0.01, far: 100 };
 const ID = /^[A-Za-z_][A-Za-z0-9_-]{0,127}$/;
+const MOTION_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 
 function check(ok: unknown, message: string): asserts ok { if (!ok) throw new RangeError(message); }
 function ownRecord(input: unknown, keys: readonly string[], label: string): Record<string, unknown> {
@@ -78,6 +91,48 @@ function vector(input: unknown, label: string, min: number, max: number): Vec3 {
     return finite(descriptor.value, label, min, max);
   }) as Vec3;
 }
+function denseArray(input: unknown, length: number, label: string): unknown[] {
+  check(Array.isArray(input) && Object.getPrototypeOf(input) === Array.prototype
+    && input.length === length && Reflect.ownKeys(input).length === length + 1, `${label} must be a dense array`);
+  return Array.from({ length }, (_, index) => {
+    const descriptor = Object.getOwnPropertyDescriptor(input, String(index));
+    check(descriptor && descriptor.enumerable && 'value' in descriptor, `${label}[${index}] must be data`);
+    return descriptor.value;
+  });
+}
+function quaternion(input: unknown): Quat {
+  const values = denseArray(input, 4, 'Motion rotation').map(value => finite(value, 'Motion rotation', -1, 1)) as Quat;
+  check(Math.abs(Math.hypot(...values) - 1) <= MOTION_LIMITS.quaternionNormTolerance,
+    'Motion rotation must be a unit XYZW quaternion');
+  return values;
+}
+function motionId(input: unknown, label: string): string {
+  check(typeof input === 'string' && MOTION_ID.test(input), `${label} must be a bounded Motion identifier`);
+  return input;
+}
+function parseMotionFrame(input: unknown): MotionFrame {
+  const data = ownRecord(input, ['contextId', 'timeSeconds', 'poses'], 'Motion frame');
+  const contextId = motionId(data.contextId, 'Motion contextId');
+  const timeSeconds = finite(data.timeSeconds, 'Motion timeSeconds', 0, MOTION_LIMITS.durationSeconds);
+  check(Array.isArray(data.poses) && data.poses.length >= 1 && data.poses.length <= 4,
+    'Motion frame needs 1..4 poses');
+  const poses = denseArray(data.poses, data.poses.length, 'Motion poses').map((inputPose, index) => {
+    check(inputPose !== null && typeof inputPose === 'object' && Object.getPrototypeOf(inputPose) === Object.prototype,
+      `Motion pose ${index} must be plain data`);
+    const keys = Reflect.ownKeys(inputPose);
+    check(keys.includes('targetId') && keys.every(key => typeof key === 'string'
+      && ['targetId', 'translation', 'rotation', 'scale'].includes(key)), 'Motion pose has unsupported fields');
+    const pose = ownRecord(inputPose, keys as string[], 'Motion pose');
+    return { targetId: motionId(pose.targetId, 'Motion targetId'),
+      ...(Object.hasOwn(pose, 'translation') ? { translation: vector(pose.translation, 'Motion translation',
+        -MOTION_LIMITS.translationMm, MOTION_LIMITS.translationMm) } : {}),
+      ...(Object.hasOwn(pose, 'rotation') ? { rotation: quaternion(pose.rotation) } : {}),
+      ...(Object.hasOwn(pose, 'scale') ? { scale: vector(pose.scale, 'Motion scale',
+        MOTION_LIMITS.scaleMin, MOTION_LIMITS.scaleMax) } : {}) };
+  });
+  check(new Set(poses.map(pose => pose.targetId)).size === poses.length, 'Duplicate Motion targetId');
+  return { contextId, timeSeconds, poses };
+}
 function parseViewerOptions(input: unknown): ViewerOptions {
   const value = ownRecord(input, ['mmToSceneUnit', 'background'], 'Viewer options');
   return { mmToSceneUnit: finite(value.mmToSceneUnit, 'mmToSceneUnit', 1e-6, 1),
@@ -106,18 +161,52 @@ function parseNativeParameter(input: unknown): ViewerNativeSurfaceParameter {
 function sameRef(a: ViewerRef | null, b: ViewerRef | null): boolean {
   return !!a && !!b && a.modelId === b.modelId && a.surfaceId === b.surfaceId;
 }
+function refKey(ref: ViewerRef): string { return `${ref.modelId}\0${ref.surfaceId}`; }
+function parseMotionBindings(input: unknown, frame: MotionFrame, packets: ViewerPacket[]): ViewerMotionBinding[] {
+  const bindings = denseArray(input, packets.length, 'Motion bindings').map(raw => {
+    const value = ownRecord(raw, ['contextId', 'targetId', 'ref'], 'Motion binding');
+    const contextId = motionId(value.contextId, 'Binding contextId');
+    check(contextId === frame.contextId, 'Binding contextId differs from Motion frame');
+    return { contextId, targetId: motionId(value.targetId, 'Binding targetId'), ref: parseRef(value.ref) };
+  });
+  const targets = new Set(bindings.map(binding => binding.targetId));
+  const refs = new Set(bindings.map(binding => refKey(binding.ref)));
+  check(targets.size === bindings.length && refs.size === bindings.length, 'Motion bindings must be one-to-one');
+  check(frame.poses.length === bindings.length && frame.poses.every(pose => targets.has(pose.targetId)),
+    'Motion frame must cover every bound target exactly once');
+  check(packets.every(packet => refs.has(refKey({ modelId: packet.modelId, surfaceId: packet.packet.surfaceId }))),
+    'Motion bindings must cover every Viewer surface exactly once');
+  return bindings;
+}
 function add(a: Vec3, b: Vec3): Vec3 { return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]; }
 function subtract(a: Vec3, b: Vec3): Vec3 { return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]; }
 function multiply(a: Vec3, n: number): Vec3 { return [a[0] * n, a[1] * n, a[2] * n]; }
 function dot(a: Vec3, b: Vec3): number { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
 function cross(a: Vec3, b: Vec3): Vec3 { return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]]; }
 function unit(a: Vec3): Vec3 { const length = Math.hypot(...a); check(length > 1e-12, 'Degenerate camera vector'); return multiply(a, 1 / length); }
+function rotated(q: Quat, v: Vec3): Vec3 {
+  const t = multiply(cross([q[0], q[1], q[2]], v), 2);
+  return add(v, add(multiply(t, q[3]), cross([q[0], q[1], q[2]], t)));
+}
+function displayVertex(native: Vec3, pose: ViewerDisplayPose | undefined, mmToSceneUnit: number): Vec3 {
+  if (!pose) return multiply(native, mmToSceneUnit);
+  const scaled = native.map((value, axis) => value * pose.scale[axis]) as Vec3;
+  return multiply(add(pose.translationMm, rotated(pose.rotationXYZW, scaled)), mmToSceneUnit);
+}
 
-function fittedCamera(packets: ViewerPacket[], scale: number, width: number, height: number): MeshCamera {
+function fittedCamera(packets: ViewerPacket[], scale: number, width: number, height: number,
+  motion: ViewerMotionState | null = null): MeshCamera {
   const low: Vec3 = [Infinity, Infinity, Infinity], high: Vec3 = [-Infinity, -Infinity, -Infinity];
-  for (const { packet } of packets) for (let axis = 0; axis < 3; axis++) {
-    low[axis] = Math.min(low[axis], packet.bounds.min[axis] * scale);
-    high[axis] = Math.max(high[axis], packet.bounds.max[axis] * scale);
+  for (const entry of packets) {
+    const pose = motion?.displayPoses.find(value => sameRef(value.ref,
+      { modelId: entry.modelId, surfaceId: entry.packet.surfaceId }));
+    for (let offset = 0; offset < entry.packet.positions.length; offset += 3) {
+      const point = displayVertex(entry.packet.positions.slice(offset, offset + 3) as Vec3, pose, scale);
+      for (let axis = 0; axis < 3; axis++) {
+        low[axis] = Math.min(low[axis], point[axis]);
+        high[axis] = Math.max(high[axis], point[axis]);
+      }
+    }
   }
   const target = low.map((n, axis) => (n + high[axis]) / 2) as Vec3;
   const radius = Math.max(0.01, Math.hypot(...high.map((n, axis) => n - target[axis])));
@@ -147,6 +236,7 @@ export class Viewer {
   private measurement: ViewerNativeSurfaceMeasurement | null = null;
   private camera: MeshCamera = validateMeshCamera(INITIAL_CAMERA);
   private selected: ViewerRef | null = null;
+  private motion: ViewerMotionState | null = null;
   private disposed = false;
   private contextLost = false;
   private readonly onContextLost = (): void => { this.contextLost = true; };
@@ -165,13 +255,19 @@ export class Viewer {
     return { mmToSceneUnit: this.options.mmToSceneUnit, translate: [0, 0, 0] as Vec3,
       background: this.options.background, camera };
   }
-  private gpuEntries(packets: ViewerPacket[], selected: ViewerRef | null) {
-    return packets.map((entry, index) => ({ packet: entry.packet,
-      color: sameRef({ modelId: entry.modelId, surfaceId: entry.packet.surfaceId }, selected)
-        ? [1, 0.94, 0.38] as Vec3 : PALETTE[index] }));
+  private gpuEntries(packets: ViewerPacket[], selected: ViewerRef | null, motion: ViewerMotionState | null) {
+    return packets.map((entry, index) => {
+      const ref = { modelId: entry.modelId, surfaceId: entry.packet.surfaceId };
+      const pose = motion?.displayPoses.find(value => sameRef(value.ref, ref));
+      return { packet: entry.packet,
+        color: sameRef(ref, selected) ? [1, 0.94, 0.38] as Vec3 : PALETTE[index],
+        ...(pose ? { transform: { translationMm: pose.translationMm,
+          rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {}) };
+    });
   }
-  private present(packets: ViewerPacket[], camera: MeshCamera, selected: ViewerRef | null): void {
-    const entries = this.gpuEntries(packets, selected), options = this.gpuOptions(camera);
+  private present(packets: ViewerPacket[], camera: MeshCamera, selected: ViewerRef | null,
+    motion: ViewerMotionState | null): void {
+    const entries = this.gpuEntries(packets, selected, motion), options = this.gpuOptions(camera);
     if (this.renderer) {
       const result = this.renderer.update(entries, options);
       if (!result.ok) throw result.error;
@@ -205,8 +301,9 @@ export class Viewer {
   private accept(input: unknown, native: BaroCadNativeResult | null): void {
     const packets = this.validatedPackets(input);
     const camera = fittedCamera(packets, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
-    this.present(packets, camera, null);
-    this.packets = packets; this.camera = camera; this.selected = null; this.native = native; this.measurement = null;
+    this.present(packets, camera, null, null);
+    this.packets = packets; this.camera = camera; this.selected = null; this.native = native;
+    this.measurement = null; this.motion = null;
   }
   loadNative(source: string, input: NativeLoadOptions): void {
     this.live();
@@ -242,13 +339,48 @@ export class Viewer {
     this.measurement = result;
     return structuredClone(result);
   }
+  applyMotionFrame(input: MotionFrame, inputBindings: ViewerMotionBinding[],
+    inputOptions: { basis: 'part-xyz-matches-rhyup' }): void {
+    this.live(); check(this.packets.length > 0, 'Viewer has no surfaces');
+    const basis = ownRecord(inputOptions, ['basis'], 'Motion basis');
+    check(basis.basis === 'part-xyz-matches-rhyup', 'Motion part XYZ/mm basis must explicitly match Viewer Y-up/mm');
+    const frame = parseMotionFrame(input);
+    const bindings = parseMotionBindings(inputBindings, frame, this.packets);
+    const poses = new Map(frame.poses.map(pose => [pose.targetId, pose]));
+    const displayPoses = bindings.map(binding => {
+      const pose = poses.get(binding.targetId)!;
+      return { ref: binding.ref,
+        translationMm: pose.translation ?? [0, 0, 0] as Vec3,
+        rotationXYZW: pose.rotation ?? [0, 0, 0, 1] as Quat,
+        scale: pose.scale ?? [1, 1, 1] as Vec3 };
+    });
+    const motion: ViewerMotionState = { basis: 'part-xyz-matches-rhyup', frame, bindings, displayPoses };
+    for (const entry of this.packets) {
+      const pose = displayPoses.find(value => sameRef(value.ref,
+        { modelId: entry.modelId, surfaceId: entry.packet.surfaceId }))!;
+      for (let offset = 0; offset < entry.packet.positions.length; offset += 3) {
+        const point = displayVertex(entry.packet.positions.slice(offset, offset + 3) as Vec3,
+          pose, this.options.mmToSceneUnit);
+        check(point.every(value => Number.isFinite(value) && Math.abs(value) <= 1000),
+          'Transformed Viewer position exceeds GPU scene bounds');
+      }
+    }
+    this.present(this.packets, this.camera, this.selected, motion);
+    this.motion = motion;
+  }
+  resetMotion(): void {
+    this.live();
+    if (this.motion) this.present(this.packets, this.camera, this.selected, null);
+    this.motion = null;
+  }
   fit(): void {
     this.live(); check(this.packets.length > 0, 'Viewer has no surfaces');
-    this.setView(fittedCamera(this.packets, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height));
+    this.setView(fittedCamera(this.packets, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height,
+      this.motion));
   }
   setView(input: MeshCamera): void {
     this.live(); const camera = validateMeshCamera(input);
-    if (this.renderer) this.present(this.packets, camera, this.selected);
+    if (this.renderer) this.present(this.packets, camera, this.selected, this.motion);
     this.camera = camera;
   }
   orbit(deltaAzimuthRadians: number, deltaElevationRadians: number): void {
@@ -292,8 +424,11 @@ export class Viewer {
     let best: ViewerPick | null = null;
     for (const entry of this.packets) {
       const { positions, indices, parameters } = entry.packet, scale = this.options.mmToSceneUnit;
+      const pose = this.motion?.displayPoses.find(value => sameRef(value.ref,
+        { modelId: entry.modelId, surfaceId: entry.packet.surfaceId }));
       for (let offset = 0; offset < indices.length; offset += 3) {
-        const vertex = (index: number): Vec3 => [0, 1, 2].map(axis => positions[index * 3 + axis] * scale) as Vec3;
+        const vertex = (index: number): Vec3 => displayVertex(positions.slice(index * 3, index * 3 + 3) as Vec3,
+          pose, scale);
         const a = indices[offset], b = indices[offset + 1], c = indices[offset + 2];
         const hit = rayTriangle(this.camera.eye, direction, vertex(a), vertex(b), vertex(c));
         if (!hit) continue;
@@ -319,7 +454,7 @@ export class Viewer {
     this.live(); const selected = input === null ? null : parseRef(input);
     check(selected === null || this.packets.some(entry => sameRef(
       { modelId: entry.modelId, surfaceId: entry.packet.surfaceId }, selected)), 'Unknown surface reference');
-    if (this.renderer) this.present(this.packets, this.camera, selected);
+    if (this.renderer) this.present(this.packets, this.camera, selected, this.motion);
     this.selected = selected;
   }
   resize(width: number, height: number): void {
@@ -334,7 +469,7 @@ export class Viewer {
       mmToSceneUnit: this.options.mmToSceneUnit, camera: this.camera,
       surfaces: this.packets.map(entry => ({ modelId: entry.modelId, surfaceId: entry.packet.surfaceId })),
       packets: this.packets,
-      selected: this.selected, native: this.native, measurement: this.measurement });
+      selected: this.selected, native: this.native, measurement: this.measurement, motion: this.motion });
   }
   readPixels(): Uint8Array { this.live(); check(this.renderer, 'Viewer has no surfaces'); return this.renderer.readPixels(); }
   dispose(): void { if (this.disposed) return; this.disposed = true;

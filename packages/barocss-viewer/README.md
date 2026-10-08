@@ -17,6 +17,35 @@ if (hit) viewer.select(hit.ref);
 viewer.dispose();
 ```
 
+For a sampled Motion frame, bind each Motion target to exactly one displayed surface:
+
+```js
+import { createMotionClip, sampleMotionClip } from '@barocss/motion';
+
+const clip = createMotionClip(clipInput);
+const bindings = [
+  { contextId: clip.contextId, targetId: 'part-a', ref: viewer.getState().surfaces[0] },
+  { contextId: clip.contextId, targetId: 'part-b', ref: viewer.getState().surfaces[1] },
+];
+viewer.applyMotionFrame(sampleMotionClip(clip, 2), bindings,
+  { basis: 'part-xyz-matches-rhyup' });
+viewer.fit();
+viewer.resetMotion();
+```
+
+The basis declaration means the Motion part XYZ/mm axes already match Viewer
+right-handed Y-up/mm axes. Viewer does not infer an axis change. Translation is
+in millimetres. The display order is native scale, quaternion rotation,
+translation, then the shared `mmToSceneUnit` conversion. The GPU applies the
+inverse scale to normals before rotation. Missing TRS parts use identity values.
+`applyMotionFrame` requires a complete, one-to-one binding for the current
+1..4 surfaces and frame poses. Invalid input or a rejected GPU update retains
+the last accepted scene. `getState().motion` copies the frame, bindings, and
+display poses separately from native data and preview packets. `resetMotion`
+restores the identity display pose and keeps the camera and selection. A
+successful `loadNative` or `setPackets` also clears the Motion pose. Sampling
+and playback time remain with the caller.
+
 `getState().native` contains a copied native model and the exact source string.
 For two points on the accepted native model, call
 `measureNativeSurfacePoints({modelId,surfaceId,u,v}, {modelId,surfaceId,u,v})`.
@@ -40,8 +69,8 @@ once. The generic `setPackets` entry has `{modelId, packet}` and no claimed
 native model. Use a unique `(modelId, surfaceId)` pair for each surface.
 
 The camera uses scene units. `fit`, `setView`, `orbit`, `pan`, and `zoom` update
-the camera without editing native geometry. `fit` encloses the scaled packet
-bounds with a 30% sphere margin at a 45-degree vertical FOV. It uses a minimum
+the camera without editing native geometry. `fit` encloses the current displayed
+vertices with a 30% sphere margin at a 45-degree vertical FOV. It uses a minimum
 0.01 scene-unit radius for planar or degenerate bounds and sets near/far around
 the full sphere. `pick` tests displayed triangles
 and returns `approximate: true`, the surface reference, triangle index,
