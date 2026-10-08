@@ -271,6 +271,57 @@ and does not accept document JSON. Run
 actual generated-file and local HTTP check. This neutral result does not imply
 Three, Babylon, Pixi3D or GPU document rendering.
 
+### Display selected document bodies in own GPU v2
+
+`prepareBaroCadDocumentPrimitiveNativeRefsV2(result, options)` checks the
+complete CAD document result and returns owned original-ID Surface packets or
+Curve v0/v1 samples. It selects all bodies when the document has at most four.
+A document with 5–16 bodies requires `bodyIds`: a unique, existing list of
+1–4 IDs. The output follows the authored body order, even if the selection
+list has another order. Selected assets must fit the native source preview
+producer's 1–4 object limit. Failure returns no partial projection.
+
+```js
+import { loadBaroCadDocument, prepareBaroCadDocumentPrimitiveNativeRefsV2 }
+  from '@barocss/cad-interop/document';
+import { mountPrimitiveSceneV2 } from '@barocss/gpu';
+
+const result = await loadBaroCadDocument(documentURL);
+const projected = prepareBaroCadDocumentPrimitiveNativeRefsV2(result, {
+  native: { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } },
+  basis: 'authored-xyz-matches-rhyup', // Explicit host assertion for this target.
+  bodyIds: ['body_0_curve', 'body_0_surface', 'body_1_curve', 'body_1_surface'],
+});
+const entries = projected.map((entry, index) => {
+  const { binding, ...primitive } = entry;
+  return { ...primitive, color: colors[index], transform: poses[index] };
+});
+const display = mountPrimitiveSceneV2(canvas, { version: 2, entries }, gpuOptions);
+// Call display.dispose() when finished. The host keeps its canvas and CAD result.
+```
+
+Each binding retains `documentId`, document revision, body/asset IDs, asset
+revision, original `Model.name`, geometry kind/ID and document/source frames.
+`ref.geometryId` is the original packet/sample ID. `ref.modelId` is an
+asset-scoped GPU display namespace: an asset ID's `-` becomes `.`. CAD asset
+IDs cannot contain `.`, so the encoding is injective. This does not change
+the source text, native Model, body reference, Curve DTO or packet ID.
+Document `authored-xyz-no-axis-conversion` does not itself declare Y-up. The
+host must assert that its authored frame matches this right-handed Y-up GPU
+target, choose the scene's mm scale and supply colors/poses/camera. There is
+no automatic axis mapping, assembly placement, feature evaluation or exact
+pick identity. The neutral package imports no GPU module and creates no
+WebGL resource.
+
+`examples/document-gpu-v2-fixture.mjs` generates the actual 3,172-byte
+`document-gpu-v2.cad-document.json` with two source0 assets and six body
+references. `node examples/document-gpu-v2-verify.mjs` checks the compiled
+file, HTTP read, source/ID/revision retention and refusal. The
+`examples/document-gpu-v2.html` Vite example displays four selected bodies
+on one WebGL2 canvas, checks uploaded buffers/pixels, rejected updates and
+owned GPU disposal. Build CAD, GPU and interop before running these examples.
+
 ## Load native source in Babylon.js
 
 Install `@babylonjs/core@9.29.0` in the host application. The optional
