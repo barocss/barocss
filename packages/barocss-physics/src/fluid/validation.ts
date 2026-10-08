@@ -38,11 +38,19 @@ function exactTriple(value: unknown, expected: Vec3, label: string): void {
 
 export function admitFluidScene(value: unknown): AcceptedFluidScene {
   const scene = plainObject(value);
+  const v2 = scene.version === 2;
   exactFields(scene, ['format', 'version', 'revision', 'basis', 'fixedStepSeconds',
-    'gravityMps2', 'basinM', 'initialPositionsM'], 'Fluid scene');
-  if (scene.format !== 'barocss-fluid-scene' || scene.version !== 1
+    'gravityMps2', 'basinM', 'initialPositionsM', ...(v2 ? ['visualViscosity'] : [])], 'Fluid scene');
+  if (scene.format !== 'barocss-fluid-scene' || (scene.version !== 1 && !v2)
     || scene.basis !== 'right-handed-xyz-metres'
     || scene.fixedStepSeconds !== FLUID_STEP_SECONDS) invalid('Unsupported FluidSceneV1 contract');
+  if (v2) {
+    const viscosity = plainObject(scene.visualViscosity);
+    exactFields(viscosity, ['kind', 'coefficient'], 'visualViscosity');
+    if (viscosity.kind !== 'xsph' || viscosity.coefficient !== 0.15) {
+      invalid('Unsupported visual viscosity profile');
+    }
+  }
   if (typeof scene.revision !== 'string' || !/^[A-Za-z][A-Za-z0-9._:-]{0,63}$/.test(scene.revision)) {
     invalid('Fluid scene revision must be a qualified ASCII identifier');
   }
@@ -76,5 +84,6 @@ export function admitFluidScene(value: unknown): AcceptedFluidScene {
       }
     }
   }
-  return { revision: scene.revision, initialPositionsM: positions };
+  return { revision: scene.revision, initialPositionsM: positions,
+    visualViscosityCoefficient: v2 ? 0.15 : 0 };
 }

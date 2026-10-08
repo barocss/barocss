@@ -22,7 +22,7 @@ class BoundedFluidWorld implements FluidWorld {
     this.initial = scene.initialPositionsM.slice();
     this.positions = this.initial.slice();
     this.restDensity = initialRestDensity(this.initial);
-    this.solver = new PbfSolver(this.restDensity);
+    this.solver = new PbfSolver(this.restDensity, scene.visualViscosityCoefficient);
     this.diagnostics = fluidDiagnostics(this.positions, this.restDensity, 0);
   }
 

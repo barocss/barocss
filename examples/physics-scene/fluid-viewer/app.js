@@ -8,6 +8,7 @@ const status = document.querySelector('#status');
 const toggle = document.querySelector('#toggle');
 const stepButton = document.querySelector('#step');
 const resetButton = document.querySelector('#reset');
+const sceneSelect = document.querySelector('#scene');
 const digest = async state => [...new Uint8Array(await crypto.subtle.digest('SHA-256',
   state.positionsM.buffer.slice(state.positionsM.byteOffset,
     state.positionsM.byteOffset + state.positionsM.byteLength)))].map(byte =>
@@ -22,7 +23,7 @@ canvas.addEventListener('webglcontextlost', event => {
   renderVersion++;
   controller?.dispose();
   controller = undefined;
-  for (const button of [toggle, stepButton, resetButton]) button.disabled = true;
+  for (const control of [toggle, stepButton, resetButton, sceneSelect]) control.disabled = true;
   status.textContent = 'WebGL2 문맥을 잃었습니다. 복구 후 장면을 다시 만듭니다.';
   window.fluidViewerState = { contextLost: true };
 });
@@ -51,13 +52,25 @@ try {
     const version = ++renderVersion;
     digest(state).then(sha => {
       if (version !== renderVersion) return;
-      status.textContent = `상태: ${running ? '재생' : '일시 정지'}\n단계: ${state.stepIndex}\n시간: ${state.timeSeconds.toFixed(3)} s\n입자: ${state.particleCount}\n밀도 오차: ${state.diagnostics.meanAbsoluteDensityError.toFixed(4)}\n경계 접촉: ${state.diagnostics.boundaryHits}\n위치 SHA-256: ${sha}`;
+      status.textContent = `장면: ${sceneSelect.selectedOptions[0].textContent}\n상태: ${running ? '재생' : '일시 정지'}\n단계: ${state.stepIndex}\n시간: ${state.timeSeconds.toFixed(3)} s\n입자: ${state.particleCount}\n밀도 오차: ${state.diagnostics.meanAbsoluteDensityError.toFixed(4)}\n경계 접촉: ${state.diagnostics.boundaryHits}\n위치 SHA-256: ${sha}`;
       window.fluidViewerState = { running, stepIndex: state.stepIndex,
-        particleCount: state.particleCount, sha256: sha,
+        particleCount: state.particleCount, sceneRevision: state.sceneRevision, sha256: sha,
+        diagnostics: { ...state.diagnostics },
         displayStep: accepted.stepIndex, glError: canvas.getContext('webgl2').getError() };
     }).catch(error => { status.textContent = String(error); });
   };
-  controller = createFluidController(createWaterWorld(), present);
+  const startScene = () => {
+    renderVersion++;
+    controller?.dispose();
+    viewer.setFluidFrame(null);
+    generation++;
+    const selection = sceneSelect.value;
+    controller = createFluidController(createWaterWorld({
+      high: selection.startsWith('splash'), tuned: selection.endsWith('tuned'),
+    }), present);
+  };
+  startScene();
+  sceneSelect.addEventListener('change', startScene);
   toggle.addEventListener('click', () => controller.isRunning() ? controller.pause() : controller.play());
   stepButton.addEventListener('click', () => controller.step());
   resetButton.addEventListener('click', () => controller.reset());
