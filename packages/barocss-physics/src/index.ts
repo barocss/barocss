@@ -1,6 +1,6 @@
 /** A small, deterministic-order translational 3D dynamics profile. Units are SI. */
 export type Vec3 = [number, number, number];
-export type PhysicsErrorCode = 'INVALID_CONFIG' | 'INVALID_STEP' | 'WORLD_LIMIT' | 'NUMERIC_LIMIT' | 'DISPOSED';
+export type PhysicsErrorCode = 'INVALID_CONFIG' | 'INVALID_STEP' | 'INVALID_COMMAND' | 'WORLD_LIMIT' | 'NUMERIC_LIMIT' | 'DISPOSED';
 
 export class PhysicsError extends Error {
   constructor(readonly code: PhysicsErrorCode, message: string) {
@@ -13,7 +13,11 @@ export type SphereShape = { kind: 'sphere'; radiusM: number };
 export type BoxShape = { kind: 'box'; halfExtentsM: Vec3 };
 export type PhysicsBodyConfig =
   | { id: string; kind: 'dynamic'; shape: SphereShape; positionM: Vec3; velocityMps: Vec3; massKg: number; restitution: number }
-  | { id: string; kind: 'static'; shape: SphereShape | BoxShape; positionM: Vec3; restitution: number };
+  | { id: string; kind: 'static' | 'kinematic'; shape: SphereShape | BoxShape; positionM: Vec3; restitution: number };
+export type PhysicsStepCommand =
+  | { kind: 'force'; bodyId: string; forceN: Vec3 }
+  | { kind: 'impulse'; bodyId: string; impulseNs: Vec3 }
+  | { kind: 'kinematicTarget'; bodyId: string; positionM: Vec3 };
 export interface PhysicsWorldConfig {
   fixedStepSeconds: number;
   gravityMps2: Vec3;
@@ -21,7 +25,7 @@ export interface PhysicsWorldConfig {
 }
 export interface PhysicsBodyState {
   id: string;
-  kind: 'dynamic' | 'static';
+  kind: 'dynamic' | 'static' | 'kinematic';
   shape: SphereShape | BoxShape;
   positionM: Vec3;
   velocityMps: Vec3;
@@ -41,7 +45,7 @@ export interface PhysicsState {
 }
 export interface PhysicsWorld {
   getState(): PhysicsState;
-  step(fixedStepSeconds: number): PhysicsState;
+  step(fixedStepSeconds: number, commands?: PhysicsStepCommand[]): PhysicsState;
   dispose(): void;
 }
 
@@ -55,6 +59,9 @@ const ID = /^[A-Za-z][A-Za-z0-9._:-]{0,63}$/;
 const MAX_BODIES = 32;
 const MAX_STEPS = 3600;
 const MAX_STEP_DISPLACEMENT_M = 10;
+const MAX_COMMANDS = 64;
+const MAX_FORCE_N = 1000000;
+const MAX_IMPULSE_NS = 100000;
 const SOLVER_PASSES = 8;
 
 function error(code: PhysicsErrorCode, message: string): never { throw new PhysicsError(code, message); }
@@ -94,15 +101,17 @@ function shape(value: unknown, allowBox: boolean): SphereShape | BoxShape {
 function parseBody(value: unknown): Body {
   const input = record(value, 'body');
   if (typeof input.id !== 'string' || !ID.test(input.id)) error('INVALID_CONFIG', 'invalid body ID');
-  if (input.kind !== 'dynamic' && input.kind !== 'static') error('INVALID_CONFIG', 'invalid body kind');
+  if (input.kind !== 'dynamic' && input.kind !== 'static' && input.kind !== 'kinematic') {
+    error('INVALID_CONFIG', 'invalid body kind');
+  }
   const kind = input.kind;
   fields(input, kind === 'dynamic'
     ? ['id', 'kind', 'shape', 'positionM', 'velocityMps', 'massKg', 'restitution']
     : ['id', 'kind', 'shape', 'positionM', 'restitution'], 'body');
-  const parsedShape = shape(input.shape, kind === 'static');
+  const parsedShape = shape(input.shape, kind !== 'dynamic');
   const positionM = vector(input.positionM, -10000, 10000, 'positionM');
   const restitution = finite(input.restitution, 0, 1, 'restitution');
-  if (kind === 'static') {
+  if (kind !== 'dynamic') {
     return { id: input.id, kind, shape: parsedShape, positionM, velocityMps: [0, 0, 0], inverseMass: 0, restitution };
   }
   const massKg = finite(input.massKg, 0.000001, 1000000, 'massKg');
@@ -114,6 +123,54 @@ function copyShape(value: SphereShape | BoxShape): SphereShape | BoxShape {
 }
 function copyBody(body: Body): Body {
   return { ...body, shape: copyShape(body.shape), positionM: [...body.positionM], velocityMps: [...body.velocityMps] };
+}
+type AdmittedCommands = { forceN?: Vec3; impulseNs?: Vec3; positionM?: Vec3 };
+function commandVector(input: unknown, bound: number, label: string): Vec3 {
+  if (!Array.isArray(input) || input.length !== 3 || Reflect.ownKeys(input).length !== 4 ||
+    ![0, 1, 2].every((index) => Object.hasOwn(input, index))) {
+    error('INVALID_COMMAND', `${label} must be a dense 3-vector`);
+  }
+  const result = [input[0], input[1], input[2]];
+  if (result.some((value) => typeof value !== 'number' || !Number.isFinite(value) || Math.abs(value) > bound)) {
+    error('INVALID_COMMAND', `${label} must have finite components within ±${bound}`);
+  }
+  return result as Vec3;
+}
+function parseCommands(input: unknown, bodies: Body[]): Map<string, AdmittedCommands> {
+  if (!Array.isArray(input) || input.length > MAX_COMMANDS ||
+    Reflect.ownKeys(input).length !== input.length + 1 ||
+    !Array.from({ length: input.length }, (_, index) => Object.hasOwn(input, index)).every(Boolean)) {
+    error('INVALID_COMMAND', `commands must be a dense array of at most ${MAX_COMMANDS}`);
+  }
+  const byId = new Map(bodies.map((body) => [body.id, body]));
+  const admitted = new Map<string, AdmittedCommands>();
+  for (const [index, raw] of input.entries()) {
+    if (raw === null || typeof raw !== 'object' || Array.isArray(raw) ||
+      (Object.getPrototypeOf(raw) !== Object.prototype && Object.getPrototypeOf(raw) !== null)) {
+      error('INVALID_COMMAND', `command ${index} must be a plain object`);
+    }
+    const descriptors = Object.getOwnPropertyDescriptors(raw);
+    const keys = Reflect.ownKeys(raw);
+    const kind = descriptors.kind?.value;
+    const valueKey = kind === 'force' ? 'forceN' : kind === 'impulse' ? 'impulseNs'
+      : kind === 'kinematicTarget' ? 'positionM' : null;
+    if (!valueKey || keys.length !== 3 || keys.some((key) => typeof key !== 'string' ||
+      !['kind', 'bodyId', valueKey].includes(key)) ||
+      ['kind', 'bodyId', valueKey].some((key) => !descriptors[key]?.enumerable || !('value' in descriptors[key]))) {
+      error('INVALID_COMMAND', `command ${index} has unsupported fields`);
+    }
+    const bodyId = descriptors.bodyId.value;
+    const body = typeof bodyId === 'string' ? byId.get(bodyId) : undefined;
+    if (!body || (kind === 'kinematicTarget' ? body.kind !== 'kinematic' : body.kind !== 'dynamic')) {
+      error('INVALID_COMMAND', `command ${index} targets an unknown or unsupported body`);
+    }
+    const previous = admitted.get(body.id) ?? {};
+    if (Object.hasOwn(previous, valueKey)) error('INVALID_COMMAND', `duplicate ${kind} command for ${body.id}`);
+    const bound = kind === 'force' ? MAX_FORCE_N : kind === 'impulse' ? MAX_IMPULSE_NS : 10000;
+    const value = commandVector(descriptors[valueKey].value, bound, `command ${index}.${valueKey}`);
+    admitted.set(body.id, { ...previous, [valueKey]: value });
+  }
+  return admitted;
 }
 function publicState(bodies: Body[], contacts: PhysicsContact[], stepIndex: number, dt: number): PhysicsState {
   return {
@@ -217,17 +274,33 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
   const ensureActive = () => { if (disposed) error('DISPOSED', 'world is disposed'); };
   return {
     getState() { ensureActive(); return publicState(bodies, contacts, stepIndex, dt); },
-    step(fixedStepSeconds) {
+    step(fixedStepSeconds, commands = []) {
       ensureActive();
       if (fixedStepSeconds !== dt) error('INVALID_STEP', 'step must equal configured fixedStepSeconds');
       if (stepIndex >= MAX_STEPS) error('WORLD_LIMIT', 'world step limit reached');
+      const actions = parseCommands(commands, bodies);
       const next = bodies.map(copyBody);
-      for (const body of next) if (body.inverseMass > 0) {
-        for (let i = 0; i < 3; i++) body.velocityMps[i] += gravity[i] * dt;
-        if (Math.hypot(...body.velocityMps) * dt > MAX_STEP_DISPLACEMENT_M) {
-          error('NUMERIC_LIMIT', `${body.id} exceeded step displacement limit`);
+      for (const body of next) {
+        const action = actions.get(body.id);
+        if (body.kind === 'kinematic') {
+          const target = action?.positionM ?? body.positionM;
+          const delta = target.map((value, index) => value - body.positionM[index]) as Vec3;
+          if (Math.hypot(...delta) > MAX_STEP_DISPLACEMENT_M ||
+            delta.some((value) => Math.abs(value / dt) > 1000)) {
+            error('NUMERIC_LIMIT', `${body.id} exceeded kinematic movement limit`);
+          }
+          body.velocityMps = delta.map((value) => value / dt) as Vec3;
+          body.positionM = [...target];
+        } else if (body.kind === 'dynamic') {
+          for (let i = 0; i < 3; i++) {
+            body.velocityMps[i] += (action?.impulseNs?.[i] ?? 0) * body.inverseMass;
+            body.velocityMps[i] += (gravity[i] + (action?.forceN?.[i] ?? 0) * body.inverseMass) * dt;
+          }
+          if (Math.hypot(...body.velocityMps) * dt > MAX_STEP_DISPLACEMENT_M) {
+            error('NUMERIC_LIMIT', `${body.id} exceeded step displacement limit`);
+          }
+          for (let i = 0; i < 3; i++) body.positionM[i] += body.velocityMps[i] * dt;
         }
-        for (let i = 0; i < 3; i++) body.positionM[i] += body.velocityMps[i] * dt;
       }
       const found = new Map<string, PhysicsContact>();
       for (let pass = 0; pass < SOLVER_PASSES; pass++) for (const [aIndex, bIndex] of pairs) {
