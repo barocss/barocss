@@ -1228,3 +1228,45 @@ result arrays, error/result retention, camera retention, source invalidation,
 exact native C0 refusal and active-gesture refusal. No viewport is attached in
 this API proof. Browser pixels, reader/global continuity and broader capacity
 or performance are not claimed by this scoped result.
+
+### Oriented original Surface boundary queries (#758)
+
+The default-collapsed **Boundary evaluation** section selects v-min, u-max,
+v-max or u-min and evaluates one original dimensionless boundary parameter.
+It calls native extractSurfaceBoundary/evaluateCurveD1 and evaluates the matching
+Surface D1 at the explicitly reported U/V. These are geometric parameter
+boundaries; no topological edge, trim or wire identity is added.
+
+| Boundary | Varying axis | Native correspondence |
+| --- | --- | --- |
+| v-min | U | increasing U, Vmin |
+| u-max | V | Umax, increasing V |
+| v-max | U | decreasing U, Vmax |
+| u-min | V | Umin, decreasing V |
+
+Decreasing correspondence reflects t into the original axis domain and negates
+that Surface partial. The extracted Curve keeps its original parameter domain.
+Unrepresentable reflection or native D1 guards refuse; there is no epsilon nudge
+or normalized remapping. The result reports original Surface/source/object/revision,
+local point in mm, actual oriented Curve tangent and signed Surface partial in mm
+per original parameter. Instance placement is not applied.
+
+Boundary query state is separate from the point query. Errors retain the last
+successful boundary result and staged edits. Camera changes retain it; scene/source
+adoption or object change clears it. A fixed private temporary Curve ID stays
+outside the native Model. Query fields/results are not serialized or GPU resources.
+
+One scoped actual source/API proof from repository root:
+
+```sh
+BAROCSS_BOUNDARY_QUERY_EVIDENCE=/absolute/unique/output \
+node examples/cad-preview/scene-surface-boundary-query-flow.mjs
+```
+
+The real affine rational patch uses U2..5/V10..20. All four native orientations
+are compared with independent analytic positions/tangents, including v-max t3→U4
+and u-min t12.5→V17.5 with negative original partials. Accepted source, cached native
+object/display/history, point-query state and staged invalid pole fields are retained;
+getter/domain/empty parameter refusals, immutable copied arrays, camera retention
+and source invalidation are checked. This API proof attaches no viewport; UI build
+is separate from browser pixels, readers or global continuity/capacity certification.
