@@ -1076,3 +1076,27 @@ and 0.001 scene units/mm. Native edit coefficients/report and sample
 parameters remain separate from Float32 display vertices. This is one
 actual edit consumer, not a native control-net renderer, exact pick,
 global shape certificate or npm publication.
+
+## CAD wide Curve reversal consumer in Three.js
+
+`examples/curve-wide-reversal-generate.mjs` cold-reads the committed actual
+64-pole #804 edited source. It calls public CAD `reverseCurveWide` with a
+distinct derived Curve ID. The verifier checks the owned result, copied
+control/weight bits, retained domain endpoint signs, the decreasing
+parameter map, local point/negative-D1 observations and the exact saved
+`examples/curve-wide-reversal-data/reversed.barocad` text. Run it after
+building CAD and interop:
+
+```sh
+node packages/barocss-cad-interop/examples/curve-wide-reversal-generate.mjs
+```
+
+Serve `examples/curve-wide-reversal-three.html` through the local Vite
+browser server. It loads edited and reversed source0 files over HTTP into
+separate owned Three Lines. The caller sets colors/poses, authored XYZ
+camera and 0.001 scene units/mm. The sampled endpoints run in opposite
+orders; native parameters and reversal provenance remain separate from
+Float32 display vertices. Invalid candidates retain the accepted scene,
+and disposal releases only adapter-owned objects. This is one actual
+wide-reversal consumer, not a global shape, topology, solid,
+manufacturing-quality or npm publication certificate.
