@@ -5108,3 +5108,64 @@ API/declaration import. Public metadata and explicit source paths remain intact.
 Reports retain geometricValidity:not-certified, topologyCertified:false and
 solid:false. General degree matching, higher continuity, curved trims, topology,
 constraints/features/assemblies/exchange remain tracked under503/535/537/660.
+
+## Own native Curve reversal
+
+`reverseCurve(curve, {curveId})` reverses an authoritative positive rational,
+nonperiodic open-clamped Curve of degree1..3 with2..31 poles. XYZ within±10000mm,
+weights1e-6..1e6, existing native64-pole/70-knot capacities and original16-pole
+sampling/split helper family limits remain unchanged. The new ASCII ID1..48
+must differ from the parent. It is a native coefficient operation for orienting
+Curves before joining; topology-use traversal is a separate contract.
+
+Control points and weights are copied in reverse order with their original
+binary64 bits and signed zeros. The reversed knot sequence is reflected inside
+the original native domain `[a,b]`. Clamped endpoints use exact original domain
+values. Interior knots are generated arithmetic, with explicit lineage and
+unchanged multiplicities. A second reversal is not promised to recreate every
+original knot bit. Lost distinct knots, order, endpoint representability,
+nonfinite spans or unsafe nonzero64-epsilon cancellation refuse without snapping.
+
+The decreasing map from reversed parameter v to original u is
+`u = a + (b - v)`, with original endpoint assignments and derivative factor-1.
+Original versus reversed points and D1 sign are observed at native mapped
+parameters. Native C0 knot refusals remain explicit, including original and
+reflected guard lineage. Local1e-7mm point and relative1e-7 derivative comparison
+policies are observations rather than global shape/manufacturing/G1/G2/regularity,
+wire, topology or solid certification. Authored XYZ/mm are preserved without
+axis conversion or a universal CAD up axis.
+
+The owned result is `{original, options, curve, source, sourceVersion:0, model,
+originalSource, originalModel, provenance, report}`. The original Curve-only
+source Model is named `curve_reverse_original`; the actual reversed Curve-only
+source Model uses the new ID as model name. Report DTO version0 declares
+`barocss-native-reversed-curve`, mm and authored XYZ. Plain copied data belong to
+the caller; no renderer resource or dispose method is introduced.
+
+`validateReversedCurveResult(result)` rebuilds native parent/output/source,
+coefficient order/bits, knot reflection/multiplicity/maps and observations.
+Input snapshots bound4096 values/depth8/arrays64/records16; owned results131072/
+depth24/arrays4096/records64/source262144. At most128 mapped point/D1 observations
+plus original/reflected C0 guard evidence are admitted. Getter/hidden/symbol/
+foreign/sparse/cyclic/extra/nonfinite or tampered data refuse atomically, preserving
+previous parents/results/source.
+
+`CurveReversalError` exposes stable diagnostic codes: `INPUT`, `IDENTITY`,
+`DOMAIN`, `REPRESENTABILITY`, `NATIVE`, `BINDING` and `OWNED`. Codes identify
+input/profile bounds, new ID, finite domain, generated arithmetic, native
+compile/evaluation, local binding and owned rebuild failures. Error messages
+provide the concrete refused operation; native derivative refusals are retained
+as evidence without inventing a derivative.
+
+```sh
+node examples/cad-nurbs/curve-reversal-demo.mjs --source
+```
+
+The actual source/native-file flow also imports the declared compiled public
+entry and checks emitted declarations. It demonstrates a wrong-end join refused
+by #667, followed by reversal and successful native joining. Public package
+metadata and explicit source-first paths stay intact. Reports remain
+geometricValidity:not-certified, topologyCertified:false and solid:false.
+General wire/trim/topology, degree/continuity operations, constraints/features/
+assemblies/exchange remain tracked under503/535/537/660; GPU/Loader adoption and
+npm publication have separate tracked states.
