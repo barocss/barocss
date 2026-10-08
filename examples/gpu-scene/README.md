@@ -311,3 +311,26 @@ null clears particles, old update resets material, and viewport empty/clear/
 restore/resize/double-dispose have no stale bindings or resources. This is one
 actual source/API/WebGL2 flow, not Viewer adoption, selected-material overlay,
 all-target parity, buffer reuse or performance certification.
+
+## Native assembly selected-instance consumer WIP (#874)
+
+```sh
+BAROCSS_ASSEMBLY_DEPS=/absolute/compiled/provider/repo \
+BAROCSS_ASSEMBLY_EVIDENCE=/absolute/unique/output \
+node examples/gpu-scene/assembly-flow.mjs
+```
+
+Current status: affected example build and native source/canonical/assembly/
+file/current-reference/point-query preparation passed. Actual browser/GL uploads/
+pixels/resource proof is pending: browser access was denied because its security
+policy check was unavailable. Do not treat this as native GPU completion or
+integration-ready evidence. Restore policy verification before the one frozen
+actual flow; do not use another browser path to bypass the denial.
+
+The host explicitly selects child/surface_grandchild/shared_root/asset_b_instance
+from six authored instances, keeping the others native-only. Original part and
+instance/GPU namespace identities stay separate. Native world matrices lower to
+recorded derived rigid quaternions and translations; four-entry target capacity
+is not native32-instance display support. Data/qualified sources/UV/control bits
+and authored placement remain distinct from Float32 display. No new renderer,
+geometry baking, mates/topology/solid/external-part/global quality claim.
