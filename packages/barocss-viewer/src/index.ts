@@ -1,4 +1,5 @@
 import { curveDomain, evaluateCurve, evaluateSurface, surfaceDomain } from '@barocss/cad';
+import type { AdaptiveCurveSamplingResult } from '@barocss/cad';
 import { parseBaroCadSource } from '@barocss/cad-interop/native';
 import type { BaroCadNativeResult } from '@barocss/cad-interop/native';
 import { mountMeshScene, mountPrimitiveScene, PrimitiveSceneRenderer, prepareMesh,
@@ -292,7 +293,11 @@ function displayVertex(native: Vec3, pose: ViewerDisplayPose | undefined, mmToSc
 
 interface ViewerCurveEntry {
   modelId: string;
-  sample: BaroCadNativeResult['curves'][number]['sample'];
+  sample: AdaptiveCurveSamplingResult;
+}
+
+function isGpuCurveSample(sample: BaroCadNativeResult['curves'][number]['sample']): sample is AdaptiveCurveSamplingResult {
+  return sample.report.dto.version === 0;
 }
 
 function fittedCamera(packets: ViewerPacket[], curves: ViewerCurveEntry[], scale: number, width: number, height: number,
@@ -455,7 +460,10 @@ export class Viewer {
     const native = parseBaroCadSource(source, { ...options, unitsPerMillimeter: 1 });
     check(native.model.objects.length <= 64, 'Native model exceeds object limit');
     this.accept(native.surfaces.map(surface => ({ modelId: native.model.name, packet: surface.packet })), native,
-      native.curves.map(curve => ({ modelId: native.model.name, sample: curve.sample })));
+      native.curves.map(curve => {
+        check(isGpuCurveSample(curve.sample), 'Viewer GPU requires Curve sample v0');
+        return { modelId: native.model.name, sample: curve.sample };
+      }));
   }
   setPackets(input: ViewerPacket[]): void { this.live(); this.accept(input, null); }
   measureNativeSurfacePoints(firstInput: ViewerNativeSurfaceParameter,
