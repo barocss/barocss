@@ -53,10 +53,6 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
   for (let a = 0; a < bodies.length; a++) for (let b = a + 1; b < bodies.length; b++) {
     if (bodies[a].inverseMass !== 0 || bodies[b].inverseMass !== 0) {
       if (disabledPairs.has([bodies[a].id, bodies[b].id].sort().join('\u0000'))) continue;
-      if (bodies[a].shape.kind === 'capsule' && bodies[b].shape.kind !== 'sphere' ||
-        bodies[b].shape.kind === 'capsule' && bodies[a].shape.kind !== 'sphere') {
-        error('INVALID_CONFIG', `unsupported collider pair: ${bodies[a].shape.kind}/${bodies[b].shape.kind}`);
-      }
       pairs.push(bodies[a].id < bodies[b].id ? [a, b] : [b, a]);
     }
   }
