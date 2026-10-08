@@ -156,6 +156,43 @@ from the workspace root for the included real-file local HTTP flow. The
 `examples/neutral-native-url.html` browser page shows cancellation followed
 by a successful load and the original object IDs.
 
+### Export native source as a portable display GLB
+
+Use the `native` entry to put several authored objects in one GLB. The export
+requires metre output (`unitsPerMillimeter: 0.001`) and an explicit source-text
+choice:
+
+```js
+import { baroCadSourceToGLB } from '@barocss/cad-interop/native';
+
+const glb = baroCadSourceToGLB(source, {
+  sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+  curveDisplay: { chordToleranceMM: 0.1, maxSegments: 128, maxDepth: 16 },
+}, { includeSourceText: false });
+// In Node.js: writeFileSync('model.glb', new Uint8Array(glb));
+```
+
+The export accepts 1–4 total source0 objects. Surfaces become triangle meshes.
+With `curveDisplay`, Curves become glTF `LINE_STRIP` primitives with sequential
+sample indices. A Curve-only source needs `curveDisplay`. Without it, mixed
+source Curves appear in `asset.extras.barocss.unrenderedCurveIds` and have no
+display geometry. Surface U/V values use the custom `_CAD_UV` attribute and
+are not texture UVs. Curve node extras retain original sample parameters and
+intervals. Asset extras retain the model name, version, object IDs and order,
+millimetre source unit, metre display unit, and authored XYZ/Y-up intent.
+The exporter scales native millimetres to metres once and does not rotate
+the authored frame. Output is at most 1 MiB.
+
+`includeSourceText: true` adds the exact text under `asset.extras.barocss.source`
+with `format: 'barocad-source0'` and `role: 'untrusted-native-reference'`.
+Treat this text as untrusted input if you later compile it. GLB JSON numbers
+do not preserve the lexical spelling of `-0`; the optional text does. The GLB
+contains sampled display geometry, not authoritative native NURBS, a B-Rep,
+or a source-identity certificate. Run
+`node packages/barocss-cad-interop/test/native-glb.test.mjs` after the affected
+package build to check real source0 → saved GLB → local HTTP → Three.js
+`GLTFLoader.loadAsync`.
+
 `@barocss/cad-interop/three` is the Three.js adapter. Install `three` in the
 host application, then add the returned group to a scene:
 
