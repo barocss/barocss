@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native filled CAD Boolean mesh in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Native filled CAD Boolean mesh · Three.js</h1>
+  <p>Native triangles fill the material; a hole and separated components remain distinct.</p>
+  <div id="view"></div>
+  <button id="reject" type="button">Try invalid candidates</button>
+  <button id="dispose" type="button">Dispose display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { BufferGeometry, Group, Mesh, MeshNormalMaterial, OrthographicCamera, Scene,
+    Vector3, WebGLRenderer } from 'three';
+  import { validateCoplanarFaceBooleanMesh } from '@barocss/cad';
+  import { createBaroCadBooleanThreeMesh } from '@barocss/cad-interop/three-boolean-mesh';
+
+  const status = document.querySelector('#status');
+  const renderer = new WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+  renderer.setSize(800, 520);
+  renderer.setPixelRatio(1);
+  renderer.setClearColor(0x101b2c);
+  document.querySelector('#view').append(renderer.domElement);
+  const canvas = renderer.domElement;
+  const scene = new Scene();
+  const caller = new Group(); caller.name = 'caller-owned'; scene.add(caller);
+  const camera = new OrthographicCamera(-0.12, 0.12, 0.078, -0.078, 0.001, 3);
+  camera.position.set(0.8, 0.3, -0.8);
+  camera.lookAt(-0.02, -0.035, -0.02);
+  const options = { unitsPerMillimeter: 0.01, basis: 'authored-xyz-matches-rhyup' };
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const background = (r, g, b) => Math.abs(r - 16) <= 12 && Math.abs(g - 27) <= 12 && Math.abs(b - 44) <= 12;
+  const render = () => {
+    renderer.render(scene, camera);
+    const gl = renderer.getContext();
+    const bytes = new Uint8Array(canvas.width * canvas.height * 4);
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('Three WebGL readPixels failed');
+    return bytes;
+  };
+  const colored = bytes => {
+    let count = 0;
+    for (let i = 0; i < bytes.length; i += 4) {
+      if (!background(bytes[i], bytes[i + 1], bytes[i + 2])) count++;
+    }
+    return count;
+  };
+  const pixelAt = (bytes, pointMM) => {
+    const ndc = new Vector3(...pointMM.map(value => value * options.unitsPerMillimeter)).project(camera);
+    const x = Math.round((ndc.x + 1) * canvas.width / 2);
+    const y = Math.round((ndc.y + 1) * canvas.height / 2);
+    if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) {
+      throw new Error('Native material probe lies outside the camera');
+    }
+    const offset = (y * canvas.width + x) * 4;
+    return { x, y, rgb: [...bytes.slice(offset, offset + 3)],
+      background: background(bytes[offset], bytes[offset + 1], bytes[offset + 2]) };
+  };
+  const load = async name => {
+    const url = new URL(`./boolean-mesh-three-data/${name}.owned-mesh.json`, location.href);
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${name}`);
+    const result = await response.json();
+    validateCoplanarFaceBooleanMesh(result);
+    return result;
+  };
+  let accepted, display, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    const fixtures = [
+      ['containment_hole', 1, 8, 8],
+      ['strip_two_components', 2, 4, 8],
+      ['reverse_containment_empty', 0, 0, 0],
+    ];
+    const observations = [];
+    const originals = {};
+    for (const [name, components, triangles, boundaries] of fixtures) {
+      const result = await load(name);
+      originals[name] = result;
+      const candidate = createBaroCadBooleanThreeMesh(result, options);
+      scene.add(candidate.root);
+      if (candidate.bindings.length !== components || candidate.root.children.length !== components ||
+          candidate.boundaryPaths.length !== boundaries ||
+          candidate.bindings.reduce((sum, binding) => sum + binding.triangleIds.length, 0) !== triangles ||
+          candidate.bindings.some(binding => !(binding.object instanceof Mesh)) ||
+          candidate.root.getObjectByProperty('type', 'Line')) {
+        throw new Error(`Native Boolean mesh grouping differs: ${name}`);
+      }
+      const pixels = render();
+      const isolated = [];
+      if (name === 'strip_two_components') {
+        for (const binding of candidate.bindings) {
+          for (const other of candidate.bindings) other.object.visible = other === binding;
+          isolated.push({ id: binding.componentId, pixels: colored(render()) });
+        }
+        for (const binding of candidate.bindings) binding.object.visible = true;
+      }
+      let holeProbe = null, materialProbe = null;
+      if (name === 'containment_hole') {
+        const hole = result.region.loops.find(loop => loop.role === 'hole');
+        const outer = result.region.loops.find(loop => loop.role === 'outer');
+        const average = loop => loop.vertexIds.map(id => result.region.vertices.find(vertex => vertex.id === id).pointMM)
+          .reduce((sum, point, _, points) => sum.map((value, axis) => value + point[axis] / points.length), [0, 0, 0]);
+        holeProbe = pixelAt(pixels, average(hole));
+        const corner = result.region.vertices.find(vertex => vertex.id === outer.vertexIds[0]).pointMM;
+        const center = average(hole);
+        materialProbe = pixelAt(pixels, corner.map((value, axis) => value * 0.75 + center[axis] * 0.25));
+        if (!holeProbe.background || materialProbe.background) {
+          throw new Error('Three filled mesh drew inside the native hole or missed the material');
+        }
+      }
+      if ((triangles === 0 ? colored(pixels) !== 0 : colored(pixels) < 100) ||
+          isolated.some(entry => entry.pixels < 30)) {
+        throw new Error(`Boolean filled mesh pixels differ: ${name}`);
+      }
+      observations.push({ name, components, triangles, boundaries,
+        visiblePixels: colored(pixels), isolated, holeProbe, materialProbe,
+        hash: hash(render()) });
+      scene.remove(candidate.root); candidate.dispose();
+    }
+    accepted = originals.containment_hole;
+    display = createBaroCadBooleanThreeMesh(accepted, options);
+    scene.add(display.root);
+    const acceptedFrame = render();
+    if (hash(acceptedFrame) !== observations[0].hash ||
+        !(renderer.getContext() instanceof WebGL2RenderingContext)) {
+      throw new Error('Accepted Three Boolean filled frame differs');
+    }
+    evidence = { fixtures: observations, acceptedHash: hash(acceptedFrame),
+      webgl2: true, callerRetained: scene.children.includes(caller), refused: 0, disposed: false };
+    window.__baroBooleanMeshThreeEvidence = evidence;
+    show();
+    document.querySelector('#reject').onclick = () => {
+      const before = hash(render());
+      const forged = structuredClone(accepted); forged.mesh.positionsMM[0] += 1;
+      const getter = { ...options }; let getterCalls = 0;
+      Object.defineProperty(getter, 'basis', { enumerable: true,
+        get() { getterCalls++; return options.basis; } });
+      let refused = 0;
+      for (const action of [
+        () => createBaroCadBooleanThreeMesh(forged, options),
+        () => createBaroCadBooleanThreeMesh(accepted, { ...options, basis: 'unknown' }),
+        () => createBaroCadBooleanThreeMesh(accepted, { ...options, unitsPerMillimeter: 0 }),
+        () => createBaroCadBooleanThreeMesh(accepted, getter),
+      ]) { try { action(); } catch { refused++; } }
+      const originalSetIndex = BufferGeometry.prototype.setIndex;
+      const originalDispose = MeshNormalMaterial.prototype.dispose;
+      let calls = 0, geometriesDisposed = 0, materialsDisposed = 0;
+      try {
+        BufferGeometry.prototype.setIndex = function (indices) {
+          this.addEventListener('dispose', () => geometriesDisposed++);
+          if (++calls === 2) throw new Error('injected later-component failure');
+          return originalSetIndex.call(this, indices);
+        };
+        MeshNormalMaterial.prototype.dispose = function () {
+          materialsDisposed++;
+          return originalDispose.call(this);
+        };
+        try { createBaroCadBooleanThreeMesh(originals.strip_two_components, options); }
+        catch { refused++; }
+      } finally {
+        BufferGeometry.prototype.setIndex = originalSetIndex;
+        MeshNormalMaterial.prototype.dispose = originalDispose;
+      }
+      if (refused !== 5 || getterCalls !== 0 || calls !== 2 ||
+          geometriesDisposed !== 2 || materialsDisposed !== 1 ||
+          hash(render()) !== before || !scene.children.includes(caller) ||
+          display.bindings.some(binding => !binding.object.geometry.getAttribute('position'))) {
+        throw new Error('Rejected Boolean mesh changed accepted frame or leaked resources');
+      }
+      evidence.refused = refused; evidence.stagedGeometriesDisposed = geometriesDisposed;
+      evidence.stagedMaterialsDisposed = materialsDisposed;
+      evidence.acceptedFrameRetained = true; show();
+    };
+    document.querySelector('#dispose').onclick = () => {
+      const events = [];
+      for (const binding of display.bindings) {
+        binding.object.geometry.addEventListener('dispose', () => events.push('geometry'));
+        binding.object.material.addEventListener('dispose', () => events.push('material'));
+      }
+      display.dispose(); display.dispose();
+      if (events.length !== display.bindings.length * 2 ||
+          scene.children.includes(display.root) || !scene.children.includes(caller) ||
+          colored(render()) !== 0 || renderer.getContext() === null ||
+          document.querySelectorAll('canvas').length !== 1) {
+        throw new Error('Three Boolean mesh disposal changed caller resources');
+      }
+      evidence.disposed = true; evidence.afterDisposePixels = 0;
+      evidence.ownedResourcesDisposed = events.length; evidence.callerRetained = true; show();
+    };
+  } catch (error) {
+    display?.dispose();
+    evidence = { error: String(error), stack: error.stack };
+    window.__baroBooleanMeshThreeEvidence = evidence;
+    show();
+  }
+</script>

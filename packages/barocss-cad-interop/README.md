@@ -441,6 +441,42 @@ checks actual WebGL2 lines, roles, refusals and disposal. The matching Node
 flow is `node examples/boolean-three-verify.mjs`. The caller owns the
 Scene, renderer, camera and unrelated objects.
 
+### Display native filled planar Boolean material in Three.js
+
+The optional `./three-boolean-mesh` entry consumes the public CAD #887
+raw authored-XYZ/mm mesh after full native validation. It draws one owned
+Three Mesh for each material component, including holes and disconnected
+parts. It uses the native triangle indices and oriented normals. It does
+not turn the complete support Surface into a displayed result.
+
+```js
+import { validateCoplanarFaceBooleanMesh } from '@barocss/cad';
+import { createBaroCadBooleanThreeMesh }
+  from '@barocss/cad-interop/three-boolean-mesh';
+
+const nativeMesh = await (await fetch(meshURL)).json();
+validateCoplanarFaceBooleanMesh(nativeMesh);
+const display = createBaroCadBooleanThreeMesh(nativeMesh, {
+  unitsPerMillimeter: 0.01,
+  basis: 'authored-xyz-matches-rhyup', // Host assertion.
+});
+scene.add(display.root);
+display.dispose();
+```
+
+The adapter scales positions once into scene units and copies native
+normals, `_CAD_UV` parameters and triangle indices. `_CAD_UV` is
+dimensionless CAD parameter data, not texture UV. Bindings keep the
+native mesh/support/evaluation/operand/source IDs and each component's
+outer/hole loops, vertex and triangle IDs. Original `boundaryPaths` are
+separate from triangulation's internal display diagonals and bridges;
+the latter are not CAD edges. Empty material returns zero Meshes.
+`examples/boolean-mesh-three.html` loads saved #887 hole, separated and
+empty meshes over HTTP and checks actual Three WebGL2 fill, hole exclusion,
+refusal and caller-owned resources. The matching Node flow is
+`node examples/boolean-mesh-three-verify.mjs`. This is a derived preview,
+not a native Surface, solid, B-Rep or manufacturing certificate.
+
 ### Display selected document bodies in Three.js
 
 The optional `./three-document` entry composes the same validated body

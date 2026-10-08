@@ -41,6 +41,10 @@
       "types": "./dist/three-boolean-contours.d.ts",
       "import": "./dist/three-boolean-contours.js"
     },
+    "./three-boolean-mesh": {
+      "types": "./dist/three-boolean-mesh.d.ts",
+      "import": "./dist/three-boolean-mesh.js"
+    },
     "./three": {
       "types": "./dist/three.d.ts",
       "import": "./dist/three.js"
