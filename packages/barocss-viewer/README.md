@@ -81,6 +81,20 @@ does not infer document placements, assemblies, topology or exact native
 screen hits. The runnable `examples/viewer-document` uses one saved
 six-body document with four selected bodies.
 
+`viewer.setVisibleGeometry(refs)` replaces the complete visible subset with
+0–4 tagged Surface/Curve refs already admitted in the scene. The copied
+`getState().visibleGeometry` follows scene order. Hidden objects stay in the
+native/document inventory and keep their display poses and native measurement
+authority. Rendering, screen picking, selection and fit use visible objects
+only. Hiding a selected object clears selection. Hiding all shows the
+background while `status` stays `ready` and source data remains loaded;
+`fit()` then refuses until an object is shown. Camera controls and pixel reads
+still work. A successful scene replacement shows all admitted objects, while
+`clear()` removes them. Invalid refs or a failed GPU update retain the prior
+scene and pixels. This controls Viewer display only; it does not edit a CAD
+assembly or create a native section view. `examples/viewer-document` exercises
+visibility with the same four-object document scene.
+
 For explicit Surface mesh lighting, pass an optional GPU `MeshLighting` value
 at creation: `lighting:{ambientStrength:0.12,directionalStrength:0.78,
 direction:[0.8,0.4,-0.7]}`. Each strength is in 0..1 and their sum is at most
