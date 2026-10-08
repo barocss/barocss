@@ -1,10 +1,11 @@
 import {
-  createMotionTimeline, parseMotionClipFile, parseMotionMarkerFile, serializeMotionMarkerFile,
+  createMotionRangeTimeline, parseMotionClipFile, parseMotionMarkerFile, serializeMotionMarkerFile,
 } from '../../packages/barocss-motion/dist/index.js';
 
 const elements = Object.fromEntries([
-  'stage', 'loading', 'play', 'pause', 'seek', 'mode', 'time', 'iteration',
+  'stage', 'loading', 'play', 'pause', 'seek', 'seek-end', 'mode', 'time', 'iteration',
   'phase', 'state-label', 'events', 'poses', 'save-markers', 'open-markers', 'marker-file-status',
+  'range-full', 'range-preview', 'range-invalid', 'range-status',
 ].map((id) => [id, document.getElementById(id)]));
 const log = [];
 let timeline;
@@ -13,7 +14,10 @@ let acceptedFile;
 let draw = () => {};
 
 function update(state) {
+  elements.seek.min = String(state.range[0]);
+  elements.seek.max = String(state.range[1]);
   elements.seek.value = String(state.timeSeconds);
+  elements['seek-end'].textContent = `${state.range[1].toFixed(2)} s`;
   elements.time.textContent = `${state.timeSeconds.toFixed(2)} s`;
   elements.iteration.textContent = String(state.iteration);
   elements['state-label'].textContent = `${state.playing ? 'Playing' : 'Paused'} · ${state.mode}`;
@@ -43,7 +47,7 @@ try {
   const markerText = await markerResponse.text();
   markers = parseMotionMarkerFile(markerText, clip);
   acceptedFile = { name: 'two-parts.baromarkers', bytes: new TextEncoder().encode(markerText).length };
-  timeline = createMotionTimeline(clip, { version: 0, markers, mode: 'clamp' });
+  timeline = createMotionRangeTimeline(clip, { range: [0, clip.durationSeconds], markers, mode: 'clamp' });
   const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js');
   const renderer = new THREE.WebGLRenderer({ canvas: elements.stage, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -88,6 +92,7 @@ try {
   window.addEventListener('resize', resize);
   resize();
   update(timeline.getState());
+  elements['range-status'].textContent = `Range 0–${clip.durationSeconds} s`;
   elements['marker-file-status'].textContent = `${acceptedFile.name} · ${acceptedFile.bytes} bytes · ${markers.length} markers`;
   elements.loading.hidden = true;
   document.body.dataset.ready = 'true';
@@ -105,6 +110,29 @@ try {
     elements['marker-file-status'].textContent = `Prepared ${anchor.download} · ${blob.size} bytes`;
     return { name: anchor.download, bytes: blob.size, text };
   }
+  function setRange(range) {
+    try {
+      const current = timeline.getState();
+      const next = createMotionRangeTimeline(clip, { range, markers, mode: current.mode });
+      try {
+        const retainedTime = current.timeSeconds >= range[0] && current.timeSeconds <= range[1]
+          ? current.timeSeconds : range[0];
+        next.seek(retainedTime);
+      } catch (error) { next.dispose(); throw error; }
+      const previous = timeline;
+      timeline = next;
+      previous.dispose();
+      log.length = 0;
+      elements.phase.textContent = '—';
+      elements.events.textContent = 'No marker crossings yet.';
+      update(timeline.getState());
+      elements['range-status'].textContent = `Range ${range[0]}–${range[1]} s · paused`;
+      return true;
+    } catch (error) {
+      elements['range-status'].textContent = `Range refused: ${error.code ?? error.message}`;
+      return false;
+    }
+  }
   async function openMarkers(file) {
     if (!file) return false;
     try {
@@ -112,7 +140,7 @@ try {
       const text = await file.text();
       const candidate = parseMotionMarkerFile(text, clip);
       const current = timeline.getState();
-      const next = createMotionTimeline(clip, { version: 0, markers: candidate, mode: current.mode });
+      const next = createMotionRangeTimeline(clip, { range: current.range, markers: candidate, mode: current.mode });
       try { next.seek(current.timeSeconds); }
       catch (error) { next.dispose(); throw error; }
       const previous = timeline;
@@ -124,6 +152,7 @@ try {
       elements.phase.textContent = '—';
       elements.events.textContent = 'No marker crossings yet.';
       update(timeline.getState());
+      elements['range-status'].textContent = `Range ${current.range[0]}–${current.range[1]} s`;
       elements['marker-file-status'].textContent = `Opened ${acceptedFile.name} · ${acceptedFile.bytes} bytes · ${markers.length} markers`;
       return true;
     } catch (error) {
@@ -132,6 +161,9 @@ try {
     }
   }
   elements['save-markers'].addEventListener('click', saveMarkers);
+  elements['range-full'].addEventListener('click', () => setRange([0, clip.durationSeconds]));
+  elements['range-preview'].addEventListener('click', () => setRange([1, 3]));
+  elements['range-invalid'].addEventListener('click', () => setRange([3, 1]));
   elements['open-markers'].addEventListener('change', async (event) => {
     await openMarkers(event.target.files?.[0]);
     event.target.value = '';
@@ -141,7 +173,7 @@ try {
   elements.seek.addEventListener('input', () => update(timeline.seek(Number(elements.seek.value))));
   elements.mode.addEventListener('change', () => update(timeline.setMode(elements.mode.value)));
   for (const button of document.querySelectorAll('[data-seek]')) {
-    button.addEventListener('click', () => update(timeline.seek(Number(button.dataset.seek))));
+    button.addEventListener('click', () => update(timeline.seek(timeline.getState().range[0])));
   }
   for (const button of document.querySelectorAll('[data-advance]')) {
     button.addEventListener('click', () => update(timeline.advance(Number(button.dataset.advance))));
@@ -151,8 +183,10 @@ try {
     getLog: () => log.map((event) => ({ ...event })),
     getAcceptedFile: () => ({ ...acceptedFile }),
     getFileStatus: () => elements['marker-file-status'].textContent,
+    getRangeStatus: () => elements['range-status'].textContent,
     saveMarkers,
     openMarkers,
+    setRange,
     advance: (seconds) => update(timeline.advance(seconds)),
     play: () => update(timeline.play()),
     pause: () => update(timeline.pause()),

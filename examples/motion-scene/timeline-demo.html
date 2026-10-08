@@ -13,6 +13,8 @@
     .marker-files { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
     .marker-files input { max-width: 240px; color: #b9d5df; }
     .marker-files output { color: #9db5c4; font-size: 12px; }
+    .range-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin-top: 15px; }
+    .range-controls output { color: #9db5c4; font-size: 12px; }
   </style>
 </head>
 <body>
@@ -20,7 +22,7 @@
     <header>
       <div class="eyebrow">BAROCSS / MARKER TIMELINE</div>
       <h1>Motion with exact phase events.</h1>
-      <p>A host supplies time. The timeline reads a real .baromotion clip and a separate .baromarkers file.</p>
+      <p>A host supplies time and a preview range. The timeline reads a real .baromotion clip and a separate .baromarkers file.</p>
     </header>
     <div class="stage-wrap">
       <canvas id="stage" aria-label="3D scene driven by a Motion marker timeline"></canvas>
@@ -37,13 +39,19 @@
         <select id="mode"><option value="clamp">Clamp</option><option value="repeat">Repeat</option></select>
         <strong id="time">0.00 s</strong>
       </div>
-      <label class="seek-row" for="seek"><span>Seek</span><input id="seek" type="range" min="0" max="4" step="0.01" value="0"><span>4.00 s</span></label>
+      <label class="seek-row" for="seek"><span>Seek</span><input id="seek" type="range" min="0" max="4" step="0.01" value="0"><span id="seek-end">4.00 s</span></label>
       <div class="sample-buttons" aria-label="Exact host advances">
-        <button type="button" data-seek="0">Seek start</button>
+        <button type="button" data-seek="start">Seek start</button>
         <button type="button" data-advance="2">Advance 2 s</button>
         <button type="button" data-advance="4">Advance 4 s</button>
       </div>
       <div class="timeline-meta"><span>Iteration <strong id="iteration">0</strong></span><span>Current phase <strong id="phase">—</strong></span><span id="state-label">Paused · clamp</span></div>
+      <div class="range-controls" aria-label="Preview range controls">
+        <button id="range-full" type="button">Full 0–4 s</button>
+        <button id="range-preview" type="button">Preview 1–3 s</button>
+        <button id="range-invalid" type="button">Try invalid range</button>
+        <output id="range-status" role="status">Range 0–4 s</output>
+      </div>
       <div class="marker-files" aria-label="Marker file controls">
         <button id="save-markers" type="button">Save markers</button>
         <label for="open-markers">Open markers</label>
