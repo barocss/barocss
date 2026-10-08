@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native CAD Curve arc length beside a Three Line</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  output { display: block; margin-top: 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Native CAD Curve arc length · Three.js</h1>
+  <p>The cyan Line is sampled display. The value below comes from the original Curve.</p>
+  <canvas id="view" width="800" height="480"></canvas>
+  <output id="length">Loading native measurement…</output>
+  <button id="reject" type="button">Try invalid candidates</button>
+  <button id="dispose" type="button">Dispose owned Line</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { BufferGeometry, Color, Group, OrthographicCamera, Scene, WebGLRenderer } from 'three';
+  import { createCadGeometryReference, queryCadDocumentCurveArcLength,
+    validateCadDocumentCurveArcLength } from '@barocss/cad';
+  import { loadBaroCadDocument, prepareBaroCadDocumentPrimitiveNativeRefsV2 } from '../dist/document.js';
+  import { createBaroCadDocumentThreeDisplay } from '../dist/three-document.js';
+
+  const canvas = document.querySelector('#view');
+  const status = document.querySelector('#status');
+  const lengthLabel = document.querySelector('#length');
+  const url = new URL('curve-arc-length-data/revision1.cad-document.json', location.href).href;
+  const options = { interval: null, absoluteToleranceMM: 1e-7, relativeTolerance: 1e-8,
+    maximumEvaluations: 4096, maximumSubdivisions: 128, maximumDepth: 12 };
+  const native = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } };
+  const request = { native, basis: 'authored-xyz-matches-rhyup', bodyIds: ['quarter_body'] };
+  const scene = new Scene(); scene.background = new Color(0x101b2c);
+  const marker = new Group(); marker.name = 'caller-marker'; scene.add(marker);
+  const camera = new OrthographicCamera(-0.002, 0.002, 0.0012, -0.0012, 0.001, 0.2);
+  camera.position.set(0.001, 0.001, 0.05); camera.lookAt(0.001, 0.001, 0);
+  const renderer = new WebGLRenderer({ canvas, antialias: false, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1); renderer.setSize(800, 480, false);
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const readPixels = () => {
+    renderer.render(scene, camera);
+    const data = new Uint8Array(canvas.width * canvas.height * 4);
+    const gl = renderer.getContext();
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('Three WebGL readPixels failed');
+    return data;
+  };
+  const pixelCounts = data => {
+    let cyan = 0, nonBackground = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      if (r < 90 && g > 150 && b > 150) cyan++;
+      if (r !== 16 || g !== 27 || b !== 44) nonBackground++;
+    }
+    return { cyan, nonBackground };
+  };
+  const same = (actual, expected) => actual.length === expected.length &&
+    actual.every((value, index) => Object.is(value, expected[index]));
+  let cad, display, length, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    cad = await loadBaroCadDocument(url);
+    const { reference } = createCadGeometryReference(cad, { bodyId: 'quarter_body' });
+    length = queryCadDocumentCurveArcLength(cad, reference, options);
+    if (JSON.stringify(validateCadDocumentCurveArcLength(cad, length)) !== JSON.stringify(length.report) ||
+        reference.documentId !== 'arc_length_doc' || reference.documentRevision !== 1 ||
+        reference.assetId !== 'quarter_asset' || reference.assetRevision !== 1 ||
+        reference.geometryId !== 'quarter_original' ||
+        length.source !== cad.document.assets.find(asset => asset.id === reference.assetId).source ||
+        length.report.criterion !== 'aggregate-panel-estimator-not-certified-upper-bound' ||
+        length.report.quality.globalErrorCertified !== false ||
+        Math.abs(length.estimatedLengthMM - Math.PI) > 1e-6) {
+      throw new Error('Native source-qualified quarter Curve length differs from the accepted document');
+    }
+    const projection = prepareBaroCadDocumentPrimitiveNativeRefsV2(cad, request);
+    display = createBaroCadDocumentThreeDisplay(cad, request);
+    const binding = display.bindings[0], entry = projection[0];
+    if (display.bindings.length !== 1 || projection.length !== 1 || entry.kind !== 'curve' ||
+        binding.bodyId !== reference.bodyId || binding.assetId !== reference.assetId ||
+        binding.assetRevision !== reference.assetRevision ||
+        binding.documentRevision !== reference.documentRevision ||
+        binding.geometryId !== reference.geometryId || !binding.object.isLine) {
+      throw new Error('Three Line lost its original qualified Curve binding');
+    }
+    const sample = entry.sample;
+    const expected = Float32Array.from(sample.pointsMM.flat(),
+      value => Math.fround(value * native.unitsPerMillimeter));
+    if (!same(binding.object.geometry.getAttribute('position').array, expected) ||
+        JSON.stringify(binding.object.userData.barocss.nativeParameters) !== JSON.stringify(sample.parameters)) {
+      throw new Error('Three Line differs from its neutral source sample');
+    }
+    const displayChordMM = sample.pointsMM.slice(1).reduce((sum, point, index) =>
+      sum + Math.hypot(...point.map((value, axis) => value - sample.pointsMM[index][axis])), 0);
+    if (!(displayChordMM < length.estimatedLengthMM - 0.001)) {
+      throw new Error('Display Line was used as the native arc length');
+    }
+    binding.object.material.color.setHex(0x00ffff);
+    scene.add(display.root);
+    const label = `Native arc-length estimate: ${length.estimatedLengthMM.toFixed(9)} mm · ` +
+      `heuristic estimator: ${length.errorEstimateMM.toExponential(3)} mm · ` +
+      `original interval [${length.report.interval.join(', ')}] · global error not certified`;
+    lengthLabel.textContent = label;
+    const pixels = readPixels(), visible = pixelCounts(pixels);
+    if (visible.cyan < 50 || visible.nonBackground < 50) throw new Error('Native Curve Line is not visible');
+    evidence = { documentId: reference.documentId, documentRevision: reference.documentRevision,
+      bodyId: reference.bodyId, assetId: reference.assetId, assetRevision: reference.assetRevision,
+      curveId: reference.geometryId, originalInterval: length.report.interval,
+      estimatedLengthMM: length.estimatedLengthMM, heuristicEstimatorMM: length.errorEstimateMM,
+      localAnalyticDifferenceMM: Math.abs(length.estimatedLengthMM - Math.PI),
+      nativeEvaluationCount: length.report.evaluationCount,
+      nativePointEvaluationCount: length.report.pointEvaluationCount,
+      nativeFinalPanels: length.report.finalPanelCount,
+      nativeSubdivisions: length.report.subdivisionCount,
+      displaySamples: sample.pointsMM.length, displayChordMM,
+      nativeAndDisplaySeparate: true, sourceRetained: length.source === cad.document.assets.find(
+        asset => asset.id === reference.assetId).source,
+      webgl2: renderer.getContext() instanceof WebGL2RenderingContext,
+      oneCanvas: document.querySelectorAll('canvas').length === 1,
+      visiblePixels: visible, pixelHash: hash(pixels), callerMarkerRetained: scene.children.includes(marker) };
+    window.__baroArcLengthThreeEvidence = evidence;
+    show();
+    document.querySelector('#reject').onclick = () => {
+      const acceptedPixels = hash(readPixels());
+      const acceptedLabel = lengthLabel.textContent;
+      const source = cad.document.assets.find(asset => asset.id === reference.assetId).source;
+      const cameraState = JSON.stringify({ position: camera.position.toArray(),
+        projection: camera.projectionMatrix.toArray() });
+      let getterCalls = 0;
+      const getter = { ...options };
+      Object.defineProperty(getter, 'absoluteToleranceMM', { enumerable: true, get() {
+        getterCalls++; return 1e-7;
+      } });
+      const candidates = [
+        () => queryCadDocumentCurveArcLength(cad, { ...reference, documentRevision: 2 }, options),
+        () => createCadGeometryReference(cad, { bodyId: 'missing_body' }),
+        () => queryCadDocumentCurveArcLength(cad, reference, { ...options, interval: [1, 0] }),
+        () => validateCadDocumentCurveArcLength(cad, { ...length, estimatedLengthMM: 999 }),
+        () => queryCadDocumentCurveArcLength(cad, reference, getter),
+      ];
+      let refused = 0;
+      for (const candidate of candidates) { try { candidate(); } catch { refused++; } }
+      let stagedDisposals = 0, stagedFailureRefused = false;
+      const setAttribute = BufferGeometry.prototype.setAttribute;
+      BufferGeometry.prototype.setAttribute = function () {
+        this.addEventListener('dispose', () => stagedDisposals++);
+        throw new Error('injected staged Line failure');
+      };
+      try { createBaroCadDocumentThreeDisplay(cad, request); } catch (error) {
+        stagedFailureRefused = error.message === 'injected staged Line failure';
+      } finally { BufferGeometry.prototype.setAttribute = setAttribute; }
+      Object.assign(evidence, { invalidCandidatesRefused: refused, getterCalls,
+        stagedFailureRefused, stagedDisposals,
+        acceptedNativeResultRetained: length.estimatedLengthMM === evidence.estimatedLengthMM,
+        acceptedSourceRetained: cad.document.assets.find(asset => asset.id === reference.assetId).source === source,
+        acceptedLabelRetained: lengthLabel.textContent === acceptedLabel,
+        acceptedLineRetained: scene.children.includes(display.root) && display.bindings.length === 1,
+        acceptedCameraRetained: JSON.stringify({ position: camera.position.toArray(),
+          projection: camera.projectionMatrix.toArray() }) === cameraState,
+        acceptedPixelsRetained: hash(readPixels()) === acceptedPixels });
+      show();
+    };
+    document.querySelector('#dispose').onclick = () => {
+      let geometryDisposals = 0, materialDisposals = 0;
+      binding.object.geometry.addEventListener('dispose', () => geometryDisposals++);
+      binding.object.material.addEventListener('dispose', () => materialDisposals++);
+      display.dispose(); display.dispose();
+      Object.assign(evidence, { geometryDisposals, materialDisposals,
+        acceptedLineRemoved: !scene.children.includes(display.root),
+        callerMarkerRetained: scene.children.includes(marker),
+        callerRendererAndCanvasRetained: renderer.getContext() instanceof WebGL2RenderingContext &&
+          document.body.contains(canvas),
+        nativeResultAndLabelRetained: length.estimatedLengthMM === evidence.estimatedLengthMM &&
+          lengthLabel.textContent === label });
+      show();
+    };
+  } catch (error) {
+    display?.dispose();
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroArcLengthThreeError = String(error?.stack ?? error);
+  }
+</script>
+</html>
