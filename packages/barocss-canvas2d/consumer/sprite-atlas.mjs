@@ -29,7 +29,7 @@ let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'))
 let renderer = createCanvas2D(canvas, options);
 renderer.setImageAsset('Atlas', atlasImage);
 let animation = createSpriteAnimation(sprite, frames);
-/** @type {import('@barocss/canvas2d').SceneV6} */
+/** @type {import('@barocss/canvas2d').Scene} */
 let accepted = tree.snapshot();
 renderer.updateScene(accepted); renderer.render();
 let generation = 1;
@@ -145,7 +145,7 @@ async function openText(text) {
   const old = renderer;
   canvas.replaceWith(fresh); canvas = fresh; renderer = staged.renderer;
   tree = nextTree; sprite = nextSprite; back = nextBack; animation = nextAnimation;
-  accepted = /** @type {import('@barocss/canvas2d').SceneV6} */ (staged.scene);
+  accepted = /** @type {import('@barocss/canvas2d').Scene} */ (staged.scene);
   generation++; pointerLog = []; clockMS = 0; pending = null;
   ticker = createTicker(scheduler); bindTicker(); subscribe(); unbind = bind(); old.dispose();
   show('Opened saved frame 2');

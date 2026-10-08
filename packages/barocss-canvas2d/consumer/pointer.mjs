@@ -23,7 +23,7 @@ tree.stage.addChild(team); team.addChild(red); team.addChild(blue);
 let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
 let renderer = createCanvas2D(canvas, options);
 renderer.setImageAsset('RGBA2', asset);
-/** @type {import('@barocss/canvas2d').SceneV6} */
+/** @type {import('@barocss/canvas2d').Scene} */
 let accepted = tree.snapshot();
 renderer.updateScene(accepted); renderer.render();
 let generation = 1;
@@ -148,7 +148,7 @@ async function openText(text) {
   const oldRenderer = renderer;
   canvas.replaceWith(fresh); canvas = fresh; renderer = staged.renderer;
   tree = restored; team = restoredTeam; red = restoredRed; blue = restoredBlue;
-  accepted = /** @type {import('@barocss/canvas2d').SceneV6} */ (staged.scene);
+  accepted = /** @type {import('@barocss/canvas2d').Scene} */ (staged.scene);
   generation++;
   stopBlue = false;
   subscribeTree();

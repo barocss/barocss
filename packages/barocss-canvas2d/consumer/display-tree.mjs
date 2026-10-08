@@ -23,7 +23,7 @@ tree.stage.addChild(team); team.addChild(red); team.addChild(blue);
 let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
 let renderer = createCanvas2D(canvas, options);
 renderer.setImageAsset('RGBA2', asset);
-/** @type {import('@barocss/canvas2d').SceneV6} */
+/** @type {import('@barocss/canvas2d').Scene} */
 let accepted = tree.snapshot();
 renderer.updateScene(accepted); renderer.render();
 let generation = 1;
@@ -106,9 +106,9 @@ async function openText(text) {
   if (stopped) return;
   const fresh = document.createElement('canvas'); fresh.id = 'scene';
   const staged = await stageCanvasDocument(text, fresh, options);
-  if (staged.scene.version !== 6) {
+  if (staged.scene.version !== 7) {
     staged.renderer.dispose();
-    throw new Canvas2DError('UNSUPPORTED_FEATURE', 'this display-tree consumer opens Scene v6 only');
+    throw new Canvas2DError('UNSUPPORTED_FEATURE', 'this display-tree consumer opens Scene v7 only');
   }
   /** @type {import('@barocss/canvas2d').DisplayTree} */
   let restored;

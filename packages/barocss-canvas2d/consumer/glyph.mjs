@@ -28,7 +28,7 @@ tree.stage.addChild(paper); tree.stage.addChild(team); team.addChild(glyph);
 let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
 let renderer = createCanvas2D(canvas, options);
 renderer.setImageAsset('Atlas', { width: 10, height: 7, pixels });
-/** @type {import('@barocss/canvas2d').SceneV6} */
+/** @type {import('@barocss/canvas2d').Scene} */
 let accepted = tree.snapshot();
 renderer.updateScene(accepted); renderer.render();
 let generation = 1;
@@ -116,7 +116,7 @@ async function openText(text) {
   unbind(); const old = renderer;
   canvas.replaceWith(fresh); canvas = fresh; renderer = staged.renderer;
   tree = nextTree; team = nextTeam; glyph = nextGlyph;
-  accepted = /** @type {import('@barocss/canvas2d').SceneV6} */ (staged.scene);
+  accepted = /** @type {import('@barocss/canvas2d').Scene} */ (staged.scene);
   generation++; log = []; subscribe(); unbind = bind(); old.dispose();
   show('Opened editable glyph tree');
 }
