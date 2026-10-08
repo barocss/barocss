@@ -1318,3 +1318,54 @@ Curve/source0/sampling, original IDs/-0, actual GL buffers/pixels, independent d
 pose mapping, one-entry Undo/Redo, native rejection/pending retention, actual Save
 Blob and file Open, genuine empty and zero owned GL resources. OS Downloads/reader,
 full Sketch parity/capacity/performance/parent campaigns are not claimed.
+
+### Mixed original XY Sketch profiles (#805)
+
+Open `/xy-sketch.html` in this example. Select Polyline, click3–12 original XY
+points, then Finish. Cancel/Escape discards staged drawing only. Rectangle uses two
+opposite corners and actual native originMM/widthMM/heightMM/cornerIds; no rectangle
+points field is invented. One Line is also supported. Two ordered accepted profiles
+is this host limit; larger native files refuse without truncation. Each polyline/
+Line authored point can be selected by actual ID and dragged or edited numerically.
+Rectangle corners select their native authored binding; origin/size editing is
+numerical in this profile. Structural vertex insertion/removal/type changes and
+closed polyline are separate.
+
+Existing native Sketch0 evaluate/update/parse/serialize remain authority. Generated
+source0 Curves, sampleDTO0 and SVG grid/markers/ghosts are derived. Native upsert
+preserves kind/point count/IDs/order; original document/profile/point/corner IDs,
+unrequested data and -0 stay. Actual pointBindings report Curve/pole/parameter;
+a rectangle's closing native pole binds the original first corner again. Closure
+classification is not region/wire/face/solid/topology certification. Each accepted
+native edit and entire GPU scene stage precedes one history adoption. Errors keep
+accepted source/frame/history and pending fields. Apply/discard/cancel is required
+before selection/file/delete/history; Save accepted native Sketch JSON only.
+
+Host0..2 profiles, polyline3..12 points, XY±300mm, rectangle sizes.001..600 with ALL
+corners within±300; native length/own-data/JSON128KiB guards stay. Decimal fields64
+characters; history20entries/1MiB; actual native samplev0 .01mm/64segments/depth4.
+Qualified primitivev2 binds actual document/Curve IDs; explicit X−90 quaternion and
+mmScale.025 map original XY to RH-Y-up display once. Top camera is view-only.1mm
+pointer snap,9px point hit/3pxnear-tie refusal; empty uses actual viewport.clear.
+Old `/xy-line.html` remains its named one-Line subset and existing Part stays.
+
+One actual native/source/GPU/file browser collector from repository root:
+
+```sh
+BAROCSS_XY_PROFILES_EVIDENCE=/absolute/unique/output \
+BAROCSS_XY_PROFILES_PORT=52036 \
+node examples/cad-preview/xy-profiles-flow.mjs
+```
+
+Capture empty, trusted three-click Polyline/Finish and polyline, then actual
+Rectangle and mixed. Drag middle point; capture moved/Undo undone/Redo redone.
+Select Rectangle, edit Width and Apply/numeric; Width0 Apply/refused. Save accepted
+bytes while pending, Discard, Check file refusals/file-refused. Stage a width and
+Discard/cancelled. Delete both, real Open the saved JSON/opened. Edit Rectangle
+Height/edited-after-open; delete Polyline/one-deleted. Start one pending polyline
+point then Cancel/drawing-cancelled; delete last/deleted, Finish evidence. The scoped
+flow observes actual authored bindings/native/source/sample/GL buffers and pixels,
+independent frame conversion, one Undo/Redo, zero-size/duplicate-ID/over-capacity
+refusal retention, actual Save Blob+file chooser Open, edit after Open, unrelated
+profile preservation, pending drawing Cancel and empty/disposal0. No OS Downloads,
+reader/capacity/performance/parent/Review/full Sketch/constraint/region certificate.
