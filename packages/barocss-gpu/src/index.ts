@@ -24,3 +24,6 @@ export type { MeshViewportState, MeshViewportSelection } from './mesh-viewport.j
 
 export {prepareKernelFacePreview,resolveKernelFaceReference} from './kernel-face-preview.js';
 export type {KernelFaceContext,KernelNormalSource,KernelFaceReference,KernelFaceBinding,KernelFacePreview,KernelFacePreviewOptions} from './kernel-face-preview.js';
+
+export {mountMeshScene,MeshSceneRenderer} from './mesh-scene-renderer.js';
+export type {MeshSceneEntry,MeshSceneOptions} from './mesh-scene-renderer.js';
