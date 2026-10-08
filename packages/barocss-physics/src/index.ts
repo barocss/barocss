@@ -1,5 +1,7 @@
-/** A small, deterministic-order translational 3D dynamics profile. Units are SI. */
+/** A bounded, deterministic-order 3D sphere dynamics profile. Units are SI. */
 export type Vec3 = [number, number, number];
+/** Local-to-world quaternion in [x, y, z, w] order. */
+export type Quat = [number, number, number, number];
 export type PhysicsErrorCode = 'INVALID_CONFIG' | 'INVALID_STEP' | 'INVALID_COMMAND' | 'INVALID_QUERY' | 'WORLD_LIMIT' | 'NUMERIC_LIMIT' | 'DISPOSED';
 
 export class PhysicsError extends Error {
@@ -12,11 +14,14 @@ export class PhysicsError extends Error {
 export type SphereShape = { kind: 'sphere'; radiusM: number };
 export type BoxShape = { kind: 'box'; halfExtentsM: Vec3 };
 export type PhysicsBodyConfig =
-  | { id: string; kind: 'dynamic'; shape: SphereShape; positionM: Vec3; velocityMps: Vec3; massKg: number; restitution: number }
+  | { id: string; kind: 'dynamic'; shape: SphereShape; positionM: Vec3; velocityMps: Vec3; massKg: number; restitution: number;
+      orientation?: Quat; angularVelocityRadps?: Vec3; inertiaKgM2?: number }
   | { id: string; kind: 'static' | 'kinematic'; shape: SphereShape | BoxShape; positionM: Vec3; restitution: number; sensor?: true };
 export type PhysicsStepCommand =
   | { kind: 'force'; bodyId: string; forceN: Vec3 }
   | { kind: 'impulse'; bodyId: string; impulseNs: Vec3 }
+  | { kind: 'torque'; bodyId: string; torqueNm: Vec3 }
+  | { kind: 'angularImpulse'; bodyId: string; angularImpulseNms: Vec3 }
   | { kind: 'kinematicTarget'; bodyId: string; positionM: Vec3 };
 export interface PhysicsWorldConfig {
   fixedStepSeconds: number;
@@ -29,6 +34,9 @@ export interface PhysicsBodyState {
   shape: SphereShape | BoxShape;
   positionM: Vec3;
   velocityMps: Vec3;
+  orientation: Quat;
+  angularVelocityRadps: Vec3;
+  inertiaKgM2?: number;
   sensor?: boolean;
 }
 export interface PhysicsContact {
@@ -76,6 +84,8 @@ const MAX_STEP_DISPLACEMENT_M = 10;
 const MAX_COMMANDS = 64;
 const MAX_FORCE_N = 1000000;
 const MAX_IMPULSE_NS = 100000;
+const MAX_TORQUE_NM = 1000000;
+const MAX_ANGULAR_IMPULSE_NMS = 100000;
 const SOLVER_PASSES = 8;
 
 function error(code: PhysicsErrorCode, message: string): never { throw new PhysicsError(code, message); }
@@ -100,6 +110,41 @@ function vector(value: unknown, min: number, max: number, label: string): Vec3 {
   if (!Array.isArray(value) || value.length !== 3) error('INVALID_CONFIG', `${label} must be a 3-vector`);
   return [0, 1, 2].map((index) => finite(value[index], min, max, `${label}[${index}]`)) as Vec3;
 }
+function angularVector(value: unknown): Vec3 {
+  if (!Array.isArray(value) || value.length !== 3 || Reflect.ownKeys(value).length !== 4 ||
+    ![0, 1, 2].every((index) => Object.hasOwn(value, index))) {
+    error('INVALID_CONFIG', 'angularVelocityRadps must be a dense 3-vector');
+  }
+  return vector(value, -1000, 1000, 'angularVelocityRadps');
+}
+function quaternion(value: unknown): Quat {
+  if (!Array.isArray(value) || value.length !== 4 || Reflect.ownKeys(value).length !== 5 ||
+    ![0, 1, 2, 3].every((index) => Object.hasOwn(value, index))) {
+    error('INVALID_CONFIG', 'orientation must be a dense [x,y,z,w] quaternion');
+  }
+  const values = value.map((component) => finite(component, -1, 1, 'orientation')) as Quat;
+  const magnitude = Math.hypot(...values);
+  if (Math.abs(magnitude - 1) > 1e-6) error('INVALID_CONFIG', 'orientation must have unit norm');
+  return values.map((component) => component / magnitude) as Quat;
+}
+function multiplyQuaternion(a: Quat, b: Quat): Quat {
+  const [ax, ay, az, aw] = a, [bx, by, bz, bw] = b;
+  return [aw * bx + ax * bw + ay * bz - az * by,
+    aw * by - ax * bz + ay * bw + az * bx,
+    aw * bz + ax * by - ay * bx + az * bw,
+    aw * bw - ax * bx - ay * by - az * bz];
+}
+function advanceOrientation(orientation: Quat, angularVelocity: Vec3, dt: number): Quat {
+  const speed = Math.hypot(...angularVelocity);
+  if (speed === 0) return [...orientation];
+  const halfAngle = speed * dt / 2;
+  const scale = Math.sin(halfAngle) / speed;
+  const delta: Quat = [angularVelocity[0] * scale, angularVelocity[1] * scale,
+    angularVelocity[2] * scale, Math.cos(halfAngle)];
+  const next = multiplyQuaternion(delta, orientation);
+  const norm = Math.hypot(...next);
+  return next.map((component) => component / norm) as Quat;
+}
 function shape(value: unknown, allowBox: boolean): SphereShape | BoxShape {
   const input = record(value, 'shape');
   if (input.kind === 'sphere') {
@@ -120,7 +165,8 @@ function parseBody(value: unknown): Body {
   }
   const kind = input.kind;
   fields(input, kind === 'dynamic'
-    ? ['id', 'kind', 'shape', 'positionM', 'velocityMps', 'massKg', 'restitution']
+    ? ['id', 'kind', 'shape', 'positionM', 'velocityMps', 'massKg', 'restitution',
+      'orientation', 'angularVelocityRadps', 'inertiaKgM2']
     : ['id', 'kind', 'shape', 'positionM', 'restitution', 'sensor'], 'body');
   if (Object.hasOwn(input, 'sensor') && input.sensor !== true) error('INVALID_CONFIG', 'sensor must be true');
   const sensor = input.sensor === true;
@@ -128,19 +174,29 @@ function parseBody(value: unknown): Body {
   const positionM = vector(input.positionM, -10000, 10000, 'positionM');
   const restitution = finite(input.restitution, 0, 1, 'restitution');
   if (kind !== 'dynamic') {
-    return { id: input.id, kind, shape: parsedShape, positionM, velocityMps: [0, 0, 0], sensor, inverseMass: 0, restitution };
+    return { id: input.id, kind, shape: parsedShape, positionM, velocityMps: [0, 0, 0],
+      orientation: [0, 0, 0, 1], angularVelocityRadps: [0, 0, 0],
+      sensor, inverseMass: 0, restitution };
   }
   const massKg = finite(input.massKg, 0.000001, 1000000, 'massKg');
+  const sphere = parsedShape as SphereShape;
+  const inertiaKgM2 = Object.hasOwn(input, 'inertiaKgM2')
+    ? finite(input.inertiaKgM2, 1e-12, 1e12, 'inertiaKgM2')
+    : 0.4 * massKg * sphere.radiusM ** 2;
   return { id: input.id, kind, shape: parsedShape as SphereShape, positionM, sensor,
-    velocityMps: vector(input.velocityMps, -1000, 1000, 'velocityMps'), inverseMass: 1 / massKg, restitution };
+    velocityMps: vector(input.velocityMps, -1000, 1000, 'velocityMps'),
+    orientation: Object.hasOwn(input, 'orientation') ? quaternion(input.orientation) : [0, 0, 0, 1],
+    angularVelocityRadps: Object.hasOwn(input, 'angularVelocityRadps') ? angularVector(input.angularVelocityRadps) : [0, 0, 0],
+    inertiaKgM2, inverseMass: 1 / massKg, restitution };
 }
 function copyShape(value: SphereShape | BoxShape): SphereShape | BoxShape {
   return value.kind === 'sphere' ? { kind: 'sphere', radiusM: value.radiusM } : { kind: 'box', halfExtentsM: [...value.halfExtentsM] as Vec3 };
 }
 function copyBody(body: Body): Body {
-  return { ...body, shape: copyShape(body.shape), positionM: [...body.positionM], velocityMps: [...body.velocityMps] };
+  return { ...body, shape: copyShape(body.shape), positionM: [...body.positionM], velocityMps: [...body.velocityMps],
+    orientation: [...body.orientation], angularVelocityRadps: [...body.angularVelocityRadps] };
 }
-type AdmittedCommands = { forceN?: Vec3; impulseNs?: Vec3; positionM?: Vec3 };
+type AdmittedCommands = { forceN?: Vec3; impulseNs?: Vec3; torqueNm?: Vec3; angularImpulseNms?: Vec3; positionM?: Vec3 };
 function commandVector(input: unknown, bound: number, label: string): Vec3 {
   if (!Array.isArray(input) || input.length !== 3 || Reflect.ownKeys(input).length !== 4 ||
     ![0, 1, 2].every((index) => Object.hasOwn(input, index))) {
@@ -169,7 +225,8 @@ function parseCommands(input: unknown, bodies: Body[]): Map<string, AdmittedComm
     const keys = Reflect.ownKeys(raw);
     const kind = descriptors.kind?.value;
     const valueKey = kind === 'force' ? 'forceN' : kind === 'impulse' ? 'impulseNs'
-      : kind === 'kinematicTarget' ? 'positionM' : null;
+      : kind === 'torque' ? 'torqueNm' : kind === 'angularImpulse' ? 'angularImpulseNms'
+        : kind === 'kinematicTarget' ? 'positionM' : null;
     if (!valueKey || keys.length !== 3 || keys.some((key) => typeof key !== 'string' ||
       !['kind', 'bodyId', valueKey].includes(key)) ||
       ['kind', 'bodyId', valueKey].some((key) => !descriptors[key]?.enumerable || !('value' in descriptors[key]))) {
@@ -182,7 +239,8 @@ function parseCommands(input: unknown, bodies: Body[]): Map<string, AdmittedComm
     }
     const previous = admitted.get(body.id) ?? {};
     if (Object.hasOwn(previous, valueKey)) error('INVALID_COMMAND', `duplicate ${kind} command for ${body.id}`);
-    const bound = kind === 'force' ? MAX_FORCE_N : kind === 'impulse' ? MAX_IMPULSE_NS : 10000;
+    const bound = kind === 'force' ? MAX_FORCE_N : kind === 'impulse' ? MAX_IMPULSE_NS
+      : kind === 'torque' ? MAX_TORQUE_NM : kind === 'angularImpulse' ? MAX_ANGULAR_IMPULSE_NMS : 10000;
     const value = commandVector(descriptors[valueKey].value, bound, `command ${index}.${valueKey}`);
     admitted.set(body.id, { ...previous, [valueKey]: value });
   }
@@ -227,8 +285,10 @@ function includeSensors(query: Record<string, unknown>): boolean {
 function publicState(bodies: Body[], contacts: PhysicsContact[], events: PhysicsEvent[], stepIndex: number, dt: number): PhysicsState {
   return {
     stepIndex, timeSeconds: stepIndex * dt,
-    bodies: bodies.map(({ id, kind, shape: collider, positionM, velocityMps, sensor }) =>
+    bodies: bodies.map(({ id, kind, shape: collider, positionM, velocityMps, orientation, angularVelocityRadps, inertiaKgM2, sensor }) =>
       ({ id, kind, shape: copyShape(collider), positionM: [...positionM], velocityMps: [...velocityMps],
+        orientation: [...orientation], angularVelocityRadps: [...angularVelocityRadps],
+        ...(inertiaKgM2 === undefined ? {} : { inertiaKgM2 }),
         ...(sensor ? { sensor: true } : {}) })),
     contacts: contacts.map(({ aId, bId, normalAtoB, penetrationM, impulseNs }) =>
       ({ aId, bId, normalAtoB: [...normalAtoB], penetrationM, impulseNs })),
@@ -329,9 +389,12 @@ function solve(a: Body, b: Body, hit: Hit): number {
 }
 function validateResult(bodies: Body[], contacts: PhysicsContact[]): void {
   for (const body of bodies) {
-    for (const [label, values, bound] of [['position', body.positionM, 10000], ['velocity', body.velocityMps, 1000]] as const) {
+    for (const [label, values, bound] of [['position', body.positionM, 10000], ['velocity', body.velocityMps, 1000],
+      ['angularVelocity', body.angularVelocityRadps, 1000]] as const) {
       if (values.some((value) => !Number.isFinite(value) || Math.abs(value) > bound)) error('NUMERIC_LIMIT', `${body.id} ${label} exceeded bounds`);
     }
+    if (body.orientation.some((value) => !Number.isFinite(value)) ||
+      Math.abs(Math.hypot(...body.orientation) - 1) > 1e-12) error('NUMERIC_LIMIT', `${body.id} orientation exceeded tolerance`);
   }
   if (contacts.some((contact) => !Number.isFinite(contact.impulseNs) || !Number.isFinite(contact.penetrationM) ||
     contact.normalAtoB.some((value) => !Number.isFinite(value)))) error('NUMERIC_LIMIT', 'unsafe contact result');
@@ -383,6 +446,16 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
           body.velocityMps = delta.map((value) => value / dt) as Vec3;
           body.positionM = [...target];
         } else if (body.kind === 'dynamic') {
+          const inertia = body.inertiaKgM2!;
+          for (let i = 0; i < 3; i++) {
+            body.angularVelocityRadps[i] += (action?.angularImpulseNms?.[i] ?? 0) / inertia;
+            body.angularVelocityRadps[i] += (action?.torqueNm?.[i] ?? 0) / inertia * dt;
+          }
+          if (body.angularVelocityRadps.some((value) => !Number.isFinite(value) || Math.abs(value) > 1000) ||
+            Math.hypot(...body.angularVelocityRadps) * dt > 10) {
+            error('NUMERIC_LIMIT', `${body.id} exceeded angular movement limit`);
+          }
+          body.orientation = advanceOrientation(body.orientation, body.angularVelocityRadps, dt);
           for (let i = 0; i < 3; i++) {
             body.velocityMps[i] += (action?.impulseNs?.[i] ?? 0) * body.inverseMass;
             body.velocityMps[i] += (gravity[i] + (action?.forceN?.[i] ?? 0) * body.inverseMass) * dt;
