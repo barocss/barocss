@@ -8,7 +8,7 @@ const documentText = await readFile(file, 'utf8');
 const parsed = await parseCanvasDocument(documentText);
 const tree = createDisplayTreeFromScene(parsed.scene);
 assert.equal(parsed.scene.version, 6);
-assert.equal(tree.snapshot().version, 11);
+assert.equal(tree.snapshot().version, 12);
 assert.deepEqual(tree.get('Red').data.tint, [1, 1, 1]);
 assert.deepEqual(tree.get('Blue').data.tint, [1, 1, 1]);
 assert.deepEqual([...parsed.assets.get('RGBA2').pixels], [
@@ -22,7 +22,7 @@ assert.throws(() => tree.get('Bad id'), error => error.code === 'INVALID_SCENE')
 const cropped = structuredClone(parsed.scene);
 cropped.nodes[0].children[1].sourceRect = { x: 0, y: 0, width: 1, height: 2 };
 const croppedTree = createDisplayTreeFromScene(cropped);
-assert.equal(croppedTree.snapshot().version, 11);
+assert.equal(croppedTree.snapshot().version, 12);
 assert.deepEqual(croppedTree.get('Red').data.tint, [1, 1, 1]);
 assert.deepEqual(croppedTree.get('Red').data.sourceRect, { x: 0, y: 0, width: 1, height: 2 });
 

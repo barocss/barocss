@@ -21,7 +21,7 @@ tree.stage.addChild(back); tree.stage.addChild(parent); parent.addChild(frame); 
 let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
 let renderer = createCanvas2D(canvas, options);
 renderer.setImageAsset('Atlas', image);
-/** @type {import('@barocss/canvas2d').SceneV11} */
+/** @type {import('@barocss/canvas2d').SceneV11 | import('@barocss/canvas2d').SceneV12} */
 let accepted = tree.snapshot(); renderer.updateScene(accepted); renderer.render();
 let generation = 1;
 /** @type {string[]} */ let pointerLog = [];
@@ -114,7 +114,7 @@ async function openText(text) {
   /** @type {import('@barocss/canvas2d').SpriteHandle} */ let nextSprite;
   /** @type {import('@barocss/canvas2d').RectHandle} */ let nextBack;
   try {
-    if (staged.scene.version !== 11) throw new Error('Document needs Scene v11');
+    if (staged.scene.version !== 11 && staged.scene.version !== 12) throw new Error('Document needs Scene v11 or v12');
     nextTree = createDisplayTreeFromScene(staged.scene);
     const container = nextTree.get('Parent'), frameHandle = nextTree.get('Frame');
     const main = nextTree.get('Sprite');
@@ -132,7 +132,7 @@ async function openText(text) {
   canvas.replaceWith(fresh); canvas = fresh; renderer = staged.renderer;
   tree = nextTree; parent = nextParent; frame = nextFrame; sprite = nextSprite; back = nextBack;
   accepted = staged.scene; generation++; pointerLog = [];
-  subscribe(); unbind = bind(); old.dispose(); show('Opened Scene v11 hit mode');
+  subscribe(); unbind = bind(); old.dispose(); show(`Opened Scene v${accepted.version} hit mode`);
 }
 subscribe(); unbind = bind();
 document.querySelector('#sprite-none')?.addEventListener('click', () => setSpriteMode('none'));

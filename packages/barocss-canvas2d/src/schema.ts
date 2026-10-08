@@ -93,6 +93,11 @@ export type PathNodeV11 = WithHitMode<PathNodeV10>;
 export type ImageNodeV11 = WithHitMode<ImageNodeV10>;
 export type GlyphRunNodeV11 = WithHitMode<GlyphRunNodeV10>;
 export type NodeV11 = GroupNodeV11 | FrameNodeV11 | RectNodeV11 | LineNodeV11 | PathNodeV11 | ImageNodeV11 | GlyphRunNodeV11;
+export type NineSliceInsets = { left: number; right: number; top: number; bottom: number };
+export type GroupNodeV12 = Omit<GroupNodeV11, 'children'> & { children: NodeV12[] };
+export type FrameNodeV12 = Omit<FrameNodeV11, 'children'> & { children: NodeV12[] };
+export type ImageNodeV12 = ImageNodeV11 & { slice?: NineSliceInsets };
+export type NodeV12 = GroupNodeV12 | FrameNodeV12 | RectNodeV11 | LineNodeV11 | PathNodeV11 | ImageNodeV12 | GlyphRunNodeV11;
 export type OldGroupNode = Omit<GroupNode, 'children'> & { children: OldNode[] };
 export type OldFrameNode = Omit<FrameNode, 'children'> & { children: OldNode[] };
 export type OldNode = OldGroupNode | OldFrameNode | RectNode | LineNode;
@@ -108,7 +113,8 @@ export type SceneV8 = { version: 8; unit: 'logical-px'; contextId: string; nodes
 export type SceneV9 = { version: 9; unit: 'logical-px'; contextId: string; nodes: NodeV9[] };
 export type SceneV10 = { version: 10; unit: 'logical-px'; contextId: string; nodes: NodeV10[] };
 export type SceneV11 = { version: 11; unit: 'logical-px'; contextId: string; nodes: NodeV11[] };
-export type Scene = SceneV0 | SceneV1 | SceneV2 | SceneV3 | SceneV4 | SceneV5 | SceneV6 | SceneV7 | SceneV8 | SceneV9 | SceneV10 | SceneV11;
+export type SceneV12 = { version: 12; unit: 'logical-px'; contextId: string; nodes: NodeV12[] };
+export type Scene = SceneV0 | SceneV1 | SceneV2 | SceneV3 | SceneV4 | SceneV5 | SceneV6 | SceneV7 | SceneV8 | SceneV9 | SceneV10 | SceneV11 | SceneV12;
 
 const MAX_BYTES = 1024 * 1024;
 const idPattern = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
@@ -285,6 +291,16 @@ function sourcePixels(value: unknown, path: string, seen: WeakSet<object>): Sour
   return { x, y, width, height };
 }
 
+function nineSliceInsets(value: unknown, path: string, seen: WeakSet<object>): NineSliceInsets {
+  const raw = object(value, ['left', 'right', 'top', 'bottom'], path, seen);
+  const inset = (key: keyof NineSliceInsets): number => {
+    const result = number(raw[key], `${path}.${key}`, 0, 4096);
+    if (!Number.isSafeInteger(result)) fail('INVALID_SCENE', `${path}.${key} must be an integer pixel count`);
+    return result;
+  };
+  return { left: inset('left'), right: inset('right'), top: inset('top'), bottom: inset('bottom') };
+}
+
 function validText(value: unknown, path: string): string {
   if (typeof value !== 'string' || value.length < 1 || value.length > 512) {
     fail('INVALID_SCENE', `${path} needs 1..512 UTF-16 units`);
@@ -301,11 +317,11 @@ function validText(value: unknown, path: string): string {
 
 type Counter = { nodes: number; vertices: number; paths: number; glyphRuns: number; ids: Set<string> };
 function nodes(value: unknown, depth: number, path: string, ancestorRotated: boolean,
-  seen: WeakSet<object>, counter: Counter, version: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11): (Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11)[] {
+  seen: WeakSet<object>, counter: Counter, version: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12): (Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12)[] {
   if (depth > 16) fail('SCENE_LIMIT', 'scene depth exceeds 16');
   const raw = array(value, path, seen);
   if (raw.length > 256) fail('SCENE_LIMIT', 'scene has too many siblings');
-  return raw.map((item, index): Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 => {
+  return raw.map((item, index): Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 => {
     const nodePath = `${path}[${index}]`;
     if (item === null || typeof item !== 'object') fail('INVALID_SCENE', `${nodePath} must be a node`);
     const kindDescriptor = Object.getOwnPropertyDescriptor(item, 'kind');
@@ -327,7 +343,8 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
     else if (kind === 'image' && version >= 3) fields = [...common, 'imageId', 'width', 'height',
       'opacity', 'sampling', ...(version >= 6 ? ['anchorX', 'anchorY'] : []), ...(version >= 7 ? ['tint'] : []),
       ...(version >= 8 ? ['blendMode'] : []),
-      ...(Object.hasOwn(item, 'sourceRect') ? ['sourceRect'] : [])];
+      ...(Object.hasOwn(item, 'sourceRect') ? ['sourceRect'] : []),
+      ...(version >= 12 && Object.hasOwn(item, 'slice') ? ['slice'] : [])];
     else if (kind === 'glyphRun' && version >= 4) fields = [...common, 'atlasId', 'text', 'baseline',
       'opacity', 'sampling', 'glyphs'];
     else fail('INVALID_SCENE', `${nodePath}.kind is unsupported`);
@@ -349,7 +366,7 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
       ...(version >= 9 ? { visible: data.visible as boolean } : {}),
       ...(version >= 10 ? { alpha: number(data.alpha, `${nodePath}.alpha`, 0, 1) } : {}),
       ...(version >= 11 ? { hitMode: data.hitMode as HitMode } : {}) };
-    if (kind === 'group') return { kind, ...base, children: nodes(data.children, depth + 1, `${nodePath}.children`, rotated, seen, counter, version) } as Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11;
+    if (kind === 'group') return { kind, ...base, children: nodes(data.children, depth + 1, `${nodePath}.children`, rotated, seen, counter, version) } as Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12;
     if (kind === 'frame') {
       if (typeof data.clip !== 'boolean') fail('INVALID_SCENE', `${nodePath}.clip must be boolean`);
       if (data.clip && rotated) fail('INVALID_SCENE', `${nodePath} has unsupported rotated clip`);
@@ -359,7 +376,7 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
         width: number(data.width, `${nodePath}.width`, Number.MIN_VALUE, 1e6),
         height: number(data.height, `${nodePath}.height`, Number.MIN_VALUE, 1e6),
         fill: color(data.fill, `${nodePath}.fill`, seen), clip: data.clip as boolean,
-        children: nodes(data.children, depth + 1, `${nodePath}.children`, rotated, seen, counter, version) } as Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11;
+        children: nodes(data.children, depth + 1, `${nodePath}.children`, rotated, seen, counter, version) } as Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12;
     }
     if (kind === 'path') {
       counter.paths++;
@@ -386,8 +403,6 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
         stroke: color(data.stroke, `${nodePath}.stroke`, seen) };
     }
     if (kind === 'image') {
-      counter.vertices += 6;
-      if (counter.vertices > 16384) fail('SCENE_LIMIT', 'scene geometry exceeds vertex limit');
       if (data.sampling !== 'nearest' && data.sampling !== 'linear') {
         fail('INVALID_SCENE', `${nodePath}.sampling is unsupported`);
       }
@@ -396,9 +411,21 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
       }
       const sourceRect = Object.hasOwn(data, 'sourceRect')
         ? sourcePixels(data.sourceRect, `${nodePath}.sourceRect`, seen) : undefined;
+      const width = number(data.width, `${nodePath}.width`, Number.MIN_VALUE, 1e6);
+      const height = number(data.height, `${nodePath}.height`, Number.MIN_VALUE, 1e6);
+      const slice = Object.hasOwn(data, 'slice')
+        ? nineSliceInsets(data.slice, `${nodePath}.slice`, seen) : undefined;
+      if (slice && (!sourceRect || slice.left + slice.right >= sourceRect.width ||
+          slice.top + slice.bottom >= sourceRect.height ||
+          slice.left + slice.right >= width || slice.top + slice.bottom >= height)) {
+        fail('INVALID_SCENE', `${nodePath}.slice needs positive source and destination centers and an explicit crop`);
+      }
+      counter.vertices += slice
+        ? 6 * (1 + Number(slice.left > 0) + Number(slice.right > 0)) *
+          (1 + Number(slice.top > 0) + Number(slice.bottom > 0)) : 6;
+      if (counter.vertices > 16384) fail('SCENE_LIMIT', 'scene geometry exceeds vertex limit');
       return { kind, ...base, imageId: id(data.imageId, `${nodePath}.imageId`),
-        width: number(data.width, `${nodePath}.width`, Number.MIN_VALUE, 1e6),
-        height: number(data.height, `${nodePath}.height`, Number.MIN_VALUE, 1e6),
+        width, height,
         opacity: number(data.opacity, `${nodePath}.opacity`, 0, 1),
         sampling: data.sampling,
         ...(version >= 6 ? {
@@ -406,7 +433,7 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
           anchorY: number(data.anchorY, `${nodePath}.anchorY`, 0, 1),
         } : {}), ...(version >= 7 ? { tint: tint(data.tint, `${nodePath}.tint`, seen) } : {}),
         ...(version >= 8 ? { blendMode: data.blendMode as 'normal' | 'add' } : {}),
-        ...(sourceRect ? { sourceRect } : {}) };
+        ...(sourceRect ? { sourceRect } : {}), ...(slice ? { slice } : {}) };
     }
     if (kind === 'glyphRun') {
       if (++counter.glyphRuns > 32) fail('SCENE_LIMIT', 'scene exceeds 32 glyph runs');
@@ -456,8 +483,8 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
 export function validateScene(value: unknown): Scene {
   const seen = new WeakSet<object>();
   const raw = object(value, ['version', 'unit', 'contextId', 'nodes'], 'scene', seen);
-  if ((raw.version !== 0 && raw.version !== 1 && raw.version !== 2 && raw.version !== 3 && raw.version !== 4 && raw.version !== 5 && raw.version !== 6 && raw.version !== 7 && raw.version !== 8 && raw.version !== 9 && raw.version !== 10 && raw.version !== 11) || raw.unit !== 'logical-px') fail('INVALID_SCENE', 'unsupported scene version or unit');
-  const version = raw.version as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
+  if ((raw.version !== 0 && raw.version !== 1 && raw.version !== 2 && raw.version !== 3 && raw.version !== 4 && raw.version !== 5 && raw.version !== 6 && raw.version !== 7 && raw.version !== 8 && raw.version !== 9 && raw.version !== 10 && raw.version !== 11 && raw.version !== 12) || raw.unit !== 'logical-px') fail('INVALID_SCENE', 'unsupported scene version or unit');
+  const version = raw.version as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
   const contextId = id(raw.contextId, 'scene.contextId');
   const parsedNodes = nodes(raw.nodes, 1, 'scene.nodes', false, seen,
     { nodes: 0, vertices: 0, paths: 0, glyphRuns: 0, ids: new Set() }, version);
@@ -473,7 +500,8 @@ export function validateScene(value: unknown): Scene {
     : version === 8 ? { version: 8, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV8[] }
     : version === 9 ? { version: 9, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV9[] }
     : version === 10 ? { version: 10, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV10[] }
-    : { version: 11, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV11[] };
+    : version === 11 ? { version: 11, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV11[] }
+    : { version: 12, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV12[] };
   if (new TextEncoder().encode(JSON.stringify(scene)).length > MAX_BYTES) fail('SCENE_LIMIT', 'scene snapshot exceeds 1 MiB');
   return scene;
 }

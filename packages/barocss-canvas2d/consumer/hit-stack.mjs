@@ -18,7 +18,7 @@ tree.stage.addChild(rect); tree.stage.addChild(sprite);
 let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
 let renderer = createCanvas2D(canvas, options);
 renderer.setImageAsset('Blue', image);
-/** @type {import('@barocss/canvas2d').SceneV11} */
+/** @type {import('@barocss/canvas2d').SceneV11 | import('@barocss/canvas2d').SceneV12} */
 let accepted = tree.snapshot(); renderer.updateScene(accepted); renderer.render();
 let generation = 1;
 /** @type {string[]} */ let pointerLog = [];
@@ -75,7 +75,7 @@ async function save() {
 async function openText(text) {
   const fresh = document.createElement('canvas'); fresh.id = 'scene'; fresh.width = 160; fresh.height = 160;
   const staged = await stageCanvasDocument(text, fresh, options);
-  if (staged.scene.version !== 11) throw new Error('Scene v11 required');
+  if (staged.scene.version !== 11 && staged.scene.version !== 12) throw new Error('Scene v11 or v12 required');
   const nextTree = createDisplayTreeFromScene(staged.scene);
   const nextRect = nextTree.get('Rect'), nextSprite = nextTree.get('Sprite');
   const bytes = staged.renderer.getImageAsset('Blue')?.pixels;
