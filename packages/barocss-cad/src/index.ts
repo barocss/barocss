@@ -185,3 +185,6 @@ export type { ThreeSectionLoftOptions, ThreeSectionLoftObservation, ThreeSection
 
 export { queryCadDocumentBounds, validateCadDocumentBounds, CadDocumentBoundsError, CadDocumentBoundsDiagnosticCode } from './cad-document-bounds.js';
 export type { CadDocumentBoundsReport, CadDocumentBoundsResult } from './cad-document-bounds.js';
+
+export { queryCadDocumentCurveArcLength, validateCadDocumentCurveArcLength, CadCurveArcLengthError, CadCurveArcLengthDiagnosticCode } from './cad-curve-arc-length.js';
+export type { CadCurveArcLengthOptions, CadCurveArcLengthPanel, CadCurveArcLengthReport, CadCurveArcLengthResult } from './cad-curve-arc-length.js';
