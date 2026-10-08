@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Canvas2D bounded SVG import</title>
+<style>
+  body { margin: 24px; font: 15px system-ui; color: #17233c; background: #f5f7fb; }
+  section { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin: 16px 0; }
+  button, input { font: inherit; }
+  button { padding: 8px 12px; border: 1px solid #aab9d0; border-radius: 6px; background: white; }
+  canvas { display: block; width: 600px; height: 300px; background: white; border: 1px solid #c8d2e3; }
+</style>
+<h1>Bounded SVG to Canvas2D Scene</h1>
+<p>The host parses the file. Canvas2D renders the imported Scene.</p>
+<section>
+  <label>Import SVG <input id="open-svg" type="file" accept="image/svg+xml,.svg"></label>
+  <button id="save-scene" type="button">Save Scene JSON</button>
+  <label>Open Scene JSON <input id="open-scene" type="file" accept="application/json,.json"></label>
+</section>
+<p id="status" role="status">Loading</p>
+<canvas id="live" aria-label="Current Canvas2D scene"></canvas>
+<script type="module">
+  import { Canvas2DError, createCanvas2D, importSVGElement, parseSceneJSON,
+    stringifySceneJSON } from '../../packages/barocss-canvas2d/dist/index.js';
+  const options = { logicalSize: { width: 600, height: 300 }, dpr: 2 };
+  let canvas = document.querySelector('#live');
+  let renderer = createCanvas2D(canvas, options);
+  let scene = { version: 0, unit: 'logical-px', contextId: 'BeforeImport', nodes: [
+    { kind: 'rect', id: 'Before', layer: 0,
+      transform: { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 },
+      width: 600, height: 300, fill: [0.92, 0.96, 1, 1] },
+  ] };
+  renderer.updateScene(scene); renderer.render();
+  const status = document.querySelector('#status'); status.textContent = 'Ready · BeforeImport';
+  function commit(candidate) {
+    const fresh = document.createElement('canvas'); fresh.id = 'live';
+    fresh.setAttribute('aria-label', 'Current Canvas2D scene');
+    const next = createCanvas2D(fresh, options);
+    try { next.updateScene(candidate); next.render(); }
+    catch (error) { next.dispose(); throw error; }
+    const prior = renderer;
+    canvas.replaceWith(fresh); canvas = fresh; renderer = next; scene = candidate;
+    prior.dispose();
+  }
+  document.querySelector('#open-svg').addEventListener('change', async event => {
+    const file = event.target.files?.[0]; if (!file) return;
+    try {
+      const xml = new DOMParser().parseFromString(await file.text(), 'image/svg+xml');
+      if (xml.querySelector('parsererror')) throw new Canvas2DError('SERIALIZATION', 'invalid SVG XML');
+      const imported = importSVGElement(xml.documentElement);
+      if (imported.diagnostics.viewport.width !== 600 || imported.diagnostics.viewport.height !== 300) {
+        throw new Canvas2DError('UNSUPPORTED_FEATURE', 'example viewport must be 600×300');
+      }
+      commit(imported.scene);
+      status.textContent = `Imported v${scene.version} · ${imported.diagnostics.pathIds.join(', ')}`;
+      window.__svgDiagnostics = imported.diagnostics;
+    } catch (error) { status.textContent = `${error.code || 'ERROR'}: ${error.message}`; }
+    event.target.value = '';
+  });
+  document.querySelector('#save-scene').addEventListener('click', () => {
+    try {
+      const text = stringifySceneJSON(scene);
+      const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+      const link = document.createElement('a'); link.href = url; link.download = 'imported-scene.json';
+      link.click(); setTimeout(() => URL.revokeObjectURL(url), 0);
+      status.textContent = `Saved Scene v${scene.version} · ${new TextEncoder().encode(text).length} bytes`;
+    } catch (error) { status.textContent = `${error.code || 'ERROR'}: ${error.message}`; }
+  });
+  document.querySelector('#open-scene').addEventListener('change', async event => {
+    const file = event.target.files?.[0]; if (!file) return;
+    try { commit(parseSceneJSON(await file.text())); status.textContent = `Opened Scene v${scene.version}`; }
+    catch (error) { status.textContent = `${error.code || 'ERROR'}: ${error.message}`; }
+    event.target.value = '';
+  });
+  window.__svgDebug = {
+    get canvas() { return canvas; }, get scene() { return structuredClone(scene); },
+    hit(x, y) { return renderer.hitTest({ x, y }); },
+    pixel(x, y) {
+      const gl = canvas.getContext('webgl2'), rgba = new Uint8Array(4);
+      gl.readPixels(x * 2, canvas.height - y * 2 - 1, 1, 1,
+        gl.RGBA, gl.UNSIGNED_BYTE, rgba);
+      return [...rgba];
+    },
+  };
+</script>
+</html>

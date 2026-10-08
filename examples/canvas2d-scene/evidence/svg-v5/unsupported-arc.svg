@@ -1,0 +1,3 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="ArcBoard" width="600" height="300" viewBox="0 0 300 150">
+  <path id="Arc" fill="none" stroke="#222d44" stroke-width="4" stroke-linejoin="bevel" d="M 10 10 A 20 20 0 0 1 50 50"/>
+</svg>
