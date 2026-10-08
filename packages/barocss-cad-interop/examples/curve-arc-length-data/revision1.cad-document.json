@@ -1,0 +1,87 @@
+{
+  "schema": "barocss-cad-document",
+  "version": 1,
+  "profile": "direct-geometry",
+  "documentId": "arc_length_doc",
+  "revision": 1,
+  "units": {
+    "length": "mm",
+    "angle": "rad"
+  },
+  "nativeFrame": "authored-xyz-no-axis-conversion",
+  "assets": [
+    {
+      "id": "analytic_asset",
+      "revision": 1,
+      "role": "authored-native-source",
+      "sourceVersion": 0,
+      "sourceFrame": "authored-xyz-no-axis-conversion",
+      "source": "@model analytic_lengths {\n  version:0; length-unit:mm;\n  @curve #line_3d { type:nurbs; degree:1; knots:[-3,-3,7,7]; control-points:[[1,2,3],[4,2,7]]; weights:[1,1]; }\n  @curve #c0_curve { type:nurbs; degree:1; knots:[-0,0,1,3,3]; control-points:[[0,0,0],[3,0,0],[3,4,0]]; weights:[1,1,1]; }\n  @curve #zero_speed { type:nurbs; degree:1; knots:[-0,-0,2,2]; control-points:[[-0,-0,-0],[-0,-0,-0]]; weights:[1,1]; }\n  @curve #concentrated_line { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[0,0,0],[1,0,0]]; weights:[1000000,0.000001]; }\n}\n"
+    },
+    {
+      "id": "quarter_asset",
+      "revision": 1,
+      "role": "authored-native-source",
+      "sourceVersion": 0,
+      "sourceFrame": "authored-xyz-no-axis-conversion",
+      "source": "@model profile { version:0; length-unit:mm; @curve #quarter_original { type:nurbs; degree:2; knots:[0,0,0,1,1,1]; control-points:[[2,0,0],[2,2,0],[0,2,0]]; weights:[1,0.7071067811865476,1]; } }\n"
+    },
+    {
+      "id": "reverse_asset",
+      "revision": 1,
+      "role": "authored-native-source",
+      "sourceVersion": 0,
+      "sourceFrame": "authored-xyz-no-axis-conversion",
+      "source": "@model quarter_reversed { version:0; length-unit:mm; @curve #quarter_reversed { type:nurbs; degree:2; knots:[0,0,0,1,1,1]; control-points:[[0,2,0],[2,2,0],[2,0,0]]; weights:[1,0.7071067811865476,1]; } }\n"
+    }
+  ],
+  "bodies": [
+    {
+      "id": "line_body",
+      "name": "line_body",
+      "kind": "direct-geometry-object",
+      "assetId": "analytic_asset",
+      "geometryId": "line_3d"
+    },
+    {
+      "id": "c0_body",
+      "name": "c0_body",
+      "kind": "direct-geometry-object",
+      "assetId": "analytic_asset",
+      "geometryId": "c0_curve"
+    },
+    {
+      "id": "zero_body",
+      "name": "zero_body",
+      "kind": "direct-geometry-object",
+      "assetId": "analytic_asset",
+      "geometryId": "zero_speed"
+    },
+    {
+      "id": "concentrated_body",
+      "name": "concentrated_body",
+      "kind": "direct-geometry-object",
+      "assetId": "analytic_asset",
+      "geometryId": "concentrated_line"
+    },
+    {
+      "id": "quarter_body",
+      "name": "quarter_body",
+      "kind": "direct-geometry-object",
+      "assetId": "quarter_asset",
+      "geometryId": "quarter_original"
+    },
+    {
+      "id": "reversed_body",
+      "name": "reversed_body",
+      "kind": "direct-geometry-object",
+      "assetId": "reverse_asset",
+      "geometryId": "quarter_reversed"
+    }
+  ],
+  "features": [],
+  "parameters": [],
+  "constraints": [],
+  "placements": [],
+  "derivedCaches": []
+}

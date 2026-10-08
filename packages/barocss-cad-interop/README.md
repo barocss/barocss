@@ -1171,3 +1171,27 @@ staging failure and adapter-owned disposal. The native edit and loft
 observations remain separate from Float32 display meshes. This shows one
 edited-middle rebuild; it makes no claim about arbitrary edits, global
 shape, solids, other targets or npm publication.
+
+## Native Curve arc length beside a Three Line
+
+`examples/curve-arc-length-data/revision1.cad-document.json` is the saved
+canonical document produced by the CAD Curve arc-length example. The direct
+Three host selects its original radius-2 mm rational quarter Curve. It
+reads the document once, creates a current qualified CAD reference, calls
+public `queryCadDocumentCurveArcLength` and validates the owned result.
+The existing document adapter displays a separate sampled Line from the
+same accepted document. Run the focused source and target check after
+building CAD and interop:
+
+```sh
+node packages/barocss-cad-interop/examples/curve-arc-length-three-verify.mjs
+```
+
+Serve `examples/curve-arc-length-three.html` through the local Vite browser
+server for the actual Three/WebGL2 view. The host shows the native length
+estimate, heuristic estimator and original interval beside the sampled
+Line. It checks source/target bindings, buffers, visible pixels, invalid
+candidate retention and owned disposal. The display Line's chord sum is
+kept separate from the native derivative-integrated estimate. The
+estimator is not a certified global error bound, and this example makes
+no claim about general dimensions, other targets or npm publication.
