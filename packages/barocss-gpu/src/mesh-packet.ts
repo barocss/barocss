@@ -64,7 +64,8 @@ function triple(input: unknown, label: string, limit: number, nonnegative = fals
   return value as [number, number, number];
 }
 
-function geometry(positions: ArrayLike<number>, normals: ArrayLike<number>, indices: ArrayLike<number>, label: string): void {
+/** Internal shared check for native and derived execution geometry. */
+export function validateMeshGeometry(positions: ArrayLike<number>, normals: ArrayLike<number>, indices: ArrayLike<number>, label: string): void {
   for (let t = 0; t < indices.length; t += 3) {
     const a = indices[t] * 3, b = indices[t + 1] * 3, c = indices[t + 2] * 3;
     requireValue(a !== b && b !== c && a !== c, `${label} triangle repeats an index`);
@@ -108,7 +109,7 @@ export function validatePreviewPacket(input: unknown): PreviewPacket {
     for (let i = axis; i < positions.length; i += 3) { low = Math.min(low, positions[i]); high = Math.max(high, positions[i]); }
     requireValue(min[axis] === low && max[axis] === high, 'bounds must equal exact component-wise position extrema');
   }
-  geometry(positions, normals, indices, 'Packet');
+  validateMeshGeometry(positions, normals, indices, 'Packet');
   // Freeze only owned copies, never caller arrays or objects.
   const result: PreviewPacket = {
     version: 0, surfaceId: value.surfaceId, revision: value.revision, lengthUnit: 'mm',
@@ -149,6 +150,6 @@ export function lowerMesh(packet:PreviewPacket,options:MeshOptions):{packet:Prev
   }
   const positions = Float32Array.from(packet.positions, (n, i) => n * options.mmToSceneUnit + options.translate[i % 3]);
   const normals = Float32Array.from(packet.normals), indices = Uint16Array.from(packet.indices);
-  geometry(positions, normals, indices, 'Float32 GPU');
+  validateMeshGeometry(positions, normals, indices, 'Float32 GPU');
   return { packet, options, positions, normals, indices };
 }

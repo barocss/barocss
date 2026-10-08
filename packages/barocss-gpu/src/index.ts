@@ -26,4 +26,4 @@ export {prepareKernelFacePreview,resolveKernelFaceReference} from './kernel-face
 export type {KernelFaceContext,KernelNormalSource,KernelFaceReference,KernelFaceBinding,KernelFacePreview,KernelFacePreviewOptions} from './kernel-face-preview.js';
 
 export {mountMeshScene,MeshSceneRenderer} from './mesh-scene-renderer.js';
-export type {MeshSceneEntry,MeshSceneOptions} from './mesh-scene-renderer.js';
+export type {MeshSceneEntry,MeshSceneOptions,MeshSceneTransform,MeshSceneBounds} from './mesh-scene-renderer.js';
