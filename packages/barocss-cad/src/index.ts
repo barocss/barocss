@@ -164,3 +164,6 @@ export { createCadGeometryReference, resolveCadGeometryReference, rebindCadGeome
 export type { CadGeometryReferenceInput, CadGeometryReferenceV0, CadGeometryReferenceResult, CadGeometryRebindResult, CadDocumentPointQuery, CadDocumentPointResult, CadFrameConversionOptions, CadFrameConversionResult, CadReferenceReport, CadFrameConversionReport } from './cad-document-reference.js';
 export { inspectCadDocumentCompatibility, migrateCadDocument, validateCadDocumentMigration, CadDocumentCompatibilityError, CadDocumentCompatibilityDiagnosticCode } from './cad-document-compatibility.js';
 export type { CadDocumentCompatibilityInput, CadDocumentMigrationOptions, CadDocumentCompatibilityEntry, CadDocumentCompatibilityReport, CadDocumentMigrationMapping, CadDocumentMigrationResult } from './cad-document-compatibility.js';
+
+export { getCadDocumentExportCapabilities, inspectCadDocumentExport, exportCadDocument, validateCadDocumentExport, CadDocumentExportError, CadDocumentExportDiagnosticCode } from './cad-document-export.js';
+export type { CadDocumentExportCapability, CadDocumentExportSelection, CadDocumentExportOptions, CadDocumentExportMapping, CadDocumentExportReport, CadDocumentExportResult } from './cad-document-export.js';
