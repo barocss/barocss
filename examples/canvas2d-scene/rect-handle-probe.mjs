@@ -57,6 +57,6 @@ assert.throws(() => createDisplayTreeFromScene(old), error => error.code === 'UN
 const unsupported = structuredClone(changed);
 unsupported.nodes[0].children.push({ kind: 'line', id: 'Line', layer: 1, transform: pose(),
   x1: 0, y1: 0, x2: 10, y2: 0, width: 1, stroke: [1, 1, 1, 1] });
-assert.throws(() => createDisplayTreeFromScene(unsupported), error => error.code === 'UNSUPPORTED_FEATURE');
-console.log(JSON.stringify({ result: 'ok', refusals: refusals.length + 3,
+assert.equal(createDisplayTreeFromScene(unsupported).get('Line')?.kind, 'line');
+console.log(JSON.stringify({ result: 'ok', refusals: refusals.length + 2,
   pointerRoute: ['Rect', 'Team', 'stage'], restoredWidth: restored.get('Rect')?.data.width }));

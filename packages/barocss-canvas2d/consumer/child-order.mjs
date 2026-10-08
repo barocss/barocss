@@ -18,7 +18,7 @@ tree.stage.addChild(team); team.addChild(red); team.addChild(blue); team.addChil
 /** @type {HTMLCanvasElement} */
 let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
 let renderer = createCanvas2D(canvas, options);
-/** @type {import('@barocss/canvas2d').SceneV6} */
+/** @type {import('@barocss/canvas2d').Scene} */
 let accepted = tree.snapshot();
 renderer.updateScene(accepted); renderer.render();
 let generation = 1;
@@ -109,7 +109,7 @@ async function openText(text) {
   const old = renderer;
   canvas.replaceWith(fresh); canvas = fresh; renderer = staged.renderer;
   tree = nextTree; team = nextTeam; red = nextRed; blue = nextBlue; green = nextGreen;
-  accepted = /** @type {import('@barocss/canvas2d').SceneV6} */ (staged.scene);
+  accepted = /** @type {import('@barocss/canvas2d').Scene} */ (staged.scene);
   generation++; pointerLog = []; subscribe(); unbind = bind(); old.dispose();
   show('Opened editable child order');
 }

@@ -4,7 +4,8 @@ import type { ImageNode, Point, Size, SourceRect, View } from './schema.js';
 export type ImageAsset = { width: number; height: number; pixels: Uint8Array; texture: WebGLTexture | null };
 export type ImageGpu = { program: WebGLProgram; positionBuffer: WebGLBuffer; uvBuffer: WebGLBuffer;
   vao: WebGLVertexArrayObject; size: WebGLUniformLocation; view: WebGLUniformLocation;
-  opacity: WebGLUniformLocation; sampler: WebGLUniformLocation; uvClamp: WebGLUniformLocation };
+  opacity: WebGLUniformLocation; tint: WebGLUniformLocation;
+  sampler: WebGLUniformLocation; uvClamp: WebGLUniformLocation };
 
 const vertexSource = `#version 300 es
 precision highp float;
@@ -25,11 +26,12 @@ in vec2 v_uv;
 uniform sampler2D u_image;
 uniform vec4 u_uvClamp;
 uniform float u_opacity;
+uniform vec3 u_tint;
 out vec4 out_color;
 void main() {
   vec4 sampleColor = texture(u_image, clamp(v_uv, u_uvClamp.xy, u_uvClamp.zw));
   float alpha = sampleColor.a * u_opacity;
-  out_color = vec4(sampleColor.rgb * alpha, alpha);
+  out_color = vec4(sampleColor.rgb * u_tint * alpha, alpha);
 }`;
 
 function compile(gl: WebGL2RenderingContext, kind: number, source: string): WebGLShader {
@@ -61,9 +63,10 @@ export function createImageGpu(gl: WebGL2RenderingContext): ImageGpu {
     const size = gl.getUniformLocation(program, 'u_size');
     const view = gl.getUniformLocation(program, 'u_view');
     const opacity = gl.getUniformLocation(program, 'u_opacity');
+    const tint = gl.getUniformLocation(program, 'u_tint');
     const sampler = gl.getUniformLocation(program, 'u_image');
     const uvClamp = gl.getUniformLocation(program, 'u_uvClamp');
-    if (!positionBuffer || !uvBuffer || !vao || !size || !view || !opacity || !sampler || !uvClamp) {
+    if (!positionBuffer || !uvBuffer || !vao || !size || !view || !opacity || !tint || !sampler || !uvClamp) {
       throw new Canvas2DError('WEBGL_UNAVAILABLE', 'cannot create image GPU state');
     }
     gl.bindVertexArray(vao);
@@ -72,7 +75,7 @@ export function createImageGpu(gl: WebGL2RenderingContext): ImageGpu {
     gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer); gl.enableVertexAttribArray(1);
     gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
     gl.bindVertexArray(null); gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    return { program, positionBuffer, uvBuffer, vao, size, view, opacity, sampler, uvClamp };
+    return { program, positionBuffer, uvBuffer, vao, size, view, opacity, tint, sampler, uvClamp };
   } catch (error) {
     if (vao) gl.deleteVertexArray(vao);
     if (uvBuffer) gl.deleteBuffer(uvBuffer);
@@ -128,6 +131,8 @@ export function renderImage(gl: WebGL2RenderingContext, gpu: ImageGpu,
   gl.uniform2f(gpu.size, size.width, size.height);
   gl.uniform3f(gpu.view, view.panX, view.panY, view.zoom);
   gl.uniform1f(gpu.opacity, node.opacity); gl.uniform1i(gpu.sampler, 0);
+  const tint = 'tint' in node ? node.tint as [number, number, number] : [1, 1, 1];
+  gl.uniform3f(gpu.tint, tint[0], tint[1], tint[2]);
   gl.uniform4f(gpu.uvClamp, (rect.x + 0.5) / asset.width, (rect.y + 0.5) / asset.height,
     (rect.x + rect.width - 0.5) / asset.width, (rect.y + rect.height - 0.5) / asset.height);
   gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, asset.texture);

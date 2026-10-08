@@ -17,7 +17,7 @@ tree.stage.addChild(a); tree.stage.addChild(b); a.addChild(red); b.addChild(yell
 /** @type {HTMLCanvasElement} */
 let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
 let renderer = createCanvas2D(canvas, options);
-/** @type {import('@barocss/canvas2d').SceneV6} */
+/** @type {import('@barocss/canvas2d').Scene} */
 let accepted = tree.snapshot();
 renderer.updateScene(accepted); renderer.render();
 let generation = 1;
@@ -116,7 +116,7 @@ async function openText(text) {
   const old = renderer;
   canvas.replaceWith(fresh); canvas = fresh; renderer = staged.renderer;
   tree = nextTree; a = nextA; b = nextB; red = nextRed; yellow = nextYellow;
-  accepted = /** @type {import('@barocss/canvas2d').SceneV6} */ (staged.scene);
+  accepted = /** @type {import('@barocss/canvas2d').Scene} */ (staged.scene);
   generation++; pointerLog = []; subscribe(); unbind = bind(); old.dispose();
   show('Opened editable parents');
 }

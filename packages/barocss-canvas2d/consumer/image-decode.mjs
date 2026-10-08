@@ -5,18 +5,18 @@ import { serializeCanvasDocument, stageCanvasDocument } from '@barocss/canvas2d/
 /** @type {import('@barocss/canvas2d').Canvas2DOptions} */
 const options = { logicalSize: { width: 160, height: 120 }, dpr: 2 };
 const pose = (x = 0, y = 0) => ({ x, y, scaleX: 1, scaleY: 1, rotation: 0 });
-/** @type {import('@barocss/canvas2d').SceneV6} */
+/** @type {import('@barocss/canvas2d').Scene} */
 const background = { version: 6, unit: 'logical-px', contextId: 'BlobConsumer',
   nodes: [{ kind: 'rect', id: 'Back', layer: 0, transform: pose(20, 20),
     width: 80, height: 80, fill: [1, 1, 0, 1] }] };
-/** @type {import('@barocss/canvas2d').SceneV6} */
+/** @type {import('@barocss/canvas2d').Scene} */
 const withImage = { ...background, nodes: [...background.nodes, { kind: 'image', id: 'Sprite',
   layer: 1, transform: pose(20, 20), imageId: 'RGBA2', width: 80, height: 80,
   opacity: 1, sampling: 'nearest', anchorX: 0, anchorY: 0 }] };
 /** @type {HTMLCanvasElement} */
 let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
 let renderer = createCanvas2D(canvas, options);
-/** @type {import('@barocss/canvas2d').SceneV6} */ let accepted = background;
+/** @type {import('@barocss/canvas2d').Scene} */ let accepted = background;
 renderer.updateScene(accepted); renderer.render();
 let generation = 1;
 const status = /** @type {HTMLElement} */ (document.querySelector('#status'));
@@ -96,7 +96,7 @@ async function openText(text) {
   }
   const oldRenderer = renderer;
   canvas.replaceWith(fresh); canvas = fresh; renderer = staged.renderer;
-  accepted = /** @type {import('@barocss/canvas2d').SceneV6} */ (staged.scene);
+  accepted = /** @type {import('@barocss/canvas2d').Scene} */ (staged.scene);
   generation++; oldRenderer.dispose(); show('Opened decoded image document');
 }
 document.querySelector('#sample')?.addEventListener('click', () => { void downloadSample(); });
