@@ -131,6 +131,31 @@ const result = parseBaroCadSource(source, {
 // and owned renderer buffers. The original source is result.source.
 ```
 
+For a URL, use the same neutral entry without creating a Three.js or Babylon.js
+loader:
+
+```js
+import { loadBaroCadSource } from '@barocss/cad-interop/native';
+
+const controller = new AbortController();
+const result = await loadBaroCadSource('/two-surfaces.barocad', {
+  sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+}, { signal: controller.signal });
+// result has the same source, model, surfaces, curves and unrenderedCurveIds
+// as parseBaroCadSource. It owns ordinary data and needs no dispose call.
+```
+
+The parse options are required. Their values, including nested `curveDisplay`
+values, and the transport fields are checked and copied before the request.
+Later changes to those caller objects do not change the pending load. The
+signal itself stays live so the caller can cancel. This URL path shares the
+bounded transport, progress callback, abort and UTF-8 rules described below.
+It does not import a renderer or change the native model. Run the affected
+build and `node packages/barocss-cad-interop/test/native-url-loader.test.mjs`
+from the workspace root for the included real-file local HTTP flow. The
+`examples/neutral-native-url.html` browser page shows cancellation followed
+by a successful load and the original object IDs.
+
 `@barocss/cad-interop/three` is the Three.js adapter. Install `three` in the
 host application, then add the returned group to a scene:
 
