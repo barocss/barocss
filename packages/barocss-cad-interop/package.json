@@ -77,6 +77,10 @@
       "types": "./dist/pixi3d-assembly.d.ts",
       "import": "./dist/pixi3d-assembly.js"
     },
+    "./pixi3d-boolean-mesh": {
+      "types": "./dist/pixi3d-boolean-mesh.d.ts",
+      "import": "./dist/pixi3d-boolean-mesh.js"
+    },
     "./model-set": {
       "types": "./dist/model-set.d.ts",
       "import": "./dist/model-set.js"

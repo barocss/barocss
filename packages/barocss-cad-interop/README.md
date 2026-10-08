@@ -507,6 +507,37 @@ exclusion, separated components, refusal and disposal over HTTP. The matching
 Node/NullEngine flow is `node examples/boolean-mesh-babylon-verify.mjs`.
 This is a derived preview, not a native Surface, solid or B-Rep certificate.
 
+### Display native filled planar Boolean material in pinned Pixi3D
+
+The optional `./pixi3d-boolean-mesh` entry consumes the same public #887
+raw authored-XYZ/mm result in Pixi3D 2.5.0 with PixiJS 7.2.4. It validates
+the complete native result and creates one owned unlit, double-sided Mesh3D
+per material component. A host supplies an explicit mm-to-scene-unit scale
+and asserts its right-handed Y-up view matches authored XYZ.
+
+```js
+import { createBaroCadBooleanPixi3DMesh }
+  from '@barocss/cad-interop/pixi3d-boolean-mesh';
+
+const display = createBaroCadBooleanPixi3DMesh(nativeMesh, {
+  unitsPerMillimeter: 0.01,
+  basis: 'authored-xyz-matches-rhyup',
+});
+app.stage.addChild(display.root);
+display.dispose();
+```
+
+The adapter copies native positions, normals and component triangle indices.
+Each binding retains native mesh/support/evaluation/operand/source and
+component/loop/triangle/vertex IDs. `cadParametersUV` holds the native
+dimensionless Float32 CAD parameters separately; Pixi's `uvs` texture
+attribute is unused. Original `boundaryPaths` remain distinct from internal
+display diagonals and bridges. Empty material creates zero Meshes. The
+caller owns the Application, stage, renderer, camera, canvas and unrelated
+children. `examples/boolean-mesh-pixi3d.html` verifies actual Pixi WebGL2
+fill, hole exclusion, separated components, refusal and disposal over HTTP.
+This is a derived preview, not a native Surface, solid or B-Rep certificate.
+
 ### Display selected document bodies in Three.js
 
 The optional `./three-document` entry composes the same validated body
