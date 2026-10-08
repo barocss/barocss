@@ -63,7 +63,10 @@ assert.equal(boxRay?.bodyId, 'fixture:floor');
 assert.ok(boxRay.distanceM > 0.7 && boxRay.distanceM < 1, 'oriented box ray distance is wrong');
 
 code(() => world([{ ...box, shape: { kind: 'box', halfExtentsM: [0, 0.1, 0.1] } }]), 'INVALID_CONFIG');
-code(() => world([capsule, floor]), 'INVALID_CONFIG');
+const capsuleFloor = world([capsule, floor]);
+assert.ok(capsuleFloor.step(dt).contacts.length > 0,
+  'capsule/box contact is now admitted');
+capsuleFloor.dispose();
 code(() => world([box, { ...sphere, orientation: [0, 0, 0, 2] }]), 'INVALID_CONFIG');
 const prior = JSON.stringify(impact.getState());
 code(() => impact.step(dt, [{ kind: 'angularImpulse', bodyId: box.id,

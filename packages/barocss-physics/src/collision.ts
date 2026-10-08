@@ -1,6 +1,7 @@
 import type { Body, BoxShape, CapsuleShape, Hit, PhysicsContact, SphereShape, Vec3 } from './types.js';
 import { error } from './validation.js';
 import { add, sub, scale, dot, cross, inverse, rotate, localPoint, worldPoint, inverseInertia } from './math.js';
+import { capsuleBox, capsuleCapsule } from './capsule-contact.js';
 
 function capsuleCenter(body: Body, point: Vec3): Vec3 {
   const half = (body.shape as CapsuleShape).halfLengthM;
@@ -96,6 +97,12 @@ export function detect(a: Body, b: Body): Hit | null {
     return hit && { ...hit, normal: scale(hit.normal, -1) };
   }
   if (a.shape.kind === 'box' && b.shape.kind === 'box') return boxBox(a, b);
+  if (a.shape.kind === 'capsule' && b.shape.kind === 'box') return capsuleBox(a, b);
+  if (a.shape.kind === 'box' && b.shape.kind === 'capsule') {
+    const hit = capsuleBox(b, a);
+    return hit && { ...hit, normal: scale(hit.normal, -1) };
+  }
+  if (a.shape.kind === 'capsule' && b.shape.kind === 'capsule') return capsuleCapsule(a, b);
   return null;
 }
 export function sphereOverlaps(center: Vec3, radius: number, body: Body): boolean {
