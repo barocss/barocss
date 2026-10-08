@@ -400,3 +400,44 @@ References: [glTF 2.0 specification](https://registry.khronos.org/glTF/specs/2.0
 [Three.js GLTFLoader](https://threejs.org/docs/pages/GLTFLoader.html),
 [Babylon.js glTF loader](https://doc.babylonjs.com/features/featuresDeepDive/importers/glTF/),
 [Pixi3D glTF loading](https://github.com/jnsmalm/pixi3d).
+
+## Native Pixi3D Surface adapter
+
+`@barocss/cad-interop/pixi3d` exports `BaroCADPixi3DLoader` for Pixi3D
+2.5.0 with PixiJS 7.2.4 (`pixi3d/pixi7`). This optional entry reads native
+source0 `@model` text directly. It does not use a glTF round trip. PixiJS v8
+is not in the supported profile. Importing the neutral, Three or Babylon
+entry does not import Pixi3D.
+
+```js
+import { BaroCADPixi3DLoader } from '@barocss/cad-interop/pixi3d';
+
+const loader = new BaroCADPixi3DLoader({
+  sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+});
+const result = await loader.loadAbortable('/two-surfaces.barocad', { signal });
+app.stage.addChild(result.root);
+// Original model, surface IDs, native U/V and unrendered Curve IDs stay in result.
+result.dispose();
+```
+
+The supported profile is 1–4 source0 Surfaces with `countU` and `countV`
+from 2 to 17. The adapter creates one owned `Mesh3D` for each Surface and
+returns exact `{ surfaceId, mesh }` pairs in `renderedSurfaces`. Native Curves
+remain in `model` and `unrenderedCurveIds`; `curveDisplay` is rejected for
+this adapter. The source0 authored XYZ/Y-up intent is retained. The explicit
+scale changes millimetres to caller units once. Native U/V stays in the
+neutral Surface packet and is never declared as texture UV. Float32 display
+positions and triangles are derived data, not editable CAD geometry.
+
+`loadAbortable` uses the existing 262144-byte/4096-chunk bounded transport,
+strict UTF-8, progress and abort contract. `loadAsync` is the same bounded
+load without transport options. Bad source/version/options and failed target
+construction reject before a result is returned. Staged Pixi resources are
+released on construction failure or late abort; an existing accepted result
+is untouched. `dispose()` removes the result's root and releases its own
+meshes, geometry and materials once. The caller owns the Application,
+renderer, stage, camera, lights, controllers and unrelated children.
+
+Run `examples/pixi3d-native.html` through a browser module server to see the
+two Surface preview, original IDs, invalid-source retention and disposal.

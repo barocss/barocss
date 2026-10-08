@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>BaroCAD native Pixi3D loader</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+  button { margin: 8px 8px 8px 0; padding: 7px 12px; }
+</style>
+<main>
+  <h1>Native BaroCAD in Pixi3D 2.5.0</h1>
+  <p>Two source0 Surfaces. The Curve remains in the native Model.</p>
+  <div id="view"></div>
+  <button id="flip">Show back face</button><button id="reject">Try invalid source</button><button id="dispose">Dispose owned display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Application, Graphics } from 'pixi.js';
+  import { Camera } from 'pixi3d/pixi7';
+  import { BaroCADPixi3DLoader } from '../dist/pixi3d.js';
+
+  const app = new Application({ width: 800, height: 480, background: '#172a43', antialias: true });
+  document.querySelector('#view').append(app.view);
+  const callerChild = new Graphics().beginFill(0xfbbf24).drawCircle(22, 22, 8).endFill();
+  app.stage.addChild(callerChild);
+  const camera = Camera.main ?? new Camera(app.renderer);
+  camera.orthographic = true;
+  camera.orthographicSize = 0.12;
+  camera.position.set(0, 0, 0.35);
+  const loader = new BaroCADPixi3DLoader({
+    sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+  });
+  const status = document.querySelector('#status');
+  try {
+    const result = await loader.loadAbortable(new URL('./two-surfaces.barocad', location.href).href);
+    result.root.position.set(-0.05, -0.035, 0);
+    result.root.rotationQuaternion.setEulerAngles(55, 0, 0);
+    app.stage.addChild(result.root);
+    const evidence = {
+      surfaceIds: result.renderedSurfaces.map(item => item.surfaceId),
+      modelIds: result.model.objects.map(item => item.id),
+      unrenderedCurveIds: result.unrenderedCurveIds,
+      vertexCounts: result.renderedSurfaces.map(item => item.mesh.geometry.positions.buffer.length / 3),
+      triangleCounts: result.renderedSurfaces.map(item => item.mesh.geometry.indices.buffer.length / 3),
+      nativeUV: result.surfaces[0].mesh.parameters.slice(0, 2),
+      signedZero: Object.is(result.model.objects[0].controlPoints[0][0][0], -0),
+      callerChildRetained: app.stage.children.includes(callerChild),
+    };
+    window.__baroCadPixiEvidence = evidence;
+    status.textContent = JSON.stringify(evidence, null, 2);
+    document.querySelector('#flip').onclick = () => {
+      result.root.rotationQuaternion.setEulerAngles(235, 0, 0);
+      evidence.backFaceShown = true;
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+    document.querySelector('#reject').onclick = () => {
+      try { loader.parse('@model invalid {}'); }
+      catch (error) {
+        evidence.invalidRejected = true;
+        evidence.priorResultRetained = app.stage.children.includes(result.root);
+        status.textContent = JSON.stringify(evidence, null, 2);
+      }
+    };
+    document.querySelector('#dispose').onclick = () => {
+      result.dispose();
+      result.dispose();
+      evidence.disposed = !app.stage.children.includes(result.root);
+      evidence.callerChildRetained = app.stage.children.includes(callerChild);
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+  } catch (error) {
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroCadPixiError = String(error);
+  }
+</script>
+</html>
