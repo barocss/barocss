@@ -1,5 +1,5 @@
 export type ErrorCode = 'INVALID_SCENE' | 'SCENE_LIMIT' | 'INVALID_VIEW' | 'INVALID_SIZE' |
-  'WEBGL_UNAVAILABLE' | 'CONTEXT_LOST' | 'DISPOSED' | 'SERIALIZATION';
+  'WEBGL_UNAVAILABLE' | 'CONTEXT_LOST' | 'DISPOSED' | 'SERIALIZATION' | 'UNSUPPORTED_FEATURE';
 
 export class Canvas2DError extends Error {
   constructor(readonly code: ErrorCode, message: string) {
@@ -26,12 +26,19 @@ export type PathCommand =
   | { kind: 'Z' };
 export type PathNode = Base & { kind: 'path'; commands: PathCommand[]; width: number; stroke: Color };
 export type Node = GroupNode | FrameNode | RectNode | LineNode | PathNode;
+export type PathFill = { color: Color; rule: 'evenodd' };
+export type PathStroke = { color: Color; width: number };
+export type PathNodeV2 = Base & { kind: 'path'; commands: PathCommand[]; fill?: PathFill; stroke?: PathStroke };
+export type GroupNodeV2 = Omit<GroupNode, 'children'> & { children: NodeV2[] };
+export type FrameNodeV2 = Omit<FrameNode, 'children'> & { children: NodeV2[] };
+export type NodeV2 = GroupNodeV2 | FrameNodeV2 | RectNode | LineNode | PathNodeV2;
 export type OldGroupNode = Omit<GroupNode, 'children'> & { children: OldNode[] };
 export type OldFrameNode = Omit<FrameNode, 'children'> & { children: OldNode[] };
 export type OldNode = OldGroupNode | OldFrameNode | RectNode | LineNode;
 export type SceneV0 = { version: 0; unit: 'logical-px'; contextId: string; nodes: OldNode[] };
 export type SceneV1 = { version: 1; unit: 'logical-px'; contextId: string; nodes: Node[] };
-export type Scene = SceneV0 | SceneV1;
+export type SceneV2 = { version: 2; unit: 'logical-px'; contextId: string; nodes: NodeV2[] };
+export type Scene = SceneV0 | SceneV1 | SceneV2;
 
 const MAX_BYTES = 1024 * 1024;
 const idPattern = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
@@ -107,10 +114,10 @@ function color(value: unknown, path: string, seen: WeakSet<object>): Color {
   return raw.map((component, index) => number(component, `${path}[${index}]`, 0, 1)) as Color;
 }
 
-function commands(value: unknown, path: string, seen: WeakSet<object>): PathCommand[] {
+function commands(value: unknown, path: string, seen: WeakSet<object>, requireClosed = false): PathCommand[] {
   const raw = array(value, path, seen);
   if (raw.length < 2 || raw.length > 256) fail('SCENE_LIMIT', `${path} needs 2..256 commands`);
-  let open = false, drawable = false, anyDrawable = false;
+  let open = false, drawable = false, anyDrawable = false, contours = 0;
   let current: Point = { x: 0, y: 0 }, start: Point = { x: 0, y: 0 };
   const result: PathCommand[] = [];
   for (let index = 0; index < raw.length; index++) {
@@ -127,6 +134,9 @@ function commands(value: unknown, path: string, seen: WeakSet<object>): PathComm
     const data = object(item, fields, itemPath, seen);
     if (kind === 'M') {
       if (open && !drawable) fail('INVALID_SCENE', `${itemPath} follows an empty subpath`);
+      if (open && requireClosed) fail('INVALID_SCENE', `${itemPath} follows an open filled contour`);
+      anyDrawable ||= drawable;
+      if (++contours > 8 && requireClosed) fail('SCENE_LIMIT', `${path} exceeds 8 contours`);
       current = { x: number(data.x, `${itemPath}.x`, -1e6, 1e6),
         y: number(data.y, `${itemPath}.y`, -1e6, 1e6) };
       start = current; open = true; drawable = false;
@@ -165,6 +175,7 @@ function commands(value: unknown, path: string, seen: WeakSet<object>): PathComm
     current = end;
   }
   if (open && !drawable) fail('INVALID_SCENE', `${path} ends with an empty subpath`);
+  if (open && requireClosed) fail('INVALID_SCENE', `${path} ends with an open filled contour`);
   anyDrawable ||= drawable;
   if (!anyDrawable) fail('INVALID_SCENE', `${path} has no stroke`);
   return result;
@@ -172,11 +183,11 @@ function commands(value: unknown, path: string, seen: WeakSet<object>): PathComm
 
 type Counter = { nodes: number; vertices: number; paths: number; ids: Set<string> };
 function nodes(value: unknown, depth: number, path: string, ancestorRotated: boolean,
-  seen: WeakSet<object>, counter: Counter, version: 0 | 1): Node[] {
+  seen: WeakSet<object>, counter: Counter, version: 0 | 1 | 2): (Node | NodeV2)[] {
   if (depth > 16) fail('SCENE_LIMIT', 'scene depth exceeds 16');
   const raw = array(value, path, seen);
   if (raw.length > 256) fail('SCENE_LIMIT', 'scene has too many siblings');
-  return raw.map((item, index): Node => {
+  return raw.map((item, index): Node | NodeV2 => {
     const nodePath = `${path}[${index}]`;
     if (item === null || typeof item !== 'object') fail('INVALID_SCENE', `${nodePath} must be a node`);
     const kindDescriptor = Object.getOwnPropertyDescriptor(item, 'kind');
@@ -189,6 +200,11 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
     else if (kind === 'rect') fields = [...common, 'width', 'height', 'fill'];
     else if (kind === 'line') fields = [...common, 'x1', 'y1', 'x2', 'y2', 'width', 'stroke'];
     else if (kind === 'path' && version === 1) fields = [...common, 'commands', 'width', 'stroke'];
+    else if (kind === 'path' && version === 2) {
+      const hasFill = Object.hasOwn(item, 'fill'), hasStroke = Object.hasOwn(item, 'stroke');
+      if (!hasFill && !hasStroke) fail('INVALID_SCENE', `${nodePath} needs fill or stroke`);
+      fields = [...common, 'commands', ...(hasFill ? ['fill'] : []), ...(hasStroke ? ['stroke'] : [])];
+    }
     else fail('INVALID_SCENE', `${nodePath}.kind is unsupported`);
     const data = object(item, fields, nodePath, seen);
     counter.nodes++;
@@ -201,7 +217,7 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
     const pose = transform(data.transform, `${nodePath}.transform`, seen);
     const rotated = ancestorRotated || pose.rotation !== 0;
     const base = { id: nodeId, layer, transform: pose };
-    if (kind === 'group') return { kind, ...base, children: nodes(data.children, depth + 1, `${nodePath}.children`, rotated, seen, counter, version) };
+    if (kind === 'group') return { kind, ...base, children: nodes(data.children, depth + 1, `${nodePath}.children`, rotated, seen, counter, version) } as Node | NodeV2;
     if (kind === 'frame') {
       if (typeof data.clip !== 'boolean') fail('INVALID_SCENE', `${nodePath}.clip must be boolean`);
       if (data.clip && rotated) fail('INVALID_SCENE', `${nodePath} has unsupported rotated clip`);
@@ -211,11 +227,24 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
         width: number(data.width, `${nodePath}.width`, Number.MIN_VALUE, 1e6),
         height: number(data.height, `${nodePath}.height`, Number.MIN_VALUE, 1e6),
         fill: color(data.fill, `${nodePath}.fill`, seen), clip: data.clip as boolean,
-        children: nodes(data.children, depth + 1, `${nodePath}.children`, rotated, seen, counter, version) };
+        children: nodes(data.children, depth + 1, `${nodePath}.children`, rotated, seen, counter, version) } as Node | NodeV2;
     }
     if (kind === 'path') {
       counter.paths++;
       if (counter.paths > 32) fail('SCENE_LIMIT', 'scene exceeds 32 paths');
+      if (version === 2) {
+        const fill = !Object.hasOwn(data, 'fill') ? undefined : object(data.fill,
+          ['color', 'rule'], `${nodePath}.fill`, seen);
+        const stroke = !Object.hasOwn(data, 'stroke') ? undefined : object(data.stroke,
+          ['color', 'width'], `${nodePath}.stroke`, seen);
+        if (fill && fill.rule !== 'evenodd') fail('INVALID_SCENE', `${nodePath}.fill.rule is unsupported`);
+        return { kind, ...base,
+          commands: commands(data.commands, `${nodePath}.commands`, seen, !!fill),
+          ...(fill ? { fill: { color: color(fill.color, `${nodePath}.fill.color`, seen), rule: 'evenodd' as const } } : {}),
+          ...(stroke ? { stroke: { color: color(stroke.color, `${nodePath}.stroke.color`, seen),
+            width: number(stroke.width, `${nodePath}.stroke.width`, Number.MIN_VALUE, 1000) } } : {}),
+        };
+      }
       return { kind, ...base,
         commands: commands(data.commands, `${nodePath}.commands`, seen),
         width: number(data.width, `${nodePath}.width`, Number.MIN_VALUE, 1000),
@@ -240,14 +269,15 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
 export function validateScene(value: unknown): Scene {
   const seen = new WeakSet<object>();
   const raw = object(value, ['version', 'unit', 'contextId', 'nodes'], 'scene', seen);
-  if ((raw.version !== 0 && raw.version !== 1) || raw.unit !== 'logical-px') fail('INVALID_SCENE', 'unsupported scene version or unit');
-  const version = raw.version as 0 | 1;
+  if ((raw.version !== 0 && raw.version !== 1 && raw.version !== 2) || raw.unit !== 'logical-px') fail('INVALID_SCENE', 'unsupported scene version or unit');
+  const version = raw.version as 0 | 1 | 2;
   const contextId = id(raw.contextId, 'scene.contextId');
   const parsedNodes = nodes(raw.nodes, 1, 'scene.nodes', false, seen,
     { nodes: 0, vertices: 0, paths: 0, ids: new Set() }, version);
   const scene: Scene = version === 0
     ? { version: 0, unit: 'logical-px', contextId, nodes: parsedNodes as OldNode[] }
-    : { version: 1, unit: 'logical-px', contextId, nodes: parsedNodes };
+    : version === 1 ? { version: 1, unit: 'logical-px', contextId, nodes: parsedNodes as Node[] }
+    : { version: 2, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV2[] };
   if (new TextEncoder().encode(JSON.stringify(scene)).length > MAX_BYTES) fail('SCENE_LIMIT', 'scene snapshot exceeds 1 MiB');
   return scene;
 }

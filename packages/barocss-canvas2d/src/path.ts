@@ -1,5 +1,5 @@
 import { Canvas2DError } from './schema.js';
-import type { PathNode, Point, View } from './schema.js';
+import type { PathNode, PathNodeV2, Point, View } from './schema.js';
 
 export type Matrix = [number, number, number, number, number, number];
 export type PathSample = { commandIndex: number; t: number; x: number; y: number };
@@ -7,7 +7,13 @@ export type PathObservation = {
   id: string; segments: number; vertices: number; maxObservedDeviationDevicePx: number;
   subpaths: { closed: boolean; points: PathSample[] }[];
 };
-export type PathGeometry = { vertices: Float32Array; observation: PathObservation };
+export type FillObservation = {
+  id: string; contours: { points: PathSample[] }[]; segments: number;
+  maskVertices: number; coverVertices: number; maxObservedDeviationDevicePx: number;
+};
+export type FillGeometry = { maskVertices: Float32Array; coverVertices: Float32Array;
+  contours: Float32Array[]; observation: FillObservation };
+export type PathGeometry = { vertices: Float32Array; observation: PathObservation; fill?: FillGeometry };
 
 type LocalPoint = { x: number; y: number };
 type MutableSubpath = { closed: boolean; points: PathSample[]; locals: LocalPoint[] };
@@ -40,7 +46,7 @@ function triangleArea(ax: number, ay: number, bx: number, by: number, cx: number
   return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
 }
 
-export function tessellatePath(node: PathNode, matrix: Matrix, view: View, dpr: number,
+export function tessellatePath(node: PathNode | PathNodeV2, matrix: Matrix, view: View, dpr: number,
   tolerance: number): PathGeometry {
   const subpaths: MutableSubpath[] = [];
   let active: MutableSubpath | null = null;
@@ -106,23 +112,27 @@ export function tessellatePath(node: PathNode, matrix: Matrix, view: View, dpr: 
     }
   }
 
-  const output: number[] = [];
-  function emitTriangle(a: Point, b: Point, c: Point, required: boolean): void {
+  const output: number[] = [], maskOutput: number[] = [], coverOutput: number[] = [];
+  let totalVertices = 0;
+  function emitTriangle(target: number[], a: Point, b: Point, c: Point, required: boolean): boolean {
     const coordinates = new Float32Array([a.x, a.y, b.x, b.y, c.x, c.y]);
     const area = triangleArea(coordinates[0], coordinates[1], coordinates[2],
       coordinates[3], coordinates[4], coordinates[5]);
     if (!Number.isFinite(area) || area === 0) {
       if (required) fail('path stroke collapses in Float32');
-      return;
+      return false;
     }
     for (const value of coordinates) {
       if (!Number.isFinite(value) || Math.abs(value) > 1e9) fail('path stroke exceeds Float32 display limit');
-      output.push(value);
+      target.push(value);
     }
-    if (output.length / 2 > 16384) fail('path exceeds scene vertex budget');
+    totalVertices += 3;
+    if (totalVertices > 16384) fail('path exceeds scene vertex budget');
+    return true;
   }
 
-  for (const subpath of subpaths) {
+  const strokeWidth = 'width' in node ? node.width : node.stroke?.width;
+  if (strokeWidth !== undefined) for (const subpath of subpaths) {
     const points = subpath.locals;
     if (points.length < 2) fail('path subpath collapses after sampling');
     const edges: { a: Point; b: Point; nx: number; ny: number; dx: number; dy: number }[] = [];
@@ -130,14 +140,14 @@ export function tessellatePath(node: PathNode, matrix: Matrix, view: View, dpr: 
       const a = points[i], b = points[i + 1];
       const dx = b.x - a.x, dy = b.y - a.y, length = Math.hypot(dx, dy);
       if (!Number.isFinite(length) || length === 0) fail('sampled path segment is unsafe');
-      edges.push({ a, b, dx, dy, nx: -dy / length * node.width / 2, ny: dx / length * node.width / 2 });
+      edges.push({ a, b, dx, dy, nx: -dy / length * strokeWidth / 2, ny: dx / length * strokeWidth / 2 });
     }
     for (const edge of edges) {
       const a = world(matrix, { x: edge.a.x + edge.nx, y: edge.a.y + edge.ny });
       const b = world(matrix, { x: edge.b.x + edge.nx, y: edge.b.y + edge.ny });
       const c = world(matrix, { x: edge.b.x - edge.nx, y: edge.b.y - edge.ny });
       const d = world(matrix, { x: edge.a.x - edge.nx, y: edge.a.y - edge.ny });
-      emitTriangle(a, b, c, true); emitTriangle(a, c, d, true);
+      emitTriangle(output, a, b, c, true); emitTriangle(output, a, c, d, true);
     }
     const joinCount = subpath.closed ? edges.length : edges.length - 1;
     for (let i = 0; i < joinCount; i++) {
@@ -146,7 +156,7 @@ export function tessellatePath(node: PathNode, matrix: Matrix, view: View, dpr: 
       if (cross === 0) continue;
       const side = cross > 0 ? -1 : 1;
       const center = previous.b;
-      emitTriangle(world(matrix, center),
+      emitTriangle(output, world(matrix, center),
         world(matrix, { x: center.x + previous.nx * side, y: center.y + previous.ny * side }),
         world(matrix, { x: center.x + next.nx * side, y: center.y + next.ny * side }), false);
     }
@@ -154,5 +164,40 @@ export function tessellatePath(node: PathNode, matrix: Matrix, view: View, dpr: 
   const observation: PathObservation = { id: node.id, segments, vertices: output.length / 2,
     maxObservedDeviationDevicePx,
     subpaths: subpaths.map(({ closed, points }) => ({ closed, points })) };
-  return { vertices: new Float32Array(output), observation };
+  if (!('fill' in node) || !node.fill) return { vertices: new Float32Array(output), observation };
+
+  const contours: Float32Array[] = [];
+  let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+  for (const subpath of subpaths) {
+    if (!subpath.closed) fail('filled path has an open contour');
+    const points = subpath.points.map(sample => ({
+      x: Math.fround(sample.x), y: Math.fround(sample.y),
+    }));
+    if (same(points[0], points.at(-1)!)) points.pop();
+    if (points.length < 3 || new Set(points.map(p => `${p.x},${p.y}`)).size < 3) {
+      fail('filled contour collapses in Float32');
+    }
+    const contour = new Float32Array(points.flatMap(p => [p.x, p.y]));
+    let triangles = 0;
+    for (let i = 1; i < points.length - 1; i++) {
+      if (emitTriangle(maskOutput, points[0], points[i], points[i + 1], false)) triangles++;
+    }
+    if (!triangles) fail('filled contour has no Float32 area');
+    for (const p of points) {
+      left = Math.min(left, p.x); top = Math.min(top, p.y);
+      right = Math.max(right, p.x); bottom = Math.max(bottom, p.y);
+    }
+    contours.push(contour);
+  }
+  if (!(right > left && bottom > top)) fail('filled path cover collapses');
+  const a = { x: left, y: top }, b = { x: right, y: top };
+  const c = { x: right, y: bottom }, d = { x: left, y: bottom };
+  emitTriangle(coverOutput, a, b, c, true); emitTriangle(coverOutput, a, c, d, true);
+  const fill: FillGeometry = {
+    maskVertices: new Float32Array(maskOutput), coverVertices: new Float32Array(coverOutput), contours,
+    observation: { id: node.id, contours: subpaths.map(({ points }) => ({ points })), segments,
+      maskVertices: maskOutput.length / 2, coverVertices: coverOutput.length / 2,
+      maxObservedDeviationDevicePx },
+  };
+  return { vertices: new Float32Array(output), observation, fill };
 }

@@ -1,5 +1,5 @@
 import { createCanvas2D, parseSceneJSON, stringifySceneJSON } from '../../packages/barocss-canvas2d/dist/index.js';
-import { initialScene, initialSceneV0 } from './scene.mjs';
+import { initialScene, initialSceneV0, initialSceneV2 } from './scene.mjs';
 
 const canvas = document.querySelector('#scene');
 const status = document.querySelector('#status');
@@ -7,7 +7,7 @@ const selectedLabel = document.querySelector('#selected');
 const errorLabel = document.querySelector('#error');
 const selectionBox = document.querySelector('#selection-box');
 const pathHandles = document.querySelector('#path-handles');
-let scene = structuredClone(initialScene);
+let scene = structuredClone(initialSceneV2);
 let view = { panX: 0, panY: 0, zoom: 1 };
 let selected = null;
 let gesture = null;
@@ -31,7 +31,7 @@ function updateSelection() {
   selectionBox.style.display = 'none';
   if (!selected) return;
   const found = findNode(selected.id);
-  if (!found || found.node.kind === 'line' || found.node.transform.rotation !== 0) return;
+  if (!found || found.node.kind === 'line' || found.node.kind === 'path' || found.node.transform.rotation !== 0) return;
   const { node, parentX, parentY } = found;
   selectionBox.style.left = `${view.panX + (parentX + node.transform.x) * view.zoom}px`;
   selectionBox.style.top = `${view.panY + (parentY + node.transform.y) * view.zoom}px`;
@@ -41,27 +41,29 @@ function updateSelection() {
 }
 function updateHandles() {
   pathHandles.replaceChildren();
-  const found = findNode('PathRibbon');
-  if (!found) return;
-  const { node, parentX, parentY } = found;
-  node.commands.forEach((command, commandIndex) => {
-    const controls = command.kind === 'Q' ? [['cx', 'cy', 'quadratic']] :
-      command.kind === 'C' ? [['c1x', 'c1y', 'cubic'], ['c2x', 'c2y', 'cubic']] : [];
-    for (const [xField, yField, style] of controls) {
-      const handle = document.createElement('div');
-      handle.className = `control-handle ${style}`;
-      handle.dataset.handle = `${commandIndex}:${xField}`;
-      handle.title = `${node.id} ${xField}/${yField}`;
-      handle.style.left = `${view.panX + (parentX + node.transform.x + command[xField]) * view.zoom}px`;
-      handle.style.top = `${view.panY + (parentY + node.transform.y + command[yField]) * view.zoom}px`;
-      handle.addEventListener('pointerdown', event => {
-        event.preventDefault(); event.stopPropagation();
-        controlDrag = { commandIndex, xField, yField, clientX: event.clientX, clientY: event.clientY,
-          x: command[xField], y: command[yField] };
-      });
-      pathHandles.append(handle);
-    }
-  });
+  for (const pathId of ['FilledBadge', 'PathRibbon']) {
+    const found = findNode(pathId);
+    if (!found) continue;
+    const { node, parentX, parentY } = found;
+    node.commands.forEach((command, commandIndex) => {
+      const controls = command.kind === 'Q' ? [['cx', 'cy', 'quadratic']] :
+        command.kind === 'C' ? [['c1x', 'c1y', 'cubic'], ['c2x', 'c2y', 'cubic']] : [];
+      for (const [xField, yField, style] of controls) {
+        const handle = document.createElement('div');
+        handle.className = `control-handle ${style}`;
+        handle.dataset.handle = `${commandIndex}:${xField}`;
+        handle.title = `${node.id} ${xField}/${yField}`;
+        handle.style.left = `${view.panX + (parentX + node.transform.x + command[xField]) * view.zoom}px`;
+        handle.style.top = `${view.panY + (parentY + node.transform.y + command[yField]) * view.zoom}px`;
+        handle.addEventListener('pointerdown', event => {
+          event.preventDefault(); event.stopPropagation();
+          controlDrag = { pathId, commandIndex, xField, yField, clientX: event.clientX, clientY: event.clientY,
+            x: command[xField], y: command[yField] };
+        });
+        pathHandles.append(handle);
+      }
+    });
+  }
 }
 function draw() {
   renderer.updateScene(scene);
@@ -74,7 +76,7 @@ function draw() {
 }
 window.addEventListener('pointermove', event => {
   if (!controlDrag) return;
-  const { node } = findNode('PathRibbon');
+  const { node } = findNode(controlDrag.pathId);
   const command = node.commands[controlDrag.commandIndex];
   const oldX = command[controlDrag.xField], oldY = command[controlDrag.yField];
   command[controlDrag.xField] = controlDrag.x + (event.clientX - controlDrag.clientX) / view.zoom;
@@ -122,6 +124,9 @@ canvas.addEventListener('wheel', event => {
 document.querySelector('#zoom-in').addEventListener('click', () => zoomAt(view.zoom * 1.25));
 document.querySelector('#zoom-out').addEventListener('click', () => zoomAt(view.zoom / 1.25));
 document.querySelector('#reset').addEventListener('click', () => {
+  scene = structuredClone(initialSceneV2); view = { panX: 0, panY: 0, zoom: 1 }; selected = null; draw();
+});
+document.querySelector('#open-v1').addEventListener('click', () => {
   scene = structuredClone(initialScene); view = { panX: 0, panY: 0, zoom: 1 }; selected = null; draw();
 });
 document.querySelector('#open-v0').addEventListener('click', () => {
@@ -143,6 +148,8 @@ window.__canvas2dDebug = {
   get scene() { return structuredClone(scene); }, get view() { return { ...view }; },
   hit(point) { return renderer.hitTest(point); },
   pathObservation(id = 'PathRibbon') { return renderer.getPathObservation(id); },
+  fillObservation(id = 'FilledBadge') { return renderer.getFillObservation(id); },
+  capabilities() { return renderer.getCapabilities(); },
   resizeDpr(dpr) { renderer.resize({ width: 800, height: 480 }, dpr); renderer.render(); updateSelection(); updateHandles(); },
   setScene(next) { renderer.updateScene(next); scene = structuredClone(next); draw(); },
   setView(next) { renderer.setView(next); view = { ...next }; draw(); },
