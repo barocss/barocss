@@ -166,6 +166,8 @@ importers:
 
   packages/barocss-gpu: {}
 
+  packages/barocss-motion: {}
+
   packages/barocss-render:
     dependencies:
       react:

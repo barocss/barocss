@@ -1,0 +1,21 @@
+{
+  "name": "@barocss/motion",
+  "version": "0.0.0-experimental",
+  "private": false,
+  "type": "module",
+  "description": "Bounded, renderer-neutral 3D keyframe playback",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js"
+  },
+  "publishConfig": { "access": "public" }
+}
