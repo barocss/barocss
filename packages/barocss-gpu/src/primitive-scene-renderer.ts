@@ -1,0 +1,165 @@
+import {validateAdaptiveCurveSamples} from '@barocss/cad';
+import type {AdaptiveCurveSamplingResult} from '@barocss/cad';
+import {GPUError} from './renderer.js';
+import type {UpdateResult} from './renderer.js';
+import {validateMeshOptions} from './mesh-packet.js';
+import type {PreviewPacket,MeshOptions} from './mesh-packet.js';
+import type {RGB,Vec3} from './scene.js';
+import type {MeshSceneOptions} from './mesh-scene-renderer.js';
+import {prepareSceneMesh,prepareSceneTransform,sceneRotation,displayBounds} from './mesh-scene-transform.js';
+import type {MeshSceneTransform,MeshSceneBounds} from './mesh-scene-transform.js';
+import {prepareCamera} from './camera.js';
+import {MESH_SHADERS} from './mesh-shaders.js';
+
+export type PrimitiveSceneEntry=
+ |{kind:'surface';packet:PreviewPacket;color:RGB;transform?:MeshSceneTransform}
+ |{kind:'curve';sample:AdaptiveCurveSamplingResult;basis:'authored-xyz-matches-rhyup';color:RGB;transform?:MeshSceneTransform};
+export type PrimitiveSceneOptions=MeshSceneOptions;
+interface Primitive {
+ entry:PrimitiveSceneEntry;positions:Float32Array;normals?:Float32Array;indices?:Uint16Array;bounds:MeshSceneBounds;
+}
+interface Draw extends Primitive {vao:WebGLVertexArrayObject|null;buffers:WebGLBuffer[];program:WebGLProgram|null}
+interface Frame {draws:Draw[];options:PrimitiveSceneOptions;programs:WebGLProgram[];framebuffer:WebGLFramebuffer|null;color:WebGLTexture|null;depth:WebGLRenderbuffer|null;width:number;height:number}
+const LINE_SHADERS={vertex:`#version 300 es
+precision highp float;
+layout(location=0) in vec3 position;
+uniform float aspect;
+uniform bool defaultCamera;
+uniform mat4 view;
+uniform mat4 projection;
+void main(){
+ if(defaultCamera){vec3 p=position-vec3(0.0,0.0,6.0);float f=2.414213562373095;gl_Position=vec4(p.x*f/aspect,p.y*f,-1.000200020002*p.z-0.02000200020002,-p.z);}
+ else{gl_Position=projection*view*vec4(position,1.0);}
+}`,fragment:`#version 300 es
+precision highp float;
+uniform vec3 color;
+out vec4 outputColor;
+void main(){outputColor=vec4(color,1.0);}`};
+function check(v:unknown,message:string):asserts v {if(!v)throw new GPUError(message);}
+function record(input:unknown,allowed:string[],required=allowed):Record<string,unknown>{
+ check(input!==null&&typeof input==='object'&&Object.getPrototypeOf(input)===Object.prototype,'Primitive fields must be plain own data');
+ const keys=Reflect.ownKeys(input),descriptors=Object.getOwnPropertyDescriptors(input);
+ check(keys.length<=allowed.length&&keys.every(k=>typeof k==='string'&&allowed.includes(k)&&'value'in descriptors[k]&&descriptors[k].enumerable)&&required.every(k=>Object.hasOwn(descriptors,k)),'Primitive fields are missing, unsupported or not own data');
+ return Object.fromEntries((keys as string[]).map(k=>[k,descriptors[k].value]));
+}
+/** Snapshot before native validation: never invoke an input accessor or keep caller data. */
+function sampleSnapshot(input:unknown):AdaptiveCurveSamplingResult {
+ let budget=262144;const stack=new WeakSet<object>();
+ const copy=(value:unknown,depth:number):unknown=>{
+  check(--budget>=0&&depth<=24,'Native Curve snapshot exceeds value/depth limits');
+  if(typeof value==='number'){check(Number.isFinite(value),'Native Curve numbers must be finite');return value;}
+  if(typeof value==='string'){check(value.length<=262144,'Native Curve string exceeds limit');return value;}
+  if(value===null||typeof value==='boolean')return value;
+  check(value!==null&&typeof value==='object'&&!stack.has(value),'Native Curve requires acyclic plain data');
+  const array=Array.isArray(value),proto=Object.getPrototypeOf(value),keys=Reflect.ownKeys(value),descriptors=Object.getOwnPropertyDescriptors(value);
+  check(array?proto===Array.prototype:proto===Object.prototype||proto===null,'Native Curve data have a foreign prototype');
+  check(keys.length<=(array?4097:64)&&keys.every(k=>typeof k==='string'&&k.length<=128&&'value'in descriptors[k]&&(array&&k==='length'||descriptors[k].enumerable)),'Native Curve has getters, hidden, symbolic or excessive fields');
+  stack.add(value);let result:unknown;
+  if(array){const length=descriptors.length.value;check(Number.isInteger(length)&&length>=0&&length<=4096&&keys.length===length+1,'Native Curve arrays must be dense and bounded');result=Array.from({length},(_,i)=>{check(Object.hasOwn(descriptors,String(i)),'Native Curve array is sparse');return copy(descriptors[String(i)].value,depth+1);});}
+  else result=Object.fromEntries((keys as string[]).map(k=>[k,copy(descriptors[k].value,depth+1)]));
+  stack.delete(value);return result;
+ };return copy(input,0) as AdaptiveCurveSamplingResult;
+}
+function curvePositions(sample:AdaptiveCurveSamplingResult,options:MeshOptions,pose?:MeshSceneTransform):Float32Array {
+ const rotate=pose?sceneRotation(pose):null,converted:number[]=[];
+ for(const raw of sample.pointsMM){
+  const point=pose?rotate!(raw[0]*pose.scale[0],raw[1]*pose.scale[1],raw[2]*pose.scale[2]):raw;
+  for(let axis=0;axis<3;axis++){const n=(point[axis]+(pose?.translationMm[axis]??0))*options.mmToSceneUnit+options.translate[axis];check(Number.isFinite(n)&&Math.abs(n)<=1000,'Curve display positions exceed ±1000 scene units');converted.push(n);}
+ }
+ const positions=Float32Array.from(converted);
+ for(let i=1;i<sample.pointsMM.length;i++){
+  const originalSame=sample.pointsMM[i].every((n,axis)=>n===sample.pointsMM[i-1][axis]);
+  const displaySame=[0,1,2].every(axis=>positions[i*3+axis]===positions[(i-1)*3+axis]);
+  check(originalSame||!displaySame,'Native nonzero Curve segment collapses in Float32 display');
+ }
+ return positions;
+}
+function prepare(input:unknown,optionsInput:unknown):{primitives:Primitive[];options:PrimitiveSceneOptions}{
+ const common=record(optionsInput,['mmToSceneUnit','translate','background','camera'],['mmToSceneUnit','translate','background']);
+ const white=validateMeshOptions({...common,color:[1,1,1]});
+ const options={mmToSceneUnit:white.mmToSceneUnit,translate:[...white.translate] as Vec3,background:[...white.background] as RGB,...(white.camera?{camera:structuredClone(white.camera)}:{})};
+ check(Array.isArray(input)&&Object.getPrototypeOf(input)===Array.prototype,'Primitive entries must be a plain array');
+ const length=Object.getOwnPropertyDescriptor(input,'length')!.value;
+ check(Number.isInteger(length)&&length>=1&&length<=4&&Reflect.ownKeys(input).length===length+1,'Primitive scene requires1..4 dense entries');
+ let curvePoints=0,curveSegments=0;const ids=new Set<string>(),primitives:Primitive[]=[];
+ for(let i=0;i<length;i++){
+  const d=Object.getOwnPropertyDescriptor(input,String(i));check(d&&'value'in d&&d.enumerable,'Primitive entries must be own data');
+  const tag=record(d.value,['kind','packet','sample','basis','color','transform'],['kind','color']),hasPose=Object.hasOwn(tag,'transform');
+  check(tag.kind==='surface'||tag.kind==='curve','Unsupported primitive kind');
+  const keys=tag.kind==='surface'?['kind','packet','color']:['kind','sample','basis','color'];if(hasPose)keys.push('transform');
+  const entry=record(d.value,keys);
+  if(tag.kind==='surface'){
+   const mesh=prepareSceneMesh(entry.packet,{...options,color:entry.color},entry.transform,hasPose);
+   check(!ids.has(mesh.packet.surfaceId),'Primitive native IDs must be distinct');ids.add(mesh.packet.surfaceId);
+   primitives.push({entry:{kind:'surface',packet:mesh.packet,color:[...mesh.options.color],...(mesh.transform?{transform:mesh.transform}:{})},positions:mesh.positions,normals:mesh.normals,indices:mesh.indices,bounds:mesh.displayBounds});
+  }else{
+   check(entry.basis==='authored-xyz-matches-rhyup','Curve authored XYZ must explicitly match renderer Y-up XYZ');
+   const opts=validateMeshOptions({...options,color:entry.color}),pose=hasPose?prepareSceneTransform(entry.transform):undefined,sample=sampleSnapshot(entry.sample);
+   check(sample!==null&&typeof sample==='object'&&Array.isArray(sample.pointsMM)&&sample.pointsMM.length>=2,'Native Curve sampling result required');
+   curvePoints+=sample.pointsMM.length;curveSegments+=sample.pointsMM.length-1;
+   check(curvePoints<=4096&&curveSegments<=4092,'Scene Curve point/segment budget exceeded');
+   validateAdaptiveCurveSamples(sample);
+   check(!ids.has(sample.curve.id),'Primitive native IDs must be distinct');ids.add(sample.curve.id);
+   const positions=curvePositions(sample,opts,pose);
+   primitives.push({entry:{kind:'curve',sample,basis:'authored-xyz-matches-rhyup',color:[...opts.color],...(pose?{transform:pose}:{})},positions,bounds:displayBounds(positions)});
+  }
+ }
+ return{primitives,options};
+}
+
+/** Genuine sampled native Curves and Surface packets share one candidate frame/depth. */
+export class PrimitiveSceneRenderer {
+ private readonly gl:WebGL2RenderingContext;private accepted:Frame|null=null;private disposed=false;private lost=false;
+ private readonly onLoss=(event:Event)=>{event.preventDefault();this.lost=true;};
+ constructor(private readonly canvas:HTMLCanvasElement,entries:PrimitiveSceneEntry[],options:PrimitiveSceneOptions){
+  const prepared=prepare(entries,options);this.dimensions(canvas.width,canvas.height);
+  const gl=canvas.getContext('webgl2',{alpha:false,antialias:false,depth:true,preserveDrawingBuffer:true});check(gl&&!gl.isContextLost(),'WebGL2 is unavailable');this.gl=gl;canvas.addEventListener('webglcontextlost',this.onLoss);
+  let frame:Frame|null=null;try{frame=this.create(prepared.primitives,prepared.options,canvas.width,canvas.height);this.present(frame);this.accepted=frame;}catch(error){if(frame)this.release(frame);this.dispose();throw error;}
+ }
+ get entries():PrimitiveSceneEntry[]{this.live();return this.accepted!.draws.map(d=>structuredClone(d.entry));}
+ get options():PrimitiveSceneOptions{this.live();return structuredClone(this.accepted!.options);}
+ get bounds():MeshSceneBounds{this.live();const draws=this.accepted!.draws;return{min:[0,1,2].map(a=>Math.min(...draws.map(d=>d.bounds.min[a]))) as Vec3,max:[0,1,2].map(a=>Math.max(...draws.map(d=>d.bounds.max[a]))) as Vec3};}
+ private live(){check(!this.disposed,'Primitive renderer is disposed');check(!this.lost&&!this.gl.isContextLost(),'WebGL2 context is lost; mount a new renderer');}
+ private dimensions(width:number,height:number){check(Number.isInteger(width)&&Number.isInteger(height)&&width>=1&&height>=1&&width<=4096&&height<=4096&&width*height<=4194304,'Buffer dimensions exceed limits');}
+ private checkGL(){const error=this.gl.getError();check(error===this.gl.NO_ERROR,'WebGL2 error 0x'+error.toString(16));check(!this.gl.isContextLost(),'WebGL2 context is lost');}
+ private program(source:{vertex:string;fragment:string}):WebGLProgram {
+  const gl=this.gl,shaders:WebGLShader[]=[];let program:WebGLProgram|null=null;
+  try{for(const[kind,text]of[[gl.VERTEX_SHADER,source.vertex],[gl.FRAGMENT_SHADER,source.fragment]]as const){const shader=gl.createShader(kind);check(shader,'Cannot allocate primitive shader');shaders.push(shader);gl.shaderSource(shader,text);gl.compileShader(shader);check(gl.getShaderParameter(shader,gl.COMPILE_STATUS),'Primitive shader compile failed: '+gl.getShaderInfoLog(shader));}program=gl.createProgram();check(program,'Cannot allocate primitive program');for(const shader of shaders)gl.attachShader(program,shader);gl.linkProgram(program);check(gl.getProgramParameter(program,gl.LINK_STATUS),'Primitive program link failed: '+gl.getProgramInfoLog(program));return program;}
+  catch(error){if(program)gl.deleteProgram(program);throw error;}finally{for(const shader of shaders)gl.deleteShader(shader);}
+ }
+ private create(primitives:Primitive[],options:PrimitiveSceneOptions,width:number,height:number):Frame {
+  this.live();this.dimensions(width,height);this.checkGL();const gl=this.gl,camera=prepareCamera(options.camera,width/height),frame:Frame={draws:[],options,programs:[],framebuffer:null,color:null,depth:null,width,height};
+  try{
+   const programs=new Map<string,WebGLProgram>();
+   for(const primitive of primitives){
+    const kind=primitive.entry.kind;if(!programs.has(kind)){const program=this.program(kind==='surface'?MESH_SHADERS:LINE_SHADERS);programs.set(kind,program);frame.programs.push(program);}
+    const draw:Draw={...primitive,vao:gl.createVertexArray(),buffers:[],program:programs.get(kind)!};frame.draws.push(draw);check(draw.vao,'Cannot allocate primitive vertex array');gl.bindVertexArray(draw.vao);
+    const attributes:[number,Float32Array][]=[[0,primitive.positions]];if(primitive.normals)attributes.push([1,primitive.normals]);
+    for(const[location,data]of attributes){const buffer=gl.createBuffer();check(buffer,'Cannot allocate primitive vertex buffer');draw.buffers.push(buffer);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,3,gl.FLOAT,false,0,0);}
+    if(primitive.indices){const buffer=gl.createBuffer();check(buffer,'Cannot allocate primitive index buffer');draw.buffers.push(buffer);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,buffer);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,primitive.indices,gl.STATIC_DRAW);}
+   }
+   frame.framebuffer=gl.createFramebuffer();frame.color=gl.createTexture();frame.depth=gl.createRenderbuffer();check(frame.framebuffer&&frame.color&&frame.depth,'Cannot allocate primitive scene frame');
+   gl.bindTexture(gl.TEXTURE_2D,frame.color);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);gl.texStorage2D(gl.TEXTURE_2D,1,gl.RGBA8,width,height);
+   gl.bindRenderbuffer(gl.RENDERBUFFER,frame.depth);gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT24,width,height);gl.bindFramebuffer(gl.FRAMEBUFFER,frame.framebuffer);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,frame.color,0);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,frame.depth);check(gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE,'Primitive scene frame is incomplete');
+   gl.viewport(0,0,width,height);gl.disable(gl.BLEND);gl.disable(gl.SCISSOR_TEST);gl.disable(gl.CULL_FACE);gl.disable(gl.POLYGON_OFFSET_FILL);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LESS);gl.depthMask(true);gl.colorMask(true,true,true,true);gl.lineWidth(1);
+   gl.clearColor(...options.background,1);gl.clearDepth(1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+   for(const draw of frame.draws){const program=draw.program!;gl.useProgram(program);gl.uniform1f(gl.getUniformLocation(program,'aspect'),width/height);gl.uniform1i(gl.getUniformLocation(program,'defaultCamera'),options.camera===undefined?1:0);gl.uniformMatrix4fv(gl.getUniformLocation(program,'view'),false,camera.view);gl.uniformMatrix4fv(gl.getUniformLocation(program,'projection'),false,camera.projection);gl.uniform3fv(gl.getUniformLocation(program,'color'),draw.entry.color);gl.bindVertexArray(draw.vao);if(draw.indices)gl.drawElements(gl.TRIANGLES,draw.indices.length,gl.UNSIGNED_SHORT,0);else gl.drawArrays(gl.LINE_STRIP,0,draw.positions.length/3);}
+   this.checkGL();return frame;
+  }catch(error){this.release(frame);throw error;}
+ }
+ private present(frame:Frame){this.live();const gl=this.gl;gl.disable(gl.SCISSOR_TEST);gl.bindFramebuffer(gl.READ_FRAMEBUFFER,frame.framebuffer);gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER,null);gl.blitFramebuffer(0,0,frame.width,frame.height,0,0,this.canvas.width,this.canvas.height,gl.COLOR_BUFFER_BIT,gl.NEAREST);this.checkGL();gl.bindFramebuffer(gl.FRAMEBUFFER,null);}
+ update(entries:PrimitiveSceneEntry[],options:PrimitiveSceneOptions):UpdateResult{
+  let frame:Frame|null=null;try{this.live();const p=prepare(entries,options);frame=this.create(p.primitives,p.options,this.canvas.width,this.canvas.height);this.present(frame);const prior=this.accepted!;this.accepted=frame;this.release(prior);return{ok:true};}
+  catch(error){if(frame)this.release(frame);if(!this.disposed&&!this.lost&&!this.gl.isContextLost()&&this.accepted){try{this.present(this.accepted);}catch{this.lost=true;}}return{ok:false,error:error instanceof Error?error:new GPUError('Primitive scene update failed')};}
+ }
+ resize(width=this.canvas.width,height=this.canvas.height):void{
+  this.live();this.dimensions(width,height);const prior=this.accepted!;let frame:Frame|null=null;
+  try{frame=this.create(prior.draws,prior.options,width,height);this.canvas.width=width;this.canvas.height=height;check(this.gl.drawingBufferWidth===width&&this.gl.drawingBufferHeight===height,'Requested primitive buffer allocation failed');this.present(frame);this.accepted=frame;this.release(prior);}
+  catch(error){if(frame)this.release(frame);this.canvas.width=prior.width;this.canvas.height=prior.height;if(!this.gl.isContextLost())this.present(prior);throw error;}
+ }
+ render():void{this.live();this.dimensions(this.canvas.width,this.canvas.height);this.present(this.accepted!);}
+ readPixels():Uint8Array{this.live();this.dimensions(this.canvas.width,this.canvas.height);const gl=this.gl,pixels=new Uint8Array(this.canvas.width*this.canvas.height*4);gl.bindFramebuffer(gl.READ_FRAMEBUFFER,null);gl.pixelStorei(gl.PACK_ALIGNMENT,4);gl.pixelStorei(gl.PACK_ROW_LENGTH,0);gl.pixelStorei(gl.PACK_SKIP_ROWS,0);gl.pixelStorei(gl.PACK_SKIP_PIXELS,0);gl.readPixels(0,0,this.canvas.width,this.canvas.height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);this.checkGL();return pixels;}
+ private release(frame:Frame){const gl=this.gl;if(!gl.isContextLost()){if(frame.programs.includes(gl.getParameter(gl.CURRENT_PROGRAM)))gl.useProgram(null);if(frame.draws.some(d=>d.vao&&gl.getParameter(gl.VERTEX_ARRAY_BINDING)===d.vao))gl.bindVertexArray(null);for(const[target,binding]of[[gl.READ_FRAMEBUFFER,gl.READ_FRAMEBUFFER_BINDING],[gl.DRAW_FRAMEBUFFER,gl.DRAW_FRAMEBUFFER_BINDING]]as const)if(frame.framebuffer&&gl.getParameter(binding)===frame.framebuffer)gl.bindFramebuffer(target,null);}for(const d of frame.draws){for(const b of d.buffers)gl.deleteBuffer(b);if(d.vao)gl.deleteVertexArray(d.vao);}for(const program of frame.programs)gl.deleteProgram(program);if(frame.framebuffer)gl.deleteFramebuffer(frame.framebuffer);if(frame.depth)gl.deleteRenderbuffer(frame.depth);if(frame.color)gl.deleteTexture(frame.color);}
+ dispose():void{if(this.disposed)return;this.disposed=true;this.canvas.removeEventListener('webglcontextlost',this.onLoss);if(this.accepted)this.release(this.accepted);this.accepted=null;}
+}
+export function mountPrimitiveScene(canvas:HTMLCanvasElement,entries:PrimitiveSceneEntry[],options:PrimitiveSceneOptions):PrimitiveSceneRenderer{return new PrimitiveSceneRenderer(canvas,entries,options);}

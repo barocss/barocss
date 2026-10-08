@@ -175,7 +175,11 @@ importers:
         specifier: ^0.186.1
         version: 0.186.1
 
-  packages/barocss-gpu: {}
+  packages/barocss-gpu:
+    dependencies:
+      '@barocss/cad':
+        specifier: workspace:*
+        version: link:../barocss-cad
 
   packages/barocss-motion: {}
 

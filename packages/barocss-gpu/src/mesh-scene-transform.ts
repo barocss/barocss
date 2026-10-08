@@ -28,7 +28,7 @@ function vector(input:unknown,count:number,label:string):number[] {
     return d.value as number;
   });
 }
-function transform(input:unknown):MeshSceneTransform {
+export function prepareSceneTransform(input:unknown):MeshSceneTransform {
   const keys=['translationMm','rotationXYZW','scale'];
   requireValue(input!==null&&typeof input==='object'&&Object.getPrototypeOf(input)===Object.prototype,'Mesh scene transform must be plain data');
   const actual=Reflect.ownKeys(input);
@@ -49,13 +49,15 @@ export function displayBounds(positions:ArrayLike<number>):MeshSceneBounds {
   for(let i=0;i<positions.length;i++){const axis=i%3;min[axis]=Math.min(min[axis],positions[i]);max[axis]=Math.max(max[axis],positions[i]);}
   return{min,max};
 }
+export function sceneRotation(pose:MeshSceneTransform):(a:number,b:number,c:number)=>Vec3 {
+  const qLength=Math.hypot(...pose.rotationXYZW),[x,y,z,w]=pose.rotationXYZW.map(n=>n/qLength);
+  const rotation=[1-2*(y*y+z*z),2*(x*y-z*w),2*(x*z+y*w),2*(x*y+z*w),1-2*(x*x+z*z),2*(y*z-x*w),2*(x*z-y*w),2*(y*z+x*w),1-2*(x*x+y*y)];
+  return(a,b,c)=>[rotation[0]*a+rotation[1]*b+rotation[2]*c,rotation[3]*a+rotation[4]*b+rotation[5]*c,rotation[6]*a+rotation[7]*b+rotation[8]*c];
+}
 export function prepareSceneMesh(packetInput:unknown,optionsInput:unknown,transformInput:unknown,hasTransform:boolean):SceneMesh {
   // Keep the complete old compiler/lowering path for omitted transforms.
   if(!hasTransform){const mesh=requireMeshExecution(packetInput,optionsInput);return{...mesh,displayBounds:displayBounds(mesh.positions)};}
-  const pose=transform(transformInput),{packet,options}=resolveMeshIntent(packetInput,optionsInput);
-  const qLength=Math.hypot(...pose.rotationXYZW),[x,y,z,w]=pose.rotationXYZW.map(n=>n/qLength);
-  const rotation=[1-2*(y*y+z*z),2*(x*y-z*w),2*(x*z+y*w),2*(x*y+z*w),1-2*(x*x+z*z),2*(y*z-x*w),2*(x*z-y*w),2*(y*z+x*w),1-2*(x*x+y*y)];
-  const rotate=(a:number,b:number,c:number):Vec3=>[rotation[0]*a+rotation[1]*b+rotation[2]*c,rotation[3]*a+rotation[4]*b+rotation[5]*c,rotation[6]*a+rotation[7]*b+rotation[8]*c];
+  const pose=prepareSceneTransform(transformInput),{packet,options}=resolveMeshIntent(packetInput,optionsInput),rotate=sceneRotation(pose);
   const positions64:number[]=[],normals64:number[]=[];
   for(let i=0;i<packet.positions.length;i+=3){
     const point=rotate(packet.positions[i]*pose.scale[0],packet.positions[i+1]*pose.scale[1],packet.positions[i+2]*pose.scale[2]);
