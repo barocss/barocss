@@ -1,0 +1,67 @@
+{
+  "format": "barocss-physics-release-gate",
+  "version": 1,
+  "stage": "prototype-checkpoint",
+  "timestamp": "2026-10-08T13:31:00.668Z",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "node": "v22.22.0",
+    "macos": "15.6.1",
+    "pnpm": "10.11.0"
+  },
+  "checks": [
+    {
+      "name": "frozen offline install",
+      "status": "pass",
+      "output": "passed"
+    },
+    {
+      "name": "@barocss/cad build",
+      "status": "pass",
+      "output": "passed"
+    },
+    {
+      "name": "@barocss/physics build",
+      "status": "pass",
+      "output": "passed"
+    },
+    {
+      "name": "cad-proxy-probe",
+      "status": "pass",
+      "output": {
+        "result": "ok",
+        "dynamicId": "part:native_loader_demo.rational_panel",
+        "fixtureId": "fixture:native_loader_demo.flat_panel",
+        "contactStep": 21,
+        "firstPositionM": [
+          0.05,
+          0.28,
+          0.02
+        ],
+        "contactPositionM": [
+          0.05,
+          0.13385164807134506,
+          0.02
+        ],
+        "staleSourceRefused": true,
+        "acceptedWorldRetained": true
+      }
+    },
+    {
+      "name": "git diff --check",
+      "status": "pass",
+      "output": "passed"
+    }
+  ],
+  "packedConsumer": null,
+  "browser": {
+    "status": "manual-flow-required",
+    "evidence": "examples/physics-cad-scene/evidence/checkpoint.md",
+    "mergedHeadRerunRequired": true
+  },
+  "prototypeCheckpointPassed": true,
+  "nativePreparationPassed": false,
+  "releaseCandidate": false,
+  "gitHead": "7809af352258b6f60e8769c0d09f4e00290bc106"
+}
