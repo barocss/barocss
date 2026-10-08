@@ -139,3 +139,5 @@ export { queryConvexPlanarFaceWithHolesRay, validateConvexPlanarFaceWithHolesRay
 export type { ConvexPlanarFaceWithHolesRayQuery, ConvexPlanarFaceWithHolesRayPolicy, ConvexPlanarFaceWithHolesRaySupport, ConvexPlanarFaceWithHolesRayCandidate, ConvexPlanarFaceWithHolesRayBoundary, ConvexPlanarFaceWithHolesRayHit, ConvexPlanarFaceWithHolesRayStatus, ConvexPlanarFaceWithHolesRayReason, ConvexPlanarFaceWithHolesRayReport, ConvexPlanarFaceWithHolesRayResult } from './own-convex-planar-face-holes-ray.js';
 export { sampleCurveAdaptive, validateAdaptiveCurveSamples } from './curve-adaptive-sampling.js';
 export type { AdaptiveCurveSamplingOptions, AdaptiveCurveSample, AdaptiveCurveObservation, AdaptiveCurveSegment, AdaptiveCurveSplitOperation, AdaptiveCurveSamplingReport, AdaptiveCurveSamplingResult } from './curve-adaptive-sampling.js';
+export { joinCurves, validateJoinedCurveResult } from './curve-join.js';
+export type { CurveJoinOptions, CurveJoinD1State, CurveJoinKnotMapping, CurveJoinProvenance, CurveJoinObservation, JoinedCurveReport, JoinedCurveResult } from './curve-join.js';
