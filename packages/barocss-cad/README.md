@@ -4774,3 +4774,65 @@ curved/nonconvex/touching/nested holes and sewn manifold B-Rep remain open.
 Reports retain geometricValidity:not-certified, topologyCertified:false and
 solid:false. Native implementation requires separate sole-GPU serial
 integration and current-host consumer verification.
+
+## Own material intersection of two affine faces with holes
+
+`intersectConvexPlanarFacesWithHoles(faceA, faceB, options)` takes two actual
+validated `ConvexPlanarFaceWithHolesResult` parents. Options are
+`{evaluationId, resultIdPrefix}` with an ASCII prefix1..20. Each original face
+keeps its own Plane-first source0 Model with at most16 objects. Parents are
+compiled independently; the operation does not combine them into a larger
+Model or create synthetic probe Curves or replacement parent faces.
+
+The common support direction is the unit cross of un-oriented original Plane
+U/V normals, in caller A-to-B order. Face sense affects directed use/normal
+evidence. Support clipping uses both original convex outer native UV
+halfspaces. All actual inner-loop halfspaces prove each hole's support
+interval. Only OPEN hole interiors are excluded from the closed outer
+material interval. Tangent inner corners and coincident inner-edge intervals
+retain explicit boundary contacts without producing a false gap. Open
+excluded intervals from different parents can overlap or meet; exact admitted
+material points at represented ties remain points, without zero-length Lines.
+
+The result has `kind: 'intersections' | 'disjoint'`, both original parents and
+options, original support/dual UV maps, sorted `segments[]`, `points[]`, explicit
+boundary contacts and excluded-hole interval provenance. It admits at most5
+material components across at most4 hole intervals. Each actual segment owns
+one finite native degree1/equal-weight Line and two dimensionless UV Lines on
+the same original support parameter domain. Native endpoint/midpoint D1 chains
+bind both original Surfaces. Isolated points retain XYZ, both original UVs and
+Surface D1 evidence; points/disjoint do not emit fabricated Curve source.
+
+Generated roles are `prefix_sN_line`, `prefix_sN_uv_a`, `prefix_sN_uv_b`,
+`prefix_sN_end_0`, `prefix_sN_end_1`, `prefix_pN` and `prefix_cN`. All possible
+roles are reserved against original input/context/generated IDs before result
+staging. Endpoint and contact contributors retain actual face role/ID, loop
+role/ID, native edge/Curve/use/pcurve IDs, original Line parameter and native D1.
+These result identities are not sewn B-Rep vertices or persistent Boolean names.
+
+Outer endpoints use explicit material-side inward offsets. Hole-cut endpoints
+can require outward offsets into material. Original root bounds/uncertainty,
+chosen parameter offsets/directions and actual UV/boundary residuals remain
+separate. Uncertain nonzero narrow gaps, root order or collapsed intervals
+refuse under the bounded64-epsilon policy without snapping. Midpoint samples
+provide local binding observations rather than sole interval admission proof.
+
+`validateConvexPlanarFaceWithHolesIntersection(result)` rebuilds from the two
+original parents/options and compares original bits, all derived intervals,
+roles, dual UV, native parameters and lineage. Owned snapshots are bounded
+by262144 values/depth28/arrays2048/recordFields64/source strings262144; actual
+combined input Lines≤30, contacts≤16 and endpoint/contact contributors≤128.
+Existing650 parent/compiler limits remain intact. Getters, sparse/hidden/symbol
+fields, malformed/nonfinite data and ID collisions refuse before adoption.
+
+```sh
+node examples/cad-nurbs/own-convex-planar-face-holes-intersection-demo.mjs --source
+```
+
+This computes bounded planar trim material intersections. General curved or
+nonconvex holes, coplanar overlap regions, arbitrary NURBS SurfaceSurface,
+sewing/manifold/Boolean Cut/union/intersection, automatic Hole/constraint
+feature graphs and editor tessellation/ray queries remain open. Reports retain
+geometricValidity:not-certified, topologyCertified:false and solid:false.
+Native implementation requires separate sole-GPU serial integration and
+current-host consumer verification.
