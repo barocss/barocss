@@ -1,0 +1,10 @@
+# Physics #751 native checkpoint
+
+- Base: local Integration `8161b222e21bb0fc47f92a60d39ba47ca45d35ff`.
+- Owned paths: `packages/barocss-physics/**`, `examples/physics-scene/**`.
+- Contract: [Issue #751](https://github.com/barocss/barocss/issues/751), frozen before implementation. The 10 m step/penetration addendum was posted before its code change.
+- Initial verification failures: the first `node --check examples/physics-scene/server.mjs` found a missing closing parenthesis in `close`; fixed before browser use. The first compiled probe expected the wrong overlap exit axis; the box's Y half extent was smaller than X, so the fixture assertion was corrected. The subsequent build and probe pass.
+- Build: `PATH=/Users/user/.nvm/versions/node/v22.22.0/bin:/Users/user/.barocss-ai/v3/integration/node_modules/.bin:$PATH pnpm --filter @barocss/physics build:library` exited 0; emitted ESM and declarations. The compiler tools came from the existing local Integration installation because this isolated worktree has no separate `node_modules`.
+- Compiled consumer: `node examples/physics-scene/probe.mjs` exited 0. It reported free-fall Y `1.99931875 m`, first fixed-box contact at step `62`, rest height `0.7 m` with contact on all `120` observed rest steps, and two-sphere impulse `2 N·s`. It also checked deterministic repeated states, initial overlap, copied outputs, wrong step retention, numeric limit retention, malformed input and disposal.
+- Headed Chromium at `http://127.0.0.1:5189/`: after falling, height `0.560 m`, vertical speed `0.000 m/s`, box contact visible. Pause kept the time/step fixed; one step changed `1407 → 1408`; reset returned height `2.200 m`, time `0.000 s`, step `0`, paused. One step after reset showed step `1`, speed `−0.082 m/s`. A final page reload after the limit change had `0` console errors and `0` warnings. [Desktop screenshot](scene-desktop.png).
+- The scene is a host-rendered side projection of engine poses. It does not verify CAD mesh collision, rotation, friction, CCD or long-running numerical accuracy.
