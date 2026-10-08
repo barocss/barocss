@@ -46,12 +46,18 @@ export type StageHandle = {
 export type ContainerHandle = StageHandle & {
   readonly kind: 'container'; readonly id: string; readonly data: ContainerData;
   setTransform(transform: Transform): void;
+  setPosition(x: number, y: number): void;
+  setScale(scaleX: number, scaleY: number): void;
+  setRotation(rotation: number): void;
   setLayer(layer: number): void;
   setVisible(visible: boolean): void;
 };
 export type FrameHandle = StageHandle & {
   readonly kind: 'frame'; readonly id: string; readonly data: FrameData;
   setTransform(transform: Transform): void;
+  setPosition(x: number, y: number): void;
+  setScale(scaleX: number, scaleY: number): void;
+  setRotation(rotation: number): void;
   setLayer(layer: number): void;
   setVisible(visible: boolean): void;
   setFrame(paint: FramePaint): void;
@@ -59,6 +65,9 @@ export type FrameHandle = StageHandle & {
 export type SpriteHandle = {
   readonly kind: 'sprite'; readonly id: string; readonly data: SpriteData;
   setTransform(transform: Transform): void;
+  setPosition(x: number, y: number): void;
+  setScale(scaleX: number, scaleY: number): void;
+  setRotation(rotation: number): void;
   setLayer(layer: number): void;
   setVisible(visible: boolean): void;
   setAnchor(x: number, y: number): void;
@@ -74,6 +83,9 @@ export type SpriteHandle = {
 export type RectHandle = {
   readonly kind: 'rect'; readonly id: string; readonly data: RectData;
   setTransform(transform: Transform): void;
+  setPosition(x: number, y: number): void;
+  setScale(scaleX: number, scaleY: number): void;
+  setRotation(rotation: number): void;
   setLayer(layer: number): void;
   setVisible(visible: boolean): void;
   setRect(paint: RectPaint): void;
@@ -82,6 +94,9 @@ export type RectHandle = {
 export type LineHandle = {
   readonly kind: 'line'; readonly id: string; readonly data: LineData;
   setTransform(transform: Transform): void;
+  setPosition(x: number, y: number): void;
+  setScale(scaleX: number, scaleY: number): void;
+  setRotation(rotation: number): void;
   setLayer(layer: number): void;
   setVisible(visible: boolean): void;
   setLine(paint: LinePaint): void;
@@ -90,6 +105,9 @@ export type LineHandle = {
 export type PathHandle = {
   readonly kind: 'path'; readonly id: string; readonly data: PathData;
   setTransform(transform: Transform): void;
+  setPosition(x: number, y: number): void;
+  setScale(scaleX: number, scaleY: number): void;
+  setRotation(rotation: number): void;
   setLayer(layer: number): void;
   setVisible(visible: boolean): void;
   setPath(paint: PathPaint): void;
@@ -98,6 +116,9 @@ export type PathHandle = {
 export type GlyphRunHandle = {
   readonly kind: 'glyphRun'; readonly id: string; readonly data: GlyphRunData;
   setTransform(transform: Transform): void;
+  setPosition(x: number, y: number): void;
+  setScale(scaleX: number, scaleY: number): void;
+  setRotation(rotation: number): void;
   setLayer(layer: number): void;
   setVisible(visible: boolean): void;
   setLayout(layout: GlyphRunLayout): void;
@@ -233,6 +254,21 @@ export function createDisplayTree(contextId: string): DisplayTree {
         const data = record.data;
         if (!data) invalid('stage has no transform');
         mutate(record, { ...data, transform });
+      },
+      setPosition(x: number, y: number) {
+        const data = record.data;
+        if (!data) invalid('stage has no transform');
+        mutate(record, { ...data, transform: { ...data.transform, x, y } });
+      },
+      setScale(scaleX: number, scaleY: number) {
+        const data = record.data;
+        if (!data) invalid('stage has no transform');
+        mutate(record, { ...data, transform: { ...data.transform, scaleX, scaleY } });
+      },
+      setRotation(rotation: number) {
+        const data = record.data;
+        if (!data) invalid('stage has no transform');
+        mutate(record, { ...data, transform: { ...data.transform, rotation } });
       },
       setLayer(layer: number) {
         const data = record.data;
