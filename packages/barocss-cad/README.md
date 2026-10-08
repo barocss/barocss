@@ -5975,3 +5975,68 @@ node examples/cad-nurbs/cubic-curve-plane-intersection-demo.mjs --source /tmp/ba
 
 Native readiness, Integration adoption, actual consumer use and publication
 remain separate.
+
+## Wide native cubic Curve and affine Plane intersections
+
+`intersectCubicCurveWideWithAffinePlaneSurface(curve,plane,options)` composes the
+actual native Bezier-span extractor with the actual cubic Curve/Plane primitive.
+It admits positive clamped nonperiodic degree3 originals with4..64 poles,
+at most70 knots/64 nonzero spans and XYZ±10000mm. Plane remains the safe
+four-pole equal-weight affine Surface1x1. Existing native positive weight bounds
+apply. Original full Curve coefficients and source0 remain authoritative.
+
+Options are exactly `{evaluationId,resultIdPrefix,pointEventIds}`. Original/
+context/event IDs are ASCII1..48; prefix1..20 reserves the actual extraction
+model and all64 span roles. Supply1..192 distinct event slots in original
+parameter order. Every local cubic reserves4 private roles before geometry
+staging, with at most1024 allocation attempts. No automatic renaming of
+original native geometry or frame conversion occurs.
+
+Result is `{kind,curve,plane,options,source,sourceVersion,model,extraction,spans,
+events,report}`. Extraction is the actual `extractCurveBezierSpans` result,
+including original active coefficients/knots, analytic matrices, source lineage
+and original parameter intervals. Each concrete span includes the actual cubic
+primitive result and its scalar equation/derivative/search/exclusion evidence.
+The same whole-original event assembly binds points, Plane UV, brackets and
+native one-sided observations. Only its internal structural input type changes;
+old degree1/2 public DTOs/admission/numeric code/limits remain unchanged.
+
+Exactly equal original shared-knot parameters consolidate while retaining all
+span contributions. Distinct seam parameters stay distinct even at equal world
+points. Original C0 D1 guards and local one-sided D1 remain separate. Estimates
+and bracket samples must agree on finite Plane UV classification; no clamping,
+projection, point fit, mesh intersection or global Curve refinement is used.
+Coincident support retains contained/unproved finite interval semantics, with
+no wide coincident clipping or sewn topology. Any unresolved local cubic
+predicate refuses the whole operation atomically.
+
+The report DTO is `barocss-native-wide-cubic-curve-plane-intersection`, version0,
+mm/raw-authored-XYZ. It records original authority, actual span/primitive/
+contribution/event counts, actual aggregate scalar work, derivative searches
+versus safe no-search exclusions, C0 parameters and private role allocation.
+Limits are64 primitive spans,192 isolated contributions/events and65536 total
+cubic scalar evaluations. Each primitive retains its3-root/2-derivative-root/
+64-step-per-root/1024-evaluation bounds. Copied CPU state uses GC, with no
+renderer resources or disposal.
+
+Inputs allow32768 values/depth8/arrays256/fields16/strings128; full owned result
+4194304 values/depth48/arrays4096/fields64/source262144. Original source and
+extraction limits still apply. `validateWideCubicCurveAffinePlaneIntersection`
+reconstructs original geometry/source, actual coefficient spans, local cubic
+evidence, original point/UV contributions, IDs/brackets/report. Capacity,
+unknown/getter/hidden/symbol/foreign/sparse/cyclic/nonfinite and altered owned
+data refuse without replacing prior accepted input/results. Diagnostics are
+INPUT, IDENTITY, SPAN, REPRESENTABILITY, BUDGET, NATIVE, BINDING and OWNED.
+
+The single actual native/source-file/compiled JS and types flow is:
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/curve-wide-cubic-plane-intersection-demo.mjs --source /tmp/barocss-wide-cubic-plane
+```
+
+This flow uses the existing actually refined64-pole source; local observations
+are not global binary64/manufacturing/G1/G2/topology/solid certification.
+Generic curved Surface/Curve-Curve intersection, arbitrary trims/sewing/Boolean,
+actual GPU/Loader consumption, Integration adoption and publication remain
+separate work.
