@@ -16,6 +16,9 @@ export interface ViewerNativeCurveLoadOptions extends NativeLoadOptions {
   curveDisplay: { chordToleranceMM: number; maxSegments: number; maxDepth: number };
 }
 export interface ViewerRef { modelId: string; surfaceId: string }
+export type ViewerGeometryRef =
+  | ({ kind: 'surface' } & ViewerRef)
+  | ({ kind: 'curve' } & ViewerCurveRef);
 export interface ViewerPacket { modelId: string; packet: PreviewPacket }
 export interface ViewerNativeSurfaceParameter extends ViewerRef { u: number; v: number }
 export interface ViewerNativeSurfacePoint {
@@ -98,6 +101,7 @@ export interface ViewerState {
   curves: ViewerCurveRef[];
   packets: ViewerPacket[];
   selected: ViewerRef | null;
+  selectedGeometry: ViewerGeometryRef | null;
   native: BaroCadNativeResult | null;
   measurement: ViewerNativeSurfaceMeasurement | null;
   motion: ViewerMotionState | null;
@@ -107,6 +111,7 @@ export interface ViewerState {
 }
 
 const PALETTE: Vec3[] = [[0.14, 0.58, 0.86], [0.95, 0.57, 0.22], [0.36, 0.72, 0.49], [0.72, 0.48, 0.87]];
+const SELECTED_COLOR: Vec3 = [1, 0.94, 0.38];
 const INITIAL_CAMERA: MeshCamera = { eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: 0.01, far: 100 };
 const ID = /^[A-Za-z_][A-Za-z0-9_-]{0,127}$/;
 const MOTION_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
@@ -212,6 +217,22 @@ function parseRef(input: unknown): ViewerRef {
   check(typeof value.modelId === 'string' && ID.test(value.modelId), 'modelId must be a bounded ASCII identifier');
   check(typeof value.surfaceId === 'string' && ID.test(value.surfaceId), 'surfaceId must be a bounded ASCII identifier');
   return { modelId: value.modelId, surfaceId: value.surfaceId };
+}
+function parseGeometryRef(input: unknown): ViewerGeometryRef {
+  check(input !== null && typeof input === 'object' && Object.getPrototypeOf(input) === Object.prototype,
+    'Geometry reference must be plain data');
+  const descriptor = Object.getOwnPropertyDescriptor(input, 'kind');
+  check(descriptor && descriptor.enumerable && 'value' in descriptor,
+    'Geometry reference kind must be data');
+  if (descriptor.value === 'surface') {
+    const value = ownRecord(input, ['kind', 'modelId', 'surfaceId'], 'Surface geometry reference');
+    return { kind: 'surface', ...parseRef({ modelId: value.modelId, surfaceId: value.surfaceId }) };
+  }
+  check(descriptor.value === 'curve', 'Geometry reference kind must be surface or curve');
+  const value = ownRecord(input, ['kind', 'modelId', 'curveId'], 'Curve geometry reference');
+  check(typeof value.modelId === 'string' && ID.test(value.modelId), 'modelId must be a bounded ASCII identifier');
+  check(typeof value.curveId === 'string' && ID.test(value.curveId), 'curveId must be a bounded ASCII identifier');
+  return { kind: 'curve', modelId: value.modelId, curveId: value.curveId };
 }
 function parseNativeParameter(input: unknown): ViewerNativeSurfaceParameter {
   const value = ownRecord(input, ['modelId', 'surfaceId', 'u', 'v'], 'Native Surface parameter');
@@ -358,6 +379,7 @@ export class Viewer {
   private nativeMeasurement: ViewerNativePointDistance | null = null;
   private camera: MeshCamera = validateMeshCamera(INITIAL_CAMERA);
   private selected: ViewerRef | null = null;
+  private selectedGeometry: ViewerGeometryRef | null = null;
   private motion: ViewerMotionState | null = null;
   private disposed = false;
   private contextLost = false;
@@ -382,19 +404,22 @@ export class Viewer {
       const ref = { modelId: entry.modelId, surfaceId: entry.packet.surfaceId };
       const pose = motion?.displayPoses.find(value => sameRef(value.ref, ref));
       return { packet: entry.packet,
-        color: sameRef(ref, selected) ? [1, 0.94, 0.38] as Vec3 : PALETTE[index],
+        color: sameRef(ref, selected) ? SELECTED_COLOR : PALETTE[index],
         ...(pose ? { transform: { translationMm: pose.translationMm,
           rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {}) };
     });
   }
   private present(packets: ViewerPacket[], curves: ViewerCurveEntry[], camera: MeshCamera, selected: ViewerRef | null,
-    motion: ViewerMotionState | null): void {
+    motion: ViewerMotionState | null, geometrySelection: ViewerGeometryRef | null = this.selectedGeometry): void {
     const surfaces = this.gpuEntries(packets, selected, motion), options = this.gpuOptions(camera);
     if (curves.length) {
       const entries = [
         ...surfaces.map(entry => ({ kind: 'surface' as const, ...entry })),
         ...curves.map((entry, index) => ({ kind: 'curve' as const, sample: entry.sample,
-          basis: 'authored-xyz-matches-rhyup' as const, color: PALETTE[(packets.length + index) % PALETTE.length] })),
+          basis: 'authored-xyz-matches-rhyup' as const,
+          color: geometrySelection?.kind === 'curve' && geometrySelection.modelId === entry.modelId
+            && geometrySelection.curveId === entry.sample.curve.id
+            ? SELECTED_COLOR : PALETTE[(packets.length + index) % PALETTE.length] })),
       ];
       if (this.renderer instanceof PrimitiveSceneRenderer) {
         const result = this.renderer.update(entries, options);
@@ -448,8 +473,9 @@ export class Viewer {
     check(packets.length + curves.length >= 1 && packets.length + curves.length <= 4,
       'Viewer requires 1..4 total display objects');
     const camera = fittedCamera(packets, curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
-    this.present(packets, curves, camera, null, null);
-    this.packets = packets; this.curves = curves; this.camera = camera; this.selected = null; this.native = native;
+    this.present(packets, curves, camera, null, null, null);
+    this.packets = packets; this.curves = curves; this.camera = camera;
+    this.selected = null; this.selectedGeometry = null; this.native = native;
     this.measurement = null; this.motion = null; this.curveMeasurement = null;
     this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
   }
@@ -811,8 +837,28 @@ export class Viewer {
     this.live(); const selected = input === null ? null : parseRef(input);
     check(selected === null || this.packets.some(entry => sameRef(
       { modelId: entry.modelId, surfaceId: entry.packet.surfaceId }, selected)), 'Unknown surface reference');
-    if (this.renderer) this.present(this.packets, this.curves, this.camera, selected, this.motion);
+    const geometrySelection: ViewerGeometryRef | null = selected
+      ? { kind: 'surface', ...selected } : null;
+    if (this.renderer) this.present(this.packets, this.curves, this.camera, selected, this.motion,
+      geometrySelection);
     this.selected = selected;
+    this.selectedGeometry = geometrySelection;
+  }
+  selectGeometry(input: ViewerGeometryRef | null): void {
+    this.live();
+    const selection = input === null ? null : parseGeometryRef(input);
+    if (selection?.kind === 'surface') {
+      check(this.packets.some(entry => entry.modelId === selection.modelId
+        && entry.packet.surfaceId === selection.surfaceId), 'Unknown displayed Surface reference');
+    } else if (selection?.kind === 'curve') {
+      check(this.curves.some(entry => entry.modelId === selection.modelId
+        && entry.sample.curve.id === selection.curveId), 'Unknown displayed Curve reference');
+    }
+    const surface = selection?.kind === 'surface'
+      ? { modelId: selection.modelId, surfaceId: selection.surfaceId } : null;
+    if (this.renderer) this.present(this.packets, this.curves, this.camera, surface, this.motion, selection);
+    this.selected = surface;
+    this.selectedGeometry = selection;
   }
   resize(width: number, height: number): void {
     this.live(); this.dimensions(width, height);
@@ -827,7 +873,8 @@ export class Viewer {
       surfaces: this.packets.map(entry => ({ modelId: entry.modelId, surfaceId: entry.packet.surfaceId })),
       curves: this.curves.map(entry => ({ modelId: entry.modelId, curveId: entry.sample.curve.id })),
       packets: this.packets,
-      selected: this.selected, native: this.native, measurement: this.measurement,
+      selected: this.selected, selectedGeometry: this.selectedGeometry,
+      native: this.native, measurement: this.measurement,
       curveMeasurement: this.curveMeasurement, surfaceCurveMeasurement: this.surfaceCurveMeasurement,
       nativeMeasurement: this.nativeMeasurement, motion: this.motion });
   }
