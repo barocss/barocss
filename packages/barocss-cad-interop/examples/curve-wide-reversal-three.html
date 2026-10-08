@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Reversed 64-pole native Curve in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Reversed 64-pole native Curve · Three.js</h1>
+  <p>Cyan is the edited native source. Magenta is its public CAD wide reversal.</p>
+  <canvas id="view" width="800" height="500"></canvas>
+  <button id="reject" type="button">Try invalid candidates</button>
+  <button id="dispose" type="button">Dispose loaded displays</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Color, Group, OrthographicCamera, Scene, WebGLRenderer } from 'three';
+  import { compileCadModel, reverseCurveWide, validateWideReversedCurveResult } from '@barocss/cad';
+  import { BaroCADLoader } from '../dist/three.js';
+
+  const canvas = document.querySelector('#view');
+  const status = document.querySelector('#status');
+  const options = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } };
+  const originalURL = new URL('curve-wide-edit-data/edited.barocad', location.href).href;
+  const reversedURL = new URL('curve-wide-reversal-data/reversed.barocad', location.href).href;
+  const scene = new Scene();
+  scene.background = new Color(0x101b2c);
+  const marker = new Group(); marker.name = 'caller-marker'; scene.add(marker);
+  const camera = new OrthographicCamera(-0.042, 0.042, 0.026, -0.026, 0.001, 0.2);
+  camera.position.set(0, 0.08, 0.004);
+  camera.lookAt(0, 0, 0);
+  const renderer = new WebGLRenderer({ canvas, antialias: false, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1); renderer.setSize(800, 500, false);
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const pixels = () => {
+    renderer.render(scene, camera);
+    const gl = renderer.getContext();
+    const data = new Uint8Array(canvas.width * canvas.height * 4);
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('Three WebGL readPixels failed');
+    return data;
+  };
+  const counts = data => {
+    let cyan = 0, magenta = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      if (r < 90 && g > 150 && b > 150) cyan++;
+      if (r > 150 && g < 90 && b > 150) magenta++;
+    }
+    return { cyan, magenta };
+  };
+  const loader = new BaroCADLoader(options);
+  let originalDisplay, reversedDisplay, result, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    const [originalText, reversedText] = await Promise.all([
+      fetch(originalURL).then(response => response.text()),
+      fetch(reversedURL).then(response => response.text()),
+    ]);
+    const compiled = compileCadModel(originalText, { sourceVersion: 0 });
+    if (!compiled.ok || compiled.model.objects.length !== 1 || compiled.model.objects[0].kind !== 'curve') {
+      throw new Error('Original native Curve source failed to compile');
+    }
+    const originalCurve = compiled.model.objects[0];
+    result = reverseCurveWide(originalCurve, { curveId: 'joined_refined_64_reversed' });
+    const validatedReport = validateWideReversedCurveResult(result);
+    if (result.source !== reversedText ||
+        JSON.stringify(validatedReport) !== JSON.stringify(result.report) ||
+        result.report.observationCount !== 149 || result.report.guardCount !== 12) {
+      throw new Error('Saved reversed source differs from public CAD operation');
+    }
+    originalDisplay = await loader.loadAbortable(originalURL, {});
+    reversedDisplay = await loader.loadAbortable(reversedURL, {});
+    const before = originalDisplay, after = reversedDisplay;
+    const originalLine = before.group.children[0], reversedLine = after.group.children[0];
+    if (before.source !== originalText || after.source !== reversedText ||
+        before.model.objects[0].id !== 'joined_refined_64' ||
+        after.model.objects[0].id !== result.curve.id ||
+        before.model.objects[0].controlPoints.length !== 64 ||
+        after.model.objects[0].controlPoints.length !== 64 ||
+        !Object.is(after.model.objects[0].controlPoints[63][0], -0) ||
+        before.curves[0].sample.pointsMM.length !== 89 ||
+        after.curves[0].sample.pointsMM.length !== 89 ||
+        before.curves[0].sample.segments.length !== 88 ||
+        after.curves[0].sample.segments.length !== 88 ||
+        before.group === after.group || originalLine === reversedLine) {
+      throw new Error('Original and reversed native source/display identity mismatch');
+    }
+    for (const [display, line] of [[before, originalLine], [after, reversedLine]]) {
+      const positions = line.geometry.getAttribute('position').array;
+      if (!line.isLine || positions.length !== display.curves[0].positions.length ||
+          positions.some((value, index) => !Object.is(value, display.curves[0].positions[index])) ||
+          JSON.stringify(line.userData.barocss.nativeParameters) !==
+            JSON.stringify(display.curves[0].sample.parameters)) {
+        throw new Error('Three Line differs from sampled native Curve');
+      }
+    }
+    const endpoints = array => [array.slice(0, 3), array.slice(-3)];
+    const [originalStart, originalEnd] = endpoints(before.curves[0].positions);
+    const [reversedStart, reversedEnd] = endpoints(after.curves[0].positions);
+    const near = (left, right) => Math.hypot(...left.map((value, index) => value - right[index])) < 1e-6;
+    if (!near(originalStart, reversedEnd) || !near(originalEnd, reversedStart)) {
+      throw new Error('Reversed sampled endpoints do not map to the original');
+    }
+    originalLine.material.color.setHex(0x00ffff);
+    reversedLine.material.color.setHex(0xff00ff);
+    before.group.position.set(-0.034, 0, 0.007);
+    after.group.position.set(0.003, 0, -0.007);
+    scene.add(before.group, after.group);
+    const first = pixels();
+    const visible = counts(first);
+    if (visible.cyan < 20 || visible.magenta < 20) throw new Error('A Line has no visible pixels');
+    evidence = {
+      originalId: before.model.objects[0].id, reversedId: after.model.objects[0].id,
+      originalModel: before.model.name, reversedModel: after.model.name,
+      poles: result.curve.controlPoints.length, knots: result.curve.knots.length,
+      originalSamples: before.curves[0].sample.pointsMM.length,
+      reversedSamples: after.curves[0].sample.pointsMM.length,
+      nativeObservations: result.report.observationCount, nativeGuards: result.report.guardCount,
+      signedZeroRetained: Object.is(after.model.objects[0].controlPoints[63][0], -0),
+      sampledEndpointOrderReversed: true, sourceTextsDistinct: before.source !== after.source,
+      oneTimeScaledPositionsMatch: true, nativeParametersSeparateFromVertices: true,
+      webgl2: renderer.getContext() instanceof WebGL2RenderingContext,
+      oneCanvas: document.querySelectorAll('canvas').length === 1,
+      visiblePixels: visible, pixelHash: hash(first), callerMarkerRetained: scene.children.includes(marker),
+    };
+    window.__baroCurveWideReversalThreeEvidence = evidence;
+    show();
+    document.querySelector('#reject').onclick = () => {
+      const acceptedPixels = hash(pixels());
+      const acceptedSources = [before.source, after.source];
+      const acceptedOptions = JSON.stringify(options);
+      const candidates = [
+        () => loader.parse('@model invalid {}'),
+        () => new BaroCADLoader({ ...options, sourceVersion: 1 }).parse(reversedText),
+        () => new BaroCADLoader({ ...options, unitsPerMillimeter: -1 }).parse(reversedText),
+        () => { const forged = structuredClone(result); forged.curve.weights[0] = 2;
+          validateWideReversedCurveResult(forged); },
+      ];
+      let refused = 0;
+      for (const candidate of candidates) { try { candidate(); } catch { refused++; } }
+      Object.assign(evidence, {
+        invalidCandidatesRefused: refused,
+        acceptedLinesRetained: scene.children.includes(before.group) && scene.children.includes(after.group),
+        acceptedSourcesRetained: before.source === acceptedSources[0] && after.source === acceptedSources[1],
+        acceptedOptionsRetained: JSON.stringify(options) === acceptedOptions,
+        acceptedPixelsRetained: hash(pixels()) === acceptedPixels,
+      });
+      show();
+    };
+    document.querySelector('#dispose').onclick = () => {
+      let geometryDisposals = 0, materialDisposals = 0;
+      for (const line of [originalLine, reversedLine]) {
+        line.geometry.addEventListener('dispose', () => geometryDisposals++);
+        line.material.addEventListener('dispose', () => materialDisposals++);
+      }
+      before.dispose(); before.dispose(); after.dispose(); after.dispose();
+      Object.assign(evidence, {
+        geometryDisposals, materialDisposals,
+        displaysRemoved: !scene.children.includes(before.group) && !scene.children.includes(after.group),
+        callerMarkerRetained: scene.children.includes(marker),
+        callerRendererAndCanvasRetained: renderer.getContext() instanceof WebGL2RenderingContext &&
+          document.body.contains(canvas),
+        nativeSourcesRetained: before.source === originalText && after.source === reversedText,
+      });
+      show();
+    };
+  } catch (error) {
+    originalDisplay?.dispose(); reversedDisplay?.dispose();
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroCurveWideReversalThreeError = String(error?.stack ?? error);
+  }
+</script>
+</html>
