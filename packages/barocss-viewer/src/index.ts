@@ -45,6 +45,14 @@ export interface ViewerNativeCurveMeasurement {
   space: 'native-authored';
   certification: 'not-certified';
 }
+export interface ViewerNativeSurfaceCurveMeasurement {
+  surface: ViewerNativeSurfacePoint;
+  curve: ViewerNativeCurvePoint;
+  distanceMM: number;
+  metric: 'straight-line';
+  space: 'native-authored';
+  certification: 'not-certified';
+}
 export interface ViewerPick {
   ref: ViewerRef;
   triangleIndex: number;
@@ -67,6 +75,7 @@ export interface ViewerState {
   measurement: ViewerNativeSurfaceMeasurement | null;
   motion: ViewerMotionState | null;
   curveMeasurement: ViewerNativeCurveMeasurement | null;
+  surfaceCurveMeasurement: ViewerNativeSurfaceCurveMeasurement | null;
 }
 
 const PALETTE: Vec3[] = [[0.14, 0.58, 0.86], [0.95, 0.57, 0.22], [0.36, 0.72, 0.49], [0.72, 0.48, 0.87]];
@@ -254,6 +263,7 @@ export class Viewer {
   private native: BaroCadNativeResult | null = null;
   private measurement: ViewerNativeSurfaceMeasurement | null = null;
   private curveMeasurement: ViewerNativeCurveMeasurement | null = null;
+  private surfaceCurveMeasurement: ViewerNativeSurfaceCurveMeasurement | null = null;
   private camera: MeshCamera = validateMeshCamera(INITIAL_CAMERA);
   private selected: ViewerRef | null = null;
   private motion: ViewerMotionState | null = null;
@@ -324,6 +334,7 @@ export class Viewer {
     this.present(packets, camera, null, null);
     this.packets = packets; this.camera = camera; this.selected = null; this.native = native;
     this.measurement = null; this.motion = null; this.curveMeasurement = null;
+    this.surfaceCurveMeasurement = null;
   }
   loadNative(source: string, input: NativeLoadOptions): void {
     this.live();
@@ -415,6 +426,40 @@ export class Viewer {
     const result: ViewerNativeCurveMeasurement = { first: firstPoint, second: secondPoint,
       distanceMM, metric: 'straight-chord', space: 'native-authored', certification: 'not-certified' };
     this.curveMeasurement = result;
+    return structuredClone(result);
+  }
+  measureNativeSurfaceCurvePoints(surfaceInput: ViewerNativeSurfaceParameter,
+    curveInput: ViewerNativeCurveParameter): ViewerNativeSurfaceCurveMeasurement {
+    this.live();
+    const surfaceParameter = parseNativeParameter(surfaceInput);
+    const curveParameter = parseNativeCurveParameter(curveInput);
+    const model = this.native?.model;
+    check(model && surfaceParameter.modelId === model.name && curveParameter.modelId === model.name,
+      'Both points must belong to the accepted native model');
+    const surface = model.objects.find(object => object.kind === 'surface'
+      && object.id === surfaceParameter.surfaceId);
+    check(surface && surface.kind === 'surface', 'Native Surface reference is unknown');
+    const surfaceBounds = surfaceDomain(surface);
+    check(surfaceParameter.u >= surfaceBounds.u[0] && surfaceParameter.u <= surfaceBounds.u[1]
+      && surfaceParameter.v >= surfaceBounds.v[0] && surfaceParameter.v <= surfaceBounds.v[1],
+    'Native U/V parameters must be inside the original Surface domain');
+    const curve = model.objects.find(object => object.kind === 'curve'
+      && object.id === curveParameter.curveId);
+    check(curve && curve.kind === 'curve', 'Native Curve reference is unknown');
+    const curveBounds = curveDomain(curve);
+    check(curveParameter.t >= curveBounds[0] && curveParameter.t <= curveBounds[1],
+      'Native Curve parameter must be inside the original domain');
+    const surfacePoint: ViewerNativeSurfacePoint = { ref: { modelId: surfaceParameter.modelId,
+      surfaceId: surfaceParameter.surfaceId }, u: surfaceParameter.u, v: surfaceParameter.v,
+    pointMM: [...evaluateSurface(surface, surfaceParameter.u, surfaceParameter.v)] as Vec3 };
+    const curvePoint: ViewerNativeCurvePoint = { ref: { modelId: curveParameter.modelId,
+      curveId: curveParameter.curveId }, t: curveParameter.t,
+    pointMM: [...evaluateCurve(curve, curveParameter.t)] as Vec3 };
+    const distanceMM = Math.hypot(...subtract(surfacePoint.pointMM, curvePoint.pointMM));
+    check(Number.isFinite(distanceMM), 'Native Surface-to-Curve distance is not finite');
+    const result: ViewerNativeSurfaceCurveMeasurement = { surface: surfacePoint, curve: curvePoint,
+      distanceMM, metric: 'straight-line', space: 'native-authored', certification: 'not-certified' };
+    this.surfaceCurveMeasurement = result;
     return structuredClone(result);
   }
   fit(): void {
@@ -514,7 +559,8 @@ export class Viewer {
       surfaces: this.packets.map(entry => ({ modelId: entry.modelId, surfaceId: entry.packet.surfaceId })),
       packets: this.packets,
       selected: this.selected, native: this.native, measurement: this.measurement,
-      curveMeasurement: this.curveMeasurement, motion: this.motion });
+      curveMeasurement: this.curveMeasurement, surfaceCurveMeasurement: this.surfaceCurveMeasurement,
+      motion: this.motion });
   }
   readPixels(): Uint8Array { this.live(); check(this.renderer, 'Viewer has no surfaces'); return this.renderer.readPixels(); }
   dispose(): void { if (this.disposed) return; this.disposed = true;

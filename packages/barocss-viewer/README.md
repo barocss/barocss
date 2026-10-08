@@ -68,6 +68,16 @@ and straight chord `distanceMM`. The copied result uses
 accepted result is separate at `getState().curveMeasurement`; a successful
 new model load clears it. The current Viewer does not draw or pick native
 Curves. Invalid requests retain both measurement records and the scene.
+
+`measureNativeSurfaceCurvePoints(surface, curve)` evaluates one original
+Surface U/V and one original Curve t from the same accepted native Model.
+Its copied native XYZ/mm points and Euclidean `distanceMM` use
+`metric: 'straight-line'`, `space: 'native-authored'`, and
+`certification: 'not-certified'`. The result is separate at
+`getState().surfaceCurveMeasurement`. It is not a path along the Surface or
+Curve. Invalid requests preserve all three measurement records and the scene;
+successful model or packet acceptance clears all three.
+
 `getState().packets` contains copied, unscaled preview packets for native or
 generic input.
 The current GPU scene backend requires distinct original `surfaceId` values

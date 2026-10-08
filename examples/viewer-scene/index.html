@@ -56,6 +56,15 @@
         <label>Second parameter<input id="second-t" type="number" step="any" value="0.75"></label>
         <button id="measure-curve">Measure native Curve chord</button>
       </details>
+      <details class="measure" aria-label="Native Surface-to-Curve distance measurement">
+        <summary>Native Surface-to-Curve distance</summary>
+        <div class="hint">Enter original Surface U/V and Curve t. The Curve is not drawn. This measures a straight line between native points, not a path along either geometry.</div>
+        <label>Surface<select id="mixed-surface"></select></label>
+        <div class="pair"><label>Surface U<input id="mixed-u" type="number" step="any" value="0.5"></label><label>Surface V<input id="mixed-v" type="number" step="any" value="0.5"></label></div>
+        <label>Curve<select id="mixed-curve"></select></label>
+        <label>Curve parameter<input id="mixed-t" type="number" step="any" value="0.75"></label>
+        <button id="measure-mixed">Measure native straight distance</button>
+      </details>
       <pre id="state" aria-live="polite">Loading native source…</pre>
     </aside>
   </div>

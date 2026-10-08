@@ -28,3 +28,10 @@ nonunit rational example, open `/?weightedCurve=1`; only the hidden
 `reference_edge` Curve weight changes to 0.5. Parameters 0.25 and 0.75
 produce a straight native chord of 45.714285714285715 mm. It is not the
 length along the Curve or a certified dimension.
+
+Open **Native Surface-to-Curve distance** to evaluate one original Surface
+U/V and one original Curve t. On `/?weightedCurve=1`, the initial values
+give Surface `[50,70,20]` mm and Curve `[60,0,0]` mm, so the straight
+distance is `sqrt(5400)` mm. The Curve is not drawn. The result is separate
+from Surface-Surface and Curve-Curve measurements and is not a path along
+either geometry or a certified dimension.
