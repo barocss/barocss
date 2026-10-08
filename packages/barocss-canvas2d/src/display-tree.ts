@@ -1,5 +1,5 @@
 import { Canvas2DError, validatePoint, validateScene } from './schema.js';
-import type { GlyphRunNode, GroupNodeV6, ImageNodeV6, PathNodeV5, RectNode, Point, SceneV6, Transform } from './schema.js';
+import type { FrameNodeV6, GlyphRunNode, GroupNodeV6, ImageNodeV6, PathNodeV5, RectNode, Point, SceneV6, Transform } from './schema.js';
 import type { Hit } from './renderer.js';
 import { tessellatePath } from './path.js';
 
@@ -11,7 +11,9 @@ export type RectSpec = Omit<RectNode, 'kind'>;
 export type RectPaint = Pick<RectNode, 'width' | 'height' | 'fill'>;
 export type GlyphRunSpec = Omit<GlyphRunNode, 'kind'>;
 export type GlyphRunLayout = Pick<GlyphRunNode, 'atlasId' | 'text' | 'baseline' | 'opacity' | 'sampling' | 'glyphs'>;
-export type DisplayHandle = ContainerHandle | SpriteHandle | PathHandle | RectHandle | GlyphRunHandle;
+export type FrameSpec = Pick<FrameNodeV6, 'id' | 'layer' | 'transform' | 'width' | 'height' | 'fill' | 'clip'>;
+export type FramePaint = Pick<FrameNodeV6, 'width' | 'height' | 'fill' | 'clip'>;
+export type DisplayHandle = ContainerHandle | SpriteHandle | PathHandle | RectHandle | GlyphRunHandle | FrameHandle;
 export type PointerEventType = 'pointerdown' | 'pointerup' | 'pointermove' | 'pointercancel';
 export type DisplayPointerEvent = {
   readonly type: PointerEventType;
@@ -33,6 +35,12 @@ export type ContainerHandle = StageHandle & {
   readonly kind: 'container'; readonly id: string; readonly data: ContainerSpec;
   setTransform(transform: Transform): void;
   setLayer(layer: number): void;
+};
+export type FrameHandle = StageHandle & {
+  readonly kind: 'frame'; readonly id: string; readonly data: FrameSpec;
+  setTransform(transform: Transform): void;
+  setLayer(layer: number): void;
+  setFrame(paint: FramePaint): void;
 };
 export type SpriteHandle = {
   readonly kind: 'sprite'; readonly id: string; readonly data: SpriteSpec;
@@ -70,13 +78,14 @@ export type DisplayTree = {
   createPath(spec: PathSpec): PathHandle;
   createRect(spec: RectSpec): RectHandle;
   createGlyphRun(spec: GlyphRunSpec): GlyphRunHandle;
+  createFrame(spec: FrameSpec): FrameHandle;
   get(id: string): DisplayHandle | null;
   dispatchPointer(input: PointerInput): void;
   snapshot(): SceneV6;
 };
 
 type RecordNode = {
-  data: GroupNodeV6 | ImageNodeV6 | PathNodeV5 | RectNode | GlyphRunNode | null;
+  data: GroupNodeV6 | ImageNodeV6 | PathNodeV5 | RectNode | GlyphRunNode | FrameNodeV6 | null;
   parent: RecordNode | null;
   children: RecordNode[];
   handle: StageHandle | DisplayHandle;
@@ -152,10 +161,10 @@ export function createDisplayTree(contextId: string): DisplayTree {
     return find(root.children);
   }
 
-  function toNode(record: RecordNode): GroupNodeV6 | ImageNodeV6 | PathNodeV5 | RectNode | GlyphRunNode {
+  function toNode(record: RecordNode): GroupNodeV6 | ImageNodeV6 | PathNodeV5 | RectNode | GlyphRunNode | FrameNodeV6 {
     const data = record.data;
     if (!data) invalid('stage has no scene node');
-    if (data.kind === 'group') return { ...data, children: record.children.map(toNode) };
+    if (data.kind === 'group' || data.kind === 'frame') return { ...data, children: record.children.map(toNode) };
     return data;
   }
   function validateRoots(changed: RecordNode): void {
@@ -173,13 +182,13 @@ export function createDisplayTree(contextId: string): DisplayTree {
     if (!record || record === root) invalid('display object belongs to another tree');
     return record;
   }
-  function mutate(record: RecordNode, data: GroupNodeV6 | ImageNodeV6 | PathNodeV5 | RectNode | GlyphRunNode): void {
+  function mutate(record: RecordNode, data: GroupNodeV6 | ImageNodeV6 | PathNodeV5 | RectNode | GlyphRunNode | FrameNodeV6): void {
     const previous = record.data;
     record.data = data;
     try {
       validateRoots(record);
       const accepted = validateScene({ version: 6, unit: 'logical-px', contextId: checked.contextId,
-        nodes: [toNode(record)] }).nodes[0] as GroupNodeV6 | ImageNodeV6 | PathNodeV5 | RectNode | GlyphRunNode;
+        nodes: [toNode(record)] }).nodes[0] as GroupNodeV6 | ImageNodeV6 | PathNodeV5 | RectNode | GlyphRunNode | FrameNodeV6;
       if (accepted.kind === 'path') checkPathGeometry(accepted);
       record.data = accepted;
     } catch (error) { record.data = previous; throw error; }
@@ -323,6 +332,28 @@ export function createDisplayTree(contextId: string): DisplayTree {
       record.handle = handle; records.set(handle, record);
       return handle;
     },
+    createFrame(spec: FrameSpec): FrameHandle {
+      const fields = exactSpec(spec, ['id', 'layer', 'transform', 'width', 'height', 'fill', 'clip']);
+      const node = validateScene({ version: 6, unit: 'logical-px', contextId: checked.contextId,
+        nodes: [{ kind: 'frame', ...fields, children: [] }] }).nodes[0] as FrameNodeV6;
+      const record: RecordNode = { data: node, parent: null, children: [], handle: null as unknown as FrameHandle };
+      const parent = parentMethods(record);
+      const handle: FrameHandle = Object.freeze({
+        kind: 'frame' as const, get id() { return (record.data as FrameNodeV6).id; },
+        get data() { const { kind: _kind, children: _children, ...data } = record.data as FrameNodeV6;
+          return structuredClone(data) as FrameSpec; },
+        get children() { return parent.children; },
+        addChild: parent.addChild, removeChild: parent.removeChild,
+        onPointer: parent.onPointer,
+        ...common(record),
+        setFrame(paint: FramePaint) {
+          const fields = exactSpec(paint, ['width', 'height', 'fill', 'clip']);
+          mutate(record, { ...(record.data as FrameNodeV6), ...fields });
+        },
+      });
+      record.handle = handle; records.set(handle, record);
+      return handle;
+    },
     get(id: string): DisplayHandle | null {
       if (typeof id !== 'string' || !/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(id)) {
         invalid('display object ID is invalid');
@@ -346,8 +377,8 @@ export function createDisplayTree(contextId: string): DisplayTree {
         if (!['frame', 'rect', 'line', 'path', 'image', 'glyphRun'].includes(hit.kind as string)) {
           invalid('pointer hit kind is invalid');
         }
-        if (hit.kind !== 'image' && hit.kind !== 'path' && hit.kind !== 'rect' && hit.kind !== 'glyphRun') {
-          throw new Canvas2DError('UNSUPPORTED_FEATURE', 'display tree pointer target must be an image, path, rect or glyph run');
+        if (hit.kind !== 'image' && hit.kind !== 'path' && hit.kind !== 'rect' && hit.kind !== 'glyphRun' && hit.kind !== 'frame') {
+          throw new Canvas2DError('UNSUPPORTED_FEATURE', 'display tree pointer target must be an image, path, rect, glyph run or frame');
         }
         target = findRecord(hit.id);
         if (!target || target.data?.kind !== hit.kind) invalid('pointer hit is not an attached display handle');
@@ -381,7 +412,7 @@ export function createDisplayTreeFromScene(scene: unknown): DisplayTree {
   }
   const allowed = (nodes: SceneV6['nodes']): void => {
     for (const node of nodes) {
-      if (node.kind === 'group') allowed(node.children);
+      if (node.kind === 'group' || node.kind === 'frame') allowed(node.children);
       else if (node.kind !== 'image' && node.kind !== 'path' && node.kind !== 'rect' && node.kind !== 'glyphRun') {
         throw new Canvas2DError('UNSUPPORTED_FEATURE', `display tree cannot reconstruct ${node.kind}`);
       }
@@ -394,6 +425,11 @@ export function createDisplayTreeFromScene(scene: unknown): DisplayTree {
       if (node.kind === 'group') {
         const { kind: _kind, children, ...spec } = node;
         const handle = tree.createContainer(spec);
+        parent.addChild(handle);
+        attach(handle, children);
+      } else if (node.kind === 'frame') {
+        const { kind: _kind, children, ...spec } = node;
+        const handle = tree.createFrame(spec);
         parent.addChild(handle);
         attach(handle, children);
       } else if (node.kind === 'image') {
