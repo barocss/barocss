@@ -76,6 +76,28 @@ export type BaroCadModelSetPrimitiveDisplayEntryV1 =
       readonly basis: 'authored-xyz-matches-rhyup';
       readonly binding: BaroCadModelSetPrimitiveDisplayBinding };
 
+export interface BaroCadModelSetPrimitiveNativeRefV2 {
+  /** Caller-scoped alias with '-' encoded as '.', not the native Model name. */
+  readonly modelId: string;
+  /** Original native Surface or Curve ID. */
+  readonly geometryId: string;
+}
+
+export type BaroCadModelSetPrimitiveNativeEntryV2 =
+  | { readonly kind: 'surface'; readonly packet: CadPreviewPacket;
+      readonly ref: BaroCadModelSetPrimitiveNativeRefV2;
+      readonly binding: BaroCadModelSetPrimitiveDisplayBinding }
+  | { readonly kind: 'curve'; readonly sampleVersion: 0;
+      readonly sample: AdaptiveCurveSamplingResult;
+      readonly basis: 'authored-xyz-matches-rhyup';
+      readonly ref: BaroCadModelSetPrimitiveNativeRefV2;
+      readonly binding: BaroCadModelSetPrimitiveDisplayBinding }
+  | { readonly kind: 'curve'; readonly sampleVersion: 1;
+      readonly sample: WideAdaptiveCurveSamplingResult;
+      readonly basis: 'authored-xyz-matches-rhyup';
+      readonly ref: BaroCadModelSetPrimitiveNativeRefV2;
+      readonly binding: BaroCadModelSetPrimitiveDisplayBinding };
+
 function record(input: unknown, keys: readonly string[], label: string): Record<string, unknown> {
   if (input === null || typeof input !== 'object' || Array.isArray(input) ||
       ![Object.prototype, null].includes(Object.getPrototypeOf(input))) {
@@ -396,4 +418,24 @@ export function prepareBaroCadModelSetPrimitiveDisplayV1(
     }
   }
   return Object.freeze(output);
+}
+
+/** Return original native IDs and qualified refs for a caller-supplied primitive renderer. */
+export function prepareBaroCadModelSetPrimitiveNativeRefsV2(
+  set: BaroCadModelSetResult,
+): ReadonlyArray<BaroCadModelSetPrimitiveNativeEntryV2> {
+  const display = prepareBaroCadModelSetPrimitiveDisplayV1(set);
+  return Object.freeze(display.map(entry => {
+    const ref = Object.freeze({ modelId: entry.binding.aliasId.replaceAll('-', '.'),
+      geometryId: entry.binding.geometryId });
+    if (entry.kind === 'surface') {
+      const packet = copyCadPreviewPacket(entry.packet);
+      packet.surfaceId = ref.geometryId;
+      return Object.freeze({ kind: 'surface', packet, ref, binding: entry.binding });
+    }
+    if (entry.sampleVersion === 1) return Object.freeze({ kind: 'curve', sampleVersion: 1,
+      sample: entry.sample, basis: entry.basis, ref, binding: entry.binding });
+    return Object.freeze({ kind: 'curve', sampleVersion: 0,
+      sample: entry.sample, basis: entry.basis, ref, binding: entry.binding });
+  }));
 }
