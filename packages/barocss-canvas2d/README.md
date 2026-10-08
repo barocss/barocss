@@ -15,6 +15,7 @@ renderer.updateScene(parseSceneJSON(savedJSON));
 renderer.setView({ panX: 0, panY: 0, zoom: 1 });
 renderer.render();
 const hit = renderer.hitTest({ x: 120, y: 120 });
+const hitStack = renderer.hitTestAll({ x: 120, y: 120 }, 4);
 const pathObservation = renderer.getPathObservation('PathRibbon');
 const fillObservation = renderer.getFillObservation('FilledBadge');
 const capabilities = renderer.getCapabilities();
@@ -22,6 +23,8 @@ const ownedImageBytes = renderer.getImageAsset('RGBA2');
 const nextJSON = stringifySceneJSON(scene);
 renderer.dispose();
 ```
+
+`hitTestAll(point, limit?)` returns fresh semantic hits in topmost-first order. It reports each node once, even when a path or glyph run has several draw records. The default limit is 16; an explicit limit must be a positive safe integer at most 16. It uses the same accepted scene, view, clip, sprite alpha and hit eligibility as `hitTest`. The host can choose a lower hit for selection cycling and pass it to `tree.dispatchPointer`. The [compiled hit-stack consumer](consumer/hit-stack.html) shows that route and a real v1 document reopen; [browser observations](consumer/evidence/hit-stack/observation.md) record the result.
 
 `createPathBuilder()` makes path-local commands for the public display tree. The example below uses the renderer created above; the builder does not own paint or render a frame:
 

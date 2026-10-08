@@ -456,6 +456,28 @@ export class Canvas2DRenderer {
     return null;
   }
 
+  hitTestAll(value: Point, limit = 16): Hit[] {
+    this.active();
+    const p = validatePoint(value);
+    if (typeof limit !== 'number' || !Number.isSafeInteger(limit) || limit <= 0 || Object.is(limit, -0)) {
+      throw new Canvas2DError('INVALID_SCENE', 'hit limit must be a positive safe integer');
+    }
+    if (limit > 16) throw new Canvas2DError('SCENE_LIMIT', 'hit limit exceeds 16');
+    if (p.x < 0 || p.y < 0 || p.x >= this.size.width || p.y >= this.size.height) return [];
+    const world = { x: (p.x - this.view.panX) / this.view.zoom,
+      y: (p.y - this.view.panY) / this.view.zoom };
+    const hits: Hit[] = [];
+    const seen = new Set<string>();
+    for (let i = this.draws.length - 1; i >= 0 && hits.length < limit; i--) {
+      const draw = this.draws[i];
+      if (!seen.has(draw.id) && draw.visible && draw.hitEnabled && draw.color[3] > 0 && contains(draw, world)) {
+        seen.add(draw.id);
+        hits.push({ id: draw.id, kind: draw.kind });
+      }
+    }
+    return hits;
+  }
+
   render(): void {
     this.active();
     if (this.lost || !this.gpu || this.gl.isContextLost()) throw new Canvas2DError('CONTEXT_LOST', 'WebGL context is unavailable');
