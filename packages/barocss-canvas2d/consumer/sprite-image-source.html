@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><link rel="icon" href="data:,"><title>Canvas2D sprite image source consumer</title>
+<style>
+  body { margin: 20px; font: 14px system-ui; color: #17233c; background: #f5f7fb; }
+  button, input { margin: 0 8px 8px 0; padding: 7px 10px; }
+  canvas#scene { width: 120px; height: 120px; display: block; background: white; }
+  pre { max-width: 800px; white-space: pre-wrap; background: white; padding: 12px; }
+</style>
+<h1>Canvas2D sprite image source</h1>
+<p>Switch a stable sprite between host-registered images and save the accepted source.</p>
+<button id="switch-b">Switch to B</button><button id="crop-b">Crop B to white</button>
+<button id="missing">Missing image</button><button id="outside">Outside crop</button>
+<button id="remove-a">Remove unused A</button><button id="register-a">Register A</button>
+<button id="switch-a">Switch to A</button><button id="save">Save document</button>
+<label>Open document <input id="open" type="file" accept="application/json,.json"></label>
+<p id="status" role="status">Loading</p><canvas id="scene"></canvas><pre id="observation"></pre>
+<script type="importmap">
+{"imports":{"@barocss/canvas2d":"../dist/index.js","@barocss/canvas2d/document":"../dist/document.js"}}
+</script>
+<script type="module" src="./sprite-image-source.mjs"></script>
+</html>

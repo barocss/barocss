@@ -52,6 +52,7 @@ export type SpriteHandle = {
   setSize(width: number, height: number): void;
   setOpacity(opacity: number): void;
   setSourceRect(rect: SourceRect | null): void;
+  setImageSource(imageId: string, sourceRect?: SourceRect | null): void;
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
 export type RectHandle = {
@@ -284,6 +285,12 @@ export function createDisplayTree(contextId: string): DisplayTree {
         setSourceRect(rect: SourceRect | null) {
           const { sourceRect: _prior, ...withoutCrop } = record.data as ImageNodeV6;
           mutate(record, rect === null ? withoutCrop : { ...withoutCrop, sourceRect: rect });
+        },
+        setImageSource(imageId: string, sourceRect: SourceRect | null = null) {
+          const { sourceRect: _prior, ...withoutCrop } = record.data as ImageNodeV6;
+          mutate(record, sourceRect === null
+            ? { ...withoutCrop, imageId }
+            : { ...withoutCrop, imageId, sourceRect });
         },
       });
       record.handle = handle; records.set(handle, record);
