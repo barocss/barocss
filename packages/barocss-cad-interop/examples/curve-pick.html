@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>BaroCAD Curve display pick</title>
+<style>
+  body { font: 15px/1.5 system-ui, sans-serif; margin: 1.5rem; }
+  main { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+  section { width: 420px; }
+  canvas { width: 420px; height: 320px; border: 1px solid #8c9ba9; cursor: crosshair; }
+  pre { min-height: 9rem; white-space: pre-wrap; background: #f0f4f8; padding: .75rem; }
+</style>
+<h1>BaroCAD Curve display pick</h1>
+<p>Click the center of each canvas. The parameter is associated with a display chord; the CAD point is evaluated at that approximate parameter.</p>
+<main>
+  <section><h2>Three.js</h2><canvas id="three"></canvas><pre id="three-result">Click the Curve.</pre></section>
+  <section><h2>Babylon.js</h2><canvas id="babylon"></canvas><pre id="babylon-result">Click the Curve.</pre></section>
+</main>
+<script type="module">
+  import { Group, Line, OrthographicCamera, Raycaster, Scene as ThreeScene, Vector2, Vector3 as ThreeVector3, WebGLRenderer } from 'three';
+  import { Engine } from '@babylonjs/core/Engines/engine.js';
+  import { Scene as BabylonScene } from '@babylonjs/core/scene.js';
+  import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera.js';
+  import { Camera } from '@babylonjs/core/Cameras/camera.js';
+  import '@babylonjs/core/Culling/ray.js';
+  import { Vector3 as BabylonVector3 } from '@babylonjs/core/Maths/math.vector.js';
+  import { BaroCADLoader, resolveBaroCadThreeCurvePick } from '@barocss/cad-interop/three';
+  import { BaroCADBabylonLoader, resolveBaroCadBabylonCurvePick } from '@barocss/cad-interop/babylon';
+
+  const options = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { chordToleranceMM: 0.1, maxSegments: 128, maxDepth: 16 } };
+  const source = await (await fetch('./curve-display.barocad')).text();
+  const evidence = { sourceLength: source.length, three: null, babylon: null, errors: [] };
+  window.__baroCadCurvePickEvidence = evidence;
+  const report = (target, pick) => {
+    evidence[target] = pick && { curveId: pick.curveId, segmentIndex: pick.segmentIndex,
+      interval: pick.interval, parameterApprox: pick.parameterApprox, displayPoint: pick.displayPoint,
+      worldPoint: pick.worldPoint, nativePointMM: pick.nativePointMM };
+    document.querySelector(`#${target}-result`).textContent = JSON.stringify(evidence[target], null, 2);
+  };
+  try {
+    const canvas = document.querySelector('#three');
+    const renderer = new WebGLRenderer({ canvas, antialias: true });
+    renderer.setSize(420, 320, false);
+    const scene = new ThreeScene();
+    scene.background = null;
+    const caller = new Group();
+    caller.name = 'caller';
+    scene.add(caller);
+    const result = new BaroCADLoader(options).parse(source);
+    scene.add(result.group);
+    const line = result.group.children.find(child => child instanceof Line && child.name === 'asymmetric_nonunit');
+    line.position.set(0.18, 0.07, -0.03);
+    line.rotation.z = 0.2;
+    line.scale.set(1.3, 0.8, 1.1);
+    result.group.updateMatrixWorld(true);
+    const curve = result.curves.find(item => item.curveId === 'asymmetric_nonunit');
+    const segment = Math.floor(curve.sample.segments.length / 2);
+    const start = new ThreeVector3().fromArray(curve.positions, segment * 3);
+    const end = new ThreeVector3().fromArray(curve.positions, (segment + 1) * 3);
+    const center = start.lerp(end, 0.5).applyMatrix4(line.matrixWorld);
+    const camera = new OrthographicCamera(-0.12, 0.12, 0.0914, -0.0914, 0.01, 5);
+    camera.position.copy(center).add(new ThreeVector3(0, 0, 1));
+    camera.lookAt(center);
+    camera.updateProjectionMatrix();
+    renderer.render(scene, camera);
+    canvas.addEventListener('click', event => {
+      try {
+        const bounds = canvas.getBoundingClientRect();
+        const pointer = new Vector2((event.clientX - bounds.left) / bounds.width * 2 - 1,
+          1 - (event.clientY - bounds.top) / bounds.height * 2);
+        const ray = new Raycaster();
+        ray.params.Line.threshold = 0.006;
+        ray.setFromCamera(pointer, camera);
+        report('three', resolveBaroCadThreeCurvePick(result, ray.intersectObject(line)[0] ?? null));
+      } catch (error) { evidence.errors.push(String(error)); document.querySelector('#three-result').textContent = String(error); }
+    });
+    evidence.threeReady = { curves: result.curves.length, surfaces: result.surfaces.length, callerAlive: caller.parent === scene };
+  } catch (error) { evidence.errors.push(`Three: ${error}`); document.querySelector('#three-result').textContent = String(error); }
+
+  try {
+    const canvas = document.querySelector('#babylon');
+    const engine = new Engine(canvas, true, { preserveDrawingBuffer: true });
+    engine.setSize(420, 320);
+    const scene = new BabylonScene(engine);
+    scene.useRightHandedSystem = true;
+    const result = new BaroCADBabylonLoader(scene, options).parse(source);
+    const line = result.meshes.find(mesh => mesh.metadata?.barocss?.curveId === 'asymmetric_nonunit');
+    line.position.set(0.18, 0.07, -0.03);
+    line.rotation.z = 0.2;
+    line.scaling.set(1.3, 0.8, 1.1);
+    line.intersectionThreshold = 0.005;
+    line.computeWorldMatrix(true);
+    const curve = result.curves.find(item => item.curveId === 'asymmetric_nonunit');
+    const segment = Math.floor(curve.sample.segments.length / 2);
+    const start = BabylonVector3.FromArray(curve.positions, segment * 3);
+    const end = BabylonVector3.FromArray(curve.positions, (segment + 1) * 3);
+    const center = BabylonVector3.TransformCoordinates(BabylonVector3.Lerp(start, end, 0.5), line.getWorldMatrix());
+    const camera = new FreeCamera('camera', center.add(new BabylonVector3(0, 0, 1)), scene);
+    camera.mode = Camera.ORTHOGRAPHIC_CAMERA;
+    camera.orthoLeft = -0.12;
+    camera.orthoRight = 0.12;
+    camera.orthoTop = 0.0914;
+    camera.orthoBottom = -0.0914;
+    camera.setTarget(center);
+    scene.activeCamera = camera;
+    engine.runRenderLoop(() => scene.render());
+    canvas.addEventListener('click', event => {
+      try {
+        const bounds = canvas.getBoundingClientRect();
+        const hit = scene.pick(event.clientX - bounds.left, event.clientY - bounds.top, mesh => mesh === line, false, camera);
+        report('babylon', resolveBaroCadBabylonCurvePick(result, hit));
+      } catch (error) { evidence.errors.push(String(error)); document.querySelector('#babylon-result').textContent = String(error); }
+    });
+    evidence.babylonReady = { curves: result.curves.length, surfaces: result.surfaces.length, sceneAlive: !scene.isDisposed };
+  } catch (error) { evidence.errors.push(`Babylon: ${error}`); document.querySelector('#babylon-result').textContent = String(error); }
+</script>
+</html>
