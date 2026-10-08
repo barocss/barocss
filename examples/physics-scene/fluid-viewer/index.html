@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>Physics 물 입자와 CAD Surface</title>
+<style>
+  body { margin: 24px; background: #14212d; color: #eef5fb; font: 15px system-ui; }
+  main { max-width: 760px; }
+  canvas { display: block; width: min(100%, 640px); aspect-ratio: 4 / 3; border: 1px solid #566675; }
+  button { margin: 16px 8px 8px 0; padding: 8px 14px; font: inherit; cursor: pointer; }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+</style>
+<main>
+  <h1>물 입자와 CAD Surface</h1>
+  <p>Physics의 256개 입자를 Viewer의 실제 WebGL2 장면에 표시합니다.</p>
+  <canvas id="view" width="640" height="480"></canvas>
+  <div><button id="toggle" type="button">재생</button><button id="step" type="button">한 단계</button><button id="reset" type="button">초기화</button></div>
+  <pre id="status">장면을 불러오는 중…</pre>
+</main>
+<script type="module" src="/bundle.js"></script>
+</html>
