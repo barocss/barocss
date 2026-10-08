@@ -10,7 +10,7 @@ const sprite = tree.createSprite({ id: 'Sprite', layer: 0, transform: pose,
   imageId: 'Atlas', width: 20, height: 20, opacity: 1,
   sampling: 'nearest', anchorX: 0, anchorY: 0 });
 tree.stage.addChild(sprite);
-assert.equal(tree.snapshot().version, 10);
+assert.equal(tree.snapshot().version, 11);
 assert.equal(sprite.data.blendMode, 'normal');
 sprite.setBlendMode('add');
 assert.equal(sprite.data.blendMode, 'add');
@@ -37,7 +37,7 @@ restored.get('Sprite').setBlendMode('normal');
 assert.equal(restored.get('Sprite').data.blendMode, 'normal');
 assert.equal(sprite.data.blendMode, 'add');
 const v7 = structuredClone(tree.snapshot()); v7.version = 7;
-delete v7.nodes[0].blendMode; delete v7.nodes[0].visible; delete v7.nodes[0].alpha;
+delete v7.nodes[0].blendMode; delete v7.nodes[0].visible; delete v7.nodes[0].alpha; delete v7.nodes[0].hitMode;
 assert.equal(parseSceneJSON(stringifySceneJSON(v7)).version, 7);
 assert.equal(createDisplayTreeFromScene(v7).get('Sprite').data.blendMode, 'normal');
 const v6 = structuredClone(v7); v6.version = 6; delete v6.nodes[0].tint;
@@ -51,9 +51,9 @@ for (const version of [0, 1, 2, 3, 4, 5]) {
 }
 const text = await serializeCanvasDocument(tree.snapshot(), id => id === 'Atlas' ? image : null);
 const parsed = await parseCanvasDocument(text);
-assert.equal(parsed.scene.version, 10);
+assert.equal(parsed.scene.version, 11);
 assert.equal(parsed.scene.nodes[0].blendMode, 'add');
 assert.deepEqual([...parsed.assets.get('Atlas').pixels], [...image.pixels]);
 sprite.setBlendMode('normal');
 assert.equal(sprite.data.blendMode, 'normal');
-console.log(JSON.stringify({ result: 'ok', sceneVersion: 10, documentBytes: Buffer.byteLength(text) }));
+console.log(JSON.stringify({ result: 'ok', sceneVersion: 11, documentBytes: Buffer.byteLength(text) }));

@@ -1,5 +1,5 @@
 import { Canvas2DError, copyImageAsset, validateImageAssetId, validatePoint, validateScene, validateSize, validateView } from './schema.js';
-import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, Point, Scene, Size, Transform, View } from './schema.js';
+import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, Point, Scene, Size, Transform, View } from './schema.js';
 import { tessellatePath } from './path.js';
 import type { FillObservation, PathObservation } from './path.js';
 import { createImageGpu, createImageTexture, disposeImageGpu, renderImage, sampledAlpha, sourceRect } from './image.js';
@@ -7,11 +7,11 @@ import type { ImageAsset, ImageGpu } from './image.js';
 
 type Matrix = [number, number, number, number, number, number];
 type Clip = { left: number; top: number; right: number; bottom: number };
-type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10;
+type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11;
 type DrawNode = Exclude<RenderNode, { kind: 'group' }>;
 type Draw = {
   id: string; kind: 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun'; node: DrawNode;
-  matrix: Matrix; inverse: Matrix; color: Color; vertices: Float32Array; clip: Clip | null; visible: boolean;
+  matrix: Matrix; inverse: Matrix; color: Color; vertices: Float32Array; clip: Clip | null; visible: boolean; hitEnabled: boolean;
   observation?: PathObservation; fillObservation?: FillObservation;
   maskVertices?: Float32Array; contours?: Float32Array[]; fillRule?: 'evenodd' | 'nonzero';
   imageAsset?: ImageAsset; imageNode?: ImageNode;
@@ -88,16 +88,17 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
     draws.push(draw);
   }
   function visit(siblings: RenderNode[], parent: Matrix, inheritedClip: Clip | null,
-    inheritedVisible: boolean, inheritedAlpha: number): void {
+    inheritedVisible: boolean, inheritedAlpha: number, inheritedHitEnabled: boolean): void {
     const sorted = siblings.map((node, index) => ({ node, index }))
       .sort((a, b) => a.node.layer - b.node.layer || a.index - b.index);
     for (const { node } of sorted) {
       const visible = inheritedVisible && (!('visible' in node) || node.visible !== false);
       const alpha = inheritedAlpha * ('alpha' in node ? node.alpha : 1);
-      const add = (draw: Omit<Draw, 'visible'>): void => addDraw({ ...draw,
-        color: [draw.color[0], draw.color[1], draw.color[2], draw.color[3] * alpha], visible });
+      const hitEnabled = inheritedHitEnabled && (!('hitMode' in node) || node.hitMode !== 'none');
+      const add = (draw: Omit<Draw, 'visible' | 'hitEnabled'>): void => addDraw({ ...draw,
+        color: [draw.color[0], draw.color[1], draw.color[2], draw.color[3] * alpha], visible, hitEnabled });
       const matrix = multiply(parent, pose(node.transform));
-      if (node.kind === 'group') { visit(node.children as RenderNode[], matrix, inheritedClip, visible, alpha); continue; }
+      if (node.kind === 'group') { visit(node.children as RenderNode[], matrix, inheritedClip, visible, alpha, hitEnabled); continue; }
       const inv = inverse(matrix);
       if (node.kind === 'frame') {
         add({ id: node.id, kind: 'frame', node, matrix, inverse: inv,
@@ -110,7 +111,7 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
             right: Math.max(topLeft.x, bottomRight.x), bottom: Math.max(topLeft.y, bottomRight.y),
           });
         }
-        visit(node.children as RenderNode[], matrix, childClip, visible, alpha);
+        visit(node.children as RenderNode[], matrix, childClip, visible, alpha, hitEnabled);
       } else if (node.kind === 'rect') {
         add({ id: node.id, kind: 'rect', node, matrix, inverse: inv,
           color: node.fill, vertices: rectangle(matrix, node.width, node.height), clip: inheritedClip });
@@ -161,7 +162,7 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
       }
     }
   }
-  visit(scene.nodes as RenderNode[], [1, 0, 0, 1, 0, 0], null, true, 1);
+  visit(scene.nodes as RenderNode[], [1, 0, 0, 1, 0, 0], null, true, 1, true);
   return draws;
 }
 
@@ -450,7 +451,7 @@ export class Canvas2DRenderer {
       y: (p.y - this.view.panY) / this.view.zoom };
     for (let i = this.draws.length - 1; i >= 0; i--) {
       const draw = this.draws[i];
-      if (draw.visible && draw.color[3] > 0 && contains(draw, world)) return { id: draw.id, kind: draw.kind };
+      if (draw.visible && draw.hitEnabled && draw.color[3] > 0 && contains(draw, world)) return { id: draw.id, kind: draw.kind };
     }
     return null;
   }
