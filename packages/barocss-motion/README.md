@@ -73,7 +73,20 @@ The wrapper uses the existing validated clip and player. It returns the same own
 
 Crossings use `(old, new]` for each pass. An initial time-zero marker is silent. At an exact repeat seam, endpoint markers arrive before time-zero markers for the next pass. Equal-time markers retain input order. Zero-duration clips emit no marker events; zero-marker timelines are valid. A clamp endpoint pauses playback, and `play` there restarts at zero with no event. Paused or zero-delta advances emit no events.
 
-The timeline accepts at most 256 markers, 16 repeat seams, and 256 events per advance. Marker IDs use the clip's ASCII ID rule and must be unique; marker times must be finite and within the clip duration. Labels use 1–256 UTF-8 bytes without C0 control characters. An optional target must be in the clip. Inputs are copied from data fields; caller getters are rejected without invocation. Invalid input or an exceeded limit throws `MotionTimelineError` with `code` `INVALID_INPUT`, `DUPLICATE_MARKER`, `UNKNOWN_TARGET`, or `LIMIT_EXCEEDED` before changing the current state. Disposal is idempotent; later operations throw `DISPOSED`. This wrapper has no clock, callback, renderer ownership, or marker file format. The version-0 `.baromotion` envelope remains unchanged.
+The timeline accepts at most 256 markers, 16 repeat seams, and 256 events per advance. Marker IDs use the clip's ASCII ID rule and must be unique; marker times must be finite and within the clip duration. Labels use 1–256 UTF-8 bytes without C0 control characters. An optional target must be in the clip. Inputs are copied from data fields; caller getters are rejected without invocation. Invalid input or an exceeded limit throws `MotionTimelineError` with `code` `INVALID_INPUT`, `DUPLICATE_MARKER`, `UNKNOWN_TARGET`, or `LIMIT_EXCEEDED` before changing the current state. Disposal is idempotent; later operations throw `DISPOSED`. This wrapper has no clock, callback, or renderer ownership. The version-0 `.baromotion` envelope remains unchanged.
+
+## Marker sidecar files
+
+```js
+import { parseMotionMarkerFile, serializeMotionMarkerFile } from '@barocss/motion';
+
+const text = serializeMotionMarkerFile(clip, markers);
+const reopenedMarkers = parseMotionMarkerFile(text, clip);
+```
+
+The separate UTF-8 `.baromarkers` file contains exactly `{ "format": "barocss-motion-markers", "version": 0, "timeUnit": "seconds", "contextId": "...", "durationSeconds": 4, "markers": [...] }`. Each marker has `contextId`, `id`, `timeSeconds`, and optional `label` and `targetId`. Canonical output has this field order, no whitespace, and preserves marker input order and numeric `-0`. The parser accepts different member order and JSON whitespace. A sidecar is compatible only with a validated clip whose context ID and numeric duration match. Parsing returns independent marker records. Hosts must stage a new timeline before replacing an existing one.
+
+The sidecar is limited to 262144 UTF-8 bytes, depth 12, 16384 visited values and member names, 256 markers, six envelope fields, five fields per marker, 256 decoded UTF-16 code units per string token, and 1538 raw code units per string token. Timeline marker rules still apply. Unknown or missing fields, decoded duplicate fields, trailing data, bad numeric tokens, and invalid marker values fail. `MotionMarkerFileError.code` is `INVALID_INPUT`, `FILE_LIMIT`, `INVALID_JSON`, `UNSUPPORTED_FORMAT`, `INCOMPATIBLE_CLIP`, or `INVALID_MARKER`. Serialization does not invoke getters or `toJSON`. The codec has no file, network, player, timer, or renderer side effects.
 
 ## Two-clip pose blend
 

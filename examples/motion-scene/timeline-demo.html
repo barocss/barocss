@@ -10,6 +10,9 @@
     .timeline-meta { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 12px; color: #9db5c4; font-size: 12px; }
     .timeline-meta strong { color: #77e8cf; }
     #events { min-height: 80px; max-height: 180px; overflow: auto; }
+    .marker-files { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+    .marker-files input { max-width: 240px; color: #b9d5df; }
+    .marker-files output { color: #9db5c4; font-size: 12px; }
   </style>
 </head>
 <body>
@@ -17,7 +20,7 @@
     <header>
       <div class="eyebrow">BAROCSS / MARKER TIMELINE</div>
       <h1>Motion with exact phase events.</h1>
-      <p>A host supplies time. The timeline returns part poses and crossed markers from one real .baromotion clip.</p>
+      <p>A host supplies time. The timeline reads a real .baromotion clip and a separate .baromarkers file.</p>
     </header>
     <div class="stage-wrap">
       <canvas id="stage" aria-label="3D scene driven by a Motion marker timeline"></canvas>
@@ -41,10 +44,16 @@
         <button type="button" data-advance="4">Advance 4 s</button>
       </div>
       <div class="timeline-meta"><span>Iteration <strong id="iteration">0</strong></span><span>Current phase <strong id="phase">—</strong></span><span id="state-label">Paused · clamp</span></div>
+      <div class="marker-files" aria-label="Marker file controls">
+        <button id="save-markers" type="button">Save markers</button>
+        <label for="open-markers">Open markers</label>
+        <input id="open-markers" type="file" accept=".baromarkers,application/json">
+        <output id="marker-file-status" role="status">Loading marker file…</output>
+      </div>
     </section>
     <section class="readout" aria-label="Delivered marker events"><div><span class="eyebrow">CROSSED MARKERS</span><span>Latest first</span></div><pre id="events">No marker crossings yet.</pre></section>
     <section class="readout" aria-label="Current owned pose"><div><span class="eyebrow">DECODED POSE</span></div><pre id="poses"></pre></section>
-    <footer>Timeline events and poses come from @barocss/motion · Three.js displays the poses</footer>
+    <footer>Marker files, timeline events and poses come from @barocss/motion · Three.js displays the poses</footer>
   </main>
   <script type="module" src="./timeline-demo.js"></script>
 </body>
