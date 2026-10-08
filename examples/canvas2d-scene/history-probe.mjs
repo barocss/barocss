@@ -19,7 +19,10 @@ assert.deepEqual([history.length, history.position], [1, 0]);
 history.restore();
 assert.equal(renderer.accepted.nodes[0].children[0].transform.x, 35);
 
-history.commit(move(10));
+const returned = history.commit(move(10));
+returned.nodes[0].children[0].transform.x = -100;
+assert.equal(x(), 45);
+assert.equal(renderer.accepted.nodes[0].children[0].transform.x, 45);
 history.commit(move(5));
 assert.deepEqual([x(), history.length, history.position], [50, 3, 2]);
 history.undo();
