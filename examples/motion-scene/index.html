@@ -1,47 +1,65 @@
 <!doctype html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BaroCSS Motion · Two-part scene</title>
+  <title>BaroCSS Motion · 작업 셀</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./showcase.css">
 </head>
 <body>
-  <main class="layout">
-    <header>
-      <div class="eyebrow">BAROCSS / MOTION PROTOTYPE</div>
-      <h1>Two parts. One caller-driven timeline.</h1>
-      <p>Each pose comes from <code>@barocss/motion</code>. The 3D renderer only displays it.</p>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">B</span><span>BAROCSS <b>MOTION</b></span></div>
+      <a href="./core-demo.html">기술 샘플 보기 <span aria-hidden="true">↗</span></a>
     </header>
-    <div class="stage-wrap">
-      <canvas id="stage" aria-label="3D scene with two moving parts"></canvas>
-      <div class="stage-label"><span class="live-dot"></span> Native part XYZ · millimeters</div>
-      <div class="part-label part-a">PART A <small>box</small></div>
-      <div class="part-label part-b">PART B <small>sphere</small></div>
-      <div id="loading" role="status">Loading renderer…</div>
+    <div class="workspace">
+      <section class="scene-column" aria-label="애니메이션 장면">
+        <div class="scene-heading">
+          <div><p class="eyebrow">작업 셀 / 01</p><h1>부품이 어떻게 움직이는지 보세요.</h1></div>
+          <span class="scene-source">장면: 호스트 · 움직임: Motion</span>
+        </div>
+        <div id="viewport" class="viewport" data-clip="transfer">
+          <canvas id="stage" aria-label="부품을 집고 옮기는 작업 셀"></canvas>
+          <div class="viewport-top">
+            <div class="live-indicator"><span class="live-dot" aria-hidden="true"></span><span id="scene-phase">접근</span></div>
+            <span class="viewport-time" id="scene-time">0.00 / 8.00 s</span>
+          </div>
+          <div class="scene-legend" aria-hidden="true"><span>01 집는 위치</span><span id="scene-destination">02 놓는 위치</span></div>
+          <div id="loading" class="loading" role="status">3D 장면을 불러오는 중…</div>
+        </div>
+        <div class="scene-caption"><span>Motion은 위치와 회전을 계산합니다.</span><span>Three.js는 이 예제의 기계를 그립니다.</span></div>
+      </section>
+      <aside class="inspector" aria-label="애니메이션 조작">
+        <div class="inspector-heading"><p class="eyebrow">애니메이션</p><h2>동작을 선택하세요</h2></div>
+        <div class="clip-options" role="group" aria-label="동작 선택">
+          <button type="button" data-clip="transfer" aria-pressed="true"><b>부품 옮기기</b><span>집기 · 이동 · 놓기</span></button>
+          <button type="button" data-clip="inspection" aria-pressed="false"><b>검사 후 복귀</b><span>집기 · 검사 · 제자리</span></button>
+        </div>
+        <div class="transport" aria-label="재생 조작">
+          <button id="play" type="button" class="play-button" aria-label="재생"><span aria-hidden="true">▶</span><span id="play-label">재생</span></button>
+          <button id="restart" type="button" class="quiet-button">처음으로</button>
+          <label class="speed-control" for="speed">속도 <select id="speed"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select></label>
+        </div>
+        <section class="timeline" aria-label="시간 탐색">
+          <div class="timeline-title"><span>시간</span><strong id="time">0.00 s</strong></div>
+          <input id="seek" type="range" min="0" max="8" step="0.01" value="0" aria-label="애니메이션 시간">
+          <div class="timeline-ends"><span>0 s</span><span id="end-time">8 s</span></div>
+          <div id="phase-list" class="phase-list" aria-label="동작 단계"></div>
+        </section>
+        <div class="current-step"><span class="eyebrow">현재 단계</span><strong id="current-phase">접근</strong><p id="phase-detail">부품을 집는 위치로 이동합니다.</p></div>
+        <div class="run-options"><label for="repeat"><input id="repeat" type="checkbox"> 반복 재생</label><span id="play-state">일시 정지</span></div>
+        <div id="marker-status" class="marker-status" role="status">마커를 지날 때 동작이 표시됩니다.</div>
+      </aside>
     </div>
-    <section class="control-panel" aria-label="Motion controls">
-      <div class="transport">
-        <button id="play" type="button">▶ Play</button>
-        <button id="pause" type="button">Ⅱ Pause</button>
-        <label for="mode">Playback</label>
-        <select id="mode"><option value="clamp">Clamp</option><option value="repeat">Repeat</option></select>
-        <strong id="time">0.00 s</strong>
-      </div>
-      <label class="seek-row" for="seek"><span>Seek</span><input id="seek" type="range" min="0" max="4" step="0.01" value="0"><span>4.00 s</span></label>
-      <div class="sample-buttons" aria-label="Known samples">
-        <button type="button" data-seek="0">Start · 0 s</button>
-        <button type="button" data-seek="2">Midpoint · 2 s</button>
-        <button type="button" data-seek="4">End · 4 s</button>
-      </div>
+    <section class="data-strip" aria-label="현재 Motion 데이터">
+      <div><span class="eyebrow">MOTION OUTPUT</span><strong>현재 자세</strong></div>
+      <div class="data-metric"><span>부품 X</span><b id="parcel-x">−105 mm</b></div>
+      <div class="data-metric"><span>부품 높이</span><b id="parcel-y">24 mm</b></div>
+      <div class="data-metric"><span>이동 축 X</span><b id="carriage-x">−105 mm</b></div>
+      <details class="raw-data"><summary>원본 자세 데이터</summary><pre id="raw-state"></pre></details>
     </section>
-    <section class="readout" aria-label="Current motion pose data">
-      <div><span class="eyebrow">OWNED POSE SAMPLE</span><span id="state-label">Paused · clamp</span></div>
-      <pre id="poses"></pre>
-    </section>
-    <footer>Renderer: Three.js display adapter · Motion math: @barocss/motion · No CAD source changes</footer>
   </main>
-  <script type="module" src="./main.js"></script>
+  <script type="module" src="./showcase.js"></script>
 </body>
 </html>
