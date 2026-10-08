@@ -988,6 +988,40 @@ the repeated native geometry IDs. The example checks hidden unselected
 Curves, native sample parameters, one-time scaling, invalid selections,
 later-asset cleanup and caller-owned resources.
 
+### Display native assembly instances in Pixi3D
+
+The optional `./pixi3d-assembly` entry consumes a validated CAD assembly0
+result. It uses the pinned Pixi3D 2.5.0/PixiJS 7.2.4 document adapter to
+create a separate source-backed `Mesh3D` for every authored instance.
+`./assembly` can load the native assembly over HTTP before display.
+
+```js
+import { loadBaroCadAssembly } from '@barocss/cad-interop/assembly';
+import { createBaroCadAssemblyPixi3DDisplay }
+  from '@barocss/cad-interop/pixi3d-assembly';
+
+const assembly = await loadBaroCadAssembly(assemblyURL);
+const display = createBaroCadAssemblyPixi3DDisplay(assembly, {
+  native: { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.01,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } },
+  basis: 'authored-xyz-matches-rhyup', // Assertion supplied by the host.
+});
+app.stage.addChild(display.root);
+// The host may move display.root without changing native assembly poses.
+display.dispose();
+```
+
+Bindings keep assembly revision, instance/parent/ancestor IDs, the complete
+qualified part reference and original native world matrix. Each flat child
+of the owned root carries one already evaluated instance pose. The adapter
+converts matrix element order for Pixi3D and scales only translation from mm;
+the source adapter scales mesh positions. Pixi's target transforms use
+Float32 display precision. The original CAD result and caller Application,
+stage, renderer, canvas and unrelated children remain caller-owned.
+`examples/assembly-pixi3d.html` checks the actual six-instance #863 file,
+native-to-target points, WebGL2 pixels, refusal and disposal. PixiJS v8,
+native geometry editing and package publication are outside this entry.
+
 ## Neutral model set
 
 `@barocss/cad-interop/model-set` composes 1–4 separate native source0 files

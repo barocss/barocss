@@ -61,6 +61,10 @@
       "types": "./dist/pixi3d-document.d.ts",
       "import": "./dist/pixi3d-document.js"
     },
+    "./pixi3d-assembly": {
+      "types": "./dist/pixi3d-assembly.d.ts",
+      "import": "./dist/pixi3d-assembly.js"
+    },
     "./model-set": {
       "types": "./dist/model-set.d.ts",
       "import": "./dist/model-set.js"
