@@ -1158,3 +1158,39 @@ Select a Surface, choose **Fixed U** or **Fixed V**, enter the original dimensio
 Show/Update/Hide preserve pending general/pole/placement/refinement fields and geometry history. An active gesture blocks an update. The overlay uses accepted native geometry. Native edits, Refine, Undo/Redo and gesture previews rebuild its original Curve/source/samples and actual placement together with the display. A failed required Curve/native/Float32/GPU rebuild rejects the candidate and retains the previous accepted scene/frame/history/inspection. A different object selection or successful real Open clears the session Curve. Visibility and boundary visibility remain separate; an object's Curve is hidden with that object. Native IDs use the first unoccupied bounded `inspect_iso_N` and stay stable during same-object updates. Save contains only the existing native scene schema; inspection source/samples and drafts are excluded. A guarded Surface D1 at a C0 knot remains guarded even when the varying Curve tangent is admitted.
 
 Focused acceptance: `BAROCSS_ISOCURVE_SEED=/absolute/path/to/actual-refined-scene.json BAROCSS_ISOCURVE_EVIDENCE=/unique/private/directory BAROCSS_ISOCURVE_PORT=52024 node examples/cad-preview/scene-surface-isocurve-smoke.mjs`. Drive its isolated proof UI and real inspector controls; it records actual native source0 adoption, Curve/Surface UV points and guarded D1, GL uploads/pixels/resources, native edit/history refresh, refusal retention and actual Save Blob bytes plus supported file Open. OS Downloads delivery and broader certification remain deferred.
+
+### Original Surface selection groups (#716)
+
+In Pole mode, plain-click an original U/V pole to replace selection. Shift-click
+adds or removes a pole. One active pole remains when the last selected pole is
+clicked. The active pole anchors local X/Y/Z handles and numeric fields. A handle
+translates all selected poles by one common native millimetre delta; numeric
+fields still edit the active pole only. Selection admits 1–16 distinct pairs.
+The canvas retains its 9px X-ray hit policy and 3px near-tie refusal.
+
+The native source0 Surface and editSurfaceControlNet remain authoritative. The
+starting source/object/revision binds each drag. Existing instance rotation and
+positive scale are inverted before editing coefficients. Ghost geometry is derived;
+a successful native batch adds one history entry. Invalid input and cancelled
+gestures retain accepted source and display. Zero delta changes no coefficient.
+Weights, knots, degree, domain and native IDs stay unchanged during translation.
+Selection is session data. Object changes, Open/New, and grid/degree/knot changes
+clear it or reset it to U0/V0 on a selected current Surface. No inferred pole mapping
+survives refinement. This adds no native schema or serialized pole IDs.
+
+Run the single scoped actual pointer/source collector with the existing Node runtime:
+
+```sh
+BAROCSS_POLE_SELECTION_EVIDENCE=/absolute/unique/output \
+BAROCSS_POLE_SELECTION_PORT=52030 node scene-surface-pole-selection-flow.mjs
+```
+
+Open its isolated workspace URL. Prepare the fixture and capture `base`. In the
+canvas, select U0/V1, Shift-click U1/V1 and capture `selected`. Drag the active Z
+handle and capture `moved`. Undo and capture `undone`; Redo and capture `redone`.
+Use the refusal button and capture `refused`, then refine and capture `refined`.
+Finish evidence checks captured native literal sources, unrequested coefficient
+bits, common delta, GL uploads, one-entry history, rejected pending fields, and
+selection reset. The fixed fixture has a weighted 3×3 grid, rotation and nonuniform
+positive scale. Broader axes/capacity/lifecycle coverage is deferred; rectangle
+selection and group rotation/scale are unsupported.
