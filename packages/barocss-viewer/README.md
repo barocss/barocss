@@ -26,6 +26,27 @@ retain the accepted scene. A newer URL call or successful `loadNative` or
 owns the `AbortController`; disposal also prevents a pending result from
 mounting a new scene. This API does not read CAD document v1 JSON.
 
+For a bounded source0 model set, first call Loader's public
+`loadBaroCadModelSet(manifest, options)`, then `viewer.loadModelSet(set)`.
+The synchronous Viewer call accepts 1–4 total displayed Surfaces/Curves and
+uses GPU's qualified primitive scene v2 in one canvas. It keeps original
+native Surface and Curve IDs even when two source files use the same IDs.
+In this mode, Viewer `modelId` is the GPU-safe source alias: Loader encodes
+`-` as `.` while `getState().modelSet` keeps the original alias, URL,
+Model name and source. `getState().native` is null for a model set.
+The set must use one Curve sample version; `curveSampleVersion` reports it.
+The caller owns network cancellation and the source set.
+
+Camera fit, approximate screen picks, selection and display poses use the
+qualified Viewer refs. Native distance resolves the accepted alias and
+requires both points from that same source. It evaluates original authored
+XYZ/mm and refuses cross-source pairs. A failed set or GPU candidate keeps
+the last accepted source, camera, selection, measurements and pixels.
+Successful scene replacement clears selection, poses and measurements and
+supersedes a pending `loadNativeUrl`. This mode does not infer CAD document
+placement or native topology. The runnable
+`examples/viewer-model-set` uses two files with duplicate original IDs.
+
 For explicit Surface mesh lighting, pass an optional GPU `MeshLighting` value
 at creation: `lighting:{ambientStrength:0.12,directionalStrength:0.78,
 direction:[0.8,0.4,-0.7]}`. Each strength is in 0..1 and their sum is at most

@@ -2,10 +2,13 @@ import { curveDomain, evaluateCurve, evaluateSurface, surfaceDomain } from '@bar
 import type { AdaptiveCurveSamplingResult, WideAdaptiveCurveSamplingResult } from '@barocss/cad';
 import { BaroCadLoadAbortError, loadBaroCadSource, parseBaroCadSource } from '@barocss/cad-interop/native';
 import type { BaroCadLoadTransportOptions, BaroCadNativeResult } from '@barocss/cad-interop/native';
-import { mountMeshScene, mountPrimitiveScene, mountPrimitiveSceneV1, PrimitiveSceneRenderer,
-  PrimitiveSceneRendererV1, prepareMesh,
+import { prepareBaroCadModelSetPrimitiveNativeRefsV2 } from '@barocss/cad-interop/model-set';
+import type { BaroCadModelSetResult } from '@barocss/cad-interop/model-set';
+import { mountMeshScene, mountPrimitiveScene, mountPrimitiveSceneV1, mountPrimitiveSceneV2,
+  PrimitiveSceneRenderer, PrimitiveSceneRendererV1, PrimitiveSceneRendererV2, prepareMesh,
   validateMeshCamera, validatePreviewPacket } from '@barocss/gpu';
-import type { MeshCamera, MeshLighting, PreviewPacket, PrimitiveSceneEntryV1 } from '@barocss/gpu';
+import type { MeshCamera, MeshLighting, PreviewPacket, PrimitiveSceneEntryV1,
+  PrimitiveSceneEntryV2 } from '@barocss/gpu';
 
 type Vec3 = [number, number, number];
 type Quat = [number, number, number, number];
@@ -131,6 +134,7 @@ export interface ViewerState {
   selected: ViewerRef | null;
   selectedGeometry: ViewerGeometryRef | null;
   native: BaroCadNativeResult | null;
+  modelSet: BaroCadModelSetResult | null;
   measurement: ViewerNativeSurfaceMeasurement | null;
   motion: ViewerMotionState | null;
   geometryMotion: ViewerGeometryMotionState | null;
@@ -143,6 +147,7 @@ const PALETTE: Vec3[] = [[0.14, 0.58, 0.86], [0.95, 0.57, 0.22], [0.36, 0.72, 0.
 const SELECTED_COLOR: Vec3 = [1, 0.94, 0.38];
 const INITIAL_CAMERA: MeshCamera = { eye: [0, 0, 6], target: [0, 0, 0], up: [0, 1, 0], fovYDegrees: 45, near: 0.01, far: 100 };
 const ID = /^[A-Za-z_][A-Za-z0-9_-]{0,127}$/;
+const MODEL_ID = /^[A-Za-z_][A-Za-z0-9_.-]{0,127}$/;
 const MOTION_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
 
 function check(ok: unknown, message: string): asserts ok { if (!ok) throw new RangeError(message); }
@@ -267,7 +272,7 @@ function parseNativeOptions(input: unknown):
 }
 function parseRef(input: unknown): ViewerRef {
   const value = ownRecord(input, ['modelId', 'surfaceId'], 'Surface reference');
-  check(typeof value.modelId === 'string' && ID.test(value.modelId), 'modelId must be a bounded ASCII identifier');
+  check(typeof value.modelId === 'string' && MODEL_ID.test(value.modelId), 'modelId must be a bounded ASCII identifier');
   check(typeof value.surfaceId === 'string' && ID.test(value.surfaceId), 'surfaceId must be a bounded ASCII identifier');
   return { modelId: value.modelId, surfaceId: value.surfaceId };
 }
@@ -283,7 +288,7 @@ function parseGeometryRef(input: unknown): ViewerGeometryRef {
   }
   check(descriptor.value === 'curve', 'Geometry reference kind must be surface or curve');
   const value = ownRecord(input, ['kind', 'modelId', 'curveId'], 'Curve geometry reference');
-  check(typeof value.modelId === 'string' && ID.test(value.modelId), 'modelId must be a bounded ASCII identifier');
+  check(typeof value.modelId === 'string' && MODEL_ID.test(value.modelId), 'modelId must be a bounded ASCII identifier');
   check(typeof value.curveId === 'string' && ID.test(value.curveId), 'curveId must be a bounded ASCII identifier');
   return { kind: 'curve', modelId: value.modelId, curveId: value.curveId };
 }
@@ -296,7 +301,7 @@ function parseNativeParameter(input: unknown): ViewerNativeSurfaceParameter {
 }
 function parseNativeCurveParameter(input: unknown): ViewerNativeCurveParameter {
   const value = ownRecord(input, ['modelId', 'curveId', 't'], 'Native Curve parameter');
-  check(typeof value.modelId === 'string' && ID.test(value.modelId), 'modelId must be a bounded ASCII identifier');
+  check(typeof value.modelId === 'string' && MODEL_ID.test(value.modelId), 'modelId must be a bounded ASCII identifier');
   check(typeof value.curveId === 'string' && ID.test(value.curveId), 'curveId must be a bounded ASCII identifier');
   check(typeof value.t === 'number' && Number.isFinite(value.t), 'Native Curve parameter must be finite');
   return { modelId: value.modelId, curveId: value.curveId, t: value.t };
@@ -462,10 +467,12 @@ function interpolate(a: Vec3, b: Vec3, fraction: number): Vec3 {
 
 /** One canvas and one BaroCSS GPU scene backend. The caller retains canvas ownership. */
 export class Viewer {
-  private renderer: ReturnType<typeof mountMeshScene> | PrimitiveSceneRenderer | PrimitiveSceneRendererV1 | null = null;
+  private renderer: ReturnType<typeof mountMeshScene> | PrimitiveSceneRenderer |
+    PrimitiveSceneRendererV1 | PrimitiveSceneRendererV2 | null = null;
   private packets: ViewerPacket[] = [];
   private curves: ViewerCurveEntry[] = [];
   private native: BaroCadNativeResult | null = null;
+  private modelSet: BaroCadModelSetResult | null = null;
   private measurement: ViewerNativeSurfaceMeasurement | null = null;
   private curveMeasurement: ViewerNativeCurveMeasurement | null = null;
   private surfaceCurveMeasurement: ViewerNativeSurfaceCurveMeasurement | null = null;
@@ -508,9 +515,44 @@ export class Viewer {
   }
   private present(packets: ViewerPacket[], curves: ViewerCurveEntry[], camera: MeshCamera, selected: ViewerRef | null,
     motion: ViewerMotionState | null, geometrySelection: ViewerGeometryRef | null = this.selectedGeometry,
-    geometryMotion: ViewerGeometryMotionState | null = this.geometryMotion): void {
+    geometryMotion: ViewerGeometryMotionState | null = this.geometryMotion,
+    qualified = this.modelSet !== null): void {
     const surfaces = this.gpuEntries(packets, selected, motion, geometryMotion), options = this.gpuOptions(camera);
-    if (curves.length) {
+    if (qualified) {
+      const entries: PrimitiveSceneEntryV2[] = [
+        ...surfaces.map((entry, index): PrimitiveSceneEntryV2 => ({
+          kind: 'surface', ...entry,
+          ref: { modelId: packets[index].modelId, geometryId: packets[index].packet.surfaceId },
+        })),
+        ...curves.map((entry, index): PrimitiveSceneEntryV2 => {
+          const ref = { modelId: entry.modelId, geometryId: entry.sample.curve.id };
+          const pose = curvePose({ modelId: entry.modelId, curveId: ref.geometryId }, geometryMotion);
+          const fields = {
+            basis: 'authored-xyz-matches-rhyup' as const, ref,
+            color: geometrySelection?.kind === 'curve' && geometrySelection.modelId === ref.modelId
+              && geometrySelection.curveId === ref.geometryId
+              ? SELECTED_COLOR : PALETTE[(packets.length + index) % PALETTE.length],
+            ...(pose ? { transform: { translationMm: pose.translationMm,
+              rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {}),
+          };
+          return entry.sampleVersion === 1
+            ? { kind: 'curve', sampleVersion: 1, sample: entry.sample, ...fields }
+            : { kind: 'curve', sampleVersion: 0, sample: entry.sample, ...fields };
+        }),
+      ];
+      const input = { version: 2 as const, entries };
+      if (this.renderer instanceof PrimitiveSceneRendererV2) {
+        const result = this.renderer.update(input, options);
+        if (!result.ok) throw result.error;
+      } else {
+        const prior = this.renderer;
+        try {
+          const candidate = mountPrimitiveSceneV2(this.canvas, input, options);
+          this.renderer = candidate;
+          prior?.dispose();
+        } catch (error) { prior?.render(); throw error; }
+      }
+    } else if (curves.length) {
       const surfaceEntries = surfaces.map(entry => ({ kind: 'surface' as const, ...entry }));
       const curveEntries = curves.map((entry, index) => {
         const pose = curvePose({ modelId: entry.modelId, curveId: entry.sample.curve.id }, geometryMotion);
@@ -563,7 +605,8 @@ export class Viewer {
         }
       }
     } else if (this.renderer && !(this.renderer instanceof PrimitiveSceneRenderer)
-      && !(this.renderer instanceof PrimitiveSceneRendererV1)) {
+      && !(this.renderer instanceof PrimitiveSceneRendererV1)
+      && !(this.renderer instanceof PrimitiveSceneRendererV2)) {
       const result = this.renderer.update(surfaces, options);
       if (!result.ok) throw result.error;
     } else {
@@ -575,7 +618,7 @@ export class Viewer {
       } catch (error) { prior?.render(); throw error; }
     }
   }
-  private validatedPackets(input: unknown, allowEmpty = false): ViewerPacket[] {
+  private validatedPackets(input: unknown, allowEmpty = false, qualified = false): ViewerPacket[] {
     check(Array.isArray(input) && Object.getPrototypeOf(input) === Array.prototype
       && input.length >= (allowEmpty ? 0 : 1) && input.length <= 4
       && Reflect.ownKeys(input).length === input.length + 1,
@@ -586,11 +629,11 @@ export class Viewer {
       const descriptor = Object.getOwnPropertyDescriptor(input, String(i));
       check(descriptor && descriptor.enumerable && 'value' in descriptor, 'Surface entry must be data');
       const value = ownRecord(descriptor.value, ['modelId', 'packet'], 'Surface entry');
-      check(typeof value.modelId === 'string' && ID.test(value.modelId), 'modelId must be a bounded ASCII identifier');
+      check(typeof value.modelId === 'string' && MODEL_ID.test(value.modelId), 'modelId must be a bounded ASCII identifier');
       const packet = validatePreviewPacket(value.packet);
       const identity = `${value.modelId}\0${packet.surfaceId}`;
       check(!identities.has(identity), 'Duplicate surface reference'); identities.add(identity);
-      check(!surfaceIds.has(packet.surfaceId), 'GPU scene requires distinct original surface IDs');
+      check(qualified || !surfaceIds.has(packet.surfaceId), 'GPU scene requires distinct original surface IDs');
       surfaceIds.add(packet.surfaceId);
       vertices += packet.positions.length / 3; indices += packet.indices.length;
       check(vertices <= 4096 && indices <= 24576, 'Viewer geometry exceeds total limits');
@@ -599,16 +642,17 @@ export class Viewer {
     }
     return result;
   }
-  private accept(input: unknown, native: BaroCadNativeResult | null, curves: ViewerCurveEntry[] = []): void {
-    const packets = this.validatedPackets(input, curves.length > 0);
+  private accept(input: unknown, native: BaroCadNativeResult | null, curves: ViewerCurveEntry[] = [],
+    modelSet: BaroCadModelSetResult | null = null): void {
+    const packets = this.validatedPackets(input, curves.length > 0, modelSet !== null);
     check(curves.every(entry => entry.sampleVersion === curves[0].sampleVersion),
       'Viewer requires one Curve sample version per native scene');
     check(packets.length + curves.length >= 1 && packets.length + curves.length <= 4,
       'Viewer requires 1..4 total display objects');
     const camera = fittedCamera(packets, curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
-    this.present(packets, curves, camera, null, null, null, null);
+    this.present(packets, curves, camera, null, null, null, null, modelSet !== null);
     this.packets = packets; this.curves = curves; this.camera = camera;
-    this.selected = null; this.selectedGeometry = null; this.native = native;
+    this.selected = null; this.selectedGeometry = null; this.native = native; this.modelSet = modelSet;
     this.measurement = null; this.motion = null; this.geometryMotion = null; this.curveMeasurement = null;
     this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
   }
@@ -636,6 +680,24 @@ export class Viewer {
     this.admitNative(parseBaroCadSource(source, { ...options, unitsPerMillimeter: 1 }), options);
     this.sceneRequest++;
   }
+  loadModelSet(input: BaroCadModelSetResult): void {
+    this.live();
+    const projected = prepareBaroCadModelSetPrimitiveNativeRefsV2(input);
+    const modelSet = structuredClone(input);
+    const packets: ViewerPacket[] = [];
+    const curves: ViewerCurveEntry[] = [];
+    for (const entry of projected) {
+      if (entry.kind === 'surface') {
+        packets.push({ modelId: entry.ref.modelId, packet: entry.packet });
+      } else if (entry.sampleVersion === 1) {
+        curves.push({ modelId: entry.ref.modelId, sampleVersion: 1, sample: entry.sample });
+      } else {
+        curves.push({ modelId: entry.ref.modelId, sampleVersion: 0, sample: entry.sample });
+      }
+    }
+    this.accept(packets, null, curves, modelSet);
+    this.sceneRequest++;
+  }
   async loadNativeUrl(url: string, input: NativeLoadOptions | ViewerNativeCurveLoadOptions
     | ViewerNativeCurveLoadOptionsV1, transport: BaroCadLoadTransportOptions = {}): Promise<void> {
     this.live();
@@ -647,12 +709,17 @@ export class Viewer {
     this.admitNative(native, options);
   }
   setPackets(input: ViewerPacket[]): void { this.live(); this.accept(input, null); this.sceneRequest++; }
+  private nativeModel(modelId: string): BaroCadNativeResult['model'] | null {
+    if (this.modelSet) return this.modelSet.entries.find(entry =>
+      entry.aliasId.replaceAll('-', '.') === modelId)?.result.model ?? null;
+    return this.native?.model.name === modelId ? this.native.model : null;
+  }
   measureNativeSurfacePoints(firstInput: ViewerNativeSurfaceParameter,
     secondInput: ViewerNativeSurfaceParameter): ViewerNativeSurfaceMeasurement {
     this.live();
     const first = parseNativeParameter(firstInput), second = parseNativeParameter(secondInput);
-    const model = this.native?.model;
-    check(model && first.modelId === model.name && second.modelId === model.name,
+    const model = this.nativeModel(first.modelId);
+    check(model && second.modelId === first.modelId,
       'Both points must belong to the accepted native model');
     const point = (input: ViewerNativeSurfaceParameter): ViewerNativeSurfacePoint => {
       const surface = model.objects.find(object => object.kind === 'surface' && object.id === input.surfaceId);
@@ -753,8 +820,8 @@ export class Viewer {
     secondInput: ViewerNativeCurveParameter): ViewerNativeCurveMeasurement {
     this.live();
     const first = parseNativeCurveParameter(firstInput), second = parseNativeCurveParameter(secondInput);
-    const model = this.native?.model;
-    check(model && first.modelId === model.name && second.modelId === model.name,
+    const model = this.nativeModel(first.modelId);
+    check(model && second.modelId === first.modelId,
       'Both Curve points must belong to the accepted native model');
     const point = (input: ViewerNativeCurveParameter): ViewerNativeCurvePoint => {
       const curve = model.objects.find(object => object.kind === 'curve' && object.id === input.curveId);
@@ -780,8 +847,8 @@ export class Viewer {
     this.live();
     const surfaceParameter = parseNativeParameter(surfaceInput);
     const curveParameter = parseNativeCurveParameter(curveInput);
-    const model = this.native?.model;
-    check(model && surfaceParameter.modelId === model.name && curveParameter.modelId === model.name,
+    const model = this.nativeModel(surfaceParameter.modelId);
+    check(model && curveParameter.modelId === surfaceParameter.modelId,
       'Both points must belong to the accepted native model');
     const surface = model.objects.find(object => object.kind === 'surface'
       && object.id === surfaceParameter.surfaceId);
@@ -815,8 +882,8 @@ export class Viewer {
     secondInput: ViewerNativePointInput): ViewerNativePointDistance {
     this.live();
     const first = parseNativePointInput(firstInput), second = parseNativePointInput(secondInput);
-    const model = this.native?.model;
-    check(model && first.modelId === model.name && second.modelId === model.name,
+    const model = this.nativeModel(first.modelId);
+    check(model && second.modelId === first.modelId,
       'Both points must belong to the accepted native model');
     const evaluate = (input: ViewerNativePointInput): ViewerNativePoint => {
       if (input.kind === 'surface') {
@@ -1022,7 +1089,7 @@ export class Viewer {
           [sample.parameters[index], sample.parameters[index + 1]];
         const parameterApprox = parameterInterval[0]
           + (parameterInterval[1] - parameterInterval[0]) * segmentFraction;
-        const curve = this.native?.model.objects.find(object => object.kind === 'curve'
+        const curve = this.nativeModel(entry.modelId)?.objects.find(object => object.kind === 'curve'
           && object.id === sample.curve.id);
         check(curve && curve.kind === 'curve', 'Displayed Curve has no accepted native authority');
         const nativePointMM = [...evaluateCurve(curve, parameterApprox)] as Vec3;
@@ -1084,7 +1151,7 @@ export class Viewer {
       curveSampleVersion: this.curves.length ? this.curves[0].sampleVersion : null,
       packets: this.packets,
       selected: this.selected, selectedGeometry: this.selectedGeometry,
-      native: this.native, measurement: this.measurement,
+      native: this.native, modelSet: this.modelSet, measurement: this.measurement,
       curveMeasurement: this.curveMeasurement, surfaceCurveMeasurement: this.surfaceCurveMeasurement,
       nativeMeasurement: this.nativeMeasurement, motion: this.motion,
       geometryMotion: this.geometryMotion });
