@@ -144,3 +144,5 @@ export type { CurveJoinOptions, CurveJoinD1State, CurveJoinKnotMapping, CurveJoi
 export { reverseCurve, validateReversedCurveResult, CurveReversalError } from './curve-reversal.js';
 export { CurveReversalDiagnosticCode } from './curve-reversal.js';
 export type { CurveReversalOptions, CurveReversalD1State, CurveReversalKnotMapping, CurveReversalProvenance, CurveReversalObservation, CurveReversalGuardObservation, ReversedCurveReport, ReversedCurveResult } from './curve-reversal.js';
+export { extractCurveInterval, validateExtractedCurveInterval, CurveIntervalExtractionError, CurveIntervalExtractionDiagnosticCode } from './curve-interval-extraction.js';
+export type { CurveIntervalExtractionOptions, CurveIntervalExtractionD1State, CurveIntervalBoundaryChoice, CurveIntervalSplitOperation, CurveIntervalExtractionProvenance, CurveIntervalExtractionObservation, CurveIntervalExtractionGuardObservation, ExtractedCurveIntervalReport, ExtractedCurveIntervalResult } from './curve-interval-extraction.js';

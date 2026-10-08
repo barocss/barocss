@@ -5169,3 +5169,70 @@ geometricValidity:not-certified, topologyCertified:false and solid:false.
 General wire/trim/topology, degree/continuity operations, constraints/features/
 assemblies/exchange remain tracked under503/535/537/660; GPU/Loader adoption and
 npm publication have separate tracked states.
+
+## Own native Curve interval extraction
+
+`extractCurveInterval(curve, {curveId, interval: [start,end], resultIdPrefix})`
+returns a genuine coefficient Curve restricted to an increasing original
+parameter interval. It supports positive, nonperiodic open-clamped degree1..3
+Curves with2..16 poles, weights1e-6..1e6 and XYZ within±10000mm. Parameters remain
+in the original domain and units: the map is `u=t`. No fitting, normalization,
+reversal, axis conversion or display-mesh reconstruction occurs.
+
+The new ASCII Curve ID1..48 differs from the original. An explicit ASCII
+prefix1..20 reserves `prefix_cut_0_lo/hi` and `prefix_cut_1_lo/hi` before staging;
+these helper IDs also differ from original/output IDs. Model names have their
+own source namespaces. The original Model is named `curve_interval_original`;
+the extracted Curve-only Model uses the output Curve ID as its model name.
+
+Both finite interval endpoints must be inside the original closed domain with
+start<end. No sorting or clamping occurs. A requested endpoint numerically equal
+to an original domain endpoint uses the original endpoint bits, including
+signed zero; requested and effective choices remain explicit. Interior cut
+parameters retain their requested bits. A full interval copies coefficients
+under the new ID with zero splits. Otherwise the actual native split operation
+cuts the start and retains the upper child, then cuts the end and retains the
+lower child. At most two splits occur. Each temporary refinement must fit the
+existing16-pole split/insertion family; a native-valid wider request can refuse
+with `NATIVE_CAPACITY`. The31-pole join/reversal family is not admitted here.
+
+The owned result is `{original, options, curve, source, sourceVersion:0, model,
+originalSource, originalModel, provenance, report}`. Original and output source0
+are independently compiled and adopted with complete coefficient, ID, order
+and signed-zero checks. Provenance retains the original/requested/effective
+domains, identity parameter map, selected/discarded split sides and actual
+refined/shared pole, weight, knot and cut endpoint lineage. DTO schema
+`barocss-native-curve-interval`, version0 declares mm/authored XYZ and native
+Curve geometry. The caller owns copied plain data, with GC and no renderer
+resources or dispose method.
+
+`validateExtractedCurveInterval(result)` rebuilds from the original/options and
+compares complete sources, Models, coefficient bits, provenance and reports.
+Strict descriptor snapshots reject getters without calling them and reject
+hidden/symbol/unknown fields, sparse arrays, foreign prototypes, cycles,
+nonfinite values and tampering. Input bounds are4096 values/depth8/arrays64/
+records16; owned result bounds are131072 values/depth24/arrays4096/records64/
+source strings262144. Refusal preserves accepted inputs and prior results.
+
+At most128 local point/D1 observations use retained knots and representable
+quarter/midpoint parameters. Unrepresentable observation parameters refuse.
+Point comparison uses1e-7mm; derivative comparison uses relative1e-7. Original
+native C0 refusal and extracted one-sided endpoint D1 are separate states:
+making a knot an endpoint does not establish original G1/G2 continuity.
+Reports retain `geometricValidity:not-certified`, `topologyCertified:false`
+and `solid:false`, with no global shape or manufacturing accuracy certificate.
+
+`CurveIntervalExtractionError` has stable codes `INPUT`, `INTERVAL`, `IDENTITY`,
+`REPRESENTABILITY`, `NATIVE_CAPACITY`, `NATIVE`, `BINDING` and `OWNED`; native
+causes are retained. Its exported `CurveIntervalExtractionDiagnosticCode`
+provides the runtime constants and type.
+
+```sh
+node examples/cad-nurbs/curve-interval-extraction-demo.mjs --source
+```
+
+The bounded flow writes and reopens original/output source0 and raw signed-zero
+owned JSON, then separately checks the actual declared compiled public entry
+and emitted declarations. GPU/Loader adoption, Integration availability and
+npm publication are separate states. Wider curves and general trims/topology/
+Boolean/features/constraints/assemblies/exchange remain tracked under503/537/660.
