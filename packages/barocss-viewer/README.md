@@ -95,6 +95,19 @@ scene and pixels. This controls Viewer display only; it does not edit a CAD
 assembly or create a native section view. `examples/viewer-document` exercises
 visibility with the same four-object document scene.
 
+`viewer.projectNativePoint({kind:'surface',modelId,surfaceId,u,v})` or its
+tagged Curve form with `curveId,t` projects one accepted, visible native
+parameter point to canvas-local CSS coordinates. It returns the evaluated
+original `pointMM`, posed display position, positive camera depth, and a
+copied document-body binding when present. The projection is approximate
+display data and does not test whether another object covers the point.
+A valid point outside the camera frustum returns `null`; invalid, hidden or
+unknown refs throw without changing Viewer state. The caller owns any DOM
+labels, source/revision checks and label removal after a scene change. Native
+measurements remain authored XYZ/mm and do not change when projected.
+`examples/viewer-document` places two caller-owned labels over the actual
+WebGL scene.
+
 For explicit Surface mesh lighting, pass an optional GPU `MeshLighting` value
 at creation: `lighting:{ambientStrength:0.12,directionalStrength:0.78,
 direction:[0.8,0.4,-0.7]}`. Each strength is in 0..1 and their sum is at most
