@@ -81,7 +81,7 @@ assert.throws(() => createDisplayTreeFromScene(oldScene), error => error.code ==
 const rectScene = structuredClone(changed);
 rectScene.nodes[0].children.push({ kind: 'rect', id: 'Rect', layer: 2,
   transform: pose(), width: 10, height: 10, fill: [1, 1, 1, 1] });
-assert.throws(() => createDisplayTreeFromScene(rectScene), error => error.code === 'UNSUPPORTED_FEATURE');
+assert.equal(createDisplayTreeFromScene(rectScene).get('Rect')?.kind, 'rect');
 
 console.log(JSON.stringify({ result: 'ok', initialIds: first.nodes[0].children.map(node => node.id),
   restoredIds: restored.snapshot().nodes[0].children.map(node => node.id),

@@ -51,6 +51,8 @@ for (const bad of badInputs) {
 }
 events.length = 0;
 assert.throws(() => tree.dispatchPointer({ ...input, hit: { id: 'Blue', kind: 'rect' } }),
+  error => error.code === 'INVALID_SCENE');
+assert.throws(() => tree.dispatchPointer({ ...input, hit: { id: 'Blue', kind: 'line' } }),
   error => error.code === 'UNSUPPORTED_FEATURE');
 assert.deepEqual(events, []);
 assert.throws(() => blue.onPointer('click', () => {}), error => error.code === 'INVALID_SCENE');
@@ -96,4 +98,4 @@ assert.notEqual(newTree.get('Blue'), blue);
 offBlue2(); offTeam(); offStage();
 
 console.log(JSON.stringify({ result: 'ok', targetOrder: ['Blue', 'Team', 'stage'],
-  invalidInputs: badInputs.length + 1, listenerLimit: 32, restoredHandle: newEvents[0] }));
+  invalidInputs: badInputs.length + 2, listenerLimit: 32, restoredHandle: newEvents[0] }));
