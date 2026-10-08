@@ -37,6 +37,7 @@ export interface PhysicsWorldConfig {
   gravityMps2: Vec3;
   bodies: PhysicsBodyConfig[];
   joints?: PhysicsJointConfig[];
+  broadPhase?: 'aabb';
 }
 export interface PhysicsBodyState {
   id: string;
@@ -81,6 +82,11 @@ export interface PhysicsCcdHit {
   toiFraction: number;
   normalFixtureToBody: Vec3;
 }
+export interface PhysicsPairStats {
+  eligiblePairs: number;
+  candidatePairs: number;
+  aabbTests: number;
+}
 export interface PhysicsState {
   stepIndex: number;
   timeSeconds: number;
@@ -89,6 +95,7 @@ export interface PhysicsState {
   events: PhysicsEvent[];
   joints: PhysicsJointState[];
   ccdHits: PhysicsCcdHit[];
+  pairStats: PhysicsPairStats;
 }
 export interface PhysicsOverlapSphereQuery { centerM: Vec3; radiusM: number; includeSensors?: boolean }
 export interface PhysicsRayQuery { originM: Vec3; direction: Vec3; maxDistanceM: number; includeSensors?: boolean }
