@@ -583,3 +583,24 @@ press **Run recorded native flow**. It records actual GL position/normal/index
 buffers, native UV/sense/ranges, readback frames, qualified face selection,
 rebuild/stale-reference and an original Float32 refusal. It does not evaluate
 CAD again, install a backend, or mount a new product editor route.
+
+## Separate mesh packets in one scene (#665)
+
+`mountMeshScene(canvas, entries, options)` mounts1..4 original PreviewPackets with
+unique native `surfaceId` values. Each entry is `{packet,color}`; color is opaque
+normalized RGB. `MeshSceneOptions` is `MeshOptions` without color: shared camera,
+mmToSceneUnit, scene-unit translation and background. It keeps native packets and
+indices separate, uses one WebGL2 context/shared depth buffer, and draws each
+object with its own color. No synthetic combined packet, scene graph, native
+picking/topology, edge overlay or per-object transform is inferred.
+
+`MeshSceneRenderer.update(entries,options)` returns UpdateResult. All data and
+Float32 geometry pass existing admission before candidate adoption. Failure keeps
+the prior accepted scene/frame. `entries` and `options` return owned copies.
+`resize(width?,height?)` defaults to current canvas dimensions and stages before
+acceptance. `render`, `readPixels` and idempotent `dispose` own only this renderer's
+GPU resources; caller native data/canvas/context remain caller-owned. Do not mount
+competing renderers on that canvas. Context loss refuses explicitly; mount a new
+renderer rather than assuming automatic restoration. The existing frame limits
+(4096 per axis/4194304 pixels) and per-packet workloads remain; at most4 packets.
+Lazy first mount lets a Viewer remain empty until a supported source is admitted.

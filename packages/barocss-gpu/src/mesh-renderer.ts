@@ -1,3 +1,4 @@
+import {MESH_LIGHTING as LIGHTING,MESH_SHADERS as SHADERS} from './mesh-shaders.js';
 import { GPUError } from './renderer.js';
 import type { UpdateResult } from './renderer.js';
 import {requireMeshExecution} from './gpu-compiler.js';
@@ -13,7 +14,7 @@ import type {MeshFaceHighlight} from './face-highlight.js';
 
 import {prepareObjectHighlight} from './object-highlight.js';
 import type {MeshObjectHighlight} from './object-highlight.js';
-const LIGHTING=Object.freeze({kind:'fixed-directional-and-ambient',direction:Object.freeze([-.6,.8,1]),ambientStrength:.35,diffuseStrength:.65});
+
 
 type Mesh = ReturnType<typeof requireMeshExecution>;
 const EMPTY_VIEWPORT = Symbol('empty mesh viewport');
@@ -26,36 +27,6 @@ interface Resources {
   width: number; height: number;
   edges: PreparedMeshEdges | null; edgeProgram: WebGLProgram | null; edgeVao: WebGLVertexArrayObject | null;
 }
-const SHADERS: SceneShaders = {
-  vertex: `#version 300 es
-precision highp float;
-layout(location=0) in vec3 position;
-layout(location=1) in vec3 normal;
-uniform float aspect;
-uniform bool defaultCamera;
-uniform mat4 view;
-uniform mat4 projection;
-out vec3 worldNormal;
-void main(){
- if(defaultCamera){
-  vec3 p=position-vec3(0.0,0.0,6.0);
-  float f=2.414213562373095;
-  gl_Position=vec4(p.x*f/aspect,p.y*f,-1.000200020002*p.z-0.02000200020002,-p.z);
- }else{
-  gl_Position=projection*view*vec4(position,1.0);
- }
- worldNormal=normal;
-}`,
-  fragment: `#version 300 es
-precision highp float;
-in vec3 worldNormal;
-uniform vec3 color;
-out vec4 outputColor;
-void main(){
- float light=${LIGHTING.ambientStrength.toFixed(2)}+${LIGHTING.diffuseStrength.toFixed(2)}*max(dot(normalize(worldNormal),normalize(vec3(${LIGHTING.direction.map(n=>n.toFixed(1)).join(',')}))),0.0);
- outputColor=vec4(pow(pow(color,vec3(2.2))*light,vec3(1.0/2.2)),1.0);
-}`,
-};
 const EDGE_FRAGMENT = `#version 300 es
 precision highp float;
 uniform vec3 color;
