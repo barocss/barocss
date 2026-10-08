@@ -80,7 +80,7 @@ const repeatB = create([ball('part:repeat', [0, 2, 0]), box()]);
 for (let i = 0; i < 90; i++) assert.deepEqual(repeatA.step(dt), repeatB.step(dt));
 assert.throws(() => create([ball('part:repeat', [0, 1, 0]), ball('part:repeat', [1, 1, 0])]),
   (error) => error.code === 'INVALID_CONFIG');
-assert.throws(() => create([{ ...ball('part:invalid', [0, 1, 0]), shape: { kind: 'box', halfExtentsM: [1, 1, 1] } }]),
+assert.throws(() => create([{ ...ball('part:invalid', [0, 1, 0]), shape: { kind: 'box', halfExtentsM: [1, 0, 1] } }]),
   (error) => error.code === 'INVALID_CONFIG');
 
 console.log(JSON.stringify({ freeFallY: beforeRefusal.bodies[0].positionM[1], firstContactStep: contactAt,

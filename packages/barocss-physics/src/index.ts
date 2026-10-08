@@ -13,10 +13,13 @@ export class PhysicsError extends Error {
 
 export type SphereShape = { kind: 'sphere'; radiusM: number };
 export type BoxShape = { kind: 'box'; halfExtentsM: Vec3 };
+export type CapsuleShape = { kind: 'capsule'; radiusM: number; halfLengthM: number };
+export type PhysicsShape = SphereShape | BoxShape | CapsuleShape;
 export type PhysicsBodyConfig =
-  | { id: string; kind: 'dynamic'; shape: SphereShape; positionM: Vec3; velocityMps: Vec3; massKg: number; restitution: number;
+  | { id: string; kind: 'dynamic'; shape: PhysicsShape; positionM: Vec3; velocityMps: Vec3; massKg: number; restitution: number;
       orientation?: Quat; angularVelocityRadps?: Vec3; inertiaKgM2?: number }
-  | { id: string; kind: 'static' | 'kinematic'; shape: SphereShape | BoxShape; positionM: Vec3; restitution: number; sensor?: true };
+  | { id: string; kind: 'static' | 'kinematic'; shape: PhysicsShape; positionM: Vec3; restitution: number;
+      orientation?: Quat; sensor?: true };
 export type PhysicsStepCommand =
   | { kind: 'force'; bodyId: string; forceN: Vec3 }
   | { kind: 'impulse'; bodyId: string; impulseNs: Vec3 }
@@ -31,18 +34,20 @@ export interface PhysicsWorldConfig {
 export interface PhysicsBodyState {
   id: string;
   kind: 'dynamic' | 'static' | 'kinematic';
-  shape: SphereShape | BoxShape;
+  shape: PhysicsShape;
   positionM: Vec3;
   velocityMps: Vec3;
   orientation: Quat;
   angularVelocityRadps: Vec3;
   inertiaKgM2?: number;
+  inertiaDiagonalKgM2?: Vec3;
   sensor?: boolean;
 }
 export interface PhysicsContact {
   aId: string;
   bId: string;
   normalAtoB: Vec3;
+  pointM: Vec3;
   penetrationM: number;
   impulseNs: number;
 }
@@ -73,9 +78,10 @@ export interface PhysicsWorld {
 interface Body extends PhysicsBodyState {
   sensor: boolean;
   inverseMass: number;
+  inverseInertiaLocal: Vec3;
   restitution: number;
 }
-interface Hit { normal: Vec3; penetration: number }
+interface Hit { normal: Vec3; penetration: number; pointM: Vec3 }
 
 const ID = /^[A-Za-z][A-Za-z0-9._:-]{0,63}$/;
 const MAX_BODIES = 32;
@@ -145,15 +151,20 @@ function advanceOrientation(orientation: Quat, angularVelocity: Vec3, dt: number
   const norm = Math.hypot(...next);
   return next.map((component) => component / norm) as Quat;
 }
-function shape(value: unknown, allowBox: boolean): SphereShape | BoxShape {
+function shape(value: unknown): PhysicsShape {
   const input = record(value, 'shape');
   if (input.kind === 'sphere') {
     fields(input, ['kind', 'radiusM'], 'sphere');
     return { kind: 'sphere', radiusM: finite(input.radiusM, 0.0001, 1000, 'radiusM') };
   }
-  if (allowBox && input.kind === 'box') {
+  if (input.kind === 'box') {
     fields(input, ['kind', 'halfExtentsM'], 'box');
     return { kind: 'box', halfExtentsM: vector(input.halfExtentsM, 0.0001, 1000, 'halfExtentsM') };
+  }
+  if (input.kind === 'capsule') {
+    fields(input, ['kind', 'radiusM', 'halfLengthM'], 'capsule');
+    return { kind: 'capsule', radiusM: finite(input.radiusM, 0.0001, 1000, 'radiusM'),
+      halfLengthM: finite(input.halfLengthM, 0.0001, 1000, 'halfLengthM') };
   }
   return error('INVALID_CONFIG', 'unsupported collider shape');
 }
@@ -167,34 +178,54 @@ function parseBody(value: unknown): Body {
   fields(input, kind === 'dynamic'
     ? ['id', 'kind', 'shape', 'positionM', 'velocityMps', 'massKg', 'restitution',
       'orientation', 'angularVelocityRadps', 'inertiaKgM2']
-    : ['id', 'kind', 'shape', 'positionM', 'restitution', 'sensor'], 'body');
+    : ['id', 'kind', 'shape', 'positionM', 'restitution', 'orientation', 'sensor'], 'body');
   if (Object.hasOwn(input, 'sensor') && input.sensor !== true) error('INVALID_CONFIG', 'sensor must be true');
   const sensor = input.sensor === true;
-  const parsedShape = shape(input.shape, kind !== 'dynamic');
+  const parsedShape = shape(input.shape);
   const positionM = vector(input.positionM, -10000, 10000, 'positionM');
   const restitution = finite(input.restitution, 0, 1, 'restitution');
+  const orientation = Object.hasOwn(input, 'orientation') ? quaternion(input.orientation) : [0, 0, 0, 1] as Quat;
   if (kind !== 'dynamic') {
     return { id: input.id, kind, shape: parsedShape, positionM, velocityMps: [0, 0, 0],
-      orientation: [0, 0, 0, 1], angularVelocityRadps: [0, 0, 0],
+      orientation, angularVelocityRadps: [0, 0, 0], inverseInertiaLocal: [0, 0, 0],
       sensor, inverseMass: 0, restitution };
   }
   const massKg = finite(input.massKg, 0.000001, 1000000, 'massKg');
-  const sphere = parsedShape as SphereShape;
-  const inertiaKgM2 = Object.hasOwn(input, 'inertiaKgM2')
-    ? finite(input.inertiaKgM2, 1e-12, 1e12, 'inertiaKgM2')
-    : 0.4 * massKg * sphere.radiusM ** 2;
-  return { id: input.id, kind, shape: parsedShape as SphereShape, positionM, sensor,
+  if (parsedShape.kind !== 'sphere' && Object.hasOwn(input, 'inertiaKgM2')) {
+    error('INVALID_CONFIG', 'inertiaKgM2 override is supported for spheres only');
+  }
+  const inertiaKgM2 = parsedShape.kind === 'sphere'
+    ? Object.hasOwn(input, 'inertiaKgM2')
+      ? finite(input.inertiaKgM2, 1e-12, 1e12, 'inertiaKgM2')
+      : 0.4 * massKg * parsedShape.radiusM ** 2
+    : undefined;
+  const inertiaDiagonalKgM2: Vec3 | undefined = parsedShape.kind === 'box'
+    ? [massKg / 3 * (parsedShape.halfExtentsM[1] ** 2 + parsedShape.halfExtentsM[2] ** 2),
+      massKg / 3 * (parsedShape.halfExtentsM[0] ** 2 + parsedShape.halfExtentsM[2] ** 2),
+      massKg / 3 * (parsedShape.halfExtentsM[0] ** 2 + parsedShape.halfExtentsM[1] ** 2)]
+    : parsedShape.kind === 'capsule'
+      ? Array(3).fill(0.4 * massKg * (parsedShape.radiusM + parsedShape.halfLengthM) ** 2) as Vec3
+      : undefined;
+  const inertia = inertiaDiagonalKgM2 ?? [inertiaKgM2!, inertiaKgM2!, inertiaKgM2!];
+  return { id: input.id, kind, shape: parsedShape, positionM, sensor,
     velocityMps: vector(input.velocityMps, -1000, 1000, 'velocityMps'),
-    orientation: Object.hasOwn(input, 'orientation') ? quaternion(input.orientation) : [0, 0, 0, 1],
+    orientation,
     angularVelocityRadps: Object.hasOwn(input, 'angularVelocityRadps') ? angularVector(input.angularVelocityRadps) : [0, 0, 0],
-    inertiaKgM2, inverseMass: 1 / massKg, restitution };
+    ...(inertiaKgM2 === undefined ? {} : { inertiaKgM2 }),
+    ...(inertiaDiagonalKgM2 === undefined ? {} : { inertiaDiagonalKgM2 }),
+    inverseInertiaLocal: inertia.map((value) => 1 / value) as Vec3,
+    inverseMass: 1 / massKg, restitution };
 }
-function copyShape(value: SphereShape | BoxShape): SphereShape | BoxShape {
-  return value.kind === 'sphere' ? { kind: 'sphere', radiusM: value.radiusM } : { kind: 'box', halfExtentsM: [...value.halfExtentsM] as Vec3 };
+function copyShape(value: PhysicsShape): PhysicsShape {
+  return value.kind === 'sphere' ? { kind: 'sphere', radiusM: value.radiusM }
+    : value.kind === 'box' ? { kind: 'box', halfExtentsM: [...value.halfExtentsM] as Vec3 }
+      : { kind: 'capsule', radiusM: value.radiusM, halfLengthM: value.halfLengthM };
 }
 function copyBody(body: Body): Body {
   return { ...body, shape: copyShape(body.shape), positionM: [...body.positionM], velocityMps: [...body.velocityMps],
-    orientation: [...body.orientation], angularVelocityRadps: [...body.angularVelocityRadps] };
+    orientation: [...body.orientation], angularVelocityRadps: [...body.angularVelocityRadps],
+    ...(body.inertiaDiagonalKgM2 ? { inertiaDiagonalKgM2: [...body.inertiaDiagonalKgM2] as Vec3 } : {}),
+    inverseInertiaLocal: [...body.inverseInertiaLocal] };
 }
 type AdmittedCommands = { forceN?: Vec3; impulseNs?: Vec3; torqueNm?: Vec3; angularImpulseNms?: Vec3; positionM?: Vec3 };
 function commandVector(input: unknown, bound: number, label: string): Vec3 {
@@ -285,85 +316,188 @@ function includeSensors(query: Record<string, unknown>): boolean {
 function publicState(bodies: Body[], contacts: PhysicsContact[], events: PhysicsEvent[], stepIndex: number, dt: number): PhysicsState {
   return {
     stepIndex, timeSeconds: stepIndex * dt,
-    bodies: bodies.map(({ id, kind, shape: collider, positionM, velocityMps, orientation, angularVelocityRadps, inertiaKgM2, sensor }) =>
+    bodies: bodies.map(({ id, kind, shape: collider, positionM, velocityMps, orientation, angularVelocityRadps, inertiaKgM2, inertiaDiagonalKgM2, sensor }) =>
       ({ id, kind, shape: copyShape(collider), positionM: [...positionM], velocityMps: [...velocityMps],
         orientation: [...orientation], angularVelocityRadps: [...angularVelocityRadps],
         ...(inertiaKgM2 === undefined ? {} : { inertiaKgM2 }),
+        ...(inertiaDiagonalKgM2 === undefined ? {} : { inertiaDiagonalKgM2: [...inertiaDiagonalKgM2] as Vec3 }),
         ...(sensor ? { sensor: true } : {}) })),
-    contacts: contacts.map(({ aId, bId, normalAtoB, penetrationM, impulseNs }) =>
-      ({ aId, bId, normalAtoB: [...normalAtoB], penetrationM, impulseNs })),
+    contacts: contacts.map(({ aId, bId, normalAtoB, pointM, penetrationM, impulseNs }) =>
+      ({ aId, bId, normalAtoB: [...normalAtoB], pointM: [...pointM], penetrationM, impulseNs })),
     events: events.map((event) => ({ ...event })),
   };
 }
+const add = (a: Vec3, b: Vec3): Vec3 => a.map((value, index) => value + b[index]) as Vec3;
+const sub = (a: Vec3, b: Vec3): Vec3 => a.map((value, index) => value - b[index]) as Vec3;
+const scale = (a: Vec3, value: number): Vec3 => a.map((component) => component * value) as Vec3;
+const dot = (a: Vec3, b: Vec3): number => a.reduce((sum, value, index) => sum + value * b[index], 0);
+const cross = (a: Vec3, b: Vec3): Vec3 =>
+  [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const inverse = (q: Quat): Quat => [-q[0], -q[1], -q[2], q[3]];
+function rotate(q: Quat, v: Vec3): Vec3 {
+  const axis: Vec3 = [q[0], q[1], q[2]];
+  const t = scale(cross(axis, v), 2);
+  return add(v, add(scale(t, q[3]), cross(axis, t)));
+}
+const localPoint = (body: Body, point: Vec3): Vec3 => rotate(inverse(body.orientation), sub(point, body.positionM));
+const worldPoint = (body: Body, point: Vec3): Vec3 => add(body.positionM, rotate(body.orientation, point));
+function inverseInertia(body: Body, vector: Vec3): Vec3 {
+  const local = rotate(inverse(body.orientation), vector);
+  return rotate(body.orientation, local.map((value, index) => value * body.inverseInertiaLocal[index]) as Vec3);
+}
+function capsuleCenter(body: Body, point: Vec3): Vec3 {
+  const half = (body.shape as CapsuleShape).halfLengthM;
+  const local = localPoint(body, point);
+  return worldPoint(body, [0, Math.max(-half, Math.min(half, local[1])), 0]);
+}
+function boxAxes(body: Body): Vec3[] {
+  return [[1, 0, 0], [0, 1, 0], [0, 0, 1]].map((axis) => rotate(body.orientation, axis as Vec3));
+}
+function boxSupport(body: Body, direction: Vec3): Vec3 {
+  const axes = boxAxes(body);
+  const extents = (body.shape as BoxShape).halfExtentsM;
+  return add(body.positionM, axes.reduce((result, axis, index) =>
+    add(result, scale(axis, dot(axis, direction) >= 0 ? extents[index] : -extents[index])), [0, 0, 0] as Vec3));
+}
 function sphereSphere(a: Body, b: Body): Hit | null {
-  const radius = (a.shape as SphereShape).radiusM + (b.shape as SphereShape).radiusM;
-  const delta: Vec3 = [0, 1, 2].map((i) => b.positionM[i] - a.positionM[i]) as Vec3;
+  const aRadius = (a.shape as SphereShape).radiusM;
+  const bRadius = (b.shape as SphereShape).radiusM;
+  const delta = sub(b.positionM, a.positionM);
   const distance = Math.hypot(...delta);
-  if (distance > radius) return null;
-  return { normal: distance === 0 ? [1, 0, 0] : delta.map((v) => v / distance) as Vec3,
-    penetration: Math.max(0, radius - distance) };
+  if (distance > aRadius + bRadius) return null;
+  const normal: Vec3 = distance === 0 ? [1, 0, 0] : scale(delta, 1 / distance);
+  const aSurface = add(a.positionM, scale(normal, aRadius));
+  const bSurface = sub(b.positionM, scale(normal, bRadius));
+  return { normal, penetration: Math.max(0, aRadius + bRadius - distance),
+    pointM: scale(add(aSurface, bSurface), 0.5) };
 }
 function sphereBox(sphere: Body, box: Body): Hit | null {
   const radius = (sphere.shape as SphereShape).radiusM;
   const extents = (box.shape as BoxShape).halfExtentsM;
-  const relative: Vec3 = [0, 1, 2].map((i) => sphere.positionM[i] - box.positionM[i]) as Vec3;
-  const nearest: Vec3 = [0, 1, 2].map((i) => Math.max(-extents[i], Math.min(extents[i], relative[i]))) as Vec3;
-  const towardBox: Vec3 = [0, 1, 2].map((i) => nearest[i] - relative[i]) as Vec3;
+  const relative = localPoint(box, sphere.positionM);
+  const nearest = relative.map((value, index) => Math.max(-extents[index], Math.min(extents[index], value))) as Vec3;
+  const towardBox = sub(nearest, relative);
   const distance = Math.hypot(...towardBox);
   if (distance > radius) return null;
-  if (distance > 0) return { normal: towardBox.map((v) => v / distance) as Vec3, penetration: Math.max(0, radius - distance) };
-  // Inside or exactly on the box: X, then Y, then Z; negative face first on a tie.
-  let axis = 0;
-  let side = -1;
-  let faceDistance = Infinity;
-  for (let i = 0; i < 3; i++) {
-    for (const candidate of [-1, 1]) {
-      const gap = extents[i] - candidate * relative[i];
-      if (gap < faceDistance) { faceDistance = gap; axis = i; side = candidate; }
-    }
+  if (distance > 0) return { normal: rotate(box.orientation, scale(towardBox, 1 / distance)),
+    penetration: Math.max(0, radius - distance), pointM: worldPoint(box, nearest) };
+  // Inside or on a face: axis X, Y, Z; negative face first on a tie.
+  let axis = 0, side = -1, faceDistance = Infinity;
+  for (let index = 0; index < 3; index++) for (const candidate of [-1, 1]) {
+    const gap = extents[index] - candidate * relative[index];
+    if (gap < faceDistance) { faceDistance = gap; axis = index; side = candidate; }
   }
-  const normal: Vec3 = [0, 0, 0];
-  normal[axis] = -side;
-  return { normal, penetration: radius + faceDistance };
+  const localNormal: Vec3 = [0, 0, 0];
+  localNormal[axis] = -side;
+  nearest[axis] = side * extents[axis];
+  return { normal: rotate(box.orientation, localNormal), penetration: radius + faceDistance,
+    pointM: worldPoint(box, nearest) };
+}
+function capsuleSphere(capsule: Body, sphere: Body): Hit | null {
+  const center = capsuleCenter(capsule, sphere.positionM);
+  const delta = sub(sphere.positionM, center);
+  const distance = Math.hypot(...delta);
+  const capsuleRadius = (capsule.shape as CapsuleShape).radiusM;
+  const sphereRadius = (sphere.shape as SphereShape).radiusM;
+  if (distance > capsuleRadius + sphereRadius) return null;
+  const normal: Vec3 = distance === 0 ? [1, 0, 0] : scale(delta, 1 / distance);
+  return { normal, penetration: Math.max(0, capsuleRadius + sphereRadius - distance),
+    pointM: scale(add(add(center, scale(normal, capsuleRadius)),
+      sub(sphere.positionM, scale(normal, sphereRadius))), 0.5) };
+}
+function boxBox(a: Body, b: Body): Hit | null {
+  const axesA = boxAxes(a), axesB = boxAxes(b);
+  const extentA = (a.shape as BoxShape).halfExtentsM, extentB = (b.shape as BoxShape).halfExtentsM;
+  const delta = sub(b.positionM, a.positionM);
+  let bestAxis: Vec3 = [1, 0, 0], bestOverlap = Infinity;
+  const candidates = [...axesA, ...axesB, ...axesA.flatMap((axisA) => axesB.map((axisB) => cross(axisA, axisB)))];
+  for (const candidate of candidates) {
+    const length = Math.hypot(...candidate);
+    if (length < 1e-12) continue;
+    const axis = scale(candidate, 1 / length);
+    const radiusA = axesA.reduce((sum, basis, index) => sum + extentA[index] * Math.abs(dot(basis, axis)), 0);
+    const radiusB = axesB.reduce((sum, basis, index) => sum + extentB[index] * Math.abs(dot(basis, axis)), 0);
+    const signedDistance = dot(delta, axis);
+    const overlap = radiusA + radiusB - Math.abs(signedDistance);
+    if (overlap < -1e-12) return null;
+    if (overlap < bestOverlap) { bestOverlap = overlap; bestAxis = scale(axis, signedDistance < 0 ? -1 : 1); }
+  }
+  const aPoint = boxSupport(a, bestAxis);
+  const bPoint = boxSupport(b, scale(bestAxis, -1));
+  return { normal: bestAxis, penetration: Math.max(0, bestOverlap), pointM: scale(add(aPoint, bPoint), 0.5) };
 }
 function detect(a: Body, b: Body): Hit | null {
   if (a.shape.kind === 'sphere' && b.shape.kind === 'sphere') return sphereSphere(a, b);
   if (a.shape.kind === 'sphere' && b.shape.kind === 'box') return sphereBox(a, b);
   if (a.shape.kind === 'box' && b.shape.kind === 'sphere') {
     const hit = sphereBox(b, a);
-    return hit && { normal: hit.normal.map((v) => -v) as Vec3, penetration: hit.penetration };
+    return hit && { ...hit, normal: scale(hit.normal, -1) };
   }
+  if (a.shape.kind === 'capsule' && b.shape.kind === 'sphere') return capsuleSphere(a, b);
+  if (a.shape.kind === 'sphere' && b.shape.kind === 'capsule') {
+    const hit = capsuleSphere(b, a);
+    return hit && { ...hit, normal: scale(hit.normal, -1) };
+  }
+  if (a.shape.kind === 'box' && b.shape.kind === 'box') return boxBox(a, b);
   return null;
 }
 function sphereOverlaps(center: Vec3, radius: number, body: Body): boolean {
   if (body.shape.kind === 'sphere') {
-    return Math.hypot(...center.map((value, index) => value - body.positionM[index])) <= radius + body.shape.radiusM;
+    return Math.hypot(...sub(center, body.positionM)) <= radius + body.shape.radiusM;
+  }
+  if (body.shape.kind === 'capsule') {
+    return Math.hypot(...sub(center, capsuleCenter(body, center))) <= radius + body.shape.radiusM;
   }
   const extents = body.shape.halfExtentsM;
-  const delta = center.map((value, index) =>
-    Math.max(0, Math.abs(value - body.positionM[index]) - extents[index]));
+  const local = localPoint(body, center);
+  const delta = local.map((value, index) => Math.max(0, Math.abs(value) - extents[index]));
   return Math.hypot(...delta) <= radius;
 }
+function raySphere(origin: Vec3, direction: Vec3, center: Vec3, radius: number): number | null {
+  const relative = sub(origin, center);
+  const c = dot(relative, relative) - radius ** 2;
+  if (c <= 0) return 0;
+  const projection = dot(relative, direction);
+  const discriminant = projection ** 2 - c;
+  return projection > 0 || discriminant < 0 ? null : -projection - Math.sqrt(discriminant);
+}
 function rayDistance(origin: Vec3, direction: Vec3, body: Body): number | null {
-  if (body.shape.kind === 'sphere') {
-    const relative = origin.map((value, index) => value - body.positionM[index]) as Vec3;
-    const c = relative.reduce((sum, value) => sum + value * value, 0) - body.shape.radiusM ** 2;
-    if (c <= 0) return 0;
-    const projection = relative.reduce((sum, value, index) => sum + value * direction[index], 0);
-    const discriminant = projection ** 2 - c;
-    return projection > 0 || discriminant < 0 ? null : -projection - Math.sqrt(discriminant);
+  if (body.shape.kind === 'sphere') return raySphere(origin, direction, body.positionM, body.shape.radiusM);
+  const localOrigin = localPoint(body, origin);
+  const localDirection = rotate(inverse(body.orientation), direction);
+  if (body.shape.kind === 'capsule') {
+    const { radiusM: radius, halfLengthM: half } = body.shape;
+    const closest: Vec3 = [0, Math.max(-half, Math.min(half, localOrigin[1])), 0];
+    if (Math.hypot(...sub(localOrigin, closest)) <= radius) return 0;
+    const results: number[] = [];
+    for (const y of [-half, half]) {
+      const hit = raySphere(localOrigin, localDirection, [0, y, 0], radius);
+      if (hit !== null) results.push(hit);
+    }
+    const a = localDirection[0] ** 2 + localDirection[2] ** 2;
+    if (a > 1e-12) {
+      const b = 2 * (localOrigin[0] * localDirection[0] + localOrigin[2] * localDirection[2]);
+      const c = localOrigin[0] ** 2 + localOrigin[2] ** 2 - radius ** 2;
+      const discriminant = b ** 2 - 4 * a * c;
+      if (discriminant >= 0) for (const sign of [-1, 1]) {
+        const hit = (-b + sign * Math.sqrt(discriminant)) / (2 * a);
+        const y = localOrigin[1] + localDirection[1] * hit;
+        if (hit >= 0 && y >= -half && y <= half) results.push(hit);
+      }
+    }
+    return results.length ? Math.min(...results) : null;
   }
   let near = -Infinity, far = Infinity;
   for (let index = 0; index < 3; index++) {
-    const lower = body.positionM[index] - body.shape.halfExtentsM[index];
-    const upper = body.positionM[index] + body.shape.halfExtentsM[index];
-    const component = direction[index];
+    const lower = -body.shape.halfExtentsM[index];
+    const upper = body.shape.halfExtentsM[index];
+    const component = localDirection[index];
     if (Math.abs(component) < 1e-12) {
-      if (origin[index] < lower || origin[index] > upper) return null;
+      if (localOrigin[index] < lower || localOrigin[index] > upper) return null;
       continue;
     }
-    const first = (lower - origin[index]) / component;
-    const second = (upper - origin[index]) / component;
+    const first = (lower - localOrigin[index]) / component;
+    const second = (upper - localOrigin[index]) / component;
     near = Math.max(near, Math.min(first, second));
     far = Math.min(far, Math.max(first, second));
     if (far < near) return null;
@@ -373,12 +507,20 @@ function rayDistance(origin: Vec3, direction: Vec3, body: Body): number | null {
 function solve(a: Body, b: Body, hit: Hit): number {
   const inverseTotal = a.inverseMass + b.inverseMass;
   if (inverseTotal === 0) return 0;
-  const relativeSpeed = hit.normal.reduce((sum, component, i) => sum + component * (b.velocityMps[i] - a.velocityMps[i]), 0);
+  const armA = sub(hit.pointM, a.positionM), armB = sub(hit.pointM, b.positionM);
+  const pointVelocityA = add(a.velocityMps, cross(a.angularVelocityRadps, armA));
+  const pointVelocityB = add(b.velocityMps, cross(b.angularVelocityRadps, armB));
+  const relativeSpeed = dot(hit.normal, sub(pointVelocityB, pointVelocityA));
+  const torqueAxisA = cross(armA, hit.normal), torqueAxisB = cross(armB, hit.normal);
+  const effectiveMass = inverseTotal + dot(torqueAxisA, inverseInertia(a, torqueAxisA))
+    + dot(torqueAxisB, inverseInertia(b, torqueAxisB));
   let impulse = 0;
   if (relativeSpeed < 0) {
     const bounce = -relativeSpeed > 0.5 ? Math.min(a.restitution, b.restitution) : 0;
-    impulse = -(1 + bounce) * relativeSpeed / inverseTotal;
+    impulse = -(1 + bounce) * relativeSpeed / effectiveMass;
   }
+  a.angularVelocityRadps = sub(a.angularVelocityRadps, scale(inverseInertia(a, torqueAxisA), impulse));
+  b.angularVelocityRadps = add(b.angularVelocityRadps, scale(inverseInertia(b, torqueAxisB), impulse));
   for (let i = 0; i < 3; i++) {
     a.velocityMps[i] -= hit.normal[i] * impulse * a.inverseMass;
     b.velocityMps[i] += hit.normal[i] * impulse * b.inverseMass;
@@ -397,7 +539,8 @@ function validateResult(bodies: Body[], contacts: PhysicsContact[]): void {
       Math.abs(Math.hypot(...body.orientation) - 1) > 1e-12) error('NUMERIC_LIMIT', `${body.id} orientation exceeded tolerance`);
   }
   if (contacts.some((contact) => !Number.isFinite(contact.impulseNs) || !Number.isFinite(contact.penetrationM) ||
-    contact.normalAtoB.some((value) => !Number.isFinite(value)))) error('NUMERIC_LIMIT', 'unsafe contact result');
+    contact.normalAtoB.some((value) => !Number.isFinite(value)) ||
+    contact.pointM.some((value) => !Number.isFinite(value)))) error('NUMERIC_LIMIT', 'unsafe contact result');
 }
 
 export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
@@ -414,6 +557,10 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
   const pairs: Array<[number, number]> = [];
   for (let a = 0; a < bodies.length; a++) for (let b = a + 1; b < bodies.length; b++) {
     if (bodies[a].inverseMass !== 0 || bodies[b].inverseMass !== 0) {
+      if (bodies[a].shape.kind === 'capsule' && bodies[b].shape.kind !== 'sphere' ||
+        bodies[b].shape.kind === 'capsule' && bodies[a].shape.kind !== 'sphere') {
+        error('INVALID_CONFIG', `unsupported collider pair: ${bodies[a].shape.kind}/${bodies[b].shape.kind}`);
+      }
       pairs.push(bodies[a].id < bodies[b].id ? [a, b] : [b, a]);
     }
   }
@@ -446,11 +593,10 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
           body.velocityMps = delta.map((value) => value / dt) as Vec3;
           body.positionM = [...target];
         } else if (body.kind === 'dynamic') {
-          const inertia = body.inertiaKgM2!;
-          for (let i = 0; i < 3; i++) {
-            body.angularVelocityRadps[i] += (action?.angularImpulseNms?.[i] ?? 0) / inertia;
-            body.angularVelocityRadps[i] += (action?.torqueNm?.[i] ?? 0) / inertia * dt;
-          }
+          const angularImpulse = action?.angularImpulseNms ?? [0, 0, 0];
+          const torque = action?.torqueNm ?? [0, 0, 0];
+          body.angularVelocityRadps = add(body.angularVelocityRadps,
+            inverseInertia(body, add(angularImpulse, scale(torque, dt))));
           if (body.angularVelocityRadps.some((value) => !Number.isFinite(value) || Math.abs(value) > 1000) ||
             Math.hypot(...body.angularVelocityRadps) * dt > 10) {
             error('NUMERIC_LIMIT', `${body.id} exceeded angular movement limit`);
@@ -480,9 +626,11 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
         }
         let contact = found.get(key);
         if (!contact) {
-          contact = { aId: a.id, bId: b.id, normalAtoB: [...hit.normal], penetrationM: 0, impulseNs: 0 };
+          contact = { aId: a.id, bId: b.id, normalAtoB: [...hit.normal], pointM: [...hit.pointM],
+            penetrationM: 0, impulseNs: 0 };
           found.set(key, contact);
         }
+        contact.pointM = [...hit.pointM];
         contact.penetrationM = Math.max(contact.penetrationM, hit.penetration);
         contact.impulseNs += solve(a, b, hit);
       }
