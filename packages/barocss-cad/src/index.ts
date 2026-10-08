@@ -188,3 +188,6 @@ export type { CadDocumentBoundsReport, CadDocumentBoundsResult } from './cad-doc
 
 export { queryCadDocumentCurveArcLength, validateCadDocumentCurveArcLength, CadCurveArcLengthError, CadCurveArcLengthDiagnosticCode } from './cad-curve-arc-length.js';
 export type { CadCurveArcLengthOptions, CadCurveArcLengthPanel, CadCurveArcLengthReport, CadCurveArcLengthResult } from './cad-curve-arc-length.js';
+
+export { queryCadDocumentSurfaceArea, validateCadDocumentSurfaceArea, CadSurfaceAreaError, CadSurfaceAreaDiagnosticCode } from './cad-surface-area.js';
+export type { CadSurfaceAreaOptions, CadSurfaceAreaCell, CadSurfaceAreaReport, CadSurfaceAreaResult } from './cad-surface-area.js';
