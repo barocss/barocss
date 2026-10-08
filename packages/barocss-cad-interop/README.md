@@ -322,6 +322,55 @@ file, HTTP read, source/ID/revision retention and refusal. The
 on one WebGL2 canvas, checks uploaded buffers/pixels, rejected updates and
 owned GPU disposal. Build CAD, GPU and interop before running these examples.
 
+### Display native CAD assembly instances in Three.js
+
+The optional `./three-assembly` entry consumes a public CAD assembly0 result.
+Use `parseCadAssembly` from `@barocss/cad` to read an authored assembly file.
+The adapter validates the complete result before it creates Three objects.
+It uses the existing source0 and selected-document Three loaders for each
+qualified part reference. The assembly owns each instance pose; the source
+owns its geometry and original Curve or Surface ID.
+
+```js
+import { parseCadAssembly } from '@barocss/cad';
+import { createBaroCadAssemblyThreeDisplay }
+  from '@barocss/cad-interop/three-assembly';
+
+const text = await (await fetch(assemblyURL)).text();
+const assembly = parseCadAssembly(text);
+const display = createBaroCadAssemblyThreeDisplay(assembly, {
+  native: { sourceVersion: 0, countU: 8, countV: 8,
+    unitsPerMillimeter: 0.01,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02,
+      maxSegments: 512, maxDepth: 16 } },
+  basis: 'authored-xyz-matches-rhyup',
+});
+scene.add(display.root);
+// Bindings include instance ID, ancestry, qualified native reference and
+// the original Mesh or sampled Curve Line.
+display.dispose();
+```
+
+The native evaluated matrix is row-major, acts on column-vector points and
+already includes every parent pose. Each instance Group is a flat child of
+the returned root. Its rotation is copied from that matrix; only its mm
+translation is multiplied by `unitsPerMillimeter`. The existing loader
+scales the source geometry once. The adapter does not re-evaluate Euler
+angles, bake poses into geometry or apply parent transforms a second time.
+Shared native part references create separate owned display objects with
+distinct instance bindings. The host must assert a matching right-handed
+Y-up scene; native authored XYZ alone does not certify that basis.
+
+`dispose()` detaches the root and releases only adapter-owned geometry and
+materials. It is safe to call twice. A rejected candidate leaves the
+previous caller scene unchanged. `node examples/assembly-three-verify.mjs`
+checks an actual #863 file, five original-to-assembly point witnesses,
+shared parts and colliding geometry IDs, eight refusals, an empty assembly
+and disposal. `examples/assembly-three.html` fetches the same file and
+checks placed Mesh/Line pixels, a native point against the Three world
+matrix, failure retention and cleanup in WebGL2. Other targets and an
+assembly URL transport API need separate contracts.
+
 ### Display selected document bodies in Three.js
 
 The optional `./three-document` entry composes the same validated body
