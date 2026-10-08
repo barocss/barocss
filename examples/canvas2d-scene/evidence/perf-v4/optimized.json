@@ -1,0 +1,174 @@
+{
+  "corpus": {
+    "version": 4,
+    "logicalSize": {
+      "width": 800,
+      "height": 480
+    },
+    "dpr": 2,
+    "frames": 8,
+    "paths": 24,
+    "images": 8,
+    "glyphRuns": 8,
+    "copiedAssetBytes": 296
+  },
+  "hardware": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+    "vendor": "WebKit",
+    "renderer": "WebKit WebGL",
+    "unmaskedVendor": "Google Inc. (Apple)",
+    "unmaskedRenderer": "ANGLE (Apple, ANGLE Metal Renderer: Apple M3 Max, Unspecified Version)"
+  },
+  "distributions": {
+    "updateScene": {
+      "n": 40,
+      "medianMs": 0.5,
+      "p95Ms": 0.7999999998137355,
+      "minMs": 0.39999999944120646,
+      "maxMs": 1
+    },
+    "renderFinish": {
+      "n": 30,
+      "medianMs": 0.09999999962747097,
+      "p95Ms": 0.19999999925494194,
+      "minMs": 0,
+      "maxMs": 0.20000000018626451
+    },
+    "missHit": {
+      "n": 20,
+      "medianMs": 0.001099999999627471,
+      "p95Ms": 0.0015,
+      "minMs": 0.001,
+      "maxMs": 0.0017999999998137355
+    },
+    "visibleHit": {
+      "n": 20,
+      "medianMs": 0.001300000000745058,
+      "p95Ms": 0.0017999999998137355,
+      "minMs": 0.0012000000001862645,
+      "maxMs": 0.002400000000372529
+    },
+    "historyCommitFinish": {
+      "n": 20,
+      "medianMs": 0.900000000372529,
+      "p95Ms": 1.2000000001862645,
+      "minMs": 0.7999999998137355,
+      "maxMs": 1.400000000372529
+    }
+  },
+  "resources": {
+    "afterSetup": {
+      "texImage2D": 2,
+      "textureBytes": 296,
+      "createTexture": 2,
+      "deleteTexture": 0,
+      "bufferData": 136,
+      "bufferBytes": 17472,
+      "createBuffer": 3,
+      "deleteBuffer": 0
+    },
+    "afterRun": {
+      "texImage2D": 2,
+      "textureBytes": 296,
+      "createTexture": 2,
+      "deleteTexture": 0,
+      "bufferData": 8432,
+      "bufferBytes": 1083264,
+      "createBuffer": 3,
+      "deleteBuffer": 0
+    },
+    "additionalTextureUploads": 0,
+    "additionalTextureBytes": 0,
+    "gpuResidentBytes": null,
+    "jsHeapUsedBytes": 13997440,
+    "afterDispose": {
+      "texImage2D": 2,
+      "textureBytes": 296,
+      "createTexture": 2,
+      "deleteTexture": 2,
+      "bufferData": 8432,
+      "bufferBytes": 1083264,
+      "createBuffer": 3,
+      "deleteBuffer": 3
+    },
+    "disposeCode": "DISPOSED"
+  },
+  "accepted": {
+    "historyPosition": 20,
+    "historyLength": 21,
+    "miss": null,
+    "visible": {
+      "id": "Card0",
+      "kind": "rect"
+    },
+    "samples": [
+      {
+        "x": 36,
+        "y": 36,
+        "rgba": [
+          217,
+          235,
+          255,
+          255
+        ],
+        "hit": {
+          "id": "Card0",
+          "kind": "rect"
+        }
+      },
+      {
+        "x": 157,
+        "y": 38,
+        "rgba": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "hit": {
+          "id": "Image0",
+          "kind": "image"
+        }
+      },
+      {
+        "x": 106,
+        "y": 62,
+        "rgba": [
+          20,
+          32,
+          56,
+          255
+        ],
+        "hit": {
+          "id": "Glyph0",
+          "kind": "glyphRun"
+        }
+      },
+      {
+        "x": 60,
+        "y": 160,
+        "rgba": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "hit": {
+          "id": "Frame0",
+          "kind": "frame"
+        }
+      },
+      {
+        "x": 790,
+        "y": 450,
+        "rgba": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "hit": null
+      }
+    ]
+  }
+}

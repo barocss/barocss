@@ -43,7 +43,7 @@ export class SceneHistory {
     this.#entries = entries;
     this.#index = entries.length - 1;
     this.#renderer.render();
-    return this.scene;
+    return candidate;
   }
 
   restore() {
