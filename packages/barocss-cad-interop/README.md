@@ -322,6 +322,53 @@ file, HTTP read, source/ID/revision retention and refusal. The
 on one WebGL2 canvas, checks uploaded buffers/pixels, rejected updates and
 owned GPU disposal. Build CAD, GPU and interop before running these examples.
 
+### Display selected document bodies in Three.js
+
+The optional `./three-document` entry composes the same validated body
+selection with the existing source0 `BaroCADLoader`. It returns one Three
+`root` Group and bindings in authored body order. Each binding contains the
+original document/asset/body/native IDs, revisions and frames, the selected
+`Mesh` or `Line`, its asset Group and the asset-scoped display ref. The
+`Object3D.name` remains the original native geometry ID. Use the binding to
+distinguish the same Curve or Surface ID in different assets.
+
+```js
+import { loadBaroCadDocument } from '@barocss/cad-interop/document';
+import { createBaroCadDocumentThreeDisplay }
+  from '@barocss/cad-interop/three-document';
+
+const cad = await loadBaroCadDocument(documentURL);
+const display = createBaroCadDocumentThreeDisplay(cad, {
+  native: { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } },
+  basis: 'authored-xyz-matches-rhyup', // Host assertion, not a document certificate.
+  bodyIds: ['body_0_curve', 'body_0_surface', 'body_1_curve', 'body_1_surface'],
+});
+scene.add(display.root);
+// The host may set display-only poses on display.root.children.
+// This does not create CAD assembly placements.
+display.dispose(); // Detach and release only adapter-owned objects.
+```
+
+One asset Group is created for each selected source asset. The underlying
+source adapter constructs the bounded whole source0 Model and then detaches
+unselected children from the display root. Its result still owns their
+geometry and materials until `dispose()`, which is idempotent. The caller
+keeps its Scene, renderer, canvas, camera, lights and unrelated children. A
+failed candidate releases staged adapter resources and does not replace a
+prior accepted display. The neutral `./document` entry remains free of a
+Three runtime import. This composite does not add exact native-parameter
+picking or change the old `BaroCADLoader`.
+
+`node examples/document-three-v1-verify.mjs` checks the actual 3,172-byte
+document over local HTTP, selected objects/positions, atomic failure and
+disposal. `examples/document-three-v1.html` renders the two selected Lines
+and two Meshes in headed Chromium/WebGL2, with caller display-only poses and
+pixel/readback checks. The `native` option applies the explicit millimetre
+scale once in the existing Three loader. Document authored XYZ alone does
+not certify a right-handed Y-up frame; the host must assert the matching
+basis or supply its own external frame mapping.
+
 ## Load native source in Babylon.js
 
 Install `@babylonjs/core@9.29.0` in the host application. The optional
