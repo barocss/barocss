@@ -1,5 +1,4 @@
 import { createViewer } from '../../packages/barocss-viewer/dist/index.js';
-import { createMotionClip, createMotionTransitionPlayer } from '../../packages/barocss-motion/dist/index.js';
 
 const canvas = document.querySelector('#view');
 const stateElement = document.querySelector('#state');
@@ -11,88 +10,63 @@ const modelId = viewer.getState().native.model.name;
 const nativeDistance = viewer.measureNativeSurfacePoints(
   { modelId, surfaceId: refs[0].surfaceId, u: 3.5, v: 15 },
   { modelId, surfaceId: refs[1].surfaceId, u: 0.5, v: 0.5 });
-const track = (targetId, property, interpolation, first, last) => ({
-  targetId, property, interpolation, keys: [
-    { timeSeconds: 0, value: first }, { timeSeconds: 4, value: last },
-  ],
-});
-const q = Math.SQRT1_2;
-const sourceClip = createMotionClip({ version: 0, contextId: modelId, durationSeconds: 4, tracks: [
-  track('panel-a', 'translation', 'LINEAR', [-30, -10, 0], [65, 10, 10]),
-  track('panel-a', 'rotation', 'SLERP', [0, 0, 0, 1], [0, 0, q, q]),
-  track('panel-a', 'scale', 'LINEAR', [1, 1, 1], [1.5, 0.75, 1]),
-  track('panel-b', 'translation', 'LINEAR', [30, 10, 0], [-70, 35, 25]),
-  track('panel-b', 'rotation', 'SLERP', [0, 0, 0, 1], [0, q, 0, q]),
-  track('panel-b', 'scale', 'LINEAR', [1, 1, 1], [0.65, 1.4, 0.8]),
-] });
-const destinationClip = createMotionClip({ version: 0, contextId: modelId, durationSeconds: 4, tracks: [
-  track('panel-a', 'translation', 'LINEAR', [65, 10, 10], [-40, 35, 30]),
-  track('panel-a', 'rotation', 'SLERP', [0, 0, q, q], [0, 0, 0, 1]),
-  track('panel-a', 'scale', 'LINEAR', [1.5, 0.75, 1], [1, 1.2, 1]),
-  track('panel-b', 'translation', 'LINEAR', [-70, 35, 25], [45, -20, 20]),
-  track('panel-b', 'rotation', 'SLERP', [0, q, 0, q], [0, 0, 0, 1]),
-  track('panel-b', 'scale', 'LINEAR', [0.65, 1.4, 0.8], [1.1, 0.9, 1]),
-] });
-const wrongContextClip = createMotionClip({ version: 0, contextId: 'foreign_model',
-  durationSeconds: 4, tracks: structuredClone(destinationClip.tracks) });
 const bindings = [
   { contextId: modelId, targetId: 'panel-a', ref: refs[0] },
   { contextId: modelId, targetId: 'panel-b', ref: refs[1] },
 ];
 const basis = { basis: 'part-xyz-matches-rhyup' };
-let player = createMotionTransitionPlayer(sourceClip, { mode: 'clamp' });
+const frames = [
+  [[-30, -10, 0], [30, 10, 0]],
+  [[0, 0, 5], [0, 15, 5]],
+  [[40, 20, 10], [-40, 25, 10]],
+  [[60, 15, 10], [-60, 30, 20]],
+  [[65, 10, 10], [-70, 35, 25]],
+];
+let timeSeconds = 0;
+let playing = false;
 let disposed = false;
 
 function describe(message = '') {
-  const scene = viewer.getState();
-  const state = disposed ? null : player.getState();
+  const state = viewer.getState();
   stateElement.textContent = [
-    `Viewer: ${scene.status} · native model: ${scene.native?.model.name ?? 'none'}`,
-    `Surfaces: ${scene.surfaces.map(ref => ref.surfaceId).join(', ')}`,
-    `Transition: ${state?.phase ?? 'disposed'} · ${state?.playing ? 'playing' : 'paused'}`,
-    `Source time: ${state?.sourceTimeSeconds ?? 'none'} s · destination time: ${state?.destinationTimeSeconds ?? 'none'} s`,
-    `Fade progress: ${state?.fadeProgress ?? 'none'} · weight: ${state?.weight ?? 'none'}`,
-    `Display translations (mm): ${scene.motion?.displayPoses.map(p => p.translationMm.map(v => v.toFixed(3)).join(',')).join(' | ') ?? 'identity'}`,
-    `Native Surface distance (mm): ${scene.measurement?.distanceMM.toFixed(6) ?? 'none'}`,
-    `Original source retained: ${scene.native?.source === source}`,
+    `Viewer: ${state.status} · native model: ${state.native?.model.name ?? 'none'}`,
+    `Surfaces: ${state.surfaces.map(ref => ref.surfaceId).join(', ')}`,
+    `Caller time: ${timeSeconds} s · ${playing ? 'playing' : 'paused'}`,
+    `Display translations (mm): ${state.motion?.displayPoses.map(p => p.translationMm.join(',')).join(' | ') ?? 'identity'}`,
+    `Native Surface distance (mm): ${state.measurement?.distanceMM.toFixed(6) ?? 'none'}`,
+    `Original source retained: ${state.native?.source === source}`,
     message,
   ].join('\n');
 }
-function display(state, message) {
-  viewer.applyMotionFrame({ contextId: state.contextId, timeSeconds: state.sourceTimeSeconds,
-    poses: state.poses }, bindings, basis);
+function step(nextTime) {
+  if (disposed) return;
+  timeSeconds = nextTime;
+  viewer.applyMotionFrame({ contextId: modelId, timeSeconds, poses: frames[timeSeconds].map((translation, index) =>
+    ({ targetId: index === 0 ? 'panel-a' : 'panel-b', translation: [...translation] })) },
+  bindings, basis);
   viewer.fit();
-  describe(message);
+  describe('Caller supplied the display frame; native source and distance are unchanged.');
 }
-function act(callback, label) {
-  try { display(callback(), label); }
-  catch (error) { describe(`${label} refused: ${error.code ?? error.name} · ${error.message}`); }
-}
-document.querySelector('#start').addEventListener('click', () => act(() => player.play(), 'Start'));
-document.querySelector('#advance').addEventListener('click', () => act(() => player.advance(1), 'Advance 1 s'));
-document.querySelector('#pause').addEventListener('click', () => act(() => player.pause(), 'Pause'));
-document.querySelector('#resume').addEventListener('click', () => act(() => player.play(), 'Resume'));
-document.querySelector('#transition').addEventListener('click', () => act(() => player.transitionTo(
-  destinationClip, { destinationTimeSeconds: 0, fadeDurationSeconds: 2 }), 'Clip change'));
-document.querySelector('#incompatible').addEventListener('click', () => act(() => player.transitionTo(
-  wrongContextClip, { destinationTimeSeconds: 0, fadeDurationSeconds: 2 }), 'Wrong context'));
-document.querySelector('#second-fade').addEventListener('click', () => act(() => player.transitionTo(
-  destinationClip, { destinationTimeSeconds: 0, fadeDurationSeconds: 2 }), 'Second fade'));
+document.querySelector('#start').addEventListener('click', () => { playing = true; step(0); });
+document.querySelector('#advance').addEventListener('click', () => { if (playing) step(Math.min(4, timeSeconds + 1)); });
+document.querySelector('#pause').addEventListener('click', () => { playing = false; describe('Paused caller time.'); });
+document.querySelector('#resume').addEventListener('click', () => { if (!disposed) { playing = true; describe('Resumed caller time.'); } });
+document.querySelector('#incompatible').addEventListener('click', () => {
+  if (disposed) return;
+  try { viewer.applyMotionFrame({ contextId: 'foreign_model', timeSeconds,
+    poses: [{ targetId: 'panel-a', translation: [0, 0, 0] },
+      { targetId: 'panel-b', translation: [0, 0, 0] }] }, bindings, basis); }
+  catch (error) { describe(`Wrong context refused: ${error.message}`); }
+});
 document.querySelector('#reset').addEventListener('click', () => {
   if (disposed) return;
-  player.dispose();
-  player = createMotionTransitionPlayer(sourceClip, { mode: 'clamp' });
-  viewer.resetMotion();
-  viewer.fit();
-  describe('Reset to source clip at 0 s and identity display pose.');
+  playing = false; timeSeconds = 0; viewer.resetMotion(); viewer.fit();
+  describe('Identity display pose restored.');
 });
 document.querySelector('#dispose').addEventListener('click', () => {
   if (disposed) return;
-  player.dispose();
-  viewer.dispose();
-  disposed = true;
-  describe('Host player and Viewer disposed; caller clips and source stay owned by the host.');
+  playing = false; viewer.dispose(); disposed = true;
+  describe('Viewer disposed; original source remains caller-owned.');
 });
-describe('Caller owns the transition clock. Use Start, then Advance 1 s.');
-window.viewerTransitionDemo = { viewer, getPlayer: () => player, sourceClip, destinationClip,
-  wrongContextClip, bindings, basis, source, nativeDistance };
+describe('The caller owns time. Use Start, then Advance 1 s.');
+window.viewerTransitionDemo = { viewer, frames, bindings, basis, source, nativeDistance, step, describe };

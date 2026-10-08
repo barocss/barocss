@@ -223,9 +223,6 @@ importers:
       '@barocss/gpu':
         specifier: workspace:*
         version: link:../barocss-gpu
-      '@barocss/motion':
-        specifier: workspace:*
-        version: link:../barocss-motion
 
 packages:
 
