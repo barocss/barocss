@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Canvas2D image Blob decoder consumer</title>
+<style>
+  body { margin: 20px; font: 14px system-ui; color: #17233c; background: #f5f7fb; }
+  button, input { margin: 0 8px 8px 0; padding: 7px 10px; }
+  canvas#scene { width: 160px; height: 120px; display: block; background: white; }
+  pre { max-width: 760px; white-space: pre-wrap; background: white; padding: 12px; }
+</style>
+<h1>Canvas2D image Blob decoder</h1>
+<p>Download the sample PNG, then choose it. The library returns RGBA8 bytes for a sprite.</p>
+<button id="sample">Download sample PNG</button>
+<label>Choose image <input id="file" type="file" accept="image/png,image/jpeg,image/webp"></label>
+<button id="save">Save document</button>
+<label>Open document <input id="open" type="file" accept="application/json,.json"></label>
+<p id="status" role="status">Loading</p><canvas id="scene"></canvas><pre id="observation"></pre>
+<script type="importmap">
+{"imports":{"@barocss/canvas2d":"../dist/index.js","@barocss/canvas2d/document":"../dist/document.js"}}
+</script>
+<script type="module" src="./image-decode.mjs"></script>
+</html>

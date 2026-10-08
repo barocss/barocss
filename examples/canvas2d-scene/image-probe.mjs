@@ -11,7 +11,7 @@ const versions = [initialSceneV0, initialScene, initialSceneV2, initialSceneV3].
 });
 assert.deepEqual(versions, [0, 1, 2, 3]);
 assert.deepEqual(imageAssets.map(([id, asset]) => [id, asset.pixels.byteLength]),
-  [['RGBA2', 16], ['Checker8', 256]]);
+  [['RGBA2', 16], ['Checker8', 256], ['GlyphHI', 280]]);
 const image = initialSceneV3.nodes[0].children.at(-1);
 assert.equal(image.kind, 'image');
 assert.deepEqual(image.sourceRect, { x: 2, y: 1, width: 4, height: 5 });
