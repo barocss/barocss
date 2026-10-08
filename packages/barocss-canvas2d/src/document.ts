@@ -16,6 +16,8 @@ export type CanvasDocumentV1 = {
 };
 export type ParsedCanvasDocument = { scene: Scene; assets: Map<string, ImageAssetInput> };
 export type StagedCanvasDocument = ParsedCanvasDocument & { renderer: Canvas2DRenderer };
+export type CanvasPNGExport = { blob: Blob; logicalSize: Canvas2DOptions['logicalSize'];
+  backingSize: { width: number; height: number }; dpr: number };
 
 function fail(code: 'SERIALIZATION' | 'INVALID_ASSET' | 'ASSET_LIMIT' | 'UNSUPPORTED_FEATURE',
   message: string): never { throw new Canvas2DError(code, message); }
@@ -139,9 +141,8 @@ export async function parseCanvasDocument(text: string): Promise<ParsedCanvasDoc
   return { scene, assets };
 }
 
-export async function stageCanvasDocument(text: string, freshCanvas: HTMLCanvasElement,
-  options: Canvas2DOptions): Promise<StagedCanvasDocument> {
-  const parsed = await parseCanvasDocument(text);
+function stageParsedDocument(parsed: ParsedCanvasDocument, freshCanvas: HTMLCanvasElement,
+  options: Canvas2DOptions): StagedCanvasDocument {
   const renderer = createCanvas2D(freshCanvas, options);
   try {
     for (const [id, asset] of parsed.assets) renderer.setImageAsset(id, asset);
@@ -151,5 +152,40 @@ export async function stageCanvasDocument(text: string, freshCanvas: HTMLCanvasE
   } catch (error) {
     renderer.dispose();
     throw error;
+  }
+}
+
+export async function stageCanvasDocument(text: string, freshCanvas: HTMLCanvasElement,
+  options: Canvas2DOptions): Promise<StagedCanvasDocument> {
+  return stageParsedDocument(await parseCanvasDocument(text), freshCanvas, options);
+}
+
+export async function exportCanvasDocumentPNG(text: string, options: Canvas2DOptions,
+  createCanvas: () => HTMLCanvasElement): Promise<CanvasPNGExport> {
+  if (typeof createCanvas !== 'function') fail('SERIALIZATION', 'createCanvas must be a function');
+  const parsed = await parseCanvasDocument(text);
+  let canvas: HTMLCanvasElement;
+  try { canvas = createCanvas(); }
+  catch { fail('SERIALIZATION', 'canvas creation failed'); }
+  if (!canvas || typeof canvas.toBlob !== 'function') {
+    fail('UNSUPPORTED_FEATURE', 'HTML canvas PNG encoding is unavailable');
+  }
+  const staged = stageParsedDocument(parsed, canvas, options);
+  try {
+    let blob: Blob;
+    try {
+      blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(value => value ? resolve(value) :
+          reject(new Canvas2DError('SERIALIZATION', 'PNG encoding returned no Blob')), 'image/png');
+      });
+    } catch (error) {
+      if (error instanceof Canvas2DError) throw error;
+      fail('SERIALIZATION', 'PNG encoding failed');
+    }
+    if (blob.type !== 'image/png') fail('SERIALIZATION', 'canvas did not encode PNG');
+    return { blob, logicalSize: { ...options.logicalSize },
+      backingSize: { width: canvas.width, height: canvas.height }, dpr: options.dpr };
+  } finally {
+    staged.renderer.dispose();
   }
 }
