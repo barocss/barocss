@@ -118,6 +118,8 @@ export type { FinitePlaneCylinderOriginalDerivativeGuard } from './own-plane-cyl
 export { intersectBezierCurveWithAffinePlaneSurface, validateBezierCurveAffinePlaneIntersection } from './own-curve-plane-intersection.js';
 export type { BezierCurveAffinePlaneIntersectionOptions, BezierCurveAffinePlaneIntersectionReport, BezierCurveAffinePlaneIntersectionResult, BezierCurvePlanePointEvent, CurveAffinePlaneAxes, CurvePlaneD1State } from './own-curve-plane-intersection.js';
 export { intersectCurveWithAffinePlaneSurface, validateCurveAffinePlaneIntersection } from './own-multispan-curve-plane.js';
+export { intersectCurveWideWithAffinePlaneSurface, validateWideCurveAffinePlaneIntersection, WideCurveAffinePlaneIntersectionError, WideCurveAffinePlaneIntersectionDiagnosticCode } from './curve-wide-plane-intersection.js';
+export type { WideCurveAffinePlaneIntersectionOptions, WideCurveAffinePlaneIntersectionReport, WideCurveAffinePlaneIntersectionResult } from './curve-wide-plane-intersection.js';
 export type { CurveAffinePlaneIntersectionOptions, CurveAffinePlaneSpan, CurvePlaneSpanContribution, CurvePlaneSideObservation, CurvePlanePointEvent, CurveAffinePlaneIntersectionReport, CurveAffinePlaneIntersectionResult } from './own-multispan-curve-plane.js';
 export { clipCurvePlaneCoincidentIntervals, validateCurvePlaneCoincidentClip } from './own-coincident-plane-clip.js';
 export type { PlaneClipBoundary, CurvePlaneCoincidentClipOptions, PlaneClipBoundaryContribution, PlaneClipContact, PlaneClipSpan, PlaneClipEndpointApproximation, PlaneClipBindingObservation, PlaneClipUVSplitProvenance, PlaneClipPiece, CurvePlaneCoincidentClipReport, CurvePlaneCoincidentClipResult } from './own-coincident-plane-clip.js';
