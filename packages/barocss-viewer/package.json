@@ -1,0 +1,23 @@
+{
+  "name": "@barocss/viewer",
+  "version": "0.0.0-experimental",
+  "private": false,
+  "publishConfig": { "access": "public" },
+  "type": "module",
+  "description": "Bounded native CAD surface viewer using the BaroCSS GPU backend",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build:library": "tsc -p tsconfig.json",
+    "type-check": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@barocss/cad-interop": "workspace:*",
+    "@barocss/gpu": "workspace:*"
+  }
+}
