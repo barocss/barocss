@@ -8,6 +8,9 @@ pose to the Surfaces and tries an invalid replacement.
 The **Wide 64-pole Curve** button loads committed source0 with explicit
 `curveDisplay.version:1`. It uses the GPU v1 primitive scene. The existing
 mixed and Curve-only buttons retain the unversioned v0 path.
+**Load mixed URL** reads the same committed source0 over local HTTP through
+the neutral Loader and Viewer admission. **Cancel URL** aborts that pending
+request. The accepted native source and display rules match the text load.
 Use the **Directional lighting** link to recreate the same Viewer with explicit
 ambient and directional Surface lighting. The default link omits lighting;
 Curve lines remain unlit in both views.

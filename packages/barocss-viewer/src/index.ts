@@ -1,7 +1,7 @@
 import { curveDomain, evaluateCurve, evaluateSurface, surfaceDomain } from '@barocss/cad';
 import type { AdaptiveCurveSamplingResult, WideAdaptiveCurveSamplingResult } from '@barocss/cad';
-import { parseBaroCadSource } from '@barocss/cad-interop/native';
-import type { BaroCadNativeResult } from '@barocss/cad-interop/native';
+import { BaroCadLoadAbortError, loadBaroCadSource, parseBaroCadSource } from '@barocss/cad-interop/native';
+import type { BaroCadLoadTransportOptions, BaroCadNativeResult } from '@barocss/cad-interop/native';
 import { mountMeshScene, mountPrimitiveScene, mountPrimitiveSceneV1, PrimitiveSceneRenderer,
   PrimitiveSceneRendererV1, prepareMesh,
   validateMeshCamera, validatePreviewPacket } from '@barocss/gpu';
@@ -463,6 +463,7 @@ export class Viewer {
   private selectedGeometry: ViewerGeometryRef | null = null;
   private motion: ViewerMotionState | null = null;
   private geometryMotion: ViewerGeometryMotionState | null = null;
+  private sceneRequest = 0;
   private disposed = false;
   private contextLost = false;
   private readonly onContextLost = (): void => { this.contextLost = true; };
@@ -599,12 +600,9 @@ export class Viewer {
     this.measurement = null; this.motion = null; this.geometryMotion = null; this.curveMeasurement = null;
     this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
   }
-  loadNative(source: string, input: NativeLoadOptions | ViewerNativeCurveLoadOptions
-    | ViewerNativeCurveLoadOptionsV1): void {
-    this.live();
-    check(typeof source === 'string' && source.length > 0 && source.length <= 65536, 'Native source length exceeds limits');
-    const options = parseNativeOptions(input);
-    const native = parseBaroCadSource(source, { ...options, unitsPerMillimeter: 1 });
+  private admitNative(native: BaroCadNativeResult,
+    options: NativeLoadOptions | ViewerNativeCurveLoadOptions | ViewerNativeCurveLoadOptionsV1): void {
+    check(native.source.length > 0 && native.source.length <= 65536, 'Native source length exceeds limits');
     check(native.model.objects.length <= 64, 'Native model exceeds object limit');
     const expectedVersion = 'curveDisplay' in options
       ? ('version' in options.curveDisplay ? 1 : 0) : null;
@@ -618,7 +616,25 @@ export class Viewer {
         return { modelId: native.model.name, sampleVersion: 1, sample: curve.sample };
       }));
   }
-  setPackets(input: ViewerPacket[]): void { this.live(); this.accept(input, null); }
+  loadNative(source: string, input: NativeLoadOptions | ViewerNativeCurveLoadOptions
+    | ViewerNativeCurveLoadOptionsV1): void {
+    this.live();
+    check(typeof source === 'string' && source.length > 0 && source.length <= 65536, 'Native source length exceeds limits');
+    const options = parseNativeOptions(input);
+    this.admitNative(parseBaroCadSource(source, { ...options, unitsPerMillimeter: 1 }), options);
+    this.sceneRequest++;
+  }
+  async loadNativeUrl(url: string, input: NativeLoadOptions | ViewerNativeCurveLoadOptions
+    | ViewerNativeCurveLoadOptionsV1, transport: BaroCadLoadTransportOptions = {}): Promise<void> {
+    this.live();
+    const options = parseNativeOptions(input);
+    const request = ++this.sceneRequest;
+    const native = await loadBaroCadSource(url, { ...options, unitsPerMillimeter: 1 }, transport);
+    this.live();
+    if (request !== this.sceneRequest) throw new BaroCadLoadAbortError();
+    this.admitNative(native, options);
+  }
+  setPackets(input: ViewerPacket[]): void { this.live(); this.accept(input, null); this.sceneRequest++; }
   measureNativeSurfacePoints(firstInput: ViewerNativeSurfaceParameter,
     secondInput: ViewerNativeSurfaceParameter): ViewerNativeSurfaceMeasurement {
     this.live();

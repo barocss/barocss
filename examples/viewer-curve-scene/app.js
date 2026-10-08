@@ -15,6 +15,7 @@ const wideOptions = { sourceVersion: 0, countU: 8, countV: 8,
   curveDisplay: { version: 1, chordToleranceMM: 0.002, maxSegments: 4092, maxDepth: 10 } };
 let message = '';
 let lastHit = null;
+let pendingUrlController = null;
 
 function describe(next = message) {
   message = next;
@@ -42,9 +43,27 @@ function load(name) {
 }
 load('mixed');
 
+async function loadUrl(name = 'mixed') {
+  const controller = new AbortController();
+  pendingUrlController = controller;
+  let loadedBytes = 0;
+  describe(`Loading ${name} from URL…`);
+  try {
+    await viewer.loadNativeUrl(`/${name}.barocad`, name === 'wide-64' ? wideOptions : options, {
+      signal: controller.signal,
+      onProgress(event) { loadedBytes = event.loadedBytes; describe(`Received ${loadedBytes} bytes…`); },
+    });
+    lastHit = null;
+    describe(`${name} URL accepted (${loadedBytes} bytes). Native source and IDs are unchanged.`);
+  } catch (error) { describe(`URL load refused: ${error.message}`); }
+  finally { if (pendingUrlController === controller) pendingUrlController = null; }
+}
+
 document.querySelector('#mixed').addEventListener('click', () => load('mixed'));
 document.querySelector('#curves-only').addEventListener('click', () => load('curves-only'));
 document.querySelector('#wide-64').addEventListener('click', () => load('wide-64'));
+document.querySelector('#load-url').addEventListener('click', () => loadUrl('mixed'));
+document.querySelector('#cancel-url').addEventListener('click', () => pendingUrlController?.abort());
 document.querySelector('#fit').addEventListener('click', () => { viewer.fit(); describe('Fitted visible geometry.'); });
 document.querySelector('#fit-selection').addEventListener('click', () => {
   const ref = viewer.getState().selectedGeometry;
@@ -102,5 +121,5 @@ canvas.addEventListener('click', event => {
   else describe('No visible geometry near this point.');
 });
 
-window.viewerCurveDemo = { viewer, createViewer, lightingInput, sources, options, wideOptions, load, describe,
+window.viewerCurveDemo = { viewer, createViewer, lightingInput, sources, options, wideOptions, load, loadUrl, describe,
   get lastHit() { return lastHit; } };

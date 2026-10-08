@@ -17,6 +17,15 @@ if (hit) viewer.select(hit.ref);
 viewer.dispose();
 ```
 
+For a source0 file served over HTTP, call `await viewer.loadNativeUrl(url,
+loadOptions, { signal, onProgress })`. The transport reports received bytes and
+supports caller cancellation; the same native source, display limits and
+state-reset rules as `loadNative` apply. Failed, aborted and superseded loads
+retain the accepted scene. A newer URL call or successful `loadNative` or
+`setPackets` prevents an older pending URL result from replacing it. The caller
+owns the `AbortController`; disposal also prevents a pending result from
+mounting a new scene. This API does not read CAD document v1 JSON.
+
 For explicit Surface mesh lighting, pass an optional GPU `MeshLighting` value
 at creation: `lighting:{ambientStrength:0.12,directionalStrength:0.78,
 direction:[0.8,0.4,-0.7]}`. Each strength is in 0..1 and their sum is at most
