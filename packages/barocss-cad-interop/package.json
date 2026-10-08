@@ -61,6 +61,10 @@
       "types": "./dist/babylon-assembly.d.ts",
       "import": "./dist/babylon-assembly.js"
     },
+    "./babylon-boolean-mesh": {
+      "types": "./dist/babylon-boolean-mesh.d.ts",
+      "import": "./dist/babylon-boolean-mesh.js"
+    },
     "./pixi3d": {
       "types": "./dist/pixi3d.d.ts",
       "import": "./dist/pixi3d.js"
