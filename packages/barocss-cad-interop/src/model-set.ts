@@ -1,6 +1,8 @@
 import { loadBaroCadSource, validateBaroCadParseOptions } from './native.js';
 import type { BaroCadNativeResult, BaroCadParseOptions } from './native.js';
 import { BaroCadLoadAbortError, throwIfBaroCadAborted } from './transport.js';
+import { copyCadPreviewPacket } from './packet.js';
+import type { CadPreviewPacket } from './packet.js';
 
 export interface BaroCadModelSetManifest {
   format: 'barocad-model-set';
@@ -33,6 +35,21 @@ export interface BaroCadModelSetResult {
   readonly version: 0;
   readonly entries: ReadonlyArray<BaroCadModelSetEntry>;
   readonly totalLoadedBytes: number;
+}
+
+export interface BaroCadModelSetDisplayBinding {
+  /** Derived packet label for one display scene, never a native CAD ID. */
+  readonly displaySurfaceId: string;
+  readonly aliasId: string;
+  readonly modelId: string;
+  readonly surfaceId: string;
+  readonly sourceURL: string;
+}
+
+export interface BaroCadModelSetDisplayEntry {
+  /** Owned PreviewPacket v0 copy with a qualified display surfaceId. */
+  readonly packet: CadPreviewPacket;
+  readonly binding: BaroCadModelSetDisplayBinding;
 }
 
 function record(input: unknown, keys: readonly string[], label: string): Record<string, unknown> {
@@ -153,4 +170,75 @@ export async function loadBaroCadModelSet(
   await Promise.resolve();
   throwIfBaroCadAborted(request.signal);
   return Object.freeze({ format: 'barocad-model-set', version: 0, entries: Object.freeze(accepted), totalLoadedBytes });
+}
+
+function data(input: unknown, key: string, label: string): unknown {
+  if (input === null || typeof input !== 'object' ||
+      ![Object.prototype, null].includes(Object.getPrototypeOf(input))) {
+    throw new TypeError(`${label} must be plain data`);
+  }
+  const descriptor = Object.getOwnPropertyDescriptor(input, key);
+  if (!descriptor?.enumerable || !('value' in descriptor)) throw new TypeError(`${label}.${key} must be data`);
+  return descriptor.value;
+}
+
+function dense(input: unknown, min: number, max: number, label: string): unknown[] {
+  if (!Array.isArray(input) || Object.getPrototypeOf(input) !== Array.prototype ||
+      input.length < min || input.length > max || Reflect.ownKeys(input).length !== input.length + 1) {
+    throw new RangeError(`${label} must be a dense array of ${min}..${max}`);
+  }
+  return Array.from({ length: input.length }, (_, index) => {
+    const descriptor = Object.getOwnPropertyDescriptor(input, String(index));
+    if (!descriptor?.enumerable || !('value' in descriptor)) throw new TypeError(`${label}[${index}] must be data`);
+    return descriptor.value;
+  });
+}
+
+/** Copy native packets for one display scene, with explicit alias-to-native bindings. */
+export function prepareBaroCadModelSetDisplay(set: BaroCadModelSetResult): ReadonlyArray<BaroCadModelSetDisplayEntry> {
+  if (data(set, 'format', 'Model set') !== 'barocad-model-set' || data(set, 'version', 'Model set') !== 0) {
+    throw new RangeError('Only BaroCAD model-set version 0 can be displayed');
+  }
+  const entries = dense(data(set, 'entries', 'Model set'), 1, 4, 'Model-set entries');
+  const output: BaroCadModelSetDisplayEntry[] = [];
+  const aliases = new Set<string>();
+  const displayIds = new Set<string>();
+  for (const entry of entries) {
+    const aliasId = data(entry, 'aliasId', 'Model-set entry');
+    const sourceURL = data(entry, 'url', 'Model-set entry');
+    const result = data(entry, 'result', 'Model-set entry');
+    if (typeof aliasId !== 'string' || !/^[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(aliasId) || aliases.has(aliasId)) {
+      throw new RangeError('Display alias must be a unique bounded ASCII identifier');
+    }
+    if (typeof sourceURL !== 'string' || !/^https?:\/\//.test(sourceURL)) throw new TypeError('Display source URL must be HTTP(S)');
+    aliases.add(aliasId);
+    const model = data(result, 'model', 'Native result');
+    const modelId = data(model, 'name', 'Native Model');
+    if (typeof modelId !== 'string' || !/^[A-Za-z_][A-Za-z0-9_-]{0,127}$/.test(modelId)) {
+      throw new RangeError('Native Model ID must be a bounded ASCII identifier');
+    }
+    const objects = dense(data(model, 'objects', 'Native Model'), 1, 64, 'Native objects');
+    const surfaces = dense(data(result, 'surfaces', 'Native result'), 1, 4, 'Native Surfaces');
+    for (const surface of surfaces) {
+      const surfaceId = data(surface, 'surfaceId', 'Native Surface');
+      const packet = copyCadPreviewPacket(data(surface, 'packet', 'Native Surface'));
+      if (typeof surfaceId !== 'string' || packet.surfaceId !== surfaceId ||
+          objects.filter(object => data(object, 'kind', 'Native object') === 'surface' &&
+            data(object, 'id', 'Native object') === surfaceId).length !== 1) {
+        throw new RangeError('Display Surface must bind exactly one original native Surface');
+      }
+      const displaySurfaceId = `bcms_${aliasId.length}_${aliasId}_${surfaceId}`;
+      if (displaySurfaceId.length > 127 || displayIds.has(displaySurfaceId)) {
+        throw new RangeError('Qualified display Surface ID is too long or duplicated');
+      }
+      displayIds.add(displaySurfaceId);
+      packet.surfaceId = displaySurfaceId;
+      output.push(Object.freeze({
+        packet,
+        binding: Object.freeze({ displaySurfaceId, aliasId, modelId, surfaceId, sourceURL }),
+      }));
+      if (output.length > 4) throw new RangeError('Own GPU display supports at most four total Surfaces');
+    }
+  }
+  return Object.freeze(output);
 }
