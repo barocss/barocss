@@ -1,15 +1,17 @@
 import { createCanvas2D, parseSceneJSON, stringifySceneJSON } from '../../packages/barocss-canvas2d/dist/index.js';
-import { initialScene } from './scene.mjs';
+import { initialScene, initialSceneV0 } from './scene.mjs';
 
 const canvas = document.querySelector('#scene');
 const status = document.querySelector('#status');
 const selectedLabel = document.querySelector('#selected');
 const errorLabel = document.querySelector('#error');
 const selectionBox = document.querySelector('#selection-box');
+const pathHandles = document.querySelector('#path-handles');
 let scene = structuredClone(initialScene);
 let view = { panX: 0, panY: 0, zoom: 1 };
 let selected = null;
 let gesture = null;
+let controlDrag = null;
 let renderer = createCanvas2D(canvas, { logicalSize: { width: 800, height: 480 }, dpr: Math.min(4, Math.max(0.5, devicePixelRatio || 1)) });
 renderer.updateScene(scene);
 renderer.render();
@@ -37,14 +39,53 @@ function updateSelection() {
   selectionBox.style.height = `${node.height * node.transform.scaleY * view.zoom}px`;
   selectionBox.style.display = 'block';
 }
+function updateHandles() {
+  pathHandles.replaceChildren();
+  const found = findNode('PathRibbon');
+  if (!found) return;
+  const { node, parentX, parentY } = found;
+  node.commands.forEach((command, commandIndex) => {
+    const controls = command.kind === 'Q' ? [['cx', 'cy', 'quadratic']] :
+      command.kind === 'C' ? [['c1x', 'c1y', 'cubic'], ['c2x', 'c2y', 'cubic']] : [];
+    for (const [xField, yField, style] of controls) {
+      const handle = document.createElement('div');
+      handle.className = `control-handle ${style}`;
+      handle.dataset.handle = `${commandIndex}:${xField}`;
+      handle.title = `${node.id} ${xField}/${yField}`;
+      handle.style.left = `${view.panX + (parentX + node.transform.x + command[xField]) * view.zoom}px`;
+      handle.style.top = `${view.panY + (parentY + node.transform.y + command[yField]) * view.zoom}px`;
+      handle.addEventListener('pointerdown', event => {
+        event.preventDefault(); event.stopPropagation();
+        controlDrag = { commandIndex, xField, yField, clientX: event.clientX, clientY: event.clientY,
+          x: command[xField], y: command[yField] };
+      });
+      pathHandles.append(handle);
+    }
+  });
+}
 function draw() {
   renderer.updateScene(scene);
   renderer.setView(view);
   renderer.render();
   updateSelection();
-  status.textContent = `Zoom ${Math.round(view.zoom * 100)}% · ${scene.nodes.length} frames`;
+  updateHandles();
+  status.textContent = `v${scene.version} · Zoom ${Math.round(view.zoom * 100)}% · DPR ${canvas.width / 800} · ${scene.nodes.length} frames`;
   errorLabel.textContent = '';
 }
+window.addEventListener('pointermove', event => {
+  if (!controlDrag) return;
+  const { node } = findNode('PathRibbon');
+  const command = node.commands[controlDrag.commandIndex];
+  const oldX = command[controlDrag.xField], oldY = command[controlDrag.yField];
+  command[controlDrag.xField] = controlDrag.x + (event.clientX - controlDrag.clientX) / view.zoom;
+  command[controlDrag.yField] = controlDrag.y + (event.clientY - controlDrag.clientY) / view.zoom;
+  try { draw(); } catch (error) {
+    command[controlDrag.xField] = oldX; command[controlDrag.yField] = oldY;
+    errorLabel.textContent = `${error.code || 'ERROR'}: ${error.message}`;
+  }
+});
+window.addEventListener('pointerup', () => { controlDrag = null; });
+window.addEventListener('pointercancel', () => { controlDrag = null; });
 function point(event) { const rect = canvas.getBoundingClientRect(); return { x: event.clientX - rect.left, y: event.clientY - rect.top }; }
 canvas.addEventListener('pointerdown', event => {
   const p = point(event);
@@ -83,6 +124,9 @@ document.querySelector('#zoom-out').addEventListener('click', () => zoomAt(view.
 document.querySelector('#reset').addEventListener('click', () => {
   scene = structuredClone(initialScene); view = { panX: 0, panY: 0, zoom: 1 }; selected = null; draw();
 });
+document.querySelector('#open-v0').addEventListener('click', () => {
+  scene = structuredClone(initialSceneV0); view = { panX: 0, panY: 0, zoom: 1 }; selected = null; draw();
+});
 document.querySelector('#save').addEventListener('click', () => {
   const blob = new Blob([stringifySceneJSON(scene)], { type: 'application/json' });
   const url = URL.createObjectURL(blob), anchor = document.createElement('a');
@@ -98,6 +142,8 @@ document.querySelector('#open').addEventListener('change', async event => {
 window.__canvas2dDebug = {
   get scene() { return structuredClone(scene); }, get view() { return { ...view }; },
   hit(point) { return renderer.hitTest(point); },
+  pathObservation(id = 'PathRibbon') { return renderer.getPathObservation(id); },
+  resizeDpr(dpr) { renderer.resize({ width: 800, height: 480 }, dpr); renderer.render(); updateSelection(); updateHandles(); },
   setScene(next) { renderer.updateScene(next); scene = structuredClone(next); draw(); },
   setView(next) { renderer.setView(next); view = { ...next }; draw(); },
   pixel(x, y) { const gl = canvas.getContext('webgl2'); const p = new Uint8Array(4);
