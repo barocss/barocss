@@ -4,6 +4,9 @@ import { error, record, fields, finite, vector, parseBody, parseCommands, copyBo
 import { add, scale, inverseInertia, advanceOrientation } from './math.js';
 import { parseJoints, projectJoint } from './joints.js';
 import { detect, solve, validateResult, sphereOverlaps, rayDistance } from './collision.js';
+import { boxFaceManifold } from './contact-manifold.js';
+import { correctPersistentPair, solvePersistentPoint, warmStartPoint } from './persistent-box-contact.js';
+import type { PointImpulse } from './persistent-box-contact.js';
 import { ccdFixtures, sweepSphere } from './ccd.js';
 import { bodyBounds, boundsOverlap } from './broadphase.js';
 
@@ -31,15 +34,22 @@ function publicState(bodies: Body[], contacts: PhysicsContact[], events: Physics
 
 export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
   const input = record(config, 'world');
-  fields(input, ['fixedStepSeconds', 'gravityMps2', 'bodies', 'joints', 'broadPhase'], 'world');
+  fields(input, ['fixedStepSeconds', 'gravityMps2', 'bodies', 'joints', 'broadPhase', 'contactMode'], 'world');
   if (Object.hasOwn(input, 'broadPhase') && input.broadPhase !== 'aabb') {
     error('INVALID_CONFIG', 'broadPhase must be aabb when present');
   }
+  if (Object.hasOwn(input, 'contactMode') && input.contactMode !== 'persistent-box-v1') {
+    error('INVALID_CONFIG', 'contactMode must be persistent-box-v1 when present');
+  }
   const useAabb = input.broadPhase === 'aabb';
+  const usePersistentBox = input.contactMode === 'persistent-box-v1';
   const dt = finite(input.fixedStepSeconds, 1 / 240, 1 / 30, 'fixedStepSeconds');
   const gravity = vector(input.gravityMps2, -1000, 1000, 'gravityMps2');
   if (!Array.isArray(input.bodies) || input.bodies.length < 1 || input.bodies.length > MAX_BODIES) {
     error('INVALID_CONFIG', `bodies must contain 1..${MAX_BODIES} entries`);
+  }
+  if (usePersistentBox && input.bodies.length > 4) {
+    error('INVALID_CONFIG', 'persistent-box-v1 admits at most four bodies');
   }
   let bodies = input.bodies.map(parseBody);
   if (!bodies.some((body) => body.kind === 'dynamic')) error('INVALID_CONFIG', 'at least one dynamic body is required');
@@ -68,6 +78,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
     linearImpulseNs: [0, 0, 0], angularImpulseNms: [0, 0, 0],
     ...(joint.kind === 'hinge' ? { angleRad: 0 } : {}) }));
   let activePairs = new Map<string, Omit<PhysicsEvent, 'phase'>>();
+  let persistentPoints = new Map<string, PointImpulse>();
   let stepIndex = 0;
   let disposed = false;
   const ensureActive = () => { if (disposed) error('DISPOSED', 'world is disposed'); };
@@ -114,6 +125,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
       const nextCcdHits = hit ? [hit] : [];
       const nextPairStats: PhysicsPairStats = { eligiblePairs: 0, candidatePairs: 0, aabbTests: 0 };
       const found = new Map<string, PhysicsContact>();
+      const nextPersistentPoints = new Map<string, PointImpulse>();
       const sensed = new Map<string, Omit<PhysicsEvent, 'phase'>>();
       const nextJoints = jointStates.map((joint) => ({ ...joint,
         linearImpulseNs: [0, 0, 0] as Vec3, angularImpulseNms: [0, 0, 0] as Vec3 }));
@@ -144,11 +156,43 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
               penetrationM: 0, impulseNs: 0, tangentImpulseNs: [0, 0, 0] };
             found.set(key, contact);
           }
-          contact.pointM = [...hit.pointM];
+          const manifold = usePersistentBox ? boxFaceManifold(a, b, hit) : null;
+          const points = manifold?.map((entry) => entry.pointM) ?? [hit.pointM];
+          contact.pointM = points.reduce((sum, point) => add(sum, point), [0, 0, 0] as Vec3)
+            .map((value) => value / points.length) as Vec3;
           contact.penetrationM = Math.max(contact.penetrationM, hit.penetration);
-          const resolved = solve(a, b, hit);
-          contact.impulseNs += resolved.normalImpulseNs;
-          contact.tangentImpulseNs = add(contact.tangentImpulseNs, resolved.tangentImpulseNs);
+          if (manifold) {
+            for (const point of manifold) {
+              const pointKey = `${key}\u0000${point.id}`;
+              let impulse = nextPersistentPoints.get(pointKey);
+              if (!impulse) {
+                const prior = persistentPoints.get(pointKey);
+                impulse = prior ? { normalNs: prior.normalNs, tangentNs: [...prior.tangentNs] as Vec3 }
+                  : { normalNs: 0, tangentNs: [0, 0, 0] };
+                nextPersistentPoints.set(pointKey, impulse);
+                if (prior) warmStartPoint(a, b, point.pointM, hit.normal, impulse);
+              }
+            }
+            for (let iteration = 0; iteration < 8; iteration++) {
+              const order = iteration % 2 ? [...manifold].reverse() : manifold;
+              for (const point of order) {
+                const impulse = nextPersistentPoints.get(`${key}\u0000${point.id}`)!;
+                solvePersistentPoint(a, b, point.pointM, hit.normal, impulse);
+              }
+            }
+            correctPersistentPair(a, b, hit.normal, hit.penetration);
+            contact.impulseNs = 0;
+            contact.tangentImpulseNs = [0, 0, 0];
+            for (const point of manifold) {
+              const impulse = nextPersistentPoints.get(`${key}\u0000${point.id}`)!;
+              contact.impulseNs += impulse.normalNs;
+              contact.tangentImpulseNs = add(contact.tangentImpulseNs, impulse.tangentNs);
+            }
+          } else {
+            const resolved = solve(a, b, hit);
+            contact.impulseNs += resolved.normalImpulseNs;
+            contact.tangentImpulseNs = add(contact.tangentImpulseNs, resolved.tangentImpulseNs);
+          }
           if (bounds) {
             bounds[aIndex] = bodyBounds(a);
             bounds[bIndex] = bodyBounds(b);
@@ -184,6 +228,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
       ccdHits = nextCcdHits;
       pairStats = nextPairStats;
       activePairs = nextActive;
+      persistentPoints = nextPersistentPoints;
       stepIndex++;
       return publicState(bodies, contacts, events, jointStates, ccdHits, pairStats, stepIndex, dt);
     },
@@ -218,6 +263,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
       }
       return best;
     },
-    dispose() { disposed = true; bodies = []; contacts = []; events = []; ccdHits = []; activePairs.clear(); },
+    dispose() { disposed = true; bodies = []; contacts = []; events = []; ccdHits = [];
+      activePairs.clear(); persistentPoints.clear(); },
   };
 }
