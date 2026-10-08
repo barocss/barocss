@@ -1,23 +1,29 @@
 import { Canvas2DError, validatePoint, validateScene } from './schema.js';
-import type { FrameNodeV8, GlyphRunNode, GroupNodeV8, ImageNodeV8, PathNodeV5, RectNode, Point, SceneV6, SceneV7, SceneV8, SourceRect, Transform, Tint, LineNode } from './schema.js';
+import type { FrameNodeV9, GlyphRunNodeV9, GroupNodeV9, ImageNodeV9, PathNodeV9, RectNodeV9, Point, SceneV6, SceneV7, SceneV8, SceneV9, SourceRect, Transform, Tint, LineNodeV9 } from './schema.js';
 import type { Hit } from './renderer.js';
 import { tessellatePath } from './path.js';
 
-export type ContainerSpec = Pick<GroupNodeV8, 'id' | 'layer' | 'transform'>;
-export type SpriteData = Omit<ImageNodeV8, 'kind'>;
-export type SpriteSpec = Omit<SpriteData, 'tint' | 'blendMode'> & {
-  tint?: Tint; blendMode?: ImageNodeV8['blendMode'];
+export type ContainerSpec = Pick<GroupNodeV9, 'id' | 'layer' | 'transform'> & { visible?: boolean };
+export type ContainerData = Pick<GroupNodeV9, 'id' | 'layer' | 'transform' | 'visible'>;
+export type SpriteData = Omit<ImageNodeV9, 'kind'>;
+export type SpriteSpec = Omit<SpriteData, 'tint' | 'blendMode' | 'visible'> & {
+  tint?: Tint; blendMode?: ImageNodeV9['blendMode']; visible?: boolean;
 };
-export type PathSpec = Omit<PathNodeV5, 'kind'>;
-export type PathPaint = Pick<PathNodeV5, 'commands' | 'fill' | 'stroke'>;
-export type RectSpec = Omit<RectNode, 'kind'>;
-export type RectPaint = Pick<RectNode, 'width' | 'height' | 'fill'>;
-export type GlyphRunSpec = Omit<GlyphRunNode, 'kind'>;
-export type GlyphRunLayout = Pick<GlyphRunNode, 'atlasId' | 'text' | 'baseline' | 'opacity' | 'sampling' | 'glyphs'>;
-export type FrameSpec = Pick<FrameNodeV8, 'id' | 'layer' | 'transform' | 'width' | 'height' | 'fill' | 'clip'>;
-export type FramePaint = Pick<FrameNodeV8, 'width' | 'height' | 'fill' | 'clip'>;
-export type LineSpec = Omit<LineNode, 'kind'>;
-export type LinePaint = Pick<LineNode, 'x1' | 'y1' | 'x2' | 'y2' | 'width' | 'stroke'>;
+export type PathData = Omit<PathNodeV9, 'kind'>;
+export type PathSpec = Omit<PathData, 'visible'> & { visible?: boolean };
+export type PathPaint = Pick<PathNodeV9, 'commands' | 'fill' | 'stroke'>;
+export type RectData = Omit<RectNodeV9, 'kind'>;
+export type RectSpec = Omit<RectData, 'visible'> & { visible?: boolean };
+export type RectPaint = Pick<RectNodeV9, 'width' | 'height' | 'fill'>;
+export type GlyphRunData = Omit<GlyphRunNodeV9, 'kind'>;
+export type GlyphRunSpec = Omit<GlyphRunData, 'visible'> & { visible?: boolean };
+export type GlyphRunLayout = Pick<GlyphRunNodeV9, 'atlasId' | 'text' | 'baseline' | 'opacity' | 'sampling' | 'glyphs'>;
+export type FrameSpec = Omit<Pick<FrameNodeV9, 'id' | 'layer' | 'transform' | 'width' | 'height' | 'fill' | 'clip' | 'visible'>, 'visible'> & { visible?: boolean };
+export type FrameData = Pick<FrameNodeV9, 'id' | 'layer' | 'transform' | 'width' | 'height' | 'fill' | 'clip' | 'visible'>;
+export type FramePaint = Pick<FrameNodeV9, 'width' | 'height' | 'fill' | 'clip'>;
+export type LineData = Omit<LineNodeV9, 'kind'>;
+export type LineSpec = Omit<LineData, 'visible'> & { visible?: boolean };
+export type LinePaint = Pick<LineNodeV9, 'x1' | 'y1' | 'x2' | 'y2' | 'width' | 'stroke'>;
 export type DisplayHandle = ContainerHandle | SpriteHandle | PathHandle | RectHandle | GlyphRunHandle | FrameHandle | LineHandle;
 export type PointerEventType = 'pointerdown' | 'pointerup' | 'pointermove' | 'pointercancel';
 export type DisplayPointerEvent = {
@@ -38,55 +44,62 @@ export type StageHandle = {
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
 export type ContainerHandle = StageHandle & {
-  readonly kind: 'container'; readonly id: string; readonly data: ContainerSpec;
+  readonly kind: 'container'; readonly id: string; readonly data: ContainerData;
   setTransform(transform: Transform): void;
   setLayer(layer: number): void;
+  setVisible(visible: boolean): void;
 };
 export type FrameHandle = StageHandle & {
-  readonly kind: 'frame'; readonly id: string; readonly data: FrameSpec;
+  readonly kind: 'frame'; readonly id: string; readonly data: FrameData;
   setTransform(transform: Transform): void;
   setLayer(layer: number): void;
+  setVisible(visible: boolean): void;
   setFrame(paint: FramePaint): void;
 };
 export type SpriteHandle = {
   readonly kind: 'sprite'; readonly id: string; readonly data: SpriteData;
   setTransform(transform: Transform): void;
   setLayer(layer: number): void;
+  setVisible(visible: boolean): void;
   setAnchor(x: number, y: number): void;
   setSize(width: number, height: number): void;
   setOpacity(opacity: number): void;
   setTint(tint: Tint): void;
-  setBlendMode(mode: ImageNodeV8['blendMode']): void;
+  setBlendMode(mode: ImageNodeV9['blendMode']): void;
   setSampling(sampling: 'nearest' | 'linear'): void;
   setSourceRect(rect: SourceRect | null): void;
   setImageSource(imageId: string, sourceRect?: SourceRect | null): void;
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
 export type RectHandle = {
-  readonly kind: 'rect'; readonly id: string; readonly data: RectSpec;
+  readonly kind: 'rect'; readonly id: string; readonly data: RectData;
   setTransform(transform: Transform): void;
   setLayer(layer: number): void;
+  setVisible(visible: boolean): void;
   setRect(paint: RectPaint): void;
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
 export type LineHandle = {
-  readonly kind: 'line'; readonly id: string; readonly data: LineSpec;
+  readonly kind: 'line'; readonly id: string; readonly data: LineData;
   setTransform(transform: Transform): void;
   setLayer(layer: number): void;
+  setVisible(visible: boolean): void;
   setLine(paint: LinePaint): void;
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
 export type PathHandle = {
-  readonly kind: 'path'; readonly id: string; readonly data: PathSpec;
+  readonly kind: 'path'; readonly id: string; readonly data: PathData;
   setTransform(transform: Transform): void;
   setLayer(layer: number): void;
+  setVisible(visible: boolean): void;
   setPath(paint: PathPaint): void;
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
 export type GlyphRunHandle = {
-  readonly kind: 'glyphRun'; readonly id: string; readonly data: GlyphRunSpec;
+  readonly kind: 'glyphRun'; readonly id: string; readonly data: GlyphRunData;
   setTransform(transform: Transform): void;
   setLayer(layer: number): void;
+  setVisible(visible: boolean): void;
   setLayout(layout: GlyphRunLayout): void;
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
@@ -102,11 +115,11 @@ export type DisplayTree = {
   reparentChild(child: DisplayHandle, target: StageHandle | ContainerHandle | FrameHandle, index: number): void;
   get(id: string): DisplayHandle | null;
   dispatchPointer(input: PointerInput): void;
-  snapshot(): SceneV8;
+  snapshot(): SceneV9;
 };
 
 type RecordNode = {
-  data: GroupNodeV8 | ImageNodeV8 | PathNodeV5 | RectNode | GlyphRunNode | FrameNodeV8 | LineNode | null;
+  data: GroupNodeV9 | ImageNodeV9 | PathNodeV9 | RectNodeV9 | GlyphRunNodeV9 | FrameNodeV9 | LineNodeV9 | null;
   parent: RecordNode | null;
   children: RecordNode[];
   handle: StageHandle | DisplayHandle;
@@ -114,7 +127,7 @@ type RecordNode = {
 
 function invalid(message: string): never { throw new Canvas2DError('INVALID_SCENE', message); }
 
-function checkPathGeometry(node: PathNodeV5): void {
+function checkPathGeometry(node: PathNodeV9): void {
   // The handle has no renderer view. Check authored geometry at the baseline view;
   // the renderer checks the composed transform and active device view on update.
   tessellatePath(node, [1, 0, 0, 1, 0, 0], { panX: 0, panY: 0, zoom: 1 }, 1, 1);
@@ -142,7 +155,7 @@ function exactSpec(value: unknown, required: string[], optional: string[] = []):
 }
 
 export function createDisplayTree(contextId: string): DisplayTree {
-  const checked = validateScene({ version: 8, unit: 'logical-px', contextId, nodes: [] }) as SceneV8;
+  const checked = validateScene({ version: 9, unit: 'logical-px', contextId, nodes: [] }) as SceneV9;
   const root: RecordNode = { data: null, parent: null, children: [], handle: null as unknown as StageHandle };
   const records = new WeakMap<object, RecordNode>();
   const listeners = new WeakMap<RecordNode, Map<PointerEventType, { listener: PointerListener }[]>>();
@@ -182,19 +195,19 @@ export function createDisplayTree(contextId: string): DisplayTree {
     return find(root.children);
   }
 
-  function toNode(record: RecordNode): GroupNodeV8 | ImageNodeV8 | PathNodeV5 | RectNode | GlyphRunNode | FrameNodeV8 | LineNode {
+  function toNode(record: RecordNode): GroupNodeV9 | ImageNodeV9 | PathNodeV9 | RectNodeV9 | GlyphRunNodeV9 | FrameNodeV9 | LineNodeV9 {
     const data = record.data;
     if (!data) invalid('stage has no scene node');
     if (data.kind === 'group' || data.kind === 'frame') return { ...data, children: record.children.map(toNode) };
     return data;
   }
   function validateRoots(changed: RecordNode): void {
-    validateScene({ version: 8, unit: 'logical-px', contextId: checked.contextId,
+    validateScene({ version: 9, unit: 'logical-px', contextId: checked.contextId,
       nodes: root.children.map(toNode) });
     let top = changed;
     while (top.parent) top = top.parent;
     if (top !== root) {
-      validateScene({ version: 8, unit: 'logical-px', contextId: checked.contextId,
+      validateScene({ version: 9, unit: 'logical-px', contextId: checked.contextId,
         nodes: [toNode(top)] });
     }
   }
@@ -203,13 +216,13 @@ export function createDisplayTree(contextId: string): DisplayTree {
     if (!record || record === root) invalid('display object belongs to another tree');
     return record;
   }
-  function mutate(record: RecordNode, data: GroupNodeV8 | ImageNodeV8 | PathNodeV5 | RectNode | GlyphRunNode | FrameNodeV8 | LineNode): void {
+  function mutate(record: RecordNode, data: GroupNodeV9 | ImageNodeV9 | PathNodeV9 | RectNodeV9 | GlyphRunNodeV9 | FrameNodeV9 | LineNodeV9): void {
     const previous = record.data;
     record.data = data;
     try {
       validateRoots(record);
-      const accepted = validateScene({ version: 8, unit: 'logical-px', contextId: checked.contextId,
-        nodes: [toNode(record)] }).nodes[0] as GroupNodeV8 | ImageNodeV8 | PathNodeV5 | RectNode | GlyphRunNode | FrameNodeV8 | LineNode;
+      const accepted = validateScene({ version: 9, unit: 'logical-px', contextId: checked.contextId,
+        nodes: [toNode(record)] }).nodes[0] as GroupNodeV9 | ImageNodeV9 | PathNodeV9 | RectNodeV9 | GlyphRunNodeV9 | FrameNodeV9 | LineNodeV9;
       if (accepted.kind === 'path') checkPathGeometry(accepted);
       record.data = accepted;
     } catch (error) { record.data = previous; throw error; }
@@ -225,6 +238,11 @@ export function createDisplayTree(contextId: string): DisplayTree {
         const data = record.data;
         if (!data) invalid('stage has no layer');
         mutate(record, { ...data, layer });
+      },
+      setVisible(visible: boolean) {
+        const data = record.data;
+        if (!data) invalid('stage has no visibility');
+        mutate(record, { ...data, visible });
       },
     };
   }
@@ -302,15 +320,15 @@ export function createDisplayTree(contextId: string): DisplayTree {
       }
     },
     createContainer(spec: ContainerSpec): ContainerHandle {
-      const fields = exactSpec(spec, ['id', 'layer', 'transform']);
-      const node = validateScene({ version: 8, unit: 'logical-px', contextId: checked.contextId,
-        nodes: [{ kind: 'group', ...fields, children: [] }] }).nodes[0] as GroupNodeV8;
+      const fields = exactSpec(spec, ['id', 'layer', 'transform'], ['visible']);
+      const node = validateScene({ version: 9, unit: 'logical-px', contextId: checked.contextId,
+        nodes: [{ kind: 'group', ...fields, visible: Object.hasOwn(fields, 'visible') ? fields.visible : true, children: [] }] }).nodes[0] as GroupNodeV9;
       const record: RecordNode = { data: node, parent: null, children: [], handle: null as unknown as ContainerHandle };
       const parent = parentMethods(record);
       const handle: ContainerHandle = Object.freeze({
-        kind: 'container' as const, get id() { return (record.data as GroupNodeV8).id; },
-        get data() { const { kind: _kind, children: _children, ...data } = record.data as GroupNodeV8;
-          return structuredClone(data) as ContainerSpec; },
+        kind: 'container' as const, get id() { return (record.data as GroupNodeV9).id; },
+        get data() { const { kind: _kind, children: _children, ...data } = record.data as GroupNodeV9;
+          return structuredClone(data) as ContainerData; },
         get children() { return parent.children; },
         addChild: parent.addChild, removeChild: parent.removeChild, setChildIndex: parent.setChildIndex,
         onPointer: parent.onPointer,
@@ -321,35 +339,36 @@ export function createDisplayTree(contextId: string): DisplayTree {
     },
     createSprite(spec: SpriteSpec): SpriteHandle {
       const fields = exactSpec(spec, ['id', 'layer', 'transform', 'imageId', 'width', 'height',
-        'opacity', 'sampling', 'anchorX', 'anchorY'], ['sourceRect', 'tint', 'blendMode']);
-      const node = validateScene({ version: 8, unit: 'logical-px', contextId: checked.contextId,
-        nodes: [{ kind: 'image', ...fields, tint: Object.hasOwn(fields, 'tint') ? fields.tint : [1, 1, 1],
-          blendMode: Object.hasOwn(fields, 'blendMode') ? fields.blendMode : 'normal' }] }).nodes[0] as ImageNodeV8;
+        'opacity', 'sampling', 'anchorX', 'anchorY'], ['sourceRect', 'tint', 'blendMode', 'visible']);
+      const node = validateScene({ version: 9, unit: 'logical-px', contextId: checked.contextId,
+        nodes: [{ kind: 'image', ...fields, visible: Object.hasOwn(fields, 'visible') ? fields.visible : true,
+          tint: Object.hasOwn(fields, 'tint') ? fields.tint : [1, 1, 1],
+          blendMode: Object.hasOwn(fields, 'blendMode') ? fields.blendMode : 'normal' }] }).nodes[0] as ImageNodeV9;
       const record: RecordNode = { data: node, parent: null, children: [], handle: null as unknown as SpriteHandle };
       const handle: SpriteHandle = Object.freeze({
-        kind: 'sprite' as const, get id() { return (record.data as ImageNodeV8).id; },
-        get data() { const { kind: _kind, ...data } = record.data as ImageNodeV8;
+        kind: 'sprite' as const, get id() { return (record.data as ImageNodeV9).id; },
+        get data() { const { kind: _kind, ...data } = record.data as ImageNodeV9;
           return structuredClone(data) as SpriteData; },
         ...common(record),
         onPointer(type, listener) { return onPointer(record, type, listener); },
-        setAnchor(x: number, y: number) { mutate(record, { ...(record.data as ImageNodeV8), anchorX: x, anchorY: y }); },
+        setAnchor(x: number, y: number) { mutate(record, { ...(record.data as ImageNodeV9), anchorX: x, anchorY: y }); },
         setSize(width: number, height: number) {
-          mutate(record, { ...(record.data as ImageNodeV8), width, height });
+          mutate(record, { ...(record.data as ImageNodeV9), width, height });
         },
-        setOpacity(opacity: number) { mutate(record, { ...(record.data as ImageNodeV8), opacity }); },
-        setTint(tint: Tint) { mutate(record, { ...(record.data as ImageNodeV8), tint }); },
-        setBlendMode(blendMode: ImageNodeV8['blendMode']) {
-          mutate(record, { ...(record.data as ImageNodeV8), blendMode });
+        setOpacity(opacity: number) { mutate(record, { ...(record.data as ImageNodeV9), opacity }); },
+        setTint(tint: Tint) { mutate(record, { ...(record.data as ImageNodeV9), tint }); },
+        setBlendMode(blendMode: ImageNodeV9['blendMode']) {
+          mutate(record, { ...(record.data as ImageNodeV9), blendMode });
         },
         setSampling(sampling: 'nearest' | 'linear') {
-          mutate(record, { ...(record.data as ImageNodeV8), sampling });
+          mutate(record, { ...(record.data as ImageNodeV9), sampling });
         },
         setSourceRect(rect: SourceRect | null) {
-          const { sourceRect: _prior, ...withoutCrop } = record.data as ImageNodeV8;
+          const { sourceRect: _prior, ...withoutCrop } = record.data as ImageNodeV9;
           mutate(record, rect === null ? withoutCrop : { ...withoutCrop, sourceRect: rect });
         },
         setImageSource(imageId: string, sourceRect: SourceRect | null = null) {
-          const { sourceRect: _prior, ...withoutCrop } = record.data as ImageNodeV8;
+          const { sourceRect: _prior, ...withoutCrop } = record.data as ImageNodeV9;
           mutate(record, sourceRect === null
             ? { ...withoutCrop, imageId }
             : { ...withoutCrop, imageId, sourceRect });
@@ -359,41 +378,41 @@ export function createDisplayTree(contextId: string): DisplayTree {
       return handle;
     },
     createPath(spec: PathSpec): PathHandle {
-      const fields = exactSpec(spec, ['id', 'layer', 'transform', 'commands'], ['fill', 'stroke']);
-      const node = validateScene({ version: 8, unit: 'logical-px', contextId: checked.contextId,
-        nodes: [{ kind: 'path', ...fields }] }).nodes[0] as PathNodeV5;
+      const fields = exactSpec(spec, ['id', 'layer', 'transform', 'commands'], ['fill', 'stroke', 'visible']);
+      const node = validateScene({ version: 9, unit: 'logical-px', contextId: checked.contextId,
+        nodes: [{ kind: 'path', ...fields, visible: Object.hasOwn(fields, 'visible') ? fields.visible : true }] }).nodes[0] as PathNodeV9;
       checkPathGeometry(node);
       const record: RecordNode = { data: node, parent: null, children: [], handle: null as unknown as PathHandle };
       const handle: PathHandle = Object.freeze({
-        kind: 'path' as const, get id() { return (record.data as PathNodeV5).id; },
-        get data() { const { kind: _kind, ...data } = record.data as PathNodeV5;
-          return structuredClone(data) as PathSpec; },
+        kind: 'path' as const, get id() { return (record.data as PathNodeV9).id; },
+        get data() { const { kind: _kind, ...data } = record.data as PathNodeV9;
+          return structuredClone(data) as PathData; },
         ...common(record),
         onPointer(type, listener) { return onPointer(record, type, listener); },
         setPath(paint: PathPaint) {
           const fields = exactSpec(paint, ['commands'], ['fill', 'stroke']);
-          const { kind, id, layer, transform } = record.data as PathNodeV5;
-          mutate(record, { kind, id, layer, transform, ...fields } as PathNodeV5);
+          const { kind, id, layer, transform, visible } = record.data as PathNodeV9;
+          mutate(record, { kind, id, layer, transform, visible, ...fields } as PathNodeV9);
         },
       });
       record.handle = handle; records.set(handle, record);
       return handle;
     },
     createRect(spec: RectSpec): RectHandle {
-      const fields = exactSpec(spec, ['id', 'layer', 'transform', 'width', 'height', 'fill']);
-      const node = validateScene({ version: 8, unit: 'logical-px', contextId: checked.contextId,
-        nodes: [{ kind: 'rect', ...fields }] }).nodes[0] as RectNode;
+      const fields = exactSpec(spec, ['id', 'layer', 'transform', 'width', 'height', 'fill'], ['visible']);
+      const node = validateScene({ version: 9, unit: 'logical-px', contextId: checked.contextId,
+        nodes: [{ kind: 'rect', ...fields, visible: Object.hasOwn(fields, 'visible') ? fields.visible : true }] }).nodes[0] as RectNodeV9;
       const record: RecordNode = { data: node, parent: null, children: [], handle: null as unknown as RectHandle };
       const handle: RectHandle = Object.freeze({
-        kind: 'rect' as const, get id() { return (record.data as RectNode).id; },
-        get data() { const { kind: _kind, ...data } = record.data as RectNode;
-          return structuredClone(data) as RectSpec; },
+        kind: 'rect' as const, get id() { return (record.data as RectNodeV9).id; },
+        get data() { const { kind: _kind, ...data } = record.data as RectNodeV9;
+          return structuredClone(data) as RectData; },
         ...common(record),
         onPointer(type, listener) { return onPointer(record, type, listener); },
         setRect(paint: RectPaint) {
           const fields = exactSpec(paint, ['width', 'height', 'fill']);
-          const { kind, id, layer, transform } = record.data as RectNode;
-          mutate(record, { kind, id, layer, transform, ...fields } as RectNode);
+          const { kind, id, layer, transform, visible } = record.data as RectNodeV9;
+          mutate(record, { kind, id, layer, transform, visible, ...fields } as RectNodeV9);
         },
       });
       record.handle = handle; records.set(handle, record);
@@ -401,61 +420,61 @@ export function createDisplayTree(contextId: string): DisplayTree {
     },
     createGlyphRun(spec: GlyphRunSpec): GlyphRunHandle {
       const fields = exactSpec(spec, ['id', 'layer', 'transform', 'atlasId', 'text', 'baseline',
-        'opacity', 'sampling', 'glyphs']);
-      const node = validateScene({ version: 8, unit: 'logical-px', contextId: checked.contextId,
-        nodes: [{ kind: 'glyphRun', ...fields }] }).nodes[0] as GlyphRunNode;
+        'opacity', 'sampling', 'glyphs'], ['visible']);
+      const node = validateScene({ version: 9, unit: 'logical-px', contextId: checked.contextId,
+        nodes: [{ kind: 'glyphRun', ...fields, visible: Object.hasOwn(fields, 'visible') ? fields.visible : true }] }).nodes[0] as GlyphRunNodeV9;
       const record: RecordNode = { data: node, parent: null, children: [], handle: null as unknown as GlyphRunHandle };
       const handle: GlyphRunHandle = Object.freeze({
-        kind: 'glyphRun' as const, get id() { return (record.data as GlyphRunNode).id; },
-        get data() { const { kind: _kind, ...data } = record.data as GlyphRunNode;
-          return structuredClone(data) as GlyphRunSpec; },
+        kind: 'glyphRun' as const, get id() { return (record.data as GlyphRunNodeV9).id; },
+        get data() { const { kind: _kind, ...data } = record.data as GlyphRunNodeV9;
+          return structuredClone(data) as GlyphRunData; },
         ...common(record),
         onPointer(type, listener) { return onPointer(record, type, listener); },
         setLayout(layout: GlyphRunLayout) {
           const fields = exactSpec(layout, ['atlasId', 'text', 'baseline', 'opacity', 'sampling', 'glyphs']);
-          const { kind, id, layer, transform } = record.data as GlyphRunNode;
-          mutate(record, { kind, id, layer, transform, ...fields } as GlyphRunNode);
+          const { kind, id, layer, transform, visible } = record.data as GlyphRunNodeV9;
+          mutate(record, { kind, id, layer, transform, visible, ...fields } as GlyphRunNodeV9);
         },
       });
       record.handle = handle; records.set(handle, record);
       return handle;
     },
     createFrame(spec: FrameSpec): FrameHandle {
-      const fields = exactSpec(spec, ['id', 'layer', 'transform', 'width', 'height', 'fill', 'clip']);
-      const node = validateScene({ version: 8, unit: 'logical-px', contextId: checked.contextId,
-        nodes: [{ kind: 'frame', ...fields, children: [] }] }).nodes[0] as FrameNodeV8;
+      const fields = exactSpec(spec, ['id', 'layer', 'transform', 'width', 'height', 'fill', 'clip'], ['visible']);
+      const node = validateScene({ version: 9, unit: 'logical-px', contextId: checked.contextId,
+        nodes: [{ kind: 'frame', ...fields, visible: Object.hasOwn(fields, 'visible') ? fields.visible : true, children: [] }] }).nodes[0] as FrameNodeV9;
       const record: RecordNode = { data: node, parent: null, children: [], handle: null as unknown as FrameHandle };
       const parent = parentMethods(record);
       const handle: FrameHandle = Object.freeze({
-        kind: 'frame' as const, get id() { return (record.data as FrameNodeV8).id; },
-        get data() { const { kind: _kind, children: _children, ...data } = record.data as FrameNodeV8;
-          return structuredClone(data) as FrameSpec; },
+        kind: 'frame' as const, get id() { return (record.data as FrameNodeV9).id; },
+        get data() { const { kind: _kind, children: _children, ...data } = record.data as FrameNodeV9;
+          return structuredClone(data) as FrameData; },
         get children() { return parent.children; },
         addChild: parent.addChild, removeChild: parent.removeChild, setChildIndex: parent.setChildIndex,
         onPointer: parent.onPointer,
         ...common(record),
         setFrame(paint: FramePaint) {
           const fields = exactSpec(paint, ['width', 'height', 'fill', 'clip']);
-          mutate(record, { ...(record.data as FrameNodeV8), ...fields });
+          mutate(record, { ...(record.data as FrameNodeV9), ...fields });
         },
       });
       record.handle = handle; records.set(handle, record);
       return handle;
     },
     createLine(spec: LineSpec): LineHandle {
-      const fields = exactSpec(spec, ['id', 'layer', 'transform', 'x1', 'y1', 'x2', 'y2', 'width', 'stroke']);
-      const node = validateScene({ version: 8, unit: 'logical-px', contextId: checked.contextId,
-        nodes: [{ kind: 'line', ...fields }] }).nodes[0] as LineNode;
+      const fields = exactSpec(spec, ['id', 'layer', 'transform', 'x1', 'y1', 'x2', 'y2', 'width', 'stroke'], ['visible']);
+      const node = validateScene({ version: 9, unit: 'logical-px', contextId: checked.contextId,
+        nodes: [{ kind: 'line', ...fields, visible: Object.hasOwn(fields, 'visible') ? fields.visible : true }] }).nodes[0] as LineNodeV9;
       const record: RecordNode = { data: node, parent: null, children: [], handle: null as unknown as LineHandle };
       const handle: LineHandle = Object.freeze({
-        kind: 'line' as const, get id() { return (record.data as LineNode).id; },
-        get data() { const { kind: _kind, ...data } = record.data as LineNode;
-          return structuredClone(data) as LineSpec; },
+        kind: 'line' as const, get id() { return (record.data as LineNodeV9).id; },
+        get data() { const { kind: _kind, ...data } = record.data as LineNodeV9;
+          return structuredClone(data) as LineData; },
         ...common(record),
         onPointer(type, listener) { return onPointer(record, type, listener); },
         setLine(paint: LinePaint) {
           const fields = exactSpec(paint, ['x1', 'y1', 'x2', 'y2', 'width', 'stroke']);
-          mutate(record, { ...(record.data as LineNode), ...fields });
+          mutate(record, { ...(record.data as LineNodeV9), ...fields });
         },
       });
       record.handle = handle; records.set(handle, record);
@@ -489,6 +508,9 @@ export function createDisplayTree(contextId: string): DisplayTree {
         }
         target = findRecord(hit.id);
         if (!target || target.data?.kind !== hit.kind) invalid('pointer hit is not an attached display handle');
+        for (let cursor: RecordNode | null = target; cursor && cursor !== root; cursor = cursor.parent) {
+          if (cursor.data?.visible === false) invalid('pointer hit is hidden');
+        }
       }
       const route: RecordNode[] = [];
       for (let cursor: RecordNode | null = target ?? root; cursor; cursor = cursor.parent) route.push(cursor);
@@ -505,19 +527,19 @@ export function createDisplayTree(contextId: string): DisplayTree {
         if (stopped) break;
       }
     },
-    snapshot(): SceneV8 {
-      return validateScene({ version: 8, unit: 'logical-px', contextId: checked.contextId,
-        nodes: root.children.map(toNode) }) as SceneV8;
+    snapshot(): SceneV9 {
+      return validateScene({ version: 9, unit: 'logical-px', contextId: checked.contextId,
+        nodes: root.children.map(toNode) }) as SceneV9;
     },
   });
 }
 
 export function createDisplayTreeFromScene(scene: unknown): DisplayTree {
   const accepted = validateScene(scene);
-  if (accepted.version !== 6 && accepted.version !== 7 && accepted.version !== 8) {
-    throw new Canvas2DError('UNSUPPORTED_FEATURE', 'display tree reconstruction requires Scene v6, v7 or v8');
+  if (accepted.version !== 6 && accepted.version !== 7 && accepted.version !== 8 && accepted.version !== 9) {
+    throw new Canvas2DError('UNSUPPORTED_FEATURE', 'display tree reconstruction requires Scene v6, v7, v8 or v9');
   }
-  type ReconstructNode = SceneV6['nodes'][number] | SceneV7['nodes'][number] | SceneV8['nodes'][number];
+  type ReconstructNode = SceneV6['nodes'][number] | SceneV7['nodes'][number] | SceneV8['nodes'][number] | SceneV9['nodes'][number];
   const allowed = (nodes: readonly ReconstructNode[]): void => {
     for (const node of nodes) {
       if (node.kind === 'group' || node.kind === 'frame') allowed(node.children);
