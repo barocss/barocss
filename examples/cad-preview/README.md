@@ -91,9 +91,11 @@ Fit, Edges and quality change the view, not authored geometry. Unsupported nativ
 commands are disabled. Desktop panes scroll independently; compact layouts keep
 one viewport and a scrollable property panel.
 
-The private CAD/GPU workspace main/types/import entries point to `src/index.ts`,
-as the other source-first workspace packages do. The loopback host transforms
-those original TypeScript graphs with the installed esbuild, in memory. Existing
+CAD/GPU packages are configured for public access locally; normal main/import
+and types entries use compiled `dist/index.js` and `dist/index.d.ts`. This does not
+mean npm publication has occurred. The loopback source host and the React editor
+explicitly select original `src/index.ts` graphs with installed esbuild or Vite
+source aliases, in memory. Existing
 `.js` relative imports resolve to actual `.ts` files. Reload observes source
 changes without `build:library`, a build watcher or a server restart. No package
 `dist` is read or written by development commands. The host serves a finite local
