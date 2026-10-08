@@ -322,6 +322,36 @@ file, HTTP read, source/ID/revision retention and refusal. The
 on one WebGL2 canvas, checks uploaded buffers/pixels, rejected updates and
 owned GPU disposal. Build CAD, GPU and interop before running these examples.
 
+### Read authored CAD assemblies over HTTP
+
+The optional neutral `./assembly` entry calls the public CAD assembly0
+parser. `parseBaroCadAssembly(text)` accepts an authored file without a
+network request. `loadBaroCadAssembly(url, transport?)` accepts HTTP(S),
+reads UTF-8 in bounded chunks and returns the same native result. It does
+not create renderer objects.
+
+```js
+import { loadBaroCadAssembly } from '@barocss/cad-interop/assembly';
+
+const controller = new AbortController();
+const assembly = await loadBaroCadAssembly(assemblyURL, {
+  signal: controller.signal,
+  onProgress: event => { /* observed byte count */ },
+});
+// The host may pass assembly to an explicit renderer adapter.
+```
+
+This URL path reuses the existing document transport limit of 2 MiB and
+4,096 chunks. Native CAD assembly files can be as large as 16 MiB, so a
+larger valid file is refused by this URL helper; the native parser remains
+available for caller-owned text. The transport checks Content-Length and
+actual bytes, rejects invalid UTF-8 and supports AbortSignal and a progress
+callback that returns `false` to stop. The callback may also throw its own
+error. A successful load checks cancellation before and after native parse.
+The caller decides which completed request becomes its current scene.
+`node examples/assembly-url-verify.mjs` exercises actual chunked HTTP,
+native point/file validation, composed Three display and bounded refusals.
+
 ### Display native CAD assembly instances in Three.js
 
 The optional `./three-assembly` entry consumes a public CAD assembly0 result.

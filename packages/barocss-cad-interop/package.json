@@ -21,6 +21,10 @@
       "types": "./dist/document.d.ts",
       "import": "./dist/document.js"
     },
+    "./assembly": {
+      "types": "./dist/assembly.d.ts",
+      "import": "./dist/assembly.js"
+    },
     "./document-glb": {
       "types": "./dist/document-glb.d.ts",
       "import": "./dist/document-glb.js"
