@@ -338,3 +338,6 @@ export function validateCadDocumentResult(input: CadDocumentResult): CadDocument
   check(same(owned, expected), CODE.OWNED, 'owned authored source/native Models/body bindings/report mismatch');
   return copyCadData(expected.report);
 }
+
+// Internal file-envelope reuse; canonical grammar and document bounds remain unchanged.
+export { parseJson as parseCadDocumentOwnJson, utf8Bytes as cadDocumentOwnUtf8Bytes };

@@ -191,3 +191,8 @@ export type { CadCurveArcLengthOptions, CadCurveArcLengthPanel, CadCurveArcLengt
 
 export { queryCadDocumentSurfaceArea, validateCadDocumentSurfaceArea, CadSurfaceAreaError, CadSurfaceAreaDiagnosticCode } from './cad-surface-area.js';
 export type { CadSurfaceAreaOptions, CadSurfaceAreaCell, CadSurfaceAreaReport, CadSurfaceAreaResult } from './cad-surface-area.js';
+
+export { evaluateCadAssembly, serializeCadAssembly, parseCadAssembly, updateCadAssembly, validateCadAssemblyResult, CadAssemblyError, CadAssemblyDiagnosticCode } from './cad-assembly.js';
+export type { CadAssemblyMatrix, CadAssemblyPlacement, CadAssemblyInstance, CadAssemblyV0, CadAssemblyEvaluatedInstance, CadAssemblyEdits, CadAssemblyReport, CadAssemblyResult } from './cad-assembly.js';
+export { queryCadAssemblyInstancePoint, validateCadAssemblyInstancePoint } from './cad-assembly-instance-point.js';
+export type { CadAssemblyInstancePointQuery, CadAssemblyInstancePointReport, CadAssemblyInstancePointResult } from './cad-assembly-instance-point.js';
