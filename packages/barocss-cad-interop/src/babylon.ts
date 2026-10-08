@@ -8,7 +8,7 @@ import type { PickingInfo } from '@babylonjs/core/Collisions/pickingInfo.js';
 import type { Scene } from '@babylonjs/core/scene.js';
 import { makeCurvePickBinding, readAffineMatrix, readOwnData, readPoint, resolveCurveChord, sameValues } from './curve-pick.js';
 import type { BaroCadCurveDisplayPick, CurvePickBinding } from './curve-pick.js';
-import { parseBaroCadSource } from './native.js';
+import { parseBaroCadSource, validateBaroCadParseOptions } from './native.js';
 import type { BaroCadNativeResult, BaroCadParseOptions } from './native.js';
 import { readAbortableBaroCadSource, throwIfBaroCadAborted, validateBaroCadTransport } from './transport.js';
 import type { BaroCadLoadTransportOptions } from './transport.js';
@@ -79,11 +79,15 @@ export class BaroCADBabylonLoader {
   constructor(private readonly scene: Scene, private readonly options: BaroCadParseOptions) {}
 
   parse(source: string): BaroCadBabylonResult {
+    const options = validateBaroCadParseOptions(this.options);
+    if (options.curveDisplay && 'version' in options.curveDisplay) {
+      throw new RangeError('BaroCAD Babylon does not support Curve sample version 1');
+    }
     if (this.scene?.useRightHandedSystem !== true) {
       throw new RangeError('BaroCAD Babylon loading requires scene.useRightHandedSystem === true');
     }
     if (this.scene.isDisposed) throw new RangeError('BaroCAD Babylon loading requires a live scene');
-    const native = parseBaroCadSource(source, this.options);
+    const native = parseBaroCadSource(source, options);
     const ownedMeshes: Mesh[] = [];
     const owned = new Map<Mesh, BabylonCurvePickEntry | null>();
     const previousMeshes = new Set(this.scene.meshes);
