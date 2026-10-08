@@ -12,6 +12,7 @@ node examples/physics-scene/events-queries-probe.mjs
 node examples/physics-scene/rotation-probe.mjs
 node examples/physics-scene/oriented-colliders-probe.mjs
 node examples/physics-scene/friction-stack-probe.mjs
+node examples/physics-scene/joints-probe.mjs
 node examples/physics-scene/server.mjs
 ```
 
@@ -26,3 +27,5 @@ The compiled `rotation-probe.mjs` checks sphere inertia, torque and angular impu
 The compiled `oriented-colliders-probe.mjs` checks an off-centre dynamic oriented-box/static-sphere impact with linear and angular response, a rotated capsule/static-sphere contact and queries, aligned box/box contact, copied world contact points/inertia, unsupported pairs and invalid-state retention. The visible SVG scene remains the original sphere/floor host. The supported primitive matrix is explicit; this probe does not show CAD collision or stacked-box stability.
 
 The compiled `friction-stack-probe.mjs` compares zero and nonzero point friction on a sliding sphere and measures two vertically stacked dynamic spheres on a static box for 240 fixed steps. It checks copied tangent impulses, coefficient refusal and failed-step retention. This bounded fixture does not establish arbitrary pile or box-face stability.
+
+The compiled `joints-probe.mjs` checks a static-anchored fixed sphere under gravity, a Z hinge with a ±0.5 radian limit, an offset local anchor, copied reaction output, invalid joint configs and failed-step retention. The visible SVG scene remains the original sphere/floor host. The joint profile is a bounded projection solver, not a CAD assembly constraint or general robotics joint system.
