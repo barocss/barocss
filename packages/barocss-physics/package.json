@@ -25,6 +25,11 @@
       "barocss-source": "./src/fluid.ts",
       "types": "./dist/fluid.d.ts",
       "import": "./dist/fluid.js"
+    },
+    "./fluid-cad": {
+      "barocss-source": "./src/fluid-cad.ts",
+      "types": "./dist/fluid-cad.d.ts",
+      "import": "./dist/fluid-cad.js"
     }
   },
   "main": "./dist/index.js",

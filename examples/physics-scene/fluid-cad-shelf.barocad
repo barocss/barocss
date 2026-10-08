@@ -1,0 +1,13 @@
+@model fluid_shelf {
+  version: 0;
+  length-unit: mm;
+  @surface #shelf {
+    type: nurbs;
+    degree-u: 1;
+    degree-v: 1;
+    knots-u: [0,0,1,1];
+    knots-v: [0,0,1,1];
+    control-points: [[[200,200,100],[200,200,400]],[[500,200,100],[500,200,400]]];
+    weights: [[1,1],[1,1]];
+  }
+}
