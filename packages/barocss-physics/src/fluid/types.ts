@@ -11,6 +11,12 @@ export interface FluidSceneV1 {
   initialPositionsM: Vec3[];
 }
 
+/** Fixed visual smoothing profile; no physical viscosity calibration. */
+export interface FluidSceneV2 extends Omit<FluidSceneV1, 'version'> {
+  version: 2;
+  visualViscosity: { kind: 'xsph'; coefficient: 0.15 };
+}
+
 export interface FluidDiagnostics {
   meanAbsoluteDensityError: number;
   p95Compression: number;
@@ -38,4 +44,5 @@ export interface FluidWorld {
 export interface AcceptedFluidScene {
   revision: string;
   initialPositionsM: Float64Array;
+  visualViscosityCoefficient: number;
 }

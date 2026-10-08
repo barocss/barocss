@@ -1,0 +1,54 @@
+{
+  "ok": true,
+  "receipts": [
+    {
+      "stepIndex": 0,
+      "rawMetreSHA256": "00bf5a47249e94db4abebdebb6dac0e5ab745b357f1a92bdc3ba22db69eba04a",
+      "uploadHash": 647661605,
+      "pixelHash": 778933093,
+      "density": {
+        "meanAbsoluteDensityError": 0.09709062457183508,
+        "p95Compression": 0.1726055547943779,
+        "boundaryHits": 0
+      },
+      "submitted": 256
+    },
+    {
+      "stepIndex": 60,
+      "rawMetreSHA256": "b053a4c578e876225ba621eaedd30def2f4461b5012728eca8e13cf5d59eb29e",
+      "uploadHash": 1626499956,
+      "pixelHash": 2286569513,
+      "density": {
+        "meanAbsoluteDensityError": 0.1439578006219003,
+        "p95Compression": 0.04201261514003396,
+        "boundaryHits": 318
+      },
+      "submitted": 256
+    },
+    {
+      "stepIndex": 240,
+      "rawMetreSHA256": "d8edda0487697b5464ce5033a269a6e713cb4605d86aa53bf8c30804851a9d8c",
+      "uploadHash": 2424899294,
+      "pixelHash": 3670734343,
+      "density": {
+        "meanAbsoluteDensityError": 0.01714820819365649,
+        "p95Compression": 0.008076008157114734,
+        "boundaryHits": 343
+      },
+      "submitted": 256
+    }
+  ],
+  "occlusion": {
+    "occludedCyanPixels": 4346,
+    "exposedCyanPixels": 5429,
+    "submittedCount": 256
+  },
+  "canvasCount": 1,
+  "contextCount": 1,
+  "pointDraws": 16,
+  "uploads": 16,
+  "nativeSourceBytes": 247,
+  "glError": 0,
+  "errors": [],
+  "limits": "Actual Physics 256 state, native display occlusion, local Chromium WebGL2 only. No CFD/collision/performance/publication certificate."
+}

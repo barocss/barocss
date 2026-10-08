@@ -2,6 +2,7 @@ import { confine, floorSamples, stopOutwardVelocity } from './boundary.js';
 import { FLUID_COUNT, FLUID_GRAVITY_MPS2, FLUID_SPACING_M, FLUID_STEP_SECONDS } from './constants.js';
 import { densities, gradientScale } from './kernel.js';
 import { NeighborGrid } from './neighbors.js';
+import { blendVisualViscosity } from './visual-viscosity.js';
 
 export class PbfSolver {
   private readonly grid = new NeighborGrid();
@@ -10,8 +11,12 @@ export class PbfSolver {
   private readonly density = new Float64Array(FLUID_COUNT);
   private readonly lambda = new Float64Array(FLUID_COUNT);
   private readonly corrections = new Float64Array(FLUID_COUNT * 3);
+  private readonly smoothedVelocities: Float64Array | null;
 
-  constructor(private readonly restDensity: number) {
+  constructor(private readonly restDensity: number,
+    private readonly visualViscosityCoefficient: number) {
+    this.smoothedVelocities = visualViscosityCoefficient > 0
+      ? new Float64Array(FLUID_COUNT * 3) : null;
     const floor = floorSamples();
     this.combined = new Float64Array(this.predicted.length + floor.length);
     this.combined.set(floor, this.predicted.length);
@@ -82,6 +87,12 @@ export class PbfSolver {
           / FLUID_STEP_SECONDS;
         positions[offset + axis] = this.predicted[offset + axis];
       }
+    }
+    if (this.smoothedVelocities) {
+      blendVisualViscosity(positions, velocities, this.grid, this.smoothedVelocities,
+        this.visualViscosityCoefficient);
+    }
+    for (let index = 0; index < FLUID_COUNT; index++) {
       stopOutwardVelocity(positions, velocities, index);
     }
     return boundaryHits;
