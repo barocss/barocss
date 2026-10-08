@@ -1,0 +1,9 @@
+First image texture context-restoration attempt, 2026-10-08, canvas684 browser session:
+- On a separate document-attached WebGL2 canvas, WEBGL_lose_context loss event arrived.
+- restoreContext() was called immediately after the loss event.
+- Chromium warned: `WebGL: INVALID_OPERATION: restoreContext: context restoration not allowed`.
+- The bounded restore event wait returned false. The subsequent setImageAsset call returned CONTEXT_LOST, so that evaluation exited 1. This is not a passing restore observation.
+
+Affected-flow repair:
+- Repeated the same attached-canvas image resource observation with a 120 ms delay after the loss event before restoreContext().
+- Restore event arrived; original red pixel returned; restored textures were valid. Replacement invalidated its old texture, unreferenced removal invalidated its texture, and dispose invalidated the remaining textures.

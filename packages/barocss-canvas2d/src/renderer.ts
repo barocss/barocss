@@ -1,20 +1,24 @@
-import { Canvas2DError, validatePoint, validateScene, validateSize, validateView } from './schema.js';
-import type { Color, LineNode, Node, NodeV2, Point, Scene, Size, Transform, View } from './schema.js';
+import { Canvas2DError, copyImageAsset, validateImageAssetId, validatePoint, validateScene, validateSize, validateView } from './schema.js';
+import type { Color, ImageAssetInput, LineNode, Node, NodeV2, NodeV3, Point, Scene, Size, Transform, View } from './schema.js';
 import { tessellatePath } from './path.js';
 import type { FillObservation, PathObservation } from './path.js';
+import { createImageGpu, createImageTexture, disposeImageGpu, renderImage, sampledAlpha, sourceRect } from './image.js';
+import type { ImageAsset, ImageGpu } from './image.js';
 
 type Matrix = [number, number, number, number, number, number];
 type Clip = { left: number; top: number; right: number; bottom: number };
-type RenderNode = Node | NodeV2;
+type RenderNode = Node | NodeV2 | NodeV3;
 type DrawNode = Exclude<RenderNode, { kind: 'group' }>;
 type Draw = {
-  id: string; kind: 'frame' | 'rect' | 'line' | 'path'; node: DrawNode;
+  id: string; kind: 'frame' | 'rect' | 'line' | 'path' | 'image'; node: DrawNode;
   matrix: Matrix; inverse: Matrix; color: Color; vertices: Float32Array; clip: Clip | null;
   observation?: PathObservation; fillObservation?: FillObservation;
   maskVertices?: Float32Array; contours?: Float32Array[];
+  imageAsset?: ImageAsset;
 };
 type Gpu = { program: WebGLProgram; buffer: WebGLBuffer; vao: WebGLVertexArrayObject;
-  size: WebGLUniformLocation; view: WebGLUniformLocation; color: WebGLUniformLocation };
+  size: WebGLUniformLocation; view: WebGLUniformLocation; color: WebGLUniformLocation;
+  image: ImageGpu };
 
 const vertexShader = `#version 300 es
 precision highp float;
@@ -66,7 +70,8 @@ function intersection(a: Clip | null, b: Clip): Clip {
   return { left: Math.max(a.left, b.left), top: Math.max(a.top, b.top),
     right: Math.min(a.right, b.right), bottom: Math.min(a.bottom, b.bottom) };
 }
-function compileScene(scene: Scene, view: View, dpr: number, tolerance: number): Draw[] {
+function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
+  assets: ReadonlyMap<string, ImageAsset>): Draw[] {
   const draws: Draw[] = [];
   let vertices = 0;
   function add(draw: Draw): void {
@@ -107,6 +112,16 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number):
       } else if (node.kind === 'line') {
         add({ id: node.id, kind: 'line', node, matrix, inverse: inv,
           color: node.stroke, vertices: line(matrix, node), clip: inheritedClip });
+      } else if (node.kind === 'image') {
+        const asset = assets.get(node.imageId);
+        if (!asset) throw new Canvas2DError('INVALID_ASSET', `missing image asset ${node.imageId}`);
+        const crop = sourceRect(node, asset);
+        if (crop.x + crop.width > asset.width || crop.y + crop.height > asset.height) {
+          throw new Canvas2DError('INVALID_ASSET', `image crop exceeds asset ${node.imageId}`);
+        }
+        add({ id: node.id, kind: 'image', node, matrix, inverse: inv,
+          color: [1, 1, 1, node.opacity], vertices: rectangle(matrix, node.width, node.height),
+          imageAsset: asset, clip: inheritedClip });
       } else {
         const geometry = tessellatePath(node, matrix, view, dpr, tolerance);
         if (geometry.fill) add({ id: node.id, kind: 'path', node, matrix, inverse: inv,
@@ -129,6 +144,7 @@ function contains(draw: Draw, world: Point): boolean {
       world.y < draw.clip.top || world.y > draw.clip.bottom)) return false;
   const p = point(draw.inverse, world.x, world.y);
   const node = draw.node;
+  if (node.kind === 'image') return !!draw.imageAsset && sampledAlpha(node, draw.imageAsset, p) > 0;
   if (draw.contours) {
     let inside = false;
     for (const contour of draw.contours) {
@@ -199,7 +215,7 @@ function createGpu(gl: WebGL2RenderingContext): Gpu {
     gl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
     gl.bindVertexArray(null); gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    return { program, buffer, vao, size, view, color };
+    return { program, buffer, vao, size, view, color, image: createImageGpu(gl) };
   } catch (error) {
     if (vao) gl.deleteVertexArray(vao);
     if (buffer) gl.deleteBuffer(buffer);
@@ -208,8 +224,13 @@ function createGpu(gl: WebGL2RenderingContext): Gpu {
   } finally { gl.deleteShader(vs); if (fs) gl.deleteShader(fs); }
 }
 
+function disposeGpu(gl: WebGL2RenderingContext, gpu: Gpu): void {
+  disposeImageGpu(gl, gpu.image);
+  gl.deleteVertexArray(gpu.vao); gl.deleteBuffer(gpu.buffer); gl.deleteProgram(gpu.program);
+}
+
 export type Canvas2DOptions = { logicalSize: Size; dpr: number; maxDeviationDevicePx?: number };
-export type Hit = { id: string; kind: 'frame' | 'rect' | 'line' | 'path' };
+export type Hit = { id: string; kind: 'frame' | 'rect' | 'line' | 'path' | 'image' };
 
 export class Canvas2DRenderer {
   private scene: Scene = { version: 0, unit: 'logical-px', contextId: 'Empty', nodes: [] };
@@ -218,6 +239,7 @@ export class Canvas2DRenderer {
   private size: Size;
   private dpr: number;
   private readonly tolerance: number;
+  private readonly assets = new Map<string, ImageAsset>();
   private gl: WebGL2RenderingContext;
   private gpu: Gpu | null;
   private stencilBits = 0;
@@ -225,17 +247,29 @@ export class Canvas2DRenderer {
   private disposed = false;
   private readonly onLoss = (event: Event): void => {
     event.preventDefault(); this.lost = true; this.gpu = null; this.stencilBits = 0;
+    for (const asset of this.assets.values()) asset.texture = null;
   };
   private readonly onRestore = (): void => {
     if (this.disposed) return;
+    let nextGpu: Gpu | null = null;
+    const textures: WebGLTexture[] = [];
     try {
       this.stencilBits = this.readStencilBits();
       if (this.draws.some(draw => draw.maskVertices) && this.stencilBits === 0) {
         throw new Canvas2DError('UNSUPPORTED_FEATURE', 'restored context has no stencil buffer');
       }
-      this.gpu = createGpu(this.gl); this.lost = false; this.render();
+      nextGpu = createGpu(this.gl);
+      for (const asset of this.assets.values()) textures.push(createImageTexture(this.gl, asset));
+      let index = 0;
+      for (const asset of this.assets.values()) asset.texture = textures[index++];
+      this.gpu = nextGpu; this.lost = false; this.render();
     }
-    catch { this.lost = true; this.gpu = null; }
+    catch {
+      for (const texture of textures) this.gl.deleteTexture(texture);
+      for (const asset of this.assets.values()) asset.texture = null;
+      if (nextGpu) disposeGpu(this.gl, nextGpu);
+      this.lost = true; this.gpu = null;
+    }
   };
 
   constructor(private readonly canvas: HTMLCanvasElement, options: Canvas2DOptions) {
@@ -277,10 +311,53 @@ export class Canvas2DRenderer {
     if (width > limit || height > limit) throw new Canvas2DError('INVALID_SIZE', 'backing size exceeds WebGL limits');
   }
 
+  setImageAsset(id: string, value: ImageAssetInput): void {
+    this.active();
+    if (this.lost) throw new Canvas2DError('CONTEXT_LOST', 'cannot change assets while context is lost');
+    const assetId = validateImageAssetId(id);
+    const copied = copyImageAsset(value);
+    if (copied.width > (this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE) as number) ||
+        copied.height > (this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE) as number)) {
+      throw new Canvas2DError('ASSET_LIMIT', 'asset exceeds WebGL texture size');
+    }
+    if (!this.assets.has(assetId) && this.assets.size >= 16) {
+      throw new Canvas2DError('ASSET_LIMIT', 'renderer exceeds 16 image assets');
+    }
+    const prior = this.assets.get(assetId);
+    const bytes = [...this.assets.entries()].reduce((total, [key, asset]) =>
+      total + (key === assetId ? 0 : asset.pixels.byteLength), copied.pixels.byteLength);
+    if (bytes > 32 * 1024 * 1024) throw new Canvas2DError('ASSET_LIMIT', 'image bytes exceed 32 MiB');
+    const candidate: ImageAsset = { ...copied, texture: null };
+    const nextAssets = new Map(this.assets); nextAssets.set(assetId, candidate);
+    const draws = compileScene(this.scene, this.view, this.dpr, this.tolerance, nextAssets);
+    candidate.texture = createImageTexture(this.gl, candidate);
+    this.assets.set(assetId, candidate); this.draws = draws;
+    if (prior?.texture) this.gl.deleteTexture(prior.texture);
+  }
+
+  getImageAsset(id: string): ImageAssetInput | null {
+    this.active();
+    const asset = this.assets.get(validateImageAssetId(id));
+    return asset ? { width: asset.width, height: asset.height, pixels: new Uint8Array(asset.pixels) } : null;
+  }
+
+  removeImageAsset(id: string): void {
+    this.active();
+    if (this.lost) throw new Canvas2DError('CONTEXT_LOST', 'cannot change assets while context is lost');
+    const assetId = validateImageAssetId(id);
+    const asset = this.assets.get(assetId);
+    if (!asset) throw new Canvas2DError('INVALID_ASSET', 'image asset is missing');
+    if (this.draws.some(draw => draw.node.kind === 'image' && draw.node.imageId === assetId)) {
+      throw new Canvas2DError('ASSET_IN_USE', 'image asset is referenced by the accepted scene');
+    }
+    if (asset.texture) this.gl.deleteTexture(asset.texture);
+    this.assets.delete(assetId);
+  }
+
   updateScene(value: unknown): void {
     this.active();
     const next = validateScene(value);
-    const draws = compileScene(next, this.view, this.dpr, this.tolerance);
+    const draws = compileScene(next, this.view, this.dpr, this.tolerance, this.assets);
     if (draws.some(draw => draw.maskVertices)) {
       if (this.lost) throw new Canvas2DError('CONTEXT_LOST', 'cannot admit a fill while context is lost');
       if (this.stencilBits === 0) throw new Canvas2DError('UNSUPPORTED_FEATURE', 'stencil buffer is required for fills');
@@ -291,7 +368,7 @@ export class Canvas2DRenderer {
   setView(value: View): void {
     this.active();
     const next = validateView(value);
-    const draws = compileScene(this.scene, next, this.dpr, this.tolerance);
+    const draws = compileScene(this.scene, next, this.dpr, this.tolerance, this.assets);
     this.view = next; this.draws = draws;
   }
 
@@ -300,7 +377,7 @@ export class Canvas2DRenderer {
     if (this.lost) throw new Canvas2DError('CONTEXT_LOST', 'cannot resize while WebGL context is lost');
     const next = validateSize(value, dpr);
     this.checkLimits(next.backingWidth, next.backingHeight);
-    const draws = compileScene(this.scene, this.view, next.dpr, this.tolerance);
+    const draws = compileScene(this.scene, this.view, next.dpr, this.tolerance, this.assets);
     this.canvas.width = next.backingWidth; this.canvas.height = next.backingHeight;
     this.size = next.size; this.dpr = next.dpr; this.draws = draws;
   }
@@ -364,6 +441,13 @@ export class Canvas2DRenderer {
         gl.enable(gl.SCISSOR_TEST);
         gl.scissor(left, this.canvas.height - bottom, right - left, bottom - top);
       } else gl.disable(gl.SCISSOR_TEST);
+      if (draw.node.kind === 'image' && draw.imageAsset) {
+        renderImage(gl, gpu.image, draw.vertices, draw.node, draw.imageAsset, this.size, this.view);
+        gl.useProgram(gpu.program); gl.bindVertexArray(gpu.vao); gl.bindBuffer(gl.ARRAY_BUFFER, gpu.buffer);
+        gl.uniform2f(gpu.size, this.size.width, this.size.height);
+        gl.uniform3f(gpu.view, this.view.panX, this.view.panY, this.view.zoom);
+        continue;
+      }
       if (draw.maskVertices) {
         gl.enable(gl.STENCIL_TEST);
         gl.stencilMask(1); gl.stencilFunc(gl.ALWAYS, 0, 1);
@@ -394,11 +478,10 @@ export class Canvas2DRenderer {
     this.canvas.removeEventListener('webglcontextlost', this.onLoss);
     this.canvas.removeEventListener('webglcontextrestored', this.onRestore);
     if (this.gpu && !this.lost) {
-      this.gl.deleteVertexArray(this.gpu.vao);
-      this.gl.deleteBuffer(this.gpu.buffer);
-      this.gl.deleteProgram(this.gpu.program);
+      for (const asset of this.assets.values()) if (asset.texture) this.gl.deleteTexture(asset.texture);
+      disposeGpu(this.gl, this.gpu);
     }
-    this.gpu = null; this.draws = [];
+    this.gpu = null; this.draws = []; this.assets.clear();
   }
 }
 
