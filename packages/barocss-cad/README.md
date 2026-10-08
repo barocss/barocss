@@ -6395,3 +6395,101 @@ reversal witness. It saves/reopens original source, current document and
 raw signed-zero results, with separate manifest JS/types checks. Analytic
 comparisons are local prototype evidence. Integration and independent display
 consumers require their own receipts.
+
+## Authored assembly instances and rigid parent-child frames
+
+`evaluateCadAssembly(wire)` accepts a genuine authored assembly domain:
+`barocss-cad-assembly`, version0. It embeds1..4 accepted canonical
+CadDocumentV1 documents and0..32 instances. This is separate from the
+original direct-geometry document profile. Its placements:[] and unique
+asset-qualified body ownership rules remain unchanged. Source0 geometry,
+original local queries, native measurements and document exports remain
+unposed. External part loading and assembly export are separate features.
+
+The authored assembly fields are `schema`, `version`, `assemblyId`,
+`revision`, `lengthUnit:'mm'`, `rotationUnit:'deg'`,
+`frame:'assembly-space-xyz'`, `parts` and `instances`. Each instance has
+`id`, `parentId` (null for root), one actual qualified `reference`, and
+`placement:{translationMM,rotationDegreesXYZ}`. Different instances may
+share one complete native reference. Equal geometry IDs in different
+assets or documents remain distinct parts. Instance and frame IDs are
+not BRep topology IDs.
+
+```js
+const partReference = cad.createCadGeometryReference(part, {bodyId}).reference;
+const assembly = cad.evaluateCadAssembly({
+  schema: 'barocss-cad-assembly', version: 0, assemblyId: 'assembly_demo',
+  revision: 0, lengthUnit: 'mm', rotationUnit: 'deg', frame: 'assembly-space-xyz',
+  parts: [part.document],
+  instances: [
+    {id: 'parent', parentId: null, reference: partReference,
+      placement: {translationMM: [10, 0, 0], rotationDegreesXYZ: [0, 0, 90]}},
+    {id: 'child', parentId: 'parent', reference: partReference,
+      placement: {translationMM: [3, 0, 0], rotationDegreesXYZ: [0, 0, 0]}},
+  ],
+});
+const point = cad.queryCadAssemblyInstancePoint(assembly, {
+  assemblyId: assembly.assembly.assemblyId,
+  assemblyRevision: assembly.assembly.revision, instanceId: 'child',
+  reference: partReference, query: {kind: 'curve', parameter: originalParameter},
+});
+cad.validateCadAssemblyInstancePoint(assembly, point);
+```
+
+Local rigid rotation is Rz*Ry*Rx around authored XYZ. Matrices are flat
+16-number row-major arrays applied to column vectors; translation slots
+are3,7,11 and the last row is[0,0,0,1]. World matrix is parentWorld*local,
+with no Euler-angle addition or display camera. The instance point contains
+`originalLocalPointMM` from the actual existing native query and a derived
+`assemblyPointMM`; full root-through-selected lineage includes original
+refs and each local/world matrix. Source-frame authority is preserved; no
+universal up-axis or numeric rigidity/global accuracy certificate is implied.
+
+Roots have depth1, maximum depth16. Parents may appear later in the authored
+array; evaluated instances retain that order. Missing/self/cyclic/over-depth
+parents refuse, including deletion of a still-referenced parent. Local
+translation components are within±10000mm and rotations within±360 degrees.
+Nonzero radians/product underflow, nonfinite arithmetic and unsafe matrix
+coefficients refuse. Original pose/source sign bits remain authored state;
+generated matrix/point bits carry no global numerical guarantee. Canonical
+part angles remain rad; the separate instance rotation unit is explicitly deg.
+
+```js
+const next = cad.updateCadAssembly(assembly, {
+  expectedRevision: assembly.assembly.revision,
+  revision: assembly.assembly.revision + 1,
+  instanceEdits: [{instanceId: 'parent', translationMM: [20, 0, 0]}],
+});
+cad.validateCadAssemblyResult(next);
+const restored = cad.parseCadAssembly(cad.serializeCadAssembly(next.assembly));
+```
+
+Updates accept1..32 unique existing instance IDs and supported placement or
+explicit parent edits. The expected revision must match, and every accepted
+edit, including a no-op, advances exactly1. A reparent preserves the local
+placement unless explicitly edited. Add/delete/reference/source replacement
+is not an implicit patch operation. Whole authored candidates can replace
+parts, but every instance must carry fresh exact native revisions; stale
+references refuse. A fresh authored snapshot has no hidden source hash or
+external revision history; its author must advance native revisions on source
+changes. Whole-owned validation checks complete evaluated data. No source is
+baked, renamed or silently rebound.
+
+Assembly Save/Open preserves canonical source text, refs, authored order,
+hierarchy, placements and raw -0 JSON numbers. Existing strict JSON grammar
+is reused with duplicate decoded keys/Unicode/number safeguards; original
+canonical decoder/profile limits are unchanged. Files are bounded16MiB.
+Whole-owned validation reconstructs the entire graph or instance query before
+acceptance; copied CPU data has no renderer resources.
+
+```sh
+node examples/cad-nurbs/cad-assembly-demo.mjs --source /tmp/cad-native-assembly
+```
+
+The example uses actual canonical Curve/Surface bodies, shared references,
+asset-qualified same-ID parts, nested90-degree placement, parent edits and
+explicit reparenting, source/assembly/result Save/Open and focused refusal
+cases. Local numeric observations do not establish professional accuracy.
+Mates/DOF, external part lifecycle, scales, topology/solid assemblies, volume
+and mass remain open. Integration and GPU/Loader/Viewer adoption require
+separate receipts.
