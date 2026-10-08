@@ -1,0 +1,83 @@
+{
+  "format": "barocss-fluid-visual-fixture",
+  "version": 1,
+  "fixture": {
+    "particles": 256,
+    "basinM": [
+      0.7,
+      1.3,
+      0.5
+    ],
+    "horizons": [
+      60,
+      240
+    ],
+    "fixedStepSeconds": 0.008333333333333333
+  },
+  "results": [
+    {
+      "solver": "sph-pressure-spike",
+      "checkpoints": [
+        {
+          "step": 60,
+          "particlesAbove5cm": 157,
+          "maxHeightM": 0.515172230289489,
+          "medianStepMs": 1.4220830000000007,
+          "p95StepMs": 1.6736250000000013,
+          "meanAbsoluteDensityError": 0.4087248945660608,
+          "p95Compression": 0.6735200272770245,
+          "boundaryHits": 2182,
+          "escapedParticles": 0,
+          "finite": true,
+          "positionSha256": "cfc3565e9beeb7ee6f14be930c16f2724318ca4228e4e149a413801a868e52c4"
+        },
+        {
+          "step": 240,
+          "particlesAbove5cm": 131,
+          "maxHeightM": 0.2329688286838419,
+          "medianStepMs": 1.295500000000004,
+          "p95StepMs": 1.5817499999999995,
+          "meanAbsoluteDensityError": 0.32166275388578786,
+          "p95Compression": 0.6756572160152392,
+          "boundaryHits": 32203,
+          "escapedParticles": 0,
+          "finite": true,
+          "positionSha256": "fe24e703f9e381cdd1181898d04662b9147e29a876d530415dc326f37d2ea4b0"
+        }
+      ],
+      "repeatStateMatches": true
+    },
+    {
+      "solver": "pbf-density-spike",
+      "checkpoints": [
+        {
+          "step": 60,
+          "particlesAbove5cm": 186,
+          "maxHeightM": 0.5522290193144879,
+          "medianStepMs": 3.951791999999955,
+          "p95StepMs": 4.371541999999977,
+          "meanAbsoluteDensityError": 0.22785881124725596,
+          "p95Compression": 0.008943763280411687,
+          "boundaryHits": 6019,
+          "escapedParticles": 0,
+          "finite": true,
+          "positionSha256": "f14b5eaa5b34c074c8ecbe501be5b84af56eabbfdfbbcb823940aa999605e1bc"
+        },
+        {
+          "step": 240,
+          "particlesAbove5cm": 147,
+          "maxHeightM": 0.2354867523597441,
+          "medianStepMs": 4.635082999999895,
+          "p95StepMs": 5.4499580000001515,
+          "meanAbsoluteDensityError": 0.015288410357167534,
+          "p95Compression": 0.008918274260563797,
+          "boundaryHits": 66159,
+          "escapedParticles": 0,
+          "finite": true,
+          "positionSha256": "6a951b6fe9baeee2d40a5cd2fd4752d7681f484ef07f167a8edc7dd03f8c068b"
+        }
+      ],
+      "repeatStateMatches": true
+    }
+  ]
+}

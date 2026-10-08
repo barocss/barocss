@@ -1,0 +1,128 @@
+{
+  "format": "barocss-fluid-solver-spike",
+  "version": 1,
+  "fixture": {
+    "dimension": 3,
+    "basinM": [
+      1.8,
+      1.3,
+      1.8
+    ],
+    "spacingM": 0.05,
+    "smoothingRadiusM": 0.09000000000000001,
+    "fixedStepSeconds": 0.008333333333333333,
+    "steps": 60,
+    "densityReference": "mean initial normalized kernel density",
+    "boundary": "static axis-aligned clamp with 0.1 rebound and two layers of fixed floor density samples",
+    "particleCounts": [
+      256,
+      1024,
+      4096
+    ]
+  },
+  "environment": {
+    "node": "v22.22.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M3 Max",
+    "totalMemoryBytes": 38654705664,
+    "garbageCollectionExposed": true
+  },
+  "methods": {
+    "sph": "Positive normalized-density pressure, stiffness 5, explicit velocity step, damping 0.998",
+    "pbf": "Three positive-compression density iterations, epsilon 0.01, correction capped at 0.25 spacing",
+    "memory": "GC-assisted retained heap delta; not total allocations or peak resident memory"
+  },
+  "results": [
+    {
+      "solver": "sph-pressure-spike",
+      "particles": 256,
+      "steps": 60,
+      "referenceDensity": 3.120103525132606,
+      "retainedHeapDeltaBytes": 275024,
+      "medianStepMs": 1.7854170000000025,
+      "p95StepMs": 2.2099580000000003,
+      "meanAbsoluteDensityError": 0.3084460282103029,
+      "p95Compression": 0.4835236858677303,
+      "boundaryHits": 1187,
+      "escapedParticles": 0,
+      "finite": true,
+      "positionSha256": "5c836b71d44f76b0274107727c8dedb4b11e3b8df9476df7b1a6fa9cb26f150a"
+    },
+    {
+      "solver": "pbf-density-spike",
+      "particles": 256,
+      "steps": 60,
+      "referenceDensity": 3.120103525132606,
+      "retainedHeapDeltaBytes": 40384,
+      "medianStepMs": 5.003416000000016,
+      "p95StepMs": 5.852582999999981,
+      "meanAbsoluteDensityError": 0.20820767290859607,
+      "p95Compression": 0.003131987169176176,
+      "boundaryHits": 1895,
+      "escapedParticles": 0,
+      "finite": true,
+      "positionSha256": "3d6d45fb891382b5a129d100918bcc6abd149568bcdfb56fc0530bdc2ffc9096"
+    },
+    {
+      "solver": "sph-pressure-spike",
+      "particles": 1024,
+      "steps": 60,
+      "referenceDensity": 3.318064822811991,
+      "retainedHeapDeltaBytes": 55160,
+      "medianStepMs": 5.8145829999999705,
+      "p95StepMs": 6.629583000000025,
+      "meanAbsoluteDensityError": 0.36613218744259823,
+      "p95Compression": 0.46108457233888545,
+      "boundaryHits": 4921,
+      "escapedParticles": 0,
+      "finite": true,
+      "positionSha256": "bf2f0396faeea8aebf97e88a852912c435c10b11520e4916c447cb118c85cdab"
+    },
+    {
+      "solver": "pbf-density-spike",
+      "particles": 1024,
+      "steps": 60,
+      "referenceDensity": 3.318064822811991,
+      "retainedHeapDeltaBytes": 17280,
+      "medianStepMs": 16.714208999999983,
+      "p95StepMs": 20.113833999999997,
+      "meanAbsoluteDensityError": 0.24217636098485212,
+      "p95Compression": 0.006593405007023545,
+      "boundaryHits": 4583,
+      "escapedParticles": 0,
+      "finite": true,
+      "positionSha256": "514cec1038b53d7e7347fc5c3651659fc8d6eca919f2bcf9d8b3774e56538b80"
+    },
+    {
+      "solver": "sph-pressure-spike",
+      "particles": 4096,
+      "steps": 60,
+      "referenceDensity": 3.452700828972266,
+      "retainedHeapDeltaBytes": 49416,
+      "medianStepMs": 23.96374999999989,
+      "p95StepMs": 26.68733400000019,
+      "meanAbsoluteDensityError": 0.7621291854419635,
+      "p95Compression": 1.5476571619037673,
+      "boundaryHits": 16542,
+      "escapedParticles": 0,
+      "finite": true,
+      "positionSha256": "b4a8c7127336529d9d793d1df23761692c72ef95b68a7bb036ca21d28f2b191f"
+    },
+    {
+      "solver": "pbf-density-spike",
+      "particles": 4096,
+      "steps": 60,
+      "referenceDensity": 3.452700828972266,
+      "retainedHeapDeltaBytes": -855480,
+      "medianStepMs": 70.07470900000044,
+      "p95StepMs": 93.25058399999944,
+      "meanAbsoluteDensityError": 0.13022520285492228,
+      "p95Compression": 0.028031699299691404,
+      "boundaryHits": 17793,
+      "escapedParticles": 0,
+      "finite": true,
+      "positionSha256": "d9f00fe360eb77c925655821afda66ca95e0ccc424ff67f26c96e70dc83d94ca"
+    }
+  ]
+}
