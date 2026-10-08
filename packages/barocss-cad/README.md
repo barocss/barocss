@@ -5707,6 +5707,12 @@ arbitrary frame-graph capabilities remain future scope.
 
 ## Explicit document compatibility and candidate migration
 
+Development policy: the current document has one wire version1/profile. This
+does not freeze the prototype schema or require old-version compatibility.
+SourceVersion0 is a separate native geometry language, not canonical documentv0.
+Current specification, API and examples may change together. No legacy document
+reader or automatic document-version migration layer is provided here.
+
 `inspectCadDocumentCompatibility({format,text})` validates an explicitly named
 format; it never guesses from filenames or similar JSON arrays. The first matrix
 supports `canonical-document-v1` through the actual712 strict reader and
