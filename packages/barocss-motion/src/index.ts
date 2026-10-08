@@ -66,6 +66,8 @@ export { MotionTimingError, evaluateMotionTiming, sampleMotionClipWithTiming } f
 export type { MotionCubicTiming, MotionTimedSample, MotionTimingErrorCode, MotionTimingEvaluation } from './timing.js';
 export { createMotionRangeTimeline } from './range-timeline.js';
 export type { MotionRangeTimeline, MotionRangeTimelineOptions, MotionRangeTimelineState } from './range-timeline.js';
+export { MotionTransitionError, createMotionTransitionPlayer } from './transition.js';
+export type { MotionTransitionErrorCode, MotionTransitionOptions, MotionTransitionPlayer, MotionTransitionState } from './transition.js';
 
 export const MOTION_LIMITS = Object.freeze({
   targets: 64,

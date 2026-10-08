@@ -33,7 +33,7 @@ The version-0 bounds are 64 targets, 192 tracks, 256 keys per track, 4096 keys i
 
 Translation and scale accept `STEP` and `LINEAR`; rotation accepts `STEP` and `SLERP`. Samples before the first key and after the last key hold that key's value. Exact key samples return the authored value, including the sign of an authored quaternion. Interior SLERP follows the shortest path, flips the right quaternion when the dot product is negative, uses normalized linear interpolation when the adjusted dot is above `1 - 1e-8`, and normalizes its result. A quaternion and its negation encode the same orientation.
 
-Players start paused at time zero. `seek` includes both endpoints in either mode. Positive `advance` in repeat mode wraps the duration endpoint to zero; clamp mode stops at the endpoint and pauses. `play` at the clamp endpoint starts again at zero. Zero-duration repeat clips stay at zero. Invalid calls throw before changing player state. `dispose` is idempotent; further calls throw. No hidden timer, autoplay, time scale, mixing, skinning, morphs, physics, spline, IK, or CAD regeneration is included.
+Players start paused at time zero. `seek` includes both endpoints in either mode. Positive `advance` in repeat mode wraps the duration endpoint to zero; clamp mode stops at the endpoint and pauses. `play` at the clamp endpoint starts again at zero. Zero-duration repeat clips stay at zero. Invalid calls throw before changing player state. `dispose` is idempotent; further calls throw. The base player has no hidden timer, autoplay, time scale, clip mixing, skinning, morphs, physics, spline, IK, or CAD regeneration.
 
 ## Versioned clip files
 
@@ -136,3 +136,23 @@ preview.dispose();
 The range is an exact own-data two-element array with finite `start < end` inside the original clip duration. Only a zero-duration clip admits numeric `[0, 0]`. State returns an independent copy of the range, original absolute seconds, owned poses and marker events, playing state, mode and repeat iteration. The initial time is the range start; numeric zero starts as positive zero. An explicit seek can preserve `-0`, and a clamp-end play restarts at positive zero when the start is numeric zero. A zero-duration range stays at positive zero after positive advance and emits no events.
 
 The wrapper reuses the existing marker admission and event IDs/indexes. Markers outside the range remain admitted but never emit. Each pass delivers crossings in `(old, new]`; at a repeat seam, end events arrive before next-pass start events. The first start marker and seeks are silent. Equal-time events retain authored array order. A full `[0, duration]` range matches the existing timeline behavior. At most 16 seams and 256 events are delivered per advance; unsafe time arithmetic or an exceeded bound throws before changing accepted state. Invalid options, clip, range or time and marker failures use the existing `MotionTimelineError` codes. This wrapper has no timer, easing, clip/key/marker rewrite, file format or renderer ownership.
+
+## Caller-driven clip transitions
+
+```js
+import { createMotionTransitionPlayer } from '@barocss/motion';
+
+const transition = createMotionTransitionPlayer(source, { mode: 'clamp' });
+transition.seek(1);
+transition.transitionTo(destination, { destinationTimeSeconds: 0, fadeDurationSeconds: 2 });
+transition.play();
+transition.advance(1); // source 2 s, destination 1 s, linear weight 0.5
+transition.advance(1); // destination adopted at 2 s
+transition.dispose();
+```
+
+Source and destination must be validated v0 clips with the same context and exact target/property set. The destination time is required and within its clip; fade duration is finite in `[0, 3600]` seconds. Optional `timing` uses the cubic-bezier record above to ease only the blend weight. With no timing, weight equals raw fade progress. A zero-duration fade adopts the destination immediately. A second transition and `seek` are refused while a fade is active; the caller can pause or resume it. There is no interrupt or replacement policy in v0.
+
+State returns independent poses plus `phase`, `playing`, `mode`, both clip times, fade elapsed/duration/progress and weight. Before a fade, phase is `idle`, destination time is `null`, and fade fields are zero. During a fade, both clocks and fade elapsed advance from the same caller delta. Clamp holds each clock at its endpoint but lets the fade complete; repeat wraps each nonzero-duration clip at the exact seam. After completion, the destination becomes the source, phase is `adopted`, destination time is `null`, and progress/weight stay at 1 until the next transition. Poses then use the destination clip's own target order. At a clamp endpoint, playback stops; `play` restarts at zero only when no fade is pending. The player starts paused, owns no timer, renderer or caller player, and never changes the clips or CAD source.
+
+Invalid requests keep the accepted clocks, phase and poses. `MotionTransitionError` has stable codes `INVALID_INPUT`, `INCOMPATIBLE_CLIPS`, `TRANSITION_ACTIVE`, `UNSAFE_RESULT` and `DISPOSED`. `dispose` is idempotent; other methods refuse afterward. The implementation delegates sampling and interpolation to the existing clip, blend and timing APIs. It does not blend marker events or implement animation graphs, layers, skinning or a target renderer adapter.

@@ -30,3 +30,7 @@ After building the package, run `node examples/motion-scene/blend-probe.mjs`. It
 ## Cubic timing consumer
 
 After building the package, run `node examples/motion-scene/timing-probe.mjs`. It reads the real two-part `.baromotion` file and checks exact endpoints, identity and ease midpoint, flat X controls, signed zero, owned results and bounded refusals. Serve the repository root on port 52169 and open `http://127.0.0.1:52169/examples/motion-scene/timing-demo.html`. The caller selects an input time and timing curve. The page shows input progress, eased progress, input time and sampled time separately; Three.js displays the two owned poses. Try invalid curve reports a refusal and retains the last accepted frame. `window.motionTimingDemo.getState()`, `getEvaluation()` and `getStatus()` expose that state.
+
+## Caller-driven clip transition consumer
+
+After building the package, run `node examples/motion-scene/transition-probe.mjs`. It reads two real `.baromotion` files and checks separate source/destination clocks, fade midpoint, target adoption, owned poses, repeat seam, cubic timing and refusal retention. Serve the repository root on a separate port 52189 and open `http://127.0.0.1:52189/examples/motion-scene/transition-demo.html`. Use Seek source to 1 s, Transition to second clip, Play and Advance 1 s twice. The cards show both clocks, phase, raw progress and blend weight. Try incompatible clip reports a refusal without changing the accepted 3D frame. `window.motionTransitionDemo.getState()` and `getStatus()` expose the actual state.
