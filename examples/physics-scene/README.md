@@ -2,10 +2,19 @@
 
 This is the first visible consumer of `@barocss/physics`. A moving sphere falls onto a fixed box. The engine computes positions, velocities and contacts in SI units; this page draws a side projection of those returned values. The sphere and box are screen geometry, not CAD collision shapes.
 
-From the repository root, build the package and run:
+From the repository root, run the visible scene without building Physics first. The server bundles the current Physics source when it starts:
+
+```sh
+node examples/physics-scene/server.mjs
+```
+
+Open `http://127.0.0.1:5181/`. Restart the server after source edits. Use pause, single step and reset. The panel reports the same state returned by the library.
+
+The compiled probes and release gate still test the `dist` package contract. Build Physics before running them:
 
 ```sh
 pnpm --filter @barocss/physics build:library
+node examples/physics-scene/source-import-probe.mjs
 node examples/physics-scene/probe.mjs
 node examples/physics-scene/controls-probe.mjs
 node examples/physics-scene/events-queries-probe.mjs
@@ -16,10 +25,9 @@ node examples/physics-scene/joints-probe.mjs
 node examples/physics-scene/ccd-probe.mjs
 node examples/physics-scene/broadphase-probe.mjs
 node examples/physics-scene/replay-probe.mjs
-node examples/physics-scene/server.mjs
 ```
 
-Open `http://127.0.0.1:5181/`. Use pause, single step and reset. The panel reports the same state returned by the library. The probe checks free fall, stable box rest, sphere impact, initial overlap, copied state, refusal retention and disposal.
+The probe checks free fall, stable box rest, sphere impact, initial overlap, copied state, refusal retention and disposal.
 
 The separate compiled `controls-probe.mjs` checks one-step force, impulse, kinematic box movement/contact, command order, invalid command retention and the original no-command `step(dt)` route. The visible scene remains the bounded v0 sphere-and-fixed-box profile.
 

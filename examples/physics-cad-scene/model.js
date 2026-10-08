@@ -1,5 +1,5 @@
-import { createPhysicsWorld } from '../../packages/barocss-physics/dist/index.js';
-import { admitCadSurfaceProxy, assertCadProxyCurrent, cadProxyPose } from '../../packages/barocss-physics/dist/cad-proxy.js';
+import { createPhysicsWorld } from '../../packages/barocss-physics/src/index.ts';
+import { admitCadSurfaceProxy, assertCadProxyCurrent, cadProxyPose } from '../../packages/barocss-physics/src/cad-proxy.ts';
 import { createViewer } from '../../packages/barocss-viewer/dist/index.js';
 
 export const DT = 1 / 120;

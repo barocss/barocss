@@ -7,21 +7,24 @@
   "license": "MIT",
   "exports": {
     ".": {
+      "barocss-source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
     "./cad-proxy": {
+      "barocss-source": "./src/cad-proxy.ts",
       "types": "./dist/cad-proxy.d.ts",
       "import": "./dist/cad-proxy.js"
     },
     "./replay": {
+      "barocss-source": "./src/replay.ts",
       "types": "./dist/replay.d.ts",
       "import": "./dist/replay.js"
     }
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": ["src", "dist", "README.md", "LICENSE"],
   "scripts": {
     "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js"
   },

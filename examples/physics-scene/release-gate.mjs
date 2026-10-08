@@ -57,6 +57,9 @@ try {
     command('pnpm', ['--filter', packageName, 'build:library']);
     add(`${packageName} build`, 'passed');
   }
+  const sourceImports = JSON.parse(command('node', [join(example, 'source-import-probe.mjs')]).split('\n').at(-1));
+  assert.equal(sourceImports.result, 'ok');
+  add('source-import-probe', sourceImports);
   if (full) for (const name of physicsProbeNames) probe(name, join(example, `${name}.mjs`));
   probe('cad-proxy-probe', join(root, 'examples/physics-cad-scene/cad-proxy-probe.mjs'));
   if (full) report.packedConsumer = runPackedConsumer(command, root, example);

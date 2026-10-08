@@ -2,14 +2,17 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { build } from 'esbuild';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const repo = path.resolve(here, '../..');
+const bundle = await build({
+  entryPoints: [path.join(here, 'app.js')],
+  bundle: true, write: false, format: 'esm', platform: 'browser', target: 'es2022',
+});
 const files = new Map([
   ['/', ['text/html; charset=utf-8', path.join(here, 'index.html')]],
-  ['/app.js', ['text/javascript; charset=utf-8', path.join(here, 'app.js')]],
+  ['/app.js', ['text/javascript; charset=utf-8', bundle.outputFiles[0].contents]],
   ['/style.css', ['text/css; charset=utf-8', path.join(here, 'style.css')]],
-  ['/physics.js', ['text/javascript; charset=utf-8', path.join(repo, 'packages/barocss-physics/dist/index.js')]],
 ]);
 
 export async function startServer(port = 0) {
@@ -18,8 +21,8 @@ export async function startServer(port = 0) {
       response.writeHead(404); response.end('Not found'); return;
     }
     try {
-      const [type, filename] = files.get(request.url);
-      const bytes = await readFile(filename);
+      const [type, content] = files.get(request.url);
+      const bytes = typeof content === 'string' ? await readFile(content) : content;
       response.writeHead(200, {
         'content-type': type,
         'cache-control': 'no-store',
@@ -27,7 +30,7 @@ export async function startServer(port = 0) {
       });
       response.end(bytes);
     } catch {
-      response.writeHead(500); response.end('Build @barocss/physics before starting the example');
+      response.writeHead(500); response.end('Could not serve Physics example');
     }
   });
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, '127.0.0.1', resolve); });

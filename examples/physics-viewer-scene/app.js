@@ -1,4 +1,4 @@
-import { createPhysicsWorld } from '../../packages/barocss-physics/dist/index.js';
+import { createPhysicsWorld } from '../../packages/barocss-physics/src/index.ts';
 import { createViewer } from '../../packages/barocss-viewer/dist/index.js';
 
 const DT = 1 / 120;

@@ -1,4 +1,4 @@
-import { createPhysicsWorld } from '/physics.js';
+import { createPhysicsWorld } from '../../packages/barocss-physics/src/index.ts';
 
 const dt = 1 / 120;
 const start = () => createPhysicsWorld({
