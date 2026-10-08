@@ -1,13 +1,26 @@
-import { Canvas2DError, validateScene } from './schema.js';
-import type { GroupNodeV6, ImageNodeV6, SceneV6, Transform } from './schema.js';
+import { Canvas2DError, validatePoint, validateScene } from './schema.js';
+import type { GroupNodeV6, ImageNodeV6, Point, SceneV6, Transform } from './schema.js';
+import type { Hit } from './renderer.js';
 
 export type ContainerSpec = Pick<GroupNodeV6, 'id' | 'layer' | 'transform'>;
 export type SpriteSpec = Omit<ImageNodeV6, 'kind'>;
 export type DisplayHandle = ContainerHandle | SpriteHandle;
+export type PointerEventType = 'pointerdown' | 'pointerup' | 'pointermove' | 'pointercancel';
+export type DisplayPointerEvent = {
+  readonly type: PointerEventType;
+  readonly pointerId: number;
+  readonly point: Readonly<Point>;
+  readonly target: DisplayHandle | null;
+  readonly currentTarget: StageHandle | DisplayHandle;
+  stopPropagation(): void;
+};
+export type PointerInput = { type: PointerEventType; pointerId: number; point: Point; hit: Hit | null };
+export type PointerListener = (event: DisplayPointerEvent) => void;
 export type StageHandle = {
   readonly children: readonly DisplayHandle[];
   addChild(child: DisplayHandle): void;
   removeChild(child: DisplayHandle): void;
+  onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
 export type ContainerHandle = StageHandle & {
   readonly kind: 'container'; readonly id: string; readonly data: ContainerSpec;
@@ -20,12 +33,14 @@ export type SpriteHandle = {
   setLayer(layer: number): void;
   setAnchor(x: number, y: number): void;
   setOpacity(opacity: number): void;
+  onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
 export type DisplayTree = {
   readonly stage: StageHandle;
   createContainer(spec: ContainerSpec): ContainerHandle;
   createSprite(spec: SpriteSpec): SpriteHandle;
   get(id: string): DisplayHandle | null;
+  dispatchPointer(input: PointerInput): void;
   snapshot(): SceneV6;
 };
 
@@ -63,6 +78,42 @@ export function createDisplayTree(contextId: string): DisplayTree {
   const checked = validateScene({ version: 6, unit: 'logical-px', contextId, nodes: [] }) as SceneV6;
   const root: RecordNode = { data: null, parent: null, children: [], handle: null as unknown as StageHandle };
   const records = new WeakMap<object, RecordNode>();
+  const listeners = new WeakMap<RecordNode, Map<PointerEventType, { listener: PointerListener }[]>>();
+  const pointerTypes: readonly PointerEventType[] = ['pointerdown', 'pointerup', 'pointermove', 'pointercancel'];
+
+  function checkedPointerType(type: unknown): PointerEventType {
+    if (!pointerTypes.includes(type as PointerEventType)) invalid('pointer event type is unsupported');
+    return type as PointerEventType;
+  }
+  function onPointer(record: RecordNode, type: PointerEventType, listener: PointerListener): () => void {
+    const checkedType = checkedPointerType(type);
+    if (typeof listener !== 'function') invalid('pointer listener must be a function');
+    let byType = listeners.get(record);
+    if (!byType) { byType = new Map(); listeners.set(record, byType); }
+    let callbacks = byType.get(checkedType);
+    if (!callbacks) { callbacks = []; byType.set(checkedType, callbacks); }
+    if (callbacks.length >= 32) throw new Canvas2DError('SCENE_LIMIT', 'pointer listener limit is 32 per type and handle');
+    const registration = { listener };
+    callbacks.push(registration);
+    let active = true;
+    return () => {
+      if (!active) return;
+      active = false;
+      const index = callbacks.indexOf(registration);
+      if (index >= 0) callbacks.splice(index, 1);
+    };
+  }
+  function findRecord(id: string): RecordNode | null {
+    const find = (children: RecordNode[]): RecordNode | null => {
+      for (const child of children) {
+        if (child.data?.id === id) return child;
+        const descendant = find(child.children);
+        if (descendant) return descendant;
+      }
+      return null;
+    };
+    return find(root.children);
+  }
 
   function toNode(record: RecordNode): GroupNodeV6 | ImageNodeV6 {
     const data = record.data;
@@ -110,6 +161,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
   function parentMethods(parent: RecordNode): StageHandle {
     return {
       get children() { return parent.children.map(child => child.handle as DisplayHandle); },
+      onPointer(type, listener) { return onPointer(parent, type, listener); },
       addChild(child: DisplayHandle) {
         const record = known(child);
         if (record.parent) invalid('display object already has a parent');
@@ -145,6 +197,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
           return structuredClone(data) as ContainerSpec; },
         get children() { return parent.children; },
         addChild: parent.addChild, removeChild: parent.removeChild,
+        onPointer: parent.onPointer,
         ...common(record),
       });
       record.handle = handle; records.set(handle, record);
@@ -161,6 +214,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
         get data() { const { kind: _kind, ...data } = record.data as ImageNodeV6;
           return structuredClone(data) as SpriteSpec; },
         ...common(record),
+        onPointer(type, listener) { return onPointer(record, type, listener); },
         setAnchor(x: number, y: number) { mutate(record, { ...(record.data as ImageNodeV6), anchorX: x, anchorY: y }); },
         setOpacity(opacity: number) { mutate(record, { ...(record.data as ImageNodeV6), opacity }); },
       });
@@ -171,15 +225,45 @@ export function createDisplayTree(contextId: string): DisplayTree {
       if (typeof id !== 'string' || !/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(id)) {
         invalid('display object ID is invalid');
       }
-      const find = (children: RecordNode[]): DisplayHandle | null => {
-        for (const child of children) {
-          if (child.data?.id === id) return child.handle as DisplayHandle;
-          const descendant = find(child.children);
-          if (descendant) return descendant;
+      return (findRecord(id)?.handle as DisplayHandle | undefined) ?? null;
+    },
+    dispatchPointer(input: PointerInput): void {
+      const fields = exactSpec(input, ['type', 'pointerId', 'point', 'hit']);
+      const type = checkedPointerType(fields.type);
+      const pointerId = fields.pointerId;
+      if (typeof pointerId !== 'number' || !Number.isSafeInteger(pointerId) || pointerId < 0 || Object.is(pointerId, -0)) {
+        invalid('pointer ID must be a non-negative safe integer');
+      }
+      const point = validatePoint(fields.point);
+      let target: RecordNode | null = null;
+      if (fields.hit !== null) {
+        const hit = exactSpec(fields.hit, ['id', 'kind']);
+        if (typeof hit.id !== 'string' || !/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(hit.id)) {
+          invalid('pointer hit ID is invalid');
         }
-        return null;
-      };
-      return find(root.children);
+        if (!['frame', 'rect', 'line', 'path', 'image', 'glyphRun'].includes(hit.kind as string)) {
+          invalid('pointer hit kind is invalid');
+        }
+        if (hit.kind !== 'image') {
+          throw new Canvas2DError('UNSUPPORTED_FEATURE', 'display tree pointer target must be an image');
+        }
+        target = findRecord(hit.id);
+        if (!target || target.data?.kind !== 'image') invalid('pointer hit is not an attached sprite');
+      }
+      const route: RecordNode[] = [];
+      for (let cursor: RecordNode | null = target ?? root; cursor; cursor = cursor.parent) route.push(cursor);
+      const planned = route.map(record => ({ record,
+        callbacks: (listeners.get(record)?.get(type) ?? []).map(registration => registration.listener) }));
+      let stopped = false;
+      for (const { record, callbacks } of planned) {
+        for (const callback of callbacks) {
+          callback(Object.freeze({ type, pointerId, point: Object.freeze({ ...point }),
+            target: (target?.handle as DisplayHandle | undefined) ?? null,
+            currentTarget: record.handle,
+            stopPropagation() { stopped = true; } }));
+        }
+        if (stopped) break;
+      }
     },
     snapshot(): SceneV6 {
       return validateScene({ version: 6, unit: 'logical-px', contextId: checked.contextId,

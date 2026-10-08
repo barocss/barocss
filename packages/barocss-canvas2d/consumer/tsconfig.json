@@ -10,5 +10,5 @@
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["consumer.mjs", "display-tree.mjs"]
+  "include": ["consumer.mjs", "display-tree.mjs", "pointer.mjs"]
 }
