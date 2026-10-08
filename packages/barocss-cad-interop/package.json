@@ -45,6 +45,10 @@
       "types": "./dist/pixi3d.d.ts",
       "import": "./dist/pixi3d.js"
     },
+    "./pixi3d-document": {
+      "types": "./dist/pixi3d-document.d.ts",
+      "import": "./dist/pixi3d-document.js"
+    },
     "./model-set": {
       "types": "./dist/model-set.d.ts",
       "import": "./dist/model-set.js"
