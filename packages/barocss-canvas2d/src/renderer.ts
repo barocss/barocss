@@ -457,7 +457,8 @@ export class Canvas2DRenderer {
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     gl.disable(gl.SCISSOR_TEST);
     gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
-    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND); gl.blendEquation(gl.FUNC_ADD);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.useProgram(gpu.program); gl.bindVertexArray(gpu.vao); gl.bindBuffer(gl.ARRAY_BUFFER, gpu.buffer);
     gl.uniform2f(gpu.size, this.size.width, this.size.height);
     gl.uniform3f(gpu.view, this.view.panX, this.view.panY, this.view.zoom);
@@ -477,7 +478,14 @@ export class Canvas2DRenderer {
       } else gl.disable(gl.SCISSOR_TEST);
       const imageNode = draw.imageNode ?? (draw.node.kind === 'image' ? draw.node : null);
       if (imageNode && draw.imageAsset) {
-        renderImage(gl, gpu.image, draw.vertices, imageNode, draw.imageAsset, this.size, this.view);
+        if ('blendMode' in imageNode && imageNode.blendMode === 'add') {
+          gl.blendFunc(gl.ONE, gl.ONE);
+        }
+        try {
+          renderImage(gl, gpu.image, draw.vertices, imageNode, draw.imageAsset, this.size, this.view);
+        } finally {
+          gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        }
         gl.useProgram(gpu.program); gl.bindVertexArray(gpu.vao); gl.bindBuffer(gl.ARRAY_BUFFER, gpu.buffer);
         gl.uniform2f(gpu.size, this.size.width, this.size.height);
         gl.uniform3f(gpu.view, this.view.panX, this.view.panY, this.view.zoom);

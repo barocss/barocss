@@ -34,7 +34,7 @@ assert.equal(reopened.get('Sprite').data.sampling, 'linear');
 assert.deepEqual(reopened.get('Sprite').data.tint, [1, 1, 1]);
 const text = await serializeCanvasDocument(tree.snapshot(), id => id === 'Atlas' ? image : null);
 const document = await parseCanvasDocument(text);
-assert.equal(document.scene.version, 7);
+assert.equal(document.scene.version, 8);
 assert.equal(document.scene.nodes[0].sampling, 'linear');
 assert.deepEqual([...document.assets.get('Atlas').pixels], [...image.pixels]);
 const restored = createDisplayTreeFromScene(document.scene);
@@ -44,5 +44,5 @@ assert.equal(sprite.data.sampling, 'linear');
 sprite.setSampling('nearest');
 assert.equal(tree.snapshot().nodes[0].sampling, 'nearest');
 assert.equal(tree.snapshot().nodes[1].sampling, 'linear');
-console.log(JSON.stringify({ result: 'ok', sceneVersion: 7,
+console.log(JSON.stringify({ result: 'ok', sceneVersion: 8,
   sampling: ['nearest', 'linear', 'nearest'], documentBytes: Buffer.byteLength(text) }));

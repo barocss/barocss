@@ -5,7 +5,7 @@ export { exportSceneSVG } from './svg-export.js';
 export type { SVGExportDiagnostic, SVGExportResult } from './svg-export.js';
 export type { Canvas2DOptions, Hit } from './renderer.js';
 export { Canvas2DError, parseSceneJSON, stringifySceneJSON } from './schema.js';
-export type { Scene, SceneV0, SceneV1, SceneV2, SceneV3, SceneV4, SceneV5, SceneV6, SceneV7, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, OldNode, GroupNode, GroupNodeV2, GroupNodeV3, GroupNodeV4, GroupNodeV5, GroupNodeV6, GroupNodeV7, FrameNode, FrameNodeV2, FrameNodeV3, FrameNodeV4, FrameNodeV5, FrameNodeV6, FrameNodeV7, RectNode, LineNode, ImageNode, ImageNodeV6, ImageNodeV7, GlyphRunNode, GlyphQuad, SourceRect, ImageAssetInput, PathNode, PathNodeV2, PathNodeV5, PathFill, PathFillV5, PathStroke, PathCommand, Point, Size, View, Color, Tint, Transform, ErrorCode } from './schema.js';
+export type { Scene, SceneV0, SceneV1, SceneV2, SceneV3, SceneV4, SceneV5, SceneV6, SceneV7, SceneV8, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, OldNode, GroupNode, GroupNodeV2, GroupNodeV3, GroupNodeV4, GroupNodeV5, GroupNodeV6, GroupNodeV7, GroupNodeV8, FrameNode, FrameNodeV2, FrameNodeV3, FrameNodeV4, FrameNodeV5, FrameNodeV6, FrameNodeV7, FrameNodeV8, RectNode, LineNode, ImageNode, ImageNodeV6, ImageNodeV7, ImageNodeV8, GlyphRunNode, GlyphQuad, SourceRect, ImageAssetInput, PathNode, PathNodeV2, PathNodeV5, PathFill, PathFillV5, PathStroke, PathCommand, Point, Size, View, Color, Tint, Transform, ErrorCode } from './schema.js';
 export type { PathObservation, FillObservation, PathSample } from './path.js';
 export { createPathBuilder } from './path-builder.js';
 export type { PathBuilder } from './path-builder.js';
