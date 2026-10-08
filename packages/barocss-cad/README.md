@@ -5642,6 +5642,10 @@ source-backed712 document, then requires all qualified fields and **exact**
 revisions. Missing/foreign/stale references refuse; names, triangle indices,
 nearest points and guessed topology never replace authored IDs. This first
 profile resolves Curve/Surface geometry only, without topological naming.
+Revisions are caller-managed logical values, not content signatures. Source
+edits must advance the declared revisions; strict resolution cannot detect a
+caller replacing source while deliberately keeping every revision unchanged.
+Explicit rebind compares both actual source-backed geometry objects.
 
 `rebindCadGeometryReference(previousDocument,currentDocument,previousReference)`
 first resolves the exact original reference against its actual old source.
