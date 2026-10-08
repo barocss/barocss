@@ -1,5 +1,5 @@
 import { Canvas2DError, validatePoint, validateScene } from './schema.js';
-import type { FrameNodeV6, GlyphRunNode, GroupNodeV6, ImageNodeV6, PathNodeV5, RectNode, Point, SceneV6, Transform, LineNode } from './schema.js';
+import type { FrameNodeV6, GlyphRunNode, GroupNodeV6, ImageNodeV6, PathNodeV5, RectNode, Point, SceneV6, SourceRect, Transform, LineNode } from './schema.js';
 import type { Hit } from './renderer.js';
 import { tessellatePath } from './path.js';
 
@@ -50,6 +50,7 @@ export type SpriteHandle = {
   setLayer(layer: number): void;
   setAnchor(x: number, y: number): void;
   setOpacity(opacity: number): void;
+  setSourceRect(rect: SourceRect | null): void;
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
 export type RectHandle = {
@@ -276,6 +277,10 @@ export function createDisplayTree(contextId: string): DisplayTree {
         onPointer(type, listener) { return onPointer(record, type, listener); },
         setAnchor(x: number, y: number) { mutate(record, { ...(record.data as ImageNodeV6), anchorX: x, anchorY: y }); },
         setOpacity(opacity: number) { mutate(record, { ...(record.data as ImageNodeV6), opacity }); },
+        setSourceRect(rect: SourceRect | null) {
+          const { sourceRect: _prior, ...withoutCrop } = record.data as ImageNodeV6;
+          mutate(record, rect === null ? withoutCrop : { ...withoutCrop, sourceRect: rect });
+        },
       });
       record.handle = handle; records.set(handle, record);
       return handle;
