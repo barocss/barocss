@@ -5041,3 +5041,70 @@ per-demo build. Renderer/Loader adoption of samples is a separate Issue.
 Reports retain geometricValidity:not-certified, topologyCertified:false and
 solid:false. General adaptive Surfaces, curved trims, topology/Boolean/features/
 constraints/assemblies/exchange remain tracked under503/535/537 and library660.
+
+## Own native same-degree rational Curve join
+
+`joinCurves(left, right, {curveId, rightParameterEnd?})` constructs one actual
+native C0 Curve from two original positive nonperiodic open-clamped Curves of
+the same degree1..3. Each parent has2..16 poles, weights1e-6..1e6 and finite XYZ
+within±10000mm. The joined count is leftCount+rightCount-1≤31, admitted through
+existing native math/source64-pole/70-knot bounds. Existing617/624/66116-pole
+families keep their limits. Degree conversion is a separate caller operation.
+
+The shared authored endpoints must be exactly numerically equal componentwise.
+Signed zero is geometrically equal; the joined shared control pole and weight
+retain LEFT bits. Original parents retain all their own pole/weight/knot/domain/
+ID/source bits. Left/right slot qualification permits equal parent Curve IDs;
+the new ASCII curveId1..48 must differ from both parent IDs. No endpoint snap,
+fit, healing, axis conversion or inferred up axis is performed.
+
+The left native domain stays intact. The right domain is explicitly mapped by
+a positive affine map to `[leftEnd, rightParameterEnd]`; the default target end
+is leftEnd plus the original right span. Original domains, generated target
+knots, parameter scale and inverse derivative scale remain in provenance.
+An identity map copies original nonshared knot bits. Generated maps retain
+strict ordering/finite arithmetic and the exact requested endpoint; unsafe
+collapse or reversal refuses atomically. Right-side D1 in joined parameters
+scales by the inverse parameter scale.
+
+If endpoint weights differ, the entire RIGHT weight set is explicitly scaled
+by leftEndWeight/rightStartWeight. A scale of1 copies original right weight
+bits. Otherwise generated products, shared-start product residual and adopted
+right weights are distinct from original coefficients. Shared joined weight
+chooses LEFT bits. Nonfinite, unsafe or out-of-native-bound products refuse.
+Constant positive weight scaling has the rational geometric basis of cancelling
+from numerator and denominator; generated binary64 values still require honest
+local residual observations rather than a global shape guarantee.
+
+The actual joined coefficient/knot sequence has one shared pole and join
+multiplicity equal to degree. Native D1 guard at that knot remains unchanged,
+even if original one-sided endpoint derivatives look aligned. Original-versus-
+joined point and scaled D1 observations use local1e-7mm/relative1e-7 policies.
+They do not prove G1/G2, regularity, a closed wire, B-Rep or a solid. Numeric
+closed endpoint coincidence is reported separately from topology.
+
+The owned result is `{left, right, options, curve, source, sourceVersion:0,
+model, parentSources, parentModels, provenance, report}`. Parent Curve-only
+source Models `curve_join_left` and `curve_join_right` are independently adopted;
+the joined Curve-only source Model uses the new curveId as its model name.
+These names belong to separate model namespaces. The actual joined source0
+contains genuine native coefficients, without mesh/sample fitting. DTO version0,
+mm and authored XYZ semantics are explicit in the report.
+
+`validateJoinedCurveResult(result)` rebuilds the original parents/options,
+joined coefficients/source/maps/weights/bindings and compares every owned bit.
+Accessors/hidden/symbol/foreign/sparse/cyclic/extra/nonfinite or altered data
+refuse while originals and prior joined results remain reusable. Input snapshots
+bound4096 values/depth8/arrays64/records16; results131072/depth24/arrays4096/
+records64/source262144. At most128 two-slot native point/D1 observations plus
+original endpoint and native join-guard evidence are staged before adoption.
+
+```sh
+node examples/cad-nurbs/curve-join-demo.mjs --source
+```
+
+The source/native-file flow includes a short separate actual declared compiled
+API/declaration import. Public metadata and explicit source paths remain intact.
+Reports retain geometricValidity:not-certified, topologyCertified:false and
+solid:false. General degree matching, higher continuity, curved trims, topology,
+constraints/features/assemblies/exchange remain tracked under503/535/537/660.
