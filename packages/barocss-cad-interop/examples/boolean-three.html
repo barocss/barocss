@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native CAD Boolean contours in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Native CAD Boolean contours · Three.js</h1>
+  <p>Source-backed world Curve fragments show outer loops, holes and separated components.</p>
+  <div id="view"></div>
+  <button id="reject" type="button">Try invalid candidates</button>
+  <button id="dispose" type="button">Dispose display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Group, Line, Mesh, OrthographicCamera, Scene, WebGLRenderer } from 'three';
+  import { validateCoplanarFaceBoolean } from '@barocss/cad';
+  import { BaroCADLoader } from '@barocss/cad-interop/three';
+  import { createBaroCadBooleanThreeContours } from '@barocss/cad-interop/three-boolean-contours';
+
+  const status = document.querySelector('#status');
+  const renderer = new WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+  renderer.setSize(800, 520);
+  renderer.setPixelRatio(1);
+  renderer.setClearColor(0x101b2c);
+  document.querySelector('#view').append(renderer.domElement);
+  const canvas = renderer.domElement;
+  const scene = new Scene();
+  const caller = new Group(); caller.name = 'caller-owned'; scene.add(caller);
+  const camera = new OrthographicCamera(-0.12, 0.12, 0.078, -0.078, 0.001, 3);
+  camera.position.set(0.8, 0.3, -0.8);
+  camera.lookAt(-0.02, -0.035, -0.02);
+  const native = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.01,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } };
+  const options = { native, basis: 'authored-xyz-matches-rhyup' };
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const render = () => {
+    renderer.render(scene, camera);
+    const gl = renderer.getContext();
+    const bytes = new Uint8Array(canvas.width * canvas.height * 4);
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('Three WebGL readPixels failed');
+    return bytes;
+  };
+  const colored = bytes => {
+    let count = 0;
+    for (let i = 0; i < bytes.length; i += 4) {
+      if (Math.abs(bytes[i] - 16) > 12 || Math.abs(bytes[i + 1] - 27) > 12 ||
+          Math.abs(bytes[i + 2] - 44) > 12) count++;
+    }
+    return count;
+  };
+  const load = async name => {
+    const url = new URL(`./boolean-three-data/${name}.owned-region.json`, location.href);
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${name}`);
+    const result = await response.json();
+    validateCoplanarFaceBoolean(result);
+    return result;
+  };
+  const colors = [0x28c9eb, 0xffd54f, 0xff6084, 0x62ec97];
+  const style = display => display.bindings.forEach(binding => {
+    const component = display.componentGroups.findIndex(group => group.name === binding.componentId);
+    binding.line.material.color.setHex(binding.loopRole === 'hole' ? colors[1] :
+      colors[[0, 2, 3][component % 3]]);
+  });
+  let accepted, display, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    const fixtures = [
+      ['containment_hole', 1, 2, 8],
+      ['strip_two_components', 2, 2, 8],
+      ['coincident_difference', 0, 0, 0],
+      ['octagons_two_chunks', 2, 2, 16],
+    ];
+    const observations = [];
+    const originals = {};
+    for (const [name, components, loops, fragments] of fixtures) {
+      const result = await load(name);
+      originals[name] = result;
+      const candidate = createBaroCadBooleanThreeContours(result, options);
+      scene.add(candidate.root); style(candidate);
+      if (candidate.componentGroups.length !== components || candidate.loopGroups.length !== loops ||
+          candidate.bindings.length !== fragments || candidate.root.getObjectByProperty('type', 'Mesh') ||
+          candidate.bindings.some(binding => !(binding.line instanceof Line))) {
+        throw new Error(`Native Boolean grouping differs: ${name}`);
+      }
+      const pixels = colored(render());
+      const isolated = [];
+      const groups = name === 'containment_hole' ? candidate.loopGroups :
+        name === 'strip_two_components' ? candidate.componentGroups : [];
+      for (const group of groups) {
+        for (const other of groups) other.visible = other === group;
+        isolated.push({ id: group.name, pixels: colored(render()) });
+      }
+      for (const group of groups) group.visible = true;
+      if ((fragments === 0 ? pixels !== 0 : pixels < 30) ||
+          isolated.some(entry => entry.pixels < 10)) {
+        throw new Error(`Boolean contour pixels differ: ${name} ` + JSON.stringify({ pixels, isolated }));
+      }
+      observations.push({ name, components, loops, fragments, pixels,
+        isolated, hash: hash(render()) });
+      scene.remove(candidate.root); candidate.dispose();
+    }
+    accepted = originals.containment_hole;
+    display = createBaroCadBooleanThreeContours(accepted, options);
+    style(display); scene.add(display.root);
+    const acceptedPixels = render();
+    if (hash(acceptedPixels) !== observations[0].hash ||
+        !(renderer.getContext() instanceof WebGL2RenderingContext)) {
+      throw new Error('Accepted Three Boolean contour frame differs');
+    }
+    evidence = { fixtures: observations, acceptedHash: hash(acceptedPixels),
+      webgl2: true, callerRetained: scene.children.includes(caller), refused: 0, disposed: false };
+    window.__baroBooleanThreeEvidence = evidence;
+    show();
+    document.querySelector('#reject').onclick = () => {
+      const before = hash(render());
+      const forged = structuredClone(accepted); forged.fragments[0].source.curveId = 'forged';
+      const missing = structuredClone(accepted); missing.fragments[0].source.assetId = 'missing';
+      const getter = { ...options }; let getterCalls = 0;
+      Object.defineProperty(getter, 'basis', { enumerable: true,
+        get() { getterCalls++; return options.basis; } });
+      let refused = 0;
+      for (const action of [
+        () => createBaroCadBooleanThreeContours(forged, options),
+        () => createBaroCadBooleanThreeContours(missing, options),
+        () => createBaroCadBooleanThreeContours(accepted, { ...options, basis: 'unknown' }),
+        () => createBaroCadBooleanThreeContours(accepted, getter),
+      ]) { try { action(); } catch { refused++; } }
+      const originalParse = BaroCADLoader.prototype.parse;
+      const staged = [];
+      try {
+        BaroCADLoader.prototype.parse = function (source) {
+          const result = originalParse.call(this, source);
+          const originalDispose = result.dispose;
+          result.dispose = () => { result.stagedDisposed = true; originalDispose(); };
+          staged.push(result);
+          if (staged.length === 2) result.model.name = 'forged_second_fragment';
+          return result;
+        };
+        try { createBaroCadBooleanThreeContours(originals.octagons_two_chunks, options); }
+        catch { refused++; }
+      } finally { BaroCADLoader.prototype.parse = originalParse; }
+      if (refused !== 5 || getterCalls !== 0 || staged.length !== 2 ||
+          staged.some(value => !value.stagedDisposed) || hash(render()) !== before ||
+          !scene.children.includes(caller) || display.bindings.some(binding =>
+            !binding.line.geometry.getAttribute('position'))) {
+        throw new Error('Rejected Boolean candidate changed accepted frame or leaked resources');
+      }
+      evidence.refused = refused; evidence.stagedFragmentsDisposed = staged.length;
+      evidence.acceptedFrameRetained = true; show();
+    };
+    document.querySelector('#dispose').onclick = () => {
+      const owned = display.bindings.map(binding => binding.line);
+      const disposeEvents = [];
+      for (const line of owned) {
+        line.geometry.addEventListener('dispose', () => disposeEvents.push(line.geometry));
+        line.material.addEventListener('dispose', () => disposeEvents.push(line.material));
+      }
+      display.dispose(); display.dispose();
+      if (owned.some(line => line.parent) || disposeEvents.length !== owned.length * 2 ||
+          scene.children.includes(display.root) || !scene.children.includes(caller) ||
+          colored(render()) !== 0 || renderer.getContext() === null ||
+          document.querySelectorAll('canvas').length !== 1) {
+        throw new Error('Three Boolean disposal changed caller resources');
+      }
+      evidence.disposed = true; evidence.callerRetained = true;
+      evidence.afterDisposePixels = 0; evidence.ownedResourcesDisposed = disposeEvents.length;
+      show();
+    };
+  } catch (error) {
+    display?.dispose();
+    evidence = { error: String(error), stack: error.stack };
+    window.__baroBooleanThreeEvidence = evidence;
+    show();
+  }
+</script>
