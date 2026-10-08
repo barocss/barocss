@@ -6566,3 +6566,85 @@ checks an actual32-to33 refusal. Original sources, raw-0 files, order and
 known posed points are preserved through Save/Open. Native capacity does not
 promise renderer capacity. Mates, external-reference lifecycle, solid/BRep,
 professional accuracy and display editing remain separate work.
+
+## Native coplanar linear-face Boolean regions
+
+`booleanCoplanarFaces(faceA, faceB, options)` builds union, intersection or
+A-minus-B regions from two actual validated ConvexPlanarFaceResult inputs.
+The new output can contain nonconvex boundaries, disconnected components
+and holes. It uses a dedicated `barocss-native-coplanar-face-boolean`,
+version0, format; it is not mislabelled as a convex face or solid.
+
+```js
+const region = cad.booleanCoplanarFaces(faceA, faceB, {
+  operation: 'difference', evaluationId: 'planar_difference',
+  resultIdPrefix: 'bool_demo', maximumPairTests: 64, maximumFragments: 64,
+});
+cad.validateCoplanarFaceBoolean(region);
+```
+
+Both operands must use identical actual four-pole equal-weight degree1x1
+affine Surface coefficients, weights, knots and domains. Support IDs may
+differ. Each original outer loop has3..8 actual equal-weight two-pole Line
+edges, with no input holes or curved boundaries. Authored world coordinates
+are within±10000mm; native UV coordinates are dimensionless and within
+±10000. Plane and Line parameter spans must be finite and represented.
+Support may be tilted or sheared with nonunit native U/V domains. Equal
+geometry/face IDs in separate operands remain qualified a/b identities.
+
+The native UV segment arrangement uses the existing determinant uncertainty
+policy. Proper intersections require safely represented strict interior
+parameters on both original Lines. Exact parallel separated spans are
+supported. Point/vertex touching, partial overlapping/collinear boundaries,
+near-parallel cancellation, near-root ordering or collapsed intervals refuse.
+There is no coordinate rounding, snapping, tolerance merge or contact healing.
+Exact complete cyclic/reversed polygon coincidence has an explicit branch:
+union/intersection use the A boundary, difference is empty, and both original
+contexts remain recorded. Different support parameterizations refuse.
+
+Original edges split at identified proper crossing events. Strict midpoint
+classification selects outside fragments for union, inside fragments for
+intersection, and A-outside plus reversed B-inside for difference. Each
+selected vertex must have exactly one incoming/outgoing directed fragment.
+All cycles are retained; outer loops use native UV CCW and holes CW with
+explicit component nesting. Nonmanifold or uncertain incidence refuses.
+Original face/use orientations remain contributor data.
+
+Every selected world fragment comes from the actual native
+`extractCurveInterval` operation with its original Line parameters. The full
+extraction and qualified face/loop/use/edge/curve/pcurve lineage are retained.
+Derived UV pcurves evaluate the original pcurve at those native parameters;
+they remain dimensionless metadata. Generated geometry is never snapped to
+topological vertex coordinates. Endpoint and Curve-versus-Surface UV point
+and D1 residuals are recorded with local1e-7mm/relative1e-7 comparisons.
+This is a binding observation, not a sewing or global topology certificate.
+
+`support`, selected `vertices`, `events`, `fragments`, `loops`, `components`,
+`sources` and `report` accompany unchanged `faceA`, `faceB` and `options`.
+Derived IDs are distinct from all original IDs. Source0 compilation uses
+WORLD geometry only: copied derived support plus at most15 world Curves per
+source asset. The original16-object Model limit is unchanged; larger outputs
+use deterministic chunks and explicit fragment-to-asset/object mappings.
+UV pcurves are never placed in a millimetre source. Empty results retain one
+support-only source, with no ghost region edges or components.
+
+Options admit pair work1..64, fragments1..64, evaluation ID1..48 and prefix
+1..12. Output is bounded by64 events/fragments,16 loops,8 components/holes
+and5 source assets. Own data has finite descriptor/cycle/array/field/string
+budgets. Any contact, uncertainty, budget, unsafe arithmetic, getter or
+tampering failure refuses atomically and preserves prior originals/results.
+Whole-owned validation reconstructs the complete original inputs, arrangement,
+selection, native extraction, incidence, provenance, models and observations.
+
+```sh
+node examples/cad-nurbs/coplanar-face-boolean-demo.mjs --source /tmp/cad-planar-boolean
+```
+
+The example uses crossing operations on a tilted/sheared native support,
+strict containment with a hole, empty/coincident cases, a disconnected
+difference and a sixteen-edge disjoint union requiring actual source chunks.
+It compares local UV region masks/area and actual native point/D1/source
+lineage, with raw-0 file reopening and separate manifest JS/types imports.
+UV area is dimensionless metadata; it is not manufacturing world area.
+Solid Boolean, shell sewing, curved trim/general supports, persistent BRep
+naming, global numerical quality and display/solid consumers remain separate.

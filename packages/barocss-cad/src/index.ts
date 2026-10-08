@@ -199,3 +199,6 @@ export type { CadAssemblyInstancePointQuery, CadAssemblyInstancePointReport, Cad
 
 export { transactCadAssemblyMembers, validateCadAssemblyMemberTransaction } from './cad-assembly-members.js';
 export type { CadAssemblyMemberTransaction, CadAssemblyMemberReport, CadAssemblyMemberResult } from './cad-assembly-members.js';
+
+export { booleanCoplanarFaces, validateCoplanarFaceBoolean, CoplanarFaceBooleanError, CoplanarFaceBooleanDiagnosticCode } from './coplanar-face-boolean.js';
+export type { CoplanarFaceBooleanOptions, CoplanarFaceBooleanContributor, CoplanarFaceBooleanEvent, CoplanarFaceBooleanFragment, CoplanarFaceBooleanLoop, CoplanarFaceBooleanComponent, CoplanarFaceBooleanReport, CoplanarFaceBooleanResult } from './coplanar-face-boolean.js';
