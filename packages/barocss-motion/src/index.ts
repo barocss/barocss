@@ -52,6 +52,9 @@ export interface MotionPlayer {
   dispose(): void;
 }
 
+export { MotionFileError, parseMotionClipFile, serializeMotionClipFile } from './file.js';
+export type { MotionFileErrorCode } from './file.js';
+
 export const MOTION_LIMITS = Object.freeze({
   targets: 64,
   tracks: 192,

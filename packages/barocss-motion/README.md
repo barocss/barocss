@@ -34,3 +34,16 @@ The version-0 bounds are 64 targets, 192 tracks, 256 keys per track, 4096 keys i
 Translation and scale accept `STEP` and `LINEAR`; rotation accepts `STEP` and `SLERP`. Samples before the first key and after the last key hold that key's value. Exact key samples return the authored value, including the sign of an authored quaternion. Interior SLERP follows the shortest path, flips the right quaternion when the dot product is negative, uses normalized linear interpolation when the adjusted dot is above `1 - 1e-8`, and normalizes its result. A quaternion and its negation encode the same orientation.
 
 Players start paused at time zero. `seek` includes both endpoints in either mode. Positive `advance` in repeat mode wraps the duration endpoint to zero; clamp mode stops at the endpoint and pauses. `play` at the clamp endpoint starts again at zero. Zero-duration repeat clips stay at zero. Invalid calls throw before changing player state. `dispose` is idempotent; further calls throw. No hidden timer, autoplay, time scale, mixing, skinning, morphs, physics, spline, IK, or CAD regeneration is included.
+
+## Versioned clip files
+
+```js
+import { serializeMotionClipFile, parseMotionClipFile } from '@barocss/motion';
+
+const text = serializeMotionClipFile(clip); // supply a validated or plain v0 clip
+const loaded = parseMotionClipFile(text);  // fresh owned clip
+```
+
+The UTF-8 `.baromotion` file contains exactly `{ "format": "barocss-motion", "version": 0, "lengthUnit": "mm", "coordinateSystem": "part-xyz", "clip": { ... } }`. The `clip` is the version-0 data described above. The file states this library's part XYZ frame; it does not convert a host's coordinate system. The codec performs no file, network, clock, or renderer operations. Hosts can write and read the returned string using their own APIs.
+
+Output uses a fixed field order and no whitespace. Finite scalars use round-trip JSON numbers. A negative zero is emitted as the JSON numeric token `-0`; authored quaternion signs and exact key values remain intact. Input member order and legal JSON whitespace may vary, but unknown, missing, and duplicate fields (including escaped duplicate names) fail. The parser reads at most 1 MiB of UTF-8, depth 12, 131072 values, 16 fields per record, 128 decoded characters per string, 192 tracks, 256 keys per track, and 4096 total keys. All existing clip bounds still apply. Invalid data throws `MotionFileError` with a stable `code`: `INVALID_INPUT`, `FILE_TOO_LARGE`, `INVALID_JSON`, `DUPLICATE_FIELD`, `UNKNOWN_FIELD`, `LIMIT_EXCEEDED`, `INVALID_ENVELOPE`, or `INVALID_CLIP`. No caller getter or `toJSON` is invoked during serialization. Parse failure returns no clip and cannot alter an existing player.
