@@ -17,7 +17,7 @@ export interface BaroCadDocumentPixi3DResultV1 {
   /** Owned display root. The caller attaches it to its Pixi stage. */
   readonly root: Container3D;
   readonly assetNodes: ReadonlyArray<Container3D>;
-  /** Selected Surface bodies in authored document order. */
+  /** Selected Surface and sample-v1 Curve bodies in authored document order. */
   readonly bindings: ReadonlyArray<BaroCadDocumentPixi3DBindingV1>;
   /** Idempotent. Keeps the caller Application, stage, renderer and canvas alive. */
   dispose(): void;
@@ -29,14 +29,17 @@ function disposeNodes(root: Container3D, assetNodes: Container3D[]): void {
   root.destroy({ children: false });
 }
 
-/** Compose selected document Surfaces with the pinned Pixi3D source0 adapter. */
+/** Compose selected document Surfaces and sample-v1 Curves with pinned Pixi3D. */
 export function createBaroCadDocumentPixi3DDisplay(
   result: CadDocumentResult, options: BaroCadDocumentPrimitiveOptionsV2,
 ): BaroCadDocumentPixi3DResultV1 {
   const selected = prepareBaroCadDocumentPrimitiveNativeRefsV2(result, options);
   const native = validateBaroCadParseOptions(options.native);
-  if (native.curveDisplay !== undefined || selected.some(entry => entry.kind !== 'surface')) {
-    throw new RangeError('Pixi3D document display supports selected Surfaces only, without curveDisplay');
+  if (native.curveDisplay !== undefined && !('version' in native.curveDisplay)) {
+    throw new RangeError('Pixi3D document display requires curveDisplay version 1');
+  }
+  if (selected.some(entry => entry.kind === 'curve') && native.curveDisplay === undefined) {
+    throw new RangeError('Selected document Curve requires curveDisplay version 1');
   }
   const owned = structuredClone(result);
   const root = new Container3D();
@@ -64,21 +67,36 @@ export function createBaroCadDocumentPixi3DDisplay(
       assetNodes.push(assetNode);
       const used = new Set<string>();
       for (const rendered of loaded.renderedSurfaces) {
-        const member = members.find(entry => entry.binding.geometryId === rendered.surfaceId);
+        const member = members.find(entry => entry.kind === 'surface' &&
+          entry.binding.geometryId === rendered.surfaceId);
         if (!member) continue; // It remains in the unmounted adapter root until disposal.
-        if (used.has(rendered.surfaceId) || !(rendered.mesh instanceof Mesh3D)) {
+        const key = `surface:${rendered.surfaceId}`;
+        if (used.has(key) || !(rendered.mesh instanceof Mesh3D)) {
           throw new RangeError('Pixi3D mesh differs from selected native Surface');
         }
-        used.add(rendered.surfaceId);
+        used.add(key);
         assetNode.addChild(rendered.mesh);
         byBody.set(member.binding.bodyId, Object.freeze({ ...member.binding,
           ref: member.ref, mesh: rendered.mesh, assetNode }));
       }
-      if (used.size !== members.length) throw new RangeError('Selected document Surface has no Pixi3D mesh');
+      for (const rendered of loaded.renderedCurves) {
+        const member = members.find(entry => entry.kind === 'curve' &&
+          entry.binding.geometryId === rendered.curveId);
+        if (!member) continue;
+        const key = `curve:${rendered.curveId}`;
+        if (used.has(key) || !(rendered.mesh instanceof Mesh3D)) {
+          throw new RangeError('Pixi3D mesh differs from selected native Curve');
+        }
+        used.add(key);
+        assetNode.addChild(rendered.mesh);
+        byBody.set(member.binding.bodyId, Object.freeze({ ...member.binding,
+          ref: member.ref, mesh: rendered.mesh, assetNode }));
+      }
+      if (used.size !== members.length) throw new RangeError('Selected document body has no Pixi3D mesh');
     }
     const bindings = Object.freeze(selected.map(entry => {
       const binding = byBody.get(entry.binding.bodyId);
-      if (!binding) throw new RangeError('Selected document Surface was not displayed');
+      if (!binding) throw new RangeError('Selected document body was not displayed');
       return binding;
     }));
     let disposed = false;

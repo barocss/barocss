@@ -165,7 +165,7 @@
       { ...request, bodyIds: ['body_0_surface', 'body_0_surface'] },
       { ...request, bodyIds: ['body_0_surface', 'body_1_surface', 'body_0_curve', 'body_1_curve', 'body_0_skip'] },
       { ...request, basis: 'authored-xyz-no-axis-conversion' },
-      { ...request, native: { ...native, curveDisplay: { version: 1,
+      { ...request, native: { ...native, curveDisplay: {
         chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } } },
     ].map(candidate => { try { createBaroCadDocumentPixi3DDisplay(cad, candidate); return false; }
       catch { return true; } });
