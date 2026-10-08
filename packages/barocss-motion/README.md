@@ -156,3 +156,22 @@ Source and destination must be validated v0 clips with the same context and exac
 State returns independent poses plus `phase`, `playing`, `mode`, both clip times, fade elapsed/duration/progress and weight. Before a fade, phase is `idle`, destination time is `null`, and fade fields are zero. During a fade, both clocks and fade elapsed advance from the same caller delta. Clamp holds each clock at its endpoint but lets the fade complete; repeat wraps each nonzero-duration clip at the exact seam. After completion, the destination becomes the source, phase is `adopted`, destination time is `null`, and progress/weight stay at 1 until the next transition. Poses then use the destination clip's own target order. At a clamp endpoint, playback stops; `play` restarts at zero only when no fade is pending. The player starts paused, owns no timer, renderer or caller player, and never changes the clips or CAD source.
 
 Invalid requests keep the accepted clocks, phase and poses. `MotionTransitionError` has stable codes `INVALID_INPUT`, `INCOMPATIBLE_CLIPS`, `TRANSITION_ACTIVE`, `UNSAFE_RESULT` and `DISPOSED`. `dispose` is idempotent; other methods refuse afterward. The implementation delegates sampling and interpolation to the existing clip, blend and timing APIs. It does not blend marker events or implement animation graphs, layers, skinning or a target renderer adapter.
+
+## Bounded glTF 2.0 animation import
+
+```js
+import { importMotionGltfAnimation, sampleMotionClip } from '@barocss/motion';
+
+// The host parses the glTF JSON and supplies Uint8Array buffers in glTF buffer order.
+const clip = importMotionGltfAnimation(gltf, buffers, {
+  animationIndex: 0,
+  contextId: 'assembly-1',
+  nodeTargets: [{ nodeIndex: 0, targetId: 'part-1' }],
+  frame: 'gltf-y-up-as-part-xyz',
+});
+sampleMotionClip(clip, 0.5); // owned Motion pose in part XYZ millimeters
+```
+
+The adapter selects one glTF 2.0 animation and requires an exact mapping for every animated node. It reads node-local translation, rotation and scale channels with float32, tightly packed SCALAR timestamps and VEC3/VEC4 output accessors. STEP and LINEAR are supported; LINEAR rotation becomes Motion SLERP. glTF seconds stay seconds, translation meters become millimeters once, scale stays dimensionless, and quaternion components stay XYZW. The required `frame` value preserves glTF Y-up axes as Motion part XYZ; the host must handle any different part frame. Near-unit glTF quaternions with norm error at most `0.001` are normalized before admission to the core clip. The owned converted key values then follow the normal Motion sampling rules.
+
+Options and node mappings must be exact own-data records. Supplied buffers are never changed. Input is bounded to 1 MiB of binary data, 192 selected channels, 256 keys per track and 4096 selected keys, plus the core v0 limits. Failures throw `MotionGltfError` with `INVALID_INPUT`, `UNSUPPORTED`, `LIMIT_EXCEEDED`, `INVALID_ACCESSOR`, or `INVALID_CLIP`. The entire import fails on an unsupported or malformed selected channel. CUBICSPLINE, morph weights, integer/normalized, sparse or strided accessors, required extensions, matrix animation and skinning are unsupported. This API does not load files, fetch buffers, compose node hierarchy, render geometry or alter a CAD model. A runnable [Khronos AnimatedTriangle consumer](../../examples/motion-scene/README.md#gltf-animation-consumer) demonstrates the boundary.
