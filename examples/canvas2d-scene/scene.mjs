@@ -1,4 +1,4 @@
-export const initialScene = {
+export const initialSceneV0 = {
   version: 0,
   unit: 'logical-px',
   contextId: 'DesignBoard',
@@ -42,3 +42,17 @@ export const initialScene = {
     },
   ],
 };
+
+export const initialScene = structuredClone(initialSceneV0);
+initialScene.version = 1;
+initialScene.nodes[1].children.push({
+  kind: 'path', id: 'PathRibbon', layer: 3,
+  transform: { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 },
+  width: 7, stroke: [0.94, 0.08, 0.35, 1],
+  commands: [
+    { kind: 'M', x: 25, y: 205 },
+    { kind: 'Q', cx: 105, cy: 12, x: 180, y: 85 },
+    { kind: 'C', c1x: 285, c1y: 38, c2x: 345, c2y: 210, x: 112, y: 215 },
+    { kind: 'Z' },
+  ],
+});

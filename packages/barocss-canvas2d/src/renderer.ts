@@ -1,11 +1,14 @@
 import { Canvas2DError, validatePoint, validateScene, validateSize, validateView } from './schema.js';
 import type { Color, FrameNode, LineNode, Node, Point, Scene, Size, Transform, View } from './schema.js';
+import { tessellatePath } from './path.js';
+import type { PathObservation } from './path.js';
 
 type Matrix = [number, number, number, number, number, number];
 type Clip = { left: number; top: number; right: number; bottom: number };
 type Draw = {
-  id: string; kind: 'frame' | 'rect' | 'line'; node: FrameNode | Extract<Node, { kind: 'rect' | 'line' }>;
+  id: string; kind: 'frame' | 'rect' | 'line' | 'path'; node: FrameNode | Extract<Node, { kind: 'rect' | 'line' | 'path' }>;
   matrix: Matrix; inverse: Matrix; color: Color; vertices: Float32Array; clip: Clip | null;
+  observation?: PathObservation;
 };
 type Gpu = { program: WebGLProgram; buffer: WebGLBuffer; vao: WebGLVertexArrayObject;
   size: WebGLUniformLocation; view: WebGLUniformLocation; color: WebGLUniformLocation };
@@ -60,14 +63,17 @@ function intersection(a: Clip | null, b: Clip): Clip {
   return { left: Math.max(a.left, b.left), top: Math.max(a.top, b.top),
     right: Math.min(a.right, b.right), bottom: Math.min(a.bottom, b.bottom) };
 }
-function compileScene(scene: Scene): Draw[] {
+function compileScene(scene: Scene, view: View, dpr: number, tolerance: number): Draw[] {
   const draws: Draw[] = [];
+  let vertices = 0;
   function add(draw: Draw): void {
     for (const coordinate of draw.vertices) {
       if (!Number.isFinite(coordinate) || Math.abs(coordinate) > 1e9) {
         throw new Canvas2DError('SCENE_LIMIT', 'composed world geometry exceeds supported range');
       }
     }
+    vertices += draw.vertices.length / 2;
+    if (vertices > 16384) throw new Canvas2DError('SCENE_LIMIT', 'scene exceeds 16384 draw vertices');
     draws.push(draw);
   }
   function visit(siblings: Node[], parent: Matrix, inheritedClip: Clip | null): void {
@@ -92,9 +98,13 @@ function compileScene(scene: Scene): Draw[] {
       } else if (node.kind === 'rect') {
         add({ id: node.id, kind: 'rect', node, matrix, inverse: inv,
           color: node.fill, vertices: rectangle(matrix, node.width, node.height), clip: inheritedClip });
-      } else {
+      } else if (node.kind === 'line') {
         add({ id: node.id, kind: 'line', node, matrix, inverse: inv,
           color: node.stroke, vertices: line(matrix, node), clip: inheritedClip });
+      } else {
+        const geometry = tessellatePath(node, matrix, view, dpr, tolerance);
+        add({ id: node.id, kind: 'path', node, matrix, inverse: inv, color: node.stroke,
+          vertices: geometry.vertices, observation: geometry.observation, clip: inheritedClip });
       }
     }
   }
@@ -107,6 +117,18 @@ function contains(draw: Draw, world: Point): boolean {
       world.y < draw.clip.top || world.y > draw.clip.bottom)) return false;
   const p = point(draw.inverse, world.x, world.y);
   const node = draw.node;
+  if (node.kind === 'path') {
+    const v = draw.vertices;
+    for (let i = 0; i < v.length; i += 6) {
+      const ax = v[i], ay = v[i + 1], bx = v[i + 2], by = v[i + 3], cx = v[i + 4], cy = v[i + 5];
+      const area = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+      const a = ((bx - world.x) * (cy - world.y) - (by - world.y) * (cx - world.x)) / area;
+      const b = ((cx - world.x) * (ay - world.y) - (cy - world.y) * (ax - world.x)) / area;
+      const c = 1 - a - b;
+      if (a >= -1e-7 && b >= -1e-7 && c >= -1e-7) return true;
+    }
+    return false;
+  }
   if (node.kind === 'line') {
     const dx = node.x2 - node.x1, dy = node.y2 - node.y1;
     const lengthSquared = dx * dx + dy * dy;
@@ -161,8 +183,8 @@ function createGpu(gl: WebGL2RenderingContext): Gpu {
   } finally { gl.deleteShader(vs); if (fs) gl.deleteShader(fs); }
 }
 
-export type Canvas2DOptions = { logicalSize: Size; dpr: number };
-export type Hit = { id: string; kind: 'frame' | 'rect' | 'line' };
+export type Canvas2DOptions = { logicalSize: Size; dpr: number; maxDeviationDevicePx?: number };
+export type Hit = { id: string; kind: 'frame' | 'rect' | 'line' | 'path' };
 
 export class Canvas2DRenderer {
   private scene: Scene = { version: 0, unit: 'logical-px', contextId: 'Empty', nodes: [] };
@@ -170,6 +192,7 @@ export class Canvas2DRenderer {
   private view: View = { panX: 0, panY: 0, zoom: 1 };
   private size: Size;
   private dpr: number;
+  private readonly tolerance: number;
   private gl: WebGL2RenderingContext;
   private gpu: Gpu | null;
   private lost = false;
@@ -183,9 +206,16 @@ export class Canvas2DRenderer {
 
   constructor(private readonly canvas: HTMLCanvasElement, options: Canvas2DOptions) {
     if (!canvas || typeof canvas.getContext !== 'function' || typeof canvas.addEventListener !== 'function' ||
-      !options || typeof options !== 'object' || Reflect.ownKeys(options).length !== 2 ||
-      !Object.hasOwn(options, 'logicalSize') || !Object.hasOwn(options, 'dpr')) {
+      !options || typeof options !== 'object' || Reflect.ownKeys(options).length < 2 ||
+      Reflect.ownKeys(options).length > 3 || !Object.hasOwn(options, 'logicalSize') ||
+      !Object.hasOwn(options, 'dpr') || Reflect.ownKeys(options).some(key =>
+        key !== 'logicalSize' && key !== 'dpr' && key !== 'maxDeviationDevicePx')) {
       throw new Canvas2DError('INVALID_SIZE', 'canvas and exact options are required');
+    }
+    const tolerance = options.maxDeviationDevicePx ?? 1;
+    if (typeof tolerance !== 'number' || !Number.isFinite(tolerance) || Object.is(tolerance, -0) ||
+      tolerance < 0.25 || tolerance > 4) {
+      throw new Canvas2DError('INVALID_SIZE', 'maxDeviationDevicePx must be 0.25..4');
     }
     const dimensions = validateSize(options.logicalSize, options.dpr);
     const gl = canvas.getContext('webgl2', { alpha: true, premultipliedAlpha: true,
@@ -194,7 +224,7 @@ export class Canvas2DRenderer {
     this.gl = gl;
     this.checkLimits(dimensions.backingWidth, dimensions.backingHeight);
     this.gpu = createGpu(gl);
-    this.size = dimensions.size; this.dpr = dimensions.dpr;
+    this.size = dimensions.size; this.dpr = dimensions.dpr; this.tolerance = tolerance;
     canvas.width = dimensions.backingWidth; canvas.height = dimensions.backingHeight;
     canvas.addEventListener('webglcontextlost', this.onLoss);
     canvas.addEventListener('webglcontextrestored', this.onRestore);
@@ -211,19 +241,33 @@ export class Canvas2DRenderer {
   updateScene(value: unknown): void {
     this.active();
     const next = validateScene(value);
-    const draws = compileScene(next);
+    const draws = compileScene(next, this.view, this.dpr, this.tolerance);
     this.scene = next; this.draws = draws;
   }
 
-  setView(value: View): void { this.active(); this.view = validateView(value); }
+  setView(value: View): void {
+    this.active();
+    const next = validateView(value);
+    const draws = compileScene(this.scene, next, this.dpr, this.tolerance);
+    this.view = next; this.draws = draws;
+  }
 
   resize(value: Size, dpr: number): void {
     this.active();
     if (this.lost) throw new Canvas2DError('CONTEXT_LOST', 'cannot resize while WebGL context is lost');
     const next = validateSize(value, dpr);
     this.checkLimits(next.backingWidth, next.backingHeight);
+    const draws = compileScene(this.scene, this.view, next.dpr, this.tolerance);
     this.canvas.width = next.backingWidth; this.canvas.height = next.backingHeight;
-    this.size = next.size; this.dpr = next.dpr;
+    this.size = next.size; this.dpr = next.dpr; this.draws = draws;
+  }
+
+  getPathObservation(id: string): PathObservation | null {
+    this.active();
+    const observation = this.draws.find(draw => draw.id === id && draw.kind === 'path')?.observation;
+    if (!observation) return null;
+    return { ...observation, subpaths: observation.subpaths.map(subpath => ({
+      closed: subpath.closed, points: subpath.points.map(sample => ({ ...sample })) })) };
   }
 
   hitTest(value: Point): Hit | null {
@@ -262,7 +306,7 @@ export class Canvas2DRenderer {
       } else gl.disable(gl.SCISSOR_TEST);
       gl.uniform4fv(gpu.color, draw.color);
       gl.bufferData(gl.ARRAY_BUFFER, draw.vertices, gl.STREAM_DRAW);
-      gl.drawArrays(gl.TRIANGLES, 0, 6);
+      gl.drawArrays(gl.TRIANGLES, 0, draw.vertices.length / 2);
     }
     gl.disable(gl.SCISSOR_TEST); gl.bindVertexArray(null); gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.useProgram(null);
