@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Edited 64-pole native Curve in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Edited 64-pole native Curve · Three.js</h1>
+  <p>Cyan is the original source. Magenta is an actual CAD control-point and weight edit.</p>
+  <canvas id="view" width="800" height="500"></canvas>
+  <button id="reject" type="button">Try invalid candidates</button>
+  <button id="dispose" type="button">Dispose loaded displays</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Color, Group, OrthographicCamera, Scene, WebGLRenderer } from 'three';
+  import { compileCadModel, editCurveControlPolygonWide,
+    validateWideCurveControlPolygonEdit } from '@barocss/cad';
+  import { BaroCADLoader } from '../dist/three.js';
+
+  const canvas = document.querySelector('#view');
+  const status = document.querySelector('#status');
+  const options = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } };
+  const originalURL = new URL('curve-operations-data/refined.barocad', location.href).href;
+  const editedURL = new URL('curve-wide-edit-data/edited.barocad', location.href).href;
+  const scene = new Scene();
+  scene.background = new Color(0x101b2c);
+  const marker = new Group(); marker.name = 'caller-marker'; scene.add(marker);
+  const camera = new OrthographicCamera(-0.042, 0.042, 0.026, -0.026, 0.001, 0.2);
+  camera.position.set(0, 0.08, 0.004);
+  camera.lookAt(0, 0, 0);
+  const renderer = new WebGLRenderer({ canvas, antialias: false, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1); renderer.setSize(800, 500, false);
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const pixels = () => {
+    renderer.render(scene, camera);
+    const data = new Uint8Array(canvas.width * canvas.height * 4);
+    const gl = renderer.getContext();
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('Three WebGL readPixels failed');
+    return data;
+  };
+  const counts = data => {
+    let cyan = 0, magenta = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      if (r < 90 && g > 150 && b > 150) cyan++;
+      if (r > 150 && g < 90 && b > 150) magenta++;
+    }
+    return { cyan, magenta };
+  };
+  const loader = new BaroCADLoader(options);
+  let originalDisplay, editedDisplay, edit, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    const [originalText, editedText] = await Promise.all([
+      fetch(originalURL).then(response => response.text()),
+      fetch(editedURL).then(response => response.text()),
+    ]);
+    const compiled = compileCadModel(originalText, { sourceVersion: 0 });
+    if (!compiled.ok || compiled.model.objects.length !== 1 || compiled.model.objects[0].kind !== 'curve') {
+      throw new Error('Original native Curve source failed to compile');
+    }
+    const originalCurve = compiled.model.objects[0];
+    edit = editCurveControlPolygonWide(originalCurve, { poleEdits: [
+      { index: 5, yMM: originalCurve.controlPoints[5][1] + 0.125 },
+      { index: 63, weight: 1.5 },
+    ] });
+    const validatedReport = validateWideCurveControlPolygonEdit(edit);
+    if (edit.source !== editedText || edit.report.changedFieldCount !== 2 ||
+        JSON.stringify(validatedReport) !== JSON.stringify(edit.report)) {
+      throw new Error('Saved edited source differs from public CAD operation');
+    }
+    originalDisplay = await loader.loadAbortable(originalURL, {});
+    editedDisplay = await loader.loadAbortable(editedURL, {});
+    const before = originalDisplay, after = editedDisplay;
+    const originalLine = before.group.children[0], editedLine = after.group.children[0];
+    if (before.source !== originalText || after.source !== editedText ||
+        before.model.objects[0].id !== after.model.objects[0].id ||
+        before.model.objects[0].id !== edit.curve.id ||
+        before.model.objects[0].controlPoints.length !== 64 ||
+        after.model.objects[0].controlPoints.length !== 64 ||
+        after.model.objects[0].controlPoints[5][1] !== edit.curve.controlPoints[5][1] ||
+        after.model.objects[0].weights[63] !== 1.5 ||
+        !Object.is(after.model.objects[0].controlPoints[0][0], -0) ||
+        before.curves[0].sample.pointsMM.length !== 91 ||
+        after.curves[0].sample.pointsMM.length !== 89 ||
+        before.curves[0].sample.segments.length !== 90 ||
+        after.curves[0].sample.segments.length !== 88 ||
+        before.group === after.group || originalLine === editedLine) {
+      throw new Error('Original and edited native source/display identity mismatch');
+    }
+    for (const [result, line] of [[before, originalLine], [after, editedLine]]) {
+      const positions = line.geometry.getAttribute('position').array;
+      if (!line.isLine || positions.length !== result.curves[0].positions.length ||
+          positions.some((value, index) => !Object.is(value, result.curves[0].positions[index])) ||
+          JSON.stringify(line.userData.barocss.nativeParameters) !==
+            JSON.stringify(result.curves[0].sample.parameters)) {
+        throw new Error('Three Line differs from sampled native Curve');
+      }
+    }
+    originalLine.material.color.setHex(0x00ffff);
+    editedLine.material.color.setHex(0xff00ff);
+    before.group.position.set(-0.034, 0, 0.007);
+    after.group.position.set(0.003, 0, -0.007);
+    scene.add(before.group, after.group);
+    const first = pixels();
+    const visible = counts(first);
+    if (visible.cyan < 20 || visible.magenta < 20) throw new Error('Original or edited Line has no visible pixels');
+    evidence = {
+      originalId: before.model.objects[0].id, editedId: after.model.objects[0].id,
+      originalModel: before.model.name, editedModel: after.model.name,
+      originalPoles: before.model.objects[0].controlPoints.length,
+      editedPoles: after.model.objects[0].controlPoints.length,
+      originalSamples: before.curves[0].sample.pointsMM.length,
+      editedSamples: after.curves[0].sample.pointsMM.length,
+      changedFields: edit.report.changedFieldCount,
+      signedZeroRetained: Object.is(after.model.objects[0].controlPoints[0][0], -0),
+      sourceTextsDistinct: before.source !== after.source,
+      oneTimeScaledPositionsMatch: true,
+      nativeParametersSeparateFromVertices: true,
+      webgl2: renderer.getContext() instanceof WebGL2RenderingContext,
+      oneCanvas: document.querySelectorAll('canvas').length === 1,
+      visiblePixels: visible, pixelHash: hash(first), callerMarkerRetained: scene.children.includes(marker),
+    };
+    window.__baroCurveWideEditThreeEvidence = evidence;
+    show();
+    document.querySelector('#reject').onclick = () => {
+      const beforePixels = hash(pixels());
+      const acceptedSources = [before.source, after.source];
+      const acceptedOptions = JSON.stringify(options);
+      const candidates = [
+        () => loader.parse('@model invalid {}'),
+        () => new BaroCADLoader({ ...options, sourceVersion: 1 }).parse(editedText),
+        () => new BaroCADLoader({ ...options,
+          curveDisplay: { ...options.curveDisplay, version: 2 } }).parse(editedText),
+        () => {
+          const forged = structuredClone(edit);
+          forged.curve.weights[63] = 2;
+          validateWideCurveControlPolygonEdit(forged);
+        },
+      ];
+      let refused = 0;
+      for (const candidate of candidates) { try { candidate(); } catch { refused++; } }
+      Object.assign(evidence, {
+        invalidCandidatesRefused: refused,
+        acceptedLinesRetained: scene.children.includes(before.group) && scene.children.includes(after.group),
+        acceptedSourcesRetained: before.source === acceptedSources[0] && after.source === acceptedSources[1],
+        acceptedOptionsRetained: JSON.stringify(options) === acceptedOptions,
+        acceptedPixelsRetained: hash(pixels()) === beforePixels,
+      });
+      show();
+    };
+    document.querySelector('#dispose').onclick = () => {
+      let geometryDisposals = 0, materialDisposals = 0;
+      for (const line of [originalLine, editedLine]) {
+        line.geometry.addEventListener('dispose', () => geometryDisposals++);
+        line.material.addEventListener('dispose', () => materialDisposals++);
+      }
+      before.dispose(); before.dispose(); after.dispose(); after.dispose();
+      Object.assign(evidence, {
+        geometryDisposals, materialDisposals,
+        displaysRemoved: !scene.children.includes(before.group) && !scene.children.includes(after.group),
+        callerMarkerRetained: scene.children.includes(marker),
+        callerRendererAndCanvasRetained: renderer.getContext() instanceof WebGL2RenderingContext &&
+          document.body.contains(canvas),
+        nativeSourcesRetained: before.source === originalText && after.source === editedText,
+      });
+      show();
+    };
+  } catch (error) {
+    originalDisplay?.dispose(); editedDisplay?.dispose();
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroCurveWideEditThreeError = String(error);
+  }
+</script>
+</html>
