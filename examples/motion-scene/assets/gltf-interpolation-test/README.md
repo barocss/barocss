@@ -1,0 +1,5 @@
+# Khronos Interpolation Test fixture
+
+`InterpolationTest.gltf` and `InterpolationTest_data.bin` come from [Khronos glTF Sample Assets, InterpolationTest/glTF](https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/InterpolationTest/glTF). The [sample metadata](https://github.com/KhronosGroup/glTF-Sample-Assets/blob/main/Models/InterpolationTest/README.md) credits © 2017 Public, Khronos for everything, under [Creative Commons Zero v1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/).
+
+The Motion example selects animation index 4: a CUBICSPLINE rotation on node 4. It uses only the animation data and draws its own fixed box. The source texture is omitted because this is an animation-only fixture, so these files are not a complete renderable glTF scene. The source also contains scale and translation examples that exceed this version-0 Motion clip's positive-scale or ±10000 mm admission bounds.
