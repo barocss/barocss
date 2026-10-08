@@ -6470,7 +6470,10 @@ edit, including a no-op, advances exactly1. A reparent preserves the local
 placement unless explicitly edited. Add/delete/reference/source replacement
 is not an implicit patch operation. Whole authored candidates can replace
 parts, but every instance must carry fresh exact native revisions; stale
-references refuse. No source is baked, renamed or silently rebound.
+references refuse. A fresh authored snapshot has no hidden source hash or
+external revision history; its author must advance native revisions on source
+changes. Whole-owned validation checks complete evaluated data. No source is
+baked, renamed or silently rebound.
 
 Assembly Save/Open preserves canonical source text, refs, authored order,
 hierarchy, placements and raw -0 JSON numbers. Existing strict JSON grammar
