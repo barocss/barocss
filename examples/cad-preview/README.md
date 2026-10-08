@@ -1270,3 +1270,51 @@ object/display/history, point-query state and staged invalid pole fields are ret
 getter/domain/empty parameter refusals, immutable copied arrays, camera retention
 and source invalidation are checked. This API proof attaches no viewport; UI build
 is separate from browser pixels, readers or global continuity/capacity certification.
+
+### Original typed XY Sketch Line authoring (#783)
+
+Run the existing example dev server and open `/xy-line.html`. The bounded workflow
+starts from a genuine empty native Sketch and GPU viewport. Click two points to
+create one Line, or enter Start/End XY values. Coordinates are original millimetres;
+canvas creation/endpoint drag snaps to1mm. Numeric Apply preserves actual authored
+point/profile IDs through native updateXYSketchDocument. Undo/Redo is session
+history of accepted native intent; a successful endpoint drag adds one entry.
+Zero/cancelled/stale/invalid gestures retain accepted data. Pending fields require
+Apply/Discard before Open/Delete/history actions; Save excludes pending values.
+
+The authoritative file is existing native `barocss-xy-sketch` documentv0 JSON,
+not a new Sketch schema or inferred native Point naming. Native APIs evaluate,
+update, serialize and parse that intent. The evaluator emits actual pointBindings
+(pointId/curveId/poleIndex/parameter0/1) and source0 Curve geometry. These authored
+point IDs are not B-Rep vertices. Save/Open preserves actual document/profile/point
+IDs and coordinate bits including -0. Generated Curve source0 is a distinct derived
+geometry output, shown separately. This consumer admits0..1 Line within±300mm;
+Polyline/Rectangle/constraints/region/face/solid and multiple profiles are separate.
+Native JSON128KiB and own-data guards remain; form strings64characters, native
+segment≥.001mm, samplingv0(.01mm/4segments/4depth), history20entries/1MiB.
+
+Qualified GPU scenev2 binds the actual Sketch ID and native Curve ID. Explicit
+X−90deg display quaternion and mmToSceneUnit.025 place original XY in the RH-Y-up
+workplane; native data/frame is not retagged. Top-view fit and SVG grid/point markers
+are derived. Empty/delete uses actual primitive viewport clear, no fake mesh.
+Invalid native/source/display candidates preserve prior accepted frame/history.
+The current Part workspace/user hosts/files remain independently available.
+
+One actual isolated browser/native-source/file collector:
+
+```sh
+BAROCSS_XY_LINE_EVIDENCE=/absolute/unique/output \
+BAROCSS_XY_LINE_PORT=52034 node xy-line-authoring-flow.mjs
+```
+
+From this example directory, open the emitted XY Line URL. Capture `empty`, use
+shown targets to click a native Line, enter Start Y=-0 and Apply, capture `created`.
+Drag End, capture `moved`; Undo/Redo capture `undone`/`redone`. Change End X and Apply,
+capture `numeric`. Make End coincide with Start, Apply and capture `refused`. Save
+accepted Sketch bytes, Discard pending values, Delete, then use the actual file
+chooser to reopen the saved JSON and capture `opened`. Delete and capture `deleted`,
+then Finish evidence. The flow observes actual pointBindings/native coefficients,
+Curve/source0/sampling, original IDs/-0, actual GL buffers/pixels, independent display
+pose mapping, one-entry Undo/Redo, native rejection/pending retention, actual Save
+Blob and file Open, genuine empty and zero owned GL resources. OS Downloads/reader,
+full Sketch parity/capacity/performance/parent campaigns are not claimed.
