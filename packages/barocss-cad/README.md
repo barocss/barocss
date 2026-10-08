@@ -5300,3 +5300,66 @@ The bounded flow reopens actual source0 and raw signed-zero owned files and
 separately imports declared compiled JS/types. Native implementation, product
 integration, GPU/Loader consumer adoption and npm publication are separate
 states. Later CAD capabilities remain tracked under503/537/660.
+
+## Own wide Curve refinement
+
+`refineCurveWide(curve, {curveId, insertions, resultIdPrefix})` closes the native
+31-pole join/reversal workflow gap in knot insertion. The original Curve must
+be positive, nonperiodic open-clamped degree1..3 with2..31 poles, weights1e-6..
+1e6 and XYZ±10000mm. The ordered `insertions` list contains1..16 distinct,
+strictly increasing interior `{parameter,count}` requests, each count1..degree
+with final numerical knot multiplicity<=degree. There is no sorting, snapping,
+reparameterization, axis conversion or fitting. Original parameter map is
+`u=t`; domain endpoint bits and copied original knot/pole/weight bits remain.
+
+Before staging, actual original counts plus every insertion are checked against
+64 output/temporary poles and70 knots. Every temporary stage retains native
+bounds. The existing own homogeneous calculation is factored within
+curve-knot-insertion.ts and shared by the existing16-pole API and this separate
+admission profile. The existing insertCurveKnot limits, result shape, source
+namespace and arithmetic are preserved. No second insertion engine or public
+internal helper alias is added to the barrel.
+
+An explicit ASCII output ID1..48 and prefix1..20 reserve original/output and
+all `prefix_step_0` through `prefix_step_15` roles before staging. Model names
+are separate namespaces. Original Model name is `curve_wide_original`; output
+Model name is the new Curve ID. Original, each staged result and final Curve
+are adopted from actual source0 with complete coefficient/ID/order/bit checks.
+Provenance retains requested/generated and copied knot slots, homogeneous
+left/right/generated coefficients and alpha/parent slots, staged/shared pole
+and weight lineage, and original-to-final unchanged slots.
+
+Result data are `{original, options, curve, source, sourceVersion:0, model,
+originalSource, originalModel, provenance, report}`. DTO
+`barocss-native-wide-curve-refinement`, version0 uses mm/authored XYZ and native
+coefficient Curve geometry. The caller owns copied CPU records with GC and no
+renderer resources or dispose method. `validateWideCurveRefinement(result)`
+rebuilds the complete native chain and compares every owned source/Model,
+coefficient bit, provenance, observation and report field.
+
+Descriptor input bounds are32768 values/depth8/arrays64/records16/strings128;
+owned result bounds are262144 values/depth32/arrays4096/records64/source strings
+262144. Getter/hidden/symbol/foreign/sparse/cyclic/unknown/nonfinite or altered
+data refuse without mutating prior accepted data. `WideCurveRefinementError`
+and runtime/type `WideCurveRefinementDiagnosticCode` expose INPUT, REQUEST,
+IDENTITY, REPRESENTABILITY, NATIVE_CAPACITY, NATIVE, BINDING and OWNED codes,
+retaining native causes.
+
+At most128 local point/D1 observations use retained output knots and strictly
+representable span midpoints, preserving original endpoint sign bits. Point
+comparison uses1e-7mm and evaluated D1 uses relative1e-7 with an absolute floor.
+Actual original/output derivative guard or arithmetic refusals stay separate:
+a new degree-multiplicity knot does not establish original discontinuity or
+G1/G2 continuity. Reports remain not-certified/topologyCertified:false/solid:
+false with no global shape or manufacturing certificate. Existing16-pole
+adaptive sampling remains bounded; wider adaptive display is a separate task.
+
+```sh
+node examples/cad-nurbs/curve-wide-refinement-demo.mjs --source
+```
+
+The bounded flow uses an actual31-pole native join, nonunit weighted multi-span
+insertion, copied original slots/-0 and a precomputed64-capacity refusal. It
+reopens source0/raw signed-zero owned files, compares one small existing-profile
+witness and imports actual compiled JS/declarations. Native implementation,
+serial Integration, GPU/Loader adoption and npm publication remain separate.
