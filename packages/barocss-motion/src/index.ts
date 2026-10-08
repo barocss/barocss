@@ -70,6 +70,7 @@ export { MotionTransitionError, createMotionTransitionPlayer } from './transitio
 export type { MotionTransitionErrorCode, MotionTransitionOptions, MotionTransitionPlayer, MotionTransitionState } from './transition.js';
 export { MotionGltfError, importMotionGltfAnimation } from './gltf.js';
 export type { MotionGltfErrorCode, MotionGltfNodeTarget, MotionGltfOptions } from './gltf.js';
+export { importMotionGlbAnimation } from './glb.js';
 
 export const MOTION_LIMITS = Object.freeze({
   targets: 64,
