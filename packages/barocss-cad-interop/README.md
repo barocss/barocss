@@ -567,3 +567,19 @@ translation explicitly. The translation is not a native CAD placement or an
 assembly relation. A GPU packet label is not a native identity; resolve it
 through the binding before any native query. Viewer native measurement and
 multi-model adoption remain separate work.
+
+## CAD Surface operation consumer in Three.js
+
+`examples/surface-region-reversal-generate.mjs` uses the public `@barocss/cad`
+operations to extract the U `[2.5, 4.5]`, V `[12, 18]` region of the weighted
+`rational_panel` Surface, then reverses that region's U parameter axis. It
+checks the returned source0 text by compiling each generated Model and saves
+both operation outputs and their input Models as `.barocad` fixtures.
+
+Run `node examples/surface-region-reversal-generate.mjs` after building
+`@barocss/cad`. Serve this package's `examples/surface-region-reversal.html`
+through a browser module server after building `@barocss/cad-interop`. The
+page loads the two generated output files through `BaroCADLoader`, displays
+both Surfaces in Three.js, and reports their original IDs, domains, source
+text, parameter reversal, display scale and resource lifetime. The scene
+translations are example display positions, not CAD placement data.
