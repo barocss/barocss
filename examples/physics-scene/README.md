@@ -10,6 +10,8 @@ node examples/physics-scene/server.mjs
 
 Open `http://127.0.0.1:5181/`. Restart the server after source edits. Use pause, single step and reset. The panel reports the same state returned by the library.
 
+For the 3D water-particle example with an actual CAD Surface and shared WebGL2 depth, run `node examples/physics-scene/fluid-viewer/server.mjs` and open `http://127.0.0.1:52952/`. Build the Viewer dependencies first; Physics itself is bundled from `src/fluid.ts`. See [fluid-viewer/README.md](fluid-viewer/README.md) and the [#814 browser evidence](evidence/fluid-814-browser-2026-10-09.md).
+
 The compiled probes and release gate still test the `dist` package contract. Build Physics before running them:
 
 ```sh
