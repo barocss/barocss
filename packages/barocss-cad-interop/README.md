@@ -148,11 +148,14 @@ scene.add(result.group);
 The returned `group` contains one `Mesh` per native surface, named by its
 surface ID. Its `_CAD_UV` attribute contains native NURBS U/V parameters, not
 texture UVs. The `model` and `source` are returned beside the group; the mesh
-does not replace them. The compiler's surface preview packet is already
-right-handed Y-up, so this path applies the requested millimetre scale once
-without rotating it. The separate native face mesh path above has its own
-`part-xyz` rotation. Dispose each child mesh's geometry and material when it
-is no longer needed.
+does not replace them. This first `@model` loader expects authored XYZ values
+to be intended as right-handed Y-up. The CAD surface preview API keeps native
+XYZ unchanged and labels its packet Y-up; it does not infer the author's up
+axis. This loader applies the requested millimetre scale once and does not
+rotate the surface. A Z-up `@model` needs an explicit frame conversion outside
+this loader before display. The separate `part-xyz` native face mesh path above
+does rotate its input once. Dispose each child mesh's geometry and material
+when it is no longer needed.
 
 Invalid syntax throws `BaroCadSourceError` with compiler diagnostics and
 source ranges. Unsupported source versions, surface counts, sample counts,
