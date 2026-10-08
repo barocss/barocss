@@ -31,6 +31,7 @@ export type StageHandle = {
   readonly children: readonly DisplayHandle[];
   addChild(child: DisplayHandle): void;
   removeChild(child: DisplayHandle): void;
+  setChildIndex(child: DisplayHandle, index: number): void;
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
 export type ContainerHandle = StageHandle & {
@@ -240,6 +241,22 @@ export function createDisplayTree(contextId: string): DisplayTree {
         if (index < 0) invalid('display object is not a child of this parent');
         parent.children.splice(index, 1); record.parent = null;
       },
+      setChildIndex(child: DisplayHandle, index: number) {
+        const record = known(child);
+        const previous = parent.children.indexOf(record);
+        if (previous < 0) invalid('display object is not a child of this parent');
+        if (!Number.isInteger(index) || Object.is(index, -0) ||
+            index < 0 || index >= parent.children.length) invalid('child index is outside its range');
+        if (previous === index) return;
+        parent.children.splice(previous, 1);
+        parent.children.splice(index, 0, record);
+        try { validateRoots(parent); }
+        catch (error) {
+          parent.children.splice(index, 1);
+          parent.children.splice(previous, 0, record);
+          throw error;
+        }
+      },
     };
   }
   root.handle = Object.freeze(parentMethods(root));
@@ -258,7 +275,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
         get data() { const { kind: _kind, children: _children, ...data } = record.data as GroupNodeV6;
           return structuredClone(data) as ContainerSpec; },
         get children() { return parent.children; },
-        addChild: parent.addChild, removeChild: parent.removeChild,
+        addChild: parent.addChild, removeChild: parent.removeChild, setChildIndex: parent.setChildIndex,
         onPointer: parent.onPointer,
         ...common(record),
       });
@@ -369,7 +386,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
         get data() { const { kind: _kind, children: _children, ...data } = record.data as FrameNodeV6;
           return structuredClone(data) as FrameSpec; },
         get children() { return parent.children; },
-        addChild: parent.addChild, removeChild: parent.removeChild,
+        addChild: parent.addChild, removeChild: parent.removeChild, setChildIndex: parent.setChildIndex,
         onPointer: parent.onPointer,
         ...common(record),
         setFrame(paint: FramePaint) {
