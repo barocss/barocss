@@ -5832,3 +5832,71 @@ node examples/cad-nurbs/curve-wide-plane-intersection-demo.mjs --source /tmp/bar
 
 Native implementation, Integration adoption, actual GPU/Loader use and
 publication remain separate checkpoints.
+
+## Document export capabilities and loss reports
+
+`getCadDocumentExportCapabilities()` declares the actual writer boundaries.
+Current direct-geometry documents can export native NURBS Curve126/Surface128
+through the existing own IGES5.3 ASCII writer. Derived GLB belongs to
+`@barocss/cad-interop` and its explicit preview-packet/frame contracts; it uses
+approximate meshes and metres. It is not a direct-document CAD writer here.
+General STEP and native feature/history/topology exchange remain unsupported.
+
+`inspectCadDocumentExport(document,options)` stages selected copies through the
+actual writer and returns the exact report before a caller accepts bytes.
+`exportCadDocument(document,options)` returns
+`{document,options,iges,writerReport,report}`. Both are CPU operations without
+filesystem access. Options are exactly
+`{target:'iges-5.3-ascii',exportModelId,selections:[{reference,outputId}]}`.
+Supply1..16 exact current `CadGeometryReferenceV0` references in output order;
+model/output IDs are distinct caller-declared ASCII identifiers1..48. Original
+native IDs may be equal in different assets: their full qualified references
+map to distinct output IDs. Duplicate body selections and stale/foreign/missing
+references refuse; no fallback naming or nearest geometry is used.
+
+The original document, authored source text, asset/body identities, declared
+revisions and native coefficients remain intact. Output IDs apply to copies
+only. The existing writer preserves rational degrees, weights, knots, control
+coordinates, ordering and original parameter domains numerically, with no mesh
+approximation or axis/unit conversion. It normalizes numeric negative zero to
+positive zero. The report counts those actual occurrences rather than claiming
+bit preservation in IGES.
+
+IGES directory labels contain only the first8 characters of output IDs; labels
+may collide. The sidecar maps each full qualified source reference and explicit
+output ID to entity kind, unique directory/parameter pointers, label and native
+domains. It reports truncation, label collisions and signed-zero normalization.
+Original authoring metadata/source and unselected geometry are not encoded in
+the IGES file. Unsupported features, constraints, placements, caches, topology
+and history are separate from these actual omissions. Retain the authoring file
+and mapping; IGES alone does not recover the native document.
+
+The report is `barocss-cad-document-export-report`, version0, for current document
+version1/sourceVersion0, native-geometry-exchange/126-128, millimetres, raw
+`authored-xyz-no-axis-conversion` and scale1. Report/format numbering does not
+freeze the early document schema or introduce legacy document readers.
+`validateCadDocumentExport(result)` reconstructs the original document, exact
+references, selected copies, writer bytes, loss report and mappings. Altered
+owned bytes, original geometry, revisions, refs or metadata refuse without
+changing a previously accepted document or output.
+
+Document inputs allow524288 values/depth32/arrays4096/fields64/strings2MiB;
+options32768 values/depth12/arrays64/fields16/strings128; results2097152 values/
+depth40/arrays4096/fields64/strings2MiB. Existing canonical/native source bounds
+also apply. Output ASCII is at most2MiB. Diagnostics are INPUT, TARGET,
+REFERENCE, IDENTITY, BUDGET, NATIVE, BINDING and OWNED. Copied CPU data uses normal
+GC; no renderer resources or disposal are introduced. Local exchange evidence
+does not certify solids, topology, global binary64 error or manufacturing
+accuracy.
+
+The one native/file/compiled-report flow, including a short read of its actual
+new IGES through the already-installed independent test consumer, is:
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/cad-document-export-demo.mjs --source /tmp/barocss-document-export
+```
+
+The independent reader is test-only. It is not a dependency of the CAD engine.
+Native readiness, Integration adoption, actual consumer support and publication
+remain separate.
