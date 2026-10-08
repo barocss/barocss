@@ -5704,3 +5704,64 @@ revision versus unchanged-geometry rebind across two revisions. Current packet,
 part-XYZ/Motion contracts, authored source, old editor readers, actual renderer
 adoption and publication remain separate. CAN-03/CAN-04 topology/placement and
 arbitrary frame-graph capabilities remain future scope.
+
+## Explicit document compatibility and candidate migration
+
+`inspectCadDocumentCompatibility({format,text})` validates an explicitly named
+format; it never guesses from filenames or similar JSON arrays. The first matrix
+supports `canonical-document-v1` through the actual712 strict reader and
+`native-source0` through the actual source0 compiler. Source0 is an existing
+authored geometry file, not an invented canonical documentv0. Editor project1,
+editor scene1, native feature documents and source1/2 are named unsupported here
+and retain their own readers. Unknown formats/future profiles refuse rather
+than silently dropping feature/constraint data into direct geometry.
+
+`migrateCadDocument(input,options)` returns a candidate and exact preservation/
+transformation/unsupported report. For a current canonicalv1 file, options are
+exactly `{mode:'identity'}`. For actual source0 geometry, options are
+`{mode:'source0-wrap',documentId,revision,assetId,assetRevision,sourceFrame,
+bodies:[{id,name,geometryId}]}`. Caller supplies new wrapper identities explicitly;
+original native geometry IDs are never guessed or renamed. SourceFrame is only
+`authored-xyz-no-axis-conversion`, units stay mm/rad, and unsupported feature/
+parameter/constraint/placement/derived-cache arrays stay empty in candidatev1.
+
+Result is `{input,options,candidate,serializedCandidate,report,mappings}`.
+`input.text` preserves exact original bytes/text; native source strings,
+coefficients/IDs/order/domain/-0 remain. Canonical serialization may change JSON
+wire formatting (key order, escaping, numeric spelling and whitespace), not
+decoded authored values or native source contents. Source0 wrapping adds only
+explicit new document/asset/body metadata. Actual body/asset/input/output
+geometry mappings preserve native IDs. The candidate is created by actual712,
+serialized, parsed afresh and fully compared/recompiled before acceptance.
+No original file or previously accepted document is overwritten.
+
+`validateCadDocumentMigration(result)` reconstructs input/options/candidate,
+serialized file, original source/IDs/mappings and report. Source0 input is
+bounded262144 UTF-8 bytes/code units; canonical file2MiB and actual712 asset/body/
+source limits remain. Strict own snapshots<=524288 values/depth32/arrays4096/
+records64/strings2MiB preserve original canonical text. Ill-formed Unicode,
+getter0/hidden/symbol/foreign/sparse/cyclic/unknown/nonfinite/duplicate-key/ID/
+missing-ref/frame/future-profile or altered data refuses atomically. There is
+no eval, reviver, generic document service or best-effort coercion.
+
+Report `barocss-cad-document-compatibility-report`, version0 separates actual
+input format/version/profile/source and target documentfilev1/direct-geometry/
+source0. Its matrix states supported/unsupported rows, preserved data and
+explicit transformations. Copied CPU candidate/report data belongs to caller
+with GC and no renderer resources/disposal. Not-certified/topologyCertified:
+false/solid:false and no geometry quality certificate follows from migration.
+`CadDocumentCompatibilityError` and runtime/type diagnostics expose INPUT,
+FORMAT, VERSION, PROFILE, IDENTITY, REFERENCE, FRAME, SOURCE, BUDGET and OWNED,
+retaining actual native reader/compiler causes.
+
+```sh
+node examples/cad-nurbs/cad-document-compatibility-demo.mjs --source
+```
+
+The actual older fixture is the preserved source0 file from the712 original
+Curve+Surface part (`CAD_DOCUMENT_SOURCE0_FIXTURE` can select the same supported
+profile explicitly). The bounded flow copies/open-wraps it, serializes a
+candidate and cold-reads/recompiles the native data. Currentv1 JSON formatting,
+unsupported formats/versions/fields, original/prior retention and real compiled
+JS/types are checked in the same flow. Older editor/feature readers, lossy
+migration, renderer adoption, full format parity and publication are separate.
