@@ -174,7 +174,7 @@ sampleMotionClip(clip, 0.5); // owned Motion pose in part XYZ millimeters
 
 The adapter selects one glTF 2.0 animation and requires an exact mapping for every animated node. It reads node-local translation, rotation and scale channels with float32, tightly packed SCALAR timestamps and VEC3/VEC4 output accessors. STEP and LINEAR are supported; LINEAR rotation becomes Motion SLERP. glTF seconds stay seconds, translation meters become millimeters once, scale stays dimensionless, and quaternion components stay XYZW. The required `frame` value preserves glTF Y-up axes as Motion part XYZ; the host must handle any different part frame. Near-unit glTF quaternions with norm error at most `0.001` are normalized before admission to the core clip. The owned converted key values then follow the normal Motion sampling rules.
 
-Options and node mappings must be exact own-data records. Supplied buffers are never changed. Input is bounded to 1 MiB of binary data, 192 selected channels, 256 keys per track and 4096 selected keys, plus the core v0 limits. Failures throw `MotionGltfError` with `INVALID_INPUT`, `UNSUPPORTED`, `LIMIT_EXCEEDED`, `INVALID_ACCESSOR`, or `INVALID_CLIP`. The entire import fails on an unsupported or malformed selected channel. CUBICSPLINE, morph weights, integer/normalized, sparse or strided accessors, required extensions, matrix animation and skinning are unsupported. This API does not load files, fetch buffers, compose node hierarchy, render geometry or alter a CAD model. A runnable [Khronos AnimatedTriangle consumer](../../examples/motion-scene/README.md#gltf-animation-consumer) demonstrates the boundary.
+Options and node mappings must be exact own-data records. Supplied buffers are never changed. Input is bounded to 1 MiB of binary data, 192 selected channels, 256 keys per track and 4096 selected keys, plus the core v0 limits. Failures throw `MotionGltfError` with `INVALID_INPUT`, `UNSUPPORTED`, `LIMIT_EXCEEDED`, `INVALID_ACCESSOR`, or `INVALID_CLIP`. The entire import fails on an unsupported or malformed selected channel. Bounded float32 sparse SCALAR/VEC3/VEC4 animation accessors are supported with a dense base or zero initialization, strictly increasing 8/16/32-bit indices and tightly packed replacements. CUBICSPLINE, morph weights, integer/normalized or strided accessors, required extensions, matrix animation and skinning are unsupported by this import API. This API does not load files, fetch buffers, compose node hierarchy, render geometry or alter a CAD model. A runnable [Khronos AnimatedTriangle consumer](../../examples/motion-scene/README.md#gltf-animation-consumer) demonstrates the boundary.
 
 ## Bounded GLB animation import
 
@@ -194,6 +194,24 @@ The caller supplies a `Uint8Array` containing one GLB v2 file. This function rea
 
 The JSON chunk is at most 64 KiB, the declared BIN buffer at most 1 MiB, and the complete GLB at most 1,114,144 bytes. Invalid magic, length, alignment, chunk order, JSON, BIN length or padding refuses the import with `MotionGltfError`; unsupported external or multiple buffers refuse. The returned clip follows all #718 unit, frame, identity, key and ownership rules. The input bytes are never changed. This API has no file/network access, GLB writer, geometry/image/skin loading, hierarchy composition or renderer work. A runnable [Khronos BoxAnimated GLB consumer](../../examples/motion-scene/README.md#glb-animation-consumer) shows two channel end times in one clip.
 
+## GLB animation selection metadata
+
+```js
+import { listMotionGlbAnimations, bakeMotionGlbAnimation } from '@barocss/motion';
+
+const animations = listMotionGlbAnimations(glbBytes);
+const chosen = animations.find((item) => item.name === 'CubicSpline Rotation');
+const clip = bakeMotionGlbAnimation(glbBytes, {
+  animationIndex: chosen.animationIndex,
+  contextId: 'interpolation-test',
+  nodeTargets: [{ nodeIndex: chosen.channels[0].nodeIndex, targetId: 'rotating-box' }],
+  frame: 'gltf-y-up-as-part-xyz',
+  subdivisionsPerInterval: 4,
+});
+```
+
+`listMotionGlbAnimations` returns fresh records in source order with `animationIndex`, optional `name` as a string or `null`, and channel `nodeIndex`, `path` and `interpolation`. It shares the bounded GLB decoder, validates limited animation metadata and reads no keyframe accessors. Missing animations return an empty list. The list does not promise that a selected animation fits a Motion clip; the host must still choose target IDs, frame and bake density. It accepts at most 64 animations, 192 samplers and 192 channels per animation, 4096 channels total, and 4096 nodes. Names are at most 128 UTF-16 code units. Unsupported extensions, paths or interpolation methods refuse. The [real GLB selection consumer](../../examples/motion-scene/README.md#glb-animation-list-consumer) shows nine choices.
+
 ## Finite glTF CUBICSPLINE bake
 
 ```js
@@ -211,4 +229,4 @@ sampleMotionClip(clip, 0.125);
 
 This separate API accepts the existing STEP/LINEAR profile plus float32 CUBICSPLINE translation, rotation and scale channels. Each cubic source key has an in-tangent, value and out-tangent; at least two source keys are required. The bake evaluates the glTF cubic polynomial at 1–16 equal steps per source interval, multiplies tangents by interval seconds, keeps the original key times at interval ends, converts translation meters to millimeters once and normalizes interpolated rotation quaternions. Source rotation values use the existing near-unit admission rule. The resulting owned v0 track uses LINEAR or SLERP between baked keys. The old `importMotionGltfAnimation` and `importMotionGlbAnimation` APIs still refuse CUBICSPLINE.
 
-The caller sets `subdivisionsPerInterval` in an exact own-data options record. More than 256 output keys per track or 4096 in the selected animation refuses instead of truncating. The existing binary, channel, time, target, scale and translation bounds also apply. Errors use the existing `MotionGltfError` codes. The output matches the evaluated cubic at its baked keys, subject to finite Float32 input and arithmetic, and is only an approximation between keys. The subdivision count is not an error tolerance or accuracy certificate. No tangent data is stored in the v0 clip; this API does not add a native spline track, GLB cubic shortcut, geometry or hierarchy import. The [Khronos InterpolationTest consumer](../../examples/motion-scene/README.md#cubic-animation-bake-consumer) exercises its rotation channel.
+The caller sets `subdivisionsPerInterval` in an exact own-data options record. More than 256 output keys per track or 4096 in the selected animation refuses instead of truncating. The existing binary, channel, time, target, scale and translation bounds also apply. Errors use the existing `MotionGltfError` codes. The output matches the evaluated cubic at its baked keys, subject to finite Float32 input and arithmetic, and is only an approximation between keys. The subdivision count is not an error tolerance or accuracy certificate. No tangent data is stored in the v0 clip; this API does not add a native spline track, geometry or hierarchy import. `bakeMotionGlbAnimation` applies the same bake to a caller-loaded GLB file using the bounded container decoder. The [Khronos InterpolationTest consumer](../../examples/motion-scene/README.md#cubic-animation-bake-consumer) exercises its rotation channel.
