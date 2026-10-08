@@ -401,6 +401,46 @@ checks placed Mesh/Line pixels, a native point against the Three world
 matrix, failure retention and cleanup in WebGL2. Other targets and an
 assembly URL transport API need separate contracts.
 
+### Display native planar Boolean contours in Three.js
+
+The optional `./three-boolean-contours` entry consumes a fully validated
+public CAD coplanar linear-face Boolean result. It displays each native
+selected world Curve fragment as a source-backed Three `Line`, grouped by
+component and outer or hole loop. It retains each fragment's native source
+pointer, original operand-qualified contributor, parameter intervals,
+traversal sense and dimensionless UV pcurve metadata in a binding.
+
+```js
+import { validateCoplanarFaceBoolean } from '@barocss/cad';
+import { createBaroCadBooleanThreeContours }
+  from '@barocss/cad-interop/three-boolean-contours';
+
+const region = await (await fetch(regionURL)).json();
+validateCoplanarFaceBoolean(region);
+const display = createBaroCadBooleanThreeContours(region, {
+  native: { sourceVersion: 0, countU: 8, countV: 8,
+    unitsPerMillimeter: 0.01,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02,
+      maxSegments: 512, maxDepth: 16 } },
+  basis: 'authored-xyz-matches-rhyup', // Host assertion.
+});
+scene.add(display.root);
+display.dispose();
+```
+
+The adapter uses each native fragment's one-Curve extracted source0 file.
+It checks the fragment's source-chunk pointer, then composes the existing
+`BaroCADLoader` for that extracted Curve. A full #881 world source chunk can
+contain one support and up to 15 Curves; the older Curve display loader
+admits at most four objects. The adapter leaves the native chunk unchanged.
+It does not draw the support Surface or fill the region. UV area is
+dimensionless metadata, not world area. The result is an outline preview,
+not a planar face or solid. `examples/boolean-three.html` reads saved #881
+hole, separated-component, empty and two-source results through HTTP and
+checks actual WebGL2 lines, roles, refusals and disposal. The matching Node
+flow is `node examples/boolean-three-verify.mjs`. The caller owns the
+Scene, renderer, camera and unrelated objects.
+
 ### Display selected document bodies in Three.js
 
 The optional `./three-document` entry composes the same validated body

@@ -37,6 +37,10 @@
       "types": "./dist/three-assembly.d.ts",
       "import": "./dist/three-assembly.js"
     },
+    "./three-boolean-contours": {
+      "types": "./dist/three-boolean-contours.d.ts",
+      "import": "./dist/three-boolean-contours.js"
+    },
     "./three": {
       "types": "./dist/three.d.ts",
       "import": "./dist/three.js"
