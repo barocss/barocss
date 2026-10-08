@@ -5426,3 +5426,76 @@ zeros and same-ID edit/prior retention. Original/output/strip source0 and raw
 signed-zero owned results reopen; actual declared compiled JS/types are checked
 separately. General Surface joins/trims/continuity/topology/features/constraints/
 assemblies/exchange and consumer adoption remain separate Issues.
+
+## Wide original-parameter adaptive Curve samples
+
+`sampleCurveWideAdaptive(curve, {chordToleranceMM, maxSegments, maxDepth,
+resultIdPrefix})` admits positive open-clamped nonperiodic degree1..3 Curves
+with2..64 poles/70 knots, weights1e-6..1e6 and authored XYZ±10000mm. Original
+parameters, coefficients, weights, knot bits, IDs and source0 remain authority.
+Returned points always evaluate that original Curve. Sampling DTO
+`barocss-native-curve-samples` version1 explicitly declares this larger family;
+geometry sourceVersion stays0. Existing version0/16-pole sampling and consumers
+are not silently widened. GPU/Loader version1 adoption is a separate contract.
+
+Each nonzero original knot span uses only degree+1 active original poles.
+The own local Cox-de Boor recurrence is expanded analytically in Bernstein
+coefficient form, without point fitting or global knot refinement. Native
+knot-ratio levels, coefficient matrices, partition residual and homogeneous
+control origins remain explicit. A one-hot column copies original pole/weight
+bits; other local coefficients declare generated arithmetic. Nonfinite,
+negative, unrepresentable or uncertain coefficients refuse without clipping
+or renormalization. Each initial local span adopts an actual clamped Curve-only
+source0/Model in its original parameter interval. Bezier extraction is a
+standard spline representation concept ([Borden et al., 2011](https://doi.org/10.1002/nme.2968));
+this implementation uses own coefficient algebra and the own native evaluator.
+
+Only those small local Bezier Curves undergo actual native624 midpoint splits,
+with at most7 temporary poles for degree3. The original64-pole Curve is never
+globally refined beyond capacity. The existing finite-segment distance metric
+is shared through an internal export, preserving the old sampler's behavior.
+Positive-weight local hull distance is measured against finite chords with
+original Curve endpoints, plus a64-epsilon scaled arithmetic margin. Accepted
+segments require hull+margin<=tolerance. Uncertain criteria, unsafe midpoints,
+depth or work exhaustion refuse atomically without partial samples.
+
+Tolerance is1e-7..1000mm, maxSegments1..4096, maxDepth0..16 and initial nonzero
+spans<=64. The segment budget must cover those initial spans. At most4097
+points are returned. ASCII prefix1..20/native ID1..48 reserves context/span/
+local split/display segment/display point roles before staging (<=32768roles).
+Display IDs do not become native B-Rep edge identities. Adjacent intervals
+preserve original shared parameter bits and original domain endpoint signs.
+
+The copied result is `{curve, options, source, sourceVersion:0, model, domain,
+parameters, pointsMM, samples, spans, segments, operations, report}`. The original
+Curve-only Model is named `prefix_model`; original source and temporary span
+Models adopt complete native values/order/identity. Caller ownership is plain
+CPU records with GC, without renderer resources or disposal. Input bounds are
+32768 values/depth8/arrays128/records16/strings128; owned bounds2097152 values/
+depth32/arrays8192/records64/source strings262144. The larger input array bound
+admits actual70 knots; the output bound admits4097 points.
+
+`validateWideAdaptiveCurveSamples(result)` rebuilds complete source, analytic
+span matrices, local native subdivision, returned original points and reports.
+Descriptor/getter0/hidden/symbol/foreign/sparse/cyclic/unknown/nonfinite/tampered
+data refuses while previous accepted parents/results remain unchanged.
+`WideAdaptiveCurveSamplingError` and runtime/type
+`WideAdaptiveCurveSamplingDiagnosticCode` expose INPUT, IDENTITY, SPAN,
+REPRESENTABILITY, BUDGET, NATIVE, BINDING and OWNED, retaining native causes.
+
+Accepted local endpoint/midpoint observations record original-vs-local point
+residuals at1e-7mm and evaluated D1 residuals at relative1e-7 with an absolute
+floor. Native original C0 guard and local one-sided D1 remain separate. Hull,
+partition and floating-point margins are local computed estimates/observations,
+not a global binary64 or manufacturing certificate. Reports remain
+not-certified/topologyCertified:false/solid:false, with sampled display points
+rather than fitted geometry, wire/topology or G1/G2 continuity certification.
+
+```sh
+node examples/cad-nurbs/curve-wide-adaptive-sampling-demo.mjs --source
+```
+
+The bounded flow uses real31-pole joins/refined64-pole source0, nonunit weighted
+C0 spans, tighter tolerance, prior retention, source/raw signed-zero DTO reopening
+and separate declared compiled JS/types. Native implementation, serial integration,
+actual GPU/Loader version1 use and publication remain distinct Issue states.

@@ -51,7 +51,7 @@ function delta(a:Point,b:Point):Point{return a.map((x,i)=>finite(x-b[i])) as Poi
 
 function multiply(a:number,b:number):number {const result=finite(a*b);check(a===0||b===0||result!==0,'nonzero finite-chord arithmetic product underflowed');return result;}
 /** Distance to a closed finite segment; endpoint cases do not use an infinite supporting line. */
-function finiteSegmentDistance(point:Point,start:Point,end:Point):number {
+export function finiteSegmentDistance(point:Point,start:Point,end:Point):number {
   if(point.every((value,i)=>value===start[i])||point.every((value,i)=>value===end[i]))return 0;
   const chord=delta(end,start),length=finite(Math.hypot(...chord)),relative=delta(point,start);if(length===0)return finite(Math.hypot(...relative));
   const direction=chord.map(value=>{const result=finite(value/length);check(value===0||result!==0,'finite chord direction underflowed');return result;}) as Point,terms=relative.map((value,i)=>multiply(value,direction[i])),projection=finite(terms.reduce((sum,value)=>finite(sum+value),0)),scale=finite(terms.reduce((sum,value)=>finite(sum+Math.abs(value)),0));check(projection===0||Math.abs(projection)>EPS*scale,'finite chord projection cancellation uncertain');
