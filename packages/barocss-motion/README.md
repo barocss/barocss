@@ -175,3 +175,21 @@ sampleMotionClip(clip, 0.5); // owned Motion pose in part XYZ millimeters
 The adapter selects one glTF 2.0 animation and requires an exact mapping for every animated node. It reads node-local translation, rotation and scale channels with float32, tightly packed SCALAR timestamps and VEC3/VEC4 output accessors. STEP and LINEAR are supported; LINEAR rotation becomes Motion SLERP. glTF seconds stay seconds, translation meters become millimeters once, scale stays dimensionless, and quaternion components stay XYZW. The required `frame` value preserves glTF Y-up axes as Motion part XYZ; the host must handle any different part frame. Near-unit glTF quaternions with norm error at most `0.001` are normalized before admission to the core clip. The owned converted key values then follow the normal Motion sampling rules.
 
 Options and node mappings must be exact own-data records. Supplied buffers are never changed. Input is bounded to 1 MiB of binary data, 192 selected channels, 256 keys per track and 4096 selected keys, plus the core v0 limits. Failures throw `MotionGltfError` with `INVALID_INPUT`, `UNSUPPORTED`, `LIMIT_EXCEEDED`, `INVALID_ACCESSOR`, or `INVALID_CLIP`. The entire import fails on an unsupported or malformed selected channel. CUBICSPLINE, morph weights, integer/normalized, sparse or strided accessors, required extensions, matrix animation and skinning are unsupported. This API does not load files, fetch buffers, compose node hierarchy, render geometry or alter a CAD model. A runnable [Khronos AnimatedTriangle consumer](../../examples/motion-scene/README.md#gltf-animation-consumer) demonstrates the boundary.
+
+## Bounded GLB animation import
+
+```js
+import { importMotionGlbAnimation, sampleMotionClip } from '@barocss/motion';
+
+const clip = importMotionGlbAnimation(glbBytes, {
+  animationIndex: 0,
+  contextId: 'assembly-1',
+  nodeTargets: [{ nodeIndex: 0, targetId: 'part-1' }],
+  frame: 'gltf-y-up-as-part-xyz',
+});
+sampleMotionClip(clip, 1);
+```
+
+The caller supplies a `Uint8Array` containing one GLB v2 file. This function reads the little-endian header, a first JSON chunk and a second BIN chunk, then delegates the selected animation to `importMotionGltfAnimation`. A GLB-stored buffer must be the sole glTF buffer and have no `uri`. The BIN chunk may have up to three final zero bytes beyond its declared length. Well-formed unknown chunks after BIN are ignored. JSON uses strict UTF-8 decoding and normal `JSON.parse`; duplicate JSON members are not detected. This is a bounded container reader, not a full glTF schema validator.
+
+The JSON chunk is at most 64 KiB, the declared BIN buffer at most 1 MiB, and the complete GLB at most 1,114,144 bytes. Invalid magic, length, alignment, chunk order, JSON, BIN length or padding refuses the import with `MotionGltfError`; unsupported external or multiple buffers refuse. The returned clip follows all #718 unit, frame, identity, key and ownership rules. The input bytes are never changed. This API has no file/network access, GLB writer, geometry/image/skin loading, hierarchy composition or renderer work. A runnable [Khronos BoxAnimated GLB consumer](../../examples/motion-scene/README.md#glb-animation-consumer) shows two channel end times in one clip.
