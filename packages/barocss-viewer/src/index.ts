@@ -913,11 +913,11 @@ export class Viewer {
     const ref = parseRef(inputRef);
     check(this.modelSet !== null || this.document !== null,
       'Surface material requires a qualified native scene');
-    check(this.packets.length >= 1 && this.packets.length <= 4 && this.curves.length === 0 &&
+    check(this.packets.length >= 1 && this.packets.length + this.curves.length <= 4 &&
       this.packets.some(entry => sameRef(ref,
         { modelId: entry.modelId, surfaceId: entry.packet.surfaceId })) &&
       this.visible({ kind: 'surface', ...ref }),
-    'Surface material requires a visible qualified native Surface without Curves');
+    'Surface material requires a visible qualified native Surface in a scene of 1..4 objects');
     check(!sameRef(ref, this.selected), 'Clear Surface selection before binding material');
     check(this.renderer instanceof PrimitiveSceneRendererV2 || this.renderer instanceof PrimitiveViewport,
       'Surface material requires a qualified GPU scene');
