@@ -7,3 +7,5 @@
 .pole-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;max-height:150px;overflow:auto}.pole-grid button{border:1px solid #344750;border-radius:3px;background:#14222b;padding:5px;color:#8fa5af;font-size:10px}.pole-grid button[aria-pressed="true"]{background:#34534f;border-color:#80a5a0;color:#dfede7}
 .control-net-note{color:#9ec7ce;font-size:9px}.transform-gizmo .control-pole{filter:drop-shadow(0 0 2px #06131b)}
 .refinement-axes{display:flex;gap:6px;margin-bottom:12px}.refinement-axes button{flex:1;height:27px;font-size:10px}
+
+.parameter-curve-actions{display:flex;gap:6px;margin:8px 0}.parameter-curve-actions>button{flex:1}
