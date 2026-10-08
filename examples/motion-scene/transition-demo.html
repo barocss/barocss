@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BaroCSS Motion · Clip transition</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./style.css">
+  <style>
+    .transition-status { color: #77e8cf; min-height: 20px; margin-top: 12px; font-size: 12px; }
+    .clock-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+    .clock-grid div { padding: 12px; border: 1px solid #31556b; border-radius: 7px; color: #a8bbc9; font-size: 12px; }
+    .clock-grid strong { display: block; margin-top: 5px; color: #77e8cf; font-size: 18px; font-variant-numeric: tabular-nums; }
+    @media (max-width: 640px) { .clock-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  </style>
+</head>
+<body>
+  <main class="layout">
+    <header>
+      <div class="eyebrow">BAROCSS / CLIP TRANSITION</div>
+      <h1>Two clip clocks. One smooth transition.</h1>
+      <p>Motion advances both clip times and fade progress. Three.js only draws the returned part poses.</p>
+    </header>
+    <div class="stage-wrap">
+      <canvas id="stage" aria-label="3D scene displaying a Motion clip transition"></canvas>
+      <div class="stage-label"><span class="live-dot"></span> sample-assembly · part XYZ · mm</div>
+      <div class="part-label part-a">PART A <small>box</small></div>
+      <div class="part-label part-b">PART B <small>sphere</small></div>
+      <div id="loading" role="status">Loading two clip files and renderer…</div>
+    </div>
+    <section class="control-panel" aria-label="Clip transition controls">
+      <div class="transport">
+        <button id="seek-one" type="button">Seek source to 1 s</button>
+        <button id="transition" type="button">Transition to second clip</button>
+        <button id="play" type="button">Play</button>
+        <button id="pause" type="button">Pause</button>
+        <button id="advance" type="button">Advance 1 s</button>
+        <button id="invalid" type="button">Try incompatible clip</button>
+      </div>
+      <div id="status" class="transition-status" role="status">Loading…</div>
+      <div class="clock-grid" aria-label="Owned transition clocks">
+        <div>Phase<strong id="phase">idle</strong></div>
+        <div>Source time<strong id="source-time">0.00 s</strong></div>
+        <div>Destination time<strong id="destination-time">—</strong></div>
+        <div>Fade / weight<strong id="fade">0.00 / 0.00</strong></div>
+      </div>
+    </section>
+    <section class="readout" aria-label="Current owned poses"><div><span class="eyebrow">OWNED POSES</span><span id="state-label">paused</span></div><pre id="poses"></pre></section>
+    <footer>Two real v0 clips · separate seconds and mm · invalid transitions retain the accepted frame</footer>
+  </main>
+  <script type="module" src="./transition-demo.js"></script>
+</body>
+</html>
