@@ -68,6 +68,8 @@ export { createMotionRangeTimeline } from './range-timeline.js';
 export type { MotionRangeTimeline, MotionRangeTimelineOptions, MotionRangeTimelineState } from './range-timeline.js';
 export { MotionTransitionError, createMotionTransitionPlayer } from './transition.js';
 export type { MotionTransitionErrorCode, MotionTransitionOptions, MotionTransitionPlayer, MotionTransitionState } from './transition.js';
+export { MotionGltfError, importMotionGltfAnimation } from './gltf.js';
+export type { MotionGltfErrorCode, MotionGltfNodeTarget, MotionGltfOptions } from './gltf.js';
 
 export const MOTION_LIMITS = Object.freeze({
   targets: 64,

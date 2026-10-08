@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BaroCSS Motion · glTF animation import</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./style.css">
+  <style>
+    .gltf-status { color: #77e8cf; min-height: 20px; margin-top: 12px; font-size: 12px; }
+    .gltf-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 16px; }
+    .gltf-summary div { padding: 12px; border: 1px solid #31556b; border-radius: 7px; color: #a8bbc9; font-size: 12px; }
+    .gltf-summary strong { display: block; margin-top: 5px; color: #77e8cf; font-size: 18px; font-variant-numeric: tabular-nums; }
+    @media (max-width: 640px) { .gltf-summary { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main class="layout">
+    <header>
+      <div class="eyebrow">BAROCSS / GLTF TRS IMPORT</div>
+      <h1>A real glTF rotation. An owned Motion clip.</h1>
+      <p>The host loads the Khronos animation files. Motion converts selected keys. Three.js draws the returned pose.</p>
+    </header>
+    <div class="stage-wrap">
+      <canvas id="stage" aria-label="3D triangle displaying imported glTF rotation"></canvas>
+      <div class="stage-label"><span class="live-dot"></span> AnimatedTriangle · glTF Y-up as part XYZ</div>
+      <div id="loading" role="status">Loading glTF JSON, binary buffers and renderer…</div>
+    </div>
+    <section class="control-panel" aria-label="Imported animation controls">
+      <div class="transport">
+        <button id="start" type="button">Start 0 s</button>
+        <button id="quarter" type="button">Quarter 0.25 s</button>
+        <button id="middle" type="button">Middle 0.5 s</button>
+        <button id="end" type="button">End 1 s</button>
+        <button id="invalid" type="button">Try CUBICSPLINE</button>
+      </div>
+      <div id="status" class="gltf-status" role="status">Loading…</div>
+      <div class="gltf-summary">
+        <div>Selected clip<strong id="clip-name">—</strong></div>
+        <div>Time<strong id="time">—</strong></div>
+        <div>Interpolation<strong id="interpolation">—</strong></div>
+      </div>
+    </section>
+    <section class="readout" aria-label="Current owned pose"><div><span class="eyebrow">OWNED POSE</span><span>rotation XYZW</span></div><pre id="poses"></pre></section>
+    <footer>Khronos AnimatedTriangle fixture · one selected TRS channel · no scene or geometry import</footer>
+  </main>
+  <script type="module" src="./gltf-demo.js"></script>
+</body>
+</html>
