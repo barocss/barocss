@@ -20,5 +20,7 @@ export { createTicker } from './ticker.js';
 export type { Canvas2DTicker, FrameScheduler, TickInfo, TickListener } from './ticker.js';
 export { createSpriteAnimation } from './sprite-animation.js';
 export type { SpriteAnimation, SpriteAnimationFrame, SpriteAnimationOptions } from './sprite-animation.js';
+export { createSpriteAtlas } from './sprite-atlas.js';
+export type { SpriteAtlas, SpriteAtlasEntry } from './sprite-atlas.js';
 export { booleanOrthogonalPolygons } from './boolean.js';
 export type { PolygonContour, PolygonOperand, PolygonOperation, PolygonBooleanResult } from './boolean.js';

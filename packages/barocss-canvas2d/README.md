@@ -178,3 +178,5 @@ The measured host bottleneck was the `SceneHistory.commit` path. Its returned ed
 ## Independent compiled consumer
 
 The [package-local consumers](consumer/README.md) import the two public `@barocss/canvas2d` entries and type-check against their built declarations. The first browser host registers a copied image, renders and hit-tests a Scene v3, downloads a v1 document, and cold-opens that actual file on a fresh canvas; a corrupt digest retains the accepted canvas. The display-tree host uses public container/sprite handles and Scene v6 snapshots, then cold-opens its actual file. Neither imports renderer source or the repository's scene example. These consumers are local verification code, outside the package's published `files` list.
+
+`createSpriteAtlas(imageId, imageSize, entries)` validates 1..64 named source-pixel crops inside one host-owned image. `frame(name)` and `sequence(names)` return copies suitable for `createSpriteAnimation`; the host registers the image and drives time. It does not parse third-party spritesheet formats.
