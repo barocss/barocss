@@ -3,10 +3,13 @@ import { readFileSync } from 'node:fs';
 import { Group, Line, Scene } from 'three';
 import { NullEngine } from '@babylonjs/core/Engines/nullEngine.js';
 import { Scene as BabylonScene } from '@babylonjs/core/scene.js';
+import { Mesh as BabylonMesh } from '@babylonjs/core/Meshes/mesh.js';
+import { LinesMesh } from '@babylonjs/core/Meshes/linesMesh.js';
+import { Vector3 as BabylonVector3 } from '@babylonjs/core/Maths/math.vector.js';
 import { sampleCurveWideAdaptive } from '@barocss/cad';
 import { baroCadSourceToGLB, parseBaroCadSource } from '../dist/native.js';
 import { BaroCADLoader } from '../dist/three.js';
-import { BaroCADBabylonLoader } from '../dist/babylon.js';
+import { BaroCADBabylonLoader, resolveBaroCadBabylonCurvePick } from '../dist/babylon.js';
 
 // Exact source0 text generated in CAD #696's integrated flow, including lexical -0.
 const source = readFileSync(new URL('./curve-wide-v1.barocad', import.meta.url), 'utf8');
@@ -52,9 +55,35 @@ assert.throws(() => baroCadSourceToGLB(source, options, { includeSourceText: fal
 const engine = new NullEngine();
 const babylonScene = new BabylonScene(engine);
 babylonScene.useRightHandedSystem = true;
-const originalBabylonMeshes = babylonScene.meshes.length;
-assert.throws(() => new BaroCADBabylonLoader(babylonScene, options).parse(source), /version 1/);
-assert.equal(babylonScene.meshes.length, originalBabylonMeshes);
+const callerBabylonMesh = new BabylonMesh('caller', babylonScene);
+const babylonLoader = new BaroCADBabylonLoader(babylonScene, options);
+const babylon = babylonLoader.parse(source);
+assert.equal(babylon.source, source);
+assert.equal(babylon.meshes.length, 1);
+const babylonLine = babylon.meshes[0];
+assert.ok(babylonLine instanceof LinesMesh);
+assert.equal(babylonLine.metadata.barocss.curveId, original.id);
+assert.equal(babylonLine.metadata.barocss.sampleReport.dto.version, 1);
+assert.deepEqual(babylonLine.metadata.barocss.nativeParameters, result.curves[0].sample.parameters);
+assert.deepEqual(Array.from(babylonLine.getVerticesData('position')), Array.from(result.curves[0].positions));
+const babylonPositions = babylonLine.getVerticesData('position');
+const babylonPick = resolveBaroCadBabylonCurvePick(babylon, {
+  hit: true, pickedMesh: babylonLine, faceId: 0, subMeshFaceId: 0, subMeshId: 0,
+  pickedPoint: new BabylonVector3(
+    (babylonPositions[0] + babylonPositions[3]) / 2,
+    (babylonPositions[1] + babylonPositions[4]) / 2,
+    (babylonPositions[2] + babylonPositions[5]) / 2,
+  ),
+});
+assert.equal(babylonPick.curveId, original.id);
+assert.ok(babylonPick.parameterApprox >= result.curves[0].sample.parameters[0]);
+assert.throws(() => babylonLoader.parse('@model invalid {}'));
+assert.ok(!babylonLine.isDisposed());
+assert.ok(!callerBabylonMesh.isDisposed());
+babylon.dispose();
+babylon.dispose();
+assert.ok(babylonLine.isDisposed());
+assert.ok(!callerBabylonMesh.isDisposed());
 babylonScene.dispose();
 engine.dispose();
 
@@ -79,5 +108,6 @@ console.log(JSON.stringify({
   originalKnots: original.knots.length, originalSignedZero: Object.is(original.controlPoints[0][0], -0),
   domain: result.curves[0].sample.domain, sampleVersion: result.curves[0].sample.report.dto.version,
   segments: result.curves[0].sample.segments.length, points: result.curves[0].sample.pointsMM.length,
-  threeLines: 1, oldV0Refused: true, babylonAndGlbV1Refused: true, callerChildRetained: true,
+  threeLines: 1, babylonLines: 1, babylonPickParameter: babylonPick.parameterApprox,
+  oldV0Refused: true, glbV1Refused: true, callerChildRetained: true,
 }));

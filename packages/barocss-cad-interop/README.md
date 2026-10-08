@@ -344,14 +344,21 @@ millimetres; original source, IDs, coefficient bits, knots and parameter
 intervals stay in the native result. The line and approximate pick do not
 become a certified topology edge or exact NURBS intersection.
 
-Babylon and display GLB export reject version 1 before target allocation;
-Pixi3D continues to reject Curve display. The package example
+Babylon also accepts version 1 through the same neutral result in a caller-owned
+right-handed Scene. It creates a `LinesMesh` with original parameter metadata;
+its approximate chord pick retains the original Curve ID. Display GLB export
+still rejects version 1, and Pixi3D continues to reject Curve display. The package example
 `examples/curve-wide-v1.barocad` is the exact 2631-byte source0 fixture from
 the integrated CAD #696 flow. Run `node examples/curve-wide-v1-verify.mjs`
 after building CAD and this package for the compiled native/Three acceptance
 checks. Serve `examples/curve-wide-v1.html` through a browser module server
 for the visible Three.js WebGL2 line, native parameter pick, invalid-source
 retention and caller-owned Scene disposal checks.
+
+`examples/curve-wide-v1-babylon.html` shows the same source0 Curve in a real
+Babylon WebGL2 Scene. Its `LinesMesh` is derived display data. A failed load
+leaves the previously accepted Scene intact, and result disposal leaves the
+caller Scene, Engine and unrelated meshes in place.
 
 ## Inspect a native Curve display hit
 
