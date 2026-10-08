@@ -21,6 +21,10 @@
       "types": "./dist/document.d.ts",
       "import": "./dist/document.js"
     },
+    "./document-glb": {
+      "types": "./dist/document-glb.d.ts",
+      "import": "./dist/document-glb.js"
+    },
     "./three-document": {
       "types": "./dist/three-document.d.ts",
       "import": "./dist/three-document.js"

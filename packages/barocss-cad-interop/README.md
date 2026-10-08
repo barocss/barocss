@@ -415,6 +415,52 @@ millimetre scale once in the existing Babylon loader. Document authored
 XYZ does not certify a right-handed Y-up frame; the host must assert this
 basis or apply its own external frame mapping.
 
+### Export selected document bodies as a display GLB
+
+The optional `./document-glb` entry exports 1–4 selected document1 bodies
+through the existing bounded glTF 2.0 binary writer. It reuses the same
+source-backed selection as `./document`. The output contains derived Surface
+triangles and sampled Curve line strips in metres. Each node has a unique
+body-based name and `extras.barocss` with the original document, asset,
+body, Model and geometry IDs. The returned report keeps authored body order
+and maps each body to its actual glTF node index, primitive mode, native ref,
+units and frame. The writer places Surface nodes before Curve nodes.
+
+```js
+import { loadBaroCadDocument } from '@barocss/cad-interop/document';
+import { exportBaroCadDocumentDisplayGlb }
+  from '@barocss/cad-interop/document-glb';
+
+const cad = await loadBaroCadDocument(documentURL);
+const { glb, report } = exportBaroCadDocumentDisplayGlb(cad, {
+  native: { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } },
+  basis: 'authored-xyz-matches-rhyup', // Assertion supplied by the host.
+  bodyIds: ['body_0_curve', 'body_0_surface', 'body_1_curve', 'body_1_surface'],
+});
+const imported = await gltfLoader.parseAsync(glb, '');
+console.log(report.mappings);
+```
+
+This 1 MiB display asset omits native source text, exact NURBS coefficients,
+unselected bodies and authoring records. `report.preserved`,
+`report.approximated`, `report.omitted` and `report.unsupported` state its
+losses. `_CAD_UV` contains native Surface parameters, not texture UVs.
+Curve parameters and intervals are display metadata; JSON normalizes
+negative zero. The original document retains exact source text and native
+data. The host must assert that authored XYZ matches right-handed Y-up;
+no axis conversion or assembly placement is inferred. Invalid selection,
+unsafe geometry or excess output size refuses without changing prior
+bytes or the original document. This external derived bridge does not
+replace CAD's canonical IGES document writer or enable editable NURBS
+roundtrip.
+
+`node examples/document-glb-v1-verify.mjs` reads the 3,172-byte document
+over local HTTP, checks report/GLB buffers and old source0 GLB hash, then
+loads the output with Three `GLTFLoader`. `examples/document-glb-v1.html`
+renders the four imported bodies in headed Chromium/WebGL2 and checks
+actual pixels, failed export retention and caller-owned scene resources.
+
 ## Load native source in Babylon.js
 
 Install `@babylonjs/core@9.29.0` in the host application. The optional

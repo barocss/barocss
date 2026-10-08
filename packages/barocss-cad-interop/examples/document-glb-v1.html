@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Selected CAD document display GLB in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; width: 800px; height: 480px; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Selected CAD document display GLB · Three.js</h1>
+  <p>GLTFLoader reads two sampled Curves and two Surface meshes from one derived display asset.</p>
+  <canvas id="view" width="800" height="480"></canvas>
+  <button id="reject" type="button">Try invalid export</button>
+  <button id="dispose" type="button">Dispose imported display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { AmbientLight, Color, DoubleSide, Group, OrthographicCamera, Scene, WebGLRenderer } from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  import { loadBaroCadDocument } from '../dist/document.js';
+  import { exportBaroCadDocumentDisplayGlb } from '../dist/document-glb.js';
+
+  const canvas = document.querySelector('#view');
+  const status = document.querySelector('#status');
+  const native = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } };
+  const request = { native, basis: 'authored-xyz-matches-rhyup',
+    bodyIds: ['body_1_surface', 'body_0_curve', 'body_1_curve', 'body_0_surface'] };
+  const scene = new Scene(); scene.background = new Color(0x101b2c);
+  scene.add(new AmbientLight(0xffffff, 2));
+  const callerChild = new Group(); callerChild.name = 'caller-marker'; scene.add(callerChild);
+  const camera = new OrthographicCamera(-0.018, 0.018, 0.0108, -0.0108, 0.01, 1);
+  camera.position.set(0.001, -0.001, 0.2);
+  camera.lookAt(0.001, -0.001, 0);
+  const renderer = new WebGLRenderer({ canvas, antialias: false, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1); renderer.setSize(800, 480, false);
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const readPixels = () => {
+    renderer.render(scene, camera);
+    const gl = renderer.getContext();
+    const pixels = new Uint8Array(canvas.width * canvas.height * 4);
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('WebGL readPixels failed');
+    return pixels;
+  };
+  const colors = pixels => {
+    let cyan = 0, magenta = 0, left = 0, right = 0;
+    for (let index = 0; index < pixels.length; index += 4) {
+      const r = pixels[index], g = pixels[index + 1], b = pixels[index + 2];
+      if (r < 60 && g > 150 && b > 150) cyan++;
+      if (r > 150 && g < 70 && b > 150) magenta++;
+      if (Math.abs(r - 16) > 12 || Math.abs(g - 27) > 12 || Math.abs(b - 44) > 12) {
+        if ((index / 4) % canvas.width < canvas.width / 2) left++;
+        else right++;
+      }
+    }
+    return { cyan, magenta, left, right };
+  };
+  let cad, exported, gltf, objects, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    cad = await loadBaroCadDocument(new URL('document-gpu-v2.cad-document.json', location.href).href);
+    exported = exportBaroCadDocumentDisplayGlb(cad, request);
+    gltf = await new GLTFLoader().parseAsync(exported.glb, '');
+    objects = [];
+    gltf.scene.traverse(object => { if (object.isLine || object.isMesh) objects.push(object); });
+    if (objects.length !== 4 || objects.filter(object => object.isLine).length !== 2 ||
+        objects.filter(object => object.isMesh).length !== 2) throw new Error('GLTFLoader imported wrong selected bodies');
+    for (const object of objects) {
+      const binding = object.userData.barocss;
+      const mapping = exported.report.mappings.find(value => value.bodyId === binding.bodyId);
+      if (!mapping || object.name !== mapping.derivedNodeName ||
+          binding.sourceGeometryId !== mapping.sourceGeometryId ||
+          binding.assetId !== mapping.assetId) throw new Error('GLTFLoader lost qualified source binding');
+      object.position.x = binding.assetId === 'asset-a' ? -0.006 : 0.006;
+      object.material = object.material.clone();
+      object.material.color.setHex(binding.assetId === 'asset-a' ? 0x00ffff : 0xff00ff);
+      if (object.isMesh) object.material.side = DoubleSide;
+    }
+    scene.add(gltf.scene);
+    const pixels = readPixels();
+    const coloredPixels = colors(pixels);
+    if (Object.values(coloredPixels).some(value => value < 20)) {
+      throw new Error('Imported Curves and Surfaces must be visible on both sides');
+    }
+    evidence = {
+      documentId: exported.report.documentId, documentRevision: exported.report.documentRevision,
+      glbBytes: exported.glb.byteLength, outputRole: exported.report.outputRole,
+      sourceRole: exported.report.sourceRole, sourceFrame: exported.report.sourceFrame,
+      mappings: exported.report.mappings, omitted: exported.report.omitted,
+      importedLines: objects.filter(object => object.isLine).length,
+      importedSurfaces: objects.filter(object => object.isMesh).length,
+      unselectedPresent: objects.some(object => object.userData.barocss.bodyId.endsWith('_skip')),
+      originalSignedZero: cad.compiledAssets.every(asset => Object.is(asset.model.objects[0].controlPoints[0][1], -0)),
+      webgl2: renderer.getContext() instanceof WebGL2RenderingContext,
+      oneCanvas: document.querySelectorAll('canvas').length === 1,
+      coloredPixels, pixelHash: hash(pixels), callerChildRetained: scene.children.includes(callerChild),
+    };
+    window.__baroCadDocumentGlbEvidence = evidence;
+    show();
+  } catch (error) {
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroCadDocumentGlbError = String(error);
+  }
+  document.querySelector('#reject').onclick = () => {
+    if (!exported || !gltf) return;
+    const bytes = new Uint8Array(exported.glb).slice();
+    const before = hash(readPixels());
+    const checks = [
+      { ...request, bodyIds: ['missing_body'] },
+      { ...request, bodyIds: ['body_0_curve', 'body_0_curve'] },
+      { ...request, bodyIds: [...request.bodyIds, 'body_0_skip'] },
+      { ...request, basis: 'authored-xyz-no-axis-conversion' },
+      { ...request, native: { ...native, unitsPerMillimeter: 1 } },
+    ].map(candidate => { try { exportBaroCadDocumentDisplayGlb(cad, candidate); return false; }
+      catch { return true; } });
+    Object.assign(evidence, { invalidCandidatesRejected: checks.every(Boolean),
+      priorBytesRetained: bytes.every((value, index) => value === new Uint8Array(exported.glb)[index]),
+      priorSceneRetained: scene.children.includes(gltf.scene) && scene.children.includes(callerChild),
+      priorPixelsRetained: hash(readPixels()) === before });
+    show();
+  };
+  document.querySelector('#dispose').onclick = () => {
+    if (!gltf) return;
+    scene.remove(gltf.scene);
+    for (const object of objects) { object.geometry.dispose(); object.material.dispose(); }
+    Object.assign(evidence, { importedDisplayRemoved: !scene.children.includes(gltf.scene),
+      callerChildRetained: scene.children.includes(callerChild),
+      callerCanvasRetained: document.body.contains(canvas),
+      callerRendererRetained: renderer.getContext() instanceof WebGL2RenderingContext,
+      originalSourcesRetained: cad.document.assets.every(asset => asset.source.includes('#guide_path_native')) });
+    show();
+  };
+</script>
+</html>
