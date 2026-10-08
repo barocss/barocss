@@ -11,7 +11,7 @@ export { createPathBuilder } from './path-builder.js';
 export type { PathBuilder } from './path-builder.js';
 export { decodeImageBlob } from './image-decode.js';
 export { createDisplayTree, createDisplayTreeFromScene } from './display-tree.js';
-export type { DisplayTree, StageHandle, ContainerHandle, SpriteHandle, PathHandle, DisplayHandle, ContainerSpec, SpriteSpec, PathSpec, PathPaint, PointerEventType, DisplayPointerEvent, PointerInput, PointerListener } from './display-tree.js';
+export type { DisplayTree, StageHandle, ContainerHandle, SpriteHandle, PathHandle, RectHandle, DisplayHandle, ContainerSpec, SpriteSpec, PathSpec, PathPaint, RectSpec, RectPaint, PointerEventType, DisplayPointerEvent, PointerInput, PointerListener } from './display-tree.js';
 export { createTicker } from './ticker.js';
 export type { Canvas2DTicker, FrameScheduler, TickInfo, TickListener } from './ticker.js';
 export { booleanOrthogonalPolygons } from './boolean.js';

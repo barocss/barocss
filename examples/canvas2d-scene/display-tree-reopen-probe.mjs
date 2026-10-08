@@ -46,7 +46,12 @@ const withRect = structuredClone(parsed.scene);
 withRect.nodes[0].children.push({ kind: 'rect', id: 'Rect', layer: 2,
   transform: { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 },
   width: 10, height: 10, fill: [1, 1, 1, 1] });
-assert.throws(() => createDisplayTreeFromScene(withRect), error => error.code === 'UNSUPPORTED_FEATURE');
+assert.equal(createDisplayTreeFromScene(withRect).get('Rect')?.kind, 'rect');
+const withLine = structuredClone(withRect);
+withLine.nodes[0].children.push({ kind: 'line', id: 'Line', layer: 3,
+  transform: { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 },
+  x1: 0, y1: 0, x2: 10, y2: 0, width: 1, stroke: [1, 1, 1, 1] });
+assert.throws(() => createDisplayTreeFromScene(withLine), error => error.code === 'UNSUPPORTED_FEATURE');
 const malformed = structuredClone(parsed.scene);
 malformed.nodes[0].children[0].unexpected = 1;
 assert.throws(() => createDisplayTreeFromScene(malformed), error => error.code === 'INVALID_SCENE');
