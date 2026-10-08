@@ -7,12 +7,23 @@
   body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
   main { max-width: 900px; margin: 20px auto; }
   canvas { display: block; width: 800px; height: 480px; border: 1px solid #44617d; }
+  #stage { position: relative; width: max-content; }
+  #native-labels { position: absolute; inset: 0; pointer-events: none; }
+  .native-label { position: absolute; transform: translate(-50%, -50%); padding: 2px 6px;
+    border: 1px solid #a7edff; border-radius: 4px; background: #12283de8;
+    color: #f4fbff; font: 13px/1.3 system-ui, sans-serif; white-space: nowrap; }
   pre { white-space: pre-wrap; font-size: 13px; }
 </style>
 <main>
   <h1>Selected native CAD document bodies</h1>
   <p>Four of six bodies retain document, asset, body and native IDs in one Viewer canvas.</p>
-  <canvas id="view" width="800" height="480"></canvas>
+  <div id="stage">
+    <canvas id="view" width="800" height="480"></canvas>
+    <div id="native-labels" aria-label="Caller-owned native measurement labels">
+      <span class="native-label" id="surface-label"></span>
+      <span class="native-label" id="curve-label"></span>
+    </div>
+  </div>
   <pre id="status">Loading…</pre>
 </main>
 <script type="module" src="/bundle.js"></script>

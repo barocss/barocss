@@ -96,6 +96,62 @@ try {
   assert(hidden.distanceMM > 0 && !accepted.documentBodies.some(value =>
     value.binding.geometryId === 'skip_path_native'),
   'Hidden native object in a selected asset lost inspection');
+  const surfaceHit = hits.get('surface:asset.a');
+  const surfacePointInput = { kind: 'surface', ...surfaceHit.ref,
+    u: surfaceHit.parameterUV[0], v: surfaceHit.parameterUV[1] };
+  const curvePointInput = { kind: 'curve', ...secondCurve.ref, t: secondCurve.parameterApprox };
+  const beforeProjection = viewer.getState(), pixelsBeforeProjection = hash(viewer.readPixels());
+  const surfaceAnchor = viewer.projectNativePoint(surfacePointInput);
+  const curveAnchor = viewer.projectNativePoint(curvePointInput);
+  assert(surfaceAnchor && curveAnchor && surfaceAnchor.documentBody?.bodyId === 'body_0_surface'
+    && curveAnchor.documentBody?.bodyId === 'body_1_curve'
+    && surfaceAnchor.documentBody.documentRevision === 5
+    && curveAnchor.documentBody.assetRevision === 7
+    && surfaceAnchor.xCss >= 0 && surfaceAnchor.xCss <= canvas.getBoundingClientRect().width
+    && curveAnchor.yCss >= 0 && curveAnchor.yCss <= canvas.getBoundingClientRect().height
+    && curveAnchor.depthScene > 0 && curveAnchor.occlusion === 'not-tested'
+    && curveAnchor.approximate === true
+    && JSON.stringify(viewer.getState()) === JSON.stringify(beforeProjection)
+    && hash(viewer.readPixels()) === pixelsBeforeProjection,
+  'Native measurement point projection changed state or lost qualified binding');
+  const copiedAnchor = viewer.projectNativePoint(curvePointInput);
+  copiedAnchor.documentBody.bodyId = 'caller-edited-copy';
+  assert(viewer.projectNativePoint(curvePointInput).documentBody.bodyId === 'body_1_curve',
+    'Projected document binding was not copied');
+  const cameraBeforeProjection = viewer.getState().camera;
+  viewer.orbit(0.12, 0.04);
+  const cameraAnchor = viewer.projectNativePoint(curvePointInput);
+  assert(cameraAnchor && Math.abs(cameraAnchor.xCss - curveAnchor.xCss) > 1
+    && JSON.stringify(cameraAnchor.point.pointMM) === JSON.stringify(curveAnchor.point.pointMM),
+  'Camera movement did not move the projected anchor');
+  viewer.setView(cameraBeforeProjection);
+  const shifted = poses(refs);
+  shifted.poses.forEach((pose, index) => {
+    if (refs[index].modelId === 'asset_b') pose.translation = [9, 0, 0];
+  });
+  viewer.applyGeometryMotionFrame(shifted, bindings(refs), { basis: 'part-xyz-matches-rhyup' });
+  const posedAnchor = viewer.projectNativePoint(curvePointInput);
+  assert(posedAnchor && Math.abs(posedAnchor.xCss - curveAnchor.xCss) > 1
+    && JSON.stringify(posedAnchor.point.pointMM) === JSON.stringify(curveAnchor.point.pointMM),
+  'Display pose changed native point or did not move the label anchor');
+  poseDocument(refs);
+  const cameraBeforeOutside = viewer.getState().camera;
+  viewer.setView({ ...cameraBeforeOutside, eye: [0, 0, 6], target: [0, 0, 12] });
+  const outsideFrustum = viewer.projectNativePoint(curvePointInput) === null;
+  viewer.setView(cameraBeforeOutside);
+  assert(outsideFrustum, 'Valid point behind the camera did not return null');
+  const beforeBadProjection = viewer.getState(), pixelsBeforeBadProjection = hash(viewer.readPixels());
+  let badParameterRefused = false, badPointRefused = false, hiddenNativeRefused = false;
+  try { viewer.projectNativePoint({ ...curvePointInput, t: 100000 }); }
+  catch { badParameterRefused = true; }
+  try { viewer.projectNativePoint({ ...curvePointInput, modelId: 'foreign' }); }
+  catch { badPointRefused = true; }
+  try { viewer.projectNativePoint({ kind: 'curve', modelId: 'asset.a', curveId: 'skip_path_native', t: 0 }); }
+  catch { hiddenNativeRefused = true; }
+  assert(badParameterRefused && badPointRefused && hiddenNativeRefused
+    && JSON.stringify(viewer.getState()) === JSON.stringify(beforeBadProjection)
+    && hash(viewer.readPixels()) === pixelsBeforeBadProjection,
+  'Invalid native point projection changed state or pixels');
   let crossRefused = false;
   try {
     viewer.measureNativeCurvePoints(
@@ -127,6 +183,12 @@ try {
   try { viewer.selectGeometry(refs[0]); } catch { hiddenSelectRefused = true; }
   try { viewer.fitGeometry(refs[0]); } catch { hiddenFitRefused = true; }
   assert(hiddenSelectRefused && hiddenFitRefused, 'Hidden Curve accepted selection or fit');
+  const firstCurveHit = hits.get('curve:asset.a');
+  const firstCurvePointInput = { kind: 'curve', ...firstCurveHit.ref, t: firstCurveHit.parameterApprox };
+  let hiddenProjectionRefused = false;
+  try { viewer.projectNativePoint(firstCurvePointInput); } catch { hiddenProjectionRefused = true; }
+  assert(hiddenProjectionRefused && viewer.projectNativePoint(surfacePointInput) !== null,
+    'Hidden Curve projected or visible Surface lost its anchor');
   viewer.setVisibleGeometry([refs[2]]);
   viewer.fit();
   const isolated = viewer.getState();
@@ -161,12 +223,16 @@ try {
   viewer.fit();
   const restoredHits = scanHits();
   assert(restoredHits.size === 4 && viewer.getState().geometryMotion !== null
-    && viewer.getState().document.document.assets[0].source === originalSource[0],
+    && viewer.getState().document.document.assets[0].source === originalSource[0]
+    && viewer.projectNativePoint(firstCurvePointInput) !== null,
   'Show all lost qualified hits, display poses or native source');
   viewer.clear();
+  let clearedProjectionRefused = false;
+  try { viewer.projectNativePoint(curvePointInput); } catch { clearedProjectionRefused = true; }
   assert(viewer.getState().status === 'empty' && viewer.getState().document === null
     && viewer.getState().documentBodies.length === 0
-    && viewer.getState().visibleGeometry.length === 0, 'Clear retained document state');
+    && viewer.getState().visibleGeometry.length === 0 && clearedProjectionRefused,
+  'Clear retained document projection authority');
   const blankHash = hash(viewer.readPixels());
   assert(hiddenAllHash === blankHash, 'All-hidden frame did not match explicit blank background');
   viewer.loadNative(originalSource[0], { sourceVersion: 0, countU: 8, countV: 8,
@@ -176,6 +242,10 @@ try {
     && singleSource.document === null && singleSource.visibleGeometry.length > 0
     && singleSource.visibleGeometry.length === singleSource.surfaces.length + singleSource.curves.length,
   'Legacy single-source load changed');
+  const sourceAnchor = viewer.projectNativePoint({ kind: 'surface', ...singleSource.surfaces[0],
+    u: surfacePointInput.u, v: surfacePointInput.v });
+  assert(sourceAnchor && sourceAnchor.documentBody === null,
+    'Single-source native Surface projection failed');
   const singleSourceHash = hash(viewer.readPixels());
   viewer.setVisibleGeometry([]);
   assert(viewer.getState().status === 'ready' && hash(viewer.readPixels()) === blankHash,
@@ -193,6 +263,10 @@ try {
   assert(acceptedSet.modelSet?.entries.length === 2
     && acceptedSet.document === null && acceptedSet.visibleGeometry.length === 4,
   'Legacy qualified model-set load changed');
+  const setAnchor = viewer.projectNativePoint({ kind: 'surface', ...acceptedSet.surfaces[0],
+    u: 0.5, v: 0.5 });
+  assert(setAnchor && setAnchor.documentBody === null,
+    'Qualified model-set native Surface projection failed');
   viewer.clear();
   viewer.loadDocument(result, options);
   const restored = viewer.getState();
@@ -200,6 +274,17 @@ try {
     && restored.nativeMeasurement === null && restored.visibleGeometry.length === 4,
   'Document replacement did not reset state');
   poseDocument(refs);
+  const finalSurfaceAnchor = viewer.projectNativePoint(surfacePointInput);
+  const finalCurveAnchor = viewer.projectNativePoint(curvePointInput);
+  assert(finalSurfaceAnchor && finalCurveAnchor, 'Final document labels fell outside the canvas');
+  const placeLabel = (selector, anchor, label) => {
+    const element = document.querySelector(selector);
+    element.style.left = `${anchor.xCss}px`;
+    element.style.top = `${anchor.yCss}px`;
+    element.textContent = label;
+  };
+  placeLabel('#surface-label', finalSurfaceAnchor, 'Surface · native point');
+  placeLabel('#curve-label', finalCurveAnchor, `${same.distanceMM.toFixed(2)} mm · native chord`);
   window.viewerDocumentProof = { ok: true, documentBytes: new TextEncoder().encode(
     await (await fetch('/document.cad-document.json')).text()).length,
     sourceBytes: originalSource.map(source => new TextEncoder().encode(source).length),
@@ -213,6 +298,14 @@ try {
     hiddenMeasurementMM: hiddenMeasurement.distanceMM, duplicateRefused,
     foreignRefused, malformedRefused, hiddenSelectRefused, hiddenFitRefused,
     emptyFitRefused, restoredHitKinds: [...restoredHits.keys()],
+    surfaceAnchor: { xCss: finalSurfaceAnchor.xCss, yCss: finalSurfaceAnchor.yCss,
+      bodyId: finalSurfaceAnchor.documentBody.bodyId },
+    curveAnchor: { xCss: finalCurveAnchor.xCss, yCss: finalCurveAnchor.yCss,
+      bodyId: finalCurveAnchor.documentBody.bodyId },
+    cameraAnchorMoved: true, poseAnchorMoved: true, outsideFrustum,
+    badParameterRefused, badPointRefused, hiddenNativeRefused,
+    hiddenProjectionRefused, clearedProjectionRefused,
+    sourceAndModelSetProjection: true,
     retainedHash: pixelsBeforeInvalid, singleSourceAndModelSetCompatible: true };
   output.textContent = JSON.stringify(window.viewerDocumentProof, null, 2);
 } catch (error) {

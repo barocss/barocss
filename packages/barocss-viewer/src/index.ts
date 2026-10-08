@@ -108,6 +108,16 @@ export interface ViewerNativePointDistance {
   space: 'native-authored';
   certification: 'not-certified';
 }
+export interface ViewerNativePointProjection {
+  point: ViewerNativePoint;
+  displayPositionScene: Vec3;
+  xCss: number;
+  yCss: number;
+  depthScene: number;
+  approximate: true;
+  occlusion: 'not-tested';
+  documentBody: BaroCadDocumentPrimitiveBindingV2 | null;
+}
 export interface ViewerPick {
   ref: ViewerRef;
   triangleIndex: number;
@@ -980,28 +990,64 @@ export class Viewer {
     const model = this.nativeModel(first.modelId);
     check(model && second.modelId === first.modelId,
       'Both points must belong to the accepted native model');
-    const evaluate = (input: ViewerNativePointInput): ViewerNativePoint => {
-      if (input.kind === 'surface') {
-        const surface = model.objects.find(object => object.kind === 'surface' && object.id === input.surfaceId);
-        check(surface && surface.kind === 'surface', 'Native Surface reference is unknown');
-        const domain = surfaceDomain(surface);
-        check(input.u >= domain.u[0] && input.u <= domain.u[1]
-          && input.v >= domain.v[0] && input.v <= domain.v[1],
-        'Native U/V parameters must be inside the original Surface domain');
-        return { kind: 'surface', ref: { modelId: input.modelId, surfaceId: input.surfaceId },
-          u: input.u, v: input.v, pointMM: [...evaluateSurface(surface, input.u, input.v)] as Vec3 };
-      }
-      const curve = model.objects.find(object => object.kind === 'curve' && object.id === input.curveId);
-      check(curve && curve.kind === 'curve', 'Native Curve reference is unknown');
-      const domain = curveDomain(curve);
-      check(input.t >= domain[0] && input.t <= domain[1],
-        'Native Curve parameter must be inside the original domain');
-      return { kind: 'curve', ref: { modelId: input.modelId, curveId: input.curveId },
-        t: input.t, pointMM: [...evaluateCurve(curve, input.t)] as Vec3 };
-    };
-    const result = nativeDistance(evaluate(first), evaluate(second));
+    const result = nativeDistance(this.evaluateNativePoint(first, model),
+      this.evaluateNativePoint(second, model));
     this.nativeMeasurement = result;
     return structuredClone(result);
+  }
+  private evaluateNativePoint(input: ViewerNativePointInput,
+    model: BaroCadNativeResult['model']): ViewerNativePoint {
+    if (input.kind === 'surface') {
+      const surface = model.objects.find(object => object.kind === 'surface' && object.id === input.surfaceId);
+      check(surface && surface.kind === 'surface', 'Native Surface reference is unknown');
+      const domain = surfaceDomain(surface);
+      check(input.u >= domain.u[0] && input.u <= domain.u[1]
+        && input.v >= domain.v[0] && input.v <= domain.v[1],
+      'Native U/V parameters must be inside the original Surface domain');
+      return { kind: 'surface', ref: { modelId: input.modelId, surfaceId: input.surfaceId },
+        u: input.u, v: input.v, pointMM: [...evaluateSurface(surface, input.u, input.v)] as Vec3 };
+    }
+    const curve = model.objects.find(object => object.kind === 'curve' && object.id === input.curveId);
+    check(curve && curve.kind === 'curve', 'Native Curve reference is unknown');
+    const domain = curveDomain(curve);
+    check(input.t >= domain[0] && input.t <= domain[1],
+      'Native Curve parameter must be inside the original domain');
+    return { kind: 'curve', ref: { modelId: input.modelId, curveId: input.curveId },
+      t: input.t, pointMM: [...evaluateCurve(curve, input.t)] as Vec3 };
+  }
+  projectNativePoint(input: ViewerNativePointInput): ViewerNativePointProjection | null {
+    this.live(); check(!this.contextLost, 'Cannot project after WebGL2 context loss');
+    const parsed = parseNativePointInput(input);
+    const ref: ViewerGeometryRef = parsed.kind === 'surface'
+      ? { kind: 'surface', modelId: parsed.modelId, surfaceId: parsed.surfaceId }
+      : { kind: 'curve', modelId: parsed.modelId, curveId: parsed.curveId };
+    check(this.geometryRefs().some(value => sameGeometryRef(value, ref)) && this.visible(ref),
+      'Native point must reference visible displayed geometry');
+    const model = this.nativeModel(parsed.modelId);
+    check(model, 'Native point has no accepted model');
+    const point = this.evaluateNativePoint(parsed, model);
+    const pose = parsed.kind === 'surface'
+      ? surfacePose({ modelId: parsed.modelId, surfaceId: parsed.surfaceId }, this.motion, this.geometryMotion)
+      : curvePose({ modelId: parsed.modelId, curveId: parsed.curveId }, this.geometryMotion);
+    const displayPositionScene = displayVertex(point.pointMM, pose, this.options.mmToSceneUnit);
+    check(displayPositionScene.every(Number.isFinite), 'Projected native point is not finite');
+    const rect = this.canvas.getBoundingClientRect();
+    check(rect.width > 0 && rect.height > 0, 'Canvas must have a visible CSS size for projection');
+    const backward = unit(subtract(this.camera.eye, this.camera.target));
+    const forward = multiply(backward, -1);
+    const right = unit(cross(this.camera.up, backward)), up = cross(backward, right);
+    const offset = subtract(displayPositionScene, this.camera.eye);
+    const depthScene = dot(offset, forward);
+    if (depthScene < this.camera.near || depthScene > this.camera.far) return null;
+    const tangent = Math.tan(this.camera.fovYDegrees * Math.PI / 360);
+    const aspect = this.canvas.width / this.canvas.height;
+    const x = dot(offset, right) / (depthScene * tangent * aspect);
+    const y = dot(offset, up) / (depthScene * tangent);
+    if (Math.abs(x) > 1 || Math.abs(y) > 1) return null;
+    const documentBody = this.documentBodies.find(body => sameGeometryRef(body.ref, ref))?.binding ?? null;
+    return structuredClone({ point, displayPositionScene,
+      xCss: rect.width * (1 + x) / 2, yCss: rect.height * (1 - y) / 2,
+      depthScene, approximate: true, occlusion: 'not-tested', documentBody });
   }
   setVisibleGeometry(input: ViewerGeometryRef[]): void {
     this.live();
