@@ -2,6 +2,9 @@ import { curveDomain, evaluateCurve, evaluateSurface, surfaceDomain } from '@bar
 import type { AdaptiveCurveSamplingResult, WideAdaptiveCurveSamplingResult } from '@barocss/cad';
 import { BaroCadLoadAbortError, loadBaroCadSource, parseBaroCadSource } from '@barocss/cad-interop/native';
 import type { BaroCadLoadTransportOptions, BaroCadNativeResult } from '@barocss/cad-interop/native';
+import { prepareBaroCadDocumentPrimitiveNativeRefsV2 } from '@barocss/cad-interop/document';
+import type { BaroCadDocumentPrimitiveBindingV2, BaroCadDocumentPrimitiveOptionsV2,
+  CadDocumentResult } from '@barocss/cad-interop/document';
 import { prepareBaroCadModelSetPrimitiveNativeRefsV2 } from '@barocss/cad-interop/model-set';
 import type { BaroCadModelSetResult } from '@barocss/cad-interop/model-set';
 import { mountMeshScene, mountPrimitiveScene, mountPrimitiveSceneV1, mountPrimitiveSceneV2,
@@ -121,6 +124,10 @@ export type ViewerGeometryPick =
       parameterInterval: [number, number]; parameterApprox: number;
       displayPositionScene: Vec3; nativePointMM: Vec3; depthScene: number;
       screenDistancePx: number; approximate: true; ambiguous: boolean };
+export interface ViewerDocumentBody {
+  ref: ViewerGeometryRef;
+  binding: BaroCadDocumentPrimitiveBindingV2;
+}
 export interface ViewerState {
   status: 'empty' | 'ready' | 'context-lost' | 'disposed';
   frame: 'right-handed-y-up';
@@ -136,6 +143,8 @@ export interface ViewerState {
   selectedGeometry: ViewerGeometryRef | null;
   native: BaroCadNativeResult | null;
   modelSet: BaroCadModelSetResult | null;
+  document: CadDocumentResult | null;
+  documentBodies: ViewerDocumentBody[];
   measurement: ViewerNativeSurfaceMeasurement | null;
   motion: ViewerMotionState | null;
   geometryMotion: ViewerGeometryMotionState | null;
@@ -474,6 +483,8 @@ export class Viewer {
   private curves: ViewerCurveEntry[] = [];
   private native: BaroCadNativeResult | null = null;
   private modelSet: BaroCadModelSetResult | null = null;
+  private document: CadDocumentResult | null = null;
+  private documentBodies: ViewerDocumentBody[] = [];
   private measurement: ViewerNativeSurfaceMeasurement | null = null;
   private curveMeasurement: ViewerNativeCurveMeasurement | null = null;
   private surfaceCurveMeasurement: ViewerNativeSurfaceCurveMeasurement | null = null;
@@ -517,7 +528,7 @@ export class Viewer {
   private present(packets: ViewerPacket[], curves: ViewerCurveEntry[], camera: MeshCamera, selected: ViewerRef | null,
     motion: ViewerMotionState | null, geometrySelection: ViewerGeometryRef | null = this.selectedGeometry,
     geometryMotion: ViewerGeometryMotionState | null = this.geometryMotion,
-    qualified = this.modelSet !== null): void {
+    qualified = this.modelSet !== null || this.document !== null): void {
     const surfaces = this.gpuEntries(packets, selected, motion, geometryMotion), options = this.gpuOptions(camera);
     if (packets.length + curves.length === 0) {
       if (this.renderer instanceof PrimitiveViewport) {
@@ -658,16 +669,19 @@ export class Viewer {
     return result;
   }
   private accept(input: unknown, native: BaroCadNativeResult | null, curves: ViewerCurveEntry[] = [],
-    modelSet: BaroCadModelSetResult | null = null): void {
-    const packets = this.validatedPackets(input, curves.length > 0, modelSet !== null);
+    modelSet: BaroCadModelSetResult | null = null, document: CadDocumentResult | null = null,
+    documentBodies: ViewerDocumentBody[] = []): void {
+    const qualified = modelSet !== null || document !== null;
+    const packets = this.validatedPackets(input, curves.length > 0, qualified);
     check(curves.every(entry => entry.sampleVersion === curves[0].sampleVersion),
       'Viewer requires one Curve sample version per native scene');
     check(packets.length + curves.length >= 1 && packets.length + curves.length <= 4,
       'Viewer requires 1..4 total display objects');
     const camera = fittedCamera(packets, curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
-    this.present(packets, curves, camera, null, null, null, null, modelSet !== null);
+    this.present(packets, curves, camera, null, null, null, null, qualified);
     this.packets = packets; this.curves = curves; this.camera = camera;
     this.selected = null; this.selectedGeometry = null; this.native = native; this.modelSet = modelSet;
+    this.document = document; this.documentBodies = documentBodies;
     this.measurement = null; this.motion = null; this.geometryMotion = null; this.curveMeasurement = null;
     this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
   }
@@ -713,6 +727,31 @@ export class Viewer {
     this.accept(packets, null, curves, modelSet);
     this.sceneRequest++;
   }
+  loadDocument(input: CadDocumentResult, options: BaroCadDocumentPrimitiveOptionsV2): void {
+    this.live();
+    const projected = prepareBaroCadDocumentPrimitiveNativeRefsV2(input, options);
+    const document = structuredClone(input);
+    const packets: ViewerPacket[] = [];
+    const curves: ViewerCurveEntry[] = [];
+    const documentBodies: ViewerDocumentBody[] = [];
+    for (const entry of projected) {
+      const modelId = entry.ref.modelId;
+      const geometryId = entry.ref.geometryId;
+      if (entry.kind === 'surface') {
+        packets.push({ modelId, packet: entry.packet });
+        documentBodies.push({ ref: { kind: 'surface', modelId, surfaceId: geometryId },
+          binding: entry.binding });
+      } else {
+        curves.push(entry.sampleVersion === 1
+          ? { modelId, sampleVersion: 1, sample: entry.sample }
+          : { modelId, sampleVersion: 0, sample: entry.sample });
+        documentBodies.push({ ref: { kind: 'curve', modelId, curveId: geometryId },
+          binding: entry.binding });
+      }
+    }
+    this.accept(packets, null, curves, null, document, documentBodies);
+    this.sceneRequest++;
+  }
   async loadNativeUrl(url: string, input: NativeLoadOptions | ViewerNativeCurveLoadOptions
     | ViewerNativeCurveLoadOptionsV1, transport: BaroCadLoadTransportOptions = {}): Promise<void> {
     this.live();
@@ -728,6 +767,7 @@ export class Viewer {
     this.live();
     this.present([], [], this.camera, null, null, null, null, false);
     this.packets = []; this.curves = []; this.native = null; this.modelSet = null;
+    this.document = null; this.documentBodies = [];
     this.selected = null; this.selectedGeometry = null;
     this.measurement = null; this.curveMeasurement = null;
     this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
@@ -735,6 +775,11 @@ export class Viewer {
     this.sceneRequest++;
   }
   private nativeModel(modelId: string): BaroCadNativeResult['model'] | null {
+    if (this.document) {
+      const body = this.documentBodies.find(value => value.ref.modelId === modelId);
+      return body ? this.document.compiledAssets.find(asset =>
+        asset.assetId === body.binding.assetId)?.model ?? null : null;
+    }
     if (this.modelSet) return this.modelSet.entries.find(entry =>
       entry.aliasId.replaceAll('-', '.') === modelId)?.result.model ?? null;
     return this.native?.model.name === modelId ? this.native.model : null;
@@ -1176,7 +1221,8 @@ export class Viewer {
       curveSampleVersion: this.curves.length ? this.curves[0].sampleVersion : null,
       packets: this.packets,
       selected: this.selected, selectedGeometry: this.selectedGeometry,
-      native: this.native, modelSet: this.modelSet, measurement: this.measurement,
+      native: this.native, modelSet: this.modelSet, document: this.document,
+      documentBodies: this.documentBodies, measurement: this.measurement,
       curveMeasurement: this.curveMeasurement, surfaceCurveMeasurement: this.surfaceCurveMeasurement,
       nativeMeasurement: this.nativeMeasurement, motion: this.motion,
       geometryMotion: this.geometryMotion });

@@ -58,6 +58,29 @@ supersedes a pending `loadNativeUrl`. This mode does not infer CAD document
 placement or native topology. The runnable
 `examples/viewer-model-set` uses two files with duplicate original IDs.
 
+For a direct-geometry CAD document v1, first use Loader's public
+`loadBaroCadDocument(url)` or `parseBaroCadDocument(text)`, then call
+`viewer.loadDocument(result,{native,basis:'authored-xyz-matches-rhyup',
+bodyIds})`. The host must explicitly assert that its authored XYZ matches
+the right-handed Y-up display basis; the document's opaque frame tag does not
+make that claim. Loader selects 1–4 bodies in document order. A document with
+more than four bodies requires explicit `bodyIds`. Viewer uses original
+Surface/Curve IDs and an asset-derived qualified `modelId` (`-` becomes
+`.`), then applies its own explicit `mmToSceneUnit` once.
+
+`getState().document` is an owned copy of the authoritative result.
+`getState().documentBodies` maps each displayed tagged ref to the exact
+document/body/asset/revision/frame binding; screen picks and selection use
+these refs. The old `native` and `modelSet` state fields are null in
+document mode. Native point distance resolves a selected asset's original
+Model and refuses cross-asset pairs. Display poses leave source, body
+bindings and native measurements unchanged. Invalid document/options or GPU
+admission keeps the prior scene; successful replacement resets selection,
+poses and measurements. `clear()` removes document state. This profile
+does not infer document placements, assemblies, topology or exact native
+screen hits. The runnable `examples/viewer-document` uses one saved
+six-body document with four selected bodies.
+
 For explicit Surface mesh lighting, pass an optional GPU `MeshLighting` value
 at creation: `lighting:{ambientStrength:0.12,directionalStrength:0.78,
 direction:[0.8,0.4,-0.7]}`. Each strength is in 0..1 and their sum is at most
