@@ -80,9 +80,6 @@ export class BaroCADBabylonLoader {
 
   parse(source: string): BaroCadBabylonResult {
     const options = validateBaroCadParseOptions(this.options);
-    if (options.curveDisplay && 'version' in options.curveDisplay) {
-      throw new RangeError('BaroCAD Babylon does not support Curve sample version 1');
-    }
     if (this.scene?.useRightHandedSystem !== true) {
       throw new RangeError('BaroCAD Babylon loading requires scene.useRightHandedSystem === true');
     }
