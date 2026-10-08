@@ -76,27 +76,33 @@ tagged field. Selecting a Curve sets the old Surface-only `selected` field to
 retain selection and pixels; a successful scene replacement clears both
 selection fields. This display highlight does not select native topology.
 
-For a sampled Motion frame, bind each Motion target to exactly one displayed surface:
+For a direct caller-owned `ViewerPoseFrame`, bind each target to exactly one displayed surface:
 
 ```js
-import { createMotionClip, sampleMotionClip } from '@barocss/motion';
-
-const clip = createMotionClip(clipInput);
+const frame = { contextId: 'part-demo', timeSeconds: 2, poses: [
+  { targetId: 'part-a', translation: [20, 0, 0] },
+  { targetId: 'part-b', translation: [-20, 0, 0] },
+] };
 const bindings = [
-  { contextId: clip.contextId, targetId: 'part-a', ref: viewer.getState().surfaces[0] },
-  { contextId: clip.contextId, targetId: 'part-b', ref: viewer.getState().surfaces[1] },
+  { contextId: frame.contextId, targetId: 'part-a', ref: viewer.getState().surfaces[0] },
+  { contextId: frame.contextId, targetId: 'part-b', ref: viewer.getState().surfaces[1] },
 ];
-viewer.applyMotionFrame(sampleMotionClip(clip, 2), bindings,
+viewer.applyMotionFrame(frame, bindings,
   { basis: 'part-xyz-matches-rhyup' });
 viewer.fit();
 viewer.resetMotion();
 ```
 
-The basis declaration means the Motion part XYZ/mm axes already match Viewer
+The basis declaration means the caller's part XYZ/mm axes already match Viewer
 right-handed Y-up/mm axes. Viewer does not infer an axis change. Translation is
 in millimetres. The display order is native scale, quaternion rotation,
 translation, then the shared `mmToSceneUnit` conversion. The GPU applies the
 inverse scale to normals before rotation. Missing TRS parts use identity values.
+`ViewerPoseFrame` and `VIEWER_POSE_LIMITS` are exported by Viewer. The frame
+has exact `contextId`, `timeSeconds` and 1..4 unique target poses. It keeps
+the accepted direct-frame shape: no wire version field is added. Time is
+0..3600 seconds, translation is ±10000 mm, scale is 0.001..100 and rotation
+is unit XYZW within 1e-9. Viewer has no dependency on a clip package.
 `applyMotionFrame` requires a complete, one-to-one binding for the current
 1..4 surfaces and frame poses. Invalid input or a rejected GPU update retains
 the last accepted scene. `getState().motion` copies the frame, bindings, and
@@ -107,7 +113,7 @@ and playback time remain with the caller.
 
 `applyGeometryMotionFrame(frame, bindings, {basis:'part-xyz-matches-rhyup'})`
 accepts one tagged Surface or Curve binding for every displayed object. It uses
-the same caller-owned Motion frame and TRS limits as `applyMotionFrame`.
+the same caller-owned Viewer pose frame and TRS limits as `applyMotionFrame`.
 `getState().geometryMotion` copies the accepted frame, bindings and display
 poses. A successful call to either Motion method clears the other pose state.
 `resetMotion()` and successful scene replacement clear both. Curve GPU pixels,

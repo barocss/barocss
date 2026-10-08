@@ -1,5 +1,4 @@
 import { createViewer } from '../../packages/barocss-viewer/dist/index.js';
-import { createMotionClip, sampleMotionClip } from '../../packages/barocss-motion/dist/index.js';
 
 const canvas = document.querySelector('#view');
 const stateElement = document.querySelector('#state');
@@ -7,26 +6,26 @@ const viewer = createViewer(canvas, { mmToSceneUnit: 0.001, background: [0.035, 
 const source = await (await fetch('/two-surfaces.barocad')).text();
 viewer.loadNative(source, { sourceVersion: 0, countU: 8, countV: 8 });
 const refs = viewer.getState().surfaces;
-const clip = createMotionClip({
-  version: 0, contextId: 'native_loader_demo', durationSeconds: 4,
-  tracks: [
-    { targetId: 'panel-a', property: 'translation', interpolation: 'LINEAR', keys: [
-      { timeSeconds: 0, value: [-30, -10, 0] }, { timeSeconds: 4, value: [65, 10, 10] }] },
-    { targetId: 'panel-a', property: 'rotation', interpolation: 'SLERP', keys: [
-      { timeSeconds: 0, value: [0, 0, 0, 1] }, { timeSeconds: 4, value: [0, 0, Math.SQRT1_2, Math.SQRT1_2] }] },
-    { targetId: 'panel-a', property: 'scale', interpolation: 'LINEAR', keys: [
-      { timeSeconds: 0, value: [1, 1, 1] }, { timeSeconds: 4, value: [1.5, 0.75, 1] }] },
-    { targetId: 'panel-b', property: 'translation', interpolation: 'LINEAR', keys: [
-      { timeSeconds: 0, value: [30, 10, 0] }, { timeSeconds: 4, value: [-70, 35, 25] }] },
-    { targetId: 'panel-b', property: 'rotation', interpolation: 'SLERP', keys: [
-      { timeSeconds: 0, value: [0, 0, 0, 1] }, { timeSeconds: 4, value: [0, Math.SQRT1_2, 0, Math.SQRT1_2] }] },
-    { targetId: 'panel-b', property: 'scale', interpolation: 'LINEAR', keys: [
-      { timeSeconds: 0, value: [1, 1, 1] }, { timeSeconds: 4, value: [0.65, 1.4, 0.8] }] },
+const contextId = viewer.getState().native.model.name;
+const sinHalf = Math.sin(Math.PI / 8), cosHalf = Math.cos(Math.PI / 8);
+const frames = {
+  0: [
+    { targetId: 'panel-a', translation: [-30, -10, 0], rotation: [0, 0, 0, 1], scale: [1, 1, 1] },
+    { targetId: 'panel-b', translation: [30, 10, 0], rotation: [0, 0, 0, 1], scale: [1, 1, 1] },
   ],
-});
+  2: [
+    { targetId: 'panel-a', translation: [17.5, 0, 5], rotation: [0, 0, sinHalf, cosHalf], scale: [1.25, 0.875, 1] },
+    { targetId: 'panel-b', translation: [-20, 22.5, 12.5], rotation: [0, sinHalf, 0, cosHalf], scale: [0.825, 1.2, 0.9] },
+  ],
+  4: [
+    { targetId: 'panel-a', translation: [65, 10, 10], rotation: [0, 0, Math.SQRT1_2, Math.SQRT1_2], scale: [1.5, 0.75, 1] },
+    { targetId: 'panel-b', translation: [-70, 35, 25], rotation: [0, Math.SQRT1_2, 0, Math.SQRT1_2], scale: [0.65, 1.4, 0.8] },
+  ],
+};
+const frameAt = timeSeconds => ({ contextId, timeSeconds, poses: structuredClone(frames[timeSeconds]) });
 const bindings = [
-  { contextId: clip.contextId, targetId: 'panel-a', ref: refs[0] },
-  { contextId: clip.contextId, targetId: 'panel-b', ref: refs[1] },
+  { contextId, targetId: 'panel-a', ref: refs[0] },
+  { contextId, targetId: 'panel-b', ref: refs[1] },
 ];
 const basis = { basis: 'part-xyz-matches-rhyup' };
 
@@ -44,9 +43,9 @@ function describe(message = '') {
   ].join('\n');
 }
 function step(timeSeconds) {
-  viewer.applyMotionFrame(sampleMotionClip(clip, timeSeconds), bindings, basis);
+  viewer.applyMotionFrame(frameAt(timeSeconds), bindings, basis);
   viewer.fit();
-  describe('The caller sampled Motion. Viewer has no playback clock.');
+  describe('The caller supplied a direct pose frame. Viewer has no playback clock.');
 }
 for (const [id, time] of [['start', 0], ['middle', 2], ['end', 4]]) {
   document.querySelector(`#${id}`).addEventListener('click', () => step(time));
@@ -61,4 +60,4 @@ canvas.addEventListener('click', event => {
     : 'No displayed triangle hit.');
 });
 describe();
-window.viewerMotionDemo = { viewer, clip, bindings, basis, source, step, describe, sampleMotionClip };
+window.viewerMotionDemo = { viewer, frames, frameAt, bindings, basis, source, step, describe };

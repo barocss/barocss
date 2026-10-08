@@ -6,8 +6,6 @@ import { mountMeshScene, mountPrimitiveScene, mountPrimitiveSceneV1, PrimitiveSc
   PrimitiveSceneRendererV1, prepareMesh,
   validateMeshCamera, validatePreviewPacket } from '@barocss/gpu';
 import type { MeshCamera, MeshLighting, PreviewPacket, PrimitiveSceneEntryV1 } from '@barocss/gpu';
-import { MOTION_LIMITS } from '@barocss/motion';
-import type { MotionFrame } from '@barocss/motion';
 
 type Vec3 = [number, number, number];
 type Quat = [number, number, number, number];
@@ -39,10 +37,24 @@ export interface ViewerNativeSurfaceMeasurement {
   certification: 'not-certified';
 }
 export interface ViewerMotionBinding { contextId: string; targetId: string; ref: ViewerRef }
+export interface ViewerPose {
+  targetId: string;
+  translation?: Vec3;
+  rotation?: Quat;
+  scale?: Vec3;
+}
+export interface ViewerPoseFrame { contextId: string; timeSeconds: number; poses: ViewerPose[] }
+export const VIEWER_POSE_LIMITS = Object.freeze({
+  durationSeconds: 3600,
+  translationMm: 10000,
+  scaleMin: 0.001,
+  scaleMax: 100,
+  quaternionNormTolerance: 1e-9,
+});
 export interface ViewerDisplayPose { ref: ViewerRef; translationMm: Vec3; rotationXYZW: Quat; scale: Vec3 }
 export interface ViewerMotionState {
   basis: 'part-xyz-matches-rhyup';
-  frame: MotionFrame;
+  frame: ViewerPoseFrame;
   bindings: ViewerMotionBinding[];
   displayPoses: ViewerDisplayPose[];
 }
@@ -52,7 +64,7 @@ export interface ViewerGeometryDisplayPose {
 }
 export interface ViewerGeometryMotionState {
   basis: 'part-xyz-matches-rhyup';
-  frame: MotionFrame;
+  frame: ViewerPoseFrame;
   bindings: ViewerGeometryMotionBinding[];
   displayPoses: ViewerGeometryDisplayPose[];
 }
@@ -173,7 +185,7 @@ function denseArray(input: unknown, length: number, label: string): unknown[] {
 }
 function quaternion(input: unknown): Quat {
   const values = denseArray(input, 4, 'Motion rotation').map(value => finite(value, 'Motion rotation', -1, 1)) as Quat;
-  check(Math.abs(Math.hypot(...values) - 1) <= MOTION_LIMITS.quaternionNormTolerance,
+  check(Math.abs(Math.hypot(...values) - 1) <= VIEWER_POSE_LIMITS.quaternionNormTolerance,
     'Motion rotation must be a unit XYZW quaternion');
   return values;
 }
@@ -181,10 +193,10 @@ function motionId(input: unknown, label: string): string {
   check(typeof input === 'string' && MOTION_ID.test(input), `${label} must be a bounded Motion identifier`);
   return input;
 }
-function parseMotionFrame(input: unknown): MotionFrame {
+function parseMotionFrame(input: unknown): ViewerPoseFrame {
   const data = ownRecord(input, ['contextId', 'timeSeconds', 'poses'], 'Motion frame');
   const contextId = motionId(data.contextId, 'Motion contextId');
-  const timeSeconds = finite(data.timeSeconds, 'Motion timeSeconds', 0, MOTION_LIMITS.durationSeconds);
+  const timeSeconds = finite(data.timeSeconds, 'Motion timeSeconds', 0, VIEWER_POSE_LIMITS.durationSeconds);
   check(Array.isArray(data.poses) && data.poses.length >= 1 && data.poses.length <= 4,
     'Motion frame needs 1..4 poses');
   const poses = denseArray(data.poses, data.poses.length, 'Motion poses').map((inputPose, index) => {
@@ -196,10 +208,10 @@ function parseMotionFrame(input: unknown): MotionFrame {
     const pose = ownRecord(inputPose, keys as string[], 'Motion pose');
     return { targetId: motionId(pose.targetId, 'Motion targetId'),
       ...(Object.hasOwn(pose, 'translation') ? { translation: vector(pose.translation, 'Motion translation',
-        -MOTION_LIMITS.translationMm, MOTION_LIMITS.translationMm) } : {}),
+        -VIEWER_POSE_LIMITS.translationMm, VIEWER_POSE_LIMITS.translationMm) } : {}),
       ...(Object.hasOwn(pose, 'rotation') ? { rotation: quaternion(pose.rotation) } : {}),
       ...(Object.hasOwn(pose, 'scale') ? { scale: vector(pose.scale, 'Motion scale',
-        MOTION_LIMITS.scaleMin, MOTION_LIMITS.scaleMax) } : {}) };
+        VIEWER_POSE_LIMITS.scaleMin, VIEWER_POSE_LIMITS.scaleMax) } : {}) };
   });
   check(new Set(poses.map(pose => pose.targetId)).size === poses.length, 'Duplicate Motion targetId');
   return { contextId, timeSeconds, poses };
@@ -321,7 +333,7 @@ function sameRef(a: ViewerRef | null, b: ViewerRef | null): boolean {
   return !!a && !!b && a.modelId === b.modelId && a.surfaceId === b.surfaceId;
 }
 function refKey(ref: ViewerRef): string { return `${ref.modelId}\0${ref.surfaceId}`; }
-function parseMotionBindings(input: unknown, frame: MotionFrame, packets: ViewerPacket[]): ViewerMotionBinding[] {
+function parseMotionBindings(input: unknown, frame: ViewerPoseFrame, packets: ViewerPacket[]): ViewerMotionBinding[] {
   const bindings = denseArray(input, packets.length, 'Motion bindings').map(raw => {
     const value = ownRecord(raw, ['contextId', 'targetId', 'ref'], 'Motion binding');
     const contextId = motionId(value.contextId, 'Binding contextId');
@@ -341,7 +353,7 @@ function geometryKey(ref: ViewerGeometryRef): string {
   return ref.kind === 'surface' ? `surface\0${ref.modelId}\0${ref.surfaceId}`
     : `curve\0${ref.modelId}\0${ref.curveId}`;
 }
-function parseGeometryMotionBindings(input: unknown, frame: MotionFrame,
+function parseGeometryMotionBindings(input: unknown, frame: ViewerPoseFrame,
   packets: ViewerPacket[], curves: ViewerCurveEntry[]): ViewerGeometryMotionBinding[] {
   const count = packets.length + curves.length;
   const bindings = denseArray(input, count, 'Geometry Motion bindings').map(raw => {
@@ -662,7 +674,7 @@ export class Viewer {
     this.nativeMeasurement = latest;
     return structuredClone(result);
   }
-  applyMotionFrame(input: MotionFrame, inputBindings: ViewerMotionBinding[],
+  applyMotionFrame(input: ViewerPoseFrame, inputBindings: ViewerMotionBinding[],
     inputOptions: { basis: 'part-xyz-matches-rhyup' }): void {
     this.live(); check(this.packets.length > 0, 'Viewer has no surfaces');
     const basis = ownRecord(inputOptions, ['basis'], 'Motion basis');
@@ -692,7 +704,7 @@ export class Viewer {
     this.motion = motion;
     this.geometryMotion = null;
   }
-  applyGeometryMotionFrame(input: MotionFrame, inputBindings: ViewerGeometryMotionBinding[],
+  applyGeometryMotionFrame(input: ViewerPoseFrame, inputBindings: ViewerGeometryMotionBinding[],
     inputOptions: { basis: 'part-xyz-matches-rhyup' }): void {
     this.live(); check(this.packets.length + this.curves.length > 0, 'Viewer has no geometry');
     const basis = ownRecord(inputOptions, ['basis'], 'Motion basis');
