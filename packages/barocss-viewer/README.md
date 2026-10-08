@@ -65,7 +65,7 @@ or a second canvas. The Surface is display geometry, not a certified fluid
 collision obstacle. `examples/viewer-fluid-scene` exercises the actual Physics
 and native Surface path in Chromium WebGL2.
 
-For one qualified native Surface, compile an opaque CSS-shaped material with
+For a qualified native Surface, compile an opaque CSS-shaped material with
 `@barocss/gpu` and bind it through Viewer:
 
 ```js
@@ -79,16 +79,23 @@ viewer.setSurfaceMaterial(ref, { material: compiled.material,
 viewer.setSurfaceMaterial(ref, null); // restore default Surface appearance
 ```
 
-The host owns time and uniform updates. `getState().surfaceMaterial` returns a
-copy of the accepted binding. The initial profile requires exactly one visible
-qualified native Surface, no Curves, through `loadModelSet` or `loadDocument`.
+The host owns time and uniform updates. The copied `getState().surfaceMaterials`
+array lists every accepted binding in Surface order. `surfaceMaterial` keeps
+the original one-binding query: it returns that binding when exactly one is
+bound, or `null` when zero or multiple Surfaces are bound. The profile accepts
+1–4 qualified native Surfaces with no Curves through `loadModelSet` or
+`loadDocument`. Distinct aliases may keep the same original Surface ID.
 Legacy `loadNative` and raw packets refuse material binding. Camera, fit and
 display pose changes retain it through GPU's complete-frame update, including
 an accepted fluid layer. Selecting the bound Surface or hiding it requires an
-explicit material clear first. Particle-only updates retain the material.
+explicit clear of that Surface's material first. An unbound Surface may be
+selected or hidden while other Surfaces remain bound. Particle-only updates
+retain all accepted materials in the one-Surface fluid profile.
 Successful scene replacement and Viewer clear remove it; failed requests keep
 the accepted binding and pixels. `examples/viewer-surface-material` runs the
-actual native/compiled-material/Physics path in Chromium WebGL2.
+actual native/compiled-material/Physics path in Chromium WebGL2;
+`examples/viewer-multi-material` checks separate bindings on two qualified
+source0 models.
 
 For a source0 file served over HTTP, call `await viewer.loadNativeUrl(url,
 loadOptions, { signal, onProgress })`. The transport reports received bytes and
