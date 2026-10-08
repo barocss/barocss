@@ -4973,3 +4973,71 @@ touching trims, feature graphs, sewing/Boolean/detail/assemblies/exchange remain
 open. Reports retain geometricValidity:not-certified, topologyCertified:false
 and solid:false. Planner coordinates sole-GPU integration and current-source
 GPU/Loader consumer adoption separately.
+
+## Own adaptive samples of an authoritative native Curve
+
+`sampleCurveAdaptive(curve, {chordToleranceMM, maxSegments, maxDepth,
+resultIdPrefix})` returns ordered display samples of the original native Curve.
+The owned result is `{curve, options, source, sourceVersion:0, model, domain,
+parameters, pointsMM, samples, segments, operations, report}`. Output XYZ values
+come from actual original `evaluateCurve` calls at original native parameters.
+Authored XYZ and millimetres are preserved without an axis conversion or an
+inferred up axis. A host resolves its explicit frame contract. Samples are
+neither new native edges nor a fitted Curve.
+
+Supported input is a positive-weight nonperiodic open-clamped degree1..3 Curve
+with2..16 poles, at most8 nonzero native knot spans, finite XYZ within±10000mm,
+weights1e-6..1e6 and an ASCII ID1..48. The original geometry/source order,
+weights/knots/poles/domains and signed-zero bits remain authoritative. Tolerance
+is1e-7..1000mm, maxSegments1..1024 and maxDepth0..16. There are at most1025
+ordered points. Existing native624/61716-pole refinement capacity stays intact;
+a required extraction overflow refuses rather than widening those helpers.
+
+Actual `splitCurveAtParameter`/native knot refinement extracts genuine rational
+Bezier spans, then subdivides deterministically at representable original
+midpoints. Each accepted span records its actual native Bezier coefficients,
+original span/domain, subdivision depth and compact actual split/refinement
+provenance. Original knot/span boundaries occur once in output, with adjacent
+interval lineage and original D1 guard information. C0 point continuity does
+not imply D1/G1 continuity. A midpoint with no represented interior parameter,
+unsafe arithmetic or exhausted segment/depth/work budget refuses atomically.
+Previous native Curve/results/source remain reusable.
+
+Positive rational Bezier curves lie in their control-point convex hull, giving
+the mathematical basis for a finite-chord control-polygon distance estimate.
+See the primary [rational Bezier notes](https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/NURBS/RB.html)
+and [NURBS properties](https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/spline/NURBS/NURBS-property.html).
+The own algorithm measures distance to a FINITE segment, including endpoint
+regions and an explicit degenerate-chord policy. It does not use distance to
+an infinite line or midpoint samples as a global certificate. Native binary64
+split coefficients can introduce arithmetic differences. Computed hull/chord
+estimates, actual original point-to-output-chord observations and native
+extraction residuals are separate fields. Requested flatness is a display
+criterion, not a certified binary64 global manufacturing/error guarantee.
+
+The original single-Curve source0 Model is compiled with full native bit/ID/
+order/domain adoption. UV/mesh/renderer geometry and new source grammar are
+not involved. Prefix is ASCII1..20. Reserved roles are `prefix_model`,
+`prefix_split_N_lo`, `prefix_split_N_hi`, `prefix_seg_N` and `prefix_pt_N`.
+They are display/operation identifiers, not fabricated CAD boundaries. At
+maxSegments1024 there are at most4096 reserved IDs and1023 actual extraction
+plus subdivision splits. Work/staging checks precede large allocation.
+Owned snapshots bound262144 values/depth24/arrays4096/records64/source262144.
+
+`validateAdaptiveCurveSamples(result)` rebuilds original Curve/source/request
+and deterministic native extraction/sampling, comparing full owned point,
+parameter/interval/span/provenance/report bits. Accessors/hidden/symbol fields,
+foreign/sparse/cyclic/nonfinite/unknown data, ID collisions and altered owned
+points/parameters/provenance refuse without replacing prior accepted data.
+
+```sh
+node examples/cad-nurbs/curve-adaptive-sampling-demo.mjs --source
+```
+
+The actual source/native-file flow also performs a short separate import of the
+public manifest's declared compiled JS entry and checks emitted declarations.
+Its source esbuild graph remains actual `src`, with no CAD dist inputs or
+per-demo build. Renderer/Loader adoption of samples is a separate Issue.
+Reports retain geometricValidity:not-certified, topologyCertified:false and
+solid:false. General adaptive Surfaces, curved trims, topology/Boolean/features/
+constraints/assemblies/exchange remain tracked under503/535/537 and library660.
