@@ -1,5 +1,6 @@
 // @ts-check
-import { Canvas2DError, createCanvas2D, createDisplayTree, stringifySceneJSON } from '@barocss/canvas2d';
+import { Canvas2DError, createCanvas2D, createDisplayTree, createDisplayTreeFromScene,
+  stringifySceneJSON } from '@barocss/canvas2d';
 import { serializeCanvasDocument, stageCanvasDocument } from '@barocss/canvas2d/document';
 
 /** @type {import('@barocss/canvas2d').Canvas2DOptions} */
@@ -10,11 +11,11 @@ const asset = { width: 2, height: 2, pixels: new Uint8Array([
   0, 0, 255, 255, 0, 255, 0, 255,
 ]) };
 const pose = (x = 0, y = 0) => ({ x, y, scaleX: 1, scaleY: 1, rotation: 0 });
-const tree = createDisplayTree('DisplayConsumer');
-const team = tree.createContainer({ id: 'Team', layer: 0, transform: pose(40, 50) });
-const red = tree.createSprite({ id: 'Red', layer: 0, transform: pose(), imageId: 'RGBA2',
+let tree = createDisplayTree('DisplayConsumer');
+let team = tree.createContainer({ id: 'Team', layer: 0, transform: pose(40, 50) });
+let red = tree.createSprite({ id: 'Red', layer: 0, transform: pose(), imageId: 'RGBA2',
   width: 40, height: 40, opacity: 1, sampling: 'nearest', anchorX: 0, anchorY: 0 });
-const blue = tree.createSprite({ id: 'Blue', layer: 1, transform: pose(20, 0), imageId: 'RGBA2',
+let blue = tree.createSprite({ id: 'Blue', layer: 1, transform: pose(20, 0), imageId: 'RGBA2',
   width: 40, height: 40, opacity: 1, sampling: 'nearest', anchorX: 0, anchorY: 0 });
 tree.stage.addChild(team); team.addChild(red); team.addChild(blue);
 
@@ -29,7 +30,6 @@ let generation = 1;
 /** @type {string | null} */
 let oldDisposeCode = null;
 let stopped = false;
-let editable = true;
 const status = /** @type {HTMLElement} */ (document.querySelector('#status'));
 const output = /** @type {HTMLElement} */ (document.querySelector('#observation'));
 const openInput = /** @type {HTMLInputElement} */ (document.querySelector('#open'));
@@ -46,10 +46,12 @@ function pixel(x, y) {
   return [...bytes];
 }
 function observe() {
-  return { generation, editable, canvasSize: [canvas.width, canvas.height],
+  return { generation, editable: !stopped, canvasSize: [canvas.width, canvas.height],
     scene: stringifySceneJSON(accepted), treeScene: stringifySceneJSON(tree.snapshot()),
     stageIds: tree.stage.children.map(child => child.id),
     childIds: team.children.map(child => child.id),
+    handleKinds: { Team: tree.get('Team')?.kind ?? null, Red: tree.get('Red')?.kind ?? null,
+      Blue: tree.get('Blue')?.kind ?? null },
     assetBytes: [...(renderer.getImageAsset('RGBA2')?.pixels ?? [])], oldDisposeCode,
     samples: points.map(([x, y]) => ({ x, y, rgba: pixel(x, y), hit: renderer.hitTest({ x, y })?.id ?? null })) };
 }
@@ -64,7 +66,7 @@ function submit(label) {
   renderer.updateScene(accepted); renderer.render();
   show(label);
 }
-function requireAuthoring() { if (!editable) throw new Error('Reload to author a new display tree'); }
+function requireAuthoring() { if (stopped) throw new Canvas2DError('DISPOSED', 'renderer is disposed'); }
 function move() { requireAuthoring(); team.setTransform(pose(60, 50)); submit('Moved Team to x=60'); }
 function anchor() { requireAuthoring(); red.setAnchor(0.5, 0.5); submit('Centered Red anchor'); }
 function resetAnchor() { requireAuthoring(); red.setAnchor(0, 0); submit('Reset Red anchor'); }
@@ -108,18 +110,39 @@ async function openText(text) {
     staged.renderer.dispose();
     throw new Canvas2DError('UNSUPPORTED_FEATURE', 'this display-tree consumer opens Scene v6 only');
   }
+  /** @type {import('@barocss/canvas2d').DisplayTree} */
+  let restored;
+  /** @type {import('@barocss/canvas2d').ContainerHandle} */
+  let restoredTeam;
+  /** @type {import('@barocss/canvas2d').SpriteHandle} */
+  let restoredRed;
+  /** @type {import('@barocss/canvas2d').SpriteHandle} */
+  let restoredBlue;
+  try {
+    restored = createDisplayTreeFromScene(staged.scene);
+    const teamHandle = restored.get('Team');
+    const redHandle = restored.get('Red');
+    const blueHandle = restored.get('Blue');
+    if (teamHandle?.kind !== 'container' || redHandle?.kind !== 'sprite' ||
+        blueHandle?.kind !== 'sprite') {
+      throw new Canvas2DError('UNSUPPORTED_FEATURE', 'consumer requires Team, Red and Blue handles');
+    }
+    if (restored.stage.children.length !== 1 || restored.stage.children[0] !== teamHandle ||
+        teamHandle.children.length !== 2 || !teamHandle.children.includes(redHandle) ||
+        !teamHandle.children.includes(blueHandle)) {
+      throw new Canvas2DError('UNSUPPORTED_FEATURE', 'consumer requires Team with Red and Blue children');
+    }
+    restoredTeam = teamHandle; restoredRed = redHandle; restoredBlue = blueHandle;
+  } catch (error) { staged.renderer.dispose(); throw error; }
   const old = renderer;
   canvas.replaceWith(fresh); canvas = fresh; renderer = staged.renderer;
+  tree = restored; team = restoredTeam; red = restoredRed; blue = restoredBlue;
   accepted = staged.scene;
   generation++;
-  editable = false;
-  for (const id of ['move', 'anchor', 'reset-anchor', 'layer', 'equal', 'reorder', 'invalid']) {
-    /** @type {HTMLButtonElement} */ (document.querySelector(`#${id}`)).disabled = true;
-  }
   old.dispose();
   try { old.render(); }
   catch (error) { oldDisposeCode = /** @type {import('@barocss/canvas2d').Canvas2DError} */ (error).code; }
-  show(`Opened v${accepted.version} with ${staged.assets.size} asset · reload to author a new tree`);
+  show(`Opened editable v${accepted.version} tree with ${staged.assets.size} asset`);
 }
 function dispose() {
   if (stopped) return;
@@ -150,5 +173,5 @@ document.querySelector('#open')?.addEventListener('change', () => {
   openInput.value = '';
 });
 Object.assign(window, { __displayTreeConsumer: { observe, move, anchor, resetAnchor,
-  layer, equal, reorder, invalid, save, openText, dispose } });
+  layer, equal, reorder, invalid, save, openText, dispose, get tree() { return tree; } } });
 show('Ready: public display tree and compiled package entries');

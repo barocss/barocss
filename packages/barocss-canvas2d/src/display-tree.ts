@@ -25,6 +25,7 @@ export type DisplayTree = {
   readonly stage: StageHandle;
   createContainer(spec: ContainerSpec): ContainerHandle;
   createSprite(spec: SpriteSpec): SpriteHandle;
+  get(id: string): DisplayHandle | null;
   snapshot(): SceneV6;
 };
 
@@ -166,9 +167,55 @@ export function createDisplayTree(contextId: string): DisplayTree {
       record.handle = handle; records.set(handle, record);
       return handle;
     },
+    get(id: string): DisplayHandle | null {
+      if (typeof id !== 'string' || !/^[A-Za-z][A-Za-z0-9_-]{0,63}$/.test(id)) {
+        invalid('display object ID is invalid');
+      }
+      const find = (children: RecordNode[]): DisplayHandle | null => {
+        for (const child of children) {
+          if (child.data?.id === id) return child.handle as DisplayHandle;
+          const descendant = find(child.children);
+          if (descendant) return descendant;
+        }
+        return null;
+      };
+      return find(root.children);
+    },
     snapshot(): SceneV6 {
       return validateScene({ version: 6, unit: 'logical-px', contextId: checked.contextId,
         nodes: root.children.map(toNode) }) as SceneV6;
     },
   });
+}
+
+export function createDisplayTreeFromScene(scene: unknown): DisplayTree {
+  const accepted = validateScene(scene);
+  if (accepted.version !== 6) {
+    throw new Canvas2DError('UNSUPPORTED_FEATURE', 'display tree reconstruction requires Scene v6');
+  }
+  const allowed = (nodes: SceneV6['nodes']): void => {
+    for (const node of nodes) {
+      if (node.kind === 'group') allowed(node.children);
+      else if (node.kind !== 'image') {
+        throw new Canvas2DError('UNSUPPORTED_FEATURE', `display tree cannot reconstruct ${node.kind}`);
+      }
+    }
+  };
+  allowed(accepted.nodes);
+  const tree = createDisplayTree(accepted.contextId);
+  const attach = (parent: StageHandle, nodes: SceneV6['nodes']): void => {
+    for (const node of nodes) {
+      if (node.kind === 'group') {
+        const { kind: _kind, children, ...spec } = node;
+        const handle = tree.createContainer(spec);
+        parent.addChild(handle);
+        attach(handle, children);
+      } else if (node.kind === 'image') {
+        const { kind: _kind, ...spec } = node;
+        parent.addChild(tree.createSprite(spec));
+      }
+    }
+  };
+  attach(tree.stage, accepted.nodes);
+  return tree;
 }
