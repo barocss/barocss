@@ -23,6 +23,23 @@ const nextJSON = stringifySceneJSON(scene);
 renderer.dispose();
 ```
 
+`createPathBuilder()` makes path-local commands for the public display tree. The example below uses the renderer created above; the builder does not own paint or render a frame:
+
+```js
+import { createDisplayTree, createPathBuilder } from '@barocss/canvas2d';
+
+const tree = createDisplayTree('Shapes');
+const commands = createPathBuilder().rect(20, 20, 60, 60).build();
+const shape = tree.createPath({ id: 'Rectangle', layer: 0,
+  transform: { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 },
+  commands, fill: { color: [1, 0, 0, 1], rule: 'evenodd' } });
+tree.stage.addChild(shape);
+renderer.updateScene(tree.snapshot());
+renderer.render();
+```
+
+The builder also has chainable `moveTo`, `lineTo`, `quadraticCurveTo`, `bezierCurveTo`, `closePath`, `circle(cx,cy,radius)` and `clear`. A circle uses four cubic segments and is approximate. `build()` returns independent command objects. Invalid calls retain earlier commands. Path handles and renderer admission still check filled contours, tessellation, view and device limits. One path node has one fill and one stroke shared by its contours.
+
 The input scene is `{version:0|1|2|3|4|5|6, unit:'logical-px', contextId, nodes}`. Version 0 keeps the original `group`, `frame`, `rect`, and `line` nodes and refuses paths. Version 1 adds stroked `path` nodes. Version 2 adds independently optional path fill and stroke. Version 3 adds `image` nodes and otherwise retains version 2 node shapes. Version 4 adds `glyphRun` nodes and retains version 3 shapes. Version 5 adds `path.fill.rule:'nonzero'` and retains version 4 shapes. Version 6 adds image anchors and retains version 5 shapes for other nodes. Every node has a stable `id`, integer `layer`, and explicit `{x,y,scaleX,scaleY,rotation}` transform. Groups and frames contain `children`. Frames and rectangles have positive `width` and `height` and a straight RGBA `fill`. Frames also have a Boolean `clip`. Lines have `x1`, `y1`, `x2`, `y2`, positive `width`, and straight RGBA `stroke`. See [the example scene](../../examples/canvas2d-scene/scene.mjs) for v0–v4 data, [the nonzero fixture](../../examples/canvas2d-scene/nonzero-v5.mjs) for v5, and [the anchor fixture](../../examples/canvas2d-scene/anchor-scene.mjs) for v6.
 
 Version 1 `path` nodes have `commands`, positive `width`, and straight RGBA `stroke`. Commands use absolute path-local logical pixels: `M {x,y}`, `L {x,y}`, `Q {cx,cy,x,y}`, `C {c1x,c1y,c2x,c2y,x,y}`, and `Z` with no coordinate fields. The first command is `M`; `L/Q/C` need an open subpath; `Z` closes it and requires a new `M` before further drawing. Each subpath must draw a nonzero segment. The reader copies exact authored controls and parameters. There is no SVG string parser.

@@ -1,0 +1,105 @@
+import { Canvas2DError, validateScene } from './schema.js';
+import type { PathCommand, PathNodeV5 } from './schema.js';
+
+export type PathBuilder = {
+  moveTo(x: number, y: number): PathBuilder;
+  lineTo(x: number, y: number): PathBuilder;
+  quadraticCurveTo(cx: number, cy: number, x: number, y: number): PathBuilder;
+  bezierCurveTo(c1x: number, c1y: number, c2x: number, c2y: number, x: number, y: number): PathBuilder;
+  closePath(): PathBuilder;
+  rect(x: number, y: number, width: number, height: number): PathBuilder;
+  circle(cx: number, cy: number, radius: number): PathBuilder;
+  clear(): PathBuilder;
+  build(): PathCommand[];
+};
+
+function invalid(message: string): never { throw new Canvas2DError('INVALID_SCENE', message); }
+function scalar(value: number): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || Object.is(value, -0) ||
+      value < -1e6 || value > 1e6) invalid('path builder coordinate is outside Scene range');
+  return value;
+}
+function positive(value: number): number {
+  if (scalar(value) <= 0) invalid('path builder dimension must be positive');
+  return value;
+}
+function point(x: number, y: number): { x: number; y: number } {
+  return { x: scalar(x), y: scalar(y) };
+}
+
+function checkSequence(commands: PathCommand[]): void {
+  if (commands.length > 256) throw new Canvas2DError('SCENE_LIMIT', 'path builder exceeds 256 commands');
+  let open = false, drawable = false;
+  let current = { x: 0, y: 0 }, start = current;
+  for (const command of commands) {
+    if (command.kind === 'M') {
+      if (open && !drawable) invalid('path builder has an empty subpath');
+      current = { x: command.x, y: command.y }; start = current;
+      open = true; drawable = false;
+    } else if (command.kind === 'Z') {
+      if (!open || (!drawable && current.x === start.x && current.y === start.y)) {
+        invalid('path builder cannot close an empty subpath');
+      }
+      current = start; open = false; drawable = false;
+    } else {
+      if (!open) invalid('path builder command needs moveTo');
+      if (command.kind === 'Q') {
+        drawable ||= current.x !== command.x || current.y !== command.y ||
+          current.x !== command.cx || current.y !== command.cy;
+      } else if (command.kind === 'C') {
+        drawable ||= current.x !== command.x || current.y !== command.y ||
+          current.x !== command.c1x || current.y !== command.c1y ||
+          current.x !== command.c2x || current.y !== command.c2y;
+      } else drawable ||= current.x !== command.x || current.y !== command.y;
+      current = { x: command.x, y: command.y };
+    }
+  }
+}
+
+export function createPathBuilder(): PathBuilder {
+  let commands: PathCommand[] = [];
+  function append(next: PathCommand[]): PathBuilder {
+    const candidate = [...commands, ...next];
+    checkSequence(candidate);
+    commands = candidate;
+    return api;
+  }
+  const api: PathBuilder = Object.freeze({
+    moveTo(x: number, y: number) { return append([{ kind: 'M', ...point(x, y) }]); },
+    lineTo(x: number, y: number) { return append([{ kind: 'L', ...point(x, y) }]); },
+    quadraticCurveTo(cx: number, cy: number, x: number, y: number) {
+      return append([{ kind: 'Q', cx: scalar(cx), cy: scalar(cy), ...point(x, y) }]);
+    },
+    bezierCurveTo(c1x: number, c1y: number, c2x: number, c2y: number, x: number, y: number) {
+      return append([{ kind: 'C', c1x: scalar(c1x), c1y: scalar(c1y),
+        c2x: scalar(c2x), c2y: scalar(c2y), ...point(x, y) }]);
+    },
+    closePath() { return append([{ kind: 'Z' }]); },
+    rect(x: number, y: number, width: number, height: number) {
+      const left = scalar(x), top = scalar(y), right = scalar(x + positive(width)), bottom = scalar(y + positive(height));
+      return append([{ kind: 'M', x: left, y: top }, { kind: 'L', x: right, y: top },
+        { kind: 'L', x: right, y: bottom }, { kind: 'L', x: left, y: bottom }, { kind: 'Z' }]);
+    },
+    circle(cx: number, cy: number, radius: number) {
+      const x = scalar(cx), y = scalar(cy), r = positive(radius);
+      const right = scalar(x + r), left = scalar(x - r), bottom = scalar(y + r), top = scalar(y - r);
+      const k = 4 * (Math.SQRT2 - 1) / 3, a = scalar(x + k * r), b = scalar(x - k * r);
+      const c = scalar(y + k * r), d = scalar(y - k * r);
+      return append([{ kind: 'M', x: right, y },
+        { kind: 'C', c1x: right, c1y: c, c2x: a, c2y: bottom, x, y: bottom },
+        { kind: 'C', c1x: b, c1y: bottom, c2x: left, c2y: c, x: left, y },
+        { kind: 'C', c1x: left, c1y: d, c2x: b, c2y: top, x, y: top },
+        { kind: 'C', c1x: a, c1y: top, c2x: right, c2y: d, x: right, y },
+        { kind: 'Z' }]);
+    },
+    clear() { commands = []; return api; },
+    build() {
+      const scene = validateScene({ version: 6, unit: 'logical-px', contextId: 'PathBuilder',
+        nodes: [{ kind: 'path', id: 'BuiltPath', layer: 0,
+          transform: { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 }, commands,
+          stroke: { color: [0, 0, 0, 1], width: 1 } }] });
+      return (scene.nodes[0] as PathNodeV5).commands;
+    },
+  });
+  return api;
+}
