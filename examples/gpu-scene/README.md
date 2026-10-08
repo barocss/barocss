@@ -214,3 +214,23 @@ Actual uploads/pixels, edited frame change, owned-result/packet/ref/fifth-entry
 refusal retention, resize/reset and double-dispose are observed. One actual
 source/file/WebGL2 flow is the proof, not arbitrary section count/guides/sweep,
 B-Rep edges, G1/G2, solid, global error or manufacturing certification.
+
+## One qualified Surface material in a mixed native scene (#837)
+
+```sh
+BAROCSS_QUALIFIED_MATERIAL_EVIDENCE=/absolute/unique/output \
+BAROCSS_QUALIFIED_MATERIAL_DEPS=/absolute/compiled/CAD/provider/repo \
+node examples/gpu-scene/qualified-material-flow.mjs
+```
+
+Build the affected local GPU package first; the consumer reads its compiled
+GPU and the explicit compiled CAD provider. Two genuine plane Surfaces retain
+the same native ID with different qualified model refs; a real native XY Line
+shares their canvas/context/depth. Bind only the first Surface using the existing
+opaque material language. Caller time0/1/2 matches independently computed linear
+color/light/gamma while the other Surface/Line pixels and all geometry uploads
+stay unchanged. Reset restores exact legacy pixels. Invalid refs/Curve/IR/uniform/
+overlay and injected program allocation failures retain the accepted whole frame.
+The same flow exercises scene replacement and viewport material/empty/clear/
+restore/resize/disposal. Injection is not hardware exhaustion; no program/buffer
+reuse, Viewer adoption, publication or performance certificate is claimed.

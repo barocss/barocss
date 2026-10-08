@@ -898,3 +898,29 @@ independent linear/mix/light/gamma RGB, CPU/IR/uniform refusals, explicit test-i
 createProgram-null retention, exact absent-material restoration and disposal0.
 The injection is not physical allocation exhaustion. No broad/native/reader/packed/
 color/renderer/performance campaign or publication follows from this prototype.
+
+### Qualified Surface material (#837)
+
+`PrimitiveSceneRendererV2` and `PrimitiveViewport` expose
+`setMaterial(ref: PrimitiveSceneRef, binding: MeshMaterialBinding | null): UpdateResult`
+and a copied `materials: PrimitiveSceneMaterial[]` query. Select the exact
+accepted `{modelId, geometryId}` pair. Only Surface entries accept the existing
+opaque material language/typed IR/uniform binding. Null resets that Surface;
+other bindings stay. Unknown/Curve references and unsafe bindings refuse with
+the complete accepted frame/state retained. Native packet/UV/IDs/poses and
+position/normal/index buffers stay geometry authority; material is appearance.
+
+Updates restage the full frame/programs/buffers. There is no reuse/performance
+promise or internal clock. Resize/render retain bindings. A successful scene
+`update` replaces geometry and explicitly resets all materials; failed updates
+retain them. Viewport `clear` drops bindings after successful empty adoption;
+empty binding requests refuse. Disposal is idempotent and owns only allocated
+GPU resources. Context loss retains the existing remount requirement.
+
+Scene0/1/2 entry and options schemas are unchanged. Primitive renderers have no
+selection/highlight/edge-overlay API; unsupported overlay fields still refuse.
+MeshRenderer's separate overlay policy is unchanged. Existing absent/reset
+material uses the exact legacy shader path. Curves remain on their default
+Line shader. No texture/UV varying, deformation/PBR/shadow/raw GLSL or Viewer
+adoption is supplied. See `examples/gpu-scene/qualified-material-flow.mjs` for
+one actual mixed native scene and independent time0/1/2 RGB/light/gamma checks.

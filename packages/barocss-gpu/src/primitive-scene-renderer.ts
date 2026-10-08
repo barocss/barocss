@@ -9,7 +9,9 @@ import type {MeshSceneOptions} from './mesh-scene-renderer.js';
 import {prepareSceneMesh,prepareSceneTransform,sceneRotation,displayBounds} from './mesh-scene-transform.js';
 import type {MeshSceneTransform,MeshSceneBounds} from './mesh-scene-transform.js';
 import {prepareCamera} from './camera.js';
-import {meshLightingShaders,applyMeshLighting} from './mesh-shaders.js';
+import {meshLightingShaders,applyMeshLighting,materialMeshShaders,applyMeshMaterial} from './mesh-shaders.js';
+import {validateMeshMaterialBinding} from './mesh-material.js';
+import type {MeshMaterialBinding} from './mesh-material.js';
 
 export type PrimitiveSceneEntry=
  |{kind:'surface';packet:PreviewPacket;color:RGB;transform?:MeshSceneTransform}
@@ -24,9 +26,11 @@ export interface PrimitiveSceneInputV1 {version:1;entries:PrimitiveSceneEntryV1[
 export interface PrimitiveSceneRef {modelId:string;geometryId:string}
 export type PrimitiveSceneEntryV2=PrimitiveSceneEntryV1&{ref:PrimitiveSceneRef};
 export interface PrimitiveSceneInputV2 {version:2;entries:PrimitiveSceneEntryV2[]}
+/** Copied derived appearance bound to one accepted qualified Surface. */
+export interface PrimitiveSceneMaterial {ref:PrimitiveSceneRef;binding:MeshMaterialBinding}
 type NativeCurveSample=AdaptiveCurveSamplingResult|WideAdaptiveCurveSamplingResult;
 interface Primitive {
- entry:PrimitiveSceneEntry|PrimitiveSceneEntryV1|PrimitiveSceneEntryV2;positions:Float32Array;normals?:Float32Array;indices?:Uint16Array;bounds:MeshSceneBounds;
+ entry:PrimitiveSceneEntry|PrimitiveSceneEntryV1|PrimitiveSceneEntryV2;positions:Float32Array;normals?:Float32Array;indices?:Uint16Array;bounds:MeshSceneBounds;material?:MeshMaterialBinding;
 }
 interface Draw extends Primitive {vao:WebGLVertexArrayObject|null;buffers:WebGLBuffer[];program:WebGLProgram|null}
 interface Frame {draws:Draw[];options:PrimitiveSceneOptions;programs:WebGLProgram[];framebuffer:WebGLFramebuffer|null;color:WebGLTexture|null;depth:WebGLRenderbuffer|null;width:number;height:number}
@@ -161,8 +165,8 @@ class PrimitiveSceneBackend {
   try{
    const programs=new Map<string,WebGLProgram>();
    for(const primitive of primitives){
-    const kind=primitive.entry.kind;if(!programs.has(kind)){const program=this.program(kind==='surface'?meshLightingShaders(options.lighting):LINE_SHADERS);programs.set(kind,program);frame.programs.push(program);}
-    const draw:Draw={...primitive,vao:gl.createVertexArray(),buffers:[],program:programs.get(kind)!};frame.draws.push(draw);check(draw.vao,'Cannot allocate primitive vertex array');gl.bindVertexArray(draw.vao);
+    const kind=primitive.entry.kind,key=primitive.material?'material_'+frame.draws.length:kind;if(!programs.has(key)){const program=this.program(kind==='surface'?(primitive.material?materialMeshShaders(options.lighting,primitive.material):meshLightingShaders(options.lighting)):LINE_SHADERS);programs.set(key,program);frame.programs.push(program);}
+    const draw:Draw={...primitive,vao:gl.createVertexArray(),buffers:[],program:programs.get(key)!};frame.draws.push(draw);check(draw.vao,'Cannot allocate primitive vertex array');gl.bindVertexArray(draw.vao);
     const attributes:[number,Float32Array][]=[[0,primitive.positions]];if(primitive.normals)attributes.push([1,primitive.normals]);
     for(const[location,data]of attributes){const buffer=gl.createBuffer();check(buffer,'Cannot allocate primitive vertex buffer');draw.buffers.push(buffer);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,3,gl.FLOAT,false,0,0);}
     if(primitive.indices){const buffer=gl.createBuffer();check(buffer,'Cannot allocate primitive index buffer');draw.buffers.push(buffer);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,buffer);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,primitive.indices,gl.STATIC_DRAW);}
@@ -172,11 +176,26 @@ class PrimitiveSceneBackend {
    gl.bindRenderbuffer(gl.RENDERBUFFER,frame.depth);gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT24,width,height);gl.bindFramebuffer(gl.FRAMEBUFFER,frame.framebuffer);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,frame.color,0);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,frame.depth);check(gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE,'Primitive scene frame is incomplete');
    gl.viewport(0,0,width,height);gl.disable(gl.BLEND);gl.disable(gl.SCISSOR_TEST);gl.disable(gl.CULL_FACE);gl.disable(gl.POLYGON_OFFSET_FILL);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LESS);gl.depthMask(true);gl.colorMask(true,true,true,true);gl.lineWidth(1);
    gl.clearColor(...options.background,1);gl.clearDepth(1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
-   for(const draw of frame.draws){const program=draw.program!;gl.useProgram(program);gl.uniform1f(gl.getUniformLocation(program,'aspect'),width/height);gl.uniform1i(gl.getUniformLocation(program,'defaultCamera'),options.camera===undefined?1:0);gl.uniformMatrix4fv(gl.getUniformLocation(program,'view'),false,camera.view);gl.uniformMatrix4fv(gl.getUniformLocation(program,'projection'),false,camera.projection);gl.uniform3fv(gl.getUniformLocation(program,'color'),draw.entry.color);if(draw.entry.kind==='surface')applyMeshLighting(gl,program,options.lighting);gl.bindVertexArray(draw.vao);if(draw.indices)gl.drawElements(gl.TRIANGLES,draw.indices.length,gl.UNSIGNED_SHORT,0);else gl.drawArrays(gl.LINE_STRIP,0,draw.positions.length/3);}
+   for(const draw of frame.draws){const program=draw.program!;gl.useProgram(program);gl.uniform1f(gl.getUniformLocation(program,'aspect'),width/height);gl.uniform1i(gl.getUniformLocation(program,'defaultCamera'),options.camera===undefined?1:0);gl.uniformMatrix4fv(gl.getUniformLocation(program,'view'),false,camera.view);gl.uniformMatrix4fv(gl.getUniformLocation(program,'projection'),false,camera.projection);gl.uniform3fv(gl.getUniformLocation(program,'color'),draw.entry.color);if(draw.entry.kind==='surface'){applyMeshLighting(gl,program,options.lighting);applyMeshMaterial(gl,program,draw.material??null);}gl.bindVertexArray(draw.vao);if(draw.indices)gl.drawElements(gl.TRIANGLES,draw.indices.length,gl.UNSIGNED_SHORT,0);else gl.drawArrays(gl.LINE_STRIP,0,draw.positions.length/3);}
    this.checkGL();return frame;
   }catch(error){this.release(frame);throw error;}
  }
  private present(frame:Frame){this.live();const gl=this.gl;gl.disable(gl.SCISSOR_TEST);gl.bindFramebuffer(gl.READ_FRAMEBUFFER,frame.framebuffer);gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER,null);gl.blitFramebuffer(0,0,frame.width,frame.height,0,0,this.canvas.width,this.canvas.height,gl.COLOR_BUFFER_BIT,gl.NEAREST);this.checkGL();gl.bindFramebuffer(gl.FRAMEBUFFER,null);}
+ /** Appearance replacement reuses already accepted native geometry, never caller getters. */
+ protected copyMaterials():PrimitiveSceneMaterial[]{
+  this.live();return this.accepted!.draws.filter(d=>d.material).map(d=>({ref:structuredClone((d.entry as PrimitiveSceneEntryV2).ref),binding:structuredClone(d.material!)}));
+ }
+ protected setQualifiedMaterial(refInput:PrimitiveSceneRef,input:MeshMaterialBinding|null):UpdateResult{
+  return this.updatePrepared(()=>{
+   const ref=record(refInput,['modelId','geometryId']);
+   check(typeof ref.modelId==='string'&&/^[A-Za-z_][A-Za-z0-9_.:-]{0,127}$/.test(ref.modelId)&&typeof ref.geometryId==='string','Material requires exact own qualified reference');
+   const prior=this.accepted!,index=prior.draws.findIndex(d=>{const r=(d.entry as PrimitiveSceneEntryV2).ref;return r?.modelId===ref.modelId&&r.geometryId===ref.geometryId;});
+   check(index>=0,'Material reference is not in accepted scene');check(prior.draws[index].entry.kind==='surface','Material requires an accepted Surface, not a Curve');
+   const material=input===null?undefined:validateMeshMaterialBinding(input);
+   const primitives=prior.draws.map((draw,i)=>{const candidate:Primitive={entry:draw.entry,positions:draw.positions,normals:draw.normals,indices:draw.indices,bounds:draw.bounds};const binding=i===index?material:draw.material;if(binding)candidate.material=binding;return candidate;});
+   return{primitives,options:prior.options};
+  });
+ }
  protected updatePrepared(candidate:()=>ReturnType<typeof prepare>):UpdateResult{
   let frame:Frame|null=null;try{this.live();const p=candidate();frame=this.create(p.primitives,p.options,this.canvas.width,this.canvas.height);this.present(frame);const prior=this.accepted!;this.accepted=frame;this.release(prior);return{ok:true};}
   catch(error){if(frame)this.release(frame);if(!this.disposed&&!this.lost&&!this.gl.isContextLost()&&this.accepted){try{this.present(this.accepted);}catch{this.lost=true;}}return{ok:false,error:error instanceof Error?error:new GPUError('Primitive scene update failed')};}
@@ -202,6 +221,8 @@ export class PrimitiveSceneRendererV1 extends PrimitiveSceneBackend {
  update(input:PrimitiveSceneInputV1,options:PrimitiveSceneOptions):UpdateResult{return this.updatePrepared(()=>prepareV1(input,options));}
 }
 export class PrimitiveSceneRendererV2 extends PrimitiveSceneBackend {
+ get materials():PrimitiveSceneMaterial[]{return this.copyMaterials();}
+ setMaterial(ref:PrimitiveSceneRef,binding:MeshMaterialBinding|null):UpdateResult{return this.setQualifiedMaterial(ref,binding);}
  constructor(canvas:HTMLCanvasElement,input:PrimitiveSceneInputV2,options:PrimitiveSceneOptions){super(canvas,prepareV2(input,options));}
  get entries():PrimitiveSceneEntryV2[]{return this.copyEntries() as PrimitiveSceneEntryV2[];}
  update(input:PrimitiveSceneInputV2,options:PrimitiveSceneOptions):UpdateResult{return this.updatePrepared(()=>prepareV2(input,options));}
@@ -212,6 +233,8 @@ export function mountPrimitiveSceneV2(canvas:HTMLCanvasElement,input:PrimitiveSc
 
 /** Reuses the current primitive frame lifecycle; empty frames contain no native data. */
 class PrimitiveViewportBackend extends PrimitiveSceneBackend {
+ get materials():PrimitiveSceneMaterial[]{return this.copyMaterials();}
+ setMaterial(ref:PrimitiveSceneRef,binding:MeshMaterialBinding|null):UpdateResult{return this.setQualifiedMaterial(ref,binding);}
  constructor(options:PrimitiveSceneOptions,canvas:HTMLCanvasElement){super(canvas,{primitives:[],options:prepareOptions(options)});}
  get entries():PrimitiveSceneEntryV2[]{return this.copyEntries() as PrimitiveSceneEntryV2[];}
  get empty():boolean{return !this.hasPrimitives;}
@@ -221,6 +244,8 @@ class PrimitiveViewportBackend extends PrimitiveSceneBackend {
 /** Explicit empty/clear owner over the same qualified version2 primitive backend. */
 export class PrimitiveViewport {
  private readonly backend:PrimitiveViewportBackend;
+ get materials():PrimitiveSceneMaterial[]{return this.backend.materials;}
+ setMaterial(ref:PrimitiveSceneRef,binding:MeshMaterialBinding|null):UpdateResult{return this.backend.setMaterial(ref,binding);}
  constructor(canvas:HTMLCanvasElement,options:PrimitiveSceneOptions){this.backend=new PrimitiveViewportBackend(options,canvas);}
  get entries():PrimitiveSceneEntryV2[]{return this.backend.entries;}
  get options():PrimitiveSceneOptions{return this.backend.options;}
