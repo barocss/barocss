@@ -115,10 +115,10 @@ requires a separate release decision and checks of that exact release artifact.
 
 The optional `native` entry reads the existing CAD `@model` text. Use a
 `.barocad` extension when serving that text as a file. This first loader accepts
-only `sourceVersion: 0`, one to four native surfaces, and 2–17 samples on each
-surface axis. It compiles with `@barocss/cad` and retains the exact input text
-and native NURBS model. Valid curves stay in `model.objects` and appear in
-`unrenderedCurveIds`; this version does not draw them.
+only `sourceVersion: 0`, one to four native surfaces by default, and 2–17
+samples on each surface axis. It compiles with `@barocss/cad` and retains the
+exact input text and native NURBS model. By default, valid curves stay in
+`model.objects` and appear in `unrenderedCurveIds` without display lines.
 
 ```js
 import { parseBaroCadSource } from '@barocss/cad-interop/native';
@@ -154,16 +154,17 @@ XYZ unchanged and labels its packet Y-up; it does not infer the author's up
 axis. This loader applies the requested millimetre scale once and does not
 rotate the surface. A Z-up `@model` needs an explicit frame conversion outside
 this loader before display. The separate `part-xyz` native face mesh path above
-does rotate its input once. Dispose each child mesh's geometry and material
-when it is no longer needed.
+does rotate its input once. Call `result.dispose()` when the display is no
+longer needed. It removes the result group and disposes its own geometry and
+materials, not the caller scene.
 
 Invalid syntax throws `BaroCadSourceError` with compiler diagnostics and
 source ranges. Unsupported source versions, surface counts, sample counts,
 or unsafe Float32 display conversions throw before a result is returned.
 File network errors reach the loader's `onError` callback or reject
 `loadAsync`. Three.js is an optional peer dependency because the neutral
-entry does not import it. Babylon.js and Pixi3D native source adapters are
-future work; their GLB loading path above is separate.
+entry does not import it. The Babylon native adapter is described below;
+Pixi3D currently uses the separate GLB path above.
 
 Run `pnpm --filter @barocss/cad-interop test:native` to check the included
 native source file, its model and display data, Three.js objects, and a local
@@ -191,8 +192,9 @@ result.dispose(); // Releases only meshes and material created by this result.
 ```
 
 The Babylon adapter uses the same native source reader as the Three.js adapter.
-It accepts sourceVersion 0 with 1–4 surfaces and 2–17 samples per axis. Native
-curves stay in `model.objects` and `unrenderedCurveIds`; they are not drawn.
+It accepts sourceVersion 0 with 1–4 surfaces and 2–17 samples per axis by
+default. Native curves stay in `model.objects` and `unrenderedCurveIds` unless
+the caller explicitly enables Curve display below.
 Each Babylon mesh has qualified `metadata.barocss` with the model and surface
 IDs. `nativeParameters` is an owned copy of the NURBS U/V samples. It is not a
 texture UV buffer. Scene mesh names are display labels and need not be unique.
@@ -211,6 +213,48 @@ show the source-to-mesh path. Run
 `pnpm --filter @barocss/cad-interop test:babylon` for the actual native file,
 Babylon mesh data, local URL loading, refusal cases, and disposal checks.
 `NullEngine` does not prove visible browser rendering or GPU performance.
+
+## Opt-in native Curve display
+
+Use the same `curveDisplay` option with `parseBaroCadSource`, `BaroCADLoader`,
+or `BaroCADBabylonLoader`. This mode accepts Curve-only and mixed models with
+1–4 total Curve/Surface objects. The original source, model, object order,
+IDs, knots, weights, signed zero, and parameter domains remain authoritative.
+Default calls still display surfaces only.
+
+```js
+const options = {
+  sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+  curveDisplay: { chordToleranceMM: 0.1, maxSegments: 128, maxDepth: 16 },
+};
+const result = new BaroCADLoader(options).parse(source);
+scene.add(result.group); // Surface Mesh plus native Curve Line objects
+// result.curves holds the CAD661 sample records and renderer-unit Float32 XYZ.
+// result.model and result.source retain the original native input.
+result.dispose();
+```
+
+Three.js returns `Line` children. Babylon.js returns `LinesMesh` objects in
+`result.meshes` and requires a caller-owned right-handed scene. Curve metadata
+has the original Curve ID, native sample parameters and native intervals;
+these are not texture UVs or certified B-Rep edges. The positions use authored
+XYZ with millimetres scaled once. Z-up source needs an explicit host transform.
+`curveDisplay` requires a finite `chordToleranceMM` in 1e-7..1000, integer
+`maxSegments` in 1..1024 and integer `maxDepth` in 0..16. CAD661 also requires
+degree 1..3, 2..16 poles, at most eight positive clamped spans, and its own
+native input guards. Total display Curve points are limited to 4096 and
+segments to 4092. Invalid samples, generated ID prefix conflicts, unsafe
+Float32 positions and collapsed display segments reject the whole candidate
+before target objects are created. Fixed generated prefixes are `bcv0c0` through
+`bcv0c3`, based on original object order; a model or object ID matching a
+prefix or starting with that prefix plus `_` is rejected.
+
+These lines are display approximations from actual native adaptive samples.
+The report contains finite chord estimates and local observations. It does
+not certify a global tolerance, topology edge, smoothness or manufacturing
+accuracy. Run `pnpm --filter @barocss/cad-interop build:library` and then
+`pnpm --filter @barocss/cad-interop test:curve` for the included real source
+files, Three/Babylon objects, local URL loading, disposal and bounded refusals.
 
 References: [Babylon.js package](https://www.npmjs.com/package/@babylonjs/core),
 [Babylon.js right-handed scene guidance](https://doc.babylonjs.com/features/featuresDeepDive/importers/glTF/),
