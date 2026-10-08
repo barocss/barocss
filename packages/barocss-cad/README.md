@@ -6244,3 +6244,75 @@ node examples/cad-nurbs/cad-document-bounds-demo.mjs --source /tmp/cad-native-bo
 This ENG-02 subset does not provide tight curve/surface extrema, assembly or
 BRep bounds, area, volume, density, mass or inertia. Native evidence, Integration
 adoption and independent GPU/Loader consumers remain separate.
+
+## Source-qualified native Curve arc-length estimate
+
+`queryCadDocumentCurveArcLength(documentResult, reference, options)`
+integrates the original Curve derivative norm over a declared native interval.
+The exact document/body/asset/native Curve reference is resolved by the existing
+CAD document reference API. The result contains an `estimatedLengthMM`,
+`errorEstimateMM`, copied original geometry/source/reference/options, accepted
+panels and a report. It does not measure a displayed polyline or a straight
+point-to-point distance.
+
+```js
+const reference = cad.createCadGeometryReference(document, {bodyId}).reference;
+const estimate = cad.queryCadDocumentCurveArcLength(document, reference, {
+  interval: null,
+  absoluteToleranceMM: 1e-7,
+  relativeTolerance: 1e-8,
+  maximumEvaluations: 4096,
+  maximumSubdivisions: 128,
+  maximumDepth: 12,
+});
+cad.validateCadDocumentCurveArcLength(document, estimate);
+```
+
+`interval:null` uses the original domain and endpoint bits. An explicit finite
+increasing `[a,b]` must lie inside that domain. Zero, reversed or outside
+intervals refuse; parameters are never sorted, clamped or normalized. The
+profile is positive clamped nonperiodic degree1..3, poles2..64, knots≤70,
+XYZ±10000mm and native weights[1e-6,1e6]. Geometry/frame/source/IDs and
+coefficients remain unchanged. Supported zero-speed intervals can return0.
+
+Each original knot span uses3-point and5-point Gauss-Legendre quadrature of
+the actual native D1 norm. Their common centre is reused, with seven strict
+interior nodes per measured panel. Q5 is the length estimate. The panel
+estimator includes the Q5/Q3 difference and64 epsilon times abs(Q5). A native
+point sanity check uses the two native endpoint points and seven actual D1
+node points: if their ordered chord sum exceeds Q5, the deficit also enters
+the estimator. This catches obvious missed variation such as an extreme
+rational weight ratio. The chord chain is a sanity check; the length result
+remains the derivative integral estimate. Its floating arithmetic is not a
+certified bound.
+
+If the summed estimator exceeds max(absoluteToleranceMM,relativeTolerance
+*estimatedLengthMM), the greatest-estimator panel is bisected. Ties use
+increasing U order. All nodes and midpoints must remain distinct and strictly
+representable. Unsafe arithmetic, native derivative refusal, exhausted depth
+or work budget refuses atomically with no accepted partial result. Exact C0
+knot D1 refusals are recorded separately; endpoint point evaluation remains
+native D0 and no knot tangent is invented. Evaluations include discarded
+parents; endpoint point and knot-guard counts are reported separately.
+
+Absolute tolerance is[1e-9,1]mm, relative tolerance[0,1e-2], quadrature D1
+budget7..16384, subdivisions0..512 and depth0..16. The convergence criterion
+is a heuristic estimator criterion. It does not certify the requested global
+error, manufacturing tolerance or floating containment. General area, volume,
+mass and posed-world measurements remain separate.
+
+The current-only DTO schema is `barocss-cad-curve-arc-length`, version0,
+raw authored XYZ/mm. Whole-owned validation requires the actual document and
+reconstructs the exact reference/options, geometry/source, all panel nodes,
+subdivision trace, guards, counts and estimates. Revision mismatch remains
+STALE. Copied CPU data has no renderer resource lifecycle or legacy reader.
+
+```sh
+node examples/cad-nurbs/cad-curve-arc-length-demo.mjs --source /tmp/cad-native-arc-length
+```
+
+The example uses known Line/quarter-circle/piecewise lengths, a declared
+interval, zero speed, an actual source edit/revision, one native reversal
+witness and saved/reopened source/document/result files. Analytic comparisons
+are local prototype evidence. Integration and display consumers need their
+own receipts.
