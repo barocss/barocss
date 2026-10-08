@@ -196,3 +196,6 @@ export { evaluateCadAssembly, serializeCadAssembly, parseCadAssembly, updateCadA
 export type { CadAssemblyMatrix, CadAssemblyPlacement, CadAssemblyInstance, CadAssemblyV0, CadAssemblyEvaluatedInstance, CadAssemblyEdits, CadAssemblyReport, CadAssemblyResult } from './cad-assembly.js';
 export { queryCadAssemblyInstancePoint, validateCadAssemblyInstancePoint } from './cad-assembly-instance-point.js';
 export type { CadAssemblyInstancePointQuery, CadAssemblyInstancePointReport, CadAssemblyInstancePointResult } from './cad-assembly-instance-point.js';
+
+export { transactCadAssemblyMembers, validateCadAssemblyMemberTransaction } from './cad-assembly-members.js';
+export type { CadAssemblyMemberTransaction, CadAssemblyMemberReport, CadAssemblyMemberResult } from './cad-assembly-members.js';
