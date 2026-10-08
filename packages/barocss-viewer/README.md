@@ -83,8 +83,9 @@ The host owns time and uniform updates. The copied `getState().surfaceMaterials`
 array lists every accepted binding in Surface order. `surfaceMaterial` keeps
 the original one-binding query: it returns that binding when exactly one is
 bound, or `null` when zero or multiple Surfaces are bound. The profile accepts
-1–4 qualified native Surfaces with no Curves through `loadModelSet` or
-`loadDocument`. Distinct aliases may keep the same original Surface ID.
+1–4 total qualified native Surface/Curve objects with at least one Surface
+through `loadModelSet` or `loadDocument`. Distinct aliases may keep the same
+original Surface ID. Curves retain their line appearance and selection.
 Legacy `loadNative` and raw packets refuse material binding. Camera, fit and
 display pose changes retain it through GPU's complete-frame update, including
 an accepted fluid layer. Selecting the bound Surface or hiding it requires an
@@ -108,6 +109,13 @@ mounting a new scene. This API does not read CAD document v1 JSON.
 
 For a bounded source0 model set, first call Loader's public
 `loadBaroCadModelSet(manifest, options)`, then `viewer.loadModelSet(set)`.
+To read the URLs and admit the result within Viewer's scene request generation,
+call `await viewer.loadModelSetUrls(manifest, { baseURL, signal, onProgress })`.
+The Loader owns URL, byte, progress, abort and parse validation. A newer Viewer
+URL request, successful synchronous replacement or `clear()` prevents an older
+model-set result from mounting; the caller still owns transport cancellation.
+Failure retains the accepted scene and its Surface materials. The runnable
+`examples/viewer-model-set-urls` exercises actual HTTP loads and request races.
 The synchronous Viewer call accepts 1–4 total displayed Surfaces/Curves and
 uses GPU's qualified primitive scene v2 in one canvas. It keeps original
 native Surface and Curve IDs even when two source files use the same IDs.

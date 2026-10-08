@@ -5,8 +5,9 @@ import type { BaroCadLoadTransportOptions, BaroCadNativeResult } from '@barocss/
 import { loadBaroCadDocument, prepareBaroCadDocumentPrimitiveNativeRefsV2 } from '@barocss/cad-interop/document';
 import type { BaroCadDocumentPrimitiveBindingV2, BaroCadDocumentPrimitiveOptionsV2,
   CadDocumentResult } from '@barocss/cad-interop/document';
-import { prepareBaroCadModelSetPrimitiveNativeRefsV2 } from '@barocss/cad-interop/model-set';
-import type { BaroCadModelSetResult } from '@barocss/cad-interop/model-set';
+import { loadBaroCadModelSet, prepareBaroCadModelSetPrimitiveNativeRefsV2 } from '@barocss/cad-interop/model-set';
+import type { BaroCadModelSetLoadOptions, BaroCadModelSetManifest,
+  BaroCadModelSetResult } from '@barocss/cad-interop/model-set';
 import { mountMeshScene, mountPrimitiveScene, mountPrimitiveSceneV1, mountPrimitiveSceneV2,
   mountPrimitiveViewport, PrimitiveSceneRenderer, PrimitiveSceneRendererV1,
   PrimitiveSceneRendererV2, PrimitiveViewport, prepareMesh,
@@ -787,6 +788,15 @@ export class Viewer {
     }
     this.accept(packets, null, curves, modelSet);
     this.sceneRequest++;
+  }
+  async loadModelSetUrls(manifest: BaroCadModelSetManifest,
+    options: BaroCadModelSetLoadOptions = {}): Promise<void> {
+    this.live();
+    const request = ++this.sceneRequest;
+    const modelSet = await loadBaroCadModelSet(manifest, options);
+    this.live();
+    if (request !== this.sceneRequest) throw new BaroCadLoadAbortError();
+    this.loadModelSet(modelSet);
   }
   loadDocument(input: CadDocumentResult, options: BaroCadDocumentPrimitiveOptionsV2): void {
     this.live();
