@@ -376,6 +376,9 @@ export function sampleCurveWideAdaptive(curveInput: Curve, inputOptions: WideAda
     const interval = curveDomain(bezier);
     check(bezier.controlPoints.length === bezier.degree + 1 && bezier.controlPoints.length <= 4
       && bezier.knots.length === 2 * (bezier.degree + 1), CODE.NATIVE, 'local single-span Bezier required');
+    check(bezier.controlPoints.every(control => control.every(value => Number.isFinite(value) && Math.abs(value) <= 10000))
+      && bezier.weights.every(weight => Number.isFinite(weight) && weight >= 1e-6 && weight <= 1e6),
+    CODE.NATIVE, 'subdivided local controls/weights outside admitted native profile');
     const startMM = point(original, interval[0]), endMM = point(original, interval[1]);
     const controlPolygonBoundMM = finite(Math.max(...bezier.controlPoints.map(control => chordDistance(control, startMM, endMM))),
       'local control hull bound overflow');
