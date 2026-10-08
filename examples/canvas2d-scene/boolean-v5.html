@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Canvas2D orthogonal Boolean</title>
+<style>
+  body { margin: 24px; font: 15px system-ui; color: #16213a; background: #f4f6fb; }
+  button, label { margin: 4px 8px 8px 0; padding: 7px 10px; }
+  canvas { width: 520px; height: 480px; display: block; background: white; border: 1px solid #ccd5e2; }
+  pre { padding: 12px; background: white; border: 1px solid #ccd5e2; max-width: 800px; white-space: pre-wrap; }
+</style>
+<h1>Orthogonal polygon Boolean</h1>
+<p>Integer logical-pixel polygons. Blue is the resulting nonzero fill; white is outside or a hole.</p>
+<button id="union">Union</button><button id="intersection">Intersection</button>
+<button id="difference">Left − right</button><button id="touching">Try touching input</button>
+<button id="save">Save result JSON</button><label>Open result JSON <input id="open" type="file" accept="application/json,.json"></label>
+<div id="surface"><canvas></canvas></div><p id="status" role="status">Loading</p>
+<pre id="lineage"></pre>
+<script type="module">
+  import { booleanOrthogonalPolygons, createCanvas2D } from '../../packages/barocss-canvas2d/dist/index.js';
+  import { left, right, sceneFromResult } from './boolean-v5.mjs';
+  const surface = document.querySelector('#surface');
+  const status = document.querySelector('#status');
+  const lineage = document.querySelector('#lineage');
+  let renderer, record;
+  function stage(next) {
+    const canvas = document.createElement('canvas');
+    const candidate = createCanvas2D(canvas, { logicalSize: { width: 260, height: 240 }, dpr: 2 });
+    try { candidate.updateScene(sceneFromResult(next.result)); candidate.render(); }
+    catch (error) { candidate.dispose(); throw error; }
+    surface.replaceChildren(canvas);
+    renderer?.dispose(); renderer = candidate; record = next;
+    lineage.textContent = JSON.stringify({ operation: next.result.operation,
+      inputIds: next.result.inputIds,
+      contours: next.result.contours.map(({ id, orientation, sourceIds, points }) =>
+        ({ id, orientation, sourceIds, vertices: points.length })) }, null, 2);
+    status.textContent = `${next.result.operation}: ${next.result.contours.length} contours`;
+  }
+  function compute(operation, l = left, r = right) {
+    try { stage({ format: 'barocss-polygon-result', version: 1, left: l, right: r,
+      result: booleanOrthogonalPolygons(l, r, operation) }); }
+    catch (error) { status.textContent = `${error.code ?? 'ERROR'}: ${error.message}`; }
+  }
+  for (const operation of ['union', 'intersection', 'difference']) {
+    document.querySelector(`#${operation}`).onclick = () => compute(operation);
+  }
+  document.querySelector('#touching').onclick = () => compute('union', left, { contours: [
+    { id: 'Touching', points: [{ x: 180, y: 80 }, { x: 220, y: 80 },
+      { x: 220, y: 120 }, { x: 180, y: 120 }] },
+  ] });
+  document.querySelector('#save').onclick = () => {
+    const url = URL.createObjectURL(new Blob([JSON.stringify(record)], { type: 'application/json' }));
+    const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'boolean-result.json';
+    anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+  document.querySelector('#open').onchange = async event => {
+    try {
+      const file = event.target.files?.[0]; if (!file) return;
+      const parsed = JSON.parse(await file.text());
+      if (parsed.format !== 'barocss-polygon-result' || parsed.version !== 1 ||
+          Object.keys(parsed).sort().join(',') !== 'format,left,result,right,version') {
+        throw new Error('unsupported result file');
+      }
+      const verified = booleanOrthogonalPolygons(parsed.left, parsed.right, parsed.result?.operation);
+      if (JSON.stringify(verified) !== JSON.stringify(parsed.result)) throw new Error('result lineage mismatch');
+      stage({ format: parsed.format, version: parsed.version, left: parsed.left,
+        right: parsed.right, result: verified });
+    } catch (error) { status.textContent = `${error.code ?? 'ERROR'}: ${error.message}`; }
+    event.target.value = '';
+  };
+  window.__booleanDebug = {
+    get record() { return record; }, get renderer() { return renderer; },
+    get canvas() { return surface.querySelector('canvas'); },
+    hit(x, y) { return renderer.hitTest({ x, y }); },
+    pixel(x, y) {
+      const canvas = surface.querySelector('canvas'), gl = canvas.getContext('webgl2');
+      const bytes = new Uint8Array(4);
+      gl.readPixels(Math.round(x * 2), canvas.height - Math.round(y * 2) - 1,
+        1, 1, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
+      return [...bytes];
+    },
+  };
+  compute('union');
+</script>
+</html>
