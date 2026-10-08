@@ -182,3 +182,6 @@ export type { WideReversedCurveReport, WideReversedCurveResult } from './curve-w
 
 export { buildThreeSectionLoftSurface, validateThreeSectionLoftSurface, ThreeSectionLoftError, ThreeSectionLoftDiagnosticCode } from './three-section-loft.js';
 export type { ThreeSectionLoftOptions, ThreeSectionLoftObservation, ThreeSectionLoftD1Observation, ThreeSectionLoftProvenance, ThreeSectionLoftReport, ThreeSectionLoftResult } from './three-section-loft.js';
+
+export { queryCadDocumentBounds, validateCadDocumentBounds, CadDocumentBoundsError, CadDocumentBoundsDiagnosticCode } from './cad-document-bounds.js';
+export type { CadDocumentBoundsReport, CadDocumentBoundsResult } from './cad-document-bounds.js';
