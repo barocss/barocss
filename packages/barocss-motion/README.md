@@ -74,3 +74,20 @@ The wrapper uses the existing validated clip and player. It returns the same own
 Crossings use `(old, new]` for each pass. An initial time-zero marker is silent. At an exact repeat seam, endpoint markers arrive before time-zero markers for the next pass. Equal-time markers retain input order. Zero-duration clips emit no marker events; zero-marker timelines are valid. A clamp endpoint pauses playback, and `play` there restarts at zero with no event. Paused or zero-delta advances emit no events.
 
 The timeline accepts at most 256 markers, 16 repeat seams, and 256 events per advance. Marker IDs use the clip's ASCII ID rule and must be unique; marker times must be finite and within the clip duration. Labels use 1–256 UTF-8 bytes without C0 control characters. An optional target must be in the clip. Inputs are copied from data fields; caller getters are rejected without invocation. Invalid input or an exceeded limit throws `MotionTimelineError` with `code` `INVALID_INPUT`, `DUPLICATE_MARKER`, `UNKNOWN_TARGET`, or `LIMIT_EXCEEDED` before changing the current state. Disposal is idempotent; later operations throw `DISPOSED`. This wrapper has no clock, callback, renderer ownership, or marker file format. The version-0 `.baromotion` envelope remains unchanged.
+
+## Two-clip pose blend
+
+```js
+import { parseMotionClipFile, sampleMotionBlend } from '@barocss/motion';
+
+const source = parseMotionClipFile(sourceText);
+const destination = parseMotionClipFile(destinationText);
+const sample = sampleMotionBlend(source, 2, destination, 1, 0.5);
+// { contextId, fromTimeSeconds: 2, toTimeSeconds: 1, weight: 0.5, poses }
+```
+
+Both inputs must be validated v0 clips with the same context ID and exact `(targetId, property)` set. Destination tracks may be in a different order; output poses follow the first target occurrence in the source. Each time is independent and must be finite and within that clip's duration. The weight is finite in `[0, 1]`. The result has two times because it is not a single-time `MotionFrame`.
+
+At weight 0 or 1, the result copies the corresponding existing clip sample without component arithmetic. This preserves sampled signed zeros and quaternion signs. `weight: -0` selects the source and is returned as `+0`; signed-zero input times remain signed. Interior translation and scale are componentwise linear. Interior rotation uses the same shortest-path SLERP and near-equal normalization rule as keyed sampling. Returned poses and arrays are independent copies. Computed translation, scale and quaternion values must stay finite and inside the v0 bounds.
+
+Invalid clips, times or weight throw `MotionBlendError` with code `INVALID_INPUT`. Context or target/property mismatches use `INCOMPATIBLE_CLIPS`; unsafe computed values use `UNSAFE_RESULT`. Error messages name the field and do not include caller data. The function has no player state, timer, marker events, asset migration, renderer operation, or CAD source mutation.
