@@ -1194,3 +1194,37 @@ bits, common delta, GL uploads, one-entry history, rejected pending fields, and
 selection reset. The fixed fixture has a weighted 3×3 grid, rotation and nonuniform
 positive scale. Broader axes/capacity/lifecycle coverage is deferred; rectangle
 selection and group rotation/scale are unsupported.
+
+### Explicit accepted Surface point and derivatives (#757)
+
+Open the default-collapsed **Native evaluation** section in a Surface inspector.
+Enter original dimensionless U/V values and choose **Evaluate native Surface**.
+The query uses the accepted native cached Surface through evaluateSurfaceD1;
+staged pole/property edits are neither applied nor discarded. Results identify
+the object, original Surface, source0 and accepted revision. Point values are
+native local XYZ in mm; dP/dU and dP/dV are mm per original parameter. Instance
+placement is not applied, and first derivatives are not a global regularity or
+continuity certificate. There is no inferred mesh normal or normalized U/V.
+
+Query errors are separate from geometry errors. Invalid fields, out-of-domain
+values or guarded native C0 knots retain the last successful result with its
+original parameters. Source/scene adoption and changing object invalidate it;
+camera-only changes retain it. Query forms/results are not serialized. The
+example querySurfacePoint API requires exactly own plain enumerable numeric
+U/V data fields; getters, foreign fields and nonfinite values are refused.
+
+One actual source/API acceptance flow, using the existing Node runtime:
+
+```sh
+BAROCSS_SURFACE_QUERY_EVIDENCE=/absolute/unique/output \
+node examples/cad-preview/scene-surface-query-flow.mjs
+```
+
+The fixed native affine patch has original U2..5 and V10..20 domains. At U3.5,
+V12.5 its independent analytic expectations are point[20,3.5,7]mm,
+dP/dU[20/3,0,2] and dP/dV[0,3,.8]. The real controller/source flow checks pending
+field preservation, accepted native/display/history identity, owned immutable
+result arrays, error/result retention, camera retention, source invalidation,
+exact native C0 refusal and active-gesture refusal. No viewport is attached in
+this API proof. Browser pixels, reader/global continuity and broader capacity
+or performance are not claimed by this scoped result.
