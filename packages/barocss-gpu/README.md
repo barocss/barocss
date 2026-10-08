@@ -963,3 +963,36 @@ Native bounds and entries describe native geometry; inspect particle positions
 separately. Native-empty binding refuses. Viewport clear removes both; resize/
 render retain; lost context requires remount; dispose releases owned resources.
 Full frames/programs/buffers restage; no reuse or performance guarantee.
+
+### Explicit complete frame (#868)
+
+`PrimitiveSceneRendererV2` and `PrimitiveViewport` expose
+`updateFrame(frame: PrimitiveSceneFrameV0): UpdateResult` and copied `frame` query.
+The exact own DTO requires all fields:
+
+```ts
+{ version: 0, scene: PrimitiveSceneInputV2, options: PrimitiveSceneOptions,
+  particles: ParticleLayerV0 | null, materials: PrimitiveSceneMaterial[] }
+```
+
+Materials are a dense0..4 list of unique `{ref,binding}` pairs, resolved against
+candidate Surface entries. Unknown/duplicate/Curve refs and unsafe data refuse.
+Missing candidate Surface binding means default appearance; empty materials and
+null particles are explicit clears. No old namespace transfers implicitly.
+All current native/IR/uniform/particle/camera/profile limits apply. Query material
+ordering follows candidate native entry order, as the existing materials query.
+
+CPU validation and existing native/material/particle programs stage one full
+frame before presentation/adoption. Refusal preserves all prior scene/options/
+appearance/layer queries and pixels and releases candidate resources. Existing
+`update` keeps its material reset; existing setters remain explicit. Resize/
+render retain the full frame; clear drops it. Only Viewport accepts scene2
+entries[] with materials[]/particles:null. SceneRendererV2 still requires1..4.
+Empty frames use no fake geometry or geometry programs. Context loss/remount and
+owned idempotent disposal stay current. No clock or buffer/program reuse promise.
+
+Primitive rendering still has no selection/highlight/edge overlay. Such fields
+refuse. A material overrides stored entry color, so a host must visibly support
+selection feedback or refuse that selected-material combination. GPU does not
+silently clear selection or implement Viewer behavior. Viewer869 adoption is a
+separate consumer after the actual Integration receipt.
