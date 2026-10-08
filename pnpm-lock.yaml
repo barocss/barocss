@@ -204,6 +204,9 @@ importers:
 
   packages/barocss-viewer:
     dependencies:
+      '@barocss/cad':
+        specifier: workspace:*
+        version: link:../barocss-cad
       '@barocss/cad-interop':
         specifier: workspace:*
         version: link:../barocss-cad-interop

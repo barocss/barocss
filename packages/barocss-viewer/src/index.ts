@@ -1,3 +1,4 @@
+import { evaluateSurface, surfaceDomain } from '@barocss/cad';
 import { parseBaroCadSource } from '@barocss/cad-interop/native';
 import type { BaroCadNativeResult } from '@barocss/cad-interop/native';
 import { mountMeshScene, prepareMesh, validateMeshCamera, validatePreviewPacket } from '@barocss/gpu';
@@ -8,6 +9,20 @@ export interface ViewerOptions { mmToSceneUnit: number; background: Vec3 }
 export interface NativeLoadOptions { sourceVersion: 0; countU: number; countV: number }
 export interface ViewerRef { modelId: string; surfaceId: string }
 export interface ViewerPacket { modelId: string; packet: PreviewPacket }
+export interface ViewerNativeSurfaceParameter extends ViewerRef { u: number; v: number }
+export interface ViewerNativeSurfacePoint {
+  ref: ViewerRef;
+  u: number;
+  v: number;
+  pointMM: Vec3;
+}
+export interface ViewerNativeSurfaceMeasurement {
+  first: ViewerNativeSurfacePoint;
+  second: ViewerNativeSurfacePoint;
+  distanceMM: number;
+  space: 'native-authored';
+  certification: 'not-certified';
+}
 export interface ViewerPick {
   ref: ViewerRef;
   triangleIndex: number;
@@ -27,6 +42,7 @@ export interface ViewerState {
   packets: ViewerPacket[];
   selected: ViewerRef | null;
   native: BaroCadNativeResult | null;
+  measurement: ViewerNativeSurfaceMeasurement | null;
 }
 
 const PALETTE: Vec3[] = [[0.14, 0.58, 0.86], [0.95, 0.57, 0.22], [0.36, 0.72, 0.49], [0.72, 0.48, 0.87]];
@@ -80,6 +96,13 @@ function parseRef(input: unknown): ViewerRef {
   check(typeof value.surfaceId === 'string' && ID.test(value.surfaceId), 'surfaceId must be a bounded ASCII identifier');
   return { modelId: value.modelId, surfaceId: value.surfaceId };
 }
+function parseNativeParameter(input: unknown): ViewerNativeSurfaceParameter {
+  const value = ownRecord(input, ['modelId', 'surfaceId', 'u', 'v'], 'Native Surface parameter');
+  const ref = parseRef({ modelId: value.modelId, surfaceId: value.surfaceId });
+  check(typeof value.u === 'number' && Number.isFinite(value.u)
+    && typeof value.v === 'number' && Number.isFinite(value.v), 'Native U/V parameters must be finite');
+  return { ...ref, u: value.u, v: value.v };
+}
 function sameRef(a: ViewerRef | null, b: ViewerRef | null): boolean {
   return !!a && !!b && a.modelId === b.modelId && a.surfaceId === b.surfaceId;
 }
@@ -121,6 +144,7 @@ export class Viewer {
   private renderer: ReturnType<typeof mountMeshScene> | null = null;
   private packets: ViewerPacket[] = [];
   private native: BaroCadNativeResult | null = null;
+  private measurement: ViewerNativeSurfaceMeasurement | null = null;
   private camera: MeshCamera = validateMeshCamera(INITIAL_CAMERA);
   private selected: ViewerRef | null = null;
   private disposed = false;
@@ -182,7 +206,7 @@ export class Viewer {
     const packets = this.validatedPackets(input);
     const camera = fittedCamera(packets, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
     this.present(packets, camera, null);
-    this.packets = packets; this.camera = camera; this.selected = null; this.native = native;
+    this.packets = packets; this.camera = camera; this.selected = null; this.native = native; this.measurement = null;
   }
   loadNative(source: string, input: NativeLoadOptions): void {
     this.live();
@@ -193,6 +217,31 @@ export class Viewer {
     this.accept(native.surfaces.map(surface => ({ modelId: native.model.name, packet: surface.packet })), native);
   }
   setPackets(input: ViewerPacket[]): void { this.live(); this.accept(input, null); }
+  measureNativeSurfacePoints(firstInput: ViewerNativeSurfaceParameter,
+    secondInput: ViewerNativeSurfaceParameter): ViewerNativeSurfaceMeasurement {
+    this.live();
+    const first = parseNativeParameter(firstInput), second = parseNativeParameter(secondInput);
+    const model = this.native?.model;
+    check(model && first.modelId === model.name && second.modelId === model.name,
+      'Both points must belong to the accepted native model');
+    const point = (input: ViewerNativeSurfaceParameter): ViewerNativeSurfacePoint => {
+      const surface = model.objects.find(object => object.kind === 'surface' && object.id === input.surfaceId);
+      check(surface && surface.kind === 'surface', 'Native Surface reference is unknown');
+      const domain = surfaceDomain(surface);
+      check(input.u >= domain.u[0] && input.u <= domain.u[1]
+        && input.v >= domain.v[0] && input.v <= domain.v[1],
+      'Native U/V parameters must be inside the original Surface domain');
+      return { ref: { modelId: input.modelId, surfaceId: input.surfaceId }, u: input.u, v: input.v,
+        pointMM: [...evaluateSurface(surface, input.u, input.v)] as Vec3 };
+    };
+    const firstPoint = point(first), secondPoint = point(second);
+    const distanceMM = Math.hypot(...subtract(firstPoint.pointMM, secondPoint.pointMM));
+    check(Number.isFinite(distanceMM), 'Native point distance is not finite');
+    const result: ViewerNativeSurfaceMeasurement = { first: firstPoint, second: secondPoint,
+      distanceMM, space: 'native-authored', certification: 'not-certified' };
+    this.measurement = result;
+    return structuredClone(result);
+  }
   fit(): void {
     this.live(); check(this.packets.length > 0, 'Viewer has no surfaces');
     this.setView(fittedCamera(this.packets, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height));
@@ -285,7 +334,7 @@ export class Viewer {
       mmToSceneUnit: this.options.mmToSceneUnit, camera: this.camera,
       surfaces: this.packets.map(entry => ({ modelId: entry.modelId, surfaceId: entry.packet.surfaceId })),
       packets: this.packets,
-      selected: this.selected, native: this.native });
+      selected: this.selected, native: this.native, measurement: this.measurement });
   }
   readPixels(): Uint8Array { this.live(); check(this.renderer, 'Viewer has no surfaces'); return this.renderer.readPixels(); }
   dispose(): void { if (this.disposed) return; this.disposed = true;

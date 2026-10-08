@@ -18,6 +18,18 @@ viewer.dispose();
 ```
 
 `getState().native` contains a copied native model and the exact source string.
+For two points on the accepted native model, call
+`measureNativeSurfacePoints({modelId,surfaceId,u,v}, {modelId,surfaceId,u,v})`.
+The method uses the public CAD Surface evaluator on the original U/V knot
+domains. It returns the two original parameters and native XYZ/mm points,
+`distanceMM`, `space: 'native-authored'`, and
+`certification: 'not-certified'`. `getState().measurement` contains a copied
+last accepted result. A successful new load clears it. Invalid input leaves
+the previous measurement, camera, selection, native data and pixels intact.
+`setPackets` has no native model, so it cannot support this measurement.
+An approximate `pick()` U/V can be passed to the method, but the pick remains
+an approximate display selection. This result does not include a display pose
+or assembly placement and does not drive a CAD dimension.
 `getState().packets` contains copied, unscaled preview packets for native or
 generic input.
 The current GPU scene backend requires distinct original `surfaceId` values

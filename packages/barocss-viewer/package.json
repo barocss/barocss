@@ -17,6 +17,7 @@
     "type-check": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@barocss/cad": "workspace:*",
     "@barocss/cad-interop": "workspace:*",
     "@barocss/gpu": "workspace:*"
   }
