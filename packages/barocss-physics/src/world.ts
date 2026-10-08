@@ -1,5 +1,5 @@
 import type { Body, PhysicsCcdHit, PhysicsContact, PhysicsEvent, PhysicsJointState, PhysicsPairStats, PhysicsState, PhysicsWorld, PhysicsWorldConfig, PhysicsRayHit, Vec3 } from './types.js';
-import { MAX_BODIES, MAX_STEPS, MAX_STEP_DISPLACEMENT_M, SOLVER_PASSES } from './limits.js';
+import { MAX_BODIES, MAX_LARGE_BODIES, MAX_STEPS, MAX_STEP_DISPLACEMENT_M, SOLVER_PASSES } from './limits.js';
 import { error, record, fields, finite, vector, parseBody, parseCommands, copyBody, copyShape, queryRecord, queryVector, queryNumber, includeSensors } from './validation.js';
 import { add, scale, inverseInertia, advanceOrientation } from './math.js';
 import { parseJoints, projectJoint } from './joints.js';
@@ -9,18 +9,22 @@ import { correctPersistentPair, solvePersistentPoint, warmStartPoint } from './p
 import type { PointImpulse } from './persistent-box-contact.js';
 import { ccdFixtures, sweepSphere } from './ccd.js';
 import { bodyBounds, boundsOverlap } from './broadphase.js';
+import { dormantPair, filterAllowsPair, wakeOnContact } from './scene-profile.js';
+import { updateSleeping, wakeForActions } from './sleep.js';
 
 function publicState(bodies: Body[], contacts: PhysicsContact[], events: PhysicsEvent[],
   joints: PhysicsJointState[], ccdHits: PhysicsCcdHit[], pairStats: PhysicsPairStats,
   stepIndex: number, dt: number): PhysicsState {
   return {
     stepIndex, timeSeconds: stepIndex * dt,
-    bodies: bodies.map(({ id, kind, shape: collider, positionM, velocityMps, orientation, angularVelocityRadps, inertiaKgM2, inertiaDiagonalKgM2, sensor, ccd }) =>
+    bodies: bodies.map(({ id, kind, shape: collider, positionM, velocityMps, orientation, angularVelocityRadps, inertiaKgM2, inertiaDiagonalKgM2, sensor, ccd, collisionFilter, sleeping }) =>
       ({ id, kind, shape: copyShape(collider), positionM: [...positionM], velocityMps: [...velocityMps],
         orientation: [...orientation], angularVelocityRadps: [...angularVelocityRadps],
         ...(inertiaKgM2 === undefined ? {} : { inertiaKgM2 }),
         ...(inertiaDiagonalKgM2 === undefined ? {} : { inertiaDiagonalKgM2: [...inertiaDiagonalKgM2] as Vec3 }),
-        ...(sensor ? { sensor: true } : {}), ...(ccd ? { ccd: true as const } : {}) })),
+        ...(sensor ? { sensor: true } : {}), ...(ccd ? { ccd: true as const } : {}),
+        ...(collisionFilter ? { collisionFilter: { ...collisionFilter } } : {}),
+        ...(sleeping !== undefined ? { sleeping } : {}) })),
     contacts: contacts.map(({ aId, bId, normalAtoB, pointM, penetrationM, impulseNs, tangentImpulseNs }) =>
       ({ aId, bId, normalAtoB: [...normalAtoB], pointM: [...pointM], penetrationM, impulseNs,
         tangentImpulseNs: [...tangentImpulseNs] })),
@@ -34,7 +38,10 @@ function publicState(bodies: Body[], contacts: PhysicsContact[], events: Physics
 
 export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
   const input = record(config, 'world');
-  fields(input, ['fixedStepSeconds', 'gravityMps2', 'bodies', 'joints', 'broadPhase', 'contactMode'], 'world');
+  fields(input, ['fixedStepSeconds', 'gravityMps2', 'bodies', 'joints', 'broadPhase', 'contactMode', 'sceneMode'], 'world');
+  if (Object.hasOwn(input, 'sceneMode') && input.sceneMode !== 'large-v1') {
+    error('INVALID_CONFIG', 'sceneMode must be large-v1 when present');
+  }
   if (Object.hasOwn(input, 'broadPhase') && input.broadPhase !== 'aabb') {
     error('INVALID_CONFIG', 'broadPhase must be aabb when present');
   }
@@ -43,15 +50,23 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
   }
   const useAabb = input.broadPhase === 'aabb';
   const usePersistentBox = input.contactMode === 'persistent-box-v1';
+  const largeMode = input.sceneMode === 'large-v1';
+  if (largeMode && (!useAabb || usePersistentBox || Object.hasOwn(input, 'joints'))) {
+    error('INVALID_CONFIG', 'large-v1 requires aabb and excludes joints and persistent-box-v1');
+  }
   const dt = finite(input.fixedStepSeconds, 1 / 240, 1 / 30, 'fixedStepSeconds');
   const gravity = vector(input.gravityMps2, -1000, 1000, 'gravityMps2');
-  if (!Array.isArray(input.bodies) || input.bodies.length < 1 || input.bodies.length > MAX_BODIES) {
-    error('INVALID_CONFIG', `bodies must contain 1..${MAX_BODIES} entries`);
+  const bodyLimit = largeMode ? MAX_LARGE_BODIES : MAX_BODIES;
+  if (!Array.isArray(input.bodies) || input.bodies.length < 1 || input.bodies.length > bodyLimit) {
+    error('INVALID_CONFIG', `bodies must contain 1..${bodyLimit} entries`);
   }
   if (usePersistentBox && input.bodies.length > 4) {
     error('INVALID_CONFIG', 'persistent-box-v1 admits at most four bodies');
   }
-  let bodies = input.bodies.map(parseBody);
+  let bodies = input.bodies.map((value) => parseBody(value, largeMode));
+  if (largeMode && bodies.some((body) => body.ccd)) {
+    error('INVALID_CONFIG', 'large-v1 excludes CCD');
+  }
   if (!bodies.some((body) => body.kind === 'dynamic')) error('INVALID_CONFIG', 'at least one dynamic body is required');
   if (new Set(bodies.map((body) => body.id)).size !== bodies.length) error('INVALID_CONFIG', 'duplicate body ID');
   const joints = parseJoints(Object.hasOwn(input, 'joints') ? input.joints : [], bodies);
@@ -61,7 +76,8 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
     [bodies[joint.aIndex].id, bodies[joint.bIndex].id].sort().join('\u0000')));
   const pairs: Array<[number, number]> = [];
   for (let a = 0; a < bodies.length; a++) for (let b = a + 1; b < bodies.length; b++) {
-    if (bodies[a].inverseMass !== 0 || bodies[b].inverseMass !== 0) {
+    if ((bodies[a].inverseMass !== 0 || bodies[b].inverseMass !== 0) &&
+      (!largeMode || filterAllowsPair(bodies[a], bodies[b]))) {
       if (disabledPairs.has([bodies[a].id, bodies[b].id].sort().join('\u0000'))) continue;
       pairs.push(bodies[a].id < bodies[b].id ? [a, b] : [b, a]);
     }
@@ -79,6 +95,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
     ...(joint.kind === 'hinge' ? { angleRad: 0 } : {}) }));
   let activePairs = new Map<string, Omit<PhysicsEvent, 'phase'>>();
   let persistentPoints = new Map<string, PointImpulse>();
+  let sleepFrames = bodies.map(() => 0);
   let stepIndex = 0;
   let disposed = false;
   const ensureActive = () => { if (disposed) error('DISPOSED', 'world is disposed'); };
@@ -90,6 +107,8 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
       if (stepIndex >= MAX_STEPS) error('WORLD_LIMIT', 'world step limit reached');
       const actions = parseCommands(commands, bodies);
       const next = bodies.map(copyBody);
+      const nextSleepFrames = sleepFrames.slice();
+      if (largeMode) wakeForActions(next, contacts, actions, nextSleepFrames);
       for (const body of next) {
         const action = actions.get(body.id);
         if (body.kind === 'kinematic') {
@@ -102,6 +121,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
           body.velocityMps = delta.map((value) => value / dt) as Vec3;
           body.positionM = [...target];
         } else if (body.kind === 'dynamic') {
+          if (largeMode && body.sleeping) continue;
           const angularImpulse = action?.angularImpulseNms ?? [0, 0, 0];
           const torque = action?.torqueNm ?? [0, 0, 0];
           body.angularVelocityRadps = add(body.angularVelocityRadps,
@@ -136,6 +156,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
         }
         for (const [aIndex, bIndex] of pairs) {
           nextPairStats.eligiblePairs++;
+          if (largeMode && pass > 0 && dormantPair(next[aIndex], next[bIndex])) continue;
           if (bounds) {
             nextPairStats.aabbTests++;
             if (!boundsOverlap(bounds[aIndex], bounds[bIndex])) continue;
@@ -150,6 +171,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
             sensed.set(key, { aId: a.id, bId: b.id, kind: 'sensor' });
             continue;
           }
+          if (largeMode) wakeOnContact(a, b, nextSleepFrames, aIndex, bIndex);
           let contact = found.get(key);
           if (!contact) {
             contact = { aId: a.id, bId: b.id, normalAtoB: [...hit.normal], pointM: [...hit.pointM],
@@ -161,6 +183,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
           contact.pointM = points.reduce((sum, point) => add(sum, point), [0, 0, 0] as Vec3)
             .map((value) => value / points.length) as Vec3;
           contact.penetrationM = Math.max(contact.penetrationM, hit.penetration);
+          if (largeMode && dormantPair(a, b)) continue;
           if (manifold) {
             for (const point of manifold) {
               const pointKey = `${key}\u0000${point.id}`;
@@ -206,6 +229,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
         }
       }
       const nextContacts = [...found.values()];
+      if (largeMode) updateSleeping(next, nextContacts, nextSleepFrames);
       const nextActive = new Map<string, Omit<PhysicsEvent, 'phase'>>(sensed);
       for (const contact of nextContacts) {
         nextActive.set(`${contact.aId}\u0000${contact.bId}`,
@@ -229,6 +253,7 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
       pairStats = nextPairStats;
       activePairs = nextActive;
       persistentPoints = nextPersistentPoints;
+      sleepFrames = nextSleepFrames;
       stepIndex++;
       return publicState(bodies, contacts, events, jointStates, ccdHits, pairStats, stepIndex, dt);
     },
@@ -264,6 +289,6 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
       return best;
     },
     dispose() { disposed = true; bodies = []; contacts = []; events = []; ccdHits = [];
-      activePairs.clear(); persistentPoints.clear(); },
+      activePairs.clear(); persistentPoints.clear(); sleepFrames = []; },
   };
 }
