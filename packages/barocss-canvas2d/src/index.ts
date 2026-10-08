@@ -13,7 +13,7 @@ export { decodeImageBlob } from './image-decode.js';
 export { loadImageURL } from './image-url.js';
 export type { ImageURLLoadOptions } from './image-url.js';
 export { createDisplayTree, createDisplayTreeFromScene } from './display-tree.js';
-export type { DisplayTree, StageHandle, ContainerHandle, SpriteHandle, PathHandle, RectHandle, GlyphRunHandle, FrameHandle, DisplayHandle, ContainerSpec, SpriteSpec, PathSpec, PathPaint, RectSpec, RectPaint, GlyphRunSpec, GlyphRunLayout, FrameSpec, FramePaint, PointerEventType, DisplayPointerEvent, PointerInput, PointerListener } from './display-tree.js';
+export type { DisplayTree, StageHandle, ContainerHandle, SpriteHandle, PathHandle, RectHandle, GlyphRunHandle, FrameHandle, LineHandle, DisplayHandle, ContainerSpec, SpriteSpec, PathSpec, PathPaint, RectSpec, RectPaint, GlyphRunSpec, GlyphRunLayout, FrameSpec, FramePaint, LineSpec, LinePaint, PointerEventType, DisplayPointerEvent, PointerInput, PointerListener } from './display-tree.js';
 export { createTicker } from './ticker.js';
 export type { Canvas2DTicker, FrameScheduler, TickInfo, TickListener } from './ticker.js';
 export { booleanOrthogonalPolygons } from './boolean.js';

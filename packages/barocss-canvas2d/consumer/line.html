@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Canvas2D line handle consumer</title>
+<style>
+  body { margin: 20px; font: 14px system-ui; color: #17233c; background: #f5f7fb; }
+  button, input { margin: 0 8px 8px 0; padding: 7px 10px; }
+  canvas { width: 180px; height: 140px; display: block; background: white; }
+  pre { max-width: 760px; white-space: pre-wrap; background: white; padding: 12px; }
+</style>
+<h1>Canvas2D line handle</h1>
+<p>Click the blue line, change its endpoints and stroke, save, and reopen the document.</p>
+<button id="edit">Change line</button><button id="invalid">Try invalid line</button>
+<button id="save">Save document</button>
+<label>Open document <input id="open" type="file" accept="application/json,.json"></label>
+<p id="status" role="status">Loading</p><canvas id="scene"></canvas><pre id="observation"></pre>
+<script type="importmap">
+{"imports":{"@barocss/canvas2d":"../dist/index.js","@barocss/canvas2d/document":"../dist/document.js"}}
+</script>
+<script type="module" src="./line.mjs"></script>
+</html>
