@@ -79,6 +79,59 @@ function guardKnots(knots: number[], degree: number, min: number, max: number): 
 }
 type HomogeneousPoint = [number, number, number, number];
 interface Pole { h: HomogeneousPoint; originalIndex: number | null }
+export type CurveHomogeneousCoefficient = [number, number, number, number];
+export interface CurveHomogeneousInsertionStep {
+  insertion: number; spanIndex: number; priorMultiplicity: number;
+  generatedPoles: { refinedPoleIndex: number; leftPriorPoleIndex: number; rightPriorPoleIndex: number; alpha: number;
+    left: CurveHomogeneousCoefficient; right: CurveHomogeneousCoefficient; generated: CurveHomogeneousCoefficient }[];
+}
+export interface CurveKnotCoefficientResult {
+  candidate: Curve; unchangedPoles: CurveKnotUnchangedPole[]; unchangedKnots: CurveKnotUnchangedKnot[];
+  steps: CurveKnotInsertionStep[]; homogeneousSteps: CurveHomogeneousInsertionStep[];
+}
+/** INTERNAL: caller supplies an admitted own Curve/request/capacity profile. No source or public admission widening. */
+export function insertCurveKnotCoefficientsTrusted(original: Curve, knot: number, insertions: number): CurveKnotCoefficientResult {
+  const domain = curveDomain(original);
+  let poles: Pole[] = original.controlPoints.map((p, i) => ({ originalIndex: i, h: [p[0] * original.weights[i], p[1] * original.weights[i], p[2] * original.weights[i], original.weights[i]] }));
+  let knots = original.knots.map((value, i) => ({ value, originalIndex: i as number | null }));
+  const steps: CurveKnotInsertionStep[] = [];
+  const homogeneousSteps: CurveHomogeneousInsertionStep[] = [];
+  for (let insertion = 0; insertion < insertions; insertion++) {
+    const p = original.degree, n = poles.length - 1, values = knots.map(k => k.value), s = values.filter(k => k === knot).length;
+    let span = -1;
+    for (let i = p; i <= n; i++) if (values[i] <= knot && knot < values[i + 1]) span = i;
+    check(span >= p, 'actual original knot span required');
+    const next: Pole[] = Array(poles.length + 1), generatedPoles: CurveKnotInsertionStep['generatedPoles'] = [];
+    const homogeneousPoles: CurveHomogeneousInsertionStep['generatedPoles'] = [];
+    // Copy unchanged original entries without homogeneous reprojection.
+    for (let i = 0; i <= span - p; i++) next[i] = poles[i];
+    for (let i = span - s; i <= n; i++) next[i + 1] = poles[i];
+    for (let i = span - p + 1; i <= span - s; i++) {
+      const denominator = values[i + p] - values[i], numerator = knot - values[i];
+      check(Number.isFinite(denominator) && denominator > 0 && Number.isFinite(numerator) && numerator > 0 && numerator < denominator, 'insertion span/denominator is not safely representable');
+      const alpha = numerator / denominator;
+      check(Number.isFinite(alpha) && alpha > 0 && alpha < 1, 'strict convex insertion coefficient is not representable');
+      const left = poles[i - 1].h, right = poles[i].h;
+      const h = right.map((value, axis) => alpha * value + (1 - alpha) * left[axis]) as HomogeneousPoint;
+      check(h.every(Number.isFinite) && h[3] > 0, 'generated homogeneous coefficients must be finite with positive weight');
+      next[i] = { h, originalIndex: null }; generatedPoles.push({ refinedPoleIndex: i, leftPriorPoleIndex: i - 1, rightPriorPoleIndex: i, alpha });
+      homogeneousPoles.push({ refinedPoleIndex: i, leftPriorPoleIndex: i - 1, rightPriorPoleIndex: i, alpha,
+        left: copyCadData(left), right: copyCadData(right), generated: copyCadData(h) });
+    }
+    check(Array.from(next).every(entry => entry !== undefined), 'complete local insertion control polygon required');
+    poles = next; knots = [...knots.slice(0, span + 1), { value: knot, originalIndex: null }, ...knots.slice(span + 1)];
+    steps.push({ insertion: insertion + 1, spanIndex: span, priorMultiplicity: s, generatedPoles });
+    homogeneousSteps.push({ insertion: insertion + 1, spanIndex: span, priorMultiplicity: s, generatedPoles: homogeneousPoles });
+  }
+  const candidate: Curve = { kind: 'curve', id: original.id, degree: original.degree, knots: knots.map(k => k.value),
+    controlPoints: poles.map(entry => entry.originalIndex !== null ? copyCadData(original.controlPoints[entry.originalIndex]) : [entry.h[0] / entry.h[3], entry.h[1] / entry.h[3], entry.h[2] / entry.h[3]] as Point),
+    weights: poles.map(entry => entry.originalIndex !== null ? original.weights[entry.originalIndex] : entry.h[3]) };
+  check(candidate.controlPoints.every(p => p.every(n => Number.isFinite(n) && Math.abs(n) <= 10000)), 'generated Cartesian coefficients exceed native family range');
+  validateCurve(candidate); check(sameData(curveDomain(candidate), domain), 'original parameter endpoint bits must remain');
+  const unchangedPoles = poles.flatMap((entry, i) => entry.originalIndex === null ? [] : [{ originalPoleIndex: entry.originalIndex, refinedPoleIndex: i }]);
+  const unchangedKnots = knots.flatMap((entry, i) => entry.originalIndex === null ? [] : [{ originalKnotIndex: entry.originalIndex, refinedKnotIndex: i }]);
+  return { candidate, unchangedPoles, unchangedKnots, steps, homogeneousSteps };
+}
 /** Local homogeneous convex knot insertion; original evaluator remains authority. */
 export function insertCurveKnot(input: Curve, options: CurveKnotInsertionOptions): CurveKnotInsertionResult {
   try {
@@ -95,41 +148,10 @@ export function insertCurveKnot(input: Curve, options: CurveKnotInsertionOptions
     const originalMultiplicity = original.knots.filter(k => k === knot).length;
     check(originalMultiplicity + insertions <= original.degree, 'final numeric knot multiplicity must not exceed degree');
     check(original.controlPoints.length + insertions <= 16, 'final pole count must not exceed16');
-    let poles: Pole[] = original.controlPoints.map((p, i) => ({ originalIndex: i, h: [p[0] * original.weights[i], p[1] * original.weights[i], p[2] * original.weights[i], original.weights[i]] }));
-    let knots = original.knots.map((value, i) => ({ value, originalIndex: i as number | null }));
-    const steps: CurveKnotInsertionStep[] = [];
-    for (let insertion = 0; insertion < insertions; insertion++) {
-      const p = original.degree, n = poles.length - 1, values = knots.map(k => k.value), s = values.filter(k => k === knot).length;
-      let span = -1;
-      for (let i = p; i <= n; i++) if (values[i] <= knot && knot < values[i + 1]) span = i;
-      check(span >= p, 'actual original knot span required');
-      const next: Pole[] = Array(poles.length + 1), generatedPoles: CurveKnotInsertionStep['generatedPoles'] = [];
-      // Copy unchanged original entries without homogeneous reprojection.
-      for (let i = 0; i <= span - p; i++) next[i] = poles[i];
-      for (let i = span - s; i <= n; i++) next[i + 1] = poles[i];
-      for (let i = span - p + 1; i <= span - s; i++) {
-        const denominator = values[i + p] - values[i], numerator = knot - values[i];
-        check(Number.isFinite(denominator) && denominator > 0 && Number.isFinite(numerator) && numerator > 0 && numerator < denominator, 'insertion span/denominator is not safely representable');
-        const alpha = numerator / denominator;
-        check(Number.isFinite(alpha) && alpha > 0 && alpha < 1, 'strict convex insertion coefficient is not representable');
-        const left = poles[i - 1].h, right = poles[i].h;
-        const h = right.map((value, axis) => alpha * value + (1 - alpha) * left[axis]) as HomogeneousPoint;
-        check(h.every(Number.isFinite) && h[3] > 0, 'generated homogeneous coefficients must be finite with positive weight');
-        next[i] = { h, originalIndex: null }; generatedPoles.push({ refinedPoleIndex: i, leftPriorPoleIndex: i - 1, rightPriorPoleIndex: i, alpha });
-      }
-      check(Array.from(next).every(entry => entry !== undefined), 'complete local insertion control polygon required');
-      poles = next; knots = [...knots.slice(0, span + 1), { value: knot, originalIndex: null }, ...knots.slice(span + 1)];
-      steps.push({ insertion: insertion + 1, spanIndex: span, priorMultiplicity: s, generatedPoles });
-    }
-    const candidate: Curve = { kind: 'curve', id: original.id, degree: original.degree, knots: knots.map(k => k.value),
-      controlPoints: poles.map(entry => entry.originalIndex !== null ? copyCadData(original.controlPoints[entry.originalIndex]) : [entry.h[0] / entry.h[3], entry.h[1] / entry.h[3], entry.h[2] / entry.h[3]] as Point),
-      weights: poles.map(entry => entry.originalIndex !== null ? original.weights[entry.originalIndex] : entry.h[3]) };
-    check(candidate.controlPoints.every(p => p.every(n => Number.isFinite(n) && Math.abs(n) <= 10000)), 'generated Cartesian coefficients exceed native family range');
-    validateCurve(candidate); check(sameData(curveDomain(candidate), domain), 'original parameter endpoint bits must remain');
+    const calculation = insertCurveKnotCoefficientsTrusted(original, knot, insertions);
+    const { candidate, unchangedPoles, unchangedKnots, steps } = calculation;
     const compiled = compileCurveSource(candidate.id, candidate.degree, candidate.controlPoints, candidate.knots, candidate.weights, LABEL), refined = compiled.curve;
     check(sameData(refined, candidate), 'actual refined source0 must preserve complete native coefficients/ID/order/domain bits');
-    const unchangedPoles = poles.flatMap((entry, i) => entry.originalIndex === null ? [] : [{ originalPoleIndex: entry.originalIndex, refinedPoleIndex: i }]);
-    const unchangedKnots = knots.flatMap((entry, i) => entry.originalIndex === null ? [] : [{ originalKnotIndex: entry.originalIndex, refinedKnotIndex: i }]);
     for (const m of unchangedPoles) check(sameData(original.controlPoints[m.originalPoleIndex], refined.controlPoints[m.refinedPoleIndex]) && Object.is(original.weights[m.originalPoleIndex], refined.weights[m.refinedPoleIndex]), 'unaffected pole/weight bits must remain');
     for (const m of unchangedKnots) check(Object.is(original.knots[m.originalKnotIndex], refined.knots[m.refinedKnotIndex]), 'original knot bits/order must remain');
     const parameters = [...new Set([...samples(original), ...samples(refined)])].sort((a, b) => a < b ? -1 : a > b ? 1 : 0);
