@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native Curve operations in Babylon.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+  button { margin: 8px 8px 8px 0; padding: 7px 12px; }
+</style>
+<main>
+  <h1>Native Curve operations in Babylon.js</h1>
+  <p>Cyan: reversal. Magenta: interval. Yellow: 31 to 64 pole refinement. Lines are display samples.</p>
+  <canvas id="view" width="800" height="500"></canvas>
+  <button id="reject">Try invalid candidates</button><button id="dispose">Dispose loaded display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Engine } from '@babylonjs/core/Engines/engine.js';
+  import { Scene } from '@babylonjs/core/scene.js';
+  import { Camera } from '@babylonjs/core/Cameras/camera.js';
+  import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera.js';
+  import { Mesh } from '@babylonjs/core/Meshes/mesh.js';
+  import { LinesMesh } from '@babylonjs/core/Meshes/linesMesh.js';
+  import { Color3, Color4 } from '@babylonjs/core/Maths/math.color.js';
+  import { Vector3 } from '@babylonjs/core/Maths/math.vector.js';
+  import { parseBaroCadSource } from '../dist/native.js';
+  import { BaroCADBabylonLoader, resolveBaroCadBabylonCurvePick } from '../dist/babylon.js';
+  import { createCurveOperationCases, displayOptions } from './curve-operations-fixture.mjs';
+
+  const status = document.querySelector('#status');
+  const canvas = document.querySelector('#view');
+  const engine = new Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+  const scene = new Scene(engine);
+  scene.useRightHandedSystem = true;
+  scene.clearColor = new Color4(20 / 255, 34 / 255, 54 / 255, 1);
+  const marker = new Mesh('caller-owned', scene);
+  // View from +Y with +Z up; no native geometry is rotated.
+  const camera = new FreeCamera('camera', new Vector3(0.015, 0.08, 0.012), scene);
+  camera.upVector = new Vector3(0, 0, 1);
+  camera.setTarget(new Vector3(0.015, 0, 0.012));
+  camera.mode = Camera.ORTHOGRAPHIC_CAMERA;
+  camera.orthoLeft = -0.023;
+  camera.orthoRight = 0.023;
+  camera.orthoTop = 0.018;
+  camera.orthoBottom = -0.018;
+  camera.minZ = 0.001;
+  camera.maxZ = 0.2;
+  scene.activeCamera = camera;
+  const loader = new BaroCADBabylonLoader(scene, displayOptions);
+  const acceptedOptions = JSON.stringify(displayOptions);
+  const cases = createCurveOperationCases();
+  const accepted = [];
+  const pixels = () => {
+    const data = new Uint8Array(800 * 500 * 4);
+    const gl = canvas.getContext('webgl2');
+    gl.readPixels(0, 0, 800, 500, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    return data;
+  };
+  const hash = data => data.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  try {
+    for (const item of cases) {
+      const url = new URL(`./curve-operations-data/${item.key}.barocad`, location.href).href;
+      const display = await loader.loadAbortable(url, {});
+      if (display.source !== item.result.source) throw new Error(`Operation output source mismatch: ${item.key}`);
+      const neutral = parseBaroCadSource(display.source, displayOptions);
+      if (item.key === 'refined' && (!Object.is(item.result.original.controlPoints[0][0], -0) ||
+          !Object.is(neutral.curves[0].sample.domain[0], -0))) throw new Error('Refined source lost signed zero');
+      const line = display.meshes[0];
+      if (display.meshes.length !== 1 || !(line instanceof LinesMesh)) throw new Error(`Expected one LinesMesh: ${item.key}`);
+      if (line.metadata.barocss.curveId !== item.result.curve.id ||
+          display.model.objects[0].id !== item.result.curve.id) throw new Error(`Native Curve ID mismatch: ${item.key}`);
+      if (JSON.stringify(line.metadata.barocss.nativeParameters) !== JSON.stringify(neutral.curves[0].sample.parameters))
+        throw new Error(`Native parameter mismatch: ${item.key}`);
+      const positions = line.getVerticesData('position');
+      if (positions.length !== neutral.curves[0].positions.length ||
+          positions.some((value, index) => !Object.is(value, neutral.curves[0].positions[index])))
+        throw new Error(`Float32 display position mismatch: ${item.key}`);
+      let pick;
+      if (item.key === 'reversed') {
+        const point = new Vector3((positions[0] + positions[3]) / 2,
+          (positions[1] + positions[4]) / 2, (positions[2] + positions[5]) / 2);
+        pick = resolveBaroCadBabylonCurvePick(display, {
+          hit: true, pickedMesh: line, faceId: 0, subMeshFaceId: 0, subMeshId: 0, pickedPoint: point,
+        });
+        if (pick.curveId !== item.result.curve.id) throw new Error('Picked output native Curve ID mismatch');
+      }
+      line.color = new Color3((item.color >> 16) / 255, ((item.color >> 8) & 255) / 255, (item.color & 255) / 255);
+      line.position.z = item.offsetZ;
+      accepted.push({ item, display, line, neutral, pick, source: display.source });
+    }
+    engine.runRenderLoop(() => scene.render());
+    await scene.whenReadyAsync();
+    engine.stopRenderLoop();
+    scene.render();
+    const firstPixels = pixels();
+    const colored = { cyan: 0, magenta: 0, yellow: 0 };
+    for (let i = 0; i < firstPixels.length; i += 4) {
+      const [r, g, b] = firstPixels.subarray(i, i + 3);
+      if (r < 100 && g > 150 && b > 150) colored.cyan++;
+      if (r > 150 && g < 100 && b > 150) colored.magenta++;
+      if (r > 150 && g > 150 && b < 100) colored.yellow++;
+    }
+    if (Object.values(colored).some(count => count === 0)) throw new Error('One output LinesMesh has no visible pixels');
+    const evidence = {
+      target: 'Babylon.js 9.29.0 WebGL2',
+      webgl2: canvas.getContext('webgl2') instanceof WebGL2RenderingContext,
+      rightHanded: scene.useRightHandedSystem, authoredBasis: 'XYZ, camera +Y, up +Z',
+      unitsPerMillimeter: 0.001,
+      cases: accepted.map(({ item, display, neutral, line }) => ({
+        key: item.key, outputId: line.metadata.barocss.curveId,
+        originalId: item.result.original.id,
+        originalPoles: item.result.original.controlPoints.length,
+        outputPoles: display.model.objects[0].controlPoints.length,
+        outputDomain: neutral.curves[0].sample.domain,
+        domainStartSignedZero: Object.is(neutral.curves[0].sample.domain[0], -0),
+        sampleCount: neutral.curves[0].sample.pointsMM.length,
+        reportSchema: item.result.report.dto.schema,
+        exactSource: display.source === item.result.source,
+      })),
+      pickedOutputId: accepted[0].pick.curveId,
+      pickedInputId: accepted[0].item.result.provenance.originalCurveId,
+      pickedParameter: accepted[0].pick.parameterApprox,
+      visiblePixels: colored, pixelHash: hash(firstPixels), callerMarkerRetained: scene.meshes.includes(marker),
+    };
+    window.__baroBabylonCurveOperationEvidence = evidence;
+    status.textContent = JSON.stringify(evidence, null, 2);
+    document.querySelector('#reject').onclick = () => {
+      const firstSource = accepted[0].source;
+      const candidates = [
+        () => loader.parse('@model invalid {}'),
+        () => new BaroCADBabylonLoader(scene, { ...displayOptions, sourceVersion: 1 }).parse(firstSource),
+        () => new BaroCADBabylonLoader(scene, { ...displayOptions,
+          curveDisplay: { ...displayOptions.curveDisplay, version: 2 } }).parse(firstSource),
+        () => new BaroCADBabylonLoader(scene, { ...displayOptions,
+          curveDisplay: { ...displayOptions.curveDisplay, maxSegments: 4093 } }).parse(firstSource),
+        () => { const forged = structuredClone(cases[0].result); forged.source += ' '; cases[0].validate(forged); },
+        () => { scene.useRightHandedSystem = false; try { loader.parse(firstSource); } finally { scene.useRightHandedSystem = true; } },
+      ];
+      let refused = 0;
+      for (const candidate of candidates) { try { candidate(); } catch { refused++; } }
+      scene.render();
+      evidence.invalidCandidatesRefused = refused;
+      evidence.acceptedMeshesRetained = accepted.every(({ line }) => !line.isDisposed() && scene.meshes.includes(line));
+      evidence.acceptedSourcesRetained = accepted.every(({ item, source }) => item.result.source === source);
+      evidence.acceptedOptionsRetained = JSON.stringify(displayOptions) === acceptedOptions;
+      evidence.acceptedPixelsRetained = hash(pixels()) === evidence.pixelHash;
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+    document.querySelector('#dispose').onclick = () => {
+      for (const { display } of accepted) { display.dispose(); display.dispose(); }
+      scene.render();
+      evidence.disposed = accepted.every(({ line }) => line.isDisposed() && !scene.meshes.includes(line));
+      evidence.callerMarkerRetained = !marker.isDisposed() && scene.meshes.includes(marker);
+      evidence.callerSceneAndEngineLive = !scene.isDisposed && engine.getRenderingCanvas() === canvas;
+      evidence.nativeSourcesRetained = accepted.every(({ item, source }) => item.result.source === source);
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+  } catch (error) {
+    for (const { display } of accepted) display.dispose();
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroBabylonCurveOperationError = String(error);
+  }
+</script>
+</html>

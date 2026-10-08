@@ -967,3 +967,26 @@ The Lines approximate native Curves. Three vertices do not replace native
 parameters or prove an error bound, topology, a solid or manufacturing
 quality. This is one Three.js consumer; it does not establish Babylon,
 Pixi3D, GLB or npm publication for these three operations.
+
+### Load the same operation outputs in Babylon.js
+
+`examples/curve-operations-babylon-verify.mjs` reads the same three output
+source0 files with the compiled Babylon loader in a right-handed NullEngine
+Scene. It checks `LinesMesh` vertices, sample-v1 parameters, output native
+Curve IDs and a display hit. The hit identifies the Curve in the loaded
+output source. The host follows the retained CAD operation provenance to the
+pre-operation input Curve ID.
+
+After building CAD and this package, run:
+
+```sh
+node packages/barocss-cad-interop/examples/curve-operations-babylon-verify.mjs
+```
+
+Serve `examples/curve-operations-babylon.html` through the local Vite browser
+server for the actual Babylon.js WebGL2 display. The host supplies a live
+right-handed Scene, authored XYZ camera, explicit 0.001 scene units/mm and
+display-only colors/poses. The page checks three visible output Lines, six
+invalid candidates, prior-pixel retention and adapter-owned disposal. This
+example uses the existing Babylon v1 adapter; it adds no target API or new
+claim about exact native picking, topology, another renderer or publication.
