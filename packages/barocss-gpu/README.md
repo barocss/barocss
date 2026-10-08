@@ -996,3 +996,26 @@ refuse. A material overrides stored entry color, so a host must visibly support
 selection feedback or refuse that selected-material combination. GPU does not
 silently clear selection or implement Viewer behavior. Viewer869 adoption is a
 separate consumer after the actual Integration receipt.
+
+## Native Boolean CPU buffers (#891)
+
+`prepareCoplanarBooleanBuffers(nativeMesh, {mmToSceneUnit: 0.05, translate: [0,0,0]})`
+accepts only the whole validated `barocss-native-coplanar-face-boolean-mesh` v0
+result from CAD #887. It returns an independent frozen native binary64 copy and
+caller-owned Float32 positions/normals, Uint16 triangle indices and true boundary
+pairs. Coordinates keep raw authored XYZ; positive scale and translation apply
+once. Native UV, sources, mesh/support/evaluation IDs and fragment provenance
+remain native. Bridges and diagonals are excluded from boundary pairs. Empty
+regions return empty arrays and null bounds. Unsafe Float32 geometry refuses.
+
+This is a CPU backend preparation API, not a PreviewPacket0 or a render entry.
+Existing mount/scene/viewport APIs do not accept this profile. Browser, GL,
+materials, depth, pixels and resource lifetime require a separate actual target
+consumer. This API does not resolve the denied #874 browser gate.
+
+Run the affected build and the actual saved-file API flow:
+
+```sh
+pnpm --filter @barocss/gpu build:library
+node examples/gpu-scene/boolean-buffers-flow.mjs --meshes /path/to/887/meshes --output /tmp/boolean-buffers
+```
