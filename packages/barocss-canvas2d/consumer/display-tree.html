@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Canvas2D public display tree consumer</title>
+<style>
+  body { margin: 20px; font: 14px system-ui; color: #17233c; background: #f5f7fb; }
+  button, input { margin: 0 8px 8px 0; padding: 7px 10px; }
+  canvas { width: 320px; height: 200px; display: block; background: white; border: 1px solid #c8d2e3; }
+  pre { max-width: 760px; white-space: pre-wrap; background: white; padding: 12px; }
+</style>
+<h1>Canvas2D public display tree</h1>
+<p>Compiled package only. The host submits validated snapshots explicitly.</p>
+<button id="move">Move parent</button>
+<button id="anchor">Center Red anchor</button>
+<button id="reset-anchor">Reset Red anchor</button>
+<button id="layer">Raise Red layer</button>
+<button id="equal">Equal layers</button>
+<button id="reorder">Remove and re-add Red</button>
+<button id="invalid">Reject bad mutations</button>
+<button id="save">Save document</button>
+<label>Open document <input id="open" type="file" accept="application/json,.json"></label>
+<button id="dispose">Dispose</button>
+<p id="status" role="status">Loading</p>
+<canvas id="scene"></canvas>
+<pre id="observation"></pre>
+<script type="importmap">
+{"imports":{"@barocss/canvas2d":"../dist/index.js","@barocss/canvas2d/document":"../dist/document.js"}}
+</script>
+<script type="module" src="./display-tree.mjs"></script>
+</html>

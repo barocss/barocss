@@ -1,0 +1,174 @@
+import { Canvas2DError, validateScene } from './schema.js';
+import type { GroupNodeV6, ImageNodeV6, SceneV6, Transform } from './schema.js';
+
+export type ContainerSpec = Pick<GroupNodeV6, 'id' | 'layer' | 'transform'>;
+export type SpriteSpec = Omit<ImageNodeV6, 'kind'>;
+export type DisplayHandle = ContainerHandle | SpriteHandle;
+export type StageHandle = {
+  readonly children: readonly DisplayHandle[];
+  addChild(child: DisplayHandle): void;
+  removeChild(child: DisplayHandle): void;
+};
+export type ContainerHandle = StageHandle & {
+  readonly kind: 'container'; readonly id: string; readonly data: ContainerSpec;
+  setTransform(transform: Transform): void;
+  setLayer(layer: number): void;
+};
+export type SpriteHandle = {
+  readonly kind: 'sprite'; readonly id: string; readonly data: SpriteSpec;
+  setTransform(transform: Transform): void;
+  setLayer(layer: number): void;
+  setAnchor(x: number, y: number): void;
+  setOpacity(opacity: number): void;
+};
+export type DisplayTree = {
+  readonly stage: StageHandle;
+  createContainer(spec: ContainerSpec): ContainerHandle;
+  createSprite(spec: SpriteSpec): SpriteHandle;
+  snapshot(): SceneV6;
+};
+
+type RecordNode = {
+  data: GroupNodeV6 | ImageNodeV6 | null;
+  parent: RecordNode | null;
+  children: RecordNode[];
+  handle: StageHandle | DisplayHandle;
+};
+
+function invalid(message: string): never { throw new Canvas2DError('INVALID_SCENE', message); }
+
+function exactSpec(value: unknown, required: string[], optional: string[] = []): Record<string, unknown> {
+  if (value === null || typeof value !== 'object' ||
+      (Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)) {
+    return invalid('display object spec must be a plain object');
+  }
+  const keys = Reflect.ownKeys(value);
+  if (keys.length < required.length || keys.length > required.length + optional.length ||
+      keys.some(key => typeof key !== 'string' || ![...required, ...optional].includes(key)) ||
+      required.some(key => !Object.hasOwn(value, key))) {
+    return invalid('display object spec has unknown or missing fields');
+  }
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  const result: Record<string, unknown> = {};
+  for (const key of keys as string[]) {
+    const descriptor = descriptors[key];
+    if (!descriptor?.enumerable || !('value' in descriptor)) invalid(`display object spec.${key} must be a data field`);
+    result[key] = descriptor.value;
+  }
+  return result;
+}
+
+export function createDisplayTree(contextId: string): DisplayTree {
+  const checked = validateScene({ version: 6, unit: 'logical-px', contextId, nodes: [] }) as SceneV6;
+  const root: RecordNode = { data: null, parent: null, children: [], handle: null as unknown as StageHandle };
+  const records = new WeakMap<object, RecordNode>();
+
+  function toNode(record: RecordNode): GroupNodeV6 | ImageNodeV6 {
+    const data = record.data;
+    if (!data) invalid('stage has no scene node');
+    if (data.kind === 'group') return { ...data, children: record.children.map(toNode) };
+    return data;
+  }
+  function validateRoots(changed: RecordNode): void {
+    validateScene({ version: 6, unit: 'logical-px', contextId: checked.contextId,
+      nodes: root.children.map(toNode) });
+    let top = changed;
+    while (top.parent) top = top.parent;
+    if (top !== root) {
+      validateScene({ version: 6, unit: 'logical-px', contextId: checked.contextId,
+        nodes: [toNode(top)] });
+    }
+  }
+  function known(handle: DisplayHandle): RecordNode {
+    const record = handle !== null && typeof handle === 'object' ? records.get(handle) : undefined;
+    if (!record || record === root) invalid('display object belongs to another tree');
+    return record;
+  }
+  function mutate(record: RecordNode, data: GroupNodeV6 | ImageNodeV6): void {
+    const previous = record.data;
+    record.data = data;
+    try { validateRoots(record); }
+    catch (error) { record.data = previous; throw error; }
+    record.data = validateScene({ version: 6, unit: 'logical-px', contextId: checked.contextId,
+      nodes: [toNode(record)] }).nodes[0] as GroupNodeV6 | ImageNodeV6;
+  }
+  function common(record: RecordNode) {
+    return {
+      setTransform(transform: Transform) {
+        const data = record.data;
+        if (!data) invalid('stage has no transform');
+        mutate(record, { ...data, transform });
+      },
+      setLayer(layer: number) {
+        const data = record.data;
+        if (!data) invalid('stage has no layer');
+        mutate(record, { ...data, layer });
+      },
+    };
+  }
+  function parentMethods(parent: RecordNode): StageHandle {
+    return {
+      get children() { return parent.children.map(child => child.handle as DisplayHandle); },
+      addChild(child: DisplayHandle) {
+        const record = known(child);
+        if (record.parent) invalid('display object already has a parent');
+        for (let cursor: RecordNode | null = parent; cursor; cursor = cursor.parent) {
+          if (cursor === record) invalid('display tree cannot contain a parent cycle');
+        }
+        parent.children.push(record); record.parent = parent;
+        try { validateRoots(parent); }
+        catch (error) { parent.children.pop(); record.parent = null; throw error; }
+      },
+      removeChild(child: DisplayHandle) {
+        const record = known(child);
+        const index = parent.children.indexOf(record);
+        if (index < 0) invalid('display object is not a child of this parent');
+        parent.children.splice(index, 1); record.parent = null;
+      },
+    };
+  }
+  root.handle = Object.freeze(parentMethods(root));
+  records.set(root.handle, root);
+
+  return Object.freeze({
+    stage: root.handle,
+    createContainer(spec: ContainerSpec): ContainerHandle {
+      const fields = exactSpec(spec, ['id', 'layer', 'transform']);
+      const node = validateScene({ version: 6, unit: 'logical-px', contextId: checked.contextId,
+        nodes: [{ kind: 'group', ...fields, children: [] }] }).nodes[0] as GroupNodeV6;
+      const record: RecordNode = { data: node, parent: null, children: [], handle: null as unknown as ContainerHandle };
+      const parent = parentMethods(record);
+      const handle: ContainerHandle = Object.freeze({
+        kind: 'container' as const, get id() { return (record.data as GroupNodeV6).id; },
+        get data() { const { kind: _kind, children: _children, ...data } = record.data as GroupNodeV6;
+          return structuredClone(data) as ContainerSpec; },
+        get children() { return parent.children; },
+        addChild: parent.addChild, removeChild: parent.removeChild,
+        ...common(record),
+      });
+      record.handle = handle; records.set(handle, record);
+      return handle;
+    },
+    createSprite(spec: SpriteSpec): SpriteHandle {
+      const fields = exactSpec(spec, ['id', 'layer', 'transform', 'imageId', 'width', 'height',
+        'opacity', 'sampling', 'anchorX', 'anchorY'], ['sourceRect']);
+      const node = validateScene({ version: 6, unit: 'logical-px', contextId: checked.contextId,
+        nodes: [{ kind: 'image', ...fields }] }).nodes[0] as ImageNodeV6;
+      const record: RecordNode = { data: node, parent: null, children: [], handle: null as unknown as SpriteHandle };
+      const handle: SpriteHandle = Object.freeze({
+        kind: 'sprite' as const, get id() { return (record.data as ImageNodeV6).id; },
+        get data() { const { kind: _kind, ...data } = record.data as ImageNodeV6;
+          return structuredClone(data) as SpriteSpec; },
+        ...common(record),
+        setAnchor(x: number, y: number) { mutate(record, { ...(record.data as ImageNodeV6), anchorX: x, anchorY: y }); },
+        setOpacity(opacity: number) { mutate(record, { ...(record.data as ImageNodeV6), opacity }); },
+      });
+      record.handle = handle; records.set(handle, record);
+      return handle;
+    },
+    snapshot(): SceneV6 {
+      return validateScene({ version: 6, unit: 'logical-px', contextId: checked.contextId,
+        nodes: root.children.map(toNode) }) as SceneV6;
+    },
+  });
+}
