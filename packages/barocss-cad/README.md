@@ -6648,3 +6648,58 @@ lineage, with raw-0 file reopening and separate manifest JS/types imports.
 UV area is dimensionless metadata; it is not manufacturing world area.
 Solid Boolean, shell sewing, curved trim/general supports, persistent BRep
 naming, global numerical quality and display/solid consumers remain separate.
+
+
+## Filled coplanar Boolean region preview
+
+`tessellateCoplanarFaceBoolean(region, options)` accepts the complete native
+Boolean result described above. It validates that result before building a
+filled mesh for its selected material. Nonconvex outlines, holes, disconnected
+components and the true empty result use the same API.
+
+```ts
+const preview = cad.tessellateCoplanarFaceBoolean(region, {
+  meshId: 'boolean_preview',
+  maximumVertices: 64,
+  maximumTriangles: 80,
+  maximumCandidatePairs: 2016,
+  maximumPredicateTests: 2000000,
+  maximumTriangleTests: 50000,
+});
+cad.validateCoplanarFaceBooleanMesh(preview);
+```
+
+The result owns `{region, options, mesh, boundaryPaths, triangulation, report}`.
+Mesh positions use the original support's native D1 evaluations at the selected
+native vertices. Units are mm in the authored XYZ frame. UV coordinates are
+dimensionless. No axis conversion occurs. This is the dedicated
+`barocss-native-coplanar-face-boolean-mesh` version 0 DTO. A consumer must adapt
+it explicitly to its renderer contract. It is not PreviewPacket0 or a new
+native Surface. True empty material has empty arrays, null bounds and no D1 calls.
+
+A visible planar graph joins only native vertices within each component.
+The mesh has no Steiner vertices, duplicate bridge vertices or snapped native
+geometry. Boundary paths retain the original fragment, loop, edge, use,
+source asset and Curve/pcurve provenance. Mesh bridges and diagonals are display
+edges. They are never CAD boundaries. Each native boundary has one directed
+triangle use. Each internal edge has two opposite triangle uses.
+
+The producer checks triangle counts, material winding, hole exclusion,
+nonoverlap, incidence and UV area for each component. Native affine Jacobians
+and actual 3D triangles provide derived world-area diagnostics. These diagnostics
+are separate from the native Surface area query and its error estimator.
+Unsafe numeric predicates and exhausted caller budgets refuse the entire result.
+The owned validator rebuilds the native region, mesh and all provenance.
+The original region and its source files remain unchanged.
+
+Run the actual saved-region consumer flow after the affected library build:
+
+```sh
+node examples/cad-nurbs/coplanar-face-boolean-mesh-demo.mjs --source /tmp/cad-boolean-mesh --boolean-directory /path/to/cad-planar-boolean
+```
+
+The flow reads saved native Boolean results and their original sources, covers
+nonconvex material, a hole, two components and empty material, then rebuilds one
+actual authored corner edit. It also checks one existing convex-hole mesh
+consumer after the shared UV predicate extraction. GPU rendering, solid Boolean,
+sewing, global triangulation and manufacturing certification remain separate work.
