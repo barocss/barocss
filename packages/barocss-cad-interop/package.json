@@ -1,7 +1,8 @@
 {
   "name": "@barocss/cad-interop",
-  "version": "0.0.0-private-experimental",
-  "private": true,
+  "version": "0.0.0-experimental",
+  "private": false,
+  "publishConfig": { "access": "public" },
   "type": "module",
   "description": "Portable mesh and glTF export for BaroCSS CAD preview packets",
   "license": "MIT",

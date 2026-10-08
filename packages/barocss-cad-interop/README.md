@@ -1,6 +1,6 @@
 # @barocss/cad-interop
 
-This private workspace package turns BaroCSS CAD `PreviewPacket v0` data into
+This experimental package turns BaroCSS CAD `PreviewPacket v0` data into
 renderer buffers or a self-contained glTF 2.0 binary file (`.glb`). It has no
 runtime dependency on CAD, GPU, Three.js, Babylon.js, or Pixi3D. The preview
 packet is shared by `@barocss/cad` and `@barocss/gpu`.
@@ -105,9 +105,9 @@ Khronos glTF Validator with no errors or warnings in the local integration
 check. Babylon.js and Pixi3D loading are documented from their loader contracts;
 they have not been run in this repository.
 
-This package remains private and experimental. Before publishing to npm, assign
-a release version, remove `private`, and run the package and consumer checks
-against the exact release artifact.
+This package has public npm configuration, but it has not been published.
+Version `0.0.0-experimental` marks the current API as experimental. Publication
+requires a separate release decision and checks of that exact release artifact.
 
 References: [glTF 2.0 specification](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html),
 [Three.js GLTFLoader](https://threejs.org/docs/pages/GLTFLoader.html),
