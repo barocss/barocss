@@ -9,6 +9,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./cad-proxy": {
+      "types": "./dist/cad-proxy.d.ts",
+      "import": "./dist/cad-proxy.js"
     }
   },
   "main": "./dist/index.js",
@@ -16,6 +20,9 @@
   "files": ["dist", "README.md", "LICENSE"],
   "scripts": {
     "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js"
+  },
+  "dependencies": {
+    "@barocss/cad": "workspace:*"
   },
   "publishConfig": { "access": "public" }
 }
