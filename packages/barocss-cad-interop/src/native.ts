@@ -2,6 +2,8 @@ import { compileCadModel, sampleCurveAdaptive, tessellateSurface, validateAdapti
 import type { AdaptiveCurveSamplingResult, ApproximationReport, CadDiagnostic, Model } from '@barocss/cad';
 import { prepareCadPreviewMesh } from './packet.js';
 import type { CadPreviewPacket, PreparedCadMesh } from './packet.js';
+export { BaroCadLoadAbortError } from './transport.js';
+export type { BaroCadLoadProgress, BaroCadLoadTransportOptions } from './transport.js';
 
 export interface BaroCadParseOptions {
   sourceVersion: 0;

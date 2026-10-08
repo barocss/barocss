@@ -256,6 +256,43 @@ accuracy. Run `pnpm --filter @barocss/cad-interop build:library` and then
 `pnpm --filter @barocss/cad-interop test:curve` for the included real source
 files, Three/Babylon objects, local URL loading, disposal and bounded refusals.
 
+## Cancel a native URL load
+
+The Three and Babylon adapters each add `loadAbortable(url, transport)`.
+This explicit method leaves their existing `load` and `loadAsync` methods
+unchanged. The transport object is separate from native parse options:
+
+```js
+const controller = new AbortController();
+const pending = loader.loadAbortable('/curve-display.barocad', {
+  signal: controller.signal,
+  onProgress({ url, loadedBytes, declaredTotalBytes }) {
+    // Byte progress for this URL only; not CAD geometry progress.
+  },
+});
+// On model change before completion: controller.abort().
+const result = await pending;
+result.dispose();
+```
+
+The signal can be omitted. `onProgress` may return `false` to stop loading;
+that and signal cancellation reject with `name: 'AbortError'` and
+`code: 'ABORT_ERR'`. A thrown callback error is passed to the caller unless
+the signal has also been aborted. Independent loads do not cancel each other.
+An abort after display creation but before delivery disposes only that new
+result. A caller's scene, engine, existing result, and abort controller remain
+the caller's property.
+
+The method reads at most 262144 actual bytes and 4096 streamed chunks. A
+valid `Content-Length` is reported as a hint and can trigger early refusal;
+the actual byte count is still checked. It rejects responses without a
+readable stream instead of allocating an unbounded fallback buffer. UTF-8 is
+decoded strictly. Invalid URL, transport fields, HTTP status, source text,
+byte count, and decode errors reject before returning a result. The method
+does not set a timeout; the caller controls cancellation. Run
+`pnpm --filter @barocss/cad-interop test:abortable` after the affected build
+for the real local-file HTTP cancellation and resource flow.
+
 References: [Babylon.js package](https://www.npmjs.com/package/@babylonjs/core),
 [Babylon.js right-handed scene guidance](https://doc.babylonjs.com/features/featuresDeepDive/importers/glTF/),
 [Babylon.js custom mesh documentation](https://doc.babylonjs.com/features/featuresDeepDive/mesh/creation/custom/).

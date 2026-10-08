@@ -7,6 +7,8 @@ import { Vector3 } from '@babylonjs/core/Maths/math.vector.js';
 import type { Scene } from '@babylonjs/core/scene.js';
 import { parseBaroCadSource } from './native.js';
 import type { BaroCadNativeResult, BaroCadParseOptions } from './native.js';
+import { readAbortableBaroCadSource, throwIfBaroCadAborted, validateBaroCadTransport } from './transport.js';
+import type { BaroCadLoadTransportOptions } from './transport.js';
 
 const MAX_SOURCE_BYTES = 262144; // The current CAD sourceVersion 0 compiler limit.
 
@@ -137,5 +139,23 @@ export class BaroCADBabylonLoader {
 
   async loadAsync(url: string): Promise<BaroCadBabylonResult> {
     return this.parse(await readSourceUrl(url));
+  }
+
+  /** Explicit bounded URL transport. Existing loadAsync behavior is unchanged. */
+  async loadAbortable(url: string, transport: BaroCadLoadTransportOptions): Promise<BaroCadBabylonResult> {
+    const request = validateBaroCadTransport(url, transport);
+    const source = await readAbortableBaroCadSource(request);
+    throwIfBaroCadAborted(request.signal);
+    let result: BaroCadBabylonResult | undefined;
+    try {
+      result = this.parse(source);
+      await Promise.resolve();
+      throwIfBaroCadAborted(request.signal);
+      if (this.scene.isDisposed) throw new RangeError('BaroCAD Babylon loading requires a live scene');
+      return result;
+    } catch (error) {
+      result?.dispose();
+      throw error;
+    }
   }
 }
