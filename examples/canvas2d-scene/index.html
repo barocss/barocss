@@ -13,10 +13,16 @@
     button, .file-label { border: 1px solid #c6cfdf; border-radius: 8px; background: #fff; padding: 8px 12px; font: inherit; font-size: 13px; cursor: pointer; }
     button:hover, .file-label:hover { background: #f4f6fa; }
     input[type=file] { display: none; }
+    .snap-label { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
     #status { margin-left: auto; font-size: 12px; color: #53617a; }
     main { display: grid; grid-template-columns: 210px minmax(0, 1fr); min-height: calc(100vh - 62px); }
     aside { padding: 20px; background: #f8faff; border-right: 1px solid #d7deeb; }
     aside h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .07em; color: #69748a; margin: 0 0 12px; }
+    #object-list { list-style: none; padding: 0; margin: 0 0 24px; max-height: 210px; overflow: auto; }
+    #object-list li { margin: 3px 0; }
+    #object-list button { width: calc(100% - 12px); text-align: left; overflow-wrap: anywhere; }
+    #object-list button[aria-pressed=true] { border-color: #2463ff; background: #e6edff; }
     aside p { font-size: 13px; line-height: 1.6; color: #56627a; }
     #selected { display: block; margin: 15px 0 24px; font-weight: 700; color: #2440a6; overflow-wrap: anywhere; }
     #viewport { padding: 28px; overflow: auto; }
@@ -38,17 +44,22 @@
     <button id="zoom-in" type="button">Zoom in</button><button id="zoom-out" type="button">Zoom out</button>
     <button id="undo" type="button" disabled>Undo</button><button id="redo" type="button" disabled>Redo</button>
     <button id="move-right" type="button" disabled>Move selected +10</button>
+    <button id="width-plus" type="button" disabled>Width +10</button><button id="height-plus" type="button" disabled>Height +10</button>
+    <button id="rotate-plus" type="button" disabled>Rotate +15°</button><button id="delete-selected" type="button" disabled>Delete selected</button>
+    <label class="snap-label"><input id="snap" type="checkbox">Snap 10px</label>
     <span id="status">Ready</span>
   </header>
   <main>
     <aside>
-      <h2>Layers</h2><div id="selected">No selection</div>
+      <h2>Selection</h2><div id="selected">No selection</div><div id="selection-status" class="sr-only" role="status">No selection</div>
+      <h2>Objects</h2><ul id="object-list" aria-label="Scene objects"></ul>
       <p>Drag a shape to move it. Drag empty space to pan. Use the mouse wheel or zoom buttons to zoom.</p>
       <p>Frames clip their children. Orange overlaps blue. The violet card rotates inside the second frame.</p>
       <p>The first frame shows an even-odd fill with a hole and an island. The second frame shows a self-crossing fill. Drag a path handle to change a curve.</p>
       <p>RGBA quadrants and a rotated cropped checker use host-provided image bytes. Scene JSON saves their IDs, not the bytes.</p>
       <p>The HI glyph run uses a host-provided RGBA atlas. The scene stores text, glyph ranges, and atlas ID.</p>
       <p>Move a selected node or drag it, then use Undo and Redo. Save writes the accepted scene. Open starts a new history.</p>
+      <p>Shift-click objects to select more than one. Use the snap toggle, resize and rotation controls, arrow keys, Delete, and Ctrl/Cmd+Z to edit.</p>
       <div id="error" role="alert"></div>
     </aside>
     <div id="viewport"><div id="canvas-wrap"><canvas id="scene" aria-label="Interactive design scene"></canvas><div id="selection-box"></div><div id="path-handles"></div></div></div>
