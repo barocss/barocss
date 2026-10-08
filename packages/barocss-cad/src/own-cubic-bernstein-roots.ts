@@ -55,8 +55,7 @@ export function solveCubicBernsteinRoots(originalInput: number[], parameterWidth
   for (let i = 0; i < 3; i++) check(originalCoefficients[i] === originalCoefficients[i + 1]
     || normalizedCoefficients[i] !== normalizedCoefficients[i + 1], 'distinct neighboring coefficients collapsed under derived normalization');
   const derivativeCoefficients = normalizedCoefficients.slice(0, 3).map((value, i) =>
-    product(3, finite(normalizedCoefficients[i + 1] - value, 'derived derivative difference overflow')))
-    as CubicBernsteinRootEvidence['derivativeCoefficients'];
+    product(3, finite(normalizedCoefficients[i + 1] - value, 'derived derivative difference overflow'))) as CubicBernsteinRootEvidence['derivativeCoefficients'];
   const arithmeticGuard = finite(64 * Number.EPSILON * Math.max(1, ...normalizedCoefficients.map(Math.abs)), 'scalar guard overflow');
   const strictPositive = normalizedCoefficients.every(value => value > arithmeticGuard);
   const strictNegative = normalizedCoefficients.every(value => value < -arithmeticGuard);
