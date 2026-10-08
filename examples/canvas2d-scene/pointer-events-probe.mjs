@@ -53,7 +53,7 @@ events.length = 0;
 assert.throws(() => tree.dispatchPointer({ ...input, hit: { id: 'Blue', kind: 'rect' } }),
   error => error.code === 'INVALID_SCENE');
 assert.throws(() => tree.dispatchPointer({ ...input, hit: { id: 'Blue', kind: 'line' } }),
-  error => error.code === 'UNSUPPORTED_FEATURE');
+  error => error.code === 'INVALID_SCENE');
 assert.deepEqual(events, []);
 assert.throws(() => blue.onPointer('click', () => {}), error => error.code === 'INVALID_SCENE');
 assert.throws(() => blue.onPointer('pointerdown', null), error => error.code === 'INVALID_SCENE');
