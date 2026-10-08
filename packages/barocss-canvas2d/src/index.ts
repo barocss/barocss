@@ -18,5 +18,7 @@ export { createDisplayTree, createDisplayTreeFromScene } from './display-tree.js
 export type { DisplayTree, StageHandle, ContainerHandle, SpriteHandle, PathHandle, RectHandle, GlyphRunHandle, FrameHandle, LineHandle, DisplayHandle, ContainerSpec, SpriteSpec, PathSpec, PathPaint, RectSpec, RectPaint, GlyphRunSpec, GlyphRunLayout, FrameSpec, FramePaint, LineSpec, LinePaint, PointerEventType, DisplayPointerEvent, PointerInput, PointerListener } from './display-tree.js';
 export { createTicker } from './ticker.js';
 export type { Canvas2DTicker, FrameScheduler, TickInfo, TickListener } from './ticker.js';
+export { createSpriteAnimation } from './sprite-animation.js';
+export type { SpriteAnimation, SpriteAnimationFrame, SpriteAnimationOptions } from './sprite-animation.js';
 export { booleanOrthogonalPolygons } from './boolean.js';
 export type { PolygonContour, PolygonOperand, PolygonOperation, PolygonBooleanResult } from './boolean.js';
