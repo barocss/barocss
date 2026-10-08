@@ -21,6 +21,17 @@ statements below; the older text remains historical evidence.
 
 ---
 
+# Current Motion retirement and Physics prototype (2026-10-08)
+
+After Viewer adopted direct display pose under [#749](https://github.com/barocss/barocss/issues/749),
+[#750](https://github.com/barocss/barocss/issues/750) retired the local Motion package and examples.
+[#751](https://github.com/barocss/barocss/issues/751) added a separate bounded
+fixed-step Physics prototype. Earlier Motion Work claims and technical contracts
+below remain historical evidence. Integration remains the sole local writer;
+this retirement does not publish or deprecate an external registry package.
+
+---
+
 # Current serial Integration ownership (activated 2026-10-08)
 
 The owner approved [#674](https://github.com/barocss/barocss/issues/674). GPU explicitly
@@ -29,7 +40,7 @@ Planner activated Execute Integration `01a119e4-00d7-7f93-92cd-40abb228e372`
 at `2026-10-08T05:22:25.668636Z`. Execute Integration alone writes the local
 integration branch and shared root, lock, static and current policy paths.
 GPU owns GPU feature and backend implementation in its isolated checkout.
-CAD, Loader, Motion, Canvas2D and Viewer retain their claimed module paths.
+CAD, Loader, Canvas2D, Viewer and Physics retain their claimed module paths.
 Planner sets priorities, dependencies, module contracts and release scope; it
 does not merge product code. Integrate each immutable parent-to-child delta once,
 serially, with an affected build and one short actual consumer flow. Record exact
@@ -46,8 +57,8 @@ from this writer transfer. Preserve inherited user files, hosts and Release 0.12
 # Current owner lanes and specifications (2026-10-08)
 
 The owner explicitly created separate Canvas2D and Viewer Execute Works under
-[family #660](https://github.com/barocss/barocss/issues/660), in addition to Motion.
-This supersedes the Motion-only new-Work exception below; no further Work,
+[family #660](https://github.com/barocss/barocss/issues/660), after Motion was established as a lane. Motion later retired under
+[#750](https://github.com/barocss/barocss/issues/750). This superseded the Motion-only new-Work exception below; no further Work,
 scheduler or model change is authorized.
 
 - [Canvas2D #664](https://github.com/barocss/barocss/issues/664) owns only new
@@ -57,10 +68,10 @@ scheduler or model change is authorized.
   `packages/barocss-viewer/` and `examples/viewer-scene/`: a reusable facade over
   our GPU/native Loader with real model metadata, fit, display picking and disposal.
   Default rendering uses our GPU, one canvas; no fake native identity workaround.
-- GPU still owns sole serial product/root/lock/static/policy integration and any
-  common/public GPU backend. Viewer proposes the needed multi-packet render API
+- Execute Integration now owns sole serial product/root/lock/static/policy
+  integration. GPU owns its common/public backend. Viewer proposes the needed multi-packet render API
   before using it; other lanes never copy/edit GPU internals. Existing CAD/Loader/
-  Motion ownership and exact native parent/child handoffs remain distinct.
+  Historical Motion ownership and native parent/child handoffs remain recorded.
 
 The [Product Vision](https://github.com/barocss/barocss/wiki/3D-Library-Product-Vision),
 [Living Specification](https://github.com/barocss/barocss/wiki/3D-Library-Specification)
@@ -77,37 +88,42 @@ permission below continue to apply. Professional parity and unrun targets stay u
 
 # Current owner goal — public 3D library family (2026-10-08)
 
-The active goal is our own reusable public GPU, CAD, native Loader and Motion
-libraries: [#660](https://github.com/barocss/barocss/issues/660). Editor/gallery/demos
+The active goal covers our own reusable public GPU, CAD, native Loader,
+Canvas2D and Viewer libraries: [#660](https://github.com/barocss/barocss/issues/660).
+Physics has a separate bounded prototype; Motion retired locally. Editor/gallery/demos
 are reference consumers. The owner activated the replacement Codex goal; the
 previous failed replacement is historical evidence. Commercial CAD remains the
 full geometry/topology/features/constraints/documents/assemblies/exchange pillar
 under [#503](https://github.com/barocss/barocss/issues/503), not a fixture-only goal.
 
-GPU owns its package and sole serial local product/root/shared/policy/lock
-integration. CAD owns its package/native examples; Loader owns interop/adapters.
-The explicitly owner-created Motion Work owns only new `packages/barocss-motion/`
-and `examples/motion-scene/` under [#659](https://github.com/barocss/barocss/issues/659).
+GPU owns its package and backend implementation. Execute Integration owns
+serial local product/root/shared/policy/lock changes. CAD owns its package/native
+examples; Loader owns interop/adapters.
+The owner-created Motion Work formerly owned `packages/barocss-motion/`
+and `examples/motion-scene/` under [#659](https://github.com/barocss/barocss/issues/659);
+#750 removed those local paths after Viewer adopted display pose.
 Planner owns scopes/Issues/manuals/coordination. No other permanent Work, scheduler
-or model change is authorized. Spatial/Interaction/Physics remain planned.
+or model change is authorized. Spatial/Interaction remain planned; Physics
+is an integrated bounded prototype under #751.
 
 Libraries use own algorithms and documented version/unit/frame/identity/ownership/
 resource/lifecycle/error contracts. External projects are references or explicitly
 requested renderer consumers, not replacement kernels. Public configuration means
 `private:false`, public access and real compiled JS/declarations; repository `src`
 development stays explicit. Native source/topology stays authoritative; display
-buffers/GLB/animated poses are separate. Motion must not mutate native CAD models.
+buffers/GLB/animated poses are separate. The retired Motion implementation
+did not mutate native CAD models.
 
 Source0 Surface PreviewPacket preserves authored XYZ and declares Y-up; native
 Loader658 scales that convention once. Z-up needs an explicit host adapter.
 Only separate native-face-mesh `part-xyz` uses `(x,z,-y)` in its display adapter.
-Motion's own `part-xyz`/seconds/mm contract needs explicit consumer frame mapping;
+The retired Motion `part-xyz`/seconds/mm contract needed explicit consumer frame mapping;
 never silently retag old packets or assume one universal CAD up axis.
 
 ALL work/bugs/followups/deferred validation are tracked in GitHub Issues. Claim
 bounded scopes, preserve other lanes and immutable parents, reconcile each child
 once, and record exact task/merge SHAs/actual receipts. Native CAD completion and
-integrated availability reach both GPU and Loader once. GPU merges serially.
+integrated availability reach both GPU and Loader once. Integration merges serially.
 
 Current prototype gate: implement → affected build → ONE short actual API/source/
 demo/browser flow → continue. Preserve first failures. Broad units/readers/packed/

@@ -181,8 +181,6 @@ importers:
         specifier: workspace:*
         version: link:../barocss-cad
 
-  packages/barocss-motion: {}
-
   packages/barocss-physics: {}
 
   packages/barocss-render:
