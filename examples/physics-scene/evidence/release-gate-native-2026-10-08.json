@@ -1,0 +1,256 @@
+{
+  "format": "barocss-physics-release-gate",
+  "version": 1,
+  "stage": "native-preparation",
+  "timestamp": "2026-10-08T13:19:12.593Z",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "node": "v22.22.0",
+    "macos": "15.6.1",
+    "pnpm": "10.11.0"
+  },
+  "checks": [
+    {
+      "name": "frozen offline install",
+      "status": "pass",
+      "output": "passed"
+    },
+    {
+      "name": "@barocss/cad build",
+      "status": "pass",
+      "output": "passed"
+    },
+    {
+      "name": "@barocss/gpu build",
+      "status": "pass",
+      "output": "passed"
+    },
+    {
+      "name": "@barocss/cad-interop build",
+      "status": "pass",
+      "output": "passed"
+    },
+    {
+      "name": "@barocss/viewer build",
+      "status": "pass",
+      "output": "passed"
+    },
+    {
+      "name": "@barocss/physics build",
+      "status": "pass",
+      "output": "passed"
+    },
+    {
+      "name": "probe",
+      "status": "pass",
+      "output": {
+        "freeFallY": 1.99931875,
+        "firstContactStep": 62,
+        "restHeightM": 0.7,
+        "restContactSteps": 120,
+        "collisionImpulseNs": 2,
+        "retainedOnInvalidStepAndNumericLimit": true
+      }
+    },
+    {
+      "name": "controls-probe",
+      "status": "pass",
+      "output": {
+        "forceVelocityMps": 0.1,
+        "impulseVelocityMps": 2.1,
+        "kinematicVelocityMps": -24,
+        "kinematicContact": true,
+        "invalidCommandsRetainState": true
+      }
+    },
+    {
+      "name": "events-queries-probe",
+      "status": "pass",
+      "output": {
+        "sensorPhases": [
+          "begin",
+          "stay",
+          "stay",
+          "stay",
+          "end"
+        ],
+        "physicalPhases": [
+          "begin",
+          "stay",
+          "end"
+        ],
+        "rayDistanceM": 0.8,
+        "queryAndStepRefusalRetainState": true
+      }
+    },
+    {
+      "name": "rotation-probe",
+      "status": "pass",
+      "output": {
+        "result": "ok",
+        "inertiaKgM2": 0.4,
+        "angularVelocityRadps": 1,
+        "quaternionAfterOneSecond": [
+          0,
+          0,
+          0.479425538604203,
+          0.8775825618903728
+        ],
+        "unitNorm": 1,
+        "invalidRetainsState": true
+      }
+    },
+    {
+      "name": "oriented-colliders-probe",
+      "status": "pass",
+      "output": {
+        "result": "ok",
+        "orientedBoxContact": true,
+        "boxAngularVelocityRadps": 3.7125153728226143,
+        "capsuleContactPointX": 0.34,
+        "boxBoxContact": true,
+        "invalidRetainsState": true
+      }
+    },
+    {
+      "name": "friction-stack-probe",
+      "status": "pass",
+      "output": {
+        "result": "ok",
+        "zeroFrictionSpeedX": 1,
+        "frictionSpeedX": 0.7142857142857143,
+        "frictionAngularZ": -2.857142857142857,
+        "tangentImpulseTotalNs": 0.2857142857142858,
+        "stackY": [
+          0.24999731795463281,
+          0.7499973179546328
+        ],
+        "maxPenetrationM": 0.0006866036139946685,
+        "invalidRetainsState": true
+      }
+    },
+    {
+      "name": "joints-probe",
+      "status": "pass",
+      "output": {
+        "result": "ok",
+        "fixedY": 0,
+        "fixedReactionY": 0.08175,
+        "hingeStopStep": 31,
+        "hingeAngleRad": 0.5,
+        "hingeReactionZ": -0.4,
+        "invalidRetainsState": true
+      }
+    },
+    {
+      "name": "ccd-probe",
+      "status": "pass",
+      "output": {
+        "result": "ok",
+        "discreteY": -2.3333333333333335,
+        "ccdY": 0.060000000000000005,
+        "toiFraction": 0.282,
+        "angledNormal": [
+          -0.7071067811865476,
+          0.7071067811865475,
+          0
+        ],
+        "invalidRetainsState": true
+      }
+    },
+    {
+      "name": "broadphase-probe",
+      "status": "pass",
+      "output": {
+        "result": "ok",
+        "machine": "darwin/arm64/node-v22.22.0",
+        "direct": {
+          "eligiblePairs": 29760,
+          "candidatePairs": 29760,
+          "wallMs": 33.656166,
+          "heapDeltaBytes": 4221104
+        },
+        "aabb": {
+          "eligiblePairs": 29760,
+          "candidatePairs": 960,
+          "aabbTests": 29760,
+          "wallMs": 21.437708,
+          "heapDeltaBytes": 6347912
+        },
+        "contactStatesMatch": true,
+        "ccdContact": true,
+        "invalidRetainsState": true
+      }
+    },
+    {
+      "name": "replay-probe",
+      "status": "pass",
+      "output": {
+        "result": "ok",
+        "replayedSteps": 150,
+        "contactSteps": 103,
+        "finalY": 0.6,
+        "jointReactionY": 0.08175,
+        "staleAndDamagedRefused": true,
+        "failedStepRetained": true,
+        "recordingLimitRetained": true
+      }
+    },
+    {
+      "name": "cad-proxy-probe",
+      "status": "pass",
+      "output": {
+        "result": "ok",
+        "dynamicId": "part:native_loader_demo.rational_panel",
+        "fixtureId": "fixture:native_loader_demo.flat_panel",
+        "contactStep": 21,
+        "firstPositionM": [
+          0.05,
+          0.28,
+          0.02
+        ],
+        "contactPositionM": [
+          0.05,
+          0.13385164807134506,
+          0.02
+        ],
+        "staleSourceRefused": true,
+        "acceptedWorldRetained": true
+      }
+    },
+    {
+      "name": "git diff --check",
+      "status": "pass",
+      "output": "passed"
+    }
+  ],
+  "packedConsumer": {
+    "status": "pass",
+    "tarballs": [
+      "barocss-cad-0.0.0-experimental.tgz",
+      "barocss-physics-0.0.0-experimental.tgz"
+    ],
+    "output": {
+      "result": "ok",
+      "imports": [
+        "@barocss/physics",
+        "@barocss/physics/cad-proxy",
+        "@barocss/physics/replay"
+      ],
+      "contactStep": 21,
+      "replayedSteps": 24,
+      "declarations": 3,
+      "physicsVersion": "0.0.0-experimental",
+      "cadVersion": "0.0.0-experimental"
+    }
+  },
+  "browser": {
+    "status": "prior-native-proof",
+    "evidence": "examples/physics-cad-scene/evidence/checkpoint.md",
+    "mergedHeadRerunRequired": true
+  },
+  "nativePreparationPassed": true,
+  "releaseCandidate": false,
+  "gitHead": "fe6737cff28346fd9c68a441f15d6f44e61819ce"
+}
