@@ -112,7 +112,7 @@ export function transactCadAssemblyMembers(previousInput: CadAssemblyResult, inp
     priorInstanceCount: previous.assembly.instances.length, finalInstanceCount: result.assembly.instances.length,
     addedInstanceCount: addInstances.length, removedInstanceCount: removeInstanceIds.length,
     reparentRequestedCount: reparentInstances.length, changedParentCount: changedParentInstanceIds.length, survivorCount, operationCount,
-    addedInstanceIds, removedInstanceIds, reparentRequestedInstanceIds: reparentInstances.map(entry => entry.instanceId),
+    addedInstanceIds, removedInstanceIds: removeInstanceIds, reparentRequestedInstanceIds: reparentInstances.map(entry => entry.instanceId),
     changedParentInstanceIds, survivingInstanceIds, finalInstanceIds,
     noOp: addInstances.length === 0 && removeInstanceIds.length === 0 && changedParentInstanceIds.length === 0,
     conventions: { operationLists: 'declared-input-order', survivorOrder: 'previous-authored-order-minus-explicit-removals',
