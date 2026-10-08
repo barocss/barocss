@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native CAD assembly in Pixi3D</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Native CAD assembly · Pixi3D</h1>
+  <p>Native assembly poses place six distinct source-backed Curve and Surface meshes.</p>
+  <div id="view"></div>
+  <button id="reject" type="button">Try invalid candidates</button>
+  <button id="dispose" type="button">Dispose display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Application, Graphics } from 'pixi.js';
+  import { Camera, Color } from 'pixi3d/pixi7';
+  import { queryCadAssemblyInstancePoint } from '@barocss/cad';
+  import { loadBaroCadAssembly, parseBaroCadAssembly } from '@barocss/cad-interop/assembly';
+  import { BaroCADPixi3DLoader } from '@barocss/cad-interop/pixi3d';
+  import { createBaroCadAssemblyPixi3DDisplay } from '@barocss/cad-interop/pixi3d-assembly';
+
+  const status = document.querySelector('#status');
+  const app = new Application({ width: 800, height: 520, background: '#101b2c',
+    antialias: false, preserveDrawingBuffer: true });
+  const canvas = app.view;
+  document.querySelector('#view').append(canvas);
+  const callerChild = new Graphics().beginFill(0xffffff).drawCircle(22, 22, 6).endFill();
+  app.stage.addChild(callerChild);
+  const camera = Camera.main ?? new Camera(app.renderer);
+  camera.orthographic = true;
+  camera.orthographicSize = 0.18;
+  camera.position.set(0.025, 0.04, 1);
+  const native = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.01,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } };
+  const options = { native, basis: 'authored-xyz-matches-rhyup' };
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const render = () => {
+    app.renderer.render(app.stage);
+    const gl = app.renderer.gl;
+    const bytes = new Uint8Array(canvas.width * canvas.height * 4);
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('Pixi WebGL readPixels failed');
+    return bytes;
+  };
+  const nonBackground = bytes => {
+    let count = 0;
+    for (let i = 0; i < bytes.length; i += 4) {
+      if (Math.abs(bytes[i] - 16) > 12 || Math.abs(bytes[i + 1] - 27) > 12 ||
+          Math.abs(bytes[i + 2] - 44) > 12) count++;
+    }
+    return count;
+  };
+  const pointInTarget = (pointMM, matrix) => {
+    const [x, y, z] = pointMM.map(value => value * native.unitsPerMillimeter);
+    const m = matrix.array;
+    return [m[0] * x + m[4] * y + m[8] * z + m[12],
+      m[1] * x + m[5] * y + m[9] * z + m[13],
+      m[2] * x + m[6] * y + m[10] * z + m[14]];
+  };
+  const callerFrame = render();
+  const callerPixels = nonBackground(callerFrame);
+  let assembly, display, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    const url = new URL('./assembly-three-data/revision0.cad-assembly.json', location.href).href;
+    assembly = await loadBaroCadAssembly(url);
+    const original = structuredClone(assembly);
+    display = createBaroCadAssemblyPixi3DDisplay(assembly, options);
+    if (display.bindings.length !== 6 || new Set(display.bindings.map(binding => binding.mesh)).size !== 6 ||
+        display.bindings.filter(binding => binding.reference.geometryId === 'shared_curve').length !== 3 ||
+        display.bindings.some(binding => binding.instanceNode.parent !== display.root)) {
+      throw new Error('Pixi3D assembly lost distinct native instances');
+    }
+    for (const [index, binding] of display.bindings.entries()) {
+      binding.mesh.material.baseColor = [new Color(0, 1, 1), new Color(1, 0.8, 0.2),
+        new Color(1, 0.3, 0.45), new Color(0.25, 1, 0.4),
+        new Color(0.6, 0.4, 1), new Color(1, 0.6, 0.8)][index];
+    }
+    app.stage.addChild(display.root);
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    render();
+    const cases = [
+      ['child', { kind: 'curve', parameter: 2 }, [10, 4, 0]],
+      ['surface_grandchild', { kind: 'surface', u: 0.5, v: 0.5 }, [8.5, 4, 0]],
+      ['shared_root', { kind: 'curve', parameter: 2 }, [-4, 0, 0]],
+      ['asset_b_instance', { kind: 'curve', parameter: 2 }, [1, 10, 0]],
+      ['xyz_order_root', { kind: 'surface', u: 0.5, v: 0.5 }, [0, 1.5, -1]],
+    ];
+    const witnesses = cases.map(([instanceId, query, expectedMM]) => {
+      const binding = display.bindings.find(value => value.instanceId === instanceId);
+      const point = queryCadAssemblyInstancePoint(assembly, {
+        assemblyId: 'native_assembly', assemblyRevision: 0, instanceId,
+        reference: binding.reference, query,
+      });
+      const actual = pointInTarget(point.originalLocalPointMM, binding.instanceNode.worldTransform);
+      if (point.assemblyPointMM.some((value, axis) => Math.abs(value - expectedMM[axis]) > 1e-10 ||
+          Math.abs(actual[axis] - value * native.unitsPerMillimeter) > 1e-7)) {
+        throw new Error(`Pixi3D transform differs from native assembly point: ${instanceId} ` +
+          JSON.stringify({ actual, expectedMM: point.assemblyPointMM }));
+      }
+      return { instanceId, nativePointMM: point.assemblyPointMM, scenePoint: actual };
+    });
+    const child = display.bindings.find(binding => binding.instanceId === 'child');
+    display.root.position.x = 0.2;
+    render();
+    const childMoved = pointInTarget([1, 0, 0], child.instanceNode.worldTransform);
+    if (Math.abs(childMoved[0] - 0.3) > 1e-7 || Math.abs(childMoved[1] - 0.04) > 1e-7) {
+      throw new Error('Caller root movement did not compose with native pose');
+    }
+    display.root.position.x = 0;
+    const visibleByInstance = [];
+    for (const binding of display.bindings) {
+      for (const other of display.bindings) other.instanceNode.visible = other === binding;
+      visibleByInstance.push({ id: binding.instanceId,
+        displayPixels: nonBackground(render()) - callerPixels });
+    }
+    for (const binding of display.bindings) binding.instanceNode.visible = true;
+    const pixels = render();
+    if (visibleByInstance.filter(entry => entry.displayPixels > 20).length < 4 ||
+        nonBackground(pixels) - callerPixels < 100 ||
+        !(app.renderer.gl instanceof WebGL2RenderingContext)) {
+      throw new Error('Assembly Mesh3D placements are not visible in Pixi WebGL2');
+    }
+    evidence = { fileBytes: 4207, assemblyId: assembly.assembly.assemblyId,
+      assemblyRevision: assembly.assembly.revision,
+      instanceIds: display.bindings.map(binding => binding.instanceId),
+      sharedCurveAssetIds: display.bindings.filter(binding => binding.reference.geometryId === 'shared_curve')
+        .map(binding => binding.reference.assetId),
+      witnesses, movedChildScenePoint: childMoved, visibleByInstance,
+      visibleDisplayPixels: nonBackground(pixels) - callerPixels,
+      callerPixels, pixelHash: hash(pixels), webgl2: true,
+      originalInputUnchanged: JSON.stringify(assembly) === JSON.stringify(original),
+      callerChildRetained: app.stage.children.includes(callerChild), refused: 0, disposed: false };
+    window.__baroAssemblyPixiEvidence = evidence;
+    show();
+    document.querySelector('#reject').onclick = () => {
+      const before = hash(render());
+      const forged = structuredClone(assembly); forged.instances[0].worldMatrix[3] += 1;
+      const stale = structuredClone(assembly); stale.assembly.instances[0].reference.documentRevision++;
+      let getterCalls = 0;
+      const getter = { ...options };
+      Object.defineProperty(getter, 'basis', { enumerable: true,
+        get() { getterCalls++; return options.basis; } });
+      let refused = 0;
+      for (const action of [
+        () => createBaroCadAssemblyPixi3DDisplay(forged, options),
+        () => createBaroCadAssemblyPixi3DDisplay(stale, options),
+        () => createBaroCadAssemblyPixi3DDisplay(assembly, { ...options, basis: 'unknown' }),
+        () => createBaroCadAssemblyPixi3DDisplay(assembly, { ...options, native: { ...native,
+          unitsPerMillimeter: 1e38 } }),
+        () => createBaroCadAssemblyPixi3DDisplay(assembly, getter),
+        () => parseBaroCadAssembly('{"schema":"barocss-cad-assembly","schema":"barocss-cad-assembly"}'),
+      ]) { try { action(); } catch { refused++; } }
+      const originalParse = BaroCADPixi3DLoader.prototype.parse;
+      const staged = [];
+      try {
+        BaroCADPixi3DLoader.prototype.parse = function (source) {
+          const result = originalParse.call(this, source);
+          staged.push(result);
+          if (staged.length === 2) result.model.name = 'forged_second_model';
+          return result;
+        };
+        try { createBaroCadAssemblyPixi3DDisplay(assembly, options); } catch { refused++; }
+      } finally { BaroCADPixi3DLoader.prototype.parse = originalParse; }
+      const stagedDisposed = staged.length === 2 && staged.every(result =>
+        result.root.destroyed && result.renderedSurfaces.every(value => value.mesh.destroyed) &&
+        result.renderedCurves.every(value => value.mesh.destroyed));
+      const empty = parseBaroCadAssembly(JSON.stringify({ ...assembly.assembly, instances: [] }));
+      const emptyDisplay = createBaroCadAssemblyPixi3DDisplay(empty, options);
+      const emptyAssemblyAccepted = emptyDisplay.bindings.length === 0;
+      emptyDisplay.dispose();
+      if (refused !== 7 || getterCalls !== 0 || !stagedDisposed || hash(render()) !== before ||
+          !emptyAssemblyAccepted || !emptyDisplay.root.destroyed ||
+          display.bindings.some(binding => binding.mesh.destroyed) ||
+          !app.stage.children.includes(callerChild)) {
+        throw new Error('Rejected Pixi candidate changed the accepted frame or leaked resources');
+      }
+      evidence.refused = refused; evidence.stagedFailureDisposed = stagedDisposed;
+      evidence.emptyAssemblyAccepted = emptyAssemblyAccepted;
+      evidence.acceptedFrameRetained = true; show();
+    };
+    document.querySelector('#dispose').onclick = () => {
+      const owned = display.bindings.map(binding => binding.mesh);
+      display.dispose(); display.dispose();
+      const after = render();
+      if (owned.some(mesh => !mesh.destroyed) || !display.root.destroyed ||
+          display.bindings.some(binding => !binding.instanceNode.destroyed) ||
+          !app.stage.children.includes(callerChild) || app.stage.children.includes(display.root) ||
+          hash(after) !== hash(callerFrame) || app.renderer.gl === null || document.querySelectorAll('canvas').length !== 1) {
+        throw new Error('Pixi assembly disposal changed caller resources');
+      }
+      evidence.disposed = true; evidence.afterDisposePixels = nonBackground(after);
+      evidence.callerFrameRetained = hash(after) === hash(callerFrame);
+      evidence.callerChildRetained = true; show();
+    };
+  } catch (error) {
+    display?.dispose();
+    evidence = { error: String(error), stack: error.stack };
+    window.__baroAssemblyPixiEvidence = evidence;
+    show();
+  }
+</script>
