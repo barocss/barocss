@@ -13,6 +13,10 @@
     "./cad-proxy": {
       "types": "./dist/cad-proxy.d.ts",
       "import": "./dist/cad-proxy.js"
+    },
+    "./replay": {
+      "types": "./dist/replay.d.ts",
+      "import": "./dist/replay.js"
     }
   },
   "main": "./dist/index.js",
