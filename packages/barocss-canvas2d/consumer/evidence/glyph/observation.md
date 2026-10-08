@@ -1,0 +1,11 @@
+# C2D-25 native browser observation
+
+Base: locally integrated #780 merge `93da9f161e0b23cf6ee240607a09c97171b569f5`. Issue: #787. The local consumer imports only the compiled public package entries and was checked with the package declarations. Browser: Headless Chromium 155, actual WebGL 2.0 (OpenGL ES 3.0 Chromium), 180×140 logical canvas at DPR2. Atlas: host-built 10×7 RGBA8 H/I pattern, 280 bytes, registered under `Atlas`.
+
+1. Initial Scene v6 `HI` draw: `(34,50)` RGBA `[20,32,56,255]`, hit `Title/glyphRun`; transparent H cell `(42,50)` RGBA `[255,255,255,255]`, hit `Paper/rect`; visible I cells `(80,50)` and `(96,80)` both ink with `Title/glyphRun` hits. A real pointerdown at `(34,50)` delivered `g1:glyph:Title`, `g1:team`, `g1:stage`.
+2. Invalid layout with an out-of-text glyph offset returned `INVALID_SCENE`; the page reported exact observed state retained. The deterministic probe also checked an invalid opacity, extra field, duplicate attached ID and stale glyph hit.
+3. The browser downloaded a real 1,490-byte `glyph-document.json` with Scene v6 and the 280-byte atlas. Changing the live glyph layout from `HI` to `I` changed pixels/hits: `(42,50)` became ink/Title and the previous I cell `(80,50)` became white/Paper.
+4. The file chooser Open staged a fresh renderer/canvas and new display tree. Generation changed 1→2. Text returned to `HI`; the four initial pixels/hits returned, and all 280 atlas bytes matched the original host pattern (`assetMatchesHostPattern: true` in a separate cold Open check). A real pointerdown after Open delivered `g2:glyph:Title`, `g2:team`, `g2:stage`. An edit on the reconstructed handle changed text to `I` and updated the real pixels/hits again. The attached screenshot shows this reopened and edited state.
+5. After Open, changing only the handle atlas ID to an absent `Missing` ID made `renderer.updateScene` return `INVALID_ASSET`. The prior accepted scene and four pixel/hit samples stayed exact. Restoring the handle layout and submitting again restored the same state.
+
+The initial console reported only a `/favicon.ico` 404. This is one fixed host-shaped Latin atlas and one Chromium/WebGL2 run. It does not establish arbitrary font shaping, other browsers, broad device behavior or publication.

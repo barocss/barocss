@@ -28,6 +28,8 @@ The [`builder.html`](builder.html) page uses public `createPathBuilder` to make 
 
 The [`image-decode.html`](image-decode.html) page uses compiled `decodeImageBlob` with a real PNG file chooser, then registers the returned pixels as a sprite asset. It checks alpha-aware hit fallthrough, rejected files and v1 document cold Open. The [image-decode observation](evidence/image-decode/observation.md) records actual WebGL2 pixels/hits, asset bytes and file results. The decoder does not fetch URLs or own the asset ID.
 
+The [`glyph.html`](glyph.html) page uses public `createGlyphRun` and `GlyphRunHandle` entries with a fixed host-shaped H/I atlas. It checks visible and transparent glyph pixels, pointer delivery, atomic layout refusal, a changed layout, and actual v1 document cold Open into new handles. The [glyph observation](evidence/glyph/observation.md) records the one-browser results. The host owns the atlas and shaping; the handle edits Scene v6 data only.
+
 The [`rect.html`](rect.html) page creates a public rectangle and overlapping path under a container. It checks compiled types, actual pixels/hits, rectangle pointer delivery, atomic size/color editing, a rejected edit and real v1 document Save/Open into fresh handles. The [rectangle observation](evidence/rect/observation.md) records the bounded Chromium/WebGL2 result.
 
 The [`image-url.html`](image-url.html) page uses compiled `loadImageURL` to fetch a real same-origin PNG through HTTP, register its RGBA8 bytes and render a sprite. It checks a non-image response, a streamed 8-MiB limit, alpha-aware hits and v1 document cold Open. The [URL image observation](evidence/image-url/observation.md) records actual WebGL2 and file results. The helper owns no cache or asset ID.
