@@ -36,8 +36,10 @@ export type DisplayPointerEvent = {
 };
 export type PointerInput = { type: PointerEventType; pointerId: number; point: Point; hit: Hit | null };
 export type PointerListener = (event: DisplayPointerEvent) => void;
+export type WorldBounds = { x: number; y: number; width: number; height: number };
 export type StageHandle = {
   readonly children: readonly DisplayHandle[];
+  getWorldBounds(): WorldBounds | null;
   addChild(child: DisplayHandle): void;
   removeChild(child: DisplayHandle): void;
   setChildIndex(child: DisplayHandle, index: number): void;
@@ -46,6 +48,7 @@ export type StageHandle = {
 type PointConversion = {
   toWorld(localPoint: Point): Point;
   toLocal(worldPoint: Point): Point;
+  getWorldBounds(): WorldBounds | null;
 };
 export type ContainerHandle = StageHandle & PointConversion & {
   readonly kind: 'container'; readonly id: string; readonly data: ContainerData;
@@ -179,6 +182,88 @@ function boundedPoint(x: number, y: number): Point {
   return { x: x === 0 ? 0 : x, y: y === 0 ? 0 : y };
 }
 
+type Edges = { left: number; top: number; right: number; bottom: number };
+
+function union(a: Edges | null, b: Edges | null): Edges | null {
+  if (!a) return b;
+  if (!b) return a;
+  return { left: Math.min(a.left, b.left), top: Math.min(a.top, b.top),
+    right: Math.max(a.right, b.right), bottom: Math.max(a.bottom, b.bottom) };
+}
+
+function intersect(a: Edges, b: Edges): Edges {
+  return { left: Math.max(a.left, b.left), top: Math.max(a.top, b.top),
+    right: Math.min(a.right, b.right), bottom: Math.min(a.bottom, b.bottom) };
+}
+
+function inside(box: Edges | null, clip: Edges | undefined): Edges | null {
+  if (!box || !clip) return box;
+  const cut = intersect(box, clip);
+  return cut.left <= cut.right && cut.top <= cut.bottom ? cut : null;
+}
+
+function transformed(m: Matrix, x: number, y: number): Point {
+  return boundedPoint(m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]);
+}
+
+function enclose(m: Matrix, points: readonly Point[]): Edges | null {
+  let box: Edges | null = null;
+  for (const point of points) {
+    const { x, y } = transformed(m, point.x, point.y);
+    const rounded = boundedPoint(Math.fround(x), Math.fround(y));
+    box = union(box, { left: Math.min(x, rounded.x), top: Math.min(y, rounded.y),
+      right: Math.max(x, rounded.x), bottom: Math.max(y, rounded.y) });
+  }
+  return box;
+}
+
+function quad(m: Matrix, x: number, y: number, width: number, height: number): Edges {
+  return enclose(m, [{ x, y }, { x: x + width, y },
+    { x: x + width, y: y + height }, { x, y: y + height }])!;
+}
+
+function ownBounds(data: Exclude<RecordNode['data'], null>, m: Matrix): Edges | null {
+  if (data.kind === 'group') return null;
+  if (data.kind === 'frame' || data.kind === 'rect') return quad(m, 0, 0, data.width, data.height);
+  if (data.kind === 'image') return quad(m, -data.anchorX * data.width,
+    -data.anchorY * data.height, data.width, data.height);
+  if (data.kind === 'glyphRun') {
+    let box: Edges | null = null;
+    for (const glyph of data.glyphs) {
+      box = union(box, quad(m, glyph.x, data.baseline + glyph.y, glyph.width, glyph.height));
+    }
+    return box;
+  }
+  if (data.kind === 'line') {
+    const dx = data.x2 - data.x1, dy = data.y2 - data.y1;
+    const half = data.width / (2 * Math.hypot(dx, dy));
+    const nx = -dy * half, ny = dx * half;
+    return enclose(m, [{ x: data.x1 + nx, y: data.y1 + ny },
+      { x: data.x2 + nx, y: data.y2 + ny },
+      { x: data.x2 - nx, y: data.y2 - ny },
+      { x: data.x1 - nx, y: data.y1 - ny }]);
+  }
+  const points: Point[] = [];
+  for (const command of data.commands) {
+    if (command.kind === 'Z') continue;
+    points.push({ x: command.x, y: command.y });
+    if (command.kind === 'Q') points.push({ x: command.cx, y: command.cy });
+    if (command.kind === 'C') points.push({ x: command.c1x, y: command.c1y },
+      { x: command.c2x, y: command.c2y });
+  }
+  const box = enclose(m, points);
+  if (!box || !data.stroke) return box;
+  const half = data.stroke.width / 2;
+  const x = Math.hypot(m[0], m[2]) * half;
+  const y = Math.hypot(m[1], m[3]) * half;
+  const lower = boundedPoint(box.left - x, box.top - y);
+  const upper = boundedPoint(box.right + x, box.bottom + y);
+  const roundedLower = boundedPoint(Math.fround(lower.x), Math.fround(lower.y));
+  const roundedUpper = boundedPoint(Math.fround(upper.x), Math.fround(upper.y));
+  return { left: Math.min(lower.x, roundedLower.x), top: Math.min(lower.y, roundedLower.y),
+    right: Math.max(upper.x, roundedUpper.x), bottom: Math.max(upper.y, roundedUpper.y) };
+}
+
 function invalid(message: string): never { throw new Canvas2DError('INVALID_SCENE', message); }
 
 function checkPathGeometry(node: PathNodeV10): void {
@@ -293,8 +378,33 @@ export function createDisplayTree(contextId: string): DisplayTree {
     }
     return matrix;
   }
+  function worldBounds(record: RecordNode): WorldBounds | null {
+    let ancestorClip: Edges | undefined;
+    for (let ancestor = record.parent; ancestor?.data; ancestor = ancestor.parent) {
+      if (ancestor.data.kind === 'frame' && ancestor.data.clip) {
+        const frame = quad(worldMatrix(ancestor), 0, 0, ancestor.data.width, ancestor.data.height);
+        ancestorClip = ancestorClip ? intersect(ancestorClip, frame) : frame;
+      }
+    }
+    function visit(current: RecordNode, matrix: Matrix, clip: Edges | undefined): Edges | null {
+      const data = current.data;
+      let box = data ? inside(ownBounds(data, matrix), clip) : null;
+      const childClip = data?.kind === 'frame' && data.clip
+        ? (clip ? intersect(clip, quad(matrix, 0, 0, data.width, data.height))
+          : quad(matrix, 0, 0, data.width, data.height)) : clip;
+      for (const child of current.children) {
+        box = union(box, visit(child, multiply(matrix, pose(child.data!.transform)), childClip));
+      }
+      return box;
+    }
+    const box = visit(record, record === root ? identity : worldMatrix(record), ancestorClip);
+    if (!box) return null;
+    const size = boundedPoint(box.right - box.left, box.bottom - box.top);
+    return { x: box.left, y: box.top, width: size.x, height: size.y };
+  }
   function common(record: RecordNode) {
     return {
+      getWorldBounds() { return worldBounds(record); },
       toWorld(localPoint: Point): Point {
         const point = validatePoint(localPoint);
         const m = worldMatrix(record);
@@ -352,6 +462,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
   function parentMethods(parent: RecordNode): StageHandle {
     return {
       get children() { return parent.children.map(child => child.handle as DisplayHandle); },
+      getWorldBounds() { return worldBounds(parent); },
       onPointer(type, listener) { return onPointer(parent, type, listener); },
       addChild(child: DisplayHandle) {
         const record = known(child);
