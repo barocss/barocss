@@ -1,3 +1,23 @@
+# Current owner-approved Integration role (2026-10-08)
+
+The owner approved [#674](https://github.com/barocss/barocss/issues/674).
+GPU released checkpoint `ccf13a0ba7665ec465aa60dc9610619c975e9d3f`.
+Planner activated Execute Integration `01a119e4-00d7-7f93-92cd-40abb228e372`
+at `2026-10-08T05:22:25.668636Z`. Execute Integration is the only writer to
+the local integration branch and shared root, lock, static and current policy
+paths. GPU implements GPU features in an isolated checkout. The other five
+module authors retain their own packages and examples. Planner sets scope and
+priority but does not merge. Reconcile each immutable native delta once and
+record actual affected build, short consumer flow and exact Issue receipts.
+Semantic API/scope conflicts return to their owner and Planner. No publication
+or broad deferred gate follows from this writer transfer.
+
+This decision supersedes older sole-GPU integration instructions below. Keep
+them as history. Preserve inherited user files and hosts, paused #629 and
+approved Release 0.12.2.
+
+---
+
 # BaroCSS — current Work operation (2026-10-06)
 
 ## Current owner decision: parallel GPU and CAD (2026-10-06)
