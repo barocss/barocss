@@ -6763,3 +6763,65 @@ The filled preview is separate from native construction. Paired incidence and
 local residual checks do not certify a Solid, exact sewing, global manifold
 quality, volume or manufacturing tolerance. Rendering and general curved,
 draft, sweep or arbitrary-vector extrusion remain separate work.
+
+
+## Filled native Boolean extrusion Shell mesh
+
+`tessellateCoplanarFaceBooleanExtrusion(extrusion, options)` accepts the complete
+owned native extrusion above. It validates that native result, then builds a
+filled preview for every cap and wall in every component.
+
+```ts
+const preview = cad.tessellateCoplanarFaceBooleanExtrusion(part, {
+  meshId: 'part_mesh',
+  maximumVertices: 384,
+  maximumTriangles: 288,
+  maximumEdgePaths: 192,
+  maximumNativeSamples: 1024,
+});
+cad.validateCoplanarFaceBooleanExtrusionMesh(preview);
+```
+
+The result owns `{extrusion, options, regionMesh, mesh, faceRanges, edgePaths,
+shellRanges, report}`. Its dedicated schema is
+`barocss-native-coplanar-face-boolean-extrusion-mesh` version 0. Positions use
+mm in authored XYZ. Face UV values remain dimensionless native parameters.
+This multi-face Shell mesh has an explicit extrusion/source binding. It is not
+a single native Surface or PreviewPacket0. A renderer must adapt the DTO and
+frame explicitly.
+
+The existing Boolean-region mesh supplies material cap connectivity. Each cap
+samples its actual derived bottom or top Surface D1 at original native UV.
+Bottom triangles reverse winding; top triangles retain it. Each ruled wall
+samples its actual four native parameter corners and outward normals. Adjacent
+faces have separate vertices for hard normals. Native geometry stays unsnapped.
+Empty material has empty arrays/ranges/paths, null bounds and no new D1 calls.
+
+Face ranges keep native face, component, Shell, Surface and source pointers.
+Every true face boundary has one triangle use in the effective loop direction.
+Display bridges and diagonals have two opposite triangle uses. True global edge
+paths retain original Curve domains, paired face/use/pcurve identities and
+actual Curve D1 samples. Both adjacent faces retain their own mesh endpoint
+indices and explicit native binding residuals. Mesh diagonals are display data.
+They are never added to native CAD edge paths.
+
+Fixed limits are 384 face vertices, 288 triangles, 192 true edge paths and 1024
+new wrapper native samples. Mesh IDs have 1 through 12 ASCII characters. Lower
+caller budgets refuse the whole result. The report separates wrapper D1 work,
+reused cap-mesh work and native parent reconstruction. The owned validator
+rebuilds all original data, ranges, observations and provenance.
+
+Run the actual saved-native-result consumer after the affected library build:
+
+```sh
+node examples/cad-nurbs/coplanar-face-boolean-extrusion-mesh-demo.mjs --source /tmp/cad-shell-mesh --extrusion-directory /path/to/cad-boolean-extrusion
+```
+
+The flow consumes six native files, covering a nonconvex union, a hole, two
+strip components, two octagon components, empty material and a real distance
+edit from 2 to 3 mm. It checks native D1 bindings, cap material coverage, outward
+winding, true edge paths, source files and cold-owned reconstruction.
+Triangle UV interpolation is display data, not an exact native inverse or
+picking reference. Local samples do not certify a global Surface error bound,
+Solid, sewing, manifold, volume or manufacturing quality. Actual renderer
+consumption remains separate.
