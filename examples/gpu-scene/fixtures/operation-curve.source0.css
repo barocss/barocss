@@ -1,0 +1,1 @@
+@model curve_interval_original { version:0; length-unit:mm; @curve #asymmetric { type:nurbs; degree:2; knots:[-3,-3,-3,1,1,7,7,7]; control-points:[[-2,0,0],[0,3,1],[3,0,2],[5,-2,4],[6,1,5]]; weights:[1,2,0.75,1.5,1]; } }

@@ -129,3 +129,38 @@ run `node examples/gpu-scene/surface-region-reversal-flow.mjs`. Use the existing
 compiled compatible CAD/GPU dependencies and press **Run native region GPU flow**
 at the printed loopback URL. This consumer build/run checkpoint does not establish
 commercial accuracy, general trims/Boolean/solids or npm publication.
+
+## Actual Curve operations on our GPU (#791)
+
+```sh
+BAROCSS_CURVE_OP_EVIDENCE=/absolute/unique/output \
+BAROCSS_CURVE_OP_DEPS=/absolute/compiled/provider/repo \
+node examples/gpu-scene/curve-operations-flow.mjs
+```
+
+The explicit provider repository supplies actual manifest-declared compiled CAD
+and GPU APIs. The collector bundles those read-only compiled inputs and records
+hashes/metafiles; it does not copy dependency sources/dist into this worktree or
+build provider packages. Its two committed input fixtures come from original
+native676/686 producers; hashes/provenance are beside them.
+
+One saved native file/API/browser flow calls reverseCurve/extractCurveInterval/
+refineCurveWide and their owned validators, saves/reopens actual original/output
+source0 and signed-zero-safe result JSON, then validates/samples those real files.
+Weighted5-pole/domain-3..7 reversal mapsu=4-t with negative D1; interval[-1,4]
+retains originalt across the actual C0 knot. The native knot1 D1 guard stays.
+Original cubic31/domain[-0,26] plus11 three-fold insertions actually produces64p/
+68knots, preserving domain/declared coefficient/knot lineage. Few mapped native
+point/D1 observations are local, not global shape certification.
+
+Four actual qualifiedv2 Line entries display original5/reversed5/interval5/native
+refined64. The first three declare samplingv0; operation-produced64 declaresv1.
+Original31 is retained but not drawn. Original/native IDs/source/weights/knots/
+domains/-0 stay distinct from host namespaces/offsets/colors and derivedFloat32.
+Explicit authored-XYZ-to-RHYup basis and mmToSceneUnit.01 are used once; there is
+no fake Surface packet or native rotation/retagging. Actual GL position buffers,
+visible colors, original/report retention, wrong-version/source binding refusal,
+resize and zero owned resources are observed. The successful scoped flow used
+34/34/18/111 samples, not a maximum sampling capacity campaign. Native operations,
+GPU consumer, Integration and publication receipts remain separate. No new reader,
+parent/packed/parity/gallery/performance or topology/solid/manufacturing claim.
