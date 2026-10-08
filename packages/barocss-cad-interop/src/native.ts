@@ -221,9 +221,7 @@ export function baroCadSourceToGLB(
   source: string, nativeOptions: BaroCadParseOptions, exportOptions: BaroCadGlbExportOptions,
 ): ArrayBuffer {
   const options = validateBaroCadParseOptions(nativeOptions);
-  if (options.curveDisplay && 'version' in options.curveDisplay) {
-    throw new RangeError('BaroCAD GLB does not support Curve sample version 1');
-  }
+  const wide = options.curveDisplay !== undefined && 'version' in options.curveDisplay;
   if (options.unitsPerMillimeter !== 0.001) throw new RangeError('BaroCAD GLB requires unitsPerMillimeter 0.001');
   if (exportOptions === null || typeof exportOptions !== 'object' || Array.isArray(exportOptions) ||
       ![Object.prototype, null].includes(Object.getPrototypeOf(exportOptions))) {
@@ -250,6 +248,7 @@ export function baroCadSourceToGLB(
     curveId: curve.curveId, positions: curve.positions,
     parameters: [...curve.sample.parameters],
     intervals: curve.sample.segments.map(segment => [...segment.domain] as [number, number]),
+    ...(wide ? { sampleVersion: 1 as const } : {}),
   }));
   const assetMetadata: Record<string, unknown> = {
     format: 'barocad-display-glb', sourceVersion: 0, modelName: result.model.name,
@@ -257,6 +256,7 @@ export function baroCadSourceToGLB(
     nativeFrame: 'authored-xyz-y-up', representation: 'sampled-display-not-native-nurbs',
     objectOrder: result.model.objects.map(object => ({ kind: object.kind, id: object.id })),
     unrenderedCurveIds: [...result.unrenderedCurveIds],
+    ...(wide ? { curveSampleVersion: 1 } : {}),
   };
   if (includeSourceText) assetMetadata.source = {
     format: 'barocad-source0', role: 'untrusted-native-reference', text: source,

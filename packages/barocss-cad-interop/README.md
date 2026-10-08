@@ -347,7 +347,7 @@ become a certified topology edge or exact NURBS intersection.
 Babylon also accepts version 1 through the same neutral result in a caller-owned
 right-handed Scene. It creates a `LinesMesh` with original parameter metadata;
 its approximate chord pick retains the original Curve ID. Display GLB export
-still rejects version 1, and Pixi3D continues to reject Curve display. The package example
+also accepts explicit version 1; Pixi3D continues to reject Curve display. The package example
 `examples/curve-wide-v1.barocad` is the exact 2631-byte source0 fixture from
 the integrated CAD #696 flow. Run `node examples/curve-wide-v1-verify.mjs`
 after building CAD and this package for the compiled native/Three acceptance
@@ -359,6 +359,31 @@ retention and caller-owned Scene disposal checks.
 Babylon WebGL2 Scene. Its `LinesMesh` is derived display data. A failed load
 leaves the previously accepted Scene intact, and result disposal leaves the
 caller Scene, Engine and unrelated meshes in place.
+
+The same explicit version 1 options can export a portable **display GLB**:
+
+```js
+import { baroCadSourceToGLB } from '@barocss/cad-interop/native';
+const source = await (await fetch('/curve-wide-v1.barocad')).text();
+const options = {
+  sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+  curveDisplay: { version: 1, chordToleranceMM: 0.1, maxSegments: 512, maxDepth: 16 },
+};
+const glb = baroCadSourceToGLB(source, options, { includeSourceText: true });
+// A standard glTF 2.0 loader reads a LINE_STRIP, not editable NURBS.
+```
+
+The GLB stores `curveSampleVersion:1` in asset metadata and `sampleVersion:1`
+with original Curve ID, parameters and intervals on each Curve node. It may
+store up to 4093 points per v1 Curve under the unchanged aggregate Loader
+budget and 1 MiB GLB limit; legacy v0 GLB output remains byte-identical.
+GLB JSON converts lexical `-0` to `0`. `includeSourceText:true` retains the
+exact source text only as an untrusted reference. The caller owns imported
+renderer objects and their disposal. Run
+`node examples/curve-wide-v1-glb-verify.mjs` after the package build for an
+actual source-file → GLB → HTTP → Three `GLTFLoader` flow. Serve
+`examples/curve-wide-v1-glb.html` for the visible browser WebGL2 line and
+bad-source prior-frame check.
 
 ## Inspect a native Curve display hit
 
