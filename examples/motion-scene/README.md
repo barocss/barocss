@@ -1,4 +1,20 @@
-# Motion scene prototype
+# Motion scene examples
+
+## 작업 셀 대표 화면
+
+Build the Motion package and serve the repository root:
+
+```sh
+pnpm --dir packages/barocss-motion build:library
+node examples/motion-scene/showcase-probe.mjs
+python3 -m http.server 52119
+```
+
+Open `http://127.0.0.1:52119/examples/motion-scene/`. Choose **부품 옮기기** or **검사 후 복귀**, then play, pause, seek, restart, change speed or enable repeat. The stage, phase, time, marker and pose summary show the same Motion timeline state. The raw pose data stays under a disclosure. `window.motionShowcase.getState()` and `getClipId()` expose the selected timeline for inspection.
+
+This is a host-owned pick-and-place scene. Motion computes TRS poses and marker events. Three.js draws fixed geometry from those returned poses. The example does not import CAD geometry, define constraints or generate motion from a task description. The standalone probe checks authored clip poses, crossings, seek and clip replacement. The page loads a pinned Three.js module from jsDelivr, so rendering needs that URL to be reachable.
+
+## Original two-part API sample
 
 Build only the motion package, then serve the repository root:
 
@@ -7,7 +23,7 @@ pnpm --dir packages/barocss-motion build:library
 python3 -m http.server 52119
 ```
 
-Open `http://127.0.0.1:52119/examples/motion-scene/`. The demo imports the built motion core from the adjacent package and a pinned Three.js renderer from jsDelivr. Three.js only draws the two shapes; it does not calculate their poses. The scene keeps the same geometries and exact target IDs while translation, rotation, and scale change. Use Play/Pause, the seek slider, and the Clamp/Repeat selector. Current owned pose data appears below the controls and is also available as `window.motionDemo.getState()`.
+Open `http://127.0.0.1:52119/examples/motion-scene/core-demo.html`. This original API sample imports the built motion core from the adjacent package and a pinned Three.js renderer from jsDelivr. Three.js only draws the two shapes; it does not calculate their poses. The scene keeps the same geometries and exact target IDs while translation, rotation, and scale change. Use Play/Pause, the seek slider, and the Clamp/Repeat selector. Current owned pose data appears below the controls and is also available as `window.motionDemo.getState()`.
 
 `node examples/motion-scene/probe.mjs` checks actual endpoint and midpoint poses, pause, seek, repeat, and rejection without state loss. The prototype does not claim CAD feature updates or native GPU adoption.
 
