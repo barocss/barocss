@@ -1,3 +1,15 @@
+# Owner Git and GitHub identity (2026-10-08)
+
+Use GitHub account `easylogic` and Git author/committer
+`easylogic <cyberuls@gmail.com>` for current work. Before a commit in a new
+worktree or clone, check its effective `user.name` and `user.email` and set
+local values when needed. Check the active GitHub login before an Issue, Wiki
+or other remote write. Record any earlier wrong-identity commit separately;
+preserve immutable native handoffs and published history without silent rewrite.
+This identity rule does not change feature order or publication authority.
+
+---
+
 # Latest owner decision: autonomous Integration order (2026-10-08)
 
 Under [#674](https://github.com/barocss/barocss/issues/674), Planner monitors
