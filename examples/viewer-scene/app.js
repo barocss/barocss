@@ -10,12 +10,13 @@ viewer.loadNative(source, { sourceVersion: 0, countU: 8, countV: 8 });
 const refs = viewer.getState().surfaces;
 const curveIds = viewer.getState().native.model.objects.filter(object => object.kind === 'curve')
   .map(curve => curve.id);
-for (const id of ['first-surface', 'second-surface']) {
+for (const id of ['first-surface', 'second-surface', 'mixed-surface']) {
   const select = document.querySelector(`#${id}`);
   for (const ref of refs) select.add(new Option(ref.surfaceId, ref.surfaceId));
 }
 document.querySelector('#second-surface').value = refs[1]?.surfaceId ?? refs[0].surfaceId;
-for (const id of ['first-curve', 'second-curve']) {
+document.querySelector('#mixed-surface').value = refs[1]?.surfaceId ?? refs[0].surfaceId;
+for (const id of ['first-curve', 'second-curve', 'mixed-curve']) {
   const select = document.querySelector(`#${id}`);
   for (const curveId of curveIds) select.add(new Option(curveId, curveId));
 }
@@ -44,6 +45,7 @@ function describe(extra = '') {
     `Camera eye: ${state.camera.eye.map(n => n.toFixed(3)).join(', ')}`,
     `Native point distance (mm): ${state.measurement?.distanceMM.toFixed(6) ?? 'none'}`,
     `Native Curve chord distance (mm): ${state.curveMeasurement?.distanceMM.toFixed(6) ?? 'none'}`,
+    `Native Surface-to-Curve distance (mm): ${state.surfaceCurveMeasurement?.distanceMM.toFixed(6) ?? 'none'}`,
     extra,
   ].join('\n');
 }
@@ -73,6 +75,14 @@ document.querySelector('#measure-curve').addEventListener('click', () => {
     describe(`Native Curve XYZ (mm): ${result.first.pointMM.map(n => n.toFixed(3)).join(', ')} → ${result.second.pointMM.map(n => n.toFixed(3)).join(', ')} · straight chord · ${result.certification}`);
   } catch (error) {
     describe(`Curve chord rejected: ${error.message}`);
+  }
+});
+document.querySelector('#measure-mixed').addEventListener('click', () => {
+  try {
+    const result = viewer.measureNativeSurfaceCurvePoints(parameter('mixed'), curveParameter('mixed'));
+    describe(`Native Surface-to-Curve XYZ (mm): ${result.surface.pointMM.map(n => n.toFixed(3)).join(', ')} → ${result.curve.pointMM.map(n => n.toFixed(3)).join(', ')} · straight line · ${result.certification}`);
+  } catch (error) {
+    describe(`Surface-to-Curve distance rejected: ${error.message}`);
   }
 });
 canvas.addEventListener('click', event => {
