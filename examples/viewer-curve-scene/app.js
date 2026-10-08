@@ -3,10 +3,12 @@ import { createViewer } from '../../packages/barocss-viewer/dist/index.js';
 const canvas = document.querySelector('#view');
 const output = document.querySelector('#state');
 const viewer = createViewer(canvas, { mmToSceneUnit: 0.001, background: [0.035, 0.055, 0.09] });
-const sources = Object.fromEntries(await Promise.all(['mixed', 'curves-only'].map(async name =>
+const sources = Object.fromEntries(await Promise.all(['mixed', 'curves-only', 'wide-64'].map(async name =>
   [name, await (await fetch(`/${name}.barocad`)).text()])));
 const options = { sourceVersion: 0, countU: 8, countV: 8,
   curveDisplay: { chordToleranceMM: 2, maxSegments: 256, maxDepth: 10 } };
+const wideOptions = { sourceVersion: 0, countU: 8, countV: 8,
+  curveDisplay: { version: 1, chordToleranceMM: 0.002, maxSegments: 4092, maxDepth: 10 } };
 let message = '';
 let lastHit = null;
 
@@ -18,6 +20,7 @@ function describe(next = message) {
     `Native model: ${state.native?.model.name ?? 'none'}`,
     `Surfaces: ${state.surfaces.map(ref => ref.surfaceId).join(', ') || 'none'}`,
     `Displayed Curves: ${state.curves.map(ref => ref.curveId).join(', ') || 'none'}`,
+    `Curve sample version: ${state.curveSampleVersion ?? 'none'}`,
     `Selected Surface: ${state.selected?.surfaceId ?? 'none'}`,
     `Selected geometry: ${state.selectedGeometry
       ? `${state.selectedGeometry.kind} ${state.selectedGeometry.kind === 'curve'
@@ -28,7 +31,7 @@ function describe(next = message) {
   ].join('\n');
 }
 function load(name) {
-  viewer.loadNative(sources[name], options);
+  viewer.loadNative(sources[name], name === 'wide-64' ? wideOptions : options);
   lastHit = null;
   describe(`${name} accepted. Original Curve parameters and native source remain in getState().native.`);
 }
@@ -36,6 +39,7 @@ load('mixed');
 
 document.querySelector('#mixed').addEventListener('click', () => load('mixed'));
 document.querySelector('#curves-only').addEventListener('click', () => load('curves-only'));
+document.querySelector('#wide-64').addEventListener('click', () => load('wide-64'));
 document.querySelector('#fit').addEventListener('click', () => { viewer.fit(); describe('Fitted visible geometry.'); });
 document.querySelector('#fit-selection').addEventListener('click', () => {
   const ref = viewer.getState().selectedGeometry;
@@ -93,5 +97,5 @@ canvas.addEventListener('click', event => {
   else describe('No visible geometry near this point.');
 });
 
-window.viewerCurveDemo = { viewer, sources, options, load, describe,
+window.viewerCurveDemo = { viewer, sources, options, wideOptions, load, describe,
   get lastHit() { return lastHit; } };

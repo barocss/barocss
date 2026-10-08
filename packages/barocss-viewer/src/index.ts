@@ -1,10 +1,11 @@
 import { curveDomain, evaluateCurve, evaluateSurface, surfaceDomain } from '@barocss/cad';
-import type { AdaptiveCurveSamplingResult } from '@barocss/cad';
+import type { AdaptiveCurveSamplingResult, WideAdaptiveCurveSamplingResult } from '@barocss/cad';
 import { parseBaroCadSource } from '@barocss/cad-interop/native';
 import type { BaroCadNativeResult } from '@barocss/cad-interop/native';
-import { mountMeshScene, mountPrimitiveScene, PrimitiveSceneRenderer, prepareMesh,
+import { mountMeshScene, mountPrimitiveScene, mountPrimitiveSceneV1, PrimitiveSceneRenderer,
+  PrimitiveSceneRendererV1, prepareMesh,
   validateMeshCamera, validatePreviewPacket } from '@barocss/gpu';
-import type { MeshCamera, PreviewPacket } from '@barocss/gpu';
+import type { MeshCamera, PreviewPacket, PrimitiveSceneEntryV1 } from '@barocss/gpu';
 import { MOTION_LIMITS } from '@barocss/motion';
 import type { MotionFrame } from '@barocss/motion';
 
@@ -14,6 +15,9 @@ export interface ViewerOptions { mmToSceneUnit: number; background: Vec3 }
 export interface NativeLoadOptions { sourceVersion: 0; countU: number; countV: number }
 export interface ViewerNativeCurveLoadOptions extends NativeLoadOptions {
   curveDisplay: { chordToleranceMM: number; maxSegments: number; maxDepth: number };
+}
+export interface ViewerNativeCurveLoadOptionsV1 extends NativeLoadOptions {
+  curveDisplay: { version: 1; chordToleranceMM: number; maxSegments: number; maxDepth: number };
 }
 export interface ViewerRef { modelId: string; surfaceId: string }
 export type ViewerGeometryRef =
@@ -109,6 +113,7 @@ export interface ViewerState {
   camera: MeshCamera;
   surfaces: ViewerRef[];
   curves: ViewerCurveRef[];
+  curveSampleVersion: 0 | 1 | null;
   packets: ViewerPacket[];
   selected: ViewerRef | null;
   selectedGeometry: ViewerGeometryRef | null;
@@ -203,7 +208,8 @@ function parseViewerOptions(input: unknown): ViewerOptions {
   return { mmToSceneUnit: finite(value.mmToSceneUnit, 'mmToSceneUnit', 1e-6, 1),
     background: vector(value.background, 'background', 0, 1) };
 }
-function parseNativeOptions(input: unknown): NativeLoadOptions | ViewerNativeCurveLoadOptions {
+function parseNativeOptions(input: unknown):
+  NativeLoadOptions | ViewerNativeCurveLoadOptions | ViewerNativeCurveLoadOptionsV1 {
   check(input !== null && typeof input === 'object' && Object.getPrototypeOf(input) === Object.prototype,
     'Native options must be plain data');
   const hasCurves = Object.hasOwn(input, 'curveDisplay');
@@ -214,14 +220,21 @@ function parseNativeOptions(input: unknown): NativeLoadOptions | ViewerNativeCur
   const countU = finite(value.countU, 'countU', 2, 17), countV = finite(value.countV, 'countV', 2, 17);
   check(Number.isInteger(countU) && Number.isInteger(countV), 'Grid counts must be integers');
   if (!hasCurves) return { sourceVersion: 0, countU, countV };
-  const display = ownRecord(value.curveDisplay,
-    ['chordToleranceMM', 'maxSegments', 'maxDepth'], 'Curve display options');
+  check(value.curveDisplay !== null && typeof value.curveDisplay === 'object'
+    && Object.getPrototypeOf(value.curveDisplay) === Object.prototype,
+  'Curve display options must be plain data');
+  const wide = Object.hasOwn(value.curveDisplay, 'version');
+  const display = ownRecord(value.curveDisplay, wide
+    ? ['version', 'chordToleranceMM', 'maxSegments', 'maxDepth']
+    : ['chordToleranceMM', 'maxSegments', 'maxDepth'], 'Curve display options');
+  if (wide) check(display.version === 1, 'Only Curve display version 1 is supported');
   const chordToleranceMM = finite(display.chordToleranceMM, 'chordToleranceMM', 1e-7, 1000);
-  const maxSegments = finite(display.maxSegments, 'maxSegments', 1, 1024);
+  const maxSegments = finite(display.maxSegments, 'maxSegments', 1, wide ? 4092 : 1024);
   const maxDepth = finite(display.maxDepth, 'maxDepth', 0, 16);
   check(Number.isInteger(maxSegments) && Number.isInteger(maxDepth), 'Curve display budgets must be integers');
   return { sourceVersion: 0, countU, countV,
-    curveDisplay: { chordToleranceMM, maxSegments, maxDepth } };
+    curveDisplay: wide ? { version: 1, chordToleranceMM, maxSegments, maxDepth }
+      : { chordToleranceMM, maxSegments, maxDepth } };
 }
 function parseRef(input: unknown): ViewerRef {
   const value = ownRecord(input, ['modelId', 'surfaceId'], 'Surface reference');
@@ -360,13 +373,16 @@ function curvePose(ref: ViewerCurveRef, geometryMotion: ViewerGeometryMotionStat
     && value.ref.modelId === ref.modelId && value.ref.curveId === ref.curveId);
 }
 
-interface ViewerCurveEntry {
-  modelId: string;
-  sample: AdaptiveCurveSamplingResult;
-}
+type ViewerCurveEntry = { modelId: string } & (
+  | { sampleVersion: 0; sample: AdaptiveCurveSamplingResult }
+  | { sampleVersion: 1; sample: WideAdaptiveCurveSamplingResult });
 
 function isGpuCurveSample(sample: BaroCadNativeResult['curves'][number]['sample']): sample is AdaptiveCurveSamplingResult {
   return sample.report.dto.version === 0;
+}
+function isWideGpuCurveSample(sample: BaroCadNativeResult['curves'][number]['sample']):
+  sample is WideAdaptiveCurveSamplingResult {
+  return sample.report.dto.version === 1;
 }
 
 function fittedCamera(packets: ViewerPacket[], curves: ViewerCurveEntry[], scale: number, width: number, height: number,
@@ -417,7 +433,7 @@ function interpolate(a: Vec3, b: Vec3, fraction: number): Vec3 {
 
 /** One canvas and one BaroCSS GPU scene backend. The caller retains canvas ownership. */
 export class Viewer {
-  private renderer: ReturnType<typeof mountMeshScene> | PrimitiveSceneRenderer | null = null;
+  private renderer: ReturnType<typeof mountMeshScene> | PrimitiveSceneRenderer | PrimitiveSceneRendererV1 | null = null;
   private packets: ViewerPacket[] = [];
   private curves: ViewerCurveEntry[] = [];
   private native: BaroCadNativeResult | null = null;
@@ -464,31 +480,59 @@ export class Viewer {
     geometryMotion: ViewerGeometryMotionState | null = this.geometryMotion): void {
     const surfaces = this.gpuEntries(packets, selected, motion, geometryMotion), options = this.gpuOptions(camera);
     if (curves.length) {
-      const entries = [
-        ...surfaces.map(entry => ({ kind: 'surface' as const, ...entry })),
-        ...curves.map((entry, index) => {
-          const pose = curvePose({ modelId: entry.modelId, curveId: entry.sample.curve.id }, geometryMotion);
-          return { kind: 'curve' as const, sample: entry.sample,
-            basis: 'authored-xyz-matches-rhyup' as const,
-            color: geometrySelection?.kind === 'curve' && geometrySelection.modelId === entry.modelId
-              && geometrySelection.curveId === entry.sample.curve.id
-              ? SELECTED_COLOR : PALETTE[(packets.length + index) % PALETTE.length],
-            ...(pose ? { transform: { translationMm: pose.translationMm,
-              rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {}) };
-        }),
-      ];
-      if (this.renderer instanceof PrimitiveSceneRenderer) {
-        const result = this.renderer.update(entries, options);
-        if (!result.ok) throw result.error;
+      const surfaceEntries = surfaces.map(entry => ({ kind: 'surface' as const, ...entry }));
+      const curveEntries = curves.map((entry, index) => {
+        const pose = curvePose({ modelId: entry.modelId, curveId: entry.sample.curve.id }, geometryMotion);
+        return {
+          basis: 'authored-xyz-matches-rhyup' as const,
+          color: geometrySelection?.kind === 'curve' && geometrySelection.modelId === entry.modelId
+            && geometrySelection.curveId === entry.sample.curve.id
+            ? SELECTED_COLOR : PALETTE[(packets.length + index) % PALETTE.length],
+          ...(pose ? { transform: { translationMm: pose.translationMm,
+            rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {}),
+        };
+      });
+      if (curves[0].sampleVersion === 1) {
+        const entries: PrimitiveSceneEntryV1[] = [
+          ...surfaceEntries,
+          ...curves.map((entry, index): PrimitiveSceneEntryV1 => entry.sampleVersion === 1
+            ? { kind: 'curve', sampleVersion: 1, sample: entry.sample, ...curveEntries[index] }
+            : { kind: 'curve', sampleVersion: 0, sample: entry.sample, ...curveEntries[index] }),
+        ];
+        const input = { version: 1 as const, entries };
+        if (this.renderer instanceof PrimitiveSceneRendererV1) {
+          const result = this.renderer.update(input, options);
+          if (!result.ok) throw result.error;
+        } else {
+          const prior = this.renderer;
+          try {
+            const candidate = mountPrimitiveSceneV1(this.canvas, input, options);
+            this.renderer = candidate;
+            prior?.dispose();
+          } catch (error) { prior?.render(); throw error; }
+        }
       } else {
-        const prior = this.renderer;
-        try {
-          const candidate = mountPrimitiveScene(this.canvas, entries, options);
-          this.renderer = candidate;
-          prior?.dispose();
-        } catch (error) { prior?.render(); throw error; }
+        const entries = [
+          ...surfaceEntries,
+          ...curves.map((entry, index) => {
+            check(entry.sampleVersion === 0, 'Legacy Viewer scene requires Curve sample v0');
+            return { kind: 'curve' as const, sample: entry.sample, ...curveEntries[index] };
+          }),
+        ];
+        if (this.renderer instanceof PrimitiveSceneRenderer) {
+          const result = this.renderer.update(entries, options);
+          if (!result.ok) throw result.error;
+        } else {
+          const prior = this.renderer;
+          try {
+            const candidate = mountPrimitiveScene(this.canvas, entries, options);
+            this.renderer = candidate;
+            prior?.dispose();
+          } catch (error) { prior?.render(); throw error; }
+        }
       }
-    } else if (this.renderer && !(this.renderer instanceof PrimitiveSceneRenderer)) {
+    } else if (this.renderer && !(this.renderer instanceof PrimitiveSceneRenderer)
+      && !(this.renderer instanceof PrimitiveSceneRendererV1)) {
       const result = this.renderer.update(surfaces, options);
       if (!result.ok) throw result.error;
     } else {
@@ -526,6 +570,8 @@ export class Viewer {
   }
   private accept(input: unknown, native: BaroCadNativeResult | null, curves: ViewerCurveEntry[] = []): void {
     const packets = this.validatedPackets(input, curves.length > 0);
+    check(curves.every(entry => entry.sampleVersion === curves[0].sampleVersion),
+      'Viewer requires one Curve sample version per native scene');
     check(packets.length + curves.length >= 1 && packets.length + curves.length <= 4,
       'Viewer requires 1..4 total display objects');
     const camera = fittedCamera(packets, curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
@@ -535,16 +581,23 @@ export class Viewer {
     this.measurement = null; this.motion = null; this.geometryMotion = null; this.curveMeasurement = null;
     this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
   }
-  loadNative(source: string, input: NativeLoadOptions | ViewerNativeCurveLoadOptions): void {
+  loadNative(source: string, input: NativeLoadOptions | ViewerNativeCurveLoadOptions
+    | ViewerNativeCurveLoadOptionsV1): void {
     this.live();
     check(typeof source === 'string' && source.length > 0 && source.length <= 65536, 'Native source length exceeds limits');
     const options = parseNativeOptions(input);
     const native = parseBaroCadSource(source, { ...options, unitsPerMillimeter: 1 });
     check(native.model.objects.length <= 64, 'Native model exceeds object limit');
+    const expectedVersion = 'curveDisplay' in options
+      ? ('version' in options.curveDisplay ? 1 : 0) : null;
+    check(native.curves.every(curve => curve.sample.report.dto.version === expectedVersion),
+      'Native Curve sample version differs from requested display profile');
     this.accept(native.surfaces.map(surface => ({ modelId: native.model.name, packet: surface.packet })), native,
-      native.curves.map(curve => {
-        check(isGpuCurveSample(curve.sample), 'Viewer GPU requires Curve sample v0');
-        return { modelId: native.model.name, sample: curve.sample };
+      native.curves.map((curve): ViewerCurveEntry => {
+        if (isGpuCurveSample(curve.sample)) return { modelId: native.model.name,
+          sampleVersion: 0, sample: curve.sample };
+        check(isWideGpuCurveSample(curve.sample), 'Viewer requires Curve sample v0 or v1');
+        return { modelId: native.model.name, sampleVersion: 1, sample: curve.sample };
       }));
   }
   setPackets(input: ViewerPacket[]): void { this.live(); this.accept(input, null); }
@@ -981,6 +1034,7 @@ export class Viewer {
       mmToSceneUnit: this.options.mmToSceneUnit, camera: this.camera,
       surfaces: this.packets.map(entry => ({ modelId: entry.modelId, surfaceId: entry.packet.surfaceId })),
       curves: this.curves.map(entry => ({ modelId: entry.modelId, curveId: entry.sample.curve.id })),
+      curveSampleVersion: this.curves.length ? this.curves[0].sampleVersion : null,
       packets: this.packets,
       selected: this.selected, selectedGeometry: this.selectedGeometry,
       native: this.native, measurement: this.measurement,

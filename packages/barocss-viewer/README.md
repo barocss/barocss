@@ -26,6 +26,21 @@ const hit = viewer.pickGeometry({ xCss: 120, yCss: 80 }, { curveTolerancePx: 4 }
 // hit.kind is 'surface' or 'curve'; neither kind changes selection by itself.
 ```
 
+For a native Curve with up to 64 poles, explicitly request the v1 sample path:
+
+```js
+viewer.loadNative(wideSourceText, { sourceVersion: 0, countU: 8, countV: 8,
+  curveDisplay: { version: 1, chordToleranceMM: 0.002,
+    maxSegments: 4092, maxDepth: 10 } });
+// getState().curveSampleVersion is 1; unversioned Curve display reports 0.
+```
+
+The v1 sample uses GPU's versioned primitive scene. `curveSampleVersion` is
+`null` when no Curve is displayed. The unversioned v0 call keeps its original
+GPU path and 1024-segment request limit. Both profiles retain the same
+approximate picking, selection and caller-owned Motion display behavior;
+native source, knots and measurements remain in authored millimetres.
+
 The original three-field load still renders only Surfaces. With `curveDisplay`,
 Loader's complete native sampling result goes to GPU's mixed primitive scene;
 Curves are not fabricated as Surface packets. `getState().curves` lists the
@@ -168,13 +183,16 @@ not change selection.
 
 Limits: one canvas and WebGL2 context; 1..4 total displayed Surface/Curve
 objects; Surface packets at most 4096 total vertices and 24576 indices,
-sampled Curves at most 4096 total points and 4092 segments; source text at
+v0 sampled Curves at most 4096 total points and 4092 segments, or v1 at most
+16388 total points and 16384 segments with a 4092-segment Loader request per
+Curve; source text at
 most 65536 characters; native grid
 counts 2..17; canvas at most 4096 pixels per side and 4194304 pixels total.
 `resize(width, height)` takes intrinsic pixel dimensions; it never multiplies
 them by device pixel ratio.
-Only `.barocad` source version 0, preview packet version 0 and the current
-native Curve sample v0/16-pole profile are supported. The caller owns the
+Only `.barocad` source version 0 and preview packet version 0 are supported.
+Unversioned Curve display uses the v0/16-pole profile; explicit display
+version 1 accepts the native wide/64-pole profile. The caller owns the
 canvas and source text; `dispose()` releases only viewer-owned GPU resources.
 After WebGL context loss, `getState().status` reports `context-lost`; dispose and
 create a new Viewer to render again.

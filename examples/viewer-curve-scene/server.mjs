@@ -7,7 +7,7 @@ const bundle = await build({ entryPoints: [new URL('app.js', import.meta.url).pa
 const files = new Map([
   ['/bundle.js', { body: bundle.outputFiles[0].contents, type: 'text/javascript' }],
   ['/', { body: await readFile(new URL('index.html', import.meta.url)), type: 'text/html' }],
-  ...await Promise.all(['mixed', 'curves-only'].map(async name =>
+  ...await Promise.all(['mixed', 'curves-only', 'wide-64'].map(async name =>
     [`/${name}.barocad`, { body: await readFile(new URL(`${name}.barocad`, import.meta.url)), type: 'text/plain' }])),
 ]);
 const server = createServer((request, response) => {
