@@ -14,8 +14,12 @@ function boxAxes(body: Body): Vec3[] {
 function boxSupport(body: Body, direction: Vec3): Vec3 {
   const axes = boxAxes(body);
   const extents = (body.shape as BoxShape).halfExtentsM;
-  return add(body.positionM, axes.reduce((result, axis, index) =>
-    add(result, scale(axis, dot(axis, direction) >= 0 ? extents[index] : -extents[index])), [0, 0, 0] as Vec3));
+  return add(body.positionM, axes.reduce((result, axis, index) => {
+    const projection = dot(axis, direction);
+    const offset = Math.abs(projection) <= 1e-12 ? 0
+      : projection > 0 ? extents[index] : -extents[index];
+    return add(result, scale(axis, offset));
+  }, [0, 0, 0] as Vec3));
 }
 function sphereSphere(a: Body, b: Body): Hit | null {
   const aRadius = (a.shape as SphereShape).radiusM;
