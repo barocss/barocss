@@ -21,6 +21,8 @@ export interface NativeGlbCurve {
   intervals: [number, number][];
   /** Present only for the explicit wide Curve display profile. */
   sampleVersion?: 1;
+  /** Optional qualified provenance for a document-derived display node. */
+  nodeMetadata?: Record<string, unknown>;
 }
 
 function align4(length: number): number { return (length + 3) & ~3; }
@@ -157,7 +159,8 @@ function encodeMeshes(
         extras: { barocss: { kind: 'curve', curveId: curve.curveId, sourceLengthUnit: 'mm',
           displayLengthUnit: 'm', approximate: true, parameters: curve.parameters,
           intervals: curve.intervals,
-          ...(curve.sampleVersion === 1 ? { sampleVersion: 1 } : {}) } } }))],
+          ...(curve.sampleVersion === 1 ? { sampleVersion: 1 } : {}),
+          ...(curve.nodeMetadata ?? {}) } } }))],
     meshes: [...gltfMeshes, ...curveMeshes],
     materials: [{ name: 'CAD preview', doubleSided: true,
       pbrMetallicRoughness: { baseColorFactor: [0.8, 0.8, 0.8, 1], metallicFactor: 0,
