@@ -6493,3 +6493,76 @@ cases. Local numeric observations do not establish professional accuracy.
 Mates/DOF, external part lifecycle, scales, topology/solid assemblies, volume
 and mass remain open. Integration and GPU/Loader/Viewer adoption require
 separate receipts.
+
+## Revision-checked assembly member transactions
+
+`transactCadAssemblyMembers(previousResult, transaction)` adds and removes
+explicit authored assembly instances. It uses the existing assembly evaluator
+and qualified part references. The old `updateCadAssembly` remains the
+placement/reparent patch API. Embedded part documents, sources and surviving
+references/placement bits stay unchanged.
+
+```js
+const change = cad.transactCadAssemblyMembers(assembly, {
+  expectedRevision: assembly.assembly.revision,
+  revision: assembly.assembly.revision + 1,
+  addInstances: [{id: 'new_member', parentId: 'parent', reference: partReference,
+    placement: {translationMM: [4, 0, 0], rotationDegreesXYZ: [0, 0, 0]}}],
+  removeInstanceIds: [],
+  reparentInstances: [],
+});
+cad.validateCadAssemblyMemberTransaction(assembly, change);
+const restored = cad.parseCadAssembly(cad.serializeCadAssembly(change.result.assembly));
+```
+
+The transaction has exactly these five fields. Each operation array has0..32
+entries; at least one explicit operation is required. Expected revision must
+match the accepted assembly, and the new revision is exactly previous+1. An
+explicit reparent to the existing parent is a supported no-op that advances
+revision. An all-empty transaction refuses. Unsigned revision metadata
+refuses -0; authored source/pose -0 remains preserved.
+
+Added instances reference already embedded parts and obey the existing
+parent/ref/pose bounds. IDs must be new relative to every previous member,
+including members removed in the same transaction. ID recycling or replacing
+a member by add/remove is unsupported. Added parents may appear later in
+the added array. Shared complete native references remain valid; geometry ID
+alone never chooses a part.
+
+Remove IDs must name unique existing members. No subtree is removed
+implicitly. Removing a parent with any unedited surviving or newly added
+child refuses. `reparentInstances` consists of exact `{instanceId,parentId}`
+records for unique existing survivors only. This allows parent removal and
+explicit child reparenting in one revision. Pose/reference/source changes
+are not part of this transaction. Explicitly listing an entire subtree or
+every instance is supported; the latter produces a genuine empty graph
+while retaining the native part library.
+
+Survivors retain their original order; new instances append in caller order.
+All operations are prepared on a copied candidate, then the complete graph
+is evaluated once. Final count0..32/depth16, exact qualified revisions,
+cycle/self/missing-parent and numeric bounds remain the original assembly
+rules. Any failure retains prior graphs, queries and files. Old revision
+point tokens refuse; a removed instance cannot be queried at the new revision.
+Original-local geometry queries, measurements and exports remain unposed.
+
+The owned member result has `assemblyId`, `previousRevision`, `transaction`,
+`result` (the complete evaluated assembly) and `report`. The current-only
+report schema is `barocss-cad-assembly-member-transaction`, version0. It
+records requested and changed member IDs, survivor/final order, revisions,
+counts and explicit no-op status. Whole-owned validation reproduces the
+transaction against the supplied previous accepted assembly. Source hashes
+or external revision history are not introduced.
+
+```sh
+node examples/cad-nurbs/cad-assembly-members-demo.mjs --source /tmp/cad-assembly-members \
+  --assembly-file /absolute/path/to/revision0.cad-assembly.json
+```
+
+The example consumes the actual #863 saved native assembly, adds shared and
+asset-qualified same-ID parts, removes a leaf, explicitly reparents a child
+while removing its parent, removes an explicit subtree/all instances and
+checks an actual32-to33 refusal. Original sources, raw-0 files, order and
+known posed points are preserved through Save/Open. Native capacity does not
+promise renderer capacity. Mates, external-reference lifecycle, solid/BRep,
+professional accuracy and display editing remain separate work.
