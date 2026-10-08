@@ -5556,3 +5556,77 @@ checks one-hot original bit copies and same-ID edit/prior retention, reopens
 actual source0/raw signed-zero results and imports declared compiled JS/types.
 Geometry use in later intersections/trims, serial integration and actual
 GPU/Loader adoption remain separate Issue states.
+
+## Canonical authored CAD document v1: direct geometry
+
+`createCadDocument(document)`, `serializeCadDocument(document)` and
+`parseCadDocument(text)` implement the named first `direct-geometry` profile of
+`barocss-cad-document`, version1. It follows CAN-02/CAN-05 requirements revision1
+([canonical contract](https://github.com/barocss/barocss/wiki/CAD-Document-Contract)).
+Source version0/native Model0 and file version1 are distinct. Existing editor
+project/scene and feature-document readers are not rewritten or widened.
+
+Authored fields are exactly schema/version/profile/documentId/revision,
+`units:{length:'mm',angle:'rad'}`, `nativeFrame:'authored-xyz-no-axis-conversion'`,
+assets/bodies/features/parameters/constraints/placements/derivedCaches. Assets
+contain explicit stable ID/revision, role `authored-native-source`, sourceVersion0,
+sourceFrame matching the document and original source text. Source text is
+preserved verbatim, including numeric spelling, original IDs and literal `-0`.
+Actual `compileCadModel(source,{sourceVersion:0})` creates parsed native Models;
+those Models are derived result data, never replacement authored source.
+
+Each body has stable ID/name, kind `direct-geometry-object`, assetId and original
+geometryId referencing one actual Curve or Surface. The profile groups native
+geometry; it does not certify a solid/B-Rep body. Document/body/asset IDs are
+ASCII1..48, native geometry IDs ASCII1..128, names1..128 UTF-8 bytes. Logical
+revisions are unsigned integers0..2147483647, excluding signed-zero revision;
+asset revisions do not acquire an artificial ordering against document revision.
+References use asset-qualified original geometry IDs. Identical geometry IDs
+across different assets are legal; duplicate body/asset IDs, duplicate ownership
+of the same asset/object and missing references refuse. Each asset must be used
+by a body; other objects remain intact in its original source/Model.
+
+This profile requires features, parameters, constraints, placements and
+**derivedCaches** to be empty. Nonempty graph/constraint/assembly/cache data,
+unknown fields, executable values, preview/mesh roles, unsupported future
+versions/profiles/frames and malformed native source refuse before acceptance.
+A renderer buffer or validity report cannot become authored native geometry.
+The frame states raw authored XYZ without conversion; it does not retag source0
+as Z-up or invent a universal CAD up axis. Only mm/rad and this frame are supported
+here; qualified frame conversions belong to a separate contract.
+
+The caller-owned copied result is `{document, compiledAssets, bodyBindings,
+report}`. Actual compiled Models and resolved reference facts live in result
+fields separated from the authored DTO. `validateCadDocumentResult(result)`
+rebuilds every source/Model/binding/report and compares all data and bits.
+CPU data uses GC without renderer resources or disposal. Reports declare
+`barocss-cad-document-report`, version0/fileVersion1/profile direct-geometry,
+authored source authority and supported/unsupported domains; native observations
+remain not-certified/topologyCertified:false/solid:false.
+
+One document admits1..4 assets and1..16 bodies. Individual source<=262144 UTF-8
+bytes/code units, aggregate source<=1MiB; input/serialized file<=2MiB UTF-8 bytes/
+code units. Serialization uses canonical authored field order and JSON escaping
+without changing source strings or embedding parsed/native/display caches.
+The strict bounded JSON parser refuses duplicate decoded keys, malformed escapes
+and nonfinite/unbounded records; it does not evaluate data or silently overwrite
+fields. Codec failure leaves input bytes and prior accepted state untouched.
+Input snapshots<=65536 values/depth12/arrays64/records16; owned result<=262144/
+depth24/arrays4096/records64/source strings262144. Getter0/hidden/symbol/foreign/
+sparse/cyclic/extra/nonfinite or altered data refuses atomically.
+
+`CadDocumentError` and runtime/type `CadDocumentDiagnosticCode` expose INPUT,
+VERSION, PROFILE, IDENTITY, REFERENCE, SOURCE, FRAME, BUDGET, JSON and OWNED,
+retaining actual source/compiler causes.
+
+```sh
+node examples/cad-nurbs/cad-document-demo.mjs --source
+```
+
+The bounded flow saves/reopens a source-backed part containing original Curve
+and Surface objects, checks exact source/Model/ID/order/-0, source edit/revision
+and previous-file/result retention, qualified same-ID assets and concrete invalid
+records. Actual source-only and declared compiled JS/types flows are separate.
+Full feature graphs, constraints, assembly placement, view/cache persistence,
+migration/export profiles, renderer adoption and publication remain separately
+tracked under528/712–715/660; empty arrays do not implement those capabilities.
