@@ -232,6 +232,45 @@ Run `pnpm --filter @barocss/cad-interop test:native` to check the included
 native source file, its model and display data, Three.js objects, and a local
 URL load. Node.js 22 is used for this check.
 
+## Read a direct-geometry CAD document
+
+The optional `./document` entry reads the CAD document v1 wrapper through
+the public `@barocss/cad` document parser:
+
+```js
+import { loadBaroCadDocument, parseBaroCadDocument } from '@barocss/cad-interop/document';
+
+const controller = new AbortController();
+const result = await loadBaroCadDocument('https://example.test/part.cad-document.json', {
+  signal: controller.signal,
+  onProgress: ({ loadedBytes }) => console.log(loadedBytes),
+});
+// Use parseBaroCadDocument(text) when the host already owns the file text.
+const body = result.bodyBindings[0];
+const asset = result.compiledAssets.find(item => item.assetId === body.assetId);
+const geometry = asset.model.objects.find(item => item.id === body.geometryId);
+```
+
+Supply an absolute HTTP(S) URL. The result contains a copied authored
+document, exact embedded source0 text, compiled native Models, asset-qualified
+body bindings and the CAD report. The source text is authoritative; Models
+and bindings are derived. Document file version 1 does not change embedded
+sourceVersion 0. Original geometry IDs may repeat in different assets, so
+resolve them with `assetId`. The direct-geometry profile requires mm/rad,
+authored XYZ and empty feature, parameter, constraint, placement and cache
+arrays. This entry creates no renderer objects or automatic frame transform.
+
+The document URL reader allows at most 2 MiB and 4096 response chunks,
+requires strict UTF-8, and reports transport bytes. CAD enforces the document
+schema and embedded source limits. An abort or `onProgress` returning `false`
+rejects with `AbortError`/`ABORT_ERR`; malformed documents keep the prior
+result unchanged. `CadDocumentError.code` gives the CAD parse or reference
+diagnostic. The original `./native` source0 reader keeps its 262144-byte cap
+and does not accept document JSON. Run
+`node examples/document-v1-verify.mjs` after building CAD and interop for the
+actual generated-file and local HTTP check. This neutral result does not imply
+Three, Babylon, Pixi3D or GPU document rendering.
+
 ## Load native source in Babylon.js
 
 Install `@babylonjs/core@9.29.0` in the host application. The optional

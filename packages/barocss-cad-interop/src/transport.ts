@@ -1,4 +1,5 @@
 const MAX_SOURCE_BYTES = 262144;
+const MAX_DOCUMENT_BYTES = 2097152;
 const MAX_BODY_CHUNKS = 4096;
 
 export interface BaroCadLoadProgress {
@@ -65,7 +66,9 @@ async function cancelBody(body: ReadableStream<Uint8Array> | null): Promise<void
 }
 
 /** Read bounded UTF-8 text. A stream is required so a lying server cannot force an unbounded fallback buffer. */
-export async function readAbortableBaroCadSource(transport: ValidatedBaroCadTransport): Promise<string> {
+async function readBoundedBaroCadText(
+  transport: ValidatedBaroCadTransport, maximumBytes: number, label: 'source' | 'document',
+): Promise<string> {
   const { url, signal, onProgress } = transport;
   throwIfBaroCadAborted(signal);
   let response: Response;
@@ -81,7 +84,7 @@ export async function readAbortableBaroCadSource(transport: ValidatedBaroCadTran
   }
   if (!response.ok) {
     await cancelBody(response.body);
-    throw new Error(`BaroCAD source request failed: HTTP ${response.status}`);
+    throw new Error(`BaroCAD ${label} request failed: HTTP ${response.status}`);
   }
   const lengthHeader = response.headers.get('content-length');
   let declaredTotalBytes: number | undefined;
@@ -95,14 +98,14 @@ export async function readAbortableBaroCadSource(transport: ValidatedBaroCadTran
       await cancelBody(response.body);
       throw new RangeError('BaroCAD Content-Length must be a finite safe integer');
     }
-    if (declaredTotalBytes > MAX_SOURCE_BYTES) {
+    if (declaredTotalBytes > maximumBytes) {
       await cancelBody(response.body);
-      throw new RangeError('BaroCAD source exceeds 262144 bytes');
+      throw new RangeError(`BaroCAD ${label} exceeds ${maximumBytes} bytes`);
     }
   }
   if (!response.body) throw new TypeError('BaroCAD abortable loading requires a readable response body');
   const reader = response.body.getReader();
-  const bytes = new Uint8Array(MAX_SOURCE_BYTES);
+  const bytes = new Uint8Array(maximumBytes);
   let loadedBytes = 0;
   let chunks = 0;
   try {
@@ -112,10 +115,10 @@ export async function readAbortableBaroCadSource(transport: ValidatedBaroCadTran
       throwIfBaroCadAborted(signal);
       if (done) break;
       if (!(value instanceof Uint8Array) || ++chunks > MAX_BODY_CHUNKS) {
-        throw new RangeError('BaroCAD source stream must contain at most 4096 byte chunks');
+        throw new RangeError(`BaroCAD ${label} stream must contain at most 4096 byte chunks`);
       }
-      if (loadedBytes + value.byteLength > MAX_SOURCE_BYTES) {
-        throw new RangeError('BaroCAD source exceeds 262144 bytes');
+      if (loadedBytes + value.byteLength > maximumBytes) {
+        throw new RangeError(`BaroCAD ${label} exceeds ${maximumBytes} bytes`);
       }
       bytes.set(value, loadedBytes);
       loadedBytes += value.byteLength;
@@ -134,4 +137,12 @@ export async function readAbortableBaroCadSource(transport: ValidatedBaroCadTran
   }
   throwIfBaroCadAborted(signal);
   return new TextDecoder('utf-8', { fatal: true }).decode(bytes.subarray(0, loadedBytes));
+}
+
+export function readAbortableBaroCadSource(transport: ValidatedBaroCadTransport): Promise<string> {
+  return readBoundedBaroCadText(transport, MAX_SOURCE_BYTES, 'source');
+}
+
+export function readAbortableBaroCadDocument(transport: ValidatedBaroCadTransport): Promise<string> {
+  return readBoundedBaroCadText(transport, MAX_DOCUMENT_BYTES, 'document');
 }
