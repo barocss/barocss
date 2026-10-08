@@ -193,6 +193,12 @@ measurements remain authored XYZ/mm and do not change when projected.
 `examples/viewer-document` places two caller-owned labels over the actual
 WebGL scene.
 
+`examples/viewer-curve-length` combines a source-qualified CAD Curve
+arc-length estimate with `projectNativePoint` in one own-GPU canvas. The
+caller moves its DOM label after camera and display pose changes. The
+original endpoint chord remains a separate native point distance. The
+estimator is heuristic and does not certify global error.
+
 For explicit Surface mesh lighting, pass an optional GPU `MeshLighting` value
 at creation: `lighting:{ambientStrength:0.12,directionalStrength:0.78,
 direction:[0.8,0.4,-0.7]}`. Each strength is in 0..1 and their sum is at most
