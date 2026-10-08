@@ -54,6 +54,7 @@ export type SpriteHandle = {
   setSize(width: number, height: number): void;
   setOpacity(opacity: number): void;
   setTint(tint: Tint): void;
+  setSampling(sampling: 'nearest' | 'linear'): void;
   setSourceRect(rect: SourceRect | null): void;
   setImageSource(imageId: string, sourceRect?: SourceRect | null): void;
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
@@ -333,6 +334,9 @@ export function createDisplayTree(contextId: string): DisplayTree {
         },
         setOpacity(opacity: number) { mutate(record, { ...(record.data as ImageNodeV7), opacity }); },
         setTint(tint: Tint) { mutate(record, { ...(record.data as ImageNodeV7), tint }); },
+        setSampling(sampling: 'nearest' | 'linear') {
+          mutate(record, { ...(record.data as ImageNodeV7), sampling });
+        },
         setSourceRect(rect: SourceRect | null) {
           const { sourceRect: _prior, ...withoutCrop } = record.data as ImageNodeV7;
           mutate(record, rect === null ? withoutCrop : { ...withoutCrop, sourceRect: rect });
