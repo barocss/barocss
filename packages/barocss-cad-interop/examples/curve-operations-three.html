@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native Curve operations in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+  button { margin: 8px 8px 8px 0; padding: 7px 12px; }
+</style>
+<main>
+  <h1>Native Curve operations in Three.js</h1>
+  <p>Cyan: reversal. Magenta: interval. Yellow: 31 to 64 pole refinement. Lines are display samples.</p>
+  <div id="view"></div>
+  <button id="reject">Try invalid candidates</button><button id="dispose">Dispose loaded display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Group, OrthographicCamera, Scene, WebGLRenderer } from 'three';
+  import { parseBaroCadSource } from '../dist/native.js';
+  import { BaroCADLoader } from '../dist/three.js';
+  import { createCurveOperationCases, displayOptions } from './curve-operations-fixture.mjs';
+
+  const status = document.querySelector('#status');
+  const renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setSize(800, 500);
+  renderer.setClearColor(0x142236);
+  document.querySelector('#view').append(renderer.domElement);
+  const scene = new Scene();
+  const callerChild = new Group();
+  callerChild.name = 'caller marker';
+  scene.add(callerChild);
+  // View from +Y. Camera up is +Z. Native XYZ stays unchanged.
+  const camera = new OrthographicCamera(-0.006, 0.036, 0.025, -0.005, 0.001, 0.2);
+  camera.position.set(0.015, 0.08, 0.004);
+  camera.up.set(0, 0, 1);
+  camera.lookAt(0.015, 0, 0.004);
+  const loader = new BaroCADLoader(displayOptions);
+  const acceptedOptions = JSON.stringify(displayOptions);
+  const cases = createCurveOperationCases();
+  const accepted = [];
+  const pixels = () => {
+    const data = new Uint8Array(800 * 500 * 4);
+    const gl = renderer.getContext();
+    gl.readPixels(0, 0, 800, 500, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    return data;
+  };
+  const hash = data => data.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  try {
+    for (const item of cases) {
+      const url = new URL(`./curve-operations-data/${item.key}.barocad`, location.href);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
+      const source = await response.text();
+      if (source !== item.result.source) throw new Error(`Native output source mismatch: ${item.key}`);
+      const neutral = parseBaroCadSource(source, displayOptions);
+      const display = loader.parse(source);
+      const line = display.group.children[0];
+      if (display.group.children.length !== 1 || line.type !== 'Line') throw new Error(`Expected one Line: ${item.key}`);
+      if (neutral.model.objects[0].id !== item.result.curve.id) throw new Error(`Curve ID mismatch: ${item.key}`);
+      if (JSON.stringify(line.userData.barocss.nativeParameters) !== JSON.stringify(neutral.curves[0].sample.parameters))
+        throw new Error(`Native parameter mismatch: ${item.key}`);
+      const positions = line.geometry.getAttribute('position').array;
+      if (positions.length !== neutral.curves[0].positions.length ||
+          positions.some((value, index) => !Object.is(value, neutral.curves[0].positions[index])))
+        throw new Error(`Float32 display position mismatch: ${item.key}`);
+      line.material.color.setHex(item.color);
+      const disposeEvents = { geometry: 0, material: 0 };
+      line.geometry.addEventListener('dispose', () => disposeEvents.geometry++);
+      line.material.addEventListener('dispose', () => disposeEvents.material++);
+      display.group.position.z = item.offsetZ;
+      scene.add(display.group);
+      accepted.push({ key: item.key, source, display, neutral, line, disposeEvents,
+        originalId: item.result.original.id, outputId: item.result.curve.id,
+        originalPoles: item.result.original.controlPoints.length,
+        outputPoles: item.result.curve.controlPoints.length,
+        outputDomain: neutral.curves[0].sample.domain,
+        sampleCount: neutral.curves[0].sample.pointsMM.length,
+        reportSchema: item.result.report.dto.schema,
+        exactSource: true, sourceBytes: new TextEncoder().encode(source).length });
+    }
+    renderer.render(scene, camera);
+    const firstPixels = pixels();
+    const colored = { cyan: 0, magenta: 0, yellow: 0 };
+    for (let i = 0; i < firstPixels.length; i += 4) {
+      const [r, g, b] = firstPixels.subarray(i, i + 3);
+      if (r < 100 && g > 150 && b > 150) colored.cyan++;
+      if (r > 150 && g < 100 && b > 150) colored.magenta++;
+      if (r > 150 && g > 150 && b < 100) colored.yellow++;
+    }
+    if (Object.values(colored).some(count => count === 0)) throw new Error('One output Line has no visible pixels');
+    const evidence = {
+      target: 'Three.js 0.186.1 WebGL2', webgl2: renderer.getContext() instanceof WebGL2RenderingContext,
+      authoredBasis: 'XYZ, camera +Y, up +Z', unitsPerMillimeter: 0.001,
+      cases: accepted.map(({ key, originalId, outputId, originalPoles, outputPoles, outputDomain,
+        sampleCount, reportSchema, exactSource, sourceBytes }) => ({
+        key, originalId, outputId, originalPoles, outputPoles, outputDomain,
+        sampleCount, reportSchema, exactSource, sourceBytes,
+      })),
+      visiblePixels: colored, pixelHash: hash(firstPixels),
+      callerChildRetained: scene.children.includes(callerChild),
+    };
+    window.__baroCurveOperationEvidence = evidence;
+    status.textContent = JSON.stringify(evidence, null, 2);
+    document.querySelector('#reject').onclick = () => {
+      const beforeSources = accepted.map(item => item.source);
+      const candidates = [
+        () => new BaroCADLoader({ ...displayOptions, sourceVersion: 1 }).parse(accepted[0].source),
+        () => new BaroCADLoader({ ...displayOptions, curveDisplay: { ...displayOptions.curveDisplay, version: 2 } }).parse(accepted[0].source),
+        () => new BaroCADLoader({ ...displayOptions, curveDisplay: { ...displayOptions.curveDisplay, maxSegments: 4093 } }).parse(accepted[0].source),
+        () => loader.parse('@model invalid {}'),
+        () => {
+          const forged = structuredClone(cases[0].result);
+          forged.source += ' ';
+          cases[0].validate(forged);
+        },
+      ];
+      let refused = 0;
+      for (const candidate of candidates) {
+        try { candidate(); } catch { refused++; }
+      }
+      renderer.render(scene, camera);
+      evidence.invalidCandidatesRefused = refused;
+      evidence.acceptedSceneRetained = accepted.every(item => scene.children.includes(item.display.group));
+      evidence.acceptedSourcesRetained = accepted.every((item, index) => item.source === beforeSources[index]);
+      evidence.acceptedOptionsRetained = JSON.stringify(displayOptions) === acceptedOptions;
+      evidence.acceptedPixelsRetained = hash(pixels()) === evidence.pixelHash;
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+    document.querySelector('#dispose').onclick = () => {
+      for (const item of accepted) { item.display.dispose(); item.display.dispose(); }
+      renderer.render(scene, camera);
+      evidence.disposed = accepted.every(item => !scene.children.includes(item.display.group) &&
+        item.disposeEvents.geometry === 1 && item.disposeEvents.material === 1);
+      evidence.callerChildRetained = scene.children.includes(callerChild);
+      evidence.callerRendererRetained = renderer.getContext() instanceof WebGL2RenderingContext;
+      evidence.callerCanvasRetained = document.querySelector('#view').contains(renderer.domElement);
+      evidence.nativeSourcesRetained = cases.every((item, index) => item.result.source === accepted[index].source);
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+  } catch (error) {
+    for (const item of accepted) item.display.dispose();
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroCurveOperationError = String(error);
+  }
+</script>
+</html>

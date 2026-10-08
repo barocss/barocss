@@ -935,3 +935,35 @@ page loads the two generated output files through `BaroCADLoader`, displays
 both Surfaces in Three.js, and reports their original IDs, domains, source
 text, parameter reversal, display scale and resource lifetime. The scene
 translations are example display positions, not CAD placement data.
+
+## CAD Curve operation consumer in Three.js
+
+`examples/curve-operations-fixture.mjs` calls the public CAD Curve reversal,
+interval extraction and wide refinement operations. The first two use one
+weighted five-pole Curve on the nonunit domain `[-3, 7]`. The third uses the
+public #686 joined 31-pole producer and refines it to 64 poles. Each public
+validator checks the owned operation result. The example keeps the original
+Curve, source0 text, coefficients, signed zero, parameter maps and report.
+Only the three output Curves become sampled display Lines.
+
+After building `@barocss/cad` and `@barocss/cad-interop`, run:
+
+```sh
+node packages/barocss-cad-interop/examples/curve-operations-generate.mjs /tmp/barocss-curve-operations-evidence
+node packages/barocss-cad-interop/examples/curve-operations-verify.mjs /tmp/barocss-curve-operations-evidence
+```
+
+The generator saves owned JSON results and original/output source0 text.
+The verifier reopens them. The generator writes the three output `.barocad` files in
+`examples/curve-operations-data/`. Serve
+`examples/curve-operations-three.html` through the local Vite browser server.
+The page reads those files over HTTP and displays them with the existing
+Three `BaroCADLoader` and explicit `curveDisplay.version:1`. Its host uses
+authored XYZ, a camera from +Y with +Z up, and 0.001 scene units/mm. Invalid
+version, display capacity and source candidates leave accepted Lines and
+pixels intact. Disposal releases only adapter-owned Three objects.
+
+The Lines approximate native Curves. Three vertices do not replace native
+parameters or prove an error bound, topology, a solid or manufacturing
+quality. This is one Three.js consumer; it does not establish Babylon,
+Pixi3D, GLB or npm publication for these three operations.
