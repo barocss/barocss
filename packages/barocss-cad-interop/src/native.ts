@@ -2,6 +2,8 @@ import { compileCadModel, sampleCurveAdaptive, tessellateSurface, validateAdapti
 import type { AdaptiveCurveSamplingResult, ApproximationReport, CadDiagnostic, Model } from '@barocss/cad';
 import { prepareCadPreviewMesh } from './packet.js';
 import type { CadPreviewPacket, PreparedCadMesh } from './packet.js';
+import { encodeNativePreviewGlb } from './glb.js';
+import type { NativeGlbCurve } from './glb.js';
 import { readAbortableBaroCadSource, throwIfBaroCadAborted, validateBaroCadTransport } from './transport.js';
 import type { BaroCadLoadTransportOptions } from './transport.js';
 export { BaroCadLoadAbortError } from './transport.js';
@@ -42,6 +44,11 @@ export interface BaroCadNativeResult {
   curves: BaroCadCurvePreview[];
   /** Curves without display objects. With curveDisplay enabled, this is empty. */
   unrenderedCurveIds: string[];
+}
+
+export interface BaroCadGlbExportOptions {
+  /** Embed exact source0 text as an untrusted reference in asset metadata. */
+  includeSourceText: boolean;
 }
 
 export class BaroCadSourceError extends SyntaxError {
@@ -172,6 +179,51 @@ export function parseBaroCadSource(source: string, options: BaroCadParseOptions)
     source, model: compiled.model, diagnostics: [], surfaces: previews, curves: curvePreviews,
     unrenderedCurveIds: parsedOptions.curveDisplay ? [] : nativeCurves.map(curve => curve.id),
   };
+}
+
+/** Export a bounded, metre-scale display GLB from native source0. */
+export function baroCadSourceToGLB(
+  source: string, nativeOptions: BaroCadParseOptions, exportOptions: BaroCadGlbExportOptions,
+): ArrayBuffer {
+  const options = parseOptions(nativeOptions);
+  if (options.unitsPerMillimeter !== 0.001) throw new RangeError('BaroCAD GLB requires unitsPerMillimeter 0.001');
+  if (exportOptions === null || typeof exportOptions !== 'object' || Array.isArray(exportOptions) ||
+      ![Object.prototype, null].includes(Object.getPrototypeOf(exportOptions))) {
+    throw new TypeError('BaroCAD GLB export options must be a plain object');
+  }
+  const keys = Reflect.ownKeys(exportOptions);
+  const descriptor = Object.getOwnPropertyDescriptor(exportOptions, 'includeSourceText');
+  if (keys.length !== 1 || keys[0] !== 'includeSourceText' || !descriptor?.enumerable ||
+      !('value' in descriptor) || typeof descriptor.value !== 'boolean') {
+    throw new TypeError('BaroCAD GLB export requires includeSourceText boolean data only');
+  }
+  const includeSourceText = descriptor.value;
+  const result = parseBaroCadSource(source, options);
+  if (result.model.objects.length < 1 || result.model.objects.length > 4) {
+    throw new RangeError('BaroCAD GLB requires 1..4 total native objects');
+  }
+  const metadata = result.surfaces.map(surface => ({
+    kind: 'surface', surfaceId: surface.surfaceId, previewPacketVersion: 0,
+    sourceLengthUnit: 'mm', displayLengthUnit: 'm', approximate: true,
+    nativeFrame: 'authored-xyz-y-up', parameterAttribute: '_CAD_UV',
+    parameterMeaning: 'original-native-u-v-not-texture-uv',
+  }));
+  const curves: NativeGlbCurve[] = result.curves.map(curve => ({
+    curveId: curve.curveId, positions: curve.positions,
+    parameters: [...curve.sample.parameters],
+    intervals: curve.sample.segments.map(segment => [...segment.domain] as [number, number]),
+  }));
+  const assetMetadata: Record<string, unknown> = {
+    format: 'barocad-display-glb', sourceVersion: 0, modelName: result.model.name,
+    modelVersion: result.model.version, sourceLengthUnit: 'mm', displayLengthUnit: 'm',
+    nativeFrame: 'authored-xyz-y-up', representation: 'sampled-display-not-native-nurbs',
+    objectOrder: result.model.objects.map(object => ({ kind: object.kind, id: object.id })),
+    unrenderedCurveIds: [...result.unrenderedCurveIds],
+  };
+  if (includeSourceText) assetMetadata.source = {
+    format: 'barocad-source0', role: 'untrusted-native-reference', text: source,
+  };
+  return encodeNativePreviewGlb(result.surfaces.map(surface => surface.mesh), metadata, curves, assetMetadata);
 }
 
 /** Load bounded native source without creating a renderer object. */

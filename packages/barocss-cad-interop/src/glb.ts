@@ -12,6 +12,14 @@ const FLOAT = 5126;
 const UNSIGNED_SHORT = 5123;
 const ARRAY_BUFFER = 34962;
 const ELEMENT_ARRAY_BUFFER = 34963;
+const NATIVE_GLB_MAX_BYTES = 1024 * 1024;
+
+export interface NativeGlbCurve {
+  curveId: string;
+  positions: Float32Array;
+  parameters: number[];
+  intervals: [number, number][];
+}
 
 function align4(length: number): number { return (length + 3) & ~3; }
 
@@ -36,7 +44,18 @@ export function encodeOwnNativeFaceMeshGlb(input: unknown, displayId: string, pa
   }]);
 }
 
-function encodeMeshes(meshes: PreparedCadMesh[], metadata: Record<string, unknown>[]): ArrayBuffer {
+/** Internal native-source display writer. Native source validation lives in native.ts. */
+export function encodeNativePreviewGlb(
+  meshes: PreparedCadMesh[], metadata: Record<string, unknown>[],
+  curves: NativeGlbCurve[], assetMetadata: Record<string, unknown>,
+): ArrayBuffer {
+  return encodeMeshes(meshes, metadata, { curves, assetMetadata, maxBytes: NATIVE_GLB_MAX_BYTES });
+}
+
+function encodeMeshes(
+  meshes: PreparedCadMesh[], metadata: Record<string, unknown>[],
+  native?: { curves: NativeGlbCurve[]; assetMetadata: Record<string, unknown>; maxBytes: number },
+): ArrayBuffer {
   const chunks: Uint8Array[] = [];
   const bufferViews: BufferView[] = [];
   const accessors: Accessor[] = [];
@@ -94,17 +113,51 @@ function encodeMeshes(meshes: PreparedCadMesh[], metadata: Record<string, unknow
       _CAD_UV: parameter }, indices, material: 0, mode: 4 }] };
   });
 
+  const curveMeshes = (native?.curves ?? []).map(curve => {
+    const pointCount = curve.positions.length / 3;
+    if (!Number.isInteger(pointCount) || pointCount < 2 || pointCount > 1025 ||
+        curve.parameters.length !== pointCount || curve.intervals.length !== pointCount - 1 ||
+        !curve.positions.every(Number.isFinite)) throw new RangeError('GLB Curve has invalid sample points');
+    for (let index = 1; index < pointCount; index++) {
+      const a = (index - 1) * 3, b = index * 3;
+      if (curve.positions[a] === curve.positions[b] && curve.positions[a + 1] === curve.positions[b + 1] &&
+          curve.positions[a + 2] === curve.positions[b + 2]) throw new RangeError('GLB Curve has a collapsed segment');
+    }
+    const position = attribute(curve.positions, 'VEC3');
+    const boundsMin = [Infinity, Infinity, Infinity], boundsMax = [-Infinity, -Infinity, -Infinity];
+    for (let index = 0; index < curve.positions.length; index += 3) {
+      for (let axis = 0; axis < 3; axis++) {
+        boundsMin[axis] = Math.min(boundsMin[axis], curve.positions[index + axis]);
+        boundsMax[axis] = Math.max(boundsMax[axis], curve.positions[index + axis]);
+      }
+    }
+    accessors[position].min = boundsMin;
+    accessors[position].max = boundsMax;
+    const indices = accessors.length;
+    accessors.push({ bufferView: append(shorts(Uint16Array.from({ length: pointCount }, (_, index) => index)),
+      ELEMENT_ARRAY_BUFFER), componentType: UNSIGNED_SHORT, count: pointCount, type: 'SCALAR' });
+    return { name: curve.curveId, primitives: [{ attributes: { POSITION: position }, indices, material: 1, mode: 3 }] };
+  });
+
   const paddedBinaryLength = align4(binaryLength);
   const document = {
-    asset: { version: '2.0', generator: '@barocss/cad-interop' },
+    asset: { version: '2.0', generator: '@barocss/cad-interop',
+      ...(native ? { extras: { barocss: native.assetMetadata } } : {}) },
     scene: 0,
-    scenes: [{ nodes: meshes.map((_, index) => index) }],
-    nodes: meshes.map((mesh, index) => ({ mesh: index, name: mesh.surfaceId,
+    scenes: [{ nodes: [...meshes, ...(native?.curves ?? [])].map((_, index) => index) }],
+    nodes: [...meshes.map((mesh, index) => ({ mesh: index, name: mesh.surfaceId,
       extras: { barocss: metadata[index] } })),
-    meshes: gltfMeshes,
+      ...(native?.curves ?? []).map((curve, index) => ({ mesh: meshes.length + index, name: curve.curveId,
+        extras: { barocss: { kind: 'curve', curveId: curve.curveId, sourceLengthUnit: 'mm',
+          displayLengthUnit: 'm', approximate: true, parameters: curve.parameters,
+          intervals: curve.intervals } } }))],
+    meshes: [...gltfMeshes, ...curveMeshes],
     materials: [{ name: 'CAD preview', doubleSided: true,
       pbrMetallicRoughness: { baseColorFactor: [0.8, 0.8, 0.8, 1], metallicFactor: 0,
-        roughnessFactor: 1 } }],
+        roughnessFactor: 1 } },
+      ...(native?.curves.length ? [{ name: 'CAD Curve preview', doubleSided: true,
+        pbrMetallicRoughness: { baseColorFactor: [0.9, 0.25, 0.1, 1], metallicFactor: 0,
+          roughnessFactor: 1 } }] : [])],
     buffers: [{ byteLength: paddedBinaryLength }],
     bufferViews,
     accessors,
@@ -112,6 +165,7 @@ function encodeMeshes(meshes: PreparedCadMesh[], metadata: Record<string, unknow
   const json = new TextEncoder().encode(JSON.stringify(document));
   const paddedJsonLength = align4(json.byteLength);
   const totalLength = 12 + 8 + paddedJsonLength + 8 + paddedBinaryLength;
+  if (native && totalLength > native.maxBytes) throw new RangeError('BaroCAD GLB exceeds 1 MiB');
   const output = new ArrayBuffer(totalLength);
   const bytes = new Uint8Array(output);
   const header = new DataView(output);
