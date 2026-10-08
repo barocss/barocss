@@ -30,14 +30,14 @@ canvas.addEventListener('webglcontextlost', event => {
 canvas.addEventListener('webglcontextrestored', () => location.reload());
 try {
   const modelSet = await loadBaroCadModelSet({
-    format: 'barocad-model-set', version: 0, entries: [{ aliasId: 'fluid_surface',
-      url: 'occluder.barocad',
+    format: 'barocad-model-set', version: 0, entries: [{ aliasId: 'fluid_basin',
+      url: 'basin.barocad',
       options: { sourceVersion: 0, countU: 5, countV: 5, unitsPerMillimeter: 1 } }],
   }, { baseURL: location.href });
   viewer = createViewer(canvas, { mmToSceneUnit: 0.001,
     background: [0.035, 0.065, 0.105] });
   viewer.loadModelSet(modelSet);
-  viewer.setView({ eye: [0.35, 0.65, 2], target: [0.35, 0.5, 0], up: [0, 1, 0],
+  viewer.setView({ eye: [1.25, 1.1, 1.45], target: [0.35, 0.42, 0.25], up: [0, 1, 0],
     fovYDegrees: 45, near: 0.01, far: 10 });
   const present = (state, running, reset = false) => {
     if (reset) { viewer.setFluidFrame(null); generation++; }
