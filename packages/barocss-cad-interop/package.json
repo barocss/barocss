@@ -49,6 +49,10 @@
       "types": "./dist/babylon-document.d.ts",
       "import": "./dist/babylon-document.js"
     },
+    "./babylon-assembly": {
+      "types": "./dist/babylon-assembly.d.ts",
+      "import": "./dist/babylon-assembly.js"
+    },
     "./pixi3d": {
       "types": "./dist/pixi3d.d.ts",
       "import": "./dist/pixi3d.js"
