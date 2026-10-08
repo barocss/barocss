@@ -1,0 +1,287 @@
+import { Canvas2DError, validatePoint, validateScene, validateSize, validateView } from './schema.js';
+import type { Color, FrameNode, LineNode, Node, Point, Scene, Size, Transform, View } from './schema.js';
+
+type Matrix = [number, number, number, number, number, number];
+type Clip = { left: number; top: number; right: number; bottom: number };
+type Draw = {
+  id: string; kind: 'frame' | 'rect' | 'line'; node: FrameNode | Extract<Node, { kind: 'rect' | 'line' }>;
+  matrix: Matrix; inverse: Matrix; color: Color; vertices: Float32Array; clip: Clip | null;
+};
+type Gpu = { program: WebGLProgram; buffer: WebGLBuffer; vao: WebGLVertexArrayObject;
+  size: WebGLUniformLocation; view: WebGLUniformLocation; color: WebGLUniformLocation };
+
+const vertexShader = `#version 300 es
+precision highp float;
+layout(location=0) in vec2 a_position;
+uniform vec2 u_size;
+uniform vec3 u_view;
+void main() {
+  vec2 p = (a_position * u_view.z + u_view.xy) / u_size;
+  gl_Position = vec4(p.x * 2.0 - 1.0, 1.0 - p.y * 2.0, 0.0, 1.0);
+}`;
+const fragmentShader = `#version 300 es
+precision highp float;
+uniform vec4 u_color;
+out vec4 out_color;
+void main() { out_color = vec4(u_color.rgb * u_color.a, u_color.a); }`;
+
+function multiply(a: Matrix, b: Matrix): Matrix {
+  return [a[0] * b[0] + a[2] * b[1], a[1] * b[0] + a[3] * b[1],
+    a[0] * b[2] + a[2] * b[3], a[1] * b[2] + a[3] * b[3],
+    a[0] * b[4] + a[2] * b[5] + a[4], a[1] * b[4] + a[3] * b[5] + a[5]];
+}
+function pose(t: Transform): Matrix {
+  const c = Math.cos(t.rotation), s = Math.sin(t.rotation);
+  return [c * t.scaleX, s * t.scaleX, -s * t.scaleY, c * t.scaleY, t.x, t.y];
+}
+function inverse(m: Matrix): Matrix {
+  const det = m[0] * m[3] - m[1] * m[2];
+  return [m[3] / det, -m[1] / det, -m[2] / det, m[0] / det,
+    (m[2] * m[5] - m[3] * m[4]) / det, (m[1] * m[4] - m[0] * m[5]) / det];
+}
+function point(m: Matrix, x: number, y: number): Point {
+  return { x: m[0] * x + m[2] * y + m[4], y: m[1] * x + m[3] * y + m[5] };
+}
+function rectangle(m: Matrix, width: number, height: number): Float32Array {
+  const p0 = point(m, 0, 0), p1 = point(m, width, 0);
+  const p2 = point(m, width, height), p3 = point(m, 0, height);
+  return new Float32Array([p0.x,p0.y,p1.x,p1.y,p2.x,p2.y,p0.x,p0.y,p2.x,p2.y,p3.x,p3.y]);
+}
+function line(m: Matrix, node: LineNode): Float32Array {
+  const dx = node.x2 - node.x1, dy = node.y2 - node.y1;
+  const length = Math.hypot(dx, dy), half = node.width / 2;
+  const nx = -dy / length * half, ny = dx / length * half;
+  const a = point(m, node.x1 + nx, node.y1 + ny), b = point(m, node.x2 + nx, node.y2 + ny);
+  const c = point(m, node.x2 - nx, node.y2 - ny), d = point(m, node.x1 - nx, node.y1 - ny);
+  return new Float32Array([a.x,a.y,b.x,b.y,c.x,c.y,a.x,a.y,c.x,c.y,d.x,d.y]);
+}
+function intersection(a: Clip | null, b: Clip): Clip {
+  if (!a) return b;
+  return { left: Math.max(a.left, b.left), top: Math.max(a.top, b.top),
+    right: Math.min(a.right, b.right), bottom: Math.min(a.bottom, b.bottom) };
+}
+function compileScene(scene: Scene): Draw[] {
+  const draws: Draw[] = [];
+  function add(draw: Draw): void {
+    for (const coordinate of draw.vertices) {
+      if (!Number.isFinite(coordinate) || Math.abs(coordinate) > 1e9) {
+        throw new Canvas2DError('SCENE_LIMIT', 'composed world geometry exceeds supported range');
+      }
+    }
+    draws.push(draw);
+  }
+  function visit(siblings: Node[], parent: Matrix, inheritedClip: Clip | null): void {
+    const sorted = siblings.map((node, index) => ({ node, index }))
+      .sort((a, b) => a.node.layer - b.node.layer || a.index - b.index);
+    for (const { node } of sorted) {
+      const matrix = multiply(parent, pose(node.transform));
+      if (node.kind === 'group') { visit(node.children, matrix, inheritedClip); continue; }
+      const inv = inverse(matrix);
+      if (node.kind === 'frame') {
+        add({ id: node.id, kind: 'frame', node, matrix, inverse: inv,
+          color: node.fill, vertices: rectangle(matrix, node.width, node.height), clip: inheritedClip });
+        let childClip = inheritedClip;
+        if (node.clip) {
+          const topLeft = point(matrix, 0, 0), bottomRight = point(matrix, node.width, node.height);
+          childClip = intersection(inheritedClip, {
+            left: Math.min(topLeft.x, bottomRight.x), top: Math.min(topLeft.y, bottomRight.y),
+            right: Math.max(topLeft.x, bottomRight.x), bottom: Math.max(topLeft.y, bottomRight.y),
+          });
+        }
+        visit(node.children, matrix, childClip);
+      } else if (node.kind === 'rect') {
+        add({ id: node.id, kind: 'rect', node, matrix, inverse: inv,
+          color: node.fill, vertices: rectangle(matrix, node.width, node.height), clip: inheritedClip });
+      } else {
+        add({ id: node.id, kind: 'line', node, matrix, inverse: inv,
+          color: node.stroke, vertices: line(matrix, node), clip: inheritedClip });
+      }
+    }
+  }
+  visit(scene.nodes, [1, 0, 0, 1, 0, 0], null);
+  return draws;
+}
+
+function contains(draw: Draw, world: Point): boolean {
+  if (draw.clip && (world.x < draw.clip.left || world.x > draw.clip.right ||
+      world.y < draw.clip.top || world.y > draw.clip.bottom)) return false;
+  const p = point(draw.inverse, world.x, world.y);
+  const node = draw.node;
+  if (node.kind === 'line') {
+    const dx = node.x2 - node.x1, dy = node.y2 - node.y1;
+    const lengthSquared = dx * dx + dy * dy;
+    const t = ((p.x - node.x1) * dx + (p.y - node.y1) * dy) / lengthSquared;
+    if (t < 0 || t > 1) return false;
+    const distance = Math.abs((p.x - node.x1) * dy - (p.y - node.y1) * dx) / Math.sqrt(lengthSquared);
+    return distance <= node.width / 2;
+  }
+  return p.x >= 0 && p.y >= 0 && p.x <= node.width && p.y <= node.height;
+}
+
+function shader(gl: WebGL2RenderingContext, kind: number, source: string): WebGLShader {
+  const result = gl.createShader(kind);
+  if (!result) throw new Canvas2DError('WEBGL_UNAVAILABLE', 'cannot create shader');
+  gl.shaderSource(result, source);
+  gl.compileShader(result);
+  if (!gl.getShaderParameter(result, gl.COMPILE_STATUS)) {
+    const message = gl.getShaderInfoLog(result) || 'shader compilation failed';
+    gl.deleteShader(result);
+    throw new Canvas2DError('WEBGL_UNAVAILABLE', message);
+  }
+  return result;
+}
+function createGpu(gl: WebGL2RenderingContext): Gpu {
+  const vs = shader(gl, gl.VERTEX_SHADER, vertexShader);
+  let fs: WebGLShader | null = null;
+  let program: WebGLProgram | null = null;
+  let buffer: WebGLBuffer | null = null;
+  let vao: WebGLVertexArrayObject | null = null;
+  try {
+    fs = shader(gl, gl.FRAGMENT_SHADER, fragmentShader);
+    program = gl.createProgram();
+    if (!program) throw new Canvas2DError('WEBGL_UNAVAILABLE', 'cannot create program');
+    gl.attachShader(program, vs); gl.attachShader(program, fs); gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      throw new Canvas2DError('WEBGL_UNAVAILABLE', gl.getProgramInfoLog(program) || 'program link failed');
+    }
+    buffer = gl.createBuffer(); vao = gl.createVertexArray();
+    const size = gl.getUniformLocation(program, 'u_size');
+    const view = gl.getUniformLocation(program, 'u_view');
+    const color = gl.getUniformLocation(program, 'u_color');
+    if (!buffer || !vao || !size || !view || !color) throw new Canvas2DError('WEBGL_UNAVAILABLE', 'cannot create GPU state');
+    gl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+    gl.bindVertexArray(null); gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    return { program, buffer, vao, size, view, color };
+  } catch (error) {
+    if (vao) gl.deleteVertexArray(vao);
+    if (buffer) gl.deleteBuffer(buffer);
+    if (program) gl.deleteProgram(program);
+    throw error;
+  } finally { gl.deleteShader(vs); if (fs) gl.deleteShader(fs); }
+}
+
+export type Canvas2DOptions = { logicalSize: Size; dpr: number };
+export type Hit = { id: string; kind: 'frame' | 'rect' | 'line' };
+
+export class Canvas2DRenderer {
+  private scene: Scene = { version: 0, unit: 'logical-px', contextId: 'Empty', nodes: [] };
+  private draws: Draw[] = [];
+  private view: View = { panX: 0, panY: 0, zoom: 1 };
+  private size: Size;
+  private dpr: number;
+  private gl: WebGL2RenderingContext;
+  private gpu: Gpu | null;
+  private lost = false;
+  private disposed = false;
+  private readonly onLoss = (event: Event): void => { event.preventDefault(); this.lost = true; this.gpu = null; };
+  private readonly onRestore = (): void => {
+    if (this.disposed) return;
+    try { this.gpu = createGpu(this.gl); this.lost = false; this.render(); }
+    catch { this.lost = true; this.gpu = null; }
+  };
+
+  constructor(private readonly canvas: HTMLCanvasElement, options: Canvas2DOptions) {
+    if (!canvas || typeof canvas.getContext !== 'function' || typeof canvas.addEventListener !== 'function' ||
+      !options || typeof options !== 'object' || Reflect.ownKeys(options).length !== 2 ||
+      !Object.hasOwn(options, 'logicalSize') || !Object.hasOwn(options, 'dpr')) {
+      throw new Canvas2DError('INVALID_SIZE', 'canvas and exact options are required');
+    }
+    const dimensions = validateSize(options.logicalSize, options.dpr);
+    const gl = canvas.getContext('webgl2', { alpha: true, premultipliedAlpha: true,
+      antialias: false, preserveDrawingBuffer: true });
+    if (!gl) throw new Canvas2DError('WEBGL_UNAVAILABLE', 'WebGL2 is required');
+    this.gl = gl;
+    this.checkLimits(dimensions.backingWidth, dimensions.backingHeight);
+    this.gpu = createGpu(gl);
+    this.size = dimensions.size; this.dpr = dimensions.dpr;
+    canvas.width = dimensions.backingWidth; canvas.height = dimensions.backingHeight;
+    canvas.addEventListener('webglcontextlost', this.onLoss);
+    canvas.addEventListener('webglcontextrestored', this.onRestore);
+  }
+
+  private active(): void { if (this.disposed) throw new Canvas2DError('DISPOSED', 'renderer is disposed'); }
+  private checkLimits(width: number, height: number): void {
+    const limit = Math.min(this.gl.getParameter(this.gl.MAX_TEXTURE_SIZE) as number,
+      this.gl.getParameter(this.gl.MAX_RENDERBUFFER_SIZE) as number,
+      ...(this.gl.getParameter(this.gl.MAX_VIEWPORT_DIMS) as Int32Array));
+    if (width > limit || height > limit) throw new Canvas2DError('INVALID_SIZE', 'backing size exceeds WebGL limits');
+  }
+
+  updateScene(value: unknown): void {
+    this.active();
+    const next = validateScene(value);
+    const draws = compileScene(next);
+    this.scene = next; this.draws = draws;
+  }
+
+  setView(value: View): void { this.active(); this.view = validateView(value); }
+
+  resize(value: Size, dpr: number): void {
+    this.active();
+    if (this.lost) throw new Canvas2DError('CONTEXT_LOST', 'cannot resize while WebGL context is lost');
+    const next = validateSize(value, dpr);
+    this.checkLimits(next.backingWidth, next.backingHeight);
+    this.canvas.width = next.backingWidth; this.canvas.height = next.backingHeight;
+    this.size = next.size; this.dpr = next.dpr;
+  }
+
+  hitTest(value: Point): Hit | null {
+    this.active();
+    const p = validatePoint(value);
+    if (p.x < 0 || p.y < 0 || p.x >= this.size.width || p.y >= this.size.height) return null;
+    const world = { x: (p.x - this.view.panX) / this.view.zoom,
+      y: (p.y - this.view.panY) / this.view.zoom };
+    for (let i = this.draws.length - 1; i >= 0; i--) {
+      const draw = this.draws[i];
+      if (draw.color[3] > 0 && contains(draw, world)) return { id: draw.id, kind: draw.kind };
+    }
+    return null;
+  }
+
+  render(): void {
+    this.active();
+    if (this.lost || !this.gpu || this.gl.isContextLost()) throw new Canvas2DError('CONTEXT_LOST', 'WebGL context is unavailable');
+    const gl = this.gl, gpu = this.gpu;
+    gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+    gl.disable(gl.SCISSOR_TEST);
+    gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.useProgram(gpu.program); gl.bindVertexArray(gpu.vao); gl.bindBuffer(gl.ARRAY_BUFFER, gpu.buffer);
+    gl.uniform2f(gpu.size, this.size.width, this.size.height);
+    gl.uniform3f(gpu.view, this.view.panX, this.view.panY, this.view.zoom);
+    for (const draw of this.draws) {
+      if (draw.clip) {
+        const left = Math.max(0, Math.floor((draw.clip.left * this.view.zoom + this.view.panX) * this.dpr));
+        const right = Math.min(this.canvas.width, Math.ceil((draw.clip.right * this.view.zoom + this.view.panX) * this.dpr));
+        const top = Math.max(0, Math.floor((draw.clip.top * this.view.zoom + this.view.panY) * this.dpr));
+        const bottom = Math.min(this.canvas.height, Math.ceil((draw.clip.bottom * this.view.zoom + this.view.panY) * this.dpr));
+        if (right <= left || bottom <= top) continue;
+        gl.enable(gl.SCISSOR_TEST);
+        gl.scissor(left, this.canvas.height - bottom, right - left, bottom - top);
+      } else gl.disable(gl.SCISSOR_TEST);
+      gl.uniform4fv(gpu.color, draw.color);
+      gl.bufferData(gl.ARRAY_BUFFER, draw.vertices, gl.STREAM_DRAW);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+    gl.disable(gl.SCISSOR_TEST); gl.bindVertexArray(null); gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.useProgram(null);
+  }
+
+  dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
+    this.canvas.removeEventListener('webglcontextlost', this.onLoss);
+    this.canvas.removeEventListener('webglcontextrestored', this.onRestore);
+    if (this.gpu && !this.lost) {
+      this.gl.deleteVertexArray(this.gpu.vao);
+      this.gl.deleteBuffer(this.gpu.buffer);
+      this.gl.deleteProgram(this.gpu.program);
+    }
+    this.gpu = null; this.draws = [];
+  }
+}
+
+export function createCanvas2D(canvas: HTMLCanvasElement, options: Canvas2DOptions): Canvas2DRenderer {
+  return new Canvas2DRenderer(canvas, options);
+}

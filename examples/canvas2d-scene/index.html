@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Canvas2D scene</title>
+  <style>
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #172039; background: #e9edf5; }
+    header { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 15px 22px; background: #fff; border-bottom: 1px solid #d7deeb; }
+    h1 { margin: 0 22px 0 0; font-size: 19px; letter-spacing: -.03em; }
+    button, .file-label { border: 1px solid #c6cfdf; border-radius: 8px; background: #fff; padding: 8px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+    button:hover, .file-label:hover { background: #f4f6fa; }
+    input[type=file] { display: none; }
+    #status { margin-left: auto; font-size: 12px; color: #53617a; }
+    main { display: grid; grid-template-columns: 210px minmax(0, 1fr); min-height: calc(100vh - 62px); }
+    aside { padding: 20px; background: #f8faff; border-right: 1px solid #d7deeb; }
+    aside h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .07em; color: #69748a; margin: 0 0 12px; }
+    aside p { font-size: 13px; line-height: 1.6; color: #56627a; }
+    #selected { display: block; margin: 15px 0 24px; font-weight: 700; color: #2440a6; overflow-wrap: anywhere; }
+    #viewport { padding: 28px; overflow: auto; }
+    #canvas-wrap { position: relative; width: 800px; height: 480px; background: #fff; box-shadow: 0 12px 35px #1b315329; border: 1px solid #c4cede; }
+    canvas { display: block; width: 800px; height: 480px; touch-action: none; cursor: default; }
+    #selection-box { display: none; position: absolute; border: 2px solid #2463ff; pointer-events: none; box-shadow: 0 0 0 1px #fff; }
+    #error { color: #bb3428; font-size: 12px; min-height: 18px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Canvas2D Scene</h1>
+    <button id="reset" type="button">Reset scene</button>
+    <button id="save" type="button">Save JSON</button>
+    <label class="file-label" for="open">Open JSON</label><input id="open" type="file" accept="application/json,.json">
+    <button id="zoom-in" type="button">Zoom in</button><button id="zoom-out" type="button">Zoom out</button>
+    <span id="status">Ready</span>
+  </header>
+  <main>
+    <aside>
+      <h2>Layers</h2><div id="selected">No selection</div>
+      <p>Drag a shape to move it. Drag empty space to pan. Use the mouse wheel or zoom buttons to zoom.</p>
+      <p>Frames clip their children. Orange overlaps blue. The violet card rotates inside the second frame.</p>
+      <div id="error" role="alert"></div>
+    </aside>
+    <div id="viewport"><div id="canvas-wrap"><canvas id="scene" aria-label="Interactive design scene"></canvas><div id="selection-box"></div></div></div>
+  </main>
+  <script type="module" src="./main.mjs"></script>
+</body>
+</html>
