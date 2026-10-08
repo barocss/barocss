@@ -1,3 +1,5 @@
+import { slerpQuaternion } from './math.js';
+
 /** Renderer-neutral, bounded TRS keyframes. All times are seconds. */
 export type Vec3 = [number, number, number];
 export type Quat = [number, number, number, number];
@@ -56,6 +58,8 @@ export { MotionFileError, parseMotionClipFile, serializeMotionClipFile } from '.
 export type { MotionFileErrorCode } from './file.js';
 export { MotionTimelineError, createMotionTimeline } from './timeline.js';
 export type { MotionMarkerInput, MotionTimeline, MotionTimelineErrorCode, MotionTimelineEvent, MotionTimelineOptions, MotionTimelineState } from './timeline.js';
+export { MotionBlendError, sampleMotionBlend } from './blend.js';
+export type { MotionBlendErrorCode, MotionBlendSample } from './blend.js';
 
 export const MOTION_LIMITS = Object.freeze({
   targets: 64,
@@ -189,11 +193,6 @@ function requireClip(clip: MotionClip): void {
   if (!clip || !validClips.has(clip)) fail('clip must come from createMotionClip');
 }
 
-function normalize(quaternion: number[]): Quat {
-  const norm = Math.hypot(...quaternion);
-  return quaternion.map((component) => component / norm) as Quat;
-}
-
 function interpolate(track: MotionTrack, timeSeconds: number): Vec3 | Quat {
   const keys = track.keys;
   if (timeSeconds <= keys[0].timeSeconds) return [...keys[0].value] as Vec3 | Quat;
@@ -209,21 +208,7 @@ function interpolate(track: MotionTrack, timeSeconds: number): Vec3 | Quat {
   if (track.interpolation === 'LINEAR') {
     return before.value.map((component, index) => component + (after.value[index] - component) * fraction) as Vec3;
   }
-  const left = before.value;
-  const rightValue = [...after.value];
-  let dot = left.reduce((sum, component, index) => sum + component * rightValue[index], 0);
-  if (dot < 0) {
-    for (let index = 0; index < 4; index += 1) rightValue[index] = -rightValue[index];
-    dot = -dot;
-  }
-  if (dot > 1 - 1e-8) {
-    return normalize(left.map((component, index) => component + (rightValue[index] - component) * fraction));
-  }
-  const angle = Math.acos(Math.min(1, dot));
-  const denominator = Math.sin(angle);
-  const leftWeight = Math.sin((1 - fraction) * angle) / denominator;
-  const rightWeight = Math.sin(fraction * angle) / denominator;
-  return normalize(left.map((component, index) => component * leftWeight + rightValue[index] * rightWeight));
+  return slerpQuaternion(before.value, after.value, fraction);
 }
 
 /** Return new pose objects and component arrays for every sample. */

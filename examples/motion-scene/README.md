@@ -18,3 +18,7 @@ After building the package, run `node examples/motion-scene/clip-file-probe.mjs`
 ## Marker timeline consumer
 
 After building the package, run `node examples/motion-scene/timeline-probe.mjs`. It reads the real `.baromotion` asset and checks exact midpoint, clamp endpoint, repeat seam, multi-pass order, and atomic limit and getter refusals. Serve the repository root on port 52139, then open `http://127.0.0.1:52139/examples/motion-scene/timeline-demo.html`. The 3D scene keeps the same part IDs and geometries. Its marker log and current phase come from `createMotionTimeline`, while Three.js displays returned poses. Use Play and Advance 2 s or 4 s for exact crossings. The live state and copied event log are available at `window.motionTimelineDemo.getState()` and `window.motionTimelineDemo.getLog()`.
+
+## Two-clip blend consumer
+
+After building the package, run `node examples/motion-scene/blend-probe.mjs`. It reads two real compatible `.baromotion` files, including a destination with reversed target order and antipodal Part A quaternions. The probe checks exact endpoints, separate source/destination times, the half blend, result ownership, and mismatch refusal. Serve the repository root on a separate port 52149 and open `http://127.0.0.1:52149/examples/motion-scene/blend-demo.html`. Select source or destination files to replace either clip. An incompatible file leaves the prior 3D pose in place. The sliders choose each clip time and destination weight; `window.motionBlendDemo.getState()` exposes the current owned result.
