@@ -95,30 +95,36 @@ function unsupportedExtension(source: Record<string, unknown>, path: string): vo
   if (field(source, 'extensions', path) !== undefined) fail('UNSUPPORTED', path, 'animation extensions are unsupported');
 }
 
-function readAccessor(
-  accessorIndex: number, expectedType: 'SCALAR' | 'VEC3' | 'VEC4',
-  accessors: unknown[], views: unknown[], declaredBuffers: unknown[], buffers: readonly Uint8Array[],
-  path: string, maximum = 256,
-): number[][] {
-  const accessor = record(accessors[index(accessorIndex, accessors.length, path)], path);
-  unsupportedExtension(accessor, path);
-  if (field(accessor, 'sparse', path) !== undefined || field(accessor, 'normalized', path) === true) {
-    fail('UNSUPPORTED', path, 'sparse or normalized accessors are unsupported');
+function sparseRecord(value: unknown, path: string): Record<string, unknown> {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    fail('INVALID_ACCESSOR', path, 'expected a sparse record');
   }
-  if (field(accessor, 'componentType', path) !== 5126 || field(accessor, 'type', path) !== expectedType) {
-    fail('UNSUPPORTED', path, `expected float32 ${expectedType}`);
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) fail('INVALID_ACCESSOR', path, 'expected a sparse record');
+  return value as Record<string, unknown>;
+}
+
+function readSparseRegion(
+  entry: Record<string, unknown>, views: unknown[], declaredBuffers: unknown[],
+  buffers: readonly Uint8Array[], length: number, alignment: number, path: string,
+): DataView {
+  unsupportedExtension(entry, path);
+  const rawViewIndex = field(entry, 'bufferView', path);
+  if (!Number.isInteger(rawViewIndex) || (rawViewIndex as number) < 0 || (rawViewIndex as number) >= views.length) {
+    fail('INVALID_ACCESSOR', `${path}.bufferView`, 'index is outside the source array');
   }
-  const rawCount = field(accessor, 'count', path);
-  if (!Number.isInteger(rawCount) || (rawCount as number) < 1 || (rawCount as number) > maximum) {
-    fail('LIMIT_EXCEEDED', `${path}.count`, `expected 1..${maximum} values`);
-  }
-  const count = rawCount as number;
-  const viewIndex = index(field(accessor, 'bufferView', path), views.length, `${path}.bufferView`);
+  const viewIndex = rawViewIndex as number;
   const viewPath = `bufferViews[${viewIndex}]`;
-  const view = record(views[viewIndex], viewPath);
+  const view = sparseRecord(views[viewIndex], viewPath);
   unsupportedExtension(view, viewPath);
-  if (field(view, 'byteStride', viewPath) !== undefined) fail('UNSUPPORTED', viewPath, 'strided accessors are unsupported');
-  const bufferIndex = index(field(view, 'buffer', viewPath), buffers.length, `${viewPath}.buffer`);
+  if (field(view, 'byteStride', viewPath) !== undefined || field(view, 'target', viewPath) !== undefined) {
+    fail('UNSUPPORTED', viewPath, 'sparse view stride or target is unsupported');
+  }
+  const rawBufferIndex = field(view, 'buffer', viewPath);
+  if (!Number.isInteger(rawBufferIndex) || (rawBufferIndex as number) < 0 || (rawBufferIndex as number) >= buffers.length) {
+    fail('INVALID_ACCESSOR', `${viewPath}.buffer`, 'index is outside the supplied buffers');
+  }
+  const bufferIndex = rawBufferIndex as number;
   const declared = record(declaredBuffers[bufferIndex], `buffers[${bufferIndex}]`);
   const declaredLength = byteCount(field(declared, 'byteLength', `buffers[${bufferIndex}]`), MAX_BYTES,
     `buffers[${bufferIndex}].byteLength`);
@@ -127,24 +133,102 @@ function readAccessor(
   }
   const viewOffset = byteCount(field(view, 'byteOffset', viewPath) ?? 0, declaredLength, `${viewPath}.byteOffset`);
   const viewLength = byteCount(field(view, 'byteLength', viewPath), declaredLength, `${viewPath}.byteLength`);
-  const accessorOffset = byteCount(field(accessor, 'byteOffset', path) ?? 0, viewLength, `${path}.byteOffset`);
-  const components = expectedType === 'SCALAR' ? 1 : expectedType === 'VEC3' ? 3 : 4;
-  const size = count * components * 4;
-  if ((viewOffset + accessorOffset) % 4 !== 0 || accessorOffset + size > viewLength ||
-      viewOffset + viewLength > declaredLength) {
-    fail('INVALID_ACCESSOR', path, 'float32 region is misaligned or outside its buffer view');
+  const entryOffset = byteCount(field(entry, 'byteOffset', path) ?? 0, viewLength, `${path}.byteOffset`);
+  if (viewOffset % alignment !== 0 || entryOffset % alignment !== 0 ||
+      entryOffset + length > viewLength || viewOffset + viewLength > declaredLength) {
+    fail('INVALID_ACCESSOR', path, 'sparse region is misaligned or outside its buffer view');
   }
   const bytes = buffers[bufferIndex];
-  const data = new DataView(bytes.buffer, bytes.byteOffset + viewOffset + accessorOffset, size);
-  const values: number[][] = [];
-  for (let item = 0; item < count; item += 1) {
-    const tuple: number[] = [];
-    for (let component = 0; component < components; component += 1) {
-      const scalar = data.getFloat32((item * components + component) * 4, true);
-      if (!Number.isFinite(scalar)) fail('INVALID_ACCESSOR', `${path}[${item}]`, 'nonfinite scalar');
-      tuple.push(scalar);
+  return new DataView(bytes.buffer, bytes.byteOffset + viewOffset + entryOffset, length);
+}
+
+function readAccessor(
+  accessorIndex: number, expectedType: 'SCALAR' | 'VEC3' | 'VEC4',
+  accessors: unknown[], views: unknown[], declaredBuffers: unknown[], buffers: readonly Uint8Array[],
+  path: string, maximum = 256,
+): number[][] {
+  const accessor = record(accessors[index(accessorIndex, accessors.length, path)], path);
+  unsupportedExtension(accessor, path);
+  if (field(accessor, 'normalized', path) === true) fail('UNSUPPORTED', path, 'normalized accessors are unsupported');
+  if (field(accessor, 'componentType', path) !== 5126 || field(accessor, 'type', path) !== expectedType) {
+    fail('UNSUPPORTED', path, `expected float32 ${expectedType}`);
+  }
+  const rawCount = field(accessor, 'count', path);
+  if (!Number.isInteger(rawCount) || (rawCount as number) < 1 || (rawCount as number) > maximum) {
+    fail('LIMIT_EXCEEDED', `${path}.count`, `expected 1..${maximum} values`);
+  }
+  const count = rawCount as number;
+  const components = expectedType === 'SCALAR' ? 1 : expectedType === 'VEC3' ? 3 : 4;
+  const size = count * components * 4;
+  const sparseField = field(accessor, 'sparse', path);
+  const hasBase = field(accessor, 'bufferView', path) !== undefined;
+  if (!hasBase && sparseField === undefined) index(undefined, views.length, `${path}.bufferView`);
+  if (!hasBase && field(accessor, 'byteOffset', path) !== undefined) {
+    fail('INVALID_ACCESSOR', `${path}.byteOffset`, 'base offset requires a buffer view');
+  }
+  const values: number[][] = Array.from({ length: count }, () => Array<number>(components).fill(0));
+  if (hasBase) {
+    const viewIndex = index(field(accessor, 'bufferView', path), views.length, `${path}.bufferView`);
+    const viewPath = `bufferViews[${viewIndex}]`;
+    const view = record(views[viewIndex], viewPath);
+    unsupportedExtension(view, viewPath);
+    if (field(view, 'byteStride', viewPath) !== undefined) fail('UNSUPPORTED', viewPath, 'strided accessors are unsupported');
+    const bufferIndex = index(field(view, 'buffer', viewPath), buffers.length, `${viewPath}.buffer`);
+    const declared = record(declaredBuffers[bufferIndex], `buffers[${bufferIndex}]`);
+    const declaredLength = byteCount(field(declared, 'byteLength', `buffers[${bufferIndex}]`), MAX_BYTES,
+      `buffers[${bufferIndex}].byteLength`);
+    if (declaredLength !== buffers[bufferIndex].byteLength) {
+      fail('INVALID_ACCESSOR', `buffers[${bufferIndex}]`, 'supplied byte length differs from glTF');
     }
-    values.push(tuple);
+    const viewOffset = byteCount(field(view, 'byteOffset', viewPath) ?? 0, declaredLength, `${viewPath}.byteOffset`);
+    const viewLength = byteCount(field(view, 'byteLength', viewPath), declaredLength, `${viewPath}.byteLength`);
+    const accessorOffset = byteCount(field(accessor, 'byteOffset', path) ?? 0, viewLength, `${path}.byteOffset`);
+    if ((viewOffset + accessorOffset) % 4 !== 0 || accessorOffset + size > viewLength ||
+        viewOffset + viewLength > declaredLength) {
+      fail('INVALID_ACCESSOR', path, 'float32 region is misaligned or outside its buffer view');
+    }
+    const bytes = buffers[bufferIndex];
+    const data = new DataView(bytes.buffer, bytes.byteOffset + viewOffset + accessorOffset, size);
+    for (let item = 0; item < count; item += 1) {
+      for (let component = 0; component < components; component += 1) {
+        values[item][component] = data.getFloat32((item * components + component) * 4, true);
+      }
+    }
+  }
+  if (sparseField !== undefined) {
+    const sparse = sparseRecord(sparseField, `${path}.sparse`);
+    unsupportedExtension(sparse, `${path}.sparse`);
+    const rawSparseCount = field(sparse, 'count', `${path}.sparse`);
+    if (!Number.isInteger(rawSparseCount) || (rawSparseCount as number) < 1 || (rawSparseCount as number) > count) {
+      fail('INVALID_ACCESSOR', `${path}.sparse.count`, 'expected 1..accessor count');
+    }
+    const sparseCount = rawSparseCount as number;
+    const indices = sparseRecord(field(sparse, 'indices', `${path}.sparse`), `${path}.sparse.indices`);
+    const componentType = field(indices, 'componentType', `${path}.sparse.indices`);
+    const indexSize = componentType === 5121 ? 1 : componentType === 5123 ? 2 : componentType === 5125 ? 4 : 0;
+    if (indexSize === 0) fail('INVALID_ACCESSOR', `${path}.sparse.indices.componentType`, 'expected unsigned index type');
+    const indexData = readSparseRegion(indices, views, declaredBuffers, buffers,
+      sparseCount * indexSize, indexSize, `${path}.sparse.indices`);
+    const replacement = sparseRecord(field(sparse, 'values', `${path}.sparse`), `${path}.sparse.values`);
+    const replacementData = readSparseRegion(replacement, views, declaredBuffers, buffers,
+      sparseCount * components * 4, 4, `${path}.sparse.values`);
+    let previous = -1;
+    for (let item = 0; item < sparseCount; item += 1) {
+      const sparseIndex = indexSize === 1 ? indexData.getUint8(item) :
+        indexSize === 2 ? indexData.getUint16(item * 2, true) : indexData.getUint32(item * 4, true);
+      if (sparseIndex <= previous || sparseIndex >= count) {
+        fail('INVALID_ACCESSOR', `${path}.sparse.indices[${item}]`, 'indices must strictly increase within accessor count');
+      }
+      previous = sparseIndex;
+      for (let component = 0; component < components; component += 1) {
+        values[sparseIndex][component] = replacementData.getFloat32((item * components + component) * 4, true);
+      }
+    }
+  }
+  for (let item = 0; item < count; item += 1) {
+    if (values[item].some((scalar) => !Number.isFinite(scalar))) {
+      fail('INVALID_ACCESSOR', `${path}[${item}]`, 'nonfinite scalar');
+    }
   }
   return values;
 }
