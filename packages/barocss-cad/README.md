@@ -5857,17 +5857,19 @@ references refuse; no fallback naming or nearest geometry is used.
 The original document, authored source text, asset/body identities, declared
 revisions and native coefficients remain intact. Output IDs apply to copies
 only. The existing writer preserves rational degrees, weights, knots, control
-coordinates, ordering and original parameter domains numerically, with no mesh
-approximation or axis/unit conversion. It normalizes numeric negative zero to
-positive zero. The report counts those actual occurrences rather than claiming
-bit preservation in IGES.
+coordinates, logical pole/grid indices and original parameter domains numerically,
+with no mesh approximation or axis/unit conversion. Surface128 serializes U
+fastest with V outside, while retaining the original grid index meanings. It
+normalizes numeric negative zero to positive zero. The report separately counts
+native occurrences and IGES numeric-field occurrences, including repeated domain
+endpoints, rather than claiming bit preservation in IGES.
 
 IGES directory labels contain only the first8 characters of output IDs; labels
 may collide. The sidecar maps each full qualified source reference and explicit
 output ID to entity kind, unique directory/parameter pointers, label and native
 domains. It reports truncation, label collisions and signed-zero normalization.
 Original authoring metadata/source and unselected geometry are not encoded in
-the IGES file. Unsupported features, constraints, placements, caches, topology
+the IGES file. Unsupported features, parameters, constraints, placements, caches, topology
 and history are separate from these actual omissions. Retain the authoring file
 and mapping; IGES alone does not recover the native document.
 
