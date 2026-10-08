@@ -1100,3 +1100,27 @@ Float32 display vertices. Invalid candidates retain the accepted scene,
 and disposal releases only adapter-owned objects. This is one actual
 wide-reversal consumer, not a global shape, topology, solid,
 manufacturing-quality or npm publication certificate.
+
+## CAD three-section loft consumer in Three.js
+
+`examples/loft-three-data/sections.barocad` contains three original native
+Curve sections with the same U basis and a distinct curved middle section.
+`examples/loft-three-generate.mjs` cold-reads that source, calls public CAD
+`buildThreeSectionLoftSurface`, validates its owned result and local
+V=0/.5/1 section observations, and checks the exact saved four-object
+`examples/loft-three-data/loft.barocad` output. Run it after building CAD
+and interop:
+
+```sh
+node packages/barocss-cad-interop/examples/loft-three-generate.mjs
+```
+
+Serve `examples/loft-three.html` through the local Vite browser server.
+The existing Three adapter loads the Surface and three sampled Curves over
+HTTP in one caller Scene. The page compares Mesh/Line buffers with neutral
+source0 results, draws three host-colored sections over the Surface, tests
+invalid and injected staging failures, and releases only adapter-owned
+objects. Native interpolation and parameter evidence stay separate from
+Float32 display meshes. This proves one same-basis three-section loft
+consumer. It does not prove arbitrary lofts, B-Rep/solid quality,
+other targets or npm publication.

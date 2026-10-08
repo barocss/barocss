@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Three-section native CAD loft in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Three-section native CAD loft · Three.js</h1>
+  <p>The Surface comes from three original Curve sections at V = 0, 0.5 and 1.</p>
+  <canvas id="view" width="800" height="500"></canvas>
+  <button id="reject" type="button">Try invalid candidates</button>
+  <button id="dispose" type="button">Dispose loaded display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { BufferGeometry, Color, Group, OrthographicCamera, Scene, WebGLRenderer } from 'three';
+  import { buildThreeSectionLoftSurface, compileCadModel, evaluateCurve, evaluateSurface,
+    validateThreeSectionLoftSurface } from '@barocss/cad';
+  import { BaroCADLoader } from '../dist/three.js';
+
+  const canvas = document.querySelector('#view');
+  const status = document.querySelector('#status');
+  const options = { sourceVersion: 0, countU: 9, countV: 9, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 128, maxDepth: 12 } };
+  const sectionsURL = new URL('loft-three-data/sections.barocad', location.href).href;
+  const loftURL = new URL('loft-three-data/loft.barocad', location.href).href;
+  const scene = new Scene(); scene.background = new Color(0x101b2c);
+  const marker = new Group(); marker.name = 'caller-marker'; scene.add(marker);
+  const camera = new OrthographicCamera(-0.004, 0.008, 0.006, -0.004, 0.001, 0.2);
+  camera.position.set(0.009, 0.01, 0.015); camera.lookAt(0.002, 0.002, 0.001);
+  const renderer = new WebGLRenderer({ canvas, antialias: false, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1); renderer.setSize(800, 500, false);
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const pixels = () => {
+    renderer.render(scene, camera);
+    const gl = renderer.getContext();
+    const data = new Uint8Array(canvas.width * canvas.height * 4);
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('Three WebGL readPixels failed');
+    return data;
+  };
+  const counts = data => {
+    let cyan = 0, magenta = 0, yellow = 0, nonBackground = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      if (r !== 16 || g !== 27 || b !== 44) nonBackground++;
+      if (r < 90 && g > 150 && b > 150) cyan++;
+      if (r > 150 && g < 90 && b > 150) magenta++;
+      if (r > 150 && g > 150 && b < 90) yellow++;
+    }
+    return { cyan, magenta, yellow, nonBackground };
+  };
+  const sameArray = (actual, expected) => actual.length === expected.length &&
+    actual.every((value, index) => Object.is(value, expected[index]));
+  const loader = new BaroCADLoader(options);
+  let display, result, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    const [sectionsText, loftText] = await Promise.all([
+      fetch(sectionsURL).then(response => response.text()),
+      fetch(loftURL).then(response => response.text()),
+    ]);
+    const compiled = compileCadModel(sectionsText, { sourceVersion: 0 });
+    if (!compiled.ok || compiled.model.objects.length !== 3 ||
+        compiled.model.objects.some(object => object.kind !== 'curve')) {
+      throw new Error('Original section source failed to compile');
+    }
+    const sections = compiled.model.objects;
+    result = buildThreeSectionLoftSurface(...sections, { surfaceId: 'equal_curved_middle_surface' });
+    if (result.source !== loftText ||
+        JSON.stringify(validateThreeSectionLoftSurface(result)) !== JSON.stringify(result.report) ||
+        result.report.observationCount !== 9 || result.report.derivativeObservationCount !== 9) {
+      throw new Error('Saved loft differs from public CAD operation');
+    }
+    for (const u of [0, 1, 2]) for (const [index, v] of [0, 0.5, 1].entries()) {
+      const sectionPoint = evaluateCurve(sections[index], u);
+      const surfacePoint = evaluateSurface(result.surface, u, v);
+      if (Math.hypot(...surfacePoint.map((value, axis) => value - sectionPoint[axis])) > 1e-7) {
+        throw new Error('Native loft does not interpolate its section');
+      }
+    }
+    display = await loader.loadAbortable(loftURL, {});
+    const mesh = display.group.children.find(child => child.isMesh);
+    const lines = display.group.children.filter(child => child.isLine);
+    if (display.source !== loftText || display.model.objects.length !== 4 ||
+        display.surfaces.length !== 1 || display.curves.length !== 3 || !mesh || lines.length !== 3 ||
+        display.model.objects[3].id !== result.surface.id ||
+        !Object.is(display.model.objects[0].controlPoints[0][0], -0)) {
+      throw new Error('Loft source/display identity mismatch');
+    }
+    const nativeMesh = display.surfaces[0].mesh;
+    const geometry = mesh.geometry;
+    if (mesh.name !== result.surface.id ||
+        !sameArray(geometry.getAttribute('position').array, nativeMesh.positions) ||
+        !sameArray(geometry.getAttribute('normal').array, nativeMesh.normals) ||
+        !sameArray(geometry.getAttribute('_CAD_UV').array, nativeMesh.parameters) ||
+        !sameArray(geometry.getIndex().array, nativeMesh.indices)) {
+      throw new Error('Three Mesh buffers differ from neutral Surface packet');
+    }
+    for (const [index, line] of lines.entries()) {
+      const nativeCurve = display.curves[index];
+      if (line.name !== sections[index].id || nativeCurve.curveId !== sections[index].id ||
+          !sameArray(line.geometry.getAttribute('position').array, nativeCurve.positions) ||
+          JSON.stringify(line.userData.barocss.nativeParameters) !==
+            JSON.stringify(nativeCurve.sample.parameters)) {
+        throw new Error('Three section Line differs from neutral sample');
+      }
+    }
+    mesh.material.transparent = true; mesh.material.opacity = 0.72;
+    mesh.material.depthWrite = false;
+    for (const [index, line] of lines.entries()) {
+      line.material.color.setHex([0x00ffff, 0xff00ff, 0xffff00][index]);
+      line.material.depthTest = false; line.renderOrder = 2;
+    }
+    scene.add(display.group);
+    const first = pixels(), visible = counts(first);
+    if (visible.cyan < 10 || visible.magenta < 10 || visible.yellow < 10 ||
+        visible.nonBackground < visible.cyan + visible.magenta + visible.yellow + 300) {
+      throw new Error('Surface or one of its three sections has no visible pixels');
+    }
+    evidence = {
+      sectionIds: sections.map(section => section.id), surfaceId: result.surface.id,
+      sourceObjects: display.model.objects.length, nativeSurfaceGrid: result.report.controlPointGrid,
+      nativeObservations: result.report.observationCount,
+      nativeDerivativeStates: result.report.derivativeObservationCount,
+      surfacePositions: nativeMesh.positions.length, surfaceNormals: nativeMesh.normals.length,
+      surfaceIndices: nativeMesh.indices.length, nativeParameters: nativeMesh.parameters.length,
+      curveSamples: display.curves.map(curve => curve.sample.pointsMM.length),
+      signedZeroRetained: Object.is(display.model.objects[0].controlPoints[0][0], -0),
+      sectionInterpolationChecked: true, neutralBuffersMatch: true,
+      webgl2: renderer.getContext() instanceof WebGL2RenderingContext,
+      oneCanvas: document.querySelectorAll('canvas').length === 1,
+      visiblePixels: visible, pixelHash: hash(first), callerMarkerRetained: scene.children.includes(marker),
+    };
+    window.__baroLoftThreeEvidence = evidence;
+    show();
+    document.querySelector('#reject').onclick = () => {
+      const acceptedPixels = hash(pixels());
+      const acceptedSource = display.source, acceptedOptions = JSON.stringify(options);
+      const candidates = [
+        () => loader.parse('@model invalid {}'),
+        () => new BaroCADLoader({ ...options, sourceVersion: 1 }).parse(loftText),
+        () => new BaroCADLoader({ ...options, countU: 18 }).parse(loftText),
+        () => { const wrong = structuredClone(result); wrong.surface.weights[1][1] = 2;
+          validateThreeSectionLoftSurface(wrong); },
+        () => { const wrong = structuredClone(sections); wrong[1].knots[0] = 0;
+          buildThreeSectionLoftSurface(...wrong, { surfaceId: result.surface.id }); },
+      ];
+      let refused = 0;
+      for (const candidate of candidates) { try { candidate(); } catch { refused++; } }
+      let stagedDisposals = 0, stagedFailureRefused = false;
+      const setIndex = BufferGeometry.prototype.setIndex;
+      BufferGeometry.prototype.setIndex = function () {
+        this.addEventListener('dispose', () => stagedDisposals++);
+        throw new Error('injected staged index failure');
+      };
+      try { loader.parse(loftText); } catch (error) {
+        stagedFailureRefused = error.message === 'injected staged index failure';
+      } finally { BufferGeometry.prototype.setIndex = setIndex; }
+      Object.assign(evidence, {
+        invalidCandidatesRefused: refused, stagedFailureRefused, stagedDisposals,
+        acceptedDisplayRetained: scene.children.includes(display.group) && display.group.children.length === 4,
+        acceptedSourceRetained: display.source === acceptedSource,
+        acceptedOptionsRetained: JSON.stringify(options) === acceptedOptions,
+        acceptedPixelsRetained: hash(pixels()) === acceptedPixels,
+      });
+      show();
+    };
+    document.querySelector('#dispose').onclick = () => {
+      let geometryDisposals = 0, materialDisposals = 0;
+      for (const child of [mesh, ...lines]) {
+        child.geometry.addEventListener('dispose', () => geometryDisposals++);
+        child.material.addEventListener('dispose', () => materialDisposals++);
+      }
+      display.dispose(); display.dispose();
+      Object.assign(evidence, {
+        geometryDisposals, materialDisposals,
+        displayRemoved: !scene.children.includes(display.group),
+        callerMarkerRetained: scene.children.includes(marker),
+        callerRendererAndCanvasRetained: renderer.getContext() instanceof WebGL2RenderingContext &&
+          document.body.contains(canvas),
+        nativeSourceRetained: display.source === loftText,
+      });
+      show();
+    };
+  } catch (error) {
+    display?.dispose();
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroLoftThreeError = String(error?.stack ?? error);
+  }
+</script>
+</html>
