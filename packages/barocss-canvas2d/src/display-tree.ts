@@ -59,6 +59,7 @@ type PointConversion = {
   toWorld(localPoint: Point): Point;
   toLocal(worldPoint: Point): Point;
   getWorldBounds(): WorldBounds | null;
+  getLocalBounds(): WorldBounds | null;
 };
 export type ContainerHandle = StageHandle & PointConversion & {
   onHover(type: HoverEventType, listener: HoverListener): () => void;
@@ -453,14 +454,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
     }
     return matrix;
   }
-  function worldBounds(record: RecordNode): WorldBounds | null {
-    let ancestorClip: Edges | undefined;
-    for (let ancestor = record.parent; ancestor?.data; ancestor = ancestor.parent) {
-      if (ancestor.data.kind === 'frame' && ancestor.data.clip) {
-        const frame = quad(worldMatrix(ancestor), 0, 0, ancestor.data.width, ancestor.data.height);
-        ancestorClip = ancestorClip ? intersect(ancestorClip, frame) : frame;
-      }
-    }
+  function subtreeBounds(record: RecordNode, origin: Matrix, ancestorClip?: Edges): WorldBounds | null {
     function visit(current: RecordNode, matrix: Matrix, clip: Edges | undefined): Edges | null {
       const data = current.data;
       let box = data ? inside(ownBounds(data, matrix), clip) : null;
@@ -472,14 +466,25 @@ export function createDisplayTree(contextId: string): DisplayTree {
       }
       return box;
     }
-    const box = visit(record, record === root ? identity : worldMatrix(record), ancestorClip);
+    const box = visit(record, origin, ancestorClip);
     if (!box) return null;
     const size = boundedPoint(box.right - box.left, box.bottom - box.top);
     return { x: box.left, y: box.top, width: size.x, height: size.y };
   }
+  function worldBounds(record: RecordNode): WorldBounds | null {
+    let ancestorClip: Edges | undefined;
+    for (let ancestor = record.parent; ancestor?.data; ancestor = ancestor.parent) {
+      if (ancestor.data.kind === 'frame' && ancestor.data.clip) {
+        const frame = quad(worldMatrix(ancestor), 0, 0, ancestor.data.width, ancestor.data.height);
+        ancestorClip = ancestorClip ? intersect(ancestorClip, frame) : frame;
+      }
+    }
+    return subtreeBounds(record, record === root ? identity : worldMatrix(record), ancestorClip);
+  }
   function common(record: RecordNode) {
     return {
       getWorldBounds() { return worldBounds(record); },
+      getLocalBounds() { return subtreeBounds(record, identity); },
       toWorld(localPoint: Point): Point {
         const point = validatePoint(localPoint);
         const m = worldMatrix(record);
