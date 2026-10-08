@@ -1,6 +1,8 @@
 export { createCanvas2D, Canvas2DRenderer } from './renderer.js';
 export { importSVGElement } from './svg.js';
 export type { SVGImportDiagnostics } from './svg.js';
+export { exportSceneSVG } from './svg-export.js';
+export type { SVGExportDiagnostic, SVGExportResult } from './svg-export.js';
 export type { Canvas2DOptions, Hit } from './renderer.js';
 export { Canvas2DError, parseSceneJSON, stringifySceneJSON } from './schema.js';
 export type { Scene, SceneV0, SceneV1, SceneV2, SceneV3, SceneV4, SceneV5, Node, NodeV2, NodeV3, NodeV4, NodeV5, OldNode, GroupNode, GroupNodeV2, GroupNodeV3, GroupNodeV4, GroupNodeV5, FrameNode, FrameNodeV2, FrameNodeV3, FrameNodeV4, FrameNodeV5, RectNode, LineNode, ImageNode, GlyphRunNode, GlyphQuad, SourceRect, ImageAssetInput, PathNode, PathNodeV2, PathNodeV5, PathFill, PathFillV5, PathStroke, PathCommand, Point, Size, View, Color, Transform, ErrorCode } from './schema.js';
