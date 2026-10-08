@@ -1,3 +1,25 @@
+# Current serial Integration ownership (activated 2026-10-08)
+
+The owner approved [#674](https://github.com/barocss/barocss/issues/674). GPU explicitly
+released integration checkpoint `ccf13a0ba7665ec465aa60dc9610619c975e9d3f`.
+Planner activated Execute Integration `01a119e4-00d7-7f93-92cd-40abb228e372`
+at `2026-10-08T05:22:25.668636Z`. Execute Integration alone writes the local
+integration branch and shared root, lock, static and current policy paths.
+GPU owns GPU feature and backend implementation in its isolated checkout.
+CAD, Loader, Motion, Canvas2D and Viewer retain their claimed module paths.
+Planner sets priorities, dependencies, module contracts and release scope; it
+does not merge product code. Integrate each immutable parent-to-child delta once,
+serially, with an affected build and one short actual consumer flow. Record exact
+SHAs, first failures, support limits and receipts in the responsible Issue.
+Semantic API or scope changes return to the author and Planner.
+
+This current owner decision supersedes older sole-GPU integration statements below.
+The older text remains historical evidence. No product push, PR, npm publication,
+deployment, release, broad deferred validation, scheduler or model change follows
+from this writer transfer. Preserve inherited user files, hosts and Release 0.12.2.
+
+---
+
 # Current owner lanes and specifications (2026-10-08)
 
 The owner explicitly created separate Canvas2D and Viewer Execute Works under
