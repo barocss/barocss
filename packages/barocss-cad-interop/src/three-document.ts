@@ -1,11 +1,13 @@
 import { Group, Line, Mesh } from 'three';
 import type { CadDocumentResult } from '@barocss/cad';
-import { prepareBaroCadDocumentPrimitiveNativeRefsV2 } from './document.js';
+import { loadBaroCadDocument, prepareBaroCadDocumentPrimitiveNativeRefsV2 } from './document.js';
 import type {
   BaroCadDocumentPrimitiveBindingV2, BaroCadDocumentPrimitiveOptionsV2,
   BaroCadDocumentPrimitiveRefV2,
 } from './document.js';
 import { validateBaroCadParseOptions } from './native.js';
+import { throwIfBaroCadAborted, validateBaroCadTransport } from './transport.js';
+import type { BaroCadLoadTransportOptions } from './transport.js';
 import { BaroCADLoader } from './three.js';
 import type { BaroCadThreeResult } from './three.js';
 
@@ -85,6 +87,28 @@ export function createBaroCadDocumentThreeDisplay(
   } catch (error) {
     for (const member of staged) member.dispose();
     root.clear();
+    throw error;
+  }
+}
+
+/** Read a bounded document URL and stage selected Three objects atomically. */
+export async function loadBaroCadDocumentThreeDisplay(
+  url: string, options: BaroCadDocumentPrimitiveOptionsV2,
+  transport: BaroCadLoadTransportOptions = {},
+): Promise<BaroCadDocumentThreeResultV1> {
+  const request = validateBaroCadTransport(url, transport);
+  const document = await loadBaroCadDocument(request.url, {
+    signal: request.signal, onProgress: request.onProgress,
+  });
+  throwIfBaroCadAborted(request.signal);
+  let display: BaroCadDocumentThreeResultV1 | undefined;
+  try {
+    display = createBaroCadDocumentThreeDisplay(document, options);
+    await Promise.resolve();
+    throwIfBaroCadAborted(request.signal);
+    return display;
+  } catch (error) {
+    display?.dispose();
     throw error;
   }
 }

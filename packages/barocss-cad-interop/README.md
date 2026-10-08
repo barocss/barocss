@@ -369,6 +369,32 @@ scale once in the existing Three loader. Document authored XYZ alone does
 not certify a right-handed Y-up frame; the host must assert the matching
 basis or supply its own external frame mapping.
 
+For an HTTP(S) document URL, `./three-document` also has an abortable
+target entry. It uses the same bounded neutral document reader and returns
+the same detached display result:
+
+```js
+import { loadBaroCadDocumentThreeDisplay }
+  from '@barocss/cad-interop/three-document';
+
+const controller = new AbortController();
+const display = await loadBaroCadDocumentThreeDisplay(documentURL, {
+  native: { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } },
+  basis: 'authored-xyz-matches-rhyup',
+  bodyIds: ['body_0_curve', 'body_0_surface'],
+}, { signal: controller.signal, onProgress: event => { /* HTTP bytes only */ } });
+scene.add(display.root); // The host decides whether this request is still current.
+display.dispose();
+```
+
+A winning abort before or after Three allocation rejects with
+`AbortError`/`ABORT_ERR` and releases any staged display. It leaves prior
+caller scene objects alone. Progress describes document bytes, not CAD
+geometry. The host still decides which of several successful requests to
+mount. `examples/document-three-url-v1.html` checks the HTTP, abort,
+resource and prior-frame behavior in a headed Three WebGL2 scene.
+
 ### Display selected document bodies in Babylon.js
 
 The optional `./babylon-document` entry uses the same validated body
