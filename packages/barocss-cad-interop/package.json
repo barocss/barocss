@@ -4,7 +4,7 @@
   "private": false,
   "publishConfig": { "access": "public" },
   "type": "module",
-  "description": "Portable mesh and glTF export for BaroCSS CAD preview packets",
+  "description": "BaroCSS CAD preview export and native source loaders",
   "license": "MIT",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -12,17 +12,36 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./native": {
+      "types": "./dist/native.d.ts",
+      "import": "./dist/native.js"
+    },
+    "./three": {
+      "types": "./dist/three.d.ts",
+      "import": "./dist/three.js"
     }
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": ["dist", "examples", "README.md", "LICENSE"],
   "scripts": {
     "build:library": "tsc -p tsconfig.json",
     "type-check": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint src",
     "test": "pnpm build:library && node --test test/interop.test.mjs",
+    "test:native": "pnpm --filter @barocss/cad build:library && pnpm build:library && node test/native-loader.test.mjs",
     "test:integration": "pnpm --filter @barocss/cad build:library && pnpm --filter @barocss/gpu build:library && pnpm build:library && node --test test/cad-integration.test.mjs"
   },
+  "dependencies": {
+    "@barocss/cad": "workspace:*"
+  },
+  "peerDependencies": {
+    "three": "^0.186.1"
+  },
+  "peerDependenciesMeta": {
+    "three": { "optional": true }
+  },
   "devDependencies": {
+    "@types/three": "^0.186.0",
     "three": "^0.186.1"
   }
 }
