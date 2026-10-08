@@ -1,5 +1,5 @@
 import { Canvas2DError, copyImageAsset, validateImageAssetId, validatePoint, validateScene, validateSize, validateView } from './schema.js';
-import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, Point, Scene, Size, Transform, View } from './schema.js';
+import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, Point, Scene, Size, Transform, View } from './schema.js';
 import { tessellatePath } from './path.js';
 import type { FillObservation, PathObservation } from './path.js';
 import { createImageGpu, createImageTexture, disposeImageGpu, renderImage, sampledAlpha, sourceRect } from './image.js';
@@ -7,13 +7,13 @@ import type { ImageAsset, ImageGpu } from './image.js';
 
 type Matrix = [number, number, number, number, number, number];
 type Clip = { left: number; top: number; right: number; bottom: number };
-type RenderNode = Node | NodeV2 | NodeV3 | NodeV4;
+type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5;
 type DrawNode = Exclude<RenderNode, { kind: 'group' }>;
 type Draw = {
   id: string; kind: 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun'; node: DrawNode;
   matrix: Matrix; inverse: Matrix; color: Color; vertices: Float32Array; clip: Clip | null;
   observation?: PathObservation; fillObservation?: FillObservation;
-  maskVertices?: Float32Array; contours?: Float32Array[];
+  maskVertices?: Float32Array; contours?: Float32Array[]; fillRule?: 'evenodd' | 'nonzero';
   imageAsset?: ImageAsset; imageNode?: ImageNode;
 };
 type Gpu = { program: WebGLProgram; buffer: WebGLBuffer; vao: WebGLVertexArrayObject;
@@ -143,7 +143,9 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
         if (geometry.fill) add({ id: node.id, kind: 'path', node, matrix, inverse: inv,
           color: 'fill' in node && node.fill ? node.fill.color : [0, 0, 0, 0],
           vertices: geometry.fill.coverVertices, maskVertices: geometry.fill.maskVertices,
-          contours: geometry.fill.contours, fillObservation: geometry.fill.observation,
+          contours: geometry.fill.contours,
+          fillRule: 'fill' in node && node.fill ? node.fill.rule : 'evenodd',
+          fillObservation: geometry.fill.observation,
           observation: geometry.observation, clip: inheritedClip });
         if (geometry.vertices.length) add({ id: node.id, kind: 'path', node, matrix, inverse: inv,
           color: 'width' in node ? node.stroke : node.stroke!.color,
@@ -163,17 +165,19 @@ function contains(draw: Draw, world: Point): boolean {
   const imageNode = draw.imageNode ?? (node.kind === 'image' ? node : null);
   if (imageNode) return !!draw.imageAsset && sampledAlpha(imageNode, draw.imageAsset, p) > 0;
   if (draw.contours) {
-    let inside = false;
+    let winding = 0;
     for (const contour of draw.contours) {
       const count = contour.length / 2;
       for (let i = 0, j = count - 1; i < count; j = i++) {
         const ax = contour[j * 2], ay = contour[j * 2 + 1];
         const bx = contour[i * 2], by = contour[i * 2 + 1];
         if ((ay > world.y) !== (by > world.y) &&
-            world.x < ax + (world.y - ay) * (bx - ax) / (by - ay)) inside = !inside;
+            world.x < ax + (world.y - ay) * (bx - ax) / (by - ay)) {
+          winding += draw.fillRule === 'nonzero' ? (by > ay ? 1 : -1) : 1;
+        }
       }
     }
-    return inside;
+    return draw.fillRule === 'nonzero' ? winding !== 0 : winding % 2 !== 0;
   }
   if (node.kind === 'path') {
     const v = draw.vertices;
@@ -275,6 +279,10 @@ export class Canvas2DRenderer {
       this.stencilBits = this.readStencilBits();
       if (this.draws.some(draw => draw.maskVertices) && this.stencilBits === 0) {
         throw new Canvas2DError('UNSUPPORTED_FEATURE', 'restored context has no stencil buffer');
+      }
+      if (this.draws.some(draw => draw.fillRule === 'nonzero' &&
+          2 ** this.stencilBits <= (draw.contours?.length ?? 0))) {
+        throw new Canvas2DError('UNSUPPORTED_FEATURE', 'restored stencil has insufficient winding bits');
       }
       nextGpu = createGpu(this.gl);
       for (const asset of this.assets.values()) textures.push(createImageTexture(this.gl, asset));
@@ -380,6 +388,10 @@ export class Canvas2DRenderer {
     if (draws.some(draw => draw.maskVertices)) {
       if (this.lost) throw new Canvas2DError('CONTEXT_LOST', 'cannot admit a fill while context is lost');
       if (this.stencilBits === 0) throw new Canvas2DError('UNSUPPORTED_FEATURE', 'stencil buffer is required for fills');
+      if (draws.some(draw => draw.fillRule === 'nonzero' &&
+          2 ** this.stencilBits <= (draw.contours?.length ?? 0))) {
+        throw new Canvas2DError('UNSUPPORTED_FEATURE', 'stencil has insufficient winding bits');
+      }
     }
     this.scene = next; this.draws = draws;
   }
@@ -470,13 +482,21 @@ export class Canvas2DRenderer {
       }
       if (draw.maskVertices) {
         gl.enable(gl.STENCIL_TEST);
-        gl.stencilMask(1); gl.stencilFunc(gl.ALWAYS, 0, 1);
-        gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
+        if (draw.fillRule === 'nonzero') {
+          gl.stencilMask(0xff); gl.stencilFunc(gl.ALWAYS, 0, 0xff);
+          gl.stencilOpSeparate(gl.FRONT, gl.KEEP, gl.KEEP, gl.INCR_WRAP);
+          gl.stencilOpSeparate(gl.BACK, gl.KEEP, gl.KEEP, gl.DECR_WRAP);
+        } else {
+          gl.stencilMask(1); gl.stencilFunc(gl.ALWAYS, 0, 1);
+          gl.stencilOp(gl.KEEP, gl.KEEP, gl.INVERT);
+        }
         gl.colorMask(false, false, false, false);
         gl.bufferData(gl.ARRAY_BUFFER, draw.maskVertices, gl.STREAM_DRAW);
         gl.drawArrays(gl.TRIANGLES, 0, draw.maskVertices.length / 2);
         gl.colorMask(true, true, true, true);
-        gl.stencilMask(0); gl.stencilFunc(gl.EQUAL, 1, 1);
+        gl.stencilMask(0);
+        if (draw.fillRule === 'nonzero') gl.stencilFunc(gl.NOTEQUAL, 0, 0xff);
+        else gl.stencilFunc(gl.EQUAL, 1, 1);
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
       }
       gl.uniform4fv(gpu.color, draw.color);

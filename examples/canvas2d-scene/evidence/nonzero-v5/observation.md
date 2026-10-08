@@ -1,0 +1,18 @@
+# C2D-09 nonzero winding observation
+
+2026-10-08. Clean native parent `19ccd074` (#691), isolated branch `codex/canvas2d-nonzero-706`. Browser URL: `http://127.0.0.1:54535/examples/canvas2d-scene/nonzero-v5.html` for the main compiled-dist flow; a second bounded restore check used port 54849. No npm publication or merged-head claim.
+
+## Contract and build
+
+- Scene v5 alone adds `fill.rule:'nonzero'`. v0–v4 admission and their existing `evenodd` shape remain unchanged. Accepted nonzero input has up to 8 closed, simple, nonzero-area Float32 contours. Strictly nested or disjoint contours work. Self-crossing, backtracking, touching and crossing contours refuse before the accepted scene changes. This is display geometry, not a general polygon or CAD Boolean.
+- Node 22 affected `pnpm --dir packages/barocss-canvas2d build:library` exited 0; compiled bundle was 63.6 KiB. `probe.mjs`, `fill-probe.mjs`, `glyph-probe.mjs` and `nonzero-probe.mjs` exited 0. The new probe checked v5 JSON round-trip, v4 refusal, two accepted rings and self-cross/touch/cross refusal. `git diff --check` exited 0.
+- The first new probe run falsely failed its `instanceof` check: bundled `dist/index.js` and individual compiled `dist/path.js` contain distinct `Canvas2DError` class objects. The actual code was `UNSUPPORTED_FEATURE`. The probe now checks the declared error code for direct `dist/path.js` calls. `image-probe.mjs` also failed on an existing expected asset list: `image-assets.mjs` now includes `GlyphHI` (280 bytes) after #691, while the unchanged image probe expects only two older assets. Neither file was changed in this issue.
+
+## Actual Chromium pixels and hit tests
+
+- Real WebGL2 contexts reported `{stencil:true,stencilBits:8}`. At DPR2 and default view, the same-direction nonzero center `(90,90)` hit `NestedFill` with `[255,0,0,255]`. Opposite-direction nonzero and the old v2 even-odd fixture hit `ClipFrame` with `[255,255,255,255]` at the same center. All three outer ring samples `(30,30)` hit `NestedFill` and were red. A clipped exterior sample `(5,90)` was `null` and `[0,0,0,0]` in all three variants. [Screenshot](comparison.png) and [v5 saved JSON](opposite-v5.json) preserve the visible fixture and file shape.
+- After setting view `{panX:20,panY:10,zoom:1.25}` and resizing to DPR3, the transformed center `(132.5,122.5)` remained red/`NestedFill` for same-direction and white/`ClipFrame` for opposite-direction and even-odd. The transformed ring `(57.5,47.5)` remained red/`NestedFill` in all variants.
+- A self-crossing candidate returned `UNSUPPORTED_FEATURE` (`nonzero contour self-intersects or touches`). After another render, the previously accepted same-direction center stayed `[255,0,0,255]`, `NestedFill`, with two fill contours. A separate real WebGL2 context created with `stencil:false` reported 0 bits. It kept an accepted v0 white frame before and after nonzero admission returned `UNSUPPORTED_FEATURE` (`stencil buffer is required for fills`): center pixel `[255,255,255,255]`, hit `ClipFrame`.
+- A second actual `WEBGL_lose_context` check observed loss and restoration events. During loss, `render()` returned `CONTEXT_LOST`. After restoration, capability returned `{stencil:true,stencilBits:8}`, and center pixel/hit returned `[255,0,0,255]`/`NestedFill`. The first restoration script waited without a timeout and did not finish; it was stopped. The bounded retry delayed the restore request and completed. This establishes one Chromium path, not broad device recovery.
+
+The browser console also reported only the unrelated missing `favicon.ico` request. Pixel claims are sampled interiors; antialiasing, exact boundary hits, arbitrary pathological polygons, other browsers and hardware are unverified.

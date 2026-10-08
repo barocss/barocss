@@ -1,5 +1,5 @@
 import { Canvas2DError } from './schema.js';
-import type { PathNode, PathNodeV2, Point, View } from './schema.js';
+import type { PathNode, PathNodeV2, PathNodeV5, Point, View } from './schema.js';
 
 export type Matrix = [number, number, number, number, number, number];
 export type PathSample = { commandIndex: number; t: number; x: number; y: number };
@@ -45,8 +45,58 @@ function distanceToChord(p: Point, a: Point, b: Point): number {
 function triangleArea(ax: number, ay: number, bx: number, by: number, cx: number, cy: number): number {
   return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
 }
+function onSegment(a: LocalPoint, b: LocalPoint, p: LocalPoint): boolean {
+  return triangleArea(a.x, a.y, b.x, b.y, p.x, p.y) === 0 &&
+    p.x >= Math.min(a.x, b.x) && p.x <= Math.max(a.x, b.x) &&
+    p.y >= Math.min(a.y, b.y) && p.y <= Math.max(a.y, b.y);
+}
+function edgesMeet(a: LocalPoint, b: LocalPoint, c: LocalPoint, d: LocalPoint): boolean {
+  const abC = triangleArea(a.x, a.y, b.x, b.y, c.x, c.y);
+  const abD = triangleArea(a.x, a.y, b.x, b.y, d.x, d.y);
+  const cdA = triangleArea(c.x, c.y, d.x, d.y, a.x, a.y);
+  const cdB = triangleArea(c.x, c.y, d.x, d.y, b.x, b.y);
+  return (abC === 0 && onSegment(a, b, c)) || (abD === 0 && onSegment(a, b, d)) ||
+    (cdA === 0 && onSegment(c, d, a)) || (cdB === 0 && onSegment(c, d, b)) ||
+    (abC * abD < 0 && cdA * cdB < 0);
+}
+function checkNonzeroTopology(contours: Float32Array[]): void {
+  const points = contours.map(contour => Array.from({ length: contour.length / 2 }, (_, i) =>
+    ({ x: contour[i * 2], y: contour[i * 2 + 1] })));
+  for (let c = 0; c < points.length; c++) {
+    const ring = points[c];
+    let signedArea = 0;
+    const origin = ring[0];
+    for (let i = 0; i < ring.length; i++) {
+      const a = ring[i], b = ring[(i + 1) % ring.length];
+      if (same(a, b)) fail('nonzero contour has a collapsed Float32 edge');
+      if (i > 0 && i + 1 < ring.length) {
+        signedArea += triangleArea(origin.x, origin.y, a.x, a.y, b.x, b.y);
+      }
+      const previous = ring[(i + ring.length - 1) % ring.length];
+      if (triangleArea(previous.x, previous.y, a.x, a.y, b.x, b.y) === 0 &&
+          (previous.x - a.x) * (b.x - a.x) + (previous.y - a.y) * (b.y - a.y) > 0) {
+        throw new Canvas2DError('UNSUPPORTED_FEATURE', 'nonzero contour backtracks');
+      }
+      for (let j = i + 1; j < ring.length; j++) {
+        if (j === i + 1 || (i === 0 && j === ring.length - 1)) continue;
+        if (edgesMeet(a, b, ring[j], ring[(j + 1) % ring.length])) {
+          throw new Canvas2DError('UNSUPPORTED_FEATURE', 'nonzero contour self-intersects or touches');
+        }
+      }
+      for (let other = 0; other < c; other++) {
+        const prior = points[other];
+        for (let j = 0; j < prior.length; j++) {
+          if (edgesMeet(a, b, prior[j], prior[(j + 1) % prior.length])) {
+            throw new Canvas2DError('UNSUPPORTED_FEATURE', 'nonzero contours intersect or touch');
+          }
+        }
+      }
+    }
+    if (!Number.isFinite(signedArea) || signedArea === 0) fail('nonzero contour has no signed area');
+  }
+}
 
-export function tessellatePath(node: PathNode | PathNodeV2, matrix: Matrix, view: View, dpr: number,
+export function tessellatePath(node: PathNode | PathNodeV2 | PathNodeV5, matrix: Matrix, view: View, dpr: number,
   tolerance: number): PathGeometry {
   const subpaths: MutableSubpath[] = [];
   let active: MutableSubpath | null = null;
@@ -189,6 +239,7 @@ export function tessellatePath(node: PathNode | PathNodeV2, matrix: Matrix, view
     }
     contours.push(contour);
   }
+  if (node.fill.rule === 'nonzero') checkNonzeroTopology(contours);
   if (!(right > left && bottom > top)) fail('filled path cover collapses');
   const a = { x: left, y: top }, b = { x: right, y: top };
   const c = { x: right, y: bottom }, d = { x: left, y: bottom };
