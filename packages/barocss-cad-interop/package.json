@@ -24,6 +24,10 @@
     "./babylon": {
       "types": "./dist/babylon.d.ts",
       "import": "./dist/babylon.js"
+    },
+    "./pixi3d": {
+      "types": "./dist/pixi3d.d.ts",
+      "import": "./dist/pixi3d.js"
     }
   },
   "files": ["dist", "examples", "README.md", "LICENSE"],
@@ -43,15 +47,21 @@
   },
   "peerDependencies": {
     "@babylonjs/core": "9.29.0",
-    "three": "^0.186.1"
+    "three": "^0.186.1",
+    "pixi.js": "7.2.4",
+    "pixi3d": "2.5.0"
   },
   "peerDependenciesMeta": {
     "@babylonjs/core": { "optional": true },
-    "three": { "optional": true }
+    "three": { "optional": true },
+    "pixi.js": { "optional": true },
+    "pixi3d": { "optional": true }
   },
   "devDependencies": {
     "@babylonjs/core": "9.29.0",
     "@types/three": "^0.186.0",
-    "three": "^0.186.1"
+    "three": "^0.186.1",
+    "pixi.js": "7.2.4",
+    "pixi3d": "2.5.0"
   }
 }
