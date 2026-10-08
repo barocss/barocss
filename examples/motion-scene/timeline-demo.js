@@ -1,11 +1,15 @@
-import { createMotionTimeline, parseMotionClipFile } from '../../packages/barocss-motion/dist/index.js';
+import {
+  createMotionTimeline, parseMotionClipFile, parseMotionMarkerFile, serializeMotionMarkerFile,
+} from '../../packages/barocss-motion/dist/index.js';
 
 const elements = Object.fromEntries([
   'stage', 'loading', 'play', 'pause', 'seek', 'mode', 'time', 'iteration',
-  'phase', 'state-label', 'events', 'poses',
+  'phase', 'state-label', 'events', 'poses', 'save-markers', 'open-markers', 'marker-file-status',
 ].map((id) => [id, document.getElementById(id)]));
 const log = [];
 let timeline;
+let markers;
+let acceptedFile;
 let draw = () => {};
 
 function update(state) {
@@ -30,16 +34,15 @@ function update(state) {
 }
 
 try {
-  const response = await fetch('./assets/two-parts.baromotion');
-  if (!response.ok) throw new Error(`Asset request failed: ${response.status}`);
-  const clip = parseMotionClipFile(await response.text());
+  const [clipResponse, markerResponse] = await Promise.all([
+    fetch('./assets/two-parts.baromotion'), fetch('./assets/two-parts.baromarkers'),
+  ]);
+  if (!clipResponse.ok || !markerResponse.ok) throw new Error('Motion asset request failed');
+  const clip = parseMotionClipFile(await clipResponse.text());
   if (clip.contextId !== 'sample-assembly') throw new Error('Unexpected clip context');
-  const markers = [
-    { contextId: clip.contextId, id: 'start', timeSeconds: 0, label: 'Start' },
-    { contextId: clip.contextId, id: 'mid-a', timeSeconds: 2, label: 'Part A midpoint', targetId: 'part-a' },
-    { contextId: clip.contextId, id: 'mid-b', timeSeconds: 2, label: 'Part B midpoint', targetId: 'part-b' },
-    { contextId: clip.contextId, id: 'end', timeSeconds: 4, label: 'End' },
-  ];
+  const markerText = await markerResponse.text();
+  markers = parseMotionMarkerFile(markerText, clip);
+  acceptedFile = { name: 'two-parts.baromarkers', bytes: new TextEncoder().encode(markerText).length };
   timeline = createMotionTimeline(clip, { version: 0, markers, mode: 'clamp' });
   const THREE = await import('https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js');
   const renderer = new THREE.WebGLRenderer({ canvas: elements.stage, antialias: true, alpha: true });
@@ -85,8 +88,54 @@ try {
   window.addEventListener('resize', resize);
   resize();
   update(timeline.getState());
+  elements['marker-file-status'].textContent = `${acceptedFile.name} · ${acceptedFile.bytes} bytes · ${markers.length} markers`;
   elements.loading.hidden = true;
   document.body.dataset.ready = 'true';
+  function saveMarkers() {
+    const text = serializeMotionMarkerFile(clip, markers);
+    const blob = new Blob([text], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = 'two-parts.baromarkers';
+    document.body.append(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    elements['marker-file-status'].textContent = `Prepared ${anchor.download} · ${blob.size} bytes`;
+    return { name: anchor.download, bytes: blob.size, text };
+  }
+  async function openMarkers(file) {
+    if (!file) return false;
+    try {
+      if (file.size > 262144) throw new Error('FILE_LIMIT: file exceeds 262144 bytes');
+      const text = await file.text();
+      const candidate = parseMotionMarkerFile(text, clip);
+      const current = timeline.getState();
+      const next = createMotionTimeline(clip, { version: 0, markers: candidate, mode: current.mode });
+      try { next.seek(current.timeSeconds); }
+      catch (error) { next.dispose(); throw error; }
+      const previous = timeline;
+      timeline = next;
+      markers = candidate;
+      acceptedFile = { name: file.name, bytes: file.size };
+      previous.dispose();
+      log.length = 0;
+      elements.phase.textContent = '—';
+      elements.events.textContent = 'No marker crossings yet.';
+      update(timeline.getState());
+      elements['marker-file-status'].textContent = `Opened ${acceptedFile.name} · ${acceptedFile.bytes} bytes · ${markers.length} markers`;
+      return true;
+    } catch (error) {
+      elements['marker-file-status'].textContent = `Open refused: ${error.code ?? error.message}`;
+      return false;
+    }
+  }
+  elements['save-markers'].addEventListener('click', saveMarkers);
+  elements['open-markers'].addEventListener('change', async (event) => {
+    await openMarkers(event.target.files?.[0]);
+    event.target.value = '';
+  });
   elements.play.addEventListener('click', () => update(timeline.play()));
   elements.pause.addEventListener('click', () => update(timeline.pause()));
   elements.seek.addEventListener('input', () => update(timeline.seek(Number(elements.seek.value))));
@@ -100,6 +149,10 @@ try {
   window.motionTimelineDemo = {
     getState: () => timeline.getState(),
     getLog: () => log.map((event) => ({ ...event })),
+    getAcceptedFile: () => ({ ...acceptedFile }),
+    getFileStatus: () => elements['marker-file-status'].textContent,
+    saveMarkers,
+    openMarkers,
     advance: (seconds) => update(timeline.advance(seconds)),
     play: () => update(timeline.play()),
     pause: () => update(timeline.pause()),

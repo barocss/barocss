@@ -138,20 +138,13 @@ function exactTime(value: unknown, maximum: number, path: string): number {
   return value;
 }
 
-/** Wrap an owned clip/player with bounded, caller-driven marker crossings. */
-export function createMotionTimeline(clip: MotionClip, options: MotionTimelineOptions): MotionTimeline {
-  const raw = record(options, ['version', 'markers', 'mode'], [], 'timeline options');
-  if (raw.version !== 0) fail('INVALID_INPUT', 'version', 'expected version 0');
-  const mode = exactMode(raw.mode);
-  let player: MotionPlayer | null;
-  try { player = createMotionPlayer(clip, { mode }); }
-  catch { fail('INVALID_INPUT', 'clip', 'expected a validated MotionClip'); }
-
+/** Internal shared admission. The caller first verifies that clip is an owned MotionClip. */
+export function copyMotionMarkers(clip: MotionClip, input: unknown): OwnedMarker[] {
   const contextId = clip.contextId;
   const duration = clip.durationSeconds;
   const targets = new Set(clip.tracks.map((track) => track.targetId));
   const ids = new Set<string>();
-  let markers: OwnedMarker[] = markerArray(raw.markers).map((source, markerIndex) => {
+  return markerArray(input).map((source, markerIndex) => {
     const path = `markers[${markerIndex}]`;
     const fields = record(source, ['contextId', 'id', 'timeSeconds'], ['label', 'targetId'], path);
     if (exactId(fields.contextId, `${path}.contextId`) !== contextId) {
@@ -178,6 +171,18 @@ export function createMotionTimeline(clip: MotionClip, options: MotionTimelineOp
     }
     return Object.freeze(marker);
   });
+}
+
+/** Wrap an owned clip/player with bounded, caller-driven marker crossings. */
+export function createMotionTimeline(clip: MotionClip, options: MotionTimelineOptions): MotionTimeline {
+  const raw = record(options, ['version', 'markers', 'mode'], [], 'timeline options');
+  if (raw.version !== 0) fail('INVALID_INPUT', 'version', 'expected version 0');
+  const mode = exactMode(raw.mode);
+  let player: MotionPlayer | null;
+  try { player = createMotionPlayer(clip, { mode }); }
+  catch { fail('INVALID_INPUT', 'clip', 'expected a validated MotionClip'); }
+  const duration = clip.durationSeconds;
+  let markers = copyMotionMarkers(clip, raw.markers);
   markers.sort((a, b) => a.timeSeconds - b.timeSeconds || a.markerIndex - b.markerIndex);
   let iteration = 0;
 

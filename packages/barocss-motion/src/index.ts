@@ -60,6 +60,8 @@ export { MotionTimelineError, createMotionTimeline } from './timeline.js';
 export type { MotionMarkerInput, MotionTimeline, MotionTimelineErrorCode, MotionTimelineEvent, MotionTimelineOptions, MotionTimelineState } from './timeline.js';
 export { MotionBlendError, sampleMotionBlend } from './blend.js';
 export type { MotionBlendErrorCode, MotionBlendSample } from './blend.js';
+export { MotionMarkerFileError, parseMotionMarkerFile, serializeMotionMarkerFile } from './marker-file.js';
+export type { MotionMarkerFileErrorCode } from './marker-file.js';
 
 export const MOTION_LIMITS = Object.freeze({
   targets: 64,
