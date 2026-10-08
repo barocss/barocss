@@ -5363,3 +5363,66 @@ insertion, copied original slots/-0 and a precomputed64-capacity refusal. It
 reopens source0/raw signed-zero owned files, compares one small existing-profile
 witness and imports actual compiled JS/declarations. Native implementation,
 serial Integration, GPU/Loader adoption and npm publication remain separate.
+
+## Own Surface parameter-axis reversal
+
+`reverseSurfaceAxis(surface, {surfaceId, axis, resultIdPrefix})` reverses the
+native U or V parameter direction of a positive open-clamped degreeU/V1..3
+Surface with axes2..16,total<=256 poles, weights1e-6..1e6 and XYZ±10000mm.
+The geometric points stay in authored XYZ/mm. This changes parameter direction
+rather than physically rotating the geometry. The selected grid and weights
+reverse by individual bit copy, including signed zeros. Nonselected knots and
+both original domains remain. Selected interior reflected knots are generated
+arithmetic, with original endpoint bits and multiplicities preserved.
+
+Actual `reverseCurve` calls reverse at most16 coefficient strips. All selected
+reflected knot bits must agree across strips. These are tensor coefficient
+rows/columns, not topology edges or isocurves. No second reflection evaluator,
+CurveReversal rewrite, fitting, knot normalization or frame conversion occurs.
+The selected decreasing parameter map and D1 factor-1 come from the native
+parent; the other parameter and its D1 factor1 remain identity. Double reversal
+and generated interior knot bits are not certified.
+
+An explicit ASCII output ID1..48/prefix1..20 reserves original/output and32
+`prefix_s0_src/rev` through `prefix_s15_src/rev` roles before staging. Model
+names have independent namespaces. Source0 original/output Surface-only Models
+are independently compiled and adopted with complete grid/weight/knot/ID/order
+bit checks. Original Model name is `surface_reverse_original`; output Model
+name is the new Surface ID. Per-strip actual native original/reversed Curves,
+sources, Models and provenance accompany original/output coefficient mappings.
+
+Owned result data are `{original, options, surface, source, sourceVersion:0,
+model, originalSource, originalModel, provenance, report}`. DTO schema
+`barocss-native-surface-axis-reversal`, version0 uses mm/authored XYZ and native
+Surface coefficients. Copied CPU records belong to the caller with GC; there
+are no renderer resources or disposal. `validateReversedSurfaceAxis(result)`
+rebuilds actual native strips and Surface/source/Model/maps/bit/D1/guard data,
+then compares all owned fields. Input bounds are32768 values/depth8/arrays64/
+records16/strings128; owned bounds262144/depth32/arrays4096/records64/source
+strings262144. Getter/hidden/symbol/foreign/sparse/cyclic/unknown/nonfinite or
+altered data refuses without changing accepted inputs or prior results.
+
+Selected sample parameter pairs reuse the first native Curve reversal's actual
+output-to-original observations. The other axis uses original knots and
+strictly representable span midpoints. Their cartesian grid is bounded to128
+local point/combined D1 observations before the remaining strips are staged.
+Point comparison uses1e-7mm; each evaluated expected partial uses relative1e-7
+with an absolute floor. Authored original-knot, mapped-original and reflected
+output guards stay distinct, without snapping. Combined native D1 refusal
+cannot invent an unaffected partial or certify original G1/G2/regularity.
+Unsafe reflection/mapping refuses honestly. Reports remain not-certified,
+topologyCertified:false and solid:false without global/manufacturing claims.
+
+`SurfaceAxisReversalError` and runtime/type `SurfaceAxisReversalDiagnosticCode`
+expose INPUT, AXIS, IDENTITY, DOMAIN, REPRESENTABILITY, NATIVE, BINDING and OWNED,
+with actual native causes preserved.
+
+```sh
+node examples/cad-nurbs/surface-axis-reversal-demo.mjs --source
+```
+
+The bounded file flow covers weighted U/nonunit V reversal, native C0/signed
+zeros and same-ID edit/prior retention. Original/output/strip source0 and raw
+signed-zero owned results reopen; actual declared compiled JS/types are checked
+separately. General Surface joins/trims/continuity/topology/features/constraints/
+assemblies/exchange and consumer adoption remain separate Issues.
