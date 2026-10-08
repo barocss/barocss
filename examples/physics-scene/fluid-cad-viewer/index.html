@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,">
+<title>CAD 선반과 물 입자</title>
+<style>
+  body { margin: 24px; background: #14212d; color: #eef5fb; font: 15px system-ui; }
+  main { max-width: 760px; }
+  canvas { display: block; width: min(100%, 640px); aspect-ratio: 4 / 3; border: 1px solid #566675; }
+  button, select { margin: 14px 8px 8px 0; padding: 8px 14px; font: inherit; }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+</style>
+<main>
+  <h1>CAD 선반과 물 입자</h1>
+  <p>한 CAD Surface의 파생 상자를 고정 장애물로 사용합니다. 화면의 Surface는 원본입니다.</p>
+  <canvas id="view" width="640" height="480"></canvas>
+  <div><label for="mode">충돌</label> <select id="mode">
+    <option value="shelf">파생 선반 적용</option>
+    <option value="bare">선반 충돌 없음</option>
+  </select></div>
+  <div><button id="toggle" type="button">재생</button><button id="step" type="button">한 단계</button>
+    <button id="reset" type="button">초기화</button><button id="stale" type="button">소스 변경 거절 확인</button></div>
+  <pre id="status">장면을 불러오는 중…</pre>
+</main>
+<script type="module" src="/bundle.js"></script>
+</html>

@@ -5,6 +5,7 @@ import { FLUID_BASIN_M, FLUID_COUNT, FLUID_MAX_STEPS, FLUID_STEP_SECONDS } from 
 import { fluidDiagnostics } from './diagnostics.js';
 import { initialRestDensity } from './kernel.js';
 import { PbfSolver } from './pbf.js';
+import type { FluidStaticBox } from './static-box.js';
 import type { AcceptedFluidScene, FluidDiagnostics, FluidStateV1, FluidWorld } from './types.js';
 import { admitFluidScene } from './validation.js';
 
@@ -16,13 +17,15 @@ class BoundedFluidWorld implements FluidWorld {
   private velocities = new Float64Array(FLUID_COUNT * 3);
   private diagnostics: FluidDiagnostics;
   private stepIndex = 0;
+  private obstacleHits = 0;
   private disposed = false;
 
-  constructor(private readonly scene: AcceptedFluidScene) {
+  constructor(private readonly scene: AcceptedFluidScene,
+    box: FluidStaticBox | null = null) {
     this.initial = scene.initialPositionsM.slice();
     this.positions = this.initial.slice();
     this.restDensity = initialRestDensity(this.initial);
-    this.solver = new PbfSolver(this.restDensity, scene.visualViscosityCoefficient);
+    this.solver = new PbfSolver(this.restDensity, scene.visualViscosityCoefficient, box);
     this.diagnostics = fluidDiagnostics(this.positions, this.restDensity, 0);
   }
 
@@ -39,6 +42,11 @@ class BoundedFluidWorld implements FluidWorld {
       diagnostics: { ...this.diagnostics } };
   }
 
+  getObstacleHits(): number {
+    this.active();
+    return this.obstacleHits;
+  }
+
   step(fixedStepSeconds: number): FluidStateV1 {
     this.active();
     if (fixedStepSeconds !== FLUID_STEP_SECONDS) {
@@ -49,7 +57,7 @@ class BoundedFluidWorld implements FluidWorld {
     }
     const positions = this.positions.slice();
     const velocities = this.velocities.slice();
-    const boundaryHits = this.solver.step(positions, velocities);
+    const { boundaryHits, obstacleHits } = this.solver.step(positions, velocities);
     if (!insideBasin(positions) || !velocities.every((value) => Number.isFinite(value)
       && Math.abs(value) <= 1000)) {
       throw new PhysicsError('NUMERIC_LIMIT', 'Fluid candidate exceeded numeric bounds');
@@ -62,6 +70,7 @@ class BoundedFluidWorld implements FluidWorld {
     this.positions = positions;
     this.velocities = velocities;
     this.diagnostics = diagnostics;
+    this.obstacleHits = obstacleHits;
     this.stepIndex++;
     return this.getState();
   }
@@ -72,6 +81,7 @@ class BoundedFluidWorld implements FluidWorld {
     this.velocities = new Float64Array(FLUID_COUNT * 3);
     this.diagnostics = fluidDiagnostics(this.positions, this.restDensity, 0);
     this.stepIndex = 0;
+    this.obstacleHits = 0;
     return this.getState();
   }
 
@@ -85,4 +95,9 @@ class BoundedFluidWorld implements FluidWorld {
 
 export function createFluidWorld(scene: unknown): FluidWorld {
   return new BoundedFluidWorld(admitFluidScene(scene));
+}
+
+export function createFluidWorldWithObstacle(scene: unknown,
+  box: FluidStaticBox): FluidWorld & { getObstacleHits(): number } {
+  return new BoundedFluidWorld(admitFluidScene(scene), box);
 }

@@ -2,6 +2,8 @@ import { confine, floorSamples, stopOutwardVelocity } from './boundary.js';
 import { FLUID_COUNT, FLUID_GRAVITY_MPS2, FLUID_SPACING_M, FLUID_STEP_SECONDS } from './constants.js';
 import { densities, gradientScale } from './kernel.js';
 import { NeighborGrid } from './neighbors.js';
+import { confineStaticBox, stopIntoStaticBox } from './static-box.js';
+import type { FluidStaticBox } from './static-box.js';
 import { blendVisualViscosity } from './visual-viscosity.js';
 
 export class PbfSolver {
@@ -12,9 +14,11 @@ export class PbfSolver {
   private readonly lambda = new Float64Array(FLUID_COUNT);
   private readonly corrections = new Float64Array(FLUID_COUNT * 3);
   private readonly smoothedVelocities: Float64Array | null;
+  private obstacleHits = 0;
 
   constructor(private readonly restDensity: number,
-    private readonly visualViscosityCoefficient: number) {
+    private readonly visualViscosityCoefficient: number,
+    private readonly staticBox: FluidStaticBox | null = null) {
     this.smoothedVelocities = visualViscosityCoefficient > 0
       ? new Float64Array(FLUID_COUNT * 3) : null;
     const floor = floorSamples();
@@ -61,12 +65,17 @@ export class PbfSolver {
         this.predicted[offset + axis] += this.corrections[offset + axis];
       }
       boundaryHits += confine(this.predicted, velocities, index);
+      if (this.staticBox) {
+        this.obstacleHits += confineStaticBox(this.predicted, velocities, index, this.staticBox);
+      }
     }
     return boundaryHits;
   }
 
-  step(positions: Float64Array, velocities: Float64Array): number {
+  step(positions: Float64Array, velocities: Float64Array):
+    { boundaryHits: number; obstacleHits: number } {
     let boundaryHits = 0;
+    this.obstacleHits = 0;
     for (let index = 0; index < FLUID_COUNT; index++) {
       const offset = index * 3;
       velocities[offset + 1] += FLUID_STEP_SECONDS * FLUID_GRAVITY_MPS2[1];
@@ -76,6 +85,9 @@ export class PbfSolver {
           + FLUID_STEP_SECONDS * velocities[offset + axis];
       }
       boundaryHits += confine(this.predicted, velocities, index);
+      if (this.staticBox) {
+        this.obstacleHits += confineStaticBox(this.predicted, velocities, index, this.staticBox);
+      }
     }
     for (let iteration = 0; iteration < 3; iteration++) {
       boundaryHits += this.projectDensity(velocities);
@@ -94,7 +106,8 @@ export class PbfSolver {
     }
     for (let index = 0; index < FLUID_COUNT; index++) {
       stopOutwardVelocity(positions, velocities, index);
+      if (this.staticBox) stopIntoStaticBox(positions, velocities, index, this.staticBox);
     }
-    return boundaryHits;
+    return { boundaryHits, obstacleHits: this.obstacleHits };
   }
 }
