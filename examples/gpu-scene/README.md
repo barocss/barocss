@@ -164,3 +164,29 @@ resize and zero owned resources are observed. The successful scoped flow used
 34/34/18/111 samples, not a maximum sampling capacity campaign. Native operations,
 GPU consumer, Integration and publication receipts remain separate. No new reader,
 parent/packed/parity/gallery/performance or topology/solid/manufacturing claim.
+
+## Actual64-pole edit and wide reversal (#842)
+
+```sh
+BAROCSS_WIDE_OP_EVIDENCE=/absolute/unique/output \
+BAROCSS_WIDE_OP_DEPS=/absolute/compiled/provider/repo \
+node examples/gpu-scene/wide-operations-flow.mjs
+```
+
+Use the actual compiled CAD/GPU manifest entries. The host reads the committed
+#791 operation-produced64-pole source and its genuine #686 refinement record;
+provider code is not copied or rebuilt. Original31 is retained and not drawn.
+`editCurveControlPolygonWide` changes pole32 Y/weight and explicitly requests
+pole0 Y=-0; `reverseCurveWide` reverses that edited Curve. Their owned validators,
+saved/cold-reopened source0/JSON, native mapped point/D1 observations and C0 refusal
+remain separate from sampling and GPU display. Source formatting is regenerated,
+not a promise to restore original caller file bytes.
+
+Three qualified scene2 entries all declare sample1. Original/edited keep the
+same native `op_wide` ID with distinct model namespaces; reversal has its actual
+derived ID. Host offsets/colors and mm scale0.01 do not alter native geometry.
+Actual buffers, visible colors, wrong-version/source/ref refusal retention,
+resize/reset and double-dispose are inspected in one source/file/WebGL2 flow.
+The actual run used64/64/64 poles and111/124/124 sample points. These are local
+observations, not full capacity, global error, topology, solid or performance
+certification. Integration, Loader/Viewer adoption and publication are separate.
