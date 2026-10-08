@@ -1,0 +1,8 @@
+# C2D-41 native consumer observation
+
+Source: local `@barocss/canvas2d` build on exact #865 merged parent `2440b98d`. The same flow first passed on #862 `1719837e` before this native branch was rebased; all observations below were repeated on the final parent. Headed Chromium 155, WebGL2, 120×90 logical canvas at DPR 2. View: pan `(10,5)`, zoom `2`. The consumer imports the two public package entries. This is one fixed browser and scene.
+
+- The sprite-local point `(5,5)` under a rotated, nonuniformly scaled parent converted to Scene-world `(20,23.5)`. The host mapped it through the view to canvas logical `(50,52)`. The inverse returned `(5,5.000000000000001)`. That canvas point read `[255,0,0,255]` and hit `Sprite`; the later target `(70,52)` read `[64,64,64,255]` and hit `Back`.
+- A real pointerdown at the computed canvas point reached `Sprite`, then `Parent`, then `stage`. A point with negative-zero x returned `INVALID_SCENE`; the observation was retained.
+- The browser downloaded a 986-byte v1 document. After page reload, its actual file chooser opened that file on a fresh canvas, renderer and display tree. The Scene v9 transform, converted point, four asset bytes, pixels and hits matched. Editing the restored parent with `setTransform` changed world x from `20` to `30` and canvas x from `50` to `70`. The old point became a gray Back hit and the new point a red Sprite hit. [Screenshot](reopened-edited.png) and [saved document](document.json) are retained here.
+- Browser console: zero errors and zero warnings. This observation does not establish broad device or precision behavior.

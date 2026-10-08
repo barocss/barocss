@@ -43,7 +43,11 @@ export type StageHandle = {
   setChildIndex(child: DisplayHandle, index: number): void;
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
-export type ContainerHandle = StageHandle & {
+type PointConversion = {
+  toWorld(localPoint: Point): Point;
+  toLocal(worldPoint: Point): Point;
+};
+export type ContainerHandle = StageHandle & PointConversion & {
   readonly kind: 'container'; readonly id: string; readonly data: ContainerData;
   setTransform(transform: Transform): void;
   setPosition(x: number, y: number): void;
@@ -52,7 +56,7 @@ export type ContainerHandle = StageHandle & {
   setLayer(layer: number): void;
   setVisible(visible: boolean): void;
 };
-export type FrameHandle = StageHandle & {
+export type FrameHandle = StageHandle & PointConversion & {
   readonly kind: 'frame'; readonly id: string; readonly data: FrameData;
   setTransform(transform: Transform): void;
   setPosition(x: number, y: number): void;
@@ -62,7 +66,7 @@ export type FrameHandle = StageHandle & {
   setVisible(visible: boolean): void;
   setFrame(paint: FramePaint): void;
 };
-export type SpriteHandle = {
+export type SpriteHandle = PointConversion & {
   readonly kind: 'sprite'; readonly id: string; readonly data: SpriteData;
   setTransform(transform: Transform): void;
   setPosition(x: number, y: number): void;
@@ -80,7 +84,7 @@ export type SpriteHandle = {
   setImageSource(imageId: string, sourceRect?: SourceRect | null): void;
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
-export type RectHandle = {
+export type RectHandle = PointConversion & {
   readonly kind: 'rect'; readonly id: string; readonly data: RectData;
   setTransform(transform: Transform): void;
   setPosition(x: number, y: number): void;
@@ -91,7 +95,7 @@ export type RectHandle = {
   setRect(paint: RectPaint): void;
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
-export type LineHandle = {
+export type LineHandle = PointConversion & {
   readonly kind: 'line'; readonly id: string; readonly data: LineData;
   setTransform(transform: Transform): void;
   setPosition(x: number, y: number): void;
@@ -102,7 +106,7 @@ export type LineHandle = {
   setLine(paint: LinePaint): void;
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
-export type PathHandle = {
+export type PathHandle = PointConversion & {
   readonly kind: 'path'; readonly id: string; readonly data: PathData;
   setTransform(transform: Transform): void;
   setPosition(x: number, y: number): void;
@@ -113,7 +117,7 @@ export type PathHandle = {
   setPath(paint: PathPaint): void;
   onPointer(type: PointerEventType, listener: PointerListener): () => void;
 };
-export type GlyphRunHandle = {
+export type GlyphRunHandle = PointConversion & {
   readonly kind: 'glyphRun'; readonly id: string; readonly data: GlyphRunData;
   setTransform(transform: Transform): void;
   setPosition(x: number, y: number): void;
@@ -145,6 +149,28 @@ type RecordNode = {
   children: RecordNode[];
   handle: StageHandle | DisplayHandle;
 };
+
+type Matrix = [number, number, number, number, number, number];
+const identity: Matrix = [1, 0, 0, 1, 0, 0];
+
+function multiply(a: Matrix, b: Matrix): Matrix {
+  return [a[0] * b[0] + a[2] * b[1], a[1] * b[0] + a[3] * b[1],
+    a[0] * b[2] + a[2] * b[3], a[1] * b[2] + a[3] * b[3],
+    a[0] * b[4] + a[2] * b[5] + a[4], a[1] * b[4] + a[3] * b[5] + a[5]];
+}
+
+function pose(transform: Transform): Matrix {
+  const c = Math.cos(transform.rotation), s = Math.sin(transform.rotation);
+  return [c * transform.scaleX, s * transform.scaleX,
+    -s * transform.scaleY, c * transform.scaleY, transform.x, transform.y];
+}
+
+function boundedPoint(x: number, y: number): Point {
+  if (!Number.isFinite(x) || !Number.isFinite(y) || Math.abs(x) > 1e9 || Math.abs(y) > 1e9) {
+    throw new Canvas2DError('SCENE_LIMIT', 'converted point exceeds the supported world range');
+  }
+  return { x: x === 0 ? 0 : x, y: y === 0 ? 0 : y };
+}
 
 function invalid(message: string): never { throw new Canvas2DError('INVALID_SCENE', message); }
 
@@ -248,8 +274,37 @@ export function createDisplayTree(contextId: string): DisplayTree {
       record.data = accepted;
     } catch (error) { record.data = previous; throw error; }
   }
+  function worldMatrix(record: RecordNode): Matrix {
+    const ancestors: RecordNode[] = [];
+    for (let current: RecordNode | null = record; current?.data; current = current.parent) ancestors.push(current);
+    let matrix: Matrix = identity;
+    for (let i = ancestors.length - 1; i >= 0; i--) {
+      matrix = multiply(matrix, pose(ancestors[i].data!.transform));
+    }
+    if (matrix.some(value => !Number.isFinite(value))) {
+      throw new Canvas2DError('SCENE_LIMIT', 'composed transform is not finite');
+    }
+    return matrix;
+  }
   function common(record: RecordNode) {
     return {
+      toWorld(localPoint: Point): Point {
+        const point = validatePoint(localPoint);
+        const m = worldMatrix(record);
+        return boundedPoint(m[0] * point.x + m[2] * point.y + m[4],
+          m[1] * point.x + m[3] * point.y + m[5]);
+      },
+      toLocal(worldPoint: Point): Point {
+        const point = validatePoint(worldPoint);
+        const m = worldMatrix(record);
+        const det = m[0] * m[3] - m[1] * m[2];
+        if (!Number.isFinite(det) || det === 0) {
+          throw new Canvas2DError('SCENE_LIMIT', 'composed transform cannot be inverted');
+        }
+        const x = point.x - m[4], y = point.y - m[5];
+        return boundedPoint((m[3] * x - m[2] * y) / det,
+          (m[0] * y - m[1] * x) / det);
+      },
       setTransform(transform: Transform) {
         const data = record.data;
         if (!data) invalid('stage has no transform');
