@@ -54,6 +54,8 @@ export interface MotionPlayer {
 
 export { MotionFileError, parseMotionClipFile, serializeMotionClipFile } from './file.js';
 export type { MotionFileErrorCode } from './file.js';
+export { MotionTimelineError, createMotionTimeline } from './timeline.js';
+export type { MotionMarkerInput, MotionTimeline, MotionTimelineErrorCode, MotionTimelineEvent, MotionTimelineOptions, MotionTimelineState } from './timeline.js';
 
 export const MOTION_LIMITS = Object.freeze({
   targets: 64,
