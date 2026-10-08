@@ -9,6 +9,7 @@ export type { Scene, SceneV0, SceneV1, SceneV2, SceneV3, SceneV4, SceneV5, Scene
 export type { PathObservation, FillObservation, PathSample } from './path.js';
 export { createPathBuilder } from './path-builder.js';
 export type { PathBuilder } from './path-builder.js';
+export { decodeImageBlob } from './image-decode.js';
 export { createDisplayTree, createDisplayTreeFromScene } from './display-tree.js';
 export type { DisplayTree, StageHandle, ContainerHandle, SpriteHandle, PathHandle, DisplayHandle, ContainerSpec, SpriteSpec, PathSpec, PathPaint, PointerEventType, DisplayPointerEvent, PointerInput, PointerListener } from './display-tree.js';
 export { createTicker } from './ticker.js';
