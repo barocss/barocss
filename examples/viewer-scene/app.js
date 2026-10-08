@@ -51,6 +51,13 @@ function describe(extra = '') {
   ].join('\n');
 }
 describe();
+const pointerErrors = [];
+const controls = viewer.attachPointerControls({ onError: error => {
+  pointerErrors.push(error.message);
+  stateElement.textContent = `Pointer controls rejected: ${error.message}`;
+} });
+canvas.addEventListener('pointerup', () => describe('Pointer input ended.'));
+canvas.addEventListener('wheel', () => describe('Wheel input received.'), { passive: true });
 function measureTyped(first, second) {
   try {
     const result = viewer.measureNativePoints(first, second);
@@ -121,4 +128,5 @@ canvas.addEventListener('click', event => {
   describe(hit ? `Triangle hit: ${hit.ref.surfaceId} · UV ${hit.parameterUV.map(n => n.toFixed(2)).join(', ')} · approximate` : 'No displayed triangle hit.');
 });
 
-window.viewerDemo = { viewer, source, sourcePath, describe, createViewer, parameter, curveParameter };
+window.viewerDemo = { viewer, controls, pointerErrors, source, sourcePath,
+  describe, createViewer, parameter, curveParameter };

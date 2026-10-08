@@ -17,6 +17,16 @@ if (hit) viewer.select(hit.ref);
 viewer.dispose();
 ```
 
+For canvas camera input, call `const controls = viewer.attachPointerControls({
+onError })` and later `controls.dispose()`. Primary drag orbits; Shift+primary
+drag pans; the wheel zooms. A drag suppresses its following synthetic click,
+while a click without drag still reaches the host's selection handler. The
+adapter captures one pointer, uses canvas CSS pixels and the current camera,
+and removes its listeners on disposal. The host owns the Viewer, canvas,
+touch-action CSS and control lifetime. It does not select geometry or change
+native measurements or display poses. The runnable `examples/viewer-scene`
+uses this adapter with its existing click-to-select handler.
+
 `viewer.clear()` explicitly returns the caller canvas to a real blank GPU
 frame. It clears displayed objects, native/model-set source, selection, poses
 and measurements, while keeping the accepted camera, scale, background and
