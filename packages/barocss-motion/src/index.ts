@@ -62,6 +62,8 @@ export { MotionBlendError, sampleMotionBlend } from './blend.js';
 export type { MotionBlendErrorCode, MotionBlendSample } from './blend.js';
 export { MotionMarkerFileError, parseMotionMarkerFile, serializeMotionMarkerFile } from './marker-file.js';
 export type { MotionMarkerFileErrorCode } from './marker-file.js';
+export { MotionTimingError, evaluateMotionTiming, sampleMotionClipWithTiming } from './timing.js';
+export type { MotionCubicTiming, MotionTimedSample, MotionTimingErrorCode, MotionTimingEvaluation } from './timing.js';
 
 export const MOTION_LIMITS = Object.freeze({
   targets: 64,

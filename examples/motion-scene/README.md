@@ -24,3 +24,7 @@ Run `node examples/motion-scene/marker-file-probe.mjs` to write and reopen the r
 ## Two-clip blend consumer
 
 After building the package, run `node examples/motion-scene/blend-probe.mjs`. It reads two real compatible `.baromotion` files, including a destination with reversed target order and antipodal Part A quaternions. The probe checks exact endpoints, separate source/destination times, the half blend, result ownership, and mismatch refusal. Serve the repository root on a separate port 52149 and open `http://127.0.0.1:52149/examples/motion-scene/blend-demo.html`. Select source or destination files to replace either clip. An incompatible file leaves the prior 3D pose in place. The sliders choose each clip time and destination weight; `window.motionBlendDemo.getState()` exposes the current owned result.
+
+## Cubic timing consumer
+
+After building the package, run `node examples/motion-scene/timing-probe.mjs`. It reads the real two-part `.baromotion` file and checks exact endpoints, identity and ease midpoint, flat X controls, signed zero, owned results and bounded refusals. Serve the repository root on port 52169 and open `http://127.0.0.1:52169/examples/motion-scene/timing-demo.html`. The caller selects an input time and timing curve. The page shows input progress, eased progress, input time and sampled time separately; Three.js displays the two owned poses. Try invalid curve reports a refusal and retains the last accepted frame. `window.motionTimingDemo.getState()`, `getEvaluation()` and `getStatus()` expose that state.
