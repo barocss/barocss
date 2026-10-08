@@ -5236,3 +5236,67 @@ owned JSON, then separately checks the actual declared compiled public entry
 and emitted declarations. GPU/Loader adoption, Integration availability and
 npm publication are separate states. Wider curves and general trims/topology/
 Boolean/features/constraints/assemblies/exchange remain tracked under503/537/660.
+
+## Own native rectangular Surface regions
+
+`extractSurfaceRegion(surface, {surfaceId, uInterval, vInterval, resultIdPrefix})`
+extracts a rectangular region in the original U/V parameter domains. Positive,
+nonperiodic open-clamped degreeU/V1..3 Surfaces are admitted with original and
+all temporary axes2..16, total poles<=256, weights1e-6..1e6 and XYZ±10000mm.
+It uses at most four actual native splits in U-start/U-end/V-start/V-end order,
+retaining the upper child at a start cut and the lower child at an end cut.
+A full-domain request copies all non-ID coefficients and signed zeros with zero
+operations. Existing refinement/split capacities and observation refusals stay
+unchanged; native-valid requests can exceed this operation's practical family.
+
+Both intervals must be finite and strictly increasing inside their original
+closed domains. There is no sorting, clamping, fitting, reparameterization or
+axis conversion. The U/V maps are identity with partial derivative factors1.
+A numerically equal original endpoint selects the original endpoint bits;
+requested/effective bits remain explicit. Interior requests retain their bits.
+An explicit ASCII output ID1..48 and prefix1..20 reserve original/output and
+all eight `prefix_cut_0_lo/hi` through `prefix_cut_3_lo/hi` object roles before
+staging. Model names use separate namespaces.
+
+The returned owned data are `{original, options, surface, source,
+sourceVersion:0, model, originalSource, originalModel, provenance, report}`.
+Actual original/output Surface-only source0 Models are independently compiled
+and adopted with complete IDs, grid order, coefficients, weights and knot bits.
+Original Model name is `surface_region_original`; output Model name is the new
+Surface ID. Full native split results record selected/discarded/refined grids,
+shared row or column, weights, knot and cut/source lineage. DTO schema
+`barocss-native-surface-region`, version0 uses mm and authored XYZ. The caller
+owns copied CPU data with GC, without renderer resources or disposal.
+
+`validateExtractedSurfaceRegion(result)` reconstructs native original/options
+and compares complete source/Model/coefficient/domain/provenance/report data.
+Strict descriptor snapshots reject getters without invoking them, hidden or
+symbol fields, unknown fields, foreign/sparse/cyclic/nonfinite data and
+alterations. Input bounds are32768 values/depth8/arrays64/records16/strings128;
+owned bounds are262144 values/depth32/arrays4096/records64/source strings262144.
+Refusal preserves accepted inputs and previous results.
+
+A prechecked cartesian grid of retained knots/boundaries and representable
+quarter/midpoint parameters has at most128 local point/D1 observations.
+Point comparison uses1e-7mm; each evaluated U/V partial uses relative1e-7 with
+an absolute floor. Original native C0/D1 refusal and extracted one-sided
+endpoint states remain separate. The native combined D1 result can refuse
+both partials when one axis is guarded; no unavailable partial is invented.
+Endpoint extraction does not prove original G1/G2 continuity or regularity.
+Reports remain not-certified, topologyCertified:false and solid:false, without
+global shape or manufacturing accuracy claims. This operation produces a
+coefficient Surface region; general trimmed faces, holes, Boolean and topology
+remain separate capabilities.
+
+`SurfaceRegionError` and its runtime/type `SurfaceRegionDiagnosticCode` expose
+INPUT, INTERVAL, IDENTITY, REPRESENTABILITY, NATIVE_CAPACITY, NATIVE, BINDING and
+OWNED codes while retaining native causes.
+
+```sh
+node examples/cad-nurbs/surface-region-demo.mjs --source
+```
+
+The bounded flow reopens actual source0 and raw signed-zero owned files and
+separately imports declared compiled JS/types. Native implementation, product
+integration, GPU/Loader consumer adoption and npm publication are separate
+states. Later CAD capabilities remain tracked under503/537/660.
