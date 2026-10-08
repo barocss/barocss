@@ -17,5 +17,7 @@ node examples/viewer-document/server.mjs
 
 Open <http://127.0.0.1:52926/>. The page reports actual WebGL pixels,
 qualified screen hits, body resolution, native measurement, display pose,
-invalid candidate retention, clear/reload and old source/model-set
-compatibility. No CAD placement or assembly transform is inferred.
+invalid candidate retention, visible subset/isolation/all-hidden background,
+hidden-object native inspection, clear/reload and old source/model-set
+compatibility. Visibility changes Viewer display only. No CAD placement or
+assembly transform is inferred.

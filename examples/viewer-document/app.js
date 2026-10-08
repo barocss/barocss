@@ -60,13 +60,17 @@ try {
   const refs = accepted.documentBodies.map(value => value.ref);
   poseDocument(refs);
   const posedHash = hash(viewer.readPixels());
-  const hits = new Map();
-  for (let y = 6; y < canvas.height && hits.size < 4; y += 4) {
-    for (let x = 6; x < canvas.width && hits.size < 4; x += 4) {
-      const hit = viewer.pickGeometry({ xCss: x, yCss: y }, { curveTolerancePx: 4 });
-      if (hit) hits.set(`${hit.kind}:${hit.ref.modelId}`, hit);
+  const scanHits = () => {
+    const found = new Map();
+    for (let y = 6; y < canvas.height && found.size < 4; y += 4) {
+      for (let x = 6; x < canvas.width && found.size < 4; x += 4) {
+        const hit = viewer.pickGeometry({ xCss: x, yCss: y }, { curveTolerancePx: 4 });
+        if (hit) found.set(`${hit.kind}:${hit.ref.modelId}`, hit);
+      }
     }
-  }
+    return found;
+  };
+  const hits = scanHits();
   assert(hits.size === 4, `Expected four selected body screen hits: ${[...hits.keys()].join(', ')}`);
   const secondCurve = hits.get('curve:asset_b');
   const resolvedBody = viewer.getState().documentBodies.find(value =>
@@ -109,27 +113,92 @@ try {
     && JSON.stringify(viewer.getState()) === JSON.stringify(beforeInvalid)
     && hash(viewer.readPixels()) === pixelsBeforeInvalid,
   'Invalid document candidate changed accepted scene');
+  viewer.selectGeometry(refs[0]);
+  viewer.setVisibleGeometry(refs.slice(1).reverse());
+  const threeVisible = viewer.getState();
+  const threeHits = scanHits();
+  assert(threeVisible.visibleGeometry.length === 3
+    && JSON.stringify(threeVisible.visibleGeometry) === JSON.stringify(
+      accepted.visibleGeometry.filter(ref => JSON.stringify(ref) !== JSON.stringify(refs[0])))
+    && threeVisible.selectedGeometry === null && threeVisible.documentBodies.length === 4
+    && !threeHits.has('curve:asset.a') && threeHits.has('surface:asset_b'),
+  'Hidden Curve remained selectable or visible');
+  let hiddenSelectRefused = false, hiddenFitRefused = false;
+  try { viewer.selectGeometry(refs[0]); } catch { hiddenSelectRefused = true; }
+  try { viewer.fitGeometry(refs[0]); } catch { hiddenFitRefused = true; }
+  assert(hiddenSelectRefused && hiddenFitRefused, 'Hidden Curve accepted selection or fit');
+  viewer.setVisibleGeometry([refs[2]]);
+  viewer.fit();
+  const isolated = viewer.getState();
+  const isolatedHits = scanHits();
+  assert(isolated.visibleGeometry.length === 1 && isolatedHits.size === 1
+    && isolatedHits.has('curve:asset_b'), 'One-object visibility or fit failed');
+  viewer.setVisibleGeometry([]);
+  const hiddenAll = viewer.getState(), hiddenAllHash = hash(viewer.readPixels());
+  assert(hiddenAll.status === 'ready' && hiddenAll.visibleGeometry.length === 0
+    && hiddenAll.documentBodies.length === 4 && hiddenAll.document !== null,
+  'Hiding all unloaded the accepted document');
+  let emptyFitRefused = false;
+  try { viewer.fit(); } catch { emptyFitRefused = true; }
+  assert(emptyFitRefused && JSON.stringify(viewer.getState()) === JSON.stringify(hiddenAll)
+    && hash(viewer.readPixels()) === hiddenAllHash,
+  'Fit on hidden scene changed state or pixels');
+  const hiddenMeasurement = viewer.measureNativeCurvePoints(
+    { modelId: 'asset_b', curveId: 'guide_path_native', t: -3 },
+    { modelId: 'asset_b', curveId: 'guide_path_native', t: 7 });
+  assert(hiddenMeasurement.distanceMM === same.distanceMM,
+    'Hidden geometry lost native measurement');
+  const beforeBadVisibility = viewer.getState(), beforeBadVisibilityHash = hash(viewer.readPixels());
+  let duplicateRefused = false, foreignRefused = false, malformedRefused = false;
+  try { viewer.setVisibleGeometry([refs[0], refs[0]]); } catch { duplicateRefused = true; }
+  try { viewer.setVisibleGeometry([{ ...refs[0], modelId: 'foreign' }]); } catch { foreignRefused = true; }
+  try { viewer.setVisibleGeometry([{ ...refs[0], extra: true }]); } catch { malformedRefused = true; }
+  assert(duplicateRefused && foreignRefused && malformedRefused
+    && JSON.stringify(viewer.getState()) === JSON.stringify(beforeBadVisibility)
+    && hash(viewer.readPixels()) === beforeBadVisibilityHash,
+  'Invalid visibility candidate changed state or pixels');
+  viewer.setVisibleGeometry(refs);
+  viewer.fit();
+  const restoredHits = scanHits();
+  assert(restoredHits.size === 4 && viewer.getState().geometryMotion !== null
+    && viewer.getState().document.document.assets[0].source === originalSource[0],
+  'Show all lost qualified hits, display poses or native source');
   viewer.clear();
   assert(viewer.getState().status === 'empty' && viewer.getState().document === null
-    && viewer.getState().documentBodies.length === 0, 'Clear retained document state');
+    && viewer.getState().documentBodies.length === 0
+    && viewer.getState().visibleGeometry.length === 0, 'Clear retained document state');
   const blankHash = hash(viewer.readPixels());
+  assert(hiddenAllHash === blankHash, 'All-hidden frame did not match explicit blank background');
   viewer.loadNative(originalSource[0], { sourceVersion: 0, countU: 8, countV: 8,
     curveDisplay: native.curveDisplay });
-  assert(viewer.getState().native?.model.name === 'authored_part'
-    && viewer.getState().document === null, 'Legacy single-source load changed');
+  const singleSource = viewer.getState();
+  assert(singleSource.native?.model.name === 'authored_part'
+    && singleSource.document === null && singleSource.visibleGeometry.length > 0
+    && singleSource.visibleGeometry.length === singleSource.surfaces.length + singleSource.curves.length,
+  'Legacy single-source load changed');
+  const singleSourceHash = hash(viewer.readPixels());
+  viewer.setVisibleGeometry([]);
+  assert(viewer.getState().status === 'ready' && hash(viewer.readPixels()) === blankHash,
+    'Legacy single-source hide did not keep authority or blank the viewport');
+  viewer.setVisibleGeometry(singleSource.visibleGeometry);
+  assert(hash(viewer.readPixels()) === singleSourceHash,
+    'Legacy single-source show did not restore displayed geometry');
   viewer.clear();
   const modelSet = await loadBaroCadModelSet({ format: 'barocad-model-set', version: 0,
     entries: [{ aliasId: 'asset_a', url: 'model-a.barocad', options: native },
       { aliasId: 'asset-b', url: 'model-b.barocad', options: native }] },
   { baseURL: location.href });
   viewer.loadModelSet(modelSet);
-  assert(viewer.getState().modelSet?.entries.length === 2
-    && viewer.getState().document === null, 'Legacy qualified model-set load changed');
+  const acceptedSet = viewer.getState();
+  assert(acceptedSet.modelSet?.entries.length === 2
+    && acceptedSet.document === null && acceptedSet.visibleGeometry.length === 4,
+  'Legacy qualified model-set load changed');
   viewer.clear();
   viewer.loadDocument(result, options);
   const restored = viewer.getState();
   assert(restored.documentBodies.length === 4 && restored.selectedGeometry === null
-    && restored.nativeMeasurement === null, 'Document replacement did not reset state');
+    && restored.nativeMeasurement === null && restored.visibleGeometry.length === 4,
+  'Document replacement did not reset state');
   poseDocument(refs);
   window.viewerDocumentProof = { ok: true, documentBytes: new TextEncoder().encode(
     await (await fetch('/document.cad-document.json')).text()).length,
@@ -140,7 +209,10 @@ try {
     refs: restored.documentBodies.map(value => value.ref), hitKinds: [...hits.keys()],
     resolvedBody: resolvedBody.binding.bodyId, posedHash, selectedHash, blankHash,
     sameAssetDistanceMM: same.distanceMM, hiddenNativeDistanceMM: hidden.distanceMM,
-    crossRefused, badBodyRefused, badBasisRefused,
+    crossRefused, badBodyRefused, badBasisRefused, hiddenAllHash,
+    hiddenMeasurementMM: hiddenMeasurement.distanceMM, duplicateRefused,
+    foreignRefused, malformedRefused, hiddenSelectRefused, hiddenFitRefused,
+    emptyFitRefused, restoredHitKinds: [...restoredHits.keys()],
     retainedHash: pixelsBeforeInvalid, singleSourceAndModelSetCompatible: true };
   output.textContent = JSON.stringify(window.viewerDocumentProof, null, 2);
 } catch (error) {

@@ -137,6 +137,7 @@ export interface ViewerState {
   camera: MeshCamera;
   surfaces: ViewerRef[];
   curves: ViewerCurveRef[];
+  visibleGeometry: ViewerGeometryRef[];
   curveSampleVersion: 0 | 1 | null;
   packets: ViewerPacket[];
   selected: ViewerRef | null;
@@ -347,6 +348,13 @@ function nativeDistance(first: ViewerNativePoint, second: ViewerNativePoint): Vi
 function sameRef(a: ViewerRef | null, b: ViewerRef | null): boolean {
   return !!a && !!b && a.modelId === b.modelId && a.surfaceId === b.surfaceId;
 }
+function sameGeometryRef(a: ViewerGeometryRef, b: ViewerGeometryRef): boolean {
+  if (a.kind === 'surface' && b.kind === 'surface') {
+    return a.modelId === b.modelId && a.surfaceId === b.surfaceId;
+  }
+  return a.kind === 'curve' && b.kind === 'curve'
+    && a.modelId === b.modelId && a.curveId === b.curveId;
+}
 function refKey(ref: ViewerRef): string { return `${ref.modelId}\0${ref.surfaceId}`; }
 function parseMotionBindings(input: unknown, frame: ViewerPoseFrame, packets: ViewerPacket[]): ViewerMotionBinding[] {
   const bindings = denseArray(input, packets.length, 'Motion bindings').map(raw => {
@@ -485,6 +493,7 @@ export class Viewer {
   private modelSet: BaroCadModelSetResult | null = null;
   private document: CadDocumentResult | null = null;
   private documentBodies: ViewerDocumentBody[] = [];
+  private hiddenGeometry: ViewerGeometryRef[] = [];
   private measurement: ViewerNativeSurfaceMeasurement | null = null;
   private curveMeasurement: ViewerNativeCurveMeasurement | null = null;
   private surfaceCurveMeasurement: ViewerNativeSurfaceCurveMeasurement | null = null;
@@ -525,10 +534,24 @@ export class Viewer {
           rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {}) };
     });
   }
-  private present(packets: ViewerPacket[], curves: ViewerCurveEntry[], camera: MeshCamera, selected: ViewerRef | null,
+  private geometryRefs(): ViewerGeometryRef[] {
+    return [...this.packets.map(entry => ({ kind: 'surface' as const,
+      modelId: entry.modelId, surfaceId: entry.packet.surfaceId })),
+    ...this.curves.map(entry => ({ kind: 'curve' as const,
+      modelId: entry.modelId, curveId: entry.sample.curve.id }))];
+  }
+  private visible(ref: ViewerGeometryRef): boolean {
+    return !this.hiddenGeometry.some(hidden => sameGeometryRef(hidden, ref));
+  }
+  private present(allPackets: ViewerPacket[], allCurves: ViewerCurveEntry[], camera: MeshCamera, selected: ViewerRef | null,
     motion: ViewerMotionState | null, geometrySelection: ViewerGeometryRef | null = this.selectedGeometry,
     geometryMotion: ViewerGeometryMotionState | null = this.geometryMotion,
-    qualified = this.modelSet !== null || this.document !== null): void {
+    qualified = this.modelSet !== null || this.document !== null,
+    hiddenGeometry = this.hiddenGeometry): void {
+    const packets = allPackets.filter(entry => !hiddenGeometry.some(hidden => sameGeometryRef(hidden,
+      { kind: 'surface', modelId: entry.modelId, surfaceId: entry.packet.surfaceId })));
+    const curves = allCurves.filter(entry => !hiddenGeometry.some(hidden => sameGeometryRef(hidden,
+      { kind: 'curve', modelId: entry.modelId, curveId: entry.sample.curve.id })));
     const surfaces = this.gpuEntries(packets, selected, motion, geometryMotion), options = this.gpuOptions(camera);
     if (packets.length + curves.length === 0) {
       if (this.renderer instanceof PrimitiveViewport) {
@@ -678,10 +701,11 @@ export class Viewer {
     check(packets.length + curves.length >= 1 && packets.length + curves.length <= 4,
       'Viewer requires 1..4 total display objects');
     const camera = fittedCamera(packets, curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
-    this.present(packets, curves, camera, null, null, null, null, qualified);
+    this.present(packets, curves, camera, null, null, null, null, qualified, []);
     this.packets = packets; this.curves = curves; this.camera = camera;
     this.selected = null; this.selectedGeometry = null; this.native = native; this.modelSet = modelSet;
     this.document = document; this.documentBodies = documentBodies;
+    this.hiddenGeometry = [];
     this.measurement = null; this.motion = null; this.geometryMotion = null; this.curveMeasurement = null;
     this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
   }
@@ -765,9 +789,10 @@ export class Viewer {
   setPackets(input: ViewerPacket[]): void { this.live(); this.accept(input, null); this.sceneRequest++; }
   clear(): void {
     this.live();
-    this.present([], [], this.camera, null, null, null, null, false);
+    this.present([], [], this.camera, null, null, null, null, false, []);
     this.packets = []; this.curves = []; this.native = null; this.modelSet = null;
     this.document = null; this.documentBodies = [];
+    this.hiddenGeometry = [];
     this.selected = null; this.selectedGeometry = null;
     this.measurement = null; this.curveMeasurement = null;
     this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
@@ -978,14 +1003,40 @@ export class Viewer {
     this.nativeMeasurement = result;
     return structuredClone(result);
   }
+  setVisibleGeometry(input: ViewerGeometryRef[]): void {
+    this.live();
+    check(Array.isArray(input) && input.length <= 4, 'Visible geometry requires 0..4 references');
+    const requested = denseArray(input, input.length, 'Visible geometry').map(parseGeometryRef);
+    const inventory = this.geometryRefs();
+    check(requested.every(ref => inventory.some(value => sameGeometryRef(value, ref))),
+      'Visible geometry reference is unknown');
+    check(requested.every((ref, index) => requested.findIndex(value => sameGeometryRef(value, ref)) === index),
+      'Visible geometry references must be unique');
+    const hidden = inventory.filter(ref => !requested.some(value => sameGeometryRef(value, ref)));
+    const selection = this.selectedGeometry && !hidden.some(ref => sameGeometryRef(ref, this.selectedGeometry!))
+      ? this.selectedGeometry : null;
+    const selected = selection?.kind === 'surface'
+      ? { modelId: selection.modelId, surfaceId: selection.surfaceId } : null;
+    if (this.renderer) this.present(this.packets, this.curves, this.camera, selected,
+      this.motion, selection, this.geometryMotion, this.modelSet !== null || this.document !== null, hidden);
+    this.hiddenGeometry = hidden;
+    this.selected = selected;
+    this.selectedGeometry = selection;
+  }
   fit(): void {
-    this.live(); check(this.packets.length + this.curves.length > 0, 'Viewer has no geometry');
-    this.setView(fittedCamera(this.packets, this.curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height,
+    this.live();
+    const packets = this.packets.filter(entry => this.visible({ kind: 'surface',
+      modelId: entry.modelId, surfaceId: entry.packet.surfaceId }));
+    const curves = this.curves.filter(entry => this.visible({ kind: 'curve',
+      modelId: entry.modelId, curveId: entry.sample.curve.id }));
+    check(packets.length + curves.length > 0, 'Viewer has no visible geometry');
+    this.setView(fittedCamera(packets, curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height,
       this.motion, this.geometryMotion));
   }
   fitGeometry(input: ViewerGeometryRef): void {
     this.live();
     const ref = parseGeometryRef(input);
+    check(this.visible(ref), 'Geometry reference is hidden');
     const packets = ref.kind === 'surface' ? this.packets.filter(entry =>
       entry.modelId === ref.modelId && entry.packet.surfaceId === ref.surfaceId) : [];
     const curves = ref.kind === 'curve' ? this.curves.filter(entry =>
@@ -1039,6 +1090,8 @@ export class Viewer {
       multiply(up, (1 - 2 * yCss / rect.height) * tangent))));
     let best: ViewerPick | null = null;
     for (const entry of this.packets) {
+      if (!this.visible({ kind: 'surface', modelId: entry.modelId,
+        surfaceId: entry.packet.surfaceId })) continue;
       const { positions, indices, parameters } = entry.packet, scale = this.options.mmToSceneUnit;
       const pose = surfacePose({ modelId: entry.modelId, surfaceId: entry.packet.surfaceId },
         this.motion, this.geometryMotion);
@@ -1105,6 +1158,8 @@ export class Viewer {
     if (surface) candidates.push({ result: { kind: 'surface', ...surface },
       depth: depth(surface.positionScene), distance: 0 });
     for (const entry of this.curves) {
+      if (!this.visible({ kind: 'curve', modelId: entry.modelId,
+        curveId: entry.sample.curve.id })) continue;
       const sample = entry.sample;
       const pose = curvePose({ modelId: entry.modelId, curveId: sample.curve.id }, this.geometryMotion);
       for (let index = 0; index + 1 < sample.pointsMM.length; index++) {
@@ -1180,7 +1235,8 @@ export class Viewer {
   }
   select(input: ViewerRef | null): void {
     this.live(); const selected = input === null ? null : parseRef(input);
-    check(selected === null || this.packets.some(entry => sameRef(
+    check(selected === null || this.packets.some(entry => this.visible({ kind: 'surface',
+      modelId: entry.modelId, surfaceId: entry.packet.surfaceId }) && sameRef(
       { modelId: entry.modelId, surfaceId: entry.packet.surfaceId }, selected)), 'Unknown surface reference');
     const geometrySelection: ViewerGeometryRef | null = selected
       ? { kind: 'surface', ...selected } : null;
@@ -1192,6 +1248,7 @@ export class Viewer {
   selectGeometry(input: ViewerGeometryRef | null): void {
     this.live();
     const selection = input === null ? null : parseGeometryRef(input);
+    check(selection === null || this.visible(selection), 'Geometry reference is hidden');
     if (selection?.kind === 'surface') {
       check(this.packets.some(entry => entry.modelId === selection.modelId
         && entry.packet.surfaceId === selection.surfaceId), 'Unknown displayed Surface reference');
@@ -1218,6 +1275,7 @@ export class Viewer {
       lighting: this.options.lighting ?? null,
       surfaces: this.packets.map(entry => ({ modelId: entry.modelId, surfaceId: entry.packet.surfaceId })),
       curves: this.curves.map(entry => ({ modelId: entry.modelId, curveId: entry.sample.curve.id })),
+      visibleGeometry: this.geometryRefs().filter(ref => this.visible(ref)),
       curveSampleVersion: this.curves.length ? this.curves[0].sampleVersion : null,
       packets: this.packets,
       selected: this.selected, selectedGeometry: this.selectedGeometry,
