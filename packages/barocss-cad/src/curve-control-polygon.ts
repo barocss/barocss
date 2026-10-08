@@ -96,14 +96,11 @@ function derivative(curve: Curve, parameter: number): CurveControlPolygonD1Evalu
   try { return { kind: 'evaluated', result: evaluateCurveD1(curve, parameter) }; }
   catch (error) { return { kind: 'refused', message: (error instanceof Error ? error.message : 'native D1 refused').slice(0, 512) }; }
 }
-/** Atomic Cartesian/weight coefficient edits on a directly authored original Curve. */
-export function editCurveControlPolygon(input: Curve, edits: CurveControlPolygonEdits): CurveControlPolygonResult {
-  try {
-    const originalData = snapshot(input), editData = snapshot(edits), original = admit(originalData), data = record(editData, ['poleEdits']);
-    check(Array.isArray(data.poleEdits) && data.poleEdits.length >= 1 && data.poleEdits.length <= 16, '1..16 explicit pole edits required');
+/** Trusted patch admission/application; callers snapshot and establish their own capacity/profile. */
+export function applyCurvePoleEditsTrusted(original:Curve,poleEdits:unknown[]):{candidate:Curve;provenance:CurvePoleEditProvenance[]} {
     const fields: CurvePoleField[] = ['xMM', 'yMM', 'zMM', 'weight'], indices = new Set<number>();
     // Admit every requested record before applying any patch to the owned net.
-    const patches = data.poleEdits.map(input => {
+    const patches = poleEdits.map(input => {
       check(input !== null && typeof input === 'object' && !Array.isArray(input), 'pole edit record required');
       const e = input as Record<string, unknown>, keys = Object.keys(e);
       check(Object.hasOwn(e, 'index') && keys.length >= 2 && keys.length <= 5 && keys.every(k => ['index', ...fields].includes(k)), 'existing index and at least one explicit coordinate/weight field required');
@@ -125,6 +122,17 @@ export function editCurveControlPolygon(input: Curve, edits: CurveControlPolygon
       const changedFields = patch.requestedFields.filter(f => !Object.is(f === 'weight' ? before.weight : before.pointMM[component(f)], f === 'weight' ? after.weight : after.pointMM[component(f)]));
       provenance.push({ index: patch.index, requestedFields: patch.requestedFields, changedFields, before, after });
     }
+    return{candidate,provenance};
+}
+
+/** Atomic Cartesian/weight coefficient edits on a directly authored original Curve. */
+export function editCurveControlPolygon(input: Curve, edits: CurveControlPolygonEdits): CurveControlPolygonResult {
+  try {
+    const originalData = snapshot(input), editData = snapshot(edits), original = admit(originalData), data = record(editData, ['poleEdits']);
+    check(Array.isArray(data.poleEdits) && data.poleEdits.length >= 1 && data.poleEdits.length <= 16, '1..16 explicit pole edits required');
+    const {candidate,provenance}=applyCurvePoleEditsTrusted(original,data.poleEdits);
+    const fields: CurvePoleField[] = ['xMM', 'yMM', 'zMM', 'weight'];
+    const component = (field: CurvePoleField) => field === 'xMM' ? 0 : field === 'yMM' ? 1 : 2;
     admit(candidate);
     const compiled = compileCurveSource(candidate.id, candidate.degree, candidate.controlPoints, candidate.knots, candidate.weights, LABEL);
     const expected: Model = { name: 'profile', version: 0, lengthUnit: 'mm', objects: [candidate] };
