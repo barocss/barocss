@@ -179,3 +179,6 @@ export type { WideCurveControlPolygonEditReport, WideCurveControlPolygonEditResu
 
 export { reverseCurveWide, validateWideReversedCurveResult, WideCurveReversalError, WideCurveReversalDiagnosticCode } from './curve-wide-reversal.js';
 export type { WideReversedCurveReport, WideReversedCurveResult } from './curve-wide-reversal.js';
+
+export { buildThreeSectionLoftSurface, validateThreeSectionLoftSurface, ThreeSectionLoftError, ThreeSectionLoftDiagnosticCode } from './three-section-loft.js';
+export type { ThreeSectionLoftOptions, ThreeSectionLoftObservation, ThreeSectionLoftD1Observation, ThreeSectionLoftProvenance, ThreeSectionLoftReport, ThreeSectionLoftResult } from './three-section-loft.js';

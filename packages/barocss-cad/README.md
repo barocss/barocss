@@ -6138,3 +6138,64 @@ node examples/cad-nurbs/curve-wide-reversal-demo.mjs --source /tmp/barocss-wide-
 The single actual file/compiled flow uses the previously produced64-pole source.
 Native readiness, Integration adoption, actual consumer use and publication
 remain separate; no legacy document-history layer is introduced.
+
+## Three-section homogeneous loft Surface
+
+`buildThreeSectionLoftSurface(first, middle, last, {surfaceId})` constructs a
+native rational Surface through three original Curves at V=0,0.5,1. This is
+the bounded PART-05/SURF-04 child #847. The common Curve parameter remains U.
+The middle section can depart from the ruled blend of the endpoints.
+
+```js
+const loft = cad.buildThreeSectionLoftSurface(first, middle, last, {
+  surfaceId: 'three_section_loft',
+});
+cad.validateThreeSectionLoftSurface(loft);
+const middlePoint = cad.evaluateSurface(loft.surface, originalU, 0.5);
+```
+
+All three sections must have the same degree, pole count and exact Object.is
+knot basis, including signed zero. Admission is positive, clamped, nonperiodic
+degree1..3 with2..16 poles, weights[1e-6,1e6] and authored XYZ within±10000mm.
+All three Curve IDs and the new Surface ID must differ (ASCII1..48). There is
+no automatic degree/knot repair, section reorientation or weight rescaling.
+Independent original weights have a defined effect on the loft between sections.
+
+The new Surface has degreeU equal to the section degree and degreeV2, with
+knotsV=[0,0,0,1,1,1]. For each common pole index, original homogeneous
+coefficients Hfirst,Hmiddle,Hlast produce the middle Surface coefficient
+`2*Hmiddle - 0.5*(Hfirst + Hlast)`. Original endpoint pole and weight bits
+are copied; generated middle coefficients need not retain original bits.
+A generated weight outside[1e-6,1e6], near-zero weight cancellation, nonfinite
+arithmetic or generated Cartesian coordinate outside±10000mm refuses the
+whole result. Three individually valid Curves can therefore be incompatible
+with this positive quadratic loft profile.
+
+The result owns copied `sections`, `options`, `surface`, `source`,
+`sourceVersion:0`, `model`, `provenance` and `report`. The regenerated
+four-object Source0 Model contains all three unchanged original Curves and
+the derived Surface. It preserves original coefficients and common parameter
+bits; it does not recover the caller's source formatting or original Model
+name. Whole-owned validation reconstructs the source/Model, generated net,
+lineage, observations and report from the original sections/options. This is
+a current-only DTO (`barocss-native-three-section-loft`, version0), separate
+from canonical document version1.
+
+Distinct native U breaks and representable interior span midpoints feed
+V=0,0.5,1 observations (at most96). Successful section point comparisons use
+1e-7mm; successful native section D1 versus Surface Du comparisons use
+relative1e-7. Exact C0 knot and arithmetic refusals remain explicit native
+states. These are local observations, with no global error or G1/G2 guarantee.
+The authored frame remains raw XYZ/mm. Data is copied CPU data with no
+renderer resource or disposal contract.
+
+```sh
+node examples/cad-nurbs/three-section-loft-demo.mjs --source /tmp/cad-three-section-loft
+```
+
+The example uses actual source imports, saved/reopened four-object Source0,
+whole-owned signed-zero JSON, a small existing Surface preview and extracted
+iso-curves. Its native evidence is separate from Integration adoption and
+GPU/Loader consumer evidence. Arbitrary section counts/parameters, guide
+curves, periodic/closed loft, caps, BRep, solid validity, general sweep and
+manufacturing certification remain open.
