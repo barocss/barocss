@@ -33,6 +33,16 @@ qualified displayed Curve IDs. Curve-only source0 Models can be displayed and
 fitted. `getState().packets` and `surfaces` remain Surface-only. `select` and
 `pick` remain Surface-only, including in a mixed scene.
 
+`selectGeometry({kind:'surface',modelId,surfaceId})` or
+`selectGeometry({kind:'curve',modelId,curveId})` highlights one currently
+displayed qualified object. Pass `null` to clear it. The copied
+`getState().selectedGeometry` records either kind. The existing `select(ref)`
+remains Surface-only: it updates both its old `selected` field and the new
+tagged field. Selecting a Curve sets the old Surface-only `selected` field to
+`null`. Neither pick method changes selection. Invalid or hidden references
+retain selection and pixels; a successful scene replacement clears both
+selection fields. This display highlight does not select native topology.
+
 For a sampled Motion frame, bind each Motion target to exactly one displayed surface:
 
 ```js
