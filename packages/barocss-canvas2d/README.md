@@ -59,6 +59,16 @@ Export copies the scene and bytes returned by `getAsset`. Parse validates the co
 
 Errors are `Canvas2DError` with `code`: `INVALID_SCENE`, `SCENE_LIMIT`, `INVALID_VIEW`, `INVALID_SIZE`, `WEBGL_UNAVAILABLE`, `CONTEXT_LOST`, `DISPOSED`, `SERIALIZATION`, `UNSUPPORTED_FEATURE`, `INVALID_ASSET`, `ASSET_LIMIT`, or `ASSET_IN_USE`.
 
+## Authored orthogonal Boolean subset
+
+`booleanOrthogonalPolygons(left,right,operation)` returns a new `PolygonBooleanResult` for `union`, `intersection`, or left-minus-right `difference`. Each operand is `{contours:[{id,points:[{x,y}]}]}`. Each ring is an open vertex list whose closing edge connects its last point to its first. Coordinates are exact integer logical pixels in `[-4096,4096]`. Rings have 4–128 distinct vertices and alternating horizontal and vertical edges; no duplicate closing point, diagonal, curve, fractional coordinate, collinear extra point, or implicit tolerance is accepted. Each operand has 1–8 non-touching simple rings. Positive screen-space signed area (x right, y down) denotes an outer ring; a nested hole has negative area, alternating by depth. Source IDs are unique across both operands.
+
+Proper perpendicular crossings between operands are accepted. Endpoint contacts, coincident or overlapping edges, self-intersections, contacts between rings of one operand, wrong nesting orientation and ambiguous point-contact results return `UNSUPPORTED_FEATURE`. The combined inputs have at most 240 vertices, coordinate compression has at most 16,384 cells, and the output has at most 8 rings, 128 vertices per ring, 240 vertices total and 4,096 boundary edges. Excess returns `SCENE_LIMIT`. The bounded integer domain prevents arithmetic overflow in its predicates. The function copies inputs and returns only after validation; it does not change a renderer or scene.
+
+The result records the operation, ordered input contour IDs and each deterministic output ring's `id`, `orientation`, contributing `sourceIds` and authored integer points. Empty output is allowed. Positive/negative output rings can be converted to one Scene v5 `nonzero` path, with the Scene's own admission limits still applied. Run `node examples/canvas2d-scene/boolean-probe.mjs` for the deterministic check. The example at `/examples/canvas2d-scene/boolean-v5.html` computes all three operations, retains its old canvas on refusal, and saves/opens a result JSON with lineage verification. This adapter does not perform curved, arbitrary-angle or CAD B-Rep Boolean operations.
+
+## Bounded example
+
 Run the bounded example from the repository root after building this package:
 
 ```sh
