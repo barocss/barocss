@@ -369,6 +369,52 @@ scale once in the existing Three loader. Document authored XYZ alone does
 not certify a right-handed Y-up frame; the host must assert the matching
 basis or supply its own external frame mapping.
 
+### Display selected document bodies in Babylon.js
+
+The optional `./babylon-document` entry uses the same validated body
+selection and the existing source0 `BaroCADBabylonLoader`. Pass a live,
+caller-owned Babylon Scene with `useRightHandedSystem = true`. The result
+contains one root `TransformNode`, an asset node for each selected source
+asset, and bindings in authored body order. Each binding retains original
+document, asset, body and native geometry IDs, revisions and frames, the
+selected Babylon `Mesh` or `LinesMesh`, and the asset-scoped display ref.
+Use the binding because two assets can contain the same native geometry ID.
+
+```js
+import { loadBaroCadDocument } from '@barocss/cad-interop/document';
+import { createBaroCadDocumentBabylonDisplay }
+  from '@barocss/cad-interop/babylon-document';
+
+scene.useRightHandedSystem = true;
+const cad = await loadBaroCadDocument(documentURL);
+const display = createBaroCadDocumentBabylonDisplay(scene, cad, {
+  native: { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } },
+  basis: 'authored-xyz-matches-rhyup', // Assertion supplied by the host.
+  bodyIds: ['body_0_curve', 'body_0_surface', 'body_1_curve', 'body_1_surface'],
+});
+// The host may set display-only poses on display.assetNodes.
+display.dispose(); // Release adapter-owned meshes and nodes only.
+```
+
+The source adapter creates each selected asset's bounded whole source0
+Model. This entry disables unselected meshes and keeps them owned until
+`dispose()`. A failed candidate releases its staged meshes and nodes and
+does not replace an accepted display. `dispose()` is idempotent; it keeps
+the caller's Scene, Engine, canvas, camera and unrelated meshes. The
+neutral `./document` entry has no Babylon runtime import. This entry does
+not add exact native-parameter picking or CAD assembly placements.
+
+`node examples/document-babylon-v1-verify.mjs` checks the 3,172-byte
+document over local HTTP with Babylon NullEngine, including selection,
+source identity, atomic refusal and disposal. The
+`examples/document-babylon-v1.html` Vite example renders two selected
+LinesMeshes and two Surface Meshes in headed Chromium/WebGL2 and checks
+uploaded positions and pixels. The native option applies the explicit
+millimetre scale once in the existing Babylon loader. Document authored
+XYZ does not certify a right-handed Y-up frame; the host must assert this
+basis or apply its own external frame mapping.
+
 ## Load native source in Babylon.js
 
 Install `@babylonjs/core@9.29.0` in the host application. The optional
