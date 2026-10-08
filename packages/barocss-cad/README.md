@@ -4836,3 +4836,69 @@ feature graphs and editor tessellation/ray queries remain open. Reports retain
 geometricValidity:not-certified, topologyCertified:false and solid:false.
 Native implementation requires separate sole-GPU serial integration and
 current-host consumer verification.
+
+## Own material mesh and true boundary paths for affine faces with holes
+
+`tessellateConvexPlanarFaceWithHoles(face)` consumes one actual validated650
+`ConvexPlanarFaceWithHolesResult`. The owned result retains
+`{face, mesh, boundaryPaths, triangulation, report}`. The original Plane and
+native outer/inner Lines remain geometry authority with full source order,
+coefficient bits and arbitrary native Surface/Line domains. The existing
+Plane+15Lines/Model16-object limit remains intact.
+
+The binary64 indexed mesh contains `{id, positionsMM, normals, parametersUV,
+indices, vertices}`. Positions and oriented normals are actual original
+Surface D1 observations at native dimensionless UV. Native vertex records
+retain original topology vertex/loop identity and Line/pcurve/Surface binding
+provenance. Only the original V≤15 native vertices are used; no Steiner points
+or parameter rebasing. With H1..2 holes, the admitted triangle count is
+V+2H-2≤17. Array capacities are positions45, normals45, UV30 and indices51.
+
+Constrained triangulation builds a deterministic maximal planar visibility
+graph on original native UV vertices. Visible bridges and diagonals require
+true original boundary and halfspace proofs without foreign crossing/touching
+or passage through open hole interiors. Empty material triangles are extracted
+from that graph. Bridge bookkeeping adds no native vertices. Triangle centroids
+may supplement material observations; they
+cannot establish whole-triangle coverage by themselves. Exact represented
+zero and a64-epsilon unsafe-predicate policy distinguish admitted contacts
+from unresolved nonzero cancellation. Unsupported/uncertain display inputs
+refuse without changing the native parent.
+
+Every actual original outer/inner boundary pair must occur once in mesh
+incidence; every internal edge occurs twice with opposite senses. Triangle
+winding follows face orientation. Nondegenerate orientation, no unintended
+crossing/overlapping interiors, Euler/triangle count and guarded UV area
+agreement between outer-minus-holes and triangle sum are explicit display
+observations. There are at most15 true boundaries,18 internal indexed edges
+and2 bridges. These observations do not certify manifold B-Rep or a solid.
+
+True boundary paths are separate from mesh diagonals. They evaluate actual
+original finite Line parameters, use senses and pcurves, retaining original
+edge/Curve/use/pcurve IDs and endpoint provenance. Native Line positions and
+Surface mesh positions keep their observed binding difference rather than
+claiming represented coincidence. Internal display bridges/diagonals never
+become original CAD boundaries or pcurves.
+
+Bookkeeping IDs derive from the original face resultIdPrefix with `_mesh`,
+`_mesh_bridge_N`, `_mesh_diag_N` and `_mesh_tri_N`. All possible roles are
+reserved against original/context/generated parent identities before staging.
+Native topology vertex/edge IDs remain unchanged.
+`validateConvexPlanarFaceWithHolesMesh(result)` rebuilds original parent,
+mesh winding/UV/positions/normals/incidence/lineage/true paths/internal roles
+and compares full original source bits including lexical -0. Owned snapshots
+bound131072 values/depth24/arrays512/recordFields48/source strings262144;
+actual mesh capacities remain the smaller15vertex/17triangle family.
+
+```sh
+node examples/cad-nurbs/own-convex-planar-face-holes-preview-demo.mjs --source
+```
+
+This exposes native material display data. It does not change GPU packets,
+Float32 conversion or source grammar. Native-valid inputs can be refused for
+unsafe or unsupported display triangulation. General curved/nonconvex/nested
+or touching trims, rational curved boundaries, adaptive constrained meshing,
+ray/editor feature graphs, sewing/manifold/Boolean/detail/assemblies/exchange
+remain open. Reports retain geometricValidity:not-certified,
+topologyCertified:false and solid:false; separate sole-GPU serial integration
+and current-source consumer adoption are required.
