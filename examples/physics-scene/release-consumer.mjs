@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { createPhysicsWorld, PhysicsError } from '@barocss/physics';
 import { admitCadSurfaceProxy, cadProxyPose } from '@barocss/physics/cad-proxy';
 import { createPhysicsScene, createPhysicsReplaySession, restorePhysicsReplaySession } from '@barocss/physics/replay';
+import { createFluidWorld } from '@barocss/physics/fluid';
 
 const source = readFileSync(new URL('./two-surfaces.barocad', import.meta.url), 'utf8');
 const modelId = 'native_loader_demo', sourceRevision = 'releaseRev1';
@@ -38,15 +39,31 @@ assert.throws(() => restorePhysicsReplaySession(snapshot,
   (error) => error instanceof PhysicsError && error.code === 'STALE_SNAPSHOT');
 session.dispose(); restored.dispose();
 
+const initialPositionsM = [];
+for (let z = 0; z < 4; z++) {
+  for (let y = 0; y < 8; y++) {
+    for (let x = 0; x < 8; x++) {
+      initialPositionsM.push([0.2 + x * 0.05, 0.45 + y * 0.05, 0.3 + z * 0.05]);
+    }
+  }
+}
+const fluid = createFluidWorld({ format: 'barocss-fluid-scene', version: 1,
+  revision: 'packedWaterRev1', basis: 'right-handed-xyz-metres', fixedStepSeconds: dt,
+  gravityMps2: [0, -9.81, 0], basinM: [0.7, 1.3, 0.5], initialPositionsM });
+assert.equal(fluid.step(dt).stepIndex, 1);
+assert.equal(fluid.reset().stepIndex, 0);
+fluid.dispose();
+
 const physicsManifest = JSON.parse(readFileSync(new URL('./node_modules/@barocss/physics/package.json', import.meta.url)));
 const cadManifest = JSON.parse(readFileSync(new URL('./node_modules/@barocss/cad/package.json', import.meta.url)));
 assert.equal(physicsManifest.version, '0.0.0-experimental');
 assert.equal(cadManifest.version, '0.0.0-experimental');
-assert.deepEqual(Object.keys(physicsManifest.exports).sort(), ['.', './cad-proxy', './replay']);
-for (const name of ['index.d.ts', 'cad-proxy.d.ts', 'replay.d.ts']) {
+assert.deepEqual(Object.keys(physicsManifest.exports).sort(), ['.', './cad-proxy', './fluid', './replay']);
+for (const name of ['index.d.ts', 'cad-proxy.d.ts', 'fluid.d.ts', 'replay.d.ts']) {
   assert.ok(readFileSync(new URL(`./node_modules/@barocss/physics/dist/${name}`, import.meta.url), 'utf8').length > 0);
 }
 
 console.log(JSON.stringify({ result: 'ok', imports: ['@barocss/physics', '@barocss/physics/cad-proxy',
-  '@barocss/physics/replay'], contactStep, replayedSteps: 24, declarations: 3,
+  '@barocss/physics/replay', '@barocss/physics/fluid'], contactStep, replayedSteps: 24,
+  fluidSteps: 1, declarations: 4,
   physicsVersion: physicsManifest.version, cadVersion: cadManifest.version }));

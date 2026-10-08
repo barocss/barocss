@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 export const physicsProbeNames = ['probe', 'controls-probe', 'events-queries-probe',
   'rotation-probe', 'oriented-colliders-probe', 'friction-stack-probe', 'joints-probe',
-  'ccd-probe', 'broadphase-probe', 'replay-probe'];
+  'ccd-probe', 'broadphase-probe', 'replay-probe', 'fluid-world-probe'];
 
 const near = (value, expected, tolerance) => assert.ok(Math.abs(value - expected) <= tolerance,
   `${value} differs from ${expected} by more than ${tolerance}`);
@@ -38,6 +38,14 @@ export function inspectProbe(name, output) {
     assert.ok(output.contactSteps > 0);
     near(output.jointReactionY, 0.08175, 1e-12);
     assert.equal(output.staleAndDamagedRefused, true);
+  } else if (name === 'fluid-world-probe') {
+    assert.equal(output.result, 'ok');
+    assert.equal(output.count, 256);
+    assert.equal(output.steps, 240);
+    assert.ok(output.densityError60 <= 0.35 && output.densityError240 <= 0.10);
+    assert.ok(output.compression60 <= 0.05 && output.compression240 <= 0.05);
+    assert.ok(output.p95StepMs <= 10);
+    assert.equal(output.copiedAndInvalidRetained, true);
   } else if (name === 'cad-proxy-probe') {
     assert.equal(output.result, 'ok');
     assert.equal(output.contactStep, 21);
