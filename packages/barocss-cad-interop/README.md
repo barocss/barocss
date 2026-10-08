@@ -169,6 +169,53 @@ Run `pnpm --filter @barocss/cad-interop test:native` to check the included
 native source file, its model and display data, Three.js objects, and a local
 URL load. Node.js 22 is used for this check.
 
+## Load native source in Babylon.js
+
+Install `@babylonjs/core@9.29.0` in the host application. The optional
+`@barocss/cad-interop/babylon` entry is separate from the neutral and Three.js
+entries. Set the caller's scene to right-handed mode before loading. The loader
+checks this setting and never changes it:
+
+```js
+import { BaroCADBabylonLoader } from '@barocss/cad-interop/babylon';
+
+scene.useRightHandedSystem = true;
+const loader = new BaroCADBabylonLoader(scene, {
+  sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+});
+const result = await loader.loadAsync('/two-surfaces.barocad');
+// Or parse text already in memory: loader.parse(source).
+// result.model and result.source retain the native CAD data.
+// result.meshes contain Babylon display meshes.
+result.dispose(); // Releases only meshes and material created by this result.
+```
+
+The Babylon adapter uses the same native source reader as the Three.js adapter.
+It accepts sourceVersion 0 with 1–4 surfaces and 2–17 samples per axis. Native
+curves stay in `model.objects` and `unrenderedCurveIds`; they are not drawn.
+Each Babylon mesh has qualified `metadata.barocss` with the model and surface
+IDs. `nativeParameters` is an owned copy of the NURBS U/V samples. It is not a
+texture UV buffer. Scene mesh names are display labels and need not be unique.
+
+Authored `@model` XYZ must be intended as right-handed Y-up. The native surface
+packet keeps those XYZ values unchanged, and this loader applies the requested
+millimetre scale once. It does not apply the separate `part-xyz` face-mesh
+rotation. Wrong scene handedness, invalid source/options, unsafe Float32 data,
+and failed URL requests return no new scene objects. Successful results own
+their meshes and one material. `dispose()` is idempotent and leaves the caller's
+scene, engine, other meshes, and other materials alive. A caller who adds other
+resources to the scene remains responsible for them.
+
+The included `examples/babylon-native.mjs` uses Babylon's CPU `NullEngine` to
+show the source-to-mesh path. Run
+`pnpm --filter @barocss/cad-interop test:babylon` for the actual native file,
+Babylon mesh data, local URL loading, refusal cases, and disposal checks.
+`NullEngine` does not prove visible browser rendering or GPU performance.
+
+References: [Babylon.js package](https://www.npmjs.com/package/@babylonjs/core),
+[Babylon.js right-handed scene guidance](https://doc.babylonjs.com/features/featuresDeepDive/importers/glTF/),
+[Babylon.js custom mesh documentation](https://doc.babylonjs.com/features/featuresDeepDive/mesh/creation/custom/).
+
 References: [glTF 2.0 specification](https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html),
 [Three.js GLTFLoader](https://threejs.org/docs/pages/GLTFLoader.html),
 [Babylon.js glTF loader](https://doc.babylonjs.com/features/featuresDeepDive/importers/glTF/),

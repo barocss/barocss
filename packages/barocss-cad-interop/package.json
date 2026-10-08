@@ -20,6 +20,10 @@
     "./three": {
       "types": "./dist/three.d.ts",
       "import": "./dist/three.js"
+    },
+    "./babylon": {
+      "types": "./dist/babylon.d.ts",
+      "import": "./dist/babylon.js"
     }
   },
   "files": ["dist", "examples", "README.md", "LICENSE"],
@@ -29,18 +33,22 @@
     "lint": "eslint src",
     "test": "pnpm build:library && node --test test/interop.test.mjs",
     "test:native": "pnpm --filter @barocss/cad build:library && pnpm build:library && node test/native-loader.test.mjs",
+    "test:babylon": "pnpm --filter @barocss/cad build:library && pnpm build:library && node test/babylon-loader.test.mjs",
     "test:integration": "pnpm --filter @barocss/cad build:library && pnpm --filter @barocss/gpu build:library && pnpm build:library && node --test test/cad-integration.test.mjs"
   },
   "dependencies": {
     "@barocss/cad": "workspace:*"
   },
   "peerDependencies": {
+    "@babylonjs/core": "9.29.0",
     "three": "^0.186.1"
   },
   "peerDependenciesMeta": {
+    "@babylonjs/core": { "optional": true },
     "three": { "optional": true }
   },
   "devDependencies": {
+    "@babylonjs/core": "9.29.0",
     "@types/three": "^0.186.0",
     "three": "^0.186.1"
   }
