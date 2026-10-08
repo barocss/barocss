@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>BaroCSS Physics × Viewer · native Surface consumer</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #07111e; color: #e7f0fc; }
+    main { max-width: 1320px; margin: 0 auto; padding: 28px 28px 40px; }
+    .eyebrow { color: #7ee8d1; font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { margin: 8px 0; font-size: clamp(28px, 3.5vw, 44px); letter-spacing: -.04em; line-height: 1.08; }
+    .intro { max-width: 780px; margin: 0 0 23px; color: #a9bbd1; line-height: 1.55; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(330px, .85fr); gap: 16px; }
+    .panel { background: #101f31; border: 1px solid #2b4660; border-radius: 18px; overflow: hidden; box-shadow: 0 18px 50px #0003; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 19px; border-bottom: 1px solid #28415a; }
+    .panel-head h2 { margin: 0; font-size: 15px; font-weight: 700; }
+    .tag { border: 1px solid #397d7d; background: #173b43; color: #8cf5dd; border-radius: 999px; padding: 4px 10px; font-size: 10px; font-weight: 800; letter-spacing: .09em; white-space: nowrap; }
+    #viewer { display: block; width: 100%; height: auto; background: #091525; }
+    .viewer-note { padding: 13px 19px 16px; color: #a4b8cc; font-size: 12px; line-height: 1.5; border-top: 1px solid #28415a; }
+    .proxy { padding: 14px 18px 0; }
+    .proxy svg { display: block; width: 100%; max-height: 370px; border-radius: 12px; background: radial-gradient(circle at 55% 48%, #163851, #0c1e32 72%); }
+    .proxy .grid { stroke: #2c5266; stroke-width: 1; opacity: .5; }
+    .proxy .floor { fill: #345c7b; stroke: #8cb7d2; stroke-width: 2; }
+    .proxy .floor-top { stroke: #91ddfa; stroke-width: 2; }
+    #proxy-ball { fill: #4addb3; fill-opacity: .14; stroke: #68f5ce; stroke-width: 3; }
+    #proxy-ball.touching { fill: #f2aa50; fill-opacity: .25; stroke: #ffc778; }
+    #proxy-center { stroke: #b9ffed; stroke-width: 1.5; }
+    .proxy text { fill: #d6e7f5; font-size: 12px; font-weight: 700; }
+    .proxy .small { fill: #9db6ca; font-size: 10px; font-weight: 500; }
+    .proxy-note { margin: 9px 0 15px; color: #abc2d1; font-size: 12px; line-height: 1.5; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 19px; border-top: 1px solid #28415a; }
+    button { cursor: pointer; border: 1px solid #52738f; border-radius: 9px; background: #233d57; color: #ecf7ff; padding: 9px 13px; font: inherit; font-size: 12px; font-weight: 700; }
+    button:hover { background: #2d5472; }
+    button:focus-visible { outline: 2px solid #8af4dc; outline-offset: 3px; }
+    button.primary { background: #1e806f; border-color: #3bc59c; }
+    .readouts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; }
+    .metric { padding: 15px 16px; border: 1px solid #2b4660; border-radius: 12px; background: #101f31; }
+    .metric span { display: block; color: #9bb1c8; font-size: 11px; margin-bottom: 6px; }
+    .metric strong { font-size: 19px; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+    .metric small { color: #9bb1c8; font-size: 11px; }
+    .status { margin-top: 14px; padding: 13px 16px; background: #142a3a; border: 1px solid #2c5369; border-radius: 11px; font-size: 12px; }
+    #mode { display: inline-block; margin-right: 12px; color: #75ead0; font-weight: 800; letter-spacing: .09em; }
+    #mode.paused { color: #ffca83; }
+    #contact-indicator { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; background: #6f8ca3; }
+    #contact-indicator.touching { background: #ffbd69; box-shadow: 0 0 0 5px #ffbd6922; }
+    #contact { color: #dce9f3; font-variant-numeric: tabular-nums; }
+    #error { color: #ffacaa; margin-top: 7px; min-height: 1em; }
+    #error.ok { color: #8af4cf; }
+    .boundary { color: #9bb1c8; font-size: 12px; line-height: 1.5; padding-top: 12px; }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .readouts { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 580px) { main { padding: 20px 14px 32px; } .readouts { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">Physics / Consumer 01</div>
+    <h1>One native Surface. One simulated body.</h1>
+    <p class="intro">A real BaroCAD Surface follows the position returned by our Physics engine. The Viewer canvas shows native display geometry. The side view shows the separate sphere and box collision proxies.</p>
+    <div class="layout">
+      <section class="panel">
+        <div class="panel-head"><h2>Viewer · original weighted Surfaces</h2><span class="tag">ACTUAL WEBGL</span></div>
+        <canvas id="viewer" width="760" height="540" aria-label="Native BaroCAD Surfaces in Viewer"></canvas>
+        <div class="viewer-note"><strong>rational_panel</strong> moves with <strong>part:ball</strong>. <strong>flat_panel</strong> stays at Y = 70 mm. The original native source and Surface IDs are unchanged.</div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>Collision proxy · X/Y side view</h2><span class="tag">DERIVED SHAPES</span></div>
+        <div class="proxy">
+          <svg viewBox="0 0 360 390" role="img" aria-label="Sphere and box Physics proxies, separate from CAD Surfaces">
+            <path class="grid" d="M30 80H330 M30 160H330 M30 240H330 M30 320H330 M90 20V365 M180 20V365 M270 20V365"/>
+            <rect class="floor" x="125" y="313" width="110" height="44" rx="3"/>
+            <path class="floor-top" d="M125 313H235"/>
+            <circle id="proxy-ball" cx="180" cy="82" r="55"/>
+            <line id="proxy-center" x1="173" x2="187" y1="82" y2="82"/>
+            <text x="18" y="35">sphere proxy · r 0.05 m</text>
+            <text class="small" x="132" y="379">box top · Y 0.07 m</text>
+          </svg>
+          <p class="proxy-note">The circle is the collision sphere. It turns amber on contact. The moving native Surface has a different shape. The blue box is a static collision fixture; its top matches the flat native Surface.</p>
+        </div>
+        <div class="controls">
+          <button class="primary" id="toggle">Pause</button>
+          <button id="step">One step</button>
+          <button id="reset">Reset</button>
+          <button id="fit">Fit Viewer</button>
+          <button id="reject">Test invalid binding</button>
+        </div>
+      </section>
+    </div>
+    <div class="readouts">
+      <div class="metric"><span>BODY HEIGHT</span><strong id="height">0.2800</strong><small> m</small></div>
+      <div class="metric"><span>Y VELOCITY</span><strong id="velocity">0.0000</strong><small> m/s</small></div>
+      <div class="metric"><span>FIXED STEP</span><strong id="step-index">0</strong><small> / 3600</small></div>
+      <div class="metric"><span>SIMULATION TIME</span><strong id="sim-time">0.000</strong><small> s</small></div>
+    </div>
+    <div class="status"><span id="mode">RUNNING</span><span id="contact-indicator"></span><span id="contact">No contact in this step</span><div id="error"></div></div>
+    <div class="boundary">Host pacing: simulation runs at ¼ of wall time so the fall is visible. Physics owns fixed steps and contacts. Viewer owns WebGL display. Native CAD geometry remains authoritative.</div>
+  </main>
+  <script type="module" src="/bundle.js"></script>
+</body>
+</html>
