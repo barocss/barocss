@@ -57,6 +57,32 @@ function multiply(a:number,b:number):number {const value=finite(a*b);check(a===0
 function cross(a:Point,b:Point):Point{return[finite(multiply(a[1],b[2])-multiply(a[2],b[1])),finite(multiply(a[2],b[0])-multiply(a[0],b[2])),finite(multiply(a[0],b[1])-multiply(a[1],b[0]))];}
 function normal(surface:SurfaceD1Result,sense:'forward'|'reverse'):Point {const value=cross(surface.du,surface.dv),length=finite(Math.hypot(...value));check(length>0,'actual native Surface D1 normal not represented');return value.map(v=>finite(v/length)*(sense==='forward'?1:-1)) as Point;}
 
+/** Internal shared UV predicates; original convex-hole admission and numeric operations stay unchanged. */
+export function createNativeUVGraphPredicates(
+  uv: Point[], check: (condition: boolean, detail: string) => void,
+  label: string = LABEL, tick?: () => void,
+) {
+  const key=(a:number,b:number):string=>a<b?a+':'+b:b+':'+a;
+  const determinant = (a: Point, b: Point) => { tick?.(); return directedUVDeterminant(a, b, label); };
+  const orientation=(a:number,b:number,c:number):number=>{const measure=determinant(delta(uv[b],uv[a]),delta(uv[c],uv[a]));check(measure.value===0||Math.abs(measure.value)>measure.threshold,'unsafe nonzero display orientation; native validity unchanged');return measure.value;};
+  const onSegment=(a:number,b:number,p:number):boolean=>uv[p][0]>=Math.min(uv[a][0],uv[b][0])&&uv[p][0]<=Math.max(uv[a][0],uv[b][0])&&uv[p][1]>=Math.min(uv[a][1],uv[b][1])&&uv[p][1]<=Math.max(uv[a][1],uv[b][1]);
+  const compatibleSegments=(a:number,b:number,c:number,d:number):boolean=>{
+    if(key(a,b)===key(c,d))return true;const o1=orientation(a,b,c),o2=orientation(a,b,d),o3=orientation(c,d,a),o4=orientation(c,d,b);
+    if((o1>0&&o2<0||o1<0&&o2>0)&&(o3>0&&o4<0||o3<0&&o4>0))return false;
+    for(const [p,o]of [[c,o1],[d,o2]] as const)if(o===0&&onSegment(a,b,p)&&p!==a&&p!==b)return false;
+    for(const [p,o]of [[a,o3],[b,o4]] as const)if(o===0&&onSegment(c,d,p)&&p!==c&&p!==d)return false;
+    return true;
+  };
+  const separatedPolygons=(a:number[],b:number[]):boolean=>{
+    for(const polygon of [a,b])for(let i=0;i<polygon.length;i++){
+      const start=polygon[i],end=polygon[(i+1)%polygon.length],direction=delta(uv[end],uv[start]),project=(index:number)=>determinant(direction,delta(uv[index],uv[start])),pa=a.map(project),pb=b.map(project),maxA=Math.max(...pa.map(value=>value.value)),minA=Math.min(...pa.map(value=>value.value)),maxB=Math.max(...pb.map(value=>value.value)),minB=Math.min(...pb.map(value=>value.value)),gap=Math.max(finite(minB-maxA),finite(minA-maxB)),threshold=finite(EPS*finite(Math.abs(minA)+Math.abs(maxA)+Math.abs(minB)+Math.abs(maxB))+Math.max(...pa.map(value=>value.threshold))+Math.max(...pb.map(value=>value.threshold)));
+      if(gap===0)return true;if(gap>threshold)return true;
+    }
+    return false;
+  };
+  return { orientation, onSegment, compatibleSegments, separatedPolygons };
+}
+
 /** Native vertices only. Display predicates can refuse an otherwise admitted native face. */
 export function tessellateConvexPlanarFaceWithHoles(faceInput:ConvexPlanarFaceWithHolesResult):ConvexPlanarFaceWithHolesMeshResult {
   const face=snapshot(faceInput,true) as ConvexPlanarFaceWithHolesResult;validateConvexPlanarFaceWithHoles(face);const prefix=face.options.resultIdPrefix,role=(suffix:string):string=>id(prefix+suffix),generated=[role('_mesh')];for(let i=0;i<2;i++)generated.push(role('_mesh_bridge_'+i));for(let i=0;i<18;i++)generated.push(role('_mesh_diag_'+i));for(let i=0;i<17;i++)generated.push(role('_mesh_tri_'+i));
@@ -66,15 +92,7 @@ export function tessellateConvexPlanarFaceWithHoles(faceInput:ConvexPlanarFaceWi
   });check(vertices.length<=15,'at most15 actual native mesh vertices');const uv=vertices.map(vertex=>[vertex.uv[0],vertex.uv[1],0] as Point),nativeIndex=new Map(vertices.map(vertex=>[vertex.nativeVertexId,vertex.index])),loopIndices=face.topology.loops.map(loop=>face.topology.vertices.filter(vertex=>vertex.loopId===loop.id).map(vertex=>{const index=nativeIndex.get(vertex.id);check(index!==undefined,'native vertex index association');return index;}));
   const boundaryPairs=face.topology.edges.map(edge=>{const a=nativeIndex.get(edge.vertexIds[0]),b=nativeIndex.get(edge.vertexIds[1]);check(a!==undefined&&b!==undefined,'actual native boundary endpoint association');return{edge,pair:[a,b] as [number,number]};});
   const key=(a:number,b:number):string=>a<b?a+':'+b:b+':'+a;
-  const orientation=(a:number,b:number,c:number):number=>{const measure=directedUVDeterminant(delta(uv[b],uv[a]),delta(uv[c],uv[a]),LABEL);check(measure.value===0||Math.abs(measure.value)>measure.threshold,'unsafe nonzero display orientation; native validity unchanged');return measure.value;};
-  const onSegment=(a:number,b:number,p:number):boolean=>uv[p][0]>=Math.min(uv[a][0],uv[b][0])&&uv[p][0]<=Math.max(uv[a][0],uv[b][0])&&uv[p][1]>=Math.min(uv[a][1],uv[b][1])&&uv[p][1]<=Math.max(uv[a][1],uv[b][1]);
-  const compatibleSegments=(a:number,b:number,c:number,d:number):boolean=>{
-    if(key(a,b)===key(c,d))return true;const o1=orientation(a,b,c),o2=orientation(a,b,d),o3=orientation(c,d,a),o4=orientation(c,d,b);
-    if((o1>0&&o2<0||o1<0&&o2>0)&&(o3>0&&o4<0||o3<0&&o4>0))return false;
-    for(const [p,o]of [[c,o1],[d,o2]] as const)if(o===0&&onSegment(a,b,p)&&p!==a&&p!==b)return false;
-    for(const [p,o]of [[a,o3],[b,o4]] as const)if(o===0&&onSegment(c,d,p)&&p!==c&&p!==d)return false;
-    return true;
-  };
+  const {orientation,onSegment,compatibleSegments,separatedPolygons}=createNativeUVGraphPredicates(uv,check,LABEL);
   const openHolePassage=(a:number,b:number,hole:number[]):boolean=>{
     const topologyLoop=face.topology.loops.find(loop=>loop.id===vertices[hole[0]].loopId);check(topologyLoop!==undefined,'actual hole orientation association');const sign=topologyLoop.authoredOrientation==='ccw'?1:-1;let low=0,high=1;
     for(let i=0;i<hole.length;i++){
@@ -86,13 +104,6 @@ export function tessellateConvexPlanarFaceWithHoles(faceInput:ConvexPlanarFaceWi
   const materialSegment=(a:number,b:number):boolean=>{
     for(const boundary of boundaryPairs)if(!compatibleSegments(a,b,boundary.pair[0],boundary.pair[1]))return false;
     for(const hole of loopIndices.slice(1))if(openHolePassage(a,b,hole))return false;return true;
-  };
-  const separatedPolygons=(a:number[],b:number[]):boolean=>{
-    for(const polygon of [a,b])for(let i=0;i<polygon.length;i++){
-      const start=polygon[i],end=polygon[(i+1)%polygon.length],direction=delta(uv[end],uv[start]),project=(index:number)=>directedUVDeterminant(direction,delta(uv[index],uv[start]),LABEL),pa=a.map(project),pb=b.map(project),maxA=Math.max(...pa.map(value=>value.value)),minA=Math.min(...pa.map(value=>value.value)),maxB=Math.max(...pb.map(value=>value.value)),minB=Math.min(...pb.map(value=>value.value)),gap=Math.max(finite(minB-maxA),finite(minA-maxB)),threshold=finite(EPS*finite(Math.abs(minA)+Math.abs(maxA)+Math.abs(minB)+Math.abs(maxB))+Math.max(...pa.map(value=>value.threshold))+Math.max(...pb.map(value=>value.threshold)));
-      if(gap===0)return true;if(gap>threshold)return true;
-    }
-    return false;
   };
   const graph=new Map<string,{pair:[number,number];boundary:boolean;bridge:boolean}>();for(const boundary of boundaryPairs)graph.set(key(...boundary.pair),{pair:boundary.pair,boundary:true,bridge:false});
   const parents=vertices.map((_,i)=>i),find=(i:number):number=>{while(parents[i]!==i)i=parents[i];return i;},join=(a:number,b:number):boolean=>{const x=find(a),y=find(b);if(x===y)return false;parents[y]=x;return true;};for(const boundary of boundaryPairs)join(...boundary.pair);
