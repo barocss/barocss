@@ -93,6 +93,7 @@ export type DisplayTree = {
   createGlyphRun(spec: GlyphRunSpec): GlyphRunHandle;
   createFrame(spec: FrameSpec): FrameHandle;
   createLine(spec: LineSpec): LineHandle;
+  reparentChild(child: DisplayHandle, target: StageHandle | ContainerHandle | FrameHandle, index: number): void;
   get(id: string): DisplayHandle | null;
   dispatchPointer(input: PointerInput): void;
   snapshot(): SceneV6;
@@ -264,6 +265,36 @@ export function createDisplayTree(contextId: string): DisplayTree {
 
   return Object.freeze({
     stage: root.handle,
+    reparentChild(child: DisplayHandle, target: StageHandle | ContainerHandle | FrameHandle, index: number): void {
+      const record = known(child);
+      const destination = target !== null && typeof target === 'object' ? records.get(target) : undefined;
+      if (!destination || (destination !== root && destination.data?.kind !== 'group' &&
+          destination.data?.kind !== 'frame')) invalid('target is not a parent in this display tree');
+      const source = record.parent;
+      if (!source || source === destination) invalid('child must have a different parent');
+      const attached = (node: RecordNode) => {
+        let top = node;
+        while (top.parent) top = top.parent;
+        return top === root;
+      };
+      if (!attached(record) || !attached(destination)) invalid('child and target must be attached');
+      if (!Number.isInteger(index) || Object.is(index, -0) ||
+          index < 0 || index > destination.children.length) invalid('child index is outside its range');
+      for (let cursor: RecordNode | null = destination; cursor; cursor = cursor.parent) {
+        if (cursor === record) invalid('display tree cannot contain a parent cycle');
+      }
+      const previous = source.children.indexOf(record);
+      source.children.splice(previous, 1);
+      destination.children.splice(index, 0, record);
+      record.parent = destination;
+      try { validateRoots(destination); }
+      catch (error) {
+        destination.children.splice(index, 1);
+        source.children.splice(previous, 0, record);
+        record.parent = source;
+        throw error;
+      }
+    },
     createContainer(spec: ContainerSpec): ContainerHandle {
       const fields = exactSpec(spec, ['id', 'layer', 'transform']);
       const node = validateScene({ version: 6, unit: 'logical-px', contextId: checked.contextId,
