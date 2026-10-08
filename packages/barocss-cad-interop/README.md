@@ -641,6 +641,52 @@ package. The existing Surface-only helper and example remain valid. Own GPU
 one-scene qualified identity is tracked separately in issue #746; this
 projection does not change that GPU scene contract or add CAD placement.
 
+### Use original native IDs with own GPU scene v2
+
+`prepareBaroCadModelSetPrimitiveNativeRefsV2(set)` applies the same mixed-set
+validation and four-object limit as the display projection. It returns owned
+Surface packets and full Curve v0/v1 samples with their **original** native
+IDs. Each entry has `ref:{modelId,geometryId}`: `modelId` is the unique
+model-set alias with `-` encoded as `.` for GPU v2's identifier grammar;
+the mapping is injective because model-set aliases cannot contain `.`.
+`geometryId` is the original Surface or Curve ID. The
+separate `binding` preserves source URL, original Model name and the #743
+qualified display label. A display-renamed Surface packet from #743 is not a
+valid original-ID packet for GPU v2.
+
+```js
+import { loadBaroCadModelSet, prepareBaroCadModelSetPrimitiveNativeRefsV2 }
+  from '@barocss/cad-interop/model-set';
+import { mountPrimitiveSceneV2 } from '@barocss/gpu';
+
+const set = await loadBaroCadModelSet(manifest, { baseURL: location.href });
+const projected = prepareBaroCadModelSetPrimitiveNativeRefsV2(set);
+const entries = projected.map((entry, index) => {
+  const { binding, ...native } = entry;
+  return { ...native, color: colors[index], transform: placements[index] };
+});
+const display = mountPrimitiveSceneV2(canvas, { version: 2, entries }, gpuOptions);
+// The host owns the canvas and calls display.dispose() when the display ends.
+```
+
+The neutral Loader package does not import GPU or choose colors, pose, camera
+or scene units. The GPU host supplies an explicit mm-to-scene scale and optional
+per-entry display transform. The refs are caller-scoped display namespaces;
+they do not establish CAD assembly placement, document revision, topology or
+exact picking. A failed projection returns no partial array and does not
+mutate the prior set. A failed GPU update retains its prior accepted scene.
+The host owns the GPU handle and releases its resources through `dispose()`;
+neutral copies use ordinary CPU memory.
+
+`examples/model-set-gpu-v2.html` loads two source0 files with the same native
+Model name, wide Curve ID and Surface ID through local HTTP. It first checks
+GPU v1's duplicate-ID refusal, then displays both Curves and Surfaces with
+public GPU v2 on one WebGL2 canvas. It checks actual uploaded positions,
+visible colors, retained pixels after bad refs and GPU resource disposal.
+After building CAD, GPU and this package, run the example through this
+package's Vite browser server. `node examples/model-set-gpu-v2-verify.mjs`
+checks the neutral projection over local HTTP without creating GPU resources.
+
 ## CAD Surface operation consumer in Three.js
 
 `examples/surface-region-reversal-generate.mjs` uses the public `@barocss/cad`
