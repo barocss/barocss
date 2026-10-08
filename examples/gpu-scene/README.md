@@ -262,3 +262,29 @@ physical exhaustion. Three upload/draw timings include full native restaging and
 presentation; they exclude Physics and capture and are not a performance study.
 The Surface is a display occluder, not a Physics obstacle or exact CAD collision.
 Viewer851/play-pause-step-reset/parent814 adoption remains separate.
+
+## Native Surface area is separate from display scale (#866)
+
+```sh
+BAROCSS_AREA_DEPS=/absolute/compiled/provider/repo \
+BAROCSS_AREA_EVIDENCE=/absolute/unique/output \
+node examples/gpu-scene/surface-area-flow.mjs
+```
+
+The two committed files are authentic native859 canonical document revisions,
+not manually invented Surface results. Public current references select only
+plane_body/asset_0/plane_nonunit; other bodies stay unselected and intact. Public
+native Surface-area query/whole-owned validation yields6mm² then12mm² after the
+actual authored width edit. Original U[-3,7]/V[2,5], source/coefficients/negative
+zero/references/cells/report and saved native results remain separate from a
+5×5 display packet and Float32 buffers.
+
+A display-only scale[1.5,0.75,1] changes actual buffers/pixels/bounds while the
+native area property remains6mm². The original native property is unposed
+parametrized area, not triangle area or world/display area. Actual revision2
+adoption stages native result and GPU frame before changing the property. Stale
+reference, forged native result, invalid pose/packet and injected program refusal
+retain prior native/property/frame. Resize and double disposal keep source data
+and release owned resources. The property exposes a heuristic, non-certified
+estimator; it is not trimmed/union/B-Rep/solid/volume/mass/COM or manufacturing
+accuracy. Exact provider entry hashes/metafiles and fixture hashes are recorded.
