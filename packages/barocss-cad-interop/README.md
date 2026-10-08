@@ -281,6 +281,43 @@ accuracy. Run `pnpm --filter @barocss/cad-interop build:library` and then
 `pnpm --filter @barocss/cad-interop test:curve` for the included real source
 files, Three/Babylon objects, local URL loading, disposal and bounded refusals.
 
+## Inspect a native Curve display hit
+
+The target entries can associate an actual picked line segment with its
+original Curve sample interval:
+
+```js
+import { resolveBaroCadThreeCurvePick } from '@barocss/cad-interop/three';
+// Or resolveBaroCadBabylonCurvePick from @barocss/cad-interop/babylon.
+
+const hit = raycaster.intersectObject(curveLine)[0] ?? null;
+const pick = resolveBaroCadThreeCurvePick(result, hit);
+if (pick) {
+  console.log(pick.curveId, pick.interval, pick.parameterApprox);
+  console.log(pick.displayPoint, pick.worldPoint, pick.nativePointMM);
+}
+```
+
+`displayPoint` is on the selected Float32 display chord in local renderer
+units. `worldPoint` applies the current finite invertible affine target
+transform. `nativePointMM` evaluates the original accepted CAD Curve at
+`parameterApprox` in authored XYZ millimetres. The parameter is interpolated
+across the selected sample interval; it is **not** an exact Curve/ray
+intersection. It is not a Surface UV or a native B-Rep edge. A null hit or
+an accepted Surface hit returns null. Foreign objects, disposed results,
+changed display geometry/index data, unsafe transforms and accessor-based
+hit fields reject. Native identity comes from private creation bindings, not
+mutable names, metadata or a later edit to the returned model.
+
+The Three helper consumes `Line.raycast`'s `intersection.index` for the
+adapter's non-indexed line. The Babylon helper consumes `PickingInfo.faceId`
+for this adapter's one-submesh `CreateLines` index pairs. Import Babylon's
+`@babylonjs/core/Culling/ray.js` when using `scene.pick`. Run the affected
+build, then `node packages/barocss-cad-interop/test/curve-pick.test.mjs`
+from the workspace root for genuine source and both SDK ray flows. The
+`examples/curve-pick.html` page provides one click readout in each browser
+renderer.
+
 ## Cancel a native URL load
 
 The Three and Babylon adapters each add `loadAbortable(url, transport)`.

@@ -4,11 +4,26 @@ import { Mesh } from '@babylonjs/core/Meshes/mesh.js';
 import { MeshBuilder } from '@babylonjs/core/Meshes/meshBuilder.js';
 import { VertexData } from '@babylonjs/core/Meshes/mesh.vertexData.js';
 import { Vector3 } from '@babylonjs/core/Maths/math.vector.js';
+import type { PickingInfo } from '@babylonjs/core/Collisions/pickingInfo.js';
 import type { Scene } from '@babylonjs/core/scene.js';
+import { makeCurvePickBinding, readAffineMatrix, readOwnData, readPoint, resolveCurveChord, sameValues } from './curve-pick.js';
+import type { BaroCadCurveDisplayPick, CurvePickBinding } from './curve-pick.js';
 import { parseBaroCadSource } from './native.js';
 import type { BaroCadNativeResult, BaroCadParseOptions } from './native.js';
 import { readAbortableBaroCadSource, throwIfBaroCadAborted, validateBaroCadTransport } from './transport.js';
 import type { BaroCadLoadTransportOptions } from './transport.js';
+export type { BaroCadCurveDisplayPick } from './curve-pick.js';
+
+interface BabylonCurvePickEntry {
+  binding: CurvePickBinding;
+  geometry: Mesh['geometry'];
+  indices: number[];
+}
+
+const curvePickResults = new WeakMap<BaroCadBabylonResult, {
+  owned: Map<Mesh, BabylonCurvePickEntry | null>;
+  isDisposed: () => boolean;
+}>();
 
 const MAX_SOURCE_BYTES = 262144; // The current CAD sourceVersion 0 compiler limit.
 
@@ -70,6 +85,7 @@ export class BaroCADBabylonLoader {
     if (this.scene.isDisposed) throw new RangeError('BaroCAD Babylon loading requires a live scene');
     const native = parseBaroCadSource(source, this.options);
     const ownedMeshes: Mesh[] = [];
+    const owned = new Map<Mesh, BabylonCurvePickEntry | null>();
     const previousMeshes = new Set(this.scene.meshes);
     let material: StandardMaterial | undefined;
     try {
@@ -96,6 +112,7 @@ export class BaroCADBabylonLoader {
           coordinateSystem: 'right-handed-y-up',
           nativeParameters: Float32Array.from(surface.mesh.parameters),
         } };
+        owned.set(mesh, null);
       }
       for (const curve of native.curves) {
         const points: Vector3[] = [];
@@ -113,6 +130,12 @@ export class BaroCADBabylonLoader {
           nativeIntervals: curve.sample.segments.map(segment => [...segment.domain]),
           sampleReport: curve.sample.report,
         } };
+        const original = native.model.objects.find(object => object.kind === 'curve' && object.id === curve.curveId);
+        if (!original || original.kind !== 'curve') throw new RangeError('BaroCAD Curve display lost its native source binding');
+        const binding = makeCurvePickBinding(native.model.name, original, curve);
+        const indices: number[] = [];
+        for (let index = 0; index < binding.parameters.length - 1; index++) indices.push(index, index + 1);
+        owned.set(line, { binding, geometry: line.geometry, indices });
       }
       const sourceOrder = new Map(native.model.objects.map((object, index) => [object.id, index]));
       ownedMeshes.sort((left, right) => {
@@ -126,15 +149,18 @@ export class BaroCADBabylonLoader {
       throw error;
     }
     let disposed = false;
-    return {
+    const result: BaroCadBabylonResult = {
       ...native, meshes: Object.freeze([...ownedMeshes]),
       dispose() {
         if (disposed) return;
         disposed = true;
         for (const mesh of ownedMeshes) if (!mesh.isDisposed()) mesh.dispose(false, false);
         material?.dispose();
+        owned.clear();
       },
     };
+    curvePickResults.set(result, { owned, isDisposed: () => disposed });
+    return result;
   }
 
   async loadAsync(url: string): Promise<BaroCadBabylonResult> {
@@ -158,4 +184,52 @@ export class BaroCADBabylonLoader {
       throw error;
     }
   }
+}
+
+/** Associate one actual Babylon LinesMesh hit with its accepted native Curve sample interval. */
+export function resolveBaroCadBabylonCurvePick(
+  result: BaroCadBabylonResult, pickingInfo: PickingInfo | null,
+): BaroCadCurveDisplayPick | null {
+  const record = curvePickResults.get(result);
+  if (!record) throw new TypeError('BaroCAD Babylon pick requires a result from this loader');
+  if (record.isDisposed()) throw new RangeError('BaroCAD Babylon pick result is disposed');
+  if (pickingInfo === null) return null;
+  const hit = readOwnData(pickingInfo, 'hit');
+  if (hit === false) return null;
+  if (hit !== true) throw new TypeError('BaroCAD Babylon pick hit must be boolean data');
+  const mesh = readOwnData(pickingInfo, 'pickedMesh');
+  if (!(mesh instanceof Mesh) || !record.owned.has(mesh)) {
+    throw new RangeError('BaroCAD Babylon pick mesh is foreign to this result');
+  }
+  const entry = record.owned.get(mesh);
+  if (!entry) return null;
+  if (mesh.isDisposed() || mesh.geometry !== entry.geometry ||
+      !sameValues(mesh.getVerticesData('position'), entry.binding.positions) ||
+      !sameValues(mesh.getIndices(), entry.indices) || mesh.subMeshes.length !== 1 ||
+      mesh.subMeshes[0].indexStart !== 0 || mesh.subMeshes[0].indexCount !== entry.indices.length) {
+    throw new RangeError('BaroCAD Babylon Curve display geometry is stale');
+  }
+  const index = readOwnData(pickingInfo, 'faceId');
+  const subMeshIndex = readOwnData(pickingInfo, 'subMeshFaceId');
+  const subMeshId = readOwnData(pickingInfo, 'subMeshId');
+  if (typeof index !== 'number' || index !== subMeshIndex || subMeshId !== 0) {
+    throw new RangeError('BaroCAD Babylon Curve segment index is stale');
+  }
+  const point = readOwnData(pickingInfo, 'pickedPoint');
+  if (!(point instanceof Vector3)) throw new TypeError('BaroCAD Babylon pick point must be a Vector3');
+  const worldHit = readPoint(
+    readOwnData(point, '_x') as number, readOwnData(point, '_y') as number, readOwnData(point, '_z') as number,
+  );
+  const worldMatrix = mesh.computeWorldMatrix(true);
+  const matrix = readAffineMatrix(readOwnData(worldMatrix, '_m'));
+  const threshold = readOwnData(mesh, 'intersectionThreshold');
+  if (typeof threshold !== 'number' || !Number.isFinite(threshold) || threshold < 0) {
+    throw new RangeError('BaroCAD Babylon line threshold is unsafe');
+  }
+  const maxScale = Math.max(
+    Math.hypot(matrix[0], matrix[1], matrix[2]),
+    Math.hypot(matrix[4], matrix[5], matrix[6]),
+    Math.hypot(matrix[8], matrix[9], matrix[10]),
+  );
+  return resolveCurveChord('babylon', entry.binding, index, worldHit, matrix, threshold * maxScale + 1e-5);
 }
