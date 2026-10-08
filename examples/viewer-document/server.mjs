@@ -10,6 +10,7 @@ const files = new Map([
   ['/bundle.js', { body: bundle.outputFiles[0].contents, type: 'text/javascript' }],
   ['/', { body: await readFile(new URL('index.html', import.meta.url)), type: 'text/html' }],
   ['/document.cad-document.json', { body: documentFile, type: 'application/json' }],
+  ['/invalid.cad-document.json', { body: '{invalid', type: 'application/json' }],
   ...await Promise.all(['a', 'b'].map(async suffix => [
     `/model-${suffix}.barocad`,
     { body: await readFile(new URL(`model-set-gpu-v2-${suffix}.barocad`, fixtureRoot)), type: 'text/plain' },
@@ -17,6 +18,11 @@ const files = new Map([
 ]);
 const server = createServer((request, response) => {
   const path = new URL(request.url, 'http://127.0.0.1').pathname;
+  if (path === '/slow-document.cad-document.json') {
+    setTimeout(() => response.writeHead(200, { 'content-type': 'application/json; charset=utf-8',
+      'cache-control': 'no-store' }).end(documentFile), 150);
+    return;
+  }
   const file = files.get(path);
   if (!file) { response.writeHead(404).end(); return; }
   response.writeHead(200, { 'content-type': `${file.type}; charset=utf-8`,

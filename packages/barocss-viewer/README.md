@@ -61,7 +61,15 @@ placement or native topology. The runnable
 For a direct-geometry CAD document v1, first use Loader's public
 `loadBaroCadDocument(url)` or `parseBaroCadDocument(text)`, then call
 `viewer.loadDocument(result,{native,basis:'authored-xyz-matches-rhyup',
-bodyIds})`. The host must explicitly assert that its authored XYZ matches
+bodyIds})`. To read and admit in one call, use
+`await viewer.loadDocumentUrl(url,{native,basis:'authored-xyz-matches-rhyup',
+bodyIds},{signal,onProgress})`. This delegates to the same public document
+Loader and applies the same selected-body Viewer admission. Loader enforces
+HTTP(S), 2 MiB/4096 chunks, strict UTF-8 and byte progress. The caller owns
+the AbortController and timeout. Failed, aborted, stale or disposed requests
+cannot replace the accepted scene; a newer URL request supersedes an older
+pending document or native URL request. A successful synchronous scene load
+or `clear()` also supersedes it. The host must explicitly assert that its authored XYZ matches
 the right-handed Y-up display basis; the document's opaque frame tag does not
 make that claim. Loader selects 1–4 bodies in document order. A document with
 more than four bodies requires explicit `bodyIds`. Viewer uses original

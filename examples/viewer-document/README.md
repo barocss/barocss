@@ -25,3 +25,10 @@ move these anchors without changing native measurements. Off-frustum points
 return null, while invalid or hidden native refs refuse without changing the
 scene. Visibility changes Viewer display only. No CAD placement or assembly
 transform is inferred; the labels do not test occlusion or certify dimensions.
+
+The same page also calls `viewer.loadDocumentUrl` against the actual HTTP
+document. It compares pixels with synchronous `loadDocument`, records byte
+progress, and checks 404, malformed JSON, invalid basis/body selection,
+caller abort, stale document/native URL requests, synchronous replacement,
+clear and disposal. The URL call uses Loader's document transport and does
+not store a URL in Viewer state.
