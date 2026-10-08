@@ -1,0 +1,78 @@
+{
+  "format": "barocss-physics-release-gate",
+  "version": 1,
+  "stage": "local-integration-prototype-checkpoint",
+  "timestamp": "2026-10-08T13:40:17.423Z",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "node": "v22.22.0",
+    "macos": "15.6.1",
+    "pnpm": "10.11.0"
+  },
+  "checks": [
+    {
+      "name": "frozen offline install",
+      "status": "pass",
+      "output": "passed"
+    },
+    {
+      "name": "@barocss/cad build",
+      "status": "pass",
+      "output": "passed"
+    },
+    {
+      "name": "@barocss/physics build",
+      "status": "pass",
+      "output": "passed"
+    },
+    {
+      "name": "cad-proxy-probe",
+      "status": "pass",
+      "output": {
+        "result": "ok",
+        "dynamicId": "part:native_loader_demo.rational_panel",
+        "fixtureId": "fixture:native_loader_demo.flat_panel",
+        "contactStep": 21,
+        "firstPositionM": [
+          0.05,
+          0.28,
+          0.02
+        ],
+        "contactPositionM": [
+          0.05,
+          0.13385164807134506,
+          0.02
+        ],
+        "staleSourceRefused": true,
+        "acceptedWorldRetained": true
+      }
+    },
+    {
+      "name": "git diff --check",
+      "status": "pass",
+      "output": "passed"
+    }
+  ],
+  "packedConsumer": null,
+  "browser": {
+    "status": "merged-head-proof",
+    "gitHead": "05dd6fba2dec54d0783ad562fe4542ac9a339941",
+    "webgl2": true,
+    "nativeSurfaces": 2,
+    "contactStep": 21,
+    "contactYMetres": 0.13385164807134506,
+    "viewerYMillimetres": 133.85164807134507,
+    "staleRevision": "rev1→rev2",
+    "staleRetainedStep": 21,
+    "staleRetainedViewerYMillimetres": 133.85164807134507,
+    "readmittedStep": 0,
+    "consoleErrors": 0,
+    "consoleWarnings": 0
+  },
+  "prototypeCheckpointPassed": true,
+  "nativePreparationPassed": false,
+  "releaseCandidate": false,
+  "gitHead": "05dd6fba2dec54d0783ad562fe4542ac9a339941",
+  "integrationPrototypeCheckpointPassed": true
+}
