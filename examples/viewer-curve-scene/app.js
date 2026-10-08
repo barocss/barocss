@@ -2,7 +2,11 @@ import { createViewer } from '../../packages/barocss-viewer/dist/index.js';
 
 const canvas = document.querySelector('#view');
 const output = document.querySelector('#state');
-const viewer = createViewer(canvas, { mmToSceneUnit: 0.001, background: [0.035, 0.055, 0.09] });
+const lit = new URLSearchParams(location.search).get('lighting') === 'directional';
+const lightingInput = lit ? { ambientStrength: 0.12, directionalStrength: 0.78,
+  direction: [0.8, 0.4, -0.7] } : null;
+const viewer = createViewer(canvas, { mmToSceneUnit: 0.001, background: [0.035, 0.055, 0.09],
+  ...(lightingInput ? { lighting: lightingInput } : {}) });
 const sources = Object.fromEntries(await Promise.all(['mixed', 'curves-only', 'wide-64'].map(async name =>
   [name, await (await fetch(`/${name}.barocad`)).text()])));
 const options = { sourceVersion: 0, countU: 8, countV: 8,
@@ -21,6 +25,7 @@ function describe(next = message) {
     `Surfaces: ${state.surfaces.map(ref => ref.surfaceId).join(', ') || 'none'}`,
     `Displayed Curves: ${state.curves.map(ref => ref.curveId).join(', ') || 'none'}`,
     `Curve sample version: ${state.curveSampleVersion ?? 'none'}`,
+    `Lighting: ${state.lighting ? 'directional' : 'default'}`,
     `Selected Surface: ${state.selected?.surfaceId ?? 'none'}`,
     `Selected geometry: ${state.selectedGeometry
       ? `${state.selectedGeometry.kind} ${state.selectedGeometry.kind === 'curve'
@@ -97,5 +102,5 @@ canvas.addEventListener('click', event => {
   else describe('No visible geometry near this point.');
 });
 
-window.viewerCurveDemo = { viewer, sources, options, wideOptions, load, describe,
+window.viewerCurveDemo = { viewer, createViewer, lightingInput, sources, options, wideOptions, load, describe,
   get lastHit() { return lastHit; } };

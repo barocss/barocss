@@ -17,6 +17,15 @@ if (hit) viewer.select(hit.ref);
 viewer.dispose();
 ```
 
+For explicit Surface mesh lighting, pass an optional GPU `MeshLighting` value
+at creation: `lighting:{ambientStrength:0.12,directionalStrength:0.78,
+direction:[0.8,0.4,-0.7]}`. Each strength is in 0..1 and their sum is at most
+1; the finite nonzero direction is in renderer-world Y-up coordinates.
+`getState().lighting` returns a copy or `null`. Omitting lighting preserves the
+previous shader and pixels. Curve lines remain unlit in Surface-only, mixed
+and wide v1 primitive scenes. Lighting never changes original CAD geometry or
+native measurements.
+
 To display genuine native Curve samples in the same scene, opt in during load:
 
 ```js

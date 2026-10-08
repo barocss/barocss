@@ -5,13 +5,13 @@ import type { BaroCadNativeResult } from '@barocss/cad-interop/native';
 import { mountMeshScene, mountPrimitiveScene, mountPrimitiveSceneV1, PrimitiveSceneRenderer,
   PrimitiveSceneRendererV1, prepareMesh,
   validateMeshCamera, validatePreviewPacket } from '@barocss/gpu';
-import type { MeshCamera, PreviewPacket, PrimitiveSceneEntryV1 } from '@barocss/gpu';
+import type { MeshCamera, MeshLighting, PreviewPacket, PrimitiveSceneEntryV1 } from '@barocss/gpu';
 import { MOTION_LIMITS } from '@barocss/motion';
 import type { MotionFrame } from '@barocss/motion';
 
 type Vec3 = [number, number, number];
 type Quat = [number, number, number, number];
-export interface ViewerOptions { mmToSceneUnit: number; background: Vec3 }
+export interface ViewerOptions { mmToSceneUnit: number; background: Vec3; lighting?: MeshLighting }
 export interface NativeLoadOptions { sourceVersion: 0; countU: number; countV: number }
 export interface ViewerNativeCurveLoadOptions extends NativeLoadOptions {
   curveDisplay: { chordToleranceMM: number; maxSegments: number; maxDepth: number };
@@ -110,6 +110,7 @@ export interface ViewerState {
   frame: 'right-handed-y-up';
   sourceUnit: 'mm';
   mmToSceneUnit: number;
+  lighting: MeshLighting | null;
   camera: MeshCamera;
   surfaces: ViewerRef[];
   curves: ViewerCurveRef[];
@@ -204,9 +205,25 @@ function parseMotionFrame(input: unknown): MotionFrame {
   return { contextId, timeSeconds, poses };
 }
 function parseViewerOptions(input: unknown): ViewerOptions {
-  const value = ownRecord(input, ['mmToSceneUnit', 'background'], 'Viewer options');
+  check(input !== null && typeof input === 'object' && Object.getPrototypeOf(input) === Object.prototype,
+    'Viewer options must be plain data');
+  const hasLighting = Object.hasOwn(input, 'lighting');
+  const value = ownRecord(input, hasLighting
+    ? ['mmToSceneUnit', 'background', 'lighting'] : ['mmToSceneUnit', 'background'], 'Viewer options');
+  let lighting: MeshLighting | undefined;
+  if (hasLighting) {
+    const data = ownRecord(value.lighting,
+      ['ambientStrength', 'directionalStrength', 'direction'], 'Viewer lighting');
+    const ambientStrength = finite(data.ambientStrength, 'Ambient strength', 0, 1);
+    const directionalStrength = finite(data.directionalStrength, 'Directional strength', 0, 1);
+    check(ambientStrength + directionalStrength <= 1, 'Lighting strengths must sum to at most 1');
+    const direction = vector(data.direction, 'Light direction', -1000, 1000);
+    check(Math.hypot(...direction) > 0, 'Light direction must be nonzero');
+    lighting = { ambientStrength, directionalStrength, direction };
+  }
   return { mmToSceneUnit: finite(value.mmToSceneUnit, 'mmToSceneUnit', 1e-6, 1),
-    background: vector(value.background, 'background', 0, 1) };
+    background: vector(value.background, 'background', 0, 1),
+    ...(lighting ? { lighting } : {}) };
 }
 function parseNativeOptions(input: unknown):
   NativeLoadOptions | ViewerNativeCurveLoadOptions | ViewerNativeCurveLoadOptionsV1 {
@@ -462,7 +479,8 @@ export class Viewer {
   }
   private gpuOptions(camera = this.camera) {
     return { mmToSceneUnit: this.options.mmToSceneUnit, translate: [0, 0, 0] as Vec3,
-      background: this.options.background, camera };
+      background: this.options.background, camera,
+      ...(this.options.lighting ? { lighting: this.options.lighting } : {}) };
   }
   private gpuEntries(packets: ViewerPacket[], selected: ViewerRef | null, motion: ViewerMotionState | null,
     geometryMotion: ViewerGeometryMotionState | null) {
@@ -1032,6 +1050,7 @@ export class Viewer {
       : this.packets.length + this.curves.length ? 'ready' : 'empty';
     return structuredClone({ status, frame: 'right-handed-y-up', sourceUnit: 'mm',
       mmToSceneUnit: this.options.mmToSceneUnit, camera: this.camera,
+      lighting: this.options.lighting ?? null,
       surfaces: this.packets.map(entry => ({ modelId: entry.modelId, surfaceId: entry.packet.surfaceId })),
       curves: this.curves.map(entry => ({ modelId: entry.modelId, curveId: entry.sample.curve.id })),
       curveSampleVersion: this.curves.length ? this.curves[0].sampleVersion : null,
