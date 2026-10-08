@@ -788,3 +788,47 @@ flow**. It first demonstrates the actual old refusal on two native source Models
 with shared Surface/Curve IDs, then observes the new qualified scene's buffers,
 pixels/bounds/depth/ref/native retention, invalid cases and cleanup. Integration
 and actual model-set/Viewer/Loader adoption remain separate from native readiness.
+
+### Explicit qualified primitive viewport (#763)
+
+```ts
+const viewport = mountPrimitiveViewport(canvas, options);
+// Genuine empty background/depth frame. No fake native primitive or bounds.
+viewport.entries; // []
+viewport.bounds;  // null
+viewport.update({version: 2, entries: qualifiedNativeEntries}, options);
+viewport.clear(options); // UpdateResult; explicit empty command
+viewport.dispose();
+```
+
+PrimitiveViewport reuses the existing primitive backend, validation and atomic
+frame/resource lifecycle. update requires exactly existing qualified scenev2
+1–4 entries; Surface packets/native Curve samplingv0/v1, original source/IDs/UV,
+explicit TRS/frame/unit/lighting and all native/display budgets remain unchanged.
+Old mountPrimitiveScene/v1/v2 constructors and updates still refuse empty arrays.
+The new constructor creates a real empty framebuffer/color/depth with zero
+primitive buffers, programs, VAOs or fabricated native geometry.
+
+clear requires explicit current PrimitiveSceneOptions, with the same own-data,
+camera/lighting/unit/canvas admission. It stages background/depth and releases the
+previous owned frame only after success. Invalid update/clear candidates retain
+accepted entries/options/bounds/pixels. entries and options return owned copies;
+bounds is a copied derived display bound or null when empty. render/readPixels,
+resize and idempotent dispose retain current loss/disposal rules. No Infinity
+bounds, fake Surface packet, normalized native domain or serialized empty model
+is introduced. This is display lifecycle, not sketch document/authoring support.
+
+One real compiled native553 Line + own-GPU browser collector:
+
+```sh
+BAROCSS_PRIMITIVE_VIEWPORT_EVIDENCE=/absolute/unique/output \
+BAROCSS_PRIMITIVE_VIEWPORT_PORT=52199 \
+node examples/gpu-scene/primitive-viewport-flow.mjs
+```
+
+Open its isolated localhost page and run the actual clear flow. It checks original
+source/coefficient copies and actual Line GL buffer, independent empty background
+pixels, invalid/legacy-empty refusal retention, clear/restore/empty resize and zero
+owned resources after disposal. It proves one nativev0 Line and this explicit
+viewport lifecycle. Wide/Surface/reader/gallery/hardware-performance campaigns
+and Viewer/Loader/sketch UI adoption are separate.

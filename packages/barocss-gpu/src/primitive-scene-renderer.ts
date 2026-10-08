@@ -84,10 +84,13 @@ function curvePositions(sample:NativeCurveSample,options:MeshOptions,pose?:MeshS
  }
  return positions;
 }
-function prepare(input:unknown,optionsInput:unknown,sceneVersion:0|1|2=0):{primitives:Primitive[];options:PrimitiveSceneOptions}{
+function prepareOptions(optionsInput:unknown):PrimitiveSceneOptions{
  const common=record(optionsInput,['mmToSceneUnit','translate','background','camera','lighting'],['mmToSceneUnit','translate','background']);
  const white=validateMeshOptions({...common,color:[1,1,1]});
- const options={mmToSceneUnit:white.mmToSceneUnit,translate:[...white.translate] as Vec3,background:[...white.background] as RGB,...(white.camera?{camera:structuredClone(white.camera)}:{}),...(white.lighting?{lighting:white.lighting}:{})};
+ return{mmToSceneUnit:white.mmToSceneUnit,translate:[...white.translate] as Vec3,background:[...white.background] as RGB,...(white.camera?{camera:structuredClone(white.camera)}:{}),...(white.lighting?{lighting:white.lighting}:{})};
+}
+function prepare(input:unknown,optionsInput:unknown,sceneVersion:0|1|2=0):{primitives:Primitive[];options:PrimitiveSceneOptions}{
+ const options=prepareOptions(optionsInput);
  check(Array.isArray(input)&&Object.getPrototypeOf(input)===Array.prototype,'Primitive entries must be a plain array');
  const length=Object.getOwnPropertyDescriptor(input,'length')!.value;
  check(Number.isInteger(length)&&length>=1&&length<=4&&Reflect.ownKeys(input).length===length+1,'Primitive scene requires1..4 dense entries');
@@ -141,6 +144,7 @@ class PrimitiveSceneBackend {
   const gl=canvas.getContext('webgl2',{alpha:false,antialias:false,depth:true,preserveDrawingBuffer:true});check(gl&&!gl.isContextLost(),'WebGL2 is unavailable');this.gl=gl;canvas.addEventListener('webglcontextlost',this.onLoss);
   let frame:Frame|null=null;try{frame=this.create(prepared.primitives,prepared.options,canvas.width,canvas.height);this.present(frame);this.accepted=frame;}catch(error){if(frame)this.release(frame);this.dispose();throw error;}
  }
+ protected get hasPrimitives():boolean{this.live();return this.accepted!.draws.length>0;}
  protected copyEntries():(PrimitiveSceneEntry|PrimitiveSceneEntryV1|PrimitiveSceneEntryV2)[]{this.live();return this.accepted!.draws.map(d=>structuredClone(d.entry));}
  get options():PrimitiveSceneOptions{this.live();return structuredClone(this.accepted!.options);}
  get bounds():MeshSceneBounds{this.live();const draws=this.accepted!.draws;return{min:[0,1,2].map(a=>Math.min(...draws.map(d=>d.bounds.min[a]))) as Vec3,max:[0,1,2].map(a=>Math.max(...draws.map(d=>d.bounds.max[a]))) as Vec3};}
@@ -205,3 +209,27 @@ export class PrimitiveSceneRendererV2 extends PrimitiveSceneBackend {
 export function mountPrimitiveScene(canvas:HTMLCanvasElement,entries:PrimitiveSceneEntry[],options:PrimitiveSceneOptions):PrimitiveSceneRenderer{return new PrimitiveSceneRenderer(canvas,entries,options);}
 export function mountPrimitiveSceneV1(canvas:HTMLCanvasElement,input:PrimitiveSceneInputV1,options:PrimitiveSceneOptions):PrimitiveSceneRendererV1{return new PrimitiveSceneRendererV1(canvas,input,options);}
 export function mountPrimitiveSceneV2(canvas:HTMLCanvasElement,input:PrimitiveSceneInputV2,options:PrimitiveSceneOptions):PrimitiveSceneRendererV2{return new PrimitiveSceneRendererV2(canvas,input,options);}
+
+/** Reuses the current primitive frame lifecycle; empty frames contain no native data. */
+class PrimitiveViewportBackend extends PrimitiveSceneBackend {
+ constructor(options:PrimitiveSceneOptions,canvas:HTMLCanvasElement){super(canvas,{primitives:[],options:prepareOptions(options)});}
+ get entries():PrimitiveSceneEntryV2[]{return this.copyEntries() as PrimitiveSceneEntryV2[];}
+ get empty():boolean{return !this.hasPrimitives;}
+ update(input:PrimitiveSceneInputV2,options:PrimitiveSceneOptions):UpdateResult{return this.updatePrepared(()=>prepareV2(input,options));}
+ clear(options:PrimitiveSceneOptions):UpdateResult{return this.updatePrepared(()=>({primitives:[],options:prepareOptions(options)}));}
+}
+/** Explicit empty/clear owner over the same qualified version2 primitive backend. */
+export class PrimitiveViewport {
+ private readonly backend:PrimitiveViewportBackend;
+ constructor(canvas:HTMLCanvasElement,options:PrimitiveSceneOptions){this.backend=new PrimitiveViewportBackend(options,canvas);}
+ get entries():PrimitiveSceneEntryV2[]{return this.backend.entries;}
+ get options():PrimitiveSceneOptions{return this.backend.options;}
+ get bounds():MeshSceneBounds|null{return this.backend.empty?null:this.backend.bounds;}
+ update(input:PrimitiveSceneInputV2,options:PrimitiveSceneOptions):UpdateResult{return this.backend.update(input,options);}
+ clear(options:PrimitiveSceneOptions):UpdateResult{return this.backend.clear(options);}
+ render():void{this.backend.render();}
+ readPixels():Uint8Array{return this.backend.readPixels();}
+ resize(width?:number,height?:number):void{this.backend.resize(width,height);}
+ dispose():void{this.backend.dispose();}
+}
+export function mountPrimitiveViewport(canvas:HTMLCanvasElement,options:PrimitiveSceneOptions):PrimitiveViewport{return new PrimitiveViewport(canvas,options);}
