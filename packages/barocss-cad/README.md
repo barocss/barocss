@@ -5630,3 +5630,77 @@ records. Actual source-only and declared compiled JS/types flows are separate.
 Full feature graphs, constraints, assembly placement, view/cache persistence,
 migration/export profiles, renderer adoption and publication remain separately
 tracked under528/712–715/660; empty arrays do not implement those capabilities.
+
+## Qualified document geometry references and derived frame mapping
+
+`createCadGeometryReference(documentResult,{bodyId})` captures an actual native
+object's document/body/asset/geometry identity, exact document/asset revisions,
+kind, sourceVersion0, authored frame and millimetre unit. Reference schema
+`barocss-cad-geometry-reference`, version0 is distinct from document filev1.
+`resolveCadGeometryReference(documentResult,reference)` validates/rebuilds the
+source-backed712 document, then requires all qualified fields and **exact**
+revisions. Missing/foreign/stale references refuse; names, triangle indices,
+nearest points and guessed topology never replace authored IDs. This first
+profile resolves Curve/Surface geometry only, without topological naming.
+Revisions are caller-managed logical values, not content signatures. Source
+edits must advance the declared revisions; strict resolution cannot detect a
+caller replacing source while deliberately keeping every revision unchanged.
+Explicit rebind compares both actual source-backed geometry objects.
+
+`rebindCadGeometryReference(previousDocument,currentDocument,previousReference)`
+first resolves the exact original reference against its actual old source.
+Document/body/asset/geometry identity, kind, units and frame must remain stable,
+and complete old/current native geometry coefficients/knots/weights/order/
+signed-zero bits must be unchanged. Only then does it return a new reference
+with current revisions. Editing another object or source whitespace can support
+an explicit unchanged-geometry rebind; changing selected geometry with the same
+ID makes it stale. It never rewrites the old reference or selects a nearby object.
+
+`queryCadDocumentPoint(document,reference,query)` admits exactly
+`{kind:'curve',parameter}` or `{kind:'surface',u,v}` for the matching resolved
+native kind and original closed parameter domain. It evaluates the actual
+original native geometry and returns `{reference,query,pointMM,report}`.
+`validateCadDocumentPoint(document,result)` reconstructs the qualified/native
+query and compares complete fields and bits. No ray/mesh/barycentric query,
+normal/D1 or solid certificate is implied.
+
+`convertCadDocumentPoint(document,pointResult,{targetFrameId,axisMap,
+targetLengthUnit})` performs an explicit derived known-axis mapping.
+`axisMap` is only identity or `x-z-minus-y`; targetLengthUnit is only mm or m.
+The declared axis map is applied first, then exact selected scale1 or0.001.
+Reports retain source authored XYZ/mm, caller target-frame ID, actual basis
+rows, handedness, source/target units, scale and transform order. The numerical
+mapping `(x,z,-y)` does not retag the source as part XYZ/Z-up or infer a universal
+CAD up axis. It is not a native geometry edit, placement solver or frame graph.
+Nonfinite/unsafe nonzero-product underflow refuses without correction.
+`validateCadFrameConversion(document,result)` rebuilds the original validated
+point and declared mapping before comparing every result field.
+
+Resolve/create result is `{reference,geometry,source,report}`; explicit rebind
+is `{previousReference,reference,report}`; conversion is
+`{sourcePoint,options,convertedPoint,report}`. Original source/IDs/coefficient
+bits remain, while geometry copies and mapping records are derived CPU data.
+Caller ownership uses copied records/GC without renderer resources/disposal.
+Reports `barocss-cad-reference-report` and `barocss-cad-frame-conversion-report`
+are version0, with actual source authority, not-certified/topologyCertified:false/
+solid:false and no global topological naming/manufacturing guarantee.
+
+IDs/revision limits follow712 (document/body/asset1..48, geometry1..128,unsigned
+revision0..2147483647). Target-frame ID is ASCII1..48. Strict own-data input
+bounds262144 values/depth24/arrays4096/records64/source strings262144 admit actual
+712 results; output bounds262144/depth32/4096/64/source262144. Getter0/hidden/
+symbol/foreign/sparse/cyclic/unknown/nonfinite and altered records refuse while
+prior documents/files/accepted points remain unchanged. `CadReferenceError` and
+runtime/type `CadReferenceDiagnosticCode` expose INPUT, VERSION, REFERENCE,
+STALE, QUERY, FRAME, REPRESENTABILITY, NATIVE, BINDING and OWNED with causes.
+
+```sh
+node examples/cad-nurbs/cad-document-reference-demo.mjs --source
+```
+
+The bounded file/native/compiled flow resolves original Curve/Surface points,
+checks explicit identity/mm and axis-map/metre output, and observes exact stale
+revision versus unchanged-geometry rebind across two revisions. Current packet,
+part-XYZ/Motion contracts, authored source, old editor readers, actual renderer
+adoption and publication remain separate. CAN-03/CAN-04 topology/placement and
+arbitrary frame-graph capabilities remain future scope.
