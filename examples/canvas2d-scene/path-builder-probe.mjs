@@ -62,6 +62,6 @@ tree.stage.addChild(tree.createPath({ id: 'Circle', layer: 1, transform: pose,
   commands: circle, fill: { color: [0, 0, 1, 1], rule: 'evenodd' } }));
 const snapshot = tree.snapshot();
 assert.deepEqual(snapshot.nodes.map(node => node.id), ['Rectangle', 'Circle']);
-assert.equal(JSON.parse(stringifySceneJSON(snapshot)).version, 7);
+assert.equal(JSON.parse(stringifySceneJSON(snapshot)).version, 8);
 console.log(JSON.stringify({ result: 'ok', rectCommands: rectangle.length,
   circleCommands: circle.length, manualCommands: manual.length, refusals: invalid.length + 6 }));
