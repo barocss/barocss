@@ -1,5 +1,5 @@
 import { Canvas2DError, copyImageAsset, validateImageAssetId, validatePoint, validateScene, validateSize, validateView } from './schema.js';
-import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, Point, Scene, Size, Transform, View } from './schema.js';
+import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, Point, Scene, Size, Transform, View } from './schema.js';
 import { tessellatePath } from './path.js';
 import type { FillObservation, PathObservation } from './path.js';
 import { createImageGpu, createImageTexture, disposeImageGpu, renderImage, sampledAlpha, sourceRect } from './image.js';
@@ -7,7 +7,7 @@ import type { ImageAsset, ImageGpu } from './image.js';
 
 type Matrix = [number, number, number, number, number, number];
 type Clip = { left: number; top: number; right: number; bottom: number };
-type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5;
+type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6;
 type DrawNode = Exclude<RenderNode, { kind: 'group' }>;
 type Draw = {
   id: string; kind: 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun'; node: DrawNode;
@@ -119,8 +119,11 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
         if (crop.x + crop.width > asset.width || crop.y + crop.height > asset.height) {
           throw new Canvas2DError('INVALID_ASSET', `image crop exceeds asset ${node.imageId}`);
         }
-        add({ id: node.id, kind: 'image', node, matrix, inverse: inv,
-          color: [1, 1, 1, node.opacity], vertices: rectangle(matrix, node.width, node.height),
+        const imageMatrix = 'anchorX' in node
+          ? multiply(matrix, [1, 0, 0, 1, -node.anchorX * node.width, -node.anchorY * node.height])
+          : matrix;
+        add({ id: node.id, kind: 'image', node, matrix: imageMatrix, inverse: inverse(imageMatrix),
+          color: [1, 1, 1, node.opacity], vertices: rectangle(imageMatrix, node.width, node.height),
           imageAsset: asset, clip: inheritedClip });
       } else if (node.kind === 'glyphRun') {
         const asset = assets.get(node.atlasId);
