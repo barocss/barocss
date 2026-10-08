@@ -1,5 +1,10 @@
-import { compileCadModel, sampleCurveAdaptive, tessellateSurface, validateAdaptiveCurveSamples } from '@barocss/cad';
-import type { AdaptiveCurveSamplingResult, ApproximationReport, CadDiagnostic, Model } from '@barocss/cad';
+import {
+  compileCadModel, sampleCurveAdaptive, sampleCurveWideAdaptive, tessellateSurface,
+  validateAdaptiveCurveSamples, validateWideAdaptiveCurveSamples,
+} from '@barocss/cad';
+import type {
+  AdaptiveCurveSamplingResult, ApproximationReport, CadDiagnostic, Model, WideAdaptiveCurveSamplingResult,
+} from '@barocss/cad';
 import { prepareCadPreviewMesh } from './packet.js';
 import type { CadPreviewPacket, PreparedCadMesh } from './packet.js';
 import { encodeNativePreviewGlb } from './glb.js';
@@ -9,6 +14,16 @@ import type { BaroCadLoadTransportOptions } from './transport.js';
 export { BaroCadLoadAbortError } from './transport.js';
 export type { BaroCadLoadProgress, BaroCadLoadTransportOptions } from './transport.js';
 
+export interface BaroCadCurveDisplayV0 {
+  chordToleranceMM: number;
+  maxSegments: number;
+  maxDepth: number;
+}
+
+export interface BaroCadCurveDisplayV1 extends BaroCadCurveDisplayV0 {
+  version: 1;
+}
+
 export interface BaroCadParseOptions {
   sourceVersion: 0;
   countU: number;
@@ -16,7 +31,7 @@ export interface BaroCadParseOptions {
   /** Renderer units per native millimetre. Use 0.001 for metres. */
   unitsPerMillimeter: number;
   /** Explicit opt-in. Curve parameters retain the authored knot domain. */
-  curveDisplay?: { chordToleranceMM: number; maxSegments: number; maxDepth: number };
+  curveDisplay?: BaroCadCurveDisplayV0 | BaroCadCurveDisplayV1;
 }
 
 export interface BaroCadSurfacePreview {
@@ -28,8 +43,8 @@ export interface BaroCadSurfacePreview {
 
 export interface BaroCadCurvePreview {
   curveId: string;
-  /** Owned CAD661 sample record with original native parameters and intervals. */
-  sample: AdaptiveCurveSamplingResult;
+  /** Owned CAD sample record with original native parameters and intervals. V1 is explicit. */
+  sample: AdaptiveCurveSamplingResult | WideAdaptiveCurveSamplingResult;
   /** Renderer-unit XYZ positions only; no surface normals or texture UV. */
   positions: Float32Array;
 }
@@ -95,10 +110,13 @@ export function validateBaroCadParseOptions(input: unknown): BaroCadParseOptions
     const display = descriptor.value;
     if (display === null || typeof display !== 'object' || Array.isArray(display) ||
         ![Object.prototype, null].includes(Object.getPrototypeOf(display))) throw new TypeError('BaroCAD curveDisplay must be a plain object');
-    const fields = ['chordToleranceMM', 'maxSegments', 'maxDepth'];
     const displayKeys = Reflect.ownKeys(display);
+    const wide = displayKeys.includes('version');
+    const fields = wide ? ['version', 'chordToleranceMM', 'maxSegments', 'maxDepth'] :
+      ['chordToleranceMM', 'maxSegments', 'maxDepth'];
     if (displayKeys.length !== fields.length || !displayKeys.every(key => typeof key === 'string' && fields.includes(key))) {
-      throw new TypeError('BaroCAD curveDisplay requires chordToleranceMM, maxSegments and maxDepth only');
+      throw new TypeError(wide ? 'BaroCAD curveDisplay version 1 requires version, chordToleranceMM, maxSegments and maxDepth only' :
+        'BaroCAD curveDisplay requires chordToleranceMM, maxSegments and maxDepth only');
     }
     const curveDisplay: Record<string, number> = {};
     for (const key of fields) {
@@ -106,17 +124,22 @@ export function validateBaroCadParseOptions(input: unknown): BaroCadParseOptions
       if (!field || !field.enumerable || !('value' in field)) throw new TypeError(`BaroCAD curveDisplay ${key} must be data`);
       curveDisplay[key] = field.value;
     }
+    if (wide && curveDisplay.version !== 1) throw new RangeError('Only BaroCAD curveDisplay version 1 is supported');
+    const maximumSegments = wide ? 4092 : 1024;
     if (!Number.isFinite(curveDisplay.chordToleranceMM) || curveDisplay.chordToleranceMM < 1e-7 || curveDisplay.chordToleranceMM > 1000 ||
-        !Number.isInteger(curveDisplay.maxSegments) || curveDisplay.maxSegments < 1 || curveDisplay.maxSegments > 1024 ||
+        !Number.isInteger(curveDisplay.maxSegments) || curveDisplay.maxSegments < 1 || curveDisplay.maxSegments > maximumSegments ||
         !Number.isInteger(curveDisplay.maxDepth) || curveDisplay.maxDepth < 0 || curveDisplay.maxDepth > 16) {
-      throw new RangeError('BaroCAD curveDisplay exceeds CAD661 tolerance, segment or depth bounds');
+      throw new RangeError(`BaroCAD curveDisplay exceeds ${wide ? 'v1' : 'CAD661'} tolerance, segment or depth bounds`);
     }
     values.curveDisplay = curveDisplay;
   }
   return values as unknown as BaroCadParseOptions;
 }
 
-function curvePositions(pointsMM: AdaptiveCurveSamplingResult['pointsMM'], unitsPerMillimeter: number): Float32Array {
+function curvePositions(
+  pointsMM: AdaptiveCurveSamplingResult['pointsMM'] | WideAdaptiveCurveSamplingResult['pointsMM'],
+  unitsPerMillimeter: number,
+): Float32Array {
   const positions = new Float32Array(pointsMM.length * 3);
   for (let index = 0; index < pointsMM.length; index++) {
     for (let axis = 0; axis < 3; axis++) {
@@ -159,17 +182,28 @@ export function parseBaroCadSource(source: string, options: BaroCadParseOptions)
   });
   const curvePreviews: BaroCadCurvePreview[] = [];
   if (parsedOptions.curveDisplay) {
+    const wide = 'version' in parsedOptions.curveDisplay;
     const sourceIds = [compiled.model.name, ...compiled.model.objects.map(object => object.id)];
     let totalPoints = 0;
     let totalSegments = 0;
     for (const [index, object] of compiled.model.objects.entries()) {
       if (object.kind !== 'curve') continue;
-      const resultIdPrefix = `bcv0c${index}`;
+      const resultIdPrefix = `bcv${wide ? 1 : 0}c${index}`;
       if (sourceIds.some(id => id === resultIdPrefix || id.startsWith(`${resultIdPrefix}_`))) {
         throw new RangeError(`BaroCAD Curve generated ID prefix ${resultIdPrefix} conflicts with source IDs`);
       }
-      const sample = sampleCurveAdaptive(object, { ...parsedOptions.curveDisplay, resultIdPrefix });
-      validateAdaptiveCurveSamples(sample);
+      let sample: AdaptiveCurveSamplingResult | WideAdaptiveCurveSamplingResult;
+      if (wide) {
+        sample = sampleCurveWideAdaptive(object, {
+          chordToleranceMM: parsedOptions.curveDisplay.chordToleranceMM,
+          maxSegments: parsedOptions.curveDisplay.maxSegments,
+          maxDepth: parsedOptions.curveDisplay.maxDepth, resultIdPrefix,
+        });
+        validateWideAdaptiveCurveSamples(sample);
+      } else {
+        sample = sampleCurveAdaptive(object, { ...parsedOptions.curveDisplay, resultIdPrefix });
+        validateAdaptiveCurveSamples(sample);
+      }
       totalPoints += sample.pointsMM.length;
       totalSegments += sample.segments.length;
       if (totalPoints > 4096 || totalSegments > 4092) throw new RangeError('BaroCAD Curve display exceeds total sample capacity');
@@ -187,6 +221,9 @@ export function baroCadSourceToGLB(
   source: string, nativeOptions: BaroCadParseOptions, exportOptions: BaroCadGlbExportOptions,
 ): ArrayBuffer {
   const options = validateBaroCadParseOptions(nativeOptions);
+  if (options.curveDisplay && 'version' in options.curveDisplay) {
+    throw new RangeError('BaroCAD GLB does not support Curve sample version 1');
+  }
   if (options.unitsPerMillimeter !== 0.001) throw new RangeError('BaroCAD GLB requires unitsPerMillimeter 0.001');
   if (exportOptions === null || typeof exportOptions !== 'object' || Array.isArray(exportOptions) ||
       ![Object.prototype, null].includes(Object.getPrototypeOf(exportOptions))) {

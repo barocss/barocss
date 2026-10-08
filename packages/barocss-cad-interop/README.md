@@ -318,6 +318,41 @@ accuracy. Run `pnpm --filter @barocss/cad-interop build:library` and then
 `pnpm --filter @barocss/cad-interop test:curve` for the included real source
 files, Three/Babylon objects, local URL loading, disposal and bounded refusals.
 
+### Explicit wide Curve sample version 1
+
+The neutral and Three.js native loaders can opt in to CAD #696's wide Curve
+samples while keeping the source format at version 0. The existing three-field
+`curveDisplay` option still selects the old 16-pole sample version 0.
+
+```js
+const result = await new BaroCADLoader({
+  sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+  curveDisplay: { version: 1, chordToleranceMM: 0.1, maxSegments: 512, maxDepth: 16 },
+}).loadAbortable('/curve-wide-v1.barocad', {});
+scene.add(result.group);
+// result.curves[0].sample.report.dto.version === 1
+result.dispose();
+```
+
+Version 1 admits CAD's bounded positive open-clamped degree 1–3 Curves with
+2–64 original poles, at most 70 knots and at most 64 nonzero spans. Loader
+limits requested segments to 1–4092 and aggregate display output to 4096
+points/4092 segments across at most four source0 objects. The old Surface
+sample grid, source byte/chunk limits and original authored XYZ/Y-up frame do
+not change. The display Line uses Float32 XYZ scaled once from native
+millimetres; original source, IDs, coefficient bits, knots and parameter
+intervals stay in the native result. The line and approximate pick do not
+become a certified topology edge or exact NURBS intersection.
+
+Babylon and display GLB export reject version 1 before target allocation;
+Pixi3D continues to reject Curve display. The package example
+`examples/curve-wide-v1.barocad` is the exact 2631-byte source0 fixture from
+the integrated CAD #696 flow. Run `node examples/curve-wide-v1-verify.mjs`
+after building CAD and this package for the compiled native/Three acceptance
+checks. Serve `examples/curve-wide-v1.html` through a browser module server
+for the visible Three.js WebGL2 line, native parameter pick, invalid-source
+retention and caller-owned Scene disposal checks.
+
 ## Inspect a native Curve display hit
 
 The target entries can associate an actual picked line segment with its
