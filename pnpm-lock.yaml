@@ -159,6 +159,9 @@ importers:
         specifier: workspace:*
         version: link:../barocss-cad
     devDependencies:
+      '@babylonjs/core':
+        specifier: 9.29.0
+        version: 9.29.0
       '@types/three':
         specifier: ^0.186.0
         version: 0.186.0
@@ -4589,6 +4592,9 @@ packages:
 
   meshoptimizer@1.1.1:
     resolution: {integrity: sha512-oRFNWJRDA/WTrVj7NWvqa5HqE1t9MYDj2VaWirQCzCCrAd2GHrqR/sQezCxiWATPNlKTcRaPRHPJwIRoPBAp5g==}
+
+  '@babylonjs/core@9.29.0':
+    resolution: {integrity: sha512-qWrtTRsZF0DO6IouYTEZrcQtUEJzlKbc3i/7Ek2T1INFJ+zp9fxO+CIRJ9HRInOG6HYjQl1i6RhxXVyUbx8yxQ==}
 
 snapshots:
 
@@ -9354,3 +9360,5 @@ snapshots:
 
 
   meshoptimizer@1.1.1: {}
+
+  '@babylonjs/core@9.29.0': {}
