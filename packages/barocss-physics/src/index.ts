@@ -1,6 +1,6 @@
 /** A small, deterministic-order translational 3D dynamics profile. Units are SI. */
 export type Vec3 = [number, number, number];
-export type PhysicsErrorCode = 'INVALID_CONFIG' | 'INVALID_STEP' | 'INVALID_COMMAND' | 'WORLD_LIMIT' | 'NUMERIC_LIMIT' | 'DISPOSED';
+export type PhysicsErrorCode = 'INVALID_CONFIG' | 'INVALID_STEP' | 'INVALID_COMMAND' | 'INVALID_QUERY' | 'WORLD_LIMIT' | 'NUMERIC_LIMIT' | 'DISPOSED';
 
 export class PhysicsError extends Error {
   constructor(readonly code: PhysicsErrorCode, message: string) {
@@ -13,7 +13,7 @@ export type SphereShape = { kind: 'sphere'; radiusM: number };
 export type BoxShape = { kind: 'box'; halfExtentsM: Vec3 };
 export type PhysicsBodyConfig =
   | { id: string; kind: 'dynamic'; shape: SphereShape; positionM: Vec3; velocityMps: Vec3; massKg: number; restitution: number }
-  | { id: string; kind: 'static' | 'kinematic'; shape: SphereShape | BoxShape; positionM: Vec3; restitution: number };
+  | { id: string; kind: 'static' | 'kinematic'; shape: SphereShape | BoxShape; positionM: Vec3; restitution: number; sensor?: true };
 export type PhysicsStepCommand =
   | { kind: 'force'; bodyId: string; forceN: Vec3 }
   | { kind: 'impulse'; bodyId: string; impulseNs: Vec3 }
@@ -29,6 +29,7 @@ export interface PhysicsBodyState {
   shape: SphereShape | BoxShape;
   positionM: Vec3;
   velocityMps: Vec3;
+  sensor?: boolean;
 }
 export interface PhysicsContact {
   aId: string;
@@ -37,19 +38,32 @@ export interface PhysicsContact {
   penetrationM: number;
   impulseNs: number;
 }
+export interface PhysicsEvent {
+  aId: string;
+  bId: string;
+  kind: 'contact' | 'sensor';
+  phase: 'begin' | 'stay' | 'end';
+}
 export interface PhysicsState {
   stepIndex: number;
   timeSeconds: number;
   bodies: PhysicsBodyState[];
   contacts: PhysicsContact[];
+  events: PhysicsEvent[];
 }
+export interface PhysicsOverlapSphereQuery { centerM: Vec3; radiusM: number; includeSensors?: boolean }
+export interface PhysicsRayQuery { originM: Vec3; direction: Vec3; maxDistanceM: number; includeSensors?: boolean }
+export interface PhysicsRayHit { bodyId: string; distanceM: number }
 export interface PhysicsWorld {
   getState(): PhysicsState;
   step(fixedStepSeconds: number, commands?: PhysicsStepCommand[]): PhysicsState;
+  overlapSphere(query: PhysicsOverlapSphereQuery): string[];
+  raycast(query: PhysicsRayQuery): PhysicsRayHit | null;
   dispose(): void;
 }
 
 interface Body extends PhysicsBodyState {
+  sensor: boolean;
   inverseMass: number;
   restitution: number;
 }
@@ -107,15 +121,17 @@ function parseBody(value: unknown): Body {
   const kind = input.kind;
   fields(input, kind === 'dynamic'
     ? ['id', 'kind', 'shape', 'positionM', 'velocityMps', 'massKg', 'restitution']
-    : ['id', 'kind', 'shape', 'positionM', 'restitution'], 'body');
+    : ['id', 'kind', 'shape', 'positionM', 'restitution', 'sensor'], 'body');
+  if (Object.hasOwn(input, 'sensor') && input.sensor !== true) error('INVALID_CONFIG', 'sensor must be true');
+  const sensor = input.sensor === true;
   const parsedShape = shape(input.shape, kind !== 'dynamic');
   const positionM = vector(input.positionM, -10000, 10000, 'positionM');
   const restitution = finite(input.restitution, 0, 1, 'restitution');
   if (kind !== 'dynamic') {
-    return { id: input.id, kind, shape: parsedShape, positionM, velocityMps: [0, 0, 0], inverseMass: 0, restitution };
+    return { id: input.id, kind, shape: parsedShape, positionM, velocityMps: [0, 0, 0], sensor, inverseMass: 0, restitution };
   }
   const massKg = finite(input.massKg, 0.000001, 1000000, 'massKg');
-  return { id: input.id, kind, shape: parsedShape as SphereShape, positionM,
+  return { id: input.id, kind, shape: parsedShape as SphereShape, positionM, sensor,
     velocityMps: vector(input.velocityMps, -1000, 1000, 'velocityMps'), inverseMass: 1 / massKg, restitution };
 }
 function copyShape(value: SphereShape | BoxShape): SphereShape | BoxShape {
@@ -172,13 +188,51 @@ function parseCommands(input: unknown, bodies: Body[]): Map<string, AdmittedComm
   }
   return admitted;
 }
-function publicState(bodies: Body[], contacts: PhysicsContact[], stepIndex: number, dt: number): PhysicsState {
+function queryRecord(input: unknown, required: string[], optional: string[]): Record<string, unknown> {
+  if (input === null || typeof input !== 'object' || Array.isArray(input) ||
+    (Object.getPrototypeOf(input) !== Object.prototype && Object.getPrototypeOf(input) !== null)) {
+    error('INVALID_QUERY', 'query must be a plain object');
+  }
+  const descriptors = Object.getOwnPropertyDescriptors(input);
+  const keys = Reflect.ownKeys(input);
+  if (keys.some((key) => typeof key !== 'string' || ![...required, ...optional].includes(key)) ||
+    required.some((key) => !Object.hasOwn(descriptors, key)) ||
+    keys.some((key) => !descriptors[key as string]?.enumerable || !('value' in descriptors[key as string]))) {
+    error('INVALID_QUERY', 'query has missing or unsupported fields');
+  }
+  return Object.fromEntries(keys.map((key) => [key, descriptors[key as string].value]));
+}
+function queryVector(input: unknown, bound: number, label: string): Vec3 {
+  if (!Array.isArray(input) || input.length !== 3 || Reflect.ownKeys(input).length !== 4 ||
+    ![0, 1, 2].every((index) => Object.hasOwn(input, index))) {
+    error('INVALID_QUERY', `${label} must be a dense 3-vector`);
+  }
+  const values = [input[0], input[1], input[2]];
+  if (values.some((value) => typeof value !== 'number' || !Number.isFinite(value) || Math.abs(value) > bound)) {
+    error('INVALID_QUERY', `${label} components must be finite within ±${bound}`);
+  }
+  return values as Vec3;
+}
+function queryNumber(input: unknown, min: number, max: number, label: string): number {
+  if (typeof input !== 'number' || !Number.isFinite(input) || input < min || input > max) {
+    error('INVALID_QUERY', `${label} must be finite and in [${min}, ${max}]`);
+  }
+  return input;
+}
+function includeSensors(query: Record<string, unknown>): boolean {
+  if (!Object.hasOwn(query, 'includeSensors')) return true;
+  if (typeof query.includeSensors !== 'boolean') error('INVALID_QUERY', 'includeSensors must be boolean');
+  return query.includeSensors;
+}
+function publicState(bodies: Body[], contacts: PhysicsContact[], events: PhysicsEvent[], stepIndex: number, dt: number): PhysicsState {
   return {
     stepIndex, timeSeconds: stepIndex * dt,
-    bodies: bodies.map(({ id, kind, shape: collider, positionM, velocityMps }) =>
-      ({ id, kind, shape: copyShape(collider), positionM: [...positionM], velocityMps: [...velocityMps] })),
+    bodies: bodies.map(({ id, kind, shape: collider, positionM, velocityMps, sensor }) =>
+      ({ id, kind, shape: copyShape(collider), positionM: [...positionM], velocityMps: [...velocityMps],
+        ...(sensor ? { sensor: true } : {}) })),
     contacts: contacts.map(({ aId, bId, normalAtoB, penetrationM, impulseNs }) =>
       ({ aId, bId, normalAtoB: [...normalAtoB], penetrationM, impulseNs })),
+    events: events.map((event) => ({ ...event })),
   };
 }
 function sphereSphere(a: Body, b: Body): Hit | null {
@@ -220,6 +274,41 @@ function detect(a: Body, b: Body): Hit | null {
     return hit && { normal: hit.normal.map((v) => -v) as Vec3, penetration: hit.penetration };
   }
   return null;
+}
+function sphereOverlaps(center: Vec3, radius: number, body: Body): boolean {
+  if (body.shape.kind === 'sphere') {
+    return Math.hypot(...center.map((value, index) => value - body.positionM[index])) <= radius + body.shape.radiusM;
+  }
+  const extents = body.shape.halfExtentsM;
+  const delta = center.map((value, index) =>
+    Math.max(0, Math.abs(value - body.positionM[index]) - extents[index]));
+  return Math.hypot(...delta) <= radius;
+}
+function rayDistance(origin: Vec3, direction: Vec3, body: Body): number | null {
+  if (body.shape.kind === 'sphere') {
+    const relative = origin.map((value, index) => value - body.positionM[index]) as Vec3;
+    const c = relative.reduce((sum, value) => sum + value * value, 0) - body.shape.radiusM ** 2;
+    if (c <= 0) return 0;
+    const projection = relative.reduce((sum, value, index) => sum + value * direction[index], 0);
+    const discriminant = projection ** 2 - c;
+    return projection > 0 || discriminant < 0 ? null : -projection - Math.sqrt(discriminant);
+  }
+  let near = -Infinity, far = Infinity;
+  for (let index = 0; index < 3; index++) {
+    const lower = body.positionM[index] - body.shape.halfExtentsM[index];
+    const upper = body.positionM[index] + body.shape.halfExtentsM[index];
+    const component = direction[index];
+    if (Math.abs(component) < 1e-12) {
+      if (origin[index] < lower || origin[index] > upper) return null;
+      continue;
+    }
+    const first = (lower - origin[index]) / component;
+    const second = (upper - origin[index]) / component;
+    near = Math.max(near, Math.min(first, second));
+    far = Math.min(far, Math.max(first, second));
+    if (far < near) return null;
+  }
+  return far < 0 ? null : Math.max(0, near);
 }
 function solve(a: Body, b: Body, hit: Hit): number {
   const inverseTotal = a.inverseMass + b.inverseMass;
@@ -269,11 +358,13 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
     bodies[left[0]].id > bodies[right[0]].id ? 1 :
       bodies[left[1]].id < bodies[right[1]].id ? -1 : 1);
   let contacts: PhysicsContact[] = [];
+  let events: PhysicsEvent[] = [];
+  let activePairs = new Map<string, Omit<PhysicsEvent, 'phase'>>();
   let stepIndex = 0;
   let disposed = false;
   const ensureActive = () => { if (disposed) error('DISPOSED', 'world is disposed'); };
   return {
-    getState() { ensureActive(); return publicState(bodies, contacts, stepIndex, dt); },
+    getState() { ensureActive(); return publicState(bodies, contacts, events, stepIndex, dt); },
     step(fixedStepSeconds, commands = []) {
       ensureActive();
       if (fixedStepSeconds !== dt) error('INVALID_STEP', 'step must equal configured fixedStepSeconds');
@@ -303,12 +394,17 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
         }
       }
       const found = new Map<string, PhysicsContact>();
+      const sensed = new Map<string, Omit<PhysicsEvent, 'phase'>>();
       for (let pass = 0; pass < SOLVER_PASSES; pass++) for (const [aIndex, bIndex] of pairs) {
         const a = next[aIndex], b = next[bIndex];
         const hit = detect(a, b);
         if (!hit) continue;
         if (hit.penetration > MAX_STEP_DISPLACEMENT_M) error('NUMERIC_LIMIT', 'contact penetration exceeded limit');
         const key = `${a.id}\u0000${b.id}`;
+        if (a.sensor || b.sensor) {
+          sensed.set(key, { aId: a.id, bId: b.id, kind: 'sensor' });
+          continue;
+        }
         let contact = found.get(key);
         if (!contact) {
           contact = { aId: a.id, bId: b.id, normalAtoB: [...hit.normal], penetrationM: 0, impulseNs: 0 };
@@ -318,12 +414,55 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
         contact.impulseNs += solve(a, b, hit);
       }
       const nextContacts = [...found.values()];
+      const nextActive = new Map<string, Omit<PhysicsEvent, 'phase'>>(sensed);
+      for (const contact of nextContacts) {
+        nextActive.set(`${contact.aId}\u0000${contact.bId}`,
+          { aId: contact.aId, bId: contact.bId, kind: 'contact' });
+      }
+      const nextEvents = [...new Set([...activePairs.keys(), ...nextActive.keys()])].sort().map((key): PhysicsEvent => {
+        const current = nextActive.get(key);
+        const previous = activePairs.get(key);
+        return { ...(current ?? previous!), phase: current ? previous ? 'stay' : 'begin' : 'end' };
+      });
       validateResult(next, nextContacts);
       bodies = next;
       contacts = nextContacts;
+      events = nextEvents;
+      activePairs = nextActive;
       stepIndex++;
-      return publicState(bodies, contacts, stepIndex, dt);
+      return publicState(bodies, contacts, events, stepIndex, dt);
     },
-    dispose() { disposed = true; bodies = []; contacts = []; },
+    overlapSphere(input) {
+      ensureActive();
+      const query = queryRecord(input, ['centerM', 'radiusM'], ['includeSensors']);
+      const center = queryVector(query.centerM, 10000, 'centerM');
+      const radius = queryNumber(query.radiusM, 0.0001, 1000, 'radiusM');
+      const sensors = includeSensors(query);
+      return bodies.filter((body) => (sensors || !body.sensor) && sphereOverlaps(center, radius, body))
+        .map((body) => body.id).sort();
+    },
+    raycast(input) {
+      ensureActive();
+      const query = queryRecord(input, ['originM', 'direction', 'maxDistanceM'], ['includeSensors']);
+      const origin = queryVector(query.originM, 10000, 'originM');
+      const direction = queryVector(query.direction, 1 + 1e-9, 'direction');
+      if (Math.abs(Math.hypot(...direction) - 1) > 1e-9) {
+        error('INVALID_QUERY', 'direction must be a unit 3-vector');
+      }
+      const limit = queryNumber(query.maxDistanceM, 0.0001, 10000, 'maxDistanceM');
+      const sensors = includeSensors(query);
+      let best: PhysicsRayHit | null = null;
+      for (const body of bodies) {
+        if (!sensors && body.sensor) continue;
+        const distance = rayDistance(origin, direction, body);
+        if (distance === null || distance > limit) continue;
+        if (best === null || distance < best.distanceM ||
+          (distance === best.distanceM && body.id < best.bodyId)) {
+          best = { bodyId: body.id, distanceM: distance };
+        }
+      }
+      return best;
+    },
+    dispose() { disposed = true; bodies = []; contacts = []; events = []; activePairs.clear(); },
   };
 }
