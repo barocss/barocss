@@ -12,7 +12,7 @@ import { mountMeshScene, mountPrimitiveScene, mountPrimitiveSceneV1, mountPrimit
   PrimitiveSceneRendererV2, PrimitiveViewport, prepareMesh,
   validateMeshCamera, validatePreviewPacket } from '@barocss/gpu';
 import type { MeshCamera, MeshLighting, PreviewPacket, PrimitiveSceneEntryV1,
-  PrimitiveSceneEntryV2 } from '@barocss/gpu';
+  PrimitiveSceneEntryV2, ParticleLayerV0 } from '@barocss/gpu';
 
 type Vec3 = [number, number, number];
 type Quat = [number, number, number, number];
@@ -31,6 +31,15 @@ export type ViewerGeometryRef =
   | ({ kind: 'surface' } & ViewerRef)
   | ({ kind: 'curve' } & ViewerCurveRef);
 export interface ViewerPacket { modelId: string; packet: PreviewPacket }
+/** Actual Physics metre positions mapped by the host; Viewer owns the copied display frame. */
+export interface ViewerFluidFrameV0 {
+  version: 0;
+  contextId: string;
+  sceneRevision: string;
+  stepIndex: number;
+  particleCount: 256;
+  positionsM: Float64Array;
+}
 export interface ViewerNativeSurfaceParameter extends ViewerRef { u: number; v: number }
 export interface ViewerNativeSurfacePoint {
   ref: ViewerRef;
@@ -164,6 +173,7 @@ export interface ViewerState {
   curveMeasurement: ViewerNativeCurveMeasurement | null;
   surfaceCurveMeasurement: ViewerNativeSurfaceCurveMeasurement | null;
   nativeMeasurement: ViewerNativePointDistance | null;
+  fluidFrame: ViewerFluidFrameV0 | null;
 }
 
 const PALETTE: Vec3[] = [[0.14, 0.58, 0.86], [0.95, 0.57, 0.22], [0.36, 0.72, 0.49], [0.72, 0.48, 0.87]];
@@ -172,6 +182,7 @@ const INITIAL_CAMERA: MeshCamera = { eye: [0, 0, 6], target: [0, 0, 0], up: [0, 
 const ID = /^[A-Za-z_][A-Za-z0-9_-]{0,127}$/;
 const MODEL_ID = /^[A-Za-z_][A-Za-z0-9_.-]{0,127}$/;
 const MOTION_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/;
+const FLUID_TAG = /^[A-Za-z_][A-Za-z0-9_.:-]{0,127}$/;
 
 function check(ok: unknown, message: string): asserts ok { if (!ok) throw new RangeError(message); }
 function ownRecord(input: unknown, keys: readonly string[], label: string): Record<string, unknown> {
@@ -510,6 +521,8 @@ export class Viewer {
   private curveMeasurement: ViewerNativeCurveMeasurement | null = null;
   private surfaceCurveMeasurement: ViewerNativeSurfaceCurveMeasurement | null = null;
   private nativeMeasurement: ViewerNativePointDistance | null = null;
+  private fluidFrame: ViewerFluidFrameV0 | null = null;
+  private particleLayer: ParticleLayerV0 | null = null;
   private camera: MeshCamera = validateMeshCamera(INITIAL_CAMERA);
   private selected: ViewerRef | null = null;
   private selectedGeometry: ViewerGeometryRef | null = null;
@@ -559,7 +572,8 @@ export class Viewer {
     motion: ViewerMotionState | null, geometrySelection: ViewerGeometryRef | null = this.selectedGeometry,
     geometryMotion: ViewerGeometryMotionState | null = this.geometryMotion,
     qualified = this.modelSet !== null || this.document !== null,
-    hiddenGeometry = this.hiddenGeometry): void {
+    hiddenGeometry = this.hiddenGeometry,
+    particleLayer: ParticleLayerV0 | null = this.particleLayer): void {
     const packets = allPackets.filter(entry => !hiddenGeometry.some(hidden => sameGeometryRef(hidden,
       { kind: 'surface', modelId: entry.modelId, surfaceId: entry.packet.surfaceId })));
     const curves = allCurves.filter(entry => !hiddenGeometry.some(hidden => sameGeometryRef(hidden,
@@ -602,7 +616,7 @@ export class Viewer {
       const input = { version: 2 as const, entries };
       if (this.renderer instanceof PrimitiveSceneRendererV2
         || this.renderer instanceof PrimitiveViewport) {
-        const result = this.renderer.update(input, options);
+        const result = this.renderer.update(input, options, particleLayer);
         if (!result.ok) throw result.error;
       } else {
         const prior = this.renderer;
@@ -713,13 +727,14 @@ export class Viewer {
     check(packets.length + curves.length >= 1 && packets.length + curves.length <= 4,
       'Viewer requires 1..4 total display objects');
     const camera = fittedCamera(packets, curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
-    this.present(packets, curves, camera, null, null, null, null, qualified, []);
+    this.present(packets, curves, camera, null, null, null, null, qualified, [], null);
     this.packets = packets; this.curves = curves; this.camera = camera;
     this.selected = null; this.selectedGeometry = null; this.native = native; this.modelSet = modelSet;
     this.document = document; this.documentBodies = documentBodies;
     this.hiddenGeometry = [];
     this.measurement = null; this.motion = null; this.geometryMotion = null; this.curveMeasurement = null;
     this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
+    this.fluidFrame = null; this.particleLayer = null;
   }
   private admitNative(native: BaroCadNativeResult,
     options: NativeLoadOptions | ViewerNativeCurveLoadOptions | ViewerNativeCurveLoadOptionsV1): void {
@@ -813,7 +828,7 @@ export class Viewer {
   setPackets(input: ViewerPacket[]): void { this.live(); this.accept(input, null); this.sceneRequest++; }
   clear(): void {
     this.live();
-    this.present([], [], this.camera, null, null, null, null, false, []);
+    this.present([], [], this.camera, null, null, null, null, false, [], null);
     this.packets = []; this.curves = []; this.native = null; this.modelSet = null;
     this.document = null; this.documentBodies = [];
     this.hiddenGeometry = [];
@@ -821,7 +836,66 @@ export class Viewer {
     this.measurement = null; this.curveMeasurement = null;
     this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
     this.motion = null; this.geometryMotion = null;
+    this.fluidFrame = null; this.particleLayer = null;
     this.sceneRequest++;
+  }
+  setFluidFrame(input: ViewerFluidFrameV0 | null): void {
+    this.live();
+    check(!this.contextLost, 'Cannot change fluid frame after WebGL2 context loss');
+    if (input === null) {
+      if (!this.fluidFrame) return;
+      check(this.renderer instanceof PrimitiveSceneRendererV2 || this.renderer instanceof PrimitiveViewport,
+        'Fluid layer requires a qualified GPU scene');
+      const result = this.renderer.setParticleLayer(null);
+      if (!result.ok) throw result.error;
+      this.fluidFrame = null; this.particleLayer = null;
+      return;
+    }
+    check(this.modelSet !== null || this.document !== null,
+      'Fluid layer requires a qualified native scene');
+    check(this.packets.length === 1 && this.curves.length === 0 &&
+      this.visible({ kind: 'surface', modelId: this.packets[0].modelId,
+        surfaceId: this.packets[0].packet.surfaceId }),
+    'Fluid layer requires one visible native Surface and no Curves');
+    check(this.renderer instanceof PrimitiveSceneRendererV2 || this.renderer instanceof PrimitiveViewport,
+      'Fluid layer requires a qualified GPU scene');
+    const data = ownRecord(input,
+      ['version', 'contextId', 'sceneRevision', 'stepIndex', 'particleCount', 'positionsM'], 'Fluid frame');
+    check(data.version === 0 && data.particleCount === 256, 'Fluid frame requires version 0 and 256 particles');
+    check(typeof data.contextId === 'string' && FLUID_TAG.test(data.contextId)
+      && typeof data.sceneRevision === 'string' && FLUID_TAG.test(data.sceneRevision),
+    'Fluid frame requires bounded context and revision tags');
+    check(typeof data.stepIndex === 'number' && Number.isInteger(data.stepIndex)
+      && data.stepIndex >= 0 && data.stepIndex <= 2147483647, 'Fluid step is out of range');
+    check(data.positionsM instanceof Float64Array && Object.getPrototypeOf(data.positionsM) === Float64Array.prototype
+      && data.positionsM.buffer instanceof ArrayBuffer && data.positionsM.length === 768,
+    'Fluid frame requires 256 copied Float64 XYZ metre positions');
+    const positionsM = new Float64Array(768), positions: number[] = [];
+    for (let i = 0; i < 768; i++) {
+      const metre = data.positionsM[i];
+      check(Number.isFinite(metre), 'Fluid metre position must be finite');
+      positionsM[i] = metre;
+      const scene = metre * 1000 * this.options.mmToSceneUnit;
+      check(Number.isFinite(scene) && Math.abs(scene) <= 1000,
+        'Fluid scene position exceeds GPU bounds');
+      positions.push(scene);
+    }
+    const prior = this.fluidFrame;
+    if (prior) {
+      check(data.contextId === prior.contextId && data.sceneRevision === prior.sceneRevision,
+        'Fluid context or revision requires explicit clear or scene replacement');
+      check(data.stepIndex >= prior.stepIndex, 'Fluid step regressed');
+      if (data.stepIndex === prior.stepIndex) check(positionsM.every((value, index) =>
+        Object.is(value, prior.positionsM[index])), 'Equal fluid step changed metre positions');
+    }
+    const layer: ParticleLayerV0 = { version: 0, contextId: data.contextId,
+      sceneRevision: data.sceneRevision, stepIndex: data.stepIndex,
+      coordinateSystem: 'right-handed-y-up-scene-units', positions };
+    const result = this.renderer.setParticleLayer(layer);
+    if (!result.ok) throw result.error;
+    this.fluidFrame = { version: 0, contextId: data.contextId, sceneRevision: data.sceneRevision,
+      stepIndex: data.stepIndex, particleCount: 256, positionsM };
+    this.particleLayer = layer;
   }
   private nativeModel(modelId: string): BaroCadNativeResult['model'] | null {
     if (this.document) {
@@ -1073,6 +1147,8 @@ export class Viewer {
     check(requested.every((ref, index) => requested.findIndex(value => sameGeometryRef(value, ref)) === index),
       'Visible geometry references must be unique');
     const hidden = inventory.filter(ref => !requested.some(value => sameGeometryRef(value, ref)));
+    check(!this.fluidFrame || requested.some(ref => ref.kind === 'surface'),
+      'Clear fluid layer before hiding the native Surface');
     const selection = this.selectedGeometry && !hidden.some(ref => sameGeometryRef(ref, this.selectedGeometry!))
       ? this.selectedGeometry : null;
     const selected = selection?.kind === 'surface'
@@ -1467,12 +1543,12 @@ export class Viewer {
       documentBodies: this.documentBodies, measurement: this.measurement,
       curveMeasurement: this.curveMeasurement, surfaceCurveMeasurement: this.surfaceCurveMeasurement,
       nativeMeasurement: this.nativeMeasurement, motion: this.motion,
-      geometryMotion: this.geometryMotion });
+      geometryMotion: this.geometryMotion, fluidFrame: this.fluidFrame });
   }
   readPixels(): Uint8Array { this.live(); check(this.renderer, 'Viewer has no geometry'); return this.renderer.readPixels(); }
   dispose(): void { if (this.disposed) return; this.disposed = true;
     this.canvas.removeEventListener('webglcontextlost', this.onContextLost);
-    this.renderer?.dispose(); this.renderer = null; }
+    this.renderer?.dispose(); this.renderer = null; this.fluidFrame = null; this.particleLayer = null; }
 }
 
 export function createViewer(canvas: HTMLCanvasElement, options: ViewerOptions): Viewer {

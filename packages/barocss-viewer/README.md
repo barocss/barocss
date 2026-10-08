@@ -38,6 +38,33 @@ Later native, packet or qualified model-set loads use their usual validation.
 The fresh Viewer retains its earlier no-renderer state until a load or clear.
 The runnable `examples/viewer-clear` exercises this lifecycle in WebGL2.
 
+For the bounded fluid display, load one qualified native Surface through
+`loadModelSet` or `loadDocument`, then pass an actual Physics state through
+`setFluidFrame`. The host supplies a context ID and owns the Physics world,
+clock and reset:
+
+```js
+const state = world.getState();
+viewer.setFluidFrame({ version: 0, contextId: 'water_generation_1',
+  sceneRevision: state.sceneRevision, stepIndex: state.stepIndex,
+  particleCount: state.particleCount, positionsM: state.positionsM });
+// Later: world.step(1 / 120), then setFluidFrame with the new state.
+viewer.setFluidFrame(null); // clear particles only
+```
+
+`ViewerFluidFrameV0` requires exactly 256 finite `Float64Array` XYZ metre
+positions. Viewer copies them and converts each coordinate once with
+`1000 * mmToSceneUnit` before calling GPU's public shared-depth particle API.
+`getState().fluidFrame` returns a copy. Camera, selection, pose and visible
+Surface changes present native geometry and particles in one GPU frame. Hiding
+the sole Surface while particles remain is refused. A new context needs an
+explicit layer clear or successful scene replacement. Resize retains the
+layer; Viewer clear and successful replacement remove it. This first profile
+does not admit legacy `loadNative`, raw packets, Curves, more than one Surface,
+or a second canvas. The Surface is display geometry, not a certified fluid
+collision obstacle. `examples/viewer-fluid-scene` exercises the actual Physics
+and native Surface path in Chromium WebGL2.
+
 For a source0 file served over HTTP, call `await viewer.loadNativeUrl(url,
 loadOptions, { signal, onProgress })`. The transport reports received bytes and
 supports caller cancellation; the same native source, display limits and
