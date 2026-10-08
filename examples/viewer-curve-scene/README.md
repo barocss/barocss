@@ -8,6 +8,9 @@ pose to the Surfaces and tries an invalid replacement.
 The **Wide 64-pole Curve** button loads committed source0 with explicit
 `curveDisplay.version:1`. It uses the GPU v1 primitive scene. The existing
 mixed and Curve-only buttons retain the unversioned v0 path.
+Use the **Directional lighting** link to recreate the same Viewer with explicit
+ambient and directional Surface lighting. The default link omits lighting;
+Curve lines remain unlit in both views.
 The **Pose all geometry** button moves displayed Curves by 80 mm in both
 mixed and Curve-only scenes. **Reset pose** restores identity display poses.
 

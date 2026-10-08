@@ -14,6 +14,7 @@
     canvas { display: block; width: 100%; height: auto; border: 1px solid #354359; border-radius: 8px; cursor: crosshair; }
     aside { border: 1px solid #354359; border-radius: 8px; padding: 14px; background: #1b2738; }
     button { background: #2b405b; border: 1px solid #587399; color: white; padding: 7px 11px; border-radius: 5px; margin: 0 4px 8px 0; cursor: pointer; }
+    a.view-mode { display: inline-block; background: #2b405b; border: 1px solid #587399; color: white; text-decoration: none; padding: 7px 11px; border-radius: 5px; margin: 0 4px 8px 0; }
     pre { white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.5 ui-monospace, monospace; }
     @media(max-width:850px) { .layout { grid-template-columns: 1fr; } }
   </style>
@@ -25,6 +26,7 @@
   <div class="layout">
     <canvas id="view" width="720" height="480" aria-label="Native Surface and Curve viewport"></canvas>
     <aside>
+      <a class="view-mode" href="/">Default lighting</a><a class="view-mode" href="/?lighting=directional">Directional lighting</a>
       <button id="mixed">Mixed scene</button><button id="curves-only">Curves only</button>
       <button id="wide-64">Wide 64-pole Curve</button>
       <button id="fit">Fit all</button><button id="fit-selection">Fit selected</button><button id="orbit">Orbit</button>
