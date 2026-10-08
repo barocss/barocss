@@ -87,3 +87,17 @@ initialSceneV2.nodes[1].children.push({
     { kind: 'L', x: 175, y: 125 }, { kind: 'L', x: 275, y: 25 }, { kind: 'Z' },
   ],
 });
+
+export const initialSceneV3 = structuredClone(initialSceneV2);
+initialSceneV3.version = 3;
+initialSceneV3.nodes[1].children.push({
+  kind: 'image', id: 'RGBAQuadrants', layer: 5,
+  transform: { x: 20, y: 145, scaleX: 1, scaleY: 1, rotation: 0 },
+  imageId: 'RGBA2', width: 80, height: 80, opacity: 1, sampling: 'nearest',
+});
+initialSceneV3.nodes[0].children.push({
+  kind: 'image', id: 'CroppedChecker', layer: 5,
+  transform: { x: 250, y: 175, scaleX: 1, scaleY: 1, rotation: 0.25 },
+  imageId: 'Checker8', width: 100, height: 100, opacity: 0.75, sampling: 'linear',
+  sourceRect: { x: 2, y: 1, width: 4, height: 5 },
+});

@@ -1,5 +1,6 @@
 import { createCanvas2D, parseSceneJSON, stringifySceneJSON } from '../../packages/barocss-canvas2d/dist/index.js';
-import { initialScene, initialSceneV0, initialSceneV2 } from './scene.mjs';
+import { initialScene, initialSceneV0, initialSceneV2, initialSceneV3 } from './scene.mjs';
+import { imageAssets } from './image-assets.mjs';
 
 const canvas = document.querySelector('#scene');
 const status = document.querySelector('#status');
@@ -7,12 +8,13 @@ const selectedLabel = document.querySelector('#selected');
 const errorLabel = document.querySelector('#error');
 const selectionBox = document.querySelector('#selection-box');
 const pathHandles = document.querySelector('#path-handles');
-let scene = structuredClone(initialSceneV2);
+let scene = structuredClone(initialSceneV3);
 let view = { panX: 0, panY: 0, zoom: 1 };
 let selected = null;
 let gesture = null;
 let controlDrag = null;
 let renderer = createCanvas2D(canvas, { logicalSize: { width: 800, height: 480 }, dpr: Math.min(4, Math.max(0.5, devicePixelRatio || 1)) });
+for (const [id, asset] of imageAssets) renderer.setImageAsset(id, asset);
 renderer.updateScene(scene);
 renderer.render();
 
@@ -124,6 +126,9 @@ canvas.addEventListener('wheel', event => {
 document.querySelector('#zoom-in').addEventListener('click', () => zoomAt(view.zoom * 1.25));
 document.querySelector('#zoom-out').addEventListener('click', () => zoomAt(view.zoom / 1.25));
 document.querySelector('#reset').addEventListener('click', () => {
+  scene = structuredClone(initialSceneV3); view = { panX: 0, panY: 0, zoom: 1 }; selected = null; draw();
+});
+document.querySelector('#open-v2').addEventListener('click', () => {
   scene = structuredClone(initialSceneV2); view = { panX: 0, panY: 0, zoom: 1 }; selected = null; draw();
 });
 document.querySelector('#open-v1').addEventListener('click', () => {
@@ -150,12 +155,17 @@ window.__canvas2dDebug = {
   pathObservation(id = 'PathRibbon') { return renderer.getPathObservation(id); },
   fillObservation(id = 'FilledBadge') { return renderer.getFillObservation(id); },
   capabilities() { return renderer.getCapabilities(); },
+  getImageAsset(id) { return renderer.getImageAsset(id); },
+  setImageAsset(id, value) { renderer.setImageAsset(id, value); renderer.render(); },
+  removeImageAsset(id) { renderer.removeImageAsset(id); },
   resizeDpr(dpr) { renderer.resize({ width: 800, height: 480 }, dpr); renderer.render(); updateSelection(); updateHandles(); },
   setScene(next) { renderer.updateScene(next); scene = structuredClone(next); draw(); },
   setView(next) { renderer.setView(next); view = { ...next }; draw(); },
   pixel(x, y) { const gl = canvas.getContext('webgl2'); const p = new Uint8Array(4);
     gl.readPixels(x, canvas.height - y - 1, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, p); return [...p]; },
   recreate() { renderer.dispose(); renderer = createCanvas2D(canvas,
-    { logicalSize: { width: 800, height: 480 }, dpr: Math.min(4, Math.max(0.5, devicePixelRatio || 1)) }); draw(); },
+    { logicalSize: { width: 800, height: 480 }, dpr: Math.min(4, Math.max(0.5, devicePixelRatio || 1)) });
+    for (const [id, asset] of imageAssets) renderer.setImageAsset(id, asset);
+    draw(); },
 };
 draw();
