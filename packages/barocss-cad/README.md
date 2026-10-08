@@ -5499,3 +5499,60 @@ The bounded flow uses real31-pole joins/refined64-pole source0, nonunit weighted
 C0 spans, tighter tolerance, prior retention, source/raw signed-zero DTO reopening
 and separate declared compiled JS/types. Native implementation, serial integration,
 actual GPU/Loader version1 use and publication remain distinct Issue states.
+
+## Reusable native Bezier spans of wide Curves
+
+`extractCurveBezierSpans(curve, {resultIdPrefix})` obtains genuine local native
+Bezier Curves without display tolerance, depth or segment options. Positive
+open-clamped nonperiodic degree1..3 original Curves admit2..64 poles/70 knots,
+weights1e-6..1e6 and XYZ±10000mm, with at most64 nonzero native spans. It reuses
+the tested own analytic local coefficient kernel of the wide sampler, using
+onlydegree+1 active original poles per span. There is no global knot refinement,
+new evaluator or geometry fitted to sampled points. Existing sampling formats
+and behavior stay unchanged by the kernel's internal export.
+
+Original Curve/source0/coefficients/weights/knot/ID/domain/-0 remain authority.
+Each actual clamped span Curve has at most4 poles, an explicit temporary ID,
+its original parameter interval and independently adopted native source0/Model.
+Active original pole/knot indices, basis levels/coefficient matrices/partition
+residual, homogeneous controls and original-copy/generated-arithmetic origins
+accompany every span. Unsafe coefficients/partition/projection/native bounds
+refuse without clipping or repair. Prefix1..20/native ID1..48 reserves original,
+context and all64 span roles before staging; Model names are separate.
+
+Owned result is `{curve, options, source, sourceVersion:0, model, domain, spans,
+observations, endpoints, report}`. Geometry DTO
+`barocss-native-curve-bezier-spans`, version0 uses mm/authored XYZ and native
+coefficient spans. It is distinct from the wide sampled-display DTO/version1.
+The original Curve-only Model is named `prefix_model`; span Models use their
+own IDs. Plain copied CPU records belong to the caller with GC and no renderer
+resources or disposal. `validateCurveBezierSpans(result)` rebuilds actual
+original/spans/source/Models/matrices/lineage/point/D1/endpoints/reports and
+compares all fields and bits, rather than trusting cached provenance.
+
+Input bounds32768 values/depth8/arrays128/records16/strings128; owned bounds
+262144 values/depth32/arrays4096/records64/source strings262144. Descriptor
+getter0/hidden/symbol/foreign/sparse/cyclic/unknown/nonfinite/tampered data
+refuses while accepted parents and previous results remain unchanged.
+`CurveBezierSpanExtractionError` and runtime/type
+`CurveBezierSpanExtractionDiagnosticCode` expose INPUT, IDENTITY, SPAN,
+REPRESENTABILITY, NATIVE, BINDING and OWNED, retaining actual kernel causes.
+
+Each span compares actual original/local points and D1 at original endpoints
+and a strictly represented midpoint, at most192 pairs. Point residual uses
+1e-7mm; evaluated D1 uses relative1e-7 with an absolute floor. Original C0
+refusal and local one-sided derivative stay separate. Endpoint records keep
+original parameter/sign bits, original point, adjacent span IDs and original
+knot/multiplicity/guard facts. Shared points are observations rather than sewn
+wire topology. Reports remain not-certified/topologyCertified:false/solid:false,
+without global binary64/manufacturing/G1/G2/edge certificates.
+
+```sh
+node examples/cad-nurbs/curve-bezier-spans-demo.mjs --source
+```
+
+The bounded file flow extracts actual64-pole/refined and weighted C0 source0,
+checks one-hot original bit copies and same-ID edit/prior retention, reopens
+actual source0/raw signed-zero results and imports declared compiled JS/types.
+Geometry use in later intersections/trims, serial integration and actual
+GPU/Loader adoption remain separate Issue states.

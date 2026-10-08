@@ -240,7 +240,7 @@ function extractionLevel(degree: number, basisIndices: number[], coefficientMatr
   return { degree, basisIndices, coefficientMatrix, columnSums, maximumPartitionResidual };
 }
 /** Analytic local basis extraction. No original Curve refinement or point fitting occurs here. */
-function extractSpan(original: Curve, knotSpanIndex: number, index: number, curveId: string): WideAdaptiveCurveSpan {
+export function extractCurveBezierSpanTrusted(original: Curve, knotSpanIndex: number, index: number, curveId: string): WideAdaptiveCurveSpan {
   const p = original.degree, a = original.knots[knotSpanIndex], b = original.knots[knotSpanIndex + 1];
   const domain: [number, number] = [a, b];
   const levels = [extractionLevel(0, [knotSpanIndex], [[1]])];
@@ -369,7 +369,7 @@ export function sampleCurveWideAdaptive(curveInput: Curve, inputOptions: WideAda
   check(roles.length <= 32768 && new Set(roles).size === roles.length && !roles.includes(original.id),
     CODE.IDENTITY, 'bounded original/context/generated identity reservation failed');
   const file = sourceCurve(original, role('_model'));
-  const spans = knotSpans.map((k, i) => extractSpan(file.curve, k, i, role('_span_' + i)));
+  const spans = knotSpans.map((k, i) => extractCurveBezierSpanTrusted(file.curve, k, i, role('_span_' + i)));
   const segments: WideAdaptiveCurveSegment[] = [], operations: WideAdaptiveCurveSplitOperation[] = [];
   let leafCapacity = spanCount;
   const visit = (bezier: Curve, originalSpanIndex: number, originalSpanDomain: [number, number], depth: number): void => {
