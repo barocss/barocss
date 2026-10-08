@@ -4902,3 +4902,65 @@ ray/editor feature graphs, sewing/manifold/Boolean/detail/assemblies/exchange
 remain open. Reports retain geometricValidity:not-certified,
 topologyCertified:false and solid:false; separate sole-GPU serial integration
 and current-source consumer adoption are required.
+
+## Own ray query on an affine material face with holes
+
+`queryConvexPlanarFaceWithHolesRay(face, {originMM, direction, maxDistanceMM})`
+queries one genuine validated650 face. It uses the actual original Surface D1
+basis, affine Gram chart and strict650 material classifier. Original Plane,
+Lines, source order/bits/-0, loop roles and nonunit native domains remain
+geometry authority. Mesh triangles, integer XY conversion and synthetic probe
+Curves are not query inputs. No new native identities or source grammar are
+introduced; the original Plane+15Lines/Model16 limit remains.
+
+Origin is a finite XYZ within±10000mm. Direction is a dense finite3-vector
+with norm1±1e-9. The authored direction is preserved; a nonunit input outside
+that bound refuses. maxDistanceMM is positive and≤50000. Forward parameter
+range is inclusive0..maxDistanceMM in `origin+t*direction`. tMM and actual
+traveledLengthMM=tMM*authoredNorm are separate observations.
+
+The result retains `{face, query, directionNorm, policy, support, candidate,
+hit, status, reason, report}`. Support owns the actual original Surface basis
+D1/Gram axes, un-oriented normal, signed origin distance, direction-plane
+cosine, denominator and nullable plane parameter. A candidate exists only
+within the forward parameter range. It records ray point/native UV/actual650
+classification, native SurfaceD1 or null and ray-versus-Surface residual.
+Supporting-plane candidates are not automatically finite material hits.
+
+Status is `unique-hit`, `miss` or `ambiguous-coplanar`. Strict hole interior
+misses retain the actual hole loop ID and Plane query. Actual outer/hole
+boundaries are admitted material, including both incident original edges at
+an exact corner. Hit bindings qualify face/Surface/loop role and IDs,
+edge/Curve/use/pcurve IDs, original Line parameter and directed native vertex
+IDs. Hit point/face-oriented normal derive from actual original Surface D1.
+Miss reasons are `parallel-noncoplanar`, `behind`, `beyond-distance`,
+`outside-domain`, `outside-outer-loop` and `inside-hole`. Outside-domain
+classification retains null native point/normal without Surface evaluation
+outside the chart.
+
+The explicit display policy treats absolute direction-plane cosine≤1e-12 as
+parallel and original supporting-plane origin distance≤1e-7mm as conservatively
+coplanar. Coplanar status remains ambiguous even when finite trim overlap is
+unresolved; no isolated finite hit is fabricated. A1e-7mm ray/Surface comparison
+is local display evidence. It does not change original strict650 boundary
+classification, construction/manufacturing tolerance or certification. Unsafe
+nonzero64-epsilon material/inverse predicates refuse without snapping.
+
+`validateConvexPlanarFaceWithHolesRay(result)` rebuilds the original face and
+exact ray query, comparing status/reason/norm/distance/candidate/hit/native UV,
+point/normal/boundary identities/ownership and full source bits. Query snapshots
+bound4096 values/depth8/arrays64/records16; result/rebuild snapshots131072/
+depth24/arrays512/records48/source strings262144. Original650 guards remain
+unchanged. Accessors/hidden/symbol/foreign/sparse/cyclic/nonfinite or altered
+data refuse while previous native face/query/source remain reusable.
+
+```sh
+node examples/cad-nurbs/own-convex-planar-face-holes-ray-demo.mjs --source
+```
+
+This is one original material-face selection foundation. General coplanar
+interval solving, multi-face nearest-hit sorting, curved/nonconvex/nested or
+touching trims, feature graphs, sewing/Boolean/detail/assemblies/exchange remain
+open. Reports retain geometricValidity:not-certified, topologyCertified:false
+and solid:false. Planner coordinates sole-GPU integration and current-source
+GPU/Loader consumer adoption separately.
