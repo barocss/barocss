@@ -1,0 +1,27 @@
+{
+  "name": "@barocss/cad-interop",
+  "version": "0.0.0-private-experimental",
+  "private": true,
+  "type": "module",
+  "description": "Portable mesh and glTF export for BaroCSS CAD preview packets",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build:library": "tsc -p tsconfig.json",
+    "type-check": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src",
+    "test": "pnpm build:library && node --test test/interop.test.mjs",
+    "test:integration": "pnpm --filter @barocss/cad build:library && pnpm --filter @barocss/gpu build:library && pnpm build:library && node --test test/cad-integration.test.mjs"
+  },
+  "devDependencies": {
+    "three": "^0.186.1"
+  }
+}
