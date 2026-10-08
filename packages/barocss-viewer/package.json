@@ -19,6 +19,7 @@
   "dependencies": {
     "@barocss/cad": "workspace:*",
     "@barocss/cad-interop": "workspace:*",
-    "@barocss/gpu": "workspace:*"
+    "@barocss/gpu": "workspace:*",
+    "@barocss/motion": "workspace:*"
   }
 }
