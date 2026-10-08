@@ -20,6 +20,11 @@
       "barocss-source": "./src/replay.ts",
       "types": "./dist/replay.d.ts",
       "import": "./dist/replay.js"
+    },
+    "./fluid": {
+      "barocss-source": "./src/fluid.ts",
+      "types": "./dist/fluid.d.ts",
+      "import": "./dist/fluid.js"
     }
   },
   "main": "./dist/index.js",
