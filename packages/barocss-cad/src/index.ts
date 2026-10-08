@@ -208,3 +208,6 @@ export type { CoplanarFaceBooleanMeshOptions, CoplanarFaceBooleanMeshVertex, Cop
 
 export { extrudeCoplanarFaceBoolean, validateCoplanarFaceBooleanExtrusion, CoplanarFaceBooleanExtrusionError, CoplanarFaceBooleanExtrusionDiagnosticCode } from './coplanar-face-boolean-extrusion.js';
 export type { CoplanarFaceBooleanExtrusionOptions, CoplanarFaceBooleanExtrusionVertex, CoplanarFaceBooleanExtrusionEdgeUse, CoplanarFaceBooleanExtrusionFace, CoplanarFaceBooleanExtrusionShell, CoplanarFaceBooleanExtrusionReport, CoplanarFaceBooleanExtrusionResult } from './coplanar-face-boolean-extrusion.js';
+
+export { tessellateCoplanarFaceBooleanExtrusion, validateCoplanarFaceBooleanExtrusionMesh, CoplanarFaceBooleanExtrusionMeshError, CoplanarFaceBooleanExtrusionMeshDiagnosticCode } from './coplanar-face-boolean-extrusion-mesh.js';
+export type { CoplanarFaceBooleanExtrusionMeshOptions, CoplanarFaceBooleanExtrusionMeshVertex, CoplanarFaceBooleanExtrusionMeshFaceRange, CoplanarFaceBooleanExtrusionMeshEdgePath, CoplanarFaceBooleanExtrusionMeshShellRange, CoplanarFaceBooleanExtrusionMeshReport, CoplanarFaceBooleanExtrusionMeshResult } from './coplanar-face-boolean-extrusion-mesh.js';
