@@ -119,3 +119,20 @@ const sample = sampleMotionClipWithTiming(clip, 2, timing);
 The progress and four control values must be finite in `[0, 1]`. The cubic has fixed `(0, 0)` and `(1, 1)` endpoints. This bounded family has a monotone X axis and no Y overshoot. `evaluateMotionTiming` returns a fresh `{progress,easedProgress,parameter,iterations,xResidual}` record. A bracketed bisection uses at most 64 steps and requires computed X residual at most `1e-9`; the residual describes this calculation, not a global numerical certificate. Endpoints return exact 0 or 1 with zero steps. The result copies a negative-zero input progress, while its eased zero is positive zero.
 
 `sampleMotionClipWithTiming` requires an actual validated v0 clip and a finite input time within its original duration. It maps only the requested sample time, then uses the existing sampler and returns independent `{contextId,inputTimeSeconds,sampledTimeSeconds,poses}` data. Exact input endpoints retain their time bits and existing key/quaternion sample values. A zero-duration clip stays at zero. The clip, keys, player and marker seconds/events do not change. No clock, per-track easing, file schema or renderer is included. Invalid inputs throw `MotionTimingError` with `INVALID_INPUT`; unsafe computed results use `UNSAFE_RESULT`. Timing must be an exact plain own-data record; getters and extra fields are refused without reading caller getters.
+
+## Absolute-time preview range
+
+```js
+import { createMotionRangeTimeline } from '@barocss/motion';
+
+const preview = createMotionRangeTimeline(clip, {
+  range: [1, 3], markers, mode: 'repeat',
+});
+preview.play();
+const frame = preview.advance(2); // time 1 again, after end/start seam events
+preview.dispose();
+```
+
+The range is an exact own-data two-element array with finite `start < end` inside the original clip duration. Only a zero-duration clip admits numeric `[0, 0]`. State returns an independent copy of the range, original absolute seconds, owned poses and marker events, playing state, mode and repeat iteration. The initial time is the range start; numeric zero starts as positive zero. An explicit seek can preserve `-0`, and a clamp-end play restarts at positive zero when the start is numeric zero. A zero-duration range stays at positive zero after positive advance and emits no events.
+
+The wrapper reuses the existing marker admission and event IDs/indexes. Markers outside the range remain admitted but never emit. Each pass delivers crossings in `(old, new]`; at a repeat seam, end events arrive before next-pass start events. The first start marker and seeks are silent. Equal-time events retain authored array order. A full `[0, duration]` range matches the existing timeline behavior. At most 16 seams and 256 events are delivered per advance; unsafe time arithmetic or an exceeded bound throws before changing accepted state. Invalid options, clip, range or time and marker failures use the existing `MotionTimelineError` codes. This wrapper has no timer, easing, clip/key/marker rewrite, file format or renderer ownership.

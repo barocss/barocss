@@ -64,6 +64,8 @@ export { MotionMarkerFileError, parseMotionMarkerFile, serializeMotionMarkerFile
 export type { MotionMarkerFileErrorCode } from './marker-file.js';
 export { MotionTimingError, evaluateMotionTiming, sampleMotionClipWithTiming } from './timing.js';
 export type { MotionCubicTiming, MotionTimedSample, MotionTimingErrorCode, MotionTimingEvaluation } from './timing.js';
+export { createMotionRangeTimeline } from './range-timeline.js';
+export type { MotionRangeTimeline, MotionRangeTimelineOptions, MotionRangeTimelineState } from './range-timeline.js';
 
 export const MOTION_LIMITS = Object.freeze({
   targets: 64,
