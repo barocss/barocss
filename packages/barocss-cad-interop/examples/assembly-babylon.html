@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native CAD assembly in Babylon.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; width: 800px; height: 520px; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Native CAD assembly · Babylon.js</h1>
+  <p>The CAD assembly owns each instance pose. Source Curves and Surfaces keep their original IDs.</p>
+  <canvas id="view" width="800" height="520"></canvas>
+  <button id="reject" type="button">Try invalid candidates</button>
+  <button id="dispose" type="button">Dispose display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Engine } from '@babylonjs/core/Engines/engine.js';
+  import { Scene } from '@babylonjs/core/scene.js';
+  import { Camera } from '@babylonjs/core/Cameras/camera.js';
+  import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera.js';
+  import { Mesh } from '@babylonjs/core/Meshes/mesh.js';
+  import { LinesMesh } from '@babylonjs/core/Meshes/linesMesh.js';
+  import { Color3, Color4 } from '@babylonjs/core/Maths/math.color.js';
+  import { Vector3 } from '@babylonjs/core/Maths/math.vector.js';
+  import { queryCadAssemblyInstancePoint } from '@barocss/cad';
+  import { loadBaroCadAssembly, parseBaroCadAssembly } from '@barocss/cad-interop/assembly';
+  import { createBaroCadAssemblyBabylonDisplay } from '@barocss/cad-interop/babylon-assembly';
+
+  const canvas = document.querySelector('#view');
+  const status = document.querySelector('#status');
+  const native = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.01,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } };
+  const options = { native, basis: 'authored-xyz-matches-rhyup' };
+  const engine = new Engine(canvas, false, { preserveDrawingBuffer: true, stencil: true });
+  const scene = new Scene(engine);
+  scene.useRightHandedSystem = true;
+  scene.clearColor = new Color4(16 / 255, 27 / 255, 44 / 255, 1);
+  const callerMesh = new Mesh('caller-owned', scene);
+  const camera = new FreeCamera('camera', new Vector3(0.025, 0.045, 1), scene);
+  camera.setTarget(new Vector3(0.025, 0.045, 0));
+  camera.mode = Camera.ORTHOGRAPHIC_CAMERA;
+  camera.orthoLeft = -0.12; camera.orthoRight = 0.12;
+  camera.orthoTop = 0.078; camera.orthoBottom = -0.078;
+  camera.minZ = 0.001; camera.maxZ = 2;
+  scene.activeCamera = camera;
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const render = () => {
+    scene.render();
+    const gl = canvas.getContext('webgl2');
+    const bytes = new Uint8Array(canvas.width * canvas.height * 4);
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('Babylon WebGL readPixels failed');
+    return bytes;
+  };
+  const nonBackground = bytes => {
+    let count = 0;
+    for (let i = 0; i < bytes.length; i += 4) {
+      if (Math.abs(bytes[i] - 16) > 12 || Math.abs(bytes[i + 1] - 27) > 12 ||
+          Math.abs(bytes[i + 2] - 44) > 12) count++;
+    }
+    return count;
+  };
+  let assembly, display, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    const url = new URL('./assembly-three-data/revision0.cad-assembly.json', location.href).href;
+    assembly = await loadBaroCadAssembly(url);
+    display = createBaroCadAssemblyBabylonDisplay(scene, assembly, options);
+    if (display.bindings.length !== 6 || new Set(display.bindings.map(binding => binding.mesh)).size !== 6 ||
+        display.bindings.filter(binding => binding.reference.geometryId === 'shared_curve').length !== 3) {
+      throw new Error('Babylon assembly lost distinct native instances');
+    }
+    for (const [index, binding] of display.bindings.entries()) {
+      if (binding.mesh instanceof LinesMesh) binding.mesh.color = [
+        new Color3(0, 1, 1), new Color3(1, 0.85, 0.25), new Color3(1, 0.35, 0.45),
+      ][index % 3];
+      else {
+        binding.mesh.material.diffuseColor = new Color3(0.55, 0.45, 0.95);
+        binding.mesh.material.emissiveColor = new Color3(0.20, 0.13, 0.36);
+      }
+    }
+    const child = display.bindings.find(binding => binding.instanceId === 'child');
+    const point = queryCadAssemblyInstancePoint(assembly, {
+      assemblyId: 'native_assembly', assemblyRevision: 0, instanceId: 'child',
+      reference: child.reference, query: { kind: 'curve', parameter: 2 },
+    });
+    const scenePoint = Vector3.TransformCoordinates(
+      new Vector3(...point.originalLocalPointMM.map(value => value * native.unitsPerMillimeter)),
+      child.instanceNode.computeWorldMatrix(true));
+    if (point.assemblyPointMM.some((value, axis) =>
+      Math.abs(scenePoint.asArray()[axis] - value * native.unitsPerMillimeter) > 1e-7)) {
+      throw new Error('Babylon instance matrix differs from native assembly point');
+    }
+    engine.runRenderLoop(() => scene.render());
+    await scene.whenReadyAsync();
+    engine.stopRenderLoop();
+    const visibleByInstance = [];
+    for (const binding of display.bindings) {
+      for (const other of display.bindings) other.mesh.setEnabled(other === binding);
+      visibleByInstance.push({ id: binding.instanceId, pixels: nonBackground(render()) });
+    }
+    for (const binding of display.bindings) binding.mesh.setEnabled(true);
+    const pixels = render();
+    if (visibleByInstance.filter(entry => entry.pixels > 20).length < 4 ||
+        nonBackground(pixels) < 100 || !(canvas.getContext('webgl2') instanceof WebGL2RenderingContext)) {
+      throw new Error('Assembly Mesh/Line placements are not visible in Babylon WebGL2');
+    }
+    evidence = { fileBytes: 4207, assemblyId: assembly.assembly.assemblyId,
+      assemblyRevision: assembly.assembly.revision,
+      instanceIds: display.bindings.map(binding => binding.instanceId),
+      sharedCurveAssetIds: display.bindings.filter(binding => binding.reference.geometryId === 'shared_curve')
+        .map(binding => binding.reference.assetId),
+      childNativePointMM: point.assemblyPointMM, childScenePoint: scenePoint.asArray(),
+      visibleByInstance, visiblePixels: nonBackground(pixels), pixelHash: hash(pixels),
+      webgl2: true, callerMeshRetained: !callerMesh.isDisposed(), refused: 0, disposed: false };
+    window.__baroAssemblyBabylonEvidence = evidence;
+    show();
+    document.querySelector('#reject').onclick = () => {
+      const before = hash(render());
+      const forged = structuredClone(assembly); forged.instances[0].worldMatrix[3] += 1;
+      const stale = structuredClone(assembly); stale.assembly.instances[0].reference.documentRevision++;
+      let refused = 0;
+      for (const action of [
+        () => createBaroCadAssemblyBabylonDisplay(scene, forged, options),
+        () => createBaroCadAssemblyBabylonDisplay(scene, stale, options),
+        () => createBaroCadAssemblyBabylonDisplay(scene, assembly, { ...options, basis: 'unknown' }),
+        () => parseBaroCadAssembly('{"schema":"barocss-cad-assembly","schema":"barocss-cad-assembly"}'),
+      ]) { try { action(); } catch { refused++; } }
+      if (refused !== 4 || hash(render()) !== before || display.bindings.some(binding =>
+        binding.mesh.isDisposed() || !scene.meshes.includes(binding.mesh))) {
+        throw new Error('Rejected candidate changed the accepted Babylon frame');
+      }
+      evidence.refused = refused; evidence.acceptedFrameRetained = true; show();
+    };
+    document.querySelector('#dispose').onclick = () => {
+      const owned = scene.meshes.filter(mesh => mesh !== callerMesh);
+      display.dispose(); display.dispose();
+      const after = render();
+      if (owned.some(mesh => !mesh.isDisposed() || scene.meshes.includes(mesh)) ||
+          !display.root.isDisposed() || callerMesh.isDisposed() || !scene.meshes.includes(callerMesh) ||
+          nonBackground(after) !== 0 || scene.isDisposed || engine.getRenderingCanvas() !== canvas) {
+        throw new Error('Babylon assembly disposal changed caller resources');
+      }
+      evidence.disposed = true; evidence.afterDisposePixels = nonBackground(after);
+      evidence.callerMeshRetained = true; show();
+    };
+  } catch (error) {
+    display?.dispose();
+    evidence = { error: String(error), stack: error.stack };
+    window.__baroAssemblyBabylonEvidence = evidence;
+    show();
+  }
+</script>

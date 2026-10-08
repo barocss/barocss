@@ -497,6 +497,50 @@ display box or centre of mass. The host still owns the camera, scene,
 canvas, colors and any display poses. Viewer `fitGeometry` uses displayed
 geometry through a separate contract.
 
+### Display native CAD assembly instances in Babylon.js
+
+The optional `./babylon-assembly` entry consumes the same public CAD
+assembly0 result as the Three adapter. The caller provides a live Babylon
+Scene with `useRightHandedSystem = true` and asserts that authored XYZ
+matches its Y-up display basis.
+
+```js
+import { loadBaroCadAssembly } from '@barocss/cad-interop/assembly';
+import { createBaroCadAssemblyBabylonDisplay }
+  from '@barocss/cad-interop/babylon-assembly';
+
+const assembly = await loadBaroCadAssembly(assemblyURL);
+const display = createBaroCadAssemblyBabylonDisplay(scene, assembly, {
+  native: { sourceVersion: 0, countU: 8, countV: 8,
+    unitsPerMillimeter: 0.01,
+    curveDisplay: { version: 1, chordToleranceMM: 0.02,
+      maxSegments: 512, maxDepth: 16 } },
+  basis: 'authored-xyz-matches-rhyup',
+});
+display.dispose();
+```
+
+The adapter validates the complete native assembly before it creates
+Babylon objects. Each authored instance selects one unchanged qualified
+Curve or Surface body through the existing document adapter. Its node uses
+the native evaluated world matrix once. The CAD row-major elements are
+reordered for Babylon's matrix layout; only mm translation is multiplied
+by `unitsPerMillimeter`. The source loader scales vertices once. Instance
+nodes are flat children of the returned root, so the caller may apply an
+additional display-only transform to that root. Bindings retain the native
+assembly revision, instance/ancestor IDs, full part reference and original
+world matrix. Babylon stores target matrix elements as float32 in this
+runtime, so rendered coordinates can differ slightly from native binary64
+points. Shared native parts have distinct owned target objects.
+
+`dispose()` releases only adapter-owned nodes, meshes and materials. It
+keeps the caller Scene, Engine, camera and unrelated meshes. The actual
+`assembly-babylon-verify.mjs` flow checks the #863 file with Babylon
+NullEngine, five native-to-target point witnesses, caller root movement,
+refusal retention and owned disposal. `assembly-babylon.html` checks the
+same source in a headed Babylon/WebGL2 canvas. This adapter does not add
+native mates, exact Curve tessellation or other renderer targets.
+
 ### Display selected document bodies in Babylon.js
 
 The optional `./babylon-document` entry uses the same validated body
