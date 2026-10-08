@@ -12,6 +12,8 @@ export type { PathBuilder } from './path-builder.js';
 export { decodeImageBlob } from './image-decode.js';
 export { loadImageURL } from './image-url.js';
 export type { ImageURLLoadOptions } from './image-url.js';
+export { createImageAssetCache } from './image-cache.js';
+export type { ImageAssetCache, ImageAssetCacheOptions } from './image-cache.js';
 export { createDisplayTree, createDisplayTreeFromScene } from './display-tree.js';
 export type { DisplayTree, StageHandle, ContainerHandle, SpriteHandle, PathHandle, RectHandle, GlyphRunHandle, FrameHandle, LineHandle, DisplayHandle, ContainerSpec, SpriteSpec, PathSpec, PathPaint, RectSpec, RectPaint, GlyphRunSpec, GlyphRunLayout, FrameSpec, FramePaint, LineSpec, LinePaint, PointerEventType, DisplayPointerEvent, PointerInput, PointerListener } from './display-tree.js';
 export { createTicker } from './ticker.js';
