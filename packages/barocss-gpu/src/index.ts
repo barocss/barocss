@@ -6,6 +6,7 @@ export { mountScene, SceneRenderer, GPUError } from './renderer.js';
 export type { UpdateResult } from './renderer.js';
 export { validatePreviewPacket, validateMeshOptions, prepareMesh } from './mesh-packet.js';
 export type { PreviewPacket, MeshOptions } from './mesh-packet.js';
+export type {MeshLighting} from './mesh-lighting.js';
 export { mountMesh, MeshRenderer } from './mesh-renderer.js';
 export type { MeshEdgeOverlay } from './edge-overlay.js';
 export { validateMeshCamera, prepareCamera } from './camera.js';

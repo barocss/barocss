@@ -9,7 +9,7 @@ import type {MeshSceneOptions} from './mesh-scene-renderer.js';
 import {prepareSceneMesh,prepareSceneTransform,sceneRotation,displayBounds} from './mesh-scene-transform.js';
 import type {MeshSceneTransform,MeshSceneBounds} from './mesh-scene-transform.js';
 import {prepareCamera} from './camera.js';
-import {MESH_SHADERS} from './mesh-shaders.js';
+import {meshLightingShaders,applyMeshLighting} from './mesh-shaders.js';
 
 export type PrimitiveSceneEntry=
  |{kind:'surface';packet:PreviewPacket;color:RGB;transform?:MeshSceneTransform}
@@ -81,9 +81,9 @@ function curvePositions(sample:NativeCurveSample,options:MeshOptions,pose?:MeshS
  return positions;
 }
 function prepare(input:unknown,optionsInput:unknown,sceneVersion:0|1=0):{primitives:Primitive[];options:PrimitiveSceneOptions}{
- const common=record(optionsInput,['mmToSceneUnit','translate','background','camera'],['mmToSceneUnit','translate','background']);
+ const common=record(optionsInput,['mmToSceneUnit','translate','background','camera','lighting'],['mmToSceneUnit','translate','background']);
  const white=validateMeshOptions({...common,color:[1,1,1]});
- const options={mmToSceneUnit:white.mmToSceneUnit,translate:[...white.translate] as Vec3,background:[...white.background] as RGB,...(white.camera?{camera:structuredClone(white.camera)}:{})};
+ const options={mmToSceneUnit:white.mmToSceneUnit,translate:[...white.translate] as Vec3,background:[...white.background] as RGB,...(white.camera?{camera:structuredClone(white.camera)}:{}),...(white.lighting?{lighting:white.lighting}:{})};
  check(Array.isArray(input)&&Object.getPrototypeOf(input)===Array.prototype,'Primitive entries must be a plain array');
  const length=Object.getOwnPropertyDescriptor(input,'length')!.value;
  check(Number.isInteger(length)&&length>=1&&length<=4&&Reflect.ownKeys(input).length===length+1,'Primitive scene requires1..4 dense entries');
@@ -144,7 +144,7 @@ class PrimitiveSceneBackend {
   try{
    const programs=new Map<string,WebGLProgram>();
    for(const primitive of primitives){
-    const kind=primitive.entry.kind;if(!programs.has(kind)){const program=this.program(kind==='surface'?MESH_SHADERS:LINE_SHADERS);programs.set(kind,program);frame.programs.push(program);}
+    const kind=primitive.entry.kind;if(!programs.has(kind)){const program=this.program(kind==='surface'?meshLightingShaders(options.lighting):LINE_SHADERS);programs.set(kind,program);frame.programs.push(program);}
     const draw:Draw={...primitive,vao:gl.createVertexArray(),buffers:[],program:programs.get(kind)!};frame.draws.push(draw);check(draw.vao,'Cannot allocate primitive vertex array');gl.bindVertexArray(draw.vao);
     const attributes:[number,Float32Array][]=[[0,primitive.positions]];if(primitive.normals)attributes.push([1,primitive.normals]);
     for(const[location,data]of attributes){const buffer=gl.createBuffer();check(buffer,'Cannot allocate primitive vertex buffer');draw.buffers.push(buffer);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,3,gl.FLOAT,false,0,0);}
@@ -155,7 +155,7 @@ class PrimitiveSceneBackend {
    gl.bindRenderbuffer(gl.RENDERBUFFER,frame.depth);gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT24,width,height);gl.bindFramebuffer(gl.FRAMEBUFFER,frame.framebuffer);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,frame.color,0);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,frame.depth);check(gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE,'Primitive scene frame is incomplete');
    gl.viewport(0,0,width,height);gl.disable(gl.BLEND);gl.disable(gl.SCISSOR_TEST);gl.disable(gl.CULL_FACE);gl.disable(gl.POLYGON_OFFSET_FILL);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LESS);gl.depthMask(true);gl.colorMask(true,true,true,true);gl.lineWidth(1);
    gl.clearColor(...options.background,1);gl.clearDepth(1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
-   for(const draw of frame.draws){const program=draw.program!;gl.useProgram(program);gl.uniform1f(gl.getUniformLocation(program,'aspect'),width/height);gl.uniform1i(gl.getUniformLocation(program,'defaultCamera'),options.camera===undefined?1:0);gl.uniformMatrix4fv(gl.getUniformLocation(program,'view'),false,camera.view);gl.uniformMatrix4fv(gl.getUniformLocation(program,'projection'),false,camera.projection);gl.uniform3fv(gl.getUniformLocation(program,'color'),draw.entry.color);gl.bindVertexArray(draw.vao);if(draw.indices)gl.drawElements(gl.TRIANGLES,draw.indices.length,gl.UNSIGNED_SHORT,0);else gl.drawArrays(gl.LINE_STRIP,0,draw.positions.length/3);}
+   for(const draw of frame.draws){const program=draw.program!;gl.useProgram(program);gl.uniform1f(gl.getUniformLocation(program,'aspect'),width/height);gl.uniform1i(gl.getUniformLocation(program,'defaultCamera'),options.camera===undefined?1:0);gl.uniformMatrix4fv(gl.getUniformLocation(program,'view'),false,camera.view);gl.uniformMatrix4fv(gl.getUniformLocation(program,'projection'),false,camera.projection);gl.uniform3fv(gl.getUniformLocation(program,'color'),draw.entry.color);if(draw.entry.kind==='surface')applyMeshLighting(gl,program,options.lighting);gl.bindVertexArray(draw.vao);if(draw.indices)gl.drawElements(gl.TRIANGLES,draw.indices.length,gl.UNSIGNED_SHORT,0);else gl.drawArrays(gl.LINE_STRIP,0,draw.positions.length/3);}
    this.checkGL();return frame;
   }catch(error){this.release(frame);throw error;}
  }

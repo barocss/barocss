@@ -1,4 +1,4 @@
-import {MESH_LIGHTING as LIGHTING,MESH_SHADERS as SHADERS} from './mesh-shaders.js';
+import {MESH_LIGHTING as LIGHTING,MESH_SHADERS as SHADERS,meshLightingShaders,applyMeshLighting} from './mesh-shaders.js';
 import { GPUError } from './renderer.js';
 import type { UpdateResult } from './renderer.js';
 import {requireMeshExecution} from './gpu-compiler.js';
@@ -65,9 +65,9 @@ export class MeshRenderer {
   get edgeOverlay(): MeshEdgeOverlay | null { this.live(); return this.accepted!.edges ? structuredClone(this.accepted!.edges.overlay) : null; }
   get faceHighlight():MeshFaceHighlight|null {this.live();return this.accepted!.highlight&&structuredClone(this.accepted!.highlight);}
   get objectHighlight():MeshObjectHighlight|null {this.live();return this.accepted!.objectHighlight&&structuredClone(this.accepted!.objectHighlight);}
-  get lighting() {return structuredClone(LIGHTING);}
+  get lighting() {const lighting=this.accepted?.options.lighting;return lighting?{kind:'configured-directional-and-ambient' as const,direction:[...lighting.direction],ambientStrength:lighting.ambientStrength,diffuseStrength:lighting.directionalStrength}:structuredClone(LIGHTING);}
   get revision(): number { this.live(); if (!this.accepted!.mesh) throw new GPUError('Viewport is empty'); return this.accepted!.mesh.packet.revision; }
-  get shaders(): SceneShaders { this.live(); return { ...SHADERS }; }
+  get shaders(): SceneShaders { this.live(); return { ...meshLightingShaders(this.accepted!.options.lighting) }; }
   private live(): void {
     if (this.disposed) throw new GPUError('Mesh renderer is disposed');
     if (this.lost || this.gl.isContextLost()) throw new GPUError('WebGL2 context is lost; mount a new renderer');
@@ -88,7 +88,8 @@ export class MeshRenderer {
     const shaders: WebGLShader[] = [];
     try {
       if (mesh) {
-        for (const [kind, text] of [[gl.VERTEX_SHADER, SHADERS.vertex], [gl.FRAGMENT_SHADER, SHADERS.fragment]] as const) {
+        const source=meshLightingShaders(options.lighting);
+        for (const [kind, text] of [[gl.VERTEX_SHADER, source.vertex], [gl.FRAGMENT_SHADER, source.fragment]] as const) {
           const shader = gl.createShader(kind);
           if (!shader) throw new GPUError('Cannot allocate mesh shader');
           shaders.push(shader); gl.shaderSource(shader, text); gl.compileShader(shader);
@@ -132,6 +133,7 @@ export class MeshRenderer {
         gl.uniformMatrix4fv(gl.getUniformLocation(resources.program!, 'view'), false, camera.view);
         gl.uniformMatrix4fv(gl.getUniformLocation(resources.program!, 'projection'), false, camera.projection);
         gl.uniform3fv(gl.getUniformLocation(resources.program!, 'color'), options.color);
+        applyMeshLighting(gl,resources.program!,options.lighting);
         if (edges) { gl.enable(gl.POLYGON_OFFSET_FILL); gl.polygonOffset(1, 1); }
         gl.drawElements(gl.TRIANGLES, mesh.indices.length, gl.UNSIGNED_SHORT, 0);
         if(objectHighlight){

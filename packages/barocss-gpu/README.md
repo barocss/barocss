@@ -731,3 +731,36 @@ old-reader refusal,64-pole/nonunit/C0 source record, independent line/mesh buffe
 pixels/TRS/bounds/depth, candidate retention and owned cleanup are recorded.
 Native API completion, Integration/Viewer/Loader adoption and publication remain
 separate. Only the compatible compiled own-CAD producer can satisfy this new API.
+
+## Explicit directional and ambient mesh lighting (#717)
+
+Optional `MeshOptions.lighting` is a complete
+`MeshLighting={ambientStrength,directionalStrength,direction}` record. Strengths
+are finite [0,1] and their sum is at most1. Direction is dimensionless in the
+renderer's Y-up world-normal frame, has finite components within ±1000 and is
+nonzero. Authored direction/strength values are copied; direction is normalized
+only when lowering GPU uniforms, including finite subnormal values. Unknown,
+getter/hidden/symbol/sparse/nonfinite/zero data refuse without clamping.
+
+Single mesh/viewport, mesh-scene and primitive-scene/v1 paths consume this option.
+The indexed-mesh compiler IR retains it in draw options. Older strict readers
+refuse the additional field; no SDF language or private editor lamp API is implied.
+Absent lighting preserves exactly the original shader source, ambient0.35 /
+diffuse0.65 direction[-0.6,0.8,1] and gamma2.2 path. Supplied lighting only changes
+opaque mesh shading; native positions/normals/indices/UV/IDs and bounds are unchanged.
+Curve lines and edge overlays remain unlit. No PBR, shadows or photometric units.
+
+The actual strength is `ambientStrength + directionalStrength * max(dot(unitNormal,
+unitDirection),0)`, applied through the existing gamma/color formula. MeshRenderer
+`shaders` reflects the accepted shader; `lighting` retains legacy `diffuseStrength`
+metadata and reports configured/constant kind. The full authored DTO is available
+in copied `options.lighting`. Candidates validate/stage atomically; invalid lighting
+keeps accepted options/data/pixels/resources and disposal remains resource-only.
+
+One actual native Surface/Curve and all common mesh paths are exercised by
+`node packages/barocss-gpu/tests/mesh-lighting-flow.mjs` with unique
+`BAROCSS_LIGHTING_EVIDENCE` and optional `BAROCSS_LIGHTING_PORT`. Press **Run native
+lighting flow** at its printed URL. Independent bright/opposed/zero/default gamma
+pixels, unchanged real GL arrays/native source, unlit Curve pixels, subnormal
+direction lowering, copied getters/IR, invalid retention and cleanup are recorded.
+Integration, Viewer/editor adoption and publication remain separate stages.

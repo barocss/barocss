@@ -6,7 +6,7 @@ import {validateMeshOptions} from './mesh-packet.js';
 import type {PreviewPacket,MeshOptions} from './mesh-packet.js';
 import type {RGB,Vec3} from './scene.js';
 import {prepareCamera} from './camera.js';
-import {MESH_SHADERS} from './mesh-shaders.js';
+import {meshLightingShaders,applyMeshLighting} from './mesh-shaders.js';
 
 export interface MeshSceneEntry {packet:PreviewPacket;color:RGB;transform?:MeshSceneTransform}
 export type MeshSceneOptions=Omit<MeshOptions,'color'>;
@@ -25,9 +25,9 @@ function record(input:unknown,keys:string[],label:string):Record<string,unknown>
  const result:Record<string,unknown>={};for(const key of keys){const d=Object.getOwnPropertyDescriptor(input,key);requireValue(d&&'value'in d&&d.enumerable,label+'.'+key+' must be own data');result[key]=d.value;}return result;
 }
 function prepare(entriesInput:unknown,optionsInput:unknown):{meshes:Mesh[];options:MeshSceneOptions} {
- const keys=['mmToSceneUnit','translate','background'];if(optionsInput&&typeof optionsInput==='object'&&Object.hasOwn(optionsInput,'camera'))keys.push('camera');
+ const keys=['mmToSceneUnit','translate','background'];if(optionsInput&&typeof optionsInput==='object'&&Object.hasOwn(optionsInput,'camera'))keys.push('camera');if(optionsInput&&typeof optionsInput==='object'&&Object.hasOwn(optionsInput,'lighting'))keys.push('lighting');
  const common=record(optionsInput,keys,'Mesh scene options'),white=validateMeshOptions({...common,color:[1,1,1]});
- const options:MeshSceneOptions={mmToSceneUnit:white.mmToSceneUnit,translate:[...white.translate],background:[...white.background],...(white.camera?{camera:structuredClone(white.camera)}:{})};
+ const options:MeshSceneOptions={mmToSceneUnit:white.mmToSceneUnit,translate:[...white.translate],background:[...white.background],...(white.camera?{camera:structuredClone(white.camera)}:{}),...(white.lighting?{lighting:white.lighting}:{})};
  requireValue(Array.isArray(entriesInput)&&Object.getPrototypeOf(entriesInput)===Array.prototype,'Mesh scene entries must be a plain array');
  const length=Object.getOwnPropertyDescriptor(entriesInput,'length')!.value;
  requireValue(Number.isInteger(length)&&length>=1&&length<=4,'Mesh scene needs1..4 original packets');
@@ -57,7 +57,8 @@ export class MeshSceneRenderer {
   this.live();this.dimensions(width,height);this.check();const gl=this.gl,camera=prepareCamera(options.camera,width/height);
   const frame:Frame={draws:[],options,program:null,framebuffer:null,color:null,depth:null,width,height},shaders:WebGLShader[]=[];
   try {
-   for(const[kind,text]of[[gl.VERTEX_SHADER,MESH_SHADERS.vertex],[gl.FRAGMENT_SHADER,MESH_SHADERS.fragment]]as const){const shader=gl.createShader(kind);if(!shader)throw new GPUError('Cannot allocate mesh scene shader');shaders.push(shader);gl.shaderSource(shader,text);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw new GPUError('Mesh scene shader compile failed: '+gl.getShaderInfoLog(shader));}
+   const source=meshLightingShaders(options.lighting);
+   for(const[kind,text]of[[gl.VERTEX_SHADER,source.vertex],[gl.FRAGMENT_SHADER,source.fragment]]as const){const shader=gl.createShader(kind);if(!shader)throw new GPUError('Cannot allocate mesh scene shader');shaders.push(shader);gl.shaderSource(shader,text);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS))throw new GPUError('Mesh scene shader compile failed: '+gl.getShaderInfoLog(shader));}
    frame.program=gl.createProgram();if(!frame.program)throw new GPUError('Cannot allocate mesh scene program');for(const shader of shaders)gl.attachShader(frame.program,shader);gl.linkProgram(frame.program);if(!gl.getProgramParameter(frame.program,gl.LINK_STATUS))throw new GPUError('Mesh scene program link failed: '+gl.getProgramInfoLog(frame.program));
    for(const mesh of meshes){const draw:Draw={mesh,vao:gl.createVertexArray(),buffers:[]};frame.draws.push(draw);if(!draw.vao)throw new GPUError('Cannot allocate mesh scene vertex array');gl.bindVertexArray(draw.vao);
     for(const[location,data]of[[0,mesh.positions],[1,mesh.normals]]as const){const buffer=gl.createBuffer();if(!buffer)throw new GPUError('Cannot allocate mesh scene vertex buffer');draw.buffers.push(buffer);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,3,gl.FLOAT,false,0,0);}
@@ -69,6 +70,7 @@ export class MeshSceneRenderer {
    gl.viewport(0,0,width,height);gl.disable(gl.BLEND);gl.disable(gl.SCISSOR_TEST);gl.disable(gl.CULL_FACE);gl.disable(gl.POLYGON_OFFSET_FILL);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LESS);gl.depthMask(true);gl.colorMask(true,true,true,true);
    gl.clearColor(...options.background,1);gl.clearDepth(1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
    gl.useProgram(frame.program);gl.uniform1f(gl.getUniformLocation(frame.program,'aspect'),width/height);gl.uniform1i(gl.getUniformLocation(frame.program,'defaultCamera'),options.camera===undefined?1:0);gl.uniformMatrix4fv(gl.getUniformLocation(frame.program,'view'),false,camera.view);gl.uniformMatrix4fv(gl.getUniformLocation(frame.program,'projection'),false,camera.projection);
+   applyMeshLighting(gl,frame.program,options.lighting);
    for(const draw of frame.draws){gl.bindVertexArray(draw.vao);gl.uniform3fv(gl.getUniformLocation(frame.program,'color'),draw.mesh.options.color);gl.drawElements(gl.TRIANGLES,draw.mesh.indices.length,gl.UNSIGNED_SHORT,0);}
    this.check();return frame;
   }catch(error){this.release(frame);throw error;}finally{for(const shader of shaders)gl.deleteShader(shader);}
