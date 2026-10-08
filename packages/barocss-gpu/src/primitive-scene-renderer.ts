@@ -20,9 +20,13 @@ export type PrimitiveSceneEntryV1=
  |(Extract<PrimitiveSceneEntry,{kind:'curve'}>&{sampleVersion:0})
  |{kind:'curve';sampleVersion:1;sample:WideAdaptiveCurveSamplingResult;basis:'authored-xyz-matches-rhyup';color:RGB;transform?:MeshSceneTransform};
 export interface PrimitiveSceneInputV1 {version:1;entries:PrimitiveSceneEntryV1[]}
+/** Host-scoped accepted source namespace; not a native revision/topology certificate. */
+export interface PrimitiveSceneRef {modelId:string;geometryId:string}
+export type PrimitiveSceneEntryV2=PrimitiveSceneEntryV1&{ref:PrimitiveSceneRef};
+export interface PrimitiveSceneInputV2 {version:2;entries:PrimitiveSceneEntryV2[]}
 type NativeCurveSample=AdaptiveCurveSamplingResult|WideAdaptiveCurveSamplingResult;
 interface Primitive {
- entry:PrimitiveSceneEntry|PrimitiveSceneEntryV1;positions:Float32Array;normals?:Float32Array;indices?:Uint16Array;bounds:MeshSceneBounds;
+ entry:PrimitiveSceneEntry|PrimitiveSceneEntryV1|PrimitiveSceneEntryV2;positions:Float32Array;normals?:Float32Array;indices?:Uint16Array;bounds:MeshSceneBounds;
 }
 interface Draw extends Primitive {vao:WebGLVertexArrayObject|null;buffers:WebGLBuffer[];program:WebGLProgram|null}
 interface Frame {draws:Draw[];options:PrimitiveSceneOptions;programs:WebGLProgram[];framebuffer:WebGLFramebuffer|null;color:WebGLTexture|null;depth:WebGLRenderbuffer|null;width:number;height:number}
@@ -80,24 +84,32 @@ function curvePositions(sample:NativeCurveSample,options:MeshOptions,pose?:MeshS
  }
  return positions;
 }
-function prepare(input:unknown,optionsInput:unknown,sceneVersion:0|1=0):{primitives:Primitive[];options:PrimitiveSceneOptions}{
+function prepare(input:unknown,optionsInput:unknown,sceneVersion:0|1|2=0):{primitives:Primitive[];options:PrimitiveSceneOptions}{
  const common=record(optionsInput,['mmToSceneUnit','translate','background','camera','lighting'],['mmToSceneUnit','translate','background']);
  const white=validateMeshOptions({...common,color:[1,1,1]});
  const options={mmToSceneUnit:white.mmToSceneUnit,translate:[...white.translate] as Vec3,background:[...white.background] as RGB,...(white.camera?{camera:structuredClone(white.camera)}:{}),...(white.lighting?{lighting:white.lighting}:{})};
  check(Array.isArray(input)&&Object.getPrototypeOf(input)===Array.prototype,'Primitive entries must be a plain array');
  const length=Object.getOwnPropertyDescriptor(input,'length')!.value;
  check(Number.isInteger(length)&&length>=1&&length<=4&&Reflect.ownKeys(input).length===length+1,'Primitive scene requires1..4 dense entries');
- let curvePoints=0,curveSegments=0;const ids=new Set<string>(),primitives:Primitive[]=[];
+ let curvePoints=0,curveSegments=0;const ids=new Set<string>(),qualified=new Map<string,Set<string>>(),primitives:Primitive[]=[];
  for(let i=0;i<length;i++){
   const d=Object.getOwnPropertyDescriptor(input,String(i));check(d&&'value'in d&&d.enumerable,'Primitive entries must be own data');
-  const tag=record(d.value,['kind','packet','sample','basis','color','transform',...(sceneVersion===1?['sampleVersion']:[])],['kind','color']),hasPose=Object.hasOwn(tag,'transform');
+  const tag=record(d.value,['kind','packet','sample','basis','color','transform',...(sceneVersion>=1?['sampleVersion']:[]),...(sceneVersion===2?['ref']:[])],['kind','color']),hasPose=Object.hasOwn(tag,'transform');
   check(tag.kind==='surface'||tag.kind==='curve','Unsupported primitive kind');
-  const keys=tag.kind==='surface'?['kind','packet','color']:['kind','sample','basis','color',...(sceneVersion===1?['sampleVersion']:[])];if(hasPose)keys.push('transform');
+  const keys=tag.kind==='surface'?['kind','packet','color']:['kind','sample','basis','color',...(sceneVersion>=1?['sampleVersion']:[])];if(hasPose)keys.push('transform');if(sceneVersion===2)keys.push('ref');
   const entry=record(d.value,keys);
+  let ref:PrimitiveSceneRef|undefined;
+  if(sceneVersion===2){const r=record(entry.ref,['modelId','geometryId']);check(typeof r.modelId==='string'&&/^[A-Za-z_][A-Za-z0-9_.:-]{0,127}$/.test(r.modelId),'Qualified modelId requires ASCII1..128');check(typeof r.geometryId==='string','Qualified geometryId must be own string data');ref={modelId:r.modelId,geometryId:r.geometryId};}
+  const bindIdentity=(nativeId:string)=>{
+   if(!ref){check(!ids.has(nativeId),'Primitive native IDs must be distinct');ids.add(nativeId);return;}
+   check(ref.geometryId===nativeId,'Qualified geometryId does not match original native data');
+   let model=qualified.get(ref.modelId);if(!model){model=new Set<string>();qualified.set(ref.modelId,model);}
+   check(!model.has(nativeId),'Qualified native (modelId,geometryId) pairs must be distinct');model.add(nativeId);
+  };
   if(tag.kind==='surface'){
    const mesh=prepareSceneMesh(entry.packet,{...options,color:entry.color},entry.transform,hasPose);
-   check(!ids.has(mesh.packet.surfaceId),'Primitive native IDs must be distinct');ids.add(mesh.packet.surfaceId);
-   primitives.push({entry:{kind:'surface',packet:mesh.packet,color:[...mesh.options.color],...(mesh.transform?{transform:mesh.transform}:{})},positions:mesh.positions,normals:mesh.normals,indices:mesh.indices,bounds:mesh.displayBounds});
+   bindIdentity(mesh.packet.surfaceId);
+   primitives.push({entry:{kind:'surface',packet:mesh.packet,color:[...mesh.options.color],...(mesh.transform?{transform:mesh.transform}:{}),...(ref?{ref}:{})},positions:mesh.positions,normals:mesh.normals,indices:mesh.indices,bounds:mesh.displayBounds});
   }else{
    check(entry.basis==='authored-xyz-matches-rhyup','Curve authored XYZ must explicitly match renderer Y-up XYZ');
    const sampleVersion=sceneVersion===0?0:entry.sampleVersion;check(sampleVersion===0||sampleVersion===1,'Unsupported native Curve sampleVersion');
@@ -105,19 +117,20 @@ function prepare(input:unknown,optionsInput:unknown,sceneVersion:0|1=0):{primiti
    check(sample!==null&&typeof sample==='object'&&Array.isArray(sample.pointsMM)&&sample.pointsMM.length>=2,'Native Curve sampling result required');
    check(sample.report?.dto?.version===sampleVersion&&sample.sourceVersion===0,'Curve sampling DTO/version does not match the declared profile');
    curvePoints+=sample.pointsMM.length;curveSegments+=sample.pointsMM.length-1;
-   check(curvePoints<=(sceneVersion===1?16388:4096)&&curveSegments<=(sceneVersion===1?16384:4092),'Scene Curve point/segment budget exceeded');
+   check(curvePoints<=(sceneVersion>=1?16388:4096)&&curveSegments<=(sceneVersion>=1?16384:4092),'Scene Curve point/segment budget exceeded');
    check(sample.pointsMM.length<=(sampleVersion===1?4097:1025),'Curve sample point capacity exceeded');
    if(sampleVersion===1)validateWideAdaptiveCurveSamples(sample as WideAdaptiveCurveSamplingResult);else validateAdaptiveCurveSamples(sample as AdaptiveCurveSamplingResult);
-   check(!ids.has(sample.curve.id),'Primitive native IDs must be distinct');ids.add(sample.curve.id);
+   bindIdentity(sample.curve.id);
    const positions=curvePositions(sample,opts,pose);
    const fields={basis:'authored-xyz-matches-rhyup' as const,color:[...opts.color] as RGB,...(pose?{transform:pose}:{})};
-   const owned:PrimitiveSceneEntry|PrimitiveSceneEntryV1=sampleVersion===1?{kind:'curve',sampleVersion:1,sample:sample as WideAdaptiveCurveSamplingResult,...fields}:sceneVersion===1?{kind:'curve',sampleVersion:0,sample:sample as AdaptiveCurveSamplingResult,...fields}:{kind:'curve',sample:sample as AdaptiveCurveSamplingResult,...fields};
-   primitives.push({entry:owned,positions,bounds:displayBounds(positions)});
+   const owned:PrimitiveSceneEntry|PrimitiveSceneEntryV1=sampleVersion===1?{kind:'curve',sampleVersion:1,sample:sample as WideAdaptiveCurveSamplingResult,...fields}:sceneVersion>=1?{kind:'curve',sampleVersion:0,sample:sample as AdaptiveCurveSamplingResult,...fields}:{kind:'curve',sample:sample as AdaptiveCurveSamplingResult,...fields};
+   primitives.push({entry:ref?{...owned,ref} as PrimitiveSceneEntryV2:owned,positions,bounds:displayBounds(positions)});
   }
  }
  return{primitives,options};
 }
 function prepareV1(input:unknown,options:unknown):ReturnType<typeof prepare>{const envelope=record(input,['version','entries']);check(envelope.version===1,'Only explicit primitive scene version1 is supported');return prepare(envelope.entries,options,1);}
+function prepareV2(input:unknown,options:unknown):ReturnType<typeof prepare>{const envelope=record(input,['version','entries']);check(envelope.version===2,'Only explicit qualified primitive scene version2 is supported');return prepare(envelope.entries,options,2);}
 
 /** Genuine sampled native Curves and Surface packets share one candidate frame/depth. */
 class PrimitiveSceneBackend {
@@ -128,7 +141,7 @@ class PrimitiveSceneBackend {
   const gl=canvas.getContext('webgl2',{alpha:false,antialias:false,depth:true,preserveDrawingBuffer:true});check(gl&&!gl.isContextLost(),'WebGL2 is unavailable');this.gl=gl;canvas.addEventListener('webglcontextlost',this.onLoss);
   let frame:Frame|null=null;try{frame=this.create(prepared.primitives,prepared.options,canvas.width,canvas.height);this.present(frame);this.accepted=frame;}catch(error){if(frame)this.release(frame);this.dispose();throw error;}
  }
- protected copyEntries():(PrimitiveSceneEntry|PrimitiveSceneEntryV1)[]{this.live();return this.accepted!.draws.map(d=>structuredClone(d.entry));}
+ protected copyEntries():(PrimitiveSceneEntry|PrimitiveSceneEntryV1|PrimitiveSceneEntryV2)[]{this.live();return this.accepted!.draws.map(d=>structuredClone(d.entry));}
  get options():PrimitiveSceneOptions{this.live();return structuredClone(this.accepted!.options);}
  get bounds():MeshSceneBounds{this.live();const draws=this.accepted!.draws;return{min:[0,1,2].map(a=>Math.min(...draws.map(d=>d.bounds.min[a]))) as Vec3,max:[0,1,2].map(a=>Math.max(...draws.map(d=>d.bounds.max[a]))) as Vec3};}
  private live(){check(!this.disposed,'Primitive renderer is disposed');check(!this.lost&&!this.gl.isContextLost(),'WebGL2 context is lost; mount a new renderer');}
@@ -184,5 +197,11 @@ export class PrimitiveSceneRendererV1 extends PrimitiveSceneBackend {
  get entries():PrimitiveSceneEntryV1[]{return this.copyEntries() as PrimitiveSceneEntryV1[];}
  update(input:PrimitiveSceneInputV1,options:PrimitiveSceneOptions):UpdateResult{return this.updatePrepared(()=>prepareV1(input,options));}
 }
+export class PrimitiveSceneRendererV2 extends PrimitiveSceneBackend {
+ constructor(canvas:HTMLCanvasElement,input:PrimitiveSceneInputV2,options:PrimitiveSceneOptions){super(canvas,prepareV2(input,options));}
+ get entries():PrimitiveSceneEntryV2[]{return this.copyEntries() as PrimitiveSceneEntryV2[];}
+ update(input:PrimitiveSceneInputV2,options:PrimitiveSceneOptions):UpdateResult{return this.updatePrepared(()=>prepareV2(input,options));}
+}
 export function mountPrimitiveScene(canvas:HTMLCanvasElement,entries:PrimitiveSceneEntry[],options:PrimitiveSceneOptions):PrimitiveSceneRenderer{return new PrimitiveSceneRenderer(canvas,entries,options);}
 export function mountPrimitiveSceneV1(canvas:HTMLCanvasElement,input:PrimitiveSceneInputV1,options:PrimitiveSceneOptions):PrimitiveSceneRendererV1{return new PrimitiveSceneRendererV1(canvas,input,options);}
+export function mountPrimitiveSceneV2(canvas:HTMLCanvasElement,input:PrimitiveSceneInputV2,options:PrimitiveSceneOptions):PrimitiveSceneRendererV2{return new PrimitiveSceneRendererV2(canvas,input,options);}
