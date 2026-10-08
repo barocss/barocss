@@ -46,6 +46,7 @@
         <button id="pick-first">Use next click for first point</button>
         <button id="pick-second">Use next click for second point</button>
         <button id="measure">Measure native points</button>
+        <button id="measure-typed-surfaces">Measure with typed native points</button>
       </section>
       <details class="measure" aria-label="Native Curve chord measurement">
         <summary>Native Curve chord</summary>
@@ -55,6 +56,7 @@
         <label>Second Curve<select id="second-curve"></select></label>
         <label>Second parameter<input id="second-t" type="number" step="any" value="0.75"></label>
         <button id="measure-curve">Measure native Curve chord</button>
+        <button id="measure-typed-curves">Measure with typed native points</button>
       </details>
       <details class="measure" aria-label="Native Surface-to-Curve distance measurement">
         <summary>Native Surface-to-Curve distance</summary>
@@ -64,6 +66,8 @@
         <label>Curve<select id="mixed-curve"></select></label>
         <label>Curve parameter<input id="mixed-t" type="number" step="any" value="0.75"></label>
         <button id="measure-mixed">Measure native straight distance</button>
+        <label>Typed point order<select id="typed-order"><option value="surface-curve">Surface then Curve</option><option value="curve-surface">Curve then Surface</option></select></label>
+        <button id="measure-typed">Measure with typed native points</button>
       </details>
       <pre id="state" aria-live="polite">Loading native source…</pre>
     </aside>

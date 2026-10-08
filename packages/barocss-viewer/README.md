@@ -78,6 +78,20 @@ Its copied native XYZ/mm points and Euclidean `distanceMM` use
 Curve. Invalid requests preserve all three measurement records and the scene;
 successful model or packet acceptance clears all three.
 
+`measureNativePoints(first, second)` accepts exact tagged records
+`{kind:'surface',modelId,surfaceId,u,v}` or
+`{kind:'curve',modelId,curveId,t}` in either order. It evaluates both
+original native points and returns tagged refs, parameters, XYZ/mm, finite
+`distanceMM`, `metric:'straight-line'`, `space:'native-authored'`, and
+`certification:'not-certified'`. The copied latest result is available at
+`getState().nativeMeasurement`. All three older pair-specific methods also
+update this latest field while retaining their own last-result fields.
+A generic call updates only the latest field. The caller owns any history.
+Invalid, stale, wrong-kind or out-of-domain inputs leave all accepted state
+and pixels unchanged; a successful scene replacement clears all four fields.
+This is not Curve arc length, Surface geodesic, display/assembly distance or
+a certified dimension.
+
 `getState().packets` contains copied, unscaled preview packets for native or
 generic input.
 The current GPU scene backend requires distinct original `surfaceId` values

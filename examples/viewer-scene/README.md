@@ -35,3 +35,12 @@ give Surface `[50,70,20]` mm and Curve `[60,0,0]` mm, so the straight
 distance is `sqrt(5400)` mm. The Curve is not drawn. The result is separate
 from Surface-Surface and Curve-Curve measurements and is not a path along
 either geometry or a certified dimension.
+
+Each measurement section also has **Measure with typed native points**. It calls
+`measureNativePoints` with tagged Surface or Curve inputs and shows the
+latest result from `getState().nativeMeasurement`. The mixed section can
+reverse point order. The generic method also accepts both same-kind pairs.
+The three older measurement
+methods remain callable and also update this latest result. A generic call
+does not replace their separate last-result fields. All results use original
+native XYZ/mm, not displayed Motion poses or Curve arc length.
