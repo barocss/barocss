@@ -19,11 +19,11 @@ function sameData(a:unknown,b:unknown):boolean {
 function sampleParameters(knots:number[],domain:[number,number]):number[] {
  const [first,last]=domain,breaks=[first];
  for(const knot of knots)if(knot>first&&knot<last&&knot!==breaks[breaks.length-1])breaks.push(knot);
- breaks.push(last);const parameters=[first];
+ breaks.push(last);const parameters=[first],subdivisions=Math.min(8,Math.floor(63/(breaks.length-1)));
  for(let i=1;i<breaks.length;i++){
   const a=breaks[i-1],b=breaks[i],delta=b-a;
   requireValue(b>a,'original varying knot spans must increase');
-  for(const fraction of [.25,.5,.75]){
+  for(let part=1;part<subdivisions;part++){const fraction=part/subdivisions;
    const value=Number.isFinite(delta)?a+delta*fraction:a*(1-fraction)+b*fraction;
    requireValue(Number.isFinite(value)&&value>a&&value<b&&value>parameters[parameters.length-1],'span interiors are not distinctly representable; sampling refused');
    parameters.push(value);
