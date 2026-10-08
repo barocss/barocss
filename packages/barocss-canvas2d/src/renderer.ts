@@ -1,5 +1,5 @@
 import { Canvas2DError, copyImageAsset, validateImageAssetId, validatePoint, validateScene, validateSize, validateView } from './schema.js';
-import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, Point, Scene, Size, Transform, View } from './schema.js';
+import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, Point, Scene, Size, Transform, View } from './schema.js';
 import { tessellatePath } from './path.js';
 import type { FillObservation, PathObservation } from './path.js';
 import { createImageGpu, createImageTexture, disposeImageGpu, renderImage, sampledAlpha, sourceRect } from './image.js';
@@ -7,7 +7,7 @@ import type { ImageAsset, ImageGpu } from './image.js';
 
 type Matrix = [number, number, number, number, number, number];
 type Clip = { left: number; top: number; right: number; bottom: number };
-type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9;
+type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10;
 type DrawNode = Exclude<RenderNode, { kind: 'group' }>;
 type Draw = {
   id: string; kind: 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun'; node: DrawNode;
@@ -88,14 +88,16 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
     draws.push(draw);
   }
   function visit(siblings: RenderNode[], parent: Matrix, inheritedClip: Clip | null,
-    inheritedVisible: boolean): void {
+    inheritedVisible: boolean, inheritedAlpha: number): void {
     const sorted = siblings.map((node, index) => ({ node, index }))
       .sort((a, b) => a.node.layer - b.node.layer || a.index - b.index);
     for (const { node } of sorted) {
       const visible = inheritedVisible && (!('visible' in node) || node.visible !== false);
-      const add = (draw: Omit<Draw, 'visible'>): void => addDraw({ ...draw, visible });
+      const alpha = inheritedAlpha * ('alpha' in node ? node.alpha : 1);
+      const add = (draw: Omit<Draw, 'visible'>): void => addDraw({ ...draw,
+        color: [draw.color[0], draw.color[1], draw.color[2], draw.color[3] * alpha], visible });
       const matrix = multiply(parent, pose(node.transform));
-      if (node.kind === 'group') { visit(node.children as RenderNode[], matrix, inheritedClip, visible); continue; }
+      if (node.kind === 'group') { visit(node.children as RenderNode[], matrix, inheritedClip, visible, alpha); continue; }
       const inv = inverse(matrix);
       if (node.kind === 'frame') {
         add({ id: node.id, kind: 'frame', node, matrix, inverse: inv,
@@ -108,7 +110,7 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
             right: Math.max(topLeft.x, bottomRight.x), bottom: Math.max(topLeft.y, bottomRight.y),
           });
         }
-        visit(node.children as RenderNode[], matrix, childClip, visible);
+        visit(node.children as RenderNode[], matrix, childClip, visible, alpha);
       } else if (node.kind === 'rect') {
         add({ id: node.id, kind: 'rect', node, matrix, inverse: inv,
           color: node.fill, vertices: rectangle(matrix, node.width, node.height), clip: inheritedClip });
@@ -159,7 +161,7 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
       }
     }
   }
-  visit(scene.nodes as RenderNode[], [1, 0, 0, 1, 0, 0], null, true);
+  visit(scene.nodes as RenderNode[], [1, 0, 0, 1, 0, 0], null, true, 1);
   return draws;
 }
 
@@ -466,7 +468,7 @@ export class Canvas2DRenderer {
     gl.uniform2f(gpu.size, this.size.width, this.size.height);
     gl.uniform3f(gpu.view, this.view.panX, this.view.panY, this.view.zoom);
     for (const draw of this.draws) {
-      if (!draw.visible) continue;
+      if (!draw.visible || draw.color[3] <= 0) continue;
       if (draw.maskVertices) {
         gl.disable(gl.SCISSOR_TEST);
         gl.stencilMask(0xff); gl.clearStencil(0); gl.clear(gl.STENCIL_BUFFER_BIT);
@@ -486,7 +488,8 @@ export class Canvas2DRenderer {
           gl.blendFunc(gl.ONE, gl.ONE);
         }
         try {
-          renderImage(gl, gpu.image, draw.vertices, imageNode, draw.imageAsset, this.size, this.view);
+          renderImage(gl, gpu.image, draw.vertices, imageNode, draw.imageAsset,
+            draw.color[3], this.size, this.view);
         } finally {
           gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         }

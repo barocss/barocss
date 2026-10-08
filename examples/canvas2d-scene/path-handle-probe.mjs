@@ -16,7 +16,7 @@ const curve = tree.createPath({ id: 'Curve', layer: 1, transform: pose(110, 20),
     c2x: 40, c2y: 60, x: 60, y: 30 }], stroke: { color: [0, 0, 1, 1], width: 6 } });
 tree.stage.addChild(team); team.addChild(filled); team.addChild(curve);
 const first = tree.snapshot();
-assert.equal(first.version, 9);
+assert.equal(first.version, 10);
 assert.deepEqual(first.nodes[0].children.map(node => node.id), ['Filled', 'Curve']);
 assert.equal(tree.get('Filled'), filled);
 assert.equal(tree.get('Curve'), curve);
@@ -75,14 +75,16 @@ assert.equal(tree.get('Curve'), curve);
 const oldScene = structuredClone(changed);
 oldScene.version = 5;
 delete oldScene.nodes[0].visible;
+delete oldScene.nodes[0].alpha;
 for (const child of oldScene.nodes[0].children) {
   delete child.visible;
+  delete child.alpha;
   if (child.kind === 'image') { delete child.anchorX; delete child.anchorY; }
 }
 assert.throws(() => createDisplayTreeFromScene(oldScene), error => error.code === 'UNSUPPORTED_FEATURE');
 const rectScene = structuredClone(changed);
 rectScene.nodes[0].children.push({ kind: 'rect', id: 'Rect', layer: 2,
-  transform: pose(), width: 10, height: 10, fill: [1, 1, 1, 1], visible: true });
+  transform: pose(), width: 10, height: 10, fill: [1, 1, 1, 1], visible: true, alpha: 1 });
 assert.equal(createDisplayTreeFromScene(rectScene).get('Rect')?.kind, 'rect');
 
 console.log(JSON.stringify({ result: 'ok', initialIds: first.nodes[0].children.map(node => node.id),

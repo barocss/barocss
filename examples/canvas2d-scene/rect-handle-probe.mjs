@@ -53,11 +53,12 @@ assert.notEqual(restored.get('Rect'), rect);
 assert.equal(restored.get('Rect')?.kind, 'rect');
 assert.equal(stringifySceneJSON(restored.snapshot()), stringifySceneJSON(changed));
 const old = structuredClone(changed); old.version = 5;
-old.nodes[0].children.forEach(node => { delete node.visible; }); delete old.nodes[0].visible;
+old.nodes[0].children.forEach(node => { delete node.visible; delete node.alpha; });
+delete old.nodes[0].visible; delete old.nodes[0].alpha;
 assert.throws(() => createDisplayTreeFromScene(old), error => error.code === 'UNSUPPORTED_FEATURE');
 const unsupported = structuredClone(changed);
 unsupported.nodes[0].children.push({ kind: 'line', id: 'Line', layer: 1, transform: pose(),
-  x1: 0, y1: 0, x2: 10, y2: 0, width: 1, stroke: [1, 1, 1, 1], visible: true });
+  x1: 0, y1: 0, x2: 10, y2: 0, width: 1, stroke: [1, 1, 1, 1], visible: true, alpha: 1 });
 assert.equal(createDisplayTreeFromScene(unsupported).get('Line')?.kind, 'line');
 console.log(JSON.stringify({ result: 'ok', refusals: refusals.length + 2,
   pointerRoute: ['Rect', 'Team', 'stage'], restoredWidth: restored.get('Rect')?.data.width }));

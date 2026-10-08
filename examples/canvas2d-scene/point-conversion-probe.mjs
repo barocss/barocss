@@ -56,7 +56,7 @@ tree.reparentChild(sprite, other, 0);
 assert.deepEqual(sprite.toWorld({ x: 1, y: 2 }), { x: 56, y: 17 });
 other.setTransform(pose(60, 15));
 assert.deepEqual(sprite.toWorld({ x: 1, y: 2 }), { x: 66, y: 22 });
-assert.equal(stringifySceneJSON(tree.snapshot()).includes('"version":9'), true);
+assert.equal(stringifySceneJSON(tree.snapshot()).includes('"version":10'), true);
 const saved = tree.snapshot();
 const file = await serializeCanvasDocument(saved,
   id => id === 'Atlas' ? { width: 1, height: 1, pixels: new Uint8Array([255, 0, 0, 255]) } : null);
@@ -78,5 +78,5 @@ const smallChild = small.createRect({ id: 'B', layer: 0, transform: pose(0, 0, 0
   width: 1, height: 1, fill: [1, 0, 0, 1] });
 small.stage.addChild(smallParent); smallParent.addChild(smallChild);
 assert.throws(() => smallChild.toLocal({ x: 1e6, y: 0 }), error => error.code === 'SCENE_LIMIT');
-console.log(JSON.stringify({ result: 'ok', kinds: 7, sceneVersion: 9,
+console.log(JSON.stringify({ result: 'ok', kinds: 7, sceneVersion: 10,
   fileBytes: Buffer.byteLength(file) }));
