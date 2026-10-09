@@ -21,6 +21,10 @@
       "types": "./dist/document.d.ts",
       "import": "./dist/document.js"
     },
+    "./boolean-extrusion-feature-graph": {
+      "types": "./dist/boolean-extrusion-feature-graph.d.ts",
+      "import": "./dist/boolean-extrusion-feature-graph.js"
+    },
     "./assembly": {
       "types": "./dist/assembly.d.ts",
       "import": "./dist/assembly.js"
