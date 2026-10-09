@@ -40,11 +40,32 @@ assert.deepEqual(handle.data.stroke, stroke('bevel'));
 const before = JSON.stringify(tree.snapshot());
 code(() => handle.setPath({ commands: turn, stroke: { ...stroke(), join: 'miter' } }), 'INVALID_SCENE');
 assert.equal(JSON.stringify(tree.snapshot()), before);
+const joinOnly = tree.createPath({ id: 'Q', layer: 1, transform: pose, commands: turn,
+  stroke: { color: blue, width: 10, join: 'round' } });
+assert.deepEqual(joinOnly.data.stroke, stroke('round'));
+const angle = Math.PI / 4;
+const transformed = { x: 70, y: 20, scaleX: 1.5, scaleY: 0.75, rotation: angle };
+const transformedTree = createDisplayTree('BoundsProbe');
+const transformedHandle = transformedTree.createPath({ id: 'Turned', layer: 0, transform: transformed,
+  commands: [{ kind: 'M', x: 0, y: 0 }, { kind: 'L', x: 10, y: 0 }, { kind: 'L', x: 10, y: 20 }],
+  stroke: stroke() });
+const transformedMatrix = [Math.cos(angle) * 1.5, Math.sin(angle) * 1.5,
+  -Math.sin(angle) * 0.75, Math.cos(angle) * 0.75, 70, 20];
+const transformedMesh = tessellatePath({ kind: 'path', ...transformedHandle.data },
+  transformedMatrix, view, 2, 1);
+const bounds = transformedHandle.getWorldBounds();
+assert.ok(bounds);
+for (let i = 0; i < transformedMesh.vertices.length; i += 2) {
+  const x = transformedMesh.vertices[i], y = transformedMesh.vertices[i + 1];
+  assert.ok(x >= bounds.x - 1e-6 && x <= bounds.x + bounds.width + 1e-6);
+  assert.ok(y >= bounds.y - 1e-6 && y <= bounds.y + bounds.height + 1e-6);
+}
 const older = createDisplayTreeFromScene(v18);
 assert.equal(older.snapshot().nodes[0].stroke.join, 'bevel');
 assert.equal(accepted.version, 19);
 console.log(JSON.stringify({ v18: 'accepted', v18Join: 'rejected', v19Required: 'checked',
-  publicDefault: handle.data.stroke.join, atomicInvalid: true,
+  publicDefault: handle.data.stroke.join, joinOnlyCap: joinOnly.data.stroke.cap,
+  transformedVerticesWithinWorldBounds: true, atomicInvalid: true,
   vertices: { bevel: mesh(turn, 'bevel').observation.vertices,
     round: mesh(turn, 'round').observation.vertices,
     reversal: mesh(reverse, 'round').observation.vertices,

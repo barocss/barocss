@@ -14,7 +14,7 @@ tree.stage.addChild(tree.createRect({ id: 'Back', layer: -1, transform: pose,
 let bevel = tree.createPath({ id: 'Bevel', layer: 0, transform: pose,
   commands: commands(20), stroke: { color: blue, width: 10, cap: 'butt' } });
 let round = tree.createPath({ id: 'Round', layer: 1, transform: pose,
-  commands: commands(55), stroke: { color: blue, width: 10, cap: 'butt', join: 'round' } });
+  commands: commands(55), stroke: { color: blue, width: 10, join: 'round' } });
 let turned = tree.createPath({ id: 'Turned', layer: 2,
   transform: { x: 70, y: 20, scaleX: 1.5, scaleY: 0.75, rotation: Math.PI / 4 },
   commands: createPathBuilder().polyline([{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 20 }]).build(),
