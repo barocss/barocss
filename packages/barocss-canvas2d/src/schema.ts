@@ -39,6 +39,8 @@ export type PathJoin = 'bevel' | 'round';
 export type PathStrokeV19 = PathStrokeV18 & { join: PathJoin };
 export type PathDash = { lengths: number[]; offset: number };
 export type PathStrokeV20 = PathStrokeV19 & { dash: PathDash };
+export type PathJoinV21 = PathJoin | 'miter';
+export type PathStrokeV21 = Omit<PathStrokeV20, 'join'> & { join: PathJoinV21; miterLimit: number };
 export type PathNodeV2 = Base & { kind: 'path'; commands: PathCommand[]; fill?: PathFill; stroke?: PathStroke };
 export type PathNodeV5 = Base & { kind: 'path'; commands: PathCommand[]; fill?: PathFillV5; stroke?: PathStroke };
 export type SourceRect = { x: number; y: number; width: number; height: number };
@@ -143,6 +145,10 @@ export type PathNodeV20 = Omit<PathNodeV14, 'stroke'> & { stroke?: PathStrokeV20
 export type GroupNodeV20 = Omit<GroupNodeV19, 'children'> & { children: NodeV20[] };
 export type FrameNodeV20 = Omit<FrameNodeV19, 'children'> & { children: NodeV20[] };
 export type NodeV20 = GroupNodeV20 | FrameNodeV20 | RectNodeV14 | LineNodeV14 | PathNodeV20 | ImageNodeV16 | GlyphRunNodeV14;
+export type PathNodeV21 = Omit<PathNodeV14, 'stroke'> & { stroke?: PathStrokeV21 };
+export type GroupNodeV21 = Omit<GroupNodeV20, 'children'> & { children: NodeV21[] };
+export type FrameNodeV21 = Omit<FrameNodeV20, 'children'> & { children: NodeV21[] };
+export type NodeV21 = GroupNodeV21 | FrameNodeV21 | RectNodeV14 | LineNodeV14 | PathNodeV21 | ImageNodeV16 | GlyphRunNodeV14;
 export type OldGroupNode = Omit<GroupNode, 'children'> & { children: OldNode[] };
 export type OldFrameNode = Omit<FrameNode, 'children'> & { children: OldNode[] };
 export type OldNode = OldGroupNode | OldFrameNode | RectNode | LineNode;
@@ -167,7 +173,8 @@ export type SceneV17 = { version: 17; unit: 'logical-px'; contextId: string; nod
 export type SceneV18 = { version: 18; unit: 'logical-px'; contextId: string; nodes: NodeV18[] };
 export type SceneV19 = { version: 19; unit: 'logical-px'; contextId: string; nodes: NodeV19[] };
 export type SceneV20 = { version: 20; unit: 'logical-px'; contextId: string; nodes: NodeV20[] };
-export type Scene = SceneV0 | SceneV1 | SceneV2 | SceneV3 | SceneV4 | SceneV5 | SceneV6 | SceneV7 | SceneV8 | SceneV9 | SceneV10 | SceneV11 | SceneV12 | SceneV13 | SceneV14 | SceneV15 | SceneV16 | SceneV17 | SceneV18 | SceneV19 | SceneV20;
+export type SceneV21 = { version: 21; unit: 'logical-px'; contextId: string; nodes: NodeV21[] };
+export type Scene = SceneV0 | SceneV1 | SceneV2 | SceneV3 | SceneV4 | SceneV5 | SceneV6 | SceneV7 | SceneV8 | SceneV9 | SceneV10 | SceneV11 | SceneV12 | SceneV13 | SceneV14 | SceneV15 | SceneV16 | SceneV17 | SceneV18 | SceneV19 | SceneV20 | SceneV21;
 
 const MAX_BYTES = 1024 * 1024;
 const idPattern = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
@@ -410,11 +417,11 @@ function validText(value: unknown, path: string): string {
 
 type Counter = { nodes: number; vertices: number; paths: number; glyphRuns: number; ids: Set<string> };
 function nodes(value: unknown, depth: number, path: string, ancestorRotated: boolean,
-  seen: WeakSet<object>, counter: Counter, version: Scene['version']): (Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 | NodeV18 | NodeV19 | NodeV20)[] {
+  seen: WeakSet<object>, counter: Counter, version: Scene['version']): (Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 | NodeV18 | NodeV19 | NodeV20 | NodeV21)[] {
   if (depth > 16) fail('SCENE_LIMIT', 'scene depth exceeds 16');
   const raw = array(value, path, seen);
   if (raw.length > 256) fail('SCENE_LIMIT', 'scene has too many siblings');
-  return raw.map((item, index): Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 | NodeV18 | NodeV19 | NodeV20 => {
+  return raw.map((item, index): Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 | NodeV18 | NodeV19 | NodeV20 | NodeV21 => {
     const nodePath = `${path}[${index}]`;
     if (item === null || typeof item !== 'object') fail('INVALID_SCENE', `${nodePath} must be a node`);
     const kindDescriptor = Object.getOwnPropertyDescriptor(item, 'kind');
@@ -488,7 +495,7 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
         const fill = !Object.hasOwn(data, 'fill') ? undefined : object(data.fill,
           ['color', 'rule'], `${nodePath}.fill`, seen);
         const stroke = !Object.hasOwn(data, 'stroke') ? undefined : object(data.stroke,
-          version >= 20 ? ['color', 'width', 'cap', 'join', 'dash'] : version >= 19 ? ['color', 'width', 'cap', 'join'] : version >= 18 ? ['color', 'width', 'cap'] : ['color', 'width'], `${nodePath}.stroke`, seen);
+          version >= 21 ? ['color', 'width', 'cap', 'join', 'dash', 'miterLimit'] : version >= 20 ? ['color', 'width', 'cap', 'join', 'dash'] : version >= 19 ? ['color', 'width', 'cap', 'join'] : version >= 18 ? ['color', 'width', 'cap'] : ['color', 'width'], `${nodePath}.stroke`, seen);
         if (fill && fill.rule !== 'evenodd' && !(version >= 5 && fill.rule === 'nonzero')) {
           fail('INVALID_SCENE', `${nodePath}.fill.rule is unsupported`);
         }
@@ -500,9 +507,10 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
             width: number(stroke.width, `${nodePath}.stroke.width`, Number.MIN_VALUE, 1000),
             ...(version >= 18 ? { cap: stroke.cap === 'butt' || stroke.cap === 'square' || stroke.cap === 'round'
               ? stroke.cap : fail('INVALID_SCENE', `${nodePath}.stroke.cap is unsupported`) } : {}),
-            ...(version >= 19 ? { join: stroke.join === 'bevel' || stroke.join === 'round'
+            ...(version >= 19 ? { join: stroke.join === 'bevel' || stroke.join === 'round' || (version >= 21 && stroke.join === 'miter')
               ? stroke.join : fail('INVALID_SCENE', `${nodePath}.stroke.join is unsupported`) } : {}),
-            ...(version >= 20 ? { dash: pathDash(stroke.dash, `${nodePath}.stroke.dash`, seen) } : {}) } } : {}),
+            ...(version >= 20 ? { dash: pathDash(stroke.dash, `${nodePath}.stroke.dash`, seen) } : {}),
+            ...(version >= 21 ? { miterLimit: number(stroke.miterLimit, `${nodePath}.stroke.miterLimit`, 1, 16) } : {}) } } : {}),
         };
       }
       return { kind, ...base,
@@ -604,7 +612,7 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
 export function validateScene(value: unknown): Scene {
   const seen = new WeakSet<object>();
   const raw = object(value, ['version', 'unit', 'contextId', 'nodes'], 'scene', seen);
-  if ((!Number.isInteger(raw.version) || (raw.version as number) < 0 || (raw.version as number) > 20) || raw.unit !== 'logical-px') fail('INVALID_SCENE', 'unsupported scene version or unit');
+  if ((!Number.isInteger(raw.version) || (raw.version as number) < 0 || (raw.version as number) > 21) || raw.unit !== 'logical-px') fail('INVALID_SCENE', 'unsupported scene version or unit');
   const version = raw.version as Scene['version'];
   const contextId = id(raw.contextId, 'scene.contextId');
   const parsedNodes = nodes(raw.nodes, 1, 'scene.nodes', false, seen,
@@ -630,7 +638,8 @@ export function validateScene(value: unknown): Scene {
     : version === 17 ? { version: 17, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV17[] }
     : version === 18 ? { version: 18, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV18[] }
     : version === 19 ? { version: 19, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV19[] }
-    : { version: 20, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV20[] };
+    : version === 20 ? { version: 20, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV20[] }
+    : { version: 21, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV21[] };
   if (new TextEncoder().encode(JSON.stringify(scene)).length > MAX_BYTES) fail('SCENE_LIMIT', 'scene snapshot exceeds 1 MiB');
   return scene;
 }

@@ -85,3 +85,5 @@ The [`stroke-cap.html`](stroke-cap.html) page authors Scene v18 butt, square and
 The [`round-join.html`](round-join.html) page authors Scene v19 bevel and round path joins, including a transformed turn. It checks exterior and empty pixels, hits, pointer routing, invalid edit rollback, and a v1 document Save/Open followed by a restored join edit. The [round join observation](evidence/round-join/observation.md) records the browser and file flow.
 
 The [`stroke-dash.html`](stroke-dash.html) page authors a Scene v20 path with bounded on/off stroke lengths. It checks WebGL2 on and gap pixels, semantic hit fallthrough, real pointer routing, a transformed dashed path, rejected edit and view rollback, and a v1 document Save/Open on a fresh renderer/tree followed by an offset edit. The [stroke dash observation](evidence/stroke-dash/observation.md) records the browser and file flow.
+
+`miter-join.html` checks Scene v21 bounded miter joins, bevel fallback, pointer hits and document restore.
