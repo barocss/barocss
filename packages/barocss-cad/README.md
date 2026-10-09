@@ -7325,3 +7325,41 @@ Surface-grid and point-parameterization APIs keep their current contracts.
 ```sh
 node examples/cad-nurbs/weighted-curve-interpolation-demo.mjs --source /tmp/cad-weighted-interpolation --polynomial-directory /path/to/cad-curve-interpolation
 ```
+
+## Compatible multi-section loft
+
+`buildMultiSectionLoftSurface` creates a native Surface through 2 through 15
+section Curves at explicit V parameters. Sections must share the same U degree,
+pole count, knot bits and weight bits. Their coordinates and IDs can differ.
+No automatic compatibility repair or section reversal occurs.
+
+```ts
+const loft = cad.buildMultiSectionLoftSurface(sectionCurves, sectionParameters, {
+  surfaceId: 'multi_loft', degreeV: 3,
+  maximumBasisEvaluations: 3600,
+  maximumEliminationSteps: 1680,
+  maximumObservations: 465,
+});
+cad.validateMultiSectionLoftSurface(loft);
+```
+
+The builder interpolates each original U control-point row in V through the
+existing native Curve kernel. The Surface preserves the original rational
+U basis and repeats its weights along V. V uses the supplied section parameters
+and requested degree. The first and last section coefficient bits remain
+unchanged. Intermediate sections are checked against actual native Curve and
+Surface evaluations.
+
+Original Curves and the generated Surface share one Source0 Model with at most
+16 objects. Temporary V interpolation Curves remain construction evidence.
+Actual U and V derivative refusal states are retained at C0 guards; derivatives
+are compared only where the native evaluators provide them.
+
+The result preserves original sections, parameters, native source and control
+mapping evidence. Arbitrary unmatched bases, independent section weights,
+guide Curves, transported frames, caps, trimmed Shells, Solids and whole-Surface
+validity require separate contracts.
+
+```sh
+node examples/cad-nurbs/multi-section-loft-demo.mjs --source /tmp/cad-multi-loft
+```

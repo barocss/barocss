@@ -239,3 +239,6 @@ export type { CurveParameterizationMethod, CurveParameterizationOptions, CurvePa
 
 export { buildWeightedInterpolatingCurve, validateWeightedInterpolatingCurve, WeightedCurveInterpolationError, WeightedCurveInterpolationDiagnosticCode } from './weighted-curve-interpolation.js';
 export type { WeightedCurveInterpolationPoint, WeightedCurveInterpolationOptions, WeightedCurveInterpolationReport, WeightedCurveInterpolationResult } from './weighted-curve-interpolation.js';
+
+export { buildMultiSectionLoftSurface, validateMultiSectionLoftSurface, MultiSectionLoftError, MultiSectionLoftDiagnosticCode } from './multi-section-loft.js';
+export type { MultiSectionLoftOptions, MultiSectionLoftProvenance, MultiSectionLoftObservation, MultiSectionLoftReport, MultiSectionLoftResult } from './multi-section-loft.js';
