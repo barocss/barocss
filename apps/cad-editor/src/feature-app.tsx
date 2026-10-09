@@ -70,8 +70,8 @@ function message(error: CadEditorError, mode?: LengthDialog['mode']): string {
     const text=details.join('\n');
     if (/10000|coordinate.*range/i.test(text)) return 'Enter X, Y and Z from -10000 to 10000 mm.';
     if (/inside.*finite.*plane.*domain/i.test(text)) return 'Keep the corner within the current face plane bounds.';
-    if (/coplanar|on.{0,20}plane/i.test(text)) return 'Keep the corner on the current face plane.';
     if (/CONTACT|contact|touch/i.test(text)) return 'This edit creates unsupported contact. Choose another point.';
+    if (/\bcoplanarity\b|\bnot on (?:the )?(?:current |authored )?(?:face )?plane\b/i.test(text)) return 'Keep the corner on the current face plane.';
     return 'Cannot move this corner. Keep the face closed and convex.';
   }
   const cause = error.cause instanceof Error ? error.cause : null;

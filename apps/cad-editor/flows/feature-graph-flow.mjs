@@ -170,7 +170,8 @@ try {
   }
   if(args.includes('--face-corner')) {
     const {runFaceCornerFlow}=await import('./face-corner-flow.mjs');
-    await runFaceCornerFlow({page:fresh,browser,cad,editor,result,evidence,prefix,repo});
+    save();
+    await runFaceCornerFlow({page:fresh,browser,cad,editor,result,evidence,prefix,repo,persist:save});
     reopened=await snapshot(fresh);
   }
   await fresh.evaluate(()=>window.__cadFeatureFlow.setMounted(false));await fresh.waitForFunction(()=>window.__cadFeatureFlow.display()?.status==='disposed');const disposed=await display(fresh);assert.deepEqual(disposed.lifecycle,{mounts:1,disposals:1});assert.ok(Object.values(disposed.resourceCounts).every(n=>n===0));assert.deepEqual(await snapshot(fresh),reopened);
