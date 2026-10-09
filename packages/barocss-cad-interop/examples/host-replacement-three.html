@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Replace complete native CAD sources in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 880px; margin: 24px auto; padding: 0 16px; }
+  canvas { display: block; width: 840px; height: 368px; border: 1px solid #44617d; }
+  button { margin: 12px 8px 12px 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; }
+</style>
+<main>
+  <h1>Replace complete native CAD sources in Three.js</h1>
+  <p>The caller keeps the accepted Model while a new file loads. A uses native spacing 2 mm; B uses 3 mm.
+    Both retain the same five native IDs. Run the six actions in order.</p>
+  <div id="view"></div>
+  <div>
+    <button id="load-a">1. Load A</button>
+    <button id="abort-b" disabled>2. Abort B after progress</button>
+    <button id="replace-b" disabled>3. Replace with B</button>
+    <button id="out-of-order" disabled>4. Finish requests out of order</button>
+    <button id="reject" disabled>5. Reject invalid and HTTP 503</button>
+    <button id="dispose" disabled>6. Dispose twice</button>
+  </div>
+  <pre id="status">Load A to start. The camera stays fixed during every action.</pre>
+</main>
+<script type="module" src="./host-replacement-three.mjs"></script>
+</html>
