@@ -6899,3 +6899,69 @@ checks native geometry/provenance, holes/components/empty, authored and owned
 save/rebuild, atomic refusals and compiled public names. General feature mixing,
 suppression, lifecycle changes, persistent topology, renderer editor adoption,
 Solid/sewing and manufacturing certification remain separate work.
+
+
+## Native intent parameter creation and removal
+
+`transactBooleanExtrusionFeatureGraphParameters(previousResult, transaction)`
+creates, updates or removes typed length parameters in the native intent graph.
+It can repair dependent offset definitions and the extrusion distance reference
+in the same candidate. It returns the existing graph result format.
+
+```ts
+const next = cad.transactBooleanExtrusionFeatureGraphParameters(result, {
+  expectedRevision: result.document.revision,
+  revision: result.document.revision + 1,
+  parameterOperations: [
+    {kind: 'upsert', parameter: {
+      id: 'design_height', type: 'length',
+      definition: {kind: 'literal', valueMM: 3},
+    }},
+    {kind: 'remove', parameterId: 'height'},
+    {kind: 'remove', parameterId: 'base_height'},
+  ],
+  distanceEdits: [{
+    featureId: 'extrusion_feature',
+    definition: {kind: 'offset', parameterId: 'design_height', offsetMM: 0},
+  }],
+});
+```
+
+The exact transaction fields are `{expectedRevision, revision,
+parameterOperations, distanceEdits}`. Operations contain 1 through 16 explicit
+upsert/remove entries. Each target can appear once. An existing upsert keeps its
+ID, type and authored slot. A new parameter appends in operation order. A remove
+must name a starting parameter. A transaction cannot remove and recreate one
+ID, silently cascade a deletion or insert a replacement value.
+
+The final table has 0 through 8 parameters. A working table can have up to 16
+entries while the transaction applies; this permits an explicit replacement
+that briefly has nine entries. The unchanged caller graph budgets constrain the
+final table. All final definitions, including unused ones, resolve with the
+original length resolver. A referenced parameter can be removed only when all
+remaining dependent offsets and the distance reference are explicitly repaired.
+
+The API copies and validates the complete prior owned result, then evaluates
+one copied final authored candidate with the actual native graph evaluator.
+Revision must advance by one. Original Face inputs, feature dependencies,
+options, output slots and graph format 0 stay unchanged. Any failed candidate
+returns no replacement result and leaves prior input, native output and files
+intact. New identities reserve every starting logical/native/source identity,
+including removed slots. There is no hidden history or cross-transaction
+identity tombstone registry.
+
+Existing authored serialization and whole-owned validation handle the new
+result. The API adds no graph schema, parser, resolver or renderer resource.
+Run the actual saved-graph flow after the affected library build:
+
+```sh
+node examples/cad-nurbs/boolean-extrusion-parameter-lifecycle-demo.mjs --source /tmp/cad-parameter-lifecycle --graph-directory /path/to/cad-boolean-intent
+```
+
+The flow creates a referenced height, removes old parameters with repairs,
+changes native height through a dependency, admits a literal distance with no
+parameters, and checks final eight versus temporary nine entries. It checks
+actual native geometry/source ownership, authored and owned cold rebuilds,
+atomic refusals and public declarations. Feature lifecycle, suppression,
+selective recomputation, persistent topology/history, editor adoption and
+Solid/manufacturing certification remain separate work.
