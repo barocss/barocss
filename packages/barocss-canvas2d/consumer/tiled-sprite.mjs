@@ -98,7 +98,7 @@ async function save() {
 async function openText(text) {
   const fresh = document.createElement('canvas'); fresh.id = 'scene'; fresh.width = 64; fresh.height = 48;
   const staged = await stageCanvasDocument(text, fresh, options);
-  if (staged.scene.version !== 13 && staged.scene.version !== 14) throw new Error('Scene v13 or v14 required');
+  if (staged.scene.version !== 13 && staged.scene.version !== 14 && staged.scene.version !== 15) throw new Error('Scene v13 or v14 or v15 required');
   const nextTree = createDisplayTreeFromScene(staged.scene);
   const nextBack = nextTree.get('Back'), nextFloor = nextTree.get('Floor');
   const bytes = staged.renderer.getImageAsset('Pattern')?.pixels;

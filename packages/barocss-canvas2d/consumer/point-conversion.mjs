@@ -24,7 +24,7 @@ let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'))
 let renderer = createCanvas2D(canvas, options);
 renderer.setImageAsset('Atlas', image);
 renderer.setView(view);
-/** @type {import('@barocss/canvas2d').SceneV9 | import('@barocss/canvas2d').SceneV10 | import('@barocss/canvas2d').SceneV11 | import('@barocss/canvas2d').SceneV12 | import('@barocss/canvas2d').SceneV13 | import('@barocss/canvas2d').SceneV14} */
+/** @type {import('@barocss/canvas2d').SceneV9 | import('@barocss/canvas2d').SceneV10 | import('@barocss/canvas2d').SceneV11 | import('@barocss/canvas2d').SceneV12 | import('@barocss/canvas2d').SceneV13 | import('@barocss/canvas2d').SceneV14 | import('@barocss/canvas2d').SceneV15} */
 let accepted = tree.snapshot(); renderer.updateScene(accepted); renderer.render();
 let generation = 1;
 /** @type {string[]} */ let pointerLog = [];
@@ -111,7 +111,7 @@ async function openText(text) {
   /** @type {import('@barocss/canvas2d').SpriteHandle} */ let nextSprite;
   /** @type {import('@barocss/canvas2d').RectHandle} */ let nextBack;
   try {
-    if (staged.scene.version !== 9 && staged.scene.version !== 10 && staged.scene.version !== 11 && staged.scene.version !== 12 && staged.scene.version !== 13 && staged.scene.version !== 14) throw new Error('Document needs Scene v9, v10 or v11 or v12 or v13 or v14');
+    if (staged.scene.version !== 9 && staged.scene.version !== 10 && staged.scene.version !== 11 && staged.scene.version !== 12 && staged.scene.version !== 13 && staged.scene.version !== 14 && staged.scene.version !== 15) throw new Error('Document needs Scene v9, v10 or v11 or v12 or v13 or v14 or v15');
     nextTree = createDisplayTreeFromScene(staged.scene);
     const container = nextTree.get('Parent'), main = nextTree.get('Sprite');
     const underlay = nextTree.get('Back');
