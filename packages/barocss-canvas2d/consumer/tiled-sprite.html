@@ -1,0 +1,8 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><link rel="icon" href="data:,">
+<title>Canvas2D tiled sprite consumer</title>
+<style>body{font:14px system-ui}canvas{width:320px;height:240px;background:white;display:block;image-rendering:pixelated}pre{white-space:pre-wrap}</style>
+<script type="importmap">{"imports":{"@barocss/canvas2d":"../dist/index.js","@barocss/canvas2d/document":"../dist/document.js"}}</script>
+</head><body><button id="resize">Resize surface</button><button id="edit">Edit restored tile</button><button id="save">Save</button>
+<input id="open" type="file" accept="application/json,.json">
+<canvas id="scene" width="64" height="48"></canvas><pre id="observation"></pre>
+<script type="module" src="./tiled-sprite.mjs"></script></body></html>

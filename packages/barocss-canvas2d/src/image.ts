@@ -122,7 +122,7 @@ export function sourceRect(node: ImageNode, asset: ImageAsset): SourceRect {
 
 export function renderImage(gl: WebGL2RenderingContext, gpu: ImageGpu,
   vertices: Float32Array, node: ImageNode, asset: ImageAsset, opacity: number,
-  size: Size, view: View): void {
+  size: Size, view: View, clampRect?: SourceRect): void {
   if (!asset.texture) throw new Canvas2DError('CONTEXT_LOST', 'image texture is unavailable');
   const rect = sourceRect(node, asset);
   const u0 = rect.x / asset.width, u1 = (rect.x + rect.width) / asset.width;
@@ -134,8 +134,9 @@ export function renderImage(gl: WebGL2RenderingContext, gpu: ImageGpu,
   gl.uniform1f(gpu.opacity, opacity); gl.uniform1i(gpu.sampler, 0);
   const tint = 'tint' in node ? node.tint as [number, number, number] : [1, 1, 1];
   gl.uniform3f(gpu.tint, tint[0], tint[1], tint[2]);
-  gl.uniform4f(gpu.uvClamp, (rect.x + 0.5) / asset.width, (rect.y + 0.5) / asset.height,
-    (rect.x + rect.width - 0.5) / asset.width, (rect.y + rect.height - 0.5) / asset.height);
+  const clamp = clampRect ?? rect;
+  gl.uniform4f(gpu.uvClamp, (clamp.x + 0.5) / asset.width, (clamp.y + 0.5) / asset.height,
+    (clamp.x + clamp.width - 0.5) / asset.width, (clamp.y + clamp.height - 0.5) / asset.height);
   gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, asset.texture);
   const filter = node.sampling === 'nearest' ? gl.NEAREST : gl.LINEAR;
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, filter);
@@ -149,22 +150,23 @@ export function renderImage(gl: WebGL2RenderingContext, gpu: ImageGpu,
   gl.bindVertexArray(null); gl.bindBuffer(gl.ARRAY_BUFFER, null); gl.useProgram(null);
 }
 
-export function sampledAlpha(node: ImageNode, asset: ImageAsset, local: Point): number {
+export function sampledAlpha(node: ImageNode, asset: ImageAsset, local: Point, clampRect?: SourceRect): number {
   if (local.x < 0 || local.y < 0 || local.x > node.width || local.y > node.height) return 0;
   const rect = sourceRect(node, asset);
+  const clamp = clampRect ?? rect;
   const sx = rect.x + local.x / node.width * rect.width;
   const sy = rect.y + local.y / node.height * rect.height;
   const alpha = (x: number, y: number): number => asset.pixels[(y * asset.width + x) * 4 + 3] / 255;
   if (node.sampling === 'nearest') {
-    const x = Math.max(rect.x, Math.min(rect.x + rect.width - 1, Math.floor(sx)));
-    const y = Math.max(rect.y, Math.min(rect.y + rect.height - 1, Math.floor(sy)));
+    const x = Math.max(clamp.x, Math.min(clamp.x + clamp.width - 1, Math.floor(sx)));
+    const y = Math.max(clamp.y, Math.min(clamp.y + clamp.height - 1, Math.floor(sy)));
     return alpha(x, y) * node.opacity;
   }
-  const fx = Math.max(rect.x, Math.min(rect.x + rect.width - 1, sx - 0.5));
-  const fy = Math.max(rect.y, Math.min(rect.y + rect.height - 1, sy - 0.5));
+  const fx = Math.max(clamp.x, Math.min(clamp.x + clamp.width - 1, sx - 0.5));
+  const fy = Math.max(clamp.y, Math.min(clamp.y + clamp.height - 1, sy - 0.5));
   const x0 = Math.floor(fx), y0 = Math.floor(fy);
-  const x1 = Math.min(x0 + 1, rect.x + rect.width - 1);
-  const y1 = Math.min(y0 + 1, rect.y + rect.height - 1);
+  const x1 = Math.min(x0 + 1, clamp.x + clamp.width - 1);
+  const y1 = Math.min(y0 + 1, clamp.y + clamp.height - 1);
   const tx = fx - x0, ty = fy - y0;
   return ((alpha(x0, y0) * (1 - tx) + alpha(x1, y0) * tx) * (1 - ty) +
     (alpha(x0, y1) * (1 - tx) + alpha(x1, y1) * tx) * ty) * node.opacity;
