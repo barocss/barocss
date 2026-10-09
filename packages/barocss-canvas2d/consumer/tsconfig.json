@@ -66,6 +66,7 @@
     "linear-fill.mjs",
     "radial-fill.mjs",
     "background.mjs",
-    "transformed-clip.mjs"
+    "transformed-clip.mjs",
+    "polygon-mask.mjs"
   ]
 }

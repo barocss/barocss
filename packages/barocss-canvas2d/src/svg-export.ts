@@ -45,6 +45,9 @@ export function exportSceneSVG(input: unknown, logicalSize: Size): SVGExportResu
     diagnostics.push({ nodeId: null, code: 'UNSUPPORTED_FEATURE', feature: 'scene version must be 5' });
     function inspect(nodes: Scene['nodes']): void {
       for (const node of nodes) {
+        if (node.kind === 'group' && 'mask' in node && node.mask) {
+          diagnostics.push({ nodeId: node.id, code: 'UNSUPPORTED_FEATURE', feature: 'polygon group mask has no SVG subset mapping' });
+        }
         if (node.kind !== 'group' && node.kind !== 'path') {
           diagnostics.push({ nodeId: node.id, code: 'UNSUPPORTED_FEATURE',
             feature: `${node.kind} has no lossless SVG subset mapping` });

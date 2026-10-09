@@ -19,12 +19,13 @@ tree.stage.addChild(frame);
 tree.stage.addChild(tree.createRect({ id: 'Following', layer: 1, transform: pose(125, 12),
   width: 30, height: 22, fill: [1, 0.5, 0, 1] }));
 const accepted = tree.snapshot();
-assert.equal(accepted.version, 24);
+assert.equal(accepted.version, 25);
+assert.equal(validateScene({...accepted,version:24}).version,24);
 const legacyTurned = structuredClone(accepted); legacyTurned.version = 23;
 refuses(() => validateScene(legacyTurned), 'INVALID_SCENE');
 const legacyAxes = structuredClone(legacyTurned); legacyAxes.nodes[1].transform.rotation = 0;
 assert.equal(validateScene(legacyAxes).version, 23);
-assert.equal(createDisplayTreeFromScene(legacyAxes).snapshot().version, 24);
+assert.equal(createDisplayTreeFromScene(legacyAxes).snapshot().version, 25);
 
 // Older schemas refuse a rotated ancestor even when the descendant cancels it.
 const cancellation = createDisplayTree('LegacyCancellation');
@@ -59,9 +60,9 @@ accepted.nodes[1].transform.rotation = 0;
 assert.equal(frame.data.transform.rotation, Math.PI / 6);
 restored.get('Frame').setRotation(Math.PI / 4);
 assert.equal(restored.snapshot().nodes[1].transform.rotation, Math.PI / 4);
-for (let version = 6; version <= 24; version++) {
+for (let version = 6; version <= 25; version++) {
   assert.equal(createDisplayTreeFromScene({ version, unit: 'logical-px', contextId: 'Empty', nodes: [] })
-    .snapshot().version, 24);
+    .snapshot().version, 25);
 }
 
 // Reuse the focused renderer-state technique from renderer-point-conversion-probe.

@@ -1,4 +1,6 @@
 import { tileSpans } from './tile.js';
+import { copyPolygonMask } from './polygon-mask.js';
+import type { PolygonMask } from './polygon-mask.js';
 
 export type ErrorCode = 'INVALID_SCENE' | 'SCENE_LIMIT' | 'INVALID_VIEW' | 'INVALID_SIZE' |
   'WEBGL_UNAVAILABLE' | 'CONTEXT_LOST' | 'DISPOSED' | 'SERIALIZATION' | 'UNSUPPORTED_FEATURE' |
@@ -164,6 +166,9 @@ export type NodeV23 = GroupNodeV23 | FrameNodeV23 | RectNodeV14 | LineNodeV14 | 
 export type GroupNodeV24 = Omit<GroupNodeV23, 'children'> & { children: NodeV24[] };
 export type FrameNodeV24 = Omit<FrameNodeV23, 'children'> & { children: NodeV24[] };
 export type NodeV24 = GroupNodeV24 | FrameNodeV24 | RectNodeV14 | LineNodeV14 | PathNodeV23 | ImageNodeV16 | GlyphRunNodeV14;
+export type GroupNodeV25 = Omit<GroupNodeV24, 'children'> & { children: NodeV25[]; mask?: PolygonMask };
+export type FrameNodeV25 = Omit<FrameNodeV24, 'children'> & { children: NodeV25[] };
+export type NodeV25 = GroupNodeV25 | FrameNodeV25 | RectNodeV14 | LineNodeV14 | PathNodeV23 | ImageNodeV16 | GlyphRunNodeV14;
 export type OldGroupNode = Omit<GroupNode, 'children'> & { children: OldNode[] };
 export type OldFrameNode = Omit<FrameNode, 'children'> & { children: OldNode[] };
 export type OldNode = OldGroupNode | OldFrameNode | RectNode | LineNode;
@@ -192,7 +197,8 @@ export type SceneV21 = { version: 21; unit: 'logical-px'; contextId: string; nod
 export type SceneV22 = { version: 22; unit: 'logical-px'; contextId: string; nodes: NodeV22[] };
 export type SceneV23 = { version: 23; unit: 'logical-px'; contextId: string; nodes: NodeV23[] };
 export type SceneV24 = { version: 24; unit: 'logical-px'; contextId: string; nodes: NodeV24[] };
-export type Scene = SceneV0 | SceneV1 | SceneV2 | SceneV3 | SceneV4 | SceneV5 | SceneV6 | SceneV7 | SceneV8 | SceneV9 | SceneV10 | SceneV11 | SceneV12 | SceneV13 | SceneV14 | SceneV15 | SceneV16 | SceneV17 | SceneV18 | SceneV19 | SceneV20 | SceneV21 | SceneV22 | SceneV23 | SceneV24;
+export type SceneV25 = { version: 25; unit: 'logical-px'; contextId: string; nodes: NodeV25[] };
+export type Scene = SceneV0 | SceneV1 | SceneV2 | SceneV3 | SceneV4 | SceneV5 | SceneV6 | SceneV7 | SceneV8 | SceneV9 | SceneV10 | SceneV11 | SceneV12 | SceneV13 | SceneV14 | SceneV15 | SceneV16 | SceneV17 | SceneV18 | SceneV19 | SceneV20 | SceneV21 | SceneV22 | SceneV23 | SceneV24 | SceneV25;
 
 const MAX_BYTES = 1024 * 1024;
 const idPattern = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
@@ -463,13 +469,14 @@ function validText(value: unknown, path: string): string {
   return value;
 }
 
-type Counter = { nodes: number; vertices: number; paths: number; glyphRuns: number; ids: Set<string> };
+type Counter = { nodes: number; vertices: number; paths: number; glyphRuns: number;
+  masks: number; maskPoints: number; ids: Set<string> };
 function nodes(value: unknown, depth: number, path: string, ancestorRotated: boolean,
-  seen: WeakSet<object>, counter: Counter, version: Scene['version']): (Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 | NodeV18 | NodeV19 | NodeV20 | NodeV21 | NodeV22 | NodeV23)[] {
+  seen: WeakSet<object>, counter: Counter, version: Scene['version'], ancestorMasked: boolean): (Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 | NodeV18 | NodeV19 | NodeV20 | NodeV21 | NodeV22 | NodeV23 | NodeV24 | NodeV25)[] {
   if (depth > 16) fail('SCENE_LIMIT', 'scene depth exceeds 16');
   const raw = array(value, path, seen);
   if (raw.length > 256) fail('SCENE_LIMIT', 'scene has too many siblings');
-  return raw.map((item, index): Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 | NodeV18 | NodeV19 | NodeV20 | NodeV21 | NodeV22 | NodeV23 => {
+  return raw.map((item, index): Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 | NodeV18 | NodeV19 | NodeV20 | NodeV21 | NodeV22 | NodeV23 | NodeV24 | NodeV25 => {
     const nodePath = `${path}[${index}]`;
     if (item === null || typeof item !== 'object') fail('INVALID_SCENE', `${nodePath} must be a node`);
     const kindDescriptor = Object.getOwnPropertyDescriptor(item, 'kind');
@@ -480,7 +487,8 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
       ...(version >= 14 && Object.hasOwn(item, 'pivot') ? ['pivot'] : [])];
     let fields: string[];
     if (kind === 'group') fields = [...common, 'children',
-      ...(version >= 17 && Object.hasOwn(item, 'hitArea') ? ['hitArea'] : [])];
+      ...(version >= 17 && Object.hasOwn(item, 'hitArea') ? ['hitArea'] : []),
+      ...(version >= 25 && Object.hasOwn(item, 'mask') ? ['mask'] : [])];
     else if (kind === 'frame') fields = [...common, 'width', 'height', 'fill', 'clip', 'children'];
     else if (kind === 'rect') fields = [...common, 'width', 'height', 'fill'];
     else if (kind === 'line') fields = [...common, 'x1', 'y1', 'x2', 'y2', 'width', 'stroke'];
@@ -522,9 +530,28 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
       ...(version >= 11 ? { hitMode: data.hitMode as HitMode } : {}),
       ...(pivot ? { pivot: { x: number(pivot.x, `${nodePath}.pivot.x`, -1e6, 1e6),
         y: number(pivot.y, `${nodePath}.pivot.y`, -1e6, 1e6) } } : {}) };
-    if (kind === 'group') return { kind, ...base,
-      ...(Object.hasOwn(data, 'hitArea') ? { hitArea: interactionRect(data.hitArea, `${nodePath}.hitArea`, seen) } : {}),
-      children: nodes(data.children, depth + 1, `${nodePath}.children`, rotated, seen, counter, version) } as NodeV18;
+    if (kind === 'group') {
+      let mask: PolygonMask | undefined;
+      if (Object.hasOwn(data, 'mask')) {
+        mask = copyPolygonMask(data.mask);
+        // Keep mask records in the scene's existing shared-object and cycle guard.
+        const rawMask = object(data.mask, ['commands'], `${nodePath}.mask`, seen);
+        const rawCommands = array(rawMask.commands, `${nodePath}.mask.commands`, seen);
+        rawCommands.forEach((command, index) => object(command,
+          mask!.commands[index].kind === 'Z' ? ['kind'] : ['kind', 'x', 'y'],
+          `${nodePath}.mask.commands[${index}]`, seen));
+        if (ancestorMasked) fail('UNSUPPORTED_FEATURE', `${nodePath} has an unsupported nested polygon mask`);
+        counter.masks++; counter.maskPoints += mask.commands.length - 1;
+        if (counter.masks > 8 || counter.maskPoints > 256) {
+          fail('SCENE_LIMIT', 'scene exceeds 8 polygon masks or 256 stored mask points');
+        }
+      }
+      return { kind, ...base,
+        ...(Object.hasOwn(data, 'hitArea') ? { hitArea: interactionRect(data.hitArea, `${nodePath}.hitArea`, seen) } : {}),
+        ...(mask ? { mask } : {}),
+        children: nodes(data.children, depth + 1, `${nodePath}.children`, rotated, seen, counter, version,
+          ancestorMasked || mask !== undefined) } as NodeV18 | GroupNodeV25;
+    }
     if (kind === 'frame') {
       if (typeof data.clip !== 'boolean') fail('INVALID_SCENE', `${nodePath}.clip must be boolean`);
       if (version < 24 && data.clip && rotated) fail('INVALID_SCENE', `${nodePath} has unsupported rotated clip`);
@@ -534,7 +561,8 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
         width: number(data.width, `${nodePath}.width`, Number.MIN_VALUE, 1e6),
         height: number(data.height, `${nodePath}.height`, Number.MIN_VALUE, 1e6),
         fill: color(data.fill, `${nodePath}.fill`, seen), clip: data.clip as boolean,
-        children: nodes(data.children, depth + 1, `${nodePath}.children`, rotated, seen, counter, version) } as Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12;
+        children: nodes(data.children, depth + 1, `${nodePath}.children`, rotated, seen, counter, version,
+          ancestorMasked) } as Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | FrameNodeV25;
     }
     if (kind === 'path') {
       counter.paths++;
@@ -668,11 +696,11 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
 export function validateScene(value: unknown): Scene {
   const seen = new WeakSet<object>();
   const raw = object(value, ['version', 'unit', 'contextId', 'nodes'], 'scene', seen);
-  if ((!Number.isInteger(raw.version) || (raw.version as number) < 0 || (raw.version as number) > 24) || raw.unit !== 'logical-px') fail('INVALID_SCENE', 'unsupported scene version or unit');
+  if ((!Number.isInteger(raw.version) || (raw.version as number) < 0 || (raw.version as number) > 25) || raw.unit !== 'logical-px') fail('INVALID_SCENE', 'unsupported scene version or unit');
   const version = raw.version as Scene['version'];
   const contextId = id(raw.contextId, 'scene.contextId');
   const parsedNodes = nodes(raw.nodes, 1, 'scene.nodes', false, seen,
-    { nodes: 0, vertices: 0, paths: 0, glyphRuns: 0, ids: new Set() }, version);
+    { nodes: 0, vertices: 0, paths: 0, glyphRuns: 0, masks: 0, maskPoints: 0, ids: new Set() }, version, false);
   const scene: Scene = version === 0
     ? { version: 0, unit: 'logical-px', contextId, nodes: parsedNodes as OldNode[] }
     : version === 1 ? { version: 1, unit: 'logical-px', contextId, nodes: parsedNodes as Node[] }
@@ -698,7 +726,8 @@ export function validateScene(value: unknown): Scene {
     : version === 21 ? { version: 21, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV21[] }
     : version === 22 ? { version: 22, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV22[] }
     : version === 23 ? { version: 23, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV23[] }
-    : { version: 24, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV24[] };
+    : version === 24 ? { version: 24, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV24[] }
+    : { version: 25, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV25[] };
   if (new TextEncoder().encode(JSON.stringify(scene)).length > MAX_BYTES) fail('SCENE_LIMIT', 'scene snapshot exceeds 1 MiB');
   return scene;
 }
