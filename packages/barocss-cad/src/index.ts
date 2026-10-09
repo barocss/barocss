@@ -269,3 +269,6 @@ export type { ExtrusionPrincipalInertiaOptions, ExtrusionPrincipalInertiaAxis, E
 
 export { buildAlignedRationalRuledSurface, validateAlignedRationalRuledSurface, SectionKnotAlignmentError, SectionKnotAlignmentDiagnosticCode } from './section-knot-alignment.js';
 export type { SectionKnotAlignmentOptions, SectionKnotAlignmentSection, SectionKnotAlignmentReport, SectionKnotAlignmentResult } from './section-knot-alignment.js';
+
+export { buildExactBoundaryFaceAdjacency, validateExactBoundaryFaceAdjacency, ExactBoundaryFaceAdjacencyError, ExactBoundaryFaceAdjacencyDiagnosticCode } from './exact-boundary-face-adjacency.js';
+export type { ExactBoundaryFaceAdjacencyAsset, ExactBoundaryFaceAdjacencyPair, ExactBoundaryFaceAdjacencyOptions, ExactBoundaryFaceAdjacencyEdge, ExactBoundaryFaceAdjacencyReport, ExactBoundaryFaceAdjacencyResult } from './exact-boundary-face-adjacency.js';

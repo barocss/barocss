@@ -7710,3 +7710,52 @@ weight-bit guard or certify global shape, continuity, topology or Solid quality.
 ```sh
 node examples/cad-nurbs/section-knot-alignment-demo.mjs --source /tmp/cad-section-alignment
 ```
+
+## Exact common-boundary incidence for NURBS patch Faces
+
+`buildExactBoundaryFaceAdjacency` links explicitly selected opposite full
+boundaries from two through four owned parametric Faces. Each asset supplies
+its source ID, actual Source0 text and FaceBundle.
+
+```ts
+const graph = cad.buildExactBoundaryFaceAdjacency([
+  {sourceId: 'lower', source: lowerSource, face: lowerFace},
+  {sourceId: 'upper', source: upperSource, face: upperFace},
+], [{
+  first: {sourceId: 'lower', boundary: 'u-max'},
+  second: {sourceId: 'upper', boundary: 'u-min'},
+}], {
+  evaluationId: 'patch_incidence', resultIdPrefix: 'join',
+  maximumCurveReversals: 8, maximumObservationPairs: 24,
+});
+cad.validateExactBoundaryFaceAdjacency(graph);
+```
+
+The source models are compiled and checked bit for bit, then the actual Face
+validator runs. The full selected boundary coefficients must agree after an
+actual reversal of the second Curve. Original domains, knots, poles and weights
+are compared. Samples are diagnostic observations and cannot prove equality.
+Same-direction uses, partial domains, changed weights or uncertain reversal
+bits refuse. The query does not turn an original forward use into a different
+Face orientation.
+
+Shared-edge records retain both source-qualified original edges, curves, uses
+and pcurves. Parent uses and pcurves have no standalone IDs; the source, Face,
+boundary and local edge identify them. Only explicit endpoint associations
+form graph vertex classes. Original vertices are preserved and never welded.
+Unpaired boundaries remain free. Duplicate local IDs in separate source files
+are valid after qualification; duplicate pairing or a third use refuses.
+
+The profile uses degree 1 through 3, native grids at most16×16 and XYZ within
+10000 mm. Parent global C1 and corner/chain checks remain. Each original Face
+keeps its own five-object Model and actual comparison reversal sources remain
+separate. At most8 pairs and24 direct observation pairs are admitted before
+new work. A disconnected collection with no pairs performs no reversal work.
+
+This is local incidence for an open patch collection. It does not establish
+general sewing, G1/G2 continuity, manifold closure, Face trim, self-intersection
+or Solid validity. Geometry, source and caller data remain unchanged.
+
+```sh
+node examples/cad-nurbs/exact-boundary-face-adjacency-demo.mjs --source /tmp/cad-patch-incidence
+```
