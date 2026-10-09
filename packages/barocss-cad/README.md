@@ -6041,6 +6041,47 @@ Generic curved Surface/Curve-Curve intersection, arbitrary trims/sewing/Boolean,
 actual GPU/Loader consumption, Integration adoption and publication remain
 separate work.
 
+## Native extrusion construction volume and centroid
+
+`measureCoplanarFaceBooleanExtrusion` measures a validated native coplanar
+Boolean extrusion. It retains each component, Shell and hole identity. Signed
+moments of the selected UV loops subtract hole material. The actual native
+support D1 supplies the area Jacobian and maps each cap centroid to raw XYZ.
+The sweep volume is cap area times distance. The homogeneous geometric centroid
+lies halfway along the actual normal translation. The combined centroid uses
+component volumes as weights.
+
+```ts
+const properties = cad.measureCoplanarFaceBooleanExtrusion(extrusion, {
+  maximumBoundarySegments: 64,
+  maximumSurfaceEvaluations: 8,
+});
+console.log(properties.report.volumeMM3, properties.report.centroidMM);
+cad.validateCoplanarFaceBooleanExtrusionProperties(properties);
+```
+
+The caller budgets cover every selected boundary segment and component before
+new D1 work. A genuine empty extrusion accepts zero budgets, returns zero area
+and volume, and has a null centroid. A centroid can lie inside a hole or outside
+material. It is not an interior-point witness.
+
+These are construction metrics for the admitted affine, line-boundary normal
+sweep. Canonical trim incidence and unsnapped native edge residuals retain
+their existing distinction. The results do not certify general Solid volume,
+sewing, manufacturing accuracy or a global floating-point error bound. Density,
+mass and inertia need a separate contract. Separate graph outputs are measured
+individually; this API does not combine overlapping parts into a union.
+
+Run the saved native extrusion measurement flow after the library build:
+
+```sh
+node examples/cad-nurbs/boolean-extrusion-properties-demo.mjs --source /tmp/cad-properties --extrusion-directory /path/to/cad-extrusions
+```
+
+The flow checks tilted geometry, holes, disconnected components, empty material,
+a distance edit and an off-centre hole. It preserves authentic source files and
+compares derived measurements with analytic fixtures and saved cap triangles.
+
 ## Wide native Curve control-point and weight editing
 
 `editCurveControlPolygonWide(curve,edits)` admits positive clamped nonperiodic
