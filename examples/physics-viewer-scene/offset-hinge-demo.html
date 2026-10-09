@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>BaroCSS offset hinge proxy preview</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #081521; color: #ecf6ff; }
+    main { max-width: 1080px; margin: auto; padding: 24px; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    p { color: #abc4d6; line-height: 1.5; }
+    canvas { display: block; width: 100%; background: #091525; border: 1px solid #36546b; border-radius: 12px; }
+    .viewer-layer { position: relative; }
+    #markers { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+    #markers text { paint-order: stroke; stroke: #071521; stroke-width: 3px; font: bold 13px system-ui, sans-serif; }
+    #markers line { stroke: #c5ddf0; stroke-width: 1.5; stroke-dasharray: 4 4; opacity: .8; }
+    #marker-a { fill: #4fe9dc; stroke: #fff; stroke-width: 2; }
+    #marker-b { fill: #ffbd6b; stroke: #fff; stroke-width: 2; }
+    #marker-pivot { fill: #fff; stroke: #1a4b68; stroke-width: 2; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+    button { padding: 10px 14px; border: 1px solid #5b8199; border-radius: 8px;
+      background: #21405a; color: inherit; cursor: pointer; font: inherit; }
+    .readout { display: flex; flex-wrap: wrap; gap: 20px; padding: 14px; background: #10283b; border-radius: 10px; }
+    small { display: block; color: #a9c5d4; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Two moving Surfaces, one offset hinge</h1>
+    <p>Each original CAD Surface follows a separate 1 kg sphere proxy. The coloured dots show the proxy centres; the white diamond shows their common hinge pivot. The CAD source stays unchanged.</p>
+    <div class="viewer-layer"><canvas id="viewer" width="960" height="560" aria-label="Two original BaroCAD Surfaces with offset hinge proxy markers"></canvas>
+      <svg id="markers" aria-label="Projected proxy centres and hinge pivot">
+        <line id="arm-a"/><line id="arm-b"/>
+        <circle id="marker-a" r="8"/><circle id="marker-b" r="8"/>
+        <path id="marker-pivot" d="M 0 -9 L 9 0 L 0 9 L -9 0 Z"/>
+        <text id="label-a" fill="#4fe9dc">A centre</text><text id="label-b" fill="#ffbd6b">B centre</text>
+        <text id="label-pivot" fill="#fff">pivot</text>
+      </svg></div>
+    <div class="controls">
+      <button id="play">Play</button><button id="one-step">One step</button>
+      <button id="reset">Reset</button><button id="fit">Fit</button>
+      <button id="reject">Test invalid binding</button>
+      <button id="stale">Test stale source</button>
+      <button id="overload">Test overload at step 120</button>
+    </div>
+    <div class="readout">
+      <div><small>Step</small><strong id="step">0</strong></div>
+      <div><small>Angle</small><strong id="angle">0 rad</strong></div>
+      <div><small>Anchor gap</small><strong id="gap">0 m</strong></div>
+      <div><small>Motor impulse</small><strong id="motor">0 N·m·s</strong></div>
+      <div><small>Constraint reaction Z</small><strong id="reaction">0 N·m·s</strong></div>
+      <div><small>Status</small><strong id="status">Paused</strong></div>
+    </div>
+    <p>Physics uses metres and a caller-owned 1/120 s step. Viewer shows accepted poses in millimetres. The markers project proxy points onto the Viewer camera; depth is not tested. This profile admits one planar offset pair only. It does not claim exact CAD collision or an engineering load.</p>
+  </main>
+  <script type="module" src="/offset-hinge-demo.js"></script>
+</body>
+</html>
