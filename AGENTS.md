@@ -28,6 +28,11 @@ Record native completion, verified local integration and publication separately.
 Update the Wiki after each completion with the receipt, exact local commit and
 next task. An unavailable dependency calls for another independent roadmap task.
 
+Continuously verify Issue dependencies and share completed, ready and blocked
+states with the owner and in the Wiki. The owner explicitly authorized multiple
+agents to inspect independent Issues in parallel. Give each agent a bounded
+scope and evidence requirement; keep product adoption and shared edits serial.
+
 This direct owner instruction supersedes older Planner-owned roadmap, Issue and
 Wiki assignment statements below. Existing release authority, paused work,
 inherited files and the monitor remain as recorded. Historical text is preserved.
