@@ -1,5 +1,5 @@
 import { Canvas2DError, copyImageAsset, validateImageAssetId, validatePoint, validateScene, validateSize, validateView } from './schema.js';
-import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, NodeV12, NodeV13, Point, Scene, Size, SourceRect, Transform, View } from './schema.js';
+import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, NodeV12, NodeV13, NodeV14, Point, Scene, Size, SourceRect, Transform, View } from './schema.js';
 import { tessellatePath } from './path.js';
 import type { FillObservation, PathObservation } from './path.js';
 import { createImageGpu, createImageTexture, disposeImageGpu, renderImage, sampledAlpha, sourceRect } from './image.js';
@@ -8,7 +8,7 @@ import { tileSpans } from './tile.js';
 
 type Matrix = [number, number, number, number, number, number];
 type Clip = { left: number; top: number; right: number; bottom: number };
-type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13;
+type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14;
 type DrawNode = Exclude<RenderNode, { kind: 'group' }>;
 type Draw = {
   id: string; kind: 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun'; node: DrawNode;
@@ -41,9 +41,12 @@ function multiply(a: Matrix, b: Matrix): Matrix {
     a[0] * b[2] + a[2] * b[3], a[1] * b[2] + a[3] * b[3],
     a[0] * b[4] + a[2] * b[5] + a[4], a[1] * b[4] + a[3] * b[5] + a[5]];
 }
-function pose(t: Transform): Matrix {
+function pose(t: Transform, pivot?: Point): Matrix {
   const c = Math.cos(t.rotation), s = Math.sin(t.rotation);
-  return [c * t.scaleX, s * t.scaleX, -s * t.scaleY, c * t.scaleY, t.x, t.y];
+  const a = c * t.scaleX, b = s * t.scaleX, d = c * t.scaleY, skew = -s * t.scaleY;
+  return [a, b, skew, d,
+    t.x - a * (pivot?.x ?? 0) - skew * (pivot?.y ?? 0),
+    t.y - b * (pivot?.x ?? 0) - d * (pivot?.y ?? 0)];
 }
 function inverse(m: Matrix): Matrix {
   const det = m[0] * m[3] - m[1] * m[2];
@@ -98,7 +101,7 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
       const hitEnabled = inheritedHitEnabled && (!('hitMode' in node) || node.hitMode !== 'none');
       const add = (draw: Omit<Draw, 'visible' | 'hitEnabled'>): void => addDraw({ ...draw,
         color: [draw.color[0], draw.color[1], draw.color[2], draw.color[3] * alpha], visible, hitEnabled });
-      const matrix = multiply(parent, pose(node.transform));
+      const matrix = multiply(parent, pose(node.transform, 'pivot' in node ? node.pivot : undefined));
       if (node.kind === 'group') { visit(node.children as RenderNode[], matrix, inheritedClip, visible, alpha, hitEnabled); continue; }
       const inv = inverse(matrix);
       if (node.kind === 'frame') {

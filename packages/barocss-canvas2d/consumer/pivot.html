@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><link rel="icon" href="data:,"><title>Canvas2D pivot consumer</title>
+<style>body{font:14px system-ui}canvas{width:80px;height:80px;background:white;display:block}pre{white-space:pre-wrap}</style>
+<script type="importmap">{"imports":{"@barocss/canvas2d":"../dist/index.js","@barocss/canvas2d/document":"../dist/document.js"}}</script>
+</head><body>
+<button id="rect-pivot">Rect pivot</button><button id="rect-reset">Rect reset</button><button id="parent-pivot">Parent pivot</button>
+<button id="sprite-pivot">Sprite pivot</button><button id="frame-pivot">Frame pivot</button>
+<button id="invalid">Invalid pivot</button><button id="save">Save</button>
+<input id="open" type="file" accept="application/json,.json">
+<canvas id="scene" width="160" height="160"></canvas><pre id="observation"></pre>
+<script type="module" src="./pivot.mjs"></script></body></html>
