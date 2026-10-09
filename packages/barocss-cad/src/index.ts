@@ -251,3 +251,6 @@ export type { LinearGeometryPatternOptions, LinearGeometryPatternInstance, Linea
 
 export { buildCircularGeometryPattern, validateCircularGeometryPattern, CircularGeometryPatternError, CircularGeometryPatternDiagnosticCode } from './circular-geometry-pattern.js';
 export type { CircularGeometryPatternOptions, CircularGeometryPatternInstance, CircularGeometryPatternReport, CircularGeometryPatternResult } from './circular-geometry-pattern.js';
+
+export { evaluateCurveD2, evaluateSurfaceD2, NativeSecondDerivativeError, NativeSecondDerivativeDiagnosticCode } from './second-derivatives.js';
+export type { CurveD2Result, SurfaceD2Result } from './second-derivatives.js';
