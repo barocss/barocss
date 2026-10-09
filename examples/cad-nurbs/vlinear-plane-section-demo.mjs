@@ -61,7 +61,7 @@ const add = (a, b) => fraction(a[0] * b[1] + b[0] * a[1], a[1] * b[1]), multiply
 const compare = (a, b) => a[0] * b[1] < b[0] * a[1] ? -1 : a[0] * b[1] > b[0] * a[1] ? 1 : 0;
 const absolute = a => [a[0] < 0n ? -a[0] : a[0], a[1]], subtract = (a, b) => add(a, [-b[0], b[1]]), maximum = values => values.reduce((a, b) => compare(a, b) >= 0 ? a : b, [0n, 1n]);
 const exportedFraction = a => ({numerator: a[0].toString(), denominator: a[1].toString()});
-function published(value) { assert.deepEqual(Object.keys(value).sort(), ['numerator', 'denominator']); assert.match(value.numerator, /^-?(0|[1-9][0-9]*)$/); assert.match(value.denominator, /^[1-9][0-9]*$/); const result = fraction(BigInt(value.numerator), BigInt(value.denominator)); assert.equal(result[0].toString(), value.numerator); assert.equal(result[1].toString(), value.denominator); return result; }
+function published(value) { assert.deepEqual(Object.keys(value).sort(), ['numerator', 'denominator'].sort()); assert.match(value.numerator, /^-?(0|[1-9][0-9]*)$/); assert.match(value.denominator, /^[1-9][0-9]*$/); const result = fraction(BigInt(value.numerator), BigInt(value.denominator)); assert.equal(result[0].toString(), value.numerator); assert.equal(result[1].toString(), value.denominator); return result; }
 function auditProof(value) {
   assert.notEqual(typeof value, 'bigint'); if (!value || typeof value !== 'object') return;
   if (Object.hasOwn(value, 'numerator') && Object.hasOwn(value, 'denominator')) published(value);
@@ -77,10 +77,10 @@ function check(name, input, support, settings, oracle = null) {
   assert.deepEqual(Object.keys(result).sort(), ['surfaceAsset', 'planeAsset', 'options', 'originalModels', 'world', 'pcurves', 'proof', 'observations', 'report'].sort());
   assert.deepEqual(result.surfaceAsset, input); assert.deepEqual(result.planeAsset, support); assert.deepEqual(result.options, settings);
   for (const [i, original] of [input, support].entries()) { const cold = compileCadModel(original.source, {sourceVersion: 0}); assert.equal(cold.ok, true); assert.deepEqual(result.originalModels[i], cold.model); assert.deepEqual(cold.model.objects.find(item => item.id === original.surface.id), original.surface); }
-  assert.deepEqual(Object.keys(result.world).sort(), ['curve', 'source', 'sourceVersion', 'model']); assert.equal(result.world.sourceVersion, 0); assert.equal(result.world.curve.id, settings.curveId);
+  assert.deepEqual(Object.keys(result.world).sort(), ['curve', 'source', 'sourceVersion', 'model'].sort()); assert.equal(result.world.sourceVersion, 0); assert.equal(result.world.curve.id, settings.curveId);
   sourceFile(name + '.actual-world', result.world.source, result.world.model); assert.deepEqual(result.world.model.objects, [result.world.curve]);
   for (const [kind, coordinateSystem, id] of [['surface', 'native-surface-uv', settings.surfacePcurveId], ['plane', 'native-plane-uv', settings.planePcurveId]]) {
-    const sidecar = result.pcurves[kind]; assert.deepEqual(Object.keys(sidecar).sort(), ['coordinateSystem', 'lengthUnit', 'curve']); assert.equal(sidecar.coordinateSystem, coordinateSystem); assert.equal(sidecar.lengthUnit, 'dimensionless'); assert.equal(sidecar.curve.id, id);
+    const sidecar = result.pcurves[kind]; assert.deepEqual(Object.keys(sidecar).sort(), ['coordinateSystem', 'lengthUnit', 'curve'].sort()); assert.equal(sidecar.coordinateSystem, coordinateSystem); assert.equal(sidecar.lengthUnit, 'dimensionless'); assert.equal(sidecar.curve.id, id);
     jsonFile(name + '.' + kind + '-uv.dimensionless-sidecar', sidecar);
   }
   assert.equal(result.world.curve.degree, 2 * input.surface.degreeU); assert.equal(result.pcurves.surface.curve.degree, input.surface.degreeU + 1); assert.equal(result.pcurves.plane.curve.degree, 2 * input.surface.degreeU);
