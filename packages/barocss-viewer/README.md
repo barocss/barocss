@@ -648,3 +648,43 @@ restoration. Dispose clears this mode's source, inventory and measurements.
 No automatic context recreation, retained-object rendering or material/
 particle/cloth co-display is promised. See the independent selected-source
 example under `examples/viewer-selected-uniform-curve-scene`.
+
+
+### Original Sphere and native Surface with shared depth
+
+`loadMixedDepthScene(input)` takes strict `ViewerMixedDepthInputV0`: version0,
+complete original `sphereSource` (Source1), complete original `nativeSource`
+(Source0/mm), existing three-field `native` options, selected original Surface
+ref, Surface RGB, `nativeTranslateScene`, explicit camera and authored XYZ basis.
+Only that Surface and the single Sphere are drawn. Public Loader rebuilds the
+Surface packet from the complete original CAD model; a supplied foreign packet
+is not accepted as native authority.
+
+Native positions become `positionMM * mmToSceneUnit + nativeTranslateScene`.
+The translation is in scene units. The original Sphere already uses scene units
+and receives neither this scale nor translation. Source1-derived background
+and shading apply to the mixed mode; Viewer background/lighting configuration
+remains for other modes. `getState().mixedDepth` copies the complete original
+native result and accepted public mixed frame, including the exact Sphere text.
+Existing native Surface/Curve/mixed-point measurements can inspect all retained
+original CAD objects, including CPU-only objects that are not drawn.
+
+An explicit camera is required. Initial fit, primitive picking/projection/
+selection, visibility, motion, materials, particles and cloth operations refuse
+in this mode. The profile supports one Sphere and one Surface, at most289
+Surface vertices/512triangles and1024 backing pixels per axis. Camera-inside,
+Sphere clipping and travel limits come from the public GPU profile.
+
+View/orbit/pan/zoom update the complete mixed frame and commit only on success.
+Resize checks the provider's structured result. Cross-mode failure restores an
+old mixed frame through public `updateFrame(getFrame())`; no private GPU target
+or nonexistent `render()` is used. If recovery also fails, CPU authority stays,
+but status is `unavailable` and GPU operations refuse. This status differs from
+an actual `context-lost` event and requires a fresh Viewer. Available Clear
+stages an empty primitive viewport before removing mixed metadata. Context
+loss retires owned handles during loss and retains copied CPU data under sticky
+GPU refusal. Dispose clears mixed source/inventory/measurements.
+
+The bounded example is `examples/viewer-mixed-depth-scene`. A mixed framebuffer
+is derived display; it does not certify native CAD intersection, full SDF
+accuracy, parent topology, Physics, editor persistence or publication.
