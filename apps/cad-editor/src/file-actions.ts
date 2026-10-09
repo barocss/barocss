@@ -1,4 +1,4 @@
-import { CadEditorError, type CadEditorSession } from '@barocss/cad-editor';
+import { CadEditorError, type CadEditorSession, type CadEditorFeatureSession } from '@barocss/cad-editor';
 
 export const MAXIMUM_FILE_BYTES = 2097152;
 export async function readCadEditorFile(file: File): Promise<string> {
@@ -12,7 +12,7 @@ export async function readCadEditorFile(file: File): Promise<string> {
     throw new CadEditorError('FILE', 'Cannot read this UTF-8 file.', {}, cause);
   }
 }
-export function downloadAccepted(session: CadEditorSession): void {
+export function downloadAccepted(session: CadEditorSession | CadEditorFeatureSession): void {
   const captured = session.serializeAccepted();
   const url = URL.createObjectURL(new Blob([captured.text], { type: 'application/json' }));
   const anchor = document.createElement('a');

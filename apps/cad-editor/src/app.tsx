@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from './components/ui/button';
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from './components/ui/menubar';
 import { downloadAccepted, readCadEditorFile } from './file-actions';
+import { FeatureApp } from './feature-app';
 
 function actionError(error: CadEditorError): string {
   const cause = error.cause instanceof Error ? error.cause.message : '';
@@ -33,7 +34,7 @@ const defaultDisplay: CadEditorDisplayOptions = {
   document: { basis: 'authored-xyz-matches-rhyup', native: { sourceVersion: 0, countU: 17, countV: 17, unitsPerMillimeter: 1, curveDisplay: { version: 1, chordToleranceMM: 0.1, maxSegments: 64, maxDepth: 8 }, nativeCapacity: { version: 1, maximumObjects: 16 } } },
 };
 
-export function App() {
+function DirectApp() {
   const [session] = useState(() => createCadEditorSession(parseCadDocument(fixtureText).document));
   const snapshot = useCadEditorSnapshot(session);
   const [error, setError] = useState<CadEditorError | null>(null);
@@ -95,6 +96,7 @@ export function App() {
         <MenubarMenu><MenubarTrigger>File</MenubarTrigger><MenubarContent>
           <MenubarItem onSelect={newSample} disabled={busy}>New sample<MenubarShortcut>01</MenubarShortcut></MenubarItem>
           <MenubarItem onSelect={() => fileInput.current?.click()} disabled={busy}>Open native document…</MenubarItem>
+          <MenubarItem disabled={busy} onSelect={() => { location.hash = "/features/cad_boolean_extrusion"; }}>New Boolean extrusion</MenubarItem>
           <MenubarSeparator/><MenubarItem onSelect={() => run(() => downloadAccepted(session))}>Download accepted document</MenubarItem>
           <MenubarSeparator/><MenubarItem onSelect={() => { location.hash = '/projects'; }}>Projects</MenubarItem>
         </MenubarContent></MenubarMenu>
@@ -160,4 +162,21 @@ export function App() {
     </Dialog>
     <footer className="app-status"><span className="status-led"/><span>{busy ? 'Preparing display' : Object.keys(snapshot.pending).length ? 'Pending fields' : 'Accepted document'}</span><span className="status-divider"/><span>{snapshot.downloadStatus}</span><span className="status-spacer"/><span>History {snapshot.history.index + 1} / {snapshot.history.count}</span><span className="status-divider"/><span>XYZ · mm</span></footer>
   </div>;
+}
+
+export function App() {
+  const [featureMode, setFeatureMode] = useState(() => location.hash.startsWith('#/features/'));
+  const [visited, setVisited] = useState(() => ({direct:!location.hash.startsWith('#/features/'),feature:location.hash.startsWith('#/features/')}));
+  useEffect(() => {
+    const update = () => {
+      const feature = location.hash.startsWith('#/features/');
+      setFeatureMode(feature);
+      setVisited(prior => ({direct:prior.direct || !feature,feature:prior.feature || feature}));
+    };
+    window.addEventListener('hashchange', update);
+    return () => window.removeEventListener('hashchange', update);
+  }, []);
+  // Mode navigation keeps each host-owned native session and its pending fields.
+  return <>{visited.direct && <div className="cad-mode" hidden={featureMode}><DirectApp /></div>}
+    {visited.feature && <div className="cad-mode" hidden={!featureMode}><FeatureApp /></div>}</>;
 }

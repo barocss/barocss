@@ -7,3 +7,10 @@
 .app-error{position:fixed;z-index:50;bottom:42px;left:250px;right:312px;border:1px solid #725056;border-radius:5px;box-shadow:0 4px 20px #0005}@media(max-width:1050px){.app-error{left:192px;right:272px}}@media(max-width:780px){.app-error{left:12px;right:12px}}
 
 .tree-body-row{display:flex;align-items:center;gap:4px}.tree-body-row .tree-body{flex:1;min-width:0}.tree-body-row>input{margin-right:10px;accent-color:#bcd69e;cursor:pointer}.open-body-list{display:grid;gap:8px;max-height:45vh;overflow:auto}.open-body-list label{display:flex;gap:10px;font-size:12px;align-items:center}.open-body-list input{accent-color:#bcd69e}.document-tree{overflow-y:auto}
+
+.cad-mode { height:100%; }
+.cad-mode[hidden] { display:none; }
+.feature-parameter-summary { display:flex; justify-content:space-between; gap:8px; padding:8px 14px; font-size:12px; color:var(--muted-foreground); }
+.feature-parameter-summary strong { color:var(--foreground); font-weight:500; }
+
+.feature-parameter-summary small {display:block; margin-top:3px; font-size:11px;}

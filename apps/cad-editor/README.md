@@ -70,3 +70,20 @@ the prior frame. Over-display-budget requests are refused without truncation.
 The genuine full-document download retains all hidden sources/models/body IDs
 and revisions. Fresh Open chooses a new display set and re-edits the original
 Surface; foreign same-ID geometry stays exact. Native file budget is2MiB.
+
+## Boolean extrusion workspace
+
+File → New Boolean extrusion opens the separate feature workspace. The tree shows actual native Face/Boolean/extrusion dependencies. Length controls edit literal values or offsets from existing parameters. Select Combine faces to change union/intersection/difference, then Apply. Discard removes unapplied values. Surface and feature modes retain their host sessions when navigating between them.
+
+The workspace uses the public native Boolean graph evaluator/updater/serializer and the existing qualified native mesh/GPU Shell renderer. The native profile is two coplanar Faces →Boolean →normal extrusion, not two solids. Suppression is unavailable. Parameter/feature lifecycle creation/removal, full parametric constraints, assembly, Viewer Shell selection and certified solid modeling are later contracts. Original inclined authored XYZ/mm stays intact; display scale is0.01.
+
+Download saves the accepted authored graph. Open reads that same graph format and requires the configured extrusion/output slot. Pending fields and display state are excluded from files. Invalid length/dependency/contact/file/native mesh/GPU changes retain accepted graph/history/draft/frame. Help contains technical profile details.
+
+Run the focused actual gate with installed Node22 and Chromium, without downloading dependencies:
+
+```sh
+node apps/cad-editor/flows/feature-graph-flow.mjs --source --headed --port 52012 --evidence /Users/user/.barocss-ai/v3/evidence-cad-editor-feature-graph
+node apps/cad-editor/flows/feature-graph-flow.mjs --compiled --headed --port 52012 --evidence /Users/user/.barocss-ai/v3/evidence-cad-editor-feature-graph
+```
+
+The server guard requires its own child to listen before browser access. Source and built public entries use the same bounded native edit/refusal/file flow. Integration registration and release remain separate.
