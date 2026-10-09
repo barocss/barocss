@@ -244,3 +244,32 @@ Scene v7 adds a required normalized RGB `tint` to image nodes. `createSprite` de
 ### Transformed frame clipping
 
 The [compiled consumer](consumer/transformed-clip.html) uses overhanging Sprite, Path, glyph and group hit-area children in rotated and nested frames. Axis-aligned clipping retains scissor; general clips use a fixed list of complete inverse/local-size predicates in both existing shaders and semantic hit testing. No new GPU resources or stencil bits are allocated. The list capacity is 16 (the existing depth limit admits at most 15 frame ancestors). Unrepresentable inverse, world/device coordinates or collapsed Float32 edges return `SCENE_LIMIT` during renderer admission, keeping the last accepted Scene/view and frame. Malformed handle edits use atomic tree validation. Bounds are conservative AABBs, so they do not prove exact nonempty intersection of rotated rectangles. The document envelope stays v1 and can contain Scene v24. The host explicitly submits and renders; explicit pointer capture retains its existing route.
+
+
+## Owned Application
+
+`createCanvas2DApplication` combines a new renderer, display tree and ticker. Its default state is stopped. Populate the tree and register assets before starting. It does not bind DOM input or own document/file transactions.
+
+```ts
+import { createCanvas2DApplication } from '@barocss/canvas2d';
+
+const app = createCanvas2DApplication(canvas, {
+  contextId: 'MyApp',
+  renderer: { logicalSize: { width: 320, height: 200 }, dpr: 2 },
+});
+const actor = app.tree.createRect({
+  id: 'Actor', layer: 0, transform: { x: 10, y: 10, scaleX: 1, scaleY: 1, rotation: 0 },
+  width: 20, height: 20, fill: [1, 0, 0, 1],
+});
+app.tree.stage.addChild(actor);
+app.onUpdate(info => actor.setPosition(actor.data.transform.x + info.deltaMS * 0.02, 10));
+app.render(); // manual submission is also available while stopped
+app.start();
+// Later: app.stop(); app.dispose();
+```
+
+Each successful tick runs app update listeners, snapshots the tree, admits the Scene and renders once. `onUpdate` accepts integer priorities −99..100; higher priorities run first, equal priorities keep registration order. An internal priority−100 render listener occupies one of the ticker's 128 slots. Raw `app.ticker.onTick(..., -100)` registered later runs after rendering. Use `onUpdate` for ordinary changes. Calling `app.render()` inside an app update callback is refused; direct renderer/ticker calls keep their existing low-level behavior.
+
+An invalid Scene admission retains the renderer's previously accepted frame. Successful tree, asset or view changes before that failure are not rolled back. Repair the data and explicitly render or restart. Callback errors halt scheduling and propagate unchanged. The existing ticker retains first/resume delta0, capped deltaMS100 and its late-callback guard.
+
+`app.dispose()` removes its listeners and disposes ticker then renderer. It is idempotent and attempts renderer cleanup even if host scheduler cancellation throws. Later app methods refuse DISPOSED. Tree handles are CPU objects with their existing lifetime; Application disposal does not invalidate them. Host DOM listeners, capture, file URLs and animation controllers remain host-owned. See `consumer/application.html` and its focused evidence.

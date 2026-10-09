@@ -39,3 +39,6 @@ export { booleanOrthogonalPolygons } from './boolean.js';
 export type { PolygonContour, PolygonOperand, PolygonOperation, PolygonBooleanResult } from './boolean.js';
 
 export type { SceneV24, NodeV24, GroupNodeV24, FrameNodeV24 } from './schema.js';
+
+export { createCanvas2DApplication } from './application.js';
+export type { Canvas2DApplicationOptions, Canvas2DApplication } from './application.js';

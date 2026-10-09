@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><link rel="icon" href="data:,"><title>Canvas2D Application consumer</title>
+<style>body{font:14px system-ui;margin:20px;max-width:1000px}button{margin:0 8px 10px 0}canvas{display:block;width:160px;height:100px;background:#333;touch-action:none}pre{white-space:pre-wrap;overflow-wrap:anywhere}p{max-width:78ch}</style>
+<script type="importmap">{"imports":{"@barocss/canvas2d":"../dist/index.js"}}</script>
+</head><body><h1>Owned Canvas2D Application</h1>
+<p>This host uses a controlled deferred scheduler. Start queues a frame. Step delivers it with an explicit timestamp. These controls test Application order and lifetime; they do not measure browser RAF performance.</p>
+<button id="start">Start</button><button id="step">Step +16 ms</button><button id="long-step">Step +1000 ms</button>
+<button id="stop">Stop</button><button id="resume">Resume</button><button id="render">Manual Render</button>
+<button id="missing">Missing asset on next update</button><button id="repair">Register missing asset and restart</button>
+<button id="throw">Throw on update</button><button id="recover">Unsubscribe error and restart</button>
+<button id="reentrant">Reject render during next update</button><button id="stop-batch">Stop in next update</button>
+<button id="dispose-batch">Dispose in next update</button><button id="replay">Replay canceled callback</button>
+<button id="dispose">Dispose</button>
+<canvas id="scene" width="320" height="200"></canvas><p id="status" role="status"></p><pre id="observation"></pre>
+<script type="module" src="./application.mjs"></script></body></html>
