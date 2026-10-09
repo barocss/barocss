@@ -1,0 +1,35 @@
+{
+  "sourceHead": "6cd35e8e789de091312c933d9bd9cf0262d40125",
+  "sourceTreeDirty": false,
+  "result": "ok",
+  "sourceInputs": [
+    "packages/barocss-physics/src/types.ts",
+    "packages/barocss-physics/src/cloth/profile.ts",
+    "packages/barocss-physics/src/cloth/admission.ts",
+    "packages/barocss-physics/src/cloth/metrics.ts",
+    "packages/barocss-physics/src/cloth/constraints.ts",
+    "packages/barocss-physics/src/cloth/solver.ts",
+    "packages/barocss-physics/src/cloth/topology.ts",
+    "packages/barocss-physics/src/cloth/world.ts",
+    "packages/barocss-physics/src/cloth.ts",
+    "packages/barocss-physics/cloth-source-import-probe.ts"
+  ],
+  "compiledInputs": [
+    "packages/barocss-physics/dist/types.js",
+    "packages/barocss-physics/dist/cloth/profile.js",
+    "packages/barocss-physics/dist/cloth/admission.js",
+    "packages/barocss-physics/dist/cloth/metrics.js",
+    "packages/barocss-physics/dist/cloth/constraints.js",
+    "packages/barocss-physics/dist/cloth/solver.js",
+    "packages/barocss-physics/dist/cloth/topology.js",
+    "packages/barocss-physics/dist/cloth/world.js",
+    "packages/barocss-physics/dist/cloth.js",
+    "packages/barocss-physics/cloth-source-import-probe.ts"
+  ],
+  "nodeConsumer": {
+    "result": "ok",
+    "stepIndex": 1,
+    "vertexCount": 289,
+    "physicsErrorIdentity": true
+  }
+}
