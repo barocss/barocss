@@ -1,0 +1,18 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,"><title>BaroCSS original Curve uniform preview</title>
+<style>:root{font:15px/1.5 system-ui,sans-serif;color-scheme:dark}body{max-width:960px;margin:24px auto;padding:0 16px;background:#102032;color:#e7f0fa}
+canvas{display:block;max-width:100%;height:auto;border:1px solid #718da7}button,select{margin:4px;padding:6px 10px;background:#244462;color:white;border:1px solid #7198bc;border-radius:4px}
+button:disabled{opacity:.5}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}label{margin-right:10px}</style></head><body>
+<h1>Original Curve with uniform observations</h1><p>Load one unchanged native Curve source. Uniform observations support approximate display;
+native queries evaluate the original Curve. A constant Curve need not produce visible line pixels.</p>
+<canvas id="view" width="640" height="480" aria-label="Original Curve uniform preview"></canvas>
+<label>Source <select id="source" disabled></select></label><label>Observations <select id="count" disabled>
+<option value="129">129</option><option value="33">33</option><option value="2">2</option></select></label>
+<button id="load" disabled>Load preview</button><button id="query" disabled>Inspect original point</button>
+<button id="select" disabled>Select Curve</button><label><input id="visible" type="checkbox" checked disabled>Show Curve</label>
+<button id="fit" disabled>Fit observations</button><button id="orbit" disabled>Turn view</button><button id="pan" disabled>Pan view</button>
+<button id="clear" disabled>Clear viewer</button><button id="run-proof" disabled>Run proof</button>
+<button id="lose-context" disabled>Lose context</button><button id="dispose" disabled>Dispose viewer</button>
+<pre id="inspection" aria-label="Original native Curve point">Load a source to inspect.</pre>
+<pre id="status" role="status" aria-live="polite">Loading original source files…</pre>
+<script type="module" src="/bundle.js"></script></body></html>
