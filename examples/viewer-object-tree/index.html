@@ -17,6 +17,10 @@
       width: 46px; height: 46px; padding: 0; border: 2px solid #ffe577; background: #244462;
       touch-action: none; user-select: none; cursor: grab; }
     #move-handle[data-dragging="true"] { cursor: grabbing; background: #385f80; }
+    #yaw-handle { position: absolute; z-index: 1; transform: translate(-50%, -50%);
+      width: 54px; height: 34px; padding: 0; border: 2px solid #8de4d0; border-radius: 18px;
+      background: #244462; touch-action: none; user-select: none; cursor: ew-resize; }
+    #yaw-handle[data-dragging="true"] { background: #385f80; }
     aside, #properties { border: 1px solid #405a75; border-radius: 6px; background: #192b3f; padding: 12px; }
     aside h2, #properties h2 { margin: 0 0 8px; font-size: 18px; }
     button { border: 1px solid #7198bc; border-radius: 4px; background: #244462; color: white; padding: 5px 8px; cursor: pointer; }
@@ -50,6 +54,7 @@
       <div class="viewport">
         <canvas id="view" width="800" height="480" tabindex="0" aria-label="Document body viewport"></canvas>
         <button id="move-handle" type="button" hidden aria-label="Move selected body in view plane">Move</button>
+        <button id="yaw-handle" type="button" hidden aria-label="Rotate selected body about Y">↻ Y</button>
       </div>
       <div id="properties" aria-live="polite"><h2>Properties</h2><span>Select a visible body.</span></div>
     </div>

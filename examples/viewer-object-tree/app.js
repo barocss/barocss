@@ -3,6 +3,7 @@ import { loadBaroCadDocument } from '../../packages/barocss-cad-interop/dist/doc
 
 const canvas = document.querySelector('#view');
 const moveHandle = document.querySelector('#move-handle');
+const yawHandle = document.querySelector('#yaw-handle');
 const list = document.querySelector('#bodies');
 const properties = document.querySelector('#properties');
 const status = document.querySelector('#status');
@@ -44,6 +45,7 @@ const listener = new AbortController();
 let sceneEpoch = 0, requestEpoch = 0, disposed = false;
 let activeDrag = null;
 let previewReport = null;
+let activeYaw = null, yawPreviewReport = null;
 let sampleCamera = null, sampleCoordinates = [];
 let refusalReport = null, nonYReport = null, nonuniformReport = null;
 const sameRef = (a, b) => a?.kind === b?.kind && a?.modelId === b?.modelId
@@ -147,6 +149,28 @@ function renderHandle(state) {
     moveHandle.dataset.bodyId = body.binding.bodyId;
     moveHandle.hidden = false;
   } catch (error) { moveHandle.hidden = true; say('Move handle unavailable: ' + error.message, true); }
+}
+function renderYawHandle(state) {
+  const body = state.status === 'ready' && state.documentBodies.find(value =>
+    sameRef(value.ref, state.selectedGeometry) && shown(state, value.ref));
+  if (!body) { yawHandle.hidden = true; return; }
+  try {
+    const projection = projectHandle(body);
+    const { pose } = selectedPose(state, body.ref);
+    acceptedYaw(pose.rotationXYZW);
+    acceptedUniformScale(pose.scale);
+    const rect = canvas.getBoundingClientRect();
+    if (!projection || projection.yCss < 17 || projection.yCss > rect.height - 17) {
+      yawHandle.hidden = true; return;
+    }
+    const right = projection.xCss + 64, left = projection.xCss - 64;
+    const x = right <= rect.width - 27 ? right : left >= 27 ? left : null;
+    if (x === null) { yawHandle.hidden = true; return; }
+    yawHandle.style.left = x + 'px';
+    yawHandle.style.top = projection.yCss + 'px';
+    yawHandle.dataset.bodyId = body.binding.bodyId;
+    yawHandle.hidden = false;
+  } catch { yawHandle.hidden = true; }
 }
 function translationEditor(state, selected, revision, epoch) {
   const { pose } = selectedPose(state, selected.ref);
@@ -285,6 +309,11 @@ function publishProof(state) {
       yCss: moveHandle.hidden ? null : Number.parseFloat(moveHandle.style.top),
       dragging: activeDrag !== null },
     previewReport,
+    yawHandle: { visible: !yawHandle.hidden,
+      xCss: yawHandle.hidden ? null : Number.parseFloat(yawHandle.style.left),
+      yCss: yawHandle.hidden ? null : Number.parseFloat(yawHandle.style.top),
+      dragging: activeYaw !== null },
+    yawPreviewReport,
     pixelHash, hitSamples, refusalReport, nonYReport, nonuniformReport, contexts: contexts.size,
     glErrors: [...contexts].map(context => context.getError()),
     resources: Object.fromEntries(Object.entries(resources).map(([kind, live]) => [kind, live.size])),
@@ -292,6 +321,7 @@ function publishProof(state) {
 }
 function render() {
   if (activeDrag) cancelDrag();
+  if (activeYaw) cancelYaw();
   const state = viewer.getState();
   const ready = state.status === 'ready' && state.document !== null;
   const revision = state.document?.document.revision, epoch = sceneEpoch;
@@ -370,6 +400,7 @@ function render() {
     document.querySelector('#dispose-proof').disabled = disposed;
   }
   renderHandle(state);
+  renderYawHandle(state);
   publishProof(state);
 }
 function cancelDrag() {
@@ -498,11 +529,133 @@ for (const type of ['pointercancel', 'lostpointercapture']) {
     say('Move cancelled: ' + type + '.', true);
   }, { signal: listener.signal });
 }
+function cancelYaw() {
+  const drag = activeYaw;
+  activeYaw = null;
+  yawHandle.dataset.dragging = 'false';
+  if (drag && yawHandle.hasPointerCapture(drag.pointerId)) {
+    try { yawHandle.releasePointerCapture(drag.pointerId); } catch { /* Capture was already lost. */ }
+  }
+}
+function dirtyPoseDraft() {
+  return [...properties.querySelectorAll('.translation-editor input')]
+    .some(input => input.value !== input.dataset.accepted);
+}
+yawHandle.addEventListener('pointerdown', event => {
+  if (!event.isPrimary || event.button !== 0 || activeYaw || yawHandle.hidden) return;
+  try {
+    const state = viewer.getState();
+    const body = state.documentBodies.find(value => sameRef(value.ref, state.selectedGeometry)
+      && shown(state, value.ref));
+    if (state.status !== 'ready' || !body) throw new Error('Select a current visible body.');
+    if (dirtyPoseDraft()) throw new Error('Apply or discard the numeric draft first.');
+    if (!Number.isFinite(event.clientX) || !Number.isFinite(event.clientY))
+      throw new Error('Pointer coordinates must be finite.');
+    if (!projectHandle(body)) throw new Error('The original anchor is not on screen.');
+    const { pose } = selectedPose(state, body.ref);
+    const yaw = acceptedYaw(pose.rotationXYZW);
+    acceptedUniformScale(pose.scale);
+    const rect = canvas.getBoundingClientRect();
+    if (![rect.left, rect.top, rect.width, rect.height].every(Number.isFinite)
+        || rect.width <= 0 || rect.height <= 0) throw new Error('Canvas CSS size is unavailable.');
+    yawHandle.setPointerCapture(event.pointerId);
+    activeYaw = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY,
+      baseX: Number.parseFloat(yawHandle.style.left), baseY: Number.parseFloat(yawHandle.style.top),
+      ref: body.ref, binding: body.binding, revision: state.document.document.revision,
+      epoch: sceneEpoch, cameraHash: JSON.stringify(state.camera),
+      motionHash: JSON.stringify(state.geometryMotion), yaw,
+      rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
+      proofState: proof ? JSON.stringify(state) : null,
+      proofPixels: proof ? viewer.readPixels() : null };
+    yawPreviewReport = null;
+    yawHandle.dataset.dragging = 'true';
+    event.preventDefault();
+    say('Y yaw preview. Release to apply.'); publishProof(state);
+  } catch (error) { say('Y yaw refused: ' + error.message, true); }
+}, { signal: listener.signal });
+yawHandle.addEventListener('pointermove', event => {
+  const drag = activeYaw;
+  if (!drag || event.pointerId !== drag.pointerId) return;
+  if (!yawHandle.hasPointerCapture(drag.pointerId)) {
+    cancelYaw(); renderYawHandle(viewer.getState()); say('Y yaw cancelled: pointer capture lost.', true);
+    return;
+  }
+  const dx = event.clientX - drag.startX, dy = event.clientY - drag.startY;
+  if (!Number.isFinite(dx) || !Number.isFinite(dy)) {
+    cancelYaw(); renderYawHandle(viewer.getState()); say('Y yaw cancelled: nonfinite pointer position.', true);
+    return;
+  }
+  yawHandle.style.left = drag.baseX + dx + 'px';
+  yawHandle.style.top = drag.baseY + 'px';
+  if (proof) {
+    const pixels = viewer.readPixels();
+    yawPreviewReport = { dx, dy, stateSame: JSON.stringify(viewer.getState()) === drag.proofState,
+      pixelsSame: pixels.length === drag.proofPixels.length
+        && pixels.every((byte, index) => byte === drag.proofPixels[index]) };
+  }
+  event.preventDefault();
+  say('Y yaw preview: ' + (drag.yaw + dx / 2).toFixed(2) + '°');
+  publishProof(viewer.getState());
+}, { signal: listener.signal });
+yawHandle.addEventListener('pointerup', event => {
+  const drag = activeYaw;
+  if (!drag || event.pointerId !== drag.pointerId) return;
+  try {
+    const dx = event.clientX - drag.startX, dy = event.clientY - drag.startY;
+    if (!Number.isFinite(dx) || !Number.isFinite(dy))
+      throw new Error('Pointer displacement must be finite.');
+    const state = current(drag.ref, drag.binding.bodyId, drag.revision, drag.epoch);
+    const body = state.documentBodies.find(value => sameRef(value.ref, drag.ref));
+    if (!body || JSON.stringify(body.binding) !== JSON.stringify(drag.binding)
+        || !shown(state, drag.ref) || !sameRef(state.selectedGeometry, drag.ref)
+        || JSON.stringify(state.camera) !== drag.cameraHash
+        || JSON.stringify(state.geometryMotion) !== drag.motionHash)
+      throw new Error('The accepted body, camera or pose changed during the drag.');
+    if (dirtyPoseDraft()) throw new Error('Apply or discard the numeric draft first.');
+    if (!projectHandle(body)) throw new Error('The original anchor is not on screen.');
+    const rect = canvas.getBoundingClientRect();
+    if (![rect.left, rect.top, rect.width, rect.height].every(Number.isFinite)
+        || rect.left !== drag.rect.left || rect.top !== drag.rect.top
+        || rect.width !== drag.rect.width || rect.height !== drag.rect.height)
+      throw new Error('The canvas changed during the drag.');
+    if (Math.abs(dy) > 24) throw new Error('Keep the Y yaw gesture within 24 CSS px vertically.');
+    if (Math.abs(dx) > 160) throw new Error('Y yaw gesture must stay within 160 CSS px.');
+    if (Math.abs(dx) < 2) {
+      cancelYaw(); renderYawHandle(state); publishProof(state); say('Y yaw below 2 CSS px; no change.');
+      return;
+    }
+    const yaw = drag.yaw + dx / 2;
+    if (!Number.isFinite(yaw) || Math.abs(yaw) > 180)
+      throw new Error('Y yaw must stay within ±180 degrees.');
+    const { motion, index, pose } = selectedPose(state, drag.ref);
+    acceptedYaw(pose.rotationXYZW);
+    acceptedUniformScale(pose.scale);
+    const radians = yaw * Math.PI / 180;
+    const rotation = [0, Math.sin(radians / 2), 0, Math.cos(radians / 2)];
+    const targetId = motion.bindings[index].targetId;
+    const poses = motion.frame.poses.map(value => value.targetId === targetId
+      ? { ...value, rotation } : value);
+    viewer.applyGeometryMotionFrame({ ...motion.frame, poses }, motion.bindings, { basis: motion.basis });
+    cancelYaw(); render(); say('Y yaw applied to ' + drag.binding.bodyId + '.');
+  } catch (error) {
+    cancelYaw(); const state = viewer.getState(); renderYawHandle(state); publishProof(state);
+    say('Y yaw refused: ' + error.message, true);
+  }
+  event.preventDefault();
+}, { signal: listener.signal });
+for (const type of ['pointercancel', 'lostpointercapture']) {
+  yawHandle.addEventListener(type, event => {
+    if (activeYaw?.pointerId !== event.pointerId) return;
+    cancelYaw(); const state = viewer.getState(); renderYawHandle(state); publishProof(state);
+    say('Y yaw cancelled: ' + type + '.', true);
+  }, { signal: listener.signal });
+}
 canvas.addEventListener('webglcontextlost', () => {
-  cancelDrag(); render(); say('Move unavailable: WebGL2 context lost.', true);
+  cancelDrag(); cancelYaw(); render(); say('Display handles unavailable: WebGL2 context lost.', true);
 }, { signal: listener.signal });
 async function reload() {
   if (activeDrag) { cancelDrag(); renderHandle(viewer.getState()); }
+  if (activeYaw) { cancelYaw(); renderYawHandle(viewer.getState()); }
   const request = ++requestEpoch;
   let accepted = false;
   say('Loading document…');
@@ -552,6 +705,7 @@ canvas.addEventListener('click', event => run('Canvas selection', () => {
 function dispose() {
   if (disposed) return;
   cancelDrag();
+  cancelYaw();
   disposed = true; requestEpoch++; listener.abort(); viewer.dispose(); render(); say('Viewer disposed.');
 }
 if (proof) {
