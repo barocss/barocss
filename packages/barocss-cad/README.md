@@ -7639,3 +7639,37 @@ and manufacturing accuracy require separate contracts.
 ```sh
 node examples/cad-nurbs/coplanar-face-boolean-extrusion-mass-demo.mjs --source /tmp/cad-extrusion-mass
 ```
+
+## Principal construction inertia and axes
+
+`analyzeExtrusionConstructionPrincipalInertia` analyzes the actual centered
+SI inertia tensor from an owned construction mass result. It validates that
+result through the existing mass API and retains the full source and data.
+
+```ts
+const principal = cad.analyzeExtrusionConstructionPrincipalInertia(mass, {
+  maximumRotations: 64, scaledResidualTolerance: 1e-10,
+  degeneracyToleranceRelative: 1e-8,
+});
+cad.validateExtrusionConstructionPrincipalInertia(principal);
+```
+
+A bounded scaled symmetric Jacobi solver reports its actual rotations and
+checks the eigenbasis, reconstruction and eigensystem residuals. Principal
+moments are sorted ascending in kg·m². Axis vectors use authored world XYZ
+and form a unit, orthogonal, right-handed representative basis. First two
+axis signs follow the largest component; the third follows handedness.
+
+Repeated or nearly repeated principal moments produce observed degeneracy
+clusters. Their axis directions are not unique or persistent geometry names.
+The returned representatives still satisfy the stated residual checks. Empty
+mass has no principal system or phantom rotations. A diagonal tensor can use
+a zero rotation budget; a nonconverged system refuses when its budget ends.
+
+The analysis preserves the uniform-density canonical construction estimate
+scope. It does not certify a general Solid, actual material, global accuracy,
+stable axis naming, a physics body or a rendered engineering view.
+
+```sh
+node examples/cad-nurbs/extrusion-principal-inertia-demo.mjs --source /tmp/cad-principal-inertia
+```

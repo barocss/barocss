@@ -263,3 +263,6 @@ export type { CurvePlanarFaceMaterialOptions, CurvePlanarFaceMaterialEvent, Curv
 
 export { estimateCoplanarFaceBooleanExtrusionMass, validateCoplanarFaceBooleanExtrusionMass, CoplanarFaceBooleanExtrusionMassError, CoplanarFaceBooleanExtrusionMassDiagnosticCode } from './coplanar-face-boolean-extrusion-mass.js';
 export type { CoplanarFaceBooleanExtrusionMassOptions, CoplanarFaceBooleanExtrusionMassComponent, CoplanarFaceBooleanExtrusionMassReport, CoplanarFaceBooleanExtrusionMassResult } from './coplanar-face-boolean-extrusion-mass.js';
+
+export { analyzeExtrusionConstructionPrincipalInertia, validateExtrusionConstructionPrincipalInertia, ExtrusionPrincipalInertiaError, ExtrusionPrincipalInertiaDiagnosticCode } from './extrusion-principal-inertia.js';
+export type { ExtrusionPrincipalInertiaOptions, ExtrusionPrincipalInertiaAxis, ExtrusionPrincipalInertiaReport, ExtrusionPrincipalInertiaResult } from './extrusion-principal-inertia.js';
