@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
-import {execFileSync} from 'node:child_process';
+import {execFileSync, execFile} from 'node:child_process';
+import {promisify} from 'node:util';
+import {createServer} from 'vite';
 import {writeFileSync} from 'node:fs';
 import {mkdir, readFile, writeFile, access} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
@@ -19,9 +21,11 @@ const session = `render-editor-flow-${process.pid}`;
 const url = process.env.RENDER_EDITOR_URL ?? 'http://127.0.0.1:52047/';
 const receipt = {issue: 1047, mode: 'ordinary-source-browser', node: process.version, url, startedAt: new Date().toISOString(), cleanCommit: execFileSync('git', ['rev-parse', 'HEAD'], {cwd: root, encoding: 'utf8'}).trim(), ok: false, stages: []};
 let sequence = 0;
-function call(command, ...args) {
+const execute = promisify(execFile);
+let server;
+async function call(command, ...args) {
   try {
-    const text = execFileSync(process.execPath, [cli, `-s=${session}`, command, ...args, '--raw'], {cwd: output, encoding: 'utf8', timeout: 60000, maxBuffer: 8 * 1024 * 1024});
+    const {stdout: text} = await execute(process.execPath, [cli, `-s=${session}`, command, ...args, '--raw'], {cwd: output, encoding: 'utf8', timeout: 60000, maxBuffer: 8 * 1024 * 1024});
     writeFileSync(resolve(output, `cli-${++sequence}-${command}.log`), text);
     return text.trim();
   } catch (error) {
@@ -30,12 +34,13 @@ function call(command, ...args) {
     throw error;
   }
 }
-function run(fn, config = {}) { return JSON.parse(call('run-code', fn.toString().replace('__CONFIG__', JSON.stringify({...config, output, url})))); }
+async function run(fn, config = {}) { return JSON.parse(await call('run-code', fn.toString().replace('__CONFIG__', JSON.stringify({...config, output, url})))); }
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 let fixtureOriginal;
 try {
-  call('open', url, '--browser', 'chrome');
-  const edit = run(async (page) => {
+  if (!process.env.RENDER_EDITOR_URL) { server = await createServer({root: here, configFile: resolve(here, 'vite.config.ts')}); await server.listen(); }
+  await call('open', url, '--browser', 'chrome');
+  const edit = await run(async (page) => {
     const config = __CONFIG__, rows = [], errors = [];
     const check = (condition, message) => { if (!condition) throw new Error(message); };
     page.on('pageerror', error => errors.push(error.message));
@@ -97,7 +102,7 @@ try {
   const cases = {version: {...saved, version: 9}, syntax: {...saved, sceneSource: 'bad syntax'}, camera: {...saved, camera: {...saved.camera, near: -1}}, combined: {...saved, documentId: 'refused_import', title: 'Refused import', sceneSource: saved.sceneSource.replace('radius: 1.05', 'radius: 1.2'), camera: {...saved.camera, eye: [3, 1.3, 8]}}};
   for (const [name, value] of Object.entries(cases)) await writeFile(resolve(output, `${name}.json`), JSON.stringify(value));
   await writeFile(resolve(output, 'oversized.json'), ' '.repeat(262145));
-  const reopened = run(async (page) => {
+  const reopened = await run(async (page) => {
     const config = __CONFIG__, rows = [], errors = [];
     const check = (condition, message) => { if (!condition) throw new Error(message); };
     const fresh = await page.context().newPage(); fresh.on('pageerror', error => errors.push(error.message));
@@ -132,18 +137,24 @@ try {
   const second = JSON.parse(await readFile(resolve(output, 'reopened.render-scene.json')));
   assert.equal(second.sceneSource, reopened.rows[0].source); assert.deepEqual(second.camera, saved.camera); assert.equal(second.revision, 9);
   const moduleURL = new URL('/src/fixtures.ts', url);
-  const first = await fetch(moduleURL), firstText = await first.text(); const again = await fetch(moduleURL), secondText = await again.text();
+  const first = await fetch(moduleURL), firstText = await first.text();
+  const cachedModule = server ? await server.environments.client.moduleGraph.getModuleByUrl('/src/fixtures.ts') : null;
+  const firstTransform = cachedModule?.transformResult;
+  const again = await fetch(moduleURL), secondText = await again.text();
   assert.equal(first.status, 200); assert.equal(again.status, 200); assert.equal(firstText, secondText); assert.equal(first.headers.get('etag'), again.headers.get('etag'));
+  if (server) { assert(firstTransform); assert.equal(cachedModule.transformResult, firstTransform, 'Unchanged requests repeated the module transform.'); }
   fixtureOriginal = await readFile(resolve(here, 'src/fixtures.ts'), 'utf8');
   await writeFile(resolve(here, 'src/fixtures.ts'), fixtureOriginal.replace("title: 'Primitive study'", "title: 'Primitive study · reload proof'"));
-  const reload = run(async (page) => { const config = __CONFIG__; await page.goto(config.url); await page.getByTestId('document-title').filter({hasText: 'reload proof'}).waitFor(); return {title: await page.getByTestId('document-title').innerText(), presented: await page.getByTestId('presented-revision').innerText()}; });
+  const reload = await run(async (page) => { const config = __CONFIG__; await page.goto(config.url); await page.getByTestId('document-title').filter({hasText: 'reload proof'}).waitFor(); return {title: await page.getByTestId('document-title').innerText(), presented: await page.getByTestId('presented-revision').innerText()}; });
+  if (server) assert.notEqual(cachedModule.transformResult, firstTransform, 'Actual source edit reused a stale transform.');
   await writeFile(resolve(here, 'src/fixtures.ts'), fixtureOriginal); fixtureOriginal = null;
-  receipt.moduleRequests = {unchangedETag: first.headers.get('etag'), unchangedBytes: Buffer.byteLength(firstText), actualSourceEdit: reload, timingClaim: false};
+  receipt.moduleRequests = {unchangedETag: first.headers.get('etag'), unchangedBytes: Buffer.byteLength(firstText), transformObjectReused: !!server, actualSourceEdit: reload, timingClaim: false};
   receipt.ok = true;
-} catch (error) { receipt.firstFailure = error.stack ?? String(error); process.exitCode = 1; try { call('snapshot'); call('screenshot', '--filename=' + resolve(output, 'failure.png')); } catch { /* Preserve the original driver failure. */ } }
+} catch (error) { receipt.firstFailure = error.stack ?? String(error); process.exitCode = 1; try { await call('snapshot'); await call('screenshot', '--filename=' + resolve(output, 'failure.png')); } catch { /* Preserve the original driver failure. */ } }
 finally {
   if (fixtureOriginal !== undefined && fixtureOriginal !== null) await writeFile(resolve(here, 'src/fixtures.ts'), fixtureOriginal);
-  try { call('close'); } catch (error) { receipt.cleanupFailure = String(error); receipt.ok = false; process.exitCode = 1; }
+  try { await call('close'); } catch (error) { receipt.cleanupFailure = String(error); receipt.ok = false; process.exitCode = 1; }
+  await server?.close();
   await writeFile(resultFile, JSON.stringify(receipt, null, 2) + '\n');
 }
 console.log(JSON.stringify(receipt, null, 2));

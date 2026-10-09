@@ -36,6 +36,6 @@ PLAYWRIGHT_CLI_PATH=<installed-cli.js> node apps/render-editor/source-flow.mjs -
 node apps/render-editor/compiled-flow.mjs --output <unique-evidence-directory>
 ```
 
-The browser flow requires the running app on `127.0.0.1:52047` and the already installed Playwright CLI/Chrome. It saves actual downloads, opens a saved disk file in a fresh tab, and checks pixels, rejected updates, history, routing and owned cleanup. The compiled checkpoint reads transitive published maps separately from source development. No download, packed-consumer or publication step is performed. Native receipts and Integration adoption are recorded in #1047/#1051.
+The browser flow starts and closes the actual app's Vite server on `127.0.0.1:52047`. It needs the already installed Playwright CLI/Chrome and a free app port. It saves actual file downloads, opens a saved disk file in a fresh tab, and checks pixels, rejected updates, history, routing and owned cleanup. Unchanged requests reuse the same Vite transform object; a real fixture source edit changes it and appears after reload, then the source is restored. The compiled checkpoint reads transitive published maps separately from source development. No dependency download, packed-consumer or publication step is performed. Native receipts and Integration adoption are recorded in #1047/#1051.
 
 CAD assets/Viewer, qualified materials, Physics and shared-depth SDF+CAD remain later roadmap contracts. See the [Render Editor roadmap](https://github.com/barocss/barocss/wiki/Render-Editor-Product-Roadmap).
