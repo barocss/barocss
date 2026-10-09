@@ -1,0 +1,3 @@
+### Pre-primary oracle ambiguity policy
+
+Before any primary campaign, independently reviewed minimum/root thresholds require an explicit ambiguity rule. If the oracle's minimized gap is greater than1e-14m but no greater than1e-13m, it refuses as reference unresolved; it must not fabricate a root or call the travel clear. Above1e-13m is clear; at or below1e-14m the80-pass earliest-root procedure uses the frozen1e-14threshold. Any unresolved primary reference prevents GO. No geometry, candidate algorithm, limits or thresholds change. A hit0 never short-circuits remaining nonexcluded boxes: any other initial overlap still refuses the complete query. Add a hit0-plus-overlap control to verify that rule.

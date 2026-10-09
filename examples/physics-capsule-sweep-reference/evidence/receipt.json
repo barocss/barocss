@@ -1,0 +1,22 @@
+{
+  "parent": "e2965acb5af01383e0f9441f6f7c41f0449358d7",
+  "cleanMeasuredSource": "540c9a06cdbf2e7a779b45a2d6a334ac72831212",
+  "branch": "codex/physics-character-sweep-830",
+  "node": "v22.22.0",
+  "sourceTreeDirty": false,
+  "contract": "https://github.com/barocss/barocss/issues/830#issuecomment-6086223382",
+  "terminalStopClarification": "https://github.com/barocss/barocss/issues/830#issuecomment-6086237265",
+  "oraclePolicy": "https://github.com/barocss/barocss/issues/830#issuecomment-6086300166",
+  "nativeNumerics": "22/22 pass, copies/refusals18 pass and global-minimum/near-unit controls pass",
+  "nativeCost": "NO-GO: CAP32_GRAZE trial1 p95 3.5065839999999753ms exceeds2",
+  "firstVsCleanAllRawHashesEqual": true,
+  "firstTimingWarmup": "100campaigns; not canonical frozenwarmup",
+  "canonicalWarmup": "onecampaign then three100repetitiontrials per20acceptedcases",
+  "browserExecuted": false,
+  "browserReason": "Nodecostgate failed; conditionalChromium notstarted",
+  "actualViewerExecuted": false,
+  "publicQueryOrController": false,
+  "affectedProductPackageBuild": "not required; only plain ESMprivateexample",
+  "publication": false,
+  "rawBytes": 7048
+}

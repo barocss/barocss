@@ -1,0 +1,19 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Capsule geometry reuse numerical reference</title>
+<style>body{font:16px system-ui;max-width:900px;margin:40px auto;padding:0 20px}table{border-collapse:collapse;width:100%}td,th{text-align:left;padding:6px;border-bottom:1px solid #ddd}</style>
+<h1>Capsule geometry reuse numerical reference</h1><p>Private geometry query. This page does not render a Physics world or a Viewer scene.</p>
+<button id="run">Run fixed cases</button><p id="status">Ready</p><table><thead><tr><th>Case</th><th>Result</th><th>Body</th><th>Fraction</th></tr></thead><tbody id="rows"></tbody></table>
+<script type="module">
+import {observe,timingTrials,packInputs,packOutputs} from './campaign.mjs';import {runControls} from './reuse-controls.mjs';import {encodeF64} from '../physics-capsule-sweep-reference/binary.mjs';
+const hex=bytes=>Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+window.runReference=async()=>{const controls=runControls(),first=observe(),second=observe();
+ const inputBytes=encodeF64(packInputs(first)),outputBytes=encodeF64(packOutputs(first)),secondBytes=encodeF64(packOutputs(second));
+ const exactRepeat=hex(outputBytes)===hex(secondBytes)&&JSON.stringify(first)===JSON.stringify(second);
+ const timing=timingTrials(),passed=first.length===22&&first.every(o=>o.passed&&o.snapshotRetained)&&controls.passed&&exactRepeat&&timing.passed;
+ const sha=async bytes=>hex(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)));
+ let previous=performance.now(),clockMinimumPositiveMs=Infinity;for(let i=0;i<10000;i++){const now=performance.now(),delta=now-previous;if(delta>0)clockMinimumPositiveMs=Math.min(clockMinimumPositiveMs,delta);previous=now;}
+ const result={controls,first,exactRepeat,timing,passed,clockMinimumPositiveMs:Number.isFinite(clockMinimumPositiveMs)?clockMinimumPositiveMs:null,inputsSha256:await sha(inputBytes),outputsSha256:await sha(outputBytes),
+ inputHex:hex(inputBytes),outputHex:hex(outputBytes),userAgent:navigator.userAgent,actualViewer:false};
+ document.getElementById('status').textContent=passed?'All fixed numerical gates passed':'A fixed numerical gate failed';
+ document.getElementById('rows').replaceChildren(...first.map(o=>{const tr=document.createElement('tr');for(const v of[o.name,o.passed?'pass':'FAIL',o.hit?.bodyId??o.error?.code??'clear',o.hit?.fraction??'—']){const td=document.createElement('td');td.textContent=v;tr.append(td);}return tr;}));return result;
+};document.getElementById('run').onclick=()=>window.runReference();window.referenceReady=true;
+</script></html>

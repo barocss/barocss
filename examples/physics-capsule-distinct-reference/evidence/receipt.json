@@ -1,0 +1,263 @@
+{
+  "issue": 830,
+  "frozenContract": "https://github.com/barocss/barocss/issues/830#issuecomment-6087277600",
+  "parent": "024442d839eac343076aa336c5525b89d2934bbb",
+  "measuredSource": "a8c24355bed171f7784f941ac329fbfb6aba10f8",
+  "nodeVersion": "v22.22.0",
+  "browserVersion": "155.0.8059.39",
+  "sourceTreeDirty": false,
+  "decision": "GO only for nine fixed distinct-translation profiles",
+  "controls": {
+    "passed": true,
+    "cases": [
+      {
+        "name": "DISTINCT_1_GRAZE",
+        "sourceCount": 1,
+        "groupCount": 1,
+        "scalarCalls": 1,
+        "code": null,
+        "error": null,
+        "baselineExact": true,
+        "copies": true
+      },
+      {
+        "name": "DISTINCT_8_GRAZE",
+        "sourceCount": 8,
+        "groupCount": 8,
+        "scalarCalls": 8,
+        "code": null,
+        "error": null,
+        "baselineExact": true,
+        "copies": true
+      },
+      {
+        "name": "DISTINCT_16_GRAZE",
+        "sourceCount": 16,
+        "groupCount": 16,
+        "scalarCalls": 16,
+        "code": null,
+        "error": null,
+        "baselineExact": true,
+        "copies": true
+      },
+      {
+        "name": "DISTINCT_32_GRAZE",
+        "sourceCount": 32,
+        "groupCount": 32,
+        "scalarCalls": 32,
+        "code": null,
+        "error": null,
+        "baselineExact": true,
+        "copies": true
+      },
+      {
+        "name": "DISTINCT_32_REVERSE",
+        "sourceCount": 32,
+        "groupCount": 32,
+        "scalarCalls": 32,
+        "code": null,
+        "error": null,
+        "baselineExact": true,
+        "copies": true
+      },
+      {
+        "name": "DISTINCT_32_EXCLUDE",
+        "sourceCount": 32,
+        "groupCount": 32,
+        "scalarCalls": 31,
+        "code": null,
+        "error": null,
+        "baselineExact": true,
+        "copies": true
+      },
+      {
+        "name": "DISTINCT_32_CLEAR",
+        "sourceCount": 32,
+        "groupCount": 32,
+        "scalarCalls": 32,
+        "code": null,
+        "error": null,
+        "baselineExact": true,
+        "copies": true
+      },
+      {
+        "name": "DISTINCT_32_WALL",
+        "sourceCount": 32,
+        "groupCount": 32,
+        "scalarCalls": 32,
+        "code": null,
+        "error": null,
+        "baselineExact": true,
+        "copies": true
+      },
+      {
+        "name": "DISTINCT_32_OVERLAP_LAST",
+        "sourceCount": 32,
+        "groupCount": 32,
+        "scalarCalls": 32,
+        "code": "INITIAL_OVERLAP",
+        "error": {
+          "name": "SweepRefusal",
+          "message": "Initial capsule overlaps a box",
+          "string": "SweepRefusal: Initial capsule overlaps a box"
+        },
+        "baselineExact": true,
+        "copies": true
+      }
+    ],
+    "hookAbsentFromTimedCampaign": true
+  },
+  "referenceControlsPassed": true,
+  "numericalPassed": true,
+  "exactRepeat": true,
+  "exactEarlierBits": true,
+  "nodeTiming": [
+    {
+      "name": "DISTINCT_1_GRAZE",
+      "median": 0.03554199999996399,
+      "minimum": 0.033958999999867956,
+      "maximum": 0.03662500000007185
+    },
+    {
+      "name": "DISTINCT_8_GRAZE",
+      "median": 0.31391599999994924,
+      "minimum": 0.31233399999996436,
+      "maximum": 0.31658399999997755
+    },
+    {
+      "name": "DISTINCT_16_GRAZE",
+      "median": 0.5537500000000364,
+      "minimum": 0.5519170000000031,
+      "maximum": 0.5844159999999192
+    },
+    {
+      "name": "DISTINCT_32_GRAZE",
+      "median": 1.0635839999999916,
+      "minimum": 1.0437920000001668,
+      "maximum": 1.1307090000000244
+    },
+    {
+      "name": "DISTINCT_32_REVERSE",
+      "median": 1.094333000000006,
+      "minimum": 1.047083000000157,
+      "maximum": 1.105874999999969
+    },
+    {
+      "name": "DISTINCT_32_EXCLUDE",
+      "median": 1.0350409999999783,
+      "minimum": 1.0159590000000662,
+      "maximum": 1.0523749999999836
+    },
+    {
+      "name": "DISTINCT_32_CLEAR",
+      "median": 0.5465840000000526,
+      "minimum": 0.5223750000000109,
+      "maximum": 0.5525410000000193
+    },
+    {
+      "name": "DISTINCT_32_WALL",
+      "median": 0.09512499999993906,
+      "minimum": 0.09204199999999219,
+      "maximum": 0.10429199999998673
+    }
+  ],
+  "browserTiming": [
+    {
+      "name": "DISTINCT_1_GRAZE",
+      "median": 0.10000000894069672,
+      "minimum": 0.10000000894069672,
+      "maximum": 0.10000000894069672
+    },
+    {
+      "name": "DISTINCT_8_GRAZE",
+      "median": 0.29999999701976776,
+      "minimum": 0.20000000298023224,
+      "maximum": 0.29999999701976776
+    },
+    {
+      "name": "DISTINCT_16_GRAZE",
+      "median": 0.4000000059604645,
+      "minimum": 0.4000000059604645,
+      "maximum": 0.7000000029802322
+    },
+    {
+      "name": "DISTINCT_32_GRAZE",
+      "median": 0.800000011920929,
+      "minimum": 0.7000000029802322,
+      "maximum": 1.5
+    },
+    {
+      "name": "DISTINCT_32_REVERSE",
+      "median": 0.7999999970197678,
+      "minimum": 0.7999999970197678,
+      "maximum": 1.5999999940395355
+    },
+    {
+      "name": "DISTINCT_32_EXCLUDE",
+      "median": 0.7999999970197678,
+      "minimum": 0.7000000029802322,
+      "maximum": 1.4000000059604645
+    },
+    {
+      "name": "DISTINCT_32_CLEAR",
+      "median": 0.4000000059604645,
+      "minimum": 0.4000000059604645,
+      "maximum": 0.699999988079071
+    },
+    {
+      "name": "DISTINCT_32_WALL",
+      "median": 0.20000000298023224,
+      "minimum": 0.19999998807907104,
+      "maximum": 0.20000000298023224
+    }
+  ],
+  "browserNodeExactBits": true,
+  "browserNodeExactIdentities": true,
+  "clockMinimumPositiveMs": 0.09999999403953552,
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "rawManifest": {
+    "gitHead": "a8c24355bed171f7784f941ac329fbfb6aba10f8",
+    "sourceTreeDirty": false,
+    "nodeVersion": "v22.22.0",
+    "format": "capsule-sweep-raw-v1",
+    "endianness": "little",
+    "files": [
+      {
+        "file": "inputs.f64.bin",
+        "type": "Float64Array",
+        "elements": 2233,
+        "bytes": 17864,
+        "sha256": "914aa11c70bb7e9c6e17d15ae7b31da5a4625070015ea8cc6402f60873ba7274"
+      },
+      {
+        "file": "outputs.f64.bin",
+        "type": "Float64Array",
+        "elements": 95,
+        "bytes": 760,
+        "sha256": "9e339978c6a513ad1d05c0480ab8137fb57c78bcdf9bd953f74b04761e88f1b2"
+      }
+    ],
+    "totalRawBytes": 18624
+  },
+  "verificationRepair": {
+    "kind": "Static review found incomplete error-identity proof",
+    "firstResults": "evidence/first and evidence/pre-error-proof retained",
+    "changed": "controls now compares name/message/String as well as code with original baseline and repeated queries",
+    "unchanged": "All scene/query bits, scalar algorithm, original reference/reuse files, cap, tolerances, numeric outputs and cost gates",
+    "finalReview": "Read-only helper verified repair; no helper numerical campaign"
+  },
+  "browserFlow": "Actual Chrome labelled nine-case numeric table observed; own browser/server closed with driver exit0",
+  "build": "Plain ESM research only; no changed public package or affected product build",
+  "adoption": "Pending exact actual Integration code merge; UI/Save/Open/recovery validation is a separate follow-up under latest674",
+  "publicApi": false,
+  "actualViewer": false,
+  "controller": false,
+  "publication": false,
+  "limits": [
+    "Crowded distinct world-X translations with identity quaternions; not all32geometry latency",
+    "No source-first browser aliases or product dependency installation",
+    "No automatic public capacity/API/controller choice",
+    "Original coincident baseline failing3.506584ms is preserved, not replaced"
+  ]
+}

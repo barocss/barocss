@@ -1,0 +1,6368 @@
+{
+  "gitHead": "1817567e02432916295f3d517849a5947f3108d0",
+  "sourceTreeDirty": true,
+  "nodeVersion": "v22.22.0",
+  "first": [
+    {
+      "name": "EMPTY_ZERO",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": []
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          0,
+          0,
+          0
+        ],
+        "displacementM": [
+          0,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": null,
+      "expectedError": null,
+      "hit": null,
+      "error": null,
+      "reference": null,
+      "referenceError": null,
+      "errors": {},
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "EMPTY_MOVE",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": []
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          0,
+          0,
+          0
+        ],
+        "displacementM": [
+          1,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": null,
+      "expectedError": null,
+      "hit": null,
+      "error": null,
+      "reference": null,
+      "referenceError": null,
+      "errors": {},
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "FLOOR_FALL",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "floor",
+            "centerM": [
+              0,
+              -0.05,
+              0
+            ],
+            "halfExtentsM": [
+              3,
+              0.05,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          0,
+          0.8,
+          0
+        ],
+        "displacementM": [
+          0,
+          -0.6,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.5,
+        "normalM": [
+          0,
+          1,
+          0
+        ]
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "floor",
+        "fraction": 0.5000000000000003,
+        "normalM": [
+          0,
+          1,
+          0
+        ],
+        "pointM": [
+          0,
+          0,
+          0
+        ],
+        "segmentM": [
+          0,
+          0.14999999999999986,
+          0
+        ],
+        "iterations": 2
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.4999999999999836,
+        "normalM": [
+          0,
+          1,
+          0
+        ],
+        "pointM": [
+          0,
+          0,
+          0
+        ],
+        "segmentM": [
+          0,
+          0.1500000000000099,
+          0
+        ],
+        "bodyId": "floor"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 1.6708856520608606e-14,
+        "normal": 0,
+        "witnessGapM": 1.3877787807814457e-16,
+        "independentGapM": 1.3877787807814457e-16,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 8.881784197001252e-16,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 0,
+        "analyticFraction": 3.3306690738754696e-16,
+        "analyticNormal": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "FLAT_PARALLEL",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "floor",
+            "centerM": [
+              0,
+              -0.05,
+              0
+            ],
+            "halfExtentsM": [
+              3,
+              0.05,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -1,
+          0.505,
+          0
+        ],
+        "displacementM": [
+          2,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": null,
+      "expectedError": null,
+      "hit": null,
+      "error": null,
+      "reference": null,
+      "referenceError": null,
+      "errors": {},
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "WALL",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "wall",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          2,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.4,
+        "normalM": [
+          -1,
+          0,
+          0
+        ]
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "wall",
+        "fraction": 0.39999999999999997,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.29999999999999993,
+          0.25,
+          0
+        ],
+        "iterations": 2
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.399999999999995,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.29999999999999005,
+          0.25,
+          0
+        ],
+        "bodyId": "wall"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 4.9404924595819466e-15,
+        "normal": 0,
+        "witnessGapM": 8.326672684688674e-17,
+        "independentGapM": 8.326672684688674e-17,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 6.661338147750939e-16,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 1.3877787807814457e-17,
+        "analyticFraction": 5.551115123125783e-17,
+        "analyticNormal": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "TOUCH_ZERO",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "wall",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          0.3,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          0,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0,
+        "normalM": [
+          -1,
+          0,
+          0
+        ]
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "wall",
+        "fraction": 0,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.3,
+          0.25,
+          0
+        ],
+        "iterations": 1
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.3,
+          0.25,
+          0
+        ],
+        "bodyId": "wall"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 0,
+        "normal": 0,
+        "witnessGapM": 2.7755575615628914e-17,
+        "independentGapM": 2.7755575615628914e-17,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 2.220446049250313e-16,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 1.3877787807814457e-17,
+        "analyticFraction": 0,
+        "analyticNormal": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "TOUCH_AWAY",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "wall",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          0.3,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          -0.2,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0,
+        "normalM": [
+          -1,
+          0,
+          0
+        ]
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "wall",
+        "fraction": 0,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.3,
+          0.25,
+          0
+        ],
+        "iterations": 1
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.3,
+          0.25,
+          0
+        ],
+        "bodyId": "wall"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 0,
+        "normal": 0,
+        "witnessGapM": 2.7755575615628914e-17,
+        "independentGapM": 2.7755575615628914e-17,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 2.220446049250313e-16,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 1.3877787807814457e-17,
+        "analyticFraction": 0,
+        "analyticNormal": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "WALL_AWAY",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "wall",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          -1,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": null,
+      "expectedError": null,
+      "hit": null,
+      "error": null,
+      "reference": null,
+      "referenceError": null,
+      "errors": {},
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "STEP_CORNER",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "step",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.505,
+          0
+        ],
+        "displacementM": [
+          1.5,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.4069647617536476,
+        "normalM": [
+          -0.9303523824635243,
+          0.3666666666666667,
+          0
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0
+        ]
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "step",
+        "fraction": 0.4069647617536476,
+        "normalM": [
+          -0.930352382463524,
+          0.3666666666666668,
+          0
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0
+        ],
+        "segmentM": [
+          0.1104471426304714,
+          0.15500000000000003,
+          0
+        ],
+        "iterations": 5
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.4069647617536405,
+        "normalM": [
+          -0.9303523824635337,
+          0.3666666666666426,
+          0
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0
+        ],
+        "segmentM": [
+          0.11044714263046074,
+          0.15500000000000003,
+          0
+        ],
+        "bodyId": "step"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 7.105427357601002e-15,
+        "normal": 2.605904169241851e-14,
+        "witnessGapM": 2.7755575615628914e-17,
+        "independentGapM": 0,
+        "centrelineM": 0,
+        "unitNormal": 1.1102230246251565e-16,
+        "witnessNormal": 0,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 0,
+        "analyticFraction": 0,
+        "analyticNormal": 2.482534153247273e-16,
+        "uniquePointM": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true,
+        "uniquePoint": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "STEP_GRAZE",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "step",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          1.5,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.5,
+        "normalM": [
+          0,
+          1,
+          0
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0
+        ]
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "step",
+        "fraction": 0.49999996729542473,
+        "normalM": [
+          -3.27045752701576e-7,
+          0.9999999999999465,
+          0
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0
+        ],
+        "segmentM": [
+          0.2499999509431371,
+          0.25,
+          0
+        ],
+        "iterations": 23
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.49999996353145654,
+        "normalM": [
+          -3.6468543444335867e-7,
+          0.9999999999999336,
+          0
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0
+        ],
+        "segmentM": [
+          0.24999994529718483,
+          0.25,
+          0
+        ],
+        "bodyId": "step"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 3.763968192682654e-9,
+        "normal": 3.763968174178486e-8,
+        "witnessGapM": 8.021361352916756e-15,
+        "independentGapM": 8.049116928532385e-15,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 5.351274978693541e-14,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 0,
+        "analyticFraction": 3.270457527015935e-8,
+        "analyticNormal": 3.2704575270158035e-7,
+        "uniquePointM": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true,
+        "uniquePoint": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "STEP_NEAR_CLEAR",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "step",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.600001,
+          0
+        ],
+        "displacementM": [
+          1.5,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": null,
+      "expectedError": null,
+      "hit": null,
+      "error": null,
+      "reference": null,
+      "referenceError": null,
+      "errors": {},
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "CORNER_3D",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "step",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.505,
+          0.83
+        ],
+        "displacementM": [
+          1.5,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.4237693558264715,
+        "normalM": [
+          -0.7623064417352847,
+          0.3666666666666667,
+          0.5333333333333333
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0.75
+        ]
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "step",
+        "fraction": 0.4237693558264715,
+        "normalM": [
+          -0.7623064417352848,
+          0.36666666666666686,
+          0.5333333333333332
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0.75
+        ],
+        "segmentM": [
+          0.1356540337397073,
+          0.15500000000000003,
+          0.83
+        ],
+        "iterations": 6
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.4237693558264628,
+        "normalM": [
+          -0.7623064417353214,
+          0.36666666666664244,
+          0.5333333333332977
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0.75
+        ],
+        "segmentM": [
+          0.1356540337396942,
+          0.15500000000000003,
+          0.83
+        ],
+        "bodyId": "step"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 8.715250743307479e-15,
+        "normal": 5.6505989415580445e-14,
+        "witnessGapM": 2.7755575615628914e-17,
+        "independentGapM": 2.7755575615628914e-17,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 1.6653345369377348e-16,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 0,
+        "analyticFraction": 0,
+        "analyticNormal": 2.2887833992611187e-16,
+        "uniquePointM": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true,
+        "uniquePoint": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "CORNER_CLEAR",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "step",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.505,
+          1
+        ],
+        "displacementM": [
+          1.5,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": null,
+      "expectedError": null,
+      "hit": null,
+      "error": null,
+      "reference": null,
+      "referenceError": null,
+      "errors": {},
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "SLOPE15",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "slope",
+            "centerM": [
+              0.012940952255126037,
+              -0.04829629131445342,
+              0
+            ],
+            "halfExtentsM": [
+              3,
+              0.05,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0.13052619222005157,
+              0.9914448613738104
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.75,
+          0.511384768820187,
+          0
+        ],
+        "displacementM": [
+          1,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.7727406610312547,
+        "normalM": [
+          -0.25881904510252074,
+          0.9659258262890683,
+          0
+        ]
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "slope",
+        "fraction": 0.7727406610312548,
+        "normalM": [
+          -0.25881904510252074,
+          0.9659258262890684,
+          0
+        ],
+        "pointM": [
+          0.06156351779663294,
+          0.01649589487682685,
+          0
+        ],
+        "segmentM": [
+          0.02274066103125484,
+          0.16138476882018704,
+          0
+        ],
+        "iterations": 2
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.7727406610312161,
+        "normalM": [
+          -0.25881904510252074,
+          0.9659258262890684,
+          0
+        ],
+        "pointM": [
+          0.061563517796596766,
+          0.016495894876817137,
+          0
+        ],
+        "segmentM": [
+          0.022740661031216074,
+          0.161384768820187,
+          0
+        ],
+        "bodyId": "slope"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 3.8746783559417963e-14,
+        "normal": 0,
+        "witnessGapM": 5.551115123125783e-17,
+        "independentGapM": 2.7755575615628914e-17,
+        "centrelineM": 1.3877787807814457e-17,
+        "unitNormal": 0,
+        "witnessNormal": 4.47545209131181e-16,
+        "boxMembershipM": 6.938893903907228e-18,
+        "boxBoundaryM": 6.938893903907228e-18,
+        "analyticFraction": 1.1102230246251565e-16,
+        "analyticNormal": 1.1102230246251565e-16
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "Y_ROTATED_WALL",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "turned",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0.25881904510252074,
+              0,
+              0.9659258262890683
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          1.5,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.5127065948827665,
+        "normalM": [
+          -0.8660254037844387,
+          0,
+          0.49999999999999994
+        ]
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "turned",
+        "fraction": 0.5127065948827665,
+        "normalM": [
+          -0.8660254037844387,
+          0,
+          0.4999999999999999
+        ],
+        "pointM": [
+          0.3989637028918155,
+          0.25,
+          -0.07499999999999998
+        ],
+        "segmentM": [
+          0.26905989232414973,
+          0.25,
+          0
+        ],
+        "iterations": 2
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.5127065948827588,
+        "normalM": [
+          -0.8660254037844386,
+          0,
+          0.5
+        ],
+        "pointM": [
+          0.39896370289181265,
+          0.25,
+          -0.07500000000000495
+        ],
+        "segmentM": [
+          0.2690598923241383,
+          0.25,
+          0
+        ],
+        "bodyId": "turned"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 7.66053886991358e-15,
+        "normal": 1.5700924586837752e-16,
+        "witnessGapM": 2.7755575615628914e-17,
+        "independentGapM": 2.7755575615628914e-17,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 3.3306690738754696e-16,
+        "boxMembershipM": 1.3877787807814457e-17,
+        "boxBoundaryM": 1.3877787807814457e-17,
+        "analyticFraction": 0,
+        "analyticNormal": 5.551115123125783e-17
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "TIE_FORWARD",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "wall-a",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "wall-z",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          2,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.4,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "bodyId": "wall-a"
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "wall-a",
+        "fraction": 0.39999999999999997,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.29999999999999993,
+          0.25,
+          0
+        ],
+        "iterations": 2
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.399999999999995,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.29999999999999005,
+          0.25,
+          0
+        ],
+        "bodyId": "wall-a"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 4.9404924595819466e-15,
+        "normal": 0,
+        "witnessGapM": 8.326672684688674e-17,
+        "independentGapM": 8.326672684688674e-17,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 6.661338147750939e-16,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 1.3877787807814457e-17,
+        "analyticFraction": 5.551115123125783e-17,
+        "analyticNormal": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true,
+        "analyticBodyId": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "TIE_REVERSE",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "wall-z",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "wall-a",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          2,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.4,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "bodyId": "wall-a"
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "wall-a",
+        "fraction": 0.39999999999999997,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.29999999999999993,
+          0.25,
+          0
+        ],
+        "iterations": 2
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.399999999999995,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.29999999999999005,
+          0.25,
+          0
+        ],
+        "bodyId": "wall-a"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 4.9404924595819466e-15,
+        "normal": 0,
+        "witnessGapM": 8.326672684688674e-17,
+        "independentGapM": 8.326672684688674e-17,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 6.661338147750939e-16,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 1.3877787807814457e-17,
+        "analyticFraction": 5.551115123125783e-17,
+        "analyticNormal": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true,
+        "analyticBodyId": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "EARLIEST",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "z-near",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a-far",
+            "centerM": [
+              0.8,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          2,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.4,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "bodyId": "z-near"
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "z-near",
+        "fraction": 0.39999999999999997,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.29999999999999993,
+          0.25,
+          0
+        ],
+        "iterations": 2
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.399999999999995,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.29999999999999005,
+          0.25,
+          0
+        ],
+        "bodyId": "z-near"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 4.9404924595819466e-15,
+        "normal": 0,
+        "witnessGapM": 8.326672684688674e-17,
+        "independentGapM": 8.326672684688674e-17,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 6.661338147750939e-16,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 1.3877787807814457e-17,
+        "analyticFraction": 5.551115123125783e-17,
+        "analyticNormal": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true,
+        "analyticBodyId": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "EXCLUDE",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "wall",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          2,
+          0,
+          0
+        ],
+        "excludeId": "wall"
+      },
+      "analytic": null,
+      "expectedError": null,
+      "hit": null,
+      "error": null,
+      "reference": null,
+      "referenceError": null,
+      "errors": {},
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "CAP32_GRAZE",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "box00",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box01",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box02",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box03",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box04",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box05",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box06",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box07",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box08",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box09",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box10",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box11",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box12",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box13",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box14",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box15",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box16",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box17",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box18",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box19",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box20",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box21",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box22",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box23",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box24",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box25",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box26",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box27",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box28",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box29",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box30",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box31",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          1.5,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.5,
+        "normalM": [
+          0,
+          1,
+          0
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0
+        ],
+        "bodyId": "box00"
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "box00",
+        "fraction": 0.49999996729542473,
+        "normalM": [
+          -3.27045752701576e-7,
+          0.9999999999999465,
+          0
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0
+        ],
+        "segmentM": [
+          0.2499999509431371,
+          0.25,
+          0
+        ],
+        "iterations": 23
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.49999996353145654,
+        "normalM": [
+          -3.6468543444335867e-7,
+          0.9999999999999336,
+          0
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0
+        ],
+        "segmentM": [
+          0.24999994529718483,
+          0.25,
+          0
+        ],
+        "bodyId": "box00"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 3.763968192682654e-9,
+        "normal": 3.763968174178486e-8,
+        "witnessGapM": 8.021361352916756e-15,
+        "independentGapM": 8.049116928532385e-15,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 5.351274978693541e-14,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 0,
+        "analyticFraction": 3.270457527015935e-8,
+        "analyticNormal": 3.2704575270158035e-7,
+        "uniquePointM": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true,
+        "uniquePoint": true,
+        "analyticBodyId": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "INITIAL_OVERLAP",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "wall",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          0.4,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          1,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": null,
+      "expectedError": "INITIAL_OVERLAP",
+      "hit": null,
+      "error": {
+        "code": "INITIAL_OVERLAP",
+        "message": "SweepRefusal: Initial capsule overlaps a box"
+      },
+      "reference": null,
+      "referenceError": "RangeError: Reference initial overlap is not a sweep/depenetration result",
+      "errors": {},
+      "checks": {
+        "expectedRefusal": true,
+        "independentInitialOverlap": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "INITIAL_INSIDE",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "wall",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          1,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": null,
+      "expectedError": "INITIAL_OVERLAP",
+      "hit": null,
+      "error": {
+        "code": "INITIAL_OVERLAP",
+        "message": "SweepRefusal: Initial capsule overlaps a box"
+      },
+      "reference": null,
+      "referenceError": "RangeError: Reference initial overlap is not a sweep/depenetration result",
+      "errors": {},
+      "checks": {
+        "expectedRefusal": true,
+        "independentInitialOverlap": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    }
+  ],
+  "second": [
+    {
+      "name": "EMPTY_ZERO",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": []
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          0,
+          0,
+          0
+        ],
+        "displacementM": [
+          0,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": null,
+      "expectedError": null,
+      "hit": null,
+      "error": null,
+      "reference": null,
+      "referenceError": null,
+      "errors": {},
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "EMPTY_MOVE",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": []
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          0,
+          0,
+          0
+        ],
+        "displacementM": [
+          1,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": null,
+      "expectedError": null,
+      "hit": null,
+      "error": null,
+      "reference": null,
+      "referenceError": null,
+      "errors": {},
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "FLOOR_FALL",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "floor",
+            "centerM": [
+              0,
+              -0.05,
+              0
+            ],
+            "halfExtentsM": [
+              3,
+              0.05,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          0,
+          0.8,
+          0
+        ],
+        "displacementM": [
+          0,
+          -0.6,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.5,
+        "normalM": [
+          0,
+          1,
+          0
+        ]
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "floor",
+        "fraction": 0.5000000000000003,
+        "normalM": [
+          0,
+          1,
+          0
+        ],
+        "pointM": [
+          0,
+          0,
+          0
+        ],
+        "segmentM": [
+          0,
+          0.14999999999999986,
+          0
+        ],
+        "iterations": 2
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.4999999999999836,
+        "normalM": [
+          0,
+          1,
+          0
+        ],
+        "pointM": [
+          0,
+          0,
+          0
+        ],
+        "segmentM": [
+          0,
+          0.1500000000000099,
+          0
+        ],
+        "bodyId": "floor"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 1.6708856520608606e-14,
+        "normal": 0,
+        "witnessGapM": 1.3877787807814457e-16,
+        "independentGapM": 1.3877787807814457e-16,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 8.881784197001252e-16,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 0,
+        "analyticFraction": 3.3306690738754696e-16,
+        "analyticNormal": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "FLAT_PARALLEL",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "floor",
+            "centerM": [
+              0,
+              -0.05,
+              0
+            ],
+            "halfExtentsM": [
+              3,
+              0.05,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -1,
+          0.505,
+          0
+        ],
+        "displacementM": [
+          2,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": null,
+      "expectedError": null,
+      "hit": null,
+      "error": null,
+      "reference": null,
+      "referenceError": null,
+      "errors": {},
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "WALL",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "wall",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          2,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.4,
+        "normalM": [
+          -1,
+          0,
+          0
+        ]
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "wall",
+        "fraction": 0.39999999999999997,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.29999999999999993,
+          0.25,
+          0
+        ],
+        "iterations": 2
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.399999999999995,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.29999999999999005,
+          0.25,
+          0
+        ],
+        "bodyId": "wall"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 4.9404924595819466e-15,
+        "normal": 0,
+        "witnessGapM": 8.326672684688674e-17,
+        "independentGapM": 8.326672684688674e-17,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 6.661338147750939e-16,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 1.3877787807814457e-17,
+        "analyticFraction": 5.551115123125783e-17,
+        "analyticNormal": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "TOUCH_ZERO",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "wall",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          0.3,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          0,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0,
+        "normalM": [
+          -1,
+          0,
+          0
+        ]
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "wall",
+        "fraction": 0,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.3,
+          0.25,
+          0
+        ],
+        "iterations": 1
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.3,
+          0.25,
+          0
+        ],
+        "bodyId": "wall"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 0,
+        "normal": 0,
+        "witnessGapM": 2.7755575615628914e-17,
+        "independentGapM": 2.7755575615628914e-17,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 2.220446049250313e-16,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 1.3877787807814457e-17,
+        "analyticFraction": 0,
+        "analyticNormal": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "TOUCH_AWAY",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "wall",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          0.3,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          -0.2,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0,
+        "normalM": [
+          -1,
+          0,
+          0
+        ]
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "wall",
+        "fraction": 0,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.3,
+          0.25,
+          0
+        ],
+        "iterations": 1
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.3,
+          0.25,
+          0
+        ],
+        "bodyId": "wall"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 0,
+        "normal": 0,
+        "witnessGapM": 2.7755575615628914e-17,
+        "independentGapM": 2.7755575615628914e-17,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 2.220446049250313e-16,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 1.3877787807814457e-17,
+        "analyticFraction": 0,
+        "analyticNormal": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "WALL_AWAY",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "wall",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          -1,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": null,
+      "expectedError": null,
+      "hit": null,
+      "error": null,
+      "reference": null,
+      "referenceError": null,
+      "errors": {},
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "STEP_CORNER",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "step",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.505,
+          0
+        ],
+        "displacementM": [
+          1.5,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.4069647617536476,
+        "normalM": [
+          -0.9303523824635243,
+          0.3666666666666667,
+          0
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0
+        ]
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "step",
+        "fraction": 0.4069647617536476,
+        "normalM": [
+          -0.930352382463524,
+          0.3666666666666668,
+          0
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0
+        ],
+        "segmentM": [
+          0.1104471426304714,
+          0.15500000000000003,
+          0
+        ],
+        "iterations": 5
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.4069647617536405,
+        "normalM": [
+          -0.9303523824635337,
+          0.3666666666666426,
+          0
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0
+        ],
+        "segmentM": [
+          0.11044714263046074,
+          0.15500000000000003,
+          0
+        ],
+        "bodyId": "step"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 7.105427357601002e-15,
+        "normal": 2.605904169241851e-14,
+        "witnessGapM": 2.7755575615628914e-17,
+        "independentGapM": 0,
+        "centrelineM": 0,
+        "unitNormal": 1.1102230246251565e-16,
+        "witnessNormal": 0,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 0,
+        "analyticFraction": 0,
+        "analyticNormal": 2.482534153247273e-16,
+        "uniquePointM": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true,
+        "uniquePoint": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "STEP_GRAZE",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "step",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          1.5,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.5,
+        "normalM": [
+          0,
+          1,
+          0
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0
+        ]
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "step",
+        "fraction": 0.49999996729542473,
+        "normalM": [
+          -3.27045752701576e-7,
+          0.9999999999999465,
+          0
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0
+        ],
+        "segmentM": [
+          0.2499999509431371,
+          0.25,
+          0
+        ],
+        "iterations": 23
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.49999996353145654,
+        "normalM": [
+          -3.6468543444335867e-7,
+          0.9999999999999336,
+          0
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0
+        ],
+        "segmentM": [
+          0.24999994529718483,
+          0.25,
+          0
+        ],
+        "bodyId": "step"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 3.763968192682654e-9,
+        "normal": 3.763968174178486e-8,
+        "witnessGapM": 8.021361352916756e-15,
+        "independentGapM": 8.049116928532385e-15,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 5.351274978693541e-14,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 0,
+        "analyticFraction": 3.270457527015935e-8,
+        "analyticNormal": 3.2704575270158035e-7,
+        "uniquePointM": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true,
+        "uniquePoint": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "STEP_NEAR_CLEAR",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "step",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.600001,
+          0
+        ],
+        "displacementM": [
+          1.5,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": null,
+      "expectedError": null,
+      "hit": null,
+      "error": null,
+      "reference": null,
+      "referenceError": null,
+      "errors": {},
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "CORNER_3D",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "step",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.505,
+          0.83
+        ],
+        "displacementM": [
+          1.5,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.4237693558264715,
+        "normalM": [
+          -0.7623064417352847,
+          0.3666666666666667,
+          0.5333333333333333
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0.75
+        ]
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "step",
+        "fraction": 0.4237693558264715,
+        "normalM": [
+          -0.7623064417352848,
+          0.36666666666666686,
+          0.5333333333333332
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0.75
+        ],
+        "segmentM": [
+          0.1356540337397073,
+          0.15500000000000003,
+          0.83
+        ],
+        "iterations": 6
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.4237693558264628,
+        "normalM": [
+          -0.7623064417353214,
+          0.36666666666664244,
+          0.5333333333332977
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0.75
+        ],
+        "segmentM": [
+          0.1356540337396942,
+          0.15500000000000003,
+          0.83
+        ],
+        "bodyId": "step"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 8.715250743307479e-15,
+        "normal": 5.6505989415580445e-14,
+        "witnessGapM": 2.7755575615628914e-17,
+        "independentGapM": 2.7755575615628914e-17,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 1.6653345369377348e-16,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 0,
+        "analyticFraction": 0,
+        "analyticNormal": 2.2887833992611187e-16,
+        "uniquePointM": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true,
+        "uniquePoint": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "CORNER_CLEAR",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "step",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.505,
+          1
+        ],
+        "displacementM": [
+          1.5,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": null,
+      "expectedError": null,
+      "hit": null,
+      "error": null,
+      "reference": null,
+      "referenceError": null,
+      "errors": {},
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "SLOPE15",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "slope",
+            "centerM": [
+              0.012940952255126037,
+              -0.04829629131445342,
+              0
+            ],
+            "halfExtentsM": [
+              3,
+              0.05,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0.13052619222005157,
+              0.9914448613738104
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.75,
+          0.511384768820187,
+          0
+        ],
+        "displacementM": [
+          1,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.7727406610312547,
+        "normalM": [
+          -0.25881904510252074,
+          0.9659258262890683,
+          0
+        ]
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "slope",
+        "fraction": 0.7727406610312548,
+        "normalM": [
+          -0.25881904510252074,
+          0.9659258262890684,
+          0
+        ],
+        "pointM": [
+          0.06156351779663294,
+          0.01649589487682685,
+          0
+        ],
+        "segmentM": [
+          0.02274066103125484,
+          0.16138476882018704,
+          0
+        ],
+        "iterations": 2
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.7727406610312161,
+        "normalM": [
+          -0.25881904510252074,
+          0.9659258262890684,
+          0
+        ],
+        "pointM": [
+          0.061563517796596766,
+          0.016495894876817137,
+          0
+        ],
+        "segmentM": [
+          0.022740661031216074,
+          0.161384768820187,
+          0
+        ],
+        "bodyId": "slope"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 3.8746783559417963e-14,
+        "normal": 0,
+        "witnessGapM": 5.551115123125783e-17,
+        "independentGapM": 2.7755575615628914e-17,
+        "centrelineM": 1.3877787807814457e-17,
+        "unitNormal": 0,
+        "witnessNormal": 4.47545209131181e-16,
+        "boxMembershipM": 6.938893903907228e-18,
+        "boxBoundaryM": 6.938893903907228e-18,
+        "analyticFraction": 1.1102230246251565e-16,
+        "analyticNormal": 1.1102230246251565e-16
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "Y_ROTATED_WALL",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "turned",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0.25881904510252074,
+              0,
+              0.9659258262890683
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          1.5,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.5127065948827665,
+        "normalM": [
+          -0.8660254037844387,
+          0,
+          0.49999999999999994
+        ]
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "turned",
+        "fraction": 0.5127065948827665,
+        "normalM": [
+          -0.8660254037844387,
+          0,
+          0.4999999999999999
+        ],
+        "pointM": [
+          0.3989637028918155,
+          0.25,
+          -0.07499999999999998
+        ],
+        "segmentM": [
+          0.26905989232414973,
+          0.25,
+          0
+        ],
+        "iterations": 2
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.5127065948827588,
+        "normalM": [
+          -0.8660254037844386,
+          0,
+          0.5
+        ],
+        "pointM": [
+          0.39896370289181265,
+          0.25,
+          -0.07500000000000495
+        ],
+        "segmentM": [
+          0.2690598923241383,
+          0.25,
+          0
+        ],
+        "bodyId": "turned"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 7.66053886991358e-15,
+        "normal": 1.5700924586837752e-16,
+        "witnessGapM": 2.7755575615628914e-17,
+        "independentGapM": 2.7755575615628914e-17,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 3.3306690738754696e-16,
+        "boxMembershipM": 1.3877787807814457e-17,
+        "boxBoundaryM": 1.3877787807814457e-17,
+        "analyticFraction": 0,
+        "analyticNormal": 5.551115123125783e-17
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "TIE_FORWARD",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "wall-a",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "wall-z",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          2,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.4,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "bodyId": "wall-a"
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "wall-a",
+        "fraction": 0.39999999999999997,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.29999999999999993,
+          0.25,
+          0
+        ],
+        "iterations": 2
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.399999999999995,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.29999999999999005,
+          0.25,
+          0
+        ],
+        "bodyId": "wall-a"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 4.9404924595819466e-15,
+        "normal": 0,
+        "witnessGapM": 8.326672684688674e-17,
+        "independentGapM": 8.326672684688674e-17,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 6.661338147750939e-16,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 1.3877787807814457e-17,
+        "analyticFraction": 5.551115123125783e-17,
+        "analyticNormal": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true,
+        "analyticBodyId": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "TIE_REVERSE",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "wall-z",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "wall-a",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          2,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.4,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "bodyId": "wall-a"
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "wall-a",
+        "fraction": 0.39999999999999997,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.29999999999999993,
+          0.25,
+          0
+        ],
+        "iterations": 2
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.399999999999995,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.29999999999999005,
+          0.25,
+          0
+        ],
+        "bodyId": "wall-a"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 4.9404924595819466e-15,
+        "normal": 0,
+        "witnessGapM": 8.326672684688674e-17,
+        "independentGapM": 8.326672684688674e-17,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 6.661338147750939e-16,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 1.3877787807814457e-17,
+        "analyticFraction": 5.551115123125783e-17,
+        "analyticNormal": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true,
+        "analyticBodyId": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "EARLIEST",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "z-near",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "a-far",
+            "centerM": [
+              0.8,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          2,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.4,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "bodyId": "z-near"
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "z-near",
+        "fraction": 0.39999999999999997,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.29999999999999993,
+          0.25,
+          0
+        ],
+        "iterations": 2
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.399999999999995,
+        "normalM": [
+          -1,
+          0,
+          0
+        ],
+        "pointM": [
+          0.45,
+          0.25,
+          0
+        ],
+        "segmentM": [
+          0.29999999999999005,
+          0.25,
+          0
+        ],
+        "bodyId": "z-near"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 4.9404924595819466e-15,
+        "normal": 0,
+        "witnessGapM": 8.326672684688674e-17,
+        "independentGapM": 8.326672684688674e-17,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 6.661338147750939e-16,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 1.3877787807814457e-17,
+        "analyticFraction": 5.551115123125783e-17,
+        "analyticNormal": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true,
+        "analyticBodyId": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "EXCLUDE",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "wall",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          2,
+          0,
+          0
+        ],
+        "excludeId": "wall"
+      },
+      "analytic": null,
+      "expectedError": null,
+      "hit": null,
+      "error": null,
+      "reference": null,
+      "referenceError": null,
+      "errors": {},
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "CAP32_GRAZE",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "box00",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box01",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box02",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box03",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box04",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box05",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box06",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box07",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box08",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box09",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box10",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box11",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box12",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box13",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box14",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box15",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box16",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box17",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box18",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box19",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box20",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box21",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box22",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box23",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box24",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box25",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box26",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box27",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box28",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box29",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box30",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "box31",
+            "centerM": [
+              0.5,
+              0.05,
+              0
+            ],
+            "halfExtentsM": [
+              0.25,
+              0.05,
+              0.75
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          -0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          1.5,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": {
+        "fraction": 0.5,
+        "normalM": [
+          0,
+          1,
+          0
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0
+        ],
+        "bodyId": "box00"
+      },
+      "expectedError": null,
+      "hit": {
+        "bodyId": "box00",
+        "fraction": 0.49999996729542473,
+        "normalM": [
+          -3.27045752701576e-7,
+          0.9999999999999465,
+          0
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0
+        ],
+        "segmentM": [
+          0.2499999509431371,
+          0.25,
+          0
+        ],
+        "iterations": 23
+      },
+      "error": null,
+      "reference": {
+        "fraction": 0.49999996353145654,
+        "normalM": [
+          -3.6468543444335867e-7,
+          0.9999999999999336,
+          0
+        ],
+        "pointM": [
+          0.25,
+          0.1,
+          0
+        ],
+        "segmentM": [
+          0.24999994529718483,
+          0.25,
+          0
+        ],
+        "bodyId": "box00"
+      },
+      "referenceError": null,
+      "errors": {
+        "fraction": 3.763968192682654e-9,
+        "normal": 3.763968174178486e-8,
+        "witnessGapM": 8.021361352916756e-15,
+        "independentGapM": 8.049116928532385e-15,
+        "centrelineM": 0,
+        "unitNormal": 0,
+        "witnessNormal": 5.351274978693541e-14,
+        "boxMembershipM": 0,
+        "boxBoundaryM": 0,
+        "analyticFraction": 3.270457527015935e-8,
+        "analyticNormal": 3.2704575270158035e-7,
+        "uniquePointM": 0
+      },
+      "checks": {
+        "noRefusal": true,
+        "independentReferenceResolved": true,
+        "hitPresence": true,
+        "referenceFraction": true,
+        "referenceNormal": true,
+        "bodyId": true,
+        "witness": true,
+        "unitNormal": true,
+        "finiteBounded": true,
+        "analyticHitExists": true,
+        "analyticFraction": true,
+        "analyticNormal": true,
+        "uniquePoint": true,
+        "analyticBodyId": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "INITIAL_OVERLAP",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "wall",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          0.4,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          1,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": null,
+      "expectedError": "INITIAL_OVERLAP",
+      "hit": null,
+      "error": {
+        "code": "INITIAL_OVERLAP",
+        "message": "SweepRefusal: Initial capsule overlaps a box"
+      },
+      "reference": null,
+      "referenceError": "RangeError: Reference initial overlap is not a sweep/depenetration result",
+      "errors": {},
+      "checks": {
+        "expectedRefusal": true,
+        "independentInitialOverlap": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    },
+    {
+      "name": "INITIAL_INSIDE",
+      "scene": {
+        "revision": "sweepRef1",
+        "boxes": [
+          {
+            "id": "wall",
+            "centerM": [
+              0.5,
+              0.6,
+              0
+            ],
+            "halfExtentsM": [
+              0.05,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      },
+      "query": {
+        "revision": "sweepRef1",
+        "centerM": [
+          0.5,
+          0.6,
+          0
+        ],
+        "displacementM": [
+          1,
+          0,
+          0
+        ],
+        "excludeId": null
+      },
+      "analytic": null,
+      "expectedError": "INITIAL_OVERLAP",
+      "hit": null,
+      "error": {
+        "code": "INITIAL_OVERLAP",
+        "message": "SweepRefusal: Initial capsule overlaps a box"
+      },
+      "reference": null,
+      "referenceError": "RangeError: Reference initial overlap is not a sweep/depenetration result",
+      "errors": {},
+      "checks": {
+        "expectedRefusal": true,
+        "independentInitialOverlap": true
+      },
+      "passed": true,
+      "snapshotRetained": true
+    }
+  ],
+  "controls": {
+    "passed": true,
+    "originalCaseCount": 22,
+    "acceptedCases": 20,
+    "refusedCases": 2,
+    "completeOriginalOutputErrorBits": true,
+    "inputByteCount": 5552,
+    "outputByteCount": 1496,
+    "combinedByteCount": 7048,
+    "explicitLEInputOutputBytesEqual": true,
+    "originalInputsSnapshotsOutputsDiagnosticsCopied": true,
+    "allSourceIDsRetained": true,
+    "exactKeysIncludeSignedZeroAndOriginalQuaternion": true,
+    "completeSceneRetention": true,
+    "globalMinimumTiePermutations": true,
+    "getterCount": 0,
+    "records": [
+      {
+        "name": "stale",
+        "code": "STALE_SCENE",
+        "message": "Revision mismatch"
+      },
+      {
+        "name": "unknown-exclude",
+        "code": "INVALID_INPUT",
+        "message": "Unknown excluded ID"
+      },
+      {
+        "name": "nan",
+        "code": "INVALID_INPUT",
+        "message": "Invalid tuple value"
+      },
+      {
+        "name": "extra-query",
+        "code": "INVALID_INPUT",
+        "message": "Unexpected fields"
+      },
+      {
+        "name": "tuple-count",
+        "code": "INVALID_INPUT",
+        "message": "Expected dense tuple"
+      },
+      {
+        "name": "displacement-bound",
+        "code": "INVALID_INPUT",
+        "message": "Displacement exceeds2m"
+      },
+      {
+        "name": "query-accessor",
+        "code": "INVALID_INPUT",
+        "message": "Accessor field"
+      },
+      {
+        "name": "cap33",
+        "code": "INVALID_INPUT",
+        "message": "Box capacity or sparse list"
+      },
+      {
+        "name": "duplicate-id",
+        "code": "INVALID_INPUT",
+        "message": "Duplicate ID"
+      },
+      {
+        "name": "bad-extent",
+        "code": "INVALID_INPUT",
+        "message": "Invalid extent or quaternion"
+      },
+      {
+        "name": "bad-quaternion",
+        "code": "INVALID_INPUT",
+        "message": "Invalid tuple value"
+      },
+      {
+        "name": "extra-scene",
+        "code": "INVALID_INPUT",
+        "message": "Unexpected fields"
+      },
+      {
+        "name": "sparse-scene",
+        "code": "INVALID_INPUT",
+        "message": "Box capacity or sparse list"
+      },
+      {
+        "name": "box-list-accessor",
+        "code": "INVALID_INPUT",
+        "message": "Accessor box"
+      },
+      {
+        "name": "diagnostic-cap1",
+        "code": "ITERATION_LIMIT",
+        "message": "Fixed advancement cap exhausted"
+      },
+      {
+        "name": "old-revision-not-reused",
+        "code": "STALE_SCENE",
+        "message": "Revision mismatch"
+      },
+      {
+        "name": "disposed-query",
+        "code": "DISPOSED",
+        "message": "Snapshot is disposed"
+      },
+      {
+        "name": "disposed-snapshot",
+        "code": "DISPOSED",
+        "message": "Snapshot is disposed"
+      },
+      {
+        "name": "disposed-diagnostics",
+        "code": "DISPOSED",
+        "message": "Snapshot is disposed"
+      }
+    ],
+    "refusals": 19,
+    "workCounts": [
+      {
+        "name": "32-identical",
+        "sourceCount": 32,
+        "groupCount": 1,
+        "actualSweeps": 1
+      },
+      {
+        "name": "32-distinct",
+        "sourceCount": 32,
+        "groupCount": 32,
+        "actualSweeps": 32
+      },
+      {
+        "name": "excluded-singleton",
+        "sourceCount": 1,
+        "groupCount": 1,
+        "actualSweeps": 0
+      }
+    ],
+    "serializedGeometryKeyBytesPerGroup": 80,
+    "timingMeasured": false
+  },
+  "timing": {
+    "trials": [
+      [
+        {
+          "name": "EMPTY_ZERO",
+          "N": 100,
+          "p95Ms": 0.018167000000005373,
+          "passed": true
+        },
+        {
+          "name": "EMPTY_MOVE",
+          "N": 100,
+          "p95Ms": 0.004457999999999629,
+          "passed": true
+        },
+        {
+          "name": "FLOOR_FALL",
+          "N": 100,
+          "p95Ms": 0.055499999999995,
+          "passed": true
+        },
+        {
+          "name": "FLAT_PARALLEL",
+          "N": 100,
+          "p95Ms": 0.03958399999999074,
+          "passed": true
+        },
+        {
+          "name": "WALL",
+          "N": 100,
+          "p95Ms": 0.0681250000000091,
+          "passed": true
+        },
+        {
+          "name": "TOUCH_ZERO",
+          "N": 100,
+          "p95Ms": 0.028042000000027656,
+          "passed": true
+        },
+        {
+          "name": "TOUCH_AWAY",
+          "N": 100,
+          "p95Ms": 0.017666999999960353,
+          "passed": true
+        },
+        {
+          "name": "WALL_AWAY",
+          "N": 100,
+          "p95Ms": 0.01908400000002075,
+          "passed": true
+        },
+        {
+          "name": "STEP_CORNER",
+          "N": 100,
+          "p95Ms": 0.12725000000000364,
+          "passed": true
+        },
+        {
+          "name": "STEP_GRAZE",
+          "N": 100,
+          "p95Ms": 0.4287500000000364,
+          "passed": true
+        },
+        {
+          "name": "STEP_NEAR_CLEAR",
+          "N": 100,
+          "p95Ms": 0.3586660000000279,
+          "passed": true
+        },
+        {
+          "name": "CORNER_3D",
+          "N": 100,
+          "p95Ms": 0.22916699999996126,
+          "passed": true
+        },
+        {
+          "name": "CORNER_CLEAR",
+          "N": 100,
+          "p95Ms": 0.18766600000003564,
+          "passed": true
+        },
+        {
+          "name": "SLOPE15",
+          "N": 100,
+          "p95Ms": 0.055499999999995,
+          "passed": true
+        },
+        {
+          "name": "Y_ROTATED_WALL",
+          "N": 100,
+          "p95Ms": 0.04441700000000992,
+          "passed": true
+        },
+        {
+          "name": "TIE_FORWARD",
+          "N": 100,
+          "p95Ms": 0.055499999999995,
+          "passed": true
+        },
+        {
+          "name": "TIE_REVERSE",
+          "N": 100,
+          "p95Ms": 0.06554099999999607,
+          "passed": true
+        },
+        {
+          "name": "EARLIEST",
+          "N": 100,
+          "p95Ms": 0.06904200000002447,
+          "passed": true
+        },
+        {
+          "name": "EXCLUDE",
+          "N": 100,
+          "p95Ms": 0.011374999999986812,
+          "passed": true
+        },
+        {
+          "name": "CAP32_GRAZE",
+          "N": 100,
+          "p95Ms": 0.47983399999998255,
+          "passed": true
+        }
+      ],
+      [
+        {
+          "name": "EMPTY_ZERO",
+          "N": 100,
+          "p95Ms": 0.010499999999979082,
+          "passed": true
+        },
+        {
+          "name": "EMPTY_MOVE",
+          "N": 100,
+          "p95Ms": 0.004292000000077678,
+          "passed": true
+        },
+        {
+          "name": "FLOOR_FALL",
+          "N": 100,
+          "p95Ms": 0.016291999999907603,
+          "passed": true
+        },
+        {
+          "name": "FLAT_PARALLEL",
+          "N": 100,
+          "p95Ms": 0.008125000000063665,
+          "passed": true
+        },
+        {
+          "name": "WALL",
+          "N": 100,
+          "p95Ms": 0.0105829999999969,
+          "passed": true
+        },
+        {
+          "name": "TOUCH_ZERO",
+          "N": 100,
+          "p95Ms": 0.009958999999980733,
+          "passed": true
+        },
+        {
+          "name": "TOUCH_AWAY",
+          "N": 100,
+          "p95Ms": 0.007500000000050022,
+          "passed": true
+        },
+        {
+          "name": "WALL_AWAY",
+          "N": 100,
+          "p95Ms": 0.007667000000083135,
+          "passed": true
+        },
+        {
+          "name": "STEP_CORNER",
+          "N": 100,
+          "p95Ms": 0.022375000000010914,
+          "passed": true
+        },
+        {
+          "name": "STEP_GRAZE",
+          "N": 100,
+          "p95Ms": 0.11208399999998164,
+          "passed": true
+        },
+        {
+          "name": "STEP_NEAR_CLEAR",
+          "N": 100,
+          "p95Ms": 0.06120799999996507,
+          "passed": true
+        },
+        {
+          "name": "CORNER_3D",
+          "N": 100,
+          "p95Ms": 0.027165999999965607,
+          "passed": true
+        },
+        {
+          "name": "CORNER_CLEAR",
+          "N": 100,
+          "p95Ms": 0.013874999999984539,
+          "passed": true
+        },
+        {
+          "name": "SLOPE15",
+          "N": 100,
+          "p95Ms": 0.014499999999998181,
+          "passed": true
+        },
+        {
+          "name": "Y_ROTATED_WALL",
+          "N": 100,
+          "p95Ms": 0.0105829999999969,
+          "passed": true
+        },
+        {
+          "name": "TIE_FORWARD",
+          "N": 100,
+          "p95Ms": 0.021041000000082022,
+          "passed": true
+        },
+        {
+          "name": "TIE_REVERSE",
+          "N": 100,
+          "p95Ms": 0.010833000000047832,
+          "passed": true
+        },
+        {
+          "name": "EARLIEST",
+          "N": 100,
+          "p95Ms": 0.02666599999997743,
+          "passed": true
+        },
+        {
+          "name": "EXCLUDE",
+          "N": 100,
+          "p95Ms": 0.004167000000052212,
+          "passed": true
+        },
+        {
+          "name": "CAP32_GRAZE",
+          "N": 100,
+          "p95Ms": 0.15737500000000182,
+          "passed": true
+        }
+      ],
+      [
+        {
+          "name": "EMPTY_ZERO",
+          "N": 100,
+          "p95Ms": 0.007875000000012733,
+          "passed": true
+        },
+        {
+          "name": "EMPTY_MOVE",
+          "N": 100,
+          "p95Ms": 0.002417000000036751,
+          "passed": true
+        },
+        {
+          "name": "FLOOR_FALL",
+          "N": 100,
+          "p95Ms": 0.01879200000007586,
+          "passed": true
+        },
+        {
+          "name": "FLAT_PARALLEL",
+          "N": 100,
+          "p95Ms": 0.027749999999969077,
+          "passed": true
+        },
+        {
+          "name": "WALL",
+          "N": 100,
+          "p95Ms": 0.022458000000028733,
+          "passed": true
+        },
+        {
+          "name": "TOUCH_ZERO",
+          "N": 100,
+          "p95Ms": 0.0072920000000067375,
+          "passed": true
+        },
+        {
+          "name": "TOUCH_AWAY",
+          "N": 100,
+          "p95Ms": 0.006709000000000742,
+          "passed": true
+        },
+        {
+          "name": "WALL_AWAY",
+          "N": 100,
+          "p95Ms": 0.0060000000000854925,
+          "passed": true
+        },
+        {
+          "name": "STEP_CORNER",
+          "N": 100,
+          "p95Ms": 0.028957999999988715,
+          "passed": true
+        },
+        {
+          "name": "STEP_GRAZE",
+          "N": 100,
+          "p95Ms": 0.09766700000000128,
+          "passed": true
+        },
+        {
+          "name": "STEP_NEAR_CLEAR",
+          "N": 100,
+          "p95Ms": 0.05654099999992468,
+          "passed": true
+        },
+        {
+          "name": "CORNER_3D",
+          "N": 100,
+          "p95Ms": 0.042291999999974905,
+          "passed": true
+        },
+        {
+          "name": "CORNER_CLEAR",
+          "N": 100,
+          "p95Ms": 0.01587500000005093,
+          "passed": true
+        },
+        {
+          "name": "SLOPE15",
+          "N": 100,
+          "p95Ms": 0.010708000000022366,
+          "passed": true
+        },
+        {
+          "name": "Y_ROTATED_WALL",
+          "N": 100,
+          "p95Ms": 0.011500000000069122,
+          "passed": true
+        },
+        {
+          "name": "TIE_FORWARD",
+          "N": 100,
+          "p95Ms": 0.010332999999945969,
+          "passed": true
+        },
+        {
+          "name": "TIE_REVERSE",
+          "N": 100,
+          "p95Ms": 0.009625000000028194,
+          "passed": true
+        },
+        {
+          "name": "EARLIEST",
+          "N": 100,
+          "p95Ms": 0.031957999999917774,
+          "passed": true
+        },
+        {
+          "name": "EXCLUDE",
+          "N": 100,
+          "p95Ms": 0.006166000000007443,
+          "passed": true
+        },
+        {
+          "name": "CAP32_GRAZE",
+          "N": 100,
+          "p95Ms": 0.16766600000005383,
+          "passed": true
+        }
+      ]
+    ],
+    "passed": true,
+    "medianAndSpread": [
+      {
+        "name": "EMPTY_ZERO",
+        "median": 0.010499999999979082,
+        "minimum": 0.007875000000012733,
+        "maximum": 0.018167000000005373
+      },
+      {
+        "name": "EMPTY_MOVE",
+        "median": 0.004292000000077678,
+        "minimum": 0.002417000000036751,
+        "maximum": 0.004457999999999629
+      },
+      {
+        "name": "FLOOR_FALL",
+        "median": 0.01879200000007586,
+        "minimum": 0.016291999999907603,
+        "maximum": 0.055499999999995
+      },
+      {
+        "name": "FLAT_PARALLEL",
+        "median": 0.027749999999969077,
+        "minimum": 0.008125000000063665,
+        "maximum": 0.03958399999999074
+      },
+      {
+        "name": "WALL",
+        "median": 0.022458000000028733,
+        "minimum": 0.0105829999999969,
+        "maximum": 0.0681250000000091
+      },
+      {
+        "name": "TOUCH_ZERO",
+        "median": 0.009958999999980733,
+        "minimum": 0.0072920000000067375,
+        "maximum": 0.028042000000027656
+      },
+      {
+        "name": "TOUCH_AWAY",
+        "median": 0.007500000000050022,
+        "minimum": 0.006709000000000742,
+        "maximum": 0.017666999999960353
+      },
+      {
+        "name": "WALL_AWAY",
+        "median": 0.007667000000083135,
+        "minimum": 0.0060000000000854925,
+        "maximum": 0.01908400000002075
+      },
+      {
+        "name": "STEP_CORNER",
+        "median": 0.028957999999988715,
+        "minimum": 0.022375000000010914,
+        "maximum": 0.12725000000000364
+      },
+      {
+        "name": "STEP_GRAZE",
+        "median": 0.11208399999998164,
+        "minimum": 0.09766700000000128,
+        "maximum": 0.4287500000000364
+      },
+      {
+        "name": "STEP_NEAR_CLEAR",
+        "median": 0.06120799999996507,
+        "minimum": 0.05654099999992468,
+        "maximum": 0.3586660000000279
+      },
+      {
+        "name": "CORNER_3D",
+        "median": 0.042291999999974905,
+        "minimum": 0.027165999999965607,
+        "maximum": 0.22916699999996126
+      },
+      {
+        "name": "CORNER_CLEAR",
+        "median": 0.01587500000005093,
+        "minimum": 0.013874999999984539,
+        "maximum": 0.18766600000003564
+      },
+      {
+        "name": "SLOPE15",
+        "median": 0.014499999999998181,
+        "minimum": 0.010708000000022366,
+        "maximum": 0.055499999999995
+      },
+      {
+        "name": "Y_ROTATED_WALL",
+        "median": 0.011500000000069122,
+        "minimum": 0.0105829999999969,
+        "maximum": 0.04441700000000992
+      },
+      {
+        "name": "TIE_FORWARD",
+        "median": 0.021041000000082022,
+        "minimum": 0.010332999999945969,
+        "maximum": 0.055499999999995
+      },
+      {
+        "name": "TIE_REVERSE",
+        "median": 0.010833000000047832,
+        "minimum": 0.009625000000028194,
+        "maximum": 0.06554099999999607
+      },
+      {
+        "name": "EARLIEST",
+        "median": 0.031957999999917774,
+        "minimum": 0.02666599999997743,
+        "maximum": 0.06904200000002447
+      },
+      {
+        "name": "EXCLUDE",
+        "median": 0.006166000000007443,
+        "minimum": 0.004167000000052212,
+        "maximum": 0.011374999999986812
+      },
+      {
+        "name": "CAP32_GRAZE",
+        "median": 0.16766600000005383,
+        "minimum": 0.15737500000000182,
+        "maximum": 0.47983399999998255
+      }
+    ]
+  },
+  "construction": [
+    {
+      "name": "EMPTY_ZERO",
+      "milliseconds": 0.018749999999954525,
+      "sourceCount": 0,
+      "groupCount": 0,
+      "memberIDs": [],
+      "keyByteCount": 0,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "EMPTY_MOVE",
+      "milliseconds": 0.0015829999999823485,
+      "sourceCount": 0,
+      "groupCount": 0,
+      "memberIDs": [],
+      "keyByteCount": 0,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "FLOOR_FALL",
+      "milliseconds": 0.16479200000003402,
+      "sourceCount": 1,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "floor"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "FLAT_PARALLEL",
+      "milliseconds": 0.011334000000033484,
+      "sourceCount": 1,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "floor"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "WALL",
+      "milliseconds": 0.006209000000012566,
+      "sourceCount": 1,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "wall"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "TOUCH_ZERO",
+      "milliseconds": 0.005541999999991276,
+      "sourceCount": 1,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "wall"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "TOUCH_AWAY",
+      "milliseconds": 0.005084000000010747,
+      "sourceCount": 1,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "wall"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "WALL_AWAY",
+      "milliseconds": 0.0049159999999801585,
+      "sourceCount": 1,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "wall"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "STEP_CORNER",
+      "milliseconds": 0.007083999999963453,
+      "sourceCount": 1,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "step"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "STEP_GRAZE",
+      "milliseconds": 0.006375000000048203,
+      "sourceCount": 1,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "step"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "STEP_NEAR_CLEAR",
+      "milliseconds": 0.0050420000000030996,
+      "sourceCount": 1,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "step"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "CORNER_3D",
+      "milliseconds": 0.004790999999954693,
+      "sourceCount": 1,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "step"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "CORNER_CLEAR",
+      "milliseconds": 0.004583000000025095,
+      "sourceCount": 1,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "step"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "SLOPE15",
+      "milliseconds": 0.005458999999973457,
+      "sourceCount": 1,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "slope"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "Y_ROTATED_WALL",
+      "milliseconds": 0.0049999999999954525,
+      "sourceCount": 1,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "turned"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "TIE_FORWARD",
+      "milliseconds": 0.011458999999945263,
+      "sourceCount": 2,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "wall-a",
+          "wall-z"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "TIE_REVERSE",
+      "milliseconds": 0.009166999999933978,
+      "sourceCount": 2,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "wall-z",
+          "wall-a"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "EARLIEST",
+      "milliseconds": 0.008916999999996733,
+      "sourceCount": 2,
+      "groupCount": 2,
+      "memberIDs": [
+        [
+          "z-near"
+        ],
+        [
+          "a-far"
+        ]
+      ],
+      "keyByteCount": 160,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "EXCLUDE",
+      "milliseconds": 0.004666999999926702,
+      "sourceCount": 1,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "wall"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "CAP32_GRAZE",
+      "milliseconds": 0.12774999999999181,
+      "sourceCount": 32,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "box00",
+          "box01",
+          "box02",
+          "box03",
+          "box04",
+          "box05",
+          "box06",
+          "box07",
+          "box08",
+          "box09",
+          "box10",
+          "box11",
+          "box12",
+          "box13",
+          "box14",
+          "box15",
+          "box16",
+          "box17",
+          "box18",
+          "box19",
+          "box20",
+          "box21",
+          "box22",
+          "box23",
+          "box24",
+          "box25",
+          "box26",
+          "box27",
+          "box28",
+          "box29",
+          "box30",
+          "box31"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "INITIAL_OVERLAP",
+      "milliseconds": 0.005041000000005624,
+      "sourceCount": 1,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "wall"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    },
+    {
+      "name": "INITIAL_INSIDE",
+      "milliseconds": 0.004666000000042914,
+      "sourceCount": 1,
+      "groupCount": 1,
+      "memberIDs": [
+        [
+          "wall"
+        ]
+      ],
+      "keyByteCount": 80,
+      "scope": "One post-campaign construction observation; outside query timing; no constructor budget or heap measurement"
+    }
+  ],
+  "unexpectedFailure": null,
+  "exactRepeat": true,
+  "exactBaselineInputs": true,
+  "exactBaselineOutputs": true,
+  "numericalPassed": true,
+  "candidateGO": true,
+  "decision": "Bounded Node query reference candidate; actual Chromium numeric/cost gate still required",
+  "publicApi": false,
+  "actualViewer": false,
+  "browserExecuted": false,
+  "queryDoesNotMoveBody": true
+}

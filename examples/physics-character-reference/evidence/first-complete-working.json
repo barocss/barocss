@@ -1,0 +1,4344 @@
+{
+  "issue": 830,
+  "nodeVersion": "v22.22.0",
+  "timestamp": "2026-10-09T15:22:43.664Z",
+  "gitHead": "bc38df4cf2251f53101ae045e616012866b3e6b3",
+  "sourceTreeDirty": true,
+  "ok": true,
+  "bundle": {
+    "sourceFiles": 22,
+    "compiledFiles": 0,
+    "ownInputs": [
+      "packages/barocss-physics/src/types.ts",
+      "packages/barocss-physics/src/limits.ts",
+      "packages/barocss-physics/src/validation.ts",
+      "packages/barocss-physics/src/math.ts",
+      "packages/barocss-physics/src/dynamic-anchor-pair.ts",
+      "packages/barocss-physics/src/dynamic-fixed-joint.ts",
+      "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+      "packages/barocss-physics/src/joints.ts",
+      "packages/barocss-physics/src/joint-motor.ts",
+      "packages/barocss-physics/src/capsule-contact.ts",
+      "packages/barocss-physics/src/collision.ts",
+      "packages/barocss-physics/src/contact-manifold.ts",
+      "packages/barocss-physics/src/persistent-box-contact.ts",
+      "packages/barocss-physics/src/ccd-slab.ts",
+      "packages/barocss-physics/src/ccd-box.ts",
+      "packages/barocss-physics/src/ccd.ts",
+      "packages/barocss-physics/src/ccd-pair.ts",
+      "packages/barocss-physics/src/broadphase.ts",
+      "packages/barocss-physics/src/scene-profile.ts",
+      "packages/barocss-physics/src/sleep.ts",
+      "packages/barocss-physics/src/world.ts",
+      "packages/barocss-physics/src/index.ts"
+    ],
+    "aliases": false,
+    "plugins": false,
+    "customConditions": false
+  },
+  "flow": {
+    "ok": true,
+    "issue": 830,
+    "independentReferences": {
+      "planeGap": 2.7755575615628914e-17,
+      "touchDistance": 0.15000000000000002,
+      "separatedDistance": 0.25,
+      "insideDistance": 4.163336342344337e-17,
+      "quarterTurnEnds": [
+        [
+          0.35,
+          -7.771561172376095e-17,
+          0
+        ],
+        [
+          -0.35,
+          7.771561172376095e-17,
+          0
+        ]
+      ]
+    },
+    "cases": [
+      {
+        "name": "REST",
+        "fixture": {
+          "name": "REST",
+          "config": {
+            "fixedStepSeconds": 0.008333333333333333,
+            "gravityMps2": [
+              0,
+              -9.81,
+              0
+            ],
+            "broadPhase": "aabb",
+            "bodies": [
+              {
+                "id": "actor",
+                "kind": "dynamic",
+                "shape": {
+                  "kind": "capsule",
+                  "radiusM": 0.15,
+                  "halfLengthM": 0.35
+                },
+                "positionM": [
+                  0,
+                  0.505,
+                  0
+                ],
+                "velocityMps": [
+                  0,
+                  0,
+                  0
+                ],
+                "massKg": 1,
+                "orientation": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "angularVelocityRadps": [
+                  0,
+                  0,
+                  0
+                ],
+                "restitution": 0,
+                "friction": {
+                  "static": 0,
+                  "dynamic": 0
+                }
+              },
+              {
+                "id": "floor",
+                "kind": "static",
+                "shape": {
+                  "kind": "box",
+                  "halfExtentsM": [
+                    3,
+                    0.05,
+                    1
+                  ]
+                },
+                "positionM": [
+                  0,
+                  -0.05,
+                  0
+                ],
+                "orientation": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "restitution": 0,
+                "friction": {
+                  "static": 0,
+                  "dynamic": 0
+                }
+              }
+            ]
+          },
+          "geometry": {
+            "floorPlane": {
+              "normal": [
+                0,
+                1,
+                0
+              ],
+              "point": [
+                0,
+                0,
+                0
+              ]
+            },
+            "actor": {
+              "radiusM": 0.15,
+              "halfLengthM": 0.35
+            },
+            "fixtures": [
+              {
+                "id": "floor",
+                "halfExtentsM": [
+                  3,
+                  0.05,
+                  1
+                ],
+                "positionM": [
+                  0,
+                  -0.05,
+                  0
+                ],
+                "orientation": [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              }
+            ],
+            "walkableMaxSlopeDegrees": 10
+          },
+          "configJson": "{\"bodies\":[{\"angularVelocityRadps\":[0,0,0],\"friction\":{\"dynamic\":0,\"static\":0},\"id\":\"actor\",\"kind\":\"dynamic\",\"massKg\":1,\"orientation\":[0,0,0,1],\"positionM\":[0,0.505,0],\"restitution\":0,\"shape\":{\"halfLengthM\":0.35,\"kind\":\"capsule\",\"radiusM\":0.15},\"velocityMps\":[0,0,0]},{\"friction\":{\"dynamic\":0,\"static\":0},\"id\":\"floor\",\"kind\":\"static\",\"orientation\":[0,0,0,1],\"positionM\":[0,-0.05,0],\"restitution\":0,\"shape\":{\"halfExtentsM\":[3,0.05,1],\"kind\":\"box\"}}],\"broadPhase\":\"aabb\",\"fixedStepSeconds\":0.008333333333333333,\"gravityMps2\":[0,-9.81,0]}",
+          "configSha256": "2710c5b21567d1ca435ac92cc11c3a6fe8686ae23b9d720c139d5c309597f144",
+          "geometryJson": "{\"actor\":{\"halfLengthM\":0.35,\"radiusM\":0.15},\"fixtures\":[{\"halfExtentsM\":[3,0.05,1],\"id\":\"floor\",\"orientation\":[0,0,0,1],\"positionM\":[0,-0.05,0]}],\"floorPlane\":{\"normal\":[0,1,0],\"point\":[0,0,0]},\"walkableMaxSlopeDegrees\":10}",
+          "geometrySha256": "67ebd42419709fa05f8d2d3f4f86c41bed34b217effd1bbb5a886632fbcdfc5a"
+        },
+        "setupMs": 0.5748339999999992,
+        "times": [],
+        "maxima": {
+          "maxPositionM": 0.505,
+          "maxVelocityMps": 0.24525000000000002,
+          "quaternionNormError": 0,
+          "capsuleAxisTiltDegrees": 0,
+          "supportPlaneGapM": 0.005000000000000032,
+          "maxOverlapLowerBoundM": 0
+        },
+        "firstViolations": [],
+        "freeFlightMaxError": 2.7755575615628914e-17,
+        "contactSteps": 237,
+        "finalMetrics": {
+          "finite": true,
+          "maxPositionM": 0.5,
+          "maxVelocityMps": 0,
+          "quaternionNormError": 0,
+          "capsuleAxisTiltDegrees": 0,
+          "supportPlaneGapM": 2.7755575615628914e-17,
+          "maxOverlapLowerBoundM": 0,
+          "overlapById": [
+            {
+              "bodyId": "floor",
+              "lowerBoundM": 0
+            }
+          ]
+        },
+        "progressM": 0,
+        "xzDriftM": 0,
+        "crossedStep": false,
+        "productGates": {
+          "restGap": true,
+          "restDrift": true
+        },
+        "numericalGO": true,
+        "samples": [
+          {
+            "state": {
+              "stepIndex": 0,
+              "timeSeconds": 0,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    0,
+                    0.505,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "floor",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0,
+                    -0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [],
+              "events": [],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 0,
+                "candidatePairs": 0,
+                "aabbTests": 0
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  0,
+                  0.505,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor",
+                "floor"
+              ],
+              "footSphere": {
+                "centerM": [
+                  0,
+                  2.7755575615628914e-17,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                0,
+                0.15500000000000003,
+                0
+              ],
+              "filteredFootIds": [
+                "floor"
+              ],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "2fd9127815ff2f061f5faab7de4f1550b39675918c8d0b4a1a6d1cbdabb00f70",
+            "fullStateSha256": "1de4fcc32050acbdc747972be144f1e9a309a6dd11f6d7437040b9b623b90a9b"
+          },
+          {
+            "state": {
+              "stepIndex": 60,
+              "timeSeconds": 0.5,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    0,
+                    0.5,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "floor",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0,
+                    -0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "normalAtoB": [
+                    0,
+                    -1,
+                    0
+                  ],
+                  "pointM": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "penetrationM": 0.0006812499999999944,
+                  "impulseNs": 0.08175,
+                  "tangentImpulseNs": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "events": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "kind": "contact",
+                  "phase": "stay"
+                }
+              ],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 8,
+                "candidatePairs": 8,
+                "aabbTests": 8
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  0,
+                  0.5,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor",
+                "floor"
+              ],
+              "footSphere": {
+                "centerM": [
+                  0,
+                  -0.004999999999999977,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                0,
+                0.15000000000000002,
+                0
+              ],
+              "filteredFootIds": [
+                "floor"
+              ],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "664031bbbccd38ef754db236ff739285c9dc76bf55e811c4a6305c70acabdef6",
+            "fullStateSha256": "42b457ce701e91a244ef6dc203a693e4c846668328f271a1fc82e77f8e1be87e"
+          },
+          {
+            "state": {
+              "stepIndex": 120,
+              "timeSeconds": 1,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    0,
+                    0.5,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "floor",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0,
+                    -0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "normalAtoB": [
+                    0,
+                    -1,
+                    0
+                  ],
+                  "pointM": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "penetrationM": 0.0006812499999999944,
+                  "impulseNs": 0.08175,
+                  "tangentImpulseNs": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "events": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "kind": "contact",
+                  "phase": "stay"
+                }
+              ],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 8,
+                "candidatePairs": 8,
+                "aabbTests": 8
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  0,
+                  0.5,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor",
+                "floor"
+              ],
+              "footSphere": {
+                "centerM": [
+                  0,
+                  -0.004999999999999977,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                0,
+                0.15000000000000002,
+                0
+              ],
+              "filteredFootIds": [
+                "floor"
+              ],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "664031bbbccd38ef754db236ff739285c9dc76bf55e811c4a6305c70acabdef6",
+            "fullStateSha256": "19876b7388673fe1de9d1f69bbfadbdef04839fece4110d205f972346c40fbb0"
+          },
+          {
+            "state": {
+              "stepIndex": 180,
+              "timeSeconds": 1.5,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    0,
+                    0.5,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "floor",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0,
+                    -0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "normalAtoB": [
+                    0,
+                    -1,
+                    0
+                  ],
+                  "pointM": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "penetrationM": 0.0006812499999999944,
+                  "impulseNs": 0.08175,
+                  "tangentImpulseNs": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "events": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "kind": "contact",
+                  "phase": "stay"
+                }
+              ],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 8,
+                "candidatePairs": 8,
+                "aabbTests": 8
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  0,
+                  0.5,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor",
+                "floor"
+              ],
+              "footSphere": {
+                "centerM": [
+                  0,
+                  -0.004999999999999977,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                0,
+                0.15000000000000002,
+                0
+              ],
+              "filteredFootIds": [
+                "floor"
+              ],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "664031bbbccd38ef754db236ff739285c9dc76bf55e811c4a6305c70acabdef6",
+            "fullStateSha256": "c6234dbf386006f1fd19a493fad6fa592d38dc3563a54c9d34118f07a64ac1d9"
+          },
+          {
+            "state": {
+              "stepIndex": 240,
+              "timeSeconds": 2,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    0,
+                    0.5,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "floor",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0,
+                    -0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "normalAtoB": [
+                    0,
+                    -1,
+                    0
+                  ],
+                  "pointM": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "penetrationM": 0.0006812499999999944,
+                  "impulseNs": 0.08175,
+                  "tangentImpulseNs": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "events": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "kind": "contact",
+                  "phase": "stay"
+                }
+              ],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 8,
+                "candidatePairs": 8,
+                "aabbTests": 8
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  0,
+                  0.5,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor",
+                "floor"
+              ],
+              "footSphere": {
+                "centerM": [
+                  0,
+                  -0.004999999999999977,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                0,
+                0.15000000000000002,
+                0
+              ],
+              "filteredFootIds": [
+                "floor"
+              ],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "664031bbbccd38ef754db236ff739285c9dc76bf55e811c4a6305c70acabdef6",
+            "fullStateSha256": "d058a9eca38958b4077888e32bd5ae1a74fb9c3ca8e9d352dd7f52542ae006f5"
+          }
+        ],
+        "finalStateSha256": "d058a9eca38958b4077888e32bd5ae1a74fb9c3ca8e9d352dd7f52542ae006f5",
+        "finalBodyFloat64Sha256": "664031bbbccd38ef754db236ff739285c9dc76bf55e811c4a6305c70acabdef6",
+        "repeatExact": true,
+        "cpuTrials": [
+          {
+            "steps": 240,
+            "p95Ms": 0.09558399999998812,
+            "setupMs": 0.1565000000000083,
+            "finalStateSha256": "d058a9eca38958b4077888e32bd5ae1a74fb9c3ca8e9d352dd7f52542ae006f5"
+          },
+          {
+            "steps": 240,
+            "p95Ms": 0.09291699999999992,
+            "setupMs": 0.3250409999999988,
+            "finalStateSha256": "d058a9eca38958b4077888e32bd5ae1a74fb9c3ca8e9d352dd7f52542ae006f5"
+          },
+          {
+            "steps": 240,
+            "p95Ms": 0.09395799999998644,
+            "setupMs": 0.2607499999999874,
+            "finalStateSha256": "d058a9eca38958b4077888e32bd5ae1a74fb9c3ca8e9d352dd7f52542ae006f5"
+          }
+        ],
+        "cpuGO": true
+      },
+      {
+        "name": "FLAT",
+        "fixture": {
+          "name": "FLAT",
+          "config": {
+            "fixedStepSeconds": 0.008333333333333333,
+            "gravityMps2": [
+              0,
+              -9.81,
+              0
+            ],
+            "broadPhase": "aabb",
+            "bodies": [
+              {
+                "id": "actor",
+                "kind": "dynamic",
+                "shape": {
+                  "kind": "capsule",
+                  "radiusM": 0.15,
+                  "halfLengthM": 0.35
+                },
+                "positionM": [
+                  -1,
+                  0.505,
+                  0
+                ],
+                "velocityMps": [
+                  0,
+                  0,
+                  0
+                ],
+                "massKg": 1,
+                "orientation": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "angularVelocityRadps": [
+                  0,
+                  0,
+                  0
+                ],
+                "restitution": 0,
+                "friction": {
+                  "static": 0,
+                  "dynamic": 0
+                }
+              },
+              {
+                "id": "floor",
+                "kind": "static",
+                "shape": {
+                  "kind": "box",
+                  "halfExtentsM": [
+                    3,
+                    0.05,
+                    1
+                  ]
+                },
+                "positionM": [
+                  0,
+                  -0.05,
+                  0
+                ],
+                "orientation": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "restitution": 0,
+                "friction": {
+                  "static": 0,
+                  "dynamic": 0
+                }
+              }
+            ]
+          },
+          "geometry": {
+            "floorPlane": {
+              "normal": [
+                0,
+                1,
+                0
+              ],
+              "point": [
+                0,
+                0,
+                0
+              ]
+            },
+            "actor": {
+              "radiusM": 0.15,
+              "halfLengthM": 0.35
+            },
+            "fixtures": [
+              {
+                "id": "floor",
+                "halfExtentsM": [
+                  3,
+                  0.05,
+                  1
+                ],
+                "positionM": [
+                  0,
+                  -0.05,
+                  0
+                ],
+                "orientation": [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              }
+            ],
+            "walkableMaxSlopeDegrees": 10
+          },
+          "configJson": "{\"bodies\":[{\"angularVelocityRadps\":[0,0,0],\"friction\":{\"dynamic\":0,\"static\":0},\"id\":\"actor\",\"kind\":\"dynamic\",\"massKg\":1,\"orientation\":[0,0,0,1],\"positionM\":[-1,0.505,0],\"restitution\":0,\"shape\":{\"halfLengthM\":0.35,\"kind\":\"capsule\",\"radiusM\":0.15},\"velocityMps\":[0,0,0]},{\"friction\":{\"dynamic\":0,\"static\":0},\"id\":\"floor\",\"kind\":\"static\",\"orientation\":[0,0,0,1],\"positionM\":[0,-0.05,0],\"restitution\":0,\"shape\":{\"halfExtentsM\":[3,0.05,1],\"kind\":\"box\"}}],\"broadPhase\":\"aabb\",\"fixedStepSeconds\":0.008333333333333333,\"gravityMps2\":[0,-9.81,0]}",
+          "configSha256": "d903caa6714763262c6d3ae6e32d72541f1d9dbdc481dcec0e67499a77ecc4d6",
+          "geometryJson": "{\"actor\":{\"halfLengthM\":0.35,\"radiusM\":0.15},\"fixtures\":[{\"halfExtentsM\":[3,0.05,1],\"id\":\"floor\",\"orientation\":[0,0,0,1],\"positionM\":[0,-0.05,0]}],\"floorPlane\":{\"normal\":[0,1,0],\"point\":[0,0,0]},\"walkableMaxSlopeDegrees\":10}",
+          "geometrySha256": "67ebd42419709fa05f8d2d3f4f86c41bed34b217effd1bbb5a886632fbcdfc5a"
+        },
+        "setupMs": 0.0848749999999967,
+        "times": [],
+        "maxima": {
+          "maxPositionM": 1,
+          "maxVelocityMps": 1,
+          "quaternionNormError": 0,
+          "capsuleAxisTiltDegrees": 0,
+          "supportPlaneGapM": 0.005000000000000032,
+          "maxOverlapLowerBoundM": 0
+        },
+        "firstViolations": [],
+        "freeFlightMaxError": 2.7755575615628914e-17,
+        "contactSteps": 237,
+        "finalMetrics": {
+          "finite": true,
+          "maxPositionM": 0.9999999999999979,
+          "maxVelocityMps": 1,
+          "quaternionNormError": 0,
+          "capsuleAxisTiltDegrees": 0,
+          "supportPlaneGapM": 2.7755575615628914e-17,
+          "maxOverlapLowerBoundM": 0,
+          "overlapById": [
+            {
+              "bodyId": "floor",
+              "lowerBoundM": 0
+            }
+          ]
+        },
+        "progressM": 1.9999999999999978,
+        "xzDriftM": 1.9999999999999978,
+        "crossedStep": false,
+        "productGates": {
+          "progress": true,
+          "finalGap": true
+        },
+        "numericalGO": true,
+        "samples": [
+          {
+            "state": {
+              "stepIndex": 0,
+              "timeSeconds": 0,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    -1,
+                    0.505,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "floor",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0,
+                    -0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [],
+              "events": [],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 0,
+                "candidatePairs": 0,
+                "aabbTests": 0
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  -1,
+                  0.505,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor",
+                "floor"
+              ],
+              "footSphere": {
+                "centerM": [
+                  -1,
+                  2.7755575615628914e-17,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                -1,
+                0.15500000000000003,
+                0
+              ],
+              "filteredFootIds": [
+                "floor"
+              ],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "d36ecb95fad29698fa0dfb0a80bf60f0b22de7fffadd542fb6e5e9bf0894de8a",
+            "fullStateSha256": "c92a20c3e611856255e1dcccba64f5bdde7d219034c800949eb944bb989fdfe8"
+          },
+          {
+            "state": {
+              "stepIndex": 60,
+              "timeSeconds": 0.5,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    -0.5000000000000018,
+                    0.5,
+                    0
+                  ],
+                  "velocityMps": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "floor",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0,
+                    -0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "normalAtoB": [
+                    0,
+                    -1,
+                    0
+                  ],
+                  "pointM": [
+                    -0.5000000000000018,
+                    0,
+                    0
+                  ],
+                  "penetrationM": 0.0006812499999999944,
+                  "impulseNs": 0.08175,
+                  "tangentImpulseNs": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "events": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "kind": "contact",
+                  "phase": "stay"
+                }
+              ],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 8,
+                "candidatePairs": 8,
+                "aabbTests": 8
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  -0.5000000000000018,
+                  0.5,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor",
+                "floor"
+              ],
+              "footSphere": {
+                "centerM": [
+                  -0.5000000000000018,
+                  -0.004999999999999977,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                -0.5000000000000018,
+                0.15000000000000002,
+                0
+              ],
+              "filteredFootIds": [
+                "floor"
+              ],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "e37d150d92a915f2962dc2c5122458a45f953b5648485ade2971812216ad9edc",
+            "fullStateSha256": "2537854f5aba6afecbdf9cdf7cf1eca5cecb15d2199f8964e10db41d930f1be5"
+          },
+          {
+            "state": {
+              "stepIndex": 120,
+              "timeSeconds": 1,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    -1.0512424264419451e-15,
+                    0.5,
+                    0
+                  ],
+                  "velocityMps": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "floor",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0,
+                    -0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "normalAtoB": [
+                    0,
+                    -1,
+                    0
+                  ],
+                  "pointM": [
+                    -1.0512424264419451e-15,
+                    0,
+                    0
+                  ],
+                  "penetrationM": 0.0006812499999999944,
+                  "impulseNs": 0.08175,
+                  "tangentImpulseNs": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "events": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "kind": "contact",
+                  "phase": "stay"
+                }
+              ],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 8,
+                "candidatePairs": 8,
+                "aabbTests": 8
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  -1.0512424264419451e-15,
+                  0.5,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor",
+                "floor"
+              ],
+              "footSphere": {
+                "centerM": [
+                  -1.0512424264419451e-15,
+                  -0.004999999999999977,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                -1.0512424264419451e-15,
+                0.15000000000000002,
+                0
+              ],
+              "filteredFootIds": [
+                "floor"
+              ],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "855a38c88b205a2983af6cb413a4d9c9709646eb54293f450ad933db0e2347a8",
+            "fullStateSha256": "823c8c5fa00c85c967437cc57bff15dd1c040845dcbb412831762443be4b321b"
+          },
+          {
+            "state": {
+              "stepIndex": 180,
+              "timeSeconds": 1.5,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    0.49999999999999967,
+                    0.5,
+                    0
+                  ],
+                  "velocityMps": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "floor",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0,
+                    -0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "normalAtoB": [
+                    0,
+                    -1,
+                    0
+                  ],
+                  "pointM": [
+                    0.49999999999999967,
+                    0,
+                    0
+                  ],
+                  "penetrationM": 0.0006812499999999944,
+                  "impulseNs": 0.08175,
+                  "tangentImpulseNs": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "events": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "kind": "contact",
+                  "phase": "stay"
+                }
+              ],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 8,
+                "candidatePairs": 8,
+                "aabbTests": 8
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  0.49999999999999967,
+                  0.5,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor",
+                "floor"
+              ],
+              "footSphere": {
+                "centerM": [
+                  0.49999999999999967,
+                  -0.004999999999999977,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                0.49999999999999967,
+                0.15000000000000002,
+                0
+              ],
+              "filteredFootIds": [
+                "floor"
+              ],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "afcb8288f1ca7f32bd1e18ef438986d3f6a3cc5e8c73651a7443710bb94202a1",
+            "fullStateSha256": "8c9098da64ac681303570523d4cbbde31bf0e7340ce2cac3ce62f9016797c996"
+          },
+          {
+            "state": {
+              "stepIndex": 240,
+              "timeSeconds": 2,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    0.9999999999999979,
+                    0.5,
+                    0
+                  ],
+                  "velocityMps": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "floor",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0,
+                    -0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "normalAtoB": [
+                    0,
+                    -1,
+                    0
+                  ],
+                  "pointM": [
+                    0.9999999999999979,
+                    0,
+                    0
+                  ],
+                  "penetrationM": 0.0006812499999999944,
+                  "impulseNs": 0.08175,
+                  "tangentImpulseNs": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "events": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "kind": "contact",
+                  "phase": "stay"
+                }
+              ],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 8,
+                "candidatePairs": 8,
+                "aabbTests": 8
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  0.9999999999999979,
+                  0.5,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor",
+                "floor"
+              ],
+              "footSphere": {
+                "centerM": [
+                  0.9999999999999979,
+                  -0.004999999999999977,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                0.9999999999999979,
+                0.15000000000000002,
+                0
+              ],
+              "filteredFootIds": [
+                "floor"
+              ],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "bd0363a7203cc5153a0c398ff339827b0171a6d83b782842aa6d424c8d3bc291",
+            "fullStateSha256": "2e6c3bbecd86a14ab0417e399386c7ae9c7ce57a0b261bff9456809a0ba3ed73"
+          }
+        ],
+        "finalStateSha256": "2e6c3bbecd86a14ab0417e399386c7ae9c7ce57a0b261bff9456809a0ba3ed73",
+        "finalBodyFloat64Sha256": "bd0363a7203cc5153a0c398ff339827b0171a6d83b782842aa6d424c8d3bc291",
+        "repeatExact": true,
+        "cpuTrials": [
+          {
+            "steps": 240,
+            "p95Ms": 0.08504100000001813,
+            "setupMs": 0.07600000000002183,
+            "finalStateSha256": "2e6c3bbecd86a14ab0417e399386c7ae9c7ce57a0b261bff9456809a0ba3ed73"
+          },
+          {
+            "steps": 240,
+            "p95Ms": 0.03999999999999204,
+            "setupMs": 0.0746249999999975,
+            "finalStateSha256": "2e6c3bbecd86a14ab0417e399386c7ae9c7ce57a0b261bff9456809a0ba3ed73"
+          },
+          {
+            "steps": 240,
+            "p95Ms": 0.04887500000000955,
+            "setupMs": 0.05483300000000213,
+            "finalStateSha256": "2e6c3bbecd86a14ab0417e399386c7ae9c7ce57a0b261bff9456809a0ba3ed73"
+          }
+        ],
+        "cpuGO": true
+      },
+      {
+        "name": "STEP10",
+        "fixture": {
+          "name": "STEP10",
+          "config": {
+            "fixedStepSeconds": 0.008333333333333333,
+            "gravityMps2": [
+              0,
+              -9.81,
+              0
+            ],
+            "broadPhase": "aabb",
+            "bodies": [
+              {
+                "id": "actor",
+                "kind": "dynamic",
+                "shape": {
+                  "kind": "capsule",
+                  "radiusM": 0.15,
+                  "halfLengthM": 0.35
+                },
+                "positionM": [
+                  -1,
+                  0.505,
+                  0
+                ],
+                "velocityMps": [
+                  0,
+                  0,
+                  0
+                ],
+                "massKg": 1,
+                "orientation": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "angularVelocityRadps": [
+                  0,
+                  0,
+                  0
+                ],
+                "restitution": 0,
+                "friction": {
+                  "static": 0,
+                  "dynamic": 0
+                }
+              },
+              {
+                "id": "floor",
+                "kind": "static",
+                "shape": {
+                  "kind": "box",
+                  "halfExtentsM": [
+                    3,
+                    0.05,
+                    1
+                  ]
+                },
+                "positionM": [
+                  0,
+                  -0.05,
+                  0
+                ],
+                "orientation": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "restitution": 0,
+                "friction": {
+                  "static": 0,
+                  "dynamic": 0
+                }
+              },
+              {
+                "id": "step10",
+                "kind": "static",
+                "shape": {
+                  "kind": "box",
+                  "halfExtentsM": [
+                    0.25,
+                    0.05,
+                    0.75
+                  ]
+                },
+                "positionM": [
+                  0.5,
+                  0.05,
+                  0
+                ],
+                "orientation": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "restitution": 0,
+                "friction": {
+                  "static": 0,
+                  "dynamic": 0
+                }
+              }
+            ]
+          },
+          "geometry": {
+            "floorPlane": {
+              "normal": [
+                0,
+                1,
+                0
+              ],
+              "point": [
+                0,
+                0,
+                0
+              ]
+            },
+            "actor": {
+              "radiusM": 0.15,
+              "halfLengthM": 0.35
+            },
+            "fixtures": [
+              {
+                "id": "floor",
+                "halfExtentsM": [
+                  3,
+                  0.05,
+                  1
+                ],
+                "positionM": [
+                  0,
+                  -0.05,
+                  0
+                ],
+                "orientation": [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              },
+              {
+                "id": "step10",
+                "halfExtentsM": [
+                  0.25,
+                  0.05,
+                  0.75
+                ],
+                "positionM": [
+                  0.5,
+                  0.05,
+                  0
+                ],
+                "orientation": [
+                  0,
+                  0,
+                  0,
+                  1
+                ]
+              }
+            ],
+            "walkableMaxSlopeDegrees": 10
+          },
+          "configJson": "{\"bodies\":[{\"angularVelocityRadps\":[0,0,0],\"friction\":{\"dynamic\":0,\"static\":0},\"id\":\"actor\",\"kind\":\"dynamic\",\"massKg\":1,\"orientation\":[0,0,0,1],\"positionM\":[-1,0.505,0],\"restitution\":0,\"shape\":{\"halfLengthM\":0.35,\"kind\":\"capsule\",\"radiusM\":0.15},\"velocityMps\":[0,0,0]},{\"friction\":{\"dynamic\":0,\"static\":0},\"id\":\"floor\",\"kind\":\"static\",\"orientation\":[0,0,0,1],\"positionM\":[0,-0.05,0],\"restitution\":0,\"shape\":{\"halfExtentsM\":[3,0.05,1],\"kind\":\"box\"}},{\"friction\":{\"dynamic\":0,\"static\":0},\"id\":\"step10\",\"kind\":\"static\",\"orientation\":[0,0,0,1],\"positionM\":[0.5,0.05,0],\"restitution\":0,\"shape\":{\"halfExtentsM\":[0.25,0.05,0.75],\"kind\":\"box\"}}],\"broadPhase\":\"aabb\",\"fixedStepSeconds\":0.008333333333333333,\"gravityMps2\":[0,-9.81,0]}",
+          "configSha256": "e698c24829fc900b9ebd6d9d4ad7ee59f33b6d94c6e765b7bf113915b6979386",
+          "geometryJson": "{\"actor\":{\"halfLengthM\":0.35,\"radiusM\":0.15},\"fixtures\":[{\"halfExtentsM\":[3,0.05,1],\"id\":\"floor\",\"orientation\":[0,0,0,1],\"positionM\":[0,-0.05,0]},{\"halfExtentsM\":[0.25,0.05,0.75],\"id\":\"step10\",\"orientation\":[0,0,0,1],\"positionM\":[0.5,0.05,0]}],\"floorPlane\":{\"normal\":[0,1,0],\"point\":[0,0,0]},\"walkableMaxSlopeDegrees\":10}",
+          "geometrySha256": "7350eab7d9c2b005e2f859bf74aebc56d07709afe63097e196f57522e501d364"
+        },
+        "setupMs": 0.12570900000000051,
+        "times": [],
+        "maxima": {
+          "maxPositionM": 1,
+          "maxVelocityMps": 1.402783826929179,
+          "quaternionNormError": 2.220446049250313e-16,
+          "capsuleAxisTiltDegrees": 89.95171021816772,
+          "supportPlaneGapM": 0.10000000000000006,
+          "maxOverlapLowerBoundM": 1.1102230246251565e-16
+        },
+        "firstViolations": [
+          {
+            "gate": "tilt",
+            "stepIndex": 139,
+            "metrics": {
+              "finite": true,
+              "maxPositionM": 0.505474987763285,
+              "maxVelocityMps": 0.9772719345218045,
+              "quaternionNormError": 1.1102230246251565e-16,
+              "capsuleAxisTiltDegrees": 5.457284670022263,
+              "supportPlaneGapM": 0.0070614058255868695,
+              "maxOverlapLowerBoundM": 0,
+              "overlapById": [
+                {
+                  "bodyId": "floor",
+                  "lowerBoundM": 0
+                },
+                {
+                  "bodyId": "step10",
+                  "lowerBoundM": 0
+                }
+              ]
+            }
+          }
+        ],
+        "freeFlightMaxError": 2.7755575615628914e-17,
+        "contactSteps": 237,
+        "finalMetrics": {
+          "finite": true,
+          "maxPositionM": 0.9805787805041213,
+          "maxVelocityMps": 1,
+          "quaternionNormError": 0,
+          "capsuleAxisTiltDegrees": 78.88070328402624,
+          "supportPlaneGapM": 5.551115123125783e-17,
+          "maxOverlapLowerBoundM": 0,
+          "overlapById": [
+            {
+              "bodyId": "floor",
+              "lowerBoundM": 0
+            },
+            {
+              "bodyId": "step10",
+              "lowerBoundM": 0
+            }
+          ]
+        },
+        "progressM": 1.9805787805041213,
+        "xzDriftM": 1.9805787805041213,
+        "crossedStep": true,
+        "productGates": {
+          "progress": true,
+          "crossedStep": true
+        },
+        "numericalGO": false,
+        "samples": [
+          {
+            "state": {
+              "stepIndex": 0,
+              "timeSeconds": 0,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    -1,
+                    0.505,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "floor",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0,
+                    -0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "id": "step10",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      0.25,
+                      0.05,
+                      0.75
+                    ]
+                  },
+                  "positionM": [
+                    0.5,
+                    0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [],
+              "events": [],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 0,
+                "candidatePairs": 0,
+                "aabbTests": 0
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  -1,
+                  0.505,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor",
+                "floor"
+              ],
+              "footSphere": {
+                "centerM": [
+                  -1,
+                  2.7755575615628914e-17,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                -1,
+                0.15500000000000003,
+                0
+              ],
+              "filteredFootIds": [
+                "floor"
+              ],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "e37f77230a5149278183a6c4a3aaf707c56586d7e3b99d1bb7885b143c742559",
+            "fullStateSha256": "a1664a545d32ad86ab1a94beda1f42f25390973612c5f6897982687fa16b8024"
+          },
+          {
+            "state": {
+              "stepIndex": 60,
+              "timeSeconds": 0.5,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    -0.5000000000000018,
+                    0.5,
+                    0
+                  ],
+                  "velocityMps": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "floor",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0,
+                    -0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "id": "step10",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      0.25,
+                      0.05,
+                      0.75
+                    ]
+                  },
+                  "positionM": [
+                    0.5,
+                    0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "normalAtoB": [
+                    0,
+                    -1,
+                    0
+                  ],
+                  "pointM": [
+                    -0.5000000000000018,
+                    0,
+                    0
+                  ],
+                  "penetrationM": 0.0006812499999999944,
+                  "impulseNs": 0.08175,
+                  "tangentImpulseNs": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "events": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "kind": "contact",
+                  "phase": "stay"
+                }
+              ],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 16,
+                "candidatePairs": 8,
+                "aabbTests": 16
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  -0.5000000000000018,
+                  0.5,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor",
+                "floor"
+              ],
+              "footSphere": {
+                "centerM": [
+                  -0.5000000000000018,
+                  -0.004999999999999977,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                -0.5000000000000018,
+                0.15000000000000002,
+                0
+              ],
+              "filteredFootIds": [
+                "floor"
+              ],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "08174f80c99537bcc61a09d8f71d9836ecf4b0dd8de7befb4c7da2e3bc5da374",
+            "fullStateSha256": "641a4ed8321cb28a0e2db9c6c4191540b77e92ce0e7b280999c19be326d3e061"
+          },
+          {
+            "state": {
+              "stepIndex": 120,
+              "timeSeconds": 1,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    -1.0512424264419451e-15,
+                    0.5,
+                    0
+                  ],
+                  "velocityMps": [
+                    1,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "floor",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0,
+                    -0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "id": "step10",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      0.25,
+                      0.05,
+                      0.75
+                    ]
+                  },
+                  "positionM": [
+                    0.5,
+                    0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "normalAtoB": [
+                    0,
+                    -1,
+                    0
+                  ],
+                  "pointM": [
+                    -1.0512424264419451e-15,
+                    0,
+                    0
+                  ],
+                  "penetrationM": 0.0006812499999999944,
+                  "impulseNs": 0.08175,
+                  "tangentImpulseNs": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "events": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "kind": "contact",
+                  "phase": "stay"
+                }
+              ],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 16,
+                "candidatePairs": 8,
+                "aabbTests": 16
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  -1.0512424264419451e-15,
+                  0.5,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor",
+                "floor"
+              ],
+              "footSphere": {
+                "centerM": [
+                  -1.0512424264419451e-15,
+                  -0.004999999999999977,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                -1.0512424264419451e-15,
+                0.15000000000000002,
+                0
+              ],
+              "filteredFootIds": [
+                "floor"
+              ],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "3a1e15091d8bb20d2f4b4b622419f66780857eeeecfe267f7edfaf583a474457",
+            "fullStateSha256": "8dc15d7f1fba7354c790bc47fd6a2d3878f4b53759ae26c303030e4af61ada49"
+          },
+          {
+            "state": {
+              "stepIndex": 180,
+              "timeSeconds": 1.5,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    0.47840992151217593,
+                    0.25916537140410795,
+                    0
+                  ],
+                  "velocityMps": [
+                    1.001175329657584,
+                    0.3048452969668885,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    -0.7188253310174609,
+                    0.6951907245408543
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    -1.2217693990649243
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "floor",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0,
+                    -0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "id": "step10",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      0.25,
+                      0.05,
+                      0.75
+                    ]
+                  },
+                  "positionM": [
+                    0.5,
+                    0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [
+                {
+                  "aId": "actor",
+                  "bId": "step10",
+                  "normalAtoB": [
+                    -0.03341971302472394,
+                    -0.9994414053766959,
+                    0
+                  ],
+                  "pointM": [
+                    0.75,
+                    0.1,
+                    0
+                  ],
+                  "penetrationM": 0.0005993420999561572,
+                  "impulseNs": 0.03516875374467076,
+                  "tangentImpulseNs": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "events": [
+                {
+                  "aId": "actor",
+                  "bId": "step10",
+                  "kind": "contact",
+                  "phase": "stay"
+                }
+              ],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 16,
+                "candidatePairs": 8,
+                "aabbTests": 16
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  0.47840992151217593,
+                  0.25916537140410795,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor"
+              ],
+              "footSphere": {
+                "centerM": [
+                  0.8282144133940196,
+                  0.0924684718454544,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                0.8282144133940196,
+                0.2474684718454544,
+                0
+              ],
+              "filteredFootIds": [],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "78aca12d88491378e4707ec260ccad8ddc4528ebf629b37c4b4e5561574174a8",
+            "fullStateSha256": "55ed2880cd7a8b418269fe0d419378579231e0bb24f494026c232ecf4ff65ba9"
+          },
+          {
+            "state": {
+              "stepIndex": 240,
+              "timeSeconds": 2,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    0.9805787805041213,
+                    0.21749835622698846,
+                    0
+                  ],
+                  "velocityMps": [
+                    1,
+                    -0.19816967310147346,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    -0.7722863608671411,
+                    0.6352745680558824
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0.5770312297565434
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "floor",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0,
+                    -0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                },
+                {
+                  "id": "step10",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      0.25,
+                      0.05,
+                      0.75
+                    ]
+                  },
+                  "positionM": [
+                    0.5,
+                    0.05,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "normalAtoB": [
+                    0,
+                    -1,
+                    0
+                  ],
+                  "pointM": [
+                    1.324008499524847,
+                    0,
+                    0
+                  ],
+                  "penetrationM": 0.0006807728174670624,
+                  "impulseNs": 0.03745725733420549,
+                  "tangentImpulseNs": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "events": [
+                {
+                  "aId": "actor",
+                  "bId": "floor",
+                  "kind": "contact",
+                  "phase": "stay"
+                }
+              ],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 16,
+                "candidatePairs": 16,
+                "aabbTests": 16
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  0.9805787805041213,
+                  0.21749835622698846,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor",
+                "floor"
+              ],
+              "footSphere": {
+                "centerM": [
+                  1.324008499524847,
+                  -0.004999999999999949,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                1.324008499524847,
+                0.15000000000000005,
+                0
+              ],
+              "filteredFootIds": [
+                "floor"
+              ],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "39e2ae7307a41aa3d5649bf39c1c61dc8a64253cdbc8be653f1bda68973dc5ac",
+            "fullStateSha256": "31b39c5e685a54bc45d228ec56f06c150bba4c8f45f2eebbb8b0d884dac8f6d6"
+          }
+        ],
+        "finalStateSha256": "31b39c5e685a54bc45d228ec56f06c150bba4c8f45f2eebbb8b0d884dac8f6d6",
+        "finalBodyFloat64Sha256": "39e2ae7307a41aa3d5649bf39c1c61dc8a64253cdbc8be653f1bda68973dc5ac",
+        "repeatExact": true,
+        "cpuTrials": [
+          {
+            "steps": 240,
+            "p95Ms": 0.09654199999999946,
+            "setupMs": 0.062083999999998696,
+            "finalStateSha256": "31b39c5e685a54bc45d228ec56f06c150bba4c8f45f2eebbb8b0d884dac8f6d6"
+          },
+          {
+            "steps": 240,
+            "p95Ms": 0.11266599999999016,
+            "setupMs": 0.09258399999998801,
+            "finalStateSha256": "31b39c5e685a54bc45d228ec56f06c150bba4c8f45f2eebbb8b0d884dac8f6d6"
+          },
+          {
+            "steps": 240,
+            "p95Ms": 0.10429199999998673,
+            "setupMs": 0.12249999999997385,
+            "finalStateSha256": "31b39c5e685a54bc45d228ec56f06c150bba4c8f45f2eebbb8b0d884dac8f6d6"
+          }
+        ],
+        "cpuGO": true
+      },
+      {
+        "name": "SLOPE15",
+        "fixture": {
+          "name": "SLOPE15",
+          "config": {
+            "fixedStepSeconds": 0.008333333333333333,
+            "gravityMps2": [
+              0,
+              -9.81,
+              0
+            ],
+            "broadPhase": "aabb",
+            "bodies": [
+              {
+                "id": "actor",
+                "kind": "dynamic",
+                "shape": {
+                  "kind": "capsule",
+                  "radiusM": 0.15,
+                  "halfLengthM": 0.35
+                },
+                "positionM": [
+                  -0.75,
+                  0.30950591364022084,
+                  0
+                ],
+                "velocityMps": [
+                  0,
+                  0,
+                  0
+                ],
+                "massKg": 1,
+                "orientation": [
+                  0,
+                  0,
+                  0,
+                  1
+                ],
+                "angularVelocityRadps": [
+                  0,
+                  0,
+                  0
+                ],
+                "restitution": 0,
+                "friction": {
+                  "static": 0,
+                  "dynamic": 0
+                }
+              },
+              {
+                "id": "slope15",
+                "kind": "static",
+                "shape": {
+                  "kind": "box",
+                  "halfExtentsM": [
+                    3,
+                    0.05,
+                    1
+                  ]
+                },
+                "positionM": [
+                  0.012940952255126037,
+                  -0.04829629131445342,
+                  0
+                ],
+                "orientation": [
+                  0,
+                  0,
+                  0.13052619222005157,
+                  0.9914448613738104
+                ],
+                "restitution": 0,
+                "friction": {
+                  "static": 0,
+                  "dynamic": 0
+                }
+              }
+            ]
+          },
+          "geometry": {
+            "floorPlane": {
+              "normal": [
+                -0.25881904510252074,
+                0.9659258262890683,
+                0
+              ],
+              "point": [
+                0,
+                0,
+                0
+              ]
+            },
+            "actor": {
+              "radiusM": 0.15,
+              "halfLengthM": 0.35
+            },
+            "fixtures": [
+              {
+                "id": "slope15",
+                "halfExtentsM": [
+                  3,
+                  0.05,
+                  1
+                ],
+                "positionM": [
+                  0.012940952255126037,
+                  -0.04829629131445342,
+                  0
+                ],
+                "orientation": [
+                  0,
+                  0,
+                  0.13052619222005157,
+                  0.9914448613738104
+                ]
+              }
+            ],
+            "walkableMaxSlopeDegrees": 10
+          },
+          "configJson": "{\"bodies\":[{\"angularVelocityRadps\":[0,0,0],\"friction\":{\"dynamic\":0,\"static\":0},\"id\":\"actor\",\"kind\":\"dynamic\",\"massKg\":1,\"orientation\":[0,0,0,1],\"positionM\":[-0.75,0.30950591364022084,0],\"restitution\":0,\"shape\":{\"halfLengthM\":0.35,\"kind\":\"capsule\",\"radiusM\":0.15},\"velocityMps\":[0,0,0]},{\"friction\":{\"dynamic\":0,\"static\":0},\"id\":\"slope15\",\"kind\":\"static\",\"orientation\":[0,0,0.13052619222005157,0.9914448613738104],\"positionM\":[0.012940952255126037,-0.04829629131445342,0],\"restitution\":0,\"shape\":{\"halfExtentsM\":[3,0.05,1],\"kind\":\"box\"}}],\"broadPhase\":\"aabb\",\"fixedStepSeconds\":0.008333333333333333,\"gravityMps2\":[0,-9.81,0]}",
+          "configSha256": "dc77f430e16ae5320eecbda22f8789b1ced6e717f784cca32dfba989b5749fb5",
+          "geometryJson": "{\"actor\":{\"halfLengthM\":0.35,\"radiusM\":0.15},\"fixtures\":[{\"halfExtentsM\":[3,0.05,1],\"id\":\"slope15\",\"orientation\":[0,0,0.13052619222005157,0.9914448613738104],\"positionM\":[0.012940952255126037,-0.04829629131445342,0]}],\"floorPlane\":{\"normal\":[-0.25881904510252074,0.9659258262890683,0],\"point\":[0,0,0]},\"walkableMaxSlopeDegrees\":10}",
+          "geometrySha256": "d228ae0eb8cbef76a560b3162b97fd2e8fd6af465b6431cd8c1c1257acee2c55"
+        },
+        "setupMs": 0.060665999999969245,
+        "times": [],
+        "maxima": {
+          "maxPositionM": 1.1793073655344224,
+          "maxVelocityMps": 1.719135049622833,
+          "quaternionNormError": 2.220446049250313e-16,
+          "capsuleAxisTiltDegrees": 77.05750814100222,
+          "supportPlaneGapM": 0.004999999999999977,
+          "maxOverlapLowerBoundM": 8.326672684688674e-17
+        },
+        "firstViolations": [
+          {
+            "gate": "tilt",
+            "stepIndex": 15,
+            "metrics": {
+              "finite": true,
+              "maxPositionM": 0.6277062482188895,
+              "maxVelocityMps": 0.9820759053088303,
+              "quaternionNormError": 1.1102230246251565e-16,
+              "capsuleAxisTiltDegrees": 5.023421620438238,
+              "supportPlaneGapM": -2.7755575615628914e-17,
+              "maxOverlapLowerBoundM": 0,
+              "overlapById": [
+                {
+                  "bodyId": "slope15",
+                  "lowerBoundM": 0
+                }
+              ]
+            }
+          }
+        ],
+        "freeFlightMaxError": 0,
+        "contactSteps": 239,
+        "finalMetrics": {
+          "finite": true,
+          "maxPositionM": 1.1793073655344224,
+          "maxVelocityMps": 0.9780951458395679,
+          "quaternionNormError": 0,
+          "capsuleAxisTiltDegrees": 75.06790665794058,
+          "supportPlaneGapM": 1.3877787807814457e-16,
+          "maxOverlapLowerBoundM": 0,
+          "overlapById": [
+            {
+              "bodyId": "slope15",
+              "lowerBoundM": 0
+            }
+          ]
+        },
+        "progressM": 1.9293073655344224,
+        "xzDriftM": 1.9293073655344224,
+        "crossedStep": false,
+        "productGates": {
+          "rejectedSlope": false
+        },
+        "numericalGO": false,
+        "samples": [
+          {
+            "state": {
+              "stepIndex": 0,
+              "timeSeconds": 0,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    -0.75,
+                    0.30950591364022084,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0,
+                    1
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "slope15",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0.012940952255126037,
+                    -0.04829629131445342,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0.1305261922200516,
+                    0.9914448613738105
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [],
+              "events": [],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 0,
+                "candidatePairs": 0,
+                "aabbTests": 0
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  -0.75,
+                  0.30950591364022084,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor",
+                "slope15"
+              ],
+              "footSphere": {
+                "centerM": [
+                  -0.75,
+                  -0.19549408635977913,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                -0.75,
+                -0.040494086359779136,
+                0
+              ],
+              "filteredFootIds": [
+                "slope15"
+              ],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "5d144e18c19c390116157b0857e052f8935a20f925424c7bbe52d6c4e316bac6",
+            "fullStateSha256": "0237274a6646fb140365f995a499852b03cf6b0d7b95b73fac1a50ef6258a80e"
+          },
+          {
+            "state": {
+              "stepIndex": 60,
+              "timeSeconds": 0.5,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    -0.2663564959978271,
+                    0.0969305969223106,
+                    0
+                  ],
+                  "velocityMps": [
+                    0.5443637778371361,
+                    -0.1004275187422845,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    -0.622907312639589,
+                    0.7822956473483189
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0.6801449135299844
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "slope15",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0.012940952255126037,
+                    -0.04829629131445342,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0.1305261922200516,
+                    0.9914448613738105
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [
+                {
+                  "aId": "actor",
+                  "bId": "slope15",
+                  "normalAtoB": [
+                    0.2588190451025208,
+                    -0.9659258262890683,
+                    0
+                  ],
+                  "pointM": [
+                    0.11357473633312325,
+                    0.030432258881038073,
+                    0
+                  ],
+                  "penetrationM": 0.025811544920143106,
+                  "impulseNs": 1.760443177519575,
+                  "tangentImpulseNs": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "events": [
+                {
+                  "aId": "actor",
+                  "bId": "slope15",
+                  "kind": "contact",
+                  "phase": "stay"
+                }
+              ],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 8,
+                "candidatePairs": 8,
+                "aabbTests": 8
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  -0.2663564959978271,
+                  0.0969305969223106,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor"
+              ],
+              "footSphere": {
+                "centerM": [
+                  -0.6074648715633993,
+                  -0.13645993897977712,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                -0.6074648715633993,
+                0.018540061020222875,
+                0
+              ],
+              "filteredFootIds": [],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "6d3eb0cccc3face95bd7a5e99e491b1dd5e2dcb3bfd0ff49e0efa17d5189bd54",
+            "fullStateSha256": "86fd7a2a28872bfd7fc5e992ba30676a1dfe7e3e76ab4c5a9ff4b3bd7d2a73f9"
+          },
+          {
+            "state": {
+              "stepIndex": 120,
+              "timeSeconds": 1,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    0.21462892043939258,
+                    0.21323052666019365,
+                    0
+                  ],
+                  "velocityMps": [
+                    0.9780951458394773,
+                    0.20841298471435699,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    -0.609231463859753,
+                    0.7929924485411589
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0.14810915315606057
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "slope15",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0.012940952255126037,
+                    -0.04829629131445342,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0.1305261922200516,
+                    0.9914448613738105
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [
+                {
+                  "aId": "actor",
+                  "bId": "slope15",
+                  "normalAtoB": [
+                    0.2588190451025208,
+                    -0.9659258262890683,
+                    0
+                  ],
+                  "pointM": [
+                    0.5916329423828928,
+                    0.15852756912714508,
+                    0
+                  ],
+                  "penetrationM": 0.0015349228075297316,
+                  "impulseNs": 0.08463385741897765,
+                  "tangentImpulseNs": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "events": [
+                {
+                  "aId": "actor",
+                  "bId": "slope15",
+                  "kind": "contact",
+                  "phase": "stay"
+                }
+              ],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 8,
+                "candidatePairs": 8,
+                "aabbTests": 8
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  0.21462892043939258,
+                  0.21323052666019365,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor",
+                "slope15"
+              ],
+              "footSphere": {
+                "centerM": [
+                  -0.1235522447387295,
+                  -0.03195538975011805,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                -0.1235522447387295,
+                0.12304461024988195,
+                0
+              ],
+              "filteredFootIds": [
+                "slope15"
+              ],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "04b300955129feb3314db67f3d7a18fd566bacfa84bacc7179ecc4dd515872a7",
+            "fullStateSha256": "9dc577b788476bf5d6104bbcd4cd3edd3cdb5e4fcd20ef5766a00e8319d179b9"
+          },
+          {
+            "state": {
+              "stepIndex": 180,
+              "timeSeconds": 1.5,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    0.6969681429869213,
+                    0.34247293060624734,
+                    0
+                  ],
+                  "velocityMps": [
+                    0.9780951458395226,
+                    0.20841298471406824,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    -0.6092314625319811,
+                    0.7929924495612449
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0.14810915315630277
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "slope15",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0.012940952255126037,
+                    -0.04829629131445342,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0.1305261922200516,
+                    0.9914448613738105
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [
+                {
+                  "aId": "actor",
+                  "bId": "slope15",
+                  "normalAtoB": [
+                    0.2588190451025208,
+                    -0.9659258262890683,
+                    0
+                  ],
+                  "pointM": [
+                    1.0739721646284104,
+                    0.28776997420568734,
+                    0
+                  ],
+                  "penetrationM": 0.0015349204633967328,
+                  "impulseNs": 0.0846338574188027,
+                  "tangentImpulseNs": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "events": [
+                {
+                  "aId": "actor",
+                  "bId": "slope15",
+                  "kind": "contact",
+                  "phase": "stay"
+                }
+              ],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 8,
+                "candidatePairs": 8,
+                "aabbTests": 8
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  0.6969681429869213,
+                  0.34247293060624734,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor",
+                "slope15"
+              ],
+              "footSphere": {
+                "centerM": [
+                  0.3587869781108105,
+                  0.09728701306344709,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                0.3587869781108105,
+                0.2522870130634471,
+                0
+              ],
+              "filteredFootIds": [
+                "slope15"
+              ],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "253b0d89ae6a56497764cfbf134e1d77647749424bef3a6dcb042a08ceae5e32",
+            "fullStateSha256": "5ef8144310c4317392859758e598d87b5d57c1e241031e4e7ff2d708c7c7358f"
+          },
+          {
+            "state": {
+              "stepIndex": 240,
+              "timeSeconds": 2,
+              "bodies": [
+                {
+                  "id": "actor",
+                  "kind": "dynamic",
+                  "shape": {
+                    "kind": "capsule",
+                    "radiusM": 0.15,
+                    "halfLengthM": 0.35
+                  },
+                  "positionM": [
+                    1.1793073655344224,
+                    0.47171533455230014,
+                    0
+                  ],
+                  "velocityMps": [
+                    0.9780951458395679,
+                    0.2084129847137796,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    -0.6092314612042165,
+                    0.7929924505813252
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0.1481091531565449
+                  ],
+                  "inertiaDiagonalKgM2": [
+                    0.1,
+                    0.1,
+                    0.1
+                  ]
+                },
+                {
+                  "id": "slope15",
+                  "kind": "static",
+                  "shape": {
+                    "kind": "box",
+                    "halfExtentsM": [
+                      3,
+                      0.05,
+                      1
+                    ]
+                  },
+                  "positionM": [
+                    0.012940952255126037,
+                    -0.04829629131445342,
+                    0
+                  ],
+                  "velocityMps": [
+                    0,
+                    0,
+                    0
+                  ],
+                  "orientation": [
+                    0,
+                    0,
+                    0.1305261922200516,
+                    0.9914448613738105
+                  ],
+                  "angularVelocityRadps": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "contacts": [
+                {
+                  "aId": "actor",
+                  "bId": "slope15",
+                  "normalAtoB": [
+                    0.2588190451025208,
+                    -0.9659258262890683,
+                    0
+                  ],
+                  "pointM": [
+                    1.5563113868739018,
+                    0.41701237928422263,
+                    0
+                  ],
+                  "penetrationM": 0.0015349181192760575,
+                  "impulseNs": 0.08463385741862775,
+                  "tangentImpulseNs": [
+                    0,
+                    0,
+                    0
+                  ]
+                }
+              ],
+              "events": [
+                {
+                  "aId": "actor",
+                  "bId": "slope15",
+                  "kind": "contact",
+                  "phase": "stay"
+                }
+              ],
+              "joints": [],
+              "ccdHits": [],
+              "pairStats": {
+                "eligiblePairs": 8,
+                "candidatePairs": 8,
+                "aabbTests": 8
+              }
+            },
+            "queries": {
+              "selfRay": {
+                "bodyId": "actor",
+                "distanceM": 0
+              },
+              "selfRayRequest": {
+                "originM": [
+                  1.1793073655344224,
+                  0.47171533455230014,
+                  0
+                ],
+                "direction": [
+                  0,
+                  -1,
+                  0
+                ],
+                "maxDistanceM": 2,
+                "includeSensors": false
+              },
+              "footareaOverlap": [
+                "actor",
+                "slope15"
+              ],
+              "footSphere": {
+                "centerM": [
+                  0.8411262009603212,
+                  0.22652941587701744,
+                  0
+                ],
+                "radiusM": 0.01
+              },
+              "capsuleLowestEndpointM": [
+                0.8411262009603212,
+                0.38152941587701744,
+                0
+              ],
+              "filteredFootIds": [
+                "slope15"
+              ],
+              "hostFilter": {
+                "excludedBodyId": "actor",
+                "kind": "known-ID-only"
+              },
+              "scope": "Actual public query IDs and distance; no query normal, body exclusion or sweep added"
+            },
+            "bodyFloat64Sha256": "eb5d4c039a1e3712f361b652fea5255213482d3a6e29a94ae3bbc228416aa018",
+            "fullStateSha256": "772a3d27d47f560c8fbabb3cb06ea7753c1b5f86ad2ea556adaf53ea8da8a4b5"
+          }
+        ],
+        "finalStateSha256": "772a3d27d47f560c8fbabb3cb06ea7753c1b5f86ad2ea556adaf53ea8da8a4b5",
+        "finalBodyFloat64Sha256": "eb5d4c039a1e3712f361b652fea5255213482d3a6e29a94ae3bbc228416aa018",
+        "repeatExact": true,
+        "cpuTrials": [
+          {
+            "steps": 240,
+            "p95Ms": 0.07908400000002302,
+            "setupMs": 0.054417000000000826,
+            "finalStateSha256": "772a3d27d47f560c8fbabb3cb06ea7753c1b5f86ad2ea556adaf53ea8da8a4b5"
+          },
+          {
+            "steps": 240,
+            "p95Ms": 0.08087499999999181,
+            "setupMs": 0.048499999999989996,
+            "finalStateSha256": "772a3d27d47f560c8fbabb3cb06ea7753c1b5f86ad2ea556adaf53ea8da8a4b5"
+          },
+          {
+            "steps": 240,
+            "p95Ms": 0.07279199999999264,
+            "setupMs": 0.054916999999989,
+            "finalStateSha256": "772a3d27d47f560c8fbabb3cb06ea7753c1b5f86ad2ea556adaf53ea8da8a4b5"
+          }
+        ],
+        "cpuGO": true
+      }
+    ],
+    "controls": [
+      {
+        "label": "copied-config",
+        "passed": true
+      },
+      {
+        "label": "copied-state",
+        "passed": true
+      },
+      {
+        "label": "actual-self-ray-no-normal-or-exclusion",
+        "result": {
+          "bodyId": "actor",
+          "distanceM": 0
+        }
+      },
+      {
+        "label": "foot-overlap-IDs-only",
+        "rawIds": [
+          "actor",
+          "floor"
+        ]
+      },
+      {
+        "label": "nonunit-ray",
+        "code": "INVALID_QUERY",
+        "completeRetention": true
+      },
+      {
+        "label": "negative-overlap",
+        "code": "INVALID_QUERY",
+        "completeRetention": true
+      },
+      {
+        "label": "invalid-dt",
+        "code": "INVALID_STEP",
+        "completeRetention": true
+      },
+      {
+        "label": "unknown-body",
+        "code": "INVALID_COMMAND",
+        "completeRetention": true
+      },
+      {
+        "label": "capsuleCCD",
+        "code": "INVALID_CONFIG"
+      },
+      {
+        "label": "capsule-inertia-override",
+        "code": "INVALID_CONFIG"
+      },
+      {
+        "label": "double-disposal/disposed-refusals",
+        "passed": true
+      },
+      {
+        "label": "kinematic-static-only-refused",
+        "code": "INVALID_CONFIG"
+      },
+      {
+        "label": "kinematic-static-not-blocked",
+        "actualState": {
+          "stepIndex": 1,
+          "timeSeconds": 0.008333333333333333,
+          "bodies": [
+            {
+              "id": "actor",
+              "kind": "kinematic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.15,
+                "halfLengthM": 0.35
+              },
+              "positionM": [
+                0,
+                -0.2,
+                0
+              ],
+              "velocityMps": [
+                0,
+                -84.60000000000001,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  3,
+                  0.05,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                -0.05,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "id": "sentinel",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.01
+              },
+              "positionM": [
+                10,
+                10,
+                10
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "inertiaKgM2": 0.00004
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 16,
+            "candidatePairs": 0,
+            "aabbTests": 16
+          }
+        },
+        "overlapLowerBoundM": 0.1499999999999999
+      }
+    ],
+    "rawCharacterGO": false,
+    "characterControllerImplemented": false,
+    "viewerTested": false,
+    "querySweepAvailable": false
+  }
+}
