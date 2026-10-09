@@ -4,3 +4,5 @@ export {RENDER_EDITOR_LIMITS, validateRenderEditorDocument, parseRenderEditorDoc
 export type {RenderSceneDocumentV0, RenderEditorMetadata, RenderEditorObjectMetadata} from './document.js';
 export * from './session.js';
 export * from './controller.js';
+export * from './mixed-document.js';
+export * from './mixed-frame.js';

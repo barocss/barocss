@@ -39,3 +39,25 @@ node apps/render-editor/compiled-flow.mjs --output <unique-evidence-directory>
 The browser flow starts and closes the actual app's Vite server on `127.0.0.1:52047`. It needs the already installed Playwright CLI/Chrome and a free app port. It saves actual file downloads, opens a saved disk file in a fresh tab, and checks pixels, rejected updates, history, routing and owned cleanup. Unchanged requests reuse the same Vite transform object; a real fixture source edit changes it and appears after reload, then the source is restored. The compiled checkpoint reads transitive published maps separately from source development. No dependency download, packed-consumer or publication step is performed. Native receipts and Integration adoption are recorded in #1047/#1051.
 
 CAD assets/Viewer, qualified materials, Physics and shared-depth SDF+CAD remain later roadmap contracts. See the [Render Editor roadmap](https://github.com/barocss/barocss/wiki/Render-Editor-Product-Roadmap).
+
+## Original-source mixed document foundation (#1092)
+
+`RenderMixedDocumentV1` is an explicit separate `version:1, kind:'mixed-depth'` authoring format for GPU profile `sdf-sphere-native-surface-v0`. It stores original source1 Sphere text and complete original Source0 CAD model text, a declared asset revision/model/Surface selection, camera, color, sampling counts and one explicit mm-to-scene conversion/scene translation. Unrendered native objects remain in the saved source. V0 source editor files and their parser/session remain unchanged. The current app does not open/render this new kind.
+
+```ts
+import {parseRenderMixedDocument, serializeRenderMixedDocument,
+  prepareRenderMixedDocument} from '@barocss/render-editor';
+
+const authored = parseRenderMixedDocument(savedText);
+const prepared = prepareRenderMixedDocument(authored);
+// Save the document; frame/packet/model/metadata are reconstructed display or query data.
+const text = serializeRenderMixedDocument(prepared.document);
+```
+
+`copyRenderMixedDocument`, parse and serialize validate schema, original string/byte limits and public camera data; they do not certify source/native/GPU admission. The explicit `prepareRenderMixedDocument` compiles both original sources through public CAD/GPU, qualifies selected original model/Surface IDs, tessellates only that Surface, then calls actual public `prepareMixedDepthFrame`. It returns copied/frozen complete native model and metadata plus the derived frame. Declared asset revision is a host association, not historical content certification. GPU packet shape validation does not certify the original CAD; this host preparation reconstructs it from its actual source each time.
+
+Each source is limited to65536 UTF-8 bytes/code units, the authored file to524288 UTF-8 bytes, sample counts2..17. Exact plain own data is required; unsupported fields/versions, accessors/symbols/sparse/foreign/nonfinite data refuse. The JSON encoder preserves real numeric `-0` and original source strings without a sentinel or source rewriting. `RenderMixedDocumentError` preserves actual provider causes under INPUT/VERSION/BYTES/SOURCE/QUALIFICATION/NATIVE/GPU.
+
+The profile requires exactly one Sphere and one selected Surface, at most289 derived vertices/512 triangles; actual GPU camera-inside/clip/travel/F32 guards apply. Complete native source/weights/UV/IDs remain authoritative. No renderer, session/history, mixed app UI, Viewer mode, CAD editing, materials, picking, Physics or additional SDF shape support is added by this pure foundation. Integrated code availability and integrated validation are separate.
+
+`node apps/render-editor/mixed-document-flow.mjs --output <new-evidence-directory>` exercises ordinary headless source imports, authentic full native source/qualification, real authored file cold reconstruction, copied data and refusals. This is a source/API/file CPU flow, not a mixed framebuffer or app Save/Open receipt. It uses installed tools and current source providers without provider rebuild, alias or packed-reader campaign.

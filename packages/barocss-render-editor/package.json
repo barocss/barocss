@@ -24,7 +24,7 @@
   },
   "files": ["dist", "src", "README.md", "LICENSE"],
   "sideEffects": ["**/*.css"],
-  "dependencies": {"@barocss/gpu": "workspace:*"},
+  "dependencies": {"@barocss/gpu": "workspace:*", "@barocss/cad": "workspace:*"},
   "peerDependencies": {"react": "^19.2.3"},
   "scripts": {
     "build:library": "tsc -p tsconfig.json && esbuild src/index.ts src/react.tsx --bundle --packages=external --format=esm --platform=browser --target=es2022 --outdir=dist && node scripts/copy-css.mjs",
