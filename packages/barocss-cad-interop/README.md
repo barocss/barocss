@@ -605,6 +605,38 @@ three `.display.glb` files under `examples/boolean-mesh-glb-data/` while
 serving the package examples with Vite. Remove that staging directory after
 the browser check. The generated binary files are not part of the package.
 
+### Export native filled Boolean extrusion Shells as display GLB
+
+The optional `./boolean-extrusion-glb` entry consumes the complete validated
+CAD #896 filled Shell mesh. It writes one derived triangle node per native
+Shell and one separate sampled line node per true native Curve edge path.
+Face indices and hard normals come from the native mesh; dimensionless CAD
+UV uses custom `_CAD_UV`, never texture UV. The line nodes join the three
+saved Curve D1 sample points; they are not exact continuous native Curves.
+
+```js
+import { exportBaroCadBooleanExtrusionDisplayGlb }
+  from '@barocss/cad-interop/boolean-extrusion-glb';
+
+const { glb, report } = exportBaroCadBooleanExtrusionDisplayGlb(nativeMesh, {
+  unitsPerMillimeter: 0.001,
+  basis: 'authored-xyz-matches-rhyup',
+});
+await writeFile('boolean-shells.glb', Buffer.from(glb));
+```
+
+The writer converts authored XYZ/mm to right-handed Y-up metres once.
+Asset and node `extras.barocss` retain original Shell, face, edge, Curve,
+source and evaluation IDs. Display diagonals and bridges remain separate
+metadata, never true edge line nodes. Empty material gives a valid zero-node
+GLB. The output is bounded to 1 MiB and omits editable native CAD and a
+sewn Solid certificate. Run `examples/boolean-extrusion-glb-verify.mjs`
+with `--source <saved-896-directory> --output <saved-glb-directory>`, then
+temporarily stage its `.display.glb` files and the authentic hole input under
+`examples/boolean-extrusion-glb-data/` to use
+`examples/boolean-extrusion-glb.html` over HTTP. Remove the staged files
+after the browser check. Generated GLB files are not package source.
+
 ### Display selected document bodies in Three.js
 
 The optional `./three-document` entry composes the same validated body
