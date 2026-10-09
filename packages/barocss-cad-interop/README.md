@@ -538,6 +538,39 @@ children. `examples/boolean-mesh-pixi3d.html` verifies actual Pixi WebGL2
 fill, hole exclusion, separated components, refusal and disposal over HTTP.
 This is a derived preview, not a native Surface, solid or B-Rep certificate.
 
+### Export native filled planar Boolean material as a display GLB
+
+The optional `./boolean-mesh-glb` entry consumes the same fully validated
+#887 raw authored-XYZ/mm mesh. It writes one derived glTF triangle node per
+material component. glTF positions use metres and its right-handed Y-up
+basis, so the caller asserts that authored XYZ matches that basis. No
+source0 Surface or preview packet is created from the Boolean region.
+
+```js
+import { exportBaroCadBooleanDisplayGlb }
+  from '@barocss/cad-interop/boolean-mesh-glb';
+
+const { glb, report } = exportBaroCadBooleanDisplayGlb(nativeMesh, {
+  unitsPerMillimeter: 0.001,
+  basis: 'authored-xyz-matches-rhyup',
+});
+await writeFile('boolean-material.glb', Buffer.from(glb));
+```
+
+Native normals and component triangle indices remain in the display asset.
+Dimensionless CAD parameters use custom `_CAD_UV`, never texture UV. Node
+`extras.barocss` and the report keep source/operand/component/loop/triangle
+IDs and original boundary paths distinct from display diagonals and bridges.
+Empty material writes a zero-node GLB. The output omits editable native
+Curves, Surfaces, pcurves and a solid certificate. The 1 MiB writer limit
+still applies. `examples/boolean-mesh-glb-verify.mjs` checks exact saved
+#887 data and writes GLBs; `examples/boolean-mesh-glb.html` loads those
+saved files over HTTP with Three GLTFLoader and checks actual WebGL2 pixels.
+Run the verifier with `--output /tmp/barocad-boolean-glb`, then stage its
+three `.display.glb` files under `examples/boolean-mesh-glb-data/` while
+serving the package examples with Vite. Remove that staging directory after
+the browser check. The generated binary files are not part of the package.
+
 ### Display selected document bodies in Three.js
 
 The optional `./three-document` entry composes the same validated body
