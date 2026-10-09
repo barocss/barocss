@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native filled CAD Shell mesh in Babylon.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; width: 800px; height: 600px; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Native filled CAD Boolean extrusion · Babylon.js</h1>
+  <p>Shell faces and sampled true CAD Curve paths have separate display roots.</p>
+  <canvas id="view" width="800" height="600"></canvas>
+  <button id="edges" type="button">Show true edges</button>
+  <button id="reject" type="button">Try invalid candidates</button>
+  <button id="dispose" type="button">Dispose display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Engine } from '@babylonjs/core/Engines/engine.js';
+  import { Scene } from '@babylonjs/core/scene.js';
+  import { Camera } from '@babylonjs/core/Cameras/camera.js';
+  import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera.js';
+  import { Mesh } from '@babylonjs/core/Meshes/mesh.js';
+  import { LinesMesh } from '@babylonjs/core/Meshes/linesMesh.js';
+  import { Color4 } from '@babylonjs/core/Maths/math.color.js';
+  import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector.js';
+  import { validateCoplanarFaceBooleanExtrusionMesh } from '@barocss/cad';
+  import { createBaroCadBooleanExtrusionBabylonMesh } from '@barocss/cad-interop/babylon-boolean-extrusion-mesh';
+
+  const canvas = document.querySelector('#view');
+  const status = document.querySelector('#status');
+  const engine = new Engine(canvas, false, { preserveDrawingBuffer: true, stencil: true });
+  const scene = new Scene(engine);
+  scene.useRightHandedSystem = true;
+  scene.clearColor = new Color4(16 / 255, 27 / 255, 44 / 255, 1);
+  const caller = new Mesh('caller-owned', scene);
+  const camera = new FreeCamera('camera', new Vector3(0.08, 0.03, -0.08), scene);
+  camera.setTarget(new Vector3(-0.0025, -0.004, -0.0013));
+  camera.mode = Camera.ORTHOGRAPHIC_CAMERA;
+  camera.orthoLeft = -0.012; camera.orthoRight = 0.012;
+  camera.orthoTop = 0.009; camera.orthoBottom = -0.009;
+  camera.minZ = 0.001; camera.maxZ = 1;
+  scene.activeCamera = camera;
+  const options = { unitsPerMillimeter: 0.001, basis: 'authored-xyz-matches-rhyup' };
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const background = (r, g, b) => Math.abs(r - 16) <= 12 && Math.abs(g - 27) <= 12 && Math.abs(b - 44) <= 12;
+  const render = () => {
+    scene.render();
+    const gl = canvas.getContext('webgl2');
+    const bytes = new Uint8Array(canvas.width * canvas.height * 4);
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('Babylon Shell WebGL readPixels failed');
+    return bytes;
+  };
+  const count = bytes => {
+    let total = 0;
+    for (let i = 0; i < bytes.length; i += 4) {
+      if (!background(bytes[i], bytes[i + 1], bytes[i + 2])) total++;
+    }
+    return total;
+  };
+  const sample = (bytes, pointMM) => {
+    const point = new Vector3(...pointMM.map(value => value * 0.001));
+    const projected = Vector3.Project(point, Matrix.Identity(), scene.getTransformMatrix(),
+      camera.viewport.toGlobal(canvas.width, canvas.height));
+    const x = Math.round(projected.x), y = canvas.height - 1 - Math.round(projected.y);
+    if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) throw new Error('CAD probe outside camera');
+    const offset = (y * canvas.width + x) * 4;
+    return { x, y, rgb: [...bytes.slice(offset, offset + 3)],
+      background: background(bytes[offset], bytes[offset + 1], bytes[offset + 2]) };
+  };
+  const load = async name => {
+    const response = await fetch(new URL(`./boolean-extrusion-babylon-data/${name}.owned-extrusion-mesh.json`, location.href));
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${name}`);
+    const result = await response.json();
+    validateCoplanarFaceBooleanExtrusionMesh(result);
+    return result;
+  };
+  let accepted, display, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    const cases = [
+      ['containment_hole', 1, 10, 24, 32],
+      ['strip_two_components', 2, 12, 24, 24],
+      ['reverse_containment_empty', 0, 0, 0, 0],
+      ['cross_union', 1, 10, 24, 28],
+      ['cross_union_distance_edit', 1, 10, 24, 28],
+    ];
+    const originals = {}, observations = [];
+    for (const [name, shells, faces, edges, triangles] of cases) {
+      const result = await load(name); originals[name] = result;
+      const candidate = createBaroCadBooleanExtrusionBabylonMesh(scene, result, options);
+      if (candidate.shells.length !== shells || candidate.faces.length !== faces ||
+          candidate.edges.length !== edges || candidate.root.getChildMeshes().length !== faces ||
+          candidate.edgeRoot.getChildMeshes().length !== edges || candidate.edgeRoot.isEnabled() ||
+          candidate.faces.reduce((sum, binding) => sum + binding.face.triangleCount, 0) !== triangles ||
+          candidate.faces.some(binding => !(binding.object instanceof Mesh) || binding.object instanceof LinesMesh) ||
+          candidate.edges.some(binding => !(binding.object instanceof LinesMesh))) {
+        throw new Error(`Babylon Shell grouping differs: ${name}`);
+      }
+      engine.runRenderLoop(() => scene.render());
+      await scene.whenReadyAsync();
+      engine.stopRenderLoop();
+      const pixels = render();
+      const isolated = [];
+      if (name === 'strip_two_components') {
+        for (const shell of candidate.shells) {
+          for (const other of candidate.shells) other.faces.setEnabled(other === shell);
+          isolated.push({ shellId: shell.shellId, pixels: count(render()) });
+        }
+        for (const shell of candidate.shells) shell.faces.setEnabled(true);
+      }
+      let holeProbe = null, materialProbe = null, wallOnlyPixels = null;
+      if (name === 'containment_hole') {
+        const hole = result.extrusion.region.loops.find(loop => loop.role === 'hole');
+        const average = hole.vertexIds.map(id => result.extrusion.region.vertices.find(vertex => vertex.id === id).pointMM)
+          .reduce((sum, point, _, points) => sum.map((value, axis) => value + point[axis] / points.length), [0, 0, 0]);
+        holeProbe = sample(pixels, average);
+        const top = result.faceRanges.find(face => face.kind === 'top-cap');
+        const vertices = top.triangles[0].vertexIndices.map(index => result.mesh.positionsMM.slice(3 * index, 3 * index + 3));
+        materialProbe = sample(pixels, [0, 1, 2].map(axis =>
+          vertices.reduce((sum, vertex) => sum + vertex[axis] / 3, 0)));
+        if (!holeProbe.background || materialProbe.background) {
+          throw new Error(`Babylon Shell hole/material probe differs: ${JSON.stringify({ holeProbe, materialProbe })}`);
+        }
+        for (const binding of candidate.faces) binding.object.setEnabled(binding.face.kind === 'wall');
+        wallOnlyPixels = count(render());
+        for (const binding of candidate.faces) binding.object.setEnabled(true);
+        if (wallOnlyPixels < 100) throw new Error('Babylon Shell walls were not visible');
+      }
+      if ((triangles === 0 ? count(pixels) !== 0 : count(pixels) < 100) ||
+          isolated.some(item => item.pixels < 30)) throw new Error(`Babylon Shell pixels differ: ${name}`);
+      observations.push({ name, shells, faces, edges, triangles, visiblePixels: count(pixels),
+        isolated, holeProbe, materialProbe, wallOnlyPixels, hash: hash(pixels) });
+      candidate.dispose();
+    }
+    if (observations[3].hash === observations[4].hash) throw new Error('Actual distance edit did not change Babylon frame');
+    accepted = originals.containment_hole;
+    display = createBaroCadBooleanExtrusionBabylonMesh(scene, accepted, options);
+    engine.runRenderLoop(() => scene.render());
+    await scene.whenReadyAsync();
+    engine.stopRenderLoop();
+    const acceptedFrame = render();
+    if (hash(acceptedFrame) !== observations[0].hash ||
+        !(canvas.getContext('webgl2') instanceof WebGL2RenderingContext)) {
+      throw new Error('Accepted Babylon Shell frame differs');
+    }
+    evidence = { fixtures: observations, acceptedHash: hash(acceptedFrame), webgl2: true,
+      callerRetained: !caller.isDisposed(), trueEdgesVisible: false, refused: 0, disposed: false };
+    window.__baroBooleanExtrusionBabylonEvidence = evidence; show();
+    document.querySelector('#edges').onclick = () => {
+      const before = hash(render());
+      display.edgeRoot.setEnabled(true);
+      const after = hash(render());
+      if (after === before) throw new Error('Babylon true Curve edges did not change the frame');
+      evidence.trueEdgesVisible = true; evidence.trueEdgesFrameHash = after; show();
+    };
+    document.querySelector('#reject').onclick = () => {
+      const before = hash(render());
+      const forged = structuredClone(accepted); forged.mesh.positionsMM[0] += 1;
+      const getter = { ...options }; let getterCalls = 0;
+      Object.defineProperty(getter, 'basis', { enumerable: true, get() { getterCalls++; return options.basis; } });
+      let refused = 0;
+      for (const action of [
+        () => createBaroCadBooleanExtrusionBabylonMesh(scene, forged, options),
+        () => createBaroCadBooleanExtrusionBabylonMesh(scene, accepted, { ...options, basis: 'unknown' }),
+        () => createBaroCadBooleanExtrusionBabylonMesh(scene, accepted, { ...options, unitsPerMillimeter: 0 }),
+        () => createBaroCadBooleanExtrusionBabylonMesh(scene, accepted, getter),
+      ]) { try { action(); } catch { refused++; } }
+      if (refused !== 4 || getterCalls !== 0 || hash(render()) !== before ||
+          caller.isDisposed() || display.faces.some(binding => binding.object.isDisposed())) {
+        throw new Error('Rejected Babylon Shell changed accepted display');
+      }
+      evidence.refused = refused; evidence.acceptedFrameRetained = true; show();
+    };
+    document.querySelector('#dispose').onclick = () => {
+      const disposed = [];
+      for (const binding of display.faces) {
+        binding.object.onDisposeObservable.add(() => disposed.push('face'));
+        binding.object.material.onDisposeObservable.add(() => disposed.push('material'));
+      }
+      for (const binding of display.edges) binding.object.onDisposeObservable.add(() => disposed.push('edge'));
+      display.dispose(); display.dispose();
+      if (disposed.length !== 2 * display.faces.length + display.edges.length ||
+          !display.root.isDisposed() || !display.edgeRoot.isDisposed() ||
+          caller.isDisposed() || !scene.meshes.includes(caller) || count(render()) !== 0 ||
+          scene.isDisposed || engine.getRenderingCanvas() !== canvas) {
+        throw new Error('Babylon Shell disposal changed caller resources');
+      }
+      evidence.disposed = true; evidence.afterDisposePixels = 0;
+      evidence.ownedResourcesDisposed = disposed.length; evidence.callerRetained = true; show();
+    };
+  } catch (error) {
+    display?.dispose();
+    evidence = { error: String(error), stack: error.stack };
+    window.__baroBooleanExtrusionBabylonEvidence = evidence; show();
+  }
+</script>

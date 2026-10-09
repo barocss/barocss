@@ -541,6 +541,39 @@ exclusion, separated components, refusal and disposal over HTTP. The matching
 Node/NullEngine flow is `node examples/boolean-mesh-babylon-verify.mjs`.
 This is a derived preview, not a native Surface, solid or B-Rep certificate.
 
+### Display native filled Boolean extrusion Shells in Babylon.js
+
+The optional `./babylon-boolean-extrusion-mesh` entry consumes the complete
+validated CAD #896 filled Shell mesh in a live caller-owned right-handed
+Babylon Scene. It creates one TransformNode per native Shell and one filled
+Mesh per native face range. The meshes use exact native face triangle slices,
+hard normals and dimensionless `_CAD_UV`, never texture UV. A separate
+`edgeRoot` starts disabled. Enable it to show LinesMeshes through the three
+saved D1 samples on each true native Curve edge. Display diagonals and
+bridges never become CAD edge lines.
+
+```js
+import { createBaroCadBooleanExtrusionBabylonMesh }
+  from '@barocss/cad-interop/babylon-boolean-extrusion-mesh';
+
+const display = createBaroCadBooleanExtrusionBabylonMesh(scene, nativeMesh, {
+  unitsPerMillimeter: 0.001,
+  basis: 'authored-xyz-matches-rhyup',
+});
+display.edgeRoot.setEnabled(true); // Optional true-edge overlay.
+display.dispose();
+```
+
+Positions convert from authored XYZ/mm to metres once, with no axis change.
+Bindings retain copied native Shell, face, edge, Curve, source and evaluation
+identities. Empty material creates no child display objects. Adapter disposal
+leaves the caller Scene/Engine/canvas intact. Run
+`node examples/boolean-extrusion-babylon-verify.mjs --source <saved-896-directory>`
+for the authentic file/NullEngine flow. `examples/boolean-extrusion-babylon.html`
+uses the same saved files over HTTP for actual WebGL2 checks. Edge LinesMeshes
+are sampled polylines, not exact continuous native Curves. This display is
+not an editable native Surface, sewn Solid or certified volume.
+
 ### Display native filled planar Boolean material in pinned Pixi3D
 
 The optional `./pixi3d-boolean-mesh` entry consumes the same public #887
