@@ -30,6 +30,8 @@ for (const call of [
   () => quarter.arc(1e6, 0, 1, 0, 1),
   () => quarter.arc(0, 0, 1, NaN, 1),
   () => quarter.arc(0, 0, 1, 0, Infinity),
+  () => quarter.arc(999999, 999999, Number.MIN_VALUE, 0, Math.PI / 2),
+  () => quarter.arc(999999, 999999, 1, 0, Number.MIN_VALUE),
 ]) {
   assert.throws(call, error => error.code === 'INVALID_SCENE');
   assert.equal(JSON.stringify(quarter.build()), first);
@@ -39,4 +41,4 @@ for (let i = 0; i < 51; i++) full.arc(10 * i, 0, 2, 0, 2 * Math.PI);
 assert.equal(full.build().length, 255);
 assert.throws(() => full.arc(520, 0, 2, 0, 2 * Math.PI), error => error.code === 'SCENE_LIMIT');
 assert.equal(full.build().length, 255);
-console.log(JSON.stringify({ result: 'ok', quarterCommands: 2, refusals: 12 }));
+console.log(JSON.stringify({ result: 'ok', quarterCommands: 2, refusals: 14 }));

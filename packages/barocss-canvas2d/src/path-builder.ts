@@ -133,17 +133,24 @@ export function createPathBuilder(): PathBuilder {
       const segments = Math.ceil(Math.abs(sweep) / (Math.PI / 2));
       const step = sweep / segments;
       const control = 4 / 3 * Math.tan(step / 4) * r;
-      const commands: PathCommand[] = [{ kind: 'M', x: scalar(x + r * Math.cos(start)),
-        y: scalar(y + r * Math.sin(start)) }];
+      let current = { x: scalar(x + r * Math.cos(start)), y: scalar(y + r * Math.sin(start)) };
+      const commands: PathCommand[] = [{ kind: 'M', ...current }];
+      let drawable = false;
       for (let index = 0; index < segments; index++) {
         const a = start + index * step, b = start + (index + 1) * step;
         const cosA = Math.cos(a), sinA = Math.sin(a), cosB = Math.cos(b), sinB = Math.sin(b);
-        commands.push({ kind: 'C', c1x: scalar(x + r * cosA - control * sinA),
+        const next = { kind: 'C' as const, c1x: scalar(x + r * cosA - control * sinA),
           c1y: scalar(y + r * sinA + control * cosA),
           c2x: scalar(x + r * cosB + control * sinB),
           c2y: scalar(y + r * sinB - control * cosB),
-          x: scalar(x + r * cosB), y: scalar(y + r * sinB) });
+          x: scalar(x + r * cosB), y: scalar(y + r * sinB) };
+        drawable ||= current.x !== next.x || current.y !== next.y ||
+          current.x !== next.c1x || current.y !== next.c1y ||
+          current.x !== next.c2x || current.y !== next.c2y;
+        current = { x: next.x, y: next.y };
+        commands.push(next);
       }
+      if (!drawable) invalid('path builder arc has no drawable geometry');
       return append(commands);
     },
     clear() { commands = []; return api; },
