@@ -4,6 +4,7 @@ import { parseBooleanExtrusionFeatureGraph } from '@barocss/cad';
 import { CadEditorError, createCadEditorFeatureSession, type CadEditorFeatureSessionOptions } from '@barocss/cad-editor';
 import { CadEditorFeature, useCadEditorFeatureSnapshot, type CadEditorFeatureDisplayReceipt } from '@barocss/cad-editor/react';
 import fixture from '../fixtures/boolean-extrusion.authored-graph.json?raw';
+import sharedFixture from '../fixtures/shared-extrusions.authored-graph.json?raw';
 import { Button } from './components/ui/button';
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarTrigger } from './components/ui/menubar';
 import { downloadAccepted, readCadEditorFile } from './file-actions';
@@ -13,10 +14,12 @@ const options: CadEditorFeatureSessionOptions = {
   display: { featureId: 'extrusion_feature', outputSlotId: 'extrusion_slot' },
   mesh: { meshId: 'editor_mesh', maximumVertices: 384, maximumTriangles: 288, maximumEdgePaths: 192, maximumNativeSamples: 1024 },
 };
-const names: Record<string, string> = { face_a_feature: 'Face A', face_b_feature: 'Face B', boolean_feature: 'Combine faces', extrusion_feature: 'Extrusion', base_height: 'Base height', design_height: 'Extrusion height', unused: 'Reference length' };
+const names: Record<string, string> = { face_a_feature: 'Face A', face_b_feature: 'Face B', boolean_feature: 'Combine faces', extrusion_feature: 'Extrusion', base_height: 'Base height', design_height: 'Extrusion height', unused: 'Reference length', leaf_middle: 'Extrusion 2', leaf_high: 'Extrusion 3', leaf_top: 'Extrusion 4' };
 const name = (id: string) => names[id] ?? id;
 
 function message(error: CadEditorError): string {
+  if (error.context.field === 'fit-selected-output') return 'Show a nonempty extrusion before fitting it.';
+  if (error.context.field === 'feature-outputs') return 'Display one to four different extrusions.';
   if (error.code === 'DISPLAY') return 'Cannot display this change. The current graph is retained.';
   if (error.code === 'BUDGET') return 'This input exceeds the supported size. Open a smaller graph.';
   if (error.code === 'STALE') return 'The graph changed. Try the action again.';
@@ -40,6 +43,7 @@ export function FeatureApp() {
   const [receipt, setReceipt] = useState<CadEditorFeatureDisplayReceipt | null>(null);
   const [filename, setFilename] = useState('Boolean extrusion');
   const [fitRequest, setFitRequest] = useState(0);
+  const [fitSelectedRequest, setFitSelectedRequest] = useState(0);
   const [readRequest, setReadRequest] = useState(0);
   const [mounted, setMounted] = useState(true);
   const [mountKey, setMountKey] = useState(0);
@@ -59,15 +63,23 @@ export function FeatureApp() {
   }, [flowMode, session, receipt, error]);
   async function openFile(file: File | undefined) {
     if (!file) return;
-    try { setError(null); const text = await readCadEditorFile(file); pendingFilename.current = file.name; session.prepareOpen(text); }
+    try { setError(null); const text = await readCadEditorFile(file); pendingFilename.current = file.name; session.prepareOpen(text,options); }
     catch (cause) { pendingFilename.current = null; setReadRequest(n => n + 1); setError(cause instanceof CadEditorError ? cause : new CadEditorError('FILE', 'Cannot open this graph.', {field:'open'}, cause)); }
   }
   const dependencies = snapshot.accepted.report.featureDependencies;
+  const extrusionFeatures = snapshot.accepted.document.features.filter(feature => feature.kind === 'normal-extrusion');
+  function output(featureId: string) {
+    const feature = extrusionFeatures.find(item => item.id === featureId)!;
+    const meshIds = ['editor_mesh', 'view_leaf_1', 'view_leaf_2', 'view_leaf_3'];
+    return {selection:{graphId:snapshot.accepted.document.id,revision:snapshot.accepted.document.revision,featureId:feature.id,outputSlotId:feature.outputSlotId},mesh:{...options.mesh,meshId:meshIds[extrusionFeatures.indexOf(feature)]}};
+  }
+  const visible = snapshot.displays.map(item => item.selection.featureId);
   return <div className="cad-app">
     <header className="app-header">
       <a className="app-brand" href="#/features/cad_boolean_extrusion"><Box size={20}/><span>barocss<span className="brand-sub">CAD</span></span></a>
       <Menubar className="app-menubar"><MenubarMenu><MenubarTrigger>File</MenubarTrigger><MenubarContent>
-        <MenubarItem disabled={busy || draft} onSelect={() => run(() => { pendingFilename.current = 'Boolean extrusion'; session.prepareOpen(fixture); })}>New Boolean extrusion</MenubarItem>
+        <MenubarItem disabled={busy || draft} onSelect={() => run(() => { pendingFilename.current = 'Boolean extrusion'; session.prepareOpen(fixture,options); })}>New Boolean extrusion</MenubarItem>
+        <MenubarItem disabled={busy || draft} onSelect={() => run(() => { pendingFilename.current = "Shared extrusions"; session.prepareOpen(sharedFixture,options); })}>New shared extrusions</MenubarItem>
         <MenubarItem disabled={busy} onSelect={() => fileInput.current?.click()}>Open native graph…</MenubarItem>
         <MenubarItem onSelect={() => run(() => downloadAccepted(session))}>Download accepted graph</MenubarItem>
         <MenubarSeparator/><MenubarItem disabled={busy} onSelect={() => { location.hash = '/documents/cad_editor_fixture'; }}>Surface document</MenubarItem>
@@ -81,22 +93,28 @@ export function FeatureApp() {
       <Button variant="ghost" size="icon-sm" aria-label="Undo" disabled={!snapshot.history.canUndo || busy || draft} onClick={() => run(() => session.prepareUndo())}><Undo2/></Button>
       <Button variant="ghost" size="icon-sm" aria-label="Redo" disabled={!snapshot.history.canRedo || busy || draft} onClick={() => run(() => session.prepareRedo())}><Redo2/></Button>
       <span className="toolbar-divider"/><Button variant="ghost" size="sm" onClick={() => setFitRequest(n => n + 1)}><Maximize/>Fit</Button>
+      <Button variant="ghost" size="sm" data-testid="fit-selected-output" disabled={!snapshot.selectedFeatureId} onClick={() => setFitSelectedRequest(n => n + 1)}>Fit selected</Button>
+      <Button variant="ghost" size="sm" data-testid="show-all-outputs" disabled={busy} onClick={() => run(() => session.prepareDisplayOutputs(extrusionFeatures.map(feature => output(feature.id))))}>Show all</Button>
+      <Button variant="ghost" size="sm" data-testid="solo-selected-output" disabled={busy || !extrusionFeatures.some(feature => feature.id === snapshot.selectedFeatureId)} onClick={() => run(() => session.prepareDisplayOutputs([output(snapshot.selectedFeatureId!)]))}>Show only selected</Button>
     </div></div>
     {error && <div className="app-error" role="alert">{message(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
     <div className="app-workspace">
       <aside className="document-tree"><h2><Layers3 size={15}/>Features</h2><div className="tree-document"><Box size={16}/><span>{filename}</span></div>
-        {snapshot.accepted.document.features.map(feature => <button key={feature.id} data-testid={'feature-select-' + feature.id} className={'tree-body' + (snapshot.selectedFeatureId === feature.id ? ' selected' : '')} aria-pressed={snapshot.selectedFeatureId === feature.id} onClick={() => run(() => session.selectFeature(feature.id))}>
-          <span className="body-symbol surface">{feature.kind === 'normal-extrusion' ? '▣' : '▱'}</span><span>{name(feature.id)}<small>{(dependencies.find(item => item.featureId === feature.id)?.dependencyIds ?? []).map(name).join(' + ') || 'Original face'}</small></span>
-        </button>)}
+        {snapshot.accepted.document.features.map(feature => <div key={feature.id} className="tree-body-row">
+          <button data-testid={'feature-select-' + feature.id} className={'tree-body' + (snapshot.selectedFeatureId === feature.id ? ' selected' : '')} aria-pressed={snapshot.selectedFeatureId === feature.id} onClick={() => run(() => session.selectFeature(feature.id))}>
+            <span className="body-symbol surface">{feature.kind === 'normal-extrusion' ? '▣' : '▱'}</span><span>{name(feature.id)}<small>{(dependencies.find(item => item.featureId === feature.id)?.dependencyIds ?? []).map(name).join(' + ') || 'Original face'}</small></span>
+          </button>
+          {feature.kind === 'normal-extrusion' && <input type="checkbox" data-testid={'output-visible-' + feature.id} aria-label={(visible.includes(feature.id) ? 'Hide ' : 'Show ') + name(feature.id)} checked={visible.includes(feature.id)} disabled={busy} onChange={() => run(() => session.prepareDisplayOutputs((visible.includes(feature.id) ? visible.filter(id => id !== feature.id) : [...visible,feature.id]).map(output)))} />}
+        </div>)}
         <div className="tree-section">LENGTHS <span>{snapshot.accepted.parameters.length}</span></div>
         {snapshot.accepted.parameters.map(parameter => <div key={parameter.id} className="feature-parameter-summary" data-testid={'parameter-summary-' + parameter.id}><span>{name(parameter.id)}{parameter.dependencyIds.length > 0 && <small>{parameter.dependencyIds.map(name).join(' + ')}</small>}</span><strong>{Object.is(parameter.valueMM,-0) ? '-0' : parameter.valueMM} mm</strong></div>)}
         <div className="tree-details"><span>Units</span><strong>mm</strong><span>Axes</span><strong>XYZ</strong></div>
       </aside>
-      <main className="main-workspace">{mounted && <CadEditorFeature key={mountKey} session={session} fitRequest={fitRequest} readRequest={readRequest}
+      <main className="main-workspace">{mounted && <CadEditorFeature key={mountKey} session={session} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest}
         displayOptions={displayRefusal ? {mmToSceneUnit:0,translate:[0,0,0],background:[0.07,0.08,0.10],camera:{eye:[0.2,0.2,0.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:0.001,far:10}} : undefined}
         onError={failure => { pendingFilename.current = null; setError(failure); }} onDisplay={setReceipt}
         onAccepted={accepted => { setError(null); if (pendingFilename.current) {setFilename(pendingFilename.current); pendingFilename.current = null;} location.hash = '/features/' + accepted.accepted.document.id; }}/>}</main>
     </div>
-    <footer className="app-status"><span className="status-led"/><span>{busy ? 'Preparing display' : draft ? 'Pending values' : 'Accepted graph'}</span><span className="status-divider"/><span>{snapshot.downloadStatus}</span><span className="status-spacer"/><span>XYZ · mm</span></footer>
+    <footer className="app-status"><span className="status-led"/><span>{busy ? 'Preparing display' : draft ? 'Pending values' : 'Accepted graph'}</span><span className="status-divider"/><span>{snapshot.downloadStatus}</span><span className="status-spacer"/><span>{visible.length} visible</span><span className="status-divider"/><span>XYZ · mm</span></footer>
   </div>;
 }

@@ -87,3 +87,7 @@ node apps/cad-editor/flows/feature-graph-flow.mjs --compiled --headed --port 520
 ```
 
 The server guard requires its own child to listen before browser access. Source and built public entries use the same bounded native edit/refusal/file flow. Integration registration and release remain separate.
+
+File → New shared extrusions creates the native four-leaf sample. Select outputs with checkboxes, Show all, or Show only selected. Fit selected frames a displayed nonempty extrusion. Height/Boolean edits rebuild all four native outputs even when some are hidden. Download retains the complete authored graph; visibility is excluded from native files.
+
+`node apps/cad-editor/flows/feature-fanout-flow.mjs --source --headed --port 52012` runs the existing single-output gate and one four-output extension. Replace `--source` with `--compiled` for built public entries. Evidence defaults to `/Users/user/.barocss-ai/v3/evidence-cad-editor-feature-fanout`. The flow verifies true native fanout vectors, full-scene pixels/refusals, view-only draft/history/download preservation, different fresh-app display choices and genuine full-graph re-edit.

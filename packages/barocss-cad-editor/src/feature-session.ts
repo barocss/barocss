@@ -11,7 +11,7 @@ import type {
 import { deriveBaroCadBooleanExtrusionFeatureMesh } from '@barocss/cad-interop/boolean-extrusion-feature-mesh';
 import { CadEditorError } from './types.js';
 import type {
-  CadEditorFeatureCandidate, CadEditorFeatureDisplay, CadEditorFeatureParameterDraft,
+  CadEditorFeatureCandidate, CadEditorFeatureDisplay, CadEditorFeatureOutput, CadEditorFeatureParameterDraft,
   CadEditorFeaturePending, CadEditorFeatureSession, CadEditorFeatureSessionOptions,
   CadEditorFeatureSnapshot,
 } from './feature-types.js';
@@ -94,15 +94,58 @@ function serialize(result: BooleanExtrusionFeatureGraphResult): string {
     'Native graph serialization failed.', { documentId: result.document.id, field: 'feature-file' });
   fileBudget(text); return text;
 }
-function derive(result: BooleanExtrusionFeatureGraphResult, input: CadEditorFeatureSessionOptions):
-  { display: CadEditorFeatureDisplay; options: CadEditorFeatureSessionOptions } {
-  const selection = { graphId: result.document.id, revision: result.document.revision,
-    featureId: input.display.featureId, outputSlotId: input.display.outputSlotId };
-  const derived = native(() => deriveBaroCadBooleanExtrusionFeatureMesh(result, selection, input.mesh),
-    'Native qualified extrusion mesh admission failed.', { documentId: result.document.id, bodyId: selection.featureId, field: 'feature-display' });
+interface OutputConfig {
+  featureId: string; outputSlotId: string; mesh: CadEditorFeatureOutput['mesh'];
+}
+interface DerivedOutputs { displays: CadEditorFeatureDisplay[]; outputs: OutputConfig[] }
+
+function deriveOutputs(result: BooleanExtrusionFeatureGraphResult, inputs: CadEditorFeatureOutput[], field = 'feature-outputs'): DerivedOutputs {
+  const context = { documentId: result.document.id, field };
+  check(Array.isArray(inputs) && Object.getPrototypeOf(inputs) === Array.prototype,
+    'INPUT', 'Display outputs must be a plain array.', context);
+  const descriptors = Object.getOwnPropertyDescriptors(inputs), keys = Reflect.ownKeys(inputs);
+  check(inputs.length >= 1 && inputs.length <= 4, 'BUDGET', 'Choose 1 through 4 extrusion outputs.', context);
+  check(keys.length === inputs.length + 1 && keys.every(key => typeof key === 'string'),
+    'INPUT', 'Display outputs must be dense own data.', context);
+  const refs = new Set<string>(), meshIds = new Set<string>();
+  const rows = Array.from({ length: inputs.length }, (_, index) => {
+    const descriptor = descriptors[String(index)];
+    check(descriptor !== undefined && 'value' in descriptor && descriptor.enumerable === true,
+      'INPUT', 'Display outputs must be dense own data.', context);
+    const input = record(descriptor.value, ['selection', 'mesh'], field);
+    // The existing interop selector owns current graph/revision/feature/slot admission.
+    const derived = native(() => deriveBaroCadBooleanExtrusionFeatureMesh(result,
+      input.selection as CadEditorFeatureOutput['selection'], input.mesh as CadEditorFeatureOutput['mesh']),
+    'Native qualified extrusion mesh admission failed.', context);
+    const { binding, nativeMesh } = derived;
+    const selection = { graphId: binding.graphId, revision: binding.revision,
+      featureId: binding.featureId, outputSlotId: binding.outputSlotId };
+    const key = JSON.stringify([selection.graphId, selection.revision, selection.featureId, selection.outputSlotId]);
+    check(!refs.has(key), 'INPUT', 'Display outputs must have unique native references.', context); refs.add(key);
+    const meshId = nativeMesh.options.meshId;
+    // Native mesh admission already enforces the original ASCII ID limit of 12.
+    check(!meshIds.has(meshId), 'INPUT', 'Use a unique explicit mesh ID for each display output.', context); meshIds.add(meshId);
+    return { display: { selection, binding, nativeMesh } satisfies CadEditorFeatureDisplay,
+      output: { featureId: selection.featureId, outputSlotId: selection.outputSlotId, mesh: copy(nativeMesh.options) } };
+  });
+  rows.sort((a, b) => result.document.features.findIndex(feature => feature.id === a.output.featureId)
+    - result.document.features.findIndex(feature => feature.id === b.output.featureId));
   serialize(result);
-  return { display: { selection, binding: derived.binding, nativeMesh: derived.nativeMesh },
-    options: { native: copy(result.options), display: copy(input.display), mesh: copy(derived.nativeMesh.options) } };
+  return { displays: rows.map(row => row.display), outputs: rows.map(row => row.output) };
+}
+function deriveSingle(result: BooleanExtrusionFeatureGraphResult, input: CadEditorFeatureSessionOptions): DerivedOutputs {
+  return deriveOutputs(result, [{ selection: { graphId: result.document.id, revision: result.document.revision,
+    featureId: input.display.featureId, outputSlotId: input.display.outputSlotId }, mesh: input.mesh }], 'feature-display');
+}
+function deriveCurrent(result: BooleanExtrusionFeatureGraphResult, outputs: OutputConfig[]): DerivedOutputs {
+  return deriveOutputs(result, outputs.map(output => ({
+    selection: { graphId: result.document.id, revision: result.document.revision, featureId: output.featureId, outputSlotId: output.outputSlotId },
+    mesh: output.mesh,
+  })));
+}
+function viewOptions(result: BooleanExtrusionFeatureGraphResult, outputs: OutputConfig[]): CadEditorFeatureSessionOptions {
+  const first = outputs[0];
+  return { native: copy(result.options), display: { featureId: first.featureId, outputSlotId: first.outputSlotId }, mesh: copy(first.mesh) };
 }
 function parseScalar(text: string, context: CadEditorError['context']): number {
   const trimmed = text.trim();
@@ -117,17 +160,23 @@ function nextRevision(value: number): number {
 }
 function emptyPending(): CadEditorFeaturePending { return { parameters: {}, booleanOperations: {} }; }
 interface HistoryState { document: BooleanExtrusionFeatureGraphV0; bytes: number }
-interface Prepared { candidate: CadEditorFeatureCandidate; options: CadEditorFeatureSessionOptions; historyIndex?: number }
+interface Prepared {
+  candidate: CadEditorFeatureCandidate; options: CadEditorFeatureSessionOptions;
+  outputs: OutputConfig[]; historyIndex?: number;
+}
 
 /** A separate authored native graph session. All renderer resources belong to the React bridge. */
 export function createCadEditorFeatureSession(document: BooleanExtrusionFeatureGraphV0,
   sessionOptions: CadEditorFeatureSessionOptions): CadEditorFeatureSession {
   const initialOptions = options(sessionOptions);
   let accepted = native(() => evaluateBooleanExtrusionFeatureGraph(document, initialOptions.native), 'Initial native graph admission failed.');
-  const initial = derive(accepted, initialOptions);
-  let currentOptions = initial.options;
-  let display = initial.display;
+  const initial = deriveSingle(accepted, initialOptions);
+  let outputConfigs = initial.outputs;
+  let currentOptions = viewOptions(accepted, outputConfigs);
+  let displays = initial.displays;
+  let display = displays[0];
   let generation = 0;
+  let displayGeneration = 0;
   let selectedFeatureId: string | null = null;
   let pending = emptyPending();
   let prepared: Prepared | null = null;
@@ -151,15 +200,16 @@ export function createCadEditorFeatureSession(document: BooleanExtrusionFeatureG
   const historyBytes = () => history.reduce((total, state) => total + state.bytes, 0);
   const hasDraft = () => Object.keys(pending.parameters).length > 0 || Object.keys(pending.booleanOperations).length > 0;
   const requireResolvedDraft = () => check(!hasDraft(), 'INPUT', 'Apply or discard the feature draft first.', { documentId: accepted.document.id, field: 'feature-draft' });
-  const snapshot = (): CadEditorFeatureSnapshot => copy({ mode: 'boolean-extrusion', accepted, display, generation, selectedFeatureId,
+  const snapshot = (): CadEditorFeatureSnapshot => copy({ mode: 'boolean-extrusion', accepted, display, displays, generation, displayGeneration, selectedFeatureId,
     pending, candidate: prepared?.candidate ?? null,
     history: { index: historyIndex, count: history.length, bytes: historyBytes(), canUndo: historyIndex > 0, canRedo: historyIndex < history.length - 1 },
     dirty, downloadStatus, disposed });
   const prepare = (kind: CadEditorFeatureCandidate['kind'], result: BooleanExtrusionFeatureGraphResult,
-    input: CadEditorFeatureSessionOptions, targetIndex?: number, admittedDisplay?: ReturnType<typeof derive>): CadEditorFeatureCandidate => {
-    const derived = admittedDisplay ?? derive(result, input);
-    prepared = { candidate: { token: newToken(), baseGeneration: generation, kind, result, display: derived.display },
-      options: derived.options, historyIndex: targetIndex };
+    targetIndex?: number, admittedDisplay?: DerivedOutputs): CadEditorFeatureCandidate => {
+    const derived = admittedDisplay ?? deriveCurrent(result, outputConfigs);
+    prepared = { candidate: { token: newToken(), baseGeneration: generation, baseDisplayGeneration: displayGeneration,
+      kind, result, display: derived.displays[0], displays: derived.displays },
+      options: viewOptions(result, derived.outputs), outputs: derived.outputs, historyIndex: targetIndex };
     const returned = copy(prepared.candidate); emit(); return returned;
   };
   const restore = (direction: -1 | 1): CadEditorFeatureCandidate => {
@@ -170,7 +220,7 @@ export function createCadEditorFeatureSession(document: BooleanExtrusionFeatureG
     document.revision = nextRevision(accepted.document.revision);
     const result = native(() => evaluateBooleanExtrusionFeatureGraph(document, currentOptions.native),
       'Native feature history reconstruction failed.', { documentId: document.id, field: 'feature-history' });
-    return prepare(direction < 0 ? 'undo' : 'redo', result, currentOptions, targetIndex);
+    return prepare(direction < 0 ? 'undo' : 'redo', result, targetIndex);
   };
   return {
     getSnapshot: snapshot,
@@ -229,22 +279,35 @@ export function createCadEditorFeatureSession(document: BooleanExtrusionFeatureG
         parameterEdits, faceEdits: [], booleanEdits, distanceEdits: [] };
       const result = native(() => updateBooleanExtrusionFeatureGraph(accepted, edits), 'Native feature graph update failed.',
         { documentId: accepted.document.id, field: 'feature-update' });
-      return prepare('apply', result, currentOptions);
+      return prepare('apply', result);
     },
     prepareOpen(text, inputOptions) {
       live(); fileBudget(text);
       const incomingOptions = inputOptions === undefined ? currentOptions : options(inputOptions);
       const result = native(() => parseBooleanExtrusionFeatureGraph(text, incomingOptions.native), 'Native graph Open failed.', { field: 'feature-file' });
-      const incomingDisplay = derive(result, incomingOptions);
+      const incomingDisplay = deriveSingle(result, incomingOptions);
       requireResolvedDraft();
-      return prepare('open', result, incomingOptions, undefined, incomingDisplay);
+      return prepare('open', result, undefined, incomingDisplay);
+    },
+    prepareDisplayOutputs(outputs) {
+      live();
+      check(prepared === null, 'INPUT', 'Resolve the current feature candidate first.',
+        { documentId: accepted.document.id, field: 'feature-outputs' });
+      const derived = deriveOutputs(accepted, outputs);
+      return prepare('display', accepted, undefined, derived);
     },
     prepareUndo() { return restore(-1); },
     prepareRedo() { return restore(1); },
     acceptCandidate(token) {
-      live(); check(prepared !== null && prepared.candidate.token === token && prepared.candidate.baseGeneration === generation,
+      live(); check(prepared !== null && prepared.candidate.token === token && prepared.candidate.baseGeneration === generation
+        && prepared.candidate.baseDisplayGeneration === displayGeneration,
         'STALE', 'The prepared feature candidate is no longer current.');
       const current = prepared, result = current.candidate.result;
+      if (current.candidate.kind === 'display') {
+        displays = current.candidate.displays; display = displays[0]; outputConfigs = current.outputs; currentOptions = current.options;
+        displayGeneration++; prepared = null;
+        const returned = snapshot(); emit(); return returned;
+      }
       const state: HistoryState = { document: copy(result.document), bytes: fileBudget(serialize(result)) };
       if (current.candidate.kind === 'open') { history = [state]; historyIndex = 0; selectedFeatureId = null; }
       else if (current.candidate.kind === 'apply') {
@@ -252,7 +315,8 @@ export function createCadEditorFeatureSession(document: BooleanExtrusionFeatureG
         while (history.length > HISTORY_LIMIT || historyBytes() > HISTORY_BYTES) history.shift();
         historyIndex = history.length - 1;
       } else historyIndex = current.historyIndex!;
-      accepted = result; display = current.candidate.display; currentOptions = current.options;
+      accepted = result; displays = current.candidate.displays; display = displays[0]; outputConfigs = current.outputs; currentOptions = current.options;
+      if (current.candidate.kind === 'open') displayGeneration++;
       generation++; pending = emptyPending(); prepared = null; download = null;
       dirty = current.candidate.kind !== 'open'; downloadStatus = 'Not downloaded';
       const returned = snapshot(); emit(); return returned;
