@@ -6,6 +6,7 @@ import { createServer } from 'node:http';
 import { resolve } from 'node:path';
 import {
   BooleanExtrusionFeatureGraphError,
+  evaluateBooleanExtrusionFeatureGraph,
   serializeBooleanExtrusionFeatureGraph,
   transactBooleanExtrusionFeatureGraphParameters,
   validateBooleanExtrusionFeatureGraph,
@@ -69,12 +70,14 @@ try {
     assert.deepEqual(Buffer.from(read.authoredText, 'utf8'), fixture.bytes);
     assert.equal(sha256(Buffer.from(read.authoredText, 'utf8')), fixture.hash);
     assert.deepEqual(read, readBaroCadBooleanExtrusionFeatureGraph(fixture.bytes.toString('utf8'), options));
-    assert.deepEqual(read.native, fixture.paired, `${name}: complete saved native result`);
+    assert.deepEqual(read.native, evaluateBooleanExtrusionFeatureGraph(fixture.paired.document,
+      fixture.paired.options), `${name}: current result rebuilt from saved authored intent`);
     assert.deepEqual(validateBooleanExtrusionFeatureGraph(read.native), read.native.report);
     assert.equal(read.native.document.revision, index);
     assert.equal(read.native.document.parameters.length, parameterCount);
     assert.deepEqual(read.native.report.parameterOrder, parameterOrder);
-    assert.equal(read.native.report.summary.distanceMM, distance);
+    assert.deepEqual(read.native.report.distances.map(item => item.valueMM), [distance]);
+    assert.equal(read.native.report.summary.extrusions[0].distanceMM, distance);
     assert.equal(read.native.report.nativeBuilderCallCount, 4);
     assert.deepEqual(read.native.features.map(feature => feature.kind),
       ['face-input', 'face-input', 'coplanar-boolean', 'normal-extrusion']);
@@ -102,7 +105,8 @@ try {
     } }],
     distanceEdits: [],
   });
-  assert.equal(edited.report.summary.distanceMM, 6);
+  assert.deepEqual(edited.report.distances.map(item => item.valueMM), [6]);
+  assert.equal(edited.report.summary.extrusions[0].distanceMM, 6);
   assert.notDeepEqual(edited.features[3].evaluation.vertices, prior.features[3].evaluation.vertices);
   editedText = serializeBooleanExtrusionFeatureGraph(edited.document, edited.options);
   assert.equal(JSON.parse(editedText).features.length, 4, 'saved file contains authored intent only');
@@ -127,7 +131,7 @@ try {
   for (const [, fixture] of files) assert.equal(sha256(fixture.bytes), fixture.hash);
   evidence = { savedRevisions: cases.length, parameterCounts: cases.map(item => item[3]),
     distancesMM: cases.map(item => item[4]), newHostDistanceMM: 6, refused,
-    exactPairedNativeResults: true, coldHttpRead: true, priorFilesAndResultsRetained: true,
+    currentResultsRebuiltFromAuthored: true, coldHttpRead: true, priorFilesAndResultsRetained: true,
     nativeWork: 'each parse, explicit validator, transaction, serializer and cold read reconstruct separately',
     scope: 'real #915 authored files; existing neutral Loader APIs only' };
 } finally {

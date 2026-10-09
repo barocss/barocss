@@ -551,9 +551,19 @@ result, serialize only the edited authored graph and cold-read it through
 the same URL reader. Run
 `node examples/boolean-extrusion-parameter-lifecycle-loader-verify.mjs --source
 <saved-915-directory>` after the CAD and interop builds. This checks the
-seven original files against their paired native results, a new height
+seven original authored files against current results rebuilt from their
+authored document and options, a new height
 5→6 edit, cold HTTP read and refusal retention. The separate CAD #922
 feature-node lifecycle and renderer output are not part of this check.
+
+The current CAD graph reports `distances[]` and `summary.extrusions[]` even
+for one extrusion. Historical authored single-output files still parse with
+an explicit four-feature budget. Their old singular-field OWNED CACHE results
+must be rebuilt from authored intent; they are not accepted current results.
+For a shared Boolean region with three or four independent extrusion leaves,
+pass an explicit six- or seven-feature budget. Each leaf has its own feature
+ID, output slot and native evaluation. The reader does not merge sibling
+Shells into an assembly or a Solid.
 
 ### Derive a filled Shell from a qualified authored graph output
 
@@ -604,7 +614,7 @@ Run `node examples/boolean-extrusion-feature-mesh-verify.mjs --source
 <saved-922-directory> --topology <saved-903-directory>` after building CAD and
 interop. It checks six authentic #922 replacement revisions plus authentic
 hole/empty #903 files over local HTTP against paired native results and direct
-CAD meshes. `examples/boolean-extrusion-feature-mesh-three.html` loads two
+CAD meshes rebuilt from historical authored intent. `examples/boolean-extrusion-feature-mesh-three.html` loads two
 exact copied #922 authored files over HTTP for actual Three WebGL2 revision,
 true-edge, refusal and disposal checks. The graph remains native editing
 authority; this bridge does not certify a Surface, Solid or volume.
@@ -652,6 +662,20 @@ authored revisions over HTTP. It checks real Pixi WebGL2 face buffers,
 separate true Curve LineStrip paths, changed revision pixels, refusal
 retention and owned cleanup. The host keeps its Application, stage, canvas
 and authored source. This pinned path does not imply PixiJS v8 support.
+
+For the actual CAD #927 fan-out files, run
+`node examples/boolean-extrusion-fanout-verify.mjs --source <saved-927-directory>`.
+It checks all six exact authored files and current paired results through
+direct and local HTTP reads. It selects every leaf by graph, revision,
+feature and output slot, and compares each derived mesh with CAD's direct
+tessellation and whole-mesh validator. It also checks the single-output
+array case, three edited height states, a fourth independent leaf, three
+genuine empty leaves, invalid sibling selections and prior accepted data.
+`examples/boolean-extrusion-fanout-three.html` loads three exact copied #927
+authored files over HTTP. It displays each sibling in real Three WebGL2,
+checks distinct height and edited frames, checks empty frames, and exercises
+true Curve edges, invalid selections and owned display cleanup. These are
+separate output displays; they do not certify a joined CAD assembly or Solid.
 
 ### Display native filled Boolean extrusion Shells in Three.js
 

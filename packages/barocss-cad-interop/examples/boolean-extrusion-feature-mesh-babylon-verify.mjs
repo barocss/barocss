@@ -8,7 +8,8 @@ import { NullEngine } from '@babylonjs/core/Engines/nullEngine.js';
 import { Mesh } from '@babylonjs/core/Meshes/mesh.js';
 import { LinesMesh } from '@babylonjs/core/Meshes/linesMesh.js';
 import { Scene } from '@babylonjs/core/scene.js';
-import { validateBooleanExtrusionFeatureGraph, validateCoplanarFaceBooleanExtrusionMesh } from '@barocss/cad';
+import { evaluateBooleanExtrusionFeatureGraph, validateBooleanExtrusionFeatureGraph,
+  validateCoplanarFaceBooleanExtrusionMesh } from '@barocss/cad';
 import { loadBaroCadBooleanExtrusionFeatureGraph,
   readBaroCadBooleanExtrusionFeatureGraph } from '@barocss/cad-interop/boolean-extrusion-feature-graph';
 import { deriveBaroCadBooleanExtrusionFeatureMesh } from '@barocss/cad-interop/boolean-extrusion-feature-mesh';
@@ -60,7 +61,8 @@ try {
     const read = await loadBaroCadBooleanExtrusionFeatureGraph(`${base}/saved/${name}`, graphOptions);
     assert.deepEqual(Buffer.from(read.authoredText, 'utf8'), fixture.bytes);
     assert.deepEqual(read, readBaroCadBooleanExtrusionFeatureGraph(fixture.bytes.toString('utf8'), graphOptions));
-    assert.deepEqual(read.native, fixture.paired);
+    assert.deepEqual(read.native, evaluateBooleanExtrusionFeatureGraph(fixture.paired.document,
+      fixture.paired.options));
     assert.deepEqual(validateBooleanExtrusionFeatureGraph(read.native), read.native.report);
     const extrusion = read.native.features.find(row => row.kind === 'normal-extrusion');
     const selection = { graphId: read.native.document.id, revision: read.native.document.revision,
@@ -144,7 +146,7 @@ try {
   for (const [, fixture] of fixtures) assert.equal(sha256(fixture.bytes), fixture.hash);
   evidence = { savedRevisions: cases.length, faces: cases.map(item => item[2]),
     trueEdges: cases.map(item => item[3]), checkedPositions, checkedUV, checkedTrueEdgeCoordinates,
-    refused, disposedResources, exactAuthoredAndPairedResults: true,
+    refused, disposedResources, currentResultsRebuiltFromAuthored: true,
     revisionChangedGeometry: true, priorGraphAndSceneRetained: true };
 } finally {
   scene.dispose(); engine.dispose();

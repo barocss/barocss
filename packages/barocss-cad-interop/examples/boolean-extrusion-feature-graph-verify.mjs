@@ -46,7 +46,10 @@ for (const [name, expectedHash, revision, area, shells, distance] of cases) {
   assert.equal(read.native.report.summary.materialAreaUV, area);
   assert.equal(read.native.report.summary.componentCount, shells);
   assert.equal(read.native.report.summary.empty, shells === 0);
-  assert.equal(read.native.report.summary.distanceMM, distance);
+  assert.deepEqual(read.native.report.distances.map(item => item.valueMM), [distance]);
+  assert.equal(read.native.report.summary.extrusions[0].distanceMM, distance);
+  assert.equal('distance' in read.native.report, false);
+  assert.equal('distanceMM' in read.native.report.summary, false);
   assert.equal(read.native.features.length, 4);
   assert.deepEqual(read.native.features.map(feature => feature.kind), ['face-input', 'face-input', 'coplanar-boolean', 'normal-extrusion']);
   for (const [i, feature] of read.native.features.entries()) {
@@ -67,7 +70,7 @@ for (const [name, expectedHash, revision, area, shells, distance] of cases) {
   const extrusion = read.native.features[3].evaluation;
   assert.equal(boolean.components.length, shells);
   assert.equal(extrusion.shells.length, shells);
-  assert.equal(read.native.report.summary.shellIds.length, shells);
+  assert.equal(read.native.report.summary.extrusions[0].shellIds.length, shells);
   assert.equal(read.native.report.summary.holeCount, name === 'containment_hole' ? 1 : 0);
   assert(extrusion.sources.length >= (shells === 0 ? 0 : 1));
   accepted.set(name, { read, file, hash: expectedHash });
@@ -87,7 +90,8 @@ const edited = updateBooleanExtrusionFeatureGraph(initial.read.native, {
   parameterEdits: [{ parameterId: 'base_height', definition: { kind: 'literal', valueMM: 3 } }],
   faceEdits: [], booleanEdits: [], distanceEdits: [],
 });
-assert.equal(edited.report.summary.distanceMM, 3);
+assert.deepEqual(edited.report.distances.map(item => item.valueMM), [3]);
+assert.equal(edited.report.summary.extrusions[0].distanceMM, 3);
 assert.notDeepEqual(edited.features[3].evaluation.vertices, priorSnapshot.features[3].evaluation.vertices);
 const savedText = serializeBooleanExtrusionFeatureGraph(edited.document, edited.options);
 const cold = readBaroCadBooleanExtrusionFeatureGraph(savedText, options);

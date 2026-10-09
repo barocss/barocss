@@ -4,7 +4,7 @@ import { once } from 'node:events';
 import { readFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { resolve } from 'node:path';
-import { tessellateCoplanarFaceBooleanExtrusion, validateBooleanExtrusionFeatureGraph,
+import { evaluateBooleanExtrusionFeatureGraph, tessellateCoplanarFaceBooleanExtrusion, validateBooleanExtrusionFeatureGraph,
   validateCoplanarFaceBooleanExtrusionMesh } from '@barocss/cad';
 import { loadBaroCadBooleanExtrusionFeatureGraph,
   readBaroCadBooleanExtrusionFeatureGraph } from '@barocss/cad-interop/boolean-extrusion-feature-graph';
@@ -57,7 +57,8 @@ try {
     const loaded = await loadBaroCadBooleanExtrusionFeatureGraph(`${base}/saved/${name}`, options);
     assert.deepEqual(Buffer.from(loaded.authoredText, 'utf8'), fixture.bytes);
     assert.deepEqual(loaded, readBaroCadBooleanExtrusionFeatureGraph(fixture.bytes.toString('utf8'), options));
-    assert.deepEqual(loaded.native, fixture.paired, `${name}: exact saved native result`);
+    assert.deepEqual(loaded.native, evaluateBooleanExtrusionFeatureGraph(fixture.paired.document,
+      fixture.paired.options), `${name}: current result rebuilt from saved authored intent`);
     assert.deepEqual(validateBooleanExtrusionFeatureGraph(loaded.native), loaded.native.report);
     const extrusion = loaded.native.features.find(feature => feature.kind === 'normal-extrusion');
     assert(extrusion, `${name}: evaluated extrusion`);
@@ -117,7 +118,7 @@ try {
     triangleCounts: cases.map(([name]) => outputs.get(name).nativeMesh.report.triangleCount),
     edgePathCounts: cases.map(([name]) => outputs.get(name).nativeMesh.report.edgePathCount),
     featureIds: cases.slice(0, 6).map(([name]) => outputs.get(name).binding.featureId),
-    exactPairedNativeResults: true, exactPublicCadMeshes: true, qualifiedBindings: true,
+    currentResultsRebuiltFromAuthored: true, exactPublicCadMeshes: true, qualifiedBindings: true,
     topology: { hole: true, empty: true }, priorFilesGraphsAndMeshRetained: true,
     work: 'each read, graph validation, tessellation and mesh validation reconstructs separately' };
 } finally {
