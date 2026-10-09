@@ -162,11 +162,12 @@ function check(name, document, expectedArea, expectedShells, expectedDistance, e
   assert.equal(report.parameterResolutionCount, 3); assert.equal(report.distanceDefinitionEvaluationCount, 1);
   assert.equal(report.featureEvaluationCount, 4); assert.equal(report.nativeBuilderCallCount, 4);
   assert.deepEqual(report.nativeBuilderCalls, {faceInput: 2, coplanarBoolean: 1, normalExtrusion: 1});
-  assert.deepEqual(report.distance, {featureId: ids.extrusion, definition: document.features[0].distance, valueMM: expectedDistance, dependencyIds: ['height']});
+  assert.deepEqual(report.distances, [{featureId: ids.extrusion, definition: document.features[0].distance, valueMM: expectedDistance, dependencyIds: ['height']}]);
   assert.equal(report.summary.empty, expectedShells === 0); assert.equal(report.summary.componentCount, expectedShells);
   assert.equal(report.summary.holeCount, region.evaluation.loops.filter(loop => loop.role === 'hole').length);
-  assert.deepEqual(report.summary.shellIds, extrusion.evaluation.shells.map(shell => shell.id));
-  assert.ok(Math.abs(report.summary.materialAreaUV - expectedArea) <= 1e-7); assert.equal(report.summary.distanceMM, expectedDistance);
+  assert.deepEqual(report.summary.extrusions.map(output => output.featureId), [ids.extrusion]);
+  assert.deepEqual(report.summary.extrusions[0].shellIds, extrusion.evaluation.shells.map(shell => shell.id));
+  assert.ok(Math.abs(report.summary.materialAreaUV - expectedArea) <= 1e-7); assert.equal(report.summary.extrusions[0].distanceMM, expectedDistance);
   assert.equal(report.quality.nativeOutputsAreAuthoredEditingAuthority, false); assert.equal(report.quality.globalHistoryCertified, false);
   assert.equal(report.quality.nativeReferenceScope, 'entities-defined-by-this-feature-not-transitive-operand-references');
   assert.equal(report.topologyCertified, false); assert.equal(report.solid, false);

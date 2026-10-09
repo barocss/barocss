@@ -6831,7 +6831,7 @@ consumption remains separate.
 
 `evaluateBooleanExtrusionFeatureGraph(document, options)` evaluates an authored
 native construction graph. Two Face input nodes feed one coplanar Boolean node,
-which feeds one normal-extrusion node. It calls the actual native Face, Boolean
+which feeds one through four independent normal-extrusion nodes. It calls the actual native Face, Boolean
 and extrusion builders. Display meshes do not supply editing authority.
 
 The current authored format is `barocss-native-boolean-extrusion-feature-graph`,
@@ -6852,8 +6852,9 @@ const text = cad.serializeBooleanExtrusionFeatureGraph(result.document, options)
 const reopened = cad.parseBooleanExtrusionFeatureGraph(text, options);
 ```
 
-The four feature nodes can appear in any authored order. Dependency evaluation
-produces the two real Faces, then the real Boolean result and extrusion. Face
+The four through seven feature nodes can appear in any authored order. Dependency
+evaluation produces the two real Faces and shared Boolean once in the graph loop,
+then each real extrusion with its own resolved distance. Face
 inputs own only their original Plane, native Line loop and construction options.
 Boolean and extrusion nodes hold explicit feature references and native options.
 The result owns `{document, options, parameters, features, report}`. Evaluated
@@ -6884,7 +6885,7 @@ Serialization saves authored intent only, with signed-zero preservation and a
 the actual native chain. This format does not widen the canonical geometry
 Document or migrate another graph. Public errors retain bounded paths, failing
 feature/parameter context and native causes. Caller limits bound parameter
-resolutions and the four direct native feature evaluations. Native internal
+resolutions and the three upstream plus one through four direct extrusion evaluations. Native internal
 work and prior-result validation are separate. No selective rebuild is claimed.
 
 Run the actual authored/native/source-file flow after the affected library build:
@@ -6972,7 +6973,7 @@ Solid/manufacturing certification remain separate work.
 `transactBooleanExtrusionFeatureGraphFeatures(previousResult, transaction)`
 creates, updates or removes authored feature nodes with explicit dependency
 repairs in the same candidate. It returns the existing native graph result.
-The current graph still requires two Face inputs, one Boolean and one extrusion.
+The current graph requires two Face inputs, one Boolean and one through four extrusions.
 
 The exact transaction is `{expectedRevision, revision, featureOperations}`.
 Operations contain 1 through 8 `{kind:'upsert', feature}` or
@@ -6990,7 +6991,7 @@ A new input node can retain original native names under its qualified context.
 The API does not rewrite source geometry IDs.
 
 A copied working table can contain up to eight nodes. Final admission requires
-the original four kinds and counts. Adding a replacement before deleting its
+two Face inputs, one Boolean and one through four extrusions. Adding a replacement before deleting its
 old node is allowed. Missing or cyclic references, invalid native inputs, stale
 revisions, ID collisions and failed native evaluation return no replacement
 result. No deletion cascade or automatic reference substitution occurs.
@@ -7020,9 +7021,61 @@ node examples/cad-nurbs/boolean-extrusion-feature-lifecycle-demo.mjs --source /t
 ```
 
 The flow replaces input, Boolean and extrusion nodes, repairs their references,
-changes a real native corner and distance, and replaces the complete four-node
-chain through a temporary eight-node table. It checks source/native geometry,
+changes a real native corner and distance, and replaces a four-node
+chain through a temporary eight-node table. The transaction cap stays eight
+operations; full replacement of a seven-node graph needs separate admitted steps. It checks source/native geometry,
 current authored and owned cold rebuilds, qualified ownership, atomic refusals
 and public declarations. General operation mixing, suppression, reorder,
 selective rebuild, history/persistent topology, editor adoption and
 Solid/manufacturing certification remain separate work.
+
+
+## Shared native Boolean region and independent extrusion outputs
+
+The current graph0 and existing public APIs support one through four extrusion
+leaves sharing the same actual Boolean region. Each leaf owns its distance,
+output slot, native options, source geometry and Shell set. Outputs can overlap
+in world space. They are separately qualified native parts; no union or assembly
+is inferred.
+
+The authored document still has eight fields and the same node kinds. Caller
+`maximumFeatureEvaluations` now ranges from 0 through 7 and must cover all
+`3 + extrusionCount` nodes. Every leaf distance resolves before construction.
+A shared parameter edit rebuilds every dependent leaf with its own offset.
+Parameter lifecycle transactions can repair up to four distinct distance targets
+while removing a shared parameter. Native sibling identity pools must be disjoint,
+including unused derived roles, before geometry staging.
+
+The current derived report uses `distances[]` and `summary.extrusions[]` in actual
+evaluation order. Each output summary has feature/slot IDs, distance, empty state
+and Shell IDs. Shared Boolean area/components/holes remain in the common summary.
+The singular first-output report fields are removed. Previous authored single-leaf
+files remain valid; current parsing rebuilds their native results. Previous
+owned cache reports must be rebuilt from authored intent. No new format,
+legacy report alias or cache migration is added.
+
+```ts
+const result = cad.parseBooleanExtrusionFeatureGraph(authoredText, {
+  maximumParameterResolutions: 8,
+  maximumFeatureEvaluations: 7,
+});
+for (const output of result.report.summary.extrusions) {
+  console.log(output.featureId, output.distanceMM, output.shellIds);
+}
+```
+
+Run one current fan-out source/file flow after the affected library build:
+
+```sh
+node examples/cad-nurbs/boolean-extrusion-fanout-demo.mjs --source /tmp/cad-fanout --graph-directory /path/to/cad-boolean-intent
+```
+
+The flow rebuilds a genuine single-leaf file, creates three independent leaves,
+edits their shared height, repairs all distance references in one parameter
+transaction, adds a fourth leaf and checks three genuine empty outputs. It
+checks actual native geometry, source IDs, qualified ownership, current authored
+and owned cold rebuilds, atomic failures and existing public declarations.
+The feature lifecycle working/operation limit remains eight. General mixed
+operations, selective rebuild, suppression/reorder/history, persistent topology,
+Solid/assembly/manufacturing certification and actual target rendering remain
+separate work.
