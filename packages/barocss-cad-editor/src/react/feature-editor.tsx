@@ -380,8 +380,15 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
           <DialogContent className="cad-editor-help-dialog"><DialogHeader><DialogTitle>Feature editing help</DialogTitle>
             <DialogDescription>Boolean operations, shared lengths and editing limits.</DialogDescription></DialogHeader>
             <div className="cad-editor-help-body">
-              <p>This profile evaluates two authored planar face inputs, one coplanar Boolean operation and up to four normal extrusions. Feature suppression and new feature creation are unavailable in this editor.</p>
+              <p>This profile evaluates two authored planar face inputs, one coplanar Boolean operation and 1–4 normal extrusions. You can add, edit and remove extrusion leaves.</p>
+              <p>Adding or removing length parameters, reordering features, native suppression and general Face or Boolean creation/removal are unavailable. Existing shared length definitions remain editable.</p>
               <p>The extrusions can share the same Boolean region and length parameters. A shared edit rebuilds every native output.</p>
+              <h3>Extrusion changes</h3>
+              <p>Add extrusion uses the current Boolean region. Choose a literal height in mm or an existing length parameter plus an offset. Edit extrusion keeps its existing identity and output slot.</p>
+              <p>When removing a displayed extrusion, choose the complete retained output set explicitly. The editor does not silently replace a removed output. At least one extrusion must remain.</p>
+              <p>Apply or discard shared length and Boolean drafts before an extrusion change. The dialog values remain pending if native evaluation or display admission fails. Cancel or Escape discards only the dialog values and returns focus to its trigger.</p>
+              <p>Undo and Redo keep the current displayed output choice. If a displayed leaf does not exist in the target history, choose a surviving displayed output and retry. There is no automatic history fallback.</p>
+              <h3>Displayed outputs</h3>
               <p>Show, hide and solo change only the displayed outputs. They do not suppress or delete native features. One GPU scene uses depth to combine the displayed meshes. Nested extrusions with the same footprint can cover each other.</p>
               <p>Outputs share one display material. Use Show only selected to inspect overlapping leaves. The editor does not move outputs apart or change their authored coordinates.</p>
               <p>Literal lengths use their entered value. An offset uses an existing parameter plus the entered offset. All parameters, including unused ones, must resolve without circular references.</p>

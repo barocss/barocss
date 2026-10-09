@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { Box, Download, FolderOpen, Layers3, Maximize, Redo2, Undo2 } from 'lucide-react';
-import { parseBooleanExtrusionFeatureGraph } from '@barocss/cad';
+import { parseBooleanExtrusionFeatureGraph, type BooleanExtrusionExtrusionFeature, type BooleanExtrusionLengthDefinition } from '@barocss/cad';
 import { CadEditorError, createCadEditorFeatureSession, type CadEditorFeatureSessionOptions } from '@barocss/cad-editor';
 import { CadEditorFeature, useCadEditorFeatureSnapshot, type CadEditorFeatureDisplayReceipt } from '@barocss/cad-editor/react';
 import fixture from '../fixtures/boolean-extrusion.authored-graph.json?raw';
 import sharedFixture from '../fixtures/shared-extrusions.authored-graph.json?raw';
 import { Button } from './components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './components/ui/dialog';
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarTrigger } from './components/ui/menubar';
 import { downloadAccepted, readCadEditorFile } from './file-actions';
 
@@ -15,9 +16,23 @@ const options: CadEditorFeatureSessionOptions = {
   mesh: { meshId: 'editor_mesh', maximumVertices: 384, maximumTriangles: 288, maximumEdgePaths: 192, maximumNativeSamples: 1024 },
 };
 const names: Record<string, string> = { face_a_feature: 'Face A', face_b_feature: 'Face B', boolean_feature: 'Combine faces', extrusion_feature: 'Extrusion', base_height: 'Base height', design_height: 'Extrusion height', unused: 'Reference length', leaf_middle: 'Extrusion 2', leaf_high: 'Extrusion 3', leaf_top: 'Extrusion 4' };
-const name = (id: string) => names[id] ?? id;
+interface ExtrusionDialog {
+  mode: 'add' | 'edit' | 'remove';
+  feature: BooleanExtrusionExtrusionFeature;
+  kind: 'literal' | 'offset'; raw: string; parameterId: string; shown: string[];
+}
+function scalar(raw: string): number {
+  const text = raw.trim();
+  if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text) || !Number.isFinite(Number(text)))
+    throw new CadEditorError('INPUT', 'Enter a finite decimal length.', {field:'extrusion-length'});
+  return Number(text);
+}
 
 function message(error: CadEditorError): string {
+  if (error.context.field === 'extrusion-length') return 'Enter a finite length in millimeters.';
+  if (error.context.field === 'extrusion-view') return 'Choose one to four remaining extrusions to display.';
+  if (error.context.field === 'feature-outputs' && error.cause) return 'Choose a retained extrusion view before this change or history action.';
+  if (error.context.field === 'extrusion-transaction') return 'Cannot change this extrusion. Check its height, parameter and output selection.';
   if (error.context.field === 'fit-selected-output') return 'Show a nonempty extrusion before fitting it.';
   if (error.context.field === 'feature-outputs') return 'Display one to four different extrusions.';
   if (error.code === 'DISPLAY') return 'Cannot display this change. The current graph is retained.';
@@ -39,6 +54,18 @@ function causeReceipt(cause: unknown, depth = 0): unknown {
 export function FeatureApp() {
   const [session] = useState(() => createCadEditorFeatureSession(parseBooleanExtrusionFeatureGraph(fixture, options.native).document, options));
   const snapshot = useCadEditorFeatureSnapshot(session);
+  const name = (id: string) => names[id] ?? (() => {
+    const leaves = snapshot.accepted.document.features.filter(feature => feature.kind === 'normal-extrusion');
+    const index = leaves.findIndex(feature => feature.id === id);
+    if (index >= 0) return 'Extrusion ' + (index + 1);
+    const parameter = snapshot.accepted.document.parameters.findIndex(item => item.id === id);
+    return parameter >= 0 ? 'Length ' + (parameter + 1) : 'Feature';
+  })();
+  const [lifecycle, setLifecycle] = useState<ExtrusionDialog | null>(null);
+  const lifecycleToken = useRef<string | null>(null);
+  const lifecycleTrigger = useRef<HTMLElement | null>(null);
+  const addExtrusionButton = useRef<HTMLButtonElement | null>(null);
+  const newLeafSequence = useRef(0);
   const [error, setError] = useState<CadEditorError | null>(null);
   const [receipt, setReceipt] = useState<CadEditorFeatureDisplayReceipt | null>(null);
   const [filename, setFilename] = useState('Boolean extrusion');
@@ -68,12 +95,51 @@ export function FeatureApp() {
   }
   const dependencies = snapshot.accepted.report.featureDependencies;
   const extrusionFeatures = snapshot.accepted.document.features.filter(feature => feature.kind === 'normal-extrusion');
-  function output(featureId: string) {
-    const feature = extrusionFeatures.find(item => item.id === featureId)!;
+  function output(featureId: string, leaves = extrusionFeatures, revision = snapshot.accepted.document.revision) {
+    const feature = leaves.find(item => item.id === featureId)!;
     const meshIds = ['editor_mesh', 'view_leaf_1', 'view_leaf_2', 'view_leaf_3'];
-    return {selection:{graphId:snapshot.accepted.document.id,revision:snapshot.accepted.document.revision,featureId:feature.id,outputSlotId:feature.outputSlotId},mesh:{...options.mesh,meshId:meshIds[extrusionFeatures.indexOf(feature)]}};
+    return {selection:{graphId:snapshot.accepted.document.id,revision,featureId:feature.id,outputSlotId:feature.outputSlotId},mesh:{...options.mesh,meshId:meshIds[leaves.indexOf(feature)]}};
   }
   const visible = snapshot.displays.map(item => item.selection.featureId);
+  function openExtrusion(mode: ExtrusionDialog['mode'], trigger: HTMLElement) {
+    run(() => {
+      const current = extrusionFeatures.find(feature => feature.id === snapshot.selectedFeatureId);
+      let feature = current ?? extrusionFeatures[0];
+      if (mode === 'add') {
+        const nativeText = JSON.stringify(snapshot.accepted.document);
+        let prefix: string;
+        do { prefix = 'ce' + (++newLeafSequence.current); } while (nativeText.includes(prefix));
+        if (prefix.length > 8) throw new CadEditorError('BUDGET', 'New extrusion identifier budget reached.');
+        feature = {...extrusionFeatures[0], id:prefix + '_leaf',outputSlotId:prefix + '_slot',
+          distance:{kind:'literal',valueMM:3}, options:{...extrusionFeatures[0].options,evaluationId:prefix + '_eval',resultIdPrefix:prefix}};
+      } else if (!current) throw new CadEditorError('INPUT','Select an extrusion first.');
+      const definition = feature.distance;
+      const value = definition.kind === 'literal' ? definition.valueMM : definition.offsetMM;
+      lifecycleTrigger.current = trigger; lifecycleToken.current = null;
+      setLifecycle({mode,feature,kind:definition.kind,raw:Object.is(value,-0) ? '-0' : String(value),
+        parameterId:definition.kind === 'offset' ? definition.parameterId : snapshot.accepted.document.parameters[0]?.id ?? '',
+        shown:mode === 'remove' ? visible.filter(id => id !== feature.id) : [...visible]});
+    });
+  }
+  function submitExtrusion() {
+    if (!lifecycle) return;
+    run(() => {
+      const {mode,feature,shown} = lifecycle;
+      const distance: BooleanExtrusionLengthDefinition = lifecycle.kind === 'literal' ? {kind:'literal',valueMM:scalar(lifecycle.raw)}
+        : {kind:'offset',parameterId:lifecycle.parameterId,offsetMM:scalar(lifecycle.raw)};
+      const leaves = mode === 'remove' ? extrusionFeatures.filter(item => item.id !== feature.id)
+        : mode === 'add' ? [...extrusionFeatures,{...feature,distance}] : extrusionFeatures.map(item => item.id === feature.id ? {...feature,distance} : item);
+      if (shown.length < 1 || shown.length > 4 || shown.some(id => !leaves.some(item => item.id === id)))
+        throw new CadEditorError('INPUT','Choose a retained output view.',{field:'extrusion-view'});
+      const revision = snapshot.accepted.document.revision + 1;
+      const candidate = session.prepareExtrusionTransaction({expectedRevision:snapshot.accepted.document.revision,revision,
+        featureOperations:mode === 'remove' ? [{kind:'remove',featureId:feature.id}] : [{kind:'upsert',feature:{...feature,distance}}]},
+        shown.map(id => output(id,leaves,revision)));
+      lifecycleToken.current = candidate.token;
+    });
+  }
+  const dialogLeaves = lifecycle?.mode === 'remove' ? extrusionFeatures.filter(feature => feature.id !== lifecycle.feature.id)
+    : lifecycle?.mode === 'add' ? [...extrusionFeatures,lifecycle.feature] : extrusionFeatures;
   return <div className="cad-app">
     <header className="app-header">
       <a className="app-brand" href="#/features/cad_boolean_extrusion"><Box size={20}/><span>barocss<span className="brand-sub">CAD</span></span></a>
@@ -89,22 +155,26 @@ export function FeatureApp() {
       <Button size="sm" onClick={() => run(() => downloadAccepted(session))}><Download/>Download</Button>
       <input ref={fileInput} type="file" accept=".json" aria-label="Open native feature graph file" className="file-input" onChange={event => { void openFile(event.target.files?.[0]); event.target.value = ''; }}/>
     </header>
-    <div className="app-toolbar"><span className="breadcrumb">{filename}</span><div className="toolbar-actions">
+    <div className="app-toolbar feature-toolbar"><span className="breadcrumb">{filename}</span><div className="toolbar-actions">
       <Button variant="ghost" size="icon-sm" aria-label="Undo" disabled={!snapshot.history.canUndo || busy || draft} onClick={() => run(() => session.prepareUndo())}><Undo2/></Button>
       <Button variant="ghost" size="icon-sm" aria-label="Redo" disabled={!snapshot.history.canRedo || busy || draft} onClick={() => run(() => session.prepareRedo())}><Redo2/></Button>
+      <span className="toolbar-divider"/>
+      <Button variant="ghost" size="sm" data-testid="add-extrusion" ref={addExtrusionButton} disabled={busy || draft} onClick={event => openExtrusion('add',event.currentTarget)}>Add extrusion</Button>
+      <Button variant="ghost" size="sm" data-testid="edit-extrusion" disabled={busy || draft || !extrusionFeatures.some(feature => feature.id === snapshot.selectedFeatureId)} onClick={event => openExtrusion('edit',event.currentTarget)}>Edit extrusion</Button>
+      <Button variant="ghost" size="sm" data-testid="remove-extrusion" disabled={busy || draft || !extrusionFeatures.some(feature => feature.id === snapshot.selectedFeatureId)} onClick={event => openExtrusion('remove',event.currentTarget)}>Remove</Button>
       <span className="toolbar-divider"/><Button variant="ghost" size="sm" onClick={() => setFitRequest(n => n + 1)}><Maximize/>Fit</Button>
       <Button variant="ghost" size="sm" data-testid="fit-selected-output" disabled={!snapshot.selectedFeatureId} onClick={() => setFitSelectedRequest(n => n + 1)}>Fit selected</Button>
       <Button variant="ghost" size="sm" data-testid="show-all-outputs" disabled={busy} onClick={() => run(() => session.prepareDisplayOutputs(extrusionFeatures.map(feature => output(feature.id))))}>Show all</Button>
       <Button variant="ghost" size="sm" data-testid="solo-selected-output" disabled={busy || !extrusionFeatures.some(feature => feature.id === snapshot.selectedFeatureId)} onClick={() => run(() => session.prepareDisplayOutputs([output(snapshot.selectedFeatureId!)]))}>Show only selected</Button>
     </div></div>
-    {error && <div className="app-error" role="alert">{message(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
+    {error && !lifecycle && <div className="app-error" role="alert">{message(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
     <div className="app-workspace">
       <aside className="document-tree"><h2><Layers3 size={15}/>Features</h2><div className="tree-document"><Box size={16}/><span>{filename}</span></div>
         {snapshot.accepted.document.features.map(feature => <div key={feature.id} className="tree-body-row">
           <button data-testid={'feature-select-' + feature.id} className={'tree-body' + (snapshot.selectedFeatureId === feature.id ? ' selected' : '')} aria-pressed={snapshot.selectedFeatureId === feature.id} onClick={() => run(() => session.selectFeature(feature.id))}>
             <span className="body-symbol surface">{feature.kind === 'normal-extrusion' ? '▣' : '▱'}</span><span>{name(feature.id)}<small>{(dependencies.find(item => item.featureId === feature.id)?.dependencyIds ?? []).map(name).join(' + ') || 'Original face'}</small></span>
           </button>
-          {feature.kind === 'normal-extrusion' && <input type="checkbox" data-testid={'output-visible-' + feature.id} aria-label={(visible.includes(feature.id) ? 'Hide ' : 'Show ') + name(feature.id)} checked={visible.includes(feature.id)} disabled={busy} onChange={() => run(() => session.prepareDisplayOutputs((visible.includes(feature.id) ? visible.filter(id => id !== feature.id) : [...visible,feature.id]).map(output)))} />}
+          {feature.kind === 'normal-extrusion' && <input type="checkbox" data-testid={'output-visible-' + feature.id} aria-label={(visible.includes(feature.id) ? 'Hide ' : 'Show ') + name(feature.id)} checked={visible.includes(feature.id)} disabled={busy} onChange={() => run(() => session.prepareDisplayOutputs((visible.includes(feature.id) ? visible.filter(id => id !== feature.id) : [...visible,feature.id]).map(id => output(id))))} />}
         </div>)}
         <div className="tree-section">LENGTHS <span>{snapshot.accepted.parameters.length}</span></div>
         {snapshot.accepted.parameters.map(parameter => <div key={parameter.id} className="feature-parameter-summary" data-testid={'parameter-summary-' + parameter.id}><span>{name(parameter.id)}{parameter.dependencyIds.length > 0 && <small>{parameter.dependencyIds.map(name).join(' + ')}</small>}</span><strong>{Object.is(parameter.valueMM,-0) ? '-0' : parameter.valueMM} mm</strong></div>)}
@@ -112,9 +182,25 @@ export function FeatureApp() {
       </aside>
       <main className="main-workspace">{mounted && <CadEditorFeature key={mountKey} session={session} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest}
         displayOptions={displayRefusal ? {mmToSceneUnit:0,translate:[0,0,0],background:[0.07,0.08,0.10],camera:{eye:[0.2,0.2,0.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:0.001,far:10}} : undefined}
-        onError={failure => { pendingFilename.current = null; setError(failure); }} onDisplay={setReceipt}
-        onAccepted={accepted => { setError(null); if (pendingFilename.current) {setFilename(pendingFilename.current); pendingFilename.current = null;} location.hash = '/features/' + accepted.accepted.document.id; }}/>}</main>
+        onError={failure => { pendingFilename.current = null; lifecycleToken.current = null; setError(failure); }} onDisplay={setReceipt}
+        onAccepted={accepted => { setError(null); if (lifecycleToken.current) { lifecycleToken.current = null; setLifecycle(null); } if (pendingFilename.current) {setFilename(pendingFilename.current); pendingFilename.current = null;} location.hash = '/features/' + accepted.accepted.document.id; }}/>}</main>
     </div>
+    <Dialog open={lifecycle !== null} onOpenChange={open => {if (!open && !busy) {setLifecycle(null);setError(null);}}}>
+      <DialogContent className="cad-editor-help-dialog extrusion-dialog" showCloseButton={!busy} onCloseAutoFocus={event => {event.preventDefault();const trigger=lifecycleTrigger.current; if (trigger instanceof HTMLButtonElement && !trigger.disabled && trigger.isConnected) trigger.focus(); else addExtrusionButton.current?.focus();}} onEscapeKeyDown={event => {if (busy) event.preventDefault();}} onPointerDownOutside={event => {if (busy) event.preventDefault();}}>
+        <DialogHeader><DialogTitle>{lifecycle?.mode === 'remove' ? 'Remove extrusion' : lifecycle?.mode === 'edit' ? 'Edit extrusion' : 'Add extrusion'}</DialogTitle>
+          <DialogDescription>{lifecycle?.mode === 'remove' ? 'Choose which remaining extrusions to display.' : 'Set a height and choose which extrusions to display.'}</DialogDescription></DialogHeader>
+        {lifecycle && <>
+          {lifecycle.mode === 'remove' ? <p>Remove {name(lifecycle.feature.id)}?{extrusionFeatures.length === 1 && ' Keep at least one extrusion in this graph.'}</p> : <div className="extrusion-fields">
+            <label>Height definition<select data-testid="extrusion-definition" value={lifecycle.kind} onChange={event => setLifecycle({...lifecycle,kind:event.target.value as 'literal'|'offset'})}><option value="literal">Literal</option><option value="offset">Parameter + offset</option></select></label>
+            {lifecycle.kind === 'offset' && <label>Length parameter<select data-testid="extrusion-parameter" value={lifecycle.parameterId} onChange={event => setLifecycle({...lifecycle,parameterId:event.target.value})}>{snapshot.accepted.document.parameters.map(parameter => <option key={parameter.id} value={parameter.id}>{name(parameter.id)}</option>)}</select></label>}
+            <label>{lifecycle.kind === 'literal' ? 'Height (mm)' : 'Offset (mm)'}<input data-testid="extrusion-value" value={lifecycle.raw} onChange={event => setLifecycle({...lifecycle,raw:event.target.value})}/></label>
+          </div>}
+          <fieldset className="extrusion-outputs"><legend>Display after this change</legend>{dialogLeaves.map((feature,index) => <label key={feature.id}><input type="checkbox" data-testid={'lifecycle-visible-' + feature.id} checked={lifecycle.shown.includes(feature.id)} onChange={() => setLifecycle({...lifecycle,shown:lifecycle.shown.includes(feature.id) ? lifecycle.shown.filter(id => id !== feature.id) : [...lifecycle.shown,feature.id]})}/>{feature.id === lifecycle.feature.id && lifecycle.mode === 'add' ? 'New extrusion' : name(feature.id)}{index === dialogLeaves.length - 1 && lifecycle.mode === 'add' ? ' (new)' : ''}</label>)}</fieldset>
+          {error && <p role="alert" className="extrusion-error">{message(error)}</p>}
+          <DialogFooter><Button variant="outline" disabled={busy} onClick={() => {setLifecycle(null);setError(null);}}>Cancel</Button><Button data-testid="extrusion-confirm" disabled={busy || lifecycle.shown.length === 0 || lifecycle.shown.length > 4 || (lifecycle.mode === 'remove' && extrusionFeatures.length === 1)} onClick={submitExtrusion}>{busy ? 'Preparing display' : lifecycle.mode === 'remove' ? 'Remove' : lifecycle.mode === 'edit' ? 'Apply' : 'Add'}</Button></DialogFooter>
+        </>}
+      </DialogContent>
+    </Dialog>
     <footer className="app-status"><span className="status-led"/><span>{busy ? 'Preparing display' : draft ? 'Pending values' : 'Accepted graph'}</span><span className="status-divider"/><span>{snapshot.downloadStatus}</span><span className="status-spacer"/><span>{visible.length} visible</span><span className="status-divider"/><span>XYZ · mm</span></footer>
   </div>;
 }

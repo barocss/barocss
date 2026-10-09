@@ -1,5 +1,5 @@
 import type {
-  BooleanExtrusionFeatureGraphOptions, BooleanExtrusionFeatureGraphResult,
+  BooleanExtrusionFeatureGraphOptions, BooleanExtrusionFeatureGraphResult, BooleanExtrusionFeatureTransaction,
   CoplanarFaceBooleanExtrusionMeshOptions,
 } from '@barocss/cad';
 import type {
@@ -28,7 +28,7 @@ export interface CadEditorFeatureOutput {
 }
 export interface CadEditorFeatureCandidate {
   token: string; baseGeneration: number; baseDisplayGeneration: number;
-  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display';
+  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'extrusion';
   result: BooleanExtrusionFeatureGraphResult;
   display: CadEditorFeatureDisplay;
   displays: CadEditorFeatureDisplay[];
@@ -58,6 +58,7 @@ export interface CadEditorFeatureSession {
   prepareApply(): CadEditorFeatureCandidate | null;
   prepareOpen(text: string, options?: CadEditorFeatureSessionOptions): CadEditorFeatureCandidate;
   prepareDisplayOutputs(outputs: CadEditorFeatureOutput[]): CadEditorFeatureCandidate;
+  prepareExtrusionTransaction(request: BooleanExtrusionFeatureTransaction, postDisplayOutputs?: CadEditorFeatureOutput[]): CadEditorFeatureCandidate;
   prepareUndo(): CadEditorFeatureCandidate;
   prepareRedo(): CadEditorFeatureCandidate;
   acceptCandidate(token: string): CadEditorFeatureSnapshot;

@@ -147,6 +147,11 @@ try {
     await runFeatureFanoutFlow({page:fresh,browser,cad,editor,result,evidence,prefix,repo});
     reopened=await snapshot(fresh);
   }
+  if(args.includes('--lifecycle')) {
+    const {runExtrusionLifecycleFlow}=await import('./extrusion-lifecycle-flow.mjs');
+    await runExtrusionLifecycleFlow({page:fresh,browser,cad,editor,result,evidence,prefix,repo});
+    reopened=await snapshot(fresh);
+  }
   await fresh.evaluate(()=>window.__cadFeatureFlow.setMounted(false));await fresh.waitForFunction(()=>window.__cadFeatureFlow.display()?.status==='disposed');const disposed=await display(fresh);assert.deepEqual(disposed.lifecycle,{mounts:1,disposals:1});assert.ok(Object.values(disposed.resourceCounts).every(n=>n===0));assert.deepEqual(await snapshot(fresh),reopened);
   await fresh.evaluate(()=>window.__cadFeatureFlow.setMounted(true));await ready(fresh);assert.deepEqual(await snapshot(fresh),reopened);result.events.push({stage:'unmount-remount',disposed,hostSessionRetained:true});
   assert.deepEqual(result.pageErrors,[]);result.outcome='passed';save();process.stdout.write(JSON.stringify({mode,outcome:'passed',stages:result.events.map(x=>x.stage),evidence:resolve(evidence,prefix+'.json')})+'\n');

@@ -2,11 +2,11 @@ import {
   BooleanExtrusionFeatureGraphDiagnosticCode, BooleanExtrusionFeatureGraphError,
   evaluateBooleanExtrusionFeatureGraph, parseBooleanExtrusionFeatureGraph,
   serializeBooleanExtrusionFeatureGraph, updateBooleanExtrusionFeatureGraph,
-  validateBooleanExtrusionFeatureGraph,
+  validateBooleanExtrusionFeatureGraph, transactBooleanExtrusionFeatureGraphFeatures,
 } from '@barocss/cad';
 import type {
   BooleanExtrusionFeatureGraphEdits, BooleanExtrusionFeatureGraphResult,
-  BooleanExtrusionFeatureGraphV0, BooleanExtrusionLengthDefinition,
+  BooleanExtrusionFeatureGraphV0, BooleanExtrusionFeatureTransaction, BooleanExtrusionLengthDefinition,
 } from '@barocss/cad';
 import { deriveBaroCadBooleanExtrusionFeatureMesh } from '@barocss/cad-interop/boolean-extrusion-feature-mesh';
 import { CadEditorError } from './types.js';
@@ -81,6 +81,65 @@ function record(input: unknown, fields: string[], field: string): Record<string,
   check(keys.length === fields.length && keys.every(key => typeof key === 'string' && fields.includes(key)
     && 'value' in descriptors[key] && descriptors[key].enumerable === true), 'INPUT', 'Use the exact declared fields.', { field });
   return Object.fromEntries(fields.map(key => [key, descriptors[key].value]));
+}
+/** Descriptor-safe ownership copy. Native transactions still own all ID/value/dependency semantics. */
+function copyRequest<T>(input: T): T {
+  let remaining = 16384;
+  const ancestors = new Set<object>();
+  const context = { field: 'extrusion-transaction' };
+  const visit = (value: unknown, depth: number): unknown => {
+    check(--remaining >= 0 && depth <= 12, 'BUDGET', 'Lifecycle request exceeds the own-data budget.', context);
+    if (value === null || typeof value === 'number' || typeof value === 'boolean') return value;
+    if (typeof value === 'string') {
+      check(value.length <= 128, 'BUDGET', 'Lifecycle request strings must have at most 128 characters.', context); return value;
+    }
+    check(typeof value === 'object', 'INPUT', 'Lifecycle requests require plain own data.', context);
+    const array = Array.isArray(value), prototype = Object.getPrototypeOf(value);
+    check(array ? prototype === Array.prototype : prototype === Object.prototype || prototype === null,
+      'INPUT', 'Lifecycle requests require plain own data.', context);
+    check(!ancestors.has(value), 'INPUT', 'Cyclic lifecycle request data is unsupported.', context);
+    const keys = Reflect.ownKeys(value), descriptors = Object.getOwnPropertyDescriptors(value);
+    check(keys.length <= (array ? 65 : 16) && keys.every(key => typeof key === 'string' && key.length <= 128
+      && 'value' in descriptors[key] && (array && key === 'length' || descriptors[key].enumerable === true)),
+    'INPUT', 'Lifecycle requests cannot contain getters, symbols or hidden fields.', context);
+    ancestors.add(value);
+    let copied: unknown;
+    if (array) {
+      const length = descriptors.length.value as number;
+      check(length <= 64 && keys.length === length + 1, 'INPUT', 'Lifecycle request arrays must be bounded and dense.', context);
+      copied = Array.from({ length }, (_, index) => {
+        check(Object.hasOwn(descriptors, String(index)), 'INPUT', 'Lifecycle request arrays must be dense.', context);
+        return visit(descriptors[String(index)].value, depth + 1);
+      });
+    } else copied = Object.fromEntries((keys as string[]).map(key => [key, visit(descriptors[key].value, depth + 1)]));
+    ancestors.delete(value); return copied;
+  };
+  return visit(input, 0) as T;
+}
+function extrusionRequest(input: BooleanExtrusionFeatureTransaction, previous: BooleanExtrusionFeatureGraphResult): BooleanExtrusionFeatureTransaction {
+  const own = record(input, ['expectedRevision', 'revision', 'featureOperations'], 'extrusion-transaction');
+  check(Array.isArray(own.featureOperations), 'INPUT', 'Use the native feature operation array.', { field: 'extrusion-transaction' });
+  for (const operationInput of own.featureOperations) {
+    check(operationInput !== null && typeof operationInput === 'object' && !Array.isArray(operationInput),
+      'INPUT', 'Use a plain native feature operation.', { field: 'extrusion-transaction' });
+    const kind = (operationInput as Record<string, unknown>).kind;
+    check(kind === 'upsert' || kind === 'remove', 'UNSUPPORTED', 'Extrusion transactions support Upsert and Remove only.', { field: 'extrusion-transaction' });
+    const fields = record(operationInput, kind === 'upsert' ? ['kind', 'feature'] : ['kind', 'featureId'], 'extrusion-transaction');
+    if (fields.kind === 'upsert') {
+      check(fields.feature !== null && typeof fields.feature === 'object' && !Array.isArray(fields.feature),
+        'INPUT', 'Use an authored native extrusion feature.', { field: 'extrusion-transaction' });
+      const feature = fields.feature as Record<string, unknown>;
+      const starting = previous.document.features.find(row => row.id === feature.id);
+      check(feature.kind === 'normal-extrusion' && (starting === undefined || starting.kind === 'normal-extrusion'),
+        'UNSUPPORTED', 'Only normal extrusion leaves can be created or edited.', { documentId: previous.document.id, field: 'extrusion-transaction' });
+    } else {
+      const starting = previous.document.features.find(row => row.id === fields.featureId);
+      // Missing/invalid removal IDs reach the actual native transaction's starting-table guard.
+      check(starting === undefined || starting.kind === 'normal-extrusion', 'UNSUPPORTED', 'Only starting extrusion leaves can be removed.',
+        { documentId: previous.document.id, field: 'extrusion-transaction' });
+    }
+  }
+  return own as unknown as BooleanExtrusionFeatureTransaction;
 }
 function options(input: CadEditorFeatureSessionOptions): CadEditorFeatureSessionOptions {
   const own = record(input, ['native', 'display', 'mesh'], 'feature-options');
@@ -296,6 +355,17 @@ export function createCadEditorFeatureSession(document: BooleanExtrusionFeatureG
       const derived = deriveOutputs(accepted, outputs);
       return prepare('display', accepted, undefined, derived);
     },
+    prepareExtrusionTransaction(request, postDisplayOutputs) {
+      live(); requireResolvedDraft();
+      check(prepared === null, 'INPUT', 'Resolve the current feature candidate first.',
+        { documentId: accepted.document.id, field: 'extrusion-transaction' });
+      const ownedRequest = extrusionRequest(copyRequest(request), accepted);
+      const ownedPostOutputs = postDisplayOutputs === undefined ? undefined : copyRequest(postDisplayOutputs);
+      const result = native(() => transactBooleanExtrusionFeatureGraphFeatures(accepted, ownedRequest), 'Native extrusion transaction failed.',
+        { documentId: accepted.document.id, field: 'extrusion-transaction' });
+      const derived = ownedPostOutputs === undefined ? deriveCurrent(result, outputConfigs) : deriveOutputs(result, ownedPostOutputs);
+      return prepare('extrusion', result, undefined, derived);
+    },
     prepareUndo() { return restore(-1); },
     prepareRedo() { return restore(1); },
     acceptCandidate(token) {
@@ -310,13 +380,15 @@ export function createCadEditorFeatureSession(document: BooleanExtrusionFeatureG
       }
       const state: HistoryState = { document: copy(result.document), bytes: fileBudget(serialize(result)) };
       if (current.candidate.kind === 'open') { history = [state]; historyIndex = 0; selectedFeatureId = null; }
-      else if (current.candidate.kind === 'apply') {
+      else if (current.candidate.kind === 'apply' || current.candidate.kind === 'extrusion') {
         history = [...history.slice(0, historyIndex + 1), state];
         while (history.length > HISTORY_LIMIT || historyBytes() > HISTORY_BYTES) history.shift();
         historyIndex = history.length - 1;
       } else historyIndex = current.historyIndex!;
+      const outputSetChanged = !same(outputConfigs, current.outputs);
       accepted = result; displays = current.candidate.displays; display = displays[0]; outputConfigs = current.outputs; currentOptions = current.options;
-      if (current.candidate.kind === 'open') displayGeneration++;
+      if (current.candidate.kind === 'open' || current.candidate.kind === 'extrusion' && outputSetChanged) displayGeneration++;
+      if (selectedFeatureId !== null && !result.document.features.some(feature => feature.id === selectedFeatureId)) selectedFeatureId = null;
       generation++; pending = emptyPending(); prepared = null; download = null;
       dirty = current.candidate.kind !== 'open'; downloadStatus = 'Not downloaded';
       const returned = snapshot(); emit(); return returned;
