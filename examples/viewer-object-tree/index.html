@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>BaroCSS Viewer · document body list</title>
+  <style>
+    :root { color-scheme: dark; font: 15px/1.5 system-ui, sans-serif; }
+    body { margin: 0; background: #101b2c; color: #eaf4ff; }
+    main { max-width: 1180px; margin: 24px auto; padding: 0 16px; }
+    h1 { margin: 0; font-size: 26px; } p { margin: 6px 0 18px; color: #bdcee0; }
+    .layout { display: grid; grid-template-columns: minmax(0, 800px) minmax(280px, 1fr); gap: 16px; }
+    canvas { display: block; width: 100%; height: auto; border: 1px solid #55728e; border-radius: 6px; cursor: crosshair; }
+    aside, #properties { border: 1px solid #405a75; border-radius: 6px; background: #192b3f; padding: 12px; }
+    aside h2, #properties h2 { margin: 0 0 8px; font-size: 18px; }
+    button { border: 1px solid #7198bc; border-radius: 4px; background: #244462; color: white; padding: 5px 8px; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    #bodies { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+    #bodies li { border: 1px solid #486989; border-radius: 4px; padding: 8px; }
+    #bodies li[aria-selected="true"] { border-color: #ffe577; background: #353d3d; }
+    #bodies strong, #bodies small { display: block; overflow-wrap: anywhere; }
+    .identity { display: block; font-weight: 700; overflow-wrap: anywhere; }
+    .details { display: block; color: #b8c9da; font-size: 12px; overflow-wrap: anywhere; }
+    .actions { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+    #properties { margin-top: 12px; min-height: 80px; }
+    #properties dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 10px; margin: 0; overflow-wrap: anywhere; }
+    #properties dt { color: #a9c5df; } #properties dd { margin: 0; }
+    #status { min-height: 24px; margin: 10px 0; } #status[data-error="true"] { color: #ffb2a8; }
+    @media (max-width: 850px) { .layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Selected CAD document bodies</h1>
+  <p>Inspect four original Surface and Curve bodies in one Viewer canvas. The list uses qualified source identities.</p>
+  <div class="layout">
+    <div>
+      <canvas id="view" width="800" height="480" tabindex="0" aria-label="Document body viewport"></canvas>
+      <div id="properties" aria-live="polite"><h2>Properties</h2><span>Select a visible body.</span></div>
+    </div>
+    <aside>
+      <h2>Document bodies</h2>
+      <div class="toolbar">
+        <button id="fit-all">Fit all</button>
+        <button id="show-all">Show all</button>
+        <button id="hide-all">Hide all</button>
+        <button id="reload">Reload</button>
+        <button id="clear">Clear</button>
+      </div>
+      <ul id="bodies" aria-label="Accepted document bodies"></ul>
+      <div id="status" role="status" aria-live="polite">Loading document…</div>
+      <div id="proof-controls" hidden>
+        <button id="check-refusals">Check refusals</button>
+        <button id="dispose-proof">Dispose viewer</button>
+      </div>
+      <pre id="proof" hidden aria-label="Browser proof"></pre>
+    </aside>
+  </div>
+</main>
+<script type="module" src="/bundle.js"></script>
+</body>
+</html>

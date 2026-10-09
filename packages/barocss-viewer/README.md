@@ -188,7 +188,10 @@ still work. A successful scene replacement shows all admitted objects, while
 `clear()` removes them. Invalid refs or a failed GPU update retain the prior
 scene and pixels. This controls Viewer display only; it does not edit a CAD
 assembly or create a native section view. `examples/viewer-document` exercises
-visibility with the same four-object document scene.
+visibility with the same four-object document scene. The standalone
+`examples/viewer-object-tree` host turns copied current document-body
+bindings into an interactive list. It uses public selection, visibility and
+fit methods and shows only original identity and revision properties.
 
 `viewer.projectNativePoint({kind:'surface',modelId,surfaceId,u,v})` or its
 tagged Curve form with `curveId,t` projects one accepted, visible native
