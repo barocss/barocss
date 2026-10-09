@@ -108,6 +108,22 @@ export interface ViewerGeometryMotionState {
   bindings: ViewerGeometryMotionBinding[];
   displayPoses: ViewerGeometryDisplayPose[];
 }
+export type ViewerNativeSceneSourceV0 =
+  | { kind: 'native'; source: string;
+      options: NativeLoadOptions | ViewerNativeCurveLoadOptions | ViewerNativeCurveLoadOptionsV1;
+      basis: 'authored-xyz-matches-rhyup' }
+  | { kind: 'document'; result: CadDocumentResult; options: BaroCadDocumentPrimitiveOptionsV2;
+      bindings: BaroCadDocumentPrimitiveBindingV2[] };
+export interface ViewerNativeSceneReplacementV0 {
+  version: 0;
+  source: ViewerNativeSceneSourceV0;
+  display: {
+    motion: { frame: ViewerPoseFrame; bindings: ViewerGeometryMotionBinding[];
+      basis: 'part-xyz-matches-rhyup' } | null;
+    visibleGeometry: ViewerGeometryRef[];
+    camera: MeshCamera | null;
+  };
+}
 export interface ViewerCurveRef { modelId: string; curveId: string }
 export interface ViewerNativeCurveParameter extends ViewerCurveRef { t: number }
 export interface ViewerNativeCurvePoint { ref: ViewerCurveRef; t: number; pointMM: Vec3 }
@@ -566,6 +582,7 @@ export class Viewer {
   private curves: ViewerCurveEntry[] = [];
   private native: BaroCadNativeResult | null = null;
   private uniformCurve: UniformCurvePreview | null = null;
+  private nativeReplacement = false;
   private modelSet: BaroCadModelSetResult | null = null;
   private document: CadDocumentResult | null = null;
   private documentBodies: ViewerDocumentBody[] = [];
@@ -592,7 +609,7 @@ export class Viewer {
   private contextLost = false;
   private readonly onContextLost = (event: Event): void => {
     this.contextLost = true;
-    if (this.renderer instanceof BooleanShellSceneRenderer || this.uniformCurve) {
+    if (this.renderer instanceof BooleanShellSceneRenderer || this.uniformCurve || this.nativeReplacement) {
       event.preventDefault();
       // CPU provenance is Viewer-owned; retire old GL handles before caller restoration.
       this.renderer?.dispose();
@@ -638,7 +655,8 @@ export class Viewer {
   private present(allPackets: ViewerPacket[], allCurves: ViewerCurveEntry[], camera: MeshCamera, selected: ViewerRef | null,
     motion: ViewerMotionState | null, geometrySelection: ViewerGeometryRef | null = this.selectedGeometry,
     geometryMotion: ViewerGeometryMotionState | null = this.geometryMotion,
-    qualified = this.modelSet !== null || this.document !== null || this.assembly !== null || this.uniformCurve !== null,
+    qualified = this.modelSet !== null || this.document !== null || this.assembly !== null || this.uniformCurve !== null
+      || this.nativeReplacement,
     hiddenGeometry = this.hiddenGeometry,
     particleLayer: ParticleLayerV0 | null = this.particleLayer,
     surfaceMaterials: ViewerSurfaceMaterial[] = this.surfaceMaterials,
@@ -783,7 +801,7 @@ export class Viewer {
     }
   }
   private validatedPackets(input: unknown, allowEmpty = false, qualified = false,
-    initialPoses: ViewerGeometryMotionState | null = null): ViewerPacket[] {
+    initialPoses: ViewerGeometryMotionState | null = null, deferDisplayValidation = false): ViewerPacket[] {
     check(Array.isArray(input) && Object.getPrototypeOf(input) === Array.prototype
       && input.length >= (allowEmpty ? 0 : 1) && input.length <= 4
       && Reflect.ownKeys(input).length === input.length + 1,
@@ -802,15 +820,17 @@ export class Viewer {
       surfaceIds.add(packet.surfaceId);
       vertices += packet.positions.length / 3; indices += packet.indices.length;
       check(vertices <= 4096 && indices <= 24576, 'Viewer geometry exceeds total limits');
-      const pose = surfacePose({ modelId: value.modelId, surfaceId: packet.surfaceId }, null, initialPoses);
-      if (pose) {
-        for (let offset = 0; offset < packet.positions.length; offset += 3) {
-          const displayed = displayVertex(packet.positions.slice(offset, offset + 3) as Vec3,
-            pose, this.options.mmToSceneUnit);
-          check(displayed.every(value => Number.isFinite(value) && Math.abs(value) <= 1000),
-            'Transformed assembly Surface exceeds GPU scene bounds');
-        }
-      } else prepareMesh(packet, { ...this.gpuOptions(), color: PALETTE[i] });
+      if (!deferDisplayValidation) {
+        const pose = surfacePose({ modelId: value.modelId, surfaceId: packet.surfaceId }, null, initialPoses);
+        if (pose) {
+          for (let offset = 0; offset < packet.positions.length; offset += 3) {
+            const displayed = displayVertex(packet.positions.slice(offset, offset + 3) as Vec3,
+              pose, this.options.mmToSceneUnit);
+            check(displayed.every(value => Number.isFinite(value) && Math.abs(value) <= 1000),
+              'Transformed assembly Surface exceeds GPU scene bounds');
+          }
+        } else prepareMesh(packet, { ...this.gpuOptions(), color: PALETTE[i] });
+      }
       result.push({ modelId: value.modelId, packet });
     }
     return result;
@@ -827,6 +847,7 @@ export class Viewer {
     const camera = fittedCamera(packets, curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
     this.present(packets, curves, camera, null, null, null, null, qualified, [], null, [], null);
     this.packets = packets; this.curves = curves; this.camera = camera; this.shell = null; this.uniformCurve = null;
+    this.nativeReplacement = false;
     this.selected = null; this.selectedGeometry = null; this.native = native; this.modelSet = modelSet;
     this.document = document; this.documentBodies = documentBodies;
     this.assembly = null; this.assemblyInstances = [];
@@ -852,6 +873,152 @@ export class Viewer {
         return { modelId: native.model.name, sampleVersion: 1, sample: curve.sample };
       }));
   }
+  replaceNativeScene(input: ViewerNativeSceneReplacementV0): void {
+    this.live(); check(!this.contextLost, 'Cannot replace native scene after WebGL2 context loss');
+    const envelope = ownRecord(input, ['version', 'source', 'display'], 'Native scene replacement');
+    check(envelope.version === 0, 'Only native scene replacement version0 is supported');
+    const display = ownRecord(envelope.display, ['motion', 'visibleGeometry', 'camera'], 'Native scene display');
+    check(envelope.source !== null && typeof envelope.source === 'object'
+      && Object.getPrototypeOf(envelope.source) === Object.prototype, 'Native scene source must be plain data');
+    const kind = Object.getOwnPropertyDescriptor(envelope.source, 'kind');
+    check(kind && kind.enumerable && 'value' in kind, 'Native scene source.kind must be own data');
+    let native: BaroCadNativeResult | null = null, document: CadDocumentResult | null = null;
+    let packets: ViewerPacket[] = [];
+    const curves: ViewerCurveEntry[] = [], documentBodies: ViewerDocumentBody[] = [];
+    if (kind.value === 'native') {
+      const source = ownRecord(envelope.source, ['kind', 'source', 'options', 'basis'], 'Native scene source');
+      check(source.basis === 'authored-xyz-matches-rhyup', 'Native source basis must explicitly match Viewer Y-up/mm');
+      check(typeof source.source === 'string' && source.source.length > 0 && source.source.length <= 65536
+        && new TextEncoder().encode(source.source).length <= 65536, 'Native source exceeds65536bytes/code units');
+      const options = parseNativeOptions(source.options);
+      native = parseBaroCadSource(source.source, { ...options, unitsPerMillimeter: 1 });
+      const expectedVersion = 'curveDisplay' in options ? ('version' in options.curveDisplay ? 1 : 0) : null;
+      check(native.model.objects.length <= 64 && native.curves.every(entry =>
+        entry.sample.report.dto.version === expectedVersion), 'Native source differs from Viewer sampling profile');
+      packets = native.surfaces.map(entry => ({ modelId: native!.model.name, packet: entry.packet }));
+      for (const entry of native.curves) {
+        if (isGpuCurveSample(entry.sample)) curves.push({ modelId: native.model.name, sampleVersion: 0, sample: entry.sample });
+        else {
+          check(isWideGpuCurveSample(entry.sample), 'Native scene requires Curve sample0 or1');
+          curves.push({ modelId: native.model.name, sampleVersion: 1, sample: entry.sample });
+        }
+      }
+    } else {
+      check(kind.value === 'document', 'Native scene source must be native or document');
+      const source = ownRecord(envelope.source, ['kind', 'result', 'options', 'bindings'], 'Document scene source');
+      check(source.options !== null && typeof source.options === 'object'
+        && Object.getPrototypeOf(source.options) === Object.prototype, 'Document scene options must be plain data');
+      const options = ownRecord(source.options, Object.hasOwn(source.options, 'bodyIds')
+        ? ['native', 'basis', 'bodyIds'] : ['native', 'basis'], 'Document scene options');
+      check(options.basis === 'authored-xyz-matches-rhyup', 'Document source basis must explicitly match Viewer Y-up/mm');
+      check(options.native !== null && typeof options.native === 'object'
+        && Object.getPrototypeOf(options.native) === Object.prototype, 'Document native options must be plain data');
+      const nativeFields = ownRecord(options.native, Reflect.ownKeys(options.native) as string[], 'Document native options');
+      const { unitsPerMillimeter, ...profile } = nativeFields;
+      check(unitsPerMillimeter === 1, 'Document native unitsPerMillimeter must be1');
+      const nativeOptions = parseNativeOptions(profile);
+      let bodyIds: string[] | undefined;
+      if (Object.hasOwn(options, 'bodyIds')) {
+        check(Array.isArray(options.bodyIds) && options.bodyIds.length >= 1 && options.bodyIds.length <= 4,
+          'Document scene bodyIds requires1..4 entries');
+        bodyIds = denseArray(options.bodyIds, options.bodyIds.length, 'Document scene bodyIds').map(value => {
+          check(typeof value === 'string', 'Document scene bodyId must be a string'); return value;
+        });
+        check(new Set(bodyIds).size === bodyIds.length, 'Duplicate document scene bodyId');
+      }
+      check(Array.isArray(source.bindings) && source.bindings.length >= 1 && source.bindings.length <= 4,
+        'Document scene requires1..4 expected bindings');
+      const bindingFields = ['documentId', 'documentRevision', 'nativeFrame', 'bodyId', 'assetId',
+        'assetRevision', 'sourceFrame', 'modelId', 'geometryKind', 'geometryId'];
+      const expected = denseArray(source.bindings, source.bindings.length, 'Document scene bindings')
+        .map(value => ownRecord(value, bindingFields, 'Document scene binding'));
+      check(new Set(expected.map(value => value.bodyId)).size === expected.length, 'Duplicate document scene binding bodyId');
+      const projected = prepareBaroCadDocumentPrimitiveNativeRefsV2(source.result as CadDocumentResult,
+        { native: { ...nativeOptions, unitsPerMillimeter: 1 }, basis: 'authored-xyz-matches-rhyup',
+          ...(bodyIds ? { bodyIds } : {}) });
+      check(projected.length === expected.length && projected.every(entry => expected.some(pin =>
+        bindingFields.every(key => Object.is(pin[key], entry.binding[key as keyof BaroCadDocumentPrimitiveBindingV2])))),
+      'Document scene bindings differ from rebuilt current original authority');
+      document = structuredClone(source.result) as CadDocumentResult;
+      for (const entry of projected) {
+        const modelId = entry.ref.modelId, geometryId = entry.ref.geometryId;
+        if (entry.kind === 'surface') {
+          packets.push({ modelId, packet: entry.packet });
+          documentBodies.push({ ref: { kind: 'surface', modelId, surfaceId: geometryId }, binding: entry.binding });
+        } else {
+          curves.push(entry.sampleVersion === 1 ? { modelId, sampleVersion: 1, sample: entry.sample }
+            : { modelId, sampleVersion: 0, sample: entry.sample });
+          documentBodies.push({ ref: { kind: 'curve', modelId, curveId: geometryId }, binding: entry.binding });
+        }
+      }
+    }
+    check(packets.length + curves.length >= 1 && packets.length + curves.length <= 4,
+      'Native scene requires1..4 admitted objects');
+    check(curves.every(entry => entry.sampleVersion === curves[0].sampleVersion), 'Native scene requires one Curve sample version');
+    let curvePoints = 0, curveSegments = 0;
+    for (const entry of curves) {
+      check(entry.sampleVersion === 0 || entry.sampleVersion === 1, 'Native scene requires adaptive Curve sample0 or1');
+      const count = entry.sample.pointsMM.length;
+      check(count >= 2 && count <= (entry.sampleVersion === 1 ? 4097 : 1025), 'Native scene Curve exceeds sample capacity');
+      curvePoints += count; curveSegments += count - 1;
+    }
+    check(curvePoints <= 16388 && curveSegments <= 16384, 'Native scene exceeds qualified GPU Curve totals');
+    packets = this.validatedPackets(packets, curves.length > 0, true, null, true);
+    const inventory: ViewerGeometryRef[] = [
+      ...packets.map(entry => ({ kind: 'surface' as const, modelId: entry.modelId, surfaceId: entry.packet.surfaceId })),
+      ...curves.map(entry => ({ kind: 'curve' as const, modelId: entry.modelId, curveId: viewerCurveId(entry) }))
+    ].map(parseGeometryRef);
+    let geometryMotion: ViewerGeometryMotionState | null = null;
+    if (display.motion !== null) {
+      const motion = ownRecord(display.motion, ['frame', 'bindings', 'basis'], 'Native scene motion');
+      check(motion.basis === 'part-xyz-matches-rhyup', 'Native scene motion basis must explicitly match Viewer Y-up/mm');
+      const frame = parseMotionFrame(motion.frame);
+      const bindings = parseGeometryMotionBindings(motion.bindings, frame, packets, curves);
+      const poses = new Map(frame.poses.map(pose => [pose.targetId, pose]));
+      const displayPoses: ViewerGeometryDisplayPose[] = bindings.map(binding => {
+        const pose = poses.get(binding.targetId)!;
+        return { ref: binding.ref, translationMm: pose.translation ?? [0, 0, 0],
+          rotationXYZW: pose.rotation ?? [0, 0, 0, 1], scale: pose.scale ?? [1, 1, 1] };
+      });
+      geometryMotion = { basis: 'part-xyz-matches-rhyup', frame, bindings, displayPoses };
+    }
+    const withinBounds = (point: Vec3): void => check(point.every(value => Number.isFinite(value)
+      && Math.abs(value) <= 1000), 'Posed native scene exceeds GPU scene bounds');
+    for (const entry of packets) {
+      const pose = surfacePose({ modelId: entry.modelId, surfaceId: entry.packet.surfaceId }, null, geometryMotion);
+      for (let offset = 0; offset < entry.packet.positions.length; offset += 3)
+        withinBounds(displayVertex(entry.packet.positions.slice(offset, offset + 3) as Vec3, pose, this.options.mmToSceneUnit));
+    }
+    for (const entry of curves) {
+      const pose = curvePose({ modelId: entry.modelId, curveId: viewerCurveId(entry) }, geometryMotion);
+      for (const point of entry.sample.pointsMM) withinBounds(displayVertex(point as Vec3, pose, this.options.mmToSceneUnit));
+    }
+    check(Array.isArray(display.visibleGeometry) && display.visibleGeometry.length <= 4,
+      'Native scene visibility requires0..4 references');
+    const visible = denseArray(display.visibleGeometry, display.visibleGeometry.length, 'Native scene visibility').map(parseGeometryRef);
+    check(new Set(visible.map(geometryKey)).size === visible.length
+      && visible.every(ref => inventory.some(value => sameGeometryRef(ref, value))),
+    'Native scene visibility must be a unique admitted subset');
+    const hidden = inventory.filter(ref => !visible.some(value => sameGeometryRef(value, ref)));
+    let camera: MeshCamera;
+    if (display.camera === null) {
+      check(visible.length > 0, 'Native scene auto-fit requires visible geometry');
+      camera = fittedCamera(packets.filter(entry => visible.some(ref => sameGeometryRef(ref,
+        { kind: 'surface', modelId: entry.modelId, surfaceId: entry.packet.surfaceId }))),
+      curves.filter(entry => visible.some(ref => sameGeometryRef(ref,
+        { kind: 'curve', modelId: entry.modelId, curveId: viewerCurveId(entry) }))),
+      this.options.mmToSceneUnit, this.canvas.width, this.canvas.height, null, geometryMotion);
+    } else camera = validateMeshCamera(display.camera);
+    this.present(packets, curves, camera, null, null, null, geometryMotion, true, hidden, null, [], null);
+    this.packets = packets; this.curves = curves; this.camera = camera; this.native = native;
+    this.document = document; this.documentBodies = documentBodies; this.hiddenGeometry = hidden;
+    this.geometryMotion = geometryMotion; this.motion = null; this.selected = null; this.selectedGeometry = null;
+    this.uniformCurve = null; this.modelSet = null; this.assembly = null; this.assemblyInstances = []; this.shell = null;
+    this.measurement = null; this.curveMeasurement = null; this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
+    this.surfaceMaterials = []; this.fluidFrame = null; this.particleLayer = null; this.clothFrame = null; this.clothLayer = null;
+    this.nativeReplacement = true;
+    this.sceneRequest++;
+  }
   loadUniformCurvePreview(input: UniformCurvePreview,
     options: { basis: 'authored-xyz-matches-rhyup' }): void {
     this.live(); check(!this.contextLost, 'Cannot load uniform Curve after WebGL2 context loss');
@@ -869,6 +1036,7 @@ export class Viewer {
     const camera = fittedCamera([], curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
     this.present([], curves, camera, null, null, null, null, true, [], null, [], null);
     this.packets = []; this.curves = curves; this.camera = camera; this.uniformCurve = uniformCurve;
+    this.nativeReplacement = false;
     this.native = null; this.modelSet = null; this.document = null; this.documentBodies = [];
     this.assembly = null; this.assemblyInstances = []; this.shell = null;
     this.selected = null; this.selectedGeometry = null; this.hiddenGeometry = [];
@@ -894,7 +1062,7 @@ export class Viewer {
         prior?.dispose();
       } catch (error) { prior?.render(); throw error; }
     }
-    this.shell = candidate; this.camera = camera; this.uniformCurve = null;
+    this.shell = candidate; this.camera = camera; this.uniformCurve = null; this.nativeReplacement = false;
     this.packets = []; this.curves = []; this.native = null; this.modelSet = null;
     this.document = null; this.documentBodies = []; this.assembly = null; this.assemblyInstances = [];
     this.selected = null; this.selectedGeometry = null; this.hiddenGeometry = [];
@@ -931,6 +1099,7 @@ export class Viewer {
     this.present(packets, curves, camera, null, null, null, candidate.geometryMotion,
       true, [], null, [], null);
     this.packets = packets; this.curves = curves; this.camera = camera; this.shell = null; this.uniformCurve = null;
+    this.nativeReplacement = false;
     this.native = null; this.modelSet = null; this.document = null; this.documentBodies = [];
     this.assembly = candidate.assembly; this.assemblyInstances = candidate.instances;
     this.selected = null; this.selectedGeometry = null; this.hiddenGeometry = [];
@@ -1036,6 +1205,7 @@ export class Viewer {
     this.live();
     this.present([], [], this.camera, null, null, null, null, false, [], null, [], null);
     this.packets = []; this.curves = []; this.native = null; this.modelSet = null; this.shell = null; this.uniformCurve = null;
+    this.nativeReplacement = false;
     this.document = null; this.documentBodies = [];
     this.assembly = null; this.assemblyInstances = [];
     this.hiddenGeometry = [];
@@ -1429,7 +1599,8 @@ export class Viewer {
     const selected = selection?.kind === 'surface'
       ? { modelId: selection.modelId, surfaceId: selection.surfaceId } : null;
     if (this.renderer) this.present(this.packets, this.curves, this.camera, selected,
-      this.motion, selection, this.geometryMotion, this.modelSet !== null || this.document !== null || this.assembly !== null || this.uniformCurve !== null, hidden);
+      this.motion, selection, this.geometryMotion, this.modelSet !== null || this.document !== null || this.assembly !== null || this.uniformCurve !== null
+        || this.nativeReplacement, hidden);
     this.hiddenGeometry = hidden;
     this.selected = selected;
     this.selectedGeometry = selection;
@@ -1963,6 +2134,12 @@ export class Viewer {
     this.canvas.removeEventListener('webglcontextlost', this.onContextLost);
     this.renderer?.dispose(); this.renderer = null; this.fluidFrame = null; this.particleLayer = null;
     this.surfaceMaterials = []; this.clothFrame = null; this.clothLayer = null;
+    if (this.nativeReplacement) {
+      this.native = null; this.document = null; this.documentBodies = []; this.packets = []; this.curves = [];
+      this.hiddenGeometry = []; this.motion = null; this.geometryMotion = null; this.selected = null; this.selectedGeometry = null;
+      this.measurement = null; this.curveMeasurement = null; this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
+    }
+    this.nativeReplacement = false;
     if (this.assembly || this.uniformCurve) { this.motion = null; this.geometryMotion = null; }
     if (this.uniformCurve) {
       this.curves = []; this.selected = null; this.selectedGeometry = null; this.hiddenGeometry = [];

@@ -1,0 +1,18 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,"><title>BaroCSS native scene replacement</title>
+<style>:root{font:15px/1.5 system-ui,sans-serif;color-scheme:dark}body{max-width:1100px;margin:24px auto;padding:0 16px;background:#102032;color:#e7f0fa}
+.layout{display:grid;grid-template-columns:minmax(0,640px) minmax(250px,1fr);gap:16px}canvas{display:block;max-width:100%;height:auto;border:1px solid #718da7}
+button{margin:4px;padding:6px 10px;background:#244462;color:white;border:1px solid #7198bc;border-radius:4px}button:disabled{opacity:.5}
+ul{list-style:none;padding:0}li{padding:8px;margin-bottom:8px;border:1px solid #56748f;overflow-wrap:anywhere}small{display:block}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}@media(max-width:900px){.layout{grid-template-columns:1fr}}</style></head><body>
+<h1>Original source with an initial display scene</h1><p>Replace source, complete display poses, visible bodies and camera in one accepted action.
+Original native geometry stays unchanged. Hidden bodies remain in the source inventory.</p>
+<div class="layout"><div><canvas id="view" width="640" height="480" aria-label="Original native candidate scene"></canvas>
+<button id="replacement" disabled>Load document with saved view</button><button id="fit-replacement" disabled>Load document with fitted view</button>
+<button id="document" disabled>Load original document</button><button id="native" disabled>Load original native asset</button>
+<button id="native-replacement" disabled>Replace native with display poses</button><button id="show-all" disabled>Show all bodies</button>
+<button id="hide-all" disabled>Hide all bodies</button><button id="fit" disabled>Fit visible</button><button id="saved-view" disabled>Saved view</button>
+<button id="query" disabled>Inspect original Curve</button><button id="clear" disabled>Clear viewer</button>
+<button id="run-proof" disabled>Run proof</button><button id="lose-context" disabled>Lose context</button><button id="dispose" disabled>Dispose viewer</button>
+<pre id="inspection" aria-label="Original native point">Load original source to inspect.</pre></div><aside><h2>Accepted original bodies</h2><ul id="bodies"></ul></aside></div>
+<pre id="status" role="status" aria-live="polite">Loading unchanged canonical document…</pre><script type="module" src="/bundle.js"></script></body></html>
