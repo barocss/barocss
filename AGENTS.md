@@ -10,6 +10,30 @@ This identity rule does not change feature order or publication authority.
 
 ---
 
+# Latest owner decision: continuous delivery and Integration-owned roadmap (2026-10-09)
+
+Execute Integration owns the current execution roadmap and progress in the
+GitHub Wiki. After closing each Issue, inspect existing Issues and actual local
+receipts, then select the next ready task by roadmap dependencies and module
+ownership. If no suitable Issue exists, create one bounded Issue from an unmet
+roadmap requirement and continue it. Check duplicate Issues before creation;
+freeze scope, touched paths, dependencies, acceptance and one actual flow before
+code. Keep active module claims and semantic contracts intact.
+
+Notify Planner only of newly created Issue numbers and titles. Routine selection,
+Issue creation, Wiki updates, implementation and local adoption require no
+Planner assignment or approval. Module authors retain their package/example
+ownership; Integration remains the sole serial writer to shared product paths.
+Record native completion, verified local integration and publication separately.
+Update the Wiki after each completion with the receipt, exact local commit and
+next task. An unavailable dependency calls for another independent roadmap task.
+
+This direct owner instruction supersedes older Planner-owned roadmap, Issue and
+Wiki assignment statements below. Existing release authority, paused work,
+inherited files and the monitor remain as recorded. Historical text is preserved.
+
+---
+
 # Latest owner decision: autonomous Integration order (2026-10-08)
 
 Under [#674](https://github.com/barocss/barocss/issues/674), Planner monitors
