@@ -7621,6 +7621,36 @@ manufacturing tolerance and global evaluator error remain outside this profile.
 Rendering, authored feature lifecycle and integrated save/recovery require
 their own consumer evidence.
 
+## Exact XYZ material queries on axis-box Boolean Solids — #1105
+
+`classifyAxisBoxSolidBooleanPoints(boolean, queries, options)` classifies points
+against a complete owned #1101 result. Queries contain queryId/pointMM:[x,y,z];
+options contain evaluationId/maximumQueries:1..8. Any finite represented XYZ
+point is supported in the original authored mm frame. No pose, axis or unit
+conversion is applied. Query bits, including signed zero, remain retained.
+`validateAxisBoxSolidBooleanPointClassification(result)` reconstructs the full
+operation and compares all parent data, point proofs and references.
+
+Exact comparisons against integer coordinate planes identify at most eight
+incident cells. All occupied means inside, none occupied means outside, and a
+mixed neighborhood means boundary. A cancelled internal grid plane with
+occupied cells on both sides is inside. An empty Boolean is always outside.
+Absent cells refer to the actual exterior empty region.
+
+Boundary queries also match actual native panels by exact plane equality and
+closed tile ranges. Results retain qualified panel/source/Body/Shell/void/local
+Face/Surface references, so cavities, exterior voids and separate Bodies remain
+distinct. No distance tolerance, ray, snap or floating D0 equality is used.
+The work is bounded to eight queries,64 cell checks and576 panel tests.
+
+```sh
+node examples/cad-nurbs/axis-box-point-classification-demo.mjs --source EVIDENCE_DIR
+```
+
+This is exact membership in the saved restricted integer cell coefficient
+model. General curved-Solid queries, point projection, manufacturing tolerance,
+global evaluator error and renderer picking remain separate features.
+
 ```sh
 node examples/cad-nurbs/local-curvature-demo.mjs --source /tmp/cad-local-curvature
 ```
