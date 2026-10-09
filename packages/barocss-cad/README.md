@@ -8004,3 +8004,43 @@ node examples/cad-nurbs/source-surface-control-net-demo.mjs --source EVIDENCE_DI
 The scoped native checkpoint is one affected build plus this actual mixed-file/
 API/cold/owned/explicit compiled-map flow. Actual editor adoption, rendering,
 source revisions, hash/history and global geometry certification stay separate.
+
+## Original V-linear section trim candidates — #1083
+
+`buildVLinearSurfacePlaneTrimCandidates(section, options)` uses a complete owned
+V-linear Surface–Plane section to create two trim candidates on the original
+Surface. `validateVLinearSurfacePlaneTrimCandidates(result)` reconstructs the
+operation and compares the entire result. Options contain evaluationId,
+resultIdPrefix, maximumBoundaries:4, maximumIntervals:4 and maximumObservations:21.
+Failures preserve the original section and accepted files.
+
+Four natural boundary Curves and four actual V1 interval extractions retain
+their original domains and complete child receipts. Seven unique world Curves
+and the original selected Support form an actual Source0 Model8. Dimensionless
+UV sidecars, six logical vertices, seven edges and two four-use loops retain
+source identities. The shared section has opposite uses; its degree4 world
+Curve is never sent to the degree3 reversal or interval providers.
+
+Exact positive Bernstein coefficients of the stored UV U-derivative numerator,
+positive weights and strict interior V poles establish a simple UV graph.
+The two candidates cover the regions below and above that stored graph. This
+does not establish ideal Plane half-space classification near the rounded cut.
+The left boundary decreases V. Exact inverse mapping, rounded native interval
+parameter, mapped UV and residual are retained without assuming reflection
+preserves every bit.
+
+Exact homogeneous cross-product bounds compare each actual clipped V1 Curve
+with its ideal restriction. Original Surface V Lipschitz bounds include the
+nominal UV mapping error. All seven whole coefficient-model position gaps must
+be at most1e-7mm. Local native D0/D1 and UV chain observations remain separate;
+the interval child's local-only proof is unchanged.
+
+```sh
+node examples/cad-nurbs/vlinear-plane-trim-demo.mjs --source EVIDENCE_DIR
+```
+
+These are curved trim candidates. UV simplicity and bounded position model gaps
+do not certify world embedding, self-intersection, global evaluator error,
+manufacturing tolerance, material inside/outside, manifold Solid or general
+3D Boolean. Rendering and editor/save/recovery acceptance require their own
+consumer evidence.

@@ -290,3 +290,6 @@ export type { VLinearSurfacePlaneSectionAsset, VLinearSurfacePlaneSectionOptions
 
 export { editSourceSurfaceControlNet, validateSourceSurfaceControlNetEdit, SourceSurfaceControlNetError, SourceSurfaceControlNetDiagnosticCode } from './source-surface-control-net.js';
 export type { SourceSurfaceControlNetRequest, SourceSurfaceControlNetPatch, SourceSurfaceControlNetReport, SourceSurfaceControlNetResult } from './source-surface-control-net.js';
+
+export { buildVLinearSurfacePlaneTrimCandidates, validateVLinearSurfacePlaneTrimCandidates, VLinearSurfacePlaneTrimError, VLinearSurfacePlaneTrimDiagnosticCode } from './vlinear-plane-trim.js';
+export type { VLinearSurfacePlaneTrimOptions, VLinearSurfacePlaneTrimEdge, VLinearSurfacePlaneTrimReport, VLinearSurfacePlaneTrimResult } from './vlinear-plane-trim.js';
