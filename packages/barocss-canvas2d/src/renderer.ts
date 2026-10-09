@@ -490,6 +490,27 @@ export class Canvas2DRenderer {
     this.view = next; this.draws = draws;
   }
 
+  viewportToWorld(value: Point): Point {
+    this.active();
+    const point = validatePoint(value);
+    return this.boundedViewPoint((point.x - this.view.panX) / this.view.zoom,
+      (point.y - this.view.panY) / this.view.zoom);
+  }
+
+  worldToViewport(value: Point): Point {
+    this.active();
+    const point = validatePoint(value);
+    return this.boundedViewPoint(this.view.panX + this.view.zoom * point.x,
+      this.view.panY + this.view.zoom * point.y);
+  }
+
+  private boundedViewPoint(x: number, y: number): Point {
+    if (!Number.isFinite(x) || !Number.isFinite(y) || Math.abs(x) > 1e9 || Math.abs(y) > 1e9) {
+      throw new Canvas2DError('SCENE_LIMIT', 'converted point exceeds supported range');
+    }
+    return { x, y };
+  }
+
   resize(value: Size, dpr: number): void {
     this.active();
     if (this.lost) throw new Canvas2DError('CONTEXT_LOST', 'cannot resize while WebGL context is lost');
