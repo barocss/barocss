@@ -7,6 +7,43 @@ The `native` entry uses `@barocss/cad`; the `three` entry uses Three.js as an
 optional peer dependency. The preview packet is shared by `@barocss/cad` and
 `@barocss/gpu`.
 
+## Public Babylon SDK host
+
+The [Babylon host](./examples/sdk-babylon-host.html) imports
+`BaroCADBabylonLoader` from the declared `@barocss/cad-interop/babylon` entry.
+It loads one complete native file with five original Surfaces over HTTP, using
+the explicit `nativeCapacity: { version: 1, maximumObjects: 16 }` profile and
+`unitsPerMillimeter: 0.001`. Source text, native Models and native Surface U/V
+remain CAD authority; camera fit and renderer buffers are derived host data.
+The [typed consumer](./examples/sdk-babylon-host-contract.ts) uses the public
+native options and actual Babylon Scene/result types.
+
+Use the declared Babylon.js `9.29.0` peer. The caller creates a live Scene with
+`useRightHandedSystem = true` and owns its engine, canvas, camera, lights and
+unrelated objects. The loaded result owns its meshes and shared material;
+`dispose()` releases those resources once even when called twice. Failed loads
+do not replace an accepted caller display. The example includes refusal and
+disposal controls. Its capacity profile applies to native source loading;
+document selection, model-set, assembly and GLB retain their separate limits.
+
+From the workspace root, after the CAD and interop library builds:
+
+```sh
+pnpm --filter @barocss/cad build:library
+pnpm --filter @barocss/cad-interop build:library
+pnpm exec vite --config packages/barocss-cad-interop/examples/sdk-babylon-host-vite.config.mjs --host 127.0.0.1 --port 5192 --strictPort
+```
+
+Open `http://127.0.0.1:5192/packages/barocss-cad-interop/examples/sdk-babylon-host.html`.
+The saved config scans only this example and uses the declared compiled public
+exports without source or dist aliases. [#1007](https://github.com/barocss/barocss/issues/1007)
+records the exact typed/browser evidence and later Integration stage.
+This is a compiled workspace SDK example. Independent packed consumption in
+[#801](https://github.com/barocss/barocss/issues/801) stays deferred; npm registry
+publication is a separate result. See the current
+[Loader manual](https://github.com/barocss/barocss/wiki/Loader-Manual) and
+[roadmap](https://github.com/barocss/barocss/wiki/Loader-Product-Roadmap).
+
 ## From CAD to a GLB
 
 ```js
