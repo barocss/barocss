@@ -1,0 +1,118 @@
+{
+  "result": "ok",
+  "scope": "frozen numerical CPU cloth profile only",
+  "nodeVersion": "v22.22.0",
+  "sourceHead": "11c4be8f1ada95887fe36dd7415ea8d43787245d",
+  "sourceTreeDirty": false,
+  "scalar": {
+    "alpha": 921.6,
+    "expectedLambda": -0.00021654395842356,
+    "expectedLength": 1.199566912083153
+  },
+  "admission": {
+    "invalidConfigurations": 30,
+    "gettersInvoked": 0
+  },
+  "lifecycle": {
+    "copiedState": true,
+    "invalidStepRetention": true,
+    "resetExact": true,
+    "disposedRefusal": true
+  },
+  "numeric": {
+    "faultCases": [
+      "position-nan",
+      "velocity-infinite",
+      "position-bound",
+      "negative-position-bound",
+      "velocity-bound",
+      "negative-velocity-bound",
+      "structural-strain",
+      "sphere-penetration",
+      "pin-drift"
+    ],
+    "lastAcceptedStateRetained": true,
+    "recoveryExact": true
+  },
+  "reference": {
+    "snapshots": [
+      {
+        "step": 0,
+        "positionDifference": 0,
+        "velocityDifference": 0,
+        "positionSha256": "8a96d5bfa1a04f846a5ada61cd8d07b76a5286b9b86ee815710ff76b2de0cda4",
+        "sampledPenetrationM": 0,
+        "diagnostics": {
+          "maxStructuralExtension": 0,
+          "maxStructuralCompression": 0,
+          "maxVertexPenetrationM": 0,
+          "maxPinDriftM": 0,
+          "totalMassKg": 0.20000000000000082
+        }
+      },
+      {
+        "step": 60,
+        "positionDifference": 0,
+        "velocityDifference": 0,
+        "positionSha256": "b9a600fe75c91fc112edaf26baaa3c855879aaea0f330c6fe2267e98942dfeb5",
+        "sampledPenetrationM": 0.0012793519802418718,
+        "diagnostics": {
+          "maxStructuralExtension": 0.05159844151662041,
+          "maxStructuralCompression": 0.018763107123223932,
+          "maxVertexPenetrationM": 0,
+          "maxPinDriftM": 0,
+          "totalMassKg": 0.20000000000000082
+        }
+      },
+      {
+        "step": 240,
+        "positionDifference": 0,
+        "velocityDifference": 0,
+        "positionSha256": "127f1c7626b9b089ccfef63503a01d67ac05abb65d0bb7aad272d6f1e66ff1a4",
+        "sampledPenetrationM": 0.0004585823962817148,
+        "diagnostics": {
+          "maxStructuralExtension": 0.0284154683313953,
+          "maxStructuralCompression": 0.0028517828842439252,
+          "maxVertexPenetrationM": 0,
+          "maxPinDriftM": 0,
+          "totalMassKg": 0.20000000000000082
+        }
+      }
+    ],
+    "peakStructuralExtension": 0.05174255069177636,
+    "peakSampledPenetrationM": 0.0013840839157666096,
+    "peakStep": 28,
+    "samplesPerTriangle": 4,
+    "continuousTriangleCollision": false,
+    "maxStepRetention": true,
+    "resetAfterLimitExact": true,
+    "finalPositionSha256": "127f1c7626b9b089ccfef63503a01d67ac05abb65d0bb7aad272d6f1e66ff1a4"
+  },
+  "benchmark": {
+    "warmupSteps": 240,
+    "trials": [
+      {
+        "steps": 240,
+        "medianStepMs": 1.181250000000091,
+        "p95StepMs": 1.3060829999999441,
+        "maxStepMs": 1.3857910000001539
+      },
+      {
+        "steps": 240,
+        "medianStepMs": 1.1911250000000564,
+        "p95StepMs": 1.3124579999998787,
+        "maxStepMs": 1.5608750000001237
+      },
+      {
+        "steps": 240,
+        "medianStepMs": 1.1562089999999898,
+        "p95StepMs": 1.225500000000011,
+        "maxStepMs": 1.3173750000000837
+      }
+    ],
+    "includesCandidateCopiesDiagnosticsAndStateCopies": true,
+    "excludesReferenceAndTriangleSampling": true,
+    "gpuCompletionMeasured": false,
+    "repeatedFinalHash": "127f1c7626b9b089ccfef63503a01d67ac05abb65d0bb7aad272d6f1e66ff1a4"
+  }
+}

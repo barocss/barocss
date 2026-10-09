@@ -1,6 +1,6 @@
 # @barocss/physics
 
-A bounded, renderer-neutral fixed-step 3D Physics package. Its rigid world simulates admitted sphere, oriented-box and capsule pairs, limited fixed/hinge joints and narrow opt-in CCD profiles. A separate visual-water world simulates one fixed 256-particle basin. The caller owns time and display. The package does not simulate exact CAD Surface or mesh collision, general joint networks, cloth or engineering fluid flow.
+A bounded, renderer-neutral fixed-step 3D Physics package. Its rigid world simulates admitted sphere, oriented-box and capsule pairs, limited fixed/hinge joints and narrow opt-in CCD profiles. A separate visual-water world simulates one fixed 256-particle basin. A separate cloth world advances one fixed pinned sheet over a static sphere. The caller owns time and display. The package does not simulate exact CAD Surface or mesh collision, general joint networks, arbitrary cloth meshes or engineering fluid flow.
 
 | Entry point | Current result | Example |
 | --- | --- | --- |
@@ -8,11 +8,38 @@ A bounded, renderer-neutral fixed-step 3D Physics package. Its rigid world simul
 | `@barocss/physics/cad-proxy` | Admit a labelled sphere or box proxy from one original CAD Surface; map accepted body poses to Viewer | [CAD proxy scene](../../examples/physics-cad-scene/README.md) |
 | `@barocss/physics/replay` | Save and validate one bounded accepted command log | [replay probe](../../examples/physics-scene/replay-probe.mjs) |
 | `@barocss/physics/fluid` | Simulate and copy 256 visual-water particle positions | [water Viewer scene](../../examples/physics-scene/fluid-viewer/README.md) |
+| `@barocss/physics/cloth` | Fixed 289-vertex visual sheet, copied triangle state and numerical diagnostics | [compiled cloth probe](../../examples/physics-scene/cloth-world-probe.mjs); actual Viewer host remains [#981](https://github.com/barocss/barocss/issues/981) |
 | `@barocss/physics/fluid-cad` | Admit one static CAD-derived box obstacle for version 1 water | [CAD shelf Viewer scene](../../examples/physics-scene/fluid-cad-viewer/README.md) |
 
 Normal Node and package imports use compiled `dist` JavaScript and declarations. A TypeScript-capable workspace bundler can select the `barocss-source` condition to read the matching `src/*.ts` entry without rebuilding Physics. That condition does not make plain Node execute TypeScript. CAD Surfaces remain original display geometry; CAD admission creates a separate sphere or box simulation proxy. See the limits below before using any profile.
 
 The rigid public entry is `src/index.ts`. Types and internal body records are in `types.ts`; input admission is in `validation.ts`; vectors, quaternions and inertia transforms are in `math.ts`; primitive collision and contact response are in `collision.ts`; joint parsing is in `joints.ts`, anchored motor drive is in `joint-motor.ts`, and the two-dynamic-body fixed and hinge profiles are in `dynamic-fixed-joint.ts` and `dynamic-hinge-joint.ts`; CCD admission and sweeps are in `ccd.ts`, `ccd-pair.ts`, `ccd-box.ts` and `ccd-slab.ts`; optional broad-phase bounds are in `broadphase.ts`; large-scene filtering and contact-island sleep rules are in `scene-profile.ts` and `sleep.ts`; and fixed-step world state is in `world.ts`. `limits.ts` holds shared bounds.
+
+## Bounded visual cloth
+
+`@barocss/physics/cloth` provides one visual profile with 289 vertices, 512 fixed triangles and two pinned back corners. The caller advances time. Create it as follows:
+
+```ts
+import { createClothWorld } from '@barocss/physics/cloth';
+
+const world = createClothWorld({
+  format: 'barocss-cloth-scene', version: 1, revision: 'sheet-v1',
+  basis: 'right-handed-xyz-metres', fixedStepSeconds: 1 / 120,
+  profile: 'pinned-sheet-sphere-v1',
+});
+const frame = world.step(1 / 120);
+// frame.positionsM and frame.triangles are independent copies for caller display.
+world.reset();
+world.dispose();
+```
+
+The six input fields are exact own data fields on an object with `Object.prototype`. Null and custom prototypes are refused. A revision is a 1–64 character ASCII identifier starting with a letter. Extra fields, getters, wrong versions, steps or profiles use `INVALID_CONFIG`. The profile fixes a 1 m square XZ sheet at Y=0.55 m, density 0.2 kg/m², gravity `[0,-9.81,0]`, and a static sphere at `[0,0.1,0]` m with radius 0.3 m and collision offset 0.002 m. It uses eight XPBD substeps and two iterations per substep, stretch/shear compliance 0.001 m/N and a second-neighbour bend-distance surrogate at 0.1 m/N. These are visual settings, without fabric calibration.
+
+`getState()`, `step(dt)` and `reset()` return copied Float64 positions/velocities, Uint16 triangle indices and pinned indices, the proxy sphere, step/time and diagnostics. Vertex i stays `z*17+x`; triangle order stays fixed. Diagnostics measure structural extension/compression, vertex-envelope penetration, pin drift and total mass. The collider has simulation identity only. It is not a native CAD Surface. `reset()` restores exact step 0. `dispose()` is idempotent; later reads, resets or steps use `DISPOSED`.
+
+The first profile admits 240 host steps at exactly 1/120 s. A different dt uses `INVALID_STEP`; step 241 uses `WORLD_LIMIT`. Each step commits only finite candidates within ±10 m and ±1000 m/s, structural extension ≤10%, vertex-envelope penetration ≤1e-6 m and exact pins. A violation uses `NUMERIC_LIMIT` and retains the accepted state. Returned data cannot change future simulation. Vertex collision does not guarantee continuous triangle separation: centroid and edge-midpoint sampling of the measured scene has a separate ≤0.002 m display-loss gate. Self-collision, tearing, moving obstacles, arbitrary meshes, command logs and engineering stress are outside this profile.
+
+The implementation separates input admission, fixed profile, topology, constraints, solver, metrics and world lifecycle under `src/cloth/`. Run `pnpm --filter @barocss/physics build:library`, then `node examples/physics-scene/cloth-world-probe.mjs` and `node examples/physics-scene/cloth-source-import-probe.mjs`. The probe compares step 0/60/240 with the preserved [#825 numerical experiment](../../examples/physics-cloth-spike/README.md), checks scalar math and retention, and reports sampled display loss and CPU step cost. [#978](https://github.com/barocss/barocss/issues/978) delivers the numerical API. GPU mesh, Viewer bridge and actual cloth display are separate [#979](https://github.com/barocss/barocss/issues/979), [#980](https://github.com/barocss/barocss/issues/980) and [#981](https://github.com/barocss/barocss/issues/981) gates.
 
 The optional `@barocss/physics/fluid` subpath provides a bounded 3D water-particle world. Version 1 admits exactly 256 initial particles in a 0.7 × 1.3 × 0.5 m static basin, gravity `[0,-9.81,0]`, and a caller-driven 1/120 s step. Version 2 keeps that scene and requires the fixed opt-in field `visualViscosity:{kind:'xsph',coefficient:0.15}`. It blends nearby particle velocities after density projection; version 1 behavior and hashes stay unchanged. Initial centres must stay inside the basin with at least 0.025 m spacing. `createFluidWorld(scene)` returns `step(dt)`, `getState()`, `reset()` and `dispose()`. State contains copied `Float64Array` XYZ metre positions and velocities, stable particle indices, a step count and normalized density diagnostics. The caller owns display and clock. The visual coefficient is not a calibrated material viscosity. No emitter, moving obstacle, rigid coupling or CFD accuracy is claimed. See [FLUID-01 #813](https://github.com/barocss/barocss/issues/813), [FLUID-03 #815](https://github.com/barocss/barocss/issues/815) and the [solver decision](../../examples/physics-fluid-spike/README.md).
 
@@ -92,6 +119,6 @@ Optional `broadPhase:'aabb'` filters the existing eligible pair list before narr
 
 Limits: 1–32 bodies by default or 1–64 in `large-v1`, at least one dynamic body, 3600 steps, fixed step 1/240–1/30 s. Each position component is within ±10000 m, velocity and gravity components within ±1000 m/s, mass 0.000001–1000000 kg, sphere radius and box half extents 0.0001–1000 m, restitution 0–1. Force and torque components are within ±1000000 N or N·m; linear and angular impulse components are within ±100000 N·s or N·m·s. One step refuses movement or measured penetration above 10 m. Body IDs are unique ASCII identifiers, up to 64 characters, starting with a letter. Contact pairs have ascending IDs; `normalAtoB` points from A to B. See [Issue #751](https://github.com/barocss/barocss/issues/751) for v0 and [PHYS-02 #765](https://github.com/barocss/barocss/issues/765#issuecomment-6058662978) for linear control.
 
-For workspace bundlers, opt in to the `barocss-source` export condition to resolve the package root, `/cad-proxy`, `/replay`, `/fluid` and `/fluid-cad` to `src/*.ts`. Browser examples also bundle these source files directly. The default `import` and `types` exports remain compiled `dist` files. Node consumers and packed-package checks use that default path. Source imports require a TypeScript-capable bundler; the condition alone does not make Node execute TypeScript source.
+For workspace bundlers, opt in to the `barocss-source` export condition to resolve the package root, `/cad-proxy`, `/replay`, `/fluid`, `/fluid-cad` and `/cloth` to `src/*.ts`. Browser examples also bundle these source files directly. The default `import` and `types` exports remain compiled `dist` files. Node consumers and packed-package checks use that default path. Source imports require a TypeScript-capable bundler; the condition alone does not make Node execute TypeScript source.
 
 Run `node examples/physics-scene/server.mjs` to view the basic scene without a manual Physics build. Restart its server after source edits. For the compiled package contract, run `pnpm --filter @barocss/physics build:library`, then `node examples/physics-scene/probe.mjs`, `node examples/physics-scene/controls-probe.mjs`, `node examples/physics-scene/events-queries-probe.mjs`, `node examples/physics-scene/rotation-probe.mjs`, `node examples/physics-scene/oriented-colliders-probe.mjs`, `node examples/physics-scene/friction-stack-probe.mjs`, `node examples/physics-scene/joints-probe.mjs`, `node examples/physics-scene/dynamic-fixed-pair-probe.mjs`, `node examples/physics-scene/ccd-probe.mjs`, `node examples/physics-scene/broadphase-probe.mjs` and `node examples/physics-scene/replay-probe.mjs`.
