@@ -1,6 +1,7 @@
 import { createCadGeometryReference, curveDomain, evaluateCurve, evaluateSurface,
-  queryCadDocumentBounds, surfaceDomain, validateCadDocumentBounds } from '@barocss/cad';
-import type { AdaptiveCurveSamplingResult, WideAdaptiveCurveSamplingResult } from '@barocss/cad';
+  queryCadDocumentBounds, queryCadAssemblyInstancePoint, surfaceDomain, validateCadDocumentBounds } from '@barocss/cad';
+import type { AdaptiveCurveSamplingResult, WideAdaptiveCurveSamplingResult, CadAssemblyResult,
+  CadAssemblyInstancePointQuery, CadAssemblyInstancePointResult } from '@barocss/cad';
 import { BaroCadLoadAbortError, loadBaroCadSource, parseBaroCadSource } from '@barocss/cad-interop/native';
 import type { BaroCadLoadTransportOptions, BaroCadNativeResult } from '@barocss/cad-interop/native';
 import { loadBaroCadDocument, prepareBaroCadDocumentPrimitiveNativeRefsV2 } from '@barocss/cad-interop/document';
@@ -19,6 +20,11 @@ import type { MeshCamera, MeshLighting, PreviewPacket, PrimitiveSceneEntryV1,
 import { prepareViewerClothFrame } from './cloth-frame.js';
 import type { ViewerClothFrameV0 } from './cloth-frame.js';
 export type { ViewerClothFrameV0 } from './cloth-frame.js';
+import { prepareViewerAssembly } from './assembly.js';
+import type { ViewerAssemblyLoadOptions, ViewerAssemblyInstanceBinding } from './assembly.js';
+export type { ViewerAssemblyLoadOptions, ViewerAssemblyInstanceBinding } from './assembly.js';
+export type ViewerAssemblyPointQuery = CadAssemblyInstancePointQuery;
+export type ViewerAssemblyPoint = CadAssemblyInstancePointResult;
 
 type Vec3 = [number, number, number];
 type Quat = [number, number, number, number];
@@ -190,6 +196,8 @@ export interface ViewerState {
   modelSet: BaroCadModelSetResult | null;
   document: CadDocumentResult | null;
   documentBodies: ViewerDocumentBody[];
+  assembly: CadAssemblyResult | null;
+  assemblyInstances: ViewerAssemblyInstanceBinding[];
   measurement: ViewerNativeSurfaceMeasurement | null;
   motion: ViewerMotionState | null;
   geometryMotion: ViewerGeometryMotionState | null;
@@ -546,6 +554,8 @@ export class Viewer {
   private modelSet: BaroCadModelSetResult | null = null;
   private document: CadDocumentResult | null = null;
   private documentBodies: ViewerDocumentBody[] = [];
+  private assembly: CadAssemblyResult | null = null;
+  private assemblyInstances: ViewerAssemblyInstanceBinding[] = [];
   private hiddenGeometry: ViewerGeometryRef[] = [];
   private measurement: ViewerNativeSurfaceMeasurement | null = null;
   private curveMeasurement: ViewerNativeCurveMeasurement | null = null;
@@ -604,7 +614,7 @@ export class Viewer {
   private present(allPackets: ViewerPacket[], allCurves: ViewerCurveEntry[], camera: MeshCamera, selected: ViewerRef | null,
     motion: ViewerMotionState | null, geometrySelection: ViewerGeometryRef | null = this.selectedGeometry,
     geometryMotion: ViewerGeometryMotionState | null = this.geometryMotion,
-    qualified = this.modelSet !== null || this.document !== null,
+    qualified = this.modelSet !== null || this.document !== null || this.assembly !== null,
     hiddenGeometry = this.hiddenGeometry,
     particleLayer: ParticleLayerV0 | null = this.particleLayer,
     surfaceMaterials: ViewerSurfaceMaterial[] = this.surfaceMaterials,
@@ -738,7 +748,8 @@ export class Viewer {
       } catch (error) { prior?.render(); throw error; }
     }
   }
-  private validatedPackets(input: unknown, allowEmpty = false, qualified = false): ViewerPacket[] {
+  private validatedPackets(input: unknown, allowEmpty = false, qualified = false,
+    initialPoses: ViewerGeometryMotionState | null = null): ViewerPacket[] {
     check(Array.isArray(input) && Object.getPrototypeOf(input) === Array.prototype
       && input.length >= (allowEmpty ? 0 : 1) && input.length <= 4
       && Reflect.ownKeys(input).length === input.length + 1,
@@ -757,7 +768,15 @@ export class Viewer {
       surfaceIds.add(packet.surfaceId);
       vertices += packet.positions.length / 3; indices += packet.indices.length;
       check(vertices <= 4096 && indices <= 24576, 'Viewer geometry exceeds total limits');
-      prepareMesh(packet, { ...this.gpuOptions(), color: PALETTE[i] });
+      const pose = surfacePose({ modelId: value.modelId, surfaceId: packet.surfaceId }, null, initialPoses);
+      if (pose) {
+        for (let offset = 0; offset < packet.positions.length; offset += 3) {
+          const displayed = displayVertex(packet.positions.slice(offset, offset + 3) as Vec3,
+            pose, this.options.mmToSceneUnit);
+          check(displayed.every(value => Number.isFinite(value) && Math.abs(value) <= 1000),
+            'Transformed assembly Surface exceeds GPU scene bounds');
+        }
+      } else prepareMesh(packet, { ...this.gpuOptions(), color: PALETTE[i] });
       result.push({ modelId: value.modelId, packet });
     }
     return result;
@@ -776,6 +795,7 @@ export class Viewer {
     this.packets = packets; this.curves = curves; this.camera = camera;
     this.selected = null; this.selectedGeometry = null; this.native = native; this.modelSet = modelSet;
     this.document = document; this.documentBodies = documentBodies;
+    this.assembly = null; this.assemblyInstances = [];
     this.hiddenGeometry = [];
     this.measurement = null; this.motion = null; this.geometryMotion = null; this.curveMeasurement = null;
     this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
@@ -797,6 +817,52 @@ export class Viewer {
         check(isWideGpuCurveSample(curve.sample), 'Viewer requires Curve sample v0 or v1');
         return { modelId: native.model.name, sampleVersion: 1, sample: curve.sample };
       }));
+  }
+  loadAssembly(input: CadAssemblyResult, options: ViewerAssemblyLoadOptions): void {
+    this.live(); check(!this.contextLost, 'Cannot load assembly after WebGL2 context loss');
+    const request = ownRecord(options, ['native', 'basis', 'instanceIds'], 'Assembly options');
+    check(request.basis === 'authored-xyz-matches-rhyup',
+      'Assembly authored XYZ/mm basis must explicitly match Viewer Y-up/mm');
+    const nativeOptions = parseNativeOptions(request.native);
+    const candidate = prepareViewerAssembly(input, request.instanceIds,
+      { ...nativeOptions, unitsPerMillimeter: 1 });
+    const packets = this.validatedPackets(candidate.packets, candidate.curves.length > 0,
+      true, candidate.geometryMotion);
+    const curves = candidate.curves;
+    check(packets.length + curves.length >= 1 && packets.length + curves.length <= 4,
+      'Assembly requires 1..4 total display objects');
+    check(curves.every(entry => entry.sampleVersion === curves[0].sampleVersion),
+      'Assembly requires one Curve sample version');
+    for (const entry of curves) {
+      const pose = curvePose({ modelId: entry.modelId, curveId: entry.sample.curve.id }, candidate.geometryMotion);
+      for (const point of entry.sample.pointsMM) {
+        const displayed = displayVertex(point as Vec3, pose, this.options.mmToSceneUnit);
+        check(displayed.every(value => Number.isFinite(value) && Math.abs(value) <= 1000),
+          'Transformed assembly Curve exceeds GPU scene bounds');
+      }
+    }
+    const camera = fittedCamera(packets, curves, this.options.mmToSceneUnit,
+      this.canvas.width, this.canvas.height, null, candidate.geometryMotion);
+    this.present(packets, curves, camera, null, null, null, candidate.geometryMotion,
+      true, [], null, [], null);
+    this.packets = packets; this.curves = curves; this.camera = camera;
+    this.native = null; this.modelSet = null; this.document = null; this.documentBodies = [];
+    this.assembly = candidate.assembly; this.assemblyInstances = candidate.instances;
+    this.selected = null; this.selectedGeometry = null; this.hiddenGeometry = [];
+    this.motion = null; this.geometryMotion = candidate.geometryMotion;
+    this.measurement = null; this.curveMeasurement = null;
+    this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
+    this.fluidFrame = null; this.particleLayer = null; this.surfaceMaterials = [];
+    this.clothFrame = null; this.clothLayer = null;
+    this.sceneRequest++;
+  }
+  queryAssemblyInstancePoint(input: ViewerAssemblyPointQuery): ViewerAssemblyPoint {
+    this.live(); check(this.assembly, 'Viewer has no accepted assembly');
+    const query = ownRecord(input,
+      ['assemblyId', 'assemblyRevision', 'instanceId', 'reference', 'query'], 'Assembly point query');
+    check(this.assemblyInstances.some(value => value.instanceId === query.instanceId),
+      'Assembly point must reference an admitted instance');
+    return queryCadAssemblyInstancePoint(this.assembly, input);
   }
   loadNative(source: string, input: NativeLoadOptions | ViewerNativeCurveLoadOptions
     | ViewerNativeCurveLoadOptionsV1): void {
@@ -886,6 +952,7 @@ export class Viewer {
     this.present([], [], this.camera, null, null, null, null, false, [], null, [], null);
     this.packets = []; this.curves = []; this.native = null; this.modelSet = null;
     this.document = null; this.documentBodies = [];
+    this.assembly = null; this.assemblyInstances = [];
     this.hiddenGeometry = [];
     this.selected = null; this.selectedGeometry = null;
     this.measurement = null; this.curveMeasurement = null;
@@ -1004,6 +1071,12 @@ export class Viewer {
     });
   }
   private nativeModel(modelId: string): BaroCadNativeResult['model'] | null {
+    if (this.assembly) {
+      const binding = this.assemblyInstances.find(value => value.ref.modelId === modelId);
+      const document = this.assembly.documents.find(value =>
+        value.document.documentId === binding?.reference.documentId);
+      return document?.compiledAssets.find(value => value.assetId === binding?.reference.assetId)?.model ?? null;
+    }
     if (this.document) {
       const body = this.documentBodies.find(value => value.ref.modelId === modelId);
       return body ? this.document.compiledAssets.find(asset =>
@@ -1015,7 +1088,7 @@ export class Viewer {
   }
   measureNativeSurfacePoints(firstInput: ViewerNativeSurfaceParameter,
     secondInput: ViewerNativeSurfaceParameter): ViewerNativeSurfaceMeasurement {
-    this.live();
+    this.live(); check(!this.assembly, 'Use revision-pinned queryAssemblyInstancePoint for assembly inspection');
     const first = parseNativeParameter(firstInput), second = parseNativeParameter(secondInput);
     const model = this.nativeModel(first.modelId);
     check(model && second.modelId === first.modelId,
@@ -1042,7 +1115,7 @@ export class Viewer {
   }
   applyMotionFrame(input: ViewerPoseFrame, inputBindings: ViewerMotionBinding[],
     inputOptions: { basis: 'part-xyz-matches-rhyup' }): void {
-    this.live(); check(this.packets.length > 0, 'Viewer has no surfaces');
+    this.live(); check(!this.assembly, 'Assembly authored poses cannot be overridden or reset'); check(this.packets.length > 0, 'Viewer has no surfaces');
     const basis = ownRecord(inputOptions, ['basis'], 'Motion basis');
     check(basis.basis === 'part-xyz-matches-rhyup', 'Motion part XYZ/mm basis must explicitly match Viewer Y-up/mm');
     const frame = parseMotionFrame(input);
@@ -1072,7 +1145,7 @@ export class Viewer {
   }
   applyGeometryMotionFrame(input: ViewerPoseFrame, inputBindings: ViewerGeometryMotionBinding[],
     inputOptions: { basis: 'part-xyz-matches-rhyup' }): void {
-    this.live(); check(this.packets.length + this.curves.length > 0, 'Viewer has no geometry');
+    this.live(); check(!this.assembly, 'Assembly authored poses cannot be overridden or reset'); check(this.packets.length + this.curves.length > 0, 'Viewer has no geometry');
     const basis = ownRecord(inputOptions, ['basis'], 'Motion basis');
     check(basis.basis === 'part-xyz-matches-rhyup', 'Motion part XYZ/mm basis must explicitly match Viewer Y-up/mm');
     const frame = parseMotionFrame(input);
@@ -1109,7 +1182,7 @@ export class Viewer {
     this.geometryMotion = geometryMotion;
   }
   resetMotion(): void {
-    this.live();
+    this.live(); check(!this.assembly, 'Assembly authored poses cannot be overridden or reset');
     if (this.motion || this.geometryMotion) this.present(this.packets, this.curves, this.camera,
       this.selected, null, this.selectedGeometry, null);
     this.motion = null;
@@ -1117,7 +1190,7 @@ export class Viewer {
   }
   measureNativeCurvePoints(firstInput: ViewerNativeCurveParameter,
     secondInput: ViewerNativeCurveParameter): ViewerNativeCurveMeasurement {
-    this.live();
+    this.live(); check(!this.assembly, 'Use revision-pinned queryAssemblyInstancePoint for assembly inspection');
     const first = parseNativeCurveParameter(firstInput), second = parseNativeCurveParameter(secondInput);
     const model = this.nativeModel(first.modelId);
     check(model && second.modelId === first.modelId,
@@ -1143,7 +1216,7 @@ export class Viewer {
   }
   measureNativeSurfaceCurvePoints(surfaceInput: ViewerNativeSurfaceParameter,
     curveInput: ViewerNativeCurveParameter): ViewerNativeSurfaceCurveMeasurement {
-    this.live();
+    this.live(); check(!this.assembly, 'Use revision-pinned queryAssemblyInstancePoint for assembly inspection');
     const surfaceParameter = parseNativeParameter(surfaceInput);
     const curveParameter = parseNativeCurveParameter(curveInput);
     const model = this.nativeModel(surfaceParameter.modelId);
@@ -1179,7 +1252,7 @@ export class Viewer {
   }
   measureNativePoints(firstInput: ViewerNativePointInput,
     secondInput: ViewerNativePointInput): ViewerNativePointDistance {
-    this.live();
+    this.live(); check(!this.assembly, 'Use revision-pinned queryAssemblyInstancePoint for assembly inspection');
     const first = parseNativePointInput(firstInput), second = parseNativePointInput(secondInput);
     const model = this.nativeModel(first.modelId);
     check(model && second.modelId === first.modelId,
@@ -1210,7 +1283,7 @@ export class Viewer {
       t: input.t, pointMM: [...evaluateCurve(curve, input.t)] as Vec3 };
   }
   projectNativePoint(input: ViewerNativePointInput): ViewerNativePointProjection | null {
-    this.live(); check(!this.contextLost, 'Cannot project after WebGL2 context loss');
+    this.live(); check(!this.assembly, 'Use revision-pinned queryAssemblyInstancePoint for assembly inspection'); check(!this.contextLost, 'Cannot project after WebGL2 context loss');
     const parsed = parseNativePointInput(input);
     const ref: ViewerGeometryRef = parsed.kind === 'surface'
       ? { kind: 'surface', modelId: parsed.modelId, surfaceId: parsed.surfaceId }
@@ -1264,7 +1337,7 @@ export class Viewer {
     const selected = selection?.kind === 'surface'
       ? { modelId: selection.modelId, surfaceId: selection.surfaceId } : null;
     if (this.renderer) this.present(this.packets, this.curves, this.camera, selected,
-      this.motion, selection, this.geometryMotion, this.modelSet !== null || this.document !== null, hidden);
+      this.motion, selection, this.geometryMotion, this.modelSet !== null || this.document !== null || this.assembly !== null, hidden);
     this.hiddenGeometry = hidden;
     this.selected = selected;
     this.selectedGeometry = selection;
@@ -1767,7 +1840,8 @@ export class Viewer {
       packets: this.packets,
       selected: this.selected, selectedGeometry: this.selectedGeometry,
       native: this.native, modelSet: this.modelSet, document: this.document,
-      documentBodies: this.documentBodies, measurement: this.measurement,
+      documentBodies: this.documentBodies, assembly: this.assembly,
+      assemblyInstances: this.assemblyInstances, measurement: this.measurement,
       curveMeasurement: this.curveMeasurement, surfaceCurveMeasurement: this.surfaceCurveMeasurement,
       nativeMeasurement: this.nativeMeasurement, motion: this.motion,
       geometryMotion: this.geometryMotion, fluidFrame: this.fluidFrame, clothFrame: this.clothFrame,
@@ -1778,7 +1852,9 @@ export class Viewer {
   dispose(): void { if (this.disposed) return; this.disposed = true;
     this.canvas.removeEventListener('webglcontextlost', this.onContextLost);
     this.renderer?.dispose(); this.renderer = null; this.fluidFrame = null; this.particleLayer = null;
-    this.surfaceMaterials = []; this.clothFrame = null; this.clothLayer = null; }
+    this.surfaceMaterials = []; this.clothFrame = null; this.clothLayer = null;
+    if (this.assembly) { this.motion = null; this.geometryMotion = null; }
+    this.assembly = null; this.assemblyInstances = []; }
 }
 
 export function createViewer(canvas: HTMLCanvasElement, options: ViewerOptions): Viewer {

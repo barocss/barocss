@@ -75,6 +75,76 @@ or a second canvas. The Surface is display geometry, not a certified fluid
 collision obstacle. `examples/viewer-fluid-scene` exercises the actual Physics
 and native Surface path in Chromium WebGL2.
 
+## Selected native assembly instances
+
+`loadAssembly(result, options)` admits one complete validated public CAD
+assembly and 1 through 4 explicitly chosen existing instances. Loader's
+`@barocss/cad-interop/assembly` entry reads the authored file. This synchronous
+Viewer command prepares original previews, initial authored poses and camera,
+then presents one complete candidate before changing accepted state:
+
+```js
+viewer.loadAssembly(assemblyResult, {
+  native: { sourceVersion: 0, countU: 5, countV: 5,
+    curveDisplay: { version: 1, chordToleranceMM: 0.01,
+      maxSegments: 64, maxDepth: 8 } },
+  basis: 'authored-xyz-matches-rhyup',
+  instanceIds: ['child', 'surface_grandchild', 'shared_root', 'asset_b_instance']
+});
+const binding = viewer.getState().assemblyInstances[0];
+const point = viewer.queryAssemblyInstancePoint({
+  assemblyId: binding.assemblyId, assemblyRevision: binding.assemblyRevision,
+  instanceId: binding.instanceId, reference: binding.reference,
+  query: { kind: 'curve', parameter: 2 }
+});
+// point.originalLocalPointMM and point.assemblyPointMM have separate meanings.
+```
+
+`ViewerAssemblyLoadOptions` has exactly the own data fields `native`, `basis`
+and `instanceIds`; accessors, symbols, extra or sparse entries refuse. Native
+options use existing Viewer version/count/Curve budgets. Input units are fixed
+at one original mm, not an additional caller scale. IDs are unique authored
+ASCII IDs in caller order. `getState().assembly` retains the complete copied
+native result; `assemblyInstances` records the selected ref, assembly identity
+and revision, instance/parent/ancestors, full native reference, original local
+and world matrices, and derived display pose. Original native/modelSet/document
+fields become null, and documentBodies empty. The native result retains nested
+source strings; it does not retain the original Assembly JSON wire text.
+
+Display refs use `assembly.` followed by two lowercase hexadecimal digits per
+instance ID character. Repeated parts keep original geometry IDs and distinct
+instance namespaces. Preview coordinates/source/UVs/parameter domains remain
+original local XYZ/mm. A unit quaternion and translation derived from the
+validated row-major world matrix apply before `mmToSceneUnit` once. No Euler
+angle addition, native scale, reflection or baked geometry is introduced. GPU's
+translation limit is ±10000 mm, even though native assembly capacity is larger;
+transformed positions must also meet ±1000 scene-unit and current GPU budgets.
+The initial camera fits selected posed display geometry, not a certified
+assembly hull. Invalid candidate or late allocation failure keeps the previous
+source, bindings, camera, selection, layers, pixels and resources.
+
+Copied geometryMotion exposes complete authored poses for inspection. Camera,
+fit, visibility, picking and selection retain them. Motion frame overrides and
+resetMotion refuse in assembly mode. Native curve picking resolves the original
+selected part; approximate hits remain display queries. Legacy native measurement
+and projectNativePoint methods refuse in this mode: use the revision-pinned
+assembly command, which returns the original CAD query/report without changing
+Viewer state. It accepts only admitted instance IDs and exact current assembly
+revision/full part references. Hidden status and primary selection do not affect
+read-only source inspection. Native document-bound methods remain document-only.
+
+This first assembly profile refuses material commands and non-null fluid/cloth
+frames. Successful generation resets earlier layers; failed replacement retains
+them. A successful assembly load supersedes older pending Viewer source URL
+loads. Later successful native/model-set/document/packet loads or clear drop
+assembly metadata. Context loss retains copied assembly data for CPU queries
+while GPU operations refuse; disposal clears assembly/bindings/authored poses
+and rejects later queries. Native 32-instance capacity is separate from the
+four-instance display limit. Editing, mates, exploded poses, multi-highlight,
+Shell composition and physical certification are separate scopes.
+`examples/viewer-assembly-scene` demonstrates selected hierarchy and read-only
+local/world inspection on original revision0/1 files.
+
 ## Caller-owned cloth frames
 
 After loading one qualified visible native Surface with `loadModelSet` or
