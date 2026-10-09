@@ -81,7 +81,7 @@ group.setAlpha(0);
 assert.deepEqual(group.getWorldBounds(), alphaBox);
 assert.deepEqual(path.getWorldBounds(), alphaPathBox);
 group.setAlpha(1);
-assert.equal(tree.snapshot().version, 14);
+assert.equal(tree.snapshot().version, 15);
 
 const file = await serializeCanvasDocument(tree.snapshot(), id => id === 'Atlas'
   ? { width: 1, height: 1, pixels: new Uint8Array([255, 0, 0, 255]) } : null);

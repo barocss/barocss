@@ -16,7 +16,7 @@ tree.stage.addChild(parent); parent.addChild(red); tree.stage.addChild(blue);
 /** @type {HTMLCanvasElement} */
 let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
 let renderer = createCanvas2D(canvas, options);
-/** @type {import('@barocss/canvas2d').SceneV13 | import('@barocss/canvas2d').SceneV14} */
+/** @type {import('@barocss/canvas2d').SceneV13 | import('@barocss/canvas2d').SceneV14 | import('@barocss/canvas2d').SceneV15} */
 let accepted = tree.snapshot(); renderer.updateScene(accepted); renderer.render();
 let generation = 1;
 let lastPointerId = -1;
@@ -88,7 +88,7 @@ async function save() {
 async function openText(text) {
   const fresh = document.createElement('canvas'); fresh.id = 'scene'; fresh.width = 160; fresh.height = 160;
   const staged = await stageCanvasDocument(text, fresh, options);
-  if (staged.scene.version !== 13 && staged.scene.version !== 14) throw new Error('Scene v13 or v14 required');
+  if (staged.scene.version !== 13 && staged.scene.version !== 14 && staged.scene.version !== 15) throw new Error('Scene v13 or v14 or v15 required');
   const nextTree = createDisplayTreeFromScene(staged.scene);
   const nextParent = nextTree.get('Parent'), nextRed = nextTree.get('Red'), nextBlue = nextTree.get('Blue');
   if (nextParent?.kind !== 'container' || nextRed?.kind !== 'rect' || nextBlue?.kind !== 'rect') {

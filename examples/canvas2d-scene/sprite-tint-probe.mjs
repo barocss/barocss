@@ -14,7 +14,7 @@ for (const bad of [null, undefined, [1, 1], [1, NaN, 1]]) {
     imageId: 'Atlas', width: 10, height: 10, opacity: 1, sampling: 'nearest',
     anchorX: 0, anchorY: 0, tint: bad }), error => error.code === 'INVALID_SCENE');
 }
-assert.equal(tree.snapshot().version, 14);
+assert.equal(tree.snapshot().version, 15);
 const tint = [0, 1, 1]; sprite.setTint(tint); tint[0] = 1;
 assert.deepEqual(sprite.data.tint, [0, 1, 1]);
 const data = sprite.data; data.tint[1] = 0;
@@ -45,16 +45,16 @@ legacyImage.tint = [1, 0, 0];
 assert.throws(() => stringifySceneJSON(legacy), error => error.code === 'INVALID_SCENE');
 delete legacyImage.tint;
 const upgraded = createDisplayTreeFromScene(legacy);
-assert.equal(upgraded.snapshot().version, 14);
+assert.equal(upgraded.snapshot().version, 15);
 assert.deepEqual(upgraded.get(legacyImage.id).data.tint, [1, 1, 1]);
 const missing = structuredClone(tree.snapshot()); delete missing.nodes[0].tint;
 assert.throws(() => stringifySceneJSON(missing), error => error.code === 'INVALID_SCENE');
 const documentText = await serializeCanvasDocument(tree.snapshot(), id => id === 'Atlas'
   ? { width: 1, height: 1, pixels: new Uint8Array([255, 255, 255, 255]) } : null);
 const parsed = await parseCanvasDocument(documentText);
-assert.equal(parsed.scene.version, 14);
+assert.equal(parsed.scene.version, 15);
 assert.deepEqual(parsed.scene.nodes[0].tint, [0, 1, 1]);
 const oldDocument = await serializeCanvasDocument(anchorScene(6), id => id === 'Anchor2' ? anchorAsset : null);
 assert.equal((await parseCanvasDocument(oldDocument)).scene.version, 6);
-console.log(JSON.stringify({ result: 'ok', sceneVersion: 14, legacyDocumentVersion: 6,
+console.log(JSON.stringify({ result: 'ok', sceneVersion: 15, legacyDocumentVersion: 6,
   tintedDocumentBytes: Buffer.byteLength(documentText) }));
