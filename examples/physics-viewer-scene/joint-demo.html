@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>BaroCSS two-body joint preview</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #081521; color: #ecf6ff; }
+    main { max-width: 1080px; margin: auto; padding: 24px; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    p { color: #abc4d6; line-height: 1.5; }
+    canvas { display: block; width: 100%; background: #091525; border: 1px solid #36546b; border-radius: 12px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+    button { padding: 10px 14px; border: 1px solid #5b8199; border-radius: 8px;
+      background: #21405a; color: inherit; cursor: pointer; font: inherit; }
+    .readout { display: flex; flex-wrap: wrap; gap: 20px; padding: 14px; background: #10283b; border-radius: 10px; }
+    small { display: block; color: #a9c5d4; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Two original Surfaces, one dynamic fixed pair</h1>
+    <p>The panels follow two 1 kg sphere proxies joined by a fixed constraint. The CAD Surfaces stay unchanged. A 0.2 N·s impulse moves the pair at the first fixed step.</p>
+    <canvas id="viewer" width="960" height="560" aria-label="Two moving native BaroCAD Surfaces"></canvas>
+    <div class="controls">
+      <button id="play">Play</button><button id="one-step">One step</button>
+      <button id="reset">Reset</button><button id="fit">Fit</button>
+      <button id="reject">Test invalid binding</button>
+    </div>
+    <div class="readout">
+      <div><small>Step</small><strong id="step">0</strong> / 120</div>
+      <div><small>Body X positions</small><strong id="centres">0 / 0.2 m</strong></div>
+      <div><small>Joint reaction on B</small><strong id="reaction">0 N·s</strong></div>
+      <div><small>Status</small><strong id="status">Paused</strong></div>
+    </div>
+    <p>Physics uses metres and a caller-owned 1/120 s step. Viewer uses millimetres and owns the camera and clock. This preview does not model a CAD joint, motor, break force or engineering load.</p>
+  </main>
+  <script type="module" src="/joint-demo.js"></script>
+</body>
+</html>

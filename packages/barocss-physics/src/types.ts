@@ -33,7 +33,12 @@ export type PhysicsStepCommand =
 export type PhysicsJointConfig =
   | { id: string; kind: 'fixed'; aId: string; bId: string; anchorALocalM: Vec3; anchorBLocalM: Vec3 }
   | { id: string; kind: 'hinge'; aId: string; bId: string; anchorALocalM: Vec3; anchorBLocalM: Vec3;
-      axisWorld: Vec3; limitRad: [number, number] };
+      axisWorld: Vec3; limitRad: [number, number]; motor?: PhysicsHingeMotorConfig };
+export interface PhysicsHingeMotorConfig {
+  targetSpeedRadps: number;
+  maxImpulseNms: number;
+  maxReactionNms: number;
+}
 export interface PhysicsWorldConfig {
   fixedStepSeconds: number;
   gravityMps2: Vec3;
@@ -81,6 +86,7 @@ export interface PhysicsJointState {
   linearImpulseNs: Vec3;
   angularImpulseNms: Vec3;
   angleRad?: number;
+  motorImpulseNms?: number;
 }
 export interface PhysicsCcdHit {
   bodyId: string;
@@ -133,4 +139,5 @@ export interface Joint {
   referenceOrientation: Quat;
   axisWorld?: Vec3;
   limitRad?: [number, number];
+  motor?: PhysicsHingeMotorConfig;
 }
