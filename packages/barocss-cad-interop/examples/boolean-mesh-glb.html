@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native Boolean material display GLB in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Native Boolean material display GLB · Three.js</h1>
+  <p>Saved GLB files load over HTTP. Native component triangles leave the hole empty.</p>
+  <div id="view"></div>
+  <button id="reject" type="button">Try invalid exports</button>
+  <button id="dispose" type="button">Remove imported display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { AmbientLight, Group, OrthographicCamera, Scene, Vector3, WebGLRenderer } from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  import { validateCoplanarFaceBooleanMesh } from '@barocss/cad';
+  import { exportBaroCadBooleanDisplayGlb } from '@barocss/cad-interop/boolean-mesh-glb';
+
+  const status = document.querySelector('#status');
+  const renderer = new WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+  renderer.setSize(800, 520);
+  renderer.setPixelRatio(1);
+  renderer.setClearColor(0x101b2c);
+  document.querySelector('#view').append(renderer.domElement);
+  const canvas = renderer.domElement;
+  const scene = new Scene();
+  scene.add(new AmbientLight(0xffffff, 2));
+  const caller = new Group(); caller.name = 'caller-owned'; scene.add(caller);
+  const camera = new OrthographicCamera(-0.012, 0.012, 0.0078, -0.0078, 0.0001, 0.3);
+  camera.position.set(0.08, 0.03, -0.08);
+  camera.lookAt(-0.002, -0.0035, -0.002);
+  const options = { unitsPerMillimeter: 0.001, basis: 'authored-xyz-matches-rhyup' };
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const background = (r, g, b) => Math.abs(r - 16) <= 12 && Math.abs(g - 27) <= 12 && Math.abs(b - 44) <= 12;
+  const render = () => {
+    renderer.render(scene, camera);
+    const gl = renderer.getContext();
+    const bytes = new Uint8Array(canvas.width * canvas.height * 4);
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('Three GLB WebGL readPixels failed');
+    return bytes;
+  };
+  const colored = bytes => {
+    let count = 0;
+    for (let i = 0; i < bytes.length; i += 4) {
+      if (!background(bytes[i], bytes[i + 1], bytes[i + 2])) count++;
+    }
+    return count;
+  };
+  const pixelAt = (bytes, pointMM) => {
+    const ndc = new Vector3(...pointMM.map(value => value * 0.001)).project(camera);
+    const x = Math.round((ndc.x + 1) * canvas.width / 2);
+    const y = Math.round((ndc.y + 1) * canvas.height / 2);
+    if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) {
+      throw new Error('Native material probe lies outside GLB camera');
+    }
+    const offset = (y * canvas.width + x) * 4;
+    return { x, y, rgb: [...bytes.slice(offset, offset + 3)],
+      background: background(bytes[offset], bytes[offset + 1], bytes[offset + 2]) };
+  };
+  const native = async name => {
+    const response = await fetch(new URL(`./boolean-mesh-three-data/${name}.owned-mesh.json`, location.href));
+    if (!response.ok) throw new Error(`Native fixture HTTP ${response.status}: ${name}`);
+    const result = await response.json();
+    validateCoplanarFaceBooleanMesh(result);
+    return result;
+  };
+  const load = async name => {
+    const url = new URL(`./boolean-mesh-glb-data/${name}.display.glb`, location.href).href;
+    const imported = await new GLTFLoader().loadAsync(url);
+    const objects = [];
+    imported.scene.traverse(object => { if (object.isMesh) objects.push(object); });
+    return { imported, objects, url };
+  };
+  const release = imported => {
+    imported.scene.removeFromParent();
+    imported.scene.traverse(object => {
+      if (object.isMesh) {
+        object.geometry.dispose();
+        if (Array.isArray(object.material)) object.material.forEach(material => material.dispose());
+        else object.material.dispose();
+      }
+    });
+  };
+  let accepted, display, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    const fixtures = [
+      ['containment_hole', 1, 8],
+      ['strip_two_components', 2, 4],
+      ['reverse_containment_empty', 0, 0],
+    ];
+    const observations = [];
+    for (const [name, components, triangles] of fixtures) {
+      const result = await native(name);
+      const candidate = await load(name);
+      scene.add(candidate.imported.scene);
+      if (candidate.objects.length !== components ||
+          candidate.objects.reduce((sum, object) => sum + object.geometry.index.count / 3, 0) !== triangles ||
+          candidate.objects.some(object => object.geometry.getAttribute('uv') !== undefined) ||
+          candidate.objects.map(object => object.userData.barocss.componentId).join('|') !==
+            result.triangulation.components.map(component => component.componentId).join('|')) {
+        throw new Error(`Imported GLB differs from native Boolean material: ${name}`);
+      }
+      const pixels = render();
+      const isolated = [];
+      if (name === 'strip_two_components') {
+        for (const object of candidate.objects) {
+          for (const other of candidate.objects) other.visible = other === object;
+          isolated.push({ id: object.userData.barocss.componentId, pixels: colored(render()) });
+        }
+        for (const object of candidate.objects) object.visible = true;
+      }
+      let holeProbe = null, materialProbe = null;
+      if (name === 'containment_hole') {
+        const hole = result.region.loops.find(loop => loop.role === 'hole');
+        const outer = result.region.loops.find(loop => loop.role === 'outer');
+        const average = loop => loop.vertexIds.map(id => result.region.vertices.find(vertex => vertex.id === id).pointMM)
+          .reduce((sum, point, _, points) => sum.map((value, axis) => value + point[axis] / points.length), [0, 0, 0]);
+        holeProbe = pixelAt(pixels, average(hole));
+        const corner = result.region.vertices.find(vertex => vertex.id === outer.vertexIds[0]).pointMM;
+        const center = average(hole);
+        materialProbe = pixelAt(pixels, corner.map((value, axis) => value * 0.75 + center[axis] * 0.25));
+        if (!holeProbe.background || materialProbe.background) {
+          throw new Error('Saved GLB filled the native hole or missed material');
+        }
+      }
+      if ((triangles === 0 ? colored(pixels) !== 0 : colored(pixels) < 100) ||
+          isolated.some(entry => entry.pixels < 30)) {
+        throw new Error(`Saved GLB display pixels differ: ${name}`);
+      }
+      observations.push({ name, url: candidate.url, components, triangles,
+        visiblePixels: colored(pixels), isolated, holeProbe, materialProbe, hash: hash(render()) });
+      release(candidate.imported);
+    }
+    accepted = await native('containment_hole');
+    display = await load('containment_hole');
+    scene.add(display.imported.scene);
+    const acceptedFrame = render();
+    if (hash(acceptedFrame) !== observations[0].hash ||
+        !(renderer.getContext() instanceof WebGL2RenderingContext)) {
+      throw new Error('Accepted saved GLB frame differs');
+    }
+    evidence = { fixtures: observations, acceptedHash: hash(acceptedFrame),
+      webgl2: true, callerRetained: scene.children.includes(caller), refused: 0, disposed: false };
+    window.__baroBooleanGlbEvidence = evidence;
+    show();
+    document.querySelector('#reject').onclick = () => {
+      const before = hash(render());
+      const forged = structuredClone(accepted); forged.mesh.positionsMM[0] += 1;
+      const getter = { ...options }; let getterCalls = 0;
+      Object.defineProperty(getter, 'basis', { enumerable: true,
+        get() { getterCalls++; return options.basis; } });
+      let refused = 0;
+      for (const action of [
+        () => exportBaroCadBooleanDisplayGlb(forged, options),
+        () => exportBaroCadBooleanDisplayGlb(accepted, { ...options, basis: 'unknown' }),
+        () => exportBaroCadBooleanDisplayGlb(accepted, { ...options, unitsPerMillimeter: 1 }),
+        () => exportBaroCadBooleanDisplayGlb(accepted, getter),
+      ]) { try { action(); } catch { refused++; } }
+      if (refused !== 4 || getterCalls !== 0 || hash(render()) !== before ||
+          !scene.children.includes(caller) || display.objects.some(object => !object.parent)) {
+        throw new Error('Rejected GLB candidate changed the accepted frame');
+      }
+      evidence.refused = refused; evidence.acceptedFrameRetained = true; show();
+    };
+    document.querySelector('#dispose').onclick = () => {
+      release(display.imported);
+      if (colored(render()) !== 0 || !scene.children.includes(caller) ||
+          renderer.getContext() === null || document.querySelectorAll('canvas').length !== 1) {
+        throw new Error('Imported GLB cleanup changed caller resources');
+      }
+      evidence.disposed = true; evidence.afterDisposePixels = 0;
+      evidence.callerRetained = true; show();
+    };
+  } catch (error) {
+    if (display) release(display.imported);
+    evidence = { error: String(error), stack: error.stack };
+    window.__baroBooleanGlbEvidence = evidence;
+    show();
+  }
+</script>
