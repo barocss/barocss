@@ -97,6 +97,7 @@ try {
     check((await pixels()).hash === cameraPixels.hash, 'Details changed accepted pixels');
     await page.getByRole('button', {name: 'Retry update', exact: true}).click();
     check(await revision() === '9' && await page.getByTestId('preview-notice').count() === 0 && await page.getByTestId('presented-revision').innerText() === 'Preview ready', 'Successful retry did not resolve preview notice');
+    check((await pixels()).hash !== cameraPixels.hash, 'Retry did not change actual accepted pixels');
     await page.getByRole('button', {name: 'Undo', exact: true}).click(); check(await revision() === '10' && (await pixels()).hash === cameraPixels.hash, 'Retry Undo did not preserve accepted history');
     rows.push({case: 'syntax-camera-allocation-retention', refusedRevision: 8, retryRevision: 9, acceptedRevision: 10, pixels: cameraPixels, sourceErrors: 0, retainedAction: 'Retry update', focusRetained: true, detailsPreserveCause: true});
     const downloadReady = page.waitForEvent('download'); await page.getByRole('menuitem', {name: 'File', exact: true}).focus(); await page.getByRole('menuitem', {name: 'File', exact: true}).press('ArrowDown'); const saveItem = page.locator('[data-slot="menubar-content"][data-state="open"]').getByTestId('menu-save'); await saveItem.focus(); await saveItem.press('Enter'); const download = await downloadReady; await download.saveAs(config.output + '/saved.render-scene.json');
