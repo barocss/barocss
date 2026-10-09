@@ -4,6 +4,7 @@ import { parseRenderMixedDocument, serializeRenderMixedDocument, RENDER_MIXED_DO
 import type { RenderMixedDocumentV1, RenderMixedDocumentDisplayV1 } from './mixed-document.js';
 import { prepareRenderMixedDocument } from './mixed-frame.js';
 import type { PreparedRenderMixedDocument } from './mixed-frame.js';
+import { prepareRenderNativeSourceImport } from './native-source-import.js';
 
 export const RENDER_MIXED_SESSION_LIMITS = Object.freeze({ historyEntries: 32, historyBytes: 4 * 1024 * 1024 });
 export type RenderMixedSessionPurpose = 'apply' | 'open' | 'undo' | 'redo';
@@ -33,6 +34,7 @@ export interface RenderMixedSession {
   setDraftCamera(camera: MeshCamera): void;
   setDraftDisplay(display: RenderMixedDocumentDisplayV1): void;
   setDraftAssetReference(modelId: string, surfaceId: string): void;
+  setDraftNativeAsset(source: string, modelId: string, surfaceId: string): void;
   discardDraft(): void;
   prepareDraft(): RenderMixedPreparedCandidate;
   prepareOpen(text: string): RenderMixedPreparedCandidate;
@@ -195,6 +197,26 @@ export function createRenderMixedSession(initial: RenderMixedDocumentV1): Render
         throw error('Asset reference drafts must be strings of at most 128 characters.');
       }
       setDraft({ ...draft, asset: Object.freeze({ ...draft.asset, modelId, surfaceId }) });
+    },
+    setDraftNativeAsset(source, modelId, surfaceId) {
+      assertMutable();
+      const referencePattern = /^[A-Za-z_][A-Za-z0-9_.:-]{0,127}$/;
+      if (typeof modelId !== 'string' || typeof surfaceId !== 'string'
+        || !referencePattern.test(modelId) || !referencePattern.test(surfaceId)) {
+        throw error('Native model and Surface references must be ASCII identifiers of 1..128 characters.');
+      }
+      const imported = prepareRenderNativeSourceImport(source);
+      if (modelId !== imported.modelId) {
+        throw new RenderMixedDocumentError('QUALIFICATION', 'Native model reference does not match the imported original source.');
+      }
+      if (!imported.surfaces.some((surface) => surface.id === surfaceId)) {
+        throw new RenderMixedDocumentError('QUALIFICATION', 'Selected Surface does not exist in the imported original model.');
+      }
+      const changedSource = imported.source !== accepted.asset.source;
+      if (changedSource && accepted.asset.revision === 2147483647) throw error('Accepted asset revision is at its maximum.');
+      // Stage source and its qualified references together; unrelated drafts stay.
+      setDraft({ ...draft, asset: Object.freeze({ ...draft.asset, source: imported.source, modelId, surfaceId,
+        revision: changedSource ? accepted.asset.revision + 1 : accepted.asset.revision }) });
     },
     discardDraft() { assertMutable(); draft = accepted; diagnostics = null; changed(); },
     prepareDraft() { assertMutable(); return prepare({ ...draft, revision: nextRevision() }, 'apply'); },
