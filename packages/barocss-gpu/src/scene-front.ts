@@ -20,7 +20,10 @@ export function parseSceneAst(source:string,sourceVersion:0|1=0):SceneAst{
  const eof:SceneToken={text:'',range:range(source.length,source.length)};
  if(source.length>65536||new TextEncoder().encode(source).length>65536)fail('Source exceeds 64 KiB UTF-8',{text:'',range:{start:0,end:source.length,line:1,column:1}});
  const tokens:SceneToken[]=[];let offset=0;
- while(offset<source.length){if(/\s/.test(source[offset]!)){offset++;continue;}if(source.startsWith('/*',offset)){const end=source.indexOf('*/',offset+2);if(end<0)fail('Unterminated comment',{text:'',range:range(offset,source.length)});offset=end+2;continue;}const start=offset;if('{}:;@'.includes(source[offset]!))offset++;else while(offset<source.length&&!/[\s{}:;@]/.test(source[offset]!)&&!source.startsWith('/*',offset))offset++;if(tokens.length===SCENE_PARSE_LIMITS.tokens)fail('Token limit exceeded',{text:'',range:range(start,offset)});tokens.push({text:source.slice(start,offset),range:range(start,offset)});}
+ while(offset<source.length){if(/\s/.test(source[offset]!)){offset++;continue;}
+  // Discard annotations without changing the original token or diagnostic offsets.
+  if(source.startsWith('//',offset)){offset+=2;while(offset<source.length&&!/[\r\n\u2028\u2029]/.test(source[offset]!))offset++;continue;}
+  if(source.startsWith('/*',offset)){const end=source.indexOf('*/',offset+2);if(end<0)fail('Unterminated comment',{text:'',range:range(offset,source.length)});offset=end+2;continue;}const start=offset;if('{}:;@'.includes(source[offset]!))offset++;else while(offset<source.length&&!/[\s{}:;@]/.test(source[offset]!)&&!source.startsWith('/*',offset)&&!source.startsWith('//',offset))offset++;if(tokens.length===SCENE_PARSE_LIMITS.tokens)fail('Token limit exceeded',{text:'',range:range(start,offset)});tokens.push({text:source.slice(start,offset),range:range(start,offset)});}
  let cursor=0,nodes=0,objectCount=0,declarationCount=0;
  const peek=()=>tokens[cursor]??eof,take=()=>{const t=peek();if(cursor<tokens.length)cursor++;return t;};
  const expect=(text:string)=>{const t=take();if(t.text!==text)fail(`Expected '${text}'`,t);return t;};
