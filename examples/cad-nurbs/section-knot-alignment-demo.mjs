@@ -185,7 +185,7 @@ sourceFile('edit.actual-curve', edited.source, edited.model); jsonFile('edit.act
 const editResult = check('edited', first, edited.curve, settings('edited', 'edited_a_aligned', 'edited_b_aligned'),
   [[{parameter: 3, count: 1}], [{parameter: 1, count: 1}]], true);
 assert.deepEqual(edited, editedBefore); assert.ok(Math.hypot(...evaluateSurface(editResult.ruled.surface, 2, 1).map((value, i) => value - evaluateSurface(both.ruled.surface, 2, 1)[i])) > .1);
-const guardFirst = curve('guard_a', 2, [-3, -3, -3, 1, 1, 7, 7, 7],
+const guardFirst = curve('guard_seed_a', 2, [-3, -3, -3, 1, 1, 7, 7, 7],
   [[-2, 0, 0], [0, 2, 1], [2, 0, 2], [4, -1, 3], [5, 0, 4]], [1, 2, .75, 1.25, 1.5]);
 const guarded = check('guard', guardFirst, second, settings('guard', 'guard_a_aligned', 'guard_b_aligned'),
   [[{parameter: 3, count: 1}], [{parameter: 1, count: 2}]], true);
