@@ -1039,3 +1039,34 @@ triangles or edge segments refuse; genuine empty results stay empty/null.
 pnpm --filter @barocss/gpu build:library
 node examples/gpu-scene/shell-buffers-flow.mjs --meshes /path/to/896/meshes --planar /path/to/887/cross_union.owned-mesh.json --output /tmp/shell-buffers
 ```
+
+## Provisional native Shell renderer source (#908)
+
+`mountBooleanShell(canvas, completeNativeShellMesh, {mesh: {...meshOptions, camera}, edges: null})`
+adds a dedicated draw path for the whole #896 mesh using public #904 preparation.
+It preserves native hard-normal faces and original Curve samples, without a
+Surface/PreviewPacket0 adapter. `edges: {color: [0,0,0]}` selects true global paths
+only. Indexed triangles write LESS depth; sampled lines use LEQUAL/no depth write,
+with polygon offset on filled faces. This is display bias, not CAD hidden-line proof.
+
+`update(native, options)` and `setOptions(options)` return UpdateResult; view-only
+changes reuse accepted buffers. `resize`, `render`, `readPixels` and idempotent
+`dispose` follow the candidate framebuffer lifecycle. Copied `native`, `options`,
+`bounds` and `empty` getters preserve authority; `resourceCounts` reports owned
+handles, not driver memory. Explicit camera and edges/null are required. Dimensions
+are 1..4096 with area at most 4194304 pixels. Context loss requires a new renderer;
+original CPU data can still be read before disposal. Use resize for canvas changes.
+
+**Source/build stage only: actual GL, pixels, depth, failure retention, resource
+cleanup and visible Shell support have not run.** The #874 administrative browser
+policy denial remains unresolved. Do not treat this provisional entry as tested
+render support or a release. It does not change existing packet/scene render APIs.
+
+The pending example can be compiled without opening a server or browser:
+
+```sh
+pnpm --filter @barocss/gpu build:library
+node examples/gpu-scene/shell-render-flow.mjs --build-only --output /tmp/shell-render-build
+```
+
+The actual target command in #908 remains pending until trusted policy restoration.
