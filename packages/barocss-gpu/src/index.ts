@@ -47,3 +47,6 @@ export type {BooleanShellOptions,BooleanShellResourceCounts} from './boolean-she
 
 export {mountBooleanShellScene,BooleanShellSceneRenderer} from './boolean-shell-scene-renderer.js';
 export type {BooleanShellSceneInputV0,BooleanShellSceneEntry,BooleanShellLeafRef,BooleanShellSceneOptions} from './boolean-shell-scene-input.js';
+
+export {prepareUniformCurvePreview,validateUniformCurvePreview,UniformCurvePreviewError} from './uniform-curve-preview.js';
+export type {UniformCurvePreview,UniformCurvePreviewInput,UniformCurvePreviewDiagnosticCode} from './uniform-curve-preview.js';
