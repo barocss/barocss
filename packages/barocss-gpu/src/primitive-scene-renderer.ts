@@ -1,5 +1,7 @@
 import {prepareParticleLayer} from './particle-layer.js';
 import type {ParticleLayerV0,PreparedParticleLayer} from './particle-layer.js';
+import {prepareClothLayer,CLOTH_SHADERS} from './cloth-layer.js';
+import type {ClothLayerV0,PreparedClothLayer} from './cloth-layer.js';
 import {validateAdaptiveCurveSamples,validateWideAdaptiveCurveSamples} from '@barocss/cad';
 import type {AdaptiveCurveSamplingResult,WideAdaptiveCurveSamplingResult} from '@barocss/cad';
 import {GPUError} from './renderer.js';
@@ -32,14 +34,17 @@ export interface PrimitiveSceneInputV2 {version:2;entries:PrimitiveSceneEntryV2[
 export interface PrimitiveSceneMaterial {ref:PrimitiveSceneRef;binding:MeshMaterialBinding}
 /** Explicit complete appearance/frame replacement; no implicit binding carry. */
 export interface PrimitiveSceneFrameV0 {version:0;scene:PrimitiveSceneInputV2;options:PrimitiveSceneOptions;particles:ParticleLayerV0|null;materials:PrimitiveSceneMaterial[]}
+/** Additive complete native and derived frame. Version0 replacement explicitly clears cloth. */
+export interface PrimitiveSceneFrameV1 {version:1;scene:PrimitiveSceneInputV2;options:PrimitiveSceneOptions;particles:ParticleLayerV0|null;materials:PrimitiveSceneMaterial[];cloth:ClothLayerV0|null}
 type NativeCurveSample=AdaptiveCurveSamplingResult|WideAdaptiveCurveSamplingResult;
 interface Primitive {
  entry:PrimitiveSceneEntry|PrimitiveSceneEntryV1|PrimitiveSceneEntryV2;positions:Float32Array;normals?:Float32Array;indices?:Uint16Array;bounds:MeshSceneBounds;material?:MeshMaterialBinding;
 }
 interface Draw extends Primitive {vao:WebGLVertexArrayObject|null;buffers:WebGLBuffer[];program:WebGLProgram|null}
 interface ParticleDraw extends PreparedParticleLayer {vao:WebGLVertexArrayObject|null;buffer:WebGLBuffer|null;program:WebGLProgram|null}
-interface PreparedScene {primitives:Primitive[];options:PrimitiveSceneOptions;particles?:PreparedParticleLayer|null}
-interface Frame {particles:ParticleDraw|null;draws:Draw[];options:PrimitiveSceneOptions;programs:WebGLProgram[];framebuffer:WebGLFramebuffer|null;color:WebGLTexture|null;depth:WebGLRenderbuffer|null;width:number;height:number}
+interface ClothDraw extends PreparedClothLayer {vao:WebGLVertexArrayObject|null;buffers:WebGLBuffer[];program:WebGLProgram|null}
+interface PreparedScene {primitives:Primitive[];options:PrimitiveSceneOptions;particles?:PreparedParticleLayer|null;cloth?:PreparedClothLayer|null}
+interface Frame {particles:ParticleDraw|null;cloth:ClothDraw|null;draws:Draw[];options:PrimitiveSceneOptions;programs:WebGLProgram[];framebuffer:WebGLFramebuffer|null;color:WebGLTexture|null;depth:WebGLRenderbuffer|null;width:number;height:number}
 const LINE_SHADERS={vertex:`#version 300 es
 precision highp float;
 layout(location=0) in vec3 position;
@@ -166,14 +171,15 @@ class PrimitiveSceneBackend {
  private dimensions(width:number,height:number){check(Number.isInteger(width)&&Number.isInteger(height)&&width>=1&&height>=1&&width<=4096&&height<=4096&&width*height<=4194304,'Buffer dimensions exceed limits');}
  private checkGL(){const error=this.gl.getError();check(error===this.gl.NO_ERROR,'WebGL2 error 0x'+error.toString(16));check(!this.gl.isContextLost(),'WebGL2 context is lost');}
  private program(source:{vertex:string;fragment:string}):WebGLProgram {
-  const gl=this.gl,shaders:WebGLShader[]=[];let program:WebGLProgram|null=null;
-  try{for(const[kind,text]of[[gl.VERTEX_SHADER,source.vertex],[gl.FRAGMENT_SHADER,source.fragment]]as const){const shader=gl.createShader(kind);check(shader,'Cannot allocate primitive shader');shaders.push(shader);gl.shaderSource(shader,text);gl.compileShader(shader);check(gl.getShaderParameter(shader,gl.COMPILE_STATUS),'Primitive shader compile failed: '+gl.getShaderInfoLog(shader));}program=gl.createProgram();check(program,'Cannot allocate primitive program');for(const shader of shaders)gl.attachShader(program,shader);gl.linkProgram(program);check(gl.getProgramParameter(program,gl.LINK_STATUS),'Primitive program link failed: '+gl.getProgramInfoLog(program));return program;}
-  catch(error){if(program)gl.deleteProgram(program);throw error;}finally{for(const shader of shaders)gl.deleteShader(shader);}
+  const gl=this.gl,shaders:WebGLShader[]=[];let program:WebGLProgram|null=null,linked=false;
+  try{for(const[kind,text]of[[gl.VERTEX_SHADER,source.vertex],[gl.FRAGMENT_SHADER,source.fragment]]as const){const shader=gl.createShader(kind);check(shader,'Cannot allocate primitive shader');shaders.push(shader);gl.shaderSource(shader,text);gl.compileShader(shader);check(gl.getShaderParameter(shader,gl.COMPILE_STATUS),'Primitive shader compile failed: '+gl.getShaderInfoLog(shader));}program=gl.createProgram();check(program,'Cannot allocate primitive program');for(const shader of shaders)gl.attachShader(program,shader);gl.linkProgram(program);check(gl.getProgramParameter(program,gl.LINK_STATUS),'Primitive program link failed: '+gl.getProgramInfoLog(program));linked=true;return program;}
+  catch(error){if(program)gl.deleteProgram(program);throw error;}finally{for(const shader of shaders){if(linked&&program)gl.detachShader(program,shader);gl.deleteShader(shader);}}
  }
- private create(primitives:Primitive[],options:PrimitiveSceneOptions,width:number,height:number,particles:PreparedParticleLayer|null=null):Frame {
-  this.live();this.dimensions(width,height);this.checkGL();const gl=this.gl,camera=prepareCamera(options.camera,width/height),frame:Frame={particles:null,draws:[],options,programs:[],framebuffer:null,color:null,depth:null,width,height};
+ private create(primitives:Primitive[],options:PrimitiveSceneOptions,width:number,height:number,particles:PreparedParticleLayer|null=null,cloth:PreparedClothLayer|null=null):Frame {
+  this.live();this.dimensions(width,height);this.checkGL();const gl=this.gl,camera=prepareCamera(options.camera,width/height),frame:Frame={particles:null,cloth:null,draws:[],options,programs:[],framebuffer:null,color:null,depth:null,width,height};
   try{
    if(particles){check(primitives.length>0,'Particles require accepted native geometry');const range=gl.getParameter(gl.ALIASED_POINT_SIZE_RANGE) as Float32Array;check(range.length===2&&range[0]<=6&&range[1]>=6,'Target does not support fixed6px points');}
+   if(cloth)check(primitives.length>0,'Cloth requires accepted native geometry');
    const programs=new Map<string,WebGLProgram>();
    for(const primitive of primitives){
     const kind=primitive.entry.kind,key=primitive.material?'material_'+frame.draws.length:kind;if(!programs.has(key)){const program=this.program(kind==='surface'?(primitive.material?materialMeshShaders(options.lighting,primitive.material):meshLightingShaders(options.lighting)):LINE_SHADERS);programs.set(key,program);frame.programs.push(program);}
@@ -188,12 +194,20 @@ class PrimitiveSceneBackend {
     point.vao=gl.createVertexArray();point.buffer=gl.createBuffer();check(point.vao&&point.buffer,'Cannot allocate particle vertex resources');
     gl.bindVertexArray(point.vao);gl.bindBuffer(gl.ARRAY_BUFFER,point.buffer);gl.bufferData(gl.ARRAY_BUFFER,point.positions,gl.STATIC_DRAW);gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,3,gl.FLOAT,false,0,0);
    }
+   if(cloth){
+    const sheet:ClothDraw={...cloth,vao:null,buffers:[],program:null};frame.cloth=sheet;
+    sheet.program=this.program(CLOTH_SHADERS);frame.programs.push(sheet.program);
+    sheet.vao=gl.createVertexArray();check(sheet.vao,'Cannot allocate cloth vertex array');gl.bindVertexArray(sheet.vao);
+    for(const[location,data]of [[0,sheet.positions],[1,sheet.normals]] as const){const buffer=gl.createBuffer();check(buffer,'Cannot allocate cloth vertex buffer');sheet.buffers.push(buffer);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,data,gl.STATIC_DRAW);gl.enableVertexAttribArray(location);gl.vertexAttribPointer(location,3,gl.FLOAT,false,0,0);}
+    const indices=gl.createBuffer();check(indices,'Cannot allocate cloth index buffer');sheet.buffers.push(indices);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indices);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,sheet.indices,gl.STATIC_DRAW);
+   }
    frame.framebuffer=gl.createFramebuffer();frame.color=gl.createTexture();frame.depth=gl.createRenderbuffer();check(frame.framebuffer&&frame.color&&frame.depth,'Cannot allocate primitive scene frame');
    gl.bindTexture(gl.TEXTURE_2D,frame.color);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);gl.texStorage2D(gl.TEXTURE_2D,1,gl.RGBA8,width,height);
    gl.bindRenderbuffer(gl.RENDERBUFFER,frame.depth);gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT24,width,height);gl.bindFramebuffer(gl.FRAMEBUFFER,frame.framebuffer);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,frame.color,0);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,frame.depth);check(gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE,'Primitive scene frame is incomplete');
    gl.viewport(0,0,width,height);gl.disable(gl.BLEND);gl.disable(gl.SCISSOR_TEST);gl.disable(gl.CULL_FACE);gl.disable(gl.POLYGON_OFFSET_FILL);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LESS);gl.depthMask(true);gl.colorMask(true,true,true,true);gl.lineWidth(1);
    gl.clearColor(...options.background,1);gl.clearDepth(1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
    for(const draw of frame.draws){const program=draw.program!;gl.useProgram(program);gl.uniform1f(gl.getUniformLocation(program,'aspect'),width/height);gl.uniform1i(gl.getUniformLocation(program,'defaultCamera'),options.camera===undefined?1:0);gl.uniformMatrix4fv(gl.getUniformLocation(program,'view'),false,camera.view);gl.uniformMatrix4fv(gl.getUniformLocation(program,'projection'),false,camera.projection);gl.uniform3fv(gl.getUniformLocation(program,'color'),draw.entry.color);if(draw.entry.kind==='surface'){applyMeshLighting(gl,program,options.lighting);applyMeshMaterial(gl,program,draw.material??null);}gl.bindVertexArray(draw.vao);if(draw.indices)gl.drawElements(gl.TRIANGLES,draw.indices.length,gl.UNSIGNED_SHORT,0);else gl.drawArrays(gl.LINE_STRIP,0,draw.positions.length/3);}
+   if(frame.cloth){const sheet=frame.cloth,program=sheet.program!;gl.useProgram(program);gl.uniform1f(gl.getUniformLocation(program,'aspect'),width/height);gl.uniform1i(gl.getUniformLocation(program,'defaultCamera'),options.camera===undefined?1:0);gl.uniformMatrix4fv(gl.getUniformLocation(program,'view'),false,camera.view);gl.uniformMatrix4fv(gl.getUniformLocation(program,'projection'),false,camera.projection);gl.bindVertexArray(sheet.vao);gl.drawElements(gl.TRIANGLES,sheet.indices.length,gl.UNSIGNED_SHORT,0);}
    if(frame.particles){const point=frame.particles,program=point.program!;gl.useProgram(program);gl.uniform1f(gl.getUniformLocation(program,'aspect'),width/height);gl.uniform1i(gl.getUniformLocation(program,'defaultCamera'),options.camera===undefined?1:0);gl.uniformMatrix4fv(gl.getUniformLocation(program,'view'),false,camera.view);gl.uniformMatrix4fv(gl.getUniformLocation(program,'projection'),false,camera.projection);gl.bindVertexArray(point.vao);gl.drawArrays(gl.POINTS,0,point.positions.length/3);}
    this.checkGL();return frame;
   }catch(error){this.release(frame);throw error;}
@@ -211,19 +225,25 @@ class PrimitiveSceneBackend {
    check(index>=0,'Material reference is not in accepted scene');check(prior.draws[index].entry.kind==='surface','Material requires an accepted Surface, not a Curve');
    const material=input===null?undefined:validateMeshMaterialBinding(input);
    const primitives=prior.draws.map((draw,i)=>{const candidate:Primitive={entry:draw.entry,positions:draw.positions,normals:draw.normals,indices:draw.indices,bounds:draw.bounds};const binding=i===index?material:draw.material;if(binding)candidate.material=binding;return candidate;});
-   return{primitives,options:prior.options,particles:prior.particles};
+   return{primitives,options:prior.options,particles:prior.particles,cloth:prior.cloth};
   });
  }
  protected copyParticleLayer():ParticleLayerV0|null{this.live();return this.accepted!.particles?structuredClone(this.accepted!.particles!.layer):null;}
  protected prepareSceneParticles(input:unknown):PreparedParticleLayer|null{this.live();return prepareParticleLayer(input,this.accepted!.particles?.layer??null,true);}
  protected setParticles(input:ParticleLayerV0|null):UpdateResult{
-  return this.updatePrepared(()=>{const prior=this.accepted!,particles=prepareParticleLayer(input,prior.particles?.layer??null);check(!particles||prior.draws.length>0,'Particles require accepted native geometry');return{primitives:prior.draws,options:prior.options,particles};});
+  return this.updatePrepared(()=>{const prior=this.accepted!,particles=prepareParticleLayer(input,prior.particles?.layer??null);check(!particles||prior.draws.length>0,'Particles require accepted native geometry');return{primitives:prior.draws,options:prior.options,particles,cloth:prior.cloth};});
+ }
+ protected copyClothLayer():ClothLayerV0|null{check(!this.disposed&&this.accepted,'Primitive renderer is disposed');return this.accepted.cloth?structuredClone(this.accepted.cloth.layer):null;}
+ protected setCloth(input:ClothLayerV0|null):UpdateResult{
+  return this.updatePrepared(()=>{const prior=this.accepted!,cloth=prepareClothLayer(input,prior.cloth?.layer??null);check(!cloth||prior.draws.length>0,'Cloth requires accepted native geometry');return{primitives:prior.draws,options:prior.options,particles:prior.particles,cloth};});
  }
  protected copyCompleteFrame():PrimitiveSceneFrameV0{
   return{version:0,scene:{version:2,entries:this.copyEntries() as PrimitiveSceneEntryV2[]},options:this.options,particles:this.copyParticleLayer(),materials:this.copyMaterials()};
  }
  protected updateCompleteFrame(input:PrimitiveSceneFrameV0,allowEmpty=false):UpdateResult{
-  return this.updatePrepared(()=>{
+  return this.updatePrepared(()=>this.prepareCompleteFrame(input,allowEmpty));
+ }
+ private prepareCompleteFrame(input:unknown,allowEmpty=false):PreparedScene{
    const frame=record(input,['version','scene','options','particles','materials']);check(frame.version===0,'Only complete frame version0 is supported');
    const scene=record(frame.scene,['version','entries']);check(scene.version===2,'Complete frame requires qualified scene version2');
    const empty=allowEmpty&&Array.isArray(scene.entries)&&Object.getPrototypeOf(scene.entries)===Array.prototype&&scene.entries.length===0&&Reflect.ownKeys(scene.entries).length===1;
@@ -243,20 +263,23 @@ class PrimitiveSceneBackend {
    }
    const particles=this.prepareSceneParticles(frame.particles);check(!particles||prepared.primitives.length>0,'Particles require candidate native geometry');
    return{...prepared,particles};
-  });
+ }
+ protected copyCompleteFrameV1():PrimitiveSceneFrameV1{return{...this.copyCompleteFrame(),version:1,cloth:this.copyClothLayer()};}
+ protected updateCompleteFrameV1(input:PrimitiveSceneFrameV1,allowEmpty=false):UpdateResult{
+  return this.updatePrepared(()=>{const frame=record(input,['version','scene','options','particles','materials','cloth']);check(frame.version===1,'Only complete frame version1 is supported');const prepared=this.prepareCompleteFrame({version:0,scene:frame.scene,options:frame.options,particles:frame.particles,materials:frame.materials},allowEmpty);const cloth=prepareClothLayer(frame.cloth,this.accepted!.cloth?.layer??null,true);check(!cloth||prepared.primitives.length>0,'Cloth requires candidate native geometry');return{...prepared,cloth};});
  }
  protected updatePrepared(candidate:()=>PreparedScene):UpdateResult{
-  let frame:Frame|null=null;try{this.live();const p=candidate();frame=this.create(p.primitives,p.options,this.canvas.width,this.canvas.height,p.particles??null);this.present(frame);const prior=this.accepted!;this.accepted=frame;this.release(prior);return{ok:true};}
+  let frame:Frame|null=null;try{this.live();const p=candidate();frame=this.create(p.primitives,p.options,this.canvas.width,this.canvas.height,p.particles??null,p.cloth??null);this.present(frame);const prior=this.accepted!;this.accepted=frame;this.release(prior);return{ok:true};}
   catch(error){if(frame)this.release(frame);if(!this.disposed&&!this.lost&&!this.gl.isContextLost()&&this.accepted){try{this.present(this.accepted);}catch{this.lost=true;}}return{ok:false,error:error instanceof Error?error:new GPUError('Primitive scene update failed')};}
  }
  resize(width=this.canvas.width,height=this.canvas.height):void{
   this.live();this.dimensions(width,height);const prior=this.accepted!;let frame:Frame|null=null;
-  try{frame=this.create(prior.draws,prior.options,width,height,prior.particles);this.canvas.width=width;this.canvas.height=height;check(this.gl.drawingBufferWidth===width&&this.gl.drawingBufferHeight===height,'Requested primitive buffer allocation failed');this.present(frame);this.accepted=frame;this.release(prior);}
+  try{frame=this.create(prior.draws,prior.options,width,height,prior.particles,prior.cloth);this.canvas.width=width;this.canvas.height=height;check(this.gl.drawingBufferWidth===width&&this.gl.drawingBufferHeight===height,'Requested primitive buffer allocation failed');this.present(frame);this.accepted=frame;this.release(prior);}
   catch(error){if(frame)this.release(frame);this.canvas.width=prior.width;this.canvas.height=prior.height;if(!this.gl.isContextLost())this.present(prior);throw error;}
  }
  render():void{this.live();this.dimensions(this.canvas.width,this.canvas.height);this.present(this.accepted!);}
  readPixels():Uint8Array{this.live();this.dimensions(this.canvas.width,this.canvas.height);const gl=this.gl,pixels=new Uint8Array(this.canvas.width*this.canvas.height*4);gl.bindFramebuffer(gl.READ_FRAMEBUFFER,null);gl.pixelStorei(gl.PACK_ALIGNMENT,4);gl.pixelStorei(gl.PACK_ROW_LENGTH,0);gl.pixelStorei(gl.PACK_SKIP_ROWS,0);gl.pixelStorei(gl.PACK_SKIP_PIXELS,0);gl.readPixels(0,0,this.canvas.width,this.canvas.height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);this.checkGL();return pixels;}
- private release(frame:Frame){const gl=this.gl;if(!gl.isContextLost()){if(frame.programs.includes(gl.getParameter(gl.CURRENT_PROGRAM)))gl.useProgram(null);if(frame.draws.some(d=>d.vao&&gl.getParameter(gl.VERTEX_ARRAY_BINDING)===d.vao)||frame.particles?.vao===gl.getParameter(gl.VERTEX_ARRAY_BINDING))gl.bindVertexArray(null);for(const[target,binding]of[[gl.READ_FRAMEBUFFER,gl.READ_FRAMEBUFFER_BINDING],[gl.DRAW_FRAMEBUFFER,gl.DRAW_FRAMEBUFFER_BINDING]]as const)if(frame.framebuffer&&gl.getParameter(binding)===frame.framebuffer)gl.bindFramebuffer(target,null);}for(const d of frame.draws){for(const b of d.buffers)gl.deleteBuffer(b);if(d.vao)gl.deleteVertexArray(d.vao);}if(frame.particles){if(frame.particles.buffer)gl.deleteBuffer(frame.particles.buffer);if(frame.particles.vao)gl.deleteVertexArray(frame.particles.vao);}for(const program of frame.programs)gl.deleteProgram(program);if(frame.framebuffer)gl.deleteFramebuffer(frame.framebuffer);if(frame.depth)gl.deleteRenderbuffer(frame.depth);if(frame.color)gl.deleteTexture(frame.color);}
+ private release(frame:Frame){const gl=this.gl;if(!gl.isContextLost()){if(frame.programs.includes(gl.getParameter(gl.CURRENT_PROGRAM)))gl.useProgram(null);if(frame.draws.some(d=>d.vao&&gl.getParameter(gl.VERTEX_ARRAY_BINDING)===d.vao)||frame.particles?.vao===gl.getParameter(gl.VERTEX_ARRAY_BINDING)||frame.cloth?.vao===gl.getParameter(gl.VERTEX_ARRAY_BINDING))gl.bindVertexArray(null);for(const[target,binding]of[[gl.READ_FRAMEBUFFER,gl.READ_FRAMEBUFFER_BINDING],[gl.DRAW_FRAMEBUFFER,gl.DRAW_FRAMEBUFFER_BINDING]]as const)if(frame.framebuffer&&gl.getParameter(binding)===frame.framebuffer)gl.bindFramebuffer(target,null);}for(const d of frame.draws){for(const b of d.buffers)gl.deleteBuffer(b);if(d.vao)gl.deleteVertexArray(d.vao);}if(frame.particles){if(frame.particles.buffer)gl.deleteBuffer(frame.particles.buffer);if(frame.particles.vao)gl.deleteVertexArray(frame.particles.vao);}if(frame.cloth){for(const buffer of frame.cloth.buffers)gl.deleteBuffer(buffer);if(frame.cloth.vao)gl.deleteVertexArray(frame.cloth.vao);}for(const program of frame.programs)gl.deleteProgram(program);if(frame.framebuffer)gl.deleteFramebuffer(frame.framebuffer);if(frame.depth)gl.deleteRenderbuffer(frame.depth);if(frame.color)gl.deleteTexture(frame.color);}
  dispose():void{if(this.disposed)return;this.disposed=true;this.canvas.removeEventListener('webglcontextlost',this.onLoss);if(this.accepted)this.release(this.accepted);this.accepted=null;}
 }
 export class PrimitiveSceneRenderer extends PrimitiveSceneBackend {
@@ -270,6 +293,10 @@ export class PrimitiveSceneRendererV1 extends PrimitiveSceneBackend {
  update(input:PrimitiveSceneInputV1,options:PrimitiveSceneOptions):UpdateResult{return this.updatePrepared(()=>prepareV1(input,options));}
 }
 export class PrimitiveSceneRendererV2 extends PrimitiveSceneBackend {
+ get frameV1():PrimitiveSceneFrameV1{return this.copyCompleteFrameV1();}
+ updateFrameV1(frame:PrimitiveSceneFrameV1):UpdateResult{return this.updateCompleteFrameV1(frame);}
+ get clothLayer():ClothLayerV0|null{return this.copyClothLayer();}
+ setClothLayer(layer:ClothLayerV0|null):UpdateResult{return this.setCloth(layer);}
  get frame():PrimitiveSceneFrameV0{return this.copyCompleteFrame();}
  updateFrame(frame:PrimitiveSceneFrameV0):UpdateResult{return this.updateCompleteFrame(frame);}
  get particleLayer():ParticleLayerV0|null{return this.copyParticleLayer();}
@@ -286,6 +313,10 @@ export function mountPrimitiveSceneV2(canvas:HTMLCanvasElement,input:PrimitiveSc
 
 /** Reuses the current primitive frame lifecycle; empty frames contain no native data. */
 class PrimitiveViewportBackend extends PrimitiveSceneBackend {
+ get frameV1():PrimitiveSceneFrameV1{return this.copyCompleteFrameV1();}
+ updateFrameV1(frame:PrimitiveSceneFrameV1):UpdateResult{return this.updateCompleteFrameV1(frame,true);}
+ get clothLayer():ClothLayerV0|null{return this.copyClothLayer();}
+ setClothLayer(layer:ClothLayerV0|null):UpdateResult{return this.setCloth(layer);}
  get frame():PrimitiveSceneFrameV0{return this.copyCompleteFrame();}
  updateFrame(frame:PrimitiveSceneFrameV0):UpdateResult{return this.updateCompleteFrame(frame,true);}
  get particleLayer():ParticleLayerV0|null{return this.copyParticleLayer();}
@@ -301,6 +332,10 @@ class PrimitiveViewportBackend extends PrimitiveSceneBackend {
 /** Explicit empty/clear owner over the same qualified version2 primitive backend. */
 export class PrimitiveViewport {
  private readonly backend:PrimitiveViewportBackend;
+ get frameV1():PrimitiveSceneFrameV1{return this.backend.frameV1;}
+ updateFrameV1(frame:PrimitiveSceneFrameV1):UpdateResult{return this.backend.updateFrameV1(frame);}
+ get clothLayer():ClothLayerV0|null{return this.backend.clothLayer;}
+ setClothLayer(layer:ClothLayerV0|null):UpdateResult{return this.backend.setClothLayer(layer);}
  get frame():PrimitiveSceneFrameV0{return this.backend.frame;}
  updateFrame(frame:PrimitiveSceneFrameV0):UpdateResult{return this.backend.updateFrame(frame);}
  get particleLayer():ParticleLayerV0|null{return this.backend.particleLayer;}

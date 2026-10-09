@@ -1143,3 +1143,63 @@ node examples/gpu-scene/shell-scene-flow.mjs --graphs <927-authored-files> --mes
 Native implementation, local Integration, named consumer adoption and publication
 are separate stages recorded in #941. No assembly poses/picking/material language,
 Solid certification or arbitrary meshes are added by this scene profile.
+
+### Derived cloth layer and complete frame1 (#979)
+
+PrimitiveSceneRendererV2 and PrimitiveViewport add copied `clothLayer` and
+`setClothLayer(layer|null)` for one genuine derived simulation sheet beside accepted
+native geometry. A cloth layer is not a native Surface/Curve, packet, editable face
+or picking authority. Native entries, source/IDs/UV/poses and native-only bounds
+remain separate. GPU does not run Physics or a clock. #825 saved research snapshots
+are real display controls; they do not establish the public Physics/Viewer bridge.
+
+Exact ClothLayerV0 fields are `{version:0,kind:'simulation-cloth',layerId,contextId,
+sceneRevision,stepIndex,coordinateSystem:'right-handed-y-up-scene-units',positions,
+indices}`. IDs are opaque ASCII1..128 as in ParticleLayerV0; stepIndex is0..240.
+Positions are867 own finite binary64 Number values within±1000 scene units; indices
+are1536 canonical17×17 grid values for512 triangles. Preserve original Number
+values and signed zero separately from private F32 positions/normals/U16 indices.
+The host/Viewer maps metres once via `metres * 1000 * mmToSceneUnit`. GPU applies
+no additional native mm scale, axis conversion or transform to cloth coordinates.
+
+For an active identity, older steps and changed equal-step data refuse; identical
+equal-step submissions may restage but preserve semantic state. Changed layer,
+context or opaque revision requires explicit cloth clear or full frame1 replacement.
+An opaque revision has no inferred order. Even full frame1 replacement rejects a
+regressing/changed-equal step under the same identity. Null clears cloth and its
+cursor only, retaining native/options/material/particle state. Nonnull requires
+accepted native geometry; an empty viewport must first accept its native scene.
+
+Additive PrimitiveSceneFrameV1 has exactly `{version:1,scene,options,particles,
+materials,cloth}`, with qualified native scene2 and explicit cloth/null. Use copied
+`frameV1` and `updateFrameV1` for atomic camera/pose/visibility/native appearance
+updates that retain the derived layer. Dedicated material/particle setters and
+resize retain cloth. Exact legacy `frame`/`updateFrame` version0 stays available;
+its full replacement explicitly clears cloth, as do ordinary successful native
+update, clear and disposal. Failed replacements retain the entire old frame.
+The cloth-only getter retains CPU metadata after context loss until disposal;
+other native/complete frame getters keep their existing live-context requirement.
+
+One separate cloth draw uses fixed opaque RGB[0.76,0.52,0.22], current fixed
+directional/ambient gamma2.2 appearance and `gl_FrontFacing` to orient normals on
+both sides. It shares the native camera, target and LESS/depth writes. Validate
+original and F32 canonical triangle areas; area-weighted vertex normals must be
+finite and nonzero. Degenerate/cancelling normals refuse without repair. Native
+material/lighting changes do not change the fixed cloth appearance. Native picking
+does not account for visual cloth occlusion; consumers must disclose that limit.
+
+The cloth upload arrays total10008 bytes (3468 positions +3468 normals +3072 indices),
+with one VAO/three buffers/one program and no extra framebuffer. Existing native,
+particle, material and framebuffer limits remain. At most one accepted plus one
+candidate frame structurally permits12 programs/12 VAOs/32 buffers and2 framebuffer,
+texture and depth attachments; shader compilation is sequential with2 transient
+handles. Actual flow tracks owned handles and cleanup, not physical memory or GPU
+completion timing. All input/F32/shader/late allocation failures retain accepted
+native+cloth metadata/pixels/resources. Disposal is idempotent.
+
+```sh
+node examples/gpu-scene/cloth-layer-flow.mjs --trial <825-selected-trial.json> --output <directory>
+```
+
+Native GPU implementation, local Integration, Physics world, Viewer bridge/host,
+numeric collision/performance certification and publication are distinct stages.
