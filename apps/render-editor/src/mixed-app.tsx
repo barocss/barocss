@@ -368,6 +368,13 @@ export function MixedApp() {
   }, [controller]);
 
   useEffect(() => {
+    const input = nativeInput.current;
+    const canceled = () => cancelNativeImport();
+    input?.addEventListener('cancel', canceled);
+    return () => input?.removeEventListener('cancel', canceled);
+  }, [controller]);
+
+  useEffect(() => {
     const routeChanged = () => {
       fileReadToken.current += 1;
       nativeReadToken.current += 1;
@@ -494,7 +501,7 @@ export function MixedApp() {
         event.currentTarget.value = '';
         if (file) void acceptFile(file);
       }} />
-      <input ref={nativeInput} type="file" accept=".barocad,.txt,.css,text/plain,text/css" hidden data-testid="native-source-file-input" aria-label="Import CAD source file" onCancel={cancelNativeImport} onChange={event => {
+      <input ref={nativeInput} type="file" accept=".barocad,.txt,.css,text/plain,text/css" hidden data-testid="native-source-file-input" aria-label="Import CAD source file" onChange={event => {
         const file = event.currentTarget.files?.[0];
         event.currentTarget.value = '';
         if (file) void acceptNativeFile(file);
