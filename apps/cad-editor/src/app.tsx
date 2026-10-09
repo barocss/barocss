@@ -10,8 +10,18 @@ import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, Me
 import { downloadAccepted, readCadEditorFile } from './file-actions';
 import { FeatureApp } from './feature-app';
 
+function nativeCauses(error: Error): {message:string;code:string|null}[] {
+  const causes: {message:string;code:string|null}[]=[];
+  let current=error.cause;
+  for(let depth=0;depth<6 && current instanceof Error;depth++) {
+    causes.push({message:current.message,code:'code' in current ? String(current.code) : null});
+    current=current.cause;
+  }
+  return causes;
+}
 function actionError(error: CadEditorError): string {
-  const cause = error.cause instanceof Error ? error.cause.message : '';
+  const chain=nativeCauses(error), cause=chain.map(item=>item.message).join('\n');
+  if(chain.some(item=>item.code==='BINDING')) return 'Select a Surface with directly entered control-point values.';
   if (cause.includes('Weights must')) return 'Enter a weight from 0.000001 to 1000000.';
   if (error.message.includes('two assets and two bodies')) return 'Open a document with one Surface and one Curve.';
   if (error.message.includes('Native document Open')) return 'Cannot open this file. Select a valid CAD document.';
@@ -64,7 +74,7 @@ function DirectApp() {
     if (!flowMode) return;
     // This focused flow seam exposes copied data and declared host actions only.
     const api = {
-      snapshot: () => session.getSnapshot(), display: () => structuredClone(receipt), error: () => error ? {code:error.code,message:error.message,context:{...error.context},cause:error.cause instanceof Error ? error.cause.message : null} : null,
+      snapshot: () => session.getSnapshot(), display: () => structuredClone(receipt), error: () => error ? {code:error.code,message:error.message,context:{...error.context},cause:error.cause instanceof Error ? error.cause.message : null,causeChain:nativeCauses(error)} : null,
       setDisplayRefusal: (refuse: boolean) => setDisplayOptions(refuse ? { ...defaultDisplay, document: { ...defaultDisplay.document, native: { ...defaultDisplay.document.native, countU: 1 } } } : defaultDisplay),
       setMounted: (mounted: boolean) => { setMount(mounted); if (mounted) setMountKey(key => key + 1); },
       session,

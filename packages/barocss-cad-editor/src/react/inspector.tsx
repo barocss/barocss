@@ -30,6 +30,13 @@ function diagnosticText(error: CadEditorError): string {
 
 function actionableMessage(error: CadEditorError): string {
   const details = diagnosticText(error);
+  let cause: unknown = error;
+  for (let index = 0; index < 5 && cause instanceof Error; index++) {
+    if (cause.name === 'SourceSurfaceControlNetError' && 'code' in cause && cause.code === 'BINDING') {
+      return 'This Surface source cannot preserve this edit. Choose another Surface.';
+    }
+    cause = cause.cause;
+  }
   if (/Weights must be in/i.test(details)) return 'Enter a weight from 0.000001 to 1000000.';
   if (/XYZ coordinates within|Coordinates must be finite and within/i.test(details)) return 'Enter coordinates from -10000 to 10000 mm.';
   const field = FIELDS.find(item => item.field === error.context.field);
@@ -101,10 +108,19 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
             <section><h3>Editing limits</h3>
               <p>The native document can contain 1–4 source assets and up to 16 bodies. The viewport displays 1–4 chosen bodies at a time.</p>
               <p>Choose the displayed bodies in the object list. You can select and inspect a hidden body. Show it before using Fit Selected.</p>
-              <p>Curves are read-only. A Surface is editable only when its complete source contains one supported Surface. A Surface in a source with other objects is read-only.</p>
+              <p>Curves are read-only. A supported Surface can be edited even when its source contains other objects or its Model name differs from its Surface ID.</p>
+              <p>The selected Surface must have degree 1–3, 2–16 control poles on each grid axis and at most 256 poles. Coordinates must stay within ±10000 mm, weights within 0.000001–1000000 and the native Surface ID within 48 characters.</p>
+              <p>Source0 assets support 1–16 objects and at most 262144 UTF-16 code units and UTF-8 bytes. Pole edits require directly authored numeric coefficient bindings. The native provider can refuse unsupported bindings or source budgets during Apply.</p>
               <p>Display parsing reads the whole source asset, including hidden sibling objects. Hiding bodies does not remove those siblings from the source or bypass parsing limits.</p>
+              <p>A native source edit does not prove display support. A degree 5 Curve in the displayed Surface's asset still reaches the actual Viewer sampling refusal. A degree 5 Curve in a separate hidden asset is preserved without a sampling or display claim.</p>
               <p>Coordinates use authored X, Y and Z in mm. They map directly to the display axes. The editor does not silently swap or convert axes.</p>
               <p>U and V select an original Surface control pole. Coordinates and weight edit its native coefficients. Display samples are separate from these coefficients.</p>
+            </section>
+            <section><h3>Complete source preservation</h3>
+              <p>Apply uses the native source-preserving edit provider's complete result.source and result.model. The source keeps untouched spelling, whitespace and comments. The Model keeps its name, object order, native IDs and sibling objects. Only the requested coordinate or weight literals change.</p>
+              <p>The selected single-Surface result.edit is a child proof. Its source and model do not replace the complete asset. The editor adopts the complete result.source in the selected asset and rebuilds the document through the native API.</p>
+              <p>Only the document and edited asset revisions advance. Canonical asset, body and geometry IDs keep their associations. Other asset revisions and hidden source bytes remain unchanged. An exact native no-op keeps the original source, revisions and history.</p>
+              <p>Successful native validation is followed by complete selected-asset Viewer admission and a fresh RGBA frame read. A refused source, binding or display keeps the accepted source, history, draft, selection and current view.</p>
             </section>
             <section><h3>Draft and current values</h3>
               <p>Changed fields remain pending until you select Apply. Discard restores the current values.</p>
@@ -199,9 +215,7 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
     </div>
     {selection ? <>
       {!canEdit && <p className="cad-editor-readonly" role="status" data-testid="cad-editor-readonly-surface">
-        {capability?.reason === 'asset-has-siblings'
-          ? 'This Surface shares its source with other objects and is read-only.'
-          : 'These control points are read-only. Choose an editable Surface to change them.'}
+        These control points are read-only. Choose an editable Surface to change them.
       </p>}
       {snapshot.selectedBodyId !== null && !snapshot.displayBodyIds.includes(snapshot.selectedBodyId)
         && <p className="cad-editor-hidden-body" role="status">This object is not displayed. Show it to fit or select it in the viewport.</p>}

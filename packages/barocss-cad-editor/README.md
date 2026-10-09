@@ -116,13 +116,17 @@ Canonical file bounds are 2097152 UTF-8 bytes/code units; each source is at most
 262144 and aggregate source is at most1048576 bytes. The actual CAD parser and
 validator enforce these bounds. Raw fields retain the 128-character limit.
 
-A body is editable only when its asset has one original Surface, its Model name
-matches the Surface ID, and its coefficients meet the actual control-net edit
-profile: ID1–48, degrees1–3, axes2–16/at most256poles, coordinates±10000mm,
-positive weights1e-6..1e6. Curve bodies, multi-object Surface assets and other
-native Surface profiles can be selected and inspected but are read-only.
-The public native edit emits one Surface source; no public whole-asset replacement
-writer exists. This explicit limit prevents loss of siblings or Model identity.
+A Surface body is editable when its selected coefficients meet the native profile:
+ASCII ID1–48, degrees1–3, grid axes2–16/at most256poles, coordinates±10000mm
+and weights1e-6..1e6. Multi-object assets and a different Model name are supported
+through actual `editSourceSurfaceControlNet`. Complete `result.source/model`
+retain Model name/order, sibling coefficients, comments, whitespace and untouched
+literal spelling. `result.edit` is the selected Surface child proof; it never
+replaces the full asset. Its provenance remains the pole edit receipt. The owned
+native validator reconstructs the provider proof; internal validation work is
+separate from the direct editor operation. Native no-op preserves exact spelling
+and revisions. Curve coefficients and unsupported selected Surface profiles remain
+read-only. Actual source binding/size/native/display failures retain prior state.
 
 `createCadEditorSession(document,{displayBodyIds})` and `prepareOpen(text,options)`
 choose unique existing1–4body IDs. When a document has at most4bodies, the default
@@ -218,3 +222,14 @@ The React bridge renders the selected native meshes in one actual GPU depth scen
 `prepareExtrusionTransaction(request, postDisplayOutputs?)` consumes the actual CAD `BooleanExtrusionFeatureTransaction`. Only normal-extrusion upsert/removal is supported. The provider validates stable existing IDs/slots/options, next revision, complete dependencies and final one-to-four leaves. Parameter-table lifecycle, Face/Boolean CRUD, reorder and suppression are separate unsupported operations here.
 
 Unresolved scalar drafts and active candidates refuse. A displayed removed leaf requires an explicit complete resulting-revision output set; no output is chosen automatically. Actual native derivation, full-scene GPU admission and fresh RGBA precede acceptance. Lifecycle acceptance records one authored history entry and invalidates captured Download tokens. Changed output configuration also advances displayGeneration. Surviving selection remains; a removed selection clears. Undo/Redo keeps the current display choice and refuses if it is absent in the target; choose a surviving view before retrying.
+
+## Whole-source consumer checkpoint
+
+The full-source facade consumes real merged CAD #1071 in an exact combined local
+consumer tree. Provider native receipt, merged-code availability, this executed
+consumer and Integration screen/file/recovery validation are separate states.
+The app's source-preserving flow checks actual native points and full Source0
+preservation before and after genuine native Download/fresh Open/re-edit. A
+same-asset degree5 Curve can be source-edit legal yet refuse default whole-asset
+preview; a separate hidden degree5 asset remains untouched. No degree5 display,
+packed/parity/publication or commercial quality certificate follows.

@@ -1,10 +1,10 @@
 import {
   CadReferenceDiagnosticCode, CadReferenceError,
-  createCadDocument, createCadGeometryReference, editSurfaceControlNet,
+  createCadDocument, createCadGeometryReference, editSourceSurfaceControlNet,
   parseCadDocument, resolveCadGeometryReference, serializeCadDocument,
-  validateCadDocumentResult,
+  validateCadDocumentResult, validateSourceSurfaceControlNetEdit,
 } from '@barocss/cad';
-import type { CadDocumentResult, CadDocumentV1, Surface, SurfacePoleEdit } from '@barocss/cad';
+import type { CadDocumentResult, CadDocumentV1, SurfacePoleEdit } from '@barocss/cad';
 import { CadEditorError } from './types.js';
 import type {
   CadEditorCandidate, CadEditorDiagnosticCode, CadEditorPoleField, CadEditorSelectedPole,
@@ -86,9 +86,14 @@ function capabilities(result: CadDocumentResult): CadEditorSnapshot['bodyCapabil
     requireEditor(compiled !== undefined && geometry !== undefined, 'NATIVE', 'The native body binding is missing.');
     let reason: CadEditorSnapshot['bodyCapabilities'][number]['reason'] = null;
     if (geometry.kind === 'curve') reason = 'curve';
-    else if (compiled.model.objects.length !== 1) reason = 'asset-has-siblings';
-    else if (compiled.model.name !== geometry.id || geometry.id.length > 48 || geometry.degreeU > 3 || geometry.degreeV > 3
-      || !geometry.controlPoints.every(row => row.every(point => point.every(value => Math.abs(value) <= 10000)))) reason = 'surface-profile';
+    else {
+      const countU = geometry.controlPoints.length, countV = geometry.controlPoints[0].length;
+      if (!/^[A-Za-z_][A-Za-z0-9_-]{0,47}$/.test(geometry.id)
+        || geometry.degreeU < 1 || geometry.degreeU > 3 || geometry.degreeV < 1 || geometry.degreeV > 3
+        || countU < 2 || countU > 16 || countV < 2 || countV > 16 || countU * countV > 256
+        || !geometry.controlPoints.every(row => row.length === countV && row.every(point => point.every(value => Number.isFinite(value) && Math.abs(value) <= 10000)))
+        || !geometry.weights.every(row => row.length === countV && row.every(value => Number.isFinite(value) && value >= 1e-6 && value <= 1e6))) reason = 'surface-profile';
+    }
     return { bodyId: body.id, canEditSurfacePole: reason === null, reason };
   });
 }
@@ -243,9 +248,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     const context = { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: 'edit-capability' };
     requireEditor(selectedBodyId !== null, 'INPUT', 'Select an editable Surface body first.', context);
     const capability = bodyCapabilities.find(body => body.bodyId === selectedBodyId);
-    const message = capability?.reason === 'asset-has-siblings'
-      ? 'This asset has other objects. Surface editing requires a public native asset replacement API.'
-      : capability?.reason === 'curve' ? 'Curve poles are read-only in this editor.'
+    const message = capability?.reason === 'curve' ? 'Curve poles are read-only in this editor.'
         : 'This Surface is outside the supported pole edit profile.';
     requireEditor(capability?.canEditSurfacePole === true, 'UNSUPPORTED', message, context);
   };
@@ -293,10 +296,13 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       edit[field] = value;
     }
     const resolved = native(() => resolveCadGeometryReference(accepted, selection!.reference), 'Native selected Surface resolution failed.', accepted.document.documentId);
-    // Finite authored scalars reach the actual native complete-grid/range validator.
-    const edited = native(() => editSurfaceControlNet(resolved.geometry as Surface, { poleEdits: [edit] }),
-      'Native Surface control-net edit failed.', accepted.document.documentId, { bodyId: selection.bodyId });
-    if (edited.provenance.every(pole => pole.changedFields.length === 0)) {
+    // The complete source is authoritative. The nested one-Surface edit is child proof only.
+    const edited = native(() => editSourceSurfaceControlNet({ source: resolved.source, sourceVersion: 0,
+      surfaceId: resolved.geometry.id, edits: { poleEdits: [edit] } }),
+    'Native complete-source Surface edit failed.', accepted.document.documentId, { bodyId: selection.bodyId });
+    native(() => validateSourceSurfaceControlNetEdit(edited), 'Native complete-source edit validation failed.',
+      accepted.document.documentId, { bodyId: selection.bodyId });
+    if (edited.report.noOp) {
       if (transition !== null) switchTarget(transition.target);
       pending = {}; prepared = null; selectionTransition = null; emit(); return null;
     }
@@ -305,7 +311,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     document.assets = document.assets.map(asset => asset.id === selection!.reference.assetId
       ? { ...asset, source: edited.source, revision: nextRevision(asset.revision) } : asset);
     const result = admit(native(() => createCadDocument(document), 'Native edited document creation failed.', document.documentId));
-    return prepare('apply', result, edited.provenance, undefined, transition ?? undefined);
+    return prepare('apply', result, edited.edit.provenance, undefined, transition ?? undefined);
   };
 
   return {
