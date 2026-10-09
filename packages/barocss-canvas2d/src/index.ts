@@ -10,6 +10,7 @@ export type { SceneV10, NodeV10, GroupNodeV10, FrameNodeV10, RectNodeV10, LineNo
 export type { SceneV11, NodeV11, GroupNodeV11, FrameNodeV11, RectNodeV11, LineNodeV11, PathNodeV11, ImageNodeV11, GlyphRunNodeV11, HitMode } from './schema.js';
 export type { SceneV12, NodeV12, GroupNodeV12, FrameNodeV12, ImageNodeV12, NineSliceInsets } from './schema.js';
 export type { SceneV13, NodeV13, GroupNodeV13, FrameNodeV13, ImageNodeV13, TilePattern } from './schema.js';
+export type { SceneV14, NodeV14, GroupNodeV14, FrameNodeV14, RectNodeV14, LineNodeV14, PathNodeV14, ImageNodeV14, GlyphRunNodeV14 } from './schema.js';
 export type { PathObservation, FillObservation, PathSample } from './path.js';
 export { createPathBuilder } from './path-builder.js';
 export type { PathBuilder } from './path-builder.js';

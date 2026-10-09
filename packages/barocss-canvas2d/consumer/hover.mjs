@@ -22,7 +22,7 @@ tree.stage.addChild(back); tree.stage.addChild(parent); parent.addChild(frame); 
 let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
 let renderer = createCanvas2D(canvas, options);
 renderer.setImageAsset('Atlas', image);
-/** @type {import('@barocss/canvas2d').SceneV11 | import('@barocss/canvas2d').SceneV12 | import('@barocss/canvas2d').SceneV13} */
+/** @type {import('@barocss/canvas2d').SceneV11 | import('@barocss/canvas2d').SceneV12 | import('@barocss/canvas2d').SceneV13 | import('@barocss/canvas2d').SceneV14} */
 let accepted = tree.snapshot(); renderer.updateScene(accepted); renderer.render();
 let generation = 1;
 /** @type {string[]} */ let log = [];
@@ -84,7 +84,7 @@ async function save() {
 async function openText(text) {
   const fresh = document.createElement('canvas'); fresh.id = 'scene'; fresh.width = 160; fresh.height = 160;
   const staged = await stageCanvasDocument(text, fresh, options);
-  if (staged.scene.version !== 11 && staged.scene.version !== 12 && staged.scene.version !== 13) throw new Error('Scene v11, v12 or v13 required');
+  if (staged.scene.version !== 11 && staged.scene.version !== 12 && staged.scene.version !== 13 && staged.scene.version !== 14) throw new Error('Scene v11, v12 or v13 or v14 required');
   const nextTree = createDisplayTreeFromScene(staged.scene);
   const nextBack = nextTree.get('Back'), nextParent = nextTree.get('Parent');
   const nextFrame = nextTree.get('Frame'), nextSprite = nextTree.get('Sprite');
