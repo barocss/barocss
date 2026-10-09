@@ -5,8 +5,9 @@ import {
   serializeRenderMixedDocument,
   RENDER_MIXED_DOCUMENT_LIMITS,
   RenderMixedDocumentError,
+  prepareRenderNativeSourceImport,
 } from '@barocss/render-editor';
-import type { RenderMixedDocumentV1 } from '@barocss/render-editor';
+import type { RenderMixedDocumentV1, RenderMixedSessionSnapshot } from '@barocss/render-editor';
 import { RenderMixedEditor } from '@barocss/render-editor/react';
 import { Button } from './components/ui/button';
 import {
@@ -17,8 +18,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { createNewMixedDocument, mixedFixtureDocuments } from './mixed-fixtures';
 
 type PendingAction = { label: string; execute: () => void };
-type ErrorOperation = 'open' | 'save' | 'edit' | 'history' | 'restore' | 'project';
+type ErrorOperation = 'open' | 'save' | 'edit' | 'history' | 'restore' | 'project' | 'importNative';
 type AppErrorNotice = { error: Error; operation: ErrorOperation; copy: string; previewFailure: boolean };
+type NativeImportCandidate = ReturnType<typeof prepareRenderNativeSourceImport>;
+interface NativeImportState {
+  token: number;
+  baseline: RenderMixedSessionSnapshot;
+  projectKey: string;
+  fileName: string;
+  reading: boolean;
+  candidate: NativeImportCandidate | null;
+}
 interface WorkspaceProject {
   key: string;
   document: RenderMixedDocumentV1;
@@ -62,6 +72,11 @@ function errorCode(error: Error): string | null {
 
 function errorCopy(error: Error, operation: ErrorOperation, presentedRevision: number | null, previewFailure: boolean): string {
   const code = errorCode(error);
+  if (operation === 'importNative') {
+    if (code === 'BYTES') return 'The CAD source file is too large. Choose a file of 64 KiB or less. Your scene and drafts are unchanged.';
+    if (code === 'QUALIFICATION') return 'No usable Surface was selected. Choose a source file with a Surface and select it. Your scene and drafts are unchanged.';
+    return 'The CAD source could not be imported. Correct the original source or choose another file. Your scene and drafts are unchanged.';
+  }
   if (operation === 'open') {
     if (code === 'BYTES') return 'File could not open. Use a mixed scene file of 512 KiB or less with each source no larger than 64 KiB. The current scene is unchanged.';
     if (code === 'VERSION') return 'This file format is not supported here. Choose a version 1 mixed scene file. Use Source editor for version 0 scenes. The current scene is unchanged.';
@@ -97,6 +112,10 @@ function AppErrorDetails({ notice }: { notice: AppErrorNotice }) {
   return <details className="app-error-details"><summary>Details</summary><pre data-testid="app-error-details">{errorDetails(notice.error)}</pre></details>;
 }
 
+function NativeImportHelp() {
+  return <div className="space-y-3 text-sm text-muted-foreground"><p>Choose an original CAD source text file with a Surface. The source uses version 0 and millimeters. The file must be valid UTF-8 and no larger than 64 KiB.</p><p>Inspect the complete object list, then select a Surface. Curves and unselected Surfaces stay in the original source. This mixed profile displays one Sphere and one selected Surface.</p><p>Use Surface changes the native draft only. Apply checks and updates the complete preview. Scene, camera, and display drafts stay in place. If a native draft already exists, select Replace native draft to replace it.</p><p>Cancel keeps your current scene and drafts. Save keeps the complete original source and the selected model and Surface.</p></div>;
+}
+
 function createAppState() {
   const projects = createWorkspace();
   const initial = projects.find((project) => project.key === readProjectRoute()) ?? projects[0];
@@ -116,12 +135,96 @@ export function MixedApp() {
   const activeKeyRef = useRef(activeKey);
   const [pending, setPending] = useState<PendingAction | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [helpTopic, setHelpTopic] = useState<'mixed' | 'native'>('mixed');
   const helpTrigger = useRef<HTMLButtonElement>(null);
   const [notice, setNotice] = useState('Select an object or edit the source. Apply changes to render.');
   const [error, setError] = useState<AppErrorNotice | null>(null);
   const [busy, setBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const fileReadToken = useRef(0);
+  const nativeInput = useRef<HTMLInputElement>(null);
+  const nativeImportTrigger = useRef<HTMLButtonElement>(null);
+  const nativeReadToken = useRef(0);
+  const nativePickerBaseline = useRef<Omit<NativeImportState, 'fileName' | 'reading' | 'candidate'> | null>(null);
+  const [nativeImport, setNativeImport] = useState<NativeImportState | null>(null);
+  const nativeImportRef = useRef<NativeImportState | null>(null);
+  const [importSurface, setImportSurface] = useState('');
+  const [replaceNativeDraft, setReplaceNativeDraft] = useState(false);
+
+  function setImportState(state: NativeImportState | null) {
+    nativeImportRef.current = state;
+    setNativeImport(state);
+  }
+
+  function cancelNativeImport() {
+    nativeReadToken.current += 1;
+    nativePickerBaseline.current = null;
+    setImportState(null);
+    setImportSurface('');
+    setReplaceNativeDraft(false);
+    setError(notice => notice?.operation === 'importNative' ? null : notice);
+  }
+
+  function startNativeImport() {
+    if (busy || pending || nativeImportRef.current) return;
+    const token = ++nativeReadToken.current;
+    nativePickerBaseline.current = { token, baseline: session.getSnapshot(), projectKey: activeKeyRef.current };
+    if (nativeInput.current) { nativeInput.current.value = ''; nativeInput.current.click(); }
+  }
+
+  function nativeBaselineCurrent(state: Pick<NativeImportState, 'token' | 'baseline' | 'projectKey'>): boolean {
+    return nativeReadToken.current === state.token && session.getSnapshot() === state.baseline && activeKeyRef.current === state.projectKey
+      && !controller.getSnapshot().disposed && !session.getSnapshot().disposed;
+  }
+
+  function reportStaleNative(cause: unknown) {
+    report(cause, 'importNative', 'The scene or draft changed during import. Cancel and import the file again. Your current scene and drafts are unchanged.');
+  }
+
+  async function acceptNativeFile(file: File) {
+    fileReadToken.current += 1;
+    setBusy(false);
+    const selected = nativePickerBaseline.current ?? { token: ++nativeReadToken.current, baseline: session.getSnapshot(), projectKey: activeKeyRef.current };
+    nativePickerBaseline.current = null;
+    const state: NativeImportState = { ...selected, fileName: file.name, reading: true, candidate: null };
+    setImportSurface('');
+    setReplaceNativeDraft(false);
+    setError(null);
+    setImportState(state);
+    try {
+      if (file.size > RENDER_MIXED_DOCUMENT_LIMITS.sourceBytes) throw new RenderMixedDocumentError('BYTES', 'Native File.size exceeds 65536 bytes.');
+      const buffer = await file.arrayBuffer();
+      if (nativeReadToken.current !== state.token) return;
+      if (!nativeBaselineCurrent(state)) { reportStaleNative(new Error('The import snapshot or project is stale.')); return; }
+      let source: string;
+      try { source = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(buffer); }
+      catch (cause) { throw new RenderMixedDocumentError('INPUT', 'The native source is not valid UTF-8.', cause); }
+      const candidate = prepareRenderNativeSourceImport(source);
+      if (!nativeBaselineCurrent(state)) { reportStaleNative(new Error('The import snapshot or project is stale.')); return; }
+      setImportState({ ...state, reading: false, candidate });
+    } catch (cause) {
+      if (nativeReadToken.current !== state.token) return;
+      if (!nativeBaselineCurrent(state)) reportStaleNative(cause);
+      else report(cause, 'importNative', cause instanceof RenderMixedDocumentError && cause.code === 'INPUT' && cause.message === 'The native source is not valid UTF-8.'
+        ? 'The file is not valid UTF-8. Choose a UTF-8 CAD source file. Your scene and drafts are unchanged.' : undefined);
+    } finally {
+      if (nativeReadToken.current === state.token && nativeImportRef.current?.reading) setImportState({ ...nativeImportRef.current, reading: false });
+    }
+  }
+
+  function useImportedSurface() {
+    const state = nativeImportRef.current;
+    if (!state?.candidate || state.reading || !importSurface) return;
+    if (!nativeBaselineCurrent(state)) { reportStaleNative(new Error('The selected import snapshot or project is stale.')); return; }
+    const draft = state.baseline.draft.asset, accepted = state.baseline.accepted.asset;
+    const replacementRequired = draft.source !== accepted.source || draft.modelId !== accepted.modelId || draft.surfaceId !== accepted.surfaceId;
+    if (replacementRequired && !replaceNativeDraft) return;
+    try {
+      session.setDraftNativeAsset(state.candidate.source, state.candidate.modelId, importSurface);
+      cancelNativeImport();
+      setNotice('CAD source staged. Apply to update the preview.');
+    } catch (cause) { report(cause, 'importNative'); }
+  }
 
   function updateProjects(next: WorkspaceProject[]) {
     projectsRef.current = next;
@@ -141,7 +244,7 @@ export function MixedApp() {
   }
 
   function runGuarded(action: PendingAction) {
-    if (busy || pending) return;
+    if (busy || pending || nativeImportRef.current) return;
     const current = session.getSnapshot();
     if (current.dirty) { setError(null); setPending(action); }
     else action.execute();
@@ -188,6 +291,11 @@ export function MixedApp() {
   }
 
   async function acceptFile(file: File) {
+    nativeReadToken.current += 1;
+    if (nativeImportRef.current?.reading) {
+      setImportState({ ...nativeImportRef.current, reading: false });
+      reportStaleNative(new Error('Opening a mixed document invalidated the native import.'));
+    }
     const token = ++fileReadToken.current;
     const readSnapshot = session.getSnapshot();
     const readProjectKey = activeKeyRef.current;
@@ -254,7 +362,7 @@ export function MixedApp() {
 
   useEffect(() => {
     replaceProjectRoute(activeKeyRef.current);
-    const release = () => { fileReadToken.current += 1; controller.dispose(); session.dispose(); };
+    const release = () => { fileReadToken.current += 1; nativeReadToken.current += 1; nativePickerBaseline.current = null; controller.dispose(); session.dispose(); };
     window.addEventListener('pagehide', release, { once: true });
     return () => { window.removeEventListener('pagehide', release); release(); };
   }, [controller]);
@@ -262,6 +370,11 @@ export function MixedApp() {
   useEffect(() => {
     const routeChanged = () => {
       fileReadToken.current += 1;
+      nativeReadToken.current += 1;
+      if (nativeImportRef.current) {
+        setImportState({ ...nativeImportRef.current, reading: false });
+        reportStaleNative(new Error('Project navigation invalidated the native import.'));
+      }
       if (busy) report(new Error('Project navigation canceled the file read. The current scene and draft are retained.'), 'open', 'Project navigation canceled the file read. The current scene and draft are unchanged. Open the file again.');
       setBusy(false);
       const key = readProjectRoute();
@@ -271,7 +384,7 @@ export function MixedApp() {
     };
     const keyPressed = (event: KeyboardEvent) => {
       const target = event.target;
-      if (event.isComposing || event.defaultPrevented || pending || busy || !(event.metaKey || event.ctrlKey)) return;
+      if (event.isComposing || event.defaultPrevented || pending || busy || nativeImportRef.current || !(event.metaKey || event.ctrlKey)) return;
       if (target instanceof HTMLElement && (target.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]'))) return;
       const key = event.key.toLowerCase();
       if (!['n', 'o', 's', 'z'].includes(key) || event.altKey) return;
@@ -299,7 +412,12 @@ export function MixedApp() {
   const activeProject = projects.find((project) => project.key === activeKey);
   const dirty = snapshot.dirty;
   const downloaded = activeProject?.savedRevision === snapshot.accepted.revision;
-  const actionDisabled = busy || pending !== null;
+  const actionDisabled = busy || pending !== null || nativeImport !== null;
+  const nativeReplacementRequired = nativeImport !== null && (
+    nativeImport.baseline.draft.asset.source !== nativeImport.baseline.accepted.asset.source
+    || nativeImport.baseline.draft.asset.modelId !== nativeImport.baseline.accepted.asset.modelId
+    || nativeImport.baseline.draft.asset.surfaceId !== nativeImport.baseline.accepted.asset.surfaceId
+  );
   const previewUnavailable = presentation.presentedRevision === null;
   const previewRefused = presentation.presentationError !== null;
   const canRestorePreview = previewUnavailable && previewRefused && !presentation.disposed;
@@ -313,6 +431,7 @@ export function MixedApp() {
           <MenubarMenu><MenubarTrigger>File</MenubarTrigger><MenubarContent>
             <MenubarItem data-testid="menu-new" disabled={actionDisabled} onSelect={newDocument}><FilePlus2 />New mixed scene<MenubarShortcut>⌘N</MenubarShortcut></MenubarItem>
             <MenubarItem data-testid="menu-open" disabled={actionDisabled} onSelect={openFile}><FolderOpen />Open file…<MenubarShortcut>⌘O</MenubarShortcut></MenubarItem>
+            <MenubarItem disabled={actionDisabled} onSelect={startNativeImport}>Import CAD source</MenubarItem>
             <MenubarSeparator />
             <MenubarItem data-testid="menu-save" disabled={actionDisabled} onSelect={saveFile}><Save />Save file<MenubarShortcut>⌘S</MenubarShortcut></MenubarItem>
           </MenubarContent></MenubarMenu>
@@ -324,7 +443,7 @@ export function MixedApp() {
           <MenubarMenu><MenubarTrigger>Workspace</MenubarTrigger><MenubarContent>
             {projects.map((project) => <MenubarItem key={project.key} disabled={actionDisabled} onSelect={() => switchProject(project.key)}>{project.document.title}</MenubarItem>)}
           </MenubarContent></MenubarMenu>
-          <MenubarMenu><MenubarTrigger ref={helpTrigger}>Help</MenubarTrigger><MenubarContent><MenubarItem onSelect={() => setHelpOpen(true)}>Mixed scene editing</MenubarItem></MenubarContent></MenubarMenu>
+          <MenubarMenu><MenubarTrigger ref={helpTrigger}>Help</MenubarTrigger><MenubarContent><MenubarItem onSelect={() => { setHelpTopic('mixed'); setHelpOpen(true); }}>Mixed scene editing</MenubarItem><MenubarItem onSelect={() => { setHelpTopic('native'); setHelpOpen(true); }}>Native source import</MenubarItem></MenubarContent></MenubarMenu>
         </Menubar>
         <div className="app-topbar-spacer" />
         <Button size="sm" variant="ghost" asChild><a href="/index.html" onClick={event => {
@@ -332,6 +451,7 @@ export function MixedApp() {
           event.preventDefault();
           runGuarded({ label: 'open Source editor', execute: () => window.location.assign('/index.html') });
         }}>Source editor</a></Button>
+        <Button ref={nativeImportTrigger} size="sm" variant="ghost" disabled={actionDisabled} onClick={startNativeImport} data-testid="import-native-source">Import CAD source</Button>
         <Button size="sm" variant="ghost" disabled={actionDisabled} onClick={openFile} data-testid="open-file"><FolderOpen />Open</Button>
         <Button size="sm" variant="secondary" disabled={actionDisabled} onClick={saveFile} data-testid="save-file"><Save />Save</Button>
       </header>
@@ -351,7 +471,7 @@ export function MixedApp() {
           <div className="app-document-bar"><div><span className="app-eyebrow">Mixed scene</span><h1 data-testid="document-title">{snapshot.accepted.title}</h1></div><span className="app-document-state">{dirty ? 'Draft changes' : activeProject?.origin === 'example' && downloaded ? 'Example' : downloaded ? 'File opened / downloaded' : 'Not downloaded'}</span>
             <div className="app-history"><Button variant="ghost" size="icon-sm" aria-label="Undo" disabled={!snapshot.canUndo || actionDisabled} onClick={() => history('undo')}><Undo2 /></Button><Button variant="ghost" size="icon-sm" aria-label="Redo" disabled={!snapshot.canRedo || actionDisabled} onClick={() => history('redo')}><Redo2 /></Button></div>
           </div>
-          {error && !pending ? <div className="app-error" role="alert" data-testid="app-error"><div><p>{error.copy}</p><AppErrorDetails key={error.error.message} notice={error} /></div><button aria-label="Dismiss error" onClick={() => setError(null)}>×</button></div> : null}
+          {error && !pending && !nativeImport ? <div className="app-error" role="alert" data-testid="app-error"><div><p>{error.copy}</p><AppErrorDetails key={error.error.message} notice={error} /></div><button aria-label="Dismiss error" onClick={() => setError(null)}>×</button></div> : null}
           <RenderMixedEditor controller={controller} onError={(error: RenderMixedDocumentError) => {
             if (controller.getSnapshot().presentationError === error || session.getSnapshot().diagnostics === error) { setError(notice => notice && ['edit', 'history', 'restore'].includes(notice.operation) ? null : notice); return; }
             report(error, 'edit');
@@ -374,6 +494,29 @@ export function MixedApp() {
         event.currentTarget.value = '';
         if (file) void acceptFile(file);
       }} />
+      <input ref={nativeInput} type="file" accept=".barocad,.txt,.css,text/plain,text/css" hidden data-testid="native-source-file-input" aria-label="Import CAD source file" onCancel={cancelNativeImport} onChange={event => {
+        const file = event.currentTarget.files?.[0];
+        event.currentTarget.value = '';
+        if (file) void acceptNativeFile(file);
+        else cancelNativeImport();
+      }} />
+
+      <Dialog open={nativeImport !== null} onOpenChange={open => { if (!open) cancelNativeImport(); }}>
+        <DialogContent showCloseButton={false} className="max-h-[85svh] overflow-y-auto" data-testid="native-import-dialog" onCloseAutoFocus={event => { event.preventDefault(); nativeImportTrigger.current?.focus(); }}><DialogHeader>
+          <DialogTitle>Import CAD source</DialogTitle>
+          <DialogDescription>{nativeImport?.reading ? 'Reading the CAD source. Cancel keeps your current scene and drafts.' : 'Choose a Surface to stage. Apply updates the preview after this dialog closes.'}</DialogDescription>
+        </DialogHeader>
+        {nativeImport?.candidate ? <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">{nativeImport.fileName} · {nativeImport.candidate.modelId}</p>
+          <div><p className="mb-2 text-sm font-medium">Objects</p><ul data-testid="native-import-inventory" className="max-h-44 space-y-1 overflow-y-auto text-sm text-muted-foreground">{nativeImport.candidate.objects.map(object => <li key={object.id}>{object.id} · {object.kind}</li>)}</ul></div>
+          <label className="flex flex-col gap-2 text-sm"><span>Surface</span><select aria-label="Import Surface" className="rounded-md border border-input bg-background p-2" value={importSurface} onChange={event => setImportSurface(event.currentTarget.value)}><option value="">Choose a Surface</option>{nativeImport.candidate.surfaces.map(surface => <option key={surface.id} value={surface.id}>{surface.id}</option>)}</select></label>
+          {nativeReplacementRequired ? <label className="flex items-center gap-2 text-sm"><input type="checkbox" aria-label="Replace native draft" checked={replaceNativeDraft} onChange={event => setReplaceNativeDraft(event.currentTarget.checked)} /><span>Replace native draft</span></label> : null}
+        </div> : null}
+        {error?.operation === 'importNative' ? <div role="alert" className="app-dialog-error" data-testid="app-error"><p>{error.copy}</p><AppErrorDetails key={error.error.message} notice={error} /></div> : null}
+        <details><summary className="cursor-pointer text-sm">Help</summary><div className="mt-3"><NativeImportHelp /></div></details>
+        <DialogFooter><Button variant="ghost" onClick={cancelNativeImport} data-testid="native-import-cancel">Cancel</Button><Button disabled={!nativeImport?.candidate || nativeImport.reading || !importSurface || (nativeReplacementRequired && !replaceNativeDraft)} onClick={useImportedSurface} data-testid="native-import-use">Use Surface</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={pending !== null} onOpenChange={(open) => { if (!open) setPending(null); }}>
         <DialogContent showCloseButton={false} data-testid="draft-dialog"><DialogHeader>
@@ -385,7 +528,7 @@ export function MixedApp() {
           <Button onClick={applyPending} data-testid="draft-apply">Apply and continue</Button>
         </DialogFooter></DialogContent>
       </Dialog>
-      <Dialog open={helpOpen} onOpenChange={setHelpOpen}><DialogContent onCloseAutoFocus={event => { event.preventDefault(); helpTrigger.current?.focus(); }}><DialogHeader><DialogTitle>Mixed scene editing</DialogTitle><DialogDescription>Edit either original source, the camera, or the display settings. Apply updates the complete preview together.</DialogDescription></DialogHeader><div className="space-y-3 text-sm text-muted-foreground"><p>This profile displays one scene Sphere and one selected native Surface with shared depth. Other native objects stay in the original source and inventory. Curves are kept in the file and are not drawn in this preview.</p><p>The native source uses millimeters. Display conversion and translation place it in scene units. Camera field of view uses degrees. Native display settings do not change the original control points, weights, or UV definition.</p><p>New starts from a valid Sphere and Surface sample. Workspace contains two source pairs. Use Source editor for the broader scene object editor and its version 0 files.</p><p>Save downloads accepted version 1 mixed JSON, including both original sources, selected model and Surface, camera, and display values. Open accepts mixed scene files up to 512 KiB, with each source no larger than 64 KiB.</p><p>Projects stay in this tab. Save a file before closing. Downloads depend on browser settings; check the downloaded file. CAD materials, Physics, precise picking, and additional mixed shapes are outside this profile.</p></div></DialogContent></Dialog>
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}><DialogContent onCloseAutoFocus={event => { event.preventDefault(); helpTrigger.current?.focus(); }}><DialogHeader><DialogTitle>{helpTopic === 'native' ? 'Native source import' : 'Mixed scene editing'}</DialogTitle><DialogDescription>{helpTopic === 'native' ? 'Choose an original CAD source and a Surface, then stage it for Apply.' : 'Edit either original source, the camera, or the display settings. Apply updates the complete preview together.'}</DialogDescription></DialogHeader>{helpTopic === 'native' ? <NativeImportHelp /> : <div className="space-y-3 text-sm text-muted-foreground"><p>This profile displays one scene Sphere and one selected native Surface with shared depth. Other native objects stay in the original source and inventory. Curves are kept in the file and are not drawn in this preview.</p><p>The native source uses millimeters. Display conversion and translation place it in scene units. Camera field of view uses degrees. Native display settings do not change the original control points, weights, or UV definition.</p><p>New starts from a valid Sphere and Surface sample. Workspace contains two source pairs. Use Source editor for the broader scene object editor and its version 0 files.</p><p>Save downloads accepted version 1 mixed JSON, including both original sources, selected model and Surface, camera, and display values. Open accepts mixed scene files up to 512 KiB, with each source no larger than 64 KiB.</p><p>Projects stay in this tab. Save a file before closing. Downloads depend on browser settings; check the downloaded file. CAD materials, Physics, precise picking, and additional mixed shapes are outside this profile.</p></div>}</DialogContent></Dialog>
     </main>
   );
 }

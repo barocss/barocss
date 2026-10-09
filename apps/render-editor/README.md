@@ -42,3 +42,11 @@ Native file size is checked against 524288 bytes before `File.text()`. A late re
 Projects stay in this tab. Save a file before closing. Notices and optional Details overlay the workbench without resizing the preview. The module owns preview and draft diagnostic notices. Restore preview is offered only when the display is unavailable and the controller is live. No precise picking, materials, Physics, per-asset placement, or broader mixed shape support is claimed.
 
 The mixed app keeps the file/guard/error/revision selectors described above and adds `render-mixed-editor-app`, `project-surface_study`, and `project-rational_panel`. Accepted and displayed numeric revisions remain in `data-revision`. Use an isolated strict port override for the mixed native flow; the existing 52047 source-editor preview remains unchanged.
+
+## Native source import
+
+Use File→Import CAD source or the Import CAD source button in the mixed app. Choose a plain UTF8 original Source0 text file, inspect all original objects, then explicitly choose a Surface and select Use Surface. The file is limited to64KiB and is checked before reading. A canceled or stale read/selection keeps the current scene and drafts. Use Surface stages the complete original text/model/Surface together; Apply must succeed before the viewport/history changes. Existing Scene/camera/display drafts stay. Replace native draft is required when a pending native source/reference would be replaced.
+
+Use the Native asset Surface selector to change the displayed Surface from the original source; the complete model remains stored. Save stores all original text/objects and the selected reference. Fresh Open rebuilds the selected preview. Only one Sphere and one Surface are shown in this profile; native coordinates use mm with one scene conversion. CAD geometry editing and other CAD file formats are separate workflows.
+
+Contextual Help is Help→Native source import or Help in the import dialog. It preserves drafts and selection. Closing menu Help returns focus to Help; closing import returns focus to Import CAD source. Import file/guard errors show a short next step and optional Details. The focused driver uses isolated52051, preserving existing source/mixed author previews.
