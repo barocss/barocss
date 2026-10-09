@@ -11,6 +11,7 @@ export type PathBuilder = {
   roundRect(x: number, y: number, width: number, height: number, radius: number): PathBuilder;
   circle(cx: number, cy: number, radius: number): PathBuilder;
   ellipse(cx: number, cy: number, radiusX: number, radiusY: number): PathBuilder;
+  arc(cx: number, cy: number, radius: number, startAngle: number, sweepAngle: number): PathBuilder;
   clear(): PathBuilder;
   build(): PathCommand[];
 };
@@ -122,6 +123,28 @@ export function createPathBuilder(): PathBuilder {
         { kind: 'C', c1x: left, c1y: d, c2x: b, c2y: top, x, y: top },
         { kind: 'C', c1x: a, c1y: top, c2x: right, c2y: d, x: right, y },
         { kind: 'Z' }]);
+    },
+    arc(cx: number, cy: number, radius: number, startAngle: number, sweepAngle: number) {
+      const x = scalar(cx), y = scalar(cy), r = positive(radius);
+      const start = scalar(startAngle), sweep = scalar(sweepAngle);
+      if (Math.abs(start) > 2 * Math.PI || sweep === 0 || Math.abs(sweep) > 2 * Math.PI) {
+        invalid('path builder arc angle is outside supported range');
+      }
+      const segments = Math.ceil(Math.abs(sweep) / (Math.PI / 2));
+      const step = sweep / segments;
+      const control = 4 / 3 * Math.tan(step / 4) * r;
+      const commands: PathCommand[] = [{ kind: 'M', x: scalar(x + r * Math.cos(start)),
+        y: scalar(y + r * Math.sin(start)) }];
+      for (let index = 0; index < segments; index++) {
+        const a = start + index * step, b = start + (index + 1) * step;
+        const cosA = Math.cos(a), sinA = Math.sin(a), cosB = Math.cos(b), sinB = Math.sin(b);
+        commands.push({ kind: 'C', c1x: scalar(x + r * cosA - control * sinA),
+          c1y: scalar(y + r * sinA + control * cosA),
+          c2x: scalar(x + r * cosB + control * sinB),
+          c2y: scalar(y + r * sinB - control * cosB),
+          x: scalar(x + r * cosB), y: scalar(y + r * sinB) });
+      }
+      return append(commands);
     },
     clear() { commands = []; return api; },
     build() {
