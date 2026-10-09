@@ -2063,3 +2063,24 @@ only adapter-owned resources. The original profile, rail, native Sweep
 Surface and U/V domains remain authoritative. Constructor Curves are not
 B-Rep boundaries. The 8×8 meshes do not certify moving frames, global
 regularity, caps, Shell/Solid quality, other engine parity or npm release.
+
+## Native affine Curve and Surface copies in Three.js
+
+`examples/affine-geometry-three-data/` holds seven byte-exact CAD #958
+source0 files. Each preserves its original Curve or Surface and one new
+native affine copy with a distinct ID. The Node verifier compares the
+original authored transform, complete owned result, public CAD validator,
+cold source0 model and each neutral/Three Line or Mesh buffer:
+
+```sh
+node packages/barocss-cad-interop/examples/affine-geometry-three-verify.mjs /Users/user/.barocss-ai/v3/evidence-958-cad/integration/demo-output
+```
+
+Serve `examples/affine-geometry-three.html` through a local Vite server
+for the headed Three.js WebGL2 flow. It fetches all seven saved files
+through HTTP and shows fourteen separately bound original/copy objects.
+The caller spaces display rows and source groups; native source XYZ,
+coefficients, domains and units do not change. The browser checks each
+visible Line/Mesh, refusal retention and adapter-owned disposal.
+Determinant parity and native derivatives do not certify B-Rep face
+orientation, Solid quality, other target parity or npm release.

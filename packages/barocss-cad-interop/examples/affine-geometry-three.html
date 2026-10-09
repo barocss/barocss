@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native affine Curve and Surface copies in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 1240px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+  button { margin: 8px 8px 8px 0; padding: 7px 12px; }
+</style>
+<main>
+  <h1>Native affine Curve and Surface copies in Three.js</h1>
+  <p>Seven saved CAD #958 sources each contain an original native object and a newly copied object. The upper row shows originals; the lower row shows copies. Display spacing changes no native geometry.</p>
+  <div id="view"></div>
+  <button id="reject">Try invalid candidates</button><button id="dispose">Dispose loaded display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Group, OrthographicCamera, Scene, WebGLRenderer } from 'three';
+  import { parseBaroCadSource } from '../dist/native.js';
+  import { BaroCADLoader } from '../dist/three.js';
+
+  const options = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.1, maxSegments: 512, maxDepth: 16 } };
+  const cases = [
+    { key: 'identity_rational_curve', originalId: 'quarter_original', targetId: 'identity_rational_curve_target', kind: 'curve', hash: '1b13d316e0aa4679cdcb2b796e37678864ab4713456db4a37f88e53a6be1f0de' },
+    { key: 'mirror_translated_quarter', originalId: 'quarter_original', targetId: 'mirror_translated_quarter_target', kind: 'curve', hash: 'c3ddfc7b69f90ae579336ec9ff26621dcc19078a13a66b7ef5581a09098b1c48' },
+    { key: 'rotation90_translated_cubic', originalId: 'cubic_original', targetId: 'rotation90_translated_cubic_target', kind: 'curve', hash: '7db8d28c03bc9dd1ab7a8b349569ed795256a04c1dbd5a16a3e3fc8c33555ee6' },
+    { key: 'maximum64_curve_c0', originalId: 'maximum_curve_original', targetId: 'maximum64_curve_c0_target', kind: 'curve', hash: '1681363adc63ba8176a8c4f9cbd4e9ec7ad352df1df6013cbba83c17a1ad207a' },
+    { key: 'sheared_scaled_plane', originalId: 'plane_original', targetId: 'sheared_scaled_plane_target', kind: 'surface', hash: '8743556157c41b4cc9761239ff21a6b7a889d851bd57f1d5dc1861060ad3fb59' },
+    { key: 'reflected_plane_parity', originalId: 'plane_original', targetId: 'reflected_plane_parity_target', kind: 'surface', hash: '4dc48bf83b2325729056a7920655d9935068bdcb9ae8b9c7d632e63f325aa728' },
+    { key: 'maximum16_by16_surface_c0', originalId: 'maximum_surface_original', targetId: 'maximum16_by16_surface_c0_target', kind: 'surface', hash: 'd05872aa94f8f5e085d15fd517fd4c3ac4b7b109f32526bdbac4920ae8e332f4' },
+  ];
+  const status = document.querySelector('#status');
+  const renderer = new WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+  renderer.setSize(1200, 520);
+  renderer.setClearColor(0x142236);
+  document.querySelector('#view').append(renderer.domElement);
+  const scene = new Scene();
+  const callerChild = new Group();
+  callerChild.name = 'caller marker';
+  scene.add(callerChild);
+  const camera = new OrthographicCamera(-0.103, 0.103, 0.045, -0.045, 0.001, 0.5);
+  camera.position.set(0.084, 0, 0.25);
+  camera.up.set(0, 1, 0);
+  camera.lookAt(0.084, 0, 0);
+  const loader = new BaroCADLoader(options);
+  const accepted = [];
+  const sources = new Map();
+  const pixels = () => {
+    const data = new Uint8Array(1200 * 520 * 4);
+    const gl = renderer.getContext();
+    gl.readPixels(0, 0, 1200, 520, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    return data;
+  };
+  const hashPixels = data => data.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const coloredPixels = data => {
+    let count = 0;
+    for (let i = 0; i < data.length; i += 4)
+      if (data[i] !== 20 || data[i + 1] !== 34 || data[i + 2] !== 54) count++;
+    return count;
+  };
+  const sha256 = async data => [...new Uint8Array(await crypto.subtle.digest('SHA-256', data))]
+    .map(byte => byte.toString(16).padStart(2, '0')).join('');
+  try {
+    if (!(renderer.getContext() instanceof WebGL2RenderingContext)) throw new Error('WebGL2 required');
+    for (const [caseIndex, item] of cases.entries()) {
+      const url = new URL(`./affine-geometry-three-data/${item.key}.barocad`, location.href);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
+      const bytes = await response.arrayBuffer();
+      if (await sha256(bytes) !== item.hash) throw new Error(`Saved source SHA mismatch: ${item.key}`);
+      const source = new TextDecoder().decode(bytes);
+      sources.set(item.key, source);
+      const neutral = parseBaroCadSource(source, options);
+      const display = loader.parse(source);
+      const nativeObjects = neutral.model.objects;
+      if (nativeObjects.length !== 2 || nativeObjects[0].id !== item.originalId ||
+        nativeObjects[1].id !== item.targetId || nativeObjects.some(object => object.kind !== item.kind) ||
+        display.group.children.length !== 2)
+        throw new Error(`Original/new native identity mismatch: ${item.key}`);
+      const objects = [];
+      for (const [index, native] of nativeObjects.entries()) {
+        const object = display.group.children[index];
+        if (object.name !== native.id || object.type !== (item.kind === 'curve' ? 'Line' : 'Mesh'))
+          throw new Error(`Native display binding mismatch: ${item.key}/${native.id}`);
+        if (item.kind === 'curve') {
+          const preview = neutral.curves[index];
+          const positions = object.geometry.getAttribute('position').array;
+          if (preview.curveId !== native.id || object.userData.barocss.curveId !== native.id ||
+            JSON.stringify(object.userData.barocss.nativeParameters) !== JSON.stringify(preview.sample.parameters) ||
+            positions.length !== preview.positions.length || positions.some((value, i) => !Object.is(value, preview.positions[i])))
+            throw new Error(`Native Curve sample mismatch: ${item.key}/${native.id}`);
+          object.material.color.setHex(index === 0 ? 0x28c9eb : 0xf064df);
+        } else {
+          const preview = neutral.surfaces[index];
+          if (preview.surfaceId !== native.id || object.userData.surfaceId !== native.id ||
+            preview.report.vertexCount !== 64 || preview.report.triangleCount !== 98)
+            throw new Error(`Native Surface binding mismatch: ${item.key}/${native.id}`);
+          for (const [attribute, values] of [['position', preview.mesh.positions], ['normal', preview.mesh.normals],
+            ['_CAD_UV', preview.mesh.parameters]]) {
+            const got = object.geometry.getAttribute(attribute).array;
+            if (got.length !== values.length || got.some((value, i) => !Object.is(value, values[i])))
+              throw new Error(`${attribute} mismatch: ${item.key}/${native.id}`);
+          }
+          const gotIndex = object.geometry.getIndex().array;
+          if (gotIndex.length !== preview.mesh.indices.length || gotIndex.some((value, i) => value !== preview.mesh.indices[i]))
+            throw new Error(`index mismatch: ${item.key}/${native.id}`);
+        }
+        const disposal = { geometry: 0, material: 0 };
+        object.geometry.addEventListener('dispose', () => disposal.geometry++);
+        object.material.addEventListener('dispose', () => disposal.material++);
+        object.position.y = index === 0 ? 0.015 : -0.015;
+        objects.push({ id: native.id, object, disposal,
+          samples: item.kind === 'curve' ? neutral.curves[index].sample.pointsMM.length : null,
+          vertices: item.kind === 'surface' ? neutral.surfaces[index].report.vertexCount : null });
+      }
+      display.group.position.x = caseIndex * 0.025;
+      scene.add(display.group);
+      accepted.push({ key: item.key, source, display, objects, sourceBytes: bytes.byteLength });
+    }
+    if (accepted.length !== 7 || accepted.flatMap(item => item.objects).length !== 14)
+      throw new Error('Expected seven original/copy pairs');
+    const individuallyVisible = {};
+    for (const item of accepted) for (const entry of item.objects) {
+      for (const other of accepted) for (const candidate of other.objects)
+        candidate.object.visible = candidate === entry;
+      renderer.render(scene, camera);
+      individuallyVisible[`${item.key}/${entry.id}`] = coloredPixels(pixels());
+      if (individuallyVisible[`${item.key}/${entry.id}`] === 0) throw new Error(`No visible pixels: ${item.key}/${entry.id}`);
+    }
+    for (const item of accepted) for (const entry of item.objects) entry.object.visible = true;
+    renderer.render(scene, camera);
+    const frame = pixels();
+    const evidence = { target: 'Three.js 0.186.1 WebGL2', webgl2: true, unitsPerMillimeter: 0.001,
+      hostView: 'authored XYZ, camera +Z/up +Y, original/copy display rows only',
+      cases: accepted.map(({ key, objects, sourceBytes }) => ({ key, sourceBytes,
+        objects: objects.map(({ id, samples, vertices }) => ({ id, samples, vertices })) })),
+      individuallyVisible, combinedPixels: coloredPixels(frame), pixelHash: hashPixels(frame),
+      callerChildRetained: scene.children.includes(callerChild) };
+    window.__baroAffineGeometryThreeEvidence = evidence;
+    status.textContent = JSON.stringify(evidence, null, 2);
+    const acceptedSources = new Map(sources);
+    document.querySelector('#reject').onclick = () => {
+      let refused = 0;
+      for (const candidate of [
+        () => loader.parse('@model invalid {}'),
+        () => new BaroCADLoader({ ...options, sourceVersion: 1 }).parse(accepted[0].source),
+        () => new BaroCADLoader({ ...options, countU: 1 }).parse(accepted[4].source),
+        () => new BaroCADLoader({ ...options, curveDisplay: { ...options.curveDisplay, maxSegments: 4093 } }).parse(accepted[0].source),
+      ]) { try { candidate(); } catch { refused++; } }
+      renderer.render(scene, camera);
+      evidence.invalidCandidatesRefused = refused;
+      evidence.acceptedSceneRetained = accepted.every(item => scene.children.includes(item.display.group));
+      evidence.acceptedSourcesRetained = cases.every(item => sources.get(item.key) === acceptedSources.get(item.key));
+      evidence.acceptedPixelsRetained = hashPixels(pixels()) === evidence.pixelHash;
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+    document.querySelector('#dispose').onclick = () => {
+      for (const item of accepted) { item.display.dispose(); item.display.dispose(); }
+      renderer.render(scene, camera);
+      evidence.disposed = accepted.every(item => !scene.children.includes(item.display.group) &&
+        item.objects.every(entry => entry.disposal.geometry === 1 && entry.disposal.material === 1));
+      evidence.callerChildRetained = scene.children.includes(callerChild);
+      evidence.callerRendererRetained = renderer.getContext() instanceof WebGL2RenderingContext;
+      evidence.callerCanvasRetained = document.querySelector('#view').contains(renderer.domElement);
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+  } catch (error) {
+    for (const item of accepted) item.display.dispose();
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroAffineGeometryThreeError = String(error);
+  }
+</script>
+</html>
