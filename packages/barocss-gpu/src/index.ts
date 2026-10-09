@@ -40,3 +40,6 @@ export type {CoplanarBooleanBufferOptions,PreparedCoplanarBooleanBuffers} from '
 
 export {prepareBooleanShellBuffers} from './boolean-shell-buffers.js';
 export type {PreparedBooleanShellBuffers} from './boolean-shell-buffers.js';
+
+export {mountBooleanShell,BooleanShellRenderer} from './boolean-shell-renderer.js';
+export type {BooleanShellOptions,BooleanShellResourceCounts} from './boolean-shell-renderer.js';
