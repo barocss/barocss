@@ -39,3 +39,11 @@ Radius 0.15 m, centreline half-length 0.35 m, upright world Y. Scalar advancemen
 Cost: one full untimed warmup per accepted case, then three serial trials of 100 full queries. All case/trial p95 values must be at most 2 ms. Admission, group loop, scalar calculation and returned copies are timed. Construction, oracle, hashes and IO are excluded. No extra warmup, profile replacement or gate change after a failure. Keep every first result.
 
 A pass qualifies only the named profiles. It does not prove arbitrary geometry latency, certified CCD, dynamic pushing, terrain, a controller, Viewer playback, GPU time or publication. Public fields/capacity/errors still need an explicit contract and exact code adoption. See `evidence/receipt.json` for the executed result when available.
+
+## Executed native result
+
+Clean source a8c24355bed171f7784f941ac329fbfb6aba10f8 passed all nine named numerical cases and every three-trial Node and actual Chrome cost gate. DISTINCT_32_GRAZE Node p95: 1.063584 / 1.130709 / 1.043792 ms; Chrome: 1.5 / 0.700000003 / 0.800000012 ms. Browser overall maximum: 1.599999994 ms (reverse trial1). The observed clock increment was about 0.1 ms. These are CPU query observations, not GPU time or arbitrary 32-box latency.
+
+Controls prove 32 source boxes are 32 distinct groups and 32 actual scalar calls; exclusion uses 31. Last overlap still refuses the whole query. Full original output/error identity, copies, exact repeat and independent decoded 18624 bytes pass. Browser input/output bytes and complete observation identities equal Node. Errors/warnings are zero.
+
+Initial dirty and first clean/browser results are retained. Static review found the original control compared only error code. The final control adds error name/message/String parity. No numerical input, algorithm, output, limit or budget changed; all saved raw data is exact across first/final runs. Final evidence is in evidence/node, evidence/browser and evidence/receipt.json. Public #1062 remains planned pending exact adoption and a concrete API/capacity/error contract.
