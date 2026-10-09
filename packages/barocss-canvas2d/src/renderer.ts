@@ -1,4 +1,4 @@
-import { Canvas2DError, copyImageAsset, validateImageAssetId, validatePoint, validateScene, validateSize, validateView } from './schema.js';
+import { Canvas2DError, copyImageAsset, validateColor, validateImageAssetId, validatePoint, validateScene, validateSize, validateView } from './schema.js';
 import type { Color, HitArea, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, NodeV12, NodeV13, NodeV14, NodeV15, NodeV16, NodeV17, NodeV18, NodeV19, NodeV20, NodeV21, NodeV22, NodeV23, PathLinearFill, PathRadialFill, Point, Scene, Size, SourceRect, Transform, View } from './schema.js';
 import { tessellatePath } from './path.js';
 import type { FillObservation, PathObservation } from './path.js';
@@ -430,7 +430,7 @@ function disposeGpu(gl: WebGL2RenderingContext, gpu: Gpu): void {
   gl.deleteVertexArray(gpu.vao); gl.deleteBuffer(gpu.buffer); gl.deleteProgram(gpu.program);
 }
 
-export type Canvas2DOptions = { logicalSize: Size; dpr: number; maxDeviationDevicePx?: number };
+export type Canvas2DOptions = { logicalSize: Size; dpr: number; maxDeviationDevicePx?: number; backgroundColor?: Color };
 export type Hit = { id: string; kind: 'group' | 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun' };
 
 export class Canvas2DRenderer {
@@ -439,6 +439,7 @@ export class Canvas2DRenderer {
   private view: View = { panX: 0, panY: 0, zoom: 1 };
   private size: Size;
   private dpr: number;
+  private backgroundColor: Color;
   private readonly tolerance: number;
   private readonly assets = new Map<string, ImageAsset>();
   private gl: WebGL2RenderingContext;
@@ -480,9 +481,9 @@ export class Canvas2DRenderer {
   constructor(private readonly canvas: HTMLCanvasElement, options: Canvas2DOptions) {
     if (!canvas || typeof canvas.getContext !== 'function' || typeof canvas.addEventListener !== 'function' ||
       !options || typeof options !== 'object' || Reflect.ownKeys(options).length < 2 ||
-      Reflect.ownKeys(options).length > 3 || !Object.hasOwn(options, 'logicalSize') ||
+      Reflect.ownKeys(options).length > 4 || !Object.hasOwn(options, 'logicalSize') ||
       !Object.hasOwn(options, 'dpr') || Reflect.ownKeys(options).some(key =>
-        key !== 'logicalSize' && key !== 'dpr' && key !== 'maxDeviationDevicePx')) {
+        key !== 'logicalSize' && key !== 'dpr' && key !== 'maxDeviationDevicePx' && key !== 'backgroundColor')) {
       throw new Canvas2DError('INVALID_SIZE', 'canvas and exact options are required');
     }
     const tolerance = options.maxDeviationDevicePx ?? 1;
@@ -491,6 +492,8 @@ export class Canvas2DRenderer {
       throw new Canvas2DError('INVALID_SIZE', 'maxDeviationDevicePx must be 0.25..4');
     }
     const dimensions = validateSize(options.logicalSize, options.dpr);
+    const backgroundColor = Object.hasOwn(options, 'backgroundColor')
+      ? validateColor(options.backgroundColor) : [0, 0, 0, 0] as Color;
     const gl = canvas.getContext('webgl2', { alpha: true, premultipliedAlpha: true,
       antialias: false, preserveDrawingBuffer: true, stencil: true });
     if (!gl) throw new Canvas2DError('WEBGL_UNAVAILABLE', 'WebGL2 is required');
@@ -499,12 +502,23 @@ export class Canvas2DRenderer {
     this.gpu = createGpu(gl);
     this.stencilBits = this.readStencilBits();
     this.size = dimensions.size; this.dpr = dimensions.dpr; this.tolerance = tolerance;
+    this.backgroundColor = backgroundColor;
     canvas.width = dimensions.backingWidth; canvas.height = dimensions.backingHeight;
     canvas.addEventListener('webglcontextlost', this.onLoss);
     canvas.addEventListener('webglcontextrestored', this.onRestore);
   }
 
   private active(): void { if (this.disposed) throw new Canvas2DError('DISPOSED', 'renderer is disposed'); }
+  setBackgroundColor(value: Color): void {
+    this.active();
+    this.backgroundColor = validateColor(value);
+  }
+
+  getBackgroundColor(): Color {
+    this.active();
+    return [...this.backgroundColor];
+  }
+
   private readStencilBits(): number {
     const bits = this.gl.getContextAttributes()?.stencil ? this.gl.getParameter(this.gl.STENCIL_BITS) as number : 0;
     return Number.isInteger(bits) && bits > 0 ? bits : 0;
@@ -675,7 +689,8 @@ export class Canvas2DRenderer {
     const gl = this.gl, gpu = this.gpu;
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     gl.disable(gl.SCISSOR_TEST);
-    gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+    const [r, g, b, a] = this.backgroundColor;
+    gl.clearColor(r * a, g * a, b * a, a); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.enable(gl.BLEND); gl.blendEquation(gl.FUNC_ADD);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.useProgram(gpu.program); gl.bindVertexArray(gpu.vao); gl.bindBuffer(gl.ARRAY_BUFFER, gpu.buffer);

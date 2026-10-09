@@ -24,6 +24,8 @@ const nextJSON = stringifySceneJSON(scene);
 renderer.dispose();
 ```
 
+Renderer options accept `backgroundColor: [r,g,b,a]`, using the existing straight RGBA channels in `[0,1]`. The default is transparent. `renderer.setBackgroundColor(color)` stores a copied tuple; call `render()` to show it. `getBackgroundColor()` returns a copy. The background fills the canvas independently of world pan/zoom and has no semantic hit. Resize and context restoration keep the value. It is host configuration: a saved Scene document excludes it, so supply it again in `stageCanvasDocument` or `exportCanvasDocumentPNG` options. The [compiled consumer](consumer/background.html) and [browser/file observation](consumer/evidence/background/observation.md) show the flow.
+
 `hitTestAll(point, limit?)` returns fresh semantic hits in topmost-first order. It reports each node once, even when a path or glyph run has several draw records. The default limit is 16; an explicit limit must be a positive safe integer at most 16. It uses the same accepted scene, view, clip, sprite alpha and hit eligibility as `hitTest`. The host can choose a lower hit for selection cycling and pass it to `tree.dispatchPointer`. The [compiled hit-stack consumer](consumer/hit-stack.html) shows that route and a real v1 document reopen; [browser observations](consumer/evidence/hit-stack/observation.md) record the result.
 
 `createPathBuilder()` makes path-local commands for the public display tree. The example below uses the renderer created above; the builder does not own paint or render a frame:
