@@ -242,3 +242,6 @@ export type { WeightedCurveInterpolationPoint, WeightedCurveInterpolationOptions
 
 export { buildMultiSectionLoftSurface, validateMultiSectionLoftSurface, MultiSectionLoftError, MultiSectionLoftDiagnosticCode } from './multi-section-loft.js';
 export type { MultiSectionLoftOptions, MultiSectionLoftProvenance, MultiSectionLoftObservation, MultiSectionLoftReport, MultiSectionLoftResult } from './multi-section-loft.js';
+
+export { transformNativeGeometryAffine, validateAffineGeometryTransform, AffineGeometryTransformError, AffineGeometryTransformDiagnosticCode } from './affine-geometry-transform.js';
+export type { CadAffineMatrix3x4, AffineGeometryTransformOptions, AffineGeometryTransformObservation, AffineGeometryTransformReport, AffineGeometryTransformResult } from './affine-geometry-transform.js';
