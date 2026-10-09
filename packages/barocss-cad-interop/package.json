@@ -77,6 +77,10 @@
       "types": "./dist/babylon-boolean-mesh.d.ts",
       "import": "./dist/babylon-boolean-mesh.js"
     },
+    "./babylon-boolean-extrusion-mesh": {
+      "types": "./dist/babylon-boolean-extrusion-mesh.d.ts",
+      "import": "./dist/babylon-boolean-extrusion-mesh.js"
+    },
     "./pixi3d": {
       "types": "./dist/pixi3d.d.ts",
       "import": "./dist/pixi3d.js"
