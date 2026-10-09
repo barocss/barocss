@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Authored Boolean graph to Babylon Shell</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; width: 800px; height: 600px; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Authored Boolean graph → filled Babylon Shell</h1>
+  <p>The graph remains native editing data. Babylon owns only the derived display.</p>
+  <canvas id="view" width="800" height="600"></canvas>
+  <button id="edges" type="button">Show true edges</button>
+  <button id="reject" type="button">Try invalid selection</button>
+  <button id="dispose" type="button">Dispose display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Engine } from '@babylonjs/core/Engines/engine.js';
+  import { Scene } from '@babylonjs/core/scene.js';
+  import { Camera } from '@babylonjs/core/Cameras/camera.js';
+  import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera.js';
+  import { Mesh } from '@babylonjs/core/Meshes/mesh.js';
+  import { Color4 } from '@babylonjs/core/Maths/math.color.js';
+  import { Vector3 } from '@babylonjs/core/Maths/math.vector.js';
+  import { loadBaroCadBooleanExtrusionFeatureGraph } from '@barocss/cad-interop/boolean-extrusion-feature-graph';
+  import { deriveBaroCadBooleanExtrusionFeatureMesh } from '@barocss/cad-interop/boolean-extrusion-feature-mesh';
+  import { createBaroCadBooleanExtrusionBabylonMesh } from '@barocss/cad-interop/babylon-boolean-extrusion-mesh';
+
+  const canvas = document.querySelector('#view');
+  const status = document.querySelector('#status');
+  const engine = new Engine(canvas, false, { preserveDrawingBuffer: true, stencil: true });
+  const scene = new Scene(engine);
+  scene.useRightHandedSystem = true;
+  scene.clearColor = new Color4(16 / 255, 27 / 255, 44 / 255, 1);
+  const caller = new Mesh('caller-owned', scene);
+  const camera = new FreeCamera('camera', new Vector3(0.08, 0.03, -0.08), scene);
+  camera.setTarget(new Vector3(-0.0025, -0.004, -0.0013));
+  camera.mode = Camera.ORTHOGRAPHIC_CAMERA;
+  camera.orthoLeft = -0.012; camera.orthoRight = 0.012;
+  camera.orthoTop = 0.009; camera.orthoBottom = -0.009;
+  camera.minZ = 0.001; camera.maxZ = 1;
+  scene.activeCamera = camera;
+  const graphOptions = { maximumParameterResolutions: 8, maximumFeatureEvaluations: 4 };
+  const meshOptions = { meshId: 'shell_mesh', maximumVertices: 384, maximumTriangles: 288,
+    maximumEdgePaths: 192, maximumNativeSamples: 1024 };
+  const displayOptions = { unitsPerMillimeter: 0.001, basis: 'authored-xyz-matches-rhyup' };
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const background = (r, g, b) => Math.abs(r - 16) <= 12 && Math.abs(g - 27) <= 12 && Math.abs(b - 44) <= 12;
+  const render = () => {
+    scene.render();
+    const gl = canvas.getContext('webgl2');
+    const bytes = new Uint8Array(canvas.width * canvas.height * 4);
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('Babylon WebGL readPixels failed');
+    return bytes;
+  };
+  const count = bytes => {
+    let total = 0;
+    for (let i = 0; i < bytes.length; i += 4) if (!background(bytes[i], bytes[i + 1], bytes[i + 2])) total++;
+    return total;
+  };
+  const load = async name => {
+    const url = new URL(`./boolean-extrusion-feature-mesh-three-data/${name}.authored-graph.json`, location.href);
+    const read = await loadBaroCadBooleanExtrusionFeatureGraph(url.href, graphOptions);
+    const selection = { graphId: read.native.document.id, revision: read.native.document.revision,
+      featureId: 'extrusion_feature', outputSlotId: 'extrusion_slot' };
+    const derived = deriveBaroCadBooleanExtrusionFeatureMesh(read.native, selection, meshOptions);
+    return { read, selection, derived };
+  };
+  const ready = async () => {
+    engine.runRenderLoop(() => scene.render());
+    await scene.whenReadyAsync();
+    engine.stopRenderLoop();
+  };
+  let accepted, display, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    const observations = [];
+    for (const name of ['revision1_authentic', 'revision3_replace_boolean']) {
+      const item = await load(name);
+      const candidate = createBaroCadBooleanExtrusionBabylonMesh(scene, item.derived.nativeMesh, displayOptions);
+      if (candidate.shells.length !== 1 || candidate.faces.length !== (name === 'revision1_authentic' ? 10 : 6) ||
+          candidate.edges.length !== (name === 'revision1_authentic' ? 24 : 12) ||
+          candidate.root.getChildMeshes().length !== candidate.faces.length ||
+          candidate.edgeRoot.getChildMeshes().length !== candidate.edges.length ||
+          candidate.edgeRoot.isEnabled()) throw new Error(`Qualified Babylon grouping differs: ${name}`);
+      await ready();
+      const pixels = render();
+      if (count(pixels) < 100) throw new Error(`Qualified Babylon Shell material is not visible: ${name}`);
+      observations.push({ name, revision: item.selection.revision, binding: item.derived.binding.featureId,
+        shellCount: candidate.shells.length, faceCount: candidate.faces.length, edgeCount: candidate.edges.length,
+        materialPixels: count(pixels), frameHash: hash(pixels) });
+      candidate.dispose();
+      accepted = item;
+    }
+    if (observations[0].frameHash === observations[1].frameHash) {
+      throw new Error('Real authored revision did not change the Babylon frame');
+    }
+    display = createBaroCadBooleanExtrusionBabylonMesh(scene, accepted.derived.nativeMesh, displayOptions);
+    await ready();
+    const acceptedFrame = render();
+    if (hash(acceptedFrame) !== observations[1].frameHash ||
+        !(canvas.getContext('webgl2') instanceof WebGL2RenderingContext)) {
+      throw new Error('Accepted Babylon WebGL2 Shell frame differs');
+    }
+    evidence = { observations, acceptedHash: hash(acceptedFrame), webgl2: true,
+      trueEdgesVisible: false, refused: 0, disposed: false, callerRetained: !caller.isDisposed() };
+    window.__baroFeatureMeshBabylonEvidence = evidence; show();
+    document.querySelector('#edges').onclick = () => {
+      const before = hash(render());
+      display.edgeRoot.setEnabled(true);
+      const after = hash(render());
+      if (display.edges.length !== accepted.derived.nativeMesh.report.edgePathCount || after === before) {
+        throw new Error('True Curve edge paths did not change the Babylon frame');
+      }
+      evidence.trueEdgesVisible = true; evidence.trueEdgesFrameHash = after; show();
+    };
+    document.querySelector('#reject').onclick = () => {
+      const before = hash(render());
+      const forged = structuredClone(accepted.read.native);
+      forged.report.qualifiedBindings.at(-1).nativeReferences[0].nativeId = 'forged';
+      let refused = 0;
+      for (const action of [
+        () => deriveBaroCadBooleanExtrusionFeatureMesh(accepted.read.native,
+          { ...accepted.selection, revision: 1 }, meshOptions),
+        () => deriveBaroCadBooleanExtrusionFeatureMesh(accepted.read.native,
+          { ...accepted.selection, outputSlotId: 'wrong' }, meshOptions),
+        () => deriveBaroCadBooleanExtrusionFeatureMesh(forged, accepted.selection, meshOptions),
+        () => deriveBaroCadBooleanExtrusionFeatureMesh(accepted.read.native, accepted.selection,
+          { ...meshOptions, maximumTriangles: 0 }),
+      ]) { try { action(); } catch { refused++; } }
+      if (refused !== 4 || hash(render()) !== before || caller.isDisposed() ||
+          display.faces.some(item => item.object.isDisposed())) {
+        throw new Error('Rejected graph or selection changed accepted Babylon display');
+      }
+      evidence.refused = refused; evidence.acceptedFrameRetained = true; show();
+    };
+    document.querySelector('#dispose').onclick = () => {
+      const disposed = [];
+      for (const item of display.faces) {
+        item.object.onDisposeObservable.add(() => disposed.push('face'));
+        item.object.material.onDisposeObservable.add(() => disposed.push('material'));
+      }
+      for (const item of display.edges) item.object.onDisposeObservable.add(() => disposed.push('edge'));
+      display.dispose(); display.dispose();
+      if (disposed.length !== 2 * display.faces.length + display.edges.length ||
+          !display.root.isDisposed() || !display.edgeRoot.isDisposed() ||
+          caller.isDisposed() || !scene.meshes.includes(caller) || count(render()) !== 0 ||
+          document.querySelectorAll('canvas').length !== 1) {
+        throw new Error('Babylon Shell disposal changed caller resources');
+      }
+      evidence.disposed = true; evidence.ownedResourcesDisposed = disposed.length;
+      evidence.afterDisposePixels = 0; evidence.callerRetained = true; show();
+    };
+  } catch (error) {
+    display?.dispose();
+    evidence = { error: String(error), stack: error.stack };
+    window.__baroFeatureMeshBabylonEvidence = evidence; show();
+  }
+</script>
