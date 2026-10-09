@@ -22,6 +22,9 @@ const markerGeometry = new BufferGeometry();
 markerGeometry.setAttribute('position', new Float32BufferAttribute([-0.001, -0.0005, 0, -0.0007, -0.0005, 0], 3));
 const markerMaterial = new LineBasicMaterial({ color: 0xffb454 });
 const marker = new Line(markerGeometry, markerMaterial);
+const callerDisposals = [0, 0];
+markerGeometry.addEventListener('dispose', () => callerDisposals[0]++);
+markerMaterial.addEventListener('dispose', () => callerDisposals[1]++);
 scene.add(marker);
 const gl = renderer.getContext();
 const loader = new BaroCADLoader(options);
@@ -154,11 +157,13 @@ function dispose() {
   accepted.dispose();
   requireFact(resources.length === 10 && resources.every(record => record.disposals === 1) &&
     accepted.group.parent === null && accepted.source === original && marker.parent === scene &&
-    renderer.domElement.isConnected && !gl.isContextLost(), 'Result disposal crossed caller ownership');
+    callerDisposals.every(count => count === 0) && renderer.domElement.isConnected &&
+    !gl.isContextLost(), 'Result disposal crossed caller ownership');
   frame();
   evidence.disposed = true;
   evidence.disposals = resources.map(record => record.disposals);
   evidence.callerRetained = true;
+  evidence.callerDisposals = [...callerDisposals];
   document.querySelector('#reject').disabled = true;
   status('Display disposed twice. Caller Scene, marker, renderer and canvas remain live.');
 }

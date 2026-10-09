@@ -109,7 +109,7 @@ five IDs, and has refusal and disposal controls:
 ```sh
 pnpm --filter @barocss/cad build:library
 pnpm --filter @barocss/cad-interop build:library
-pnpm exec vite . --host 127.0.0.1 --port 5191 --strictPort
+pnpm exec vite --config packages/barocss-cad-interop/examples/sdk-quickstart-vite.config.mjs --host 127.0.0.1 --port 5191 --strictPort
 ```
 
 Open [the Three quickstart](http://127.0.0.1:5191/packages/barocss-cad-interop/examples/sdk-quickstart-three.html).
