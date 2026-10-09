@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Box, Download, FolderOpen, Layers3, Maximize, Redo2, Undo2 } from 'lucide-react';
 import { parseBooleanExtrusionFeatureGraph, type BooleanExtrusionExtrusionFeature, type BooleanExtrusionLengthDefinition,
-  type BooleanExtrusionLengthParameter, type BooleanExtrusionParameterTransaction } from '@barocss/cad';
+  type BooleanExtrusionLengthParameter, type BooleanExtrusionParameterTransaction,
+  type BooleanExtrusionFaceFeature, type BooleanExtrusionBooleanFeature, type BooleanExtrusionFeatureTransaction } from '@barocss/cad';
 import { CadEditorError, createCadEditorFeatureSession, type CadEditorFeatureSessionOptions } from '@barocss/cad-editor';
 import { CadEditorFeature, useCadEditorFeatureSnapshot, type CadEditorFeatureDisplayReceipt } from '@barocss/cad-editor/react';
 import fixture from '../fixtures/boolean-extrusion.authored-graph.json?raw';
@@ -32,6 +33,12 @@ interface LengthDialog {
   mode: 'add' | 'edit' | 'remove'; parameter: BooleanExtrusionLengthParameter;
   definition: LengthDraft; repairs: LengthRepair[];
 }
+interface ReferencedFeatureDialog {
+  target: BooleanExtrusionFaceFeature | BooleanExtrusionBooleanFeature;
+  replacement: BooleanExtrusionFaceFeature | BooleanExtrusionBooleanFeature;
+  operation: 'union' | 'intersection' | 'difference';
+  repairs: { id: string; kind: 'coplanar-boolean' | 'normal-extrusion'; enabled: boolean }[];
+}
 function scalar(raw: string, field = 'extrusion-length'): number {
   const text = raw.trim();
   if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text) || !Number.isFinite(Number(text)))
@@ -52,6 +59,10 @@ function message(error: CadEditorError, mode?: LengthDialog['mode']): string {
   if (error.code === 'STALE') return 'The graph changed. Try the action again.';
   const cause = error.cause instanceof Error ? error.cause : null;
   const code = cause && 'code' in cause ? String(cause.code) : '';
+  if (error.context.field === 'referenced-feature-transaction') {
+    if (code === 'DEPENDENCY') return 'Choose the replacement for every dependent feature.';
+    return 'Cannot replace this feature. Check the operation and replacement choices.';
+  }
   if (error.context.field === 'parameter-transaction') {
     if (cause?.message.includes('distance0.0001..10000mm')) return 'Keep each extrusion height from 0.0001 to 10000 mm.';
     if (mode === 'remove' && (code === 'DEPENDENCY' || code === 'PARAMETER')) return 'Choose a replacement for each dependent length and extrusion height. Remove circular references.';
@@ -75,6 +86,9 @@ export function FeatureApp() {
   const name = (id: string) => names[id] ?? (() => {
     const generatedLength = /^ce_length_(\d+)$/.exec(id);
     if (generatedLength) return 'Length ' + generatedLength[1];
+    const faceReplacement = /^rf(\d+)_face$/.exec(id), booleanReplacement = /^rb(\d+)_combine$/.exec(id);
+    if (faceReplacement) return 'Face replacement ' + faceReplacement[1];
+    if (booleanReplacement) return 'Combine faces ' + booleanReplacement[1];
     const leaves = snapshot.accepted.document.features.filter(feature => feature.kind === 'normal-extrusion');
     const index = leaves.findIndex(feature => feature.id === id);
     if (index >= 0) return 'Extrusion ' + (index + 1);
@@ -92,6 +106,13 @@ export function FeatureApp() {
   const lengthTrigger = useRef<HTMLElement | null>(null);
   const addLengthButton = useRef<HTMLButtonElement | null>(null);
   const newLengthSequence = useRef(0);
+  const [replaceDialog, setReplaceDialog] = useState<ReferencedFeatureDialog | null>(null);
+  const replaceToken = useRef<string | null>(null);
+  const replaceExpectedGeneration = useRef<number | null>(null);
+  const replaceTrigger = useRef<HTMLElement | null>(null);
+  const replaceFocusAfterAccept = useRef<string | null>(null);
+  const replaceButtons = useRef(new Map<string, HTMLButtonElement>());
+  const replacementSequence = useRef(0);
   const [error, setError] = useState<CadEditorError | null>(null);
   const [receipt, setReceipt] = useState<CadEditorFeatureDisplayReceipt | null>(null);
   const [filename, setFilename] = useState('Boolean extrusion');
@@ -173,7 +194,7 @@ export function FeatureApp() {
   }
   function openLength(mode: LengthDialog['mode'], parameterId: string | null, trigger: HTMLElement) {
     run(() => {
-      if (busy || draft || lifecycle || lengthDialog) throw new CadEditorError('INPUT', 'Resolve pending changes before opening a length dialog.', {field:'feature-draft'});
+      if (busy || draft || lifecycle || lengthDialog || replaceDialog) throw new CadEditorError('INPUT', 'Resolve pending changes before opening a length dialog.', {field:'feature-draft'});
       let parameter: BooleanExtrusionLengthParameter;
       if (mode === 'add') {
         const reserved = JSON.stringify(snapshot.accepted.document) + JSON.stringify(snapshot.accepted.report.qualifiedBindings);
@@ -232,6 +253,61 @@ export function FeatureApp() {
   const replacementParameters = lengthDialog?.mode === 'remove'
     ? snapshot.accepted.document.parameters.filter(parameter => parameter.id !== lengthDialog.parameter.id)
     : snapshot.accepted.document.parameters;
+  function openReplacement(featureId: string, trigger: HTMLElement) {
+    run(() => {
+      if (busy || draft || lifecycle || lengthDialog || replaceDialog) throw new CadEditorError('INPUT', 'Resolve pending changes before replacing a feature.', {field:'feature-draft'});
+      const target = snapshot.accepted.document.features.find(feature => feature.id === featureId);
+      if (!target || target.kind === 'normal-extrusion') throw new CadEditorError('INPUT', 'Choose a Face or Boolean feature to replace.', {field:'referenced-feature-transaction'});
+      const reserved = JSON.stringify(snapshot.accepted.document) + JSON.stringify(snapshot.accepted.report.qualifiedBindings);
+      let prefix: string;
+      do { prefix = (target.kind === 'face-input' ? 'rf' : 'rb') + (++replacementSequence.current); } while (reserved.includes(prefix));
+      if (prefix.length > 8) throw new CadEditorError('BUDGET', 'Replacement identity budget reached.', {field:'referenced-feature-transaction'});
+      const replacement: ReferencedFeatureDialog['replacement'] = target.kind === 'face-input'
+        ? {...target,id:prefix+'_face',outputSlotId:prefix+'_slot'}
+        : {...target,id:prefix+'_combine',outputSlotId:prefix+'_slot',
+          options:{...target.options,evaluationId:prefix+'_eval',resultIdPrefix:prefix}};
+      const repairs: ReferencedFeatureDialog['repairs'] = [];
+      for (const feature of snapshot.accepted.document.features) {
+        if (target.kind === 'face-input' && feature.kind === 'coplanar-boolean'
+          && (feature.operandAFeatureId === target.id || feature.operandBFeatureId === target.id)) {
+          repairs.push({id:feature.id,kind:feature.kind,enabled:false});
+        } else if (target.kind === 'coplanar-boolean' && feature.kind === 'normal-extrusion' && feature.regionFeatureId === target.id) {
+          repairs.push({id:feature.id,kind:feature.kind,enabled:false});
+        }
+      }
+      replaceTrigger.current=trigger;replaceToken.current=null;replaceExpectedGeneration.current=null;replaceFocusAfterAccept.current=null;
+      setReplaceDialog({target,replacement,repairs,operation:target.kind==='coplanar-boolean'?target.options.operation:'union'});
+    });
+  }
+  function submitReplacement() {
+    if (!replaceDialog) return;
+    run(() => {
+      const {target,replacement,operation,repairs}=replaceDialog;
+      const preparedReplacement = replacement.kind === 'coplanar-boolean'
+        ? {...replacement,options:{...replacement.options,operation}} : replacement;
+      const featureOperations: BooleanExtrusionFeatureTransaction['featureOperations']=[{kind:'upsert',feature:preparedReplacement}];
+      for (const repair of repairs) if (repair.enabled) {
+        const feature = snapshot.accepted.document.features.find(value => value.id === repair.id);
+        if (repair.kind === 'coplanar-boolean' && feature?.kind === 'coplanar-boolean') {
+          featureOperations.push({kind:'upsert',feature:{...feature,
+            operandAFeatureId:feature.operandAFeatureId===target.id?replacement.id:feature.operandAFeatureId,
+            operandBFeatureId:feature.operandBFeatureId===target.id?replacement.id:feature.operandBFeatureId}});
+        } else if (repair.kind === 'normal-extrusion' && feature?.kind === 'normal-extrusion') {
+          featureOperations.push({kind:'upsert',feature:{...feature,regionFeatureId:replacement.id}});
+        } else throw new CadEditorError('STALE','A dependent feature changed.',{field:'referenced-feature-transaction'});
+      }
+      featureOperations.push({kind:'remove',featureId:target.id});
+      const candidate=session.prepareReferencedFeatureTransaction({expectedRevision:snapshot.accepted.document.revision,
+        revision:snapshot.accepted.document.revision+1,featureOperations});
+      replaceToken.current=candidate.token;replaceExpectedGeneration.current=candidate.baseGeneration+1;
+      replaceFocusAfterAccept.current=replacement.id;
+    });
+  }
+  function cancelReplacement() {
+    if (busy) return;
+    replaceToken.current=null;replaceExpectedGeneration.current=null;replaceFocusAfterAccept.current=null;
+    setReplaceDialog(null);setError(null);
+  }
   return <div className="cad-app">
     <header className="app-header">
       <a className="app-brand" href="#/features/cad_boolean_extrusion"><Box size={20}/><span>barocss<span className="brand-sub">CAD</span></span></a>
@@ -259,7 +335,7 @@ export function FeatureApp() {
       <Button variant="ghost" size="sm" data-testid="show-all-outputs" disabled={busy} onClick={() => run(() => session.prepareDisplayOutputs(extrusionFeatures.map(feature => output(feature.id))))}>Show all</Button>
       <Button variant="ghost" size="sm" data-testid="solo-selected-output" disabled={busy || !extrusionFeatures.some(feature => feature.id === snapshot.selectedFeatureId)} onClick={() => run(() => session.prepareDisplayOutputs([output(snapshot.selectedFeatureId!)]))}>Show only selected</Button>
     </div></div>
-    {error && !lifecycle && !lengthDialog && <div className="app-error" role="alert">{message(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
+    {error && !lifecycle && !lengthDialog && !replaceDialog && <div className="app-error" role="alert">{message(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
     <div className="app-workspace">
       <aside className="document-tree"><h2><Layers3 size={15}/>Features</h2><div className="tree-document"><Box size={16}/><span>{filename}</span></div>
         {snapshot.accepted.document.features.map(feature => <div key={feature.id} className="tree-body-row">
@@ -267,25 +343,34 @@ export function FeatureApp() {
             <span className="body-symbol surface">{feature.kind === 'normal-extrusion' ? '▣' : '▱'}</span><span>{name(feature.id)}<small>{(dependencies.find(item => item.featureId === feature.id)?.dependencyIds ?? []).map(name).join(' + ') || 'Original face'}</small></span>
           </button>
           {feature.kind === 'normal-extrusion' && <input type="checkbox" data-testid={'output-visible-' + feature.id} aria-label={(visible.includes(feature.id) ? 'Hide ' : 'Show ') + name(feature.id)} checked={visible.includes(feature.id)} disabled={busy} onChange={() => run(() => session.prepareDisplayOutputs((visible.includes(feature.id) ? visible.filter(id => id !== feature.id) : [...visible,feature.id]).map(id => output(id))))} />}
+          {feature.kind !== 'normal-extrusion' && <Button variant="ghost" size="xs" className="feature-replace-action"
+            data-testid={'replace-feature-' + feature.id}
+            ref={button => {if (button) replaceButtons.current.set(feature.id,button);else replaceButtons.current.delete(feature.id);}}
+            disabled={busy || draft || lifecycle !== null || lengthDialog !== null || replaceDialog !== null}
+            onClick={event => openReplacement(feature.id,event.currentTarget)}>Replace</Button>}
         </div>)}
         <div className="tree-section length-sidebar-heading"><span>LENGTHS · {snapshot.accepted.parameters.length}</span>
-          <Button ref={addLengthButton} variant="ghost" size="xs" data-testid="add-length" disabled={busy || draft || lifecycle !== null || lengthDialog !== null}
+          <Button ref={addLengthButton} variant="ghost" size="xs" data-testid="add-length" disabled={busy || draft || lifecycle !== null || lengthDialog !== null || replaceDialog !== null}
             onClick={event => openLength('add',null,event.currentTarget)}>Add length</Button></div>
         {snapshot.accepted.parameters.map(parameter => <div key={parameter.id} className="length-sidebar-row">
           <div className="feature-parameter-summary" data-testid={'parameter-summary-' + parameter.id}><span>{name(parameter.id)}{parameter.dependencyIds.length > 0 && <small>{parameter.dependencyIds.map(name).join(' + ')}</small>}</span><strong>{Object.is(parameter.valueMM,-0) ? '-0' : parameter.valueMM} mm</strong></div>
           <div className="length-row-actions"><Button variant="ghost" size="xs" data-testid={'edit-length-' + parameter.id}
-            disabled={busy || draft || lifecycle !== null || lengthDialog !== null} onClick={event => openLength('edit',parameter.id,event.currentTarget)}>Edit</Button>
+            disabled={busy || draft || lifecycle !== null || lengthDialog !== null || replaceDialog !== null} onClick={event => openLength('edit',parameter.id,event.currentTarget)}>Edit</Button>
             <Button variant="ghost" size="xs" data-testid={'remove-length-' + parameter.id}
-              disabled={busy || draft || lifecycle !== null || lengthDialog !== null} onClick={event => openLength('remove',parameter.id,event.currentTarget)}>Remove</Button></div>
+              disabled={busy || draft || lifecycle !== null || lengthDialog !== null || replaceDialog !== null} onClick={event => openLength('remove',parameter.id,event.currentTarget)}>Remove</Button></div>
         </div>)}
         <div className="tree-details"><span>Units</span><strong>mm</strong><span>Axes</span><strong>XYZ</strong></div>
       </aside>
       <main className="main-workspace">{mounted && <CadEditorFeature key={mountKey} session={session} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest}
         displayOptions={displayRefusal ? {mmToSceneUnit:0,translate:[0,0,0],background:[0.07,0.08,0.10],camera:{eye:[0.2,0.2,0.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:0.001,far:10}} : undefined}
-        onError={failure => { pendingFilename.current = null; lifecycleToken.current = null; lengthToken.current = null; lengthExpectedGeneration.current = null; setError(failure); }} onDisplay={setReceipt}
+        onError={failure => { pendingFilename.current = null; lifecycleToken.current = null; lengthToken.current = null; lengthExpectedGeneration.current = null;
+          replaceToken.current=null;replaceExpectedGeneration.current=null;replaceFocusAfterAccept.current=null;setError(failure); }} onDisplay={setReceipt}
         onAccepted={accepted => { setError(null); if (lifecycleToken.current) { lifecycleToken.current = null; setLifecycle(null); }
           if (lengthToken.current !== null && accepted.generation === lengthExpectedGeneration.current) {
             lengthToken.current = null; lengthExpectedGeneration.current = null; setLengthDialog(null);
+          }
+          if (replaceToken.current !== null && accepted.generation === replaceExpectedGeneration.current) {
+            replaceToken.current=null;replaceExpectedGeneration.current=null;setReplaceDialog(null);
           }
           if (pendingFilename.current) {setFilename(pendingFilename.current); pendingFilename.current = null;} location.hash = '/features/' + accepted.accepted.document.id; }}/>}</main>
     </div>
@@ -302,6 +387,59 @@ export function FeatureApp() {
           <fieldset className="extrusion-outputs"><legend>Display after this change</legend>{dialogLeaves.map((feature,index) => <label key={feature.id}><input type="checkbox" data-testid={'lifecycle-visible-' + feature.id} checked={lifecycle.shown.includes(feature.id)} onChange={() => setLifecycle({...lifecycle,shown:lifecycle.shown.includes(feature.id) ? lifecycle.shown.filter(id => id !== feature.id) : [...lifecycle.shown,feature.id]})}/>{feature.id === lifecycle.feature.id && lifecycle.mode === 'add' ? 'New extrusion' : name(feature.id)}{index === dialogLeaves.length - 1 && lifecycle.mode === 'add' ? ' (new)' : ''}</label>)}</fieldset>
           {error && <p role="alert" className="extrusion-error">{message(error)}</p>}
           <DialogFooter><Button variant="outline" disabled={busy} onClick={() => {setLifecycle(null);setError(null);}}>Cancel</Button><Button data-testid="extrusion-confirm" disabled={busy || lifecycle.shown.length === 0 || lifecycle.shown.length > 4 || (lifecycle.mode === 'remove' && extrusionFeatures.length === 1)} onClick={submitExtrusion}>{busy ? 'Preparing display' : lifecycle.mode === 'remove' ? 'Remove' : lifecycle.mode === 'edit' ? 'Apply' : 'Add'}</Button></DialogFooter>
+        </>}
+      </DialogContent>
+    </Dialog>
+    <Dialog open={replaceDialog !== null} onOpenChange={open => {if (!open) cancelReplacement();}}>
+      <DialogContent className="cad-editor-help-dialog length-dialog replacement-dialog" data-testid="replace-dialog" showCloseButton={!busy}
+        onCloseAutoFocus={event => {
+          event.preventDefault();
+          const acceptedId=replaceFocusAfterAccept.current;
+          replaceFocusAfterAccept.current=null;
+          const preferred=acceptedId ? replaceButtons.current.get(acceptedId) : replaceTrigger.current;
+          if (preferred instanceof HTMLButtonElement && preferred.isConnected && !preferred.disabled) preferred.focus();
+        }}
+        onEscapeKeyDown={event => {if (busy) event.preventDefault();}}
+        onPointerDownOutside={event => {if (busy) event.preventDefault();}}>
+        <DialogHeader><DialogTitle>{replaceDialog?.target.kind === 'face-input' ? 'Replace face' : 'Replace combination'}</DialogTitle>
+          <DialogDescription>Choose each dependent feature that will use the replacement.</DialogDescription></DialogHeader>
+        {replaceDialog && <>
+          <div className="length-dialog-body">
+            <p>Replace {name(replaceDialog.target.id)} with {name(replaceDialog.replacement.id)}.</p>
+            {replaceDialog.target.kind === 'face-input' ? <p>Keep the current face shape.</p>
+              : <div className="extrusion-fields"><label>Operation<select data-testid="replace-operation" disabled={busy}
+                value={replaceDialog.operation} onChange={event => setReplaceDialog(current => current
+                  ? {...current,operation:event.target.value as 'union'|'intersection'|'difference'} : current)}>
+                <option value="union">Union</option><option value="intersection">Intersection</option><option value="difference">Difference</option>
+              </select></label></div>}
+            <fieldset className="extrusion-outputs replacement-repairs"><legend>Use the replacement</legend>
+              {replaceDialog.repairs.map(repair => <label key={repair.id}><input type="checkbox" disabled={busy}
+                data-testid={'replace-repair-' + repair.id} checked={repair.enabled}
+                onChange={event => {
+                  const enabled=event.target.checked;
+                  setReplaceDialog(current => current ? {...current,repairs:current.repairs.map(value => value.id === repair.id ? {...value,enabled} : value)} : current);
+                }}/>{replaceDialog.target.kind === 'face-input' ? 'Use replacement face' : 'Use replacement combination'} for {name(repair.id)}</label>)}
+            </fieldset>
+            {error && <p className="extrusion-error" role="alert">{message(error)}</p>}
+          </div>
+          <DialogFooter>
+            <Dialog><DialogTrigger asChild><Button variant="ghost" disabled={busy} className="length-help-trigger" data-testid="replace-help">Help</Button></DialogTrigger>
+              <DialogContent className="cad-editor-help-dialog" data-testid="replace-help-dialog">
+                <DialogHeader><DialogTitle>Referenced feature replacement</DialogTitle><DialogDescription>Same-shape replacement with explicit reference repairs.</DialogDescription></DialogHeader>
+                <p>Face replacement keeps the current authored Plane and ordered Line input. It creates a fresh logical feature and output slot; it does not edit coordinates or import geometry.</p>
+                <p>Combination replacement copies the original operands and budgets, creates a fresh logical/native evaluation context, and uses Union, Intersection or Difference.</p>
+                <p>Every direct reference starts unchecked. Choose each Boolean operand or extrusion region repair explicitly. Only checked repairs enter the same native transaction before the old target is removed. Missing repairs reach the actual native dependency refusal.</p>
+                <p>The accepted view stays current while you choose. Operation and checkbox changes do not preview or modify the native graph. Native or GPU refusal keeps this dialog, choices, error, history, selection and current frame.</p>
+                <p>Replace commits after complete native evaluation, full GPU scene admission and a fresh RGBA read. Cancel or Escape drops only dialog choices and restores the old Replace trigger. Acceptance focuses the new Replace row without selecting it.</p>
+                <p>The native transaction supports 1–8 unique targets and a working table of at most 8. The final graph keeps two Faces, one Boolean and 1–4 extrusion leaves. This workflow does not create/remove extrusions, change parameters, suppress features, reorder them or perform general solid Boolean operations.</p>
+                <p>Manual topics: Referenced feature transactions in the package README; Replace referenced features in the app README.</p>
+                {error && <details><summary>Technical details</summary><pre>{JSON.stringify({code:error.code,message:error.message,cause:causeReceipt(error.cause)},null,2)}</pre></details>}
+                <DialogClose asChild><Button variant="outline" data-testid="replace-help-close">Close help</Button></DialogClose>
+              </DialogContent>
+            </Dialog>
+            <Button variant="outline" disabled={busy} onClick={cancelReplacement}>Cancel</Button>
+            <Button data-testid="replace-confirm" disabled={busy} onClick={submitReplacement}>{busy ? 'Preparing display' : 'Replace'}</Button>
+          </DialogFooter>
         </>}
       </DialogContent>
     </Dialog>
