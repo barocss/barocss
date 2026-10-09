@@ -32,6 +32,15 @@ The display scale is 0.11 scene units per mm, so a translation can meet the
 input limit yet exceed the Viewer's GPU scene bound. That refusal also keeps
 the accepted pose and draft separate.
 
+Use each row's `Include … in fit set` checkbox to choose 2 through 4 visible
+bodies, then click Fit set. This frames their conservative original native
+control-hull bounds with their current display poses. It keeps the primary
+selection, source and poses. The pick filter does not change fit membership.
+Hiding a member removes it; showing it does not re-add it. Reload, Clear,
+context loss and Dispose clear membership. Membership changes discard pending
+pose drafts with a status notice. Apply or Discard a numeric draft before
+Fit set. Clear fit set removes only the host membership.
+
 For a selected visible body, enter display X/Y/Z translations in mm and use
 Apply. The accepted complete four-body pose frame is updated through public
 `applyGeometryMotionFrame`; other bodies keep their poses. Typing alone does

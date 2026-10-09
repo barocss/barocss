@@ -29,6 +29,7 @@
     .selection-filter { display: block; margin-bottom: 10px; }
     .selection-filter select { margin-left: 6px; padding: 5px; border: 1px solid #7198bc;
       border-radius: 4px; background: #101b2c; color: #eaf4ff; }
+    .fit-set-note { font-size: 12px; margin: 4px 0 10px; }
     #bodies { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
     #bodies li { border: 1px solid #486989; border-radius: 4px; padding: 8px; }
     #bodies li[aria-selected="true"] { border-color: #ffe577; background: #353d3d; }
@@ -77,6 +78,12 @@
         <button id="reload">Reload</button>
         <button id="clear">Clear</button>
       </div>
+      <div class="toolbar" aria-label="Original body fit set">
+        <output id="fit-set-count" aria-live="polite">Fit set: 0 bodies</output>
+        <button id="fit-set" disabled>Fit set</button>
+        <button id="clear-fit-set" disabled>Clear fit set</button>
+      </div>
+      <p class="fit-set-note">Include 2–4 visible bodies to frame their original bounds. The fit set is independent of selection and its filter.</p>
       <ul id="bodies" aria-label="Accepted document bodies"></ul>
       <div id="status" role="status" aria-live="polite">Loading document…</div>
       <div id="proof-controls" hidden>
