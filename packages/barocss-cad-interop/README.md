@@ -7,6 +7,136 @@ The `native` entry uses `@barocss/cad`; the `three` entry uses Three.js as an
 optional peer dependency. The preview packet is shared by `@barocss/cad` and
 `@barocss/gpu`.
 
+## Current SDK quickstart
+
+Choose the entry by the input you have. These are the package's declared public
+ESM entries; the root entry is renderer-neutral. Install only the optional peers
+for your chosen renderer: Three.js `0.186.1` (declared `^0.186.1`), Babylon.js
+`9.29.0`, or Pixi3D `2.5.0` with PixiJS `7.2.4`. The `native` and higher-level CAD
+entries use `@barocss/cad`.
+
+| Input and result | Public entry and API |
+|---|---|
+| PreviewPacket v0 → owned buffers or display GLB | `@barocss/cad-interop`: [prepareCadPreviewMesh](./dist/packet.d.ts), [encodeCadPreviewGlb](./dist/glb.d.ts); native face mesh uses [prepareOwnNativeFaceMesh](./dist/native-face.d.ts) / [encodeOwnNativeFaceMeshGlb](./dist/glb.d.ts) |
+| Native source0 `@model` text → source, native Model, sampled previews | `@barocss/cad-interop/native`: [parseBaroCadSource / loadBaroCadSource](./dist/native.d.ts) |
+| Same native text → Three Group / Babylon meshes / Pixi Container3D | `@barocss/cad-interop/three`: [BaroCADLoader](./dist/three.d.ts); `/babylon`: [BaroCADBabylonLoader](./dist/babylon.d.ts); `/pixi3d`: [BaroCADPixi3DLoader](./dist/pixi3d.d.ts) |
+| Native CAD document text → document and selected body refs | `/document`: [parseBaroCadDocument / loadBaroCadDocument / prepareBaroCadDocumentPrimitiveNativeRefsV2](./dist/document.d.ts) |
+| Native document → selected Three display | `/three-document`: [createBaroCadDocumentThreeDisplay / loadBaroCadDocumentThreeDisplay](./dist/three-document.d.ts); `/babylon-document` and `/pixi3d-document` provide their named display adapters |
+| Model-set manifest → qualified loaded source files / primitive refs | `/model-set`: [loadBaroCadModelSet / prepareBaroCadModelSetPrimitiveNativeRefsV2](./dist/model-set.d.ts) |
+| Native assembly text → evaluated assembly / Three instances | `/assembly`: [parseBaroCadAssembly / loadBaroCadAssembly](./dist/assembly.d.ts); `/three-assembly`: [createBaroCadAssemblyThreeDisplay](./dist/three-assembly.d.ts); `/babylon-assembly` and `/pixi3d-assembly` provide their named adapters |
+| Authored Boolean extrusion graph → native evaluation / derived mesh and properties | `/boolean-extrusion-feature-graph`: [readBaroCadBooleanExtrusionFeatureGraph / loadBaroCadBooleanExtrusionFeatureGraph](./dist/boolean-extrusion-feature-graph.d.ts); `/boolean-extrusion-feature-mesh`: [deriveBaroCadBooleanExtrusionFeatureMesh](./dist/boolean-extrusion-feature-mesh.d.ts); `/boolean-extrusion-feature-properties`: [deriveBaroCadBooleanExtrusionFeatureProperties](./dist/boolean-extrusion-feature-properties.d.ts) |
+| Native source / selected document / owned Boolean result → display GLB | `/native`: [baroCadSourceToGLB](./dist/native.d.ts); `/document-glb`: [exportBaroCadDocumentDisplayGlb](./dist/document-glb.d.ts); `/boolean-mesh-glb`: [exportBaroCadBooleanDisplayGlb](./dist/boolean-mesh-glb.d.ts); `/boolean-extrusion-glb`: [exportBaroCadBooleanExtrusionDisplayGlb](./dist/boolean-extrusion-glb.d.ts) |
+
+Start with typed native options. This profile loads the complete five-member
+example directly; each returned native ID still names an authored object.
+
+```ts
+import { parseBaroCadSource } from '@barocss/cad-interop/native';
+import type { BaroCadParseOptions } from '@barocss/cad-interop/native';
+
+const options: BaroCadParseOptions = {
+  sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+  curveDisplay: { version: 1, chordToleranceMM: 0.1, maxSegments: 512, maxDepth: 16 },
+  nativeCapacity: { version: 1, maximumObjects: 16 },
+};
+const source = await (await fetch('/part.barocad')).text();
+const native = parseBaroCadSource(source, options);
+// Keep native.source and native.model as authority; previews are derived data.
+```
+
+Use the same `source` and `options` with a caller-owned host. The complete
+[typed consumer](./examples/sdk-quickstart-contract.ts) shows the host types.
+
+```ts
+import { BaroCADLoader } from '@barocss/cad-interop/three';
+const display = new BaroCADLoader(options).parse(source);
+scene.add(display.group); // caller's Three Scene
+// Later: display.dispose(); releases its Group, geometries and materials.
+```
+
+```ts
+import { BaroCADBabylonLoader } from '@barocss/cad-interop/babylon';
+scene.useRightHandedSystem = true; // caller's Babylon Scene
+const display = new BaroCADBabylonLoader(scene, options).parse(source);
+// Meshes are already in scene. Later: display.dispose().
+```
+
+```ts
+import { BaroCADPixi3DLoader } from '@barocss/cad-interop/pixi3d';
+const display = new BaroCADPixi3DLoader(options).parse(source);
+app.stage.addChild(display.root); // caller's Pixi Application
+// Later: display.dispose(); releases only the loaded display resources.
+```
+
+The caller owns the Scene/Stage, renderer/engine, canvas, camera, lights and
+unrelated objects. Result disposal is idempotent. Neutral results contain owned
+CPU data and need no renderer disposal. Native source0 uses millimetres and
+preserves authored XYZ; `0.001` means metres per millimetre. The host must intend
+right-handed Y-up for these adapters. Camera fitting and gallery poses are host
+state. Surface native U/V and Curve sample parameters identify native evaluations;
+they are not texture UVs. Pixi retains Surface native U/V in its neutral packet.
+The separate native face-mesh `part-xyz` path performs its documented axis rotation.
+
+Without `nativeCapacity`, Curve display admits 1–4 total native objects;
+Surface-only display admits 1–4 Surfaces and retains unrendered Curves. The
+explicit profile is exactly `{ version: 1, maximumObjects: 16 }`, counts all native
+objects, and keeps the existing aggregate sampling and Float32 refusal guards.
+It is not a configurable object budget. Curve display without a `version` uses
+v0; explicit `version: 1` uses the bounded wide sampler. Pixi requires v1.
+Surface grids remain 2–17 samples per axis. Document selection retains its
+four-body cap; model-set loading retains four source entries and primitive
+projection retains four total objects. Assembly validation retains its separate
+CAD limits of four parts and 32 instances; this quickstart does not test that
+instance envelope. Selecting one body can still prepare a whole larger asset
+and allocate unselected adapter resources, which the returned display owns
+and disposes. Native source-to-GLB still admits
+at most four total native objects. GLB is a sampled display artifact; keep native
+source for editing.
+
+Catch parse failures before replacing accepted state: invalid options or preview
+limits throw, compiler failures carry `BaroCadSourceError.diagnostics`, and URL
+loads can fail on HTTP, bounded UTF-8 transport or `BaroCadLoadAbortError`. Neutral
+`loadBaroCadSource(url, options, transport)` copies parse options, including nested
+profiles, before fetching. Named renderer URL loaders parse their stored options
+after fetching; do not mutate pending renderer options. Use `loadAbortable` for
+the explicit bounded transport; existing Three/Babylon `loadAsync` paths retain
+their existing transport behavior.
+
+Current workspace public exports resolve to `src/*.ts`. The saved Vite host and
+NodeNext type command therefore consume workspace source. Library builds create
+published artifacts and declaration links; they do not change bare public import
+resolution. Packaged exports use the separate `publishConfig` JS/type maps.
+Explicit published-map consumer validation is tracked in #1017 and is not a
+code-start gate for this example.
+
+Run the public-entry Three host from the workspace root. It reads the already
+committed full source, shows all five IDs, and has refusal and disposal controls:
+
+```sh
+pnpm --filter @barocss/cad build:library
+pnpm --filter @barocss/cad-interop build:library
+pnpm exec vite --config packages/barocss-cad-interop/examples/sdk-quickstart-vite.config.mjs --host 127.0.0.1 --port 5191 --strictPort
+```
+
+Open [the Three quickstart](http://127.0.0.1:5191/packages/barocss-cad-interop/examples/sdk-quickstart-three.html).
+Its source is [sdk-quickstart-three.mjs](./examples/sdk-quickstart-three.mjs).
+[The Loader manual](https://github.com/barocss/barocss/wiki/Loader-Manual) and
+[product roadmap](https://github.com/barocss/barocss/wiki/Loader-Product-Roadmap)
+record current scope and next work.
+
+[Capacity #982](https://github.com/barocss/barocss/issues/982#issuecomment-6079670371)
+passed native Three/Babylon/Pixi direct complete-file flows;
+[its integrated receipt](https://github.com/barocss/barocss/issues/982#issuecomment-6080581477)
+reran the Three flow. [Quickstart #988](https://github.com/barocss/barocss/issues/988)
+records a compiled-workspace consumer at its fixed native commit; the current
+workspace command follows source-default resolution above. Babylon/Pixi public host Issues
+[#1007](https://github.com/barocss/barocss/issues/1007) and
+[#1008](https://github.com/barocss/barocss/issues/1008) are planned evidence.
+The independent packed consumer [#801](https://github.com/barocss/barocss/issues/801)
+remains deferred. These examples do not establish npm registry publication.
+The API details and earlier operation receipts below retain their original
+verification scope; use this section for current admission and entry selection.
+
 ## From CAD to a GLB
 
 ```js
