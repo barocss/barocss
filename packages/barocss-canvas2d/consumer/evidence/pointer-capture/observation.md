@@ -1,0 +1,10 @@
+# C2D-52 native browser observation
+
+- Parent: separately verified local `develop` #900 merge `e20ad87da05692b0be8a33120814c69797cc4c21`.
+- Build: Node 22.22.0, affected `build:library` produced a 169.9 KiB ESM bundle. Strict compiled consumer TypeScript and the focused `pointer-capture-probe.mjs` passed.
+- Browser: headed Chromium 155, local HTTP consumer, actual WebGL2 canvas at DPR 2. Initial readPixels samples were red `[255,0,0,255]`, blue `[0,0,255,255]`, and empty `[0,0,0,0]`; semantic hits were Red and Blue.
+- Real mouse flow: down on Red captured pointer 1. Move over Blue and empty space still delivered `pointermove:Red` to Red, Parent and stage. Spatial hover left Red, entered and left Blue. `pointerup` over empty space delivered to Red, Parent and stage, then capture became null. The next move over Blue delivered to Blue and stage.
+- Actual Save downloaded the 783-byte v1 Scene v13 `document.json`, SHA-256 `8805e1c1a7ab71a8bff69bbf8407858758459e573df7985258ea469ebdf383e4`. Reload and chooser Open created generation 2 with the same exact pixels and hits, and no capture. `reopened.png` shows the fresh canvas and observation. Console errors/warnings: 0/0.
+- The focused probe covers two independent pointer IDs, cancellation, explicit release, recapture, reparent, detach, hidden/alpha-zero/hit-disabled capture, invalid IDs/handles and dispatch, the 16-pointer limit, listener exception cleanup, and reconstruction without capture. DOM capture was installed by the host consumer, not the library.
+- First local build attempt could not find `tsc` because this isolated worktree has no local `.bin`. The Node 22 build passed using the root checkout's installed tool binaries without editing the shared checkout. A later probe assertion inspected the second-last callback after the target had three ancestors; changing that harness assertion to the third-last callback passed. Neither failure required a product-code change.
+- Limits: one browser/device and these fixed objects were observed. Browser-wide input parity and automatic drag movement were not measured.
