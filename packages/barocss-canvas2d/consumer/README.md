@@ -87,3 +87,8 @@ The [`round-join.html`](round-join.html) page authors Scene v19 bevel and round 
 The [`stroke-dash.html`](stroke-dash.html) page authors a Scene v20 path with bounded on/off stroke lengths. It checks WebGL2 on and gap pixels, semantic hit fallthrough, real pointer routing, a transformed dashed path, rejected edit and view rollback, and a v1 document Save/Open on a fresh renderer/tree followed by an offset edit. The [stroke dash observation](evidence/stroke-dash/observation.md) records the browser and file flow.
 
 `miter-join.html` checks Scene v21 bounded miter joins, bevel fallback, pointer hits and document restore.
+
+
+## Application consumer
+
+`application.html` uses the public `createCanvas2DApplication` root export. Its injected manual scheduler makes update priority, a single automatic render, capped time and late callback behavior observable. Use Start/Step/Stop/Resume/manual Render, missing asset/repair, callback error/recovery and Dispose. DOM pointer delivery remains host-owned. The fixture records accepted pixels/hits separately from the live tree after a rejected frame. This is a controlled scheduler with actual WebGL2; it does not measure RAF performance.
