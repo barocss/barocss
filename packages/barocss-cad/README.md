@@ -7673,3 +7673,40 @@ stable axis naming, a physics body or a rendered engineering view.
 ```sh
 node examples/cad-nurbs/extrusion-principal-inertia-demo.mjs --source /tmp/cad-principal-inertia
 ```
+
+## Common section knot alignment and rational ruled Surface
+
+`buildAlignedRationalRuledSurface` aligns two equal-degree sections on the same
+original parameter domain, then calls the actual rational ruled constructor.
+
+```ts
+const result = cad.buildAlignedRationalRuledSurface(first, second, {
+  surfaceId: 'aligned_surface', firstAlignedId: 'first_refined',
+  secondAlignedId: 'second_refined', resultIdPrefix: 'align',
+  maximumInsertedKnots: 14, maximumRefinementOperations: 14,
+});
+cad.validateAlignedRationalRuledSurface(result);
+```
+
+The ordered union uses the maximum multiplicity of each interior knot. Before
+any refinement, the builder checks original/domain bits, all active IDs, both
+complete insertion budgets and the final common Surface capacity of 16 U poles.
+Numeric-equal knots with different bits, including mixed signed zero, refuse.
+No parameter remapping, weight normalization or sampled replacement is used.
+
+A changed section uses the existing wide refinement API once and retains its
+full native/source/provenance proof. An unchanged section has refinement null,
+zero insertion work and its original ID; its requested aligned ID must match
+that original ID. The actual ruled Surface retains independent section weights
+and denominator-weighted V interpolation. Original input, refinement and ruled
+Source0 Models remain separate with their actual identities.
+
+The profile supports degree 1 through 3 and two original sections with at most
+16 poles. Original XYZ stays within 10000 mm. A new formal C0 knot can make an
+aligned native D1 query refuse while the original D1 succeeded; both real states
+remain in the provider proof. Alignment does not remove the multi-section loft
+weight-bit guard or certify global shape, continuity, topology or Solid quality.
+
+```sh
+node examples/cad-nurbs/section-knot-alignment-demo.mjs --source /tmp/cad-section-alignment
+```
