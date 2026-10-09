@@ -50,23 +50,24 @@ export interface BooleanExtrusionFeatureGraphReport {
   schema: 'barocss-native-boolean-extrusion-feature-graph-report'; version: 0; graphId: string; revision: number; lengthUnit: 'mm'; sourceFrame: 'authored-xyz-no-axis-conversion';
   authoredFeatureOrder: string[]; featureOrder: string[]; parameterOrder: string[];
   parameterDependencies: { parameterId: string; dependsOn: string }[]; featureDependencies: { featureId: string; dependencyIds: string[] }[];
-  parameterResolutionCount: number; distanceDefinitionEvaluationCount: 1; featureEvaluationCount: 4; nativeBuilderCallCount: 4;
-  nativeBuilderCalls: { faceInput: 2; coplanarBoolean: 1; normalExtrusion: 1 };
-  distance: { featureId: string; definition: BooleanExtrusionLengthDefinition; valueMM: number; dependencyIds: string[] };
+  parameterResolutionCount: number; distanceDefinitionEvaluationCount: number; featureEvaluationCount: number; nativeBuilderCallCount: number;
+  nativeBuilderCalls: { faceInput: 2; coplanarBoolean: 1; normalExtrusion: number };
+  distances: { featureId: string; definition: BooleanExtrusionLengthDefinition; valueMM: number; dependencyIds: string[] }[];
   qualifiedBindings: { graphId: string; revision: number; featureId: string; outputSlotId: string; kind: 'face-input' | 'coplanar-boolean' | 'normal-extrusion';
     nativeReferences: { graphId: string; revision: number; featureId: string; outputSlotId: string; nativeId: string }[];
     sources: { assetId: string; sourceVersion: 0; objectIds: string[] }[] }[];
-  summary: { booleanFeatureId: string; extrusionFeatureId: string; empty: boolean; componentCount: number; holeCount: number; shellIds: string[]; materialAreaUV: number; distanceMM: number };
+  summary: { booleanFeatureId: string; empty: boolean; componentCount: number; holeCount: number; materialAreaUV: number;
+    extrusions: { featureId: string; outputSlotId: string; empty: boolean; shellIds: string[]; distanceMM: number }[] };
   geometricValidity: 'not-certified'; topologyCertified: false; solid: false;
   quality: { geometryAuthority: 'actual-native-face-boolean-and-extrusion-builders'; authoredOrderPreserved: true; parameterResolver: 'actual-original-circle-graph-first-authored-ready';
     allUnusedParametersResolved: true; logicalSlotsAreGeometryIds: false; originalNativeIdsRetainedPerFeatureContext: true;
     nativeReferenceScope: 'entities-defined-by-this-feature-not-transitive-operand-references';
     revisionBinding: 'declared-graph-revision-qualified-no-hidden-history'; priorRevisionReferences: 'stale-after-declared-revision-advance-even-if-native-id-repeats';
-    updateEvaluation: 'complete-prior-owned-rebuild-then-full-copied-candidate-chain'; builderWork: 'four-new-native-builder-calls-excludes-native-internal-validation-compiler-primitive-work';
+    updateEvaluation: 'complete-prior-owned-rebuild-then-full-copied-candidate-chain'; builderWork: 'two-face-one-boolean-and-per-leaf-extrusion-calls-excludes-native-internal-validation-compiler-primitive-work';
     nativeOutputsAreAuthoredEditingAuthority: false; selectiveRecomputationClaimed: false; globalHistoryCertified: false; wholeGraphCertified: false;
     manufacturingToleranceCertified: false; ownership: 'copied-cpu-data-gc-no-renderer-resources' };
   budgetFailure: 'atomic-refusal-prior-intent-results-and-files-retained';
-  limits: { maximumParameters: 8; maximumFeatures: 4; authoredIdCharacters: 48; maximumRevision: 1000000000; lengthMM: 10000;
+  limits: { maximumParameters: 8; maximumFeatures: 7; maximumExtrusions: 4; authoredIdCharacters: 48; maximumRevision: 1000000000; lengthMM: 10000;
     authoredValues: 16384; authoredDepth: 12; authoredArrayElements: 64; authoredRecordFields: 16; authoredStringCharacters: 128;
     ownValues: 1048576; ownDepth: 40; arrayElements: 8192; recordFields: 64; sourceStringCharacters: 262144; maximumFileBytes: 1048576 };
 }
@@ -137,7 +138,7 @@ function admitDefinition(input: unknown, context: Context): BooleanExtrusionLeng
 function admitOptions(input: unknown): BooleanExtrusionFeatureGraphOptions {
   const data = record(input, ['maximumParameterResolutions', 'maximumFeatureEvaluations'], { path: '$options' });
   return { maximumParameterResolutions: boundedInteger(data.maximumParameterResolutions, 8, { path: '$options.maximumParameterResolutions' }),
-    maximumFeatureEvaluations: boundedInteger(data.maximumFeatureEvaluations, 4, { path: '$options.maximumFeatureEvaluations' }) };
+    maximumFeatureEvaluations: boundedInteger(data.maximumFeatureEvaluations, 7, { path: '$options.maximumFeatureEvaluations' }) };
 }
 function admitNativeFace(data: Record<string, unknown>, context: Context): BooleanExtrusionFaceFeature {
   const p = record(data.plane, ['kind', 'id', 'degreeU', 'degreeV', 'knotsU', 'knotsV', 'controlPoints', 'weights'], { ...context, path: context.path + '.plane' }) as unknown as Surface;
@@ -178,7 +179,7 @@ function admitDocument(input: unknown): BooleanExtrusionFeatureGraphV0 {
     id(p.id, { path: path + '.id', parameterId: p.id });
     if (p.definition.kind === 'offset') id(p.definition.parameterId, { path: path + '.definition.parameterId', parameterId: p.id }); return p;
   });
-  check(Array.isArray(data.features) && data.features.length === 4, CODE.INPUT, 'exactly two Face inputs, one Boolean and one extrusion required', { path: '$.features' });
+  check(Array.isArray(data.features) && data.features.length >= 4 && data.features.length <= 7, CODE.INPUT, 'two Face inputs, one Boolean and1..4 extrusions required', { path: '$.features' });
   const features = data.features.map((value, index): BooleanExtrusionFeatureGraphV0['features'][number] => {
     const path = '$.features[' + index + ']';
     check(value !== null && typeof value === 'object' && !Array.isArray(value), CODE.INPUT, 'native feature record required', { path });
@@ -202,8 +203,9 @@ function admitDocument(input: unknown): BooleanExtrusionFeatureGraphV0 {
         maximumVertices: boundedInteger(o.maximumVertices, 128, context), maximumFaces: boundedInteger(o.maximumFaces, 80, context),
         maximumSourceChunks: boundedInteger(o.maximumSourceChunks, 17, context), maximumBindingSamples: boundedInteger(o.maximumBindingSamples, 1152, context) } };
   });
+  const extrusionCount = features.filter(feature => feature.kind === 'normal-extrusion').length;
   check(features.filter(feature => feature.kind === 'face-input').length === 2 && features.filter(feature => feature.kind === 'coplanar-boolean').length === 1
-    && features.filter(feature => feature.kind === 'normal-extrusion').length === 1, CODE.INPUT, 'fixed four native feature kinds/counts required', { path: '$.features' });
+    && extrusionCount >= 1 && extrusionCount <= 4, CODE.INPUT, 'two Face/one Boolean/one through four native extrusion nodes required', { path: '$.features' });
   return { format: 'barocss-native-boolean-extrusion-feature-graph', version: 0, id: graphId, revision: graphRevision, lengthUnit: 'mm',
     sourceFrame: 'authored-xyz-no-axis-conversion', parameters, features };
 }
@@ -217,10 +219,24 @@ function collectIds(input: unknown): Set<string> {
     }
   }; collect(input); return result;
 }
+/** Same complete native extrusion role enumeration, including unused slots and source assets. */
+function extrusionNativeRoles(feature: BooleanExtrusionExtrusionFeature): Set<string> {
+  const roles = new Set<string>(), context = { path: '$.features.options', featureId: feature.id };
+  const reserve = (value: string): void => { check(!roles.has(value), CODE.IDENTITY, 'extrusion evaluation ID aliases another own derived role: ' + value, context); roles.add(value); };
+  const prefix = feature.options.resultIdPrefix, add = (suffix: string): void => reserve(prefix + suffix);
+  reserve(feature.options.evaluationId); add('_s_b'); add('_s_t');
+  for (let i = 0; i < 64; i++) {
+    ['_v_b_', '_v_t_', '_c_b_', '_c_t_', '_c_v_', '_e_b_', '_e_t_', '_e_v_', '_s_w_', '_f_w_', '_loop_w_', '_use_b_', '_use_t_', '_uv_b_', '_uv_t_'].forEach(stem => add(stem + i));
+    for (let j = 0; j < 4; j++) { add('_use_w_' + i + '_' + j); add('_uv_w_' + i + '_' + j); }
+  }
+  for (let i = 0; i < 8; i++) { add('_f_b_' + i); add('_f_t_' + i); add('_shell_' + i); }
+  for (let i = 0; i < 16; i++) { add('_loop_b_' + i); add('_loop_t_' + i); } for (let i = 0; i < 17; i++) add('_src_' + i);
+  return roles;
+}
 function admitIdentities(document: BooleanExtrusionFeatureGraphV0): Set<string> {
   const logical = [document.id, ...document.parameters.map(p => p.id), ...document.features.flatMap(f => [f.id, f.outputSlotId])];
   check(new Set(logical).size === logical.length, CODE.IDENTITY, 'graph/parameter/feature/output slot IDs must be globally distinct', { path: '$.ids' });
-  const original = new Set<string>();
+  const original = new Set<string>(), extrusionOwners = new Map<string, string>();
   for (const feature of document.features) {
     if (feature.kind === 'face-input') {
       collectIds({ plane: feature.plane, loop: feature.loop, options: feature.options }).forEach(value => original.add(value));
@@ -235,14 +251,12 @@ function admitIdentities(document: BooleanExtrusionFeatureGraphV0): Set<string> 
       }
       for (let i = 0; i < 16; i++) add('_loop_' + i); for (let i = 0; i < 5; i++) add('_src_' + i);
     } else {
-      const prefix = feature.options.resultIdPrefix, add = (suffix: string): void => { original.add(prefix + suffix); };
-      original.add(feature.options.evaluationId); add('_s_b'); add('_s_t');
-      for (let i = 0; i < 64; i++) {
-        ['_v_b_', '_v_t_', '_c_b_', '_c_t_', '_c_v_', '_e_b_', '_e_t_', '_e_v_', '_s_w_', '_f_w_', '_loop_w_', '_use_b_', '_use_t_', '_uv_b_', '_uv_t_'].forEach(stem => add(stem + i));
-        for (let j = 0; j < 4; j++) { add('_use_w_' + i + '_' + j); add('_uv_w_' + i + '_' + j); }
+      for (const value of extrusionNativeRoles(feature)) {
+        const owner = extrusionOwners.get(value);
+        check(owner === undefined, CODE.IDENTITY, 'complete sibling native role overlaps feature #' + owner + ': ' + value,
+          { path: '$.features.options', featureId: feature.id });
+        extrusionOwners.set(value, feature.id); original.add(value);
       }
-      for (let i = 0; i < 8; i++) { add('_f_b_' + i); add('_f_t_' + i); add('_shell_' + i); }
-      for (let i = 0; i < 16; i++) { add('_loop_b_' + i); add('_loop_t_' + i); } for (let i = 0; i < 17; i++) add('_src_' + i);
     }
   }
   check(logical.every(value => !original.has(value)), CODE.IDENTITY, 'logical graph/parameter/node/output slots are separate from original/generated native entity roles', { path: '$.ids' });
@@ -261,11 +275,12 @@ function featureOrder(document: BooleanExtrusionFeatureGraphV0): BooleanExtrusio
     check(ready !== undefined, CODE.DEPENDENCY, 'cyclic native feature dependencies', { path: '$.features.dependencies', featureId: document.features.find(f => pending.has(f.id))!.id });
     order.push(ready); done.add(ready.id); pending.delete(ready.id);
   }
-  const boolean = document.features.find(f => f.kind === 'coplanar-boolean')!, extrusion = document.features.find(f => f.kind === 'normal-extrusion')!;
-  check(boolean.kind === 'coplanar-boolean' && extrusion.kind === 'normal-extrusion', CODE.DEPENDENCY, 'actual Boolean/extrusion nodes required');
+  const boolean = document.features.find(f => f.kind === 'coplanar-boolean')!;
+  check(boolean.kind === 'coplanar-boolean', CODE.DEPENDENCY, 'actual sole Boolean node required');
   check(boolean.operandAFeatureId !== boolean.operandBFeatureId && byId.get(boolean.operandAFeatureId)?.kind === 'face-input'
     && byId.get(boolean.operandBFeatureId)?.kind === 'face-input', CODE.DEPENDENCY, 'Boolean must consume both distinct Face input nodes', { path: '$.features.operands', featureId: boolean.id });
-  check(extrusion.regionFeatureId === boolean.id, CODE.DEPENDENCY, 'extrusion must consume the actual Boolean node', { path: '$.features.regionFeatureId', featureId: extrusion.id });
+  for (const extrusion of document.features) if (extrusion.kind === 'normal-extrusion') check(extrusion.regionFeatureId === boolean.id, CODE.DEPENDENCY,
+    'every extrusion must consume the same actual sole Boolean node', { path: '$.features.regionFeatureId', featureId: extrusion.id });
   return order;
 }
 function resolvedParameters(document: BooleanExtrusionFeatureGraphV0): BooleanExtrusionFeatureGraphResolvedParameter[] {
@@ -279,8 +294,8 @@ function resolvedParameters(document: BooleanExtrusionFeatureGraphV0): BooleanEx
     CODE.REPRESENTABILITY, 'nonzero authored parameter offset disappeared into unchanged dependency value', { path: '$.parameters.definition', parameterId: p.id });
   return parameters;
 }
-function distanceDefinition(feature: BooleanExtrusionExtrusionFeature, parameters: BooleanExtrusionFeatureGraphResolvedParameter[]): BooleanExtrusionFeatureGraphReport['distance'] {
-  const context = { path: '$.features.distance', featureId: feature.id }, d = feature.distance, values = new Map(parameters.map(p => [p.id, p.valueMM]));
+function distanceDefinition(feature: BooleanExtrusionExtrusionFeature, parameters: BooleanExtrusionFeatureGraphResolvedParameter[], path: string): BooleanExtrusionFeatureGraphReport['distances'][number] {
+  const context = { path, featureId: feature.id }, d = feature.distance, values = new Map(parameters.map(p => [p.id, p.valueMM]));
   if (d.kind === 'offset') check(values.has(d.parameterId), CODE.PARAMETER, 'distance must refer to an actual declared resolved parameter', { ...context, parameterId: d.parameterId });
   const base = d.kind === 'literal' ? d.valueMM : values.get(d.parameterId)!, value = d.kind === 'literal' ? base : base + d.offsetMM;
   const valueMM = helper(() => length(value, LABEL, context.path), CODE.PARAMETER, 'actual original distance length admission', context);
@@ -314,17 +329,22 @@ function nativeBinding(document: BooleanExtrusionFeatureGraphV0, row: BooleanExt
   return { graphId: document.id, revision: document.revision, featureId: row.featureId, outputSlotId: row.outputSlotId, kind: row.kind,
     nativeReferences: [...ids].map(nativeId => ({ graphId: document.id, revision: document.revision, featureId: row.featureId, outputSlotId: row.outputSlotId, nativeId })), sources };
 }
-/** A declared current snapshot evaluates the complete authored-ready four-node native chain. */
+/** A declared current snapshot evaluates two Faces, one shared Boolean and every authored-ready extrusion leaf. */
 export function evaluateBooleanExtrusionFeatureGraph(documentInput: BooleanExtrusionFeatureGraphV0,
   optionsInput: BooleanExtrusionFeatureGraphOptions): BooleanExtrusionFeatureGraphResult {
   const copied = record(snapshot({ document: documentInput, options: optionsInput }), ['document', 'options']);
   const document = admitDocument(copied.document), options = admitOptions(copied.options), logicalIds = admitIdentities(document);
-  check(document.parameters.length <= options.maximumParameterResolutions && options.maximumFeatureEvaluations >= 4, CODE.BUDGET,
-    'complete declared parameter and four-feature evaluation budgets required', { path: '$options' });
+  check(document.parameters.length <= options.maximumParameterResolutions && document.features.length <= options.maximumFeatureEvaluations, CODE.BUDGET,
+    'complete declared parameter and actual feature-count evaluation budgets required', { path: '$options' });
   const order = featureOrder(document), parameters = resolvedParameters(document);
-  const extrusionFeature = document.features.find(f => f.kind === 'normal-extrusion')!;
-  check(extrusionFeature.kind === 'normal-extrusion', CODE.DEPENDENCY, 'actual extrusion feature required');
-  const distance = distanceDefinition(extrusionFeature, parameters), features: BooleanExtrusionFeatureGraphEvaluatedFeature[] = [];
+  const extrusionFeatures = order.filter((feature): feature is BooleanExtrusionExtrusionFeature => feature.kind === 'normal-extrusion');
+  let distanceDefinitionEvaluationCount = 0;
+  const distances = extrusionFeatures.map(feature => {
+    distanceDefinitionEvaluationCount++;
+    return distanceDefinition(feature, parameters, '$.features[' + document.features.findIndex(value => value.id === feature.id) + '].distance');
+  });
+  const distanceByFeature = new Map(distances.map(distance => [distance.featureId, distance]));
+  const features: BooleanExtrusionFeatureGraphEvaluatedFeature[] = [];
   const evaluated = new Map<string, BooleanExtrusionFeatureGraphEvaluatedFeature>();
   const actualCalls = { faceInput: 0, coplanarBoolean: 0, normalExtrusion: 0 };
   for (const f of order) {
@@ -341,34 +361,40 @@ export function evaluateBooleanExtrusionFeatureGraph(documentInput: BooleanExtru
       row = { ...common, kind: f.kind, evaluation: helper(() => booleanCoplanarFaces(a.evaluation, b.evaluation, f.options), CODE.NATIVE, 'actual native Boolean builder refused', context) };
     } else {
       const region = evaluated.get(f.regionFeatureId); check(region?.kind === 'coplanar-boolean', CODE.DEPENDENCY, 'actual evaluated Boolean input required', context);
+      const distance = distanceByFeature.get(f.id); check(distance !== undefined, CODE.PARAMETER, 'actual prestaged per-feature distance required', context);
       actualCalls.normalExtrusion++;
       row = { ...common, kind: f.kind, evaluation: helper(() => extrudeCoplanarFaceBoolean(region.evaluation, { ...f.options, distanceMM: distance.valueMM }), CODE.NATIVE, 'actual native extrusion builder refused', context) };
     }
     features.push(row); evaluated.set(f.id, row);
   }
-  check(features.length === 4 && actualCalls.faceInput === 2 && actualCalls.coplanarBoolean === 1 && actualCalls.normalExtrusion === 1,
-    CODE.DEPENDENCY, 'actual complete evaluation requires exactly two Face/one Boolean/one extrusion builder calls', { path: '$.features' });
+  check(features.length === document.features.length && actualCalls.faceInput === 2 && actualCalls.coplanarBoolean === 1
+    && actualCalls.normalExtrusion === extrusionFeatures.length && distanceDefinitionEvaluationCount === actualCalls.normalExtrusion,
+    CODE.DEPENDENCY, 'actual complete evaluation requires two Face/one Boolean/one builder and distance per extrusion leaf', { path: '$.features' });
   const qualifiedBindings = features.map(row => nativeBinding(document, row));
   for (const binding of qualifiedBindings) check(binding.nativeReferences.every(ref => !logicalIds.has(ref.nativeId)), CODE.IDENTITY,
     'actual native output IDs cannot alias logical graph/node/parameter/output slots', { path: '$.features.nativeReferences', featureId: binding.featureId });
-  const boolean = features.find(f => f.kind === 'coplanar-boolean')!, extrusion = features.find(f => f.kind === 'normal-extrusion')!;
-  check(boolean.kind === 'coplanar-boolean' && extrusion.kind === 'normal-extrusion', CODE.DEPENDENCY, 'complete actual native output chain required');
+  const boolean = features.find(f => f.kind === 'coplanar-boolean')!;
+  check(boolean.kind === 'coplanar-boolean', CODE.DEPENDENCY, 'complete actual native shared region required');
+  const extrusions = features.filter((feature): feature is Extract<BooleanExtrusionFeatureGraphEvaluatedFeature, { kind: 'normal-extrusion' }> => feature.kind === 'normal-extrusion');
+  const nativeBuilderCallCount = actualCalls.faceInput + actualCalls.coplanarBoolean + actualCalls.normalExtrusion;
   const report: BooleanExtrusionFeatureGraphReport = {
     schema: 'barocss-native-boolean-extrusion-feature-graph-report', version: 0, graphId: document.id, revision: document.revision, lengthUnit: 'mm', sourceFrame: 'authored-xyz-no-axis-conversion',
     authoredFeatureOrder: document.features.map(f => f.id), featureOrder: features.map(f => f.featureId), parameterOrder: parameters.map(p => p.id),
     parameterDependencies: document.parameters.flatMap(p => p.definition.kind === 'offset' ? [{ parameterId: p.id, dependsOn: p.definition.parameterId }] : []),
     featureDependencies: document.features.map(f => ({ featureId: f.id, dependencyIds: dependencyIds(f) })), parameterResolutionCount: parameters.length,
-    distanceDefinitionEvaluationCount: 1, featureEvaluationCount: 4, nativeBuilderCallCount: 4, nativeBuilderCalls: { faceInput: 2, coplanarBoolean: 1, normalExtrusion: 1 }, distance, qualifiedBindings,
-    summary: { booleanFeatureId: boolean.featureId, extrusionFeatureId: extrusion.featureId, empty: extrusion.evaluation.report.empty,
-      componentCount: boolean.evaluation.components.length, holeCount: boolean.evaluation.report.holeCount, shellIds: extrusion.evaluation.shells.map(shell => shell.id),
-      materialAreaUV: boolean.evaluation.report.areaUV, distanceMM: distance.valueMM }, geometricValidity: 'not-certified', topologyCertified: false, solid: false,
+    distanceDefinitionEvaluationCount, featureEvaluationCount: features.length, nativeBuilderCallCount,
+    nativeBuilderCalls: { faceInput: actualCalls.faceInput, coplanarBoolean: actualCalls.coplanarBoolean, normalExtrusion: actualCalls.normalExtrusion }, distances, qualifiedBindings,
+    summary: { booleanFeatureId: boolean.featureId, empty: extrusions.every(extrusion => extrusion.evaluation.report.empty),
+      componentCount: boolean.evaluation.components.length, holeCount: boolean.evaluation.report.holeCount, materialAreaUV: boolean.evaluation.report.areaUV,
+      extrusions: extrusions.map(extrusion => ({ featureId: extrusion.featureId, outputSlotId: extrusion.outputSlotId, empty: extrusion.evaluation.report.empty,
+        shellIds: extrusion.evaluation.shells.map(shell => shell.id), distanceMM: distanceByFeature.get(extrusion.featureId)!.valueMM })) }, geometricValidity: 'not-certified', topologyCertified: false, solid: false,
     quality: { geometryAuthority: 'actual-native-face-boolean-and-extrusion-builders', authoredOrderPreserved: true, parameterResolver: 'actual-original-circle-graph-first-authored-ready',
       allUnusedParametersResolved: true, logicalSlotsAreGeometryIds: false, originalNativeIdsRetainedPerFeatureContext: true,
       nativeReferenceScope: 'entities-defined-by-this-feature-not-transitive-operand-references', revisionBinding: 'declared-graph-revision-qualified-no-hidden-history',
       priorRevisionReferences: 'stale-after-declared-revision-advance-even-if-native-id-repeats', updateEvaluation: 'complete-prior-owned-rebuild-then-full-copied-candidate-chain',
-      builderWork: 'four-new-native-builder-calls-excludes-native-internal-validation-compiler-primitive-work', nativeOutputsAreAuthoredEditingAuthority: false,
+      builderWork: 'two-face-one-boolean-and-per-leaf-extrusion-calls-excludes-native-internal-validation-compiler-primitive-work', nativeOutputsAreAuthoredEditingAuthority: false,
       selectiveRecomputationClaimed: false, globalHistoryCertified: false, wholeGraphCertified: false, manufacturingToleranceCertified: false, ownership: 'copied-cpu-data-gc-no-renderer-resources' },
-    budgetFailure: 'atomic-refusal-prior-intent-results-and-files-retained', limits: { maximumParameters: 8, maximumFeatures: 4, authoredIdCharacters: 48, maximumRevision: 1000000000, lengthMM: 10000,
+    budgetFailure: 'atomic-refusal-prior-intent-results-and-files-retained', limits: { maximumParameters: 8, maximumFeatures: 7, maximumExtrusions: 4, authoredIdCharacters: 48, maximumRevision: 1000000000, lengthMM: 10000,
       authoredValues: 16384, authoredDepth: 12, authoredArrayElements: 64, authoredRecordFields: 16, authoredStringCharacters: 128, ownValues: 1048576, ownDepth: 40,
       arrayElements: 8192, recordFields: 64, sourceStringCharacters: 262144, maximumFileBytes: 1048576 },
   };
@@ -394,7 +420,7 @@ export function updateBooleanExtrusionFeatureGraph(previousInput: BooleanExtrusi
   const expectedRevision = revision(data.expectedRevision, '$edits.expectedRevision'), nextRevision = revision(data.revision, '$edits.revision');
   check(expectedRevision === previous.document.revision && nextRevision === previous.document.revision + 1, CODE.REVISION, 'expected previous revision and exact previous+1 required', { path: '$edits.revision' });
   let total = 0;
-  for (const [field, maximum] of [['parameterEdits', 8], ['faceEdits', 2], ['booleanEdits', 1], ['distanceEdits', 1]] as const) {
+  for (const [field, maximum] of [['parameterEdits', 8], ['faceEdits', 2], ['booleanEdits', 1], ['distanceEdits', 4]] as const) {
     const entries = data[field];
     check(Array.isArray(entries) && entries.length <= maximum, CODE.BUDGET, 'bounded explicit edit array required', { path: '$edits.' + field }); total += entries.length;
   }
