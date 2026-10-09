@@ -3,6 +3,7 @@ import { ID, MAX_STEP_DISPLACEMENT_M } from './limits.js';
 import { error, record, fields, finite, vector } from './validation.js';
 import { sub, worldPoint, multiplyQuaternion, inverse, dot, scale, rotate, inertia } from './math.js';
 import { projectDynamicFixedJoint } from './dynamic-fixed-joint.js';
+import { projectDynamicHingeJoint } from './dynamic-hinge-joint.js';
 
 function denseJointVector(value: unknown, bound: number, label: string): Vec3 {
   if (!Array.isArray(value) || value.length !== 3 || Reflect.ownKeys(value).length !== 4 ||
@@ -33,9 +34,9 @@ export function parseJoints(value: unknown, bodies: Body[]): Joint[] {
       seenDynamic.has(b.body.id)) {
       error('INVALID_CONFIG', 'joint needs a distinct A and unique dynamic B');
     }
-    if (a.body.kind === 'dynamic' && (input.kind !== 'fixed' || value.length !== 1 ||
+    if (a.body.kind === 'dynamic' && (value.length !== 1 ||
       bodies.length !== 2 || a.body.shape.kind !== 'sphere' || b.body.shape.kind !== 'sphere')) {
-      error('INVALID_CONFIG', 'dynamic pair supports one fixed joint between two dynamic spheres');
+      error('INVALID_CONFIG', 'dynamic pair supports one joint between two dynamic spheres');
     }
     const anchorALocalM = denseJointVector(input.anchorALocalM, 100, 'anchorALocalM');
     const anchorBLocalM = denseJointVector(input.anchorBLocalM, 100, 'anchorBLocalM');
@@ -81,7 +82,8 @@ export function parseJoints(value: unknown, bodies: Body[]): Joint[] {
 }
 export function projectJoint(joint: Joint, next: Body[], previous: Body[], dt: number): PhysicsJointState {
   const a = next[joint.aIndex], b = next[joint.bIndex];
-  if (a.kind === 'dynamic') return projectDynamicFixedJoint(joint, next, dt);
+  if (a.kind === 'dynamic') return joint.kind === 'fixed'
+    ? projectDynamicFixedJoint(joint, next, dt) : projectDynamicHingeJoint(joint, next, dt);
   const beforeVelocity = [...b.velocityMps] as Vec3;
   const beforeAngular = [...b.angularVelocityRadps] as Vec3;
   let targetOrientation: Quat, angleRad: number | undefined;

@@ -6,9 +6,11 @@ The separate [two-body joint preview](joint-demo.html) uses the same two origina
 
 The [hinge motor preview](motor-demo.html) uses one fixed Surface and one rotating original Surface. It uses a static anchor and a 1 kg dynamic sphere proxy with a fixed +Z hinge. The motor targets 0.5 rad/s, with a 0.0001 N·m·s step impulse cap and 0.0005 N·m·s constraint reaction cap. Open `http://127.0.0.1:52884/motor-demo.html?step=120`; capture steps are 0, 20 and 120. Use **Test overload after step 120** to confirm that the second overload step is refused and the step 121 Physics and Viewer pose remains. **Test stale source** confirms a stale Surface reference is refused. The numeric fixture is `examples/physics-scene/hinge-motor-probe.mjs`. This preview does not claim a calibrated break law.
 
+The [two-dynamic hinge preview](dynamic-hinge-demo.html) rotates both original Surfaces in opposite directions. The bounded scene uses two coincident 1 kg sphere proxies, one +Z hinge and a motor that targets 0.5 rad/s relative speed. Open `http://127.0.0.1:52884/dynamic-hinge-demo.html?step=120`; capture steps are 0, 10 and 120. The overload control accepts step 121 and refuses step 122 while keeping both accepted poses. The numeric fixture is `examples/physics-scene/dynamic-hinge-motor-probe.mjs`. Offset anchors, gravity, linear motion and multi-joint assemblies are outside this preview.
+
 The exact binding, units, frame, source fixture, limits and invalid-input rule are frozen in [PHYS-01 #764](https://github.com/barocss/barocss/issues/764#issuecomment-6058526690). Physics uses metres; Viewer receives millimetres and declares `part-xyz-matches-rhyup`. The host owns playback at one quarter of wall time. It makes one Physics fixed step before applying each complete Viewer pose frame. Pause, one-step and reset are host controls. Reset creates a new world.
 
-With Node 22, build the CAD, GPU and Viewer dependencies, then start the page. The server bundles Physics source without a separate Physics build:
+With Node 22, build the CAD, GPU, Viewer and Physics packages, then start the page. The base page bundles Physics source; the joint pages use compiled packages:
 
 ```sh
 pnpm --filter @barocss/cad build:library
