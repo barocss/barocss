@@ -246,7 +246,7 @@ function reject(name, action, code, sharedCause = false) {
   });
 }
 const refusalOptions = {curveId: 'refusal_curve', degree: 2, maximumBasisEvaluations: 256, maximumEliminationSteps: 120};
-reject('missing_mandatory_weights', () => build(quarterPoints, undefined, refusalOptions), 'INPUT');
+reject('missing_mandatory_weights', () => build(quarterPoints, undefined, refusalOptions), 'INPUT', true);
 reject('weight_count', () => build(quarterPoints, [1, 1], refusalOptions), 'INPUT');
 reject('negative_weight', () => build(quarterPoints, [1, -1, 1], refusalOptions), 'INPUT');
 reject('zero_weight', () => build(quarterPoints, [1, 0, 1], refusalOptions), 'INPUT');
