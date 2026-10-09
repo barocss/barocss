@@ -1,0 +1,230 @@
+{
+  "format": "barocss-fluid-release-gate",
+  "version": 1,
+  "stage": "native-numeric-resource-preparation",
+  "timestamp": "2026-10-09T01:02:04.464Z",
+  "gitHead": "dd362114c8a7dbd74d09bed790dfefb2fc0ffc45",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "node": "v22.22.0",
+    "macos": "15.6.1",
+    "cpu": "Apple M3 Max",
+    "pnpm": "10.11.0"
+  },
+  "profile": {
+    "particles": 256,
+    "stepSeconds": 0.008333333333333333,
+    "basinM": [
+      0.7,
+      1.3,
+      0.5
+    ],
+    "maxRetainedHeapBytes": 1048576
+  },
+  "checks": [
+    {
+      "name": "frozen offline install",
+      "status": "pass"
+    },
+    {
+      "name": "@barocss/cad build",
+      "status": "pass"
+    },
+    {
+      "name": "@barocss/gpu build",
+      "status": "pass"
+    },
+    {
+      "name": "@barocss/cad-interop build",
+      "status": "pass"
+    },
+    {
+      "name": "@barocss/viewer build",
+      "status": "pass"
+    },
+    {
+      "name": "@barocss/physics build",
+      "status": "pass"
+    },
+    {
+      "name": "source-import-probe",
+      "status": "pass",
+      "result": {
+        "result": "ok",
+        "sourceEntries": 5,
+        "compiledEntries": 5
+      }
+    },
+    {
+      "name": "fluid-world-probe-gc-1",
+      "status": "pass",
+      "result": {
+        "result": "ok",
+        "count": 256,
+        "steps": 240,
+        "densityError60": 0.22785881124725596,
+        "densityError240": 0.015288410357167534,
+        "compression60": 0.008943763280411687,
+        "compression240": 0.008918274260563797,
+        "medianStepMs": 1.4909589999999753,
+        "p95StepMs": 1.8331249999999955,
+        "retainedHeapDeltaBytes": 164832,
+        "finalPositionSha256": "6a951b6fe9baeee2d40a5cd2fd4752d7681f484ef07f167a8edc7dd03f8c068b",
+        "copiedAndInvalidRetained": true
+      }
+    },
+    {
+      "name": "fluid-world-probe-gc-2",
+      "status": "pass",
+      "result": {
+        "result": "ok",
+        "count": 256,
+        "steps": 240,
+        "densityError60": 0.22785881124725596,
+        "densityError240": 0.015288410357167534,
+        "compression60": 0.008943763280411687,
+        "compression240": 0.008918274260563797,
+        "medianStepMs": 1.4850000000000136,
+        "p95StepMs": 1.734624999999994,
+        "retainedHeapDeltaBytes": 164864,
+        "finalPositionSha256": "6a951b6fe9baeee2d40a5cd2fd4752d7681f484ef07f167a8edc7dd03f8c068b",
+        "copiedAndInvalidRetained": true
+      }
+    },
+    {
+      "name": "fluid-world-probe-gc-3",
+      "status": "pass",
+      "result": {
+        "result": "ok",
+        "count": 256,
+        "steps": 240,
+        "densityError60": 0.22785881124725596,
+        "densityError240": 0.015288410357167534,
+        "compression60": 0.008943763280411687,
+        "compression240": 0.008918274260563797,
+        "medianStepMs": 1.4656249999999886,
+        "p95StepMs": 1.7862499999999955,
+        "retainedHeapDeltaBytes": 164832,
+        "finalPositionSha256": "6a951b6fe9baeee2d40a5cd2fd4752d7681f484ef07f167a8edc7dd03f8c068b",
+        "copiedAndInvalidRetained": true
+      }
+    },
+    {
+      "name": "fluid-visual-profile-probe",
+      "status": "pass",
+      "result": {
+        "result": "ok",
+        "fixtures": [
+          {
+            "high": false,
+            "states": {
+              "60": {
+                "originalSHA": "f14b5eaa5b34c074c8ecbe501be5b84af56eabbfdfbbcb823940aa999605e1bc",
+                "tunedSHA": "dd2882d9419042bce8cf3dede4861de08d226b23a422790b35c17e8833ae39a5",
+                "originalSpeed95": 2.271666419537731,
+                "tunedSpeed95": 1.4203948985414105,
+                "originalDensityError": 0.22785881124725596,
+                "tunedDensityError": 0.11996662840472416
+              },
+              "240": {
+                "originalSHA": "6a951b6fe9baeee2d40a5cd2fd4752d7681f484ef07f167a8edc7dd03f8c068b",
+                "tunedSHA": "772c8d5b613bff311ec1ab2a40d9965a52ab026fb413771a77dde120be0c9dac",
+                "originalSpeed95": 0.2126263677901872,
+                "tunedSpeed95": 0.032579954864157365,
+                "originalDensityError": 0.015288410357167534,
+                "tunedDensityError": 0.016415218537382825
+              },
+              "720": {
+                "originalSHA": "c47d1aa95cae3200a6c7c534b9fe69f68a0ff00ad14116d3d56b67e9b0af4dd3",
+                "tunedSHA": "adc36dc1df9ba1c1c64c4135b97011487daa12c196b567da324addb924d96509",
+                "originalSpeed95": 0.02503916017080741,
+                "tunedSpeed95": 0.009227535619208317,
+                "originalDensityError": 0.012650801591940038,
+                "tunedDensityError": 0.014855088163326995
+              }
+            },
+            "originalP95": 1.9315829999998186,
+            "tunedP95": 2.2047909999998865,
+            "costRatio": 1.141442537027968
+          },
+          {
+            "high": true,
+            "states": {
+              "60": {
+                "originalSHA": "33aa6e732073ffecfd7a51f1a16a59b40766619291ab9e64e839dcd51be86341",
+                "tunedSHA": "b053a4c578e876225ba621eaedd30def2f4461b5012728eca8e13cf5d59eb29e",
+                "originalSpeed95": 4.06980056088662,
+                "tunedSpeed95": 4.100367574786264,
+                "originalDensityError": 0.20543831474179183,
+                "tunedDensityError": 0.1439578006219003
+              },
+              "240": {
+                "originalSHA": "a3f1f0b785bf871bfcbef1da600a937c8e9251e2617837dbd5807f5850a572cc",
+                "tunedSHA": "d8edda0487697b5464ce5033a269a6e713cb4605d86aa53bf8c30804851a9d8c",
+                "originalSpeed95": 0.2778993223726585,
+                "tunedSpeed95": 0.05371435164334626,
+                "originalDensityError": 0.02233468668585461,
+                "tunedDensityError": 0.01714820819365649
+              },
+              "720": {
+                "originalSHA": "f8f55e31da24018134bfe40f09ec9f6475b5dd0b119b556781f83774d96613fd",
+                "tunedSHA": "d55b9bef8d14ca7fe0b280cb063c606ad3ea504403627fd5a9b4eefcf765cc58",
+                "originalSpeed95": 0.03663787188550896,
+                "tunedSpeed95": 0.006258179334672646,
+                "originalDensityError": 0.010663558135652534,
+                "tunedDensityError": 0.014102955019271937
+              }
+            },
+            "originalP95": 2.6421250000003056,
+            "tunedP95": 3.4907079999993584,
+            "costRatio": 1.3211744334575217
+          }
+        ]
+      }
+    },
+    {
+      "name": "fluid-cad-shelf-probe",
+      "status": "pass",
+      "result": {
+        "result": "ok",
+        "obstacle": "fixture:fluid_shelf.shelf",
+        "receipts": [
+          {
+            "step": 60,
+            "bareSHA": "f14b5eaa5b34c074c8ecbe501be5b84af56eabbfdfbbcb823940aa999605e1bc",
+            "shelfSHA": "2cfda35a877aaf8bd21cfa83eaadc3179c0b70e896b44fd5f3698c47ad6c5086",
+            "obstacleHits": 21,
+            "cumulativeShelfHits": 859,
+            "density": {
+              "meanAbsoluteDensityError": 0.22677020103548096,
+              "p95Compression": 0.009983142794555144,
+              "boundaryHits": 206
+            }
+          },
+          {
+            "step": 240,
+            "bareSHA": "6a951b6fe9baeee2d40a5cd2fd4752d7681f484ef07f167a8edc7dd03f8c068b",
+            "shelfSHA": "3d261943d75f9b94363c4c6085900a2e6e8a096b36c13a7310f7811d115bdb8d",
+            "obstacleHits": 4,
+            "cumulativeShelfHits": 2660,
+            "density": {
+              "meanAbsoluteDensityError": 0.03309097323479992,
+              "p95Compression": 0.008164625528122471,
+              "boundaryHits": 360
+            }
+          }
+        ],
+        "bareP95": 1.8932920000000024,
+        "shelfP95": 1.8709589999999707,
+        "costRatio": 0.9882041438932655
+      }
+    }
+  ],
+  "browser": {
+    "status": "actual-merged-head-flow-required"
+  },
+  "nativePreparationPassed": true,
+  "localReleaseCandidate": false,
+  "publicationDecision": "separate"
+}
