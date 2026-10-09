@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Qualified CAD extrusion siblings in Pixi3D</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Separate CAD extrusion outputs in Pixi3D</h1>
+  <p>Each Shell comes from one qualified output. The group view spaces display roots so overlapping siblings stay visible; native CAD coordinates are unchanged.</p>
+  <div id="view"></div>
+  <button id="edges" type="button">Show true edges</button>
+  <button id="reject" type="button">Try invalid selections</button>
+  <button id="dispose" type="button">Dispose display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Application, DRAW_MODES, Graphics } from 'pixi.js';
+  import { Camera, Mesh3D, Point3D } from 'pixi3d/pixi7';
+  import { loadBaroCadBooleanExtrusionFeatureGraph } from '@barocss/cad-interop/boolean-extrusion-feature-graph';
+  import { deriveBaroCadBooleanExtrusionFeatureMesh } from '@barocss/cad-interop/boolean-extrusion-feature-mesh';
+  import { createBaroCadBooleanExtrusionPixi3DMesh } from '@barocss/cad-interop/pixi3d-boolean-extrusion-mesh';
+
+  const status = document.querySelector('#status');
+  const app = new Application({ width: 800, height: 600, background: '#101b2c',
+    antialias: false, preserveDrawingBuffer: true });
+  const canvas = app.view;
+  document.querySelector('#view').append(canvas);
+  const caller = new Graphics().beginFill(0xffffff).drawCircle(22, 22, 6).endFill();
+  app.stage.addChild(caller);
+  const camera = Camera.main ?? new Camera(app.renderer);
+  camera.orthographic = true;
+  camera.orthographicSize = 0.036;
+  camera.position.set(0.08, 0.03, -0.08);
+  camera.transform.updateTransform();
+  camera.transform.lookAt(new Point3D(-0.0025, -0.004, -0.0013));
+  camera.near = 0.001; camera.far = 1;
+  const graphOptions = { maximumParameterResolutions: 8, maximumFeatureEvaluations: 6 };
+  const meshOptions = { meshId: 'shell_mesh', maximumVertices: 384, maximumTriangles: 288,
+    maximumEdgePaths: 192, maximumNativeSamples: 1024 };
+  const displayOptions = { unitsPerMillimeter: 0.001, basis: 'authored-xyz-matches-rhyup' };
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const background = (r, g, b) => Math.abs(r - 16) <= 12 && Math.abs(g - 27) <= 12 && Math.abs(b - 44) <= 12;
+  const render = () => {
+    app.renderer.render(app.stage);
+    const gl = app.renderer.gl;
+    const bytes = new Uint8Array(canvas.width * canvas.height * 4);
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('Pixi3D WebGL readPixels failed');
+    let pixels = 0;
+    for (let i = 0; i < bytes.length; i += 4) {
+      if (!background(bytes[i], bytes[i + 1], bytes[i + 2])) pixels++;
+    }
+    return { hash: hash(bytes), pixels };
+  };
+  const nextFrame = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  const verifyBuffers = (display, mesh) => {
+    if (display.edgeRoot.parent || display.shells.length !== mesh.shellRanges.length ||
+        display.faces.length !== mesh.report.faceRangeCount ||
+        display.edges.length !== mesh.report.edgePathCount) throw new Error('Pixi Shell grouping differs');
+    for (const binding of display.faces) {
+      const face = mesh.faceRanges.find(row => row.faceId === binding.face.faceId);
+      const geometry = binding.object.geometry;
+      if (!(binding.object instanceof Mesh3D) || !face ||
+          binding.object.parent !== display.shells.find(row => row.shellId === face.shellId)?.faces ||
+          binding.meshId !== mesh.mesh.id ||
+          binding.extrusionEvaluationId !== mesh.mesh.binding.extrusionEvaluationId ||
+          binding.booleanEvaluationId !== mesh.mesh.binding.booleanEvaluationId ||
+          JSON.stringify(binding.sourceAssetIds) !== JSON.stringify(mesh.mesh.binding.sourceAssetIds) ||
+          JSON.stringify([...geometry.indices.buffer]) !== JSON.stringify(
+            mesh.mesh.indices.slice(face.indexStart, face.indexStart + face.indexCount)) ||
+          geometry.uvs !== undefined) throw new Error('Pixi face indices or source binding differ');
+      for (let i = 0; i < mesh.mesh.positionsMM.length; i++) {
+        if (!Object.is(geometry.positions.buffer[i], Math.fround(mesh.mesh.positionsMM[i] * 0.001)) ||
+            !Object.is(geometry.normals.buffer[i], Math.fround(mesh.mesh.normals[i]))) {
+          throw new Error('Pixi face Float32 position or normal differs');
+        }
+      }
+      for (let i = 0; i < mesh.mesh.parametersUV.length; i++) {
+        if (!Object.is(binding.cadParametersUV[i], Math.fround(mesh.mesh.parametersUV[i]))) {
+          throw new Error('Pixi CAD UV binding differs');
+        }
+      }
+    }
+    for (const binding of display.edges) {
+      const path = mesh.edgePaths.find(row => row.edgeId === binding.path.edgeId);
+      const expected = path?.samples.flatMap(row => row.curveD1.point);
+      if (!(binding.object instanceof Mesh3D) || !path ||
+          binding.meshId !== mesh.mesh.id ||
+          binding.object.material.drawMode !== DRAW_MODES.LINE_STRIP ||
+          JSON.stringify([...binding.object.geometry.indices.buffer]) !== '[0,1,2]' ||
+          binding.object.parent !== display.shells.find(row => row.shellId === path.shellId)?.edges ||
+          display.internalEdges.some(row => row.id === path.edgeId)) {
+        throw new Error('Pixi true Curve path differs');
+      }
+      for (let i = 0; i < expected.length; i++) {
+        if (!Object.is(binding.object.geometry.positions.buffer[i], Math.fround(expected[i] * 0.001))) {
+          throw new Error('Pixi true Curve D1 sample differs');
+        }
+      }
+    }
+  };
+  const select = (read, leaf) => {
+    const selection = { graphId: read.native.document.id, revision: read.native.document.revision,
+      featureId: leaf.featureId, outputSlotId: leaf.outputSlotId };
+    const derived = deriveBaroCadBooleanExtrusionFeatureMesh(read.native, selection, meshOptions);
+    if (derived.binding.featureId !== leaf.featureId ||
+        derived.binding.outputSlotId !== leaf.outputSlotId ||
+        derived.nativeMesh.report.extrusionEvaluationId !== leaf.evaluation.options.evaluationId) {
+      throw new Error('Qualified native output differs');
+    }
+    return { read, selection, derived };
+  };
+  const callerFrame = render();
+  const callerPixels = callerFrame.pixels;
+  let evidence, accepted, displays = [];
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  const release = () => {
+    let disposed = 0;
+    for (const display of displays) {
+      const owned = [...display.faces, ...display.edges].map(row => row.object);
+      display.dispose(); display.dispose();
+      if (owned.some(mesh => !mesh.destroyed) || !display.root.destroyed ||
+          !display.edgeRoot.destroyed || app.stage.children.includes(display.root) ||
+          app.stage.children.includes(display.edgeRoot)) throw new Error('Pixi owned resources survived disposal');
+      disposed += owned.length;
+    }
+    displays = [];
+    return disposed;
+  };
+  const attach = async items => {
+    const disposed = release();
+    accepted = items;
+    displays = items.map((item, index) => {
+      const display = createBaroCadBooleanExtrusionPixi3DMesh(item.derived.nativeMesh, displayOptions);
+      verifyBuffers(display, item.derived.nativeMesh);
+      const previewOffsetX = (index - (items.length - 1) / 2) * 0.012;
+      display.root.position.set(previewOffsetX, 0, 0);
+      display.edgeRoot.position.set(previewOffsetX, 0, 0);
+      app.stage.addChild(display.root);
+      return display;
+    });
+    await nextFrame();
+    evidence.ownedMeshesDisposed += disposed;
+    return render();
+  };
+  try {
+    if (!(app.renderer.gl instanceof WebGL2RenderingContext)) throw new Error('WebGL2 required');
+    const names = ['three_shared_region_leaves', 'shared_height_parameter_edit', 'three_genuine_empty_leaves'];
+    const groups = new Map();
+    for (const name of names) {
+      const url = new URL(`./boolean-extrusion-fanout-three-data/${name}.authored-graph.json`, location.href);
+      const read = await loadBaroCadBooleanExtrusionFeatureGraph(url.href, graphOptions);
+      const leaves = read.native.features.filter(row => row.kind === 'normal-extrusion');
+      if (leaves.length !== 3 || read.native.report.summary.extrusions.length !== 3) {
+        throw new Error('Expected three separately qualified leaves');
+      }
+      groups.set(name, leaves.map(leaf => select(read, leaf)));
+    }
+    evidence = { webgl2: true, callerPixels, observations: [], groups: [], refused: 0,
+      trueEdgesVisible: false, ownedMeshesDisposed: 0, callerRetained: true };
+    for (const name of names) {
+      const items = groups.get(name);
+      for (const item of items) {
+        const frame = await attach([item]);
+        const materialPixels = frame.pixels - callerPixels;
+        if (item.derived.nativeMesh.report.empty ? materialPixels !== 0 : materialPixels < 100) {
+          throw new Error(`Selected native empty state differs from Pixi pixels: ${name}`);
+        }
+        evidence.observations.push({ name, revision: item.selection.revision,
+          featureId: item.selection.featureId, outputSlotId: item.selection.outputSlotId,
+          evaluationId: item.derived.nativeMesh.report.extrusionEvaluationId,
+          distanceMM: item.read.native.report.summary.extrusions.find(row =>
+            row.featureId === item.selection.featureId).distanceMM,
+          faces: displays[0].faces.length, edges: displays[0].edges.length,
+          materialPixels, frameHash: frame.hash });
+      }
+      const combined = await attach(items);
+      evidence.groups.push({ name, revision: items[0].selection.revision,
+        roots: displays.length, materialPixels: combined.pixels - callerPixels,
+        frameHash: combined.hash });
+    }
+    const original = evidence.observations.filter(row => row.name === names[0]);
+    const edited = evidence.observations.filter(row => row.name === names[1]);
+    const empty = evidence.observations.filter(row => row.name === names[2]);
+    if (new Set(original.map(row => row.frameHash)).size !== 3 ||
+        original.some((row, i) => row.frameHash === edited[i].frameHash) ||
+        edited.some(row => row.materialPixels < 100) ||
+        empty.some(row => row.materialPixels !== 0) ||
+        evidence.groups[0].frameHash === evidence.groups[1].frameHash ||
+        evidence.groups[0].materialPixels <= Math.max(...original.map(row => row.materialPixels)) ||
+        evidence.groups[1].materialPixels <= Math.max(...edited.map(row => row.materialPixels)) ||
+        evidence.groups[2].materialPixels !== 0) {
+      throw new Error('Sibling, edited or empty Pixi frame did not match native results');
+    }
+    await attach(groups.get(names[0]));
+    evidence.siblingPixelsDiffer = true;
+    evidence.editedPixelsDiffer = true;
+    evidence.acceptedHash = render().hash;
+    window.__baroFanoutPixiEvidence = evidence; show();
+    document.querySelector('#edges').onclick = () => {
+      const before = render().hash;
+      for (const display of displays) app.stage.addChild(display.edgeRoot);
+      const after = render().hash;
+      if (after === before || displays.some((display, index) =>
+          display.edges.length !== accepted[index].derived.nativeMesh.report.edgePathCount ||
+          display.edgeRoot.position.x !== display.root.position.x)) {
+        throw new Error('True native Curve LineStrip roots did not change the frame');
+      }
+      evidence.trueEdgesVisible = true; evidence.trueEdgesHash = after; show();
+    };
+    document.querySelector('#reject').onclick = () => {
+      const before = render().hash;
+      const middle = accepted.find(row => row.selection.featureId === 'leaf_middle');
+      const forged = structuredClone(middle.read.native);
+      forged.report.qualifiedBindings.find(row => row.nativeReferences.length).nativeReferences[0].nativeId = 'forged';
+      let refused = 0;
+      for (const action of [
+        () => deriveBaroCadBooleanExtrusionFeatureMesh(middle.read.native,
+          { ...middle.selection, revision: middle.selection.revision + 1 }, meshOptions),
+        () => deriveBaroCadBooleanExtrusionFeatureMesh(middle.read.native,
+          { ...middle.selection, featureId: 'leaf_low' }, meshOptions),
+        () => deriveBaroCadBooleanExtrusionFeatureMesh(middle.read.native,
+          { ...middle.selection, outputSlotId: 'leaf_slot_0' }, meshOptions),
+        () => deriveBaroCadBooleanExtrusionFeatureMesh(forged, middle.selection, meshOptions),
+      ]) { try { action(); } catch { refused++; } }
+      if (refused !== 4 || render().hash !== before ||
+          displays.some(display => display.faces.some(row => row.object.destroyed)) ||
+          !app.stage.children.includes(caller)) throw new Error('Refusal changed the accepted Pixi frame');
+      evidence.refused += refused; evidence.acceptedFrameRetained = true; show();
+    };
+    document.querySelector('#dispose').onclick = () => {
+      evidence.ownedMeshesDisposed += release();
+      if (render().hash !== callerFrame.hash || !app.stage.children.includes(caller) ||
+          app.renderer.gl === null || document.querySelectorAll('canvas').length !== 1) {
+        throw new Error('Caller Application, canvas, stage child or frame changed');
+      }
+      evidence.disposed = true; evidence.callerRetained = true; evidence.callerFrameRetained = true;
+      show();
+    };
+  } catch (error) {
+    release();
+    evidence = { error: String(error), stack: error.stack };
+    window.__baroFanoutPixiEvidence = evidence; show();
+  }
+</script>

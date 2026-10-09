@@ -698,7 +698,33 @@ URL reader. `examples/boolean-extrusion-fanout-babylon.html` loads the three
 copied authentic #927 files in headed Babylon WebGL2 and measures original,
 edited and empty sibling frames, separate true edges, refusals and owned
 cleanup. This example does not add a Babylon file loader or claim a joined
-assembly, Solid, Pixi3D fan-out or package publication.
+assembly, Solid or package publication.
+
+### Display each authored fan-out output in pinned Pixi3D
+
+Use the same public graph reader, exact qualified per-leaf mesh bridge and
+`./pixi3d-boolean-extrusion-mesh` adapter. The host owns the pinned Pixi3D
+2.5.0/PixiJS 7.2.4 Application, stage, canvas and authored graph. Pass
+`{ unitsPerMillimeter: 0.001, basis: 'authored-xyz-matches-rhyup' }` for
+each separate native Shell. Attach its filled `root`; attach its `edgeRoot`
+only when true native Curve LineStrip paths should appear. CAD UV is copied
+source metadata, not Pixi texture UV. Shared Face and Boolean inputs do
+not turn the sibling displays into a joined solid.
+
+After the CAD and interop builds, run
+`node examples/boolean-extrusion-fanout-pixi3d-verify.mjs --source
+<saved-927-directory>`. It checks all six exact #927 authored files against
+current paired owned results over direct and local HTTP reads, all 17
+qualified leaves against direct CAD tessellation, three genuine empty
+outputs and invalid selection retention. It does not initialize Pixi in
+Node. `examples/boolean-extrusion-fanout-pixi3d.html` uses the three copied
+#927 graphs in headed pinned Pixi WebGL2. It checks face/edge buffers,
+original and edited sibling pixels, empty frames, true edge overlay,
+refusals and owned cleanup while retaining the caller's Application. Its
+group view spaces the display roots so overlapping siblings remain visible;
+this host presentation offset does not change native mesh coordinates.
+This does not prove PixiJS v8, independent packed npm consumption,
+publication, mass properties or general Solid support.
 
 ### Measure one qualified native extrusion output
 
