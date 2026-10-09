@@ -293,3 +293,6 @@ export type { SourceSurfaceControlNetRequest, SourceSurfaceControlNetPatch, Sour
 
 export { buildVLinearSurfacePlaneTrimCandidates, validateVLinearSurfacePlaneTrimCandidates, VLinearSurfacePlaneTrimError, VLinearSurfacePlaneTrimDiagnosticCode } from './vlinear-plane-trim.js';
 export type { VLinearSurfacePlaneTrimOptions, VLinearSurfacePlaneTrimEdge, VLinearSurfacePlaneTrimReport, VLinearSurfacePlaneTrimResult } from './vlinear-plane-trim.js';
+
+export { classifyVLinearSurfacePlaneTrimUV, validateVLinearSurfacePlaneTrimUVClassification, VLinearSurfacePlaneTrimUVError, VLinearSurfacePlaneTrimUVDiagnosticCode } from './vlinear-plane-trim-classification.js';
+export type { VLinearSurfacePlaneTrimUVQuery, VLinearSurfacePlaneTrimUVOptions, VLinearSurfacePlaneTrimUVReport, VLinearSurfacePlaneTrimUVResult } from './vlinear-plane-trim-classification.js';
