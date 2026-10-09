@@ -10,7 +10,8 @@ export function createSceneViewportPresenter(canvas: HTMLCanvasElement, onUnavai
   const errorOf = (error: unknown) => error instanceof Error ? error : new Error('Viewport failed.');
   const live = () => { try { renderer!.readPixels(); return true; } catch { return false; } };
   const refused = (error: unknown, recovered = live()): PresentationResult => ({ok: false, error: errorOf(error), recovered});
-  const onLoss = () => {
+  const onLoss = (event: Event) => {
+    event.preventDefault();
     // Old GL handles must be released during loss, before a restored context exists.
     renderer?.dispose(); renderer = null;
     onUnavailable?.(new Error('The preview was lost. Restore the preview to continue.'));
