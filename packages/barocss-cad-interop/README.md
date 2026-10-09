@@ -2084,3 +2084,37 @@ coefficients, domains and units do not change. The browser checks each
 visible Line/Mesh, refusal retention and adapter-owned disposal.
 Determinant parity and native derivatives do not certify B-Rep face
 orientation, Solid quality, other target parity or npm release.
+
+## Atomic native linear geometry patterns in Babylon.js
+
+`examples/linear-geometry-pattern-babylon-data/` holds six byte-exact CAD #964
+complete source0 patterns and eighteen producer-saved original/copy pair
+sources. `manifest.json` pins each file SHA-256, original and copied native
+IDs, count and raw XYZ/mm spacing. The complete native Model stays the
+authority. Each copied member is an actual affine result from the original
+seed; a Babylon instance or display pose is not a native copy.
+
+The current `BaroCADBabylonLoader` accepts at most four objects in one
+source. It correctly refuses each complete five-member source for display.
+The example cold-compiles and validates each full result, then uses the
+producer's two-object pair sources for those display projections. It
+shows the original seed once and every copy by exact native ID. Other
+seed meshes made while loading the pairs remain hidden and are disposed
+with their pair result. The seed-only one-member source loads directly.
+This composition does not expand the loader's source limit or change CAD
+geometry.
+
+```sh
+node packages/barocss-cad-interop/examples/linear-geometry-pattern-babylon-verify.mjs /Users/user/.barocss-ai/v3/evidence-964-cad/integration/demo-output
+```
+
+The Node flow checks all owned native results, full and pair source bytes,
+neutral/Babylon buffers and caller resource survival. Serve
+`examples/linear-geometry-pattern-babylon.html` through Vite for the headed
+Babylon 9.29.0 WebGL2/HTTP flow. The browser fetches each pinned source,
+shows the 24 native members, verifies independently visible Line/Mesh
+objects, tests refusal retention and disposes only adapter-owned meshes
+and materials. Display gallery offsets do not change native mm spacing;
+the adapter applies 0.001 scene units/mm once in a right-handed Y-up Scene.
+This does not prove direct five-object loading, own GPU adoption, assembly,
+union, circular patterns, Solid quality or npm publication.

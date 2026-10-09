@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native linear geometry patterns in Babylon.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 1240px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+  button { margin: 8px 8px 8px 0; padding: 7px 12px; }
+</style>
+<main>
+  <h1>Native linear geometry patterns in Babylon.js</h1>
+  <p>Six complete native patterns contain 24 original and copied members. The 5-member models stay complete native source; the existing Babylon loader displays their saved original/copy pair sources.</p>
+  <canvas id="view" width="1200" height="700"></canvas>
+  <button id="reject">Try invalid candidates</button><button id="dispose">Dispose loaded display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Engine } from '@babylonjs/core/Engines/engine.js';
+  import { Scene } from '@babylonjs/core/scene.js';
+  import { Camera } from '@babylonjs/core/Cameras/camera.js';
+  import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera.js';
+  import { Mesh } from '@babylonjs/core/Meshes/mesh.js';
+  import { LinesMesh } from '@babylonjs/core/Meshes/linesMesh.js';
+  import { Color3, Color4 } from '@babylonjs/core/Maths/math.color.js';
+  import { Vector3 } from '@babylonjs/core/Maths/math.vector.js';
+  import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight.js';
+  import { compileCadModel } from '@barocss/cad';
+  import { parseBaroCadSource } from '../dist/native.js';
+  import { BaroCADBabylonLoader } from '../dist/babylon.js';
+
+  const status = document.querySelector('#status');
+  const canvas = document.querySelector('#view');
+  const engine = new Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+  const scene = new Scene(engine);
+  scene.useRightHandedSystem = true;
+  scene.clearColor = new Color4(20 / 255, 34 / 255, 54 / 255, 1);
+  const callerMarker = new Mesh('caller-marker', scene);
+  const callerLight = new HemisphericLight('caller-light', new Vector3(0, 0, 1), scene);
+  callerLight.intensity = 1.3;
+  const camera = new FreeCamera('camera', new Vector3(0.07, 0.018, 0.3), scene);
+  camera.upVector = new Vector3(0, 1, 0);
+  camera.setTarget(new Vector3(0.07, 0.018, 0));
+  camera.mode = Camera.ORTHOGRAPHIC_CAMERA;
+  camera.orthoLeft = -0.08;
+  camera.orthoRight = 0.08;
+  camera.orthoTop = 0.052;
+  camera.orthoBottom = -0.052;
+  camera.minZ = 0.001;
+  camera.maxZ = 0.5;
+  scene.activeCamera = camera;
+  const options = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.1, maxSegments: 512, maxDepth: 16 } };
+  const loader = new BaroCADBabylonLoader(scene, options);
+  const records = [];
+  const selected = [];
+  const allMeshes = [];
+  const sources = new Map();
+  const background = [20, 34, 54];
+  const digest = async bytes => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))]
+    .map(byte => byte.toString(16).padStart(2, '0')).join('');
+  const fetchExact = async (name, expectedHash) => {
+    const response = await fetch(new URL(`./linear-geometry-pattern-babylon-data/${name}`, location.href));
+    if (!response.ok) throw new Error(`${name}: HTTP ${response.status}`);
+    const bytes = await response.arrayBuffer();
+    if (await digest(bytes) !== expectedHash) throw new Error(`${name}: SHA-256 mismatch`);
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  };
+  const equal = (left, right) => JSON.stringify(left) === JSON.stringify(right);
+  const sameBuffer = (actual, expected) => actual?.length === expected.length &&
+    Array.from(actual).every((value, index) => Object.is(value, expected[index]));
+  const pixels = () => {
+    const bytes = new Uint8Array(1200 * 700 * 4);
+    const gl = canvas.getContext('webgl2');
+    gl.readPixels(0, 0, 1200, 700, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
+    return bytes;
+  };
+  const colored = bytes => {
+    let total = 0;
+    for (let i = 0; i < bytes.length; i += 4)
+      if (bytes[i] !== background[0] || bytes[i + 1] !== background[1] || bytes[i + 2] !== background[2]) total++;
+    return total;
+  };
+  const pixelHash = bytes => bytes.reduce((hash, byte) => Math.imul(hash ^ byte, 16777619) >>> 0, 2166136261);
+  const bind = (display, native, neutral, index, key) => {
+    const mesh = display.meshes[index];
+    if (!mesh || display.model.objects[index].id !== native.id ||
+      !equal(display.model.objects[index], native) ||
+      (mesh.metadata.barocss.curveId ?? mesh.metadata.barocss.surfaceId) !== native.id)
+      throw new Error(`Native binding mismatch: ${key}/${native.id}`);
+    if (native.kind === 'curve') {
+      const preview = neutral.curves[index];
+      if (!(mesh instanceof LinesMesh) || preview.curveId !== native.id ||
+        !equal(mesh.metadata.barocss.nativeParameters, preview.sample.parameters) ||
+        !sameBuffer(mesh.getVerticesData('position'), preview.positions))
+        throw new Error(`Curve buffer mismatch: ${key}/${native.id}`);
+      mesh.color = new Color3(index === 0 ? 0.16 : 0.94, index === 0 ? 0.79 : 0.39, index === 0 ? 0.92 : 0.87);
+    } else {
+      const preview = neutral.surfaces[index];
+      if (preview.surfaceId !== native.id || preview.report.vertexCount !== 64 || preview.report.triangleCount !== 98 ||
+        !sameBuffer(mesh.getVerticesData('position'), preview.mesh.positions) ||
+        !sameBuffer(mesh.getVerticesData('normal'), preview.mesh.normals) ||
+        !sameBuffer(mesh.getIndices(), preview.mesh.indices) ||
+        !sameBuffer(mesh.metadata.barocss.nativeParameters, preview.mesh.parameters))
+        throw new Error(`Surface buffer mismatch: ${key}/${native.id}`);
+    }
+    return mesh;
+  };
+  const track = display => {
+    const meshes = display.meshes.map(mesh => {
+      const record = { mesh, disposeCount: 0 };
+      mesh.onDisposeObservable.add(() => record.disposeCount++);
+      allMeshes.push(mesh);
+      return record;
+    });
+    const materials = [...new Set(display.meshes.map(mesh => mesh.material).filter(Boolean))].map(material => {
+      const record = { material, disposeCount: 0 };
+      material.onDisposeObservable.add(() => record.disposeCount++);
+      return record;
+    });
+    records.push({ display, meshes, materials });
+  };
+  try {
+    if (!(canvas.getContext('webgl2') instanceof WebGL2RenderingContext)) throw new Error('WebGL2 required');
+    const manifestResponse = await fetch(new URL('./linear-geometry-pattern-babylon-data/manifest.json', location.href));
+    if (!manifestResponse.ok) throw new Error(`Manifest HTTP ${manifestResponse.status}`);
+    const manifest = await manifestResponse.json();
+    if (manifest.schema !== 'barocss-linear-pattern-babylon-example' || manifest.cases.length !== 6)
+      throw new Error('Unexpected source manifest');
+    for (const [caseIndex, item] of manifest.cases.entries()) {
+      const full = await fetchExact(item.file, item.sourceSha256);
+      sources.set(item.key, full);
+      const cold = compileCadModel(full, { sourceVersion: 0 });
+      if (!cold.ok || cold.model.objects.length !== item.count ||
+        !equal(cold.model.objects.map(object => object.id), item.ids) ||
+        item.ids[0] !== item.originalId || item.pairs.length !== item.count - 1)
+        throw new Error(`Complete native pattern mismatch: ${item.key}`);
+      const seedNative = cold.model.objects[0];
+      for (const [memberIndex, member] of cold.model.objects.entries()) {
+        const seedPoints = seedNative.kind === 'curve' ? seedNative.controlPoints : seedNative.controlPoints.flat();
+        const memberPoints = member.kind === 'curve' ? member.controlPoints : member.controlPoints.flat();
+        if (member.kind !== seedNative.kind || seedPoints.length !== memberPoints.length ||
+          !equal({ ...member, id: seedNative.id, controlPoints: seedNative.controlPoints }, seedNative) ||
+          memberPoints.some((point, pointIndex) => point.some((value, axis) =>
+            Math.abs(value - (seedPoints[pointIndex][axis] + memberIndex * item.spacingMM[axis])) > 1e-11)))
+          throw new Error(`Native spacing/basis mismatch: ${item.key}/${member.id}`);
+      }
+      if (item.count > 4) {
+        let rejected = false;
+        try { loader.parse(full); } catch (error) { rejected = /1\.\.4 total native objects/.test(String(error)); }
+        if (!rejected) throw new Error(`Five-member preview limit lost: ${item.key}`);
+      }
+      const poseX = (caseIndex % 3) * 0.047;
+      const poseY = caseIndex < 3 ? 0.035 : -0.015;
+      if (item.count === 1) {
+        const neutral = parseBaroCadSource(full, options);
+        const display = loader.parse(full);
+        const mesh = bind(display, cold.model.objects[0], neutral, 0, item.key);
+        mesh.position.x = poseX; mesh.position.y = poseY;
+        track(display);
+        selected.push({ key: item.key, id: item.originalId, mesh, kind: item.kind });
+        continue;
+      }
+      for (const pair of item.pairs) {
+        const source = await fetchExact(pair.file, pair.sha256);
+        const pairCold = compileCadModel(source, { sourceVersion: 0 });
+        if (!pairCold.ok || pairCold.model.objects.length !== 2 ||
+          !equal(pairCold.model.objects[0], cold.model.objects[0]) ||
+          !equal(pairCold.model.objects[1], cold.model.objects[pair.index]))
+          throw new Error(`Actual native pair mismatch: ${item.key}/${pair.index}`);
+        const neutral = parseBaroCadSource(source, options);
+        const display = loader.parse(source);
+        if (display.meshes.length !== 2) throw new Error(`Pair display incomplete: ${item.key}/${pair.index}`);
+        const seed = bind(display, pairCold.model.objects[0], neutral, 0, item.key);
+        const child = bind(display, pairCold.model.objects[1], neutral, 1, item.key);
+        for (const mesh of display.meshes) { mesh.position.x = poseX; mesh.position.y = poseY; }
+        if (pair.index === 1) selected.push({ key: item.key, id: item.originalId, mesh: seed, kind: item.kind });
+        else seed.setEnabled(false);
+        selected.push({ key: item.key, id: item.ids[pair.index], mesh: child, kind: item.kind });
+        track(display);
+      }
+    }
+    if (selected.length !== 24 || allMeshes.length !== 37) throw new Error('Native member/resource count mismatch');
+    await scene.whenReadyAsync();
+    const individuallyVisible = {};
+    for (const entry of selected) {
+      for (const mesh of allMeshes) mesh.setEnabled(mesh === entry.mesh);
+      scene.render();
+      const count = colored(pixels());
+      individuallyVisible[`${entry.key}/${entry.id}`] = count;
+      if (count === 0) throw new Error(`Invisible native member: ${entry.key}/${entry.id}`);
+    }
+    for (const mesh of allMeshes) mesh.setEnabled(selected.some(entry => entry.mesh === mesh));
+    scene.render();
+    const frame = pixels();
+    const evidence = { target: 'Babylon.js 9.29.0 WebGL2', nativeCases: 6, nativeMembers: 24,
+      displayedMembers: selected.length, adapterOwnedMeshes: allMeshes.length, pairSources: 18,
+      sourceFrame: 'authored XYZ, right-handed Y-up; camera +Z', unitsPerMillimeter: 0.001,
+      hostPose: 'six gallery cells only; native spacing retained',
+      individuallyVisible, combinedPixels: colored(frame), frameHash: pixelHash(frame),
+      callerMarkerRetained: scene.meshes.includes(callerMarker), callerLightRetained: scene.lights.includes(callerLight) };
+    window.__baroLinearPatternBabylonEvidence = evidence;
+    status.textContent = JSON.stringify(evidence, null, 2);
+    const acceptedSources = new Map(sources);
+    document.querySelector('#reject').onclick = () => {
+      let refusals = 0;
+      const invalid = [
+        () => loader.parse('@model invalid {}'),
+        () => new BaroCADBabylonLoader(scene, { ...options, sourceVersion: 1 }).parse(acceptedSources.values().next().value),
+        () => new BaroCADBabylonLoader(scene, { ...options, countU: 1 })
+          .parse(acceptedSources.get('three_surface_diagonal_copies')),
+        () => loader.parse(acceptedSources.get('five_quarter_x_copies')),
+      ];
+      for (const attempt of invalid) { try { attempt(); } catch { refusals++; } }
+      scene.render();
+      evidence.invalidCandidatesRefused = refusals;
+      evidence.acceptedSourcesRetained = [...acceptedSources].every(([key, value]) => sources.get(key) === value);
+      evidence.acceptedSceneRetained = selected.every(entry => scene.meshes.includes(entry.mesh) && !entry.mesh.isDisposed());
+      evidence.acceptedFrameRetained = pixelHash(pixels()) === evidence.frameHash;
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+    document.querySelector('#dispose').onclick = () => {
+      for (const record of records) { record.display.dispose(); record.display.dispose(); }
+      scene.render();
+      evidence.disposed = records.every(record => record.meshes.every(item => item.mesh.isDisposed() && item.disposeCount === 1) &&
+        record.materials.every(item => item.disposeCount === 1));
+      evidence.callerMarkerRetained = scene.meshes.includes(callerMarker) && !callerMarker.isDisposed();
+      evidence.callerLightRetained = scene.lights.includes(callerLight) && !callerLight.isDisposed();
+      evidence.callerEngineRetained = !engine.isDisposed;
+      evidence.callerCanvasRetained = document.querySelector('#view') === canvas;
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+  } catch (error) {
+    for (const record of records) record.display.dispose();
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroLinearPatternBabylonError = String(error);
+  }
+</script>
+</html>
