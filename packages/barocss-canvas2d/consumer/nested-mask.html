@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><link rel="icon" href="data:,"><title>Canvas2D two inherited masks</title>
+<style>body{font:14px system-ui;margin:20px;max-width:1000px}button,input{margin:0 8px 12px 0}canvas{display:block;width:320px;height:240px;background:#333;touch-action:none}pre{white-space:pre-wrap;overflow-wrap:anywhere}p{max-width:78ch}</style>
+<script type="importmap">{"imports":{"@barocss/canvas2d":"../dist/index.js","@barocss/canvas2d/document":"../dist/document.js"}}</script>
+</head><body><h1>Two inherited polygon masks</h1>
+<p>The outer L panel and transformed inner polygon crop each child together. A signed, rotated frame adds a rectangle clip. The bottom row checks zero, one and two mask slots.</p>
+<button id="remove-outer">Remove outer</button><button id="restore-outer">Restore outer</button>
+<button id="remove-inner">Remove inner</button><button id="restore-inner">Restore inner</button>
+<button id="restore">Restore both</button><button id="disjoint">Disjoint overlap</button><button id="third">Reject third ancestor</button>
+<button id="save">Save document</button><label>Open document <input id="open" type="file" accept=".json,application/json"></label>
+<button id="png">Export PNG</button><button id="lose">Lose context</button><button id="context">Restore context</button><button id="dispose">Dispose</button>
+<canvas id="scene" width="640" height="480"></canvas><p id="status" role="status"></p><pre id="observation"></pre>
+<script type="module" src="./nested-mask.mjs"></script></body></html>

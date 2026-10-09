@@ -215,7 +215,7 @@ async function openText(text) {
   /** @type {import('@barocss/canvas2d').DisplayTree} */ let nextTree;
   /** @type {import('@barocss/canvas2d').FrameHandle} */ let nextFrame;
   try {
-    if (staged.scene.version !== 24 && staged.scene.version !== 25) throw new Error('Scene v24 or v25 required');
+    if (staged.scene.version !== 24 && staged.scene.version !== 25 && staged.scene.version !== 26) throw new Error('Scene v24, v25 or v26 required');
     nextTree = createDisplayTreeFromScene(staged.scene);
     const found = nextTree.get('RotatedFrame');
     if (found?.kind !== 'frame' || nextTree.get('NestedInner')?.kind !== 'frame' ||

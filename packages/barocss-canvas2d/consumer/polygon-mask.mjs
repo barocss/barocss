@@ -168,7 +168,11 @@ function invalid(kind = 'duplicate') {
     else {
       const candidate = createDisplayTreeFromScene(s.scene), group = candidate.get('MaskGroup');
       if (group?.kind !== 'container') throw new Error('MaskGroup missing');
-      if (kind === 'nested') group.addChild(candidate.createContainer({ id: 'NestedMask', layer: 4, transform: pose(), mask: maskData() }));
+      if (kind === 'nested') {
+        group.addChild(candidate.createContainer({ id: 'NestedMask', layer: 4, transform: pose(), mask: maskData() }));
+        // Keep this historical refusal probe explicitly on the v25 profile.
+        s.renderer.updateScene({ ...candidate.snapshot(), version: 25 });
+      }
       else {
         group.setMask({ commands: [{ kind: 'M', x: 0, y: 0 }, { kind: 'L', x: 1, y: 0 }, { kind: 'L', x: 0, y: 1 }, { kind: 'Z' }] });
         const scene = candidate.snapshot(), frame = scene.nodes.find(node => node.id === 'Frame');
@@ -209,7 +213,7 @@ async function openText(text, reservedToken = null) {
     const parsed = await parseCanvasDocument(text); if (!current(token)) { counts.ignored++; return; }
     const tree = createDisplayTreeFromScene(parsed.scene), group = tree.get('MaskGroup'), frame = tree.get('Frame');
     const sprite = tree.get('Sprite'), glyph = tree.get('Glyph');
-    if (parsed.scene.version !== 25 || group?.kind !== 'container' || frame?.kind !== 'frame' ||
+    if ((parsed.scene.version !== 25 && parsed.scene.version !== 26) || group?.kind !== 'container' || frame?.kind !== 'frame' ||
         sprite?.kind !== 'sprite' || glyph?.kind !== 'glyphRun' || sprite.data.imageId !== 'Red' || glyph.data.atlasId !== 'GlyphAtlas' ||
         !frame.children.includes(group) || !group.children.includes(sprite) || !group.children.includes(glyph) || parsed.assets.size !== 2 ||
         !parsed.assets.has('Red') || !parsed.assets.has('GlyphAtlas')) throw new Error('Document polygon fixture topology differs');
@@ -223,7 +227,7 @@ async function openText(text, reservedToken = null) {
     const now = sessionObservation(next);
     opened = { bytesEqualPrevious: prior ? JSON.stringify(prior.assetBytes) === JSON.stringify(now.assetBytes) : null,
       commandsEqualPrevious: prior ? JSON.stringify(prior.mask) === JSON.stringify(now.mask) : null };
-    adopt(next); releaseTemporary(); acquired = false; show('Opened Scene25 mask and authoritative atlas bytes on a fresh canvas');
+    adopt(next); releaseTemporary(); acquired = false; show('Opened polygon mask and authoritative atlas bytes on a fresh canvas');
   } catch (error) { if (next && session !== next) { next.unbind(); disposeRenderer(next.renderer); }
     if (current(token)) refused(error, before); else counts.ignored++;
   } finally { if (acquired) releaseTemporary(); }

@@ -45,3 +45,5 @@ export type { PolygonMask } from './polygon-mask.js';
 
 export { createCanvas2DApplication } from './application.js';
 export type { Canvas2DApplicationOptions, Canvas2DApplication } from './application.js';
+
+export type { SceneV26, NodeV26, GroupNodeV26, FrameNodeV26 } from './schema.js';

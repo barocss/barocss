@@ -1,0 +1,150 @@
+{
+  "source": "actual isolated HeadlessChrome155 WebGL2 create/link/dispose observation; fragment entries copied from getActiveUniform; vertex size/view excluded from fragment sums",
+  "reportedFragmentVectors": 1024,
+  "common": {
+    "linked": true,
+    "fragmentUniforms": [
+      [
+        "u_clip_count",
+        1
+      ],
+      [
+        "u_polygon_mask_count0",
+        1
+      ],
+      [
+        "u_polygon_mask_count1",
+        1
+      ],
+      [
+        "u_linear_enabled",
+        1
+      ],
+      [
+        "u_radial_enabled",
+        1
+      ],
+      [
+        "u_clip_inverse0[0]",
+        16
+      ],
+      [
+        "u_clip_inverse1[0]",
+        16
+      ],
+      [
+        "u_clip_size[0]",
+        16
+      ],
+      [
+        "u_polygon_mask_points[0]",
+        64
+      ],
+      [
+        "u_color",
+        1
+      ],
+      [
+        "u_inverse0",
+        1
+      ],
+      [
+        "u_inverse1",
+        1
+      ],
+      [
+        "u_linear_from",
+        1
+      ],
+      [
+        "u_linear_direction",
+        1
+      ],
+      [
+        "u_radial_center",
+        1
+      ],
+      [
+        "u_radial_radius",
+        1
+      ],
+      [
+        "u_start_color",
+        1
+      ],
+      [
+        "u_end_color",
+        1
+      ]
+    ],
+    "conservativeVectorSum": 126
+  },
+  "image": {
+    "linked": true,
+    "fragmentUniforms": [
+      [
+        "u_clip_count",
+        1
+      ],
+      [
+        "u_polygon_mask_count0",
+        1
+      ],
+      [
+        "u_polygon_mask_count1",
+        1
+      ],
+      [
+        "u_clip_inverse0[0]",
+        16
+      ],
+      [
+        "u_clip_inverse1[0]",
+        16
+      ],
+      [
+        "u_clip_size[0]",
+        16
+      ],
+      [
+        "u_polygon_mask_points[0]",
+        64
+      ],
+      [
+        "u_uvClamp",
+        1
+      ],
+      [
+        "u_opacity",
+        1
+      ],
+      [
+        "u_tint",
+        1
+      ],
+      [
+        "u_image",
+        1
+      ]
+    ],
+    "conservativeVectorSum": 119
+  },
+  "created": {
+    "shader": 4,
+    "program": 2,
+    "buffer": 3,
+    "vertexArray": 2
+  },
+  "deleted": {
+    "shader": 4,
+    "program": 2,
+    "buffer": 3,
+    "vertexArray": 2
+  },
+  "glError": 0,
+  "injectedReported127": {
+    "code": "UNSUPPORTED_FEATURE",
+    "shaders": 0,
+    "programCount": 0
+  }
+}
