@@ -609,6 +609,29 @@ exact copied #922 authored files over HTTP for actual Three WebGL2 revision,
 true-edge, refusal and disposal checks. The graph remains native editing
 authority; this bridge does not certify a Surface, Solid or volume.
 
+The same qualified graph result can feed the existing Babylon Shell adapter
+without another parser or tessellator:
+
+```js
+import { createBaroCadBooleanExtrusionBabylonMesh }
+  from '@barocss/cad-interop/babylon-boolean-extrusion-mesh';
+
+scene.useRightHandedSystem = true;
+const babylonDisplay = createBaroCadBooleanExtrusionBabylonMesh(
+  scene, derived.nativeMesh, {
+    unitsPerMillimeter: 0.001, basis: 'authored-xyz-matches-rhyup',
+  });
+babylonDisplay.edgeRoot.setEnabled(true); // Optional true Curve paths.
+babylonDisplay.dispose();
+```
+
+Run `node examples/boolean-extrusion-feature-mesh-babylon-verify.mjs --source
+<saved-922-directory>` for the actual six-file HTTP/NullEngine consumer.
+`examples/boolean-extrusion-feature-mesh-babylon.html` reads the two exact
+copied authored revisions over HTTP and checks live Babylon WebGL2 pixels,
+true-edge display, refusal retention and owned cleanup. The caller owns its
+Scene, Engine, canvas and original authored graph.
+
 ### Display native filled Boolean extrusion Shells in Three.js
 
 The optional `./three-boolean-extrusion-mesh` entry consumes the complete
