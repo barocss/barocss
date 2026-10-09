@@ -60,7 +60,11 @@ export function prepareSceneMesh(packetInput:unknown,optionsInput:unknown,transf
   const pose=prepareSceneTransform(transformInput),{packet,options}=resolveMeshIntent(packetInput,optionsInput),rotate=sceneRotation(pose);
   const positions64:number[]=[],normals64:number[]=[];
   for(let i=0;i<packet.positions.length;i+=3){
-    const point=rotate(packet.positions[i]*pose.scale[0],packet.positions[i+1]*pose.scale[1],packet.positions[i+2]*pose.scale[2]);
+    const x=packet.positions[i]*pose.scale[0],y=packet.positions[i+1]*pose.scale[1],z=packet.positions[i+2]*pose.scale[2];
+    requireValue(Number.isFinite(x)&&Number.isFinite(y)&&Number.isFinite(z)&&
+      (packet.positions[i]===0||x!==0)&&(packet.positions[i+1]===0||y!==0)&&(packet.positions[i+2]===0||z!==0),
+      'Native Surface coordinate overflows or underflows during pose scaling');
+    const point=rotate(x,y,z);
     const normal=rotate(packet.normals[i]/pose.scale[0],packet.normals[i+1]/pose.scale[1],packet.normals[i+2]/pose.scale[2]),length=Math.hypot(...normal);
     requireValue(Number.isFinite(length)&&length>0,'Transformed normal is unsafe');
     for(let axis=0;axis<3;axis++){

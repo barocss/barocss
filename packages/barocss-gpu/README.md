@@ -40,6 +40,22 @@ intentional null context. No successful renderer, pixel or frame-retention
 claim follows. Full pose/translation precision and native Solid accuracy remain
 outside this conversion contract.
 
+## Positive pose scale admission
+
+Curve and Surface preparation also checks each native coordinate multiplied by
+its positive pose scale before rotation. A nonzero coordinate that becomes zero,
+or a nonfinite result, refuses with the existing Curve `GPUError` or Surface
+`RangeError`. The pose scale range remains `0.001..100`.
+
+The check compares the original component with its scalar product. It does not
+compare it with a later rotated component: rotation or translation may legitimately
+cancel a component. Original source/native values and the existing operation
+order, unit conversion, Float32, segment and triangle checks remain unchanged.
+This is a scalar admission guard, not a guarantee of lossless pose arithmetic.
+The focused `pose-scale-admission-flow.mjs --output <dir>` checks real public API
+CPU preparation and cold files at an intentional null context boundary; it claims
+no successful renderer or browser verification.
+
 An independent CSS-shaped scene language and original WebGL2 SDF renderer.
 This package has no React, Three.js, GSS, CAD or existing utility-class dependency.
 Its local package configuration is public (`private:false`, `publishConfig.access:public`).
