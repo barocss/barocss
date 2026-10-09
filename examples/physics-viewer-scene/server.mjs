@@ -18,6 +18,10 @@ const dynamicHingeBundle = await build({
   entryPoints: [new URL('dynamic-hinge-demo.js', import.meta.url).pathname],
   bundle: true, write: false, format: 'esm', platform: 'browser', target: 'es2022',
 });
+const offsetHingeBundle = await build({
+  entryPoints: [new URL('offset-hinge-demo.js', import.meta.url).pathname],
+  bundle: true, write: false, format: 'esm', platform: 'browser', target: 'es2022',
+});
 const files = new Map([
   ['/bundle.js', { body: bundle.outputFiles[0].contents, type: 'text/javascript' }],
   ['/joint-demo.js', { body: jointBundle.outputFiles[0].contents, type: 'text/javascript' }],
@@ -26,6 +30,8 @@ const files = new Map([
   ['/motor-demo.html', { body: await readFile(new URL('motor-demo.html', import.meta.url)), type: 'text/html' }],
   ['/dynamic-hinge-demo.js', { body: dynamicHingeBundle.outputFiles[0].contents, type: 'text/javascript' }],
   ['/dynamic-hinge-demo.html', { body: await readFile(new URL('dynamic-hinge-demo.html', import.meta.url)), type: 'text/html' }],
+  ['/offset-hinge-demo.js', { body: offsetHingeBundle.outputFiles[0].contents, type: 'text/javascript' }],
+  ['/offset-hinge-demo.html', { body: await readFile(new URL('offset-hinge-demo.html', import.meta.url)), type: 'text/html' }],
   ['/', { body: await readFile(new URL('index.html', import.meta.url)), type: 'text/html' }],
   ['/two-surfaces.barocad', { body: await readFile(new URL('two-surfaces.barocad', import.meta.url)), type: 'text/plain' }],
 ]);
