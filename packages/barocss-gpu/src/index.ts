@@ -56,3 +56,7 @@ export type {SelectedUniformCurvePreview,SelectedUniformCurvePreviewInput} from 
 export {prepareMixedDepthFrame,MixedDepthError} from './mixed-depth-frame.js';
 export type {MixedDepthFrameV0,MixedDepthSurfaceV0,MixedDepthDiagnosticCode} from './mixed-depth-frame.js';
 export {mountMixedDepthScene,MixedDepthRenderer} from './mixed-depth-renderer.js';
+
+export {prepareQualifiedFaceScene,QualifiedFaceSceneError} from './qualified-face-scene.js';
+export type {QualifiedFaceSceneV0,QualifiedFaceAssetV0,QualifiedFaceSceneDiagnosticCode} from './qualified-face-scene.js';
+export {mountQualifiedFaceScene,QualifiedFaceSceneRenderer} from './qualified-face-scene-renderer.js';
