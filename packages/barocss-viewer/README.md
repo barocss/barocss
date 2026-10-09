@@ -199,6 +199,13 @@ caller moves its DOM label after camera and display pose changes. The
 original endpoint chord remains a separate native point distance. The
 estimator is heuristic and does not certify global error.
 
+`examples/viewer-surface-area` shows the original unposed CAD Surface
+parametric-area estimate beside a qualified Viewer document body. The host
+rechecks the body revision before showing its DOM label. Camera and display
+pose changes leave the native value unchanged; an accepted document revision
+updates both scene and label. The estimate is heuristic and distinct from
+display triangle area.
+
 For explicit Surface mesh lighting, pass an optional GPU `MeshLighting` value
 at creation: `lighting:{ambientStrength:0.12,directionalStrength:0.78,
 direction:[0.8,0.4,-0.7]}`. Each strength is in 0..1 and their sum is at most
