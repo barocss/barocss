@@ -22,7 +22,7 @@ tree.stage.addChild(back); tree.stage.addChild(panel);
 let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
 let renderer = createCanvas2D(canvas, options);
 renderer.setImageAsset('Nine', { width: 3, height: 3, pixels });
-/** @type {import('@barocss/canvas2d').SceneV12 | import('@barocss/canvas2d').SceneV13 | import('@barocss/canvas2d').SceneV14 | import('@barocss/canvas2d').SceneV15} */
+/** @type {import('@barocss/canvas2d').SceneV12 | import('@barocss/canvas2d').SceneV13 | import('@barocss/canvas2d').SceneV14 | import('@barocss/canvas2d').SceneV15 | import('@barocss/canvas2d').SceneV16} */
 let accepted = tree.snapshot(); renderer.updateScene(accepted); renderer.render();
 let generation = 1;
 /** @type {string[]} */ let pointerLog = [];
@@ -91,7 +91,7 @@ async function save() {
 async function openText(text) {
   const fresh = document.createElement('canvas'); fresh.id = 'scene'; fresh.width = 64; fresh.height = 48;
   const staged = await stageCanvasDocument(text, fresh, options);
-  if (staged.scene.version !== 12 && staged.scene.version !== 13 && staged.scene.version !== 14 && staged.scene.version !== 15) throw new Error('Scene v12 or v13 or v14 or v15 required');
+  if (staged.scene.version !== 12 && staged.scene.version !== 13 && staged.scene.version !== 14 && staged.scene.version !== 15 && staged.scene.version !== 16) throw new Error('Scene v12 or v13 or v14 or v15 or v16 required');
   const nextTree = createDisplayTreeFromScene(staged.scene);
   const nextBack = nextTree.get('Back'), nextPanel = nextTree.get('Panel');
   const bytes = staged.renderer.getImageAsset('Nine')?.pixels;

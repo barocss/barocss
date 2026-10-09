@@ -1,5 +1,5 @@
 import { Canvas2DError, copyImageAsset, validateImageAssetId, validatePoint, validateScene, validateSize, validateView } from './schema.js';
-import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, NodeV12, NodeV13, NodeV14, NodeV15, Point, Scene, Size, SourceRect, Transform, View } from './schema.js';
+import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, NodeV12, NodeV13, NodeV14, NodeV15, NodeV16, Point, Scene, Size, SourceRect, Transform, View } from './schema.js';
 import { tessellatePath } from './path.js';
 import type { FillObservation, PathObservation } from './path.js';
 import { createImageGpu, createImageTexture, disposeImageGpu, renderImage, sampledAlpha, sourceRect } from './image.js';
@@ -8,14 +8,14 @@ import { tileSpans } from './tile.js';
 
 type Matrix = [number, number, number, number, number, number];
 type Clip = { left: number; top: number; right: number; bottom: number };
-type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15;
+type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16;
 type DrawNode = Exclude<RenderNode, { kind: 'group' }>;
 type Draw = {
   id: string; kind: 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun'; node: DrawNode;
   matrix: Matrix; inverse: Matrix; color: Color; vertices: Float32Array; clip: Clip | null; visible: boolean; hitEnabled: boolean;
   observation?: PathObservation; fillObservation?: FillObservation;
   maskVertices?: Float32Array; contours?: Float32Array[]; fillRule?: 'evenodd' | 'nonzero';
-  imageAsset?: ImageAsset; imageNode?: ImageNode; imageClamp?: SourceRect;
+  imageAsset?: ImageAsset; imageNode?: ImageNode; imageClamp?: SourceRect; imageHitInverse?: Matrix;
 };
 type Gpu = { program: WebGLProgram; buffer: WebGLBuffer; vao: WebGLVertexArrayObject;
   size: WebGLUniformLocation; view: WebGLUniformLocation; color: WebGLUniformLocation;
@@ -129,6 +129,17 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
         if (crop.x + crop.width > asset.width || crop.y + crop.height > asset.height) {
           throw new Canvas2DError('INVALID_ASSET', `image crop exceeds asset ${node.imageId}`);
         }
+        if ('hitArea' in node && node.hitArea) {
+          const area = node.hitArea;
+          for (const [x, y] of [[area.x, area.y], [area.x + area.width, area.y],
+            [area.x, area.y + area.height], [area.x + area.width, area.y + area.height]]) {
+            const corner = point(matrix, x, y);
+            if (!Number.isFinite(corner.x) || !Number.isFinite(corner.y) ||
+                Math.abs(corner.x) > 1e9 || Math.abs(corner.y) > 1e9) {
+              throw new Canvas2DError('SCENE_LIMIT', 'composed sprite hit area exceeds supported world range');
+            }
+          }
+        }
         const imageMatrix = 'anchorX' in node
           ? multiply(matrix, [1, 0, 0, 1, -node.anchorX * node.width, -node.anchorY * node.height])
           : matrix;
@@ -149,7 +160,7 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
             } };
             add({ id: node.id, kind: 'image', node, matrix: tileMatrix, inverse: inverse(tileMatrix),
               color: [1, 1, 1, node.opacity], vertices: rectangle(tileMatrix, width, height),
-              imageAsset: asset, imageNode, imageClamp: crop, clip: inheritedClip });
+              imageAsset: asset, imageNode, imageClamp: crop, imageHitInverse: inv, clip: inheritedClip });
           }
         } else if ('slice' in node && node.slice) {
           const { left, right, top, bottom } = node.slice;
@@ -169,12 +180,12 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
             } };
             add({ id: node.id, kind: 'image', node, matrix: tileMatrix, inverse: inverse(tileMatrix),
               color: [1, 1, 1, node.opacity], vertices: rectangle(tileMatrix, width, height),
-              imageAsset: asset, imageNode, clip: inheritedClip });
+              imageAsset: asset, imageNode, imageHitInverse: inv, clip: inheritedClip });
           }
         } else {
           add({ id: node.id, kind: 'image', node, matrix: imageMatrix, inverse: inverse(imageMatrix),
             color: [1, 1, 1, node.opacity], vertices: rectangle(imageMatrix, node.width, node.height),
-            imageAsset: asset, clip: inheritedClip });
+            imageAsset: asset, imageHitInverse: inv, clip: inheritedClip });
         }
       } else if (node.kind === 'glyphRun') {
         const asset = assets.get(node.atlasId);
@@ -214,6 +225,12 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
 function contains(draw: Draw, world: Point): boolean {
   if (draw.clip && (world.x < draw.clip.left || world.x > draw.clip.right ||
       world.y < draw.clip.top || world.y > draw.clip.bottom)) return false;
+  if (draw.node.kind === 'image' && 'hitArea' in draw.node && draw.node.hitArea && draw.imageHitInverse) {
+    const p = point(draw.imageHitInverse, world.x, world.y);
+    const area = draw.node.hitArea;
+    return p.x >= area.x && p.y >= area.y &&
+      p.x < area.x + area.width && p.y < area.y + area.height;
+  }
   const p = point(draw.inverse, world.x, world.y);
   const node = draw.node;
   const imageNode = draw.imageNode ?? (node.kind === 'image' ? node : null);

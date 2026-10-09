@@ -10,7 +10,7 @@ const sprite = tree.createSprite({ id: 'Floor', layer: 0, transform, imageId: 'P
   width: 5, height: 4, opacity: 1, sampling: 'nearest', anchorX: 0, anchorY: 0,
   sourceRect: crop, tile });
 tree.stage.addChild(sprite);
-assert.equal(tree.snapshot().version, 15);
+assert.equal(tree.snapshot().version, 16);
 assert.deepEqual(sprite.data.tile, tile);
 const copy = sprite.data;
 copy.tile.width = 9;
@@ -52,9 +52,9 @@ sprite.setSourceRect(null);
 const legacy = structuredClone(tree.snapshot());
 legacy.version = 12;
 assert.equal(parseSceneJSON(stringifySceneJSON(legacy)).version, 12);
-assert.equal(createDisplayTreeFromScene(legacy).snapshot().version, 15);
+assert.equal(createDisplayTreeFromScene(legacy).snapshot().version, 16);
 legacy.nodes[0].tile = tile;
 assert.throws(() => stringifySceneJSON(legacy), error => error.code === 'INVALID_SCENE');
 
-console.log(JSON.stringify({ result: 'ok', sceneVersion: 15, refusals,
+console.log(JSON.stringify({ result: 'ok', sceneVersion: 16, refusals,
   restoredWidth: restored.get('Floor').data.width }));

@@ -16,7 +16,7 @@ const curve = tree.createPath({ id: 'Curve', layer: 1, transform: pose(110, 20),
     c2x: 40, c2y: 60, x: 60, y: 30 }], stroke: { color: [0, 0, 1, 1], width: 6 } });
 tree.stage.addChild(team); team.addChild(filled); team.addChild(curve);
 const first = tree.snapshot();
-assert.equal(first.version, 15);
+assert.equal(first.version, 16);
 assert.deepEqual(first.nodes[0].children.map(node => node.id), ['Filled', 'Curve']);
 assert.equal(tree.get('Filled'), filled);
 assert.equal(tree.get('Curve'), curve);
