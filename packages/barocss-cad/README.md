@@ -7288,3 +7288,40 @@ no replacement result.
 ```sh
 node examples/cad-nurbs/curve-parameterization-demo.mjs --source /tmp/cad-parameters
 ```
+
+## Interpolation with fixed positive rational weights
+
+`buildWeightedInterpolatingCurve` creates a native rational Curve through
+supplied points and parameters. The caller supplies one positive weight per
+point/control index. The weights remain fixed during the solve and are copied
+to the resulting native Curve without normalization.
+
+```ts
+const interpolation = cad.buildWeightedInterpolatingCurve([
+  {parameter: -2, pointMM: [2, -0, 0]},
+  {parameter: 2, pointMM: [Math.SQRT2, Math.SQRT2, 0]},
+  {parameter: 6, pointMM: [0, 2, 0]},
+], [1, Math.SQRT1_2, 1], {
+  curveId: 'weighted_quarter', degree: 2,
+  maximumBasisEvaluations: 256,
+  maximumEliminationSteps: 120,
+});
+cad.validateWeightedInterpolatingCurve(interpolation);
+```
+
+The weighted and polynomial constructors share the native basis and guarded
+linear solve. Native unit-coordinate Curves with the supplied weights provide
+the rational basis matrix. The solve determines control points and checks
+actual native through-point residuals. Degree 1 through 3, 2 through 16 points,
+and weights from `1e-6` through `1e6` are supported.
+
+The result retains supplied points and weight bits, native geometry, Source0
+Model, matrix/pivot evidence and owned reconstruction data. Changing fixed
+weights can change the Curve between the same supplied points. This operation
+does not optimize weights, fit arbitrary rational data or certify whole-curve
+accuracy, regularity or manufacturing tolerance. Existing polynomial Curve,
+Surface-grid and point-parameterization APIs keep their current contracts.
+
+```sh
+node examples/cad-nurbs/weighted-curve-interpolation-demo.mjs --source /tmp/cad-weighted-interpolation --polynomial-directory /path/to/cad-curve-interpolation
+```

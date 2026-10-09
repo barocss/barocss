@@ -236,3 +236,6 @@ export type { SurfaceInterpolationOptions, SurfaceInterpolationObservation, Surf
 
 export { buildParameterizedInterpolatingCurve, validateParameterizedInterpolatingCurve, CurveParameterizationError, CurveParameterizationDiagnosticCode } from './curve-parameterization.js';
 export type { CurveParameterizationMethod, CurveParameterizationOptions, CurveParameterizationReport, CurveParameterizationResult } from './curve-parameterization.js';
+
+export { buildWeightedInterpolatingCurve, validateWeightedInterpolatingCurve, WeightedCurveInterpolationError, WeightedCurveInterpolationDiagnosticCode } from './weighted-curve-interpolation.js';
+export type { WeightedCurveInterpolationPoint, WeightedCurveInterpolationOptions, WeightedCurveInterpolationReport, WeightedCurveInterpolationResult } from './weighted-curve-interpolation.js';
