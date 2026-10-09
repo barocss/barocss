@@ -1,0 +1,4 @@
+@shader #editable_material {
+  @uniform amount: float(0,1,0.5);
+  @fragment { color: mix(#1122FF,#FF0000,clamp(amount,0,1)); }
+}
