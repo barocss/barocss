@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { CadEditorError } from '../types.js';
 import type { CadEditorPoleField } from '../types.js';
 import { cn } from '../lib/utils.js';
@@ -46,25 +46,48 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
   const id = useId();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastError, setLastError] = useState<CadEditorError | null>(null);
+  const [transitionError, setTransitionError] = useState<string | null>(null);
+  const lastFieldRef = useRef<HTMLInputElement | null>(null);
+  const composingFieldsRef = useRef(new Set<CadEditorPoleField>());
+  const restoreFieldFocusRef = useRef(false);
+  const attemptedTransitionRef = useRef<string | null>(null);
   const { selection, accepted, pending, candidate } = snapshot;
+  const transition = snapshot.selectionTransition;
   const busy = candidate !== null || snapshot.disposed;
-  const surfaces = accepted.bodyBindings.filter(binding => binding.geometryKind === 'surface');
-  function action(run: () => void) {
-    try { run(); setErrorMessage(null); setLastError(null); }
+  useEffect(() => {
+    if (!transition) {
+      attemptedTransitionRef.current = null;
+      setTransitionError(null);
+    } else if (attemptedTransitionRef.current === transition.token && !candidate) {
+      setTransitionError('Cannot apply this change. Your draft is retained. Cancel to revise the values.');
+    }
+  }, [transition?.token, candidate?.token]);
+  function action(run: () => void, inTransition = false) {
+    try { run(); setErrorMessage(null); setLastError(null); if (inTransition) setTransitionError(null); }
     catch (cause) {
       const error = cause instanceof CadEditorError ? cause
         : new CadEditorError('INPUT', cause instanceof Error ? cause.message : 'The editor action was refused.', {}, cause);
       setErrorMessage(actionableMessage(error));
       setLastError(error);
+      if (inTransition) setTransitionError(actionableMessage(error));
       try { onError?.(error); } catch { /* Host callbacks do not change the session. */ }
     }
   }
   function select(uIndex: number, vIndex: number) {
-    if (selection) action(() => session.selectSurfacePole({ bodyId: selection.bodyId, uIndex, vIndex }));
+    if (selection) action(() => session.requestSelection({ bodyId: selection.bodyId, uIndex, vIndex }));
+  }
+  function resolveTransition(decision: 'apply' | 'discard' | 'cancel') {
+    const current = session.getSnapshot().selectionTransition;
+    if (!current) return;
+    if (decision === 'cancel') restoreFieldFocusRef.current = true;
+    action(() => {
+      const prepared = session.resolveSelectionTransition(current.token, decision);
+      if (prepared) attemptedTransitionRef.current = current.token;
+    }, true);
   }
   return <aside className={cn('cad-editor-inspector', className)} aria-label="Surface control pole inspector">
     <div className="cad-editor-inspector-title">
-      <h2 className="cad-editor-heading">Control point</h2>
+      <h2 className="cad-editor-heading">{selection ? 'Control point' : 'Object'}</h2>
       <Dialog>
         <DialogTrigger asChild><Button type="button" variant="ghost" size="xs" data-testid="cad-editor-help"
           aria-label="Surface editing help">Help</Button></DialogTrigger>
@@ -79,6 +102,7 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
             </section>
             <section><h3>Draft and current values</h3>
               <p>Changed fields remain pending until you select Apply. Discard restores the current values.</p>
+              <p>When you select another object or control pole with a draft, choose Apply, Discard or Cancel. Cancel keeps the draft and returns focus to the last coordinate or weight field.</p>
               <p>Apply prepares a native source candidate. The candidate becomes accepted after native validation and successful display. Download writes the accepted document.</p>
               {Object.keys(pending).length > 0 && <dl className="cad-editor-reference">
                 {FIELDS.filter(({ field }) => Object.hasOwn(pending, field)).map(({ field, label }) => <div key={field}>
@@ -86,6 +110,11 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
                 </div>)}
               </dl>}
               {!candidate && <p>No native source candidate is waiting for display.</p>}
+            </section>
+            <section><h3>Keyboard</h3>
+              <p>Enter in a coordinate or weight field applies the draft. During text composition, Enter commits text only. Escape in the field keeps its draft and focus.</p>
+              <p>Outside text fields, Cmd/Ctrl+Z undoes a change. Shift+Cmd/Ctrl+Z and Ctrl+Y redo it. Apply or discard pending values before using these shortcuts. Text fields keep the browser text undo.</p>
+              <p>Escape in the selection decision cancels the selection change. Escape in the viewport keeps the selected object and camera.</p>
             </section>
             {selection && <details className="cad-editor-source">
               <summary className="cad-editor-source-title">Original native coefficients and binding</summary>
@@ -122,13 +151,35 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
         </DialogContent>
       </Dialog>
     </div>
+    <Dialog open={transition !== null} onOpenChange={open => { if (!open) resolveTransition('cancel'); }}>
+      <DialogContent className="cad-editor-help-dialog cad-editor-transition-dialog" showCloseButton={false}
+        data-testid="cad-editor-transition"
+        onPointerDownOutside={event => event.preventDefault()}
+        onEscapeKeyDown={event => { event.preventDefault(); resolveTransition('cancel'); }}
+        onCloseAutoFocus={event => {
+          if (!restoreFieldFocusRef.current) return;
+          event.preventDefault();
+          restoreFieldFocusRef.current = false;
+          const field = lastFieldRef.current;
+          if (field?.isConnected && !field.disabled) field.focus({ preventScroll: true });
+        }}>
+        <DialogHeader><DialogTitle>Keep your changes?</DialogTitle>
+          <DialogDescription>Apply or discard the draft before changing selection. Cancel keeps your current selection.</DialogDescription></DialogHeader>
+        {transitionError && <p className="cad-editor-error" role="alert">{transitionError}</p>}
+        <div className="cad-editor-transition-actions">
+          <Button type="button" disabled={busy} data-testid="cad-editor-transition-apply" onClick={() => resolveTransition('apply')}>Apply</Button>
+          <Button type="button" variant="outline" disabled={busy} data-testid="cad-editor-transition-discard" onClick={() => resolveTransition('discard')}>Discard</Button>
+          <Button type="button" variant="ghost" disabled={snapshot.disposed} data-testid="cad-editor-transition-cancel" onClick={() => resolveTransition('cancel')}>Cancel</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
     <div className="cad-editor-field">
       <Label htmlFor={`${id}-body`}>Object</Label>
-      <select id={`${id}-body`} value={selection?.bodyId ?? ''} disabled={busy || surfaces.length === 0}
-        data-testid="cad-editor-body" onChange={event => action(() => session.selectSurfacePole({ bodyId: event.target.value, uIndex: 0, vIndex: 0 }))}>
-        {!selection && <option value="">Select a Surface</option>}
-        {surfaces.map(binding => <option key={binding.bodyId} value={binding.bodyId}>
-          {accepted.document.bodies.find(body => body.id === binding.bodyId)?.name ?? binding.bodyId}
+      <select id={`${id}-body`} value={snapshot.selectedBodyId ?? ''} disabled={busy || accepted.document.bodies.length === 0}
+        data-testid="cad-editor-body" onChange={event => action(() => session.requestSelection({ bodyId: event.target.value }))}>
+        {snapshot.selectedBodyId === null && <option value="">Select an object</option>}
+        {accepted.document.bodies.map(body => <option key={body.id} value={body.id}>
+          {body.name}{accepted.bodyBindings.find(binding => binding.bodyId === body.id)?.geometryKind === 'curve' ? ' · read-only' : ''}
         </option>)}
       </select>
     </div>
@@ -153,6 +204,22 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
         <Label htmlFor={`${id}-${field}`}>{label}</Label>
         <Input id={`${id}-${field}`} type="text" inputMode="decimal" disabled={busy}
           value={pending[field] ?? numberText(selection.accepted[field])} data-testid={`cad-editor-${field}`}
+          onFocus={event => { lastFieldRef.current = event.currentTarget; }}
+          onCompositionStart={() => { composingFieldsRef.current.add(field); }}
+          onCompositionEnd={() => { composingFieldsRef.current.delete(field); }}
+          onKeyDown={event => {
+            if (event.key === 'Escape') {
+              event.preventDefault();
+              event.stopPropagation();
+              return;
+            }
+            if (event.key !== 'Enter' || event.nativeEvent.isComposing || event.keyCode === 229
+              || composingFieldsRef.current.has(field) || event.repeat
+              || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+            event.preventDefault();
+            event.stopPropagation();
+            action(() => { session.prepareApply(); });
+          }}
           onChange={event => action(() => session.stageSurfacePoleField(field, event.target.value))}
           aria-describedby={Object.hasOwn(pending, field) ? `${id}-${field}-accepted` : undefined} />
         {Object.hasOwn(pending, field) && <span id={`${id}-${field}-accepted`} className="cad-editor-accepted">Current: {numberText(selection.accepted[field])}</span>}
@@ -163,7 +230,8 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
         <Button type="button" variant="outline" disabled={busy || Object.keys(pending).length === 0}
           data-testid="cad-editor-discard" onClick={() => action(() => session.discardPending())}>Discard</Button>
       </div>
-    </> : <p>Select a Surface to edit its control points.</p>}
+    </> : <p role="status">{snapshot.selectedBodyId === null
+      ? 'Select a Surface to edit its control points.' : 'The reference Curve is read-only.'}</p>}
     {errorMessage && <p className="cad-editor-error" role="alert">{errorMessage}</p>}
   </aside>;
 }

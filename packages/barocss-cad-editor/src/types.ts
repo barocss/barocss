@@ -11,6 +11,12 @@ export class CadEditorError extends Error {
 }
 export type CadEditorPoleField = 'xMM' | 'yMM' | 'zMM' | 'weight';
 export interface CadEditorSurfaceSelection { bodyId: string; uIndex: number; vIndex: number }
+export interface CadEditorSelectionTarget {
+  bodyId: string; uIndex?: number; vIndex?: number; reference?: CadGeometryReferenceV0;
+}
+export interface CadEditorSelectionTransition {
+  token: string; baseGeneration: number; target: CadEditorSelectionTarget;
+}
 export interface CadEditorSelectedPole extends CadEditorSurfaceSelection {
   reference: CadGeometryReferenceV0;
   accepted: Record<CadEditorPoleField, number>;
@@ -25,7 +31,9 @@ export interface CadEditorCandidate {
 export interface CadEditorSnapshot {
   accepted: CadDocumentResult;
   generation: number;
+  selectedBodyId: string | null;
   selection: CadEditorSelectedPole | null;
+  selectionTransition: CadEditorSelectionTransition | null;
   pending: Partial<Record<CadEditorPoleField, string>>;
   candidate: CadEditorCandidate | null;
   history: { index: number; count: number; bytes: number; canUndo: boolean; canRedo: boolean };
@@ -38,6 +46,8 @@ export interface CadEditorDownload { token: string; text: string; suggestedFilen
 export interface CadEditorSession {
   getSnapshot(): CadEditorSnapshot;
   subscribe(listener: () => void): () => void;
+  requestSelection(target: CadEditorSelectionTarget): CadEditorSelectionTransition | null;
+  resolveSelectionTransition(token: string, choice: 'apply' | 'discard' | 'cancel'): CadEditorCandidate | null;
   selectSurfacePole(selection: CadEditorSurfaceSelection): void;
   stageSurfacePoleField(field: CadEditorPoleField, rawText: string): void;
   discardPending(): void;
