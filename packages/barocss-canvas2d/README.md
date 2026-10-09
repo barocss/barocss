@@ -276,4 +276,4 @@ An invalid Scene admission retains the renderer's previously accepted frame. Suc
 
 ### Composed atlas game host
 
-See [the game consumer](consumer/game.html) and [run/lifetime instructions](consumer/README.md#public-atlas-game-composition) for a small public-API app combining bounded PNG loading, named atlas frames, host-driven animation/ticker, captured drag and explicit teardown. Its score/token logic is host-owned and is not serialized library state.
+See [the game consumer](consumer/game.html) and [run/lifetime instructions](consumer/README.md#public-atlas-game-composition) for a small public-API app combining bounded PNG loading, named atlas frames, host-owned animation with Application update/render scheduling, captured drag and explicit teardown. Its score/token logic is host-owned and is not serialized library state.
