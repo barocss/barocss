@@ -240,3 +240,7 @@ The [package-local consumers](consumer/README.md) import the two public `@barocs
 `createSpriteAtlas(imageId, imageSize, entries)` validates 1..64 named source-pixel crops inside one host-owned image. `frame(name)` and `sequence(names)` return copies suitable for `createSpriteAnimation`; the host registers the image and drives time. It does not parse third-party spritesheet formats.
 
 Scene v7 adds a required normalized RGB `tint` to image nodes. `createSprite` defaults omitted tint to white, and `SpriteHandle.setTint` changes one sprite without copying its asset. Older Scene versions still parse and render with effective white tint; display-tree reconstruction accepts v6–v10, upgrading absent tint, blend mode, visibility and alpha to white, normal, true and 1 in v10 snapshots.
+
+## Browser-font raster text consumer (#1011)
+
+After the compiled package build, open `/packages/barocss-canvas2d/consumer/text-raster.html`. This host prepares a fixed 24px monospace ASCII label with browser font readiness, measured baseline bounds and copied DPR2 RGBA bytes. One public glyph run represents the complete label; spaces remain transparent. An edit uses a fresh candidate canvas/tree/renderer and commits only the newest accepted generation. Failed or late candidates retain the live label. Save stores Scene and RGBA bytes in v1; Open restores pixels without preparing a font, and later edits use the current host font. PNG uses an actual export file. Font metadata, Unicode shaping and per-character caret mapping are outside this consumer.

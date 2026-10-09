@@ -65,6 +65,8 @@
     "miter-join.mjs",
     "linear-fill.mjs",
     "radial-fill.mjs",
-    "background.mjs"
+    "background.mjs",
+    "text-raster.mjs",
+    "text-raster-host.mjs"
   ]
 }
