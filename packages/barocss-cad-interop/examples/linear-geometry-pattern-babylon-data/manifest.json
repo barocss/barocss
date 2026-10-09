@@ -101,7 +101,7 @@
     },
     {
       "key": "spacing_edit_same_roles",
-      "kind": "surface",
+      "kind": "curve",
       "count": 5,
       "originalId": "quarter_seed",
       "ids": [
