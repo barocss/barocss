@@ -32,3 +32,5 @@
 .length-dialog{display:flex;flex-direction:column;overflow:hidden;max-height:85dvh}.length-dialog>[data-slot="dialog-header"],.length-dialog>[data-slot="dialog-footer"]{flex-shrink:0}.length-dialog-body{min-height:0;overflow-y:auto;padding:2px 2px 4px}.length-help-trigger{margin-right:auto}
 
 .feature-replace-action{flex-shrink:0;font-size:10px;min-height:24px;padding:3px 6px;margin-right:3px}.replacement-dialog .replacement-repairs{margin-top:16px}.replacement-dialog .length-dialog-body>p{font-size:13px;line-height:1.6}.replacement-dialog .replacement-repairs label{font-size:12px;line-height:1.5}.replacement-dialog .replacement-repairs input{accent-color:var(--primary);flex-shrink:0}
+
+.face-corner-dialog .length-dialog-body>p{font-size:12px;line-height:1.6;margin:0 0 12px}.face-corner-dialog .face-corner-fields{gap:12px;margin-top:18px}

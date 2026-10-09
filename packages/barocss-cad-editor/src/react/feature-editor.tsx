@@ -1,9 +1,9 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { mountBooleanShellScene, validateMeshCamera } from '@barocss/gpu';
 import type { BooleanShellResourceCounts, BooleanShellSceneInputV0, BooleanShellSceneOptions,
   BooleanShellSceneRenderer, BooleanShellLeafRef, MeshCamera } from '@barocss/gpu';
 import type { CadEditorFeatureDisplay, CadEditorFeatureParameterDraft,
-  CadEditorFeatureSession, CadEditorFeatureSnapshot } from '../feature-types.js';
+  CadEditorFeatureSession, CadEditorFeatureSnapshot, CadEditorFaceCorner } from '../feature-types.js';
 import { CadEditorError } from '../types.js';
 import { cn } from '../lib/utils.js';
 import { Button } from './ui/button.js';
@@ -36,6 +36,8 @@ export interface CadEditorFeatureProps {
   onError?: (error: CadEditorError) => void;
   onAccepted?: (snapshot: CadEditorFeatureSnapshot) => void;
   onDisplay?: (receipt: CadEditorFeatureDisplayReceipt) => void;
+  /** Open a host-owned raw XYZ dialog for an exact current native Face corner. */
+  onEditFaceCorner?: (corner: CadEditorFaceCorner, trigger: HTMLButtonElement) => void;
   readRequest?: number;
   fitRequest?: number;
   /** Frame only the displayed nonempty selected extrusion; this does not change native geometry. */
@@ -124,6 +126,7 @@ function diagnosticText(error: CadEditorError): string {
 function actionable(error: CadEditorError): string {
   if (error.context.field === 'restore-frame') return 'Cannot restore the current view. Reopen the feature view.';
   if (error.context.field === 'fit-selected-output') return 'Select a displayed, nonempty extrusion to fit.';
+  if (error.context.field === 'face-corner' && error.code === 'UNSUPPORTED') return 'Adjacent Line endpoints must match exactly to edit this Face.';
   if (error.code === 'DISPLAY') return 'Cannot display this change. The current view is retained.';
   if (error.code === 'STALE') return 'The document changed. Try Apply again.';
   const details = diagnosticText(error);
@@ -373,6 +376,13 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
   const selected = accepted.document.features.find(feature => feature.id === snapshot.selectedFeatureId);
   const busy = snapshot.candidate !== null || snapshot.disposed;
   const hasPending = Object.keys(pending.parameters).length + Object.keys(pending.booleanOperations).length > 0;
+  const cornerView = useMemo(() => {
+    if (selected?.kind !== 'face-input' || snapshot.disposed) return {corners:[] as CadEditorFaceCorner[],error:null};
+    try { return {corners:session.getFaceCorners(selected.id),error:null}; }
+    catch (cause) { return {corners:[] as CadEditorFaceCorner[],error:cause instanceof CadEditorError ? cause
+      : new CadEditorError('NATIVE','The authored Face corners could not be read.',{field:'face-corner'},cause)}; }
+  }, [session,snapshot.generation,snapshot.selectedFeatureId,snapshot.disposed]);
+  useEffect(() => {if (cornerView.error) report(cornerView.error);}, [cornerView.error]);
 
   return <div className={cn('cad-editor cad-editor-feature', className)}>
     <div className="cad-editor-viewport" data-feature-ready={ready}>
@@ -388,6 +398,12 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
               <p>This profile evaluates two authored planar face inputs, one coplanar Boolean operation and 1–4 normal extrusions. You can add, edit and remove extrusion leaves.</p>
               <p>You can add, edit and remove shared lengths. Referenced Face and Boolean features can be replaced through explicit repairs. Reordering, native suppression and general Face or Boolean creation/removal remain unavailable.</p>
               <p>The extrusions can share the same Boolean region and length parameters. A shared edit rebuilds every native output.</p>
+              <h3>Face corner editing</h3>
+              <p>Select a Face to inspect its original ordered corners in native XYZ/mm. Edit opens a host dialog for one exact corner binding.</p>
+              <p>Apply changes the previous degree 1 Line's endpoint pole and the next Line's start pole to the same explicit XYZ point. Coordinates must be from -10000 to 10000 mm. The native provider checks coplanarity, finite authored Plane domains, closure, convexity and unsupported boundary contact.</p>
+              <p>No projection, snapping, solver, live preview or mesh-derived authoring is used. Enter, Tab and composition do not apply the host dialog; use its Apply button. Closing Help preserves raw coordinates and returns to Help. Cancel or Escape drops only dialog values and restores the corner trigger.</p>
+              <p>prepareFaceCornerEdit uses one actual existing-Face native upsert and rebuilds the Boolean and all current extrusion displays. IDs, ordered Lines, knots, weights, options, sibling Face, parameters and display choice remain intact. Accepted edits return focus to the same corner control after the existing GPU and fresh-frame gate.</p>
+              <p>Native or GPU refusal retains the raw XYZ fields, accepted native graph, history, selection, camera and current frame. This is bounded planar Face-Line coefficient editing, not general Curve authoring, drag or solid modeling.</p>
               <h3>Extrusion changes</h3>
               <p>Add extrusion uses the current Boolean region. Choose a literal height in mm or an existing length parameter plus an offset. Edit extrusion keeps its existing identity and output slot.</p>
               <p>When removing a displayed extrusion, choose the complete retained output set explicitly. The editor does not silently replace a removed output. At least one extrusion must remain.</p>
@@ -434,6 +450,17 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
         </Dialog>
       </div>
       {selected && <p className="cad-editor-feature-selection">{displayName(selected.id)}</p>}
+      {selected?.kind === 'face-input' && <section className="cad-editor-face-corners" aria-label="Authored Face corners">
+        <h3 className="cad-editor-heading">Corners · XYZ/mm</h3>
+        {cornerView.error && <p role="status">{cornerView.error.code==='UNSUPPORTED'
+          ? 'Adjacent Line endpoints must match exactly to edit this Face.' : 'Corner editing is unavailable for this Face.'}</p>}
+        {cornerView.corners.map(corner => <div className="cad-editor-face-corner" key={corner.binding.cornerIndex}>
+          <div><h4>Corner {corner.binding.cornerIndex+1}</h4><p>{corner.pointMM.map(numberText).join(', ')} mm</p></div>
+          <Button type="button" variant="outline" size="xs" disabled={busy || hasPending || !props.onEditFaceCorner}
+            data-testid={`face-corner-edit-${corner.binding.featureId}-${corner.binding.cornerIndex}`}
+            onClick={event => action(() => propsRef.current.onEditFaceCorner?.(structuredClone(corner),event.currentTarget))}>Edit</Button>
+        </div>)}
+      </section>}
       {selected?.kind === 'coplanar-boolean' && <div className="cad-editor-field">
         <Label htmlFor={`${id}-operation`}>Operation</Label>
         <select id={`${id}-operation`} disabled={busy} data-testid={`boolean-operation-${selected.id}`}

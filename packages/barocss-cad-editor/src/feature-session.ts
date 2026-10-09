@@ -6,12 +6,12 @@ import {
 } from '@barocss/cad';
 import type {
   BooleanExtrusionFeatureGraphEdits, BooleanExtrusionFeatureGraphResult,
-  BooleanExtrusionFeatureGraphV0, BooleanExtrusionFeatureTransaction, BooleanExtrusionParameterTransaction, BooleanExtrusionLengthDefinition,
+  BooleanExtrusionFeatureGraphV0, BooleanExtrusionFeatureTransaction, BooleanExtrusionParameterTransaction, BooleanExtrusionLengthDefinition, BooleanExtrusionFaceFeature,
 } from '@barocss/cad';
 import { deriveBaroCadBooleanExtrusionFeatureMesh } from '@barocss/cad-interop/boolean-extrusion-feature-mesh';
 import { CadEditorError } from './types.js';
 import type {
-  CadEditorFeatureCandidate, CadEditorFeatureDisplay, CadEditorFeatureOutput, CadEditorFeatureParameterDraft,
+  CadEditorFeatureCandidate, CadEditorFeatureDisplay, CadEditorFeatureOutput, CadEditorFaceCorner, CadEditorFeatureParameterDraft,
   CadEditorFeaturePending, CadEditorFeatureSession, CadEditorFeatureSessionOptions,
   CadEditorFeatureSnapshot,
 } from './feature-types.js';
@@ -294,6 +294,27 @@ export function createCadEditorFeatureSession(document: BooleanExtrusionFeatureG
   const historyBytes = () => history.reduce((total, state) => total + state.bytes, 0);
   const hasDraft = () => Object.keys(pending.parameters).length > 0 || Object.keys(pending.booleanOperations).length > 0;
   const requireResolvedDraft = () => check(!hasDraft(), 'INPUT', 'Apply or discard the feature draft first.', { documentId: accepted.document.id, field: 'feature-draft' });
+  const acceptedFace = (featureId: unknown): BooleanExtrusionFaceFeature => {
+    const context = { documentId: accepted.document.id, field: 'face-corner' };
+    check(typeof featureId === 'string', 'INPUT', 'Choose an existing authored Face.', context);
+    const face = accepted.document.features.find(feature => feature.id === featureId);
+    check(face !== undefined, 'INPUT', 'The authored Face is missing.', context);
+    check(face.kind === 'face-input', 'UNSUPPORTED', 'Corner editing requires an authored Face.', context);
+    return face;
+  };
+  const faceCorners = (featureId: string): CadEditorFaceCorner[] => {
+    const face = acceptedFace(featureId), edges = face.loop.edges;
+    return edges.map<CadEditorFaceCorner>((next, cornerIndex) => {
+      const previous = edges[(cornerIndex + edges.length - 1) % edges.length];
+      check(same(previous.controlPoints[1], next.controlPoints[0]), 'UNSUPPORTED',
+        'Adjacent Line endpoints must match exactly to edit this Face.',
+        { documentId: accepted.document.id, bodyId: face.id, field: 'face-corner' });
+      return { binding: { graphId: accepted.document.id, revision: accepted.document.revision,
+        featureId: face.id, outputSlotId: face.outputSlotId, cornerIndex,
+        previousLineId: previous.id, previousPoleIndex: 1, nextLineId: next.id, nextPoleIndex: 0 },
+      pointMM: copy(next.controlPoints[0]) };
+    });
+  };
   const snapshot = (): CadEditorFeatureSnapshot => copy({ mode: 'boolean-extrusion', accepted, display, displays, generation, displayGeneration, selectedFeatureId,
     pending, candidate: prepared?.candidate ?? null,
     history: { index: historyIndex, count: history.length, bytes: historyBytes(), canUndo: historyIndex > 0, canRedo: historyIndex < history.length - 1 },
@@ -327,6 +348,32 @@ export function createCadEditorFeatureSession(document: BooleanExtrusionFeatureG
         'INPUT', 'Select an existing authored feature.', { documentId: accepted.document.id, bodyId: featureId, field: 'feature-selection' });
       if (selectedFeatureId === featureId) return;
       requireResolvedDraft(); selectedFeatureId = featureId; prepared = null; emit();
+    },
+    getFaceCorners(featureId) { live(); return copy(faceCorners(featureId)); },
+    prepareFaceCornerEdit(binding, pointMM) {
+      live(); requireResolvedDraft();
+      const context = { documentId: accepted.document.id, field: 'face-corner' };
+      check(prepared === null, 'INPUT', 'Resolve the current feature candidate first.', context);
+      const own = record(copyRequest(binding, 'face-corner'), ['graphId', 'revision', 'featureId', 'outputSlotId',
+        'cornerIndex', 'previousLineId', 'previousPoleIndex', 'nextLineId', 'nextPoleIndex'], 'face-corner');
+      check(own.graphId === accepted.document.id && Object.is(own.revision, accepted.document.revision),
+        'STALE', 'The Face corner graph or revision is no longer current.', context);
+      const face = acceptedFace(own.featureId);
+      check(Number.isInteger(own.cornerIndex) && (own.cornerIndex as number) >= 0 && (own.cornerIndex as number) < face.loop.edges.length,
+        'INPUT', 'Choose an existing native Face corner index.', context);
+      const corner = faceCorners(face.id)[own.cornerIndex as number];
+      check(same(own, corner.binding), 'INPUT', 'The Face corner IDs, slot and pole indices must match the accepted input.', context);
+      const point = copyRequest(pointMM, 'face-corner');
+      check(Array.isArray(point) && point.length === 3 && point.every(value => typeof value === 'number'),
+        'INPUT', 'Enter three authored XYZ coordinates in mm.', context);
+      const changed = copy(face), index = corner.binding.cornerIndex;
+      changed.loop.edges[(index + changed.loop.edges.length - 1) % changed.loop.edges.length].controlPoints[1] = copy(point);
+      changed.loop.edges[index].controlPoints[0] = copy(point);
+      const request: BooleanExtrusionFeatureTransaction = { expectedRevision: accepted.document.revision,
+        revision: nextRevision(accepted.document.revision), featureOperations: [{ kind: 'upsert', feature: changed }] };
+      const result = native(() => transactBooleanExtrusionFeatureGraphFeatures(accepted, request), 'Native coupled Face corner edit failed.',
+        { ...context, bodyId: face.id });
+      return prepare('structure', result);
     },
     stageLengthParameter(parameterId, draft) {
       live(); check(typeof parameterId === 'string' && accepted.document.parameters.some(parameter => parameter.id === parameterId && parameter.type === 'length'),

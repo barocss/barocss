@@ -195,7 +195,7 @@ export async function prepareCompiledCheckpoint({ repo, evidence }) {
 
     const consumerPath = resolve(checkpoint, 'published-consumer.tsx');
     await writeFile(consumerPath, `import { editSourceSurfaceControlNet, validateSourceSurfaceControlNetEdit, type SourceSurfaceControlNetResult } from '@barocss/cad';
-import { createCadEditorSession, createCadEditorFeatureSession, type CadEditorCandidate, type CadEditorFeatureSessionOptions, type CadEditorFeatureOutput } from '@barocss/cad-editor';
+import { createCadEditorSession, createCadEditorFeatureSession, type CadEditorCandidate, type CadEditorFeatureSessionOptions, type CadEditorFeatureOutput, type CadEditorFaceCornerBinding, type CadEditorFaceCorner } from '@barocss/cad-editor';
 import { CadEditor, CadEditorFeature, type CadEditorProps, type CadEditorFeatureProps } from '@barocss/cad-editor/react';
 import { parseCadDocument, parseBooleanExtrusionFeatureGraph } from '@barocss/cad';
 const session = createCadEditorSession(parseCadDocument('{}').document);
@@ -228,6 +228,10 @@ const sourceResult:SourceSurfaceControlNetResult=editSourceSurfaceControlNet({so
 validateSourceSurfaceControlNetEdit(sourceResult);
 const fullSource:string=sourceResult.source;
 const selectedFit:CadEditorFeatureProps={...featureProps,fitSelectedRequest:1};
+const corners:CadEditorFaceCorner[]=featureSession.getFaceCorners('face_a_feature');
+const cornerBinding:CadEditorFaceCornerBinding=corners[0].binding;
+const cornerCandidate=featureSession.prepareFaceCornerEdit(cornerBinding,[1,-3,1]);
+const cornerProps:CadEditorFeatureProps={...featureProps,onEditFaceCorner:(corner,trigger)=>{const binding:CadEditorFaceCornerBinding=corner.binding;const point:[number,number,number]=corner.pointMM;const button:HTMLButtonElement=trigger;}};
 `);
     const consumerProgram = ts.createProgram([consumerPath], {
       target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,

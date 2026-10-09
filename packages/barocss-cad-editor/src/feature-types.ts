@@ -26,6 +26,15 @@ export interface CadEditorFeatureOutput {
   selection: BaroCadBooleanExtrusionFeatureSelection;
   mesh: CoplanarFaceBooleanExtrusionMeshOptions;
 }
+export interface CadEditorFaceCornerBinding {
+  graphId: string; revision: number; featureId: string; outputSlotId: string;
+  cornerIndex: number; previousLineId: string; previousPoleIndex: 1;
+  nextLineId: string; nextPoleIndex: 0;
+}
+export interface CadEditorFaceCorner {
+  binding: CadEditorFaceCornerBinding;
+  pointMM: [number, number, number];
+}
 export interface CadEditorFeatureCandidate {
   token: string; baseGeneration: number; baseDisplayGeneration: number;
   kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'extrusion' | 'parameter' | 'structure';
@@ -52,6 +61,8 @@ export interface CadEditorFeatureSession {
   getSnapshot(): CadEditorFeatureSnapshot;
   subscribe(listener: () => void): () => void;
   selectFeature(featureId: string): void;
+  getFaceCorners(featureId: string): CadEditorFaceCorner[];
+  prepareFaceCornerEdit(binding: CadEditorFaceCornerBinding, pointMM: [number, number, number]): CadEditorFeatureCandidate;
   stageLengthParameter(parameterId: string, draft: CadEditorFeatureParameterDraft): void;
   stageBooleanOperation(featureId: string, operation: 'union' | 'intersection' | 'difference'): void;
   discardPending(): void;

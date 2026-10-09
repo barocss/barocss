@@ -3,7 +3,7 @@ import { Box, Download, FolderOpen, Layers3, Maximize, Redo2, Undo2 } from 'luci
 import { parseBooleanExtrusionFeatureGraph, type BooleanExtrusionExtrusionFeature, type BooleanExtrusionLengthDefinition,
   type BooleanExtrusionLengthParameter, type BooleanExtrusionParameterTransaction,
   type BooleanExtrusionFaceFeature, type BooleanExtrusionBooleanFeature, type BooleanExtrusionFeatureTransaction } from '@barocss/cad';
-import { CadEditorError, createCadEditorFeatureSession, type CadEditorFeatureSessionOptions } from '@barocss/cad-editor';
+import { CadEditorError, createCadEditorFeatureSession, type CadEditorFeatureSessionOptions, type CadEditorFaceCorner } from '@barocss/cad-editor';
 import { CadEditorFeature, useCadEditorFeatureSnapshot, type CadEditorFeatureDisplayReceipt } from '@barocss/cad-editor/react';
 import fixture from '../fixtures/boolean-extrusion.authored-graph.json?raw';
 import sharedFixture from '../fixtures/shared-extrusions.authored-graph.json?raw';
@@ -39,6 +39,10 @@ interface ReferencedFeatureDialog {
   operation: 'union' | 'intersection' | 'difference';
   repairs: { id: string; kind: 'coplanar-boolean' | 'normal-extrusion'; enabled: boolean }[];
 }
+interface FaceCornerDialog {
+  corner: CadEditorFaceCorner;
+  raw: [string,string,string];
+}
 function scalar(raw: string, field = 'extrusion-length'): number {
   const text = raw.trim();
   if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text) || !Number.isFinite(Number(text)))
@@ -47,6 +51,7 @@ function scalar(raw: string, field = 'extrusion-length'): number {
 }
 
 function message(error: CadEditorError, mode?: LengthDialog['mode']): string {
+  if (error.context.field === 'face-corner-coordinate') return 'Enter finite X, Y and Z coordinates in mm.';
   if (error.context.field === 'parameter-length') return 'Enter a finite length in millimeters.';
   if (error.context.field === 'extrusion-length') return 'Enter a finite length in millimeters.';
   if (error.context.field === 'extrusion-view') return 'Choose one to four remaining extrusions to display.';
@@ -57,6 +62,18 @@ function message(error: CadEditorError, mode?: LengthDialog['mode']): string {
   if (error.code === 'DISPLAY') return 'Cannot display this change. The current graph is retained.';
   if (error.code === 'BUDGET') return 'This input exceeds the supported size. Open a smaller graph.';
   if (error.code === 'STALE') return 'The graph changed. Try the action again.';
+  if (error.context.field === 'face-corner') {
+    if (error.code==='UNSUPPORTED') return 'Adjacent Line endpoints must match exactly to edit this Face.';
+    const details:string[]=[];
+    let nested:unknown=error;
+    for(let depth=0;depth<6 && nested instanceof Error;depth++){details.push(nested.message);nested=nested.cause;}
+    const text=details.join('\n');
+    if (/10000|coordinate.*range/i.test(text)) return 'Enter X, Y and Z from -10000 to 10000 mm.';
+    if (/inside.*finite.*plane.*domain/i.test(text)) return 'Keep the corner within the current face plane bounds.';
+    if (/CONTACT|contact|touch/i.test(text)) return 'This edit creates unsupported contact. Choose another point.';
+    if (/\bcoplanarity\b|\bnot on (?:the )?(?:current |authored )?(?:face )?plane\b/i.test(text)) return 'Keep the corner on the current face plane.';
+    return 'Cannot move this corner. Keep the face closed and convex.';
+  }
   const cause = error.cause instanceof Error ? error.cause : null;
   const code = cause && 'code' in cause ? String(cause.code) : '';
   if (error.context.field === 'referenced-feature-transaction') {
@@ -113,6 +130,10 @@ export function FeatureApp() {
   const replaceFocusAfterAccept = useRef<string | null>(null);
   const replaceButtons = useRef(new Map<string, HTMLButtonElement>());
   const replacementSequence = useRef(0);
+  const [cornerDialog,setCornerDialog]=useState<FaceCornerDialog|null>(null);
+  const cornerToken=useRef<string|null>(null);
+  const cornerExpectedGeneration=useRef<number|null>(null);
+  const cornerTrigger=useRef<HTMLButtonElement|null>(null);
   const [error, setError] = useState<CadEditorError | null>(null);
   const [receipt, setReceipt] = useState<CadEditorFeatureDisplayReceipt | null>(null);
   const [filename, setFilename] = useState('Boolean extrusion');
@@ -194,7 +215,7 @@ export function FeatureApp() {
   }
   function openLength(mode: LengthDialog['mode'], parameterId: string | null, trigger: HTMLElement) {
     run(() => {
-      if (busy || draft || lifecycle || lengthDialog || replaceDialog) throw new CadEditorError('INPUT', 'Resolve pending changes before opening a length dialog.', {field:'feature-draft'});
+      if (busy || draft || lifecycle || lengthDialog || replaceDialog || cornerDialog) throw new CadEditorError('INPUT', 'Resolve pending changes before opening a length dialog.', {field:'feature-draft'});
       let parameter: BooleanExtrusionLengthParameter;
       if (mode === 'add') {
         const reserved = JSON.stringify(snapshot.accepted.document) + JSON.stringify(snapshot.accepted.report.qualifiedBindings);
@@ -255,7 +276,7 @@ export function FeatureApp() {
     : snapshot.accepted.document.parameters;
   function openReplacement(featureId: string, trigger: HTMLElement) {
     run(() => {
-      if (busy || draft || lifecycle || lengthDialog || replaceDialog) throw new CadEditorError('INPUT', 'Resolve pending changes before replacing a feature.', {field:'feature-draft'});
+      if (busy || draft || lifecycle || lengthDialog || replaceDialog || cornerDialog) throw new CadEditorError('INPUT', 'Resolve pending changes before replacing a feature.', {field:'feature-draft'});
       const target = snapshot.accepted.document.features.find(feature => feature.id === featureId);
       if (!target || target.kind === 'normal-extrusion') throw new CadEditorError('INPUT', 'Choose a Face or Boolean feature to replace.', {field:'referenced-feature-transaction'});
       const reserved = JSON.stringify(snapshot.accepted.document) + JSON.stringify(snapshot.accepted.report.qualifiedBindings);
@@ -308,6 +329,25 @@ export function FeatureApp() {
     replaceToken.current=null;replaceExpectedGeneration.current=null;replaceFocusAfterAccept.current=null;
     setReplaceDialog(null);setError(null);
   }
+  function openFaceCorner(corner:CadEditorFaceCorner,trigger:HTMLButtonElement) {
+    run(()=>{
+      if(busy || draft || lifecycle || lengthDialog || replaceDialog || cornerDialog) throw new CadEditorError('INPUT','Resolve pending changes before editing a corner.',{field:'feature-draft'});
+      cornerTrigger.current=trigger;cornerToken.current=null;cornerExpectedGeneration.current=null;
+      setCornerDialog({corner:structuredClone(corner),raw:corner.pointMM.map(value=>Object.is(value,-0)?'-0':String(value)) as [string,string,string]});
+    });
+  }
+  function submitFaceCorner() {
+    if(!cornerDialog)return;
+    run(()=>{
+      const pointMM=cornerDialog.raw.map(value=>scalar(value,'face-corner-coordinate')) as [number,number,number];
+      const candidate=session.prepareFaceCornerEdit(cornerDialog.corner.binding,pointMM);
+      cornerToken.current=candidate.token;cornerExpectedGeneration.current=candidate.baseGeneration+1;
+    });
+  }
+  function cancelFaceCorner() {
+    if(busy)return;
+    cornerToken.current=null;cornerExpectedGeneration.current=null;setCornerDialog(null);setError(null);
+  }
   return <div className="cad-app">
     <header className="app-header">
       <a className="app-brand" href="#/features/cad_boolean_extrusion"><Box size={20}/><span>barocss<span className="brand-sub">CAD</span></span></a>
@@ -335,7 +375,7 @@ export function FeatureApp() {
       <Button variant="ghost" size="sm" data-testid="show-all-outputs" disabled={busy} onClick={() => run(() => session.prepareDisplayOutputs(extrusionFeatures.map(feature => output(feature.id))))}>Show all</Button>
       <Button variant="ghost" size="sm" data-testid="solo-selected-output" disabled={busy || !extrusionFeatures.some(feature => feature.id === snapshot.selectedFeatureId)} onClick={() => run(() => session.prepareDisplayOutputs([output(snapshot.selectedFeatureId!)]))}>Show only selected</Button>
     </div></div>
-    {error && !lifecycle && !lengthDialog && !replaceDialog && <div className="app-error" role="alert">{message(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
+    {error && !lifecycle && !lengthDialog && !replaceDialog && !cornerDialog && <div className="app-error" role="alert">{message(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
     <div className="app-workspace">
       <aside className="document-tree"><h2><Layers3 size={15}/>Features</h2><div className="tree-document"><Box size={16}/><span>{filename}</span></div>
         {snapshot.accepted.document.features.map(feature => <div key={feature.id} className="tree-body-row">
@@ -346,25 +386,26 @@ export function FeatureApp() {
           {feature.kind !== 'normal-extrusion' && <Button variant="ghost" size="xs" className="feature-replace-action"
             data-testid={'replace-feature-' + feature.id}
             ref={button => {if (button) replaceButtons.current.set(feature.id,button);else replaceButtons.current.delete(feature.id);}}
-            disabled={busy || draft || lifecycle !== null || lengthDialog !== null || replaceDialog !== null}
+            disabled={busy || draft || lifecycle !== null || lengthDialog !== null || replaceDialog !== null || cornerDialog !== null}
             onClick={event => openReplacement(feature.id,event.currentTarget)}>Replace</Button>}
         </div>)}
         <div className="tree-section length-sidebar-heading"><span>LENGTHS · {snapshot.accepted.parameters.length}</span>
-          <Button ref={addLengthButton} variant="ghost" size="xs" data-testid="add-length" disabled={busy || draft || lifecycle !== null || lengthDialog !== null || replaceDialog !== null}
+          <Button ref={addLengthButton} variant="ghost" size="xs" data-testid="add-length" disabled={busy || draft || lifecycle !== null || lengthDialog !== null || replaceDialog !== null || cornerDialog !== null}
             onClick={event => openLength('add',null,event.currentTarget)}>Add length</Button></div>
         {snapshot.accepted.parameters.map(parameter => <div key={parameter.id} className="length-sidebar-row">
           <div className="feature-parameter-summary" data-testid={'parameter-summary-' + parameter.id}><span>{name(parameter.id)}{parameter.dependencyIds.length > 0 && <small>{parameter.dependencyIds.map(name).join(' + ')}</small>}</span><strong>{Object.is(parameter.valueMM,-0) ? '-0' : parameter.valueMM} mm</strong></div>
           <div className="length-row-actions"><Button variant="ghost" size="xs" data-testid={'edit-length-' + parameter.id}
-            disabled={busy || draft || lifecycle !== null || lengthDialog !== null || replaceDialog !== null} onClick={event => openLength('edit',parameter.id,event.currentTarget)}>Edit</Button>
+            disabled={busy || draft || lifecycle !== null || lengthDialog !== null || replaceDialog !== null || cornerDialog !== null} onClick={event => openLength('edit',parameter.id,event.currentTarget)}>Edit</Button>
             <Button variant="ghost" size="xs" data-testid={'remove-length-' + parameter.id}
-              disabled={busy || draft || lifecycle !== null || lengthDialog !== null || replaceDialog !== null} onClick={event => openLength('remove',parameter.id,event.currentTarget)}>Remove</Button></div>
+              disabled={busy || draft || lifecycle !== null || lengthDialog !== null || replaceDialog !== null || cornerDialog !== null} onClick={event => openLength('remove',parameter.id,event.currentTarget)}>Remove</Button></div>
         </div>)}
         <div className="tree-details"><span>Units</span><strong>mm</strong><span>Axes</span><strong>XYZ</strong></div>
       </aside>
-      <main className="main-workspace">{mounted && <CadEditorFeature key={mountKey} session={session} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest}
+      <main className="main-workspace">{mounted && <CadEditorFeature key={mountKey} session={session} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest} onEditFaceCorner={openFaceCorner}
         displayOptions={displayRefusal ? {mmToSceneUnit:0,translate:[0,0,0],background:[0.07,0.08,0.10],camera:{eye:[0.2,0.2,0.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:0.001,far:10}} : undefined}
         onError={failure => { pendingFilename.current = null; lifecycleToken.current = null; lengthToken.current = null; lengthExpectedGeneration.current = null;
-          replaceToken.current=null;replaceExpectedGeneration.current=null;replaceFocusAfterAccept.current=null;setError(failure); }} onDisplay={setReceipt}
+          replaceToken.current=null;replaceExpectedGeneration.current=null;replaceFocusAfterAccept.current=null;
+          cornerToken.current=null;cornerExpectedGeneration.current=null;setError(failure); }} onDisplay={setReceipt}
         onAccepted={accepted => { setError(null); if (lifecycleToken.current) { lifecycleToken.current = null; setLifecycle(null); }
           if (lengthToken.current !== null && accepted.generation === lengthExpectedGeneration.current) {
             lengthToken.current = null; lengthExpectedGeneration.current = null; setLengthDialog(null);
@@ -372,6 +413,7 @@ export function FeatureApp() {
           if (replaceToken.current !== null && accepted.generation === replaceExpectedGeneration.current) {
             replaceToken.current=null;replaceExpectedGeneration.current=null;setReplaceDialog(null);
           }
+          if(cornerToken.current!==null && accepted.generation===cornerExpectedGeneration.current){cornerToken.current=null;cornerExpectedGeneration.current=null;setCornerDialog(null);}
           if (pendingFilename.current) {setFilename(pendingFilename.current); pendingFilename.current = null;} location.hash = '/features/' + accepted.accepted.document.id; }}/>}</main>
     </div>
     <Dialog open={lifecycle !== null} onOpenChange={open => {if (!open && !busy) {setLifecycle(null);setError(null);}}}>
@@ -439,6 +481,49 @@ export function FeatureApp() {
             </Dialog>
             <Button variant="outline" disabled={busy} onClick={cancelReplacement}>Cancel</Button>
             <Button data-testid="replace-confirm" disabled={busy} onClick={submitReplacement}>{busy ? 'Preparing display' : 'Replace'}</Button>
+          </DialogFooter>
+        </>}
+      </DialogContent>
+    </Dialog>
+    <Dialog open={cornerDialog !== null} onOpenChange={open=>{if(!open)cancelFaceCorner();}}>
+      <DialogContent className="cad-editor-help-dialog length-dialog face-corner-dialog" data-testid="face-corner-dialog" showCloseButton={!busy}
+        onCloseAutoFocus={event=>{event.preventDefault();const trigger=cornerTrigger.current;if(trigger?.isConnected && !trigger.disabled)trigger.focus({preventScroll:true});}}
+        onEscapeKeyDown={event=>{if(busy)event.preventDefault();}}
+        onPointerDownOutside={event=>{if(busy)event.preventDefault();}}>
+        <DialogHeader><DialogTitle>Edit face corner</DialogTitle>
+          <DialogDescription>{cornerDialog ? name(cornerDialog.corner.binding.featureId)+' · Corner '+(cornerDialog.corner.binding.cornerIndex+1) : 'Native XYZ in mm'}</DialogDescription></DialogHeader>
+        {cornerDialog && <>
+          <div className="length-dialog-body">
+            <p>Native XYZ in mm. Apply moves both neighboring Line endpoints together.</p>
+            <p>Use -10000 to 10000 mm. Keep the corner on and within the current face plane.</p>
+            <div className="extrusion-fields face-corner-fields">
+              {(['X','Y','Z'] as const).map((axis,index)=><label key={axis}>{axis} (mm)<input
+                type="text" inputMode="decimal" data-testid={'face-corner-'+axis.toLowerCase()} disabled={busy}
+                value={cornerDialog.raw[index]} onChange={event=>{
+                  const value=event.target.value;
+                  setCornerDialog(current=>current?{...current,raw:current.raw.map((raw,i)=>i===index?value:raw) as [string,string,string]}:current);
+                }}/></label>)}
+            </div>
+            {error && <p className="extrusion-error" role="alert">{message(error)}</p>}
+          </div>
+          <DialogFooter>
+            <Dialog><DialogTrigger asChild><Button variant="ghost" disabled={busy} className="length-help-trigger" data-testid="face-corner-help">Help</Button></DialogTrigger>
+              <DialogContent className="cad-editor-help-dialog" data-testid="face-corner-help-dialog">
+                <DialogHeader><DialogTitle>Face corner editing</DialogTitle><DialogDescription>Coupled native Line endpoints in authored XYZ/mm.</DialogDescription></DialogHeader>
+                <p>Each original corner joins the previous Line's pole 1 and the next Line's pole 0. The native profile requires adjacent endpoint triples to match exactly, including signed-zero bits. Missing or unsupported corner bindings are reported without welding or renumbering endpoints.</p>
+                <p>Apply assigns the same explicit XYZ/mm point to both endpoints. Use finite coordinates from -10000 to 10000 mm. The point must stay on and within the current authored face plane's finite parameter domains and preserve a closed convex boundary.</p>
+                <p>There is no automatic projection, snapping, solving, live preview or mesh-derived input. Enter, Tab and text composition do not apply the dialog. Only the Apply button prepares a change.</p>
+                <p>The native feature transaction updates one existing Face, then evaluates the Boolean and all displayed extrusion meshes. Original IDs, ordered Lines, knots, weights, native options, sibling Face, lengths, leaves and logical display choice remain intact.</p>
+                <p>The edit commits only after native validation, complete GPU scene admission and a fresh RGBA read. Coordinate, coplanarity, convexity, closure, CONTACT or GPU refusals keep the raw fields, accepted graph/history, selection, camera and frame.</p>
+                <p>Closing Help returns to Help and preserves raw XYZ values and errors. Cancel or Escape drops only dialog values. Cancel and accepted edits return focus to the same corner Edit control.</p>
+                <p>This uses getFaceCorners and prepareFaceCornerEdit with a current graph/revision/feature/slot and adjacent Line/pole binding. It is bounded planar Face-Line coefficient editing, not general Curve work, import, NURBS weights, drag or solid modeling.</p>
+                <p>Manual topics: Face corner editing in Feature properties Help and the package README; Edit Face corners in the app README.</p>
+                {error && <details><summary>Technical details</summary><pre>{JSON.stringify({code:error.code,message:error.message,cause:causeReceipt(error.cause)},null,2)}</pre></details>}
+                <DialogClose asChild><Button variant="outline" data-testid="face-corner-help-close">Close help</Button></DialogClose>
+              </DialogContent>
+            </Dialog>
+            <Button variant="outline" data-testid="face-corner-cancel" disabled={busy} onClick={cancelFaceCorner}>Cancel</Button>
+            <Button data-testid="face-corner-confirm" disabled={busy} onClick={submitFaceCorner}>{busy?'Preparing display':'Apply'}</Button>
           </DialogFooter>
         </>}
       </DialogContent>
