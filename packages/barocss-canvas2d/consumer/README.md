@@ -89,6 +89,11 @@ The [`stroke-dash.html`](stroke-dash.html) page authors a Scene v20 path with bo
 `miter-join.html` checks Scene v21 bounded miter joins, bevel fallback, pointer hits and document restore.
 
 
+## Polygon group mask consumer
+
+Open `polygon-mask.html` after `build:library`, using the existing example server. The fixture uses compiled relative ESM outputs and a 320×240 logical canvas at DPR2. It exercises an L-shaped copied group mask under a transformed clipped frame, Sprite, glyph, gradient/nonzero Path and stroke children, group hit-area clipping and following unmasked draws. Use Mask/Remove/Mirror/Invalid, Save/Open, PNG and Dispose. Browser/file execution evidence is recorded separately from source and pure CPU probes in `evidence/polygon-mask/`.
+
+
 ## Application consumer
 
 `application.html` uses the public `createCanvas2DApplication` root export. Its injected manual scheduler makes update priority, a single automatic render, capped time and late callback behavior observable. Use Start/Step/Stop/Resume/manual Render, missing asset/repair, callback error/recovery and Dispose. DOM pointer delivery remains host-owned. The fixture records accepted pixels/hits separately from the live tree after a rejected frame. This is a controlled scheduler with actual WebGL2; it does not measure RAF performance.

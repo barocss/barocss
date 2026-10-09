@@ -68,6 +68,7 @@
     "background.mjs",
     "transformed-clip.mjs",
     "application.mjs",
-    "game.mjs"
+    "game.mjs",
+    "polygon-mask.mjs"
   ]
 }
