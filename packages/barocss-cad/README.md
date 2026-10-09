@@ -5,11 +5,12 @@ This package contains an original parser, local basis evaluator and writer. It h
 no runtime dependencies. OCP is an independent test consumer, never a product kernel.
 Version `0.0.0-experimental` is configured for public scoped-package access.
 This local configuration does not establish registry availability or a release.
-The public ESM entry is `dist/index.js`; types use `dist/index.d.ts`.
+Development main/types/import exports use `src/index.ts`. The complete
+`publishConfig` maps use `dist/index.js` and `dist/index.d.ts` for the explicit
+compiled checkpoint and publication.
 `pnpm --filter @barocss/cad build:library` emits both with the existing TypeScript
 build configuration. Published files include compiled modules/declarations,
-original source, this README and the MIT LICENSE. Runtime import needs no
-repository build scripts or TypeScript loader.
+original source, this README and the MIT LICENSE. Compiled runtime import needs no repository build scripts or TypeScript loader.
 
 ```js
 import { compileCadModel, evaluateCurve, exportIGES } from '@barocss/cad';
@@ -23,8 +24,9 @@ const { iges, report } = exportIGES(model, ['arc']);
 
 ## Local source development
 
-Source development explicitly uses `packages/barocss-cad/src/index.ts`, while
-package main/types/import exports use compiled `dist` files.
+Normal workspace package main/types/import exports select
+`packages/barocss-cad/src/index.ts`. Source execution requires a TypeScript-capable
+bundler or runner that resolves relative `.js` imports to their source `.ts` files.
 Use `pnpm dev:cad` from the repository root for the
 loopback example. Installed esbuild resolves the original TypeScript module
 graph in memory, including `.js` relative imports. Reload consumes source edits
@@ -32,8 +34,9 @@ without a dependency build or server restart. A plain browser cannot load raw
 TypeScript; use the source host. Existing Node artifact demos explicitly import
 `dist/index.js` and retain their separate `build:library` checkpoint. Source-only
 native demos use the actual source entry with `--source`, without a CAD artifact
-import or a per-demo build. Public package configuration preserves those explicit
-source paths. Registry publication and the existing release workflow are separate.
+import or a per-demo build. Explicit compiled consumers select the complete `publishConfig.exports` map,
+including transitive workspace imports. Plain Node cannot execute the TypeScript
+source entry directly. Registry publication and the existing release workflow are separate.
 
 ## Exact language v0
 
@@ -7759,3 +7762,38 @@ or Solid validity. Geometry, source and caller data remain unchanged.
 ```sh
 node examples/cad-nurbs/exact-boundary-face-adjacency-demo.mjs --source /tmp/cad-patch-incidence
 ```
+
+## Revision-checked embedded assembly part replacement — #1015
+
+`replaceCadAssemblyPart(previous, transaction)` replaces one existing canonical
+part document in assembly0. The transaction has expectedRevision, revision,
+documentId, expectedDocumentRevision, replacementDocument and referenceRepairs.
+Each repair has instanceId, previousReference and reference. The result retains
+previous, transaction, result and report;
+`validateCadAssemblyPartReplacement(result)` rebuilds the complete operation.
+Existing `CadAssemblyError` and `CadAssemblyDiagnosticCode` provide refusals.
+
+Assembly and target document revisions advance exactly one. A changed source
+text requires that asset revision to advance exactly one; an unchanged source
+asset retains all bits and its revision. At least one source text must change.
+Whitespace is a textual edit and does not prove different native geometry.
+Asset identity/order/metadata and all body records stay unchanged. Every
+instance of the target document needs an explicit fresh qualified reference,
+including instances of unchanged assets. Missing, duplicate, stale or foreign
+repairs refuse the complete candidate. Changed coefficients use fresh native
+references; coefficient-preserving `rebindCadGeometryReference` keeps its scope.
+
+The existing document/assembly caps remain: up to four parts, four source assets
+per part, sixteen bodies per part, thirty-two instances and hierarchy depth
+sixteen. Sources are actual Source0; parts are canonical direct-geometry V1.
+Unrelated documents/references, instance IDs/order/parents/local poses and world
+matrices retain their bits. Reports retain old/new source revisions and explicit
+reference provenance. No automatic topology matching, external watcher, mates,
+Body/Solid or renderer acceptance follows.
+
+```sh
+node examples/cad-nurbs/assembly-part-replacement-demo.mjs --source EVIDENCE_DIR
+```
+
+This saved-source flow is the scoped final checkpoint with one affected CAD
+build. Native completion and Integration adoption are recorded in #1015.
