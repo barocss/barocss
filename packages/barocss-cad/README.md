@@ -7437,3 +7437,44 @@ pattern, circular pattern, topology naming or Solid validity certificate.
 ```sh
 node examples/cad-nurbs/linear-geometry-pattern-demo.mjs --source /tmp/cad-linear-pattern
 ```
+
+## Circular native geometry patterns
+
+`buildCircularGeometryPattern` creates native Curve or Surface copies about an
+explicit axis. The original stays at index 0. Each subsequent copy rotates the
+original by its index times `angleStepDegrees`. Positive angles follow the
+right-hand rule along `axisDirection`.
+
+```ts
+const pattern = cad.buildCircularGeometryPattern(originalCurve, {
+  patternId: 'circular_parts', idPrefix: 'rotated_part', count: 4,
+  axisOriginMM: [2, 1, 0], axisDirection: [0, 0, 4],
+  angleStepDegrees: 90, maximumCopyObservations: 3844,
+});
+cad.validateCircularGeometryPattern(pattern);
+```
+
+The direction is normalized once. The builder checks all member IDs, angles,
+rotation matrices, translations and the complete observation budget before
+creating a copy. Each copy retains its actual affine geometry, native point and
+D1 observations, and source proof. One Source0 Model stores all members in order.
+An owned result is checked by reconstructing the whole recipe.
+
+Count is 1 through 5, including the seed. A multi-member pattern requires an
+angle step of at least 0.000001 degrees in magnitude. The last member angle
+must be less than 360 degrees in magnitude. The builder does not add a duplicate
+closing member or infer full-circle spacing. Axis coordinates and generated
+translations stay within 10000 mm. Direction components stay within 1000;
+the direction norm must be at least 0.000001, and each nonzero normalized
+component must be at least 0.000000000001 in magnitude.
+
+Exact quarter-turn sine and cosine values use an explicit table. Other angles
+use binary64 trigonometry. Local rotation and actual geometry checks do not
+certify global shape accuracy or manufacturing tolerance. If a member fails,
+no partial pattern is returned. These are baked geometries; assembly placements,
+feature dependencies, Boolean union, Shell orientation and Solid validity
+remain separate operations.
+
+```sh
+node examples/cad-nurbs/circular-geometry-pattern-demo.mjs --source /tmp/cad-circular-pattern
+```

@@ -248,3 +248,6 @@ export type { CadAffineMatrix3x4, AffineGeometryTransformOptions, AffineGeometry
 
 export { buildLinearGeometryPattern, validateLinearGeometryPattern, LinearGeometryPatternError, LinearGeometryPatternDiagnosticCode } from './linear-geometry-pattern.js';
 export type { LinearGeometryPatternOptions, LinearGeometryPatternInstance, LinearGeometryPatternReport, LinearGeometryPatternResult } from './linear-geometry-pattern.js';
+
+export { buildCircularGeometryPattern, validateCircularGeometryPattern, CircularGeometryPatternError, CircularGeometryPatternDiagnosticCode } from './circular-geometry-pattern.js';
+export type { CircularGeometryPatternOptions, CircularGeometryPatternInstance, CircularGeometryPatternReport, CircularGeometryPatternResult } from './circular-geometry-pattern.js';
