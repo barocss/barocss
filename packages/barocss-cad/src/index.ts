@@ -227,3 +227,6 @@ export type { CoplanarFaceBooleanExtrusionPropertiesOptions, CoplanarFaceBoolean
 
 export { buildTranslationalSweepSurface, validateTranslationalSweepSurface, TranslationalSweepError, TranslationalSweepDiagnosticCode } from './translational-sweep-surface.js';
 export type { TranslationalSweepOptions, TranslationalSweepProvenance, TranslationalSweepObservation, TranslationalSweepReport, TranslationalSweepResult } from './translational-sweep-surface.js';
+
+export { buildInterpolatingCurve, validateInterpolatingCurve, CurveInterpolationError, CurveInterpolationDiagnosticCode } from './curve-interpolation.js';
+export type { CurveInterpolationPoint, CurveInterpolationOptions, CurveInterpolationReport, CurveInterpolationResult } from './curve-interpolation.js';

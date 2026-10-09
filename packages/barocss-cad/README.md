@@ -7161,3 +7161,44 @@ Run the current native sweep flow after the library build:
 ```sh
 node examples/cad-nurbs/translational-sweep-demo.mjs --source /tmp/cad-sweep
 ```
+
+## Curve interpolation through supplied points
+
+`buildInterpolatingCurve` creates a native polynomial B-spline Curve through
+2 through 16 supplied points. Each point has an explicit original parameter
+and XYZ coordinates in mm. Parameters must be strictly increasing. Degree 1
+through 3 is supported, with at least `degree + 1` points.
+
+```ts
+const interpolation = cad.buildInterpolatingCurve([
+  {parameter: -2, pointMM: [0, 0, 0]},
+  {parameter: 1, pointMM: [2, 3, 1]},
+  {parameter: 5, pointMM: [5, 1, 2]},
+], {
+  curveId: 'through_points',
+  degree: 2,
+  maximumBasisEvaluations: 256,
+  maximumEliminationSteps: 120,
+});
+cad.validateInterpolatingCurve(interpolation);
+```
+
+The native evaluator supplies the interpolation basis. Averaged clamped knots
+stay in the original parameter units. A guarded linear solve determines the
+control points, and actual native point evaluations check the interpolation.
+The resulting weights are one. The result retains the supplied points,
+parameters, native Curve, Source0 Model and solver evidence.
+
+Caller budgets must cover the complete basis matrix and row elimination before
+work starts. Uncertain pivots, nonfinite arithmetic, out-of-bounds generated
+poles and failed point comparisons refuse the candidate. Earlier inputs,
+geometry and files remain owned by the caller.
+
+Changing a supplied point rebuilds the global interpolating Curve. The point
+parameters affect its shape. Automatic parameter selection, least-squares
+fitting, rational weight solving, tangent constraints, periodic interpolation
+and whole-curve accuracy certification need separate contracts.
+
+```sh
+node examples/cad-nurbs/curve-interpolation-demo.mjs --source /tmp/cad-interpolation
+```
