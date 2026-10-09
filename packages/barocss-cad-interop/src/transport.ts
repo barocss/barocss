@@ -1,5 +1,6 @@
 const MAX_SOURCE_BYTES = 262144;
 const MAX_DOCUMENT_BYTES = 2097152;
+const MAX_FEATURE_GRAPH_BYTES = 1048576;
 const MAX_BODY_CHUNKS = 4096;
 
 export interface BaroCadLoadProgress {
@@ -67,7 +68,7 @@ async function cancelBody(body: ReadableStream<Uint8Array> | null): Promise<void
 
 /** Read bounded UTF-8 text. A stream is required so a lying server cannot force an unbounded fallback buffer. */
 async function readBoundedBaroCadText(
-  transport: ValidatedBaroCadTransport, maximumBytes: number, label: 'source' | 'document',
+  transport: ValidatedBaroCadTransport, maximumBytes: number, label: 'source' | 'document' | 'feature graph',
 ): Promise<string> {
   const { url, signal, onProgress } = transport;
   throwIfBaroCadAborted(signal);
@@ -145,4 +146,8 @@ export function readAbortableBaroCadSource(transport: ValidatedBaroCadTransport)
 
 export function readAbortableBaroCadDocument(transport: ValidatedBaroCadTransport): Promise<string> {
   return readBoundedBaroCadText(transport, MAX_DOCUMENT_BYTES, 'document');
+}
+
+export function readAbortableBaroCadFeatureGraph(transport: ValidatedBaroCadTransport): Promise<string> {
+  return readBoundedBaroCadText(transport, MAX_FEATURE_GRAPH_BYTES, 'feature graph');
 }
