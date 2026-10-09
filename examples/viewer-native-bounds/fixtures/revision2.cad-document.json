@@ -1,0 +1,43 @@
+{
+  "schema": "barocss-cad-document",
+  "version": 1,
+  "profile": "direct-geometry",
+  "documentId": "loft_bounds_doc",
+  "revision": 2,
+  "units": {
+    "length": "mm",
+    "angle": "rad"
+  },
+  "nativeFrame": "authored-xyz-no-axis-conversion",
+  "assets": [
+    {
+      "id": "loft_bounds_asset",
+      "revision": 2,
+      "role": "authored-native-source",
+      "sourceVersion": 0,
+      "sourceFrame": "authored-xyz-no-axis-conversion",
+      "source": "@model independent_weights_surface { version:0; length-unit:mm; @curve #rational_first { type:nurbs; degree:2; knots:[-0,-0,-0,2,2,2]; control-points:[[-0,-0,-0],[2,0,1],[4,0,0]]; weights:[1,1.25,1]; } @curve #rational_middle { type:nurbs; degree:2; knots:[-0,-0,-0,2,2,2]; control-points:[[-0,2,-0],[2,4,3.25],[4,2,0]]; weights:[1.5,1.75,1.25]; } @curve #rational_last { type:nurbs; degree:2; knots:[-0,-0,-0,2,2,2]; control-points:[[-0,4,-0],[2,4,1],[4,4,0]]; weights:[1.25,1,1.5]; } @surface #independent_weights_surface { type:nurbs; degree-u:2; degree-v:2; knots-u:[-0,-0,-0,2,2,2]; knots-v:[0,0,0,1,1,1]; control-points:[[[-0,-0,-0],[0,1.8666666666666667,0],[-0,4,-0]],[[2,0,1],[2,5.052631578947368,4.315789473684211],[2,4,1]],[[4,0,0],[4,1.6,0],[4,4,0]]]; weights:[[1,1.875,1.25],[1.25,2.375,1],[1,1.25,1.5]]; } }\n"
+    }
+  ],
+  "bodies": [
+    {
+      "id": "middle_section_body",
+      "name": "Weighted middle section",
+      "kind": "direct-geometry-object",
+      "assetId": "loft_bounds_asset",
+      "geometryId": "rational_middle"
+    },
+    {
+      "id": "loft_surface_body",
+      "name": "Three-section loft",
+      "kind": "direct-geometry-object",
+      "assetId": "loft_bounds_asset",
+      "geometryId": "independent_weights_surface"
+    }
+  ],
+  "features": [],
+  "parameters": [],
+  "constraints": [],
+  "placements": [],
+  "derivedCaches": []
+}

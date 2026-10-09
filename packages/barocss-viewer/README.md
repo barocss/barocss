@@ -193,6 +193,18 @@ measurements remain authored XYZ/mm and do not change when projected.
 `examples/viewer-document` places two caller-owned labels over the actual
 WebGL scene.
 
+For one visible current CAD document body, `viewer.fitNativeDocumentBody({
+ref, documentRevision })` uses the public CAD original control-pole bounds
+instead of displayed vertices. Pass a tagged `ref` from
+`getState().documentBodies` and its current binding revision. Viewer checks
+the complete native body binding, applies its accepted display pose to all
+eight bounds corners, and changes only the camera. Hidden, stale and
+non-document input is refused. This optional fit is conservative and can
+leave empty margin; it is not tight geometry extrema or a certified
+floating-point containment proof. Existing `fit()` and `fitGeometry()` still
+frame displayed geometry. `examples/viewer-native-bounds` shows both modes
+with an authentic weighted Curve and document revision edit.
+
 `examples/viewer-curve-length` combines a source-qualified CAD Curve
 arc-length estimate with `projectNativePoint` in one own-GPU canvas. The
 caller moves its DOM label after camera and display pose changes. The

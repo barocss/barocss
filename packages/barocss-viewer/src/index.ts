@@ -1,4 +1,5 @@
-import { curveDomain, evaluateCurve, evaluateSurface, surfaceDomain } from '@barocss/cad';
+import { createCadGeometryReference, curveDomain, evaluateCurve, evaluateSurface,
+  queryCadDocumentBounds, surfaceDomain, validateCadDocumentBounds } from '@barocss/cad';
 import type { AdaptiveCurveSamplingResult, WideAdaptiveCurveSamplingResult } from '@barocss/cad';
 import { BaroCadLoadAbortError, loadBaroCadSource, parseBaroCadSource } from '@barocss/cad-interop/native';
 import type { BaroCadLoadTransportOptions, BaroCadNativeResult } from '@barocss/cad-interop/native';
@@ -150,6 +151,11 @@ export type ViewerGeometryPick =
 export interface ViewerDocumentBody {
   ref: ViewerGeometryRef;
   binding: BaroCadDocumentPrimitiveBindingV2;
+}
+/** Current document revision is required so a saved caller selection cannot silently fit a replacement scene. */
+export interface ViewerNativeDocumentFitInput {
+  ref: ViewerGeometryRef;
+  documentRevision: number;
 }
 export interface ViewerState {
   status: 'empty' | 'ready' | 'context-lost' | 'disposed';
@@ -464,6 +470,16 @@ function isWideGpuCurveSample(sample: BaroCadNativeResult['curves'][number]['sam
   return sample.report.dto.version === 1;
 }
 
+function cameraForBounds(low: Vec3, high: Vec3, width: number, height: number): MeshCamera {
+  const target = low.map((n, axis) => (n + high[axis]) / 2) as Vec3;
+  const radius = Math.max(0.01, Math.hypot(...high.map((n, axis) => n - target[axis])));
+  const halfFov = 45 * Math.PI / 360;
+  const distance = radius * 1.3 / Math.sin(Math.atan(Math.tan(halfFov) * Math.min(1, width / height)));
+  check(distance + radius * 2 < 10000, 'Scene cannot fit within camera clipping bounds');
+  return validateMeshCamera({ eye: add(target, multiply(unit([1, 1, 1]), distance)), target, up: [0, 1, 0],
+    fovYDegrees: 45, near: Math.max(0.0001, distance - radius * 2), far: distance + radius * 2 });
+}
+
 function fittedCamera(packets: ViewerPacket[], curves: ViewerCurveEntry[], scale: number, width: number, height: number,
   motion: ViewerMotionState | null = null, geometryMotion: ViewerGeometryMotionState | null = null): MeshCamera {
   const low: Vec3 = [Infinity, Infinity, Infinity], high: Vec3 = [-Infinity, -Infinity, -Infinity];
@@ -487,13 +503,7 @@ function fittedCamera(packets: ViewerPacket[], curves: ViewerCurveEntry[], scale
       }
     }
   }
-  const target = low.map((n, axis) => (n + high[axis]) / 2) as Vec3;
-  const radius = Math.max(0.01, Math.hypot(...high.map((n, axis) => n - target[axis])));
-  const halfFov = 45 * Math.PI / 360;
-  const distance = radius * 1.3 / Math.sin(Math.atan(Math.tan(halfFov) * Math.min(1, width / height)));
-  check(distance + radius * 2 < 10000, 'Scene cannot fit within camera clipping bounds');
-  return validateMeshCamera({ eye: add(target, multiply(unit([1, 1, 1]), distance)), target, up: [0, 1, 0],
-    fovYDegrees: 45, near: Math.max(0.0001, distance - radius * 2), far: distance + radius * 2 });
+  return cameraForBounds(low, high, width, height);
 }
 
 function rayTriangle(origin: Vec3, direction: Vec3, a: Vec3, b: Vec3, c: Vec3): { distance: number; u: number; v: number } | null {
@@ -1226,6 +1236,50 @@ export class Viewer {
     check(packets.length + curves.length === 1, 'Unknown displayed geometry reference');
     this.setView(fittedCamera(packets, curves, this.options.mmToSceneUnit,
       this.canvas.width, this.canvas.height, this.motion, this.geometryMotion));
+  }
+  fitNativeDocumentBody(input: ViewerNativeDocumentFitInput): void {
+    this.live(); check(!this.contextLost, 'Cannot fit after WebGL2 context loss');
+    const data = ownRecord(input, ['ref', 'documentRevision'], 'Native document fit');
+    const ref = parseGeometryRef(data.ref);
+    check(Number.isInteger(data.documentRevision) && (data.documentRevision as number) >= 0
+      && (data.documentRevision as number) <= 2147483647,
+    'Native document fit requires a bounded document revision');
+    check(this.document !== null, 'Native document fit requires an accepted CAD document');
+    const body = this.documentBodies.find(value => sameGeometryRef(value.ref, ref));
+    check(body && this.visible(ref), 'Native document fit requires one visible selected body');
+    check(body.binding.documentRevision === data.documentRevision,
+      'Native document fit reference is stale');
+    const { reference } = createCadGeometryReference(this.document, { bodyId: body.binding.bodyId });
+    const result = queryCadDocumentBounds(this.document, reference);
+    validateCadDocumentBounds(this.document, result);
+    check(reference.documentId === body.binding.documentId
+      && reference.documentRevision === body.binding.documentRevision
+      && reference.bodyId === body.binding.bodyId
+      && reference.assetId === body.binding.assetId
+      && reference.assetRevision === body.binding.assetRevision
+      && reference.geometryId === body.binding.geometryId
+      && reference.geometryKind === body.binding.geometryKind
+      && reference.sourceFrame === body.binding.sourceFrame,
+    'Native document bounds differ from the accepted Viewer body');
+    const pose = ref.kind === 'surface'
+      ? surfacePose(ref, this.motion, this.geometryMotion)
+      : curvePose(ref, this.geometryMotion);
+    const low: Vec3 = [Infinity, Infinity, Infinity], high: Vec3 = [-Infinity, -Infinity, -Infinity];
+    for (const x of [result.boundsMM.min[0], result.boundsMM.max[0]]) {
+      for (const y of [result.boundsMM.min[1], result.boundsMM.max[1]]) {
+        for (const z of [result.boundsMM.min[2], result.boundsMM.max[2]]) {
+          const point = displayVertex([x, y, z], pose, this.options.mmToSceneUnit);
+          for (let axis = 0; axis < 3; axis++) {
+            low[axis] = Math.min(low[axis], point[axis]);
+            high[axis] = Math.max(high[axis], point[axis]);
+          }
+        }
+      }
+    }
+    check(low.every((value, axis) => Number.isFinite(value) && Number.isFinite(high[axis])
+      && value <= high[axis] && Math.abs(value) <= 1000 && Math.abs(high[axis]) <= 1000),
+    'Native document bounds exceed finite GPU coordinates');
+    this.setView(cameraForBounds(low, high, this.canvas.width, this.canvas.height));
   }
   attachPointerControls(options: ViewerPointerControlOptions = {}): ViewerPointerControls {
     this.live();
