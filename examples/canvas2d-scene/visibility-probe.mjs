@@ -23,7 +23,7 @@ const glyph = tree.createGlyphRun({ id: 'Glyph', layer: 4, transform: pose,
     x: 0, y: 0, width: 10, height: 10, textStart: 0, textEnd: 1 }] });
 tree.stage.addChild(group); group.addChild(frame);
 for (const child of [rect, line, path, sprite, glyph]) frame.addChild(child);
-assert.equal(tree.snapshot().version, 16);
+assert.equal(tree.snapshot().version, 17);
 for (const handle of [group, frame, rect, line, path, sprite, glyph]) {
   assert.equal(handle.data.visible, true);
   const first = stringifySceneJSON(tree.snapshot());
@@ -86,8 +86,8 @@ assert.throws(() => stringifySceneJSON(invalidOld), error => error.code === 'INV
 const image = { width: 1, height: 1, pixels: new Uint8Array([255, 0, 0, 128]) };
 const file = await serializeCanvasDocument(saved, id => id === 'Atlas' ? image : null);
 const document = await parseCanvasDocument(file);
-assert.equal(document.scene.version, 16);
+assert.equal(document.scene.version, 17);
 assert.equal(document.scene.nodes[0].children[0].children[3].visible, false);
 assert.deepEqual([...document.assets.get('Atlas').pixels], [...image.pixels]);
-console.log(JSON.stringify({ result: 'ok', sceneVersion: 16, fileBytes: Buffer.byteLength(file),
+console.log(JSON.stringify({ result: 'ok', sceneVersion: 17, fileBytes: Buffer.byteLength(file),
   kinds: 7, legacyVersions: [6, 7, 8] }));

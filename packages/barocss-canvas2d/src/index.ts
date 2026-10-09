@@ -13,6 +13,7 @@ export type { SceneV13, NodeV13, GroupNodeV13, FrameNodeV13, ImageNodeV13, TileP
 export type { SceneV14, NodeV14, GroupNodeV14, FrameNodeV14, RectNodeV14, LineNodeV14, PathNodeV14, ImageNodeV14, GlyphRunNodeV14 } from './schema.js';
 export type { SceneV15, NodeV15, GroupNodeV15, FrameNodeV15 } from './schema.js';
 export type { SceneV16, NodeV16, GroupNodeV16, FrameNodeV16, ImageNodeV16, HitArea } from './schema.js';
+export type { SceneV17, NodeV17, GroupNodeV17, FrameNodeV17 } from './schema.js';
 export type { PathObservation, FillObservation, PathSample } from './path.js';
 export { createPathBuilder } from './path-builder.js';
 export type { PathBuilder } from './path-builder.js';

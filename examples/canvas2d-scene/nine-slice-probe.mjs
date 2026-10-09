@@ -10,7 +10,7 @@ const panel = tree.createSprite({ id: 'Panel', layer: 0, transform: pose,
   imageId: 'Nine', width: 7, height: 5, opacity: 1, sampling: 'nearest',
   anchorX: 0, anchorY: 0, sourceRect: crop, slice });
 tree.stage.addChild(panel);
-assert.equal(tree.snapshot().version, 16);
+assert.equal(tree.snapshot().version, 17);
 assert.deepEqual(panel.data.slice, slice);
 const copied = panel.data; copied.slice.left = 0;
 assert.deepEqual(panel.data.slice, slice);
@@ -50,7 +50,7 @@ assert.equal(panel.data.sourceRect, undefined);
 const old = structuredClone(tree.snapshot());
 old.version = 11;
 assert.equal(parseSceneJSON(stringifySceneJSON(old)).version, 11);
-assert.equal(createDisplayTreeFromScene(old).snapshot().version, 16);
+assert.equal(createDisplayTreeFromScene(old).snapshot().version, 17);
 old.nodes[0].slice = slice;
 assert.throws(() => stringifySceneJSON(old), error => error.code === 'INVALID_SCENE');
 
@@ -67,5 +67,5 @@ const heavy = { version: 12, unit: 'logical-px', contextId: 'NineSliceLimit', no
   ...Array.from({ length: 9 }, (_, index) => ({ ...structuredClone(glyph), id: `Glyph${index}` })),
 ] };
 assert.throws(() => stringifySceneJSON(heavy), error => error.code === 'SCENE_LIMIT');
-console.log(JSON.stringify({ result: 'ok', sceneVersion: 16,
+console.log(JSON.stringify({ result: 'ok', sceneVersion: 17,
   invalidEdits: 11, heavyNodes: heavy.nodes.length }));

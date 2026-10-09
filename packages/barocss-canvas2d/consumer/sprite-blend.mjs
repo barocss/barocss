@@ -21,7 +21,7 @@ tree.stage.addChild(back); tree.stage.addChild(sprite); tree.stage.addChild(foll
 let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
 let renderer = createCanvas2D(canvas, options);
 renderer.setImageAsset('Atlas', image);
-/** @type {import('@barocss/canvas2d').SceneV8 | import('@barocss/canvas2d').SceneV9 | import('@barocss/canvas2d').SceneV10 | import('@barocss/canvas2d').SceneV11 | import('@barocss/canvas2d').SceneV12 | import('@barocss/canvas2d').SceneV13 | import('@barocss/canvas2d').SceneV14 | import('@barocss/canvas2d').SceneV15 | import('@barocss/canvas2d').SceneV16} */
+/** @type {import('@barocss/canvas2d').SceneV8 | import('@barocss/canvas2d').SceneV9 | import('@barocss/canvas2d').SceneV10 | import('@barocss/canvas2d').SceneV11 | import('@barocss/canvas2d').SceneV12 | import('@barocss/canvas2d').SceneV13 | import('@barocss/canvas2d').SceneV14 | import('@barocss/canvas2d').SceneV15 | import('@barocss/canvas2d').SceneV16 | import('@barocss/canvas2d').SceneV17} */
 let accepted = tree.snapshot(); renderer.updateScene(accepted); renderer.render();
 let generation = 1;
 /** @type {string[]} */ let pointerLog = [];
@@ -101,7 +101,7 @@ async function openText(text) {
   /** @type {import('@barocss/canvas2d').SpriteHandle} */ let nextFollower;
   /** @type {import('@barocss/canvas2d').RectHandle} */ let nextBack;
   try {
-    if (staged.scene.version !== 8 && staged.scene.version !== 9 && staged.scene.version !== 10 && staged.scene.version !== 11 && staged.scene.version !== 12 && staged.scene.version !== 13 && staged.scene.version !== 14 && staged.scene.version !== 15 && staged.scene.version !== 16) throw new Error('Document needs Scene v8, v9, v10 or v11 or v12 or v13 or v14 or v15 or v16');
+    if (staged.scene.version !== 8 && staged.scene.version !== 9 && staged.scene.version !== 10 && staged.scene.version !== 11 && staged.scene.version !== 12 && staged.scene.version !== 13 && staged.scene.version !== 14 && staged.scene.version !== 15 && staged.scene.version !== 16 && staged.scene.version !== 17) throw new Error('Document needs Scene v8, v9, v10 or v11 or v12 or v13 or v14 or v15 or v16');
     nextTree = createDisplayTreeFromScene(staged.scene);
     const main = nextTree.get('Sprite'), next = nextTree.get('Follower'), underlay = nextTree.get('Back');
     const bytes = staged.renderer.getImageAsset('Atlas')?.pixels;

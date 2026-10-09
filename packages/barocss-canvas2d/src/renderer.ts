@@ -1,5 +1,5 @@
 import { Canvas2DError, copyImageAsset, validateImageAssetId, validatePoint, validateScene, validateSize, validateView } from './schema.js';
-import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, NodeV12, NodeV13, NodeV14, NodeV15, NodeV16, Point, Scene, Size, SourceRect, Transform, View } from './schema.js';
+import type { Color, HitArea, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, NodeV12, NodeV13, NodeV14, NodeV15, NodeV16, NodeV17, Point, Scene, Size, SourceRect, Transform, View } from './schema.js';
 import { tessellatePath } from './path.js';
 import type { FillObservation, PathObservation } from './path.js';
 import { createImageGpu, createImageTexture, disposeImageGpu, renderImage, sampledAlpha, sourceRect } from './image.js';
@@ -8,10 +8,10 @@ import { tileSpans } from './tile.js';
 
 type Matrix = [number, number, number, number, number, number];
 type Clip = { left: number; top: number; right: number; bottom: number };
-type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16;
-type DrawNode = Exclude<RenderNode, { kind: 'group' }>;
+type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17;
+type DrawNode = RenderNode;
 type Draw = {
-  id: string; kind: 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun'; node: DrawNode;
+  id: string; kind: 'group' | 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun'; node: DrawNode;
   matrix: Matrix; inverse: Matrix; color: Color; vertices: Float32Array; clip: Clip | null; visible: boolean; hitEnabled: boolean;
   observation?: PathObservation; fillObservation?: FillObservation;
   maskVertices?: Float32Array; contours?: Float32Array[]; fillRule?: 'evenodd' | 'nonzero';
@@ -91,6 +91,16 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
     if (vertices > 16384) throw new Canvas2DError('SCENE_LIMIT', 'scene exceeds 16384 draw vertices');
     draws.push(draw);
   }
+  function checkHitArea(area: HitArea, matrix: Matrix): void {
+    for (const [x, y] of [[area.x, area.y], [area.x + area.width, area.y],
+      [area.x, area.y + area.height], [area.x + area.width, area.y + area.height]]) {
+      const corner = point(matrix, x, y);
+      if (!Number.isFinite(corner.x) || !Number.isFinite(corner.y) ||
+          Math.abs(corner.x) > 1e9 || Math.abs(corner.y) > 1e9) {
+        throw new Canvas2DError('SCENE_LIMIT', 'composed hit area exceeds supported world range');
+      }
+    }
+  }
   function visit(siblings: RenderNode[], parent: Matrix, inheritedClip: Clip | null,
     inheritedVisible: boolean, inheritedAlpha: number, inheritedHitEnabled: boolean): void {
     const sorted = siblings.map((node, index) => ({ node, index }))
@@ -102,7 +112,15 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
       const add = (draw: Omit<Draw, 'visible' | 'hitEnabled'>): void => addDraw({ ...draw,
         color: [draw.color[0], draw.color[1], draw.color[2], draw.color[3] * alpha], visible, hitEnabled });
       const matrix = multiply(parent, pose(node.transform, 'pivot' in node ? node.pivot : undefined));
-      if (node.kind === 'group') { visit(node.children as RenderNode[], matrix, inheritedClip, visible, alpha, hitEnabled); continue; }
+      if (node.kind === 'group') {
+        if ('hitArea' in node && node.hitArea) {
+          checkHitArea(node.hitArea, matrix);
+          add({ id: node.id, kind: 'group', node, matrix, inverse: inverse(matrix),
+            color: [0, 0, 0, 1], vertices: new Float32Array(0), clip: inheritedClip });
+        }
+        visit(node.children as RenderNode[], matrix, inheritedClip, visible, alpha, hitEnabled);
+        continue;
+      }
       const inv = inverse(matrix);
       if (node.kind === 'frame') {
         add({ id: node.id, kind: 'frame', node, matrix, inverse: inv,
@@ -129,17 +147,7 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
         if (crop.x + crop.width > asset.width || crop.y + crop.height > asset.height) {
           throw new Canvas2DError('INVALID_ASSET', `image crop exceeds asset ${node.imageId}`);
         }
-        if ('hitArea' in node && node.hitArea) {
-          const area = node.hitArea;
-          for (const [x, y] of [[area.x, area.y], [area.x + area.width, area.y],
-            [area.x, area.y + area.height], [area.x + area.width, area.y + area.height]]) {
-            const corner = point(matrix, x, y);
-            if (!Number.isFinite(corner.x) || !Number.isFinite(corner.y) ||
-                Math.abs(corner.x) > 1e9 || Math.abs(corner.y) > 1e9) {
-              throw new Canvas2DError('SCENE_LIMIT', 'composed sprite hit area exceeds supported world range');
-            }
-          }
-        }
+        if ('hitArea' in node && node.hitArea) checkHitArea(node.hitArea, matrix);
         const imageMatrix = 'anchorX' in node
           ? multiply(matrix, [1, 0, 0, 1, -node.anchorX * node.width, -node.anchorY * node.height])
           : matrix;
@@ -225,6 +233,12 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
 function contains(draw: Draw, world: Point): boolean {
   if (draw.clip && (world.x < draw.clip.left || world.x > draw.clip.right ||
       world.y < draw.clip.top || world.y > draw.clip.bottom)) return false;
+  if (draw.node.kind === 'group' && 'hitArea' in draw.node && draw.node.hitArea) {
+    const p = point(draw.inverse, world.x, world.y);
+    const area = draw.node.hitArea;
+    return p.x >= area.x && p.y >= area.y &&
+      p.x < area.x + area.width && p.y < area.y + area.height;
+  }
   if (draw.node.kind === 'image' && 'hitArea' in draw.node && draw.node.hitArea && draw.imageHitInverse) {
     const p = point(draw.imageHitInverse, world.x, world.y);
     const area = draw.node.hitArea;
@@ -272,7 +286,7 @@ function contains(draw: Draw, world: Point): boolean {
     const distance = Math.abs((p.x - node.x1) * dy - (p.y - node.y1) * dx) / Math.sqrt(lengthSquared);
     return distance <= node.width / 2;
   }
-  if (node.kind === 'glyphRun') return false;
+  if (node.kind === 'glyphRun' || node.kind === 'group') return false;
   return p.x >= 0 && p.y >= 0 && p.x <= node.width && p.y <= node.height;
 }
 
@@ -325,7 +339,7 @@ function disposeGpu(gl: WebGL2RenderingContext, gpu: Gpu): void {
 }
 
 export type Canvas2DOptions = { logicalSize: Size; dpr: number; maxDeviationDevicePx?: number };
-export type Hit = { id: string; kind: 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun' };
+export type Hit = { id: string; kind: 'group' | 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun' };
 
 export class Canvas2DRenderer {
   private scene: Scene = { version: 0, unit: 'logical-px', contextId: 'Empty', nodes: [] };
@@ -555,7 +569,7 @@ export class Canvas2DRenderer {
     gl.uniform2f(gpu.size, this.size.width, this.size.height);
     gl.uniform3f(gpu.view, this.view.panX, this.view.panY, this.view.zoom);
     for (const draw of this.draws) {
-      if (!draw.visible || draw.color[3] <= 0) continue;
+      if (draw.kind === 'group' || !draw.visible || draw.color[3] <= 0) continue;
       if (draw.maskVertices) {
         gl.disable(gl.SCISSOR_TEST);
         gl.stencilMask(0xff); gl.clearStencil(0); gl.clear(gl.STENCIL_BUFFER_BIT);
