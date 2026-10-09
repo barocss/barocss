@@ -15,6 +15,10 @@
         "types": "./dist/native.d.ts",
         "import": "./dist/native.js"
       },
+      "./native-uniform-curve": {
+        "types": "./dist/native-uniform-curve.d.ts",
+        "import": "./dist/native-uniform-curve.js"
+      },
       "./document": {
         "types": "./dist/document.d.ts",
         "import": "./dist/document.js"
@@ -130,6 +134,10 @@
     "./native": {
       "types": "./src/native.ts",
       "import": "./src/native.ts"
+    },
+    "./native-uniform-curve": {
+      "types": "./src/native-uniform-curve.ts",
+      "import": "./src/native-uniform-curve.ts"
     },
     "./document": {
       "types": "./src/document.ts",
