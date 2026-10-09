@@ -1019,3 +1019,23 @@ Run the affected build and the actual saved-file API flow:
 pnpm --filter @barocss/gpu build:library
 node examples/gpu-scene/boolean-buffers-flow.mjs --meshes /path/to/887/meshes --output /tmp/boolean-buffers
 ```
+
+## Native filled Shell CPU buffers
+
+`prepareBooleanShellBuffers(nativeShellMesh, {mmToSceneUnit: 0.05, translate: [0,0,0]})`
+uses the complete dedicated CAD #896 v0 mesh. Its native authority stays frozen
+and independent, including face/Shell ranges, per-face UV and BOTH adjacent face
+bindings for each true edge. Face vertices retain hard normals without welding.
+`edgePositions` contains three original Curve D1 points per native edgePath;
+`edgeIndices` draws two successive segments per path. Bridges and cap/wall
+triangulation diagonals are excluded. Raw XYZ conversion applies once.
+
+This CPU profile is distinct from the planar #891 profile and PreviewPacket0.
+It is not accepted by existing mount/viewport render APIs, and has no browser,
+GL, pixel, resource, inverse-picking or Solid certificate. Unsafe converted
+triangles or edge segments refuse; genuine empty results stay empty/null.
+
+```sh
+pnpm --filter @barocss/gpu build:library
+node examples/gpu-scene/shell-buffers-flow.mjs --meshes /path/to/896/meshes --planar /path/to/887/cross_union.owned-mesh.json --output /tmp/shell-buffers
+```
