@@ -29,13 +29,13 @@
   <h1>Native surface viewer</h1>
   <p>Two source-version-0 BaroCAD surfaces. The mesh and hit are display approximations; the native model stays available.</p>
   <div class="layout">
-    <canvas id="view" width="720" height="480" aria-label="BaroCSS native surface viewport"></canvas>
+    <canvas id="view" width="720" height="480" tabindex="0" aria-label="BaroCSS native surface viewport"></canvas>
     <aside>
       <div>
         <button id="fit">Fit</button><button id="orbit">Orbit</button>
         <button id="pan">Pan</button><button id="zoom">Zoom</button>
       </div>
-      <div class="hint">Drag to orbit, Shift-drag to pan, or use the wheel to zoom. Click a surface to select it. Coordinates are right-handed Y-up, source millimetres, displayed at 0.001 scene units per mm.</div>
+      <div class="hint">Drag to orbit, Shift-drag to pan, or use the wheel to zoom. Click a surface to select it. Focus the canvas and press F to fit or Escape to clear selection. Coordinates are right-handed Y-up, source millimetres, displayed at 0.001 scene units per mm.</div>
       <section class="measure" aria-label="Native Surface point measurement">
         <h2>Native Surface points</h2>
         <div class="hint">Enter original U/V parameters, or choose a slot and click a displayed triangle. A picked U/V is approximate until the native Surface is evaluated.</div>

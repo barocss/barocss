@@ -21,6 +21,8 @@ type Quat = [number, number, number, number];
 export interface ViewerOptions { mmToSceneUnit: number; background: Vec3; lighting?: MeshLighting }
 export interface ViewerPointerControlOptions { onError?: (error: unknown) => void }
 export interface ViewerPointerControls { dispose(): void }
+export interface ViewerKeyboardControlOptions { onError?: (error: unknown) => void }
+export interface ViewerKeyboardControls { dispose(): void }
 export interface NativeLoadOptions { sourceVersion: 0; countU: number; countV: number }
 export interface ViewerNativeCurveLoadOptions extends NativeLoadOptions {
   curveDisplay: { chordToleranceMM: number; maxSegments: number; maxDepth: number };
@@ -1435,6 +1437,37 @@ export class Viewer {
       canvas.removeEventListener('lostpointercapture', lost);
       canvas.removeEventListener('click', click, true);
       canvas.removeEventListener('wheel', wheel);
+    } };
+  }
+  attachKeyboardControls(options: ViewerKeyboardControlOptions = {}): ViewerKeyboardControls {
+    this.live();
+    check(options !== null && typeof options === 'object'
+      && Object.getPrototypeOf(options) === Object.prototype,
+    'Keyboard control options must be plain data');
+    const keys = Reflect.ownKeys(options);
+    check(keys.length <= 1 && keys.every(key => key === 'onError'),
+      'Keyboard control options have unsupported fields');
+    const value = ownRecord(options, keys as string[], 'Keyboard control options');
+    check(value.onError === undefined || typeof value.onError === 'function',
+      'Keyboard control onError must be a function');
+    const onError = value.onError as ((error: unknown) => void) | undefined;
+    const canvas = this.canvas;
+    let disposed = false;
+    const keydown = (event: KeyboardEvent): void => {
+      if (disposed || this.disposed || event.target !== canvas || event.repeat || event.isComposing
+        || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      if (event.key !== 'f' && event.key !== 'F' && event.key !== 'Escape') return;
+      try {
+        if (event.key === 'Escape') this.selectGeometry(null);
+        else this.fit();
+        event.preventDefault();
+      } catch (error) { onError?.(error); }
+    };
+    canvas.addEventListener('keydown', keydown);
+    return { dispose: (): void => {
+      if (disposed) return;
+      disposed = true;
+      canvas.removeEventListener('keydown', keydown);
     } };
   }
   setView(input: MeshCamera): void {
