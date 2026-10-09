@@ -7550,3 +7550,51 @@ consumer evidence.
 ```sh
 node examples/cad-nurbs/local-curvature-demo.mjs --source /tmp/cad-local-curvature
 ```
+
+## Transverse Curve crossings against planar Face material
+
+`intersectCurveWithPlanarFaceMaterial` queries an original Curve against an
+owned `buildConvexPlanarFaceWithHoles` result. It reports crossings in material,
+holes, outside the outer trim, outside the native chart, and admitted exact
+boundaries. Each event retains the actual Face classifier and its original
+edge, curve, use, pcurve and Line parameter contributors.
+
+```ts
+const result = cad.intersectCurveWithPlanarFaceMaterial(curve, face, {
+  evaluationId: 'crossings', resultIdPrefix: 'cross',
+  pointEventIds: ['crossing_0', 'crossing_1', 'crossing_2'],
+  maximumBracketRestrictions: 192, maximumClassifications: 192,
+});
+cad.validateCurvePlanarFaceMaterialIntersection(result);
+```
+
+The query uses the existing wide degree-one/two or cubic Curve–Plane root
+operation. Actual original D1 and opposite signed side observations must
+establish a transverse crossing. Coincident spans, unsupported tangencies,
+unavailable derivatives or uncertain crossing data refuse atomically.
+
+Every original root contribution keeps its parameter bracket. The builder
+uses the existing interval extractor on that contribution's local Bezier and
+maps its positive-weight control hull into the original dimensionless Plane UV
+chart. All chart and outer/hole halfspaces must support one consistent decision.
+An estimated root or three sampled positions cannot replace this hull check.
+A hull that crosses or approaches a trim boundary without a safe decision
+refuses. Exact boundary constraints retain the real classifier contributors.
+
+Curve degree is 1 through 3 with at most 64 poles. The Face has one or two holes,
+3 through 8 native Lines per loop and at most 15 Lines in total. This query
+profile requires original XYZ within 10000 mm. It preserves the original knot
+domains and native UV units. Result prefix length is at most 8 characters.
+Trim budgets are checked after the actual root operation and before interval
+restriction or classification. Every accepted result owns its CPU data.
+
+The original Face Source0 Model, Curve/Plane Source0 Model and actual interval
+sources stay separate. A Face can already use all 16 native Model objects.
+The query creates point/provenance records. It does not sew vertices, trim the
+Face or certify a Boolean result, persistent topology or Solid. The hull proof
+uses the declared local extraction binding and arithmetic guards; it does not
+certify a global binary64 enclosure or manufacturing tolerance.
+
+```sh
+node examples/cad-nurbs/curve-planar-face-material-demo.mjs --source /tmp/cad-face-crossings
+```

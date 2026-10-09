@@ -257,3 +257,6 @@ export type { CurveD2Result, SurfaceD2Result } from './second-derivatives.js';
 
 export { evaluateCurveCurvature, evaluateSurfaceCurvature, NativeCurvatureError, NativeCurvatureDiagnosticCode } from './local-curvature.js';
 export type { CurveCurvatureResult, SurfaceCurvatureResult } from './local-curvature.js';
+
+export { intersectCurveWithPlanarFaceMaterial, validateCurvePlanarFaceMaterialIntersection, CurvePlanarFaceMaterialError, CurvePlanarFaceMaterialDiagnosticCode } from './curve-planar-face-material.js';
+export type { CurvePlanarFaceMaterialOptions, CurvePlanarFaceMaterialEvent, CurvePlanarFaceMaterialReport, CurvePlanarFaceMaterialResult } from './curve-planar-face-material.js';
