@@ -632,6 +632,27 @@ copied authored revisions over HTTP and checks live Babylon WebGL2 pixels,
 true-edge display, refusal retention and owned cleanup. The caller owns its
 Scene, Engine, canvas and original authored graph.
 
+The pinned Pixi3D 2.5.0/PixiJS 7.2.4 adapter accepts the same derived mesh:
+
+```js
+import { createBaroCadBooleanExtrusionPixi3DMesh }
+  from '@barocss/cad-interop/pixi3d-boolean-extrusion-mesh';
+
+const pixiDisplay = createBaroCadBooleanExtrusionPixi3DMesh(
+  derived.nativeMesh, {
+    unitsPerMillimeter: 0.001, basis: 'authored-xyz-matches-rhyup',
+  });
+app.stage.addChild(pixiDisplay.root);
+app.stage.addChild(pixiDisplay.edgeRoot); // Optional true Curve paths.
+pixiDisplay.dispose();
+```
+
+`examples/boolean-extrusion-feature-mesh-pixi3d.html` loads the two exact
+authored revisions over HTTP. It checks real Pixi WebGL2 face buffers,
+separate true Curve LineStrip paths, changed revision pixels, refusal
+retention and owned cleanup. The host keeps its Application, stage, canvas
+and authored source. This pinned path does not imply PixiJS v8 support.
+
 ### Display native filled Boolean extrusion Shells in Three.js
 
 The optional `./three-boolean-extrusion-mesh` entry consumes the complete
