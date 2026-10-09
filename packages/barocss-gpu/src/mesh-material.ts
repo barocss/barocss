@@ -22,12 +22,15 @@ const zero=(n:number)=>n===0?0:n;
 function freeze<T>(value:T):T{if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
 function tokens(source:string):Token[]{
  const result:Token[]=[];let i=0;
- while(i<source.length){const start=i,c=source[i];if(/\s/.test(c)){i++;continue;}if(source.startsWith('/*',i)){const end=source.indexOf('*/',i+2);if(end<0)fail('SYNTAX','Unclosed comment',{text:c,start,end:i+2});i=end+2;continue;}
+ while(i<source.length){const start=i,c=source[i];if(/\s/.test(c)){i++;continue;}
+ // Keep original source offsets; line terminators remain ordinary whitespace.
+ if(source.startsWith('//',i)){i+=2;while(i<source.length&&!/[\r\n\u2028\u2029]/.test(source[i]))i++;continue;}
+ if(source.startsWith('/*',i)){const end=source.indexOf('*/',i+2);if(end<0)fail('SYNTAX','Unclosed comment',{text:c,start,end:i+2});i=end+2;continue;}
  let text:string;
  if(c==='#'){i++;while(i<source.length&&/[A-Za-z0-9_-]/.test(source[i]))i++;text=source.slice(start,i);}
  else if(/[A-Za-z_]/.test(c)){i++;while(i<source.length&&/[A-Za-z0-9_]/.test(source[i]))i++;text=source.slice(start,i);}
  else if(/\d/.test(c)||(c==='.'&&/\d/.test(source[i+1]??''))){const match=/^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?/.exec(source.slice(i));text=match![0];i+=text.length;}
- else if('@{}():;,+-*'.includes(c)){text=c;i++;}
+ else if('@{}():;,+-*/'.includes(c)){text=c;i++;}
  else fail('SYNTAX','Unsupported material token '+c,{text:c,start,end:i+1});
  result.push({text,start,end:i});if(result.length>4096)fail('BUDGET','Material exceeds4096 tokens',result.at(-1));
  }
@@ -42,16 +45,41 @@ class Parser {
  private signedNumber(){let sign=1;if(this.current().text==='-'||this.current().text==='+'){sign=this.current().text==='-'?-1:1;this.i++;}const token=this.current();if(!/^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$/.test(token.text))fail('SYNTAX','Numeric literal required',token);this.i++;const n=zero(sign*Number(token.text));if(!Number.isFinite(n)||Math.abs(n)>1000)fail('RANGE','Literal must be finite within±1000',token);return n;}
  private term(expression:MeshMaterialExpression,type:'float'|'color',range:[number,number],children:Term[],token:Token):Term{if(++this.nodes>256)fail('BUDGET','Material exceeds256 expression nodes',token);const depth=1+Math.max(0,...children.map(c=>c.depth));if(depth>16)fail('BUDGET','Material expression exceeds depth16',token);if(!range.every(n=>Number.isFinite(n)&&Math.abs(n)<=1e6))fail('RANGE','Intermediate bound exceeds±1e6',token);return{expression,type,range,depth,size:1+children.reduce((sum,child)=>sum+child.size,0)};}
  private float(term:Term,token:Token){if(term.type!=='float')fail('TYPE','Float expression required',token);}
+ private color(hex:string,token:Token):Term{const linear=[1,3,5].map(i=>Math.pow(parseInt(hex.slice(i,i+2),16)/255,2.2)) as [number,number,number];return this.term({kind:'color',type:'color',hex,linear},'color',[0,1],[],token);}
  private primary(nesting:number):Term{
  if(nesting>16)fail('BUDGET','Material parse nesting exceeds16',this.current());const token=this.current();
  if(token.text==='('){this.i++;const value=this.expression(0,nesting+1);this.take(')');return value;}
  if(token.text==='+'||token.text==='-'){this.i++;const value=this.primary(nesting+1);this.float(value,token);const range: [number,number]=token.text==='-'?[-value.range[1],-value.range[0]]:value.range;return this.term({kind:'unary',type:'float',operator:token.text,value:value.expression},'float',range,[value],token);}
  if(/^\d|^\.\d/.test(token.text)){const value=this.signedNumber();return this.term({kind:'float',type:'float',value},'float',[value,value],[],token);}
- if(token.text.startsWith('#')){this.i++;if(!/^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(token.text))fail('SYNTAX','Color requires #RGB or #RRGGBB',token);const hex=(token.text.length===4?'#'+[...token.text.slice(1)].map(digit=>digit+digit).join(''):token.text).toUpperCase(),linear=[1,3,5].map(i=>Math.pow(parseInt(hex.slice(i,i+2),16)/255,2.2)) as [number,number,number];return this.term({kind:'color',type:'color',hex,linear},'color',[0,1],[],token);}
+ if(token.text.startsWith('#')){this.i++;if(!/^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(token.text))fail('SYNTAX','Color requires #RGB or #RRGGBB',token);const hex=(token.text.length===4?'#'+[...token.text.slice(1)].map(digit=>digit+digit).join(''):token.text).toUpperCase();return this.color(hex,token);}
  if(/^[A-Za-z_][A-Za-z0-9_]*$/.test(token.text)){
- this.i++;if(this.current().text==='('){const name=token.text;if(!['sin','cos','mix','clamp'].includes(name))fail('SYNTAX','Unsupported material function',token);this.take('(');const args:Term[]=[];if(this.current().text!==')'){for(;;){args.push(this.expression(0,nesting+1));if(this.current().text!==',')break;this.take(',');}}this.take(')');let type:'float'|'color'='float',range:[number,number];
+ this.i++;if(this.current().text==='('){const name=token.text;
+ if(name==='rgb'){
+  this.take('(');const channels:number[]=[];
+  for(let channel=0;channel<3;channel++){
+   if(channel>0)this.take(',');
+   const start=this.current(),value=this.signedNumber(),literal={text:this.source.slice(start.start,this.list[this.i-1].end),start:start.start,end:this.list[this.i-1].end};
+   if(!Number.isInteger(value)||value<0||value>255)fail('RANGE','RGB channel requires an integer byte within0..255',literal);
+   channels.push(value);
+  }
+  this.take(')');return this.color('#'+channels.map(value=>value.toString(16).padStart(2,'0')).join('').toUpperCase(),token);
+ }
+ if(!['sin','cos','mix','clamp'].includes(name))fail('SYNTAX','Unsupported material function',token);this.take('(');const args:Term[]=[];if(this.current().text!==')'){for(;;){args.push(this.expression(0,nesting+1));if(this.current().text!==',')break;this.take(',');}}this.take(')');let type:'float'|'color'='float',range:[number,number];
  if(name==='sin'||name==='cos'){if(args.length!==1)fail('TYPE','sin/cos requires one float',token);this.float(args[0],token);if(args[0].range.some(n=>Math.abs(n)>1000))fail('RANGE','sin/cos argument exceeds±1000',token);range=[-1,1];}
- else if(name==='mix'){if(args.length!==3||args[0].type!=='color'||args[1].type!=='color'||args[2].type!=='float')fail('TYPE','mix requires color,color,float',token);if(args[2].range[0]<0||args[2].range[1]>1)fail('RANGE','mix ratio must be bounded within0..1',token);type='color';range=[0,1];}
+ else if(name==='mix'){
+ if(args.length!==3||args[0].type!==args[1].type||args[2].type!=='float')fail('TYPE','mix requires color,color,float or float,float,float',token);
+ if(args[2].range[0]<0||args[2].range[1]>1)fail('RANGE','mix ratio must be bounded within0..1',token);
+ if(args[0].type==='float'){
+  const[a,b,t]=args;
+  // a appears twice in the expanded arithmetic; charge its full subtree again.
+  if(this.nodes+a.size>256)fail('BUDGET','Material exceeds256 definition and expanded expression nodes',token);
+  this.nodes+=a.size;
+  const difference=this.term({kind:'binary',type:'float',operator:'-',left:b.expression,right:a.expression},'float',[b.range[0]-a.range[1],b.range[1]-a.range[0]],[b,a],token);
+  const[x,y]=difference.range,[u,v]=t.range;
+  const product=this.term({kind:'binary',type:'float',operator:'*',left:difference.expression,right:t.expression},'float',[Math.min(x*u,x*v,y*u,y*v),Math.max(x*u,x*v,y*u,y*v)],[difference,t],token);
+  return this.term({kind:'binary',type:'float',operator:'+',left:a.expression,right:product.expression},'float',[a.range[0]+product.range[0],a.range[1]+product.range[1]],[a,product],token);
+ }
+ type='color';range=[0,1];}
  else{if(args.length!==3)fail('TYPE','clamp requires three floats',token);args.forEach(arg=>this.float(arg,token));if(args[1].range[1]>args[2].range[0])fail('RANGE','clamp bounds are not ordered',token);range=[args[1].range[0],args[2].range[1]];}
  return this.term({kind:'call',type,name:name as 'sin'|'cos'|'mix'|'clamp',args:args.map(a=>a.expression)},type,range,args,token);
  }
@@ -60,7 +88,19 @@ class Parser {
  }
  fail('SYNTAX','Material expression required',token);
  }
- private expression(min=0,nesting=0):Term{let left=this.primary(nesting);for(;;){const token=this.current(),precedence=token.text==='*'?2:token.text==='+'||token.text==='-'?1:0;if(precedence===0||precedence<min)break;this.i++;const right=this.expression(precedence+1,nesting+1);this.float(left,token);this.float(right,token);const[a,b]=left.range,[c,d]=right.range;const range: [number,number]=token.text==='+'?[a+c,b+d]:token.text==='-'?[a-d,b-c]:[Math.min(a*c,a*d,b*c,b*d),Math.max(a*c,a*d,b*c,b*d)];left=this.term({kind:'binary',type:'float',operator:token.text as '+'|'-'|'*',left:left.expression,right:right.expression},'float',range,[left,right],token);}return left;}
+ private expression(min=0,nesting=0):Term{let left=this.primary(nesting);for(;;){const token=this.current(),precedence=token.text==='*'||token.text==='/'?2:token.text==='+'||token.text==='-'?1:0;if(precedence===0||precedence<min)break;this.i++;
+ if(token.text==='/'){
+  this.float(left,token);
+  const start=this.current(),divisor=this.signedNumber(),literal={text:this.source.slice(start.start,this.list[this.i-1].end),start:start.start,end:this.list[this.i-1].end};
+  if(divisor===0)fail('RANGE','Material divisor must be a nonzero numeric literal',literal);
+  const reciprocal=zero(1/divisor);
+  if(!Number.isFinite(reciprocal)||Math.abs(reciprocal)>1000)fail('RANGE','Material divisor reciprocal exceeds±1000',literal);
+  // Lower only to the existing float/multiply IR, charging both generated nodes.
+  const right=this.term({kind:'float',type:'float',value:reciprocal},'float',[reciprocal,reciprocal],[],literal),[a,b]=left.range;
+  left=this.term({kind:'binary',type:'float',operator:'*',left:left.expression,right:right.expression},'float',[Math.min(a*reciprocal,b*reciprocal),Math.max(a*reciprocal,b*reciprocal)],[left,right],token);
+  continue;
+ }
+ const right=this.expression(precedence+1,nesting+1);this.float(left,token);this.float(right,token);const[a,b]=left.range,[c,d]=right.range;const range: [number,number]=token.text==='+'?[a+c,b+d]:token.text==='-'?[a-d,b-c]:[Math.min(a*c,a*d,b*c,b*d),Math.max(a*c,a*d,b*c,b*d)];left=this.term({kind:'binary',type:'float',operator:token.text as '+'|'-'|'*',left:left.expression,right:right.expression},'float',range,[left,right],token);}return left;}
  parse():MeshMaterialIR{
  this.take('@');this.take('shader');const id=this.current();if(!/^#[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(id.text))fail('SYNTAX','Shader ID requires ASCII1..64',id);this.i++;this.take('{');
  while(this.current().text==='@'&&this.list[this.i+1]?.text==='uniform'){

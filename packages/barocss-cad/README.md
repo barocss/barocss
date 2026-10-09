@@ -5,11 +5,12 @@ This package contains an original parser, local basis evaluator and writer. It h
 no runtime dependencies. OCP is an independent test consumer, never a product kernel.
 Version `0.0.0-experimental` is configured for public scoped-package access.
 This local configuration does not establish registry availability or a release.
-The public ESM entry is `dist/index.js`; types use `dist/index.d.ts`.
+Development main/types/import exports use `src/index.ts`. The complete
+`publishConfig` maps use `dist/index.js` and `dist/index.d.ts` for the explicit
+compiled checkpoint and publication.
 `pnpm --filter @barocss/cad build:library` emits both with the existing TypeScript
 build configuration. Published files include compiled modules/declarations,
-original source, this README and the MIT LICENSE. Runtime import needs no
-repository build scripts or TypeScript loader.
+original source, this README and the MIT LICENSE. Compiled runtime import needs no repository build scripts or TypeScript loader.
 
 ```js
 import { compileCadModel, evaluateCurve, exportIGES } from '@barocss/cad';
@@ -23,8 +24,9 @@ const { iges, report } = exportIGES(model, ['arc']);
 
 ## Local source development
 
-Source development explicitly uses `packages/barocss-cad/src/index.ts`, while
-package main/types/import exports use compiled `dist` files.
+Normal workspace package main/types/import exports select
+`packages/barocss-cad/src/index.ts`. Source execution requires a TypeScript-capable
+bundler or runner that resolves relative `.js` imports to their source `.ts` files.
 Use `pnpm dev:cad` from the repository root for the
 loopback example. Installed esbuild resolves the original TypeScript module
 graph in memory, including `.js` relative imports. Reload consumes source edits
@@ -32,8 +34,9 @@ without a dependency build or server restart. A plain browser cannot load raw
 TypeScript; use the source host. Existing Node artifact demos explicitly import
 `dist/index.js` and retain their separate `build:library` checkpoint. Source-only
 native demos use the actual source entry with `--source`, without a CAD artifact
-import or a per-demo build. Public package configuration preserves those explicit
-source paths. Registry publication and the existing release workflow are separate.
+import or a per-demo build. Explicit compiled consumers select the complete `publishConfig.exports` map,
+including transitive workspace imports. Plain Node cannot execute the TypeScript
+source entry directly. Registry publication and the existing release workflow are separate.
 
 ## Exact language v0
 
@@ -7673,3 +7676,208 @@ stable axis naming, a physics body or a rendered engineering view.
 ```sh
 node examples/cad-nurbs/extrusion-principal-inertia-demo.mjs --source /tmp/cad-principal-inertia
 ```
+
+## Common section knot alignment and rational ruled Surface
+
+`buildAlignedRationalRuledSurface` aligns two equal-degree sections on the same
+original parameter domain, then calls the actual rational ruled constructor.
+
+```ts
+const result = cad.buildAlignedRationalRuledSurface(first, second, {
+  surfaceId: 'aligned_surface', firstAlignedId: 'first_refined',
+  secondAlignedId: 'second_refined', resultIdPrefix: 'align',
+  maximumInsertedKnots: 14, maximumRefinementOperations: 14,
+});
+cad.validateAlignedRationalRuledSurface(result);
+```
+
+The ordered union uses the maximum multiplicity of each interior knot. Before
+any refinement, the builder checks original/domain bits, all active IDs, both
+complete insertion budgets and the final common Surface capacity of 16 U poles.
+Numeric-equal knots with different bits, including mixed signed zero, refuse.
+No parameter remapping, weight normalization or sampled replacement is used.
+
+A changed section uses the existing wide refinement API once and retains its
+full native/source/provenance proof. An unchanged section has refinement null,
+zero insertion work and its original ID; its requested aligned ID must match
+that original ID. The actual ruled Surface retains independent section weights
+and denominator-weighted V interpolation. Original input, refinement and ruled
+Source0 Models remain separate with their actual identities.
+
+The profile supports degree 1 through 3 and two original sections with at most
+16 poles. Original XYZ stays within 10000 mm. A new formal C0 knot can make an
+aligned native D1 query refuse while the original D1 succeeded; both real states
+remain in the provider proof. Alignment does not remove the multi-section loft
+weight-bit guard or certify global shape, continuity, topology or Solid quality.
+
+```sh
+node examples/cad-nurbs/section-knot-alignment-demo.mjs --source /tmp/cad-section-alignment
+```
+
+## Exact common-boundary incidence for NURBS patch Faces
+
+`buildExactBoundaryFaceAdjacency` links explicitly selected opposite full
+boundaries from two through four owned parametric Faces. Each asset supplies
+its source ID, actual Source0 text and FaceBundle.
+
+```ts
+const graph = cad.buildExactBoundaryFaceAdjacency([
+  {sourceId: 'lower', source: lowerSource, face: lowerFace},
+  {sourceId: 'upper', source: upperSource, face: upperFace},
+], [{
+  first: {sourceId: 'lower', boundary: 'u-max'},
+  second: {sourceId: 'upper', boundary: 'u-min'},
+}], {
+  evaluationId: 'patch_incidence', resultIdPrefix: 'join',
+  maximumCurveReversals: 8, maximumObservationPairs: 24,
+});
+cad.validateExactBoundaryFaceAdjacency(graph);
+```
+
+The source models are compiled and checked bit for bit, then the actual Face
+validator runs. The full selected boundary coefficients must agree after an
+actual reversal of the second Curve. Original domains, knots, poles and weights
+are compared. Samples are diagnostic observations and cannot prove equality.
+Same-direction uses, partial domains, changed weights or uncertain reversal
+bits refuse. The query does not turn an original forward use into a different
+Face orientation.
+
+Shared-edge records retain both source-qualified original edges, curves, uses
+and pcurves. Parent uses and pcurves have no standalone IDs; the source, Face,
+boundary and local edge identify them. Only explicit endpoint associations
+form graph vertex classes. Original vertices are preserved and never welded.
+Unpaired boundaries remain free. Duplicate local IDs in separate source files
+are valid after qualification; duplicate pairing or a third use refuses.
+
+The profile uses degree 1 through 3, native grids at most16×16 and XYZ within
+10000 mm. Parent global C1 and corner/chain checks remain. Each original Face
+keeps its own five-object Model and actual comparison reversal sources remain
+separate. At most8 pairs and24 direct observation pairs are admitted before
+new work. A disconnected collection with no pairs performs no reversal work.
+
+This is local incidence for an open patch collection. It does not establish
+general sewing, G1/G2 continuity, manifold closure, Face trim, self-intersection
+or Solid validity. Geometry, source and caller data remain unchanged.
+
+```sh
+node examples/cad-nurbs/exact-boundary-face-adjacency-demo.mjs --source /tmp/cad-patch-incidence
+```
+
+## Revision-checked embedded assembly part replacement — #1015
+
+`replaceCadAssemblyPart(previous, transaction)` replaces one existing canonical
+part document in assembly0. The transaction has expectedRevision, revision,
+documentId, expectedDocumentRevision, replacementDocument and referenceRepairs.
+Each repair has instanceId, previousReference and reference. The result retains
+previous, transaction, result and report;
+`validateCadAssemblyPartReplacement(result)` rebuilds the complete operation.
+Existing `CadAssemblyError` and `CadAssemblyDiagnosticCode` provide refusals.
+
+Assembly and target document revisions advance exactly one. A changed source
+text requires that asset revision to advance exactly one; an unchanged source
+asset retains all bits and its revision. At least one source text must change.
+Whitespace is a textual edit and does not prove different native geometry.
+Asset identity/order/metadata and all body records stay unchanged. Every
+instance of the target document needs an explicit fresh qualified reference,
+including instances of unchanged assets. Missing, duplicate, stale or foreign
+repairs refuse the complete candidate. Changed coefficients use fresh native
+references; coefficient-preserving `rebindCadGeometryReference` keeps its scope.
+
+The existing document/assembly caps remain: up to four parts, four source assets
+per part, sixteen bodies per part, thirty-two instances and hierarchy depth
+sixteen. Sources are actual Source0; parts are canonical direct-geometry V1.
+Unrelated documents/references, instance IDs/order/parents/local poses and world
+matrices retain their bits. Reports retain old/new source revisions and explicit
+reference provenance. No automatic topology matching, external watcher, mates,
+Body/Solid or renderer acceptance follows.
+
+```sh
+node examples/cad-nurbs/assembly-part-replacement-demo.mjs --source EVIDENCE_DIR
+```
+
+This saved-source flow is the scoped final checkpoint with one affected CAD
+build. Native completion and Integration adoption are recorded in #1015.
+
+## Original-domain endpoint-D2 quintic Hermite Curve — #1026
+
+`buildQuinticHermiteCurve(endpoints,options)` constructs one degree5 polynomial
+Curve from exactly two ordered endpoint constraints. Each endpoint contains
+parameter, pointMM, derivativeMMPerParameter and
+secondDerivativeMMPerParameterSquared. Options contain curveId and
+maximumEndpointEvaluations (0..2); two actual native D2 evaluations are required.
+The result retains endpoints/options/curve/source/sourceVersion/model/report.
+`validateQuinticHermiteCurve(owned)` reconstructs all coefficients, source,
+endpoint observations and arithmetic provenance. Typed refusals use
+`QuinticHermiteError` and `QuinticHermiteDiagnosticCode`.
+
+For original span h=b-a, first offsets are (h*T)/5 and second offsets are
+((h*Asecond)*h)/20. These define six centered control poles, original knots
+[a,a,a,a,a,a,b,b,b,b,b,b] and six unit weights. Positions retain authored pole
+bits, including signed zero. The actual Source0 compiler retains all native
+coefficient bits; actual D2 checks both endpoints in original parameter units.
+No tangent or parameter normalization is applied. A separately representable
+h² factor is not required: a scaled second offset can be represented when h²
+underflows. Nonzero product/quotient loss or a translated offset lost to rounding
+refuses the request.
+
+Endpoint parameter/point/D1/D2 components and generated poles have absolute
+limits10000 in their declared units. Original span must be positive and finite.
+Endpoint position distance is at most1e-7mm; D1/D2 norm residuals divided by
+max(1,input norm) are at most1e-7. A nonzero supplied derivative component cannot
+silently become zero. Zero tangent/second derivative and stationary or constant
+native Curves are allowed if native evaluation succeeds. Supplied second
+derivative vectors are parametric constraints; they are not scalar geometric
+curvature constraints or a regularity/G2/global error certificate.
+
+```sh
+node examples/cad-nurbs/quintic-hermite-curve-demo.mjs --source EVIDENCE_DIR
+```
+
+One affected build and this saved-source flow establish the scoped native
+checkpoint. General rational/periodic/multi-segment Hermite and fitting remain
+separate tasks. The endpoint pole relations follow the Bernstein derivative
+properties documented by [MIT](https://web.mit.edu/hyperbook/Patrikalakis-Maekawa-Cho/node12.html)
+and [Michigan Tech](https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/surface/bezier-der.html),
+with the chain rule for the original parameter domain. No external runtime is used.
+
+## Source-qualified regular Curve endpoint continuity — #1031
+
+`inspectCurveEndpointContinuity(first,second,options)` inspects two original
+endpoints. Each input is sourceId/source/curve/endpoint (`start` or `end`).
+Options contain evaluationId and maximumCurvatureEvaluations (0..2,requiring2).
+The result retains first/second/options/models/native/analysis/report.
+`validateCurveEndpointContinuity(owned)` rebuilds the entire operation.
+`CurveEndpointContinuityError` and its diagnostic code preserve native causes.
+
+Each original Source0 contains exactly one Curve and must match all input Curve
+coefficient bits. Distinct sourceId contexts can contain the same local Curve ID.
+Curves have degree1..5,2..64 poles,up to70 knots and coordinate/knot absolute
+limits10000; existing positive-weight/clamped/native validation still applies.
+The complete two-curvature-call budget precedes source compilation. Actual
+`evaluateCurveCurvature` runs once at each original endpoint and retains its
+entire native D2 result. This full query requires regular endpoints and refuses
+actual singularity or unsafe arithmetic. It does not change standalone D2 rules.
+
+First traversal approaches the selected endpoint: end+1/start-1. Second
+traversal leaves it: start+1/end-1. First derivatives and unit tangents receive
+these signs; second derivatives and curvature vectors stay unchanged. C0 checks
+point distance; C1 also compares original-unit first derivatives; C2 also
+compares second derivatives. G1 compares same-directed unit tangents; G2 also
+compares inverse-mm curvature vectors. Different parameter speeds can satisfy
+G1/G2 while failing C1/C2.
+
+The observed policy uses1e-7mm point distance,1e-7 derivative/second-derivative
+relative norm gap with max(1,both norms),1e-7 unit-tangent gap with positive dot,
+and1e-7 curvature-vector relative gap with inverse-mm floor1. Conditions include
+their lower-order prerequisites. These are local one-sided endpoint observations.
+They do not raise the formal knot continuity of an existing joined Curve or
+certify a whole Curve, Surface boundary, Body/Solid or manufacturing tolerance.
+
+```sh
+node examples/cad-nurbs/curve-endpoint-continuity-demo.mjs --source EVIDENCE_DIR
+```
+
+Original sources/domains/knots/weights/poles remain unchanged. Source/file/owned
+rebuild and explicit published-map compiled proof belong to the scoped final
+checkpoint. [MIT continuity definitions](https://web.mit.edu/hyperbook/Patrikalakis-Maekawa-Cho/node13.html)
+distinguish parametric derivative matching from geometric continuity.

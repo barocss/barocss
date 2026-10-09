@@ -200,6 +200,9 @@ export type { CadAssemblyInstancePointQuery, CadAssemblyInstancePointReport, Cad
 export { transactCadAssemblyMembers, validateCadAssemblyMemberTransaction } from './cad-assembly-members.js';
 export type { CadAssemblyMemberTransaction, CadAssemblyMemberReport, CadAssemblyMemberResult } from './cad-assembly-members.js';
 
+export { replaceCadAssemblyPart, validateCadAssemblyPartReplacement } from './cad-assembly-part-replacement.js';
+export type { CadAssemblyPartReplacement, CadAssemblyPartReplacementReport, CadAssemblyPartReplacementResult } from './cad-assembly-part-replacement.js';
+
 export { booleanCoplanarFaces, validateCoplanarFaceBoolean, CoplanarFaceBooleanError, CoplanarFaceBooleanDiagnosticCode } from './coplanar-face-boolean.js';
 export type { CoplanarFaceBooleanOptions, CoplanarFaceBooleanContributor, CoplanarFaceBooleanEvent, CoplanarFaceBooleanFragment, CoplanarFaceBooleanLoop, CoplanarFaceBooleanComponent, CoplanarFaceBooleanReport, CoplanarFaceBooleanResult } from './coplanar-face-boolean.js';
 
@@ -266,3 +269,15 @@ export type { CoplanarFaceBooleanExtrusionMassOptions, CoplanarFaceBooleanExtrus
 
 export { analyzeExtrusionConstructionPrincipalInertia, validateExtrusionConstructionPrincipalInertia, ExtrusionPrincipalInertiaError, ExtrusionPrincipalInertiaDiagnosticCode } from './extrusion-principal-inertia.js';
 export type { ExtrusionPrincipalInertiaOptions, ExtrusionPrincipalInertiaAxis, ExtrusionPrincipalInertiaReport, ExtrusionPrincipalInertiaResult } from './extrusion-principal-inertia.js';
+
+export { buildAlignedRationalRuledSurface, validateAlignedRationalRuledSurface, SectionKnotAlignmentError, SectionKnotAlignmentDiagnosticCode } from './section-knot-alignment.js';
+export type { SectionKnotAlignmentOptions, SectionKnotAlignmentSection, SectionKnotAlignmentReport, SectionKnotAlignmentResult } from './section-knot-alignment.js';
+
+export { buildExactBoundaryFaceAdjacency, validateExactBoundaryFaceAdjacency, ExactBoundaryFaceAdjacencyError, ExactBoundaryFaceAdjacencyDiagnosticCode } from './exact-boundary-face-adjacency.js';
+export type { ExactBoundaryFaceAdjacencyAsset, ExactBoundaryFaceAdjacencyPair, ExactBoundaryFaceAdjacencyOptions, ExactBoundaryFaceAdjacencyEdge, ExactBoundaryFaceAdjacencyReport, ExactBoundaryFaceAdjacencyResult } from './exact-boundary-face-adjacency.js';
+
+export { buildQuinticHermiteCurve, validateQuinticHermiteCurve, QuinticHermiteError, QuinticHermiteDiagnosticCode } from './quintic-hermite-curve.js';
+export type { QuinticHermiteEndpoint, QuinticHermiteOptions, QuinticHermiteReport, QuinticHermiteResult } from './quintic-hermite-curve.js';
+
+export { inspectCurveEndpointContinuity, validateCurveEndpointContinuity, CurveEndpointContinuityError, CurveEndpointContinuityDiagnosticCode } from './curve-endpoint-continuity.js';
+export type { CurveEndpointContinuityInput, CurveEndpointContinuityOptions, CurveEndpointContinuityReport, CurveEndpointContinuityResult } from './curve-endpoint-continuity.js';
