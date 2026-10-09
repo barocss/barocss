@@ -116,6 +116,7 @@ export function MixedApp() {
   const activeKeyRef = useRef(activeKey);
   const [pending, setPending] = useState<PendingAction | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  const helpTrigger = useRef<HTMLButtonElement>(null);
   const [notice, setNotice] = useState('Select an object or edit the source. Apply changes to render.');
   const [error, setError] = useState<AppErrorNotice | null>(null);
   const [busy, setBusy] = useState(false);
@@ -323,7 +324,7 @@ export function MixedApp() {
           <MenubarMenu><MenubarTrigger>Workspace</MenubarTrigger><MenubarContent>
             {projects.map((project) => <MenubarItem key={project.key} disabled={actionDisabled} onSelect={() => switchProject(project.key)}>{project.document.title}</MenubarItem>)}
           </MenubarContent></MenubarMenu>
-          <MenubarMenu><MenubarTrigger>Help</MenubarTrigger><MenubarContent><MenubarItem onSelect={() => setHelpOpen(true)}>Mixed scene editing</MenubarItem></MenubarContent></MenubarMenu>
+          <MenubarMenu><MenubarTrigger ref={helpTrigger}>Help</MenubarTrigger><MenubarContent><MenubarItem onSelect={() => setHelpOpen(true)}>Mixed scene editing</MenubarItem></MenubarContent></MenubarMenu>
         </Menubar>
         <div className="app-topbar-spacer" />
         <Button size="sm" variant="ghost" asChild><a href="/index.html" onClick={event => {
@@ -384,7 +385,7 @@ export function MixedApp() {
           <Button onClick={applyPending} data-testid="draft-apply">Apply and continue</Button>
         </DialogFooter></DialogContent>
       </Dialog>
-      <Dialog open={helpOpen} onOpenChange={setHelpOpen}><DialogContent><DialogHeader><DialogTitle>Mixed scene editing</DialogTitle><DialogDescription>Edit either original source, the camera, or the display settings. Apply updates the complete preview together.</DialogDescription></DialogHeader><div className="space-y-3 text-sm text-muted-foreground"><p>This profile displays one scene Sphere and one selected native Surface with shared depth. Other native objects stay in the original source and inventory. Curves are kept in the file and are not drawn in this preview.</p><p>The native source uses millimeters. Display conversion and translation place it in scene units. Camera field of view uses degrees. Native display settings do not change the original control points, weights, or UV definition.</p><p>New starts from a valid Sphere and Surface sample. Workspace contains two source pairs. Use Source editor for the broader scene object editor and its version 0 files.</p><p>Save downloads accepted version 1 mixed JSON, including both original sources, selected model and Surface, camera, and display values. Open accepts mixed scene files up to 512 KiB, with each source no larger than 64 KiB.</p><p>Projects stay in this tab. Save a file before closing. Downloads depend on browser settings; check the downloaded file. CAD materials, Physics, precise picking, and additional mixed shapes are outside this profile.</p></div></DialogContent></Dialog>
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}><DialogContent onCloseAutoFocus={event => { event.preventDefault(); helpTrigger.current?.focus(); }}><DialogHeader><DialogTitle>Mixed scene editing</DialogTitle><DialogDescription>Edit either original source, the camera, or the display settings. Apply updates the complete preview together.</DialogDescription></DialogHeader><div className="space-y-3 text-sm text-muted-foreground"><p>This profile displays one scene Sphere and one selected native Surface with shared depth. Other native objects stay in the original source and inventory. Curves are kept in the file and are not drawn in this preview.</p><p>The native source uses millimeters. Display conversion and translation place it in scene units. Camera field of view uses degrees. Native display settings do not change the original control points, weights, or UV definition.</p><p>New starts from a valid Sphere and Surface sample. Workspace contains two source pairs. Use Source editor for the broader scene object editor and its version 0 files.</p><p>Save downloads accepted version 1 mixed JSON, including both original sources, selected model and Surface, camera, and display values. Open accepts mixed scene files up to 512 KiB, with each source no larger than 64 KiB.</p><p>Projects stay in this tab. Save a file before closing. Downloads depend on browser settings; check the downloaded file. CAD materials, Physics, precise picking, and additional mixed shapes are outside this profile.</p></div></DialogContent></Dialog>
     </main>
   );
 }
