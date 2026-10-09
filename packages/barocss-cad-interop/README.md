@@ -477,6 +477,43 @@ refusal and caller-owned resources. The matching Node flow is
 `node examples/boolean-mesh-three-verify.mjs`. This is a derived preview,
 not a native Surface, solid, B-Rep or manufacturing certificate.
 
+### Read a native Boolean extrusion feature graph
+
+The optional `./boolean-extrusion-feature-graph` entry reads the authored
+CAD graph0 text. It returns the original text and the complete evaluated
+native result from the public CAD parser. The host reads and retains file
+bytes; this entry does not fetch URLs or choose a renderer.
+
+```js
+import { readFileSync } from 'node:fs';
+import { readBaroCadBooleanExtrusionFeatureGraph }
+  from '@barocss/cad-interop/boolean-extrusion-feature-graph';
+
+const text = readFileSync('part.authored-graph.json', 'utf8');
+const accepted = readBaroCadBooleanExtrusionFeatureGraph(text, {
+  maximumParameterResolutions: 8,
+  maximumFeatureEvaluations: 4,
+});
+console.log(accepted.authoredText, accepted.native.report.summary);
+```
+
+`authoredText` retains whitespace and signed-zero spelling. `native` is a
+separate owned CPU result with the original graph, evaluated Face/Boolean/
+extrusion geometry, dependency order and revision-qualified bindings. The
+CAD parser enforces strict JSON, UTF-8, a 1 MiB file envelope and native
+graph/options budgets. The reader calls it once. A separate call to
+`validateBooleanExtrusionFeatureGraph` performs another full native rebuild.
+Use the public CAD `updateBooleanExtrusionFeatureGraph` and
+`serializeBooleanExtrusionFeatureGraph` for explicit edits and authored-only
+save; evaluated geometry is not editing authority. This reader does not
+convert the graph into a direct-geometry document, mesh or GLB.
+
+After building CAD and interop, run
+`node examples/boolean-extrusion-feature-graph-verify.mjs --source <saved-903-directory>`
+with the seven authentic #903 authored files. It checks file hashes,
+native geometry, a real height edit and cold read, prior-data retention and
+refusals. It does not prove a renderer or npm publication.
+
 ### Display native filled Boolean extrusion Shells in Three.js
 
 The optional `./three-boolean-extrusion-mesh` entry consumes the complete
