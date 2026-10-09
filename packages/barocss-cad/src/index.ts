@@ -215,3 +215,6 @@ export type { CoplanarFaceBooleanExtrusionMeshOptions, CoplanarFaceBooleanExtrus
 export { evaluateBooleanExtrusionFeatureGraph, updateBooleanExtrusionFeatureGraph, validateBooleanExtrusionFeatureGraph, BooleanExtrusionFeatureGraphError, BooleanExtrusionFeatureGraphDiagnosticCode } from './boolean-extrusion-feature-graph.js';
 export { serializeBooleanExtrusionFeatureGraph, parseBooleanExtrusionFeatureGraph } from './boolean-extrusion-feature-graph-serde.js';
 export type { BooleanExtrusionLengthDefinition, BooleanExtrusionLengthParameter, BooleanExtrusionFaceFeature, BooleanExtrusionBooleanFeature, BooleanExtrusionExtrusionFeature, BooleanExtrusionFeatureGraphV0, BooleanExtrusionFeatureGraphOptions, BooleanExtrusionFeatureGraphEdits, BooleanExtrusionFeatureGraphResolvedParameter, BooleanExtrusionFeatureGraphEvaluatedFeature, BooleanExtrusionFeatureGraphReport, BooleanExtrusionFeatureGraphResult } from './boolean-extrusion-feature-graph.js';
+
+export { transactBooleanExtrusionFeatureGraphParameters } from './boolean-extrusion-parameter-lifecycle.js';
+export type { BooleanExtrusionParameterOperation, BooleanExtrusionParameterTransaction } from './boolean-extrusion-parameter-lifecycle.js';
