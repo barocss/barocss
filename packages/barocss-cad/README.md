@@ -7591,11 +7591,12 @@ evaluationId, resultIdPrefix, maximumCells:27 and maximumPanels:72.
 `validateAxisBoxSolidBoolean(result)` rebuilds the entire result. Original source
 models and actual unchanged AxisBoxSolid validation reports remain retained.
 
-This first profile requires positive overlap along all three axes. Source
-supports must match all six original shell Face Surfaces by full coefficient
-bits. Existing integer bounds and exact safe-integer analysis apply. Disjoint
-and face/edge/corner-only contact operands refuse. Generated grid zero is +0;
-original caller data and source bits stay unchanged.
+The profile supports overlapping, disjoint and face-touching integer boxes.
+Source supports must match all six original shell Face Surfaces by full
+coefficient bits. Existing integer bounds and exact safe-integer analysis apply.
+Edge/corner-only union refuses CONTACT because the combined boundary is not
+manifold. Such intersections are empty; differences retain regularized A.
+Generated grid zero is +0; original caller data and source bits stay unchanged.
 
 Original min/max planes partition at most27 open cells. The result is the
 closure of occupied cells. Native outward boundary tiles appear only between
@@ -7616,7 +7617,7 @@ node examples/cad-nurbs/axis-box-boolean-demo.mjs --source EVIDENCE_DIR
 ```
 
 The geometric proof applies to this exact integer cubical coefficient model.
-Rotated, floating-coordinate, disjoint and curved operands, cylindrical holes,
+Rotated, floating-coordinate and curved operands, cylindrical holes,
 manufacturing tolerance and global evaluator error remain outside this profile.
 Rendering, authored feature lifecycle and integrated save/recovery require
 their own consumer evidence.
@@ -7650,6 +7651,29 @@ node examples/cad-nurbs/axis-box-point-classification-demo.mjs --source EVIDENCE
 This is exact membership in the saved restricted integer cell coefficient
 model. General curved-Solid queries, point projection, manufacturing tolerance,
 global evaluator error and renderer picking remain separate features.
+
+## Disjoint and face-contact Boolean support — #1108
+
+The same `buildAxisBoxSolidBoolean` API and result schema now accept separated
+boxes and face contacts. Disjoint union returns separate Bodies, intersection
+is empty, and difference retains A material. Face-touch union removes the
+internal contact tile and connects the material; intersection is empty and
+difference retains A. Existing positive-overlap coefficients, source strings,
+IDs, order and counts remain unchanged.
+
+Only overlap/contact admission changes. The complete occupied-cell, native
+panel, manifold, component and volume proof still runs. Edge/corner-only unions
+remain unsupported CONTACT errors. A negative overlap on another axis denotes
+disjoint material even if other plane coordinates coincide. Empty gap cells can
+be wider than a box side; emitted panels remain inside their original box bounds.
+
+```sh
+node examples/cad-nurbs/axis-box-contacts-demo.mjs --source EVIDENCE_DIR
+```
+
+The new flow checks current contact/disjoint results, saved positive-overlap
+digests, exact XYZ material queries and compiled consumers. Earlier #1101
+receipts keep their original restricted scope and first verification history.
 
 ```sh
 node examples/cad-nurbs/local-curvature-demo.mjs --source /tmp/cad-local-curvature
