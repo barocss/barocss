@@ -12,6 +12,7 @@ const NATIVE_ENTRIES = [
   ['barocss-cad-interop', './native'],
   ['barocss-cad-interop', './document'],
   ['barocss-cad-interop', './model-set'],
+  ['barocss-cad-interop', './boolean-extrusion-feature-mesh'],
 ];
 const EDITOR_ENTRIES = ['.', './react', './styles.css'];
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -193,9 +194,9 @@ export async function prepareCompiledCheckpoint({ repo, evidence }) {
     sourceFiles.add(resolve(repo, 'packages/barocss-cad-editor/src/styles.css'));
 
     const consumerPath = resolve(checkpoint, 'published-consumer.tsx');
-    await writeFile(consumerPath, `import { createCadEditorSession, type CadEditorCandidate } from '@barocss/cad-editor';
-import { CadEditor, type CadEditorProps } from '@barocss/cad-editor/react';
-import { parseCadDocument } from '@barocss/cad';
+    await writeFile(consumerPath, `import { createCadEditorSession, createCadEditorFeatureSession, type CadEditorCandidate, type CadEditorFeatureSessionOptions } from '@barocss/cad-editor';
+import { CadEditor, CadEditorFeature, type CadEditorProps, type CadEditorFeatureProps } from '@barocss/cad-editor/react';
+import { parseCadDocument, parseBooleanExtrusionFeatureGraph } from '@barocss/cad';
 const session = createCadEditorSession(parseCadDocument('{}').document);
 const props: CadEditorProps = { session, displayOptions: { viewer: {mmToSceneUnit:0.01,background:[0.07,0.08,0.10]}, document: {basis:'authored-xyz-matches-rhyup',native:{sourceVersion:0,countU:17,countV:17,unitsPerMillimeter:1,curveDisplay:{chordToleranceMM:0.1,maxSegments:64,maxDepth:8}},bodyIds:['surface_body','curve_body']} }, onDisplay: receipt => {const index:number = receipt.readIndex; const hash:string = receipt.pixelHash;}, onAccepted: accepted => {const generation:number=accepted.generation;} };
 const element = <CadEditor {...props}/>;
@@ -206,6 +207,12 @@ const selectedBody:string|null = session.getSnapshot().selectedBodyId;
 const displayed:string[] = session.getSnapshot().displayBodyIds;
 const displayCandidate:CadEditorCandidate = session.prepareDisplayBodies(displayed);
 const displayGeneration:number = session.getSnapshot().displayGeneration;
+const featureOptions:CadEditorFeatureSessionOptions = {native:{maximumParameterResolutions:8,maximumFeatureEvaluations:7},display:{featureId:'extrusion_feature',outputSlotId:'extrusion_slot'},mesh:{meshId:'editor_mesh',maximumVertices:384,maximumTriangles:288,maximumEdgePaths:192,maximumNativeSamples:1024}};
+const featureSession=createCadEditorFeatureSession(parseBooleanExtrusionFeatureGraph('{}',featureOptions.native).document,featureOptions);
+featureSession.stageLengthParameter('base_height',{kind:'literal',rawValueMM:'3'});
+featureSession.stageBooleanOperation('boolean_feature','intersection');
+const featureProps:CadEditorFeatureProps={session:featureSession,onDisplay:r=>{const i:number=r.readIndex;const h:string=r.pixelHash;},onAccepted:s=>{const g:number=s.generation;},onError:e=>{const c:string=e.code;}};
+const featureElement=<CadEditorFeature {...featureProps}/>;
 `);
     const consumerProgram = ts.createProgram([consumerPath], {
       target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,

@@ -71,3 +71,6 @@ export { CadEditorInspector } from './inspector.js';
 export { useCadEditorSnapshot } from './use-session.js';
 export type { CadEditorDisplayOptions, CadEditorDisplayReceipt, CadEditorViewportProps,
   CadEditorInspectorProps, CadEditorProps } from './types.js';
+export { CadEditorFeature } from './feature-editor.js';
+export type { CadEditorFeatureProps, CadEditorFeatureDisplayReceipt } from './feature-editor.js';
+export { useCadEditorFeatureSnapshot } from './use-feature-session.js';

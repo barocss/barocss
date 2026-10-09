@@ -177,3 +177,29 @@ pack/archive, independent-reader, broad-suite or publication validation.
 See [#1043](https://github.com/barocss/barocss/issues/1043) and the
 [CAD Editor roadmap](https://github.com/barocss/barocss/wiki/CAD-Editor-Product-Roadmap)
 for exact receipts, current integration status and later stages.
+
+## Native Boolean extrusion mode
+
+`createCadEditorFeatureSession` is a separate pure session for the actual native Boolean extrusion graph V0. It does not add feature data to canonical document1. Native evaluation requires two coplanar original Face inputs, one Boolean, one to four normal-extrusion leaves and at most eight typed length parameters. Native suppression is unavailable in this profile.
+
+```ts
+import { parseBooleanExtrusionFeatureGraph } from '@barocss/cad';
+import { createCadEditorFeatureSession } from '@barocss/cad-editor';
+const native = { maximumParameterResolutions: 8, maximumFeatureEvaluations: 7 };
+const session = createCadEditorFeatureSession(
+  parseBooleanExtrusionFeatureGraph(authoredText, native).document,
+  { native, display: { featureId: 'extrusion_feature', outputSlotId: 'extrusion_slot' },
+    mesh: { meshId: 'editor_mesh', maximumVertices: 384, maximumTriangles: 288,
+      maximumEdgePaths: 192, maximumNativeSamples: 1024 } },
+);
+session.stageLengthParameter('base_height', { kind: 'literal', rawValueMM: '3' });
+session.stageBooleanOperation('boolean_feature', 'intersection');
+const candidate = session.prepareApply();
+// A host must admit candidate.display through its actual renderer before accepting the token.
+```
+
+`CadEditorFeature` in the React entry mounts the existing GPU Boolean Shell scene renderer. It maps the actual interop-qualified graph output to the GPU scene reference, admits the complete native mesh and reads fresh RGBA before committing the session candidate. No Viewer Shell-load API is assumed. Authored XYZ remains unchanged; the default display uses one mm-to-scene scale0.01. Camera and Fit affect presentation only. A GPU or native failure preserves the previous accepted graph, draft, history and frame. Native outputs and the derived mesh are not authored editing authority or certified solids.
+
+Length drafts retain literal or offset definitions. Missing or cyclic dependencies, invalid lengths, unsupported contacts, stale tokens and native mesh budgets refuse. Existing Face inputs are retained by height/operation edits. Open requires an explicit qualified extrusion/output slot from the session options; it does not silently choose the first leaf. Native files contain only authored graph data. The graph limit is1MiB and history is bounded to20 accepted states /8MiB. Download excludes pending values, native evaluations, camera, mesh and editor history. Public subscribe/dispose have no renderer ownership.
+
+The focused source/compiled gate is `apps/cad-editor/flows/feature-graph-flow.mjs`. Its actual file download is opened in a fresh browser context and re-edited. Native region area, inclined extrusion vectors, signed zero, original Face inputs and actual pixels are checked separately. This gate is not full parametric, topology, manufacturing, OS IME or commercial parity acceptance.

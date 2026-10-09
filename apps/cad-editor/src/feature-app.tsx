@@ -1,0 +1,102 @@
+import { useEffect, useRef, useState } from 'react';
+import { Box, Download, FolderOpen, Layers3, Maximize, Redo2, Undo2 } from 'lucide-react';
+import { parseBooleanExtrusionFeatureGraph } from '@barocss/cad';
+import { CadEditorError, createCadEditorFeatureSession, type CadEditorFeatureSessionOptions } from '@barocss/cad-editor';
+import { CadEditorFeature, useCadEditorFeatureSnapshot, type CadEditorFeatureDisplayReceipt } from '@barocss/cad-editor/react';
+import fixture from '../fixtures/boolean-extrusion.authored-graph.json?raw';
+import { Button } from './components/ui/button';
+import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarTrigger } from './components/ui/menubar';
+import { downloadAccepted, readCadEditorFile } from './file-actions';
+
+const options: CadEditorFeatureSessionOptions = {
+  native: { maximumParameterResolutions: 8, maximumFeatureEvaluations: 7 },
+  display: { featureId: 'extrusion_feature', outputSlotId: 'extrusion_slot' },
+  mesh: { meshId: 'editor_mesh', maximumVertices: 384, maximumTriangles: 288, maximumEdgePaths: 192, maximumNativeSamples: 1024 },
+};
+const names: Record<string, string> = { face_a_feature: 'Face A', face_b_feature: 'Face B', boolean_feature: 'Combine faces', extrusion_feature: 'Extrusion', base_height: 'Base height', design_height: 'Extrusion height', unused: 'Reference length' };
+const name = (id: string) => names[id] ?? id;
+
+function message(error: CadEditorError): string {
+  if (error.code === 'DISPLAY') return 'Cannot display this change. The current graph is retained.';
+  if (error.code === 'BUDGET') return 'This input exceeds the supported size. Open a smaller graph.';
+  if (error.code === 'STALE') return 'The graph changed. Try the action again.';
+  const cause = error.cause instanceof Error ? error.cause : null;
+  const code = cause && 'code' in cause ? String(cause.code) : '';
+  if (code === 'DEPENDENCY') return 'Choose an existing length parameter. Remove cyclic references.';
+  if (error.context.field === 'feature-history' || error.context.field === 'feature-selection' || error.context.field === 'feature-draft') return 'Apply or discard the pending values before this action.';
+  if (error.context.field === 'feature-file') return 'Cannot open this graph. Select a supported Boolean extrusion file.';
+  return 'Cannot apply these values. Check the lengths, dependencies and face arrangement.';
+}
+
+function causeReceipt(cause: unknown, depth = 0): unknown {
+  if (!(cause instanceof Error) || depth >= 6) return null;
+  return {message:cause.message,code:'code' in cause ? cause.code : null,cause:causeReceipt(cause.cause,depth + 1)};
+}
+
+export function FeatureApp() {
+  const [session] = useState(() => createCadEditorFeatureSession(parseBooleanExtrusionFeatureGraph(fixture, options.native).document, options));
+  const snapshot = useCadEditorFeatureSnapshot(session);
+  const [error, setError] = useState<CadEditorError | null>(null);
+  const [receipt, setReceipt] = useState<CadEditorFeatureDisplayReceipt | null>(null);
+  const [filename, setFilename] = useState('Boolean extrusion');
+  const [fitRequest, setFitRequest] = useState(0);
+  const [readRequest, setReadRequest] = useState(0);
+  const [mounted, setMounted] = useState(true);
+  const [mountKey, setMountKey] = useState(0);
+  const [displayRefusal, setDisplayRefusal] = useState(false);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const pendingFilename = useRef<string | null>(null);
+  const flowMode = new URLSearchParams(location.search).has('flow');
+  const busy = snapshot.candidate !== null;
+  const draft = Object.keys(snapshot.pending.parameters).length > 0 || Object.keys(snapshot.pending.booleanOperations).length > 0;
+  const run = (action: () => unknown) => { try { setError(null); action(); } catch (cause) { setReadRequest(n => n + 1); setError(cause instanceof CadEditorError ? cause : new CadEditorError('FILE', 'Action failed.', {}, cause)); } };
+  useEffect(() => () => session.dispose(), [session]);
+  useEffect(() => {
+    if (!flowMode) return;
+    Object.assign(window, { __cadFeatureFlow: { session, snapshot: () => session.getSnapshot(), display: () => structuredClone(receipt), error: () => error ? {code:error.code,message:error.message,context:error.context,cause:causeReceipt(error.cause)} : null,
+      setDisplayRefusal, setMounted: (value: boolean) => { setMounted(value); if (value) setMountKey(n => n + 1); } } });
+    return () => { delete (window as Window & { __cadFeatureFlow?: unknown }).__cadFeatureFlow; };
+  }, [flowMode, session, receipt, error]);
+  async function openFile(file: File | undefined) {
+    if (!file) return;
+    try { setError(null); const text = await readCadEditorFile(file); pendingFilename.current = file.name; session.prepareOpen(text); }
+    catch (cause) { pendingFilename.current = null; setReadRequest(n => n + 1); setError(cause instanceof CadEditorError ? cause : new CadEditorError('FILE', 'Cannot open this graph.', {field:'open'}, cause)); }
+  }
+  const dependencies = snapshot.accepted.report.featureDependencies;
+  return <div className="cad-app">
+    <header className="app-header">
+      <a className="app-brand" href="#/features/cad_boolean_extrusion"><Box size={20}/><span>barocss<span className="brand-sub">CAD</span></span></a>
+      <Menubar className="app-menubar"><MenubarMenu><MenubarTrigger>File</MenubarTrigger><MenubarContent>
+        <MenubarItem disabled={busy || draft} onSelect={() => run(() => { pendingFilename.current = 'Boolean extrusion'; session.prepareOpen(fixture); })}>New Boolean extrusion</MenubarItem>
+        <MenubarItem disabled={busy} onSelect={() => fileInput.current?.click()}>Open native graph…</MenubarItem>
+        <MenubarItem onSelect={() => run(() => downloadAccepted(session))}>Download accepted graph</MenubarItem>
+        <MenubarSeparator/><MenubarItem disabled={busy} onSelect={() => { location.hash = '/documents/cad_editor_fixture'; }}>Surface document</MenubarItem>
+      </MenubarContent></MenubarMenu></Menubar>
+      <span className="document-title">{filename}<span className="dirty-dot" aria-label={snapshot.dirty ? 'Changed since open or download' : 'Accepted content unchanged'}>{snapshot.dirty ? ' •' : ''}</span></span>
+      <Button variant="outline" size="sm" disabled={busy} onClick={() => fileInput.current?.click()}><FolderOpen/>Open</Button>
+      <Button size="sm" onClick={() => run(() => downloadAccepted(session))}><Download/>Download</Button>
+      <input ref={fileInput} type="file" accept=".json" aria-label="Open native feature graph file" className="file-input" onChange={event => { void openFile(event.target.files?.[0]); event.target.value = ''; }}/>
+    </header>
+    <div className="app-toolbar"><span className="breadcrumb">{filename}</span><div className="toolbar-actions">
+      <Button variant="ghost" size="icon-sm" aria-label="Undo" disabled={!snapshot.history.canUndo || busy || draft} onClick={() => run(() => session.prepareUndo())}><Undo2/></Button>
+      <Button variant="ghost" size="icon-sm" aria-label="Redo" disabled={!snapshot.history.canRedo || busy || draft} onClick={() => run(() => session.prepareRedo())}><Redo2/></Button>
+      <span className="toolbar-divider"/><Button variant="ghost" size="sm" onClick={() => setFitRequest(n => n + 1)}><Maximize/>Fit</Button>
+    </div></div>
+    {error && <div className="app-error" role="alert">{message(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
+    <div className="app-workspace">
+      <aside className="document-tree"><h2><Layers3 size={15}/>Features</h2><div className="tree-document"><Box size={16}/><span>{filename}</span></div>
+        {snapshot.accepted.document.features.map(feature => <button key={feature.id} data-testid={'feature-select-' + feature.id} className={'tree-body' + (snapshot.selectedFeatureId === feature.id ? ' selected' : '')} aria-pressed={snapshot.selectedFeatureId === feature.id} onClick={() => run(() => session.selectFeature(feature.id))}>
+          <span className="body-symbol surface">{feature.kind === 'normal-extrusion' ? '▣' : '▱'}</span><span>{name(feature.id)}<small>{(dependencies.find(item => item.featureId === feature.id)?.dependencyIds ?? []).map(name).join(' + ') || 'Original face'}</small></span>
+        </button>)}
+        <div className="tree-section">LENGTHS <span>{snapshot.accepted.parameters.length}</span></div>
+        {snapshot.accepted.parameters.map(parameter => <div key={parameter.id} className="feature-parameter-summary" data-testid={'parameter-summary-' + parameter.id}><span>{name(parameter.id)}{parameter.dependencyIds.length > 0 && <small>{parameter.dependencyIds.map(name).join(' + ')}</small>}</span><strong>{Object.is(parameter.valueMM,-0) ? '-0' : parameter.valueMM} mm</strong></div>)}
+        <div className="tree-details"><span>Units</span><strong>mm</strong><span>Axes</span><strong>XYZ</strong></div>
+      </aside>
+      <main className="main-workspace">{mounted && <CadEditorFeature key={mountKey} session={session} fitRequest={fitRequest} readRequest={readRequest}
+        displayOptions={displayRefusal ? {mmToSceneUnit:0,translate:[0,0,0],background:[0.07,0.08,0.10],camera:{eye:[0.2,0.2,0.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:0.001,far:10}} : undefined}
+        onError={failure => { pendingFilename.current = null; setError(failure); }} onDisplay={setReceipt}
+        onAccepted={accepted => { setError(null); if (pendingFilename.current) {setFilename(pendingFilename.current); pendingFilename.current = null;} location.hash = '/features/' + accepted.accepted.document.id; }}/>}</main>
+    </div>
+    <footer className="app-status"><span className="status-led"/><span>{busy ? 'Preparing display' : draft ? 'Pending values' : 'Accepted graph'}</span><span className="status-divider"/><span>{snapshot.downloadStatus}</span><span className="status-spacer"/><span>XYZ · mm</span></footer>
+  </div>;
+}
