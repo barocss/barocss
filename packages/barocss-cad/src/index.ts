@@ -281,3 +281,6 @@ export type { QuinticHermiteEndpoint, QuinticHermiteOptions, QuinticHermiteRepor
 
 export { inspectCurveEndpointContinuity, validateCurveEndpointContinuity, CurveEndpointContinuityError, CurveEndpointContinuityDiagnosticCode } from './curve-endpoint-continuity.js';
 export type { CurveEndpointContinuityInput, CurveEndpointContinuityOptions, CurveEndpointContinuityReport, CurveEndpointContinuityResult } from './curve-endpoint-continuity.js';
+
+export { buildClosedExactPatchShell, validateClosedExactPatchShell, ClosedExactPatchShellError, ClosedExactPatchShellDiagnosticCode } from './closed-exact-patch-shell.js';
+export type { ClosedExactPatchShellOptions, ClosedExactPatchShellGraph, ClosedExactPatchShellReport, ClosedExactPatchShellResult } from './closed-exact-patch-shell.js';

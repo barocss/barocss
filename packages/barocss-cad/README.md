@@ -7881,3 +7881,44 @@ Original sources/domains/knots/weights/poles remain unchanged. Source/file/owned
 rebuild and explicit published-map compiled proof belong to the scoped final
 checkpoint. [MIT continuity definitions](https://web.mit.edu/hyperbook/Patrikalakis-Maekawa-Cho/node13.html)
 distinguish parametric derivative matching from geometric continuity.
+
+## Closed exact quad-patch incidence — #1057
+
+`buildClosedExactPatchShell(assets,pairs,options)` composes unchanged exact
+boundary-pair proofs into one connected closed incidence graph. Assets and pairs
+use the existing source-qualified Face API. Two through six Faces require
+exactly twice as many pairs; each of the four local boundaries occurs once.
+Options are shellId/resultIdPrefix/maximumPairEvaluations/maximumObservationPairs.
+The prefix has at most five characters; budgets cover up to twelve children and
+thirty-six observation pairs before any child work.
+
+Each actual child receives two assets and one pair. Its complete result stays
+unchanged, including closed:false and its local free boundaries. Global classes
+use only actual child endpoint associations and matching qualified vertex bits.
+Unrelated equal coordinates are not welded. The global graph checks two
+opposite uses per Edge, distinct endpoints, complete original entities, a
+connected Face graph and connected degree-two vertex-link cycles. Face corners
+supply the link arcs. Two-node parallel-arc cycles are allowed; Euler V-E+F is
+diagnostic and is not forced to two. Original sources/pcurves/geometry/Face
+orientation and existing provider limits remain unchanged.
+
+The result retains assets/pairs/options/pairResults/graph/report.
+`validateClosedExactPatchShell(owned)` rebuilds every actual child and all graph
+proofs. `ClosedExactPatchShellError`/DiagnosticCode retain actual native causes.
+Global closed and abstract incidence-manifold results do not certify geometric
+embedding, self-intersection, inside/outside, occupied volume or Solid. Reports
+keep geometricValidity:not-certified and solid:false. General 3D Boolean still
+needs those checks plus original Surface intersections and native trims.
+
+Each accepted Face retains the existing degree1..3/grid<=16x16/C1/corner/source
+profile. Direct root-child calls and summed child direct compilation/Face/boundary/
+reversal/D0/D1 work are reported separately from internal work. Complete proof
+payloads retain the existing million-value limit and can refuse larger data.
+
+```sh
+node examples/cad-nurbs/closed-exact-patch-shell-demo.mjs --source EVIDENCE_DIR
+```
+
+The scoped native checkpoint uses one affected build and this actual
+source/file/API/cold/owned/explicit compiled-map flow. Integration and renderer
+acceptance remain separate.
