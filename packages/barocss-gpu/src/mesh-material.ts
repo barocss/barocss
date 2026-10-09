@@ -22,7 +22,10 @@ const zero=(n:number)=>n===0?0:n;
 function freeze<T>(value:T):T{if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
 function tokens(source:string):Token[]{
  const result:Token[]=[];let i=0;
- while(i<source.length){const start=i,c=source[i];if(/\s/.test(c)){i++;continue;}if(source.startsWith('/*',i)){const end=source.indexOf('*/',i+2);if(end<0)fail('SYNTAX','Unclosed comment',{text:c,start,end:i+2});i=end+2;continue;}
+ while(i<source.length){const start=i,c=source[i];if(/\s/.test(c)){i++;continue;}
+ // Keep original source offsets; line terminators remain ordinary whitespace.
+ if(source.startsWith('//',i)){i+=2;while(i<source.length&&!/[\r\n\u2028\u2029]/.test(source[i]))i++;continue;}
+ if(source.startsWith('/*',i)){const end=source.indexOf('*/',i+2);if(end<0)fail('SYNTAX','Unclosed comment',{text:c,start,end:i+2});i=end+2;continue;}
  let text:string;
  if(c==='#'){i++;while(i<source.length&&/[A-Za-z0-9_-]/.test(source[i]))i++;text=source.slice(start,i);}
  else if(/[A-Za-z_]/.test(c)){i++;while(i<source.length&&/[A-Za-z0-9_]/.test(source[i]))i++;text=source.slice(start,i);}
