@@ -586,3 +586,14 @@ through its published dist map, rather than bundle a dist root with source
 workspace dependencies. The cloth example server has a separately labelled
 compiled proof mode and records its actual input graph. Ordinary source mode
 uses normal package resolution with no source aliases or custom condition.
+
+
+## Selected native Shell graph
+
+`loadShellGraph(graph, { basis: 'authored-xyz-matches-rhyup', entries })` displays zero through four current normal-extrusion graph leaves. Each entry supplies an exact `ref` (`graphId`, `graphRevision`, `featureId`, `outputSlotId`), bounded public native `mesh` options, RGB `color` and `edges: null` or `{ color }`. Viewer validates the complete current graph and uses the existing public Loader derivation to produce each original native mesh. It does not accept a foreign cached mesh as graph authority.
+
+`getState().shell` copies `{ graph, scene, boundsScene }`. The native graph keeps authored intent and original embedded native source, not the original JSON whitespace. Derived display bounds are not certified native bounds. Zero selected entries and selected genuine empty leaves both have null bounds and empty status; their copied provenance differs. They retain the prior camera. Filled candidates fit their complete display bounds before one atomic same-canvas presentation. A failure keeps the accepted scene/camera/pixels. Existing successful loads and Clear replace Shell mode only after their GPU candidate succeeds.
+
+Shell mode supports view/orbit/pan/zoom, attached camera controls, fit, resize and readPixels. Fit refuses when no filled bounds exist. This first mode has no Shell picking or selection. Primitive picking, non-null selection, visibility, individual/document fit, native primitive measurements/projection, assembly point queries, motion and Surface materials refuse. Null selection and null fluid/cloth frames are live no-ops; non-null simulation layers refuse. Primitive lists and bindings stay empty. Context loss retains copied CPU Shell data, retires its owned Shell backend while GL is lost, and refuses GPU operations; Dispose clears Shell state and releases the backend. No automatic context restoration, Solid/topology certification, hidden-line certification, assembly placement or editor transaction is implied.
+
+See `examples/viewer-shell-scene` for the original authored graph consumer and bounded actual verification flow. Native implementation and separate local Integration acceptance are distinct.
