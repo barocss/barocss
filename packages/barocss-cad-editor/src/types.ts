@@ -10,6 +10,7 @@ export class CadEditorError extends Error {
   }
 }
 export type CadEditorPoleField = 'xMM' | 'yMM' | 'zMM' | 'weight';
+export interface CadEditorSessionOptions { displayBodyIds?: string[] }
 export interface CadEditorSurfaceSelection { bodyId: string; uIndex: number; vIndex: number }
 export interface CadEditorSelectionTarget {
   bodyId: string; uIndex?: number; vIndex?: number; reference?: CadGeometryReferenceV0;
@@ -23,14 +24,18 @@ export interface CadEditorSelectedPole extends CadEditorSurfaceSelection {
   countU: number; countV: number;
 }
 export interface CadEditorCandidate {
-  token: string; baseGeneration: number;
-  kind: 'apply' | 'open' | 'undo' | 'redo';
+  token: string; baseGeneration: number; baseDisplayGeneration: number;
+  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display';
+  displayBodyIds: string[];
   result: CadDocumentResult;
   provenance: SurfacePoleEditProvenance[];
 }
 export interface CadEditorSnapshot {
   accepted: CadDocumentResult;
   generation: number;
+  displayGeneration: number;
+  displayBodyIds: string[];
+  bodyCapabilities: { bodyId: string; canEditSurfacePole: boolean; reason: null | 'curve' | 'surface-profile' | 'asset-has-siblings' }[];
   selectedBodyId: string | null;
   selection: CadEditorSelectedPole | null;
   selectionTransition: CadEditorSelectionTransition | null;
@@ -52,7 +57,8 @@ export interface CadEditorSession {
   stageSurfacePoleField(field: CadEditorPoleField, rawText: string): void;
   discardPending(): void;
   prepareApply(): CadEditorCandidate | null;
-  prepareOpen(text: string): CadEditorCandidate;
+  prepareOpen(text: string, options?: CadEditorSessionOptions): CadEditorCandidate;
+  prepareDisplayBodies(bodyIds: string[]): CadEditorCandidate;
   prepareUndo(): CadEditorCandidate;
   prepareRedo(): CadEditorCandidate;
   acceptCandidate(token: string): CadEditorSnapshot;

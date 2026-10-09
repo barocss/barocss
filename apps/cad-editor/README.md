@@ -56,3 +56,17 @@ invalid native weight without changing the accepted frame, highlights the read-o
 Curve, refuses stale targets, exercises actual text/document keyboard undo and
 performs a genuine Download → fresh Open → Enter re-edit. Its extra midpoint
 checks are `[30,20,68/5]`, `[30,20,72/5]` and `[30,20,76/5]`.
+
+For #1045 complete-inventory evidence, add `--inventory` (and `--draft` for the
+previous draft flow). `complete-native-inventory.cad-document.json` has four
+assets and sixteen bodies. Open asks for one to four visible objects before
+adoption. Checkboxes hide/reveal bodies without modifying native data. Fit selected
+uses actual native bounds, and actual canvas picking resolves a full qualified
+body reference. A foreign asset has the same Surface ID and remains unchanged.
+Multi-object Surface assets are explicitly read-only until a public native asset
+replacement writer exists. A hidden degree5Curve remains valid native content;
+showing its asset reaches the actual unsupported-preview refusal and retains
+the prior frame. Over-display-budget requests are refused without truncation.
+The genuine full-document download retains all hidden sources/models/body IDs
+and revisions. Fresh Open chooses a new display set and re-edits the original
+Surface; foreign same-ID geometry stays exact. Native file budget is2MiB.

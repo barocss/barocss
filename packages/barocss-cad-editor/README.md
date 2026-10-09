@@ -31,7 +31,7 @@ const displayOptions = {
       sourceVersion: 0, countU: 17, countV: 17, unitsPerMillimeter: 1,
       curveDisplay: { chordToleranceMM: 0.1, maxSegments: 64, maxDepth: 8 },
     },
-    bodyIds: ['surface_body', 'curve_body'],
+    // The pure session controls the explicit displayed body set.
   },
 };
 // Use a container with a defined height. The application owns menus and files.
@@ -106,25 +106,51 @@ pipeline; it does not certify every operating-system input method.
 
 ## Current support
 
-The foundation admits exactly two original Source0 assets/bodies: one Surface
-and one separate Curve. Each asset contains one original geometry object.
-Construction nodes and valid native documents outside this editor profile are
-refused as whole inputs. This prevents a selected one-Surface edit result from
-replacing a multi-object asset and dropping siblings.
+Native inventory uses the complete canonical document profile: 1–4 Source0 assets
+and 1–16 asset-qualified direct geometry bodies. Original native Curve/Surface
+objects, including unbound siblings, remain authoritative. Same geometry IDs can
+occur in separate assets. Source0 Models may contain up to 16 objects per asset.
+Native degrees1–5, knots, weights, coordinates, IDs and signed zero remain in the
+original source. The editor does not narrow hidden native data to a preview profile.
+Canonical file bounds are 2097152 UTF-8 bytes/code units; each source is at most
+262144 and aggregate source is at most1048576 bytes. The actual CAD parser and
+validator enforce these bounds. Raw fields retain the 128-character limit.
 
-Surface degrees are 1–3, grid axes 2–16, total poles at most 256. Curve degrees
-are 1–3, poles at most 16 and native spans at most 8. Native clamped domains,
-positive weights `1e-6..1e6`, original IDs, knots, coefficient bits and signed zero
-remain authoritative. Coordinates are within ±10000 mm. Files are UTF-8 with
-at most 524288 bytes/code units. Each native source has the original 262144
-byte/code-unit bound. Raw fields have at most 128 characters and accept finite
-decimal/exponent notation. Revision overflow at 2147483647 is refused atomically.
+A body is editable only when its asset has one original Surface, its Model name
+matches the Surface ID, and its coefficients meet the actual control-net edit
+profile: ID1–48, degrees1–3, axes2–16/at most256poles, coordinates±10000mm,
+positive weights1e-6..1e6. Curve bodies, multi-object Surface assets and other
+native Surface profiles can be selected and inspected but are read-only.
+The public native edit emits one Surface source; no public whole-asset replacement
+writer exists. This explicit limit prevents loss of siblings or Model identity.
 
-Authored XYZ has no hidden axis conversion. Viewer uses one positive mm scale;
-the reference app uses `0.01`, with native sampling units unchanged. Sampling and
-picking are display approximations. This package does not certify solids,
-topology, manufacturing tolerances, general feature graphs or assemblies.
-Curve poles remain read-only. Body selection can highlight the reference Curve.
+`createCadEditorSession(document,{displayBodyIds})` and `prepareOpen(text,options)`
+choose unique existing1–4body IDs. When a document has at most4bodies, the default
+is all bodies. Larger documents require an explicit choice; there is no first4
+truncation. IDs are normalized to canonical body order. Snapshot `displayBodyIds`,
+`displayGeneration` and `bodyCapabilities` describe the independent display set
+and each body's edit eligibility.
+
+`prepareDisplayBodies(ids)` prepares a display-only candidate. Actual successful
+Viewer admission commits the new set and increments only `displayGeneration`.
+Native source/revisions/generation/history/dirty/provenance/pending fields and
+accepted download capture remain unchanged. Native Apply/history keep the display
+set; Open adopts its chosen set. Every candidate records both base generations
+and copied displayed IDs. Hidden bodies stay in the full native document and can
+be selected; their missing display selection is cleared without losing native
+selection. Display set data is absent from native downloads.
+
+React uses the session display set for every load and ignores host `bodyIds`.
+Use native `nativeCapacity:{version:1,maximumObjects:16}` for multi-object assets
+and explicit Curve display options. The bridge previews whole selected assets;
+an unsupported sibling can refuse the entire attempted display. Display samples
+and pointer picks are approximations. Pointer selection maps the actual Viewer
+asset namespace and original geometry ID to a current native body binding.
+Camera drags beyond3CSSpixels do not select. `fitSelectedRequest` requests actual
+native bounds for a displayed selected body/current document revision; `fitRequest`
+fits the displayed bodies. Authored XYZ and one Viewer mm scale remain unchanged.
+No solids, topology, manufacturing tolerance, feature/assembly graph or full16body
+GPU display certification is made.
 
 Errors use `INPUT`, `UNSUPPORTED`, `BUDGET`, `STALE`, `NATIVE`, `DISPLAY`, `FILE`,
 `REVISION` or `LIFECYCLE`, messages bounded to 1024 characters, and actual reached
@@ -137,8 +163,8 @@ Use Node 22 and the workspace's installed dependencies:
 ```sh
 pnpm --filter @barocss/cad-editor build:library
 pnpm --filter @barocss/cad-editor-app build
-node apps/cad-editor/flows/canonical-surface-flow.mjs --source --headed
-node apps/cad-editor/flows/canonical-surface-flow.mjs --compiled --headed
+node apps/cad-editor/flows/canonical-surface-flow.mjs --source --draft --inventory --headed
+node apps/cad-editor/flows/canonical-surface-flow.mjs --compiled --draft --inventory --headed
 ```
 
 The build emits owned ESM/declarations/CSS with native dependencies external.

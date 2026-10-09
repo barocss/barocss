@@ -203,6 +203,9 @@ const candidate: CadEditorCandidate | null = session.prepareApply();
 const decision = session.requestSelection({bodyId:'surface_body',uIndex:1,vIndex:1});
 if (decision) session.resolveSelectionTransition(decision.token, 'cancel');
 const selectedBody:string|null = session.getSnapshot().selectedBodyId;
+const displayed:string[] = session.getSnapshot().displayBodyIds;
+const displayCandidate:CadEditorCandidate = session.prepareDisplayBodies(displayed);
+const displayGeneration:number = session.getSnapshot().displayGeneration;
 `);
     const consumerProgram = ts.createProgram([consumerPath], {
       target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,

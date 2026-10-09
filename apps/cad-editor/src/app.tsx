@@ -4,6 +4,7 @@ import { parseCadDocument } from '@barocss/cad';
 import { CadEditorError, createCadEditorSession } from '@barocss/cad-editor';
 import { CadEditor, useCadEditorSnapshot, type CadEditorDisplayOptions, type CadEditorDisplayReceipt } from '@barocss/cad-editor/react';
 import fixtureText from '../fixtures/canonical-surface-and-curve.cad-document.json?raw';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './components/ui/dialog';
 import { Button } from './components/ui/button';
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from './components/ui/menubar';
 import { downloadAccepted, readCadEditorFile } from './file-actions';
@@ -13,6 +14,10 @@ function actionError(error: CadEditorError): string {
   if (cause.includes('Weights must')) return 'Enter a weight from 0.000001 to 1000000.';
   if (error.message.includes('two assets and two bodies')) return 'Open a document with one Surface and one Curve.';
   if (error.message.includes('Native document Open')) return 'Cannot open this file. Select a valid CAD document.';
+  if (error.context.field === 'fit-selection') return 'Show the selected object before fitting it.';
+  if (cause.includes('native degree1..3 Curve')) return 'This object cannot be displayed. Choose another object.';
+  if (error.context.field === 'display-body-set') return 'Display one to four objects. Hide an object before showing another.';
+  if (error.context.field === 'edit-capability') return 'This Surface is read-only. Select an editable Surface.';
   if (error.context.field === 'history') return 'Apply or discard the pending values before using history.';
   if (error.context.field === 'selection-transition') return 'Apply or discard the pending values before this action.';
   if (error.code === 'DISPLAY') return 'Cannot display this change. The current document is retained.';
@@ -25,7 +30,7 @@ function actionError(error: CadEditorError): string {
 
 const defaultDisplay: CadEditorDisplayOptions = {
   viewer: { mmToSceneUnit: 0.01, background: [0.07, 0.08, 0.10] },
-  document: { basis: 'authored-xyz-matches-rhyup', native: { sourceVersion: 0, countU: 17, countV: 17, unitsPerMillimeter: 1, curveDisplay: { chordToleranceMM: 0.1, maxSegments: 64, maxDepth: 8 } }, bodyIds: ['surface_body', 'curve_body'] },
+  document: { basis: 'authored-xyz-matches-rhyup', native: { sourceVersion: 0, countU: 17, countV: 17, unitsPerMillimeter: 1, curveDisplay: { version: 1, chordToleranceMM: 0.1, maxSegments: 64, maxDepth: 8 }, nativeCapacity: { version: 1, maximumObjects: 16 } } },
 };
 
 export function App() {
@@ -35,6 +40,8 @@ export function App() {
   const [filename, setFilename] = useState('Weighted surface');
   const [receipt, setReceipt] = useState<CadEditorDisplayReceipt | null>(null);
   const [displayOptions, setDisplayOptions] = useState(defaultDisplay);
+  const [fitSelectedRequest, setFitSelectedRequest] = useState(0);
+  const [openChoice, setOpenChoice] = useState<{text:string;filename:string;bodies:{id:string;name:string}[];selected:string[]} | null>(null);
   const [fitRequest, setFitRequest] = useState(0);
   const [mount, setMount] = useState(true);
   const [mountKey, setMountKey] = useState(0);
@@ -50,6 +57,7 @@ export function App() {
     if (!location.hash) location.hash = '/documents/' + snapshot.accepted.document.documentId;
     return () => window.removeEventListener('hashchange', updateRoute);
   }, []);
+  useEffect(() => { setError(null); }, [snapshot.selectedBodyId]);
   useEffect(() => () => session.dispose(), [session]);
   useEffect(() => {
     if (!flowMode) return;
@@ -68,8 +76,11 @@ export function App() {
     try {
       setError(null);
       const text = await readCadEditorFile(file);
-      session.prepareOpen(text);
+      let document;
+      try { document = parseCadDocument(text).document; } catch (cause) { throw new CadEditorError('NATIVE','Native document Open failed.',{},cause); }
+      if (document.bodies.length > 4) { setOpenChoice({text,filename:file.name,bodies:document.bodies,selected:[]}); return; }
       pendingFilename.current = file.name;
+      session.prepareOpen(text);
     } catch (cause) { pendingFilename.current = null; setReadRequest(value => value + 1); setError(cause instanceof CadEditorError ? cause : new CadEditorError('FILE', 'Cannot open this file.', {}, cause)); }
   };
   const newSample = () => run(() => { pendingFilename.current = 'Weighted surface'; session.prepareOpen(fixtureText); });
@@ -103,7 +114,7 @@ export function App() {
     <div className="app-toolbar"><span className="breadcrumb"><a href="#/projects">Projects</a><ChevronRight size={12}/><span>{filename}</span></span><div className="toolbar-actions">
       <Button variant="ghost" size="icon-sm" aria-label="Undo" disabled={!snapshot.history.canUndo || busy || hasDraft} onClick={() => run(() => session.prepareUndo())}><Undo2/></Button>
       <Button variant="ghost" size="icon-sm" aria-label="Redo" disabled={!snapshot.history.canRedo || busy || hasDraft} onClick={() => run(() => session.prepareRedo())}><Redo2/></Button>
-      <span className="toolbar-divider"/><Button variant="ghost" size="sm" onClick={() => setFitRequest(value => value + 1)}><Maximize/>Fit</Button>
+      <span className="toolbar-divider"/><Button variant="ghost" size="sm" onClick={() => setFitRequest(value => value + 1)}><Maximize/>Fit</Button><Button variant="ghost" size="sm" data-testid="fit-selected-body" disabled={!snapshot.selectedBodyId} onClick={() => setFitSelectedRequest(value => value + 1)}>Fit selected</Button>
     </div></div>
     {error && <div className="app-error" role="alert">{actionError(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
     <div className="app-workspace">
@@ -112,17 +123,41 @@ export function App() {
         {snapshot.accepted.document.bodies.map(body => {
           const binding = snapshot.accepted.bodyBindings.find(item => item.bodyId === body.id)!;
           const selected = snapshot.selectedBodyId === body.id;
-          return <button key={body.id} className={'tree-body' + (selected ? ' selected' : '')} onClick={() => run(() => session.requestSelection(binding.geometryKind === 'surface' ? { bodyId: body.id, uIndex: 1, vIndex: 1 } : { bodyId: body.id }))} aria-pressed={selected}>
-            <span className={'body-symbol ' + binding.geometryKind}>{binding.geometryKind === 'surface' ? '▱' : '╱'}</span><span>{body.name}<small>{binding.geometryKind === 'surface' ? 'Editable surface' : 'Read-only curve'}</small></span><span className="visible-mark" aria-label="Visible">●</span>
-          </button>;
+          const shown = snapshot.displayBodyIds.includes(body.id);
+          const editable = snapshot.bodyCapabilities.find(item => item.bodyId === body.id)?.canEditSurfacePole;
+          return <div key={body.id} className="tree-body-row">
+            <button className={'tree-body' + (selected ? ' selected' : '')} data-testid={'body-select-' + body.id}
+              onClick={() => run(() => session.requestSelection(binding.geometryKind === 'surface' ? { bodyId: body.id, uIndex: 1, vIndex: 1 } : { bodyId: body.id }))} aria-pressed={selected}>
+              <span className={'body-symbol ' + binding.geometryKind}>{binding.geometryKind === 'surface' ? '▱' : '╱'}</span><span>{body.name}<small>{editable ? 'Editable surface' : binding.geometryKind === 'surface' ? 'Read-only surface' : 'Read-only curve'}</small></span>
+            </button>
+            <input type="checkbox" data-testid={'body-visible-' + body.id} aria-label={(shown ? 'Hide ' : 'Show ') + body.name}
+              checked={shown} disabled={busy} onChange={() => run(() => session.prepareDisplayBodies(shown ? snapshot.displayBodyIds.filter(id => id !== body.id) : [...snapshot.displayBodyIds, body.id]))} />
+          </div>;
         })}
         <div className="tree-details"><span>Units</span><strong>mm</strong><span>Axes</span><strong>XYZ</strong>{snapshot.selection && <><span>Control grid</span><strong>{snapshot.selection.countU} × {snapshot.selection.countV}</strong></>}</div>
-        <div className="tree-foot"><CircleHelp size={14}/><p>Select a surface to edit its control points. Reference curves are read-only.</p></div>
+        <div className="tree-foot"><CircleHelp size={14}/><p>Select a surface to edit its control points. Use the checkboxes to show or hide objects.</p></div>
       </aside>
       <main className="main-workspace">
-        {projectView ? <section className="projects-view"><span className="eyebrow">LOCAL DOCUMENTS</span><h1>Projects</h1><p>Start with the weighted surface, or open a native document.</p><button className="sample-project" onClick={() => { newSample(); location.hash = '/documents/cad_editor_fixture'; }}><span className="sample-symbol">▱</span><span><strong>Weighted surface</strong><small>Quadratic 3 × 3 surface · Reference line</small></span><ChevronRight size={20}/></button><Button variant="outline" onClick={() => fileInput.current?.click()}><FolderOpen/>Open document</Button></section> : mount && <CadEditor key={mountKey} session={session} displayOptions={displayOptions} fitRequest={fitRequest} readRequest={readRequest} onError={failure => { pendingFilename.current = null; setError(failure); }} onAccepted={accepted => { setError(null); if (pendingFilename.current) { setFilename(pendingFilename.current); pendingFilename.current = null; } location.hash = '/documents/' + accepted.accepted.document.documentId; }} onDisplay={setReceipt}/>}
+        {projectView ? <section className="projects-view"><span className="eyebrow">LOCAL DOCUMENTS</span><h1>Projects</h1><p>Start with the weighted surface, or open a native document.</p><button className="sample-project" onClick={() => { newSample(); location.hash = '/documents/cad_editor_fixture'; }}><span className="sample-symbol">▱</span><span><strong>Weighted surface</strong><small>Quadratic 3 × 3 surface · Reference line</small></span><ChevronRight size={20}/></button><Button variant="outline" onClick={() => fileInput.current?.click()}><FolderOpen/>Open document</Button></section> : mount && <CadEditor key={mountKey} session={session} displayOptions={displayOptions} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest} onError={failure => { pendingFilename.current = null; setError(failure); }} onAccepted={accepted => { setError(null); if (pendingFilename.current) { setFilename(pendingFilename.current); pendingFilename.current = null; } location.hash = '/documents/' + accepted.accepted.document.documentId; }} onDisplay={setReceipt}/>}
       </main>
     </div>
+    <Dialog open={openChoice !== null} onOpenChange={open => { if (!open) setOpenChoice(null); }}>
+      <DialogContent className="cad-editor-help-dialog" data-testid="open-display-choice">
+        <DialogHeader><DialogTitle>Choose visible objects</DialogTitle><DialogDescription>Select one to four objects to display. The complete document will be opened.</DialogDescription></DialogHeader>
+        <div className="open-body-list">{openChoice?.bodies.map(body => <label key={body.id}>
+          <input type="checkbox" data-testid={'open-body-' + body.id} checked={openChoice.selected.includes(body.id)}
+            onChange={event => setOpenChoice(current => current && {...current,selected:event.target.checked ? [...current.selected,body.id] : current.selected.filter(id => id !== body.id)})} />{body.name}
+        </label>)}</div>
+        <p>{openChoice?.selected.length ?? 0} selected</p>
+        <div className="cad-editor-transition-actions"><Button variant="outline" onClick={() => setOpenChoice(null)}>Cancel</Button>
+          <Button data-testid="open-display-confirm" disabled={!openChoice || openChoice.selected.length < 1 || openChoice.selected.length > 4} onClick={() => run(() => {
+            if (!openChoice) return;
+            pendingFilename.current = openChoice.filename;
+            session.prepareOpen(openChoice.text,{displayBodyIds:openChoice.selected});
+            setOpenChoice(null);
+          })}>Open</Button></div>
+      </DialogContent>
+    </Dialog>
     <footer className="app-status"><span className="status-led"/><span>{busy ? 'Preparing display' : Object.keys(snapshot.pending).length ? 'Pending fields' : 'Accepted document'}</span><span className="status-divider"/><span>{snapshot.downloadStatus}</span><span className="status-spacer"/><span>History {snapshot.history.index + 1} / {snapshot.history.count}</span><span className="status-divider"/><span>XYZ · mm</span></footer>
   </div>;
 }
