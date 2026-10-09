@@ -1,5 +1,5 @@
 import { Canvas2DError } from './schema.js';
-import type { PathNode, PathNodeV2, PathNodeV5, Point, View } from './schema.js';
+import type { PathNode, PathNodeV2, PathNodeV5, PathNodeV18, Point, View } from './schema.js';
 
 export type Matrix = [number, number, number, number, number, number];
 export type PathSample = { commandIndex: number; t: number; x: number; y: number };
@@ -96,7 +96,7 @@ function checkNonzeroTopology(contours: Float32Array[]): void {
   }
 }
 
-export function tessellatePath(node: PathNode | PathNodeV2 | PathNodeV5, matrix: Matrix, view: View, dpr: number,
+export function tessellatePath(node: PathNode | PathNodeV2 | PathNodeV5 | PathNodeV18, matrix: Matrix, view: View, dpr: number,
   tolerance: number): PathGeometry {
   const subpaths: MutableSubpath[] = [];
   let active: MutableSubpath | null = null;
@@ -182,6 +182,7 @@ export function tessellatePath(node: PathNode | PathNodeV2 | PathNodeV5, matrix:
   }
 
   const strokeWidth = 'width' in node ? node.width : node.stroke?.width;
+  const cap = 'width' in node || !node.stroke || !('cap' in node.stroke) ? 'butt' : node.stroke.cap;
   if (strokeWidth !== undefined) for (const subpath of subpaths) {
     const points = subpath.locals;
     if (points.length < 2) fail('path subpath collapses after sampling');
@@ -198,6 +199,45 @@ export function tessellatePath(node: PathNode | PathNodeV2 | PathNodeV5, matrix:
       const c = world(matrix, { x: edge.b.x - edge.nx, y: edge.b.y - edge.ny });
       const d = world(matrix, { x: edge.a.x - edge.nx, y: edge.a.y - edge.ny });
       emitTriangle(output, a, b, c, true); emitTriangle(output, a, c, d, true);
+    }
+    if (!subpath.closed && cap !== 'butt') {
+      const radius = strokeWidth / 2;
+      const limit = Math.hypot(matrix[0], matrix[1], matrix[2], matrix[3]) * view.zoom * dpr * radius;
+      if (!Number.isFinite(limit)) fail('path cap exceeds device limit');
+      let capSegments = 4;
+      if (cap === 'round') {
+        while (capSegments <= 64 &&
+            limit * (1 - Math.cos(Math.PI / (2 * capSegments))) > tolerance) capSegments++;
+        if (capSegments > 64) fail('path cap exceeds 64 segments');
+      }
+      for (const [endpoint, edge, direction] of [
+        [edges[0].a, edges[0], -1], [edges.at(-1)!.b, edges.at(-1)!, 1],
+      ] as const) {
+        const length = Math.hypot(edge.dx, edge.dy);
+        const outward = { x: direction * edge.dx / length * radius,
+          y: direction * edge.dy / length * radius };
+        const normal = { x: edge.nx, y: edge.ny };
+        if (cap === 'square') {
+          const nearPlus = world(matrix, { x: endpoint.x + normal.x, y: endpoint.y + normal.y });
+          const nearMinus = world(matrix, { x: endpoint.x - normal.x, y: endpoint.y - normal.y });
+          const farPlus = world(matrix, { x: endpoint.x + normal.x + outward.x,
+            y: endpoint.y + normal.y + outward.y });
+          const farMinus = world(matrix, { x: endpoint.x - normal.x + outward.x,
+            y: endpoint.y - normal.y + outward.y });
+          emitTriangle(output, nearPlus, farPlus, farMinus, true);
+          emitTriangle(output, nearPlus, farMinus, nearMinus, true);
+        } else {
+          const center = world(matrix, endpoint);
+          let prior = world(matrix, { x: endpoint.x + normal.x, y: endpoint.y + normal.y });
+          for (let index = 1; index <= capSegments; index++) {
+            const angle = Math.PI * index / capSegments;
+            const next = world(matrix, { x: endpoint.x + normal.x * Math.cos(angle) + outward.x * Math.sin(angle),
+              y: endpoint.y + normal.y * Math.cos(angle) + outward.y * Math.sin(angle) });
+            emitTriangle(output, center, prior, next, true);
+            prior = next;
+          }
+        }
+      }
     }
     const joinCount = subpath.closed ? edges.length : edges.length - 1;
     for (let i = 0; i < joinCount; i++) {
