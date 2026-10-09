@@ -6,3 +6,5 @@ export * from './session.js';
 export * from './controller.js';
 export * from './mixed-document.js';
 export * from './mixed-frame.js';
+export * from './mixed-session.js';
+export * from './mixed-controller.js';

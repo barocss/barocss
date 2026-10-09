@@ -5,6 +5,7 @@ import type {RenderEditorError} from './errors.js';
 import {normalizeRenderEditorError} from './errors.js';
 import {createSceneViewportPresenter} from './scene-viewport.js';
 export {createSceneViewportPresenter} from './scene-viewport.js';
+export * from './mixed-react.js';
 
 export interface RenderEditorPanelProps {controller: RenderEditorController; onError?: (error: RenderEditorError) => void}
 export interface RenderEditorProps extends RenderEditorPanelProps {

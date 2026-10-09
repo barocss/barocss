@@ -29,3 +29,16 @@ The fixtures cover sphere, box, cylinder, torus, and capsule in two different sc
 ## Native-flow selectors
 
 The host exposes stable `data-testid` selectors: `open-file`, `save-file`, `scene-file-input`, `draft-dialog`, `draft-apply`, `draft-discard`, `draft-cancel`, `app-error`, `app-error-details`, `accepted-revision`, `presented-revision`, and `project-forms` / `project-assembly`. `app-error` contains task copy; open its Details control to read `app-error-details`. The revision data attributes keep the actual accepted and presented revisions. Selectors refer to real controls and status text. There is no application debug global.
+
+
+## Mixed document app
+
+Open `/mixed.html#/mixed/surface_study` or `/mixed.html#/mixed/rational_panel` for the separate version 1 mixed document app. The original `/index.html` source editor remains available through Source editor. The Vite build includes both page entries.
+
+The mixed app owns the same shadcn File/Edit/Workspace/Help shell, project routes, native file picker, accepted-only downloads, shortcuts, and Apply/Discard/Cancel guard. New starts from the named Sphere and native Surface profile. Both samples keep complete original source 1 and source 0 text, selected original model/Surface references, rational weights, and an unrendered Curve. Sampling and GPU data remain derived in the module.
+
+Native file size is checked against 524288 bytes before `File.text()`. A late read is refused when the session snapshot or project changes. Open adds a project only after the real controller accepts and presents it. Save downloads `.render-mixed.json`; fresh Open reconstructs the complete mixed frame from authored data. Version 0 scene files use the source editor and are refused here.
+
+Projects stay in this tab. Save a file before closing. Notices and optional Details overlay the workbench without resizing the preview. The module owns preview and draft diagnostic notices. Restore preview is offered only when the display is unavailable and the controller is live. No precise picking, materials, Physics, per-asset placement, or broader mixed shape support is claimed.
+
+The mixed app keeps the file/guard/error/revision selectors described above and adds `render-mixed-editor-app`, `project-surface_study`, and `project-rational_panel`. Accepted and displayed numeric revisions remain in `data-revision`. Use an isolated strict port override for the mixed native flow; the existing 52047 source-editor preview remains unchanged.
