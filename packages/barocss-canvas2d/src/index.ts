@@ -17,6 +17,7 @@ export type { SceneV17, NodeV17, GroupNodeV17, FrameNodeV17 } from './schema.js'
 export type { SceneV18, NodeV18, GroupNodeV18, FrameNodeV18, PathNodeV18, PathStrokeV18, PathCap } from './schema.js';
 export type { SceneV19, NodeV19, GroupNodeV19, FrameNodeV19, PathNodeV19, PathStrokeV19, PathJoin } from './schema.js';
 export type { SceneV20, NodeV20, GroupNodeV20, FrameNodeV20, PathNodeV20, PathStrokeV20, PathDash } from './schema.js';
+export type { SceneV21, NodeV21, GroupNodeV21, FrameNodeV21, PathNodeV21, PathStrokeV21, PathJoinV21 } from './schema.js';
 export type { PathObservation, FillObservation, PathSample } from './path.js';
 export { createPathBuilder } from './path-builder.js';
 export type { PathBuilder } from './path-builder.js';

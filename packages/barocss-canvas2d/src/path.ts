@@ -1,5 +1,5 @@
 import { Canvas2DError } from './schema.js';
-import type { PathDash, PathNode, PathNodeV2, PathNodeV5, PathNodeV18, PathNodeV19, PathNodeV20, Point, View } from './schema.js';
+import type { PathDash, PathNode, PathNodeV2, PathNodeV5, PathNodeV18, PathNodeV19, PathNodeV20, PathNodeV21, Point, View } from './schema.js';
 
 export type Matrix = [number, number, number, number, number, number];
 export type PathSample = { commandIndex: number; t: number; x: number; y: number };
@@ -170,7 +170,7 @@ function dashStrokeSubpaths(subpaths: MutableSubpath[], dash: PathDash): StrokeS
   return result;
 }
 
-export function tessellatePath(node: PathNode | PathNodeV2 | PathNodeV5 | PathNodeV18 | PathNodeV19 | PathNodeV20, matrix: Matrix, view: View, dpr: number,
+export function tessellatePath(node: PathNode | PathNodeV2 | PathNodeV5 | PathNodeV18 | PathNodeV19 | PathNodeV20 | PathNodeV21, matrix: Matrix, view: View, dpr: number,
   tolerance: number): PathGeometry {
   const subpaths: MutableSubpath[] = [];
   let active: MutableSubpath | null = null;
@@ -258,6 +258,7 @@ export function tessellatePath(node: PathNode | PathNodeV2 | PathNodeV5 | PathNo
   const strokeWidth = 'width' in node ? node.width : node.stroke?.width;
   const cap = 'width' in node || !node.stroke || !('cap' in node.stroke) ? 'butt' : node.stroke.cap;
   const join = 'width' in node || !node.stroke || !('join' in node.stroke) ? 'bevel' : node.stroke.join;
+  const miterLimit = 'width' in node || !node.stroke || !('miterLimit' in node.stroke) ? 4 : node.stroke.miterLimit;
   const dash = 'width' in node || !node.stroke || !('dash' in node.stroke) ? null : node.stroke.dash;
   const strokeSubpaths = dash ? dashStrokeSubpaths(subpaths, dash) : subpaths;
   if (strokeWidth !== undefined) for (const subpath of strokeSubpaths) {
@@ -324,10 +325,25 @@ export function tessellatePath(node: PathNode | PathNodeV2 | PathNodeV5 | PathNo
       if (cross === 0 && dot >= 0) continue;
       const side = cross > 0 ? -1 : 1;
       const center = previous.b;
-      if (join === 'bevel') {
+      if (join === 'bevel' || join === 'miter') {
         if (cross !== 0) emitTriangle(output, world(matrix, center),
           world(matrix, { x: center.x + previous.nx * side, y: center.y + previous.ny * side }),
           world(matrix, { x: center.x + next.nx * side, y: center.y + next.ny * side }), false);
+        if (join === 'miter' && cross !== 0) {
+          const previousLength = Math.hypot(previous.dx, previous.dy);
+          const nextLength = Math.hypot(next.dx, next.dy);
+          const previousUnit = { x: previous.dx / previousLength, y: previous.dy / previousLength };
+          const nextUnit = { x: next.dx / nextLength, y: next.dy / nextLength };
+          const a = { x: center.x + previous.nx * side, y: center.y + previous.ny * side };
+          const b = { x: center.x + next.nx * side, y: center.y + next.ny * side };
+          const denominator = previousUnit.x * nextUnit.y - previousUnit.y * nextUnit.x;
+          const distance = ((b.x - a.x) * nextUnit.y - (b.y - a.y) * nextUnit.x) / denominator;
+          const tip = { x: a.x + previousUnit.x * distance, y: a.y + previousUnit.y * distance };
+          const ratio = Math.hypot(tip.x - center.x, tip.y - center.y) / (strokeWidth / 2);
+          if (Number.isFinite(ratio) && ratio <= miterLimit) {
+            emitTriangle(output, world(matrix, a), world(matrix, tip), world(matrix, b), true);
+          }
+        }
         continue;
       }
       const reversal = cross === 0;
