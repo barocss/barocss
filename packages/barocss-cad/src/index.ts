@@ -275,3 +275,6 @@ export type { SectionKnotAlignmentOptions, SectionKnotAlignmentSection, SectionK
 
 export { buildExactBoundaryFaceAdjacency, validateExactBoundaryFaceAdjacency, ExactBoundaryFaceAdjacencyError, ExactBoundaryFaceAdjacencyDiagnosticCode } from './exact-boundary-face-adjacency.js';
 export type { ExactBoundaryFaceAdjacencyAsset, ExactBoundaryFaceAdjacencyPair, ExactBoundaryFaceAdjacencyOptions, ExactBoundaryFaceAdjacencyEdge, ExactBoundaryFaceAdjacencyReport, ExactBoundaryFaceAdjacencyResult } from './exact-boundary-face-adjacency.js';
+
+export { buildQuinticHermiteCurve, validateQuinticHermiteCurve, QuinticHermiteError, QuinticHermiteDiagnosticCode } from './quintic-hermite-curve.js';
+export type { QuinticHermiteEndpoint, QuinticHermiteOptions, QuinticHermiteReport, QuinticHermiteResult } from './quintic-hermite-curve.js';
