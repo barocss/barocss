@@ -42,7 +42,7 @@ CAD assets/Viewer, qualified materials, Physics and shared-depth SDF+CAD remain 
 
 ## Original-source mixed document foundation (#1092)
 
-`RenderMixedDocumentV1` is an explicit separate `version:1, kind:'mixed-depth'` authoring format for GPU profile `sdf-sphere-native-surface-v0`. It stores original source1 Sphere text and complete original Source0 CAD model text, a declared asset revision/model/Surface selection, camera, color, sampling counts and one explicit mm-to-scene conversion/scene translation. Unrendered native objects remain in the saved source. V0 source editor files and their parser/session remain unchanged. The current app does not open/render this new kind.
+`RenderMixedDocumentV1` is an explicit separate `version:1, kind:'mixed-depth'` authoring format for GPU profile `sdf-sphere-native-surface-v0`. It stores original source1 Sphere text and complete original Source0 CAD model text, a declared asset revision/model/Surface selection, camera, color, sampling counts and one explicit mm-to-scene conversion/scene translation. Unrendered native objects remain in the saved source. V0 source editor files and their parser/session remain unchanged. The foundation alone does not open/render this kind; the mixed app is described below.
 
 ```ts
 import {parseRenderMixedDocument, serializeRenderMixedDocument,
@@ -58,7 +58,7 @@ const text = serializeRenderMixedDocument(prepared.document);
 
 Each source is limited to65536 UTF-8 bytes/code units, the authored file to524288 UTF-8 bytes, sample counts2..17. Exact plain own data is required; unsupported fields/versions, accessors/symbols/sparse/foreign/nonfinite data refuse. The JSON encoder preserves real numeric `-0` and original source strings without a sentinel or source rewriting. `RenderMixedDocumentError` preserves actual provider causes under INPUT/VERSION/BYTES/SOURCE/QUALIFICATION/NATIVE/GPU.
 
-The profile requires exactly one Sphere and one selected Surface, at most289 derived vertices/512 triangles; actual GPU camera-inside/clip/travel/F32 guards apply. Complete native source/weights/UV/IDs remain authoritative. No renderer, session/history, mixed app UI, Viewer mode, CAD editing, materials, picking, Physics or additional SDF shape support is added by this pure foundation. Integrated code availability and integrated validation are separate.
+The profile requires exactly one Sphere and one selected Surface, at most289 derived vertices/512 triangles; actual GPU camera-inside/clip/travel/F32 guards apply. Complete native source/weights/UV/IDs remain authoritative. The pure foundation adds no renderer/session/UI. Mixed session and app support are described below; Viewer, CAD feature editing, materials, picking, Physics and additional mixed SDF shapes remain outside this profile. Integrated code availability and integrated validation are separate.
 
 `node apps/render-editor/mixed-document-flow.mjs --output <new-evidence-directory>` exercises ordinary headless source imports, authentic full native source/qualification, real authored file cold reconstruction, copied data and refusals. This is a source/API/file CPU flow, not a mixed framebuffer or app Save/Open receipt. It uses installed tools and current source providers without provider rebuild, alias or packed-reader campaign.
 
