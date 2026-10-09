@@ -1991,3 +1991,28 @@ adapter-owned meshes. The original native Surface U/V grids and
 coefficients remain authoritative. The 8×8 meshes do not replace the
 16×16 native construction, certify fit or regularity, create a Solid,
 or establish other engine or npm release readiness.
+
+## Fixed-weight native Curves in Babylon.js
+
+`examples/weighted-curve-babylon-data/` holds seven byte-exact CAD #949
+source0 files. Six have bounded display Lines; the valid native
+coincident-XYZ Curve must refuse a collapsed Float32 display segment.
+The Node verifier reads the original authored points, supplied weights
+and complete owned results. It calls the public CAD validator, cold
+compiles each source, compares neutral Curve samples with Babylon
+NullEngine Lines, and checks the real weight-change and local common
+weight-scale probes:
+
+```sh
+node packages/barocss-cad-interop/examples/weighted-curve-babylon-verify.mjs /Users/user/.barocss-ai/v3/evidence-949-cad/integration/demo-output
+```
+
+Serve `examples/weighted-curve-babylon.html` through a local Vite server
+for the headed Babylon.js WebGL2 flow. The caller uses a right-handed
+scene, supplies display colors and positions, fetches all seven saved
+files over HTTP, checks six visible Lines and the one display refusal,
+then verifies invalid-candidate frame retention and owned disposal.
+The original native Curves and supplied weights remain authoritative;
+Lines are sampled display only. This example does not fit unknown
+weights, certify global shape or arc length, create a Solid, or establish
+other engine or npm release readiness.

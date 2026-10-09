@@ -1,0 +1,1 @@
+@model coincident_curve { version:0; length-unit:mm; @curve #coincident_curve { type:nurbs; degree:3; knots:[-0,-0,-0,-0,5,5,5,5]; control-points:[[2,-0,1],[1.999999999999999,0,0.9999999999999994],[2.000000000000001,0,1.0000000000000004],[2,-0,1]]; weights:[1,2,3,1]; } }

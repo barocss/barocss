@@ -1,0 +1,1 @@
+@model cubic_curve { version:0; length-unit:mm; @curve #cubic_curve { type:nurbs; degree:3; knots:[-2,-2,-2,-2,5,5,5,5]; control-points:[[1,0,2],[1.9999999999999991,2.9999999999999996,-0.0000000000000000565879860060607],[4.000000000000001,-0.9999999999999997,1],[6,2,3]]; weights:[1,2,3,1.5]; } }

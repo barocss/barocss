@@ -1,0 +1,1 @@
+@model quarter_curve { version:0; length-unit:mm; @curve #quarter_curve { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[2,0,0],[1.9999999999999996,1.9999999999999996,0],[0,2,0]]; weights:[1,0.7071067811865476,1]; } }

@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Fixed-weight native Curves in Babylon.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 1020px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+  button { margin: 8px 8px 8px 0; padding: 7px 12px; }
+</style>
+<main>
+  <h1>Fixed-weight native Curves in Babylon.js</h1>
+  <p>Six saved CAD #949 Curves appear as sampled Lines. The seventh native Curve refuses a collapsed Float32 display segment.</p>
+  <canvas id="view" width="960" height="520"></canvas>
+  <button id="reject">Try invalid candidates</button><button id="dispose">Dispose loaded display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Engine } from '@babylonjs/core/Engines/engine.js';
+  import { Scene } from '@babylonjs/core/scene.js';
+  import { Camera } from '@babylonjs/core/Cameras/camera.js';
+  import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera.js';
+  import { Mesh } from '@babylonjs/core/Meshes/mesh.js';
+  import { LinesMesh } from '@babylonjs/core/Meshes/linesMesh.js';
+  import { Color3, Color4 } from '@babylonjs/core/Maths/math.color.js';
+  import { Vector3 } from '@babylonjs/core/Maths/math.vector.js';
+  import { parseBaroCadSource } from '../dist/native.js';
+  import { BaroCADBabylonLoader } from '../dist/babylon.js';
+
+  const options = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.1, maxSegments: 512, maxDepth: 16 } };
+  const cases = [
+    { key: 'rational_quadratic_quarter', id: 'quarter_curve', hash: 'ca5b2d1697f2d134a2d0858ebe7d42060c19801a76b2748d2b85e6f078fee956', color: 0x00ffff, x: 0, y: 0 },
+    { key: 'rational_cubic_target', id: 'cubic_curve', hash: '27850779c533e14f7c47cf5fa4f9612f4aea6a5782b1e0dac23b25d46930e267', color: 0xff00ff, x: 0.014, y: 0 },
+    { key: 'same_points_changed_fixed_weights', id: 'quarter_curve', hash: 'be36c0ee80378ff437e22aacefde61e461de2e1ebd332fe3adceba3d26626421', color: 0xffff00, x: 0.028, y: 0 },
+    { key: 'all_one_authentic_polynomial', id: 'quadratic_curve', hash: '9857e753edef6870ecce538dce52d7ff83a6044309b64006379628c56be1fd3e', color: 0x00ff00, x: 0, y: 0.010 },
+    { key: 'common_weight_scale_two', id: 'quarter_curve', hash: '4571fe461a94024f7639bada06bc382999e43a06d9d1e9ef240bf489a19e1a7d', color: 0xff6600, x: 0.014, y: 0.010 },
+    { key: 'maximum_16_positive_weights', id: 'maximum_curve', hash: '28407f4aef0abdda43ab7dcaf539bf1ce5781d23efd4e94e66dd17a098e8b6e0', color: 0xffffff, x: 0.028, y: 0.010 },
+    { key: 'coincident_xyz_fixed_weights', id: 'coincident_curve', hash: 'd74db7d1a43cd0a6196a5479284628ac175a97f3670cb885f36ebf94b3104132', refuse: true },
+  ];
+  const status = document.querySelector('#status');
+  const canvas = document.querySelector('#view');
+  const engine = new Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+  const scene = new Scene(engine);
+  scene.useRightHandedSystem = true;
+  scene.clearColor = new Color4(20 / 255, 34 / 255, 54 / 255, 1);
+  const callerMarker = new Mesh('caller-marker', scene);
+  // Camera and Line poses are host display choices; native XYZ stays unchanged.
+  const camera = new FreeCamera('camera', new Vector3(0.016, 0.006, 0.08), scene);
+  camera.upVector = new Vector3(0, 1, 0);
+  camera.setTarget(new Vector3(0.016, 0.006, 0));
+  camera.mode = Camera.ORTHOGRAPHIC_CAMERA;
+  camera.orthoLeft = -0.023;
+  camera.orthoRight = 0.023;
+  camera.orthoTop = 0.014;
+  camera.orthoBottom = -0.014;
+  camera.minZ = 0.001;
+  camera.maxZ = 0.2;
+  scene.activeCamera = camera;
+  const loader = new BaroCADBabylonLoader(scene, options);
+  const accepted = [];
+  const sources = new Map();
+  const pixels = () => {
+    const data = new Uint8Array(960 * 520 * 4);
+    const gl = canvas.getContext('webgl2');
+    gl.readPixels(0, 0, 960, 520, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    return data;
+  };
+  const hashPixels = data => data.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const visiblePixels = data => {
+    let count = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i] !== 20 || data[i + 1] !== 34 || data[i + 2] !== 54) count++;
+    }
+    return count;
+  };
+  const sha256 = async bytes => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))]
+    .map(byte => byte.toString(16).padStart(2, '0')).join('');
+  try {
+    if (!(canvas.getContext('webgl2') instanceof WebGL2RenderingContext)) throw new Error('WebGL2 required');
+    let coincidentRefused = false;
+    for (const item of cases) {
+      const url = new URL(`./weighted-curve-babylon-data/${item.key}.barocad`, location.href).href;
+      if (item.refuse) {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}: ${item.key}`);
+        const bytes = await response.arrayBuffer();
+        if (await sha256(bytes) !== item.hash) throw new Error(`Source SHA mismatch: ${item.key}`);
+        const source = new TextDecoder().decode(bytes);
+        sources.set(item.key, source);
+        let neutralRefused = false, babylonRefused = false;
+        try { parseBaroCadSource(source, options); } catch (error) { neutralRefused = /collapsed Float32 display segment/.test(String(error)); }
+        try { loader.parse(source); } catch (error) { babylonRefused = /collapsed Float32 display segment/.test(String(error)); }
+        if (!neutralRefused || !babylonRefused) throw new Error('Coincident native Curve must refuse display');
+        coincidentRefused = true;
+        continue;
+      }
+      const display = await loader.loadAbortable(url, {});
+      const source = display.source;
+      if (await sha256(new TextEncoder().encode(source)) !== item.hash) throw new Error(`Loaded source SHA mismatch: ${item.key}`);
+      sources.set(item.key, source);
+      const neutral = parseBaroCadSource(source, options);
+      if (neutral.curves.length !== 1 || neutral.model.objects[0].id !== item.id)
+        throw new Error(`Native Curve mismatch: ${item.key}`);
+      const line = display.meshes[0];
+      if (display.meshes.length !== 1 || !(line instanceof LinesMesh) || line.metadata.barocss.curveId !== item.id ||
+          line.metadata.barocss.coordinateSystem !== 'right-handed-y-up')
+        throw new Error(`Expected one native-bound Babylon Line: ${item.key}`);
+      if (JSON.stringify(line.metadata.barocss.nativeParameters) !== JSON.stringify(neutral.curves[0].sample.parameters))
+        throw new Error(`Native parameter lineage mismatch: ${item.key}`);
+      const positions = line.getVerticesData('position');
+      if (positions.length !== neutral.curves[0].positions.length ||
+          positions.some((value, index) => !Object.is(value, neutral.curves[0].positions[index])))
+        throw new Error(`Float32 position mismatch: ${item.key}`);
+      line.color = new Color3((item.color >> 16) / 255, ((item.color >> 8) & 255) / 255, (item.color & 255) / 255);
+      line.position.x = item.x;
+      line.position.y = item.y;
+      accepted.push({ key: item.key, source, display, line, nativeId: item.id,
+        samples: neutral.curves[0].sample.pointsMM.length, segments: neutral.curves[0].sample.segments.length });
+    }
+    if (accepted.length !== 6 || !coincidentRefused) throw new Error('Expected six Lines and one real refusal');
+    engine.runRenderLoop(() => scene.render());
+    await scene.whenReadyAsync();
+    engine.stopRenderLoop();
+    const individuallyVisible = {};
+    for (const item of accepted) {
+      for (const other of accepted) other.line.isVisible = other === item;
+      scene.render();
+      individuallyVisible[item.key] = visiblePixels(pixels());
+      if (!individuallyVisible[item.key]) throw new Error(`No visible Line pixels: ${item.key}`);
+    }
+    for (const item of accepted) item.line.isVisible = true;
+    scene.render();
+    const frame = pixels();
+    const evidence = { target: 'Babylon.js 9.29.0 WebGL2', webgl2: true,
+      rightHanded: scene.useRightHandedSystem, sourceFrame: 'authored XYZ, camera +Z, up +Y',
+      unitsPerMillimeter: 0.001, cases: accepted.map(({ key, nativeId, samples, segments }) =>
+        ({ key, nativeId, samples, segments, lineCount: 1 })),
+      coincidentNativeSourceFetched: sources.has('coincident_xyz_fixed_weights'), coincidentDisplayRefused: true,
+      individuallyVisible, combinedPixels: visiblePixels(frame), pixelHash: hashPixels(frame),
+      callerMarkerRetained: scene.meshes.includes(callerMarker) };
+    window.__baroWeightedCurveBabylonEvidence = evidence;
+    status.textContent = JSON.stringify(evidence, null, 2);
+    const beforeSources = new Map(sources);
+    document.querySelector('#reject').onclick = () => {
+      let refused = 0;
+      for (const candidate of [
+        () => loader.parse('@model invalid {}'),
+        () => new BaroCADBabylonLoader(scene, { ...options, sourceVersion: 1 }).parse(accepted[0].source),
+        () => new BaroCADBabylonLoader(scene, { ...options, curveDisplay: { ...options.curveDisplay, version: 2 } }).parse(accepted[0].source),
+        () => new BaroCADBabylonLoader(scene, { ...options, curveDisplay: { ...options.curveDisplay, maxSegments: 4093 } }).parse(accepted[0].source),
+        () => loader.parse(sources.get('coincident_xyz_fixed_weights')),
+        () => { scene.useRightHandedSystem = false; try { loader.parse(accepted[0].source); } finally { scene.useRightHandedSystem = true; } },
+      ]) { try { candidate(); } catch { refused++; } }
+      scene.render();
+      evidence.invalidCandidatesRefused = refused;
+      evidence.acceptedMeshesRetained = accepted.every(item => scene.meshes.includes(item.line) && !item.line.isDisposed());
+      evidence.acceptedSourcesRetained = cases.every(item => sources.get(item.key) === beforeSources.get(item.key));
+      evidence.acceptedPixelsRetained = hashPixels(pixels()) === evidence.pixelHash;
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+    document.querySelector('#dispose').onclick = () => {
+      for (const item of accepted) { item.display.dispose(); item.display.dispose(); }
+      scene.render();
+      evidence.disposed = accepted.every(item => item.line.isDisposed() && !scene.meshes.includes(item.line));
+      evidence.callerMarkerRetained = !callerMarker.isDisposed() && scene.meshes.includes(callerMarker);
+      evidence.callerSceneAndEngineLive = !scene.isDisposed && engine.getRenderingCanvas() === canvas;
+      evidence.nativeSourcesRetained = cases.every(item => sources.get(item.key) === beforeSources.get(item.key));
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+  } catch (error) {
+    for (const item of accepted) item.display.dispose();
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroWeightedCurveBabylonError = String(error);
+  }
+</script>
+</html>
