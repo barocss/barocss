@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,"><title>BaroCSS Viewer cloth bridge</title>
+  <style>
+    :root { font: 15px/1.5 system-ui, sans-serif; color-scheme: dark; }
+    body { margin: 24px auto; padding: 0 16px; max-width: 960px; background: #102032; color: #e7f0fa; }
+    h1 { margin-bottom: 8px; } p { color: #b9cedf; }
+    canvas { display: block; max-width: 100%; height: auto; border: 1px solid #6b8aa7; }
+    button { margin: 10px 6px 0 0; padding: 7px 12px; color: white; background: #244462;
+      border: 1px solid #7198bc; border-radius: 4px; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: default; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Cloth beside an original CAD Surface</h1>
+  <p>One 17 × 17 Physics sheet and one qualified native Surface share one Viewer canvas.
+    Run proof consumes fixed public Physics states. It does not start playback.</p>
+  <canvas id="view" width="640" height="480" aria-label="Cloth and native Surface"></canvas>
+  <div><button id="run-proof" disabled>Run proof</button><button id="front" disabled>Front view</button>
+    <button id="back" disabled>Back view</button><button id="clear-cloth" disabled>Clear cloth</button>
+    <button id="lose-context" disabled>Lose context</button><button id="dispose" disabled>Dispose viewer</button></div>
+  <p>Cloth uses approximate derived display geometry. Native picking and fits use the original CAD only.
+    Shared depth does not certify cloth collision with the CAD Surface.</p>
+  <pre id="status" role="status" aria-live="polite">Loading native source and public Physics world…</pre>
+  <script type="module" src="/bundle.js"></script>
+</body>
+</html>
