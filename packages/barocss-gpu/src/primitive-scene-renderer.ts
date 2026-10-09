@@ -97,7 +97,13 @@ function sampleSnapshot(input:unknown,wide=false):AdaptiveNativeCurveSample {
 function curvePositions(sample:NativeCurveSample,options:MeshOptions,pose?:MeshSceneTransform):Float32Array {
  const rotate=pose?sceneRotation(pose):null,converted:number[]=[];
  for(const raw of sample.pointsMM){
-  const point=pose?rotate!(raw[0]*pose.scale[0],raw[1]*pose.scale[1],raw[2]*pose.scale[2]):raw;
+  let point=raw;
+  if(pose){
+   const x=raw[0]*pose.scale[0],y=raw[1]*pose.scale[1],z=raw[2]*pose.scale[2];
+   check(Number.isFinite(x)&&Number.isFinite(y)&&Number.isFinite(z)&&(raw[0]===0||x!==0)&&(raw[1]===0||y!==0)&&(raw[2]===0||z!==0),
+    'Native Curve coordinate overflows or underflows during pose scaling');
+   point=rotate!(x,y,z);
+  }
   for(let axis=0;axis<3;axis++){
    const millimeters=point[axis]+(pose?.translationMm[axis]??0),scaled=millimeters*options.mmToSceneUnit;
    check(Number.isFinite(scaled)&&(millimeters===0||scaled!==0),'Native Curve coordinate overflows or underflows during scene scaling');
