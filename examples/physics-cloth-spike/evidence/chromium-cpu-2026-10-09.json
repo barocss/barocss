@@ -1,0 +1,66 @@
+{
+  "size": 17,
+  "vertices": 289,
+  "triangles": 512,
+  "constraints": 1566,
+  "model": "xpbd",
+  "iterations": 2,
+  "substeps": 8,
+  "totalMassKg": 0.20000000000000082,
+  "peaks": {
+    "maxExtension": 0.05174255069177636,
+    "maxCompression": 0.03371110599632687,
+    "maxPenetrationM": 1.1102230246251565e-16,
+    "maxPinDriftM": 0
+  },
+  "snapshots": [
+    {
+      "step": 0,
+      "metrics": {
+        "maxExtension": 0,
+        "p95Extension": 0,
+        "maxCompression": 0,
+        "maxPenetrationM": 0,
+        "maxPinDriftM": 0,
+        "minY": 0.55,
+        "maxY": 0.55,
+        "centreY": 0.55
+      }
+    },
+    {
+      "step": 60,
+      "metrics": {
+        "maxExtension": 0.05159844151662041,
+        "p95Extension": 0.011957987001102621,
+        "maxCompression": 0.018763107123223932,
+        "maxPenetrationM": 0,
+        "maxPinDriftM": 0,
+        "minY": 0.004721185977483582,
+        "maxY": 0.5506127669914246,
+        "centreY": 0.41998355210593347
+      }
+    },
+    {
+      "step": 240,
+      "metrics": {
+        "maxExtension": 0.0284154683313953,
+        "p95Extension": 0.00940514775083523,
+        "maxCompression": 0.0028517828842439252,
+        "maxPenetrationM": 0,
+        "maxPinDriftM": 0,
+        "minY": -0.33889301031603714,
+        "maxY": 0.5503192379312727,
+        "centreY": 0.09036836797654943
+      }
+    }
+  ],
+  "p95StepMs": 1.0999999940395355,
+  "feasibilityPassed": true,
+  "sha256": "127f1c7626b9b089ccfef63503a01d67ac05abb65d0bb7aad272d6f1e66ff1a4",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/155.0.0.0 Safari/537.36",
+  "publicApi": false,
+  "viewerAcceptance": false,
+  "gpuTimeMeasured": false,
+  "gitHead": "cfd786a43dcb5a712454bbf3da98b240eaefcdb9",
+  "sourceTreeDirty": false
+}
