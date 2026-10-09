@@ -302,3 +302,6 @@ export type { AxisBoxSolidBooleanAsset, AxisBoxSolidBooleanOptions, AxisBoxSolid
 
 export { classifyAxisBoxSolidBooleanPoints, validateAxisBoxSolidBooleanPointClassification, AxisBoxSolidBooleanPointError, AxisBoxSolidBooleanPointDiagnosticCode } from './axis-box-point-classification.js';
 export type { AxisBoxSolidBooleanPointQuery, AxisBoxSolidBooleanPointOptions, AxisBoxSolidBooleanPointReport, AxisBoxSolidBooleanPointResult } from './axis-box-point-classification.js';
+
+export { measureAxisBoxSolidBooleanMass, validateAxisBoxSolidBooleanMass, AxisBoxSolidMassError, AxisBoxSolidMassDiagnosticCode } from './axis-box-solid-mass.js';
+export type { AxisBoxSolidMassOptions, AxisBoxSolidMassMeasure, AxisBoxSolidMassReport, AxisBoxSolidMassResult } from './axis-box-solid-mass.js';
