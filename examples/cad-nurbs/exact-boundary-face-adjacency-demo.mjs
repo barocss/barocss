@@ -256,7 +256,11 @@ reject('face_getter', () => build([lower, faceGetter], [primaryPair], refusalOpt
 for (const [name, alter] of [
   ['graph', result => { result.sharedEdges[0].uses[1].effectiveSense = 'forward'; }], ['reversal', result => { result.sharedEdges[0].reversal.source += ' '; }],
   ['class', result => { result.vertexClasses[0].members[0].sourceId = 'upper'; }], ['counter', result => { result.report.curveReversalCount++; }],
-  ['parameter', result => { result.sharedEdges[0].observations.pop(); }], ['source', result => { result.assets[0].source += ' '; }],
+  ['parameter', result => { result.sharedEdges[0].observations.pop(); }], ['source', result => {
+    const originalSource = result.assets[0].source;
+    result.assets[0].source = originalSource.replace('[1,0,0]', '[1,-0,0]');
+    assert.notEqual(result.assets[0].source, originalSource, 'Negative fixture must change actual Source0 coordinate bits');
+  }],
 ]) { const changed = structuredClone(primary); alter(changed); reject('owned_' + name, () => validate(changed), 'OWNED'); }
 let replacement = primary; const previous = replacement;
 reject('atomic_previous_graph', () => { replacement = build([lower, middleAsset], [pair('lower', 'u-max', 'middle', 'u-min')], refusalOptions); }, 'BASIS');
