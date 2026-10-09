@@ -15,6 +15,7 @@
     .intro { max-width: 780px; margin: 0 0 23px; color: #a9bbd1; line-height: 1.55; }
     .scene-links { margin: 0 0 20px; }
     .scene-links h2 { margin: 0 0 10px; font-size: 16px; }
+    .scene-links h2:not(:first-child) { margin-top: 16px; }
     .scene-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
     .scene-grid a { display: block; padding: 12px; border: 1px solid #365d74; border-radius: 10px; background: #112c3f; color: #e7f0fc; text-decoration: none; }
     .scene-grid a:hover { background: #20435a; }
@@ -66,15 +67,19 @@
 <body>
   <main>
     <div class="eyebrow">Physics / Consumer 01</div>
-    <h1>One native Surface. One simulated body.</h1>
-    <p class="intro">A real BaroCAD Surface follows the position returned by our Physics engine. The Viewer canvas shows native display geometry. The side view shows the separate sphere and box collision proxies.</p>
-    <nav class="scene-links" aria-label="Other 3D Physics examples">
-      <h2>Explore the bounded 3D examples</h2>
+    <h1>3D Physics beside original CAD Surfaces.</h1>
+    <p class="intro">The live scene below shows one sphere-and-box contact. Open the other examples for joints or visual water. Physics owns simulation proxies and particles; Viewer displays original CAD geometry beside them.</p>
+    <nav class="scene-links" aria-label="3D Physics examples">
+      <h2>Rigid-body examples</h2>
       <div class="scene-grid">
         <a href="joint-demo.html"><strong>Fixed two-body pair</strong><span>Two original Surfaces follow two sphere proxies held by one simulation joint.</span></a>
         <a href="motor-demo.html"><strong>Anchored hinge motor</strong><span>One Surface rotates with a dynamic sphere proxy around a fixed +Z hinge.</span></a>
         <a href="dynamic-hinge-demo.html"><strong>Centred dynamic hinge</strong><span>Two original Surfaces rotate around coincident sphere proxy centres.</span></a>
         <a href="offset-hinge-demo.html?step=120"><strong>Offset hinge and pivot</strong><span>Two moving sphere proxy centres meet at one marked pivot; view step 120.</span></a>
+      </div>
+      <h2>Visual-water example</h2>
+      <div class="scene-grid">
+        <a href="water/"><strong>Water particles and CAD floor</strong><span>256 simulated particles share one Viewer scene with an original CAD floor. Physics collides with its fixed basin, not the floor Surface.</span></a>
       </div>
     </nav>
     <div class="layout">
