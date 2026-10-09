@@ -7202,3 +7202,51 @@ and whole-curve accuracy certification need separate contracts.
 ```sh
 node examples/cad-nurbs/curve-interpolation-demo.mjs --source /tmp/cad-interpolation
 ```
+
+## Surface interpolation through a point grid
+
+`buildInterpolatingSurface` creates a native polynomial B-spline Surface
+through a rectangular XYZ point grid. `points[i][j]` corresponds to the
+supplied `parametersU[i]` and `parametersV[j]`. Each axis supports 2 through
+16 points and degree 1 through 3. Parameters remain in their original units.
+
+```ts
+const interpolation = cad.buildInterpolatingSurface(
+  [-2, 1, 5],
+  [3, 6],
+  [
+    [[0, 0, 0], [0, 4, 1]],
+    [[2, 0, 3], [2, 4, 4]],
+    [[5, 0, 0], [5, 4, 1]],
+  ],
+  {
+    surfaceId: 'through_grid', degreeU: 2, degreeV: 1,
+    maximumBasisEvaluations: 8192,
+    maximumEliminationSteps: 3840,
+    maximumSurfaceEvaluations: 256,
+  },
+);
+cad.validateInterpolatingSurface(interpolation);
+```
+
+The builder reuses native Curve interpolation across each U column, then
+across each V row of the resulting control data. It preserves both phase
+results and their solver evidence. The final Surface uses the generated
+control grid, original averaged knot bases and weights of one. Its Source0
+Model contains the final Surface. Intermediate Curves are construction
+evidence and do not become CAD edges or trim boundaries.
+
+Caller budgets cover the complete construction before work starts. For an
+`N` by `M` grid, basis work is `N*M*(N+M)`, row elimination work is
+`N*M*(N+M-2)/2`, and direct Surface point checks are `N*M`. Actual child
+counts and native grid-point residuals remain in the report. Failed child
+construction retains its cause and phase index and returns no partial Surface.
+
+The result keeps original points and parameters, native geometry, sources and
+owned reconstruction data. A point edit rebuilds the global Surface. Rational
+weight fitting, automatic parameter selection, smoothing, tangent constraints,
+trims, periodic interpolation and whole-Surface validity need separate contracts.
+
+```sh
+node examples/cad-nurbs/surface-interpolation-demo.mjs --source /tmp/cad-surface-interpolation
+```

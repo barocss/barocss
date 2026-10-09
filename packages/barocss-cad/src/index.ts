@@ -230,3 +230,6 @@ export type { TranslationalSweepOptions, TranslationalSweepProvenance, Translati
 
 export { buildInterpolatingCurve, validateInterpolatingCurve, CurveInterpolationError, CurveInterpolationDiagnosticCode } from './curve-interpolation.js';
 export type { CurveInterpolationPoint, CurveInterpolationOptions, CurveInterpolationReport, CurveInterpolationResult } from './curve-interpolation.js';
+
+export { buildInterpolatingSurface, validateInterpolatingSurface, SurfaceInterpolationError, SurfaceInterpolationDiagnosticCode } from './surface-interpolation.js';
+export type { SurfaceInterpolationOptions, SurfaceInterpolationObservation, SurfaceInterpolationReport, SurfaceInterpolationResult } from './surface-interpolation.js';
