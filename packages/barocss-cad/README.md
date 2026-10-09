@@ -7514,3 +7514,39 @@ insufficient local continuity or unrepresentable arithmetic throws a bounded
 ```sh
 node examples/cad-nurbs/second-derivatives-demo.mjs --source /tmp/cad-native-d2
 ```
+
+## Native local curvature
+
+`evaluateCurveCurvature` reports the actual D2 query, speed, unit tangent,
+curvature vector and magnitude in 1/mm, and radius in mm. A straight Curve has
+zero curvature and a null radius. A zero tangent refuses curvature.
+
+`evaluateSurfaceCurvature` reports the actual D2 query, the native U/V unit
+normal, normalized metric and second form, mean and sorted principal curvatures
+in 1/mm, and Gaussian curvature in 1/mm². Its normal follows `du` cross `dv`.
+With the reported second form `normal` dot second partials, an outward sphere
+has negative mean and principal curvatures. Reversing U changes those signs
+and the normal while preserving Gaussian curvature.
+
+```ts
+const curve = cad.evaluateCurveCurvature(originalCurve, parameter);
+const surface = cad.evaluateSurfaceCurvature(originalSurface, u, v);
+```
+
+Each query calls the actual native D2 API once and retains its values. D2 input,
+domain and exact-knot continuity bounds still apply. Zero or uncertain Surface
+metrics refuse. Finite arithmetic and nonzero product/quotient guards prevent
+unrepresentable reported values. Surface principal curvature computation scales
+the second form. Its discriminant includes the raw scaled value, stated local
+roundoff bound and any bounded negative-to-zero clamp flag. This policy does
+not repair geometry or certify global accuracy.
+
+`NativeCurvatureError` reports DERIVATIVE, REGULARITY or ARITHMETIC. A derivative
+failure preserves its actual D2 error and cause. Outputs own independent CPU
+arrays. Curvature results do not certify a Solid normal, trim validity, patch
+G2 continuity or manufacturing tolerance. Analysis displays require separate
+consumer evidence.
+
+```sh
+node examples/cad-nurbs/local-curvature-demo.mjs --source /tmp/cad-local-curvature
+```
