@@ -37,3 +37,5 @@ export { createSpriteAtlas } from './sprite-atlas.js';
 export type { SpriteAtlas, SpriteAtlasEntry } from './sprite-atlas.js';
 export { booleanOrthogonalPolygons } from './boolean.js';
 export type { PolygonContour, PolygonOperand, PolygonOperation, PolygonBooleanResult } from './boolean.js';
+
+export type { SceneV24, NodeV24, GroupNodeV24, FrameNodeV24 } from './schema.js';

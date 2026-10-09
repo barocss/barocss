@@ -1,11 +1,13 @@
 import { Canvas2DError } from './schema.js';
 import type { ImageNode, Point, Size, SourceRect, View } from './schema.js';
+import { clipDeclarations, clipDiscard, createClipGpu, setClipGpu } from './clip.js';
+import type { ClipGpu, TransformClip } from './clip.js';
 
 export type ImageAsset = { width: number; height: number; pixels: Uint8Array; texture: WebGLTexture | null };
 export type ImageGpu = { program: WebGLProgram; positionBuffer: WebGLBuffer; uvBuffer: WebGLBuffer;
   vao: WebGLVertexArrayObject; size: WebGLUniformLocation; view: WebGLUniformLocation;
   opacity: WebGLUniformLocation; tint: WebGLUniformLocation;
-  sampler: WebGLUniformLocation; uvClamp: WebGLUniformLocation };
+  sampler: WebGLUniformLocation; uvClamp: WebGLUniformLocation; clips: ClipGpu };
 
 const vertexSource = `#version 300 es
 precision highp float;
@@ -14,7 +16,9 @@ layout(location=1) in vec2 a_uv;
 uniform vec2 u_size;
 uniform vec3 u_view;
 out vec2 v_uv;
+out vec2 v_world;
 void main() {
+  v_world = a_position;
   vec2 p = (a_position * u_view.z + u_view.xy) / u_size;
   gl_Position = vec4(p.x * 2.0 - 1.0, 1.0 - p.y * 2.0, 0.0, 1.0);
   v_uv = a_uv;
@@ -23,12 +27,15 @@ const fragmentSource = `#version 300 es
 precision highp float;
 precision highp sampler2D;
 in vec2 v_uv;
+in vec2 v_world;
+${clipDeclarations}
 uniform sampler2D u_image;
 uniform vec4 u_uvClamp;
 uniform float u_opacity;
 uniform vec3 u_tint;
 out vec4 out_color;
 void main() {
+${clipDiscard}
   vec4 sampleColor = texture(u_image, clamp(v_uv, u_uvClamp.xy, u_uvClamp.zw));
   float alpha = sampleColor.a * u_opacity;
   out_color = vec4(sampleColor.rgb * u_tint * alpha, alpha);
@@ -66,6 +73,7 @@ export function createImageGpu(gl: WebGL2RenderingContext): ImageGpu {
     const tint = gl.getUniformLocation(program, 'u_tint');
     const sampler = gl.getUniformLocation(program, 'u_image');
     const uvClamp = gl.getUniformLocation(program, 'u_uvClamp');
+    const clips = createClipGpu(gl, program);
     if (!positionBuffer || !uvBuffer || !vao || !size || !view || !opacity || !tint || !sampler || !uvClamp) {
       throw new Canvas2DError('WEBGL_UNAVAILABLE', 'cannot create image GPU state');
     }
@@ -75,7 +83,7 @@ export function createImageGpu(gl: WebGL2RenderingContext): ImageGpu {
     gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer); gl.enableVertexAttribArray(1);
     gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
     gl.bindVertexArray(null); gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    return { program, positionBuffer, uvBuffer, vao, size, view, opacity, tint, sampler, uvClamp };
+    return { program, positionBuffer, uvBuffer, vao, size, view, opacity, tint, sampler, uvClamp, clips };
   } catch (error) {
     if (vao) gl.deleteVertexArray(vao);
     if (uvBuffer) gl.deleteBuffer(uvBuffer);
@@ -122,13 +130,15 @@ export function sourceRect(node: ImageNode, asset: ImageAsset): SourceRect {
 
 export function renderImage(gl: WebGL2RenderingContext, gpu: ImageGpu,
   vertices: Float32Array, node: ImageNode, asset: ImageAsset, opacity: number,
-  size: Size, view: View, clampRect?: SourceRect): void {
+  size: Size, view: View, clampRect?: SourceRect,
+  transformClips: readonly TransformClip[] = []): void {
   if (!asset.texture) throw new Canvas2DError('CONTEXT_LOST', 'image texture is unavailable');
   const rect = sourceRect(node, asset);
   const u0 = rect.x / asset.width, u1 = (rect.x + rect.width) / asset.width;
   const v0 = rect.y / asset.height, v1 = (rect.y + rect.height) / asset.height;
   const uvs = new Float32Array([u0,v0,u1,v0,u1,v1,u0,v0,u1,v1,u0,v1]);
   gl.useProgram(gpu.program); gl.bindVertexArray(gpu.vao);
+  setClipGpu(gl, gpu.clips, transformClips);
   gl.uniform2f(gpu.size, size.width, size.height);
   gl.uniform3f(gpu.view, view.panX, view.panY, view.zoom);
   gl.uniform1f(gpu.opacity, opacity); gl.uniform1i(gpu.sampler, 0);
