@@ -181,7 +181,17 @@ reject('nonexact_derived_weights', () => build(nonexactAsset, planeAsset, option
 reject('observation_budget', () => build(surfaceAsset, planeAsset, {...options('budget'), maximumObservations: 4}), 'BUDGET');
 reject('original_id_collision', () => build(surfaceAsset, planeAsset, {...options('identity'), curveId: first.id}), 'IDENTITY');
 reject('missing_field', () => build({sourceId: surfaceAsset.sourceId, surface: surfaceAsset.surface}, planeAsset, options('missing')), 'INPUT');
-const bitSource = surfaceAsset.source.replace('[0,0,10]', '[-0,0,10]'); assert.notEqual(bitSource, surfaceAsset.source);
+const bitOriginal = compileCadModel(surfaceAsset.source, {sourceVersion: 0}); assert.equal(bitOriginal.ok, true);
+const selectedDeclaration = bitOriginal.ast.declarations.find(item => item.kind === 'surface' && item.id === surfaceAsset.surface.id); assert.ok(selectedDeclaration);
+const selectedControlPoints = selectedDeclaration.fields.find(field => field.name === 'control-points').value;
+const selectedCoordinate = selectedControlPoints.items[0].items[0].items[0]; assert.equal(selectedCoordinate.kind, 'number'); assert.ok(Object.is(selectedCoordinate.value, 0));
+const {start: bitStart, end: bitEnd} = selectedCoordinate.range; assert.equal(surfaceAsset.source.slice(bitStart, bitEnd), '0');
+const bitSource = surfaceAsset.source.slice(0, bitStart) + '-0' + surfaceAsset.source.slice(bitEnd); assert.notEqual(bitSource, surfaceAsset.source);
+const bitCompiled = compileCadModel(bitSource, {sourceVersion: 0}); assert.equal(bitCompiled.ok, true);
+const bitExpected = structuredClone(bitOriginal.model), bitExpectedSurface = bitExpected.objects.find(item => item.kind === 'surface' && item.id === surfaceAsset.surface.id); bitExpectedSurface.controlPoints[0][0][0] = -0;
+assert.deepEqual(bitCompiled.model, bitExpected); assert.ok(Object.is(bitCompiled.model.objects.find(item => item.id === surfaceAsset.surface.id).controlPoints[0][0][0], -0));
+for (const parent of bitOriginal.model.objects.filter(item => item.kind === 'curve')) assert.deepEqual(bitCompiled.model.objects.find(item => item.id === parent.id), parent);
+sourceFile('actual-selected-surface-bit-edit', bitSource, bitCompiled.model); jsonFile('selected-surface-bit-edit-binding', {surfaceId: surfaceAsset.surface.id, coordinate: [0, 0, 0], utf16Range: selectedCoordinate.range, originalLiteral: '0', replacementLiteral: '-0', curveParentsUnchanged: true});
 reject('selected_source_bits_mismatch', () => build({...surfaceAsset, source: bitSource}, planeAsset, options('bits')), 'SOURCE');
 reject('actual_source_compiler_failure', () => build({...surfaceAsset, source: '@model broken { version:0;'}, planeAsset, options('source')), 'SOURCE', true);
 let getterCalls = 0; const getterOptions = options('getter'); Object.defineProperty(getterOptions, 'maximumObservations', {enumerable: true, get() { getterCalls++; return 5; }});
