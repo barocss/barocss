@@ -1,4 +1,4 @@
-import {useEffect, useRef, useSyncExternalStore, type ReactNode} from 'react';
+import {useEffect, useRef, useState, useSyncExternalStore, type ReactNode} from 'react';
 import type {MeshCamera} from '@barocss/gpu';
 import type {RenderEditorController, RenderEditorActionResult} from './controller.js';
 import type {RenderEditorError} from './errors.js';
@@ -43,7 +43,7 @@ export function SceneViewport({controller, onError}: RenderEditorPanelProps) {
   return <section className="re-viewport" aria-label="Scene viewport">
     <canvas ref={ref} width={960} height={640} aria-label="Rendered scene" data-testid="scene-canvas" />
     <div className="re-viewport-label">Scene<span>Perspective</span></div>
-    {presentation.presentedRevision === null && <div className="re-viewport-fault" role="status"><p>{presentation.presentationError?.message ?? 'Opening scene…'}</p><button type="button" aria-label="Recover viewport" disabled={presentation.disposed} onClick={() => action(controller.recover(), onError)}>Restore preview</button></div>}
+    {presentation.presentedRevision === null && <div className="re-viewport-fault" role="status"><p>{presentation.disposed ? 'Preview closed.' : presentation.presentationError ? 'Preview unavailable. Your applied scene is kept.' : 'Opening scene…'}</p>{presentation.presentationError && !presentation.disposed && <button type="button" onClick={() => action(controller.recover(), onError)}>Restore preview</button>}</div>}
   </section>;
 }
 
@@ -88,15 +88,25 @@ export function CameraPanel({controller, onError}: RenderEditorPanelProps) {
   </section>;
 }
 
-export function DiagnosticsPanel({controller}: RenderEditorPanelProps) {
+export function DiagnosticsPanel({controller, onError}: RenderEditorPanelProps) {
   const snapshot = useSession(controller);
   const presentation = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
-  return <section className="re-diagnostics re-panel" aria-label="Diagnostics"><div className="re-panel-heading"><h2>Diagnostics</h2><span>{snapshot.diagnostics.length}</span></div>
-    <div role="status">{snapshot.diagnostics.length === 0 && !presentation.presentationError ? <p className="re-caption">{snapshot.sourceDirty ? 'Ready to apply.' : 'No errors.'}</p> : <ul>{snapshot.diagnostics.map((diagnostic, index) => <li key={index}>{diagnostic.range ? `Line ${diagnostic.range.line}, column ${diagnostic.range.column}: ` : ''}{diagnostic.message}</li>)}{presentation.presentationError && <li>{presentation.presentationError.message}</li>}</ul>}</div>
+  const [acknowledged, setAcknowledged] = useState<RenderEditorError | null>(null);
+  const error = presentation.presentationError;
+  const unavailable = presentation.presentedRevision === null;
+  const showNotice = error !== null && !presentation.disposed && (unavailable || acknowledged !== error);
+  const dirty = snapshot.sourceDirty || snapshot.cameraDirty;
+  const retry = () => action(controller.apply(snapshot.sourceDirty && !snapshot.cameraDirty ? 'source' : snapshot.cameraDirty && !snapshot.sourceDirty ? 'camera' : 'both'), onError);
+  return <section className="re-diagnostics re-panel" aria-label="Diagnostics"><div className="re-panel-heading"><h2>Source errors</h2><span data-testid="source-error-count">{snapshot.diagnostics.length}</span></div>
+    <div role="status">{snapshot.diagnostics.length === 0 ? <p className="re-caption">{snapshot.sourceDirty ? 'Ready to apply.' : 'No source errors.'}</p> : <ul>{snapshot.diagnostics.map((diagnostic, index) => <li key={index}>{diagnostic.range ? `Line ${diagnostic.range.line}, column ${diagnostic.range.column}: ` : ''}{diagnostic.message}</li>)}</ul>}</div>
+    {showNotice && <section className="re-preview-notice" data-testid="preview-notice" aria-label="Preview status"><div role="status"><h3>{unavailable ? 'Preview unavailable' : 'Update failed'}</h3><p>{unavailable ? 'Your applied scene is kept. Restore the preview to continue.' : 'The previous scene is still shown.'}</p>{!unavailable && <p>{dirty ? 'Check the draft, then try Apply again.' : 'There are no pending edits.'}</p>}</div>
+      {!unavailable && <div className="re-preview-actions">{dirty && <button type="button" onClick={retry}>Retry update</button>}<button type="button" onClick={() => setAcknowledged(error)}>Dismiss preview notice</button></div>}
+      <details><summary>Details</summary><pre data-testid="preview-error-details">{error.code}: {error.message}</pre></details>
+    </section>}
   </section>;
 }
 
 /** Reusable workbench. The application supplies file actions, routes and menus. */
 export function RenderEditor({controller, header, toolbar, onError, onAction}: RenderEditorProps) {
-  return <div className="re-editor">{header}<div className="re-editor-toolbar">{toolbar ?? (onAction ? <>{(['new', 'open', 'save'] as const).map(action => <button type="button" key={action} onClick={() => onAction(action)}>{action[0].toUpperCase() + action.slice(1)}</button>)}</> : null)}</div><div className="re-editor-workspace"><aside className="re-left"><ObjectPanel controller={controller} /></aside><div className="re-center"><SceneViewport controller={controller} onError={onError} /><SourcePanel controller={controller} onError={onError} /></div><aside className="re-right"><CameraPanel controller={controller} onError={onError} /><DiagnosticsPanel controller={controller} /></aside></div></div>;
+  return <div className="re-editor">{header}<div className="re-editor-toolbar">{toolbar ?? (onAction ? <>{(['new', 'open', 'save'] as const).map(action => <button type="button" key={action} onClick={() => onAction(action)}>{action[0].toUpperCase() + action.slice(1)}</button>)}</> : null)}</div><div className="re-editor-workspace"><aside className="re-left"><ObjectPanel controller={controller} /></aside><div className="re-center"><SceneViewport controller={controller} onError={onError} /><SourcePanel controller={controller} onError={onError} /></div><aside className="re-right"><CameraPanel controller={controller} onError={onError} /><DiagnosticsPanel controller={controller} onError={onError} /></aside></div></div>;
 }
