@@ -7582,6 +7582,45 @@ This is material classification in the original UV chart against the stored
 graph. World point projection, ideal Plane half-space membership, support
 embedding, occupied Solid volume and general 3D Boolean require later features.
 
+## Restricted integer axis-box 3D Boolean — #1101
+
+`buildAxisBoxSolidBoolean(a, b, options)` computes a regularized union,
+intersection or difference of two Source0-bound integer axis boxes. Assets
+contain sourceId/sourceVersion:0/source/shell. Options contain operation,
+evaluationId, resultIdPrefix, maximumCells:27 and maximumPanels:72.
+`validateAxisBoxSolidBoolean(result)` rebuilds the entire result. Original source
+models and actual unchanged AxisBoxSolid validation reports remain retained.
+
+This first profile requires positive overlap along all three axes. Source
+supports must match all six original shell Face Surfaces by full coefficient
+bits. Existing integer bounds and exact safe-integer analysis apply. Disjoint
+and face/edge/corner-only contact operands refuse. Generated grid zero is +0;
+original caller data and source bits stay unchanged.
+
+Original min/max planes partition at most27 open cells. The result is the
+closure of occupied cells. Native outward boundary tiles appear only between
+occupied and empty cells; internal faces are removed. Exact grid incidence
+requires two opposed uses per edge and one oriented cycle per vertex link
+before output Face construction. Each admitted tile retains an actual native
+FaceBundle and compiled Source0 Model5. Coplanar tiles stay separate, avoiding
+T-junctions and tolerance-based welding.
+
+Material components, boundary Shells and exterior/cavity empty components are
+separate. A cavity can have one material Body and two Shells; a cut can split
+the material into two Bodies. Euler is diagnostic. Exact cell volumes, panel
+areas and oriented Shell volume sums must agree. An empty difference returns
+an explicit empty result with no Solid or boundary sources.
+
+```sh
+node examples/cad-nurbs/axis-box-boolean-demo.mjs --source EVIDENCE_DIR
+```
+
+The geometric proof applies to this exact integer cubical coefficient model.
+Rotated, floating-coordinate, disjoint and curved operands, cylindrical holes,
+manufacturing tolerance and global evaluator error remain outside this profile.
+Rendering, authored feature lifecycle and integrated save/recovery require
+their own consumer evidence.
+
 ```sh
 node examples/cad-nurbs/local-curvature-demo.mjs --source /tmp/cad-local-curvature
 ```
