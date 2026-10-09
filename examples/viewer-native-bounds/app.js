@@ -63,6 +63,10 @@ const inCamera = (points, camera) => {
       && Math.abs(dot(offset, up) / (depth * tangent)) <= 1 + 1e-8;
   });
 };
+const unionTarget = points => [0, 1, 2].map(axis =>
+  (Math.min(...points.map(point => point[axis]))
+    + Math.max(...points.map(point => point[axis]))) / 2);
+const near = (a, b) => a.every((value, index) => Math.abs(value - b[index]) < 1e-9);
 const posedCorner = point => {
   // One accepted test pose: 90-degree Z rotation after nonuniform XYZ scale.
   const [x, y, z] = point;
@@ -102,6 +106,13 @@ try {
     curveId: bounds[0][0].reference.geometryId }, documentRevision: 1 }); }
   catch { emptyRefused = true; }
   assert(emptyRefused && same(viewer.getState(), empty), 'Empty Viewer accepted a native document fit');
+  let emptySetRefused = false;
+  try { viewer.fitNativeDocumentBodies({ refs: [{ kind: 'curve', modelId: 'loft_bounds_asset',
+    curveId: bounds[0][0].reference.geometryId }, { kind: 'surface', modelId: 'loft_bounds_asset',
+    surfaceId: bounds[0][1].reference.geometryId }], documentRevision: 1 }); }
+  catch { emptySetRefused = true; }
+  assert(emptySetRefused && same(viewer.getState(), empty),
+    'Empty Viewer accepted a native document body-set fit');
   viewer.loadDocument(documents[0], request);
   const bodies1 = viewer.getState().documentBodies;
   assert(bodies1.length === 2 && bodies1[0].ref.kind === 'curve' && bodies1[1].ref.kind === 'surface'
@@ -113,6 +124,7 @@ try {
   const curveRef = bodies1[0].ref, surfaceRef = bodies1[1].ref;
   const curveFit = { ref: curveRef, documentRevision: 1 };
   const surfaceFit = { ref: surfaceRef, documentRevision: 1 };
+  const bodySetFit = { refs: [curveRef, surfaceRef], documentRevision: 1 };
   const displayedCurve = prepareBaroCadDocumentPrimitiveNativeRefsV2(documents[0], request)
     .find(entry => entry.kind === 'curve' && entry.binding.bodyId === 'middle_section_body');
   assert(displayedCurve?.kind === 'curve', 'Selected Loader Curve sample is missing');
@@ -126,6 +138,17 @@ try {
   const sourceCorners = corners(bounds[0][0].boundsMM).map(point => point.map(value => value * 0.15));
   assert(!same(displayCamera, nativeCamera) && inCamera(sourceCorners, nativeCamera),
     'Original control-pole hull did not determine the Viewer camera');
+  viewer.fit();
+  const displayedSetCamera = viewer.getState().camera;
+  const surfaceCorners = corners(bounds[0][1].boundsMM).map(point => point.map(value => value * 0.15));
+  viewer.fitNativeDocumentBodies(bodySetFit);
+  const bodySetCamera = viewer.getState().camera;
+  const bothCorners = [...sourceCorners, ...surfaceCorners];
+  assert(inCamera(bothCorners, bodySetCamera)
+    && near(bodySetCamera.target, unionTarget(bothCorners))
+    && !same(bodySetCamera, nativeCamera) && !same(bodySetCamera, displayedSetCamera),
+  'Two-body original hull did not determine an independent union camera');
+  viewer.fitNativeDocumentBody(curveFit);
   const firstHash = hash(viewer.readPixels());
   let hit = null;
   for (let y = 5; y < canvas.height && !hit; y += 3)
@@ -150,6 +173,13 @@ try {
   assert(inCamera(posedCorners, posedCamera) && !same(posedCamera, nativeCamera)
     && JSON.stringify(bounds[0]) === beforePoseBounds,
   'Current display pose was not applied once to unchanged original bounds');
+  viewer.fitNativeDocumentBodies(bodySetFit);
+  const posedSetCamera = viewer.getState().camera;
+  assert(inCamera([...posedCorners, ...surfaceCorners], posedSetCamera)
+    && near(posedSetCamera.target, unionTarget([...posedCorners, ...surfaceCorners]))
+    && !same(posedSetCamera, bodySetCamera)
+    && same(viewer.getState().selectedGeometry, curveRef),
+  'The two-body fit lost an independent display pose');
   viewer.fitNativeDocumentBody(surfaceFit);
   const surfaceCamera = viewer.getState().camera;
   assert(inCamera(corners(bounds[0][1].boundsMM).map(point => point.map(value => value * 0.15)), surfaceCamera)
@@ -162,14 +192,45 @@ try {
   assert(getterCalls === 0, 'Native fit evaluated a getter');
   retained(viewer, () => viewer.fitNativeDocumentBody({ ref: { ...curveRef, modelId: 'foreign' },
     documentRevision: 1 }), 'Unknown body');
+  retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit, refs: [curveRef] }),
+    'One body in set');
+  retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit, refs: [curveRef, curveRef] }),
+    'Duplicate bodies in set');
+  retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit,
+    refs: [curveRef, surfaceRef, curveRef, surfaceRef, curveRef] }), 'Five bodies in set');
+  retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit, extra: true }),
+    'Extra body-set field');
+  const sparseRefs = [curveRef, , surfaceRef];
+  retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit, refs: sparseRefs }),
+    'Sparse body-set refs');
+  let setGetterCalls = 0;
+  const getterRefs = [curveRef, surfaceRef];
+  Object.defineProperty(getterRefs, '0', { enumerable: true, get() { setGetterCalls++; return curveRef; } });
+  retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit, refs: getterRefs }),
+    'Accessor body-set ref');
+  assert(setGetterCalls === 0, 'Body-set fit evaluated an accessor');
+  retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit,
+    refs: [{ ...curveRef, modelId: 'foreign' }, surfaceRef] }), 'Foreign body in set');
+  retained(viewer, () => viewer.fitNativeDocumentBodies({ ...bodySetFit,
+    refs: [{ ...curveRef, curveId: 'missing' }, surfaceRef] }), 'Unknown body in set');
   viewer.setVisibleGeometry([surfaceRef]);
   retained(viewer, () => viewer.fitNativeDocumentBody(curveFit), 'Hidden body');
+  retained(viewer, () => viewer.fitNativeDocumentBodies(bodySetFit), 'Hidden body in set');
   viewer.setVisibleGeometry([curveRef, surfaceRef]);
   assert(viewer.getState().documentBodies.length === 2, 'Visibility changed original body inventory');
   viewer.loadDocument(documents[1], request);
   const bodies2 = viewer.getState().documentBodies;
   const curveFit2 = { ref: bodies2[0].ref, documentRevision: 2 };
+  const bodySetFit2 = { refs: bodies2.map(body => body.ref), documentRevision: 2 };
   retained(viewer, () => viewer.fitNativeDocumentBody(curveFit), 'Stale revision');
+  retained(viewer, () => viewer.fitNativeDocumentBodies(bodySetFit), 'Stale body-set revision');
+  viewer.fitNativeDocumentBodies(bodySetFit2);
+  const revisedSetCamera = viewer.getState().camera;
+  const revisedCorners = bounds[1].flatMap(value => corners(value.boundsMM)
+    .map(point => point.map(component => component * 0.15)));
+  assert(inCamera(revisedCorners, revisedSetCamera)
+    && near(revisedSetCamera.target, unionTarget(revisedCorners))
+    && !same(revisedSetCamera, bodySetCamera), 'Revised two-body source hull did not fit');
   viewer.fitNativeDocumentBody(curveFit2);
   const editedCamera = viewer.getState().camera;
   assert(inCamera(corners(bounds[1][0].boundsMM).map(point => point.map(value => value * 0.15)), editedCamera)
@@ -179,6 +240,7 @@ try {
   const source = documents[1].document.assets[0].source;
   viewer.loadNative(source, { sourceVersion: 0, countU: 8, countV: 8 });
   retained(viewer, () => viewer.fitNativeDocumentBody(curveFit2), 'Non-document scene');
+  retained(viewer, () => viewer.fitNativeDocumentBodies(bodySetFit2), 'Non-document scene for body set');
   viewer.loadDocument(documents[1], request);
   viewer.fitNativeDocumentBody(curveFit2);
   viewer.clear();
@@ -187,6 +249,11 @@ try {
   try { viewer.fitNativeDocumentBody(curveFit2); } catch { clearRefused = true; }
   assert(clearRefused && same(viewer.getState(), clearState) && hash(viewer.readPixels()) === clearHash,
     'Cleared Viewer accepted a native document fit');
+  let clearSetRefused = false;
+  try { viewer.fitNativeDocumentBodies(bodySetFit2); } catch { clearSetRefused = true; }
+  assert(clearSetRefused && same(viewer.getState(), clearState)
+    && hash(viewer.readPixels()) === clearHash,
+  'Cleared Viewer accepted a native document body-set fit');
   viewer.loadDocument(documents[1], request);
   viewer.fitNativeDocumentBody(curveFit2);
   const beforeLossCamera = viewer.getState().camera;
@@ -196,11 +263,20 @@ try {
   assert(contextLostRefused && viewer.getState().status === 'context-lost'
     && same(viewer.getState().camera, beforeLossCamera),
   'Lost WebGL2 context accepted a native document fit');
+  let contextLostSetRefused = false;
+  try { viewer.fitNativeDocumentBodies(bodySetFit2); } catch { contextLostSetRefused = true; }
+  assert(contextLostSetRefused && viewer.getState().status === 'context-lost'
+    && same(viewer.getState().camera, beforeLossCamera),
+  'Lost WebGL2 context accepted a native document body-set fit');
   viewer.dispose(); viewer.dispose();
   let disposedRefused = false;
   try { viewer.fitNativeDocumentBody(curveFit2); } catch { disposedRefused = true; }
   assert(disposedRefused && viewer.getState().status === 'disposed',
     'Disposed Viewer accepted a native document fit');
+  let disposedSetRefused = false;
+  try { viewer.fitNativeDocumentBodies(bodySetFit2); } catch { disposedSetRefused = true; }
+  assert(disposedSetRefused && viewer.getState().status === 'disposed',
+    'Disposed Viewer accepted a native document body-set fit');
   const remaining = Object.fromEntries(Object.entries(resources).map(([type, live]) => [type, live.size]));
   const glError = [...contexts][0]?.getError();
   assert(contexts.size === 1 && contexts.has(getContext.call(canvas, 'webgl2')) && glError === 0
@@ -212,19 +288,25 @@ try {
     curveBoundsRevision1: bounds[0][0].boundsMM, curveBoundsRevision2: bounds[1][0].boundsMM,
     surfaceBoundsRevision1: bounds[0][1].boundsMM,
     cameras: { display: displayCamera, original: nativeCamera, posed: posedCamera,
-      surface: surfaceCamera, revision2: editedCamera },
+      surface: surfaceCamera, revision2: editedCamera,
+      displayedSet: displayedSetCamera, bodySet: bodySetCamera,
+      posedSet: posedSetCamera, revision2Set: revisedSetCamera },
     firstHash, selectedHash, screenHitKind: hit.kind,
     refused: ['empty', 'extra', 'getter', 'unknown', 'hidden', 'stale', 'non-document',
       'clear', 'context-lost', 'disposed'], contextLostRefused, disposedRefused,
-    getterCalls, sourceUnchanged: true, oneContext: contexts.size === 1,
+    getterCalls, setGetterCalls, emptySetRefused, clearSetRefused,
+    contextLostSetRefused, disposedSetRefused,
+    bodySetRefused: ['one', 'duplicate', 'five', 'extra', 'sparse', 'getter', 'foreign', 'unknown',
+      'hidden', 'stale', 'non-document', 'clear', 'context-lost', 'disposed'],
+    sourceUnchanged: true, oneContext: contexts.size === 1,
     glError, remaining, browserErrors,
-    limits: 'One visible current CAD document Curve or Surface body, positive-rational original control-pole hull; local Chromium WebGL2; neither tight extrema nor global floating containment is certified.' };
+    limits: 'One current body or an explicit set of 2..4 visible current CAD document Curve/Surface bodies; original positive-rational control-pole hull; local Chromium WebGL2; neither tight extrema nor global floating containment is certified.' };
   viewer = createViewer(canvas, { mmToSceneUnit: 0.15, background: [0.015, 0.02, 0.03] });
   viewer.loadDocument(documents[1], request);
-  viewer.fitNativeDocumentBody(curveFit2);
+  viewer.fitNativeDocumentBodies(bodySetFit2);
   assert(contexts.size === 1 && hash(viewer.readPixels()) !== 0,
     'Visible revision2 body did not return after teardown');
-  label.textContent = `Original control-pole hull · revision 2 · Curve max Z ${bounds[1][0].boundsMM.max[2]} mm`;
+  label.textContent = `Two original body hulls · revision 2 · Curve max Z ${bounds[1][0].boundsMM.max[2]} mm`;
   label.style.left = '20px'; label.style.top = '20px'; label.style.display = 'block';
   result.restoredScene = true;
   window.addEventListener('pagehide', () => viewer.dispose(), { once: true });

@@ -6,6 +6,12 @@ visible body's original positive-rational control-pole hull. The hull is
 conservative and may be wider than the evaluated shape. It does not certify
 tight extrema or floating-point containment.
 
+It also calls `viewer.fitNativeDocumentBodies({refs,documentRevision})` for an
+explicit Curve and Surface pair. The camera frames their combined original
+hulls, including an independent display pose on the Curve. The method does
+not include unlisted or hidden bodies. The same two committed documents
+exercise revision replacement and stale-set refusal.
+
 The two canonical direct-geometry documents in `fixtures/` are exact copies
 of the saved local merged CAD #852 evidence at
 `/Users/user/.barocss-ai/v3/evidence-852-integration/demo-output/`:

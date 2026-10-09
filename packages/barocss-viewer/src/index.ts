@@ -157,6 +157,11 @@ export interface ViewerNativeDocumentFitInput {
   ref: ViewerGeometryRef;
   documentRevision: number;
 }
+/** An explicit set of visible bodies in one current CAD document. */
+export interface ViewerNativeDocumentBodiesFitInput {
+  refs: ViewerGeometryRef[];
+  documentRevision: number;
+}
 export interface ViewerState {
   status: 'empty' | 'ready' | 'context-lost' | 'disposed';
   frame: 'right-handed-y-up';
@@ -1237,17 +1242,12 @@ export class Viewer {
     this.setView(fittedCamera(packets, curves, this.options.mmToSceneUnit,
       this.canvas.width, this.canvas.height, this.motion, this.geometryMotion));
   }
-  fitNativeDocumentBody(input: ViewerNativeDocumentFitInput): void {
-    this.live(); check(!this.contextLost, 'Cannot fit after WebGL2 context loss');
-    const data = ownRecord(input, ['ref', 'documentRevision'], 'Native document fit');
-    const ref = parseGeometryRef(data.ref);
-    check(Number.isInteger(data.documentRevision) && (data.documentRevision as number) >= 0
-      && (data.documentRevision as number) <= 2147483647,
-    'Native document fit requires a bounded document revision');
+  private nativeDocumentBodyBounds(ref: ViewerGeometryRef, documentRevision: number):
+    { low: Vec3; high: Vec3 } {
     check(this.document !== null, 'Native document fit requires an accepted CAD document');
     const body = this.documentBodies.find(value => sameGeometryRef(value.ref, ref));
     check(body && this.visible(ref), 'Native document fit requires one visible selected body');
-    check(body.binding.documentRevision === data.documentRevision,
+    check(body.binding.documentRevision === documentRevision,
       'Native document fit reference is stale');
     const { reference } = createCadGeometryReference(this.document, { bodyId: body.binding.bodyId });
     const result = queryCadDocumentBounds(this.document, reference);
@@ -1279,6 +1279,38 @@ export class Viewer {
     check(low.every((value, axis) => Number.isFinite(value) && Number.isFinite(high[axis])
       && value <= high[axis] && Math.abs(value) <= 1000 && Math.abs(high[axis]) <= 1000),
     'Native document bounds exceed finite GPU coordinates');
+    return { low, high };
+  }
+  fitNativeDocumentBody(input: ViewerNativeDocumentFitInput): void {
+    this.live(); check(!this.contextLost, 'Cannot fit after WebGL2 context loss');
+    const data = ownRecord(input, ['ref', 'documentRevision'], 'Native document fit');
+    const ref = parseGeometryRef(data.ref);
+    check(Number.isInteger(data.documentRevision) && (data.documentRevision as number) >= 0
+      && (data.documentRevision as number) <= 2147483647,
+    'Native document fit requires a bounded document revision');
+    const { low, high } = this.nativeDocumentBodyBounds(ref, data.documentRevision as number);
+    this.setView(cameraForBounds(low, high, this.canvas.width, this.canvas.height));
+  }
+  fitNativeDocumentBodies(input: ViewerNativeDocumentBodiesFitInput): void {
+    this.live(); check(!this.contextLost, 'Cannot fit after WebGL2 context loss');
+    const data = ownRecord(input, ['refs', 'documentRevision'], 'Native document body-set fit');
+    check(Array.isArray(data.refs) && data.refs.length >= 2 && data.refs.length <= 4,
+      'Native document body-set fit requires 2..4 references');
+    const refs = denseArray(data.refs, data.refs.length, 'Native document body-set references')
+      .map(parseGeometryRef);
+    check(refs.every((ref, index) => refs.findIndex(other => sameGeometryRef(ref, other)) === index),
+      'Native document body-set references must be unique');
+    check(Number.isInteger(data.documentRevision) && (data.documentRevision as number) >= 0
+      && (data.documentRevision as number) <= 2147483647,
+    'Native document body-set fit requires a bounded document revision');
+    const low: Vec3 = [Infinity, Infinity, Infinity], high: Vec3 = [-Infinity, -Infinity, -Infinity];
+    for (const ref of refs) {
+      const bounds = this.nativeDocumentBodyBounds(ref, data.documentRevision as number);
+      for (let axis = 0; axis < 3; axis++) {
+        low[axis] = Math.min(low[axis], bounds.low[axis]);
+        high[axis] = Math.max(high[axis], bounds.high[axis]);
+      }
+    }
     this.setView(cameraForBounds(low, high, this.canvas.width, this.canvas.height));
   }
   attachPointerControls(options: ViewerPointerControlOptions = {}): ViewerPointerControls {
