@@ -284,3 +284,6 @@ export type { CurveEndpointContinuityInput, CurveEndpointContinuityOptions, Curv
 
 export { buildClosedExactPatchShell, validateClosedExactPatchShell, ClosedExactPatchShellError, ClosedExactPatchShellDiagnosticCode } from './closed-exact-patch-shell.js';
 export type { ClosedExactPatchShellOptions, ClosedExactPatchShellGraph, ClosedExactPatchShellReport, ClosedExactPatchShellResult } from './closed-exact-patch-shell.js';
+
+export { buildVLinearSurfacePlaneSection, validateVLinearSurfacePlaneSection, VLinearSurfacePlaneSectionError, VLinearSurfacePlaneSectionDiagnosticCode } from './vlinear-plane-section.js';
+export type { VLinearSurfacePlaneSectionAsset, VLinearSurfacePlaneSectionOptions, VLinearSurfacePlaneSectionReport, VLinearSurfacePlaneSectionResult } from './vlinear-plane-section.js';
