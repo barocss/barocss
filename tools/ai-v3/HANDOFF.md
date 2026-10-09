@@ -1,3 +1,38 @@
+# Latest owner decision: merge first, notify immediately, track later validation (2026-10-10)
+
+Authenticated owner message `Sentinel_23f7733188748191ab659a36051f9322`,
+forwarded with transcript evidence by `01a11fb1-73a6-70ca-8fde-642ed49db082`,
+requests faster barocss-only delivery: merge available native changes first,
+notify the responsible Execute and Planner immediately, and run integrated
+screen, Save/Open and recovery validation later. This supersedes earlier
+Integration UI/file acceptance as a prerequisite to code availability.
+
+Integration remains the sole serial writer. Check immutable parent/child,
+allowed owned paths, actual current bases, dirty overlap, real API/dependencies
+and minimum merge/build compatibility. Reconcile each exact aggregate once.
+After a successful merge, immediately record and send the exact local merge
+SHA, native range, scope and available dependencies to assigned Execute(s) and
+Planner. Record delivery-tool acceptance separately from recipient read/ack.
+This direct owner authorization expands the earlier Planner-only-new-Issue
+notification rule for these merge notices; no unrelated messaging follows.
+
+Mark the result `merged; integration validation pending` until the required
+integrated checks actually run. Put screen/file/recovery follow-ups in existing
+Issues, open tracking Issue674 and the Integration Wiki queue. Native authors
+still build and run their own actual short flows before their native handoff.
+Consumers may continue from actual merged code and preserved native evidence;
+unrun integrated UI checks alone do not block code dependency availability.
+Do not claim pending checks passed or close required verification solely on a
+merge. Preserve prior successful, failed, denied and native receipts. Record
+concrete unmergeable conflicts or compatibility failures and their next step.
+
+No barocss-editor expansion, new permanent Work, ownership/model/monitor-cadence
+change, product push/PR/npm/deploy/release or broad validation campaign. Preserve
+inherited render/kiosk, paused629, current Release0.12.2 and active author work.
+Older policy text below remains historical evidence.
+
+---
+
 # Latest owner decision: continuous delivery and Integration-owned roadmap (2026-10-09)
 
 Execute Integration owns the current execution roadmap and progress in the
