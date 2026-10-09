@@ -3,7 +3,7 @@
   "version": "0.0.0-experimental",
   "private": false,
   "type": "module",
-  "description": "Bounded renderer-neutral fixed-step 3D rigid and visual-water simulation",
+  "description": "Bounded renderer-neutral fixed-step 3D rigid, visual-water and cloth simulation",
   "license": "MIT",
   "exports": {
     ".": {
@@ -25,6 +25,11 @@
       "barocss-source": "./src/fluid.ts",
       "types": "./dist/fluid.d.ts",
       "import": "./dist/fluid.js"
+    },
+    "./cloth": {
+      "barocss-source": "./src/cloth.ts",
+      "types": "./dist/cloth.d.ts",
+      "import": "./dist/cloth.js"
     },
     "./fluid-cad": {
       "barocss-source": "./src/fluid-cad.ts",
