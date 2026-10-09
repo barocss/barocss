@@ -407,7 +407,7 @@ and returns `approximate: true`, the surface reference, triangle index,
 interpolated native U/V, scene position and a same-depth ambiguity flag. It is
 not a CAD face or BRep query.
 
-`pickGeometry({xCss,yCss},{curveTolerancePx?})` compares displayed Surface
+`pickGeometry({xCss,yCss},{curveTolerancePx?,kinds?})` compares displayed Surface
 triangles and native sampled Curve line segments. The default Curve tolerance
 is 4 CSS pixels; the accepted range is 0.5..16. Segments are clipped to the
 camera frustum, tested against nearer opaque Surfaces and associated in screen
@@ -418,6 +418,15 @@ scene depth, screen distance and ambiguity. It is not an exact ray/Curve
 intersection, certified boundary, trim or topology result. Surface results
 carry `kind:'surface'` and otherwise retain the `pick` fields. This call does
 not change selection.
+
+The exported `ViewerGeometryPickOptions.kinds` admits a dense ordinary array
+of zero through two unique entries, `'surface'` and/or `'curve'`. Omit it to
+query both kinds. `[]` returns `null` after point, options, canvas and lifecycle
+validation. Explicit `kinds: undefined`, duplicate or unknown kinds, sparse arrays,
+extra fields and accessors refuse. Only admitted kinds take part in hit ordering
+and ambiguity. Visible opaque Surfaces still occlude Curves when `'surface'`
+is excluded. Filters do not change visibility, poses, camera or selection;
+`pick(xCss,yCss)` remains Surface-only.
 
 Limits: one canvas and WebGL2 context; 1..4 total displayed Surface/Curve
 objects; Surface packets at most 4096 total vertices and 24576 indices,

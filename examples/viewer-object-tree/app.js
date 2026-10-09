@@ -4,6 +4,7 @@ import { loadBaroCadDocument } from '../../packages/barocss-cad-interop/dist/doc
 const canvas = document.querySelector('#view');
 const moveHandle = document.querySelector('#move-handle');
 const yawHandle = document.querySelector('#yaw-handle');
+const selectionFilter = document.querySelector('#selection-filter');
 const list = document.querySelector('#bodies');
 const properties = document.querySelector('#properties');
 const status = document.querySelector('#status');
@@ -51,6 +52,8 @@ let refusalReport = null, nonYReport = null, nonuniformReport = null;
 const sameRef = (a, b) => a?.kind === b?.kind && a?.modelId === b?.modelId
   && (a?.kind === 'surface' ? a.surfaceId === b.surfaceId : a?.curveId === b?.curveId);
 const shown = (state, ref) => state.visibleGeometry.some(value => sameRef(value, ref));
+const eligible = ref => selectionFilter.value === 'all' || selectionFilter.value === ref.kind;
+const filterName = () => selectionFilter.selectedOptions[0].textContent;
 const decimal = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
 function translationValue(text, axis) {
   const trimmed = text.trim();
@@ -301,7 +304,10 @@ function publishProof(state) {
     sourceBytes: state.document?.document.assets.map(asset => new TextEncoder().encode(asset.source).length) ?? [],
     bodies: state.documentBodies.map(body => ({
       kind: body.ref.kind, modelId: body.ref.modelId, bodyId: body.binding.bodyId,
-      assetId: body.binding.assetId, geometryId: body.binding.geometryId })),
+      assetId: body.binding.assetId, geometryId: body.binding.geometryId,
+      selectionEligible: eligible(body.ref), selectEnabled: state.status === 'ready'
+        && shown(state, body.ref) && eligible(body.ref) })),
+    selectionFilter: selectionFilter.value,
     visible: state.visibleGeometry, selected: state.selectedGeometry, camera: state.camera,
     geometryMotion: state.geometryMotion,
     draft: [...properties.querySelectorAll('.translation-editor input')].map(input => input.value),
@@ -332,6 +338,7 @@ function render() {
     item.dataset.kind = body.ref.kind;
     item.dataset.modelId = body.ref.modelId;
     item.dataset.bodyId = body.binding.bodyId;
+    item.dataset.selectionEligible = String(eligible(body.ref));
     item.setAttribute('aria-selected', String(selected));
     const name = document.createElement('strong'), ids = document.createElement('small');
     name.textContent = body.binding.bodyId + ' · ' + body.ref.kind;
@@ -348,11 +355,12 @@ function render() {
       viewer.setVisibleGeometry(subset);
     }), { signal: listener.signal });
     const select = document.createElement('button');
-    select.textContent = 'Select'; select.disabled = !visible;
+    select.textContent = 'Select'; select.disabled = !visible || !eligible(body.ref);
     select.setAttribute('aria-label', 'Select ' + body.binding.bodyId);
     select.addEventListener('click', () => run('Selection', () => {
       if (!shown(current(body.ref, body.binding.bodyId, revision, epoch), body.ref))
         throw new Error('This body is hidden.');
+      if (!eligible(body.ref)) throw new Error('This body is excluded by the selection filter.');
       viewer.selectGeometry(body.ref);
     }), { signal: listener.signal });
     const fit = document.createElement('button');
@@ -393,6 +401,7 @@ function render() {
   buttons['hide-all'].disabled = !ready || state.visibleGeometry.length === 0;
   buttons.reload.disabled = disposed;
   buttons.clear.disabled = disposed || state.status === 'empty';
+  selectionFilter.disabled = disposed || !ready;
   if (proof) {
     document.querySelector('#check-refusals').disabled = !ready;
     document.querySelector('#check-non-y').disabled = !ready || !selected;
@@ -691,12 +700,23 @@ buttons.reload.addEventListener('click', reload, { signal: listener.signal });
 buttons.clear.addEventListener('click', () => run('Cleared', () => {
   requestEpoch++; viewer.clear(); sceneEpoch++;
 }), { signal: listener.signal });
+selectionFilter.addEventListener('change', () => {
+  if (disposed) return;
+  const discarded = dirtyPoseDraft();
+  run('Selection filter: ' + filterName() + '.'
+    + (discarded ? ' Numeric draft discarded.' : ''), () => {
+    const state = viewer.getState();
+    if (state.status !== 'ready') return;
+    if (state.selectedGeometry && !eligible(state.selectedGeometry)) viewer.selectGeometry(null);
+  });
+}, { signal: listener.signal });
 canvas.addEventListener('click', event => run('Canvas selection', () => {
   const state = viewer.getState();
   if (state.status !== 'ready' || !state.document) return;
   const rect = canvas.getBoundingClientRect();
   const hit = viewer.pickGeometry({ xCss: event.clientX - rect.left, yCss: event.clientY - rect.top },
-    { curveTolerancePx: 4 });
+    { curveTolerancePx: 4, ...(selectionFilter.value === 'all'
+      ? {} : { kinds: [selectionFilter.value] }) });
   const ref = hit && { kind: hit.kind, ...hit.ref };
   if (ref && (!shown(state, ref) || !state.documentBodies.some(body => sameRef(body.ref, ref))))
     throw new Error('The hit is not a current visible document body.');

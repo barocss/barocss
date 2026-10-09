@@ -144,6 +144,10 @@ export interface ViewerPick {
   ambiguous: boolean;
 }
 export interface ViewerGeometryPoint { xCss: number; yCss: number }
+export interface ViewerGeometryPickOptions {
+  curveTolerancePx?: number;
+  kinds?: Array<'surface' | 'curve'>;
+}
 export type ViewerGeometryPick =
   | ({ kind: 'surface' } & ViewerPick)
   | { kind: 'curve'; ref: ViewerCurveRef; segmentIndex: number;
@@ -1545,28 +1549,39 @@ export class Viewer {
     return best;
   }
   pickGeometry(pointInput: ViewerGeometryPoint,
-    optionsInput?: { curveTolerancePx?: number }): ViewerGeometryPick | null {
+    optionsInput?: ViewerGeometryPickOptions): ViewerGeometryPick | null {
     this.live(); check(!this.contextLost, 'Cannot pick after WebGL2 context loss');
     const point = ownRecord(pointInput, ['xCss', 'yCss'], 'Geometry pick point');
     const xCss = finite(point.xCss, 'Pick X', 0, 4096);
     const yCss = finite(point.yCss, 'Pick Y', 0, 4096);
     let tolerance = 4;
+    let kinds: Array<'surface' | 'curve'> = ['surface', 'curve'];
     if (optionsInput !== undefined) {
       check(optionsInput !== null && typeof optionsInput === 'object'
         && Object.getPrototypeOf(optionsInput) === Object.prototype,
       'Geometry pick options must be plain data');
       const keys = Reflect.ownKeys(optionsInput);
-      check(keys.length <= 1 && keys.every(key => key === 'curveTolerancePx'),
+      check(keys.length <= 2 && keys.every(key => key === 'curveTolerancePx' || key === 'kinds'),
         'Geometry pick options have unsupported fields');
       const options = ownRecord(optionsInput, keys as string[], 'Geometry pick options');
       if (Object.hasOwn(options, 'curveTolerancePx')) {
         tolerance = finite(options.curveTolerancePx, 'Curve pick tolerance', 0.5, 16);
       }
+      if (Object.hasOwn(options, 'kinds')) {
+        check(Array.isArray(options.kinds) && options.kinds.length <= 2,
+          'Geometry pick kinds require 0..2 entries');
+        kinds = denseArray(options.kinds, options.kinds.length, 'Geometry pick kinds').map(kind => {
+          check(kind === 'surface' || kind === 'curve', 'Unknown geometry pick kind');
+          return kind;
+        });
+        check(new Set(kinds).size === kinds.length, 'Duplicate geometry pick kind');
+      }
     }
     const rect = this.canvas.getBoundingClientRect();
     check(rect.width > 0 && rect.height > 0, 'Canvas must have a visible CSS size for picking');
     check(xCss <= rect.width && yCss <= rect.height, 'Pick point is outside canvas');
-    const surface = this.pick(xCss, yCss);
+    if (!kinds.length) return null;
+    const surface = kinds.includes('surface') ? this.pick(xCss, yCss) : null;
     const backward = unit(subtract(this.camera.eye, this.camera.target));
     const forward = multiply(backward, -1);
     const right = unit(cross(this.camera.up, backward));
@@ -1582,7 +1597,7 @@ export class Viewer {
     const candidates: { result: ViewerGeometryPick; depth: number; distance: number }[] = [];
     if (surface) candidates.push({ result: { kind: 'surface', ...surface },
       depth: depth(surface.positionScene), distance: 0 });
-    for (const entry of this.curves) {
+    for (const entry of kinds.includes('curve') ? this.curves : []) {
       if (!this.visible({ kind: 'curve', modelId: entry.modelId,
         curveId: entry.sample.curve.id })) continue;
       const sample = entry.sample;

@@ -4,6 +4,14 @@ This standalone Viewer example reads the existing 3,172-byte document1 fixture
 through Loader. It displays four selected Surface and Curve bodies from two
 assets. The list uses copied `getState().documentBodies` bindings and exact
 qualified refs. Row controls call public selection, visibility and fit methods.
+The Selection filter offers All, Surfaces and Curves. Canvas selection passes
+the chosen kind to public `pickGeometry`; All omits the kind restriction.
+Excluded bodies remain visible and stay in the inventory. Their Select buttons
+are disabled, while visibility and Fit remain available. Changing the filter
+clears an excluded selection, cancels active display gestures and discards a
+numeric draft. An eligible selection and accepted display poses are retained.
+Reload and Clear retain the host's filter preference. The filter is disabled
+while the document is unavailable, after context loss and after disposal.
 The properties panel shows source identity and revision, not computed physical
 properties. No editor internal or new library API is used.
 
