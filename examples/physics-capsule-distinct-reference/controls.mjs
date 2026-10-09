@@ -7,7 +7,7 @@ const copy=value=>JSON.parse(JSON.stringify(value));
 const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
 const packed=hit=>hit?[hit.fraction,...hit.normalM,...hit.pointM,...hit.segmentM,hit.iterations]:[];
 const exactBytes=(a,b)=>{const x=encodeF64(Float64Array.from(a)),y=encodeF64(Float64Array.from(b));return x.length===y.length&&x.every((v,i)=>v===y[i]);};
-function queryResult(snapshot,query,onSweep){try{return {hit:snapshot.query(query,onSweep),code:null};}catch(error){return {hit:null,code:error.code??'UNEXPECTED'};}}
+function queryResult(snapshot,query,onSweep){try{return {hit:snapshot.query(query,onSweep),code:null,error:null};}catch(error){return {hit:null,code:error.code??'UNEXPECTED',error:{name:error.name,message:error.message,string:String(error)}};}}
 export function runControls(){
  const cases=[];
  for(let i=0;i<CASES.length;i++){
@@ -21,7 +21,7 @@ export function runControls(){
   const original=queryResult(baseline,fixture.query);
   ensure(calls===profile.expectedScalarCalls,'Actual scalar call count');
   ensure(same(visited,fixture.scene.boxes.filter(box=>box.id!==fixture.query.excludeId).map(box=>box.id)),'All eligible groups visited');
-  ensure(result.code===fixture.error&&result.code===original.code,'Expected full-query error');
+  ensure(result.code===fixture.error&&result.code===original.code&&same(result.error,original.error),'Exact full-query error name/message/string/code');
   ensure(same(result.hit,original.hit)&&exactBytes(packed(result.hit),packed(original.hit)),'Unchanged baseline output and original bits');
   ensure(same(accepted,fixture.scene)&&same(snapshot.getSnapshot(),accepted),'Accepted source and refusal retention');
   source.boxes[0].centerM[0]=9;source.boxes[0].id='mutated';
@@ -33,7 +33,7 @@ export function runControls(){
   ensure(same(result,second)&&exactBytes(packed(result.hit),packed(second.hit)),'Same query after caller mutations');
   snapshot.dispose();snapshot.dispose();baseline.dispose();
   ensure(queryResult(snapshot,fixture.query).code==='DISPOSED','Disposed refusal');
-  cases.push({name:fixture.name,sourceCount:profile.sourceCount,groupCount:profile.groupCount,scalarCalls:calls,code:result.code,baselineExact:true,copies:true});
+  cases.push({name:fixture.name,sourceCount:profile.sourceCount,groupCount:profile.groupCount,scalarCalls:calls,code:result.code,error:result.error,baselineExact:true,copies:true});
  }
  return {passed:cases.length===9,cases,hookAbsentFromTimedCampaign:true};
 }
