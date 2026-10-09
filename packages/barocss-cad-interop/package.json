@@ -101,6 +101,10 @@
       "types": "./dist/pixi3d-boolean-mesh.d.ts",
       "import": "./dist/pixi3d-boolean-mesh.js"
     },
+    "./pixi3d-boolean-extrusion-mesh": {
+      "types": "./dist/pixi3d-boolean-extrusion-mesh.d.ts",
+      "import": "./dist/pixi3d-boolean-extrusion-mesh.js"
+    },
     "./model-set": {
       "types": "./dist/model-set.d.ts",
       "import": "./dist/model-set.js"

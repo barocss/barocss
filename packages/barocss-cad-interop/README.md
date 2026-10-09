@@ -611,6 +611,38 @@ uses the same saved files over HTTP for actual WebGL2 checks. Edge LinesMeshes
 are sampled polylines, not exact continuous native Curves. This display is
 not an editable native Surface, sewn Solid or certified volume.
 
+### Display native filled Boolean extrusion Shells in pinned Pixi3D
+
+The optional `./pixi3d-boolean-extrusion-mesh` entry consumes the complete
+validated CAD #896 filled Shell mesh in Pixi3D 2.5.0 with PixiJS 7.2.4.
+It creates one owned Container3D per Shell and one Mesh3D per native face
+range with exact triangle indices and hard normals. The caller asserts a
+matching right-handed Y-up view and fixed 0.001 scene units/mm.
+
+```js
+import { createBaroCadBooleanExtrusionPixi3DMesh }
+  from '@barocss/cad-interop/pixi3d-boolean-extrusion-mesh';
+
+const display = createBaroCadBooleanExtrusionPixi3DMesh(nativeMesh, {
+  unitsPerMillimeter: 0.001,
+  basis: 'authored-xyz-matches-rhyup',
+});
+app.stage.addChild(display.root);
+app.stage.addChild(display.edgeRoot); // Optional true Curve line overlay.
+display.dispose();
+```
+
+The separate edge root holds one pinned Pixi LineStrip Mesh3D for each
+true native Curve path through its three saved D1 samples. It starts
+detached. Display diagonals and bridges are metadata only. Native CAD UV
+is copied into face binding metadata; Pixi texture UV is unset. Shell,
+face, edge, Curve, source and evaluation IDs stay in copied bindings.
+Empty material creates no face or edge objects. Disposal releases only
+adapter objects and keeps the caller Application/stage/camera/canvas.
+`examples/boolean-extrusion-pixi3d.html` uses the exact saved #896 files
+over HTTP for an actual pinned Pixi WebGL2 check. The lines are sampled
+display polylines, not exact continuous CAD Curves or a sewn Solid.
+
 ### Display native filled planar Boolean material in pinned Pixi3D
 
 The optional `./pixi3d-boolean-mesh` entry consumes the same public #887
