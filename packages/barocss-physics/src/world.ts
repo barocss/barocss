@@ -3,7 +3,8 @@ import { MAX_BODIES, MAX_LARGE_BODIES, MAX_STEPS, MAX_STEP_DISPLACEMENT_M, SOLVE
 import { error, record, fields, finite, vector, parseBody, parseCommands, copyBody, copyShape, queryRecord, queryVector, queryNumber, includeSensors } from './validation.js';
 import { add, scale, inverseInertia, advanceOrientation } from './math.js';
 import { parseJoints, projectJoint } from './joints.js';
-import { driveHingeMotor } from './joint-motor.js';
+import { driveDynamicHingeMotor, driveHingeMotor } from './joint-motor.js';
+import { admitDynamicHingeCommands, admitDynamicHingeScene } from './dynamic-hinge-joint.js';
 import { detect, solve, validateResult, sphereOverlaps, rayDistance } from './collision.js';
 import { boxFaceManifold } from './contact-manifold.js';
 import { correctPersistentPair, solvePersistentPoint, warmStartPoint } from './persistent-box-contact.js';
@@ -73,8 +74,9 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
   if (!bodies.some((body) => body.kind === 'dynamic')) error('INVALID_CONFIG', 'at least one dynamic body is required');
   if (new Set(bodies.map((body) => body.id)).size !== bodies.length) error('INVALID_CONFIG', 'duplicate body ID');
   const joints = parseJoints(Object.hasOwn(input, 'joints') ? input.joints : [], bodies);
-  const motorByBody = new Map(joints.flatMap((joint, index) => joint.motor
-    ? [[joint.bIndex, { joint, index }] as const] : []));
+  const dynamicHinge = joints.find((joint) => joint.kind === 'hinge' &&
+    bodies[joint.aIndex].kind === 'dynamic');
+  if (dynamicHinge) admitDynamicHingeScene(dynamicHinge, bodies, gravity);
   const ccd = admitCcd(bodies, joints.length, gravity);
   if (ccd.kind === 'box-pair' && usePersistentBox) {
     error('INVALID_CONFIG', 'box CCD excludes persistent-box-v1');
@@ -114,11 +116,27 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
       if (fixedStepSeconds !== dt) error('INVALID_STEP', 'step must equal configured fixedStepSeconds');
       if (stepIndex >= MAX_STEPS) error('WORLD_LIMIT', 'world step limit reached');
       const actions = parseCommands(commands, bodies);
+      if (dynamicHinge) admitDynamicHingeCommands(dynamicHinge, bodies, actions);
       if (ccd.kind === 'box-pair') rejectAngularBoxCommand(actions.get(bodies[ccd.boxIndex].id));
       const next = bodies.map(copyBody);
       const motorImpulses = joints.map(() => 0);
       const nextSleepFrames = sleepFrames.slice();
       if (largeMode) wakeForActions(next, contacts, actions, nextSleepFrames);
+      for (const body of next) {
+        if (body.kind !== 'dynamic' || (largeMode && body.sleeping)) continue;
+        const action = actions.get(body.id);
+        body.angularVelocityRadps = add(body.angularVelocityRadps,
+          inverseInertia(body, add(action?.angularImpulseNms ?? [0, 0, 0],
+            scale(action?.torqueNm ?? [0, 0, 0], dt))));
+      }
+      for (let index = 0; index < joints.length; index++) {
+        const joint = joints[index];
+        if (!joint.motor) continue;
+        motorImpulses[index] = next[joint.aIndex].kind === 'dynamic'
+          ? driveDynamicHingeMotor(joint, next[joint.aIndex], next[joint.bIndex],
+            jointStates[index].angleRad!)
+          : driveHingeMotor(joint, next[joint.bIndex], jointStates[index].angleRad!);
+      }
       for (let bodyIndex = 0; bodyIndex < next.length; bodyIndex++) {
         const body = next[bodyIndex];
         const action = actions.get(body.id);
@@ -133,13 +151,6 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
           body.positionM = [...target];
         } else if (body.kind === 'dynamic') {
           if (largeMode && body.sleeping) continue;
-          const angularImpulse = action?.angularImpulseNms ?? [0, 0, 0];
-          const torque = action?.torqueNm ?? [0, 0, 0];
-          body.angularVelocityRadps = add(body.angularVelocityRadps,
-            inverseInertia(body, add(angularImpulse, scale(torque, dt))));
-          const motor = motorByBody.get(bodyIndex);
-          if (motor) motorImpulses[motor.index] = driveHingeMotor(motor.joint, body,
-            jointStates[motor.index].angleRad!);
           if (body.angularVelocityRadps.some((value) => !Number.isFinite(value) || Math.abs(value) > 1000) ||
             Math.hypot(...body.angularVelocityRadps) * dt > 10) {
             error('NUMERIC_LIMIT', `${body.id} exceeded angular movement limit`);
