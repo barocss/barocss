@@ -296,3 +296,6 @@ export type { VLinearSurfacePlaneTrimOptions, VLinearSurfacePlaneTrimEdge, VLine
 
 export { classifyVLinearSurfacePlaneTrimUV, validateVLinearSurfacePlaneTrimUVClassification, VLinearSurfacePlaneTrimUVError, VLinearSurfacePlaneTrimUVDiagnosticCode } from './vlinear-plane-trim-classification.js';
 export type { VLinearSurfacePlaneTrimUVQuery, VLinearSurfacePlaneTrimUVOptions, VLinearSurfacePlaneTrimUVReport, VLinearSurfacePlaneTrimUVResult } from './vlinear-plane-trim-classification.js';
+
+export { buildAxisBoxSolidBoolean, validateAxisBoxSolidBoolean, AxisBoxSolidBooleanError, AxisBoxSolidBooleanDiagnosticCode } from './axis-box-boolean.js';
+export type { AxisBoxSolidBooleanAsset, AxisBoxSolidBooleanOptions, AxisBoxSolidBooleanReport, AxisBoxSolidBooleanResult } from './axis-box-boolean.js';
