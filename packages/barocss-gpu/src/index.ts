@@ -37,3 +37,6 @@ export type {ParticleLayerV0} from './particle-layer.js';
 
 export {prepareCoplanarBooleanBuffers} from './coplanar-boolean-buffers.js';
 export type {CoplanarBooleanBufferOptions,PreparedCoplanarBooleanBuffers} from './coplanar-boolean-buffers.js';
+
+export {prepareBooleanShellBuffers} from './boolean-shell-buffers.js';
+export type {PreparedBooleanShellBuffers} from './boolean-shell-buffers.js';
