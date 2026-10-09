@@ -1,5 +1,5 @@
 import { Canvas2DError, copyImageAsset, validateImageAssetId, validatePoint, validateScene, validateSize, validateView } from './schema.js';
-import type { Color, HitArea, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, NodeV12, NodeV13, NodeV14, NodeV15, NodeV16, NodeV17, NodeV18, NodeV19, Point, Scene, Size, SourceRect, Transform, View } from './schema.js';
+import type { Color, HitArea, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, NodeV12, NodeV13, NodeV14, NodeV15, NodeV16, NodeV17, NodeV18, NodeV19, NodeV20, Point, Scene, Size, SourceRect, Transform, View } from './schema.js';
 import { tessellatePath } from './path.js';
 import type { FillObservation, PathObservation } from './path.js';
 import { createImageGpu, createImageTexture, disposeImageGpu, renderImage, sampledAlpha, sourceRect } from './image.js';
@@ -8,7 +8,7 @@ import { tileSpans } from './tile.js';
 
 type Matrix = [number, number, number, number, number, number];
 type Clip = { left: number; top: number; right: number; bottom: number };
-type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 | NodeV18 | NodeV19;
+type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 | NodeV18 | NodeV19 | NodeV20;
 type DrawNode = RenderNode;
 type Draw = {
   id: string; kind: 'group' | 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun'; node: DrawNode;
