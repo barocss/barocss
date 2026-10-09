@@ -2,6 +2,7 @@ import { createViewer } from '../../../packages/barocss-viewer/dist/index.js';
 import { loadBaroCadModelSet } from '../../../packages/barocss-cad-interop/dist/model-set.js';
 import { createWaterWorld } from './scene.js';
 import { createFluidController } from './controller.js';
+import { cameraForScene } from './camera.js';
 
 const canvas = document.querySelector('#view');
 const status = document.querySelector('#status');
@@ -37,8 +38,6 @@ try {
   viewer = createViewer(canvas, { mmToSceneUnit: 0.001,
     background: [0.035, 0.065, 0.105] });
   viewer.loadModelSet(modelSet);
-  viewer.setView({ eye: [1.25, 1.1, 1.45], target: [0.35, 0.42, 0.25], up: [0, 1, 0],
-    fovYDegrees: 45, near: 0.01, far: 10 });
   const present = (state, running, reset = false) => {
     if (reset) { viewer.setFluidFrame(null); generation++; }
     viewer.setFluidFrame({ version: 0, contextId: `water_generation_${generation}`,
@@ -65,6 +64,7 @@ try {
     viewer.setFluidFrame(null);
     generation++;
     const selection = sceneSelect.value;
+    viewer.setView(cameraForScene(selection));
     controller = createFluidController(createWaterWorld({
       high: selection.startsWith('splash'), tuned: selection.endsWith('tuned'),
     }), present);
