@@ -211,3 +211,10 @@ The focused source/compiled gate is `apps/cad-editor/flows/feature-graph-flow.mj
 Display-only admission preserves the complete native graph, native revisions/history, raw draft, dirty state and download capture. Native Apply/history rebuilds all native leaves and derives every displayed mesh. Open starts from the existing explicit one-leaf options. Native files always retain all authored features and parameters, including outputs excluded from display.
 
 The React bridge renders the selected native meshes in one actual GPU depth scene. Nested extrusions share a region and can occlude each other. Checkbox/solo choices support inspection without moving native geometry. `fitSelectedRequest` frames a displayed nonempty extrusion from actual mesh bounds; hidden, empty or non-extrusion selection refuses and retains the camera/frame. This is presentation framing, not a native BRep Fit or pointer leaf-picking API. Suppression and feature creation/removal remain unavailable.
+
+
+## Extrusion lifecycle
+
+`prepareExtrusionTransaction(request, postDisplayOutputs?)` consumes the actual CAD `BooleanExtrusionFeatureTransaction`. Only normal-extrusion upsert/removal is supported. The provider validates stable existing IDs/slots/options, next revision, complete dependencies and final one-to-four leaves. Parameter-table lifecycle, Face/Boolean CRUD, reorder and suppression are separate unsupported operations here.
+
+Unresolved scalar drafts and active candidates refuse. A displayed removed leaf requires an explicit complete resulting-revision output set; no output is chosen automatically. Actual native derivation, full-scene GPU admission and fresh RGBA precede acceptance. Lifecycle acceptance records one authored history entry and invalidates captured Download tokens. Changed output configuration also advances displayGeneration. Surviving selection remains; a removed selection clears. Undo/Redo keeps the current display choice and refuses if it is absent in the target; choose a surviving view before retrying.

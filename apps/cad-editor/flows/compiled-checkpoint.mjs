@@ -217,6 +217,8 @@ const displays=featureSession.getSnapshot().displays;
 const outputs:CadEditorFeatureOutput[]=displays.map(display=>({selection:display.selection,mesh:display.nativeMesh.options}));
 const viewCandidate=featureSession.prepareDisplayOutputs(outputs);
 const viewGeneration:number=viewCandidate.baseDisplayGeneration;
+const extrusionCandidate=featureSession.prepareExtrusionTransaction({expectedRevision:0,revision:1,featureOperations:[]},outputs);
+const extrusionKind: 'apply'|'open'|'undo'|'redo'|'display'|'extrusion'=extrusionCandidate.kind;
 const selectedFit:CadEditorFeatureProps={...featureProps,fitSelectedRequest:1};
 `);
     const consumerProgram = ts.createProgram([consumerPath], {

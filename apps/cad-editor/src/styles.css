@@ -14,3 +14,15 @@
 .feature-parameter-summary strong { color:var(--foreground); font-weight:500; }
 
 .feature-parameter-summary small {display:block; margin-top:3px; font-size:11px;}
+
+.extrusion-dialog { max-width:480px; }
+.extrusion-fields { display:grid; gap:14px; }
+.extrusion-fields label { display:grid; gap:7px; font-size:13px; color:var(--muted-foreground); }
+.extrusion-fields input, .extrusion-fields select { width:100%; background:var(--background); border:1px solid var(--border); border-radius:5px; padding:8px 10px; color:var(--foreground); }
+.extrusion-outputs { border:1px solid var(--border); border-radius:5px; padding:10px 12px; display:grid; gap:10px; }
+.extrusion-outputs legend { color:var(--muted-foreground); font-size:12px; padding:0 5px; }
+.extrusion-outputs label { display:flex; gap:10px; align-items:center; font-size:13px; }
+.extrusion-error { color:var(--destructive); font-size:13px; }
+
+.feature-toolbar .breadcrumb { min-width:0; flex:1; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-right:16px; }
+.feature-toolbar .toolbar-actions { flex-shrink:0; max-width:100%; overflow-x:auto; }

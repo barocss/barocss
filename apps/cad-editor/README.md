@@ -91,3 +91,12 @@ The server guard requires its own child to listen before browser access. Source 
 File → New shared extrusions creates the native four-leaf sample. Select outputs with checkboxes, Show all, or Show only selected. Fit selected frames a displayed nonempty extrusion. Height/Boolean edits rebuild all four native outputs even when some are hidden. Download retains the complete authored graph; visibility is excluded from native files.
 
 `node apps/cad-editor/flows/feature-fanout-flow.mjs --source --headed --port 52012` runs the existing single-output gate and one four-output extension. Replace `--source` with `--compiled` for built public entries. Evidence defaults to `/Users/user/.barocss-ai/v3/evidence-cad-editor-feature-fanout`. The flow verifies true native fanout vectors, full-scene pixels/refusals, view-only draft/history/download preservation, different fresh-app display choices and genuine full-graph re-edit.
+
+
+## Add, edit and remove extrusion
+
+Select an extrusion and use Edit extrusion or Remove. Add extrusion offers literal height(mm) or an existing length parameter plus offset(mm). The app creates fresh native feature/slot/evaluation/prefix identities. Choose the complete display set in the dialog. Remove requires at least one remaining visible output and keeps at least one native leaf. Cancel/Escape restores trigger focus. Refusal keeps dialog input and the accepted native file/history/camera/frame. Dialog fields are excluded from Download.
+
+History uses the current display set. If Undo would remove a newly displayed leaf, select a surviving extrusion, choose Show only selected, then retry Undo. No automatic view replacement occurs. Parameter creation/removal, suppression/reorder and general Face/Boolean creation remain separate work.
+
+Focused native lifecycle gate: `node apps/cad-editor/flows/extrusion-lifecycle-flow.mjs --headed --port 52012 --evidence <directory>`; add `--compiled` for actual built public root/React/CSS and explicit native runtime/types consumer. It checks genuine native file Download/fresh Open/re-edit, real GPU/refusal retention and explicit history view repair. This is not a broad publication/parity/release campaign.
