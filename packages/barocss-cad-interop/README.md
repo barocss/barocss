@@ -2016,3 +2016,26 @@ The original native Curves and supplied weights remain authoritative;
 Lines are sampled display only. This example does not fit unknown
 weights, certify global shape or arc length, create a Solid, or establish
 other engine or npm release readiness.
+
+## Compatible multi-section lofts in Babylon.js
+
+`examples/multi-section-loft-babylon-data/` holds six byte-exact CAD #952
+source0 outputs. Five compatible-section loft Surfaces produce 8×8
+display meshes. The valid native coincident-section loft must refuse
+collapsed preview triangles. The Node verifier checks original authored
+sections and complete owned results with public CAD, cold source0
+compilation, exact file hashes, five neutral/Babylon NullEngine buffers,
+the real middle-section edit and the authentic display refusal:
+
+```sh
+node packages/barocss-cad-interop/examples/multi-section-loft-babylon-verify.mjs /Users/user/.barocss-ai/v3/evidence-952-cad/integration/demo-output
+```
+
+Serve `examples/multi-section-loft-babylon.html` through the local Vite
+server for the headed Babylon.js WebGL2 flow. It fetches all six saved
+files over HTTP, displays five separate native-bound meshes, checks
+invalid-candidate frame retention and releases only adapter-owned
+objects. The original section Curves, compatible U bases and complete
+loft Surface remain authoritative. The 8×8 meshes do not certify
+arbitrary section matching, guides, caps, Shell/Solid quality, other
+engine parity or npm release readiness.
