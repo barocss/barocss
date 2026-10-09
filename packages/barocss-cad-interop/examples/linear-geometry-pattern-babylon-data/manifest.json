@@ -1,0 +1,232 @@
+{
+  "schema": "barocss-linear-pattern-babylon-example",
+  "version": 0,
+  "producerIssue": 964,
+  "consumerIssue": 966,
+  "sourceVersion": 0,
+  "unitsPerMillimeter": 0.001,
+  "target": "Babylon.js 9.29.0",
+  "cases": [
+    {
+      "key": "seed_only_rational_curve",
+      "kind": "curve",
+      "count": 1,
+      "originalId": "quarter_seed",
+      "ids": [
+        "quarter_seed"
+      ],
+      "spacingMM": [
+        0,
+        -0,
+        0
+      ],
+      "file": "seed_only_rational_curve.barocad",
+      "sourceSha256": "dc512cac028209668ff88a68f4ff16e68646d3a5bfc60afc9c381568e8ae07d5",
+      "ownedSha256": "5eec33bdbf01cf88e5b48b0ff961e02dd6161cc2e9cdb8a0038a38d4a39856b2",
+      "pairs": []
+    },
+    {
+      "key": "five_quarter_x_copies",
+      "kind": "curve",
+      "count": 5,
+      "originalId": "quarter_seed",
+      "ids": [
+        "quarter_seed",
+        "quarter_copy_1",
+        "quarter_copy_2",
+        "quarter_copy_3",
+        "quarter_copy_4"
+      ],
+      "spacingMM": [
+        2,
+        0,
+        0
+      ],
+      "file": "five_quarter_x_copies.barocad",
+      "sourceSha256": "f40feb68dab3f96e30922c82ab4e872d585154fad33f559bb561bdc223a5b8e2",
+      "ownedSha256": "1de0ba46c3d4cb37f0eaf3468383a0c3a51cf038bb6927dc21b9f8511cd2e2a0",
+      "pairs": [
+        {
+          "index": 1,
+          "file": "five_quarter_x_copies.pair-1.barocad",
+          "sha256": "915a08a6d51bf449206c371a51509b0832fd944166aa4d4fa1179700f7873ae3"
+        },
+        {
+          "index": 2,
+          "file": "five_quarter_x_copies.pair-2.barocad",
+          "sha256": "a7a5aa29b009911ae6734a03be3944be1c10241ce1b29dce255ff85ff1f58afd"
+        },
+        {
+          "index": 3,
+          "file": "five_quarter_x_copies.pair-3.barocad",
+          "sha256": "31d4759698f145564fb5f2134e62756393610b73472db9b617f304b8001ecb75"
+        },
+        {
+          "index": 4,
+          "file": "five_quarter_x_copies.pair-4.barocad",
+          "sha256": "13bb7475bae231104ea37362313a5eac3db2d15bbc71ffc7bb76b921902fe0d5"
+        }
+      ]
+    },
+    {
+      "key": "three_surface_diagonal_copies",
+      "kind": "surface",
+      "count": 3,
+      "originalId": "plane_seed",
+      "ids": [
+        "plane_seed",
+        "surface_copy_1",
+        "surface_copy_2"
+      ],
+      "spacingMM": [
+        1,
+        -0.5,
+        2
+      ],
+      "file": "three_surface_diagonal_copies.barocad",
+      "sourceSha256": "2e4c895aa98d86575fbfc22006d1fecdf91afca1f71de74291acf170c0fedeee",
+      "ownedSha256": "c449a4657b4dd12da969b72a5895dac08e148af06df974b782df14a4f22b719f",
+      "pairs": [
+        {
+          "index": 1,
+          "file": "three_surface_diagonal_copies.pair-1.barocad",
+          "sha256": "d070f5688e6949098d3d3d5b910cc5b6bd70c6233ec86b486828841394acd6a0"
+        },
+        {
+          "index": 2,
+          "file": "three_surface_diagonal_copies.pair-2.barocad",
+          "sha256": "b31d4db674c73cc02102a680c9bb3763c3182370d150c2fa4917fdf0dc43ea64"
+        }
+      ]
+    },
+    {
+      "key": "spacing_edit_same_roles",
+      "kind": "surface",
+      "count": 5,
+      "originalId": "quarter_seed",
+      "ids": [
+        "quarter_seed",
+        "quarter_copy_1",
+        "quarter_copy_2",
+        "quarter_copy_3",
+        "quarter_copy_4"
+      ],
+      "spacingMM": [
+        3,
+        0,
+        0
+      ],
+      "file": "spacing_edit_same_roles.barocad",
+      "sourceSha256": "e7937871215c3ee5724fef1e8f9b5707d62151389fe22a167d418d0bcb1c2f0d",
+      "ownedSha256": "1d315ac0c9c4509f2c6efbdd046f1995105197f4e8946ba7527a291827abc52f",
+      "pairs": [
+        {
+          "index": 1,
+          "file": "spacing_edit_same_roles.pair-1.barocad",
+          "sha256": "3cc8b69e8025a3aeef53873c18af42a0d3adcd8923f7eb24d27c677aaeae0132"
+        },
+        {
+          "index": 2,
+          "file": "spacing_edit_same_roles.pair-2.barocad",
+          "sha256": "de728c247dace82a62f66747979ffb8b2e78dc5b576cd9a05b42d79c47cc1297"
+        },
+        {
+          "index": 3,
+          "file": "spacing_edit_same_roles.pair-3.barocad",
+          "sha256": "86679238a64d19521acce182dc2be4949e5013c82b012e39c96c70fba196f1ca"
+        },
+        {
+          "index": 4,
+          "file": "spacing_edit_same_roles.pair-4.barocad",
+          "sha256": "762d5dbfee241eaa42b86a1ce681d8ca80a7032a1cfee451851bc16fa61e1546"
+        }
+      ]
+    },
+    {
+      "key": "maximum64_curve_five_instances",
+      "kind": "curve",
+      "count": 5,
+      "originalId": "wide_seed",
+      "ids": [
+        "wide_seed",
+        "wide_curve_copy_1",
+        "wide_curve_copy_2",
+        "wide_curve_copy_3",
+        "wide_curve_copy_4"
+      ],
+      "spacingMM": [
+        0.5,
+        0,
+        0
+      ],
+      "file": "maximum64_curve_five_instances.barocad",
+      "sourceSha256": "577241d6a921b1e59376954f2315e7c8087ad7c408830917c7d7e352e8d64ac0",
+      "ownedSha256": "398bf78b72e0d6c862383098f91a6d46a5fb7654a034f97fb84ce2e52fbf3242",
+      "pairs": [
+        {
+          "index": 1,
+          "file": "maximum64_curve_five_instances.pair-1.barocad",
+          "sha256": "73494bfefbb4636798dd15c2048fbbc4db7b9245e03ad672df4082223392aecd"
+        },
+        {
+          "index": 2,
+          "file": "maximum64_curve_five_instances.pair-2.barocad",
+          "sha256": "eb4bc625d784dace9089e9c4f1c503a27430dcf7e360b83d9b70837e50143bfe"
+        },
+        {
+          "index": 3,
+          "file": "maximum64_curve_five_instances.pair-3.barocad",
+          "sha256": "65ddaec7e03ef4fd472fbebfe5641e6dbcd2188e5ce5472806f024c7b9ccd9eb"
+        },
+        {
+          "index": 4,
+          "file": "maximum64_curve_five_instances.pair-4.barocad",
+          "sha256": "e5068928b42dd71dbaf158e6b4905cb2fd31631bd51338f100a3593135881aa7"
+        }
+      ]
+    },
+    {
+      "key": "maximum16_by16_surface_five_instances",
+      "kind": "surface",
+      "count": 5,
+      "originalId": "wide_surface_seed",
+      "ids": [
+        "wide_surface_seed",
+        "wide_surface_copy_1",
+        "wide_surface_copy_2",
+        "wide_surface_copy_3",
+        "wide_surface_copy_4"
+      ],
+      "spacingMM": [
+        0.5,
+        -0.25,
+        1
+      ],
+      "file": "maximum16_by16_surface_five_instances.barocad",
+      "sourceSha256": "a54583f9011c2bc194e5e559bc75356a75bbc1a30f4cdda670d3e9dc4c28048f",
+      "ownedSha256": "22808c248937eb7bd6495106b6fc254be6983297096d858d30c533c37a80722d",
+      "pairs": [
+        {
+          "index": 1,
+          "file": "maximum16_by16_surface_five_instances.pair-1.barocad",
+          "sha256": "cf25d52c000c1349cee5c3d79b0777d3351623f9390952096f8f9d76bcc0aaec"
+        },
+        {
+          "index": 2,
+          "file": "maximum16_by16_surface_five_instances.pair-2.barocad",
+          "sha256": "b7c011064ccc72b85efb9290d111057f58ba7059c165d78d9dbb488fd5a0abbc"
+        },
+        {
+          "index": 3,
+          "file": "maximum16_by16_surface_five_instances.pair-3.barocad",
+          "sha256": "82a301bf151f86f8214ae7cf8087f6e740ed19411b8f35e27ec95bfeea5d1caa"
+        },
+        {
+          "index": 4,
+          "file": "maximum16_by16_surface_five_instances.pair-4.barocad",
+          "sha256": "40993fdc7aadbbb39dd9ff3b44c4e136ae9179724a3b937ed36cc2398fb68df7"
+        }
+      ]
+    }
+  ]
+}

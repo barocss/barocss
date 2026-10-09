@@ -1,0 +1,1 @@
+@model quarter_copy_1 { version:0; length-unit:mm; @curve #quarter_seed { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[2,-0,-0],[2,2,-0],[0,2,-0]]; weights:[1,0.7071067811865476,1]; } @curve #quarter_copy_1 { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[4,-0,-0],[4,2,-0],[2,2,-0]]; weights:[1,0.7071067811865476,1]; } }
