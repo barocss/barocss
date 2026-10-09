@@ -33,7 +33,7 @@ tree.stage.addChild(back); tree.stage.addChild(sprite); tree.stage.addChild(pare
 tree.stage.addChild(rect); tree.stage.addChild(frame); frame.addChild(green); tree.stage.addChild(path);
 /** @type {HTMLCanvasElement} */ let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
 let renderer = createCanvas2D(canvas, options); renderer.setImageAsset('Atlas', image);
-/** @type {import('@barocss/canvas2d').SceneV15 | import('@barocss/canvas2d').SceneV16 | import('@barocss/canvas2d').SceneV17} */ let accepted = tree.snapshot();
+/** @type {import('@barocss/canvas2d').SceneV15 | import('@barocss/canvas2d').SceneV16 | import('@barocss/canvas2d').SceneV17 | import('@barocss/canvas2d').SceneV18} */ let accepted = tree.snapshot();
 renderer.updateScene(accepted); renderer.render();
 let generation = 1;
 /** @type {string | null} */ let invalidError = null;

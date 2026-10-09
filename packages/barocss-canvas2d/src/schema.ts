@@ -33,6 +33,8 @@ export type Node = GroupNode | FrameNode | RectNode | LineNode | PathNode;
 export type PathFill = { color: Color; rule: 'evenodd' };
 export type PathFillV5 = { color: Color; rule: 'evenodd' | 'nonzero' };
 export type PathStroke = { color: Color; width: number };
+export type PathCap = 'butt' | 'square' | 'round';
+export type PathStrokeV18 = PathStroke & { cap: PathCap };
 export type PathNodeV2 = Base & { kind: 'path'; commands: PathCommand[]; fill?: PathFill; stroke?: PathStroke };
 export type PathNodeV5 = Base & { kind: 'path'; commands: PathCommand[]; fill?: PathFillV5; stroke?: PathStroke };
 export type SourceRect = { x: number; y: number; width: number; height: number };
@@ -125,6 +127,10 @@ export type NodeV16 = GroupNodeV16 | FrameNodeV16 | RectNodeV14 | LineNodeV14 | 
 export type GroupNodeV17 = Omit<GroupNodeV16, 'children'> & { hitArea?: HitArea; children: NodeV17[] };
 export type FrameNodeV17 = Omit<FrameNodeV16, 'children'> & { children: NodeV17[] };
 export type NodeV17 = GroupNodeV17 | FrameNodeV17 | RectNodeV14 | LineNodeV14 | PathNodeV14 | ImageNodeV16 | GlyphRunNodeV14;
+export type PathNodeV18 = Omit<PathNodeV14, 'stroke'> & { stroke?: PathStrokeV18 };
+export type GroupNodeV18 = Omit<GroupNodeV17, 'children'> & { children: NodeV18[] };
+export type FrameNodeV18 = Omit<FrameNodeV17, 'children'> & { children: NodeV18[] };
+export type NodeV18 = GroupNodeV18 | FrameNodeV18 | RectNodeV14 | LineNodeV14 | PathNodeV18 | ImageNodeV16 | GlyphRunNodeV14;
 export type OldGroupNode = Omit<GroupNode, 'children'> & { children: OldNode[] };
 export type OldFrameNode = Omit<FrameNode, 'children'> & { children: OldNode[] };
 export type OldNode = OldGroupNode | OldFrameNode | RectNode | LineNode;
@@ -146,7 +152,8 @@ export type SceneV14 = { version: 14; unit: 'logical-px'; contextId: string; nod
 export type SceneV15 = { version: 15; unit: 'logical-px'; contextId: string; nodes: NodeV15[] };
 export type SceneV16 = { version: 16; unit: 'logical-px'; contextId: string; nodes: NodeV16[] };
 export type SceneV17 = { version: 17; unit: 'logical-px'; contextId: string; nodes: NodeV17[] };
-export type Scene = SceneV0 | SceneV1 | SceneV2 | SceneV3 | SceneV4 | SceneV5 | SceneV6 | SceneV7 | SceneV8 | SceneV9 | SceneV10 | SceneV11 | SceneV12 | SceneV13 | SceneV14 | SceneV15 | SceneV16 | SceneV17;
+export type SceneV18 = { version: 18; unit: 'logical-px'; contextId: string; nodes: NodeV18[] };
+export type Scene = SceneV0 | SceneV1 | SceneV2 | SceneV3 | SceneV4 | SceneV5 | SceneV6 | SceneV7 | SceneV8 | SceneV9 | SceneV10 | SceneV11 | SceneV12 | SceneV13 | SceneV14 | SceneV15 | SceneV16 | SceneV17 | SceneV18;
 
 const MAX_BYTES = 1024 * 1024;
 const idPattern = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
@@ -374,11 +381,11 @@ function validText(value: unknown, path: string): string {
 
 type Counter = { nodes: number; vertices: number; paths: number; glyphRuns: number; ids: Set<string> };
 function nodes(value: unknown, depth: number, path: string, ancestorRotated: boolean,
-  seen: WeakSet<object>, counter: Counter, version: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17): (Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17)[] {
+  seen: WeakSet<object>, counter: Counter, version: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18): (Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 | NodeV18)[] {
   if (depth > 16) fail('SCENE_LIMIT', 'scene depth exceeds 16');
   const raw = array(value, path, seen);
   if (raw.length > 256) fail('SCENE_LIMIT', 'scene has too many siblings');
-  return raw.map((item, index): Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 => {
+  return raw.map((item, index): Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 | NodeV18 => {
     const nodePath = `${path}[${index}]`;
     if (item === null || typeof item !== 'object') fail('INVALID_SCENE', `${nodePath} must be a node`);
     const kindDescriptor = Object.getOwnPropertyDescriptor(item, 'kind');
@@ -433,7 +440,7 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
         y: number(pivot.y, `${nodePath}.pivot.y`, -1e6, 1e6) } } : {}) };
     if (kind === 'group') return { kind, ...base,
       ...(Object.hasOwn(data, 'hitArea') ? { hitArea: interactionRect(data.hitArea, `${nodePath}.hitArea`, seen) } : {}),
-      children: nodes(data.children, depth + 1, `${nodePath}.children`, rotated, seen, counter, version) } as NodeV17;
+      children: nodes(data.children, depth + 1, `${nodePath}.children`, rotated, seen, counter, version) } as NodeV18;
     if (kind === 'frame') {
       if (typeof data.clip !== 'boolean') fail('INVALID_SCENE', `${nodePath}.clip must be boolean`);
       if (data.clip && rotated) fail('INVALID_SCENE', `${nodePath} has unsupported rotated clip`);
@@ -452,7 +459,7 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
         const fill = !Object.hasOwn(data, 'fill') ? undefined : object(data.fill,
           ['color', 'rule'], `${nodePath}.fill`, seen);
         const stroke = !Object.hasOwn(data, 'stroke') ? undefined : object(data.stroke,
-          ['color', 'width'], `${nodePath}.stroke`, seen);
+          version >= 18 ? ['color', 'width', 'cap'] : ['color', 'width'], `${nodePath}.stroke`, seen);
         if (fill && fill.rule !== 'evenodd' && !(version >= 5 && fill.rule === 'nonzero')) {
           fail('INVALID_SCENE', `${nodePath}.fill.rule is unsupported`);
         }
@@ -461,7 +468,9 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
           ...(fill ? { fill: { color: color(fill.color, `${nodePath}.fill.color`, seen),
             rule: fill.rule as 'evenodd' | 'nonzero' } } : {}),
           ...(stroke ? { stroke: { color: color(stroke.color, `${nodePath}.stroke.color`, seen),
-            width: number(stroke.width, `${nodePath}.stroke.width`, Number.MIN_VALUE, 1000) } } : {}),
+            width: number(stroke.width, `${nodePath}.stroke.width`, Number.MIN_VALUE, 1000),
+            ...(version >= 18 ? { cap: stroke.cap === 'butt' || stroke.cap === 'square' || stroke.cap === 'round'
+              ? stroke.cap : fail('INVALID_SCENE', `${nodePath}.stroke.cap is unsupported`) } : {}) } } : {}),
         };
       }
       return { kind, ...base,
@@ -563,8 +572,8 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
 export function validateScene(value: unknown): Scene {
   const seen = new WeakSet<object>();
   const raw = object(value, ['version', 'unit', 'contextId', 'nodes'], 'scene', seen);
-  if ((raw.version !== 0 && raw.version !== 1 && raw.version !== 2 && raw.version !== 3 && raw.version !== 4 && raw.version !== 5 && raw.version !== 6 && raw.version !== 7 && raw.version !== 8 && raw.version !== 9 && raw.version !== 10 && raw.version !== 11 && raw.version !== 12 && raw.version !== 13 && raw.version !== 14 && raw.version !== 15 && raw.version !== 16 && raw.version !== 17) || raw.unit !== 'logical-px') fail('INVALID_SCENE', 'unsupported scene version or unit');
-  const version = raw.version as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17;
+  if ((raw.version !== 0 && raw.version !== 1 && raw.version !== 2 && raw.version !== 3 && raw.version !== 4 && raw.version !== 5 && raw.version !== 6 && raw.version !== 7 && raw.version !== 8 && raw.version !== 9 && raw.version !== 10 && raw.version !== 11 && raw.version !== 12 && raw.version !== 13 && raw.version !== 14 && raw.version !== 15 && raw.version !== 16 && raw.version !== 17 && raw.version !== 18) || raw.unit !== 'logical-px') fail('INVALID_SCENE', 'unsupported scene version or unit');
+  const version = raw.version as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
   const contextId = id(raw.contextId, 'scene.contextId');
   const parsedNodes = nodes(raw.nodes, 1, 'scene.nodes', false, seen,
     { nodes: 0, vertices: 0, paths: 0, glyphRuns: 0, ids: new Set() }, version);
@@ -586,7 +595,8 @@ export function validateScene(value: unknown): Scene {
     : version === 14 ? { version: 14, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV14[] }
     : version === 15 ? { version: 15, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV15[] }
     : version === 16 ? { version: 16, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV16[] }
-    : { version: 17, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV17[] };
+    : version === 17 ? { version: 17, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV17[] }
+    : { version: 18, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV18[] };
   if (new TextEncoder().encode(JSON.stringify(scene)).length > MAX_BYTES) fail('SCENE_LIMIT', 'scene snapshot exceeds 1 MiB');
   return scene;
 }
