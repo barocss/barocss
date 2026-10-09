@@ -11,7 +11,12 @@
     main { max-width: 1180px; margin: 24px auto; padding: 0 16px; }
     h1 { margin: 0; font-size: 26px; } p { margin: 6px 0 18px; color: #bdcee0; }
     .layout { display: grid; grid-template-columns: minmax(0, 800px) minmax(280px, 1fr); gap: 16px; }
+    .viewport { position: relative; }
     canvas { display: block; width: 100%; height: auto; border: 1px solid #55728e; border-radius: 6px; cursor: crosshair; }
+    #move-handle { position: absolute; z-index: 1; transform: translate(-50%, -50%); border-radius: 50%;
+      width: 46px; height: 46px; padding: 0; border: 2px solid #ffe577; background: #244462;
+      touch-action: none; user-select: none; cursor: grab; }
+    #move-handle[data-dragging="true"] { cursor: grabbing; background: #385f80; }
     aside, #properties { border: 1px solid #405a75; border-radius: 6px; background: #192b3f; padding: 12px; }
     aside h2, #properties h2 { margin: 0 0 8px; font-size: 18px; }
     button { border: 1px solid #7198bc; border-radius: 4px; background: #244462; color: white; padding: 5px 8px; cursor: pointer; }
@@ -42,7 +47,10 @@
   <p>Inspect four original Surface and Curve bodies in one Viewer canvas. The list uses qualified source identities.</p>
   <div class="layout">
     <div>
-      <canvas id="view" width="800" height="480" tabindex="0" aria-label="Document body viewport"></canvas>
+      <div class="viewport">
+        <canvas id="view" width="800" height="480" tabindex="0" aria-label="Document body viewport"></canvas>
+        <button id="move-handle" type="button" hidden aria-label="Move selected body in view plane">Move</button>
+      </div>
       <div id="properties" aria-live="polite"><h2>Properties</h2><span>Select a visible body.</span></div>
     </div>
     <aside>
@@ -60,6 +68,7 @@
         <button id="check-refusals">Check refusals</button>
         <button id="check-non-y">Check non-Y pose</button>
         <button id="check-nonuniform">Check nonuniform scale</button>
+        <button id="lose-context-proof">Lose context</button>
         <button id="dispose-proof">Dispose viewer</button>
       </div>
       <pre id="proof" hidden aria-label="Browser proof"></pre>

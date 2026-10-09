@@ -2,6 +2,7 @@ import { createViewer, VIEWER_POSE_LIMITS } from '../../packages/barocss-viewer/
 import { loadBaroCadDocument } from '../../packages/barocss-cad-interop/dist/document.js';
 
 const canvas = document.querySelector('#view');
+const moveHandle = document.querySelector('#move-handle');
 const list = document.querySelector('#bodies');
 const properties = document.querySelector('#properties');
 const status = document.querySelector('#status');
@@ -41,6 +42,8 @@ const options = { native, basis: 'authored-xyz-matches-rhyup',
   bodyIds: ['body_1_surface', 'body_0_curve', 'body_1_curve', 'body_0_surface'] };
 const listener = new AbortController();
 let sceneEpoch = 0, requestEpoch = 0, disposed = false;
+let activeDrag = null;
+let previewReport = null;
 let sampleCamera = null, sampleCoordinates = [];
 let refusalReport = null, nonYReport = null, nonuniformReport = null;
 const sameRef = (a, b) => a?.kind === b?.kind && a?.modelId === b?.modelId
@@ -124,6 +127,27 @@ function selectedPose(state, ref) {
   if (index < 0) throw new Error('The selected body has no current display pose.');
   return { motion, index, pose: motion.displayPoses[index] };
 }
+function projectHandle(body) {
+  const input = body.ref.kind === 'surface'
+    ? { ...body.ref, u: 1.5, v: 1.5 } : { ...body.ref, t: 1 };
+  const projection = viewer.projectNativePoint(input);
+  if (projection && JSON.stringify(projection.documentBody) !== JSON.stringify(body.binding))
+    throw new Error('The projected native point has a different document binding.');
+  return projection;
+}
+function renderHandle(state) {
+  const body = state.status === 'ready' && state.documentBodies.find(value =>
+    sameRef(value.ref, state.selectedGeometry) && shown(state, value.ref));
+  if (!body) { moveHandle.hidden = true; return; }
+  try {
+    const projection = projectHandle(body);
+    if (!projection) { moveHandle.hidden = true; return; }
+    moveHandle.style.left = projection.xCss + 'px';
+    moveHandle.style.top = projection.yCss + 'px';
+    moveHandle.dataset.bodyId = body.binding.bodyId;
+    moveHandle.hidden = false;
+  } catch (error) { moveHandle.hidden = true; say('Move handle unavailable: ' + error.message, true); }
+}
 function translationEditor(state, selected, revision, epoch) {
   const { pose } = selectedPose(state, selected.ref);
   const yaw = acceptedYaw(pose.rotationXYZW);
@@ -142,6 +166,7 @@ function translationEditor(state, selected, revision, epoch) {
     const label = document.createElement('label'), input = document.createElement('input');
     label.textContent = axis + ' (mm)';
     input.type = 'text'; input.inputMode = 'decimal'; input.value = acceptedTranslationText[index];
+    input.dataset.accepted = input.value;
     input.setAttribute('aria-label', axis + ' display translation (mm)');
     label.append(input); section.append(label);
     return input;
@@ -149,11 +174,13 @@ function translationEditor(state, selected, revision, epoch) {
   const yawLabel = document.createElement('label'), yawInput = document.createElement('input');
   yawLabel.textContent = 'Yaw Y (deg)';
   yawInput.type = 'text'; yawInput.inputMode = 'decimal'; yawInput.value = acceptedYawText;
+  yawInput.dataset.accepted = yawInput.value;
   yawInput.setAttribute('aria-label', 'Yaw display rotation (deg)');
   yawLabel.append(yawInput); section.append(yawLabel);
   const scaleLabel = document.createElement('label'), scaleInput = document.createElement('input');
   scaleLabel.textContent = 'Uniform scale (ratio)';
   scaleInput.type = 'text'; scaleInput.inputMode = 'decimal'; scaleInput.value = acceptedScaleText;
+  scaleInput.dataset.accepted = scaleInput.value;
   scaleInput.setAttribute('aria-label', 'Uniform display scale (ratio)');
   scaleLabel.append(scaleInput); section.append(scaleLabel);
   const actions = document.createElement('div');
@@ -254,12 +281,17 @@ function publishProof(state) {
     visible: state.visibleGeometry, selected: state.selectedGeometry, camera: state.camera,
     geometryMotion: state.geometryMotion,
     draft: [...properties.querySelectorAll('.translation-editor input')].map(input => input.value),
+    handle: { visible: !moveHandle.hidden, xCss: moveHandle.hidden ? null : Number.parseFloat(moveHandle.style.left),
+      yCss: moveHandle.hidden ? null : Number.parseFloat(moveHandle.style.top),
+      dragging: activeDrag !== null },
+    previewReport,
     pixelHash, hitSamples, refusalReport, nonYReport, nonuniformReport, contexts: contexts.size,
     glErrors: [...contexts].map(context => context.getError()),
     resources: Object.fromEntries(Object.entries(resources).map(([kind, live]) => [kind, live.size])),
   }, null, 2);
 }
 function render() {
+  if (activeDrag) cancelDrag();
   const state = viewer.getState();
   const ready = state.status === 'ready' && state.document !== null;
   const revision = state.document?.document.revision, epoch = sceneEpoch;
@@ -337,9 +369,140 @@ function render() {
     document.querySelector('#check-nonuniform').disabled = !ready || !selected;
     document.querySelector('#dispose-proof').disabled = disposed;
   }
+  renderHandle(state);
   publishProof(state);
 }
+function cancelDrag() {
+  const drag = activeDrag;
+  activeDrag = null;
+  moveHandle.dataset.dragging = 'false';
+  if (drag && moveHandle.hasPointerCapture(drag.pointerId)) {
+    try { moveHandle.releasePointerCapture(drag.pointerId); } catch { /* Capture was already lost. */ }
+  }
+}
+function cross(a, b) {
+  return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0]];
+}
+function unit(vector) {
+  const length = Math.hypot(...vector);
+  if (!Number.isFinite(length) || length === 0) throw new Error('Camera basis is unavailable.');
+  return vector.map(value => value / length);
+}
+moveHandle.addEventListener('pointerdown', event => {
+  if (!event.isPrimary || event.button !== 0 || activeDrag || moveHandle.hidden) return;
+  try {
+    const state = viewer.getState();
+    const body = state.documentBodies.find(value => sameRef(value.ref, state.selectedGeometry)
+      && shown(state, value.ref));
+    if (state.status !== 'ready' || !body) throw new Error('Select a current visible body.');
+    const inputs = properties.querySelectorAll('.translation-editor input');
+    if ([...inputs].some(input => input.value !== input.dataset.accepted))
+      throw new Error('Apply or discard the numeric draft first.');
+    if (!Number.isFinite(event.clientX) || !Number.isFinite(event.clientY))
+      throw new Error('Pointer coordinates must be finite.');
+    const projection = projectHandle(body), rect = canvas.getBoundingClientRect();
+    if (!projection || !Number.isFinite(rect.width) || !Number.isFinite(rect.height)
+        || rect.width <= 0 || rect.height <= 0) throw new Error('The native anchor is not on screen.');
+    selectedPose(state, body.ref);
+    moveHandle.setPointerCapture(event.pointerId);
+    activeDrag = { pointerId: event.pointerId, startX: event.clientX, startY: event.clientY,
+      ref: body.ref, binding: body.binding, revision: state.document.document.revision,
+      epoch: sceneEpoch, cameraHash: JSON.stringify(state.camera),
+      motionHash: JSON.stringify(state.geometryMotion), mmToSceneUnit: state.mmToSceneUnit,
+      rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height }, projection,
+      proofState: proof ? JSON.stringify(state) : null,
+      proofPixels: proof ? viewer.readPixels() : null };
+    previewReport = null;
+    moveHandle.dataset.dragging = 'true';
+    event.preventDefault();
+    say('Move preview. Release to apply.'); publishProof(state);
+  } catch (error) { say('Move refused: ' + error.message, true); }
+}, { signal: listener.signal });
+moveHandle.addEventListener('pointermove', event => {
+  const drag = activeDrag;
+  if (!drag || event.pointerId !== drag.pointerId) return;
+  if (!moveHandle.hasPointerCapture(drag.pointerId)) {
+    cancelDrag(); renderHandle(viewer.getState()); say('Move cancelled: pointer capture lost.', true);
+    return;
+  }
+  const dx = event.clientX - drag.startX, dy = event.clientY - drag.startY;
+  if (!Number.isFinite(dx) || !Number.isFinite(dy)) {
+    cancelDrag(); renderHandle(viewer.getState()); say('Move cancelled: nonfinite pointer position.', true);
+    return;
+  }
+  moveHandle.style.left = drag.projection.xCss + dx + 'px';
+  moveHandle.style.top = drag.projection.yCss + dy + 'px';
+  if (proof) {
+    const pixels = viewer.readPixels();
+    previewReport = { dx, dy, stateSame: JSON.stringify(viewer.getState()) === drag.proofState,
+      pixelsSame: pixels.length === drag.proofPixels.length
+        && pixels.every((byte, index) => byte === drag.proofPixels[index]) };
+  }
+  event.preventDefault();
+  publishProof(viewer.getState());
+}, { signal: listener.signal });
+moveHandle.addEventListener('pointerup', event => {
+  const drag = activeDrag;
+  if (!drag || event.pointerId !== drag.pointerId) return;
+  try {
+    const dx = event.clientX - drag.startX, dy = event.clientY - drag.startY;
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) throw new Error('Pointer displacement must be finite.');
+    const accepted = current(drag.ref, drag.binding.bodyId, drag.revision, drag.epoch);
+    const body = accepted.documentBodies.find(value => sameRef(value.ref, drag.ref));
+    if (!body || JSON.stringify(body.binding) !== JSON.stringify(drag.binding)
+        || !shown(accepted, drag.ref) || !sameRef(accepted.selectedGeometry, drag.ref)
+        || JSON.stringify(accepted.camera) !== drag.cameraHash
+        || JSON.stringify(accepted.geometryMotion) !== drag.motionHash
+        || accepted.mmToSceneUnit !== drag.mmToSceneUnit)
+      throw new Error('The accepted body, camera or pose changed during the drag.');
+    if ([...properties.querySelectorAll('.translation-editor input')]
+      .some(input => input.value !== input.dataset.accepted))
+      throw new Error('Apply or discard the numeric draft first.');
+    if (!projectHandle(body)) throw new Error('The native anchor is no longer on screen.');
+    const rect = canvas.getBoundingClientRect();
+    if (![rect.left, rect.top, rect.width, rect.height].every(Number.isFinite)
+        || rect.left !== drag.rect.left || rect.top !== drag.rect.top
+        || rect.width !== drag.rect.width || rect.height !== drag.rect.height)
+      throw new Error('The canvas changed during the drag.');
+    const distance = Math.hypot(dx, dy);
+    if (distance > 256) throw new Error('Move must stay within 256 CSS px.');
+    if (distance < 3) {
+      cancelDrag(); renderHandle(accepted); publishProof(accepted); say('Move below 3 CSS px; no change.');
+      return;
+    }
+    const camera = accepted.camera, depth = drag.projection.depthScene;
+    const backward = unit(camera.eye.map((value, index) => value - camera.target[index]));
+    const right = unit(cross(camera.up, backward)), up = cross(backward, right);
+    const tangent = Math.tan(camera.fovYDegrees * Math.PI / 360);
+    const horizontal = 2 * depth * tangent * (canvas.width / canvas.height) * dx / rect.width;
+    const vertical = -2 * depth * tangent * dy / rect.height;
+    const { motion, index, pose } = selectedPose(accepted, drag.ref);
+    const translation = pose.translationMm.map((value, axis) => value
+      + (right[axis] * horizontal + up[axis] * vertical) / accepted.mmToSceneUnit);
+    const targetId = motion.bindings[index].targetId;
+    const poses = motion.frame.poses.map(value => value.targetId === targetId
+      ? { ...value, translation } : value);
+    viewer.applyGeometryMotionFrame({ ...motion.frame, poses }, motion.bindings, { basis: motion.basis });
+    cancelDrag(); render(); say('Moved ' + drag.binding.bodyId + ' in the view plane.');
+  } catch (error) {
+    cancelDrag(); const state = viewer.getState(); renderHandle(state); publishProof(state);
+    say('Move refused: ' + error.message, true);
+  }
+  event.preventDefault();
+}, { signal: listener.signal });
+for (const type of ['pointercancel', 'lostpointercapture']) {
+  moveHandle.addEventListener(type, event => {
+    if (activeDrag?.pointerId !== event.pointerId) return;
+    cancelDrag(); const state = viewer.getState(); renderHandle(state); publishProof(state);
+    say('Move cancelled: ' + type + '.', true);
+  }, { signal: listener.signal });
+}
+canvas.addEventListener('webglcontextlost', () => {
+  cancelDrag(); render(); say('Move unavailable: WebGL2 context lost.', true);
+}, { signal: listener.signal });
 async function reload() {
+  if (activeDrag) { cancelDrag(); renderHandle(viewer.getState()); }
   const request = ++requestEpoch;
   let accepted = false;
   say('Loading document…');
@@ -388,9 +551,16 @@ canvas.addEventListener('click', event => run('Canvas selection', () => {
 }), { signal: listener.signal });
 function dispose() {
   if (disposed) return;
+  cancelDrag();
   disposed = true; requestEpoch++; listener.abort(); viewer.dispose(); render(); say('Viewer disposed.');
 }
 if (proof) {
+  document.querySelector('#lose-context-proof').addEventListener('click', () => {
+    const context = [...contexts][0];
+    const extension = context?.getExtension('WEBGL_lose_context');
+    if (extension) extension.loseContext();
+    else say('WEBGL_lose_context is unavailable.', true);
+  }, { signal: listener.signal });
   document.querySelector('#check-nonuniform').addEventListener('click', () => {
     const before = viewer.getState(), beforePixels = viewer.readPixels();
     const motion = before.geometryMotion;

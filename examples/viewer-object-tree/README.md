@@ -52,5 +52,16 @@ accepted pose whose X/Y/Z scale components are equal; it does not reduce a
 nonuniform pose to a misleading single value. Unchanged drafts retain the
 exact accepted scale vector, yaw quaternion and translation values.
 
+The circular Move handle appears for a selected visible body when its original
+Surface or Curve anchor projects onto the canvas. Drag it with the primary
+pointer to preview a screen-plane move. Release after 3 through 256 CSS pixels
+to update only that body's display translation. Apply or Discard any numeric
+draft first. Pointer cancellation, a changed body/camera/pose, an oversized
+move and a Viewer refusal leave the accepted pose in place. The handle uses
+an approximate native-point projection; it does not test occlusion or edit the
+CAD source. Fit remains a separate action.
+
 The optional `?proof` route exposes `window.viewerObjectTreeProbe` and tracks
-Viewer-created WebGL resources for an actual browser lifecycle check.
+Viewer-created WebGL resources for an actual browser lifecycle check. Its Lose
+context button invokes the browser's `WEBGL_lose_context` extension to check
+that the move handle is removed after context loss.
