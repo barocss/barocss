@@ -27,7 +27,7 @@ function tokens(source:string):Token[]{
  if(c==='#'){i++;while(i<source.length&&/[A-Za-z0-9_-]/.test(source[i]))i++;text=source.slice(start,i);}
  else if(/[A-Za-z_]/.test(c)){i++;while(i<source.length&&/[A-Za-z0-9_]/.test(source[i]))i++;text=source.slice(start,i);}
  else if(/\d/.test(c)||(c==='.'&&/\d/.test(source[i+1]??''))){const match=/^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?/.exec(source.slice(i));text=match![0];i+=text.length;}
- else if('@{}():;,+-*'.includes(c)){text=c;i++;}
+ else if('@{}():;,+-*/'.includes(c)){text=c;i++;}
  else fail('SYNTAX','Unsupported material token '+c,{text:c,start,end:i+1});
  result.push({text,start,end:i});if(result.length>4096)fail('BUDGET','Material exceeds4096 tokens',result.at(-1));
  }
@@ -60,7 +60,19 @@ class Parser {
  }
  fail('SYNTAX','Material expression required',token);
  }
- private expression(min=0,nesting=0):Term{let left=this.primary(nesting);for(;;){const token=this.current(),precedence=token.text==='*'?2:token.text==='+'||token.text==='-'?1:0;if(precedence===0||precedence<min)break;this.i++;const right=this.expression(precedence+1,nesting+1);this.float(left,token);this.float(right,token);const[a,b]=left.range,[c,d]=right.range;const range: [number,number]=token.text==='+'?[a+c,b+d]:token.text==='-'?[a-d,b-c]:[Math.min(a*c,a*d,b*c,b*d),Math.max(a*c,a*d,b*c,b*d)];left=this.term({kind:'binary',type:'float',operator:token.text as '+'|'-'|'*',left:left.expression,right:right.expression},'float',range,[left,right],token);}return left;}
+ private expression(min=0,nesting=0):Term{let left=this.primary(nesting);for(;;){const token=this.current(),precedence=token.text==='*'||token.text==='/'?2:token.text==='+'||token.text==='-'?1:0;if(precedence===0||precedence<min)break;this.i++;
+ if(token.text==='/'){
+  this.float(left,token);
+  const start=this.current(),divisor=this.signedNumber(),literal={text:this.source.slice(start.start,this.list[this.i-1].end),start:start.start,end:this.list[this.i-1].end};
+  if(divisor===0)fail('RANGE','Material divisor must be a nonzero numeric literal',literal);
+  const reciprocal=zero(1/divisor);
+  if(!Number.isFinite(reciprocal)||Math.abs(reciprocal)>1000)fail('RANGE','Material divisor reciprocal exceeds±1000',literal);
+  // Lower only to the existing float/multiply IR, charging both generated nodes.
+  const right=this.term({kind:'float',type:'float',value:reciprocal},'float',[reciprocal,reciprocal],[],literal),[a,b]=left.range;
+  left=this.term({kind:'binary',type:'float',operator:'*',left:left.expression,right:right.expression},'float',[Math.min(a*reciprocal,b*reciprocal),Math.max(a*reciprocal,b*reciprocal)],[left,right],token);
+  continue;
+ }
+ const right=this.expression(precedence+1,nesting+1);this.float(left,token);this.float(right,token);const[a,b]=left.range,[c,d]=right.range;const range: [number,number]=token.text==='+'?[a+c,b+d]:token.text==='-'?[a-d,b-c]:[Math.min(a*c,a*d,b*c,b*d),Math.max(a*c,a*d,b*c,b*d)];left=this.term({kind:'binary',type:'float',operator:token.text as '+'|'-'|'*',left:left.expression,right:right.expression},'float',range,[left,right],token);}return left;}
  parse():MeshMaterialIR{
  this.take('@');this.take('shader');const id=this.current();if(!/^#[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(id.text))fail('SYNTAX','Shader ID requires ASCII1..64',id);this.i++;this.take('{');
  while(this.current().text==='@'&&this.list[this.i+1]?.text==='uniform'){
