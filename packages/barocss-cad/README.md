@@ -7797,3 +7797,45 @@ node examples/cad-nurbs/assembly-part-replacement-demo.mjs --source EVIDENCE_DIR
 
 This saved-source flow is the scoped final checkpoint with one affected CAD
 build. Native completion and Integration adoption are recorded in #1015.
+
+## Original-domain endpoint-D2 quintic Hermite Curve — #1026
+
+`buildQuinticHermiteCurve(endpoints,options)` constructs one degree5 polynomial
+Curve from exactly two ordered endpoint constraints. Each endpoint contains
+parameter, pointMM, derivativeMMPerParameter and
+secondDerivativeMMPerParameterSquared. Options contain curveId and
+maximumEndpointEvaluations (0..2); two actual native D2 evaluations are required.
+The result retains endpoints/options/curve/source/sourceVersion/model/report.
+`validateQuinticHermiteCurve(owned)` reconstructs all coefficients, source,
+endpoint observations and arithmetic provenance. Typed refusals use
+`QuinticHermiteError` and `QuinticHermiteDiagnosticCode`.
+
+For original span h=b-a, first offsets are (h*T)/5 and second offsets are
+((h*Asecond)*h)/20. These define six centered control poles, original knots
+[a,a,a,a,a,a,b,b,b,b,b,b] and six unit weights. Positions retain authored pole
+bits, including signed zero. The actual Source0 compiler retains all native
+coefficient bits; actual D2 checks both endpoints in original parameter units.
+No tangent or parameter normalization is applied. A separately representable
+h² factor is not required: a scaled second offset can be represented when h²
+underflows. Nonzero product/quotient loss or a translated offset lost to rounding
+refuses the request.
+
+Endpoint parameter/point/D1/D2 components and generated poles have absolute
+limits10000 in their declared units. Original span must be positive and finite.
+Endpoint position distance is at most1e-7mm; D1/D2 norm residuals divided by
+max(1,input norm) are at most1e-7. A nonzero supplied derivative component cannot
+silently become zero. Zero tangent/second derivative and stationary or constant
+native Curves are allowed if native evaluation succeeds. Supplied second
+derivative vectors are parametric constraints; they are not scalar geometric
+curvature constraints or a regularity/G2/global error certificate.
+
+```sh
+node examples/cad-nurbs/quintic-hermite-curve-demo.mjs --source EVIDENCE_DIR
+```
+
+One affected build and this saved-source flow establish the scoped native
+checkpoint. General rational/periodic/multi-segment Hermite and fitting remain
+separate tasks. The endpoint pole relations follow the Bernstein derivative
+properties documented by [MIT](https://web.mit.edu/hyperbook/Patrikalakis-Maekawa-Cho/node12.html)
+and [Michigan Tech](https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/surface/bezier-der.html),
+with the chain rule for the original parameter domain. No external runtime is used.
