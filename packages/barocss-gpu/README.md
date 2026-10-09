@@ -862,13 +862,21 @@ There is no timer or native geometry mutation. setMaterial(null) restores old sh
 bytes/pixels. Existing update/resize preserve accepted material; clear removes it.
 
 Profile mesh-opaque-fragment-v0 is one opaque color output with float uniforms,
-decimal/exponent and #RRGGBB literals, unary± and float+,-,*, sin/cos, mix(color,color,
+decimal/exponent and opaque #RGB/#RRGGBB literals, unary± and float+,-,*, sin/cos, mix(color,color,
 float), clamp(float,float,float). Uniform names ASCII1..32/shader IDs1..64; min/default/
 max finite ordered within±1000. Source64KiBUTF8/tokens4096/uniforms16/nodes256/depth16;
 intermediate interval bounds±1e6, sin/cos arguments±1000, mix ratio admitted0..1.
 Declared target semantics clamp admitted ratios and final linear RGB0..1 to protect
 Float32 color bounds. Material zeros normalize to+0 for JSON-friendly shader data;
 authored native/source/coefficient -0 is not changed.
+
+Three-digit colors expand each digit and normalize to uppercase #RRGGBB in the
+existing color IR; complete caller source and diagnostic ranges remain original.
+For example, #aBc and #AABBCC produce identical typed color and trusted lowering.
+Shader IDs retain their separate grammar. Four/eight-digit alpha colors refuse.
+The version0/profile and compiler budgets remain unchanged. The compiled CPU/file
+flow is `node examples/gpu-scene/material-shorthand-flow.mjs --output <directory>`;
+this does not establish a new renderer or consumer adoption.
 
 Hex colors decode once using legacy gamma2.2; expressions are linear RGB, then one
 existing ambient/directional lighting multiplication and one gamma2.2 encode, alpha1.
