@@ -1,28 +1,28 @@
 import { Canvas2DError, validatePoint, validateScene } from './schema.js';
-import type { PathStroke, PathStrokeV18, PathStrokeV19, NineSliceInsets, TilePattern, SceneV11, HitMode, HitArea, FrameNodeV18, FrameNodeV19, GlyphRunNodeV11, GroupNodeV18, GroupNodeV19, ImageNodeV13, ImageNodeV16, PathNodeV18, PathNodeV19, RectNodeV11, Point, SceneV6, SceneV7, SceneV8, SceneV9, SceneV10, SceneV12, SceneV13, SceneV14, SceneV15, SceneV16, SceneV17, SceneV18, SceneV19, SourceRect, Transform, Tint, LineNodeV11 } from './schema.js';
+import type { PathStroke, PathStrokeV18, PathStrokeV19, PathStrokeV20, NineSliceInsets, TilePattern, SceneV11, HitMode, HitArea, FrameNodeV18, FrameNodeV20, GlyphRunNodeV11, GroupNodeV18, GroupNodeV20, ImageNodeV13, ImageNodeV16, PathNodeV18, PathNodeV20, RectNodeV11, Point, SceneV6, SceneV7, SceneV8, SceneV9, SceneV10, SceneV12, SceneV13, SceneV14, SceneV15, SceneV16, SceneV17, SceneV18, SceneV19, SceneV20, SourceRect, Transform, Tint, LineNodeV11 } from './schema.js';
 import type { Hit } from './renderer.js';
 import { tessellatePath } from './path.js';
 
 type WithPivot<T> = T & { pivot?: Point };
-type AuthoredNode = WithPivot<GroupNodeV19 | ImageNodeV16 | PathNodeV19 | RectNodeV11 | GlyphRunNodeV11 | FrameNodeV19 | LineNodeV11>;
-export type ContainerSpec = WithPivot<Pick<GroupNodeV19, 'id' | 'layer' | 'transform' | 'hitArea'> & { visible?: boolean; alpha?: number; hitMode?: HitMode }>;
-export type ContainerData = WithPivot<Pick<GroupNodeV19, 'id' | 'layer' | 'transform' | 'visible' | 'alpha' | 'hitMode' | 'hitArea'>>;
+type AuthoredNode = WithPivot<GroupNodeV20 | ImageNodeV16 | PathNodeV20 | RectNodeV11 | GlyphRunNodeV11 | FrameNodeV20 | LineNodeV11>;
+export type ContainerSpec = WithPivot<Pick<GroupNodeV20, 'id' | 'layer' | 'transform' | 'hitArea'> & { visible?: boolean; alpha?: number; hitMode?: HitMode }>;
+export type ContainerData = WithPivot<Pick<GroupNodeV20, 'id' | 'layer' | 'transform' | 'visible' | 'alpha' | 'hitMode' | 'hitArea'>>;
 export type SpriteData = WithPivot<Omit<ImageNodeV16, 'kind'>>;
 export type SpriteSpec = Omit<SpriteData, 'tint' | 'blendMode' | 'visible' | 'alpha' | 'hitMode'> & {
   tint?: Tint; blendMode?: ImageNodeV13['blendMode']; visible?: boolean; alpha?: number; hitMode?: HitMode;
 };
-export type PathData = WithPivot<Omit<PathNodeV19, 'kind'>>;
-export type PathSpec = Omit<PathData, 'stroke' | 'visible' | 'alpha' | 'hitMode'> & { stroke?: PathStroke | PathStrokeV18 | PathStrokeV19; visible?: boolean; alpha?: number; hitMode?: HitMode };
-export type PathPaint = Pick<PathNodeV19, 'commands' | 'fill'> & { stroke?: PathStroke | PathStrokeV18 | PathStrokeV19 };
+export type PathData = WithPivot<Omit<PathNodeV20, 'kind'>>;
+export type PathSpec = Omit<PathData, 'stroke' | 'visible' | 'alpha' | 'hitMode'> & { stroke?: PathStroke | PathStrokeV18 | PathStrokeV19 | PathStrokeV20; visible?: boolean; alpha?: number; hitMode?: HitMode };
+export type PathPaint = Pick<PathNodeV20, 'commands' | 'fill'> & { stroke?: PathStroke | PathStrokeV18 | PathStrokeV19 | PathStrokeV20 };
 export type RectData = WithPivot<Omit<RectNodeV11, 'kind'>>;
 export type RectSpec = Omit<RectData, 'visible' | 'alpha' | 'hitMode'> & { visible?: boolean; alpha?: number; hitMode?: HitMode };
 export type RectPaint = Pick<RectNodeV11, 'width' | 'height' | 'fill'>;
 export type GlyphRunData = WithPivot<Omit<GlyphRunNodeV11, 'kind'>>;
 export type GlyphRunSpec = Omit<GlyphRunData, 'visible' | 'alpha' | 'hitMode'> & { visible?: boolean; alpha?: number; hitMode?: HitMode };
 export type GlyphRunLayout = Pick<GlyphRunNodeV11, 'atlasId' | 'text' | 'baseline' | 'opacity' | 'sampling' | 'glyphs'>;
-export type FrameSpec = WithPivot<Omit<Pick<FrameNodeV19, 'id' | 'layer' | 'transform' | 'width' | 'height' | 'fill' | 'clip' | 'visible' | 'alpha' | 'hitMode'>, 'visible' | 'alpha' | 'hitMode'> & { visible?: boolean; alpha?: number; hitMode?: HitMode }>;
-export type FrameData = WithPivot<Pick<FrameNodeV19, 'id' | 'layer' | 'transform' | 'width' | 'height' | 'fill' | 'clip' | 'visible' | 'alpha' | 'hitMode'>>;
-export type FramePaint = Pick<FrameNodeV19, 'width' | 'height' | 'fill' | 'clip'>;
+export type FrameSpec = WithPivot<Omit<Pick<FrameNodeV20, 'id' | 'layer' | 'transform' | 'width' | 'height' | 'fill' | 'clip' | 'visible' | 'alpha' | 'hitMode'>, 'visible' | 'alpha' | 'hitMode'> & { visible?: boolean; alpha?: number; hitMode?: HitMode }>;
+export type FrameData = WithPivot<Pick<FrameNodeV20, 'id' | 'layer' | 'transform' | 'width' | 'height' | 'fill' | 'clip' | 'visible' | 'alpha' | 'hitMode'>>;
+export type FramePaint = Pick<FrameNodeV20, 'width' | 'height' | 'fill' | 'clip'>;
 export type LineData = WithPivot<Omit<LineNodeV11, 'kind'>>;
 export type LineSpec = Omit<LineData, 'visible' | 'alpha' | 'hitMode'> & { visible?: boolean; alpha?: number; hitMode?: HitMode };
 export type LinePaint = Pick<LineNodeV11, 'x1' | 'y1' | 'x2' | 'y2' | 'width' | 'stroke'>;
@@ -186,7 +186,7 @@ export type DisplayTree = {
   getPointerCapture(pointerId: number): DisplayHandle | null;
   dispatchPointer(input: PointerInput): void;
   dispatchHover(input: HoverInput): void;
-  snapshot(): SceneV19;
+  snapshot(): SceneV20;
 };
 
 type RecordNode = {
@@ -306,7 +306,7 @@ function ownBounds(data: Exclude<RecordNode['data'], null>, m: Matrix): Edges | 
 
 function invalid(message: string): never { throw new Canvas2DError('INVALID_SCENE', message); }
 
-function checkPathGeometry(node: PathNodeV19): void {
+function checkPathGeometry(node: PathNodeV20): void {
   // The handle has no renderer view. Check authored geometry at the baseline view;
   // the renderer checks the composed transform and active device view on update.
   tessellatePath(node, [1, 0, 0, 1, 0, 0], { panX: 0, panY: 0, zoom: 1 }, 1, 1);
@@ -338,19 +338,21 @@ function normalizedPathStroke(value: unknown): unknown {
       (Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)) return value;
   const fields = Object.getOwnPropertyDescriptors(value);
   const keys = Reflect.ownKeys(value);
-  if (keys.length < 2 || keys.length > 4 || !keys.includes('color') || !keys.includes('width') ||
-      keys.some(key => typeof key !== 'string' || !['color', 'width', 'cap', 'join'].includes(key)) ||
+  if (keys.length < 2 || keys.length > 5 || !keys.includes('color') || !keys.includes('width') ||
+      keys.some(key => typeof key !== 'string' || !['color', 'width', 'cap', 'join', 'dash'].includes(key)) ||
       !fields.color?.enumerable || !('value' in fields.color) ||
       !fields.width?.enumerable || !('value' in fields.width) ||
       (keys.includes('cap') && (!fields.cap?.enumerable || !('value' in fields.cap))) ||
-      (keys.includes('join') && (!fields.join?.enumerable || !('value' in fields.join)))) return value;
+      (keys.includes('join') && (!fields.join?.enumerable || !('value' in fields.join))) ||
+      (keys.includes('dash') && (!fields.dash?.enumerable || !('value' in fields.dash)))) return value;
   return { color: fields.color.value, width: fields.width.value,
     cap: keys.includes('cap') ? fields.cap.value : 'butt',
-    join: keys.includes('join') ? fields.join.value : 'bevel' };
+    join: keys.includes('join') ? fields.join.value : 'bevel',
+    dash: keys.includes('dash') ? fields.dash.value : { lengths: [], offset: 0 } };
 }
 
 export function createDisplayTree(contextId: string): DisplayTree {
-  const checked = validateScene({ version: 19, unit: 'logical-px', contextId, nodes: [] }) as SceneV19;
+  const checked = validateScene({ version: 20, unit: 'logical-px', contextId, nodes: [] }) as SceneV20;
   const root: RecordNode = { data: null, parent: null, children: [], handle: null as unknown as StageHandle };
   const records = new WeakMap<object, RecordNode>();
   const listeners = new WeakMap<RecordNode, Map<PointerEventType, { listener: PointerListener }[]>>();
@@ -460,12 +462,12 @@ export function createDisplayTree(contextId: string): DisplayTree {
     return data;
   }
   function validateRoots(changed: RecordNode): void {
-    validateScene({ version: 19, unit: 'logical-px', contextId: checked.contextId,
+    validateScene({ version: 20, unit: 'logical-px', contextId: checked.contextId,
       nodes: root.children.map(toNode) });
     let top = changed;
     while (top.parent) top = top.parent;
     if (top !== root) {
-      validateScene({ version: 19, unit: 'logical-px', contextId: checked.contextId,
+      validateScene({ version: 20, unit: 'logical-px', contextId: checked.contextId,
         nodes: [toNode(top)] });
     }
   }
@@ -479,7 +481,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
     record.data = data;
     try {
       validateRoots(record);
-      const accepted = validateScene({ version: 19, unit: 'logical-px', contextId: checked.contextId,
+      const accepted = validateScene({ version: 20, unit: 'logical-px', contextId: checked.contextId,
         nodes: [toNode(record)] }).nodes[0] as AuthoredNode;
       if (accepted.kind === 'path') checkPathGeometry(accepted);
       record.data = accepted;
@@ -666,15 +668,15 @@ export function createDisplayTree(contextId: string): DisplayTree {
     },
     createContainer(spec: ContainerSpec): ContainerHandle {
       const fields = exactSpec(spec, ['id', 'layer', 'transform'], ['visible', 'alpha', 'hitMode', 'pivot', 'hitArea']);
-      const node = validateScene({ version: 19, unit: 'logical-px', contextId: checked.contextId,
+      const node = validateScene({ version: 20, unit: 'logical-px', contextId: checked.contextId,
         nodes: [{ kind: 'group', ...fields, visible: Object.hasOwn(fields, 'visible') ? fields.visible : true,
           alpha: Object.hasOwn(fields, 'alpha') ? fields.alpha : 1,
-          hitMode: Object.hasOwn(fields, 'hitMode') ? fields.hitMode : 'auto', children: [] }] }).nodes[0] as GroupNodeV19;
+          hitMode: Object.hasOwn(fields, 'hitMode') ? fields.hitMode : 'auto', children: [] }] }).nodes[0] as GroupNodeV20;
       const record: RecordNode = { data: node, parent: null, children: [], handle: null as unknown as ContainerHandle };
       const parent = parentMethods(record);
       const handle: ContainerHandle = Object.freeze({
-        kind: 'container' as const, get id() { return (record.data as GroupNodeV19).id; },
-        get data() { const { kind: _kind, children: _children, ...data } = record.data as GroupNodeV19;
+        kind: 'container' as const, get id() { return (record.data as GroupNodeV20).id; },
+        get data() { const { kind: _kind, children: _children, ...data } = record.data as GroupNodeV20;
           return structuredClone(data) as ContainerData; },
         get children() { return parent.children; },
         addChild: parent.addChild, removeChild: parent.removeChild, setChildIndex: parent.setChildIndex,
@@ -682,7 +684,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
         onHover(type, listener) { return onHover(record, type, listener); },
         ...common(record),
         setHitArea(area: HitArea | null) {
-          const { hitArea: _prior, ...withoutArea } = record.data as GroupNodeV19;
+          const { hitArea: _prior, ...withoutArea } = record.data as GroupNodeV20;
           mutate(record, area === null ? withoutArea : { ...withoutArea, hitArea: area });
         },
       });
@@ -692,7 +694,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
     createSprite(spec: SpriteSpec): SpriteHandle {
       const fields = exactSpec(spec, ['id', 'layer', 'transform', 'imageId', 'width', 'height',
         'opacity', 'sampling', 'anchorX', 'anchorY'], ['sourceRect', 'slice', 'tile', 'tint', 'blendMode', 'visible', 'alpha', 'hitMode', 'pivot', 'hitArea']);
-      const node = validateScene({ version: 19, unit: 'logical-px', contextId: checked.contextId,
+      const node = validateScene({ version: 20, unit: 'logical-px', contextId: checked.contextId,
         nodes: [{ kind: 'image', ...fields, visible: Object.hasOwn(fields, 'visible') ? fields.visible : true,
           alpha: Object.hasOwn(fields, 'alpha') ? fields.alpha : 1,
           hitMode: Object.hasOwn(fields, 'hitMode') ? fields.hitMode : 'auto',
@@ -746,25 +748,25 @@ export function createDisplayTree(contextId: string): DisplayTree {
     },
     createPath(spec: PathSpec): PathHandle {
       const fields = exactSpec(spec, ['id', 'layer', 'transform', 'commands'], ['fill', 'stroke', 'visible', 'alpha', 'hitMode', 'pivot']);
-      const node = validateScene({ version: 19, unit: 'logical-px', contextId: checked.contextId,
+      const node = validateScene({ version: 20, unit: 'logical-px', contextId: checked.contextId,
         nodes: [{ kind: 'path', ...fields, ...(Object.hasOwn(fields, 'stroke')
           ? { stroke: normalizedPathStroke(fields.stroke) } : {}), visible: Object.hasOwn(fields, 'visible') ? fields.visible : true,
           alpha: Object.hasOwn(fields, 'alpha') ? fields.alpha : 1,
-          hitMode: Object.hasOwn(fields, 'hitMode') ? fields.hitMode : 'auto' }] }).nodes[0] as PathNodeV19;
+          hitMode: Object.hasOwn(fields, 'hitMode') ? fields.hitMode : 'auto' }] }).nodes[0] as PathNodeV20;
       checkPathGeometry(node);
       const record: RecordNode = { data: node, parent: null, children: [], handle: null as unknown as PathHandle };
       const handle: PathHandle = Object.freeze({
-        kind: 'path' as const, get id() { return (record.data as PathNodeV19).id; },
-        get data() { const { kind: _kind, ...data } = record.data as PathNodeV19;
+        kind: 'path' as const, get id() { return (record.data as PathNodeV20).id; },
+        get data() { const { kind: _kind, ...data } = record.data as PathNodeV20;
           return structuredClone(data) as PathData; },
         ...common(record),
         onPointer(type, listener) { return onPointer(record, type, listener); },
         onHover(type, listener) { return onHover(record, type, listener); },
         setPath(paint: PathPaint) {
           const fields = exactSpec(paint, ['commands'], ['fill', 'stroke']);
-          const { commands: _commands, fill: _fill, stroke: _stroke, ...base } = record.data as PathNodeV19 & { pivot?: Point };
+          const { commands: _commands, fill: _fill, stroke: _stroke, ...base } = record.data as PathNodeV20 & { pivot?: Point };
           mutate(record, { ...base, ...fields, ...(Object.hasOwn(fields, 'stroke')
-            ? { stroke: normalizedPathStroke(fields.stroke) } : {}) } as PathNodeV19 & { pivot?: Point });
+            ? { stroke: normalizedPathStroke(fields.stroke) } : {}) } as PathNodeV20 & { pivot?: Point });
         },
       });
       record.handle = handle; records.set(handle, record);
@@ -772,7 +774,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
     },
     createRect(spec: RectSpec): RectHandle {
       const fields = exactSpec(spec, ['id', 'layer', 'transform', 'width', 'height', 'fill'], ['visible', 'alpha', 'hitMode', 'pivot']);
-      const node = validateScene({ version: 19, unit: 'logical-px', contextId: checked.contextId,
+      const node = validateScene({ version: 20, unit: 'logical-px', contextId: checked.contextId,
         nodes: [{ kind: 'rect', ...fields, visible: Object.hasOwn(fields, 'visible') ? fields.visible : true,
           alpha: Object.hasOwn(fields, 'alpha') ? fields.alpha : 1,
           hitMode: Object.hasOwn(fields, 'hitMode') ? fields.hitMode : 'auto' }] }).nodes[0] as RectNodeV11;
@@ -795,7 +797,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
     createGlyphRun(spec: GlyphRunSpec): GlyphRunHandle {
       const fields = exactSpec(spec, ['id', 'layer', 'transform', 'atlasId', 'text', 'baseline',
         'opacity', 'sampling', 'glyphs'], ['visible', 'alpha', 'hitMode', 'pivot']);
-      const node = validateScene({ version: 19, unit: 'logical-px', contextId: checked.contextId,
+      const node = validateScene({ version: 20, unit: 'logical-px', contextId: checked.contextId,
         nodes: [{ kind: 'glyphRun', ...fields, visible: Object.hasOwn(fields, 'visible') ? fields.visible : true,
           alpha: Object.hasOwn(fields, 'alpha') ? fields.alpha : 1,
           hitMode: Object.hasOwn(fields, 'hitMode') ? fields.hitMode : 'auto' }] }).nodes[0] as GlyphRunNodeV11;
@@ -817,15 +819,15 @@ export function createDisplayTree(contextId: string): DisplayTree {
     },
     createFrame(spec: FrameSpec): FrameHandle {
       const fields = exactSpec(spec, ['id', 'layer', 'transform', 'width', 'height', 'fill', 'clip'], ['visible', 'alpha', 'hitMode', 'pivot']);
-      const node = validateScene({ version: 19, unit: 'logical-px', contextId: checked.contextId,
+      const node = validateScene({ version: 20, unit: 'logical-px', contextId: checked.contextId,
         nodes: [{ kind: 'frame', ...fields, visible: Object.hasOwn(fields, 'visible') ? fields.visible : true,
           alpha: Object.hasOwn(fields, 'alpha') ? fields.alpha : 1,
-          hitMode: Object.hasOwn(fields, 'hitMode') ? fields.hitMode : 'auto', children: [] }] }).nodes[0] as FrameNodeV19;
+          hitMode: Object.hasOwn(fields, 'hitMode') ? fields.hitMode : 'auto', children: [] }] }).nodes[0] as FrameNodeV20;
       const record: RecordNode = { data: node, parent: null, children: [], handle: null as unknown as FrameHandle };
       const parent = parentMethods(record);
       const handle: FrameHandle = Object.freeze({
-        kind: 'frame' as const, get id() { return (record.data as FrameNodeV19).id; },
-        get data() { const { kind: _kind, children: _children, ...data } = record.data as FrameNodeV19;
+        kind: 'frame' as const, get id() { return (record.data as FrameNodeV20).id; },
+        get data() { const { kind: _kind, children: _children, ...data } = record.data as FrameNodeV20;
           return structuredClone(data) as FrameData; },
         get children() { return parent.children; },
         addChild: parent.addChild, removeChild: parent.removeChild, setChildIndex: parent.setChildIndex,
@@ -834,7 +836,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
         ...common(record),
         setFrame(paint: FramePaint) {
           const fields = exactSpec(paint, ['width', 'height', 'fill', 'clip']);
-          mutate(record, { ...(record.data as FrameNodeV19), ...fields });
+          mutate(record, { ...(record.data as FrameNodeV20), ...fields });
         },
       });
       record.handle = handle; records.set(handle, record);
@@ -842,7 +844,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
     },
     createLine(spec: LineSpec): LineHandle {
       const fields = exactSpec(spec, ['id', 'layer', 'transform', 'x1', 'y1', 'x2', 'y2', 'width', 'stroke'], ['visible', 'alpha', 'hitMode', 'pivot']);
-      const node = validateScene({ version: 19, unit: 'logical-px', contextId: checked.contextId,
+      const node = validateScene({ version: 20, unit: 'logical-px', contextId: checked.contextId,
         nodes: [{ kind: 'line', ...fields, visible: Object.hasOwn(fields, 'visible') ? fields.visible : true,
           alpha: Object.hasOwn(fields, 'alpha') ? fields.alpha : 1,
           hitMode: Object.hasOwn(fields, 'hitMode') ? fields.hitMode : 'auto' }] }).nodes[0] as LineNodeV11;
@@ -941,19 +943,19 @@ export function createDisplayTree(contextId: string): DisplayTree {
         for (const callback of callbacks) callback(event);
       }
     },
-    snapshot(): SceneV19 {
-      return validateScene({ version: 19, unit: 'logical-px', contextId: checked.contextId,
-        nodes: root.children.map(toNode) }) as SceneV19;
+    snapshot(): SceneV20 {
+      return validateScene({ version: 20, unit: 'logical-px', contextId: checked.contextId,
+        nodes: root.children.map(toNode) }) as SceneV20;
     },
   });
 }
 
 export function createDisplayTreeFromScene(scene: unknown): DisplayTree {
   const accepted = validateScene(scene);
-  if (accepted.version !== 6 && accepted.version !== 7 && accepted.version !== 8 && accepted.version !== 9 && accepted.version !== 10 && accepted.version !== 11 && accepted.version !== 12 && accepted.version !== 13 && accepted.version !== 14 && accepted.version !== 15 && accepted.version !== 16 && accepted.version !== 17 && accepted.version !== 18 && accepted.version !== 19) {
-    throw new Canvas2DError('UNSUPPORTED_FEATURE', 'display tree reconstruction requires Scene v6 through v19');
+  if (accepted.version !== 6 && accepted.version !== 7 && accepted.version !== 8 && accepted.version !== 9 && accepted.version !== 10 && accepted.version !== 11 && accepted.version !== 12 && accepted.version !== 13 && accepted.version !== 14 && accepted.version !== 15 && accepted.version !== 16 && accepted.version !== 17 && accepted.version !== 18 && accepted.version !== 19 && accepted.version !== 20) {
+    throw new Canvas2DError('UNSUPPORTED_FEATURE', 'display tree reconstruction requires Scene v6 through v20');
   }
-  type ReconstructNode = SceneV6['nodes'][number] | SceneV7['nodes'][number] | SceneV8['nodes'][number] | SceneV9['nodes'][number] | SceneV10['nodes'][number] | SceneV11['nodes'][number] | SceneV12['nodes'][number] | SceneV13['nodes'][number] | SceneV14['nodes'][number] | SceneV15['nodes'][number] | SceneV16['nodes'][number] | SceneV17['nodes'][number] | SceneV18['nodes'][number] | SceneV19['nodes'][number];
+  type ReconstructNode = SceneV6['nodes'][number] | SceneV7['nodes'][number] | SceneV8['nodes'][number] | SceneV9['nodes'][number] | SceneV10['nodes'][number] | SceneV11['nodes'][number] | SceneV12['nodes'][number] | SceneV13['nodes'][number] | SceneV14['nodes'][number] | SceneV15['nodes'][number] | SceneV16['nodes'][number] | SceneV17['nodes'][number] | SceneV18['nodes'][number] | SceneV19['nodes'][number] | SceneV20['nodes'][number];
   const allowed = (nodes: readonly ReconstructNode[]): void => {
     for (const node of nodes) {
       if (node.kind === 'group' || node.kind === 'frame') allowed(node.children);

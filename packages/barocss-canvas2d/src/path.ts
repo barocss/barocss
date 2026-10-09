@@ -1,5 +1,5 @@
 import { Canvas2DError } from './schema.js';
-import type { PathNode, PathNodeV2, PathNodeV5, PathNodeV18, PathNodeV19, Point, View } from './schema.js';
+import type { PathDash, PathNode, PathNodeV2, PathNodeV5, PathNodeV18, PathNodeV19, PathNodeV20, Point, View } from './schema.js';
 
 export type Matrix = [number, number, number, number, number, number];
 export type PathSample = { commandIndex: number; t: number; x: number; y: number };
@@ -17,6 +17,7 @@ export type PathGeometry = { vertices: Float32Array; observation: PathObservatio
 
 type LocalPoint = { x: number; y: number };
 type MutableSubpath = { closed: boolean; points: PathSample[]; locals: LocalPoint[] };
+type StrokeSubpath = Pick<MutableSubpath, 'closed' | 'locals'>;
 
 function fail(message: string): never { throw new Canvas2DError('SCENE_LIMIT', message); }
 function midpoint(a: LocalPoint, b: LocalPoint): LocalPoint {
@@ -96,7 +97,80 @@ function checkNonzeroTopology(contours: Float32Array[]): void {
   }
 }
 
-export function tessellatePath(node: PathNode | PathNodeV2 | PathNodeV5 | PathNodeV18 | PathNodeV19, matrix: Matrix, view: View, dpr: number,
+function dashStrokeSubpaths(subpaths: MutableSubpath[], dash: PathDash): StrokeSubpath[] {
+  if (dash.lengths.length === 0) return subpaths;
+  const result: StrokeSubpath[] = [];
+  const period = dash.lengths.reduce((sum, length) => sum + length, 0);
+  let cuts = 0, fragments = 0;
+  for (const subpath of subpaths) {
+    const points = subpath.locals;
+    if (points.length < 2) fail('path subpath collapses after sampling');
+    const phase = ((dash.offset % period) + period) % period;
+    let index = 0, used = phase;
+    while (used >= dash.lengths[index]) { used -= dash.lengths[index]; index++; }
+    let patternLeft = dash.lengths[index] - used;
+    const startsOn = index % 2 === 0;
+    let active: LocalPoint[] | null = startsOn ? [points[0]] : null;
+    let cutAtEnd = false, subpathCuts = 0;
+    const runs: StrokeSubpath[] = [];
+    const finish = (): void => {
+      if (!active || active.length < 2) return;
+      runs.push({ closed: false, locals: active });
+      if (++fragments > 1025) fail('path exceeds 1024 dash fragments');
+      active = null;
+    };
+    for (let edgeIndex = 0; edgeIndex < points.length - 1; edgeIndex++) {
+      const a = points[edgeIndex], b = points[edgeIndex + 1];
+      const length = Math.hypot(b.x - a.x, b.y - a.y);
+      if (!Number.isFinite(length) || length === 0) fail('sampled path segment is unsafe');
+      let along = 0;
+      while (along < length) {
+        const step = Math.min(length - along, patternLeft);
+        const nextAlong = along + step;
+        if (step <= 0 || nextAlong === along) fail('dash cut collapses in local coordinates');
+        const point = nextAlong === length ? b : {
+          x: a.x + (b.x - a.x) * nextAlong / length,
+          y: a.y + (b.y - a.y) * nextAlong / length,
+        };
+        if (nextAlong < length && (same(point, a) || same(point, b))) {
+          fail('dash cut collapses in local coordinates');
+        }
+        if (active) {
+          if (same(active.at(-1)!, point)) fail('dash fragment collapses in local coordinates');
+          active.push(point);
+        }
+        const cut = step === patternLeft;
+        if (cut) {
+          if (++cuts > 2048) fail('path exceeds 2048 dash cuts');
+          subpathCuts++;
+          finish();
+          index = (index + 1) % dash.lengths.length;
+          patternLeft = dash.lengths[index];
+          active = index % 2 === 0 ? [point] : null;
+          cutAtEnd = edgeIndex === points.length - 2 && nextAlong === length;
+        } else {
+          patternLeft -= step;
+          cutAtEnd = false;
+        }
+        along = nextAlong;
+      }
+    }
+    const endsOn = active !== null && active.length > 1;
+    finish();
+    if (subpath.closed && startsOn && endsOn && !cutAtEnd && runs.length > 1) {
+      const first = runs.shift()!, last = runs.pop()!;
+      runs.push({ closed: false, locals: [...last.locals, ...first.locals.slice(1)] });
+      fragments--;
+    } else if (subpath.closed && subpathCuts === 0 && runs.length === 1) {
+      runs[0].closed = true;
+    }
+    if (fragments > 1024) fail('path exceeds 1024 dash fragments');
+    result.push(...runs);
+  }
+  return result;
+}
+
+export function tessellatePath(node: PathNode | PathNodeV2 | PathNodeV5 | PathNodeV18 | PathNodeV19 | PathNodeV20, matrix: Matrix, view: View, dpr: number,
   tolerance: number): PathGeometry {
   const subpaths: MutableSubpath[] = [];
   let active: MutableSubpath | null = null;
@@ -184,7 +258,9 @@ export function tessellatePath(node: PathNode | PathNodeV2 | PathNodeV5 | PathNo
   const strokeWidth = 'width' in node ? node.width : node.stroke?.width;
   const cap = 'width' in node || !node.stroke || !('cap' in node.stroke) ? 'butt' : node.stroke.cap;
   const join = 'width' in node || !node.stroke || !('join' in node.stroke) ? 'bevel' : node.stroke.join;
-  if (strokeWidth !== undefined) for (const subpath of subpaths) {
+  const dash = 'width' in node || !node.stroke || !('dash' in node.stroke) ? null : node.stroke.dash;
+  const strokeSubpaths = dash ? dashStrokeSubpaths(subpaths, dash) : subpaths;
+  if (strokeWidth !== undefined) for (const subpath of strokeSubpaths) {
     const points = subpath.locals;
     if (points.length < 2) fail('path subpath collapses after sampling');
     const edges: { a: Point; b: Point; nx: number; ny: number; dx: number; dy: number }[] = [];
