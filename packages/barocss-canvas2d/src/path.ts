@@ -1,5 +1,5 @@
 import { Canvas2DError } from './schema.js';
-import type { PathNode, PathNodeV2, PathNodeV5, PathNodeV18, Point, View } from './schema.js';
+import type { PathNode, PathNodeV2, PathNodeV5, PathNodeV18, PathNodeV19, Point, View } from './schema.js';
 
 export type Matrix = [number, number, number, number, number, number];
 export type PathSample = { commandIndex: number; t: number; x: number; y: number };
@@ -96,7 +96,7 @@ function checkNonzeroTopology(contours: Float32Array[]): void {
   }
 }
 
-export function tessellatePath(node: PathNode | PathNodeV2 | PathNodeV5 | PathNodeV18, matrix: Matrix, view: View, dpr: number,
+export function tessellatePath(node: PathNode | PathNodeV2 | PathNodeV5 | PathNodeV18 | PathNodeV19, matrix: Matrix, view: View, dpr: number,
   tolerance: number): PathGeometry {
   const subpaths: MutableSubpath[] = [];
   let active: MutableSubpath | null = null;
@@ -183,6 +183,7 @@ export function tessellatePath(node: PathNode | PathNodeV2 | PathNodeV5 | PathNo
 
   const strokeWidth = 'width' in node ? node.width : node.stroke?.width;
   const cap = 'width' in node || !node.stroke || !('cap' in node.stroke) ? 'butt' : node.stroke.cap;
+  const join = 'width' in node || !node.stroke || !('join' in node.stroke) ? 'bevel' : node.stroke.join;
   if (strokeWidth !== undefined) for (const subpath of subpaths) {
     const points = subpath.locals;
     if (points.length < 2) fail('path subpath collapses after sampling');
@@ -243,12 +244,36 @@ export function tessellatePath(node: PathNode | PathNodeV2 | PathNodeV5 | PathNo
     for (let i = 0; i < joinCount; i++) {
       const previous = edges[i], next = edges[(i + 1) % edges.length];
       const cross = previous.dx * next.dy - previous.dy * next.dx;
-      if (cross === 0) continue;
+      const dot = previous.dx * next.dx + previous.dy * next.dy;
+      if (cross === 0 && dot >= 0) continue;
       const side = cross > 0 ? -1 : 1;
       const center = previous.b;
-      emitTriangle(output, world(matrix, center),
-        world(matrix, { x: center.x + previous.nx * side, y: center.y + previous.ny * side }),
-        world(matrix, { x: center.x + next.nx * side, y: center.y + next.ny * side }), false);
+      if (join === 'bevel') {
+        if (cross !== 0) emitTriangle(output, world(matrix, center),
+          world(matrix, { x: center.x + previous.nx * side, y: center.y + previous.ny * side }),
+          world(matrix, { x: center.x + next.nx * side, y: center.y + next.ny * side }), false);
+        continue;
+      }
+      const reversal = cross === 0;
+      const sweep = reversal ? Math.PI * 2 : Math.atan2(cross, dot);
+      const radius = strokeWidth / 2;
+      const deviceRadius = Math.hypot(matrix[0], matrix[1], matrix[2], matrix[3]) * view.zoom * dpr * radius;
+      if (!Number.isFinite(deviceRadius)) fail('path join exceeds device limit');
+      const maxSegments = reversal ? 128 : 64;
+      let count = reversal ? 4 : 1;
+      while (count <= maxSegments && deviceRadius * (1 - Math.cos(Math.abs(sweep) / (2 * count))) > tolerance) count++;
+      if (count > maxSegments) fail('path join exceeds segment limit');
+      const start = Math.atan2(previous.ny * side, previous.nx * side);
+      const origin = world(matrix, center);
+      let prior = world(matrix, { x: center.x + radius * Math.cos(start),
+        y: center.y + radius * Math.sin(start) });
+      for (let segment = 1; segment <= count; segment++) {
+        const angle = start + sweep * segment / count;
+        const nextPoint = world(matrix, { x: center.x + radius * Math.cos(angle),
+          y: center.y + radius * Math.sin(angle) });
+        emitTriangle(output, origin, prior, nextPoint, true);
+        prior = nextPoint;
+      }
     }
   }
   const observation: PathObservation = { id: node.id, segments, vertices: output.length / 2,
