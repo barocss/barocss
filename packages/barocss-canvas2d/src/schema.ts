@@ -295,6 +295,10 @@ function color(value: unknown, path: string, seen: WeakSet<object>): Color {
   return raw.map((component, index) => number(component, `${path}[${index}]`, 0, 1)) as Color;
 }
 
+export function validateColor(value: unknown): Color {
+  return color(value, 'color', new WeakSet());
+}
+
 function linearFill(value: unknown, path: string, seen: WeakSet<object>): PathLinearFill {
   const raw = object(value, ['from', 'to', 'startColor', 'endColor'], path, seen);
   const from = object(raw.from, ['x', 'y'], `${path}.from`, seen);
