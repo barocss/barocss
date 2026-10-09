@@ -2220,3 +2220,66 @@ checks are in `test/native-capacity.test.mjs`. The Three, Babylon and Pixi3D
 directly and check all native member buffers, visible pixels, refusal
 retention and owned cleanup. The independent packed consumer remains #801;
 this profile does not establish registry publication or global CAD quality.
+
+
+## Replace a complete native source in a Three host
+
+The saved `examples/host-replacement-three.html` host uses the public
+`@barocss/cad-interop/three` abortable loader. It retains the displayed source
+while a candidate loads. Each result keeps the complete original Model and
+owns its five display Lines, geometries and materials. The host owns request
+generations, Scene membership, camera, renderer, canvas and an unrelated marker.
+
+```js
+const generation = ++latestGeneration;
+const controller = new AbortController();
+const next = await loader.loadAbortable(url, {
+  signal: controller.signal,
+  onProgress: event => showBytes(event.loadedBytes),
+});
+if (generation !== latestGeneration) {
+  next.dispose(); // A successful earlier request may finish later.
+} else {
+  scene.add(next.group); // Results arrive detached.
+  const previous = accepted;
+  accepted = next;
+  previous?.dispose(); // Release the old display before the next render.
+  renderer.render(scene, camera);
+}
+```
+
+Keep the accepted result on an abort, HTTP failure or invalid native source.
+The loader does not choose the latest request or mount a Group into a Scene.
+A host may cancel an earlier request with its AbortController; the example
+also leaves one earlier request active to demonstrate stale-success cleanup.
+Native parsing is synchronous; an HTTP progress abort does not prove that a
+native evaluation can be interrupted. Constructor option timing is unchanged.
+
+This host uses the byte-exact `linear-geometry-pattern-babylon-data/`
+`five_quarter_x_copies.barocad` and `spacing_edit_same_roles.barocad` files.
+They retain `quarter_pattern`, five Curve IDs, rational basis and native
+parameters while copy spacing changes from 2 mm to 3 mm. The display scale is
+0.001 scene units/mm. Fixed capacity v1 admits the five original objects;
+Curve display v1 derives their polylines. Display buffers remain a preview.
+
+Run with Node 22 and existing workspace dependencies:
+
+```sh
+node packages/barocss-cad-interop/examples/host-replacement-verify.mjs
+node packages/barocss-cad-interop/examples/host-replacement-server.mjs --port 5195
+```
+
+Open `http://127.0.0.1:5195/packages/barocss-cad-interop/examples/host-replacement-three.html`.
+Use the six buttons in order. The local example server sends an actual
+128-byte first chunk and holds the remaining native source until an explicit
+release request. It records actual request/chunk/end/close events. The flow
+checks abort retention, native edit adoption, out-of-order completion,
+invalid-source/HTTP refusal and idempotent resource cleanup. It keeps the
+original native source and Model readable after their display is released.
+
+The server uses a scoped Vite middleware entry and normal public source
+exports. The Node verifier applies the existing esbuild source transform in
+memory and records the actual CAD/interop source inputs with zero own dist
+inputs. Source development requires no package prebuild, aliases or custom
+conditions. This example is a workspace source consumer; explicit published
+JS/types checks and the held independent packed consumer #801 remain separate.
