@@ -2,6 +2,7 @@ import type { Body, Joint, PhysicsJointState, Quat, Vec3 } from './types.js';
 import { ID, MAX_STEP_DISPLACEMENT_M } from './limits.js';
 import { error, record, fields, finite, vector } from './validation.js';
 import { sub, worldPoint, multiplyQuaternion, inverse, dot, scale, rotate, inertia } from './math.js';
+import { projectDynamicFixedJoint } from './dynamic-fixed-joint.js';
 
 function denseJointVector(value: unknown, bound: number, label: string): Vec3 {
   if (!Array.isArray(value) || value.length !== 3 || Reflect.ownKeys(value).length !== 4 ||
@@ -17,7 +18,7 @@ export function parseJoints(value: unknown, bodies: Body[]): Joint[] {
   }
   const byId = new Map(bodies.map((body, index) => [body.id, { body, index }]));
   const seenIds = new Set<string>(), seenDynamic = new Set<string>();
-  return value.map((raw): Joint => {
+  const joints = value.map((raw): Joint => {
     const input = record(raw, 'joint');
     if (input.kind !== 'fixed' && input.kind !== 'hinge') error('INVALID_CONFIG', 'unsupported joint kind');
     fields(input, input.kind === 'fixed'
@@ -28,9 +29,13 @@ export function parseJoints(value: unknown, bodies: Body[]): Joint[] {
     }
     const a = typeof input.aId === 'string' ? byId.get(input.aId) : undefined;
     const b = typeof input.bId === 'string' ? byId.get(input.bId) : undefined;
-    if (!a || !b || a.index === b.index || a.body.kind === 'dynamic' || b.body.kind !== 'dynamic' ||
+    if (!a || !b || a.index === b.index || b.body.kind !== 'dynamic' ||
       seenDynamic.has(b.body.id)) {
-      error('INVALID_CONFIG', 'joint needs one static/kinematic A and unique dynamic B');
+      error('INVALID_CONFIG', 'joint needs a distinct A and unique dynamic B');
+    }
+    if (a.body.kind === 'dynamic' && (input.kind !== 'fixed' || value.length !== 1 ||
+      bodies.length !== 2 || a.body.shape.kind !== 'sphere' || b.body.shape.kind !== 'sphere')) {
+      error('INVALID_CONFIG', 'dynamic pair supports one fixed joint between two dynamic spheres');
     }
     const anchorALocalM = denseJointVector(input.anchorALocalM, 100, 'anchorALocalM');
     const anchorBLocalM = denseJointVector(input.anchorBLocalM, 100, 'anchorBLocalM');
@@ -59,9 +64,11 @@ export function parseJoints(value: unknown, bodies: Body[]): Joint[] {
         : [...b.body.orientation],
       ...(axisWorld ? { axisWorld } : {}), ...(limitRad ? { limitRad } : {}) };
   });
+  return joints;
 }
 export function projectJoint(joint: Joint, next: Body[], previous: Body[], dt: number): PhysicsJointState {
   const a = next[joint.aIndex], b = next[joint.bIndex];
+  if (a.kind === 'dynamic') return projectDynamicFixedJoint(joint, next, dt);
   const beforeVelocity = [...b.velocityMps] as Vec3;
   const beforeAngular = [...b.angularVelocityRadps] as Vec3;
   let targetOrientation: Quat, angleRad: number | undefined;
