@@ -33,6 +33,10 @@
       "types": "./dist/boolean-mesh-glb.d.ts",
       "import": "./dist/boolean-mesh-glb.js"
     },
+    "./boolean-extrusion-glb": {
+      "types": "./dist/boolean-extrusion-glb.d.ts",
+      "import": "./dist/boolean-extrusion-glb.js"
+    },
     "./three-document": {
       "types": "./dist/three-document.d.ts",
       "import": "./dist/three-document.js"
