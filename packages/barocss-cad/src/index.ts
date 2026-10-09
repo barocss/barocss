@@ -266,3 +266,6 @@ export type { CoplanarFaceBooleanExtrusionMassOptions, CoplanarFaceBooleanExtrus
 
 export { analyzeExtrusionConstructionPrincipalInertia, validateExtrusionConstructionPrincipalInertia, ExtrusionPrincipalInertiaError, ExtrusionPrincipalInertiaDiagnosticCode } from './extrusion-principal-inertia.js';
 export type { ExtrusionPrincipalInertiaOptions, ExtrusionPrincipalInertiaAxis, ExtrusionPrincipalInertiaReport, ExtrusionPrincipalInertiaResult } from './extrusion-principal-inertia.js';
+
+export { buildAlignedRationalRuledSurface, validateAlignedRationalRuledSurface, SectionKnotAlignmentError, SectionKnotAlignmentDiagnosticCode } from './section-knot-alignment.js';
+export type { SectionKnotAlignmentOptions, SectionKnotAlignmentSection, SectionKnotAlignmentReport, SectionKnotAlignmentResult } from './section-knot-alignment.js';
