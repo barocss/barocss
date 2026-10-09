@@ -17,6 +17,29 @@ checks actual source and compiled API CPU preparation using an intentional null
 context boundary. It creates no WebGL renderer and does not prove visible-frame
 retention or replace an actual browser flow.
 
+These direct GPU cases are not Viewer reproductions. Existing Viewer native
+loading first performs its own Loader admission and supports display scales
+`1e-6..1`; an actual consumer proof must use a source that survives that route
+and its admitted scale/profile. Uniform and selected uniform routes have their
+own original-source contracts. The mixed Render Editor retains unshown Curve
+source but currently displays its selected Surface and Sphere.
+
+## Native Surface coordinate conversion
+
+Original and posed Surface packet preparation applies the same two coordinate
+refusals through a shared internal conversion helper. It preserves the existing
+`RangeError`, packet version 0, mm/Y-up frame, source/native data, normal/index
+conversion and triangle validity checks. Exact zero, legitimate post-pose or
+scene translation cancellation and nonzero Float32 subnormals remain admitted.
+Previously accepted per-coordinate scaling or Float32 zero loss now refuses.
+
+Run `examples/gpu-scene/surface-coordinate-admission-flow.mjs --output <dir>` for
+the focused actual Source0/CAD sampling/public GPU API/cold-file CPU flow.
+Direct `prepareMesh` returns real CPU arrays; the posed mount checks stop at an
+intentional null context. No successful renderer, pixel or frame-retention
+claim follows. Full pose/translation precision and native Solid accuracy remain
+outside this conversion contract.
+
 An independent CSS-shaped scene language and original WebGL2 SDF renderer.
 This package has no React, Three.js, GSS, CAD or existing utility-class dependency.
 Its local package configuration is public (`private:false`, `publishConfig.access:public`).

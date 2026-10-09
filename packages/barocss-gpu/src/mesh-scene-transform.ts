@@ -1,5 +1,5 @@
 import {requireMeshExecution} from './gpu-compiler.js';
-import {resolveMeshIntent,validateMeshGeometry} from './mesh-packet.js';
+import {convertMeshCoordinate,resolveMeshIntent,validateMeshGeometry} from './mesh-packet.js';
 import type {Vec3} from './scene.js';
 
 /** Display pose in the original packet's declared Y-up XYZ millimetres. */
@@ -64,8 +64,8 @@ export function prepareSceneMesh(packetInput:unknown,optionsInput:unknown,transf
     const normal=rotate(packet.normals[i]/pose.scale[0],packet.normals[i+1]/pose.scale[1],packet.normals[i+2]/pose.scale[2]),length=Math.hypot(...normal);
     requireValue(Number.isFinite(length)&&length>0,'Transformed normal is unsafe');
     for(let axis=0;axis<3;axis++){
-      const converted=(pose.translationMm[axis]+point[axis])*options.mmToSceneUnit+options.translate[axis];
-      requireValue(Number.isFinite(converted)&&Math.abs(converted)<=1000,'Transformed GPU positions must be finite and within 1000 scene units');
+      const converted=convertMeshCoordinate(pose.translationMm[axis]+point[axis],options.mmToSceneUnit,options.translate[axis],
+        'Transformed GPU positions must be finite and within 1000 scene units');
       positions64.push(converted);normals64.push(normal[axis]/length);
     }
   }
