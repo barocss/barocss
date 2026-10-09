@@ -142,6 +142,11 @@ try {
   const emptyText=cad.serializeBooleanExtrusionFeatureGraph(emptyDoc,opts.native);assert.equal(cad.parseBooleanExtrusionFeatureGraph(emptyText,opts.native).report.summary.empty,true);const emptyPath=resolve(evidence,prefix+'-empty.graph.json');writeFileSync(emptyPath,emptyText);await fresh.getByLabel('Open native feature graph file').setInputFiles(emptyPath);await generation(fresh,3);const emptyReceipt=await display(fresh);assert.equal(emptyReceipt.empty,true);assert.equal(emptyReceipt.nonBackgroundPixels,0);assert.equal((await snapshot(fresh)).accepted.report.summary.empty,true);
   result.events.push({stage:'actual-empty-boolean-admission',path:emptyPath,display:emptyReceipt,suppression:false});
   await fresh.getByLabel('Open native feature graph file').setInputFiles(path);await generation(fresh,4);await fresh.getByTestId('parameter-value-base_height').fill('4');await fresh.getByTestId('feature-apply').click();await generation(fresh,5);reopened=await snapshot(fresh);observe(reopened.accepted,4,4);
+  if(args.includes('--fanout')) {
+    const {runFeatureFanoutFlow}=await import('./feature-fanout-flow.mjs');
+    await runFeatureFanoutFlow({page:fresh,browser,cad,editor,result,evidence,prefix,repo});
+    reopened=await snapshot(fresh);
+  }
   await fresh.evaluate(()=>window.__cadFeatureFlow.setMounted(false));await fresh.waitForFunction(()=>window.__cadFeatureFlow.display()?.status==='disposed');const disposed=await display(fresh);assert.deepEqual(disposed.lifecycle,{mounts:1,disposals:1});assert.ok(Object.values(disposed.resourceCounts).every(n=>n===0));assert.deepEqual(await snapshot(fresh),reopened);
   await fresh.evaluate(()=>window.__cadFeatureFlow.setMounted(true));await ready(fresh);assert.deepEqual(await snapshot(fresh),reopened);result.events.push({stage:'unmount-remount',disposed,hostSessionRetained:true});
   assert.deepEqual(result.pageErrors,[]);result.outcome='passed';save();process.stdout.write(JSON.stringify({mode,outcome:'passed',stages:result.events.map(x=>x.stage),evidence:resolve(evidence,prefix+'.json')})+'\n');

@@ -22,16 +22,24 @@ export interface CadEditorFeaturePending {
 export interface CadEditorFeatureDisplay extends BaroCadBooleanExtrusionFeatureMesh {
   selection: BaroCadBooleanExtrusionFeatureSelection;
 }
+export interface CadEditorFeatureOutput {
+  selection: BaroCadBooleanExtrusionFeatureSelection;
+  mesh: CoplanarFaceBooleanExtrusionMeshOptions;
+}
 export interface CadEditorFeatureCandidate {
-  token: string; baseGeneration: number; kind: 'apply' | 'open' | 'undo' | 'redo';
+  token: string; baseGeneration: number; baseDisplayGeneration: number;
+  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display';
   result: BooleanExtrusionFeatureGraphResult;
   display: CadEditorFeatureDisplay;
+  displays: CadEditorFeatureDisplay[];
 }
 export interface CadEditorFeatureSnapshot {
   mode: 'boolean-extrusion';
   accepted: BooleanExtrusionFeatureGraphResult;
   display: CadEditorFeatureDisplay;
+  displays: CadEditorFeatureDisplay[];
   generation: number;
+  displayGeneration: number;
   selectedFeatureId: string | null;
   pending: CadEditorFeaturePending;
   candidate: CadEditorFeatureCandidate | null;
@@ -49,6 +57,7 @@ export interface CadEditorFeatureSession {
   discardPending(): void;
   prepareApply(): CadEditorFeatureCandidate | null;
   prepareOpen(text: string, options?: CadEditorFeatureSessionOptions): CadEditorFeatureCandidate;
+  prepareDisplayOutputs(outputs: CadEditorFeatureOutput[]): CadEditorFeatureCandidate;
   prepareUndo(): CadEditorFeatureCandidate;
   prepareRedo(): CadEditorFeatureCandidate;
   acceptCandidate(token: string): CadEditorFeatureSnapshot;

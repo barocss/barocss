@@ -194,7 +194,7 @@ export async function prepareCompiledCheckpoint({ repo, evidence }) {
     sourceFiles.add(resolve(repo, 'packages/barocss-cad-editor/src/styles.css'));
 
     const consumerPath = resolve(checkpoint, 'published-consumer.tsx');
-    await writeFile(consumerPath, `import { createCadEditorSession, createCadEditorFeatureSession, type CadEditorCandidate, type CadEditorFeatureSessionOptions } from '@barocss/cad-editor';
+    await writeFile(consumerPath, `import { createCadEditorSession, createCadEditorFeatureSession, type CadEditorCandidate, type CadEditorFeatureSessionOptions, type CadEditorFeatureOutput } from '@barocss/cad-editor';
 import { CadEditor, CadEditorFeature, type CadEditorProps, type CadEditorFeatureProps } from '@barocss/cad-editor/react';
 import { parseCadDocument, parseBooleanExtrusionFeatureGraph } from '@barocss/cad';
 const session = createCadEditorSession(parseCadDocument('{}').document);
@@ -213,6 +213,11 @@ featureSession.stageLengthParameter('base_height',{kind:'literal',rawValueMM:'3'
 featureSession.stageBooleanOperation('boolean_feature','intersection');
 const featureProps:CadEditorFeatureProps={session:featureSession,onDisplay:r=>{const i:number=r.readIndex;const h:string=r.pixelHash;},onAccepted:s=>{const g:number=s.generation;},onError:e=>{const c:string=e.code;}};
 const featureElement=<CadEditorFeature {...featureProps}/>;
+const displays=featureSession.getSnapshot().displays;
+const outputs:CadEditorFeatureOutput[]=displays.map(display=>({selection:display.selection,mesh:display.nativeMesh.options}));
+const viewCandidate=featureSession.prepareDisplayOutputs(outputs);
+const viewGeneration:number=viewCandidate.baseDisplayGeneration;
+const selectedFit:CadEditorFeatureProps={...featureProps,fitSelectedRequest:1};
 `);
     const consumerProgram = ts.createProgram([consumerPath], {
       target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,
