@@ -162,10 +162,10 @@ const nestedGetter = structuredClone(originalSection); Object.defineProperty(nes
 const sparse = settings('sparse'); sparse.maximumBoundaries = Number.NaN; reject('nonfinite_input', () => build(originalSection, sparse), 'INPUT');
 const cyclic = structuredClone(originalSection); cyclic.section = cyclic; reject('cyclic_input', () => build(cyclic, settings('cyclic')), 'INPUT');
 
-// A genuine parent section is valid, but the retained left-low interval has too few representable quarter slots near its endpoint.
+// A genuine parent section is valid, but an actual tiny interval fails the inherited native binding policy.
 const nearPlane = structuredClone(plane); nearPlane.id = 'near_boundary_plane'; for (const row of nearPlane.controlPoints) for (const point of row) point[1] = 2e-15;
 const nearSection = section('near_native', originalAsset, asset('near_plane_source', {name: 'near_plane_original', version: 0, lengthUnit: 'mm', objects: [nearPlane]}, nearPlane));
-reject('actual_native_interval_quarter_capacity', () => build(nearSection, settings('neartrim')), 'INTERVAL', CurveIntervalExtractionError, 'REPRESENTABILITY');
+reject('actual_native_tiny_interval_binding', () => build(nearSection, settings('neartrim')), 'INTERVAL', CurveIntervalExtractionError, 'BINDING');
 const inheritedLimitRefusals = [];
 for (const [name, action, ErrorClass] of [
   ['actual_degree4_cut_interval', () => extractCurveInterval(originalSection.world.curve, {curveId: 'limited_cut_interval', interval: [0, 1], resultIdPrefix: 'limited_cut'}), CurveIntervalExtractionError],
@@ -180,7 +180,7 @@ for (const [name, alter] of [
   ['affine_inverse', value => { value.proof.cuts.left.roundedParameter = .5; }], ['monotonicity', value => { value.proof.uvMonotonicity.allStrictPositive = false; }],
   ['native_observation', value => { value.observations[0] = value.observations[1]; }], ['counter', value => { value.report.directCounts.intervalExtractionCount++; }],
 ]) { const changed = structuredClone(polynomial); alter(changed); reject('owned_' + name, () => validate(changed), 'OWNED'); }
-let replacement = polynomial; const previous = replacement; reject('atomic_prior_trim', () => { replacement = build(nearSection, settings('atomic')); }, 'INTERVAL', CurveIntervalExtractionError, 'REPRESENTABILITY'); assert.strictEqual(replacement, previous); jsonFile('atomic-retention', {priorResultUnchanged: replacement === previous, getterCalls});
+let replacement = polynomial; const previous = replacement; reject('atomic_prior_trim', () => { replacement = build(nearSection, settings('atomic')); }, 'INTERVAL', CurveIntervalExtractionError, 'BINDING'); assert.strictEqual(replacement, previous); jsonFile('atomic-retention', {priorResultUnchanged: replacement === previous, getterCalls});
 const packageRoot = resolve(repo, 'packages/barocss-cad'), manifest = JSON.parse(readFileSync(resolve(packageRoot, 'package.json'), 'utf8')), declared = manifest.publishConfig?.exports?.['.'] ?? manifest.exports['.'];
 const runtimePath = resolve(packageRoot, declared.import), declarationPath = resolve(packageRoot, declared.types); assert.ok(existsSync(runtimePath)); assert.ok(existsSync(declarationPath)); const publicAPI = await import(pathToFileURL(runtimePath).href);
 for (const name of runtimeNames) assert.equal(typeof publicAPI[name], name.endsWith('Code') ? 'object' : 'function'); assert.deepEqual(publicAPI.VLinearSurfacePlaneTrimDiagnosticCode, VLinearSurfacePlaneTrimDiagnosticCode);
