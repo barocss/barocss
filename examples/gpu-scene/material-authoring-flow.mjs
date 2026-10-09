@@ -5,14 +5,13 @@ import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {createServer} from 'node:http';
 import {resolve,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {build} from 'esbuild';
+import {prepareCompiledProviders,buildCompiledClient} from './compiled-provider.mjs';
 const args=process.argv.slice(2),buildOnly=args.includes('--build-only'),index=args.indexOf('--output');
 assert(index>=0&&args[index+1]&&!args[index+1].startsWith('--'),'Usage: node material-authoring-flow.mjs --output <unique-directory> [--build-only]');
 const output=resolve(args[index+1]),repo=resolve(dirname(fileURLToPath(import.meta.url)),'../..'),fixtureRoot=resolve(repo,'examples/gpu-scene/fixtures');
 const sha256=bytes=>createHash('sha256').update(bytes).digest('hex');
 await mkdir(output,{recursive:true});
-async function provider(name){const root=resolve(repo,'packages',name),manifest=JSON.parse(await readFile(resolve(root,'package.json'),'utf8')),entry=manifest.exports['.'].import;assert.equal(typeof entry,'string');const absolute=resolve(root,entry);return{entry:absolute,relative:'../../packages/'+name+'/'+entry.replace(/^\.\//,''),sha256:sha256(await readFile(absolute))};}
-const gpu=await provider('barocss-gpu'),cad=await provider('barocss-cad');
+const {gpu,cad}=await prepareCompiledProviders(repo,output);
 let fixtureText='';
 if(!buildOnly){const records={};for(const [key,file]of Object.entries({native:'material-authoring.native.source0.css',locals:'material-authoring.locals.css',inline:'material-authoring.inline.css'})){const path=resolve(fixtureRoot,file),bytes=await readFile(path);records[key]={path,sha256:sha256(bytes),source:bytes.toString('utf8')};await writeFile(resolve(output,file),bytes);}fixtureText=JSON.stringify(records);await writeFile(resolve(output,'inputs.json'),JSON.stringify({gpu,cad,files:Object.fromEntries(Object.entries(records).map(([key,{source,...receipt}])=>[key,receipt])),fixtureSHA256:sha256(fixtureText),noPackageSourceChange:true},null,2)+'\n');}
 const client=String.raw`
@@ -75,7 +74,7 @@ initialize().catch(async error=>{try{renderer?.dispose();}catch{}disposed=true;r
 `;
 const resolvedClient=client.replace('__GPU__',gpu.relative).replace('__CAD__',cad.relative);
 await writeFile(resolve(output,'client-source.mjs'),resolvedClient);
-await build({stdin:{contents:resolvedClient,resolveDir:resolve(repo,'examples/gpu-scene'),sourcefile:'material-authoring-client.mjs',loader:'js'},bundle:true,format:'esm',platform:'browser',target:'es2022',outfile:resolve(output,'client.mjs')});
+await buildCompiledClient(repo,output,{stdin:{contents:resolvedClient,resolveDir:resolve(repo,'examples/gpu-scene'),sourcefile:'material-authoring-client.mjs',loader:'js'},bundle:true,format:'esm',platform:'browser',target:'es2022',outfile:resolve(output,'client.mjs')});
 const html='<!doctype html><html><head><meta charset="utf-8"><link rel="icon" href="data:,"><title>Material source authoring reference</title></head><body style="font:14px system-ui;background:#14212d;color:#eee"><h1>Original rational Surface · editable material source</h1><p>Reference consumer. Pending text and accepted appearance are separate. No native editor or clock.</p><canvas width="640" height="480"></canvas><p><label>Pending material source<br><textarea id="source" rows="9" cols="78" disabled></textarea></label></p><p><label>Amount <input id="amount" type="number" min="0" max="1" step="0.05" value="0.5" disabled></label> <button id="apply" disabled>Apply</button> <button id="reset" disabled>Reset</button> <button id="run" disabled>Run acceptance</button></p><h2>Last accepted appearance</h2><pre id="accepted">Pending initialization</pre><h2>Pending diagnostics</h2><pre id="diagnostics">[]</pre><pre id="status">Initializing original native source</pre><p id="image-label"></p><img hidden width="640" height="480" alt="Accepted authored material frame captured before disposal"><script type="module" src="/client.mjs"></script></body></html>';
 await writeFile(resolve(output,'index.html'),html);
 const clientBytes=await readFile(resolve(output,'client.mjs'));await writeFile(resolve(output,'browser-bundle.json'),JSON.stringify({sha256:sha256(clientBytes),bytes:clientBytes.length,compiledBeforeServer:true},null,2)+'\n');
