@@ -6825,3 +6825,75 @@ Triangle UV interpolation is display data, not an exact native inverse or
 picking reference. Local samples do not certify a global Surface error bound,
 Solid, sewing, manifold, volume or manufacturing quality. Actual renderer
 consumption remains separate.
+
+
+## Editable native Boolean and extrusion intent
+
+`evaluateBooleanExtrusionFeatureGraph(document, options)` evaluates an authored
+native construction graph. Two Face input nodes feed one coplanar Boolean node,
+which feeds one normal-extrusion node. It calls the actual native Face, Boolean
+and extrusion builders. Display meshes do not supply editing authority.
+
+The current authored format is `barocss-native-boolean-extrusion-feature-graph`,
+version 0. Its eight fields are `{format, version, id, revision, lengthUnit,
+sourceFrame, parameters, features}`. Units are mm in authored XYZ. Revision is
+an integer from 0 through 1000000000. IDs have 1 through 48 ASCII characters.
+The ordered parameter table has at most eight typed length definitions. A
+literal supplies `valueMM`; an offset references `parameterId` plus `offsetMM`.
+All definitions, including unused ones, resolve within ±10000 mm. The extrusion
+distance uses the same definition syntax and must resolve to 0.0001–10000 mm.
+The original parameter resolver retains its first-authored-ready ordering.
+
+```ts
+const options = {maximumParameterResolutions: 8, maximumFeatureEvaluations: 4};
+const result = cad.evaluateBooleanExtrusionFeatureGraph(document, options);
+cad.validateBooleanExtrusionFeatureGraph(result);
+const text = cad.serializeBooleanExtrusionFeatureGraph(result.document, options);
+const reopened = cad.parseBooleanExtrusionFeatureGraph(text, options);
+```
+
+The four feature nodes can appear in any authored order. Dependency evaluation
+produces the two real Faces, then the real Boolean result and extrusion. Face
+inputs own only their original Plane, native Line loop and construction options.
+Boolean and extrusion nodes hold explicit feature references and native options.
+The result owns `{document, options, parameters, features, report}`. Evaluated
+feature rows retain their full actual native result and output-slot identity.
+Nonconvex material, holes, disconnected components and empty output retain the
+native construction behavior.
+
+`updateBooleanExtrusionFeatureGraph(previousResult, edits)` validates the previous
+owned result and rebuilds a copied candidate. Edits have exact fields
+`{expectedRevision, revision, parameterEdits, faceEdits, booleanEdits, distanceEdits}`.
+The new revision must equal the previous revision plus one. Parameter definitions,
+original Face coefficients, the Boolean operation and the distance definition
+can change together. IDs, original ordered Curve identities, native options,
+feature kinds, dependency references and output slots remain stable. An empty
+edit refuses. A nonempty same-value edit can advance revision. Any failed edit
+returns no replacement result and leaves earlier data intact.
+
+Original native IDs can repeat across the two operand contexts. Native references
+therefore include graph, revision, feature and output-slot context. Generated
+ordinal names are current native roles, not persistent topology names. Earlier
+revision-qualified references become stale when the caller advances revision.
+A fresh authored file is a declared snapshot; it does not prove external history.
+
+Serialization saves authored intent only, with signed-zero preservation and a
+1 MiB UTF8 limit. Parsing reuses the existing strict JSON grammar, then rebuilds
+the actual native chain. This format does not widen the canonical geometry
+Document or migrate another graph. Public errors retain bounded paths, failing
+feature/parameter context and native causes. Caller limits bound parameter
+resolutions and the four direct native feature evaluations. Native internal
+work and prior-result validation are separate. No selective rebuild is claimed.
+
+Run the actual authored/native/source-file flow after the affected library build:
+
+```sh
+node examples/cad-nurbs/boolean-extrusion-feature-graph-demo.mjs --source /tmp/cad-boolean-intent --boolean-directory /path/to/cad-planar-boolean
+```
+
+The flow reconstructs authentic original operands on a tilted/sheared support,
+then edits referenced distance, Boolean operation and one original corner. It
+checks native geometry/provenance, holes/components/empty, authored and owned
+save/rebuild, atomic refusals and compiled public names. General feature mixing,
+suppression, lifecycle changes, persistent topology, renderer editor adoption,
+Solid/sewing and manufacturing certification remain separate work.
