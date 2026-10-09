@@ -7363,3 +7363,43 @@ validity require separate contracts.
 ```sh
 node examples/cad-nurbs/multi-section-loft-demo.mjs --source /tmp/cad-multi-loft
 ```
+
+## Affine Curve and Surface copies
+
+`transformNativeGeometryAffine` creates new native geometry by transforming
+the original control points. It preserves degree, knot order, parameter domains
+and weight bits. The target uses an explicit new geometry ID. The input remains
+unchanged.
+
+```ts
+const copy = cad.transformNativeGeometryAffine(originalCurve, [
+  -1, 0, 0, 4,
+   0, 1, 0, 0,
+   0, 0, 1, 0,
+], {
+  geometryId: 'mirrored_curve',
+  maximumObservations: 961,
+});
+cad.validateAffineGeometryTransform(copy);
+```
+
+The matrix contains three rows of four values. Each row has three dimensionless
+linear coefficients and one translation in mm. The example reflects X about
+the plane X = 2 mm. Translation, rotation, nonuniform scale, shear and reflection
+can be expressed explicitly. Singular or cancellation-uncertain matrices refuse.
+
+The result stores original and target geometry in a two-object Source0 Model.
+Actual native point and derivative observations compare the generated geometry
+with the declared affine relation. Identity axes preserve original signed-zero
+control bits. Curve support reaches 64 poles and Surface support reaches
+16 by 16 poles under the existing native degree and weight bounds.
+
+Reflection parity is reported. Surface U/V order remains unchanged, and its
+native oriented cross product follows the transformed derivatives. This operation
+does not repair Shell face orientation or transform B-Rep topology. Assembly
+placement, feature patterns, persistent naming and whole-shape validity remain
+separate contracts.
+
+```sh
+node examples/cad-nurbs/affine-geometry-transform-demo.mjs --source /tmp/cad-affine-copy
+```
