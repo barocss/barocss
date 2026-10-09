@@ -477,6 +477,40 @@ refusal and caller-owned resources. The matching Node flow is
 `node examples/boolean-mesh-three-verify.mjs`. This is a derived preview,
 not a native Surface, solid, B-Rep or manufacturing certificate.
 
+### Display native filled Boolean extrusion Shells in Three.js
+
+The optional `./three-boolean-extrusion-mesh` entry consumes the complete
+validated CAD #896 filled Shell mesh. It creates one Group per native Shell
+and one face-local Three Mesh per native face range. It uses native triangle
+indices and hard normals. Dimensionless CAD UV is stored in `_CAD_UV`, not
+texture `uv`. A separate `edgeRoot` contains only true native Curve paths.
+Attach it when the host wants visible CAD edges; display diagonals and
+bridges are never promoted into CAD edges.
+
+```js
+import { createBaroCadBooleanExtrusionThreeMesh }
+  from '@barocss/cad-interop/three-boolean-extrusion-mesh';
+
+const nativeMesh = await (await fetch(meshURL)).json();
+const display = createBaroCadBooleanExtrusionThreeMesh(nativeMesh, {
+  unitsPerMillimeter: 0.001,
+  basis: 'authored-xyz-matches-rhyup', // Assert the host frame.
+});
+scene.add(display.root);
+scene.add(display.edgeRoot); // Optional true-edge overlay.
+display.dispose();
+```
+
+The adapter validates the entire native result and converts mm to metres
+once, with no axis change. `shells`, `faces`, `edges` and `internalEdges`
+retain copied native Shell, face, Curve, source and display lineage. Empty
+material creates no display objects. The adapter owns only its Three
+resources; disposing it leaves the caller Scene intact. Run
+`node examples/boolean-extrusion-three-verify.mjs --source <saved-896-directory>`
+with the six-file #896 integration output. `examples/boolean-extrusion-three.html`
+uses the same saved files over HTTP for actual WebGL2 checks. This display
+is not an editable native Surface, sewn Solid, native inverse or volume proof.
+
 ### Display native filled planar Boolean material in Babylon.js
 
 The optional `./babylon-boolean-mesh` entry consumes the same public #887
