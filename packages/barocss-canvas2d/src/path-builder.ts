@@ -1,5 +1,5 @@
-import { Canvas2DError, validateScene } from './schema.js';
-import type { PathCommand, PathNodeV5 } from './schema.js';
+import { Canvas2DError, validatePoint, validateScene } from './schema.js';
+import type { PathCommand, PathNodeV5, Point } from './schema.js';
 
 export type PathBuilder = {
   moveTo(x: number, y: number): PathBuilder;
@@ -12,6 +12,7 @@ export type PathBuilder = {
   circle(cx: number, cy: number, radius: number): PathBuilder;
   ellipse(cx: number, cy: number, radiusX: number, radiusY: number): PathBuilder;
   arc(cx: number, cy: number, radius: number, startAngle: number, sweepAngle: number): PathBuilder;
+  polygon(points: readonly Point[]): PathBuilder;
   clear(): PathBuilder;
   build(): PathCommand[];
 };
@@ -152,6 +153,30 @@ export function createPathBuilder(): PathBuilder {
       }
       if (!drawable) invalid('path builder arc has no drawable geometry');
       return append(commands);
+    },
+    polygon(points: readonly Point[]) {
+      if (!Array.isArray(points) || Object.getPrototypeOf(points) !== Array.prototype) {
+        invalid('path builder polygon needs an ordinary array');
+      }
+      const length = Object.getOwnPropertyDescriptor(points, 'length')?.value;
+      if (!Number.isInteger(length) || length < 3 || length > 128 || Reflect.ownKeys(points).length !== length + 1) {
+        invalid('path builder polygon needs 3 to 128 dense points');
+      }
+      const vertices: Point[] = [];
+      for (let index = 0; index < length; index++) {
+        const field = Object.getOwnPropertyDescriptor(points, String(index));
+        if (!field || !field.enumerable || !('value' in field)) invalid('path builder polygon needs data points');
+        const vertex = validatePoint(field.value);
+        const previous = vertices[index - 1];
+        if (previous && previous.x === vertex.x && previous.y === vertex.y) {
+          invalid('path builder polygon has a repeated edge');
+        }
+        vertices.push(vertex);
+      }
+      const first = vertices[0], last = vertices[vertices.length - 1];
+      if (first.x === last.x && first.y === last.y) invalid('path builder polygon closes with Z');
+      return append([{ kind: 'M', ...first },
+        ...vertices.slice(1).map(vertex => ({ kind: 'L' as const, ...vertex })), { kind: 'Z' }]);
     },
     clear() { commands = []; return api; },
     build() {
