@@ -1,0 +1,6 @@
+@shader #editable_material {
+  @uniform amount: float(0,1,0.5);
+  @let ramp: float(clamp(amount,0,1));
+  @let shade: color(mix(#12f,#f00,ramp));
+  @fragment { color: shade; }
+}

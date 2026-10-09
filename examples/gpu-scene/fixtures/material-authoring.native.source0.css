@@ -1,0 +1,17 @@
+@model material_authoring_native {
+  version: 0;
+  length-unit: mm;
+  @surface #original_rational_panel {
+    type: nurbs;
+    degree-u: 2;
+    degree-v: 2;
+    knots-u: [-2,-2,-2,6,6,6];
+    knots-v: [3,3,3,11,11,11];
+    control-points: [
+      [[-10,-0,-10],[-10,0,0],[-10,0,10]],
+      [[0,0,-10],[0,3,0],[0,0,10]],
+      [[10,0,-10],[10,0,0],[10,0,10]]
+    ];
+    weights: [[1,1,1],[1,2,1],[1,1,1]];
+  }
+}
