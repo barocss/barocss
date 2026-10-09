@@ -1944,3 +1944,28 @@ candidate retention and owned disposal. The display Line's chord sum is
 kept separate from the native derivative-integrated estimate. The
 estimator is not a certified global error bound, and this example makes
 no claim about general dimensions, other targets or npm publication.
+
+## Parameterized native Curves in Three.js
+
+`examples/curve-parameterization-three-data/` holds four exact source0
+outputs from the integrated CAD #947 demo: three methods applied to the
+same five authored XYZ points and one point-edited chord-length result.
+The Node verifier reads the original CAD evidence, checks fixture SHA,
+validates each saved owned result with public CAD, cold-compiles source0,
+and checks native Curve/sample identity against the existing neutral and
+Three loaders. Run it after building CAD and interop:
+
+```sh
+node packages/barocss-cad-interop/examples/curve-parameterization-three-verify.mjs /Users/user/.barocss-ai/v3/evidence-947-cad/integration/demo-output
+```
+
+Serve `examples/curve-parameterization-three.html` with the local Vite
+server. It fetches the saved files over HTTP and shows four colored Lines
+in a headed Three.js WebGL2 view. The caller offsets only the display
+Groups to make overlapping Curves visible. It checks native ID and
+parameter lineage, Float32 sample buffers, invalid-candidate frame
+retention and adapter-owned disposal. The Lines are display samples;
+the original source0 native Curves and CAD owned results carry the
+construction authority. This example does not establish true arc length,
+global shape accuracy, Surface or Solid behavior, other target parity,
+or npm release readiness.

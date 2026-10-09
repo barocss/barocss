@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native parameterized Curves in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 1020px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+  button { margin: 8px 8px 8px 0; padding: 7px 12px; }
+</style>
+<main>
+  <h1>Native parameterized Curves in Three.js</h1>
+  <p>Cyan: uniform. Magenta: chord length. Yellow: centripetal. Green: one edited point, then chord length. Each Line is a display sample of its saved native Curve.</p>
+  <div id="view"></div>
+  <button id="reject">Try invalid candidates</button><button id="dispose">Dispose loaded display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Group, OrthographicCamera, Scene, WebGLRenderer } from 'three';
+  import { parseBaroCadSource } from '../dist/native.js';
+  import { BaroCADLoader } from '../dist/three.js';
+
+  const options = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.1, maxSegments: 512, maxDepth: 16 } };
+  const cases = [
+    { key: 'same_points_uniform', id: 'uniform_curve', hash: 'd8255447223647badbd718f6e953ecf91dbe4aaf40fdc328a3abe59f73b8eb3a', color: 0x00ffff, offsetX: 0 },
+    { key: 'same_points_chord', id: 'chord_curve', hash: 'd8bc917b2b21dc63d314fd3397c2920ef49626a71766430ef657291e07b1436a', color: 0xff00ff, offsetX: 0.011 },
+    { key: 'same_points_centripetal', id: 'centripetal_curve', hash: '1cad60b35adf42e2c0cad52e8878eee8f97f68d2c5d7d5fc594326ecf28126f5', color: 0xffff00, offsetX: 0.022 },
+    { key: 'numeric_point_edit_chord', id: 'chord_curve', hash: 'c11ae993f41ae2b8493007275431516582baaca74331f15da205c8d41eadb9a0', color: 0x00ff00, offsetX: 0.033 },
+  ];
+  const status = document.querySelector('#status');
+  const renderer = new WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+  renderer.setSize(960, 480);
+  renderer.setClearColor(0x142236);
+  document.querySelector('#view').append(renderer.domElement);
+  const scene = new Scene();
+  const callerChild = new Group();
+  callerChild.name = 'caller marker';
+  scene.add(callerChild);
+  // View from +Y with +Z up. Only each host Group gets an X display offset.
+  const camera = new OrthographicCamera(-0.0235, 0.0235, 0.0115, -0.0115, 0.001, 0.2);
+  camera.position.set(0.0215, 0.08, 0);
+  camera.up.set(0, 0, 1);
+  camera.lookAt(0.0215, 0, 0);
+  const loader = new BaroCADLoader(options);
+  const accepted = [];
+  const pixels = () => {
+    const data = new Uint8Array(960 * 480 * 4);
+    const gl = renderer.getContext();
+    gl.readPixels(0, 0, 960, 480, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    return data;
+  };
+  const hashPixels = data => data.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const sha256 = async data => [...new Uint8Array(await crypto.subtle.digest('SHA-256', data))]
+    .map(byte => byte.toString(16).padStart(2, '0')).join('');
+  try {
+    if (!(renderer.getContext() instanceof WebGL2RenderingContext)) throw new Error('WebGL2 required');
+    for (const item of cases) {
+      const url = new URL(`./curve-parameterization-three-data/${item.key}.barocad`, location.href);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
+      const bytes = await response.arrayBuffer();
+      if (await sha256(bytes) !== item.hash) throw new Error(`Saved source SHA mismatch: ${item.key}`);
+      const source = new TextDecoder().decode(bytes);
+      const neutral = parseBaroCadSource(source, options);
+      const display = loader.parse(source);
+      if (neutral.model.objects.length !== 1 || neutral.model.objects[0].id !== item.id || neutral.curves.length !== 1)
+        throw new Error(`Native Curve identity mismatch: ${item.key}`);
+      const line = display.group.children[0];
+      if (display.group.children.length !== 1 || line.type !== 'Line' || line.name !== item.id)
+        throw new Error(`Expected one native-bound Line: ${item.key}`);
+      const lineage = line.userData.barocss;
+      if (lineage.curveId !== item.id || lineage.sourceVersion !== 0 || lineage.coordinateSystem !== 'right-handed-y-up' ||
+          JSON.stringify(lineage.nativeParameters) !== JSON.stringify(neutral.curves[0].sample.parameters))
+        throw new Error(`Native parameter lineage mismatch: ${item.key}`);
+      const positions = line.geometry.getAttribute('position').array;
+      if (positions.length !== neutral.curves[0].positions.length ||
+          positions.some((value, index) => !Object.is(value, neutral.curves[0].positions[index])))
+        throw new Error(`Float32 display position mismatch: ${item.key}`);
+      line.material.color.setHex(item.color);
+      const disposeEvents = { geometry: 0, material: 0 };
+      line.geometry.addEventListener('dispose', () => disposeEvents.geometry++);
+      line.material.addEventListener('dispose', () => disposeEvents.material++);
+      display.group.position.x = item.offsetX;
+      scene.add(display.group);
+      accepted.push({ key: item.key, source, display, line, neutral, disposeEvents,
+        nativeId: item.id, samples: neutral.curves[0].sample.pointsMM.length,
+        segments: neutral.curves[0].sample.segments.length, sourceBytes: bytes.byteLength });
+    }
+    renderer.render(scene, camera);
+    const frame = pixels();
+    const visible = { cyan: 0, magenta: 0, yellow: 0, green: 0 };
+    for (let i = 0; i < frame.length; i += 4) {
+      const [r, g, b] = frame.subarray(i, i + 3);
+      if (r < 100 && g > 150 && b > 150) visible.cyan++;
+      if (r > 150 && g < 100 && b > 150) visible.magenta++;
+      if (r > 150 && g > 150 && b < 100) visible.yellow++;
+      if (r < 100 && g > 150 && b < 100) visible.green++;
+    }
+    if (Object.values(visible).some(count => count === 0)) throw new Error('One source Line has no visible pixels');
+    const evidence = { target: 'Three.js 0.186.1 WebGL2', webgl2: true,
+      sourceFrame: 'authored XYZ, camera +Y, up +Z', unitsPerMillimeter: 0.001,
+      cases: accepted.map(({ key, nativeId, samples, segments, sourceBytes }) => ({ key, nativeId, samples, segments, sourceBytes, lineCount: 1 })),
+      visible, pixelHash: hashPixels(frame), callerChildRetained: scene.children.includes(callerChild) };
+    window.__baroCurveParameterizationEvidence = evidence;
+    status.textContent = JSON.stringify(evidence, null, 2);
+    const acceptedSources = accepted.map(item => item.source);
+    document.querySelector('#reject').onclick = () => {
+      let refused = 0;
+      for (const candidate of [
+        () => loader.parse('@model invalid {}'),
+        () => new BaroCADLoader({ ...options, sourceVersion: 1 }).parse(accepted[0].source),
+        () => new BaroCADLoader({ ...options, curveDisplay: { ...options.curveDisplay, version: 2 } }).parse(accepted[0].source),
+        () => new BaroCADLoader({ ...options, curveDisplay: { ...options.curveDisplay, maxSegments: 4093 } }).parse(accepted[0].source),
+      ]) { try { candidate(); } catch { refused++; } }
+      renderer.render(scene, camera);
+      evidence.invalidCandidatesRefused = refused;
+      evidence.acceptedSceneRetained = accepted.every(item => scene.children.includes(item.display.group));
+      evidence.acceptedPixelsRetained = hashPixels(pixels()) === evidence.pixelHash;
+      evidence.acceptedSourcesRetained = accepted.every((item, index) => item.source === acceptedSources[index]);
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+    document.querySelector('#dispose').onclick = () => {
+      for (const item of accepted) { item.display.dispose(); item.display.dispose(); }
+      renderer.render(scene, camera);
+      evidence.disposed = accepted.every(item => !scene.children.includes(item.display.group) &&
+        item.disposeEvents.geometry === 1 && item.disposeEvents.material === 1);
+      evidence.callerChildRetained = scene.children.includes(callerChild);
+      evidence.callerRendererRetained = renderer.getContext() instanceof WebGL2RenderingContext;
+      evidence.callerCanvasRetained = document.querySelector('#view').contains(renderer.domElement);
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+  } catch (error) {
+    for (const item of accepted) item.display.dispose();
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroCurveParameterizationError = String(error);
+  }
+</script>
+</html>
