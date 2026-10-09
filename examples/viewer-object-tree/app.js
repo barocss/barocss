@@ -81,9 +81,10 @@ function publishProof(state) {
     pixelHash = value;
     const camera = JSON.stringify(state.camera);
     if (sampleCamera !== camera) {
-      sampleCamera = camera;
+      sampleCamera = null;
       sampleCoordinates = [];
       if (state.visibleGeometry.length === 4 && state.selectedGeometry === null) {
+        sampleCamera = camera;
         const rect = canvas.getBoundingClientRect();
         for (let y = 4; y < rect.height && sampleCoordinates.length < 4; y += 6) {
           for (let x = 4; x < rect.width && sampleCoordinates.length < 4; x += 6) {
