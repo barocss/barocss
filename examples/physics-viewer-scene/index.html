@@ -13,6 +13,15 @@
     .eyebrow { color: #7ee8d1; font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
     h1 { margin: 8px 0; font-size: clamp(28px, 3.5vw, 44px); letter-spacing: -.04em; line-height: 1.08; }
     .intro { max-width: 780px; margin: 0 0 23px; color: #a9bbd1; line-height: 1.55; }
+    .scene-links { margin: 0 0 20px; }
+    .scene-links h2 { margin: 0 0 10px; font-size: 16px; }
+    .scene-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+    .scene-grid a { display: block; padding: 12px; border: 1px solid #365d74; border-radius: 10px; background: #112c3f; color: #e7f0fc; text-decoration: none; }
+    .scene-grid a:hover { background: #20435a; }
+    .scene-grid a:focus-visible { outline: 2px solid #8af4dc; outline-offset: 3px; }
+    .scene-grid strong, .scene-grid span { display: block; }
+    .scene-grid strong { margin-bottom: 5px; font-size: 13px; }
+    .scene-grid span { color: #adc6d5; font-size: 11px; line-height: 1.4; }
     .layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(330px, .85fr); gap: 16px; }
     .panel { background: #101f31; border: 1px solid #2b4660; border-radius: 18px; overflow: hidden; box-shadow: 0 18px 50px #0003; }
     .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 19px; border-bottom: 1px solid #28415a; }
@@ -50,8 +59,8 @@
     #error { color: #ffacaa; margin-top: 7px; min-height: 1em; }
     #error.ok { color: #8af4cf; }
     .boundary { color: #9bb1c8; font-size: 12px; line-height: 1.5; padding-top: 12px; }
-    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .readouts { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 580px) { main { padding: 20px 14px 32px; } .readouts { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } .scene-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .readouts { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 580px) { main { padding: 20px 14px 32px; } .scene-grid { grid-template-columns: 1fr; } .readouts { grid-template-columns: repeat(2, 1fr); } }
   </style>
 </head>
 <body>
@@ -59,6 +68,15 @@
     <div class="eyebrow">Physics / Consumer 01</div>
     <h1>One native Surface. One simulated body.</h1>
     <p class="intro">A real BaroCAD Surface follows the position returned by our Physics engine. The Viewer canvas shows native display geometry. The side view shows the separate sphere and box collision proxies.</p>
+    <nav class="scene-links" aria-label="Other 3D Physics examples">
+      <h2>Explore the bounded 3D examples</h2>
+      <div class="scene-grid">
+        <a href="joint-demo.html"><strong>Fixed two-body pair</strong><span>Two original Surfaces follow two sphere proxies held by one simulation joint.</span></a>
+        <a href="motor-demo.html"><strong>Anchored hinge motor</strong><span>One Surface rotates with a dynamic sphere proxy around a fixed +Z hinge.</span></a>
+        <a href="dynamic-hinge-demo.html"><strong>Centred dynamic hinge</strong><span>Two original Surfaces rotate around coincident sphere proxy centres.</span></a>
+        <a href="offset-hinge-demo.html?step=120"><strong>Offset hinge and pivot</strong><span>Two moving sphere proxy centres meet at one marked pivot; view step 120.</span></a>
+      </div>
+    </nav>
     <div class="layout">
       <section class="panel">
         <div class="panel-head"><h2>Viewer · original weighted Surfaces</h2><span class="tag">ACTUAL WEBGL</span></div>
