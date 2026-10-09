@@ -1,0 +1,11 @@
+@model curvature_line {
+  version: 0;
+  length-unit: mm;
+  @curve #original_line {
+    type: nurbs;
+    degree: 1;
+    knots: [-3,-3,7,7];
+    control-points: [[0,-0,0],[4,-0,0]];
+    weights: [1,1];
+  }
+}
