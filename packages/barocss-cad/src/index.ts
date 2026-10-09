@@ -278,3 +278,6 @@ export type { ExactBoundaryFaceAdjacencyAsset, ExactBoundaryFaceAdjacencyPair, E
 
 export { buildQuinticHermiteCurve, validateQuinticHermiteCurve, QuinticHermiteError, QuinticHermiteDiagnosticCode } from './quintic-hermite-curve.js';
 export type { QuinticHermiteEndpoint, QuinticHermiteOptions, QuinticHermiteReport, QuinticHermiteResult } from './quintic-hermite-curve.js';
+
+export { inspectCurveEndpointContinuity, validateCurveEndpointContinuity, CurveEndpointContinuityError, CurveEndpointContinuityDiagnosticCode } from './curve-endpoint-continuity.js';
+export type { CurveEndpointContinuityInput, CurveEndpointContinuityOptions, CurveEndpointContinuityReport, CurveEndpointContinuityResult } from './curve-endpoint-continuity.js';

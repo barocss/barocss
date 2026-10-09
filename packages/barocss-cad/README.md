@@ -7839,3 +7839,45 @@ separate tasks. The endpoint pole relations follow the Bernstein derivative
 properties documented by [MIT](https://web.mit.edu/hyperbook/Patrikalakis-Maekawa-Cho/node12.html)
 and [Michigan Tech](https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/surface/bezier-der.html),
 with the chain rule for the original parameter domain. No external runtime is used.
+
+## Source-qualified regular Curve endpoint continuity — #1031
+
+`inspectCurveEndpointContinuity(first,second,options)` inspects two original
+endpoints. Each input is sourceId/source/curve/endpoint (`start` or `end`).
+Options contain evaluationId and maximumCurvatureEvaluations (0..2,requiring2).
+The result retains first/second/options/models/native/analysis/report.
+`validateCurveEndpointContinuity(owned)` rebuilds the entire operation.
+`CurveEndpointContinuityError` and its diagnostic code preserve native causes.
+
+Each original Source0 contains exactly one Curve and must match all input Curve
+coefficient bits. Distinct sourceId contexts can contain the same local Curve ID.
+Curves have degree1..5,2..64 poles,up to70 knots and coordinate/knot absolute
+limits10000; existing positive-weight/clamped/native validation still applies.
+The complete two-curvature-call budget precedes source compilation. Actual
+`evaluateCurveCurvature` runs once at each original endpoint and retains its
+entire native D2 result. This full query requires regular endpoints and refuses
+actual singularity or unsafe arithmetic. It does not change standalone D2 rules.
+
+First traversal approaches the selected endpoint: end+1/start-1. Second
+traversal leaves it: start+1/end-1. First derivatives and unit tangents receive
+these signs; second derivatives and curvature vectors stay unchanged. C0 checks
+point distance; C1 also compares original-unit first derivatives; C2 also
+compares second derivatives. G1 compares same-directed unit tangents; G2 also
+compares inverse-mm curvature vectors. Different parameter speeds can satisfy
+G1/G2 while failing C1/C2.
+
+The observed policy uses1e-7mm point distance,1e-7 derivative/second-derivative
+relative norm gap with max(1,both norms),1e-7 unit-tangent gap with positive dot,
+and1e-7 curvature-vector relative gap with inverse-mm floor1. Conditions include
+their lower-order prerequisites. These are local one-sided endpoint observations.
+They do not raise the formal knot continuity of an existing joined Curve or
+certify a whole Curve, Surface boundary, Body/Solid or manufacturing tolerance.
+
+```sh
+node examples/cad-nurbs/curve-endpoint-continuity-demo.mjs --source EVIDENCE_DIR
+```
+
+Original sources/domains/knots/weights/poles remain unchanged. Source/file/owned
+rebuild and explicit published-map compiled proof belong to the scoped final
+checkpoint. [MIT continuity definitions](https://web.mit.edu/hyperbook/Patrikalakis-Maekawa-Cho/node13.html)
+distinguish parametric derivative matching from geometric continuity.
