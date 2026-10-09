@@ -6965,3 +6965,64 @@ actual native geometry/source ownership, authored and owned cold rebuilds,
 atomic refusals and public declarations. Feature lifecycle, suppression,
 selective recomputation, persistent topology/history, editor adoption and
 Solid/manufacturing certification remain separate work.
+
+
+## Native feature replacement and dependency repair
+
+`transactBooleanExtrusionFeatureGraphFeatures(previousResult, transaction)`
+creates, updates or removes authored feature nodes with explicit dependency
+repairs in the same candidate. It returns the existing native graph result.
+The current graph still requires two Face inputs, one Boolean and one extrusion.
+
+The exact transaction is `{expectedRevision, revision, featureOperations}`.
+Operations contain 1 through 8 `{kind:'upsert', feature}` or
+`{kind:'remove', featureId}` entries. Each feature target appears once. A new
+feature appends in operation order. Its feature ID and output slot must be fresh
+against all starting logical/native/source identities and earlier new nodes.
+A remove must name a starting feature. Removed identities remain reserved for
+the transaction. There is no hidden cross-transaction tombstone registry.
+
+An existing upsert preserves ID, kind, output slot and authored position. Its
+native options stay unchanged except an admitted Boolean operation. Original
+Face Plane/loop/ordered Curve IDs and count remain stable. Authored coefficients,
+dependency references and distance definitions can be repaired explicitly.
+A new input node can retain original native names under its qualified context.
+The API does not rewrite source geometry IDs.
+
+A copied working table can contain up to eight nodes. Final admission requires
+the original four kinds and counts. Adding a replacement before deleting its
+old node is allowed. Missing or cyclic references, invalid native inputs, stale
+revisions, ID collisions and failed native evaluation return no replacement
+result. No deletion cascade or automatic reference substitution occurs.
+
+The API separately snapshots both inputs, validates the full previous owned
+graph once, then evaluates the copied final authored candidate once. Parameters,
+graph header, options and format 0 stay unchanged. Actual native builders,
+parameter resolution, authored serde and revision-qualified feature ownership
+remain the existing graph authority.
+
+```ts
+const next = cad.transactBooleanExtrusionFeatureGraphFeatures(result, {
+  expectedRevision: result.document.revision,
+  revision: result.document.revision + 1,
+  featureOperations: [
+    {kind: 'upsert', feature: replacementFace},
+    {kind: 'upsert', feature: booleanWithRepairedOperand},
+    {kind: 'remove', featureId: oldFaceId},
+  ],
+});
+```
+
+Run the saved-native-graph flow after the affected library build:
+
+```sh
+node examples/cad-nurbs/boolean-extrusion-feature-lifecycle-demo.mjs --source /tmp/cad-feature-lifecycle --parameter-directory /path/to/cad-parameter-lifecycle
+```
+
+The flow replaces input, Boolean and extrusion nodes, repairs their references,
+changes a real native corner and distance, and replaces the complete four-node
+chain through a temporary eight-node table. It checks source/native geometry,
+current authored and owned cold rebuilds, qualified ownership, atomic refusals
+and public declarations. General operation mixing, suppression, reorder,
+selective rebuild, history/persistent topology, editor adoption and
+Solid/manufacturing certification remain separate work.

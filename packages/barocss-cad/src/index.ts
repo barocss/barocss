@@ -218,3 +218,6 @@ export type { BooleanExtrusionLengthDefinition, BooleanExtrusionLengthParameter,
 
 export { transactBooleanExtrusionFeatureGraphParameters } from './boolean-extrusion-parameter-lifecycle.js';
 export type { BooleanExtrusionParameterOperation, BooleanExtrusionParameterTransaction } from './boolean-extrusion-parameter-lifecycle.js';
+
+export { transactBooleanExtrusionFeatureGraphFeatures } from './boolean-extrusion-feature-lifecycle.js';
+export type { BooleanExtrusionFeatureOperation, BooleanExtrusionFeatureTransaction } from './boolean-extrusion-feature-lifecycle.js';
