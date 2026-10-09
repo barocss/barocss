@@ -555,6 +555,60 @@ seven original files against their paired native results, a new height
 5→6 edit, cold HTTP read and refusal retention. The separate CAD #922
 feature-node lifecycle and renderer output are not part of this check.
 
+### Derive a filled Shell from a qualified authored graph output
+
+The optional `./boolean-extrusion-feature-mesh` entry selects one evaluated
+`normal-extrusion` from a complete native Boolean feature graph. The caller
+must provide its exact graph ID, revision, feature ID and output slot. The
+bridge validates the entire owned graph, calls CAD's native Shell tessellator,
+validates its complete result, and returns a copied qualified binding beside
+the derived mesh. It does not choose a feature by array position.
+
+```js
+import { loadBaroCadBooleanExtrusionFeatureGraph }
+  from '@barocss/cad-interop/boolean-extrusion-feature-graph';
+import { deriveBaroCadBooleanExtrusionFeatureMesh }
+  from '@barocss/cad-interop/boolean-extrusion-feature-mesh';
+import { createBaroCadBooleanExtrusionThreeMesh }
+  from '@barocss/cad-interop/three-boolean-extrusion-mesh';
+
+const read = await loadBaroCadBooleanExtrusionFeatureGraph(url, {
+  maximumParameterResolutions: 8, maximumFeatureEvaluations: 4,
+});
+const derived = deriveBaroCadBooleanExtrusionFeatureMesh(read.native, {
+  graphId: read.native.document.id,
+  revision: read.native.document.revision,
+  featureId: 'extrusion_feature', // An exact ID from this authored graph.
+  outputSlotId: 'extrusion_slot',
+}, {
+  meshId: 'shell_mesh', maximumVertices: 384, maximumTriangles: 288,
+  maximumEdgePaths: 192, maximumNativeSamples: 1024,
+});
+const display = createBaroCadBooleanExtrusionThreeMesh(derived.nativeMesh, {
+  unitsPerMillimeter: 0.001, basis: 'authored-xyz-matches-rhyup',
+});
+scene.add(display.root);
+scene.add(display.edgeRoot); // Optional true native Curve paths.
+display.dispose();
+```
+
+Keep `read.authoredText` and the graph for edits and later saves. The Shell
+mesh is display data in authored XYZ/mm. Its binding retains the original
+graph/revision/feature/slot and scoped native/source references. Face-local
+triangles and true native Curve paths remain separate from display diagonals.
+The host owns the Scene, renderer and source file. The same neutral mesh can
+be passed to the existing Babylon and pinned Pixi3D Shell adapters with their
+own explicit basis/scale requirements.
+
+Run `node examples/boolean-extrusion-feature-mesh-verify.mjs --source
+<saved-922-directory> --topology <saved-903-directory>` after building CAD and
+interop. It checks six authentic #922 replacement revisions plus authentic
+hole/empty #903 files over local HTTP against paired native results and direct
+CAD meshes. `examples/boolean-extrusion-feature-mesh-three.html` loads two
+exact copied #922 authored files over HTTP for actual Three WebGL2 revision,
+true-edge, refusal and disposal checks. The graph remains native editing
+authority; this bridge does not certify a Surface, Solid or volume.
+
 ### Display native filled Boolean extrusion Shells in Three.js
 
 The optional `./three-boolean-extrusion-mesh` entry consumes the complete

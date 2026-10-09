@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Authored Boolean graph to Three Shell</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Authored Boolean graph → filled Three Shell</h1>
+  <p>The native graph remains editable. The selected Shell mesh is display data.</p>
+  <div id="view"></div>
+  <button id="edges" type="button">Show true edges</button>
+  <button id="reject" type="button">Try invalid selection</button>
+  <button id="dispose" type="button">Dispose display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Group, OrthographicCamera, Scene, WebGLRenderer } from 'three';
+  import { loadBaroCadBooleanExtrusionFeatureGraph } from '@barocss/cad-interop/boolean-extrusion-feature-graph';
+  import { deriveBaroCadBooleanExtrusionFeatureMesh } from '@barocss/cad-interop/boolean-extrusion-feature-mesh';
+  import { createBaroCadBooleanExtrusionThreeMesh } from '@barocss/cad-interop/three-boolean-extrusion-mesh';
+
+  const status = document.querySelector('#status');
+  const renderer = new WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+  renderer.setSize(800, 600);
+  renderer.setPixelRatio(1);
+  renderer.setClearColor(0x101b2c);
+  document.querySelector('#view').append(renderer.domElement);
+  const scene = new Scene();
+  const caller = new Group(); caller.name = 'caller-owned'; scene.add(caller);
+  const camera = new OrthographicCamera(-0.016, 0.016, 0.012, -0.012, 0.001, 1);
+  camera.up.set(0, 0, -1);
+  camera.position.set(-0.0025, 0.05, -0.0013);
+  camera.lookAt(-0.0025, -0.004, -0.0013);
+  const graphOptions = { maximumParameterResolutions: 8, maximumFeatureEvaluations: 4 };
+  const meshOptions = { meshId: 'shell_mesh', maximumVertices: 384, maximumTriangles: 288,
+    maximumEdgePaths: 192, maximumNativeSamples: 1024 };
+  const displayOptions = { unitsPerMillimeter: 0.001, basis: 'authored-xyz-matches-rhyup' };
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const background = (r, g, b) => Math.abs(r - 16) <= 12 && Math.abs(g - 27) <= 12 && Math.abs(b - 44) <= 12;
+  const render = () => {
+    renderer.render(scene, camera);
+    const gl = renderer.getContext();
+    const bytes = new Uint8Array(renderer.domElement.width * renderer.domElement.height * 4);
+    gl.readPixels(0, 0, renderer.domElement.width, renderer.domElement.height, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('Three WebGL readPixels failed');
+    return bytes;
+  };
+  const count = bytes => {
+    let total = 0;
+    for (let i = 0; i < bytes.length; i += 4) if (!background(bytes[i], bytes[i + 1], bytes[i + 2])) total++;
+    return total;
+  };
+  const load = async name => {
+    const url = new URL(`./boolean-extrusion-feature-mesh-three-data/${name}.authored-graph.json`, location.href);
+    const read = await loadBaroCadBooleanExtrusionFeatureGraph(url.href, graphOptions);
+    const selection = { graphId: read.native.document.id, revision: read.native.document.revision,
+      featureId: 'extrusion_feature', outputSlotId: 'extrusion_slot' };
+    const derived = deriveBaroCadBooleanExtrusionFeatureMesh(read.native, selection, meshOptions);
+    return { read, selection, derived };
+  };
+  let accepted, display, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    const observations = [];
+    for (const name of ['revision1_authentic', 'revision3_replace_boolean']) {
+      const item = await load(name);
+      const candidate = createBaroCadBooleanExtrusionThreeMesh(item.derived.nativeMesh, displayOptions);
+      if (candidate.shells.length !== 1 || candidate.faces.length !== (name === 'revision1_authentic' ? 10 : 6) ||
+          candidate.edges.length !== (name === 'revision1_authentic' ? 24 : 12) ||
+          candidate.root.getObjectByProperty('type', 'Line')) {
+        throw new Error(`Qualified Shell grouping differs: ${name}`);
+      }
+      scene.add(candidate.root);
+      const pixels = render();
+      if (count(pixels) < 100) throw new Error(`Qualified Shell material is not visible: ${name}`);
+      observations.push({ name, revision: item.selection.revision, binding: item.derived.binding.featureId,
+        shellCount: candidate.shells.length, faceCount: candidate.faces.length, edgeCount: candidate.edges.length,
+        materialPixels: count(pixels), frameHash: hash(pixels) });
+      scene.remove(candidate.root);
+      candidate.dispose();
+      accepted = item;
+    }
+    if (observations[0].frameHash === observations[1].frameHash) {
+      throw new Error('The real authored revision did not change the Three frame');
+    }
+    display = createBaroCadBooleanExtrusionThreeMesh(accepted.derived.nativeMesh, displayOptions);
+    scene.add(display.root);
+    const acceptedFrame = render();
+    if (hash(acceptedFrame) !== observations[1].frameHash ||
+        !(renderer.getContext() instanceof WebGL2RenderingContext)) {
+      throw new Error('Accepted WebGL2 Shell frame differs');
+    }
+    evidence = { observations, acceptedHash: hash(acceptedFrame), webgl2: true,
+      trueEdgesVisible: false, refused: 0, disposed: false, callerRetained: true };
+    window.__baroFeatureMeshEvidence = evidence; show();
+    document.querySelector('#edges').onclick = () => {
+      const before = hash(render());
+      scene.add(display.edgeRoot);
+      const after = hash(render());
+      if (display.edges.length !== accepted.derived.nativeMesh.report.edgePathCount ||
+          display.edgeRoot.getObjectByProperty('type', 'Mesh') || after === before) {
+        throw new Error('True native Curve paths did not change the frame');
+      }
+      evidence.trueEdgesVisible = true; evidence.trueEdgesFrameHash = after; show();
+    };
+    document.querySelector('#reject').onclick = () => {
+      const before = hash(render());
+      const forged = structuredClone(accepted.read.native);
+      forged.report.qualifiedBindings.at(-1).nativeReferences[0].nativeId = 'forged';
+      let refused = 0;
+      for (const action of [
+        () => deriveBaroCadBooleanExtrusionFeatureMesh(accepted.read.native,
+          { ...accepted.selection, revision: 1 }, meshOptions),
+        () => deriveBaroCadBooleanExtrusionFeatureMesh(accepted.read.native,
+          { ...accepted.selection, outputSlotId: 'wrong' }, meshOptions),
+        () => deriveBaroCadBooleanExtrusionFeatureMesh(forged, accepted.selection, meshOptions),
+        () => deriveBaroCadBooleanExtrusionFeatureMesh(accepted.read.native, accepted.selection,
+          { ...meshOptions, maximumTriangles: 0 }),
+      ]) { try { action(); } catch { refused++; } }
+      if (refused !== 4 || hash(render()) !== before || !scene.children.includes(caller) ||
+          display.faces.some(binding => !binding.object.geometry.getAttribute('position'))) {
+        throw new Error('Rejected graph or selection changed accepted display');
+      }
+      evidence.refused = refused; evidence.acceptedFrameRetained = true; show();
+    };
+    document.querySelector('#dispose').onclick = () => {
+      const disposed = [];
+      for (const binding of [...display.faces, ...display.edges]) {
+        binding.object.geometry.addEventListener('dispose', () => disposed.push('geometry'));
+        binding.object.material.addEventListener('dispose', () => disposed.push('material'));
+      }
+      display.dispose(); display.dispose();
+      if (disposed.length !== 2 * (display.faces.length + display.edges.length) ||
+          scene.children.includes(display.root) || scene.children.includes(display.edgeRoot) ||
+          !scene.children.includes(caller) || count(render()) !== 0 ||
+          document.querySelectorAll('canvas').length !== 1) {
+        throw new Error('Shell disposal changed caller resources');
+      }
+      evidence.disposed = true; evidence.ownedResourcesDisposed = disposed.length;
+      evidence.afterDisposePixels = 0; evidence.callerRetained = true; show();
+    };
+  } catch (error) {
+    display?.dispose();
+    evidence = { error: String(error), stack: error.stack };
+    window.__baroFeatureMeshEvidence = evidence; show();
+  }
+</script>
