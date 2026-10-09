@@ -8,16 +8,25 @@ This does not mean the package has been published to npm, or claim CSS/GSS compa
 ## Compiled package and local source development
 
 Run `pnpm --filter @barocss/gpu build:library` to emit the declared `dist/index.js`
-ES module and `dist/index.d.ts` declarations. Ordinary main/import/types consumers use
-these compiled entries; runtime imports do not execute TypeScript. The package files
+ES module and `dist/index.d.ts` declarations. Workspace main/import/types entries
+use `src/index.ts` through a TypeScript-capable bundler. The complete `publishConfig`
+map selects compiled JavaScript/declarations for release. The package files
 include compiled modules/declarations, source for explicit development, README and MIT LICENSE.
 Version remains `0.0.0`; actual npm publication is a separate authorized release step.
 
 Explicit `@barocss/gpu/source` exports the original `src/index.ts` for TypeScript-aware
 development tooling. The repository's loopback examples use explicit original source entries
-or source aliases. Installed esbuild resolves `.js` relative imports in memory, so source
+or source aliases in historical hosts. The shared [source consumer](../../examples/workspace-source/README.md)
+uses ordinary package imports and a reusable esbuild context without source aliases.
+Installed esbuild resolves `.js` relative imports in memory, so source
 editing does not require an artifact build. A plain browser cannot load raw TypeScript;
-use the source host. Node artifact consumers use the compiled package entry after a build.
+use the source host. Plain Node does not resolve source `.js` specifiers to `.ts`.
+Explicit compiled checkpoints use every transitive package's complete `publishConfig`
+map after a build; a direct dist root import can otherwise mix source dependencies.
+
+Earlier Issue receipts and their commands retain their original compiled-default
+manifest scope. Use the shared compiled probe for the current convention. The
+named material/curvature example checkpoint migration is tracked separately in #1016.
 
 ## Supported language
 

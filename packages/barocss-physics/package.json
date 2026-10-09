@@ -8,37 +8,37 @@
   "exports": {
     ".": {
       "barocss-source": "./src/index.ts",
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
     },
     "./cad-proxy": {
       "barocss-source": "./src/cad-proxy.ts",
-      "types": "./dist/cad-proxy.d.ts",
-      "import": "./dist/cad-proxy.js"
+      "types": "./src/cad-proxy.ts",
+      "import": "./src/cad-proxy.ts"
     },
     "./replay": {
       "barocss-source": "./src/replay.ts",
-      "types": "./dist/replay.d.ts",
-      "import": "./dist/replay.js"
+      "types": "./src/replay.ts",
+      "import": "./src/replay.ts"
     },
     "./fluid": {
       "barocss-source": "./src/fluid.ts",
-      "types": "./dist/fluid.d.ts",
-      "import": "./dist/fluid.js"
+      "types": "./src/fluid.ts",
+      "import": "./src/fluid.ts"
     },
     "./cloth": {
       "barocss-source": "./src/cloth.ts",
-      "types": "./dist/cloth.d.ts",
-      "import": "./dist/cloth.js"
+      "types": "./src/cloth.ts",
+      "import": "./src/cloth.ts"
     },
     "./fluid-cad": {
       "barocss-source": "./src/fluid-cad.ts",
-      "types": "./dist/fluid-cad.d.ts",
-      "import": "./dist/fluid-cad.js"
+      "types": "./src/fluid-cad.ts",
+      "import": "./src/fluid-cad.ts"
     }
   },
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "files": ["src", "dist", "README.md", "LICENSE"],
   "scripts": {
     "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js"
@@ -46,5 +46,41 @@
   "dependencies": {
     "@barocss/cad": "workspace:*"
   },
-  "publishConfig": { "access": "public" }
+  "publishConfig": {
+    "access": "public",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "barocss-source": "./dist/index.js",
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./cad-proxy": {
+        "barocss-source": "./dist/cad-proxy.js",
+        "types": "./dist/cad-proxy.d.ts",
+        "import": "./dist/cad-proxy.js"
+      },
+      "./replay": {
+        "barocss-source": "./dist/replay.js",
+        "types": "./dist/replay.d.ts",
+        "import": "./dist/replay.js"
+      },
+      "./fluid": {
+        "barocss-source": "./dist/fluid.js",
+        "types": "./dist/fluid.d.ts",
+        "import": "./dist/fluid.js"
+      },
+      "./cloth": {
+        "barocss-source": "./dist/cloth.js",
+        "types": "./dist/cloth.d.ts",
+        "import": "./dist/cloth.js"
+      },
+      "./fluid-cad": {
+        "barocss-source": "./dist/fluid-cad.js",
+        "types": "./dist/fluid-cad.d.ts",
+        "import": "./dist/fluid-cad.js"
+      }
+    }
+  }
 }

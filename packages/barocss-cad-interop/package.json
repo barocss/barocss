@@ -2,120 +2,234 @@
   "name": "@barocss/cad-interop",
   "version": "0.0.0-experimental",
   "private": false,
-  "publishConfig": { "access": "public" },
+  "publishConfig": {
+    "access": "public",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      },
+      "./native": {
+        "types": "./dist/native.d.ts",
+        "import": "./dist/native.js"
+      },
+      "./document": {
+        "types": "./dist/document.d.ts",
+        "import": "./dist/document.js"
+      },
+      "./boolean-extrusion-feature-graph": {
+        "types": "./dist/boolean-extrusion-feature-graph.d.ts",
+        "import": "./dist/boolean-extrusion-feature-graph.js"
+      },
+      "./boolean-extrusion-feature-mesh": {
+        "types": "./dist/boolean-extrusion-feature-mesh.d.ts",
+        "import": "./dist/boolean-extrusion-feature-mesh.js"
+      },
+      "./boolean-extrusion-feature-properties": {
+        "types": "./dist/boolean-extrusion-feature-properties.d.ts",
+        "import": "./dist/boolean-extrusion-feature-properties.js"
+      },
+      "./assembly": {
+        "types": "./dist/assembly.d.ts",
+        "import": "./dist/assembly.js"
+      },
+      "./document-glb": {
+        "types": "./dist/document-glb.d.ts",
+        "import": "./dist/document-glb.js"
+      },
+      "./boolean-mesh-glb": {
+        "types": "./dist/boolean-mesh-glb.d.ts",
+        "import": "./dist/boolean-mesh-glb.js"
+      },
+      "./boolean-extrusion-glb": {
+        "types": "./dist/boolean-extrusion-glb.d.ts",
+        "import": "./dist/boolean-extrusion-glb.js"
+      },
+      "./three-document": {
+        "types": "./dist/three-document.d.ts",
+        "import": "./dist/three-document.js"
+      },
+      "./three-assembly": {
+        "types": "./dist/three-assembly.d.ts",
+        "import": "./dist/three-assembly.js"
+      },
+      "./three-boolean-contours": {
+        "types": "./dist/three-boolean-contours.d.ts",
+        "import": "./dist/three-boolean-contours.js"
+      },
+      "./three-boolean-mesh": {
+        "types": "./dist/three-boolean-mesh.d.ts",
+        "import": "./dist/three-boolean-mesh.js"
+      },
+      "./three-boolean-extrusion-mesh": {
+        "types": "./dist/three-boolean-extrusion-mesh.d.ts",
+        "import": "./dist/three-boolean-extrusion-mesh.js"
+      },
+      "./three": {
+        "types": "./dist/three.d.ts",
+        "import": "./dist/three.js"
+      },
+      "./babylon": {
+        "types": "./dist/babylon.d.ts",
+        "import": "./dist/babylon.js"
+      },
+      "./babylon-document": {
+        "types": "./dist/babylon-document.d.ts",
+        "import": "./dist/babylon-document.js"
+      },
+      "./babylon-assembly": {
+        "types": "./dist/babylon-assembly.d.ts",
+        "import": "./dist/babylon-assembly.js"
+      },
+      "./babylon-boolean-mesh": {
+        "types": "./dist/babylon-boolean-mesh.d.ts",
+        "import": "./dist/babylon-boolean-mesh.js"
+      },
+      "./babylon-boolean-extrusion-mesh": {
+        "types": "./dist/babylon-boolean-extrusion-mesh.d.ts",
+        "import": "./dist/babylon-boolean-extrusion-mesh.js"
+      },
+      "./pixi3d": {
+        "types": "./dist/pixi3d.d.ts",
+        "import": "./dist/pixi3d.js"
+      },
+      "./pixi3d-document": {
+        "types": "./dist/pixi3d-document.d.ts",
+        "import": "./dist/pixi3d-document.js"
+      },
+      "./pixi3d-assembly": {
+        "types": "./dist/pixi3d-assembly.d.ts",
+        "import": "./dist/pixi3d-assembly.js"
+      },
+      "./pixi3d-boolean-mesh": {
+        "types": "./dist/pixi3d-boolean-mesh.d.ts",
+        "import": "./dist/pixi3d-boolean-mesh.js"
+      },
+      "./pixi3d-boolean-extrusion-mesh": {
+        "types": "./dist/pixi3d-boolean-extrusion-mesh.d.ts",
+        "import": "./dist/pixi3d-boolean-extrusion-mesh.js"
+      },
+      "./model-set": {
+        "types": "./dist/model-set.d.ts",
+        "import": "./dist/model-set.js"
+      }
+    }
+  },
   "type": "module",
   "description": "BaroCSS CAD preview export and native source loaders",
   "license": "MIT",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
     },
     "./native": {
-      "types": "./dist/native.d.ts",
-      "import": "./dist/native.js"
+      "types": "./src/native.ts",
+      "import": "./src/native.ts"
     },
     "./document": {
-      "types": "./dist/document.d.ts",
-      "import": "./dist/document.js"
+      "types": "./src/document.ts",
+      "import": "./src/document.ts"
     },
     "./boolean-extrusion-feature-graph": {
-      "types": "./dist/boolean-extrusion-feature-graph.d.ts",
-      "import": "./dist/boolean-extrusion-feature-graph.js"
+      "types": "./src/boolean-extrusion-feature-graph.ts",
+      "import": "./src/boolean-extrusion-feature-graph.ts"
     },
     "./boolean-extrusion-feature-mesh": {
-      "types": "./dist/boolean-extrusion-feature-mesh.d.ts",
-      "import": "./dist/boolean-extrusion-feature-mesh.js"
+      "types": "./src/boolean-extrusion-feature-mesh.ts",
+      "import": "./src/boolean-extrusion-feature-mesh.ts"
     },
     "./boolean-extrusion-feature-properties": {
-      "types": "./dist/boolean-extrusion-feature-properties.d.ts",
-      "import": "./dist/boolean-extrusion-feature-properties.js"
+      "types": "./src/boolean-extrusion-feature-properties.ts",
+      "import": "./src/boolean-extrusion-feature-properties.ts"
     },
     "./assembly": {
-      "types": "./dist/assembly.d.ts",
-      "import": "./dist/assembly.js"
+      "types": "./src/assembly.ts",
+      "import": "./src/assembly.ts"
     },
     "./document-glb": {
-      "types": "./dist/document-glb.d.ts",
-      "import": "./dist/document-glb.js"
+      "types": "./src/document-glb.ts",
+      "import": "./src/document-glb.ts"
     },
     "./boolean-mesh-glb": {
-      "types": "./dist/boolean-mesh-glb.d.ts",
-      "import": "./dist/boolean-mesh-glb.js"
+      "types": "./src/boolean-mesh-glb.ts",
+      "import": "./src/boolean-mesh-glb.ts"
     },
     "./boolean-extrusion-glb": {
-      "types": "./dist/boolean-extrusion-glb.d.ts",
-      "import": "./dist/boolean-extrusion-glb.js"
+      "types": "./src/boolean-extrusion-glb.ts",
+      "import": "./src/boolean-extrusion-glb.ts"
     },
     "./three-document": {
-      "types": "./dist/three-document.d.ts",
-      "import": "./dist/three-document.js"
+      "types": "./src/three-document.ts",
+      "import": "./src/three-document.ts"
     },
     "./three-assembly": {
-      "types": "./dist/three-assembly.d.ts",
-      "import": "./dist/three-assembly.js"
+      "types": "./src/three-assembly.ts",
+      "import": "./src/three-assembly.ts"
     },
     "./three-boolean-contours": {
-      "types": "./dist/three-boolean-contours.d.ts",
-      "import": "./dist/three-boolean-contours.js"
+      "types": "./src/three-boolean-contours.ts",
+      "import": "./src/three-boolean-contours.ts"
     },
     "./three-boolean-mesh": {
-      "types": "./dist/three-boolean-mesh.d.ts",
-      "import": "./dist/three-boolean-mesh.js"
+      "types": "./src/three-boolean-mesh.ts",
+      "import": "./src/three-boolean-mesh.ts"
     },
     "./three-boolean-extrusion-mesh": {
-      "types": "./dist/three-boolean-extrusion-mesh.d.ts",
-      "import": "./dist/three-boolean-extrusion-mesh.js"
+      "types": "./src/three-boolean-extrusion-mesh.ts",
+      "import": "./src/three-boolean-extrusion-mesh.ts"
     },
     "./three": {
-      "types": "./dist/three.d.ts",
-      "import": "./dist/three.js"
+      "types": "./src/three.ts",
+      "import": "./src/three.ts"
     },
     "./babylon": {
-      "types": "./dist/babylon.d.ts",
-      "import": "./dist/babylon.js"
+      "types": "./src/babylon.ts",
+      "import": "./src/babylon.ts"
     },
     "./babylon-document": {
-      "types": "./dist/babylon-document.d.ts",
-      "import": "./dist/babylon-document.js"
+      "types": "./src/babylon-document.ts",
+      "import": "./src/babylon-document.ts"
     },
     "./babylon-assembly": {
-      "types": "./dist/babylon-assembly.d.ts",
-      "import": "./dist/babylon-assembly.js"
+      "types": "./src/babylon-assembly.ts",
+      "import": "./src/babylon-assembly.ts"
     },
     "./babylon-boolean-mesh": {
-      "types": "./dist/babylon-boolean-mesh.d.ts",
-      "import": "./dist/babylon-boolean-mesh.js"
+      "types": "./src/babylon-boolean-mesh.ts",
+      "import": "./src/babylon-boolean-mesh.ts"
     },
     "./babylon-boolean-extrusion-mesh": {
-      "types": "./dist/babylon-boolean-extrusion-mesh.d.ts",
-      "import": "./dist/babylon-boolean-extrusion-mesh.js"
+      "types": "./src/babylon-boolean-extrusion-mesh.ts",
+      "import": "./src/babylon-boolean-extrusion-mesh.ts"
     },
     "./pixi3d": {
-      "types": "./dist/pixi3d.d.ts",
-      "import": "./dist/pixi3d.js"
+      "types": "./src/pixi3d.ts",
+      "import": "./src/pixi3d.ts"
     },
     "./pixi3d-document": {
-      "types": "./dist/pixi3d-document.d.ts",
-      "import": "./dist/pixi3d-document.js"
+      "types": "./src/pixi3d-document.ts",
+      "import": "./src/pixi3d-document.ts"
     },
     "./pixi3d-assembly": {
-      "types": "./dist/pixi3d-assembly.d.ts",
-      "import": "./dist/pixi3d-assembly.js"
+      "types": "./src/pixi3d-assembly.ts",
+      "import": "./src/pixi3d-assembly.ts"
     },
     "./pixi3d-boolean-mesh": {
-      "types": "./dist/pixi3d-boolean-mesh.d.ts",
-      "import": "./dist/pixi3d-boolean-mesh.js"
+      "types": "./src/pixi3d-boolean-mesh.ts",
+      "import": "./src/pixi3d-boolean-mesh.ts"
     },
     "./pixi3d-boolean-extrusion-mesh": {
-      "types": "./dist/pixi3d-boolean-extrusion-mesh.d.ts",
-      "import": "./dist/pixi3d-boolean-extrusion-mesh.js"
+      "types": "./src/pixi3d-boolean-extrusion-mesh.ts",
+      "import": "./src/pixi3d-boolean-extrusion-mesh.ts"
     },
     "./model-set": {
-      "types": "./dist/model-set.d.ts",
-      "import": "./dist/model-set.js"
+      "types": "./src/model-set.ts",
+      "import": "./src/model-set.ts"
     }
   },
   "files": ["dist", "examples", "README.md", "LICENSE"],

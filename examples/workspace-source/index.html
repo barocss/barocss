@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>BaroCSS source consumer</title>
+<style>
+  body { margin: 24px auto; max-width: 900px; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui; }
+  canvas { display: block; width: 800px; max-width: 100%; height: 480px; border: 1px solid #44617d; }
+  button { margin: 12px 8px 12px 0; padding: 8px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Native Surface from workspace source</h1>
+  <p id="source-label">Loading source…</p>
+  <p>The native CAD source produces this Surface. Clear removes it. Restore loads it again.</p>
+  <canvas id="view" width="800" height="480"></canvas>
+  <button id="run">Run source flow</button><button id="clear">Clear</button>
+  <button id="restore">Restore</button><button id="dispose">Dispose</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module" src="/bundle.js"></script>
+</html>
