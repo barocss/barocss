@@ -4,6 +4,8 @@ import {prepareClothLayer,CLOTH_SHADERS} from './cloth-layer.js';
 import type {ClothLayerV0,PreparedClothLayer} from './cloth-layer.js';
 import {validateAdaptiveCurveSamples,validateWideAdaptiveCurveSamples} from '@barocss/cad';
 import type {AdaptiveCurveSamplingResult,WideAdaptiveCurveSamplingResult} from '@barocss/cad';
+import {validateUniformCurvePreview} from './uniform-curve-preview.js';
+import type {UniformCurvePreview} from './uniform-curve-preview.js';
 import {GPUError} from './renderer.js';
 import type {UpdateResult} from './renderer.js';
 import {validateMeshOptions} from './mesh-packet.js';
@@ -24,7 +26,8 @@ export type PrimitiveSceneOptions=MeshSceneOptions;
 export type PrimitiveSceneEntryV1=
  |Extract<PrimitiveSceneEntry,{kind:'surface'}>
  |(Extract<PrimitiveSceneEntry,{kind:'curve'}>&{sampleVersion:0})
- |{kind:'curve';sampleVersion:1;sample:WideAdaptiveCurveSamplingResult;basis:'authored-xyz-matches-rhyup';color:RGB;transform?:MeshSceneTransform};
+ |{kind:'curve';sampleVersion:1;sample:WideAdaptiveCurveSamplingResult;basis:'authored-xyz-matches-rhyup';color:RGB;transform?:MeshSceneTransform}
+ |{kind:'curve';sampleVersion:2;sample:UniformCurvePreview;basis:'authored-xyz-matches-rhyup';color:RGB;transform?:MeshSceneTransform};
 export interface PrimitiveSceneInputV1 {version:1;entries:PrimitiveSceneEntryV1[]}
 /** Host-scoped accepted source namespace; not a native revision/topology certificate. */
 export interface PrimitiveSceneRef {modelId:string;geometryId:string}
@@ -36,7 +39,8 @@ export interface PrimitiveSceneMaterial {ref:PrimitiveSceneRef;binding:MeshMater
 export interface PrimitiveSceneFrameV0 {version:0;scene:PrimitiveSceneInputV2;options:PrimitiveSceneOptions;particles:ParticleLayerV0|null;materials:PrimitiveSceneMaterial[]}
 /** Additive complete native and derived frame. Version0 replacement explicitly clears cloth. */
 export interface PrimitiveSceneFrameV1 {version:1;scene:PrimitiveSceneInputV2;options:PrimitiveSceneOptions;particles:ParticleLayerV0|null;materials:PrimitiveSceneMaterial[];cloth:ClothLayerV0|null}
-type NativeCurveSample=AdaptiveCurveSamplingResult|WideAdaptiveCurveSamplingResult;
+type AdaptiveNativeCurveSample=AdaptiveCurveSamplingResult|WideAdaptiveCurveSamplingResult;
+type NativeCurveSample=AdaptiveNativeCurveSample|UniformCurvePreview;
 interface Primitive {
  entry:PrimitiveSceneEntry|PrimitiveSceneEntryV1|PrimitiveSceneEntryV2;positions:Float32Array;normals?:Float32Array;indices?:Uint16Array;bounds:MeshSceneBounds;material?:MeshMaterialBinding;
 }
@@ -72,7 +76,7 @@ function record(input:unknown,allowed:string[],required=allowed):Record<string,u
  return Object.fromEntries((keys as string[]).map(k=>[k,descriptors[k].value]));
 }
 /** Snapshot before native validation: never invoke an input accessor or keep caller data. */
-function sampleSnapshot(input:unknown,wide=false):NativeCurveSample {
+function sampleSnapshot(input:unknown,wide=false):AdaptiveNativeCurveSample {
  let budget=wide?2097152:262144;const depthLimit=wide?32:24,arrayLimit=wide?8192:4096,stack=new WeakSet<object>();
  const copy=(value:unknown,depth:number):unknown=>{
   check(--budget>=0&&depth<=depthLimit,'Native Curve snapshot exceeds value/depth limits');
@@ -87,7 +91,7 @@ function sampleSnapshot(input:unknown,wide=false):NativeCurveSample {
   if(array){const length=descriptors.length.value;check(Number.isInteger(length)&&length>=0&&length<=arrayLimit&&keys.length===length+1,'Native Curve arrays must be dense and bounded');result=Array.from({length},(_,i)=>{check(Object.hasOwn(descriptors,String(i)),'Native Curve array is sparse');return copy(descriptors[String(i)].value,depth+1);});}
   else result=Object.fromEntries((keys as string[]).map(k=>[k,copy(descriptors[k].value,depth+1)]));
   stack.delete(value);return result;
- };return copy(input,0) as NativeCurveSample;
+ };return copy(input,0) as AdaptiveNativeCurveSample;
 }
 function curvePositions(sample:NativeCurveSample,options:MeshOptions,pose?:MeshSceneTransform):Float32Array {
  const rotate=pose?sceneRotation(pose):null,converted:number[]=[];
@@ -134,18 +138,23 @@ function prepare(input:unknown,optionsInput:unknown,sceneVersion:0|1|2=0):{primi
    primitives.push({entry:{kind:'surface',packet:mesh.packet,color:[...mesh.options.color],...(mesh.transform?{transform:mesh.transform}:{}),...(ref?{ref}:{})},positions:mesh.positions,normals:mesh.normals,indices:mesh.indices,bounds:mesh.displayBounds});
   }else{
    check(entry.basis==='authored-xyz-matches-rhyup','Curve authored XYZ must explicitly match renderer Y-up XYZ');
-   const sampleVersion=sceneVersion===0?0:entry.sampleVersion;check(sampleVersion===0||sampleVersion===1,'Unsupported native Curve sampleVersion');
-   const opts=validateMeshOptions({...options,color:entry.color}),pose=hasPose?prepareSceneTransform(entry.transform):undefined,sample=sampleSnapshot(entry.sample,sampleVersion===1);
+   const sampleVersion=sceneVersion===0?0:entry.sampleVersion;check(sampleVersion===0||sampleVersion===1||sampleVersion===2,'Unsupported native Curve sampleVersion');
+   const opts=validateMeshOptions({...options,color:entry.color}),pose=hasPose?prepareSceneTransform(entry.transform):undefined;
+   const sample:NativeCurveSample=sampleVersion===2?validateUniformCurvePreview(entry.sample):sampleSnapshot(entry.sample,sampleVersion===1);
    check(sample!==null&&typeof sample==='object'&&Array.isArray(sample.pointsMM)&&sample.pointsMM.length>=2,'Native Curve sampling result required');
-   check(sample.report?.dto?.version===sampleVersion&&sample.sourceVersion===0,'Curve sampling DTO/version does not match the declared profile');
+   if(sampleVersion===2){
+    const uniform=sample as UniformCurvePreview;
+    check(uniform.version===0&&uniform.sourceVersion===0,'Uniform Curve preview DTO/source version does not match the declared profile');
+    if(ref)check(ref.modelId===uniform.model.name,'Qualified modelId does not match original uniform Curve source');
+   }else check((sample as AdaptiveNativeCurveSample).report?.dto?.version===sampleVersion&&sample.sourceVersion===0,'Curve sampling DTO/version does not match the declared profile');
    curvePoints+=sample.pointsMM.length;curveSegments+=sample.pointsMM.length-1;
    check(curvePoints<=(sceneVersion>=1?16388:4096)&&curveSegments<=(sceneVersion>=1?16384:4092),'Scene Curve point/segment budget exceeded');
-   check(sample.pointsMM.length<=(sampleVersion===1?4097:1025),'Curve sample point capacity exceeded');
-   if(sampleVersion===1)validateWideAdaptiveCurveSamples(sample as WideAdaptiveCurveSamplingResult);else validateAdaptiveCurveSamples(sample as AdaptiveCurveSamplingResult);
-   bindIdentity(sample.curve.id);
+   check(sample.pointsMM.length<=(sampleVersion===2?129:sampleVersion===1?4097:1025),'Curve sample point capacity exceeded');
+   if(sampleVersion===1)validateWideAdaptiveCurveSamples(sample as WideAdaptiveCurveSamplingResult);else if(sampleVersion===0)validateAdaptiveCurveSamples(sample as AdaptiveCurveSamplingResult);
+   bindIdentity(sampleVersion===2?(sample as UniformCurvePreview).model.objects[0].id:(sample as AdaptiveNativeCurveSample).curve.id);
    const positions=curvePositions(sample,opts,pose);
    const fields={basis:'authored-xyz-matches-rhyup' as const,color:[...opts.color] as RGB,...(pose?{transform:pose}:{})};
-   const owned:PrimitiveSceneEntry|PrimitiveSceneEntryV1=sampleVersion===1?{kind:'curve',sampleVersion:1,sample:sample as WideAdaptiveCurveSamplingResult,...fields}:sceneVersion>=1?{kind:'curve',sampleVersion:0,sample:sample as AdaptiveCurveSamplingResult,...fields}:{kind:'curve',sample:sample as AdaptiveCurveSamplingResult,...fields};
+   const owned:PrimitiveSceneEntry|PrimitiveSceneEntryV1=sampleVersion===2?{kind:'curve',sampleVersion:2,sample:sample as UniformCurvePreview,...fields}:sampleVersion===1?{kind:'curve',sampleVersion:1,sample:sample as WideAdaptiveCurveSamplingResult,...fields}:sceneVersion>=1?{kind:'curve',sampleVersion:0,sample:sample as AdaptiveCurveSamplingResult,...fields}:{kind:'curve',sample:sample as AdaptiveCurveSamplingResult,...fields};
    primitives.push({entry:ref?{...owned,ref} as PrimitiveSceneEntryV2:owned,positions,bounds:displayBounds(positions)});
   }
  }
