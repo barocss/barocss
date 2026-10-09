@@ -113,10 +113,10 @@ try {
     await fresh.evaluate(() => { const gl = document.querySelector('canvas').getContext('webgl2'), original = gl.uniform3f; let calls = 0; gl.uniform3f = function (...args) { if (++calls === 5) { gl.uniform3f = original; throw new Error('Injected camera draw refusal'); } return original.apply(this, args); }; });
     await open('combined.json'); await fresh.getByTestId('app-error').waitFor(); check((await fresh.getByTestId('app-error').innerText()).includes('Injected camera draw refusal'), 'Second GPU failure not observed'); check(await revision() === '9' && fresh.url() === route && await source.inputValue() === reedited && await pixels() === acceptedPixels, 'Combined Open compensation failed'); rows.push({case: 'combined-open-second-call-compensated', pixels: acceptedPixels});
     await fresh.getByRole('button', {name: 'Dismiss error', exact: true}).click();
-    await fresh.evaluate(() => { document.querySelector('canvas').getContext('webgl2').getExtension('WEBGL_lose_context').loseContext(); });
+    await fresh.evaluate(() => { window.__renderEditorLostExtension = document.querySelector('canvas').getContext('webgl2').getExtension('WEBGL_lose_context'); window.__renderEditorLostExtension.loseContext(); });
     await fresh.locator('[data-testid="presented-revision"][data-revision="none"]').waitFor();
     check(await revision() === '9' && await source.inputValue() === reedited, 'Context loss changed authoring');
-    await fresh.evaluate(() => { document.querySelector('canvas').getContext('webgl2').getExtension('WEBGL_lose_context').restoreContext(); });
+    await fresh.evaluate(() => { window.__renderEditorLostExtension.restoreContext(); });
     await fresh.waitForFunction(() => !document.querySelector('canvas').getContext('webgl2').isContextLost());
     await fresh.getByRole('region', {name: 'Scene viewport', exact: true}).getByRole('button', {name: 'Recover viewport', exact: true}).click();
     await fresh.locator('[data-testid="presented-revision"][data-revision="9"]').waitFor();
