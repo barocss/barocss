@@ -199,11 +199,24 @@ const definitions = [
   ['reverse_containment_empty', 0, []],
   ['cross_union_distance_edit', 24, [{areaUV: 24, centroidUV: [31 / 12, 41 / 6]}]],
 ];
+const metadataFile = resolve(extrusionDirectory, 'summary.json'), metadataBytes = readFileSync(metadataFile);
+retainedFiles.set(metadataFile, metadataBytes);
+const metadata = JSON.parse(metadataBytes.toString('utf8'));
+inputProvenance.push({name: 'extrusion_summary_metadata', file: metadataFile, bytes: metadataBytes.length,
+  sha256: createHash('sha256').update(metadataBytes).digest('hex')});
 const outputs = new Map();
 for (const [name, area, centers] of definitions) {
   const file = resolve(extrusionDirectory, name + '.owned-extrusion.json'), bytes = readFileSync(file);
   retainedFiles.set(file, bytes); inputProvenance.push({name, file, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex')});
   const extrusion = JSON.parse(bytes.toString('utf8')); assert.deepEqual(validateExtrusion(extrusion), extrusion.report);
+  const declaredCases = metadata.summaries.filter(row => row.name === name); assert.equal(declaredCases.length, 1);
+  const declaredCase = declaredCases[0];
+  assert.equal(resolve(declaredCase.resultFile), file);
+  assert.equal(declaredCase.distanceMM, extrusion.options.distanceMM);
+  assert.equal(declaredCase.shellCount, extrusion.shells.length);
+  assert.equal(declaredCase.sourceChunkCount, extrusion.sources.length);
+  assert.deepEqual(declaredCase.sourceFiles.map(path => resolve(path)), extrusion.sources.map((_, index) =>
+    resolve(extrusionDirectory, name + '.world_chunk_' + index + '.source0.css')));
   nativeInputs.push({extrusion, before: structuredClone(extrusion)});
   for (const [index, source] of extrusion.sources.entries()) {
     const originalFile = resolve(extrusionDirectory, name + '.world_chunk_' + index + '.source0.css'), originalBytes = readFileSync(originalFile);
