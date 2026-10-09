@@ -52,3 +52,7 @@ export {prepareUniformCurvePreview,validateUniformCurvePreview,UniformCurvePrevi
 export type {UniformCurvePreview,UniformCurvePreviewInput,UniformCurvePreviewDiagnosticCode} from './uniform-curve-preview.js';
 export {prepareSelectedUniformCurvePreview,validateSelectedUniformCurvePreview} from './uniform-curve-preview.js';
 export type {SelectedUniformCurvePreview,SelectedUniformCurvePreviewInput} from './uniform-curve-preview.js';
+
+export {prepareMixedDepthFrame,MixedDepthError} from './mixed-depth-frame.js';
+export type {MixedDepthFrameV0,MixedDepthSurfaceV0,MixedDepthDiagnosticCode} from './mixed-depth-frame.js';
+export {mountMixedDepthScene,MixedDepthRenderer} from './mixed-depth-renderer.js';
