@@ -147,11 +147,21 @@ export function prepareMesh(packetInput: unknown, optionsInput: unknown): {
   return lowerMesh(packet,options);
 }
 export function resolveMeshIntent(packetInput:unknown,optionsInput:unknown):{packet:PreviewPacket;options:MeshOptions}{return{packet:validatePreviewPacket(packetInput),options:validateMeshOptions(optionsInput)};}
+/** Internal display conversion shared by original and posed Surface packets. */
+export function convertMeshCoordinate(millimeters:number,scale:number,translation:number,boundsMessage:string):number {
+  const scaled=millimeters*scale;
+  requireValue(Number.isFinite(scaled)&&(millimeters===0||scaled!==0),'Native Surface coordinate overflows or underflows during scene scaling');
+  const converted=scaled+translation;
+  requireValue(Number.isFinite(converted)&&Math.abs(converted)<=1000,boundsMessage);
+  const f32=Math.fround(converted);
+  requireValue(Number.isFinite(f32)&&(converted===0||f32!==0),'Native Surface coordinate underflows in Float32 display');
+  return converted;
+}
 export function lowerMesh(packet:PreviewPacket,options:MeshOptions):{packet:PreviewPacket;options:MeshOptions;positions:Float32Array;normals:Float32Array;indices:Uint16Array}{
   // All structural ceilings are validated before typed GPU buffers are allocated.
   for (let i = 0; i < packet.positions.length; i++) {
-    const converted = packet.positions[i] * options.mmToSceneUnit + options.translate[i % 3];
-    requireValue(Number.isFinite(converted) && Math.abs(converted) <= 1000, 'Converted GPU positions must be finite and within 1000 scene units');
+    convertMeshCoordinate(packet.positions[i],options.mmToSceneUnit,options.translate[i%3],
+      'Converted GPU positions must be finite and within 1000 scene units');
   }
   const positions = Float32Array.from(packet.positions, (n, i) => n * options.mmToSceneUnit + options.translate[i % 3]);
   const normals = Float32Array.from(packet.normals), indices = Uint16Array.from(packet.indices);
