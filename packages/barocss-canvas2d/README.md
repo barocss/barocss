@@ -257,7 +257,7 @@ Bounds conservatively intersect mask and frame AABBs; they do not prove exact cl
 
 ## Owned Application
 
-`createCanvas2DApplication` combines a new renderer, display tree and ticker. Its default state is stopped. Populate the tree and register assets before starting. It does not bind DOM input or own document/file transactions.
+`createCanvas2DApplication` combines a new renderer, display tree and ticker. Its default state is stopped. Populate the tree and register assets before starting. Optional `initialScene` reconstructs a fresh copied owned tree through the existing Scene v6..v25 reconstruction API. Its contextId must match the required options.contextId. Explicit null/undefined and option accessors refuse before renderer/ticker allocation. Absent retains empty-tree behavior. The restored tree is available immediately; renderer admission/render still starts only after the host registers assets and calls render/start. No Scene, document envelope or asset registry is inferred from this option. It does not bind DOM input or own document/file transactions.
 
 ```ts
 import { createCanvas2DApplication } from '@barocss/canvas2d';
@@ -286,3 +286,5 @@ An invalid Scene admission retains the renderer's previously accepted frame. Suc
 ### Composed atlas game host
 
 See [the game consumer](consumer/game.html) and [run/lifetime instructions](consumer/README.md#public-atlas-game-composition) for a small public-API app combining bounded PNG loading, named atlas frames, host-driven animation/ticker, captured drag and explicit teardown. Its score/token logic is host-owned and is not serialized library state.
+
+The [initial Scene consumer](consumer/initial-scene.html) composes saved Scene values with an owned stopped Application, host asset registration and a fresh-canvas file transaction. See [native evidence](consumer/evidence/initial-scene/observation.md).

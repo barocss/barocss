@@ -1,6 +1,6 @@
 import { createCanvas2D } from './renderer.js';
 import type { Canvas2DOptions, Canvas2DRenderer } from './renderer.js';
-import { createDisplayTree } from './display-tree.js';
+import { createDisplayTree, createDisplayTreeFromScene } from './display-tree.js';
 import type { DisplayTree } from './display-tree.js';
 import { createTicker } from './ticker.js';
 import type { Canvas2DTicker, FrameScheduler, TickListener } from './ticker.js';
@@ -11,6 +11,8 @@ export type Canvas2DApplicationOptions = {
   renderer: Canvas2DOptions;
   scheduler?: FrameScheduler;
   autoStart?: boolean;
+  /** Copied owned tree; host prepares assets before the first render. */
+  initialScene?: unknown;
 };
 
 export type Canvas2DApplication = {
@@ -37,7 +39,7 @@ function checkedOptions(value: Canvas2DApplicationOptions): Canvas2DApplicationO
   const descriptors = Object.getOwnPropertyDescriptors(value) as Record<string, PropertyDescriptor>;
   if (!Object.hasOwn(value, 'contextId') || !Object.hasOwn(value, 'renderer') ||
       keys.some(key => typeof key !== 'string' ||
-        !['contextId', 'renderer', 'scheduler', 'autoStart'].includes(key) ||
+        !['contextId', 'renderer', 'scheduler', 'autoStart', 'initialScene'].includes(key) ||
         !descriptors[key]?.enumerable || !('value' in descriptors[key]))) {
     invalid('application options have unknown, missing or accessor fields');
   }
@@ -49,6 +51,7 @@ function checkedOptions(value: Canvas2DApplicationOptions): Canvas2DApplicationO
     renderer: descriptors.renderer.value,
     scheduler: descriptors.scheduler?.value,
     autoStart: descriptors.autoStart?.value ?? false,
+    ...(Object.hasOwn(value, 'initialScene') ? { initialScene: descriptors.initialScene.value } : {}),
   };
 }
 
@@ -56,7 +59,12 @@ function checkedOptions(value: Canvas2DApplicationOptions): Canvas2DApplicationO
 export function createCanvas2DApplication(canvas: HTMLCanvasElement,
   options: Canvas2DApplicationOptions): Canvas2DApplication {
   const admitted = checkedOptions(options);
-  const tree = createDisplayTree(admitted.contextId);
+  const emptyTree = createDisplayTree(admitted.contextId);
+  const tree = Object.hasOwn(admitted, 'initialScene')
+    ? createDisplayTreeFromScene(admitted.initialScene) : emptyTree;
+  if (tree.snapshot().contextId !== admitted.contextId) {
+    invalid('application initialScene contextId must match options.contextId');
+  }
   const ticker = createTicker(admitted.scheduler);
   let renderer: Canvas2DRenderer | null = null;
   let disposed = false;
