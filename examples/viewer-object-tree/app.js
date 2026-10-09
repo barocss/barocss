@@ -42,7 +42,7 @@ const options = { native, basis: 'authored-xyz-matches-rhyup',
 const listener = new AbortController();
 let sceneEpoch = 0, requestEpoch = 0, disposed = false;
 let sampleCamera = null, sampleCoordinates = [];
-let refusalReport = null, nonYReport = null;
+let refusalReport = null, nonYReport = null, nonuniformReport = null;
 const sameRef = (a, b) => a?.kind === b?.kind && a?.modelId === b?.modelId
   && (a?.kind === 'surface' ? a.surfaceId === b.surfaceId : a?.curveId === b?.curveId);
 const shown = (state, ref) => state.visibleGeometry.some(value => sameRef(value, ref));
@@ -62,6 +62,22 @@ function yawValue(text) {
   if (!Number.isFinite(value) || Math.abs(value) > 180)
     throw new Error('Yaw must be finite and within ±180 degrees.');
   return value;
+}
+function scaleValue(text) {
+  const trimmed = text.trim();
+  if (!decimal.test(trimmed)) throw new Error('Scale must be a complete decimal ratio.');
+  const value = Number(trimmed);
+  if (!Number.isFinite(value) || value < VIEWER_POSE_LIMITS.scaleMin
+      || value > VIEWER_POSE_LIMITS.scaleMax)
+    throw new Error('Scale must be finite and within '
+      + VIEWER_POSE_LIMITS.scaleMin + '..' + VIEWER_POSE_LIMITS.scaleMax + '.');
+  return value;
+}
+function acceptedUniformScale(scale) {
+  const [x, y, z] = scale;
+  if (![x, y, z].every(Number.isFinite) || x !== y || y !== z)
+    throw new Error('The accepted display scale is not uniform.');
+  return x;
 }
 function acceptedYaw(rotation) {
   const [x, y, z, w] = rotation;
@@ -111,15 +127,17 @@ function selectedPose(state, ref) {
 function translationEditor(state, selected, revision, epoch) {
   const { pose } = selectedPose(state, selected.ref);
   const yaw = acceptedYaw(pose.rotationXYZW);
+  const uniformScale = acceptedUniformScale(pose.scale);
   const acceptedTranslationText = pose.translationMm.map(String);
   // Show a stable decimal while retaining the original quaternion when this draft is unchanged.
   const acceptedYawText = String(Number(yaw.toPrecision(12)));
+  const acceptedScaleText = String(uniformScale);
   const section = document.createElement('section');
   section.className = 'translation-editor';
   const heading = document.createElement('h3');
   heading.textContent = 'Display pose';
   const note = document.createElement('p');
-  note.textContent = 'X/Y/Z in mm and Y yaw in degrees about the authored origin. Display only; original CAD source stays unchanged.';
+  note.textContent = 'X/Y/Z mm, Y yaw degrees and uniform scale about the authored origin. Display only; original CAD source stays unchanged.';
   const inputs = ['X', 'Y', 'Z'].map((axis, index) => {
     const label = document.createElement('label'), input = document.createElement('input');
     label.textContent = axis + ' (mm)';
@@ -133,6 +151,11 @@ function translationEditor(state, selected, revision, epoch) {
   yawInput.type = 'text'; yawInput.inputMode = 'decimal'; yawInput.value = acceptedYawText;
   yawInput.setAttribute('aria-label', 'Yaw display rotation (deg)');
   yawLabel.append(yawInput); section.append(yawLabel);
+  const scaleLabel = document.createElement('label'), scaleInput = document.createElement('input');
+  scaleLabel.textContent = 'Uniform scale (ratio)';
+  scaleInput.type = 'text'; scaleInput.inputMode = 'decimal'; scaleInput.value = acceptedScaleText;
+  scaleInput.setAttribute('aria-label', 'Uniform display scale (ratio)');
+  scaleLabel.append(scaleInput); section.append(scaleLabel);
   const actions = document.createElement('div');
   actions.className = 'actions';
   const apply = document.createElement('button'), discard = document.createElement('button');
@@ -145,16 +168,19 @@ function translationEditor(state, selected, revision, epoch) {
         throw new Error('The selected body is no longer visible and current.');
       const { motion, index, pose } = selectedPose(accepted, selected.ref);
       acceptedYaw(pose.rotationXYZW);
+      acceptedUniformScale(pose.scale);
       const translation = inputs.map((input, axis) => input.value === acceptedTranslationText[axis]
         ? pose.translationMm[axis] : translationValue(input.value, 'XYZ'[axis]));
       const rotation = yawInput.value === acceptedYawText ? pose.rotationXYZW : (() => {
         const radians = yawValue(yawInput.value) * Math.PI / 180;
         return [0, Math.sin(radians / 2), 0, Math.cos(radians / 2)];
       })();
+      const scale = scaleInput.value === acceptedScaleText ? pose.scale
+        : Array(3).fill(scaleValue(scaleInput.value));
       const frame = motion.frame;
       const targetId = motion.bindings[index].targetId;
       const poses = frame.poses.map(pose => pose.targetId === targetId
-        ? { ...pose, translation, rotation } : pose);
+        ? { ...pose, translation, rotation, scale } : pose);
       viewer.applyGeometryMotionFrame({ contextId: frame.contextId,
         timeSeconds: frame.timeSeconds, poses }, motion.bindings, { basis: motion.basis });
       render(); say('Display pose applied to ' + selected.binding.bodyId + '.');
@@ -228,7 +254,7 @@ function publishProof(state) {
     visible: state.visibleGeometry, selected: state.selectedGeometry, camera: state.camera,
     geometryMotion: state.geometryMotion,
     draft: [...properties.querySelectorAll('.translation-editor input')].map(input => input.value),
-    pixelHash, hitSamples, refusalReport, nonYReport, contexts: contexts.size,
+    pixelHash, hitSamples, refusalReport, nonYReport, nonuniformReport, contexts: contexts.size,
     glErrors: [...contexts].map(context => context.getError()),
     resources: Object.fromEntries(Object.entries(resources).map(([kind, live]) => [kind, live.size])),
   }, null, 2);
@@ -308,6 +334,7 @@ function render() {
   if (proof) {
     document.querySelector('#check-refusals').disabled = !ready;
     document.querySelector('#check-non-y').disabled = !ready || !selected;
+    document.querySelector('#check-nonuniform').disabled = !ready || !selected;
     document.querySelector('#dispose-proof').disabled = disposed;
   }
   publishProof(state);
@@ -364,6 +391,26 @@ function dispose() {
   disposed = true; requestEpoch++; listener.abort(); viewer.dispose(); render(); say('Viewer disposed.');
 }
 if (proof) {
+  document.querySelector('#check-nonuniform').addEventListener('click', () => {
+    const before = viewer.getState(), beforePixels = viewer.readPixels();
+    const motion = before.geometryMotion;
+    const binding = motion?.bindings.find(value => sameRef(value.ref, before.selectedGeometry));
+    if (!binding) { say('Nonuniform check needs a selected display pose.', true); return; }
+    const poses = motion.frame.poses.map(pose => pose.targetId === binding.targetId
+      ? { ...pose, scale: [1, 2, 1] } : pose);
+    try {
+      viewer.applyGeometryMotionFrame({ ...motion.frame, poses }, motion.bindings, { basis: motion.basis });
+      render();
+      const unavailable = !properties.querySelector('.translation-editor')
+        && status.textContent.includes('not uniform');
+      viewer.applyGeometryMotionFrame(motion.frame, motion.bindings, { basis: motion.basis });
+      const after = viewer.getState(), afterPixels = viewer.readPixels();
+      nonuniformReport = { unavailable, restored: JSON.stringify(before) === JSON.stringify(after)
+        && beforePixels.length === afterPixels.length
+        && beforePixels.every((byte, index) => byte === afterPixels[index]) };
+      render(); say('Nonuniform scale unavailable; restored=' + nonuniformReport.restored);
+    } catch (error) { render(); say('Nonuniform check refused: ' + error.message, true); }
+  }, { signal: listener.signal });
   document.querySelector('#check-non-y').addEventListener('click', () => {
     const before = viewer.getState(), beforePixels = viewer.readPixels();
     const motion = before.geometryMotion;

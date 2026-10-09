@@ -44,5 +44,13 @@ Discard have the same no-change behavior as translation drafts. The field shows
 12 significant decimal digits. Leaving it unchanged retains the full accepted
 quaternion rather than rounding the pose to the displayed text.
 
+The panel also accepts a unitless uniform display-scale ratio from the public
+`VIEWER_POSE_LIMITS.scaleMin` through `scaleMax`. Scaling is about the authored
+source origin before yaw, translation and scene-unit conversion. It changes
+display pixels, not native dimensions or area. The field only represents an
+accepted pose whose X/Y/Z scale components are equal; it does not reduce a
+nonuniform pose to a misleading single value. Unchanged drafts retain the
+exact accepted scale vector, yaw quaternion and translation values.
+
 The optional `?proof` route exposes `window.viewerObjectTreeProbe` and tracks
 Viewer-created WebGL resources for an actual browser lifecycle check.
