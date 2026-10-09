@@ -1,0 +1,1 @@
+{"name":"@barocss/example-physics-character-reference","private":true,"type":"module","dependencies":{"@barocss/physics":"workspace:*","@barocss/cad":"workspace:*"},"scripts":{"setup":"node setup.mjs","probe":"node probe.mjs"}}

@@ -1,0 +1,10 @@
+{
+  "issue": 830,
+  "nodeVersion": "v22.22.0",
+  "timestamp": "2026-10-09T15:21:02.798Z",
+  "gitHead": "bc38df4cf2251f53101ae045e616012866b3e6b3",
+  "sourceTreeDirty": true,
+  "ok": false,
+  "firstFailure": "Error: Command failed: /Users/user/.nvm/versions/node/v22.22.0/bin/node --input-type=module -\n    at genericNodeError (node:internal/errors:983:15)\n    at wrappedFn (node:internal/errors:537:14)\n    at checkExecSyncError (node:child_process:916:11)\n    at execFileSync (node:child_process:952:15)\n    at file:///Users/user/.codex/worktrees/physics-demo-959/barocss/examples/physics-character-reference/probe.mjs:3:486\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)",
+  "subprocessStdout": "{\"ok\":false,\"firstFailure\":\"TypeError: actor.velocityMps is not iterable\\n    at diagnostics (file:///Users/user/.codex/worktrees/physics-demo-959/barocss/[eval1]:2039:48)\\n    at referenceControls (file:///Users/user/.codex/worktrees/physics-demo-959/barocss/[eval1]:2054:22)\\n    at file:///Users/user/.codex/worktrees/physics-demo-959/barocss/[eval1]:2165:16\\n    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)\\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:272:26)\\n    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:268:20)\\n    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)\"}\n"
+}
