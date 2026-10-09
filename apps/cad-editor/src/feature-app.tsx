@@ -425,7 +425,7 @@ export function FeatureApp() {
           <DialogFooter>
             <Dialog><DialogTrigger asChild><Button variant="ghost" disabled={busy} className="length-help-trigger" data-testid="replace-help">Help</Button></DialogTrigger>
               <DialogContent className="cad-editor-help-dialog" data-testid="replace-help-dialog">
-                <DialogHeader><DialogTitle>Referenced feature replacement</DialogTitle><DialogDescription>Same-shape replacement with explicit reference repairs.</DialogDescription></DialogHeader>
+                <DialogHeader><DialogTitle>Referenced feature replacement</DialogTitle><DialogDescription>Replace a face or combination with explicit reference repairs.</DialogDescription></DialogHeader>
                 <p>Face replacement keeps the current authored Plane and ordered Line input. It creates a fresh logical feature and output slot; it does not edit coordinates or import geometry.</p>
                 <p>Combination replacement copies the original operands and budgets, creates a fresh logical/native evaluation context, and uses Union, Intersection or Difference.</p>
                 <p>Every direct reference starts unchecked. Choose each Boolean operand or extrusion region repair explicitly. Only checked repairs enter the same native transaction before the old target is removed. Missing repairs reach the actual native dependency refusal.</p>

@@ -140,7 +140,8 @@ export async function runReferencedFeatureFlow({page,browser,cad,editor,result,e
   assert.deepEqual(faceUI.accepted.document.features,original.document.features.filter(f=>f.id!==originalA.id).map(f=>f.id===originalBool.id?repairedUIBool:f).concat(faceRow));
   const faceFrame=await display();assert.equal(faceFrame.pixelHash,gpu.pixelHash);assert.deepEqual(faceFrame.camera,gpu.camera);
   await page.getByTestId('replace-feature-'+originalBool.id).click();const beforeMenu=await snapshot();
-  await page.getByTestId('replace-operation').focus();await page.keyboard.press('ArrowDown');assert.equal(await page.getByTestId('replace-operation').inputValue(),'intersection');
+  // Headed macOS Chromium routes ArrowDown through an OS popup. Closed-select typeahead is a real browser key path.
+  await page.getByTestId('replace-operation').focus();await page.keyboard.press('i');assert.equal(await page.getByTestId('replace-operation').inputValue(),'intersection');
   await page.keyboard.press('Tab');assert.deepEqual(await snapshot(),beforeMenu);
   old=await snapshot();frame=await display();await page.getByTestId('replace-confirm').click();await retained(old,frame);assert.equal((await page.evaluate(()=>window.__cadFeatureFlow.error())).cause.code,'DEPENDENCY');
   const allLeaves=leaves(old.accepted);await page.getByTestId('replace-repair-'+allLeaves[0].id).check();old=await snapshot();frame=await display();await page.getByTestId('replace-confirm').click();await retained(old,frame);assert.equal((await page.evaluate(()=>window.__cadFeatureFlow.error())).cause.code,'DEPENDENCY');
