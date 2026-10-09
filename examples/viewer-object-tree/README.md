@@ -88,6 +88,13 @@ Moving more than 24 CSS pixels vertically, exceeding ±180 degrees or leaving
 a numeric draft pending refuses the gesture. Translation, scale, other body
 poses and the original CAD source remain unchanged.
 
+Press unmodified Escape during an active Move or Y-yaw preview to cancel it.
+The handle returns to its accepted position and releases pointer capture.
+Releasing the old pointer does not apply a pose. The numeric draft, focus,
+primary selection and fit set remain. Modified, repeated or composing Escape
+and events from editable controls are ignored. Without an active preview,
+the host leaves Escape to the existing controls. Dispose removes this listener.
+
 The optional `?proof` route exposes `window.viewerObjectTreeProbe` and tracks
 Viewer-created WebGL resources for an actual browser lifecycle check. Its Lose
 context button invokes the browser's `WEBGL_lose_context` extension to check

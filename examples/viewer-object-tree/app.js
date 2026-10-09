@@ -473,11 +473,11 @@ function render() {
 }
 function cancelDrag() {
   const drag = activeDrag;
-  activeDrag = null;
-  moveHandle.dataset.dragging = 'false';
   if (drag && moveHandle.hasPointerCapture(drag.pointerId)) {
     try { moveHandle.releasePointerCapture(drag.pointerId); } catch { /* Capture was already lost. */ }
   }
+  activeDrag = null;
+  moveHandle.dataset.dragging = 'false';
 }
 function cross(a, b) {
   return [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2],
@@ -599,12 +599,26 @@ for (const type of ['pointercancel', 'lostpointercapture']) {
 }
 function cancelYaw() {
   const drag = activeYaw;
-  activeYaw = null;
-  yawHandle.dataset.dragging = 'false';
   if (drag && yawHandle.hasPointerCapture(drag.pointerId)) {
     try { yawHandle.releasePointerCapture(drag.pointerId); } catch { /* Capture was already lost. */ }
   }
+  activeYaw = null;
+  yawHandle.dataset.dragging = 'false';
 }
+window.addEventListener('keydown', event => {
+  if (disposed || (!activeDrag && !activeYaw) || event.key !== 'Escape'
+      || event.repeat || event.isComposing || event.ctrlKey || event.metaKey
+      || event.altKey || event.shiftKey) return;
+  const target = event.target;
+  if (target instanceof Element && (target.closest('input, textarea, select')
+      || target.closest('[contenteditable]')?.isContentEditable)) return;
+  const gestures = [activeDrag && 'Move', activeYaw && 'Y yaw'].filter(Boolean);
+  cancelDrag(); cancelYaw();
+  const state = viewer.getState();
+  renderHandle(state); renderYawHandle(state); publishProof(state);
+  say(gestures.join(' and ') + ' cancelled: Escape.');
+  event.preventDefault(); event.stopPropagation();
+}, { capture: true, signal: listener.signal });
 function dirtyPoseDraft() {
   return [...properties.querySelectorAll('.translation-editor input')]
     .some(input => input.value !== input.dataset.accepted);
