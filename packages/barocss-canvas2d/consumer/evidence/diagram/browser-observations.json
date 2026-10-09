@@ -1,0 +1,8607 @@
+{
+  "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+  "initial": {
+    "disposed": false,
+    "requestedGeneration": 1,
+    "generation": 1,
+    "selected": null,
+    "drag": null,
+    "pointer": null,
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 1,
+      "rendererDisposed": 0,
+      "liveDisplayRenderers": 1,
+      "maxDisplayRenderers": 1,
+      "sceneSubmits": 1,
+      "renders": 1,
+      "transactions": 0,
+      "captureTransfers": 0,
+      "pointerEvents": 0,
+      "binds": 1,
+      "unbinds": 0,
+      "oldDomCallbacks": 0,
+      "errors": 0,
+      "ignored": 0,
+      "openCalls": 0,
+      "pngCalls": 0,
+      "pngTemporaryCanvases": 0,
+      "disposeCalls": 0
+    },
+    "activeBindings": 1,
+    "failure": null,
+    "saved": null,
+    "png": null,
+    "opened": null,
+    "pointerLog": [],
+    "hoverLog": [],
+    "accepted": {
+      "generation": 1,
+      "canvasGeneration": 1,
+      "source": "initial",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": 25,
+          "y": 40,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 150,
+          "y": 85,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "H",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 70,
+          "y": 65
+        },
+        {
+          "kind": "L",
+          "x": 194.99999999999997,
+          "y": 109.99999999999999
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 3,
+            "y": 5
+          },
+          "viewport": {
+            "x": 88.82464935725739,
+            "y": 96.31475403170862
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 3,
+            "y": 4
+          },
+          "viewport": {
+            "x": 88.98447874519573,
+            "y": 94.32115061910338
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 143.44682450066648,
+          "y": 115.74200248852158
+        },
+        "boxB": {
+          "x": 264.4508765598811,
+          "y": 170.58741601828604
+        },
+        "connector": {
+          "x": 175.08369036279447,
+          "y": 127.80884625239457
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 88.82464935725739,
+            "y": 96.31475403170862
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelA",
+          "hits": [
+            "LabelA",
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 88.98447874519573,
+            "y": 94.32115061910338
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 143.44682450066648,
+            "y": 115.74200248852158
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxB": {
+          "viewport": {
+            "x": 264.4508765598811,
+            "y": 170.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 175.08369036279447,
+            "y": 127.80884625239457
+          },
+          "rgba": [
+            255,
+            204,
+            0,
+            255
+          ],
+          "hit": "Connector",
+          "hits": [
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": null,
+      "nativeCapture": false,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  },
+  "glyphPointer": {
+    "disposed": false,
+    "requestedGeneration": 1,
+    "generation": 1,
+    "selected": "A",
+    "drag": null,
+    "pointer": {
+      "viewport": {
+        "x": 88.82464599609375,
+        "y": 96.31475830078125
+      },
+      "world": {
+        "x": 88.82464599609375,
+        "y": 96.31475830078125
+      },
+      "local": {
+        "x": 43.999996990747995,
+        "y": 63.00000452402523
+      },
+      "spatialHit": "LabelA"
+    },
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 1,
+      "rendererDisposed": 0,
+      "liveDisplayRenderers": 1,
+      "maxDisplayRenderers": 1,
+      "sceneSubmits": 1,
+      "renders": 1,
+      "transactions": 0,
+      "captureTransfers": 0,
+      "pointerEvents": 3,
+      "binds": 1,
+      "unbinds": 0,
+      "oldDomCallbacks": 0,
+      "errors": 0,
+      "ignored": 0,
+      "openCalls": 0,
+      "pngCalls": 0,
+      "pngTemporaryCanvases": 0,
+      "disposeCalls": 0
+    },
+    "activeBindings": 1,
+    "failure": null,
+    "saved": null,
+    "png": null,
+    "opened": null,
+    "pointerLog": [
+      "g1:1:pointermove:LabelA:LabelA",
+      "g1:1:pointermove:NodeA:LabelA",
+      "g1:1:pointermove:DiagramFrame:LabelA",
+      "g1:1:pointermove:stage:LabelA",
+      "g1:1:pointerdown:LabelA:LabelA",
+      "g1:1:pointerdown:NodeA:LabelA",
+      "g1:1:pointerdown:DiagramFrame:LabelA",
+      "g1:1:pointerdown:stage:LabelA",
+      "g1:1:pointerup:NodeA:NodeA",
+      "g1:1:pointerup:DiagramFrame:NodeA",
+      "g1:1:pointerup:stage:NodeA"
+    ],
+    "hoverLog": [
+      "1:pointerenter:LabelA"
+    ],
+    "accepted": {
+      "generation": 1,
+      "canvasGeneration": 1,
+      "source": "initial",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": 25,
+          "y": 40,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 150,
+          "y": 85,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "H",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 70,
+          "y": 65
+        },
+        {
+          "kind": "L",
+          "x": 194.99999999999997,
+          "y": 109.99999999999999
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 3,
+            "y": 5
+          },
+          "viewport": {
+            "x": 88.82464935725739,
+            "y": 96.31475403170862
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 3,
+            "y": 4
+          },
+          "viewport": {
+            "x": 88.98447874519573,
+            "y": 94.32115061910338
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 143.44682450066648,
+          "y": 115.74200248852158
+        },
+        "boxB": {
+          "x": 264.4508765598811,
+          "y": 170.58741601828604
+        },
+        "connector": {
+          "x": 175.08369036279447,
+          "y": 127.80884625239457
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 88.82464935725739,
+            "y": 96.31475403170862
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelA",
+          "hits": [
+            "LabelA",
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 88.98447874519573,
+            "y": 94.32115061910338
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 143.44682450066648,
+            "y": 115.74200248852158
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxB": {
+          "viewport": {
+            "x": 264.4508765598811,
+            "y": 170.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 175.08369036279447,
+            "y": 127.80884625239457
+          },
+          "rgba": [
+            255,
+            204,
+            0,
+            255
+          ],
+          "hit": "Connector",
+          "hits": [
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": null,
+      "nativeCapture": false,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  },
+  "down": {
+    "disposed": false,
+    "requestedGeneration": 1,
+    "generation": 1,
+    "selected": "A",
+    "drag": {
+      "pointerId": 1,
+      "key": "A",
+      "grab": {
+        "x": 74.99999877618428,
+        "y": 38.00000201023984
+      }
+    },
+    "pointer": {
+      "viewport": {
+        "x": 143.4468231201172,
+        "y": 115.74200439453125
+      },
+      "world": {
+        "x": 143.4468231201172,
+        "y": 115.74200439453125
+      },
+      "local": {
+        "x": 99.99999877618428,
+        "y": 78.00000201023984
+      },
+      "spatialHit": "BoxA"
+    },
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 1,
+      "rendererDisposed": 0,
+      "liveDisplayRenderers": 1,
+      "maxDisplayRenderers": 1,
+      "sceneSubmits": 1,
+      "renders": 1,
+      "transactions": 0,
+      "captureTransfers": 0,
+      "pointerEvents": 5,
+      "binds": 1,
+      "unbinds": 0,
+      "oldDomCallbacks": 0,
+      "errors": 0,
+      "ignored": 0,
+      "openCalls": 0,
+      "pngCalls": 0,
+      "pngTemporaryCanvases": 0,
+      "disposeCalls": 0
+    },
+    "activeBindings": 1,
+    "failure": null,
+    "saved": null,
+    "png": null,
+    "opened": null,
+    "pointerLog": [
+      "g1:1:pointermove:LabelA:LabelA",
+      "g1:1:pointermove:NodeA:LabelA",
+      "g1:1:pointermove:DiagramFrame:LabelA",
+      "g1:1:pointermove:stage:LabelA",
+      "g1:1:pointerdown:LabelA:LabelA",
+      "g1:1:pointerdown:NodeA:LabelA",
+      "g1:1:pointerdown:DiagramFrame:LabelA",
+      "g1:1:pointerdown:stage:LabelA",
+      "g1:1:pointerup:NodeA:NodeA",
+      "g1:1:pointerup:DiagramFrame:NodeA",
+      "g1:1:pointerup:stage:NodeA",
+      "g1:1:pointermove:BoxA:BoxA",
+      "g1:1:pointermove:NodeA:BoxA",
+      "g1:1:pointermove:DiagramFrame:BoxA",
+      "g1:1:pointermove:stage:BoxA",
+      "g1:1:pointerdown:BoxA:BoxA",
+      "g1:1:pointerdown:NodeA:BoxA",
+      "g1:1:pointerdown:DiagramFrame:BoxA",
+      "g1:1:pointerdown:stage:BoxA"
+    ],
+    "hoverLog": [
+      "1:pointerenter:LabelA",
+      "1:pointerleave:LabelA",
+      "1:pointerenter:BoxA"
+    ],
+    "accepted": {
+      "generation": 1,
+      "canvasGeneration": 1,
+      "source": "initial",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": 25,
+          "y": 40,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 150,
+          "y": 85,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "H",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 70,
+          "y": 65
+        },
+        {
+          "kind": "L",
+          "x": 194.99999999999997,
+          "y": 109.99999999999999
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 3,
+            "y": 5
+          },
+          "viewport": {
+            "x": 88.82464935725739,
+            "y": 96.31475403170862
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 3,
+            "y": 4
+          },
+          "viewport": {
+            "x": 88.98447874519573,
+            "y": 94.32115061910338
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 143.44682450066648,
+          "y": 115.74200248852158
+        },
+        "boxB": {
+          "x": 264.4508765598811,
+          "y": 170.58741601828604
+        },
+        "connector": {
+          "x": 175.08369036279447,
+          "y": 127.80884625239457
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 88.82464935725739,
+            "y": 96.31475403170862
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelA",
+          "hits": [
+            "LabelA",
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 88.98447874519573,
+            "y": 94.32115061910338
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 143.44682450066648,
+            "y": 115.74200248852158
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxB": {
+          "viewport": {
+            "x": 264.4508765598811,
+            "y": 170.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 175.08369036279447,
+            "y": 127.80884625239457
+          },
+          "rgba": [
+            255,
+            204,
+            0,
+            255
+          ],
+          "hit": "Connector",
+          "hits": [
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": "NodeA",
+      "nativeCapture": true,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  },
+  "outside": {
+    "disposed": false,
+    "requestedGeneration": 4,
+    "generation": 4,
+    "selected": "A",
+    "drag": {
+      "pointerId": 1,
+      "key": "A",
+      "grab": {
+        "x": 74.99999877618428,
+        "y": 38.00000201023984
+      }
+    },
+    "pointer": {
+      "viewport": {
+        "x": 385,
+        "y": 100
+      },
+      "world": {
+        "x": 385,
+        "y": 100
+      },
+      "local": {
+        "x": 339.52260018921953,
+        "y": 43.0046969615105
+      },
+      "spatialHit": null
+    },
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 1,
+      "rendererDisposed": 0,
+      "liveDisplayRenderers": 1,
+      "maxDisplayRenderers": 1,
+      "sceneSubmits": 4,
+      "renders": 4,
+      "transactions": 3,
+      "captureTransfers": 3,
+      "pointerEvents": 8,
+      "binds": 4,
+      "unbinds": 3,
+      "oldDomCallbacks": 0,
+      "errors": 0,
+      "ignored": 0,
+      "openCalls": 0,
+      "pngCalls": 0,
+      "pngTemporaryCanvases": 0,
+      "disposeCalls": 0
+    },
+    "activeBindings": 1,
+    "failure": null,
+    "saved": null,
+    "png": null,
+    "opened": null,
+    "pointerLog": [
+      "g1:1:pointermove:LabelA:LabelA",
+      "g1:1:pointermove:NodeA:LabelA",
+      "g1:1:pointermove:DiagramFrame:LabelA",
+      "g1:1:pointermove:stage:LabelA",
+      "g1:1:pointerdown:LabelA:LabelA",
+      "g1:1:pointerdown:NodeA:LabelA",
+      "g1:1:pointerdown:DiagramFrame:LabelA",
+      "g1:1:pointerdown:stage:LabelA",
+      "g1:1:pointerup:NodeA:NodeA",
+      "g1:1:pointerup:DiagramFrame:NodeA",
+      "g1:1:pointerup:stage:NodeA",
+      "g1:1:pointermove:BoxA:BoxA",
+      "g1:1:pointermove:NodeA:BoxA",
+      "g1:1:pointermove:DiagramFrame:BoxA",
+      "g1:1:pointermove:stage:BoxA",
+      "g1:1:pointerdown:BoxA:BoxA",
+      "g1:1:pointerdown:NodeA:BoxA",
+      "g1:1:pointerdown:DiagramFrame:BoxA",
+      "g1:1:pointerdown:stage:BoxA",
+      "g1:1:pointermove:NodeA:NodeA",
+      "g1:1:pointermove:DiagramFrame:NodeA",
+      "g1:1:pointermove:stage:NodeA",
+      "g2:1:pointermove:NodeA:NodeA",
+      "g2:1:pointermove:DiagramFrame:NodeA",
+      "g2:1:pointermove:stage:NodeA",
+      "g3:1:pointermove:NodeA:NodeA",
+      "g3:1:pointermove:DiagramFrame:NodeA",
+      "g3:1:pointermove:stage:NodeA"
+    ],
+    "hoverLog": [
+      "1:pointerenter:LabelA",
+      "1:pointerleave:LabelA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA"
+    ],
+    "accepted": {
+      "generation": 4,
+      "canvasGeneration": 1,
+      "source": "edit",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": 264.52260141303526,
+          "y": 5.0046949512706576,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 150,
+          "y": 85,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "H",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 309.52260141303515,
+          "y": 30.00469495127066
+        },
+        {
+          "kind": "L",
+          "x": 194.99999999999997,
+          "y": 109.99999999999999
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 3,
+            "y": 5
+          },
+          "viewport": {
+            "x": 330.37782623714014,
+            "y": 80.57274963717738
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 3,
+            "y": 4
+          },
+          "viewport": {
+            "x": 330.5376556250785,
+            "y": 78.57914622457214
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 385.00000138054924,
+          "y": 99.99999809399034
+        },
+        "boxB": {
+          "x": 264.4508765598811,
+          "y": 170.58741601828604
+        },
+        "connector": {
+          "x": 295.8602788027358,
+          "y": 119.93784405512895
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 330.37782623714014,
+            "y": 80.57274963717738
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 330.5376556250785,
+            "y": 78.57914622457214
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 385.00000138054924,
+            "y": 99.99999809399034
+          },
+          "rgba": null,
+          "hit": null,
+          "hits": []
+        },
+        "boxB": {
+          "viewport": {
+            "x": 264.4508765598811,
+            "y": 170.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 295.8602788027358,
+            "y": 119.93784405512895
+          },
+          "rgba": [
+            255,
+            204,
+            0,
+            255
+          ],
+          "hit": "Connector",
+          "hits": [
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": "NodeA",
+      "nativeCapture": true,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  },
+  "clippedDrag": {
+    "disposed": false,
+    "requestedGeneration": 7,
+    "generation": 7,
+    "selected": "A",
+    "drag": {
+      "pointerId": 1,
+      "key": "A",
+      "grab": {
+        "x": 74.99999877618428,
+        "y": 38.00000201023984
+      }
+    },
+    "pointer": {
+      "viewport": {
+        "x": 98.59074401855469,
+        "y": 112.14584350585938
+      },
+      "world": {
+        "x": 98.59074401855469,
+        "y": 112.14584350585938
+      },
+      "local": {
+        "x": 54.999996492819406,
+        "y": 78.00000253433134
+      },
+      "spatialHit": "DiagramFrame"
+    },
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 1,
+      "rendererDisposed": 0,
+      "liveDisplayRenderers": 1,
+      "maxDisplayRenderers": 1,
+      "sceneSubmits": 7,
+      "renders": 7,
+      "transactions": 6,
+      "captureTransfers": 6,
+      "pointerEvents": 11,
+      "binds": 7,
+      "unbinds": 6,
+      "oldDomCallbacks": 0,
+      "errors": 0,
+      "ignored": 0,
+      "openCalls": 0,
+      "pngCalls": 0,
+      "pngTemporaryCanvases": 0,
+      "disposeCalls": 0
+    },
+    "activeBindings": 1,
+    "failure": null,
+    "saved": null,
+    "png": null,
+    "opened": null,
+    "pointerLog": [
+      "g1:1:pointermove:LabelA:LabelA",
+      "g1:1:pointermove:NodeA:LabelA",
+      "g1:1:pointermove:DiagramFrame:LabelA",
+      "g1:1:pointermove:stage:LabelA",
+      "g1:1:pointerdown:LabelA:LabelA",
+      "g1:1:pointerdown:NodeA:LabelA",
+      "g1:1:pointerdown:DiagramFrame:LabelA",
+      "g1:1:pointerdown:stage:LabelA",
+      "g1:1:pointerup:NodeA:NodeA",
+      "g1:1:pointerup:DiagramFrame:NodeA",
+      "g1:1:pointerup:stage:NodeA",
+      "g1:1:pointermove:BoxA:BoxA",
+      "g1:1:pointermove:NodeA:BoxA",
+      "g1:1:pointermove:DiagramFrame:BoxA",
+      "g1:1:pointermove:stage:BoxA",
+      "g1:1:pointerdown:BoxA:BoxA",
+      "g1:1:pointerdown:NodeA:BoxA",
+      "g1:1:pointerdown:DiagramFrame:BoxA",
+      "g1:1:pointerdown:stage:BoxA",
+      "g1:1:pointermove:NodeA:NodeA",
+      "g1:1:pointermove:DiagramFrame:NodeA",
+      "g1:1:pointermove:stage:NodeA",
+      "g2:1:pointermove:NodeA:NodeA",
+      "g2:1:pointermove:DiagramFrame:NodeA",
+      "g2:1:pointermove:stage:NodeA",
+      "g3:1:pointermove:NodeA:NodeA",
+      "g3:1:pointermove:DiagramFrame:NodeA",
+      "g3:1:pointermove:stage:NodeA",
+      "g4:1:pointermove:NodeA:NodeA",
+      "g4:1:pointermove:DiagramFrame:NodeA",
+      "g4:1:pointermove:stage:NodeA",
+      "g5:1:pointermove:NodeA:NodeA",
+      "g5:1:pointermove:DiagramFrame:NodeA",
+      "g5:1:pointermove:stage:NodeA",
+      "g6:1:pointermove:NodeA:NodeA",
+      "g6:1:pointermove:DiagramFrame:NodeA",
+      "g6:1:pointermove:stage:NodeA"
+    ],
+    "hoverLog": [
+      "1:pointerenter:LabelA",
+      "1:pointerleave:LabelA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA"
+    ],
+    "accepted": {
+      "generation": 7,
+      "canvasGeneration": 1,
+      "source": "edit",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": -20.00000228336488,
+          "y": 40.000000524091504,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 150,
+          "y": 85,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "H",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 24.999997716635114,
+          "y": 65.00000052409152
+        },
+        {
+          "kind": "L",
+          "x": 194.99999999999997,
+          "y": 109.99999999999999
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 3,
+            "y": 5
+          },
+          "viewport": {
+            "x": 43.96857025569488,
+            "y": 92.71859314303676
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 3,
+            "y": 4
+          },
+          "viewport": {
+            "x": 44.12839964363323,
+            "y": 90.72498973043152
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 98.59074539910397,
+          "y": 112.14584159984972
+        },
+        "boxB": {
+          "x": 264.4508765598811,
+          "y": 170.58741601828604
+        },
+        "connector": {
+          "x": 152.6556508120132,
+          "y": 126.01076580805864
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 43.96857025569488,
+            "y": 92.71859314303676
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 44.12839964363323,
+            "y": 90.72498973043152
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 98.59074539910397,
+            "y": 112.14584159984972
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxB": {
+          "viewport": {
+            "x": 264.4508765598811,
+            "y": 170.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 152.6556508120132,
+            "y": 126.01076580805864
+          },
+          "rgba": [
+            255,
+            204,
+            0,
+            255
+          ],
+          "hit": "Connector",
+          "hits": [
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": "NodeA",
+      "nativeCapture": true,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  },
+  "up": {
+    "disposed": false,
+    "requestedGeneration": 7,
+    "generation": 7,
+    "selected": "A",
+    "drag": null,
+    "pointer": {
+      "viewport": {
+        "x": 98.59074401855469,
+        "y": 112.14584350585938
+      },
+      "world": {
+        "x": 98.59074401855469,
+        "y": 112.14584350585938
+      },
+      "local": {
+        "x": 54.999996492819406,
+        "y": 78.00000253433134
+      },
+      "spatialHit": "BoxA"
+    },
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 1,
+      "rendererDisposed": 0,
+      "liveDisplayRenderers": 1,
+      "maxDisplayRenderers": 1,
+      "sceneSubmits": 7,
+      "renders": 7,
+      "transactions": 6,
+      "captureTransfers": 6,
+      "pointerEvents": 12,
+      "binds": 7,
+      "unbinds": 6,
+      "oldDomCallbacks": 0,
+      "errors": 0,
+      "ignored": 0,
+      "openCalls": 0,
+      "pngCalls": 0,
+      "pngTemporaryCanvases": 0,
+      "disposeCalls": 0
+    },
+    "activeBindings": 1,
+    "failure": null,
+    "saved": null,
+    "png": null,
+    "opened": null,
+    "pointerLog": [
+      "g1:1:pointermove:LabelA:LabelA",
+      "g1:1:pointermove:NodeA:LabelA",
+      "g1:1:pointermove:DiagramFrame:LabelA",
+      "g1:1:pointermove:stage:LabelA",
+      "g1:1:pointerdown:LabelA:LabelA",
+      "g1:1:pointerdown:NodeA:LabelA",
+      "g1:1:pointerdown:DiagramFrame:LabelA",
+      "g1:1:pointerdown:stage:LabelA",
+      "g1:1:pointerup:NodeA:NodeA",
+      "g1:1:pointerup:DiagramFrame:NodeA",
+      "g1:1:pointerup:stage:NodeA",
+      "g1:1:pointermove:BoxA:BoxA",
+      "g1:1:pointermove:NodeA:BoxA",
+      "g1:1:pointermove:DiagramFrame:BoxA",
+      "g1:1:pointermove:stage:BoxA",
+      "g1:1:pointerdown:BoxA:BoxA",
+      "g1:1:pointerdown:NodeA:BoxA",
+      "g1:1:pointerdown:DiagramFrame:BoxA",
+      "g1:1:pointerdown:stage:BoxA",
+      "g1:1:pointermove:NodeA:NodeA",
+      "g1:1:pointermove:DiagramFrame:NodeA",
+      "g1:1:pointermove:stage:NodeA",
+      "g2:1:pointermove:NodeA:NodeA",
+      "g2:1:pointermove:DiagramFrame:NodeA",
+      "g2:1:pointermove:stage:NodeA",
+      "g3:1:pointermove:NodeA:NodeA",
+      "g3:1:pointermove:DiagramFrame:NodeA",
+      "g3:1:pointermove:stage:NodeA",
+      "g4:1:pointermove:NodeA:NodeA",
+      "g4:1:pointermove:DiagramFrame:NodeA",
+      "g4:1:pointermove:stage:NodeA",
+      "g5:1:pointermove:NodeA:NodeA",
+      "g5:1:pointermove:DiagramFrame:NodeA",
+      "g5:1:pointermove:stage:NodeA",
+      "g6:1:pointermove:NodeA:NodeA",
+      "g6:1:pointermove:DiagramFrame:NodeA",
+      "g6:1:pointermove:stage:NodeA",
+      "g7:1:pointerup:NodeA:NodeA",
+      "g7:1:pointerup:DiagramFrame:NodeA",
+      "g7:1:pointerup:stage:NodeA"
+    ],
+    "hoverLog": [
+      "1:pointerenter:LabelA",
+      "1:pointerleave:LabelA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA"
+    ],
+    "accepted": {
+      "generation": 7,
+      "canvasGeneration": 1,
+      "source": "edit",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": -20.00000228336488,
+          "y": 40.000000524091504,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 150,
+          "y": 85,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "H",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 24.999997716635114,
+          "y": 65.00000052409152
+        },
+        {
+          "kind": "L",
+          "x": 194.99999999999997,
+          "y": 109.99999999999999
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 3,
+            "y": 5
+          },
+          "viewport": {
+            "x": 43.96857025569488,
+            "y": 92.71859314303676
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 3,
+            "y": 4
+          },
+          "viewport": {
+            "x": 44.12839964363323,
+            "y": 90.72498973043152
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 98.59074539910397,
+          "y": 112.14584159984972
+        },
+        "boxB": {
+          "x": 264.4508765598811,
+          "y": 170.58741601828604
+        },
+        "connector": {
+          "x": 152.6556508120132,
+          "y": 126.01076580805864
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 43.96857025569488,
+            "y": 92.71859314303676
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 44.12839964363323,
+            "y": 90.72498973043152
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 98.59074539910397,
+            "y": 112.14584159984972
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxB": {
+          "viewport": {
+            "x": 264.4508765598811,
+            "y": 170.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 152.6556508120132,
+            "y": 126.01076580805864
+          },
+          "rgba": [
+            255,
+            204,
+            0,
+            255
+          ],
+          "hit": "Connector",
+          "hits": [
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": null,
+      "nativeCapture": false,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  },
+  "sameCanvasAfterDrag": true,
+  "preSave": {
+    "disposed": false,
+    "requestedGeneration": 8,
+    "generation": 8,
+    "selected": "A",
+    "drag": null,
+    "pointer": {
+      "viewport": {
+        "x": 98.59074401855469,
+        "y": 112.14584350585938
+      },
+      "world": {
+        "x": 98.59074401855469,
+        "y": 112.14584350585938
+      },
+      "local": {
+        "x": 54.999996492819406,
+        "y": 78.00000253433134
+      },
+      "spatialHit": "BoxA"
+    },
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 1,
+      "rendererDisposed": 0,
+      "liveDisplayRenderers": 1,
+      "maxDisplayRenderers": 1,
+      "sceneSubmits": 8,
+      "renders": 8,
+      "transactions": 7,
+      "captureTransfers": 6,
+      "pointerEvents": 12,
+      "binds": 8,
+      "unbinds": 7,
+      "oldDomCallbacks": 0,
+      "errors": 0,
+      "ignored": 0,
+      "openCalls": 0,
+      "pngCalls": 0,
+      "pngTemporaryCanvases": 0,
+      "disposeCalls": 0
+    },
+    "activeBindings": 1,
+    "failure": null,
+    "saved": null,
+    "png": null,
+    "opened": null,
+    "pointerLog": [
+      "g1:1:pointermove:LabelA:LabelA",
+      "g1:1:pointermove:NodeA:LabelA",
+      "g1:1:pointermove:DiagramFrame:LabelA",
+      "g1:1:pointermove:stage:LabelA",
+      "g1:1:pointerdown:LabelA:LabelA",
+      "g1:1:pointerdown:NodeA:LabelA",
+      "g1:1:pointerdown:DiagramFrame:LabelA",
+      "g1:1:pointerdown:stage:LabelA",
+      "g1:1:pointerup:NodeA:NodeA",
+      "g1:1:pointerup:DiagramFrame:NodeA",
+      "g1:1:pointerup:stage:NodeA",
+      "g1:1:pointermove:BoxA:BoxA",
+      "g1:1:pointermove:NodeA:BoxA",
+      "g1:1:pointermove:DiagramFrame:BoxA",
+      "g1:1:pointermove:stage:BoxA",
+      "g1:1:pointerdown:BoxA:BoxA",
+      "g1:1:pointerdown:NodeA:BoxA",
+      "g1:1:pointerdown:DiagramFrame:BoxA",
+      "g1:1:pointerdown:stage:BoxA",
+      "g1:1:pointermove:NodeA:NodeA",
+      "g1:1:pointermove:DiagramFrame:NodeA",
+      "g1:1:pointermove:stage:NodeA",
+      "g2:1:pointermove:NodeA:NodeA",
+      "g2:1:pointermove:DiagramFrame:NodeA",
+      "g2:1:pointermove:stage:NodeA",
+      "g3:1:pointermove:NodeA:NodeA",
+      "g3:1:pointermove:DiagramFrame:NodeA",
+      "g3:1:pointermove:stage:NodeA",
+      "g4:1:pointermove:NodeA:NodeA",
+      "g4:1:pointermove:DiagramFrame:NodeA",
+      "g4:1:pointermove:stage:NodeA",
+      "g5:1:pointermove:NodeA:NodeA",
+      "g5:1:pointermove:DiagramFrame:NodeA",
+      "g5:1:pointermove:stage:NodeA",
+      "g6:1:pointermove:NodeA:NodeA",
+      "g6:1:pointermove:DiagramFrame:NodeA",
+      "g6:1:pointermove:stage:NodeA",
+      "g7:1:pointerup:NodeA:NodeA",
+      "g7:1:pointerup:DiagramFrame:NodeA",
+      "g7:1:pointerup:stage:NodeA"
+    ],
+    "hoverLog": [
+      "1:pointerenter:LabelA",
+      "1:pointerleave:LabelA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA"
+    ],
+    "accepted": {
+      "generation": 8,
+      "canvasGeneration": 1,
+      "source": "edit",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": 40,
+          "y": 40,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 150,
+          "y": 85,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "H",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 84.99999999999999,
+          "y": 64.99999999999999
+        },
+        {
+          "kind": "L",
+          "x": 194.99999999999997,
+          "y": 109.99999999999999
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 3,
+            "y": 5
+          },
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 3,
+            "y": 4
+          },
+          "viewport": {
+            "x": 103.93650433973501,
+            "y": 95.51987102864096
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 158.39885009520574,
+          "y": 116.94072289805916
+        },
+        "boxB": {
+          "x": 264.4508765598811,
+          "y": 170.58741601828604
+        },
+        "connector": {
+          "x": 182.55970316006406,
+          "y": 128.40820645716337
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelA",
+          "hits": [
+            "LabelA",
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 103.93650433973501,
+            "y": 95.51987102864096
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 158.39885009520574,
+            "y": 116.94072289805916
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxB": {
+          "viewport": {
+            "x": 264.4508765598811,
+            "y": 170.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 182.55970316006406,
+            "y": 128.40820645716337
+          },
+          "rgba": [
+            255,
+            204,
+            0,
+            255
+          ],
+          "hit": "Connector",
+          "hits": [
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": null,
+      "nativeCapture": false,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  },
+  "preSaveBytes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    255,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "invalid": {
+    "disposed": false,
+    "requestedGeneration": 9,
+    "generation": 8,
+    "selected": "A",
+    "drag": null,
+    "pointer": {
+      "viewport": {
+        "x": 98.59074401855469,
+        "y": 112.14584350585938
+      },
+      "world": {
+        "x": 98.59074401855469,
+        "y": 112.14584350585938
+      },
+      "local": {
+        "x": 54.999996492819406,
+        "y": 78.00000253433134
+      },
+      "spatialHit": "BoxA"
+    },
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 1,
+      "rendererDisposed": 0,
+      "liveDisplayRenderers": 1,
+      "maxDisplayRenderers": 1,
+      "sceneSubmits": 8,
+      "renders": 8,
+      "transactions": 7,
+      "captureTransfers": 6,
+      "pointerEvents": 12,
+      "binds": 8,
+      "unbinds": 7,
+      "oldDomCallbacks": 0,
+      "errors": 1,
+      "ignored": 0,
+      "openCalls": 0,
+      "pngCalls": 0,
+      "pngTemporaryCanvases": 0,
+      "disposeCalls": 0
+    },
+    "activeBindings": 1,
+    "failure": {
+      "code": "HOST_POSITION",
+      "retained": true,
+      "generation": 9
+    },
+    "saved": null,
+    "png": null,
+    "opened": null,
+    "pointerLog": [
+      "g1:1:pointermove:LabelA:LabelA",
+      "g1:1:pointermove:NodeA:LabelA",
+      "g1:1:pointermove:DiagramFrame:LabelA",
+      "g1:1:pointermove:stage:LabelA",
+      "g1:1:pointerdown:LabelA:LabelA",
+      "g1:1:pointerdown:NodeA:LabelA",
+      "g1:1:pointerdown:DiagramFrame:LabelA",
+      "g1:1:pointerdown:stage:LabelA",
+      "g1:1:pointerup:NodeA:NodeA",
+      "g1:1:pointerup:DiagramFrame:NodeA",
+      "g1:1:pointerup:stage:NodeA",
+      "g1:1:pointermove:BoxA:BoxA",
+      "g1:1:pointermove:NodeA:BoxA",
+      "g1:1:pointermove:DiagramFrame:BoxA",
+      "g1:1:pointermove:stage:BoxA",
+      "g1:1:pointerdown:BoxA:BoxA",
+      "g1:1:pointerdown:NodeA:BoxA",
+      "g1:1:pointerdown:DiagramFrame:BoxA",
+      "g1:1:pointerdown:stage:BoxA",
+      "g1:1:pointermove:NodeA:NodeA",
+      "g1:1:pointermove:DiagramFrame:NodeA",
+      "g1:1:pointermove:stage:NodeA",
+      "g2:1:pointermove:NodeA:NodeA",
+      "g2:1:pointermove:DiagramFrame:NodeA",
+      "g2:1:pointermove:stage:NodeA",
+      "g3:1:pointermove:NodeA:NodeA",
+      "g3:1:pointermove:DiagramFrame:NodeA",
+      "g3:1:pointermove:stage:NodeA",
+      "g4:1:pointermove:NodeA:NodeA",
+      "g4:1:pointermove:DiagramFrame:NodeA",
+      "g4:1:pointermove:stage:NodeA",
+      "g5:1:pointermove:NodeA:NodeA",
+      "g5:1:pointermove:DiagramFrame:NodeA",
+      "g5:1:pointermove:stage:NodeA",
+      "g6:1:pointermove:NodeA:NodeA",
+      "g6:1:pointermove:DiagramFrame:NodeA",
+      "g6:1:pointermove:stage:NodeA",
+      "g7:1:pointerup:NodeA:NodeA",
+      "g7:1:pointerup:DiagramFrame:NodeA",
+      "g7:1:pointerup:stage:NodeA"
+    ],
+    "hoverLog": [
+      "1:pointerenter:LabelA",
+      "1:pointerleave:LabelA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA"
+    ],
+    "accepted": {
+      "generation": 8,
+      "canvasGeneration": 1,
+      "source": "edit",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": 40,
+          "y": 40,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 150,
+          "y": 85,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "H",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 84.99999999999999,
+          "y": 64.99999999999999
+        },
+        {
+          "kind": "L",
+          "x": 194.99999999999997,
+          "y": 109.99999999999999
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 3,
+            "y": 5
+          },
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 3,
+            "y": 4
+          },
+          "viewport": {
+            "x": 103.93650433973501,
+            "y": 95.51987102864096
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 158.39885009520574,
+          "y": 116.94072289805916
+        },
+        "boxB": {
+          "x": 264.4508765598811,
+          "y": 170.58741601828604
+        },
+        "connector": {
+          "x": 182.55970316006406,
+          "y": 128.40820645716337
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelA",
+          "hits": [
+            "LabelA",
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 103.93650433973501,
+            "y": 95.51987102864096
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 158.39885009520574,
+            "y": 116.94072289805916
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxB": {
+          "viewport": {
+            "x": 264.4508765598811,
+            "y": 170.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 182.55970316006406,
+            "y": 128.40820645716337
+          },
+          "rgba": [
+            255,
+            204,
+            0,
+            255
+          ],
+          "hit": "Connector",
+          "hits": [
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": null,
+      "nativeCapture": false,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  },
+  "saved": {
+    "disposed": false,
+    "requestedGeneration": 9,
+    "generation": 8,
+    "selected": "A",
+    "drag": null,
+    "pointer": {
+      "viewport": {
+        "x": 98.59074401855469,
+        "y": 112.14584350585938
+      },
+      "world": {
+        "x": 98.59074401855469,
+        "y": 112.14584350585938
+      },
+      "local": {
+        "x": 54.999996492819406,
+        "y": 78.00000253433134
+      },
+      "spatialHit": "BoxA"
+    },
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 1,
+      "rendererDisposed": 0,
+      "liveDisplayRenderers": 1,
+      "maxDisplayRenderers": 1,
+      "sceneSubmits": 8,
+      "renders": 8,
+      "transactions": 7,
+      "captureTransfers": 6,
+      "pointerEvents": 12,
+      "binds": 8,
+      "unbinds": 7,
+      "oldDomCallbacks": 0,
+      "errors": 1,
+      "ignored": 0,
+      "openCalls": 0,
+      "pngCalls": 0,
+      "pngTemporaryCanvases": 0,
+      "disposeCalls": 0
+    },
+    "activeBindings": 1,
+    "failure": {
+      "code": "HOST_POSITION",
+      "retained": true,
+      "generation": 9
+    },
+    "saved": {
+      "filename": "diagram-document.json",
+      "byteLength": 3976
+    },
+    "png": null,
+    "opened": null,
+    "pointerLog": [
+      "g1:1:pointermove:LabelA:LabelA",
+      "g1:1:pointermove:NodeA:LabelA",
+      "g1:1:pointermove:DiagramFrame:LabelA",
+      "g1:1:pointermove:stage:LabelA",
+      "g1:1:pointerdown:LabelA:LabelA",
+      "g1:1:pointerdown:NodeA:LabelA",
+      "g1:1:pointerdown:DiagramFrame:LabelA",
+      "g1:1:pointerdown:stage:LabelA",
+      "g1:1:pointerup:NodeA:NodeA",
+      "g1:1:pointerup:DiagramFrame:NodeA",
+      "g1:1:pointerup:stage:NodeA",
+      "g1:1:pointermove:BoxA:BoxA",
+      "g1:1:pointermove:NodeA:BoxA",
+      "g1:1:pointermove:DiagramFrame:BoxA",
+      "g1:1:pointermove:stage:BoxA",
+      "g1:1:pointerdown:BoxA:BoxA",
+      "g1:1:pointerdown:NodeA:BoxA",
+      "g1:1:pointerdown:DiagramFrame:BoxA",
+      "g1:1:pointerdown:stage:BoxA",
+      "g1:1:pointermove:NodeA:NodeA",
+      "g1:1:pointermove:DiagramFrame:NodeA",
+      "g1:1:pointermove:stage:NodeA",
+      "g2:1:pointermove:NodeA:NodeA",
+      "g2:1:pointermove:DiagramFrame:NodeA",
+      "g2:1:pointermove:stage:NodeA",
+      "g3:1:pointermove:NodeA:NodeA",
+      "g3:1:pointermove:DiagramFrame:NodeA",
+      "g3:1:pointermove:stage:NodeA",
+      "g4:1:pointermove:NodeA:NodeA",
+      "g4:1:pointermove:DiagramFrame:NodeA",
+      "g4:1:pointermove:stage:NodeA",
+      "g5:1:pointermove:NodeA:NodeA",
+      "g5:1:pointermove:DiagramFrame:NodeA",
+      "g5:1:pointermove:stage:NodeA",
+      "g6:1:pointermove:NodeA:NodeA",
+      "g6:1:pointermove:DiagramFrame:NodeA",
+      "g6:1:pointermove:stage:NodeA",
+      "g7:1:pointerup:NodeA:NodeA",
+      "g7:1:pointerup:DiagramFrame:NodeA",
+      "g7:1:pointerup:stage:NodeA"
+    ],
+    "hoverLog": [
+      "1:pointerenter:LabelA",
+      "1:pointerleave:LabelA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA"
+    ],
+    "accepted": {
+      "generation": 8,
+      "canvasGeneration": 1,
+      "source": "edit",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": 40,
+          "y": 40,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 150,
+          "y": 85,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "H",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 84.99999999999999,
+          "y": 64.99999999999999
+        },
+        {
+          "kind": "L",
+          "x": 194.99999999999997,
+          "y": 109.99999999999999
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 3,
+            "y": 5
+          },
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 3,
+            "y": 4
+          },
+          "viewport": {
+            "x": 103.93650433973501,
+            "y": 95.51987102864096
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 158.39885009520574,
+          "y": 116.94072289805916
+        },
+        "boxB": {
+          "x": 264.4508765598811,
+          "y": 170.58741601828604
+        },
+        "connector": {
+          "x": 182.55970316006406,
+          "y": 128.40820645716337
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelA",
+          "hits": [
+            "LabelA",
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 103.93650433973501,
+            "y": 95.51987102864096
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 158.39885009520574,
+            "y": 116.94072289805916
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxB": {
+          "viewport": {
+            "x": 264.4508765598811,
+            "y": 170.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 182.55970316006406,
+            "y": 128.40820645716337
+          },
+          "rgba": [
+            255,
+            204,
+            0,
+            255
+          ],
+          "hit": "Connector",
+          "hits": [
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": null,
+      "nativeCapture": false,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  },
+  "changed": {
+    "disposed": false,
+    "requestedGeneration": 11,
+    "generation": 11,
+    "selected": "A",
+    "drag": null,
+    "pointer": {
+      "viewport": {
+        "x": 98.59074401855469,
+        "y": 112.14584350585938
+      },
+      "world": {
+        "x": 98.59074401855469,
+        "y": 112.14584350585938
+      },
+      "local": {
+        "x": 54.999996492819406,
+        "y": 78.00000253433134
+      },
+      "spatialHit": "BoxA"
+    },
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 1,
+      "rendererDisposed": 0,
+      "liveDisplayRenderers": 1,
+      "maxDisplayRenderers": 1,
+      "sceneSubmits": 10,
+      "renders": 10,
+      "transactions": 9,
+      "captureTransfers": 6,
+      "pointerEvents": 12,
+      "binds": 10,
+      "unbinds": 9,
+      "oldDomCallbacks": 0,
+      "errors": 1,
+      "ignored": 0,
+      "openCalls": 0,
+      "pngCalls": 0,
+      "pngTemporaryCanvases": 0,
+      "disposeCalls": 0
+    },
+    "activeBindings": 1,
+    "failure": null,
+    "saved": {
+      "filename": "diagram-document.json",
+      "byteLength": 3976
+    },
+    "png": null,
+    "opened": null,
+    "pointerLog": [
+      "g1:1:pointermove:LabelA:LabelA",
+      "g1:1:pointermove:NodeA:LabelA",
+      "g1:1:pointermove:DiagramFrame:LabelA",
+      "g1:1:pointermove:stage:LabelA",
+      "g1:1:pointerdown:LabelA:LabelA",
+      "g1:1:pointerdown:NodeA:LabelA",
+      "g1:1:pointerdown:DiagramFrame:LabelA",
+      "g1:1:pointerdown:stage:LabelA",
+      "g1:1:pointerup:NodeA:NodeA",
+      "g1:1:pointerup:DiagramFrame:NodeA",
+      "g1:1:pointerup:stage:NodeA",
+      "g1:1:pointermove:BoxA:BoxA",
+      "g1:1:pointermove:NodeA:BoxA",
+      "g1:1:pointermove:DiagramFrame:BoxA",
+      "g1:1:pointermove:stage:BoxA",
+      "g1:1:pointerdown:BoxA:BoxA",
+      "g1:1:pointerdown:NodeA:BoxA",
+      "g1:1:pointerdown:DiagramFrame:BoxA",
+      "g1:1:pointerdown:stage:BoxA",
+      "g1:1:pointermove:NodeA:NodeA",
+      "g1:1:pointermove:DiagramFrame:NodeA",
+      "g1:1:pointermove:stage:NodeA",
+      "g2:1:pointermove:NodeA:NodeA",
+      "g2:1:pointermove:DiagramFrame:NodeA",
+      "g2:1:pointermove:stage:NodeA",
+      "g3:1:pointermove:NodeA:NodeA",
+      "g3:1:pointermove:DiagramFrame:NodeA",
+      "g3:1:pointermove:stage:NodeA",
+      "g4:1:pointermove:NodeA:NodeA",
+      "g4:1:pointermove:DiagramFrame:NodeA",
+      "g4:1:pointermove:stage:NodeA",
+      "g5:1:pointermove:NodeA:NodeA",
+      "g5:1:pointermove:DiagramFrame:NodeA",
+      "g5:1:pointermove:stage:NodeA",
+      "g6:1:pointermove:NodeA:NodeA",
+      "g6:1:pointermove:DiagramFrame:NodeA",
+      "g6:1:pointermove:stage:NodeA",
+      "g7:1:pointerup:NodeA:NodeA",
+      "g7:1:pointerup:DiagramFrame:NodeA",
+      "g7:1:pointerup:stage:NodeA"
+    ],
+    "hoverLog": [
+      "1:pointerenter:LabelA",
+      "1:pointerleave:LabelA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA"
+    ],
+    "accepted": {
+      "generation": 11,
+      "canvasGeneration": 1,
+      "source": "edit",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": 60,
+          "y": 50,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 150,
+          "y": 85,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "I",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 104.99999999999997,
+          "y": 75
+        },
+        {
+          "kind": "L",
+          "x": 194.99999999999997,
+          "y": 109.99999999999999
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 122.91356213815733,
+            "y": 109.07978538365586
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 120.91995872555209,
+            "y": 108.91995599571752
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 177.5357372815664,
+          "y": 128.5070338404688
+        },
+        "boxB": {
+          "x": 264.4508765598811,
+          "y": 170.58741601828604
+        },
+        "connector": {
+          "x": 192.1281467532444,
+          "y": 134.1913619283682
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 122.91356213815733,
+            "y": 109.07978538365586
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelA",
+          "hits": [
+            "LabelA",
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 120.91995872555209,
+            "y": 108.91995599571752
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 177.5357372815664,
+            "y": 128.5070338404688
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxB": {
+          "viewport": {
+            "x": 264.4508765598811,
+            "y": 170.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 192.1281467532444,
+            "y": 134.1913619283682
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": null,
+      "nativeCapture": false,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  },
+  "reopened": {
+    "disposed": false,
+    "requestedGeneration": 12,
+    "generation": 12,
+    "selected": null,
+    "drag": null,
+    "pointer": null,
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 2,
+      "rendererDisposed": 1,
+      "liveDisplayRenderers": 1,
+      "maxDisplayRenderers": 2,
+      "sceneSubmits": 11,
+      "renders": 11,
+      "transactions": 9,
+      "captureTransfers": 6,
+      "pointerEvents": 12,
+      "binds": 11,
+      "unbinds": 10,
+      "oldDomCallbacks": 0,
+      "errors": 1,
+      "ignored": 0,
+      "openCalls": 1,
+      "pngCalls": 0,
+      "pngTemporaryCanvases": 0,
+      "disposeCalls": 0
+    },
+    "activeBindings": 1,
+    "failure": null,
+    "saved": {
+      "filename": "diagram-document.json",
+      "byteLength": 3976
+    },
+    "png": null,
+    "opened": {
+      "bytesEqualPrevious": true,
+      "topologyBeforeRenderer": true
+    },
+    "pointerLog": [
+      "g1:1:pointermove:LabelA:LabelA",
+      "g1:1:pointermove:NodeA:LabelA",
+      "g1:1:pointermove:DiagramFrame:LabelA",
+      "g1:1:pointermove:stage:LabelA",
+      "g1:1:pointerdown:LabelA:LabelA",
+      "g1:1:pointerdown:NodeA:LabelA",
+      "g1:1:pointerdown:DiagramFrame:LabelA",
+      "g1:1:pointerdown:stage:LabelA",
+      "g1:1:pointerup:NodeA:NodeA",
+      "g1:1:pointerup:DiagramFrame:NodeA",
+      "g1:1:pointerup:stage:NodeA",
+      "g1:1:pointermove:BoxA:BoxA",
+      "g1:1:pointermove:NodeA:BoxA",
+      "g1:1:pointermove:DiagramFrame:BoxA",
+      "g1:1:pointermove:stage:BoxA",
+      "g1:1:pointerdown:BoxA:BoxA",
+      "g1:1:pointerdown:NodeA:BoxA",
+      "g1:1:pointerdown:DiagramFrame:BoxA",
+      "g1:1:pointerdown:stage:BoxA",
+      "g1:1:pointermove:NodeA:NodeA",
+      "g1:1:pointermove:DiagramFrame:NodeA",
+      "g1:1:pointermove:stage:NodeA",
+      "g2:1:pointermove:NodeA:NodeA",
+      "g2:1:pointermove:DiagramFrame:NodeA",
+      "g2:1:pointermove:stage:NodeA",
+      "g3:1:pointermove:NodeA:NodeA",
+      "g3:1:pointermove:DiagramFrame:NodeA",
+      "g3:1:pointermove:stage:NodeA",
+      "g4:1:pointermove:NodeA:NodeA",
+      "g4:1:pointermove:DiagramFrame:NodeA",
+      "g4:1:pointermove:stage:NodeA",
+      "g5:1:pointermove:NodeA:NodeA",
+      "g5:1:pointermove:DiagramFrame:NodeA",
+      "g5:1:pointermove:stage:NodeA",
+      "g6:1:pointermove:NodeA:NodeA",
+      "g6:1:pointermove:DiagramFrame:NodeA",
+      "g6:1:pointermove:stage:NodeA",
+      "g7:1:pointerup:NodeA:NodeA",
+      "g7:1:pointerup:DiagramFrame:NodeA",
+      "g7:1:pointerup:stage:NodeA"
+    ],
+    "hoverLog": [
+      "1:pointerenter:LabelA",
+      "1:pointerleave:LabelA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA"
+    ],
+    "accepted": {
+      "generation": 12,
+      "canvasGeneration": 2,
+      "source": "document",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": 40,
+          "y": 40,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 150,
+          "y": 85,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "H",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 84.99999999999999,
+          "y": 64.99999999999999
+        },
+        {
+          "kind": "L",
+          "x": 194.99999999999997,
+          "y": 109.99999999999999
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 3,
+            "y": 5
+          },
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 3,
+            "y": 4
+          },
+          "viewport": {
+            "x": 103.93650433973501,
+            "y": 95.51987102864096
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 158.39885009520574,
+          "y": 116.94072289805916
+        },
+        "boxB": {
+          "x": 264.4508765598811,
+          "y": 170.58741601828604
+        },
+        "connector": {
+          "x": 182.55970316006406,
+          "y": 128.40820645716337
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelA",
+          "hits": [
+            "LabelA",
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 103.93650433973501,
+            "y": 95.51987102864096
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 209.82870141647203,
+            "y": 151.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 207.8350980038668,
+            "y": 151.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 158.39885009520574,
+            "y": 116.94072289805916
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxB": {
+          "viewport": {
+            "x": 264.4508765598811,
+            "y": 170.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 182.55970316006406,
+            "y": 128.40820645716337
+          },
+          "rgba": [
+            255,
+            204,
+            0,
+            255
+          ],
+          "hit": "Connector",
+          "hits": [
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": null,
+      "nativeCapture": false,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  },
+  "freshCanvas": true,
+  "atlasMismatch": 0,
+  "sameSamples": true,
+  "restoredDrag": {
+    "disposed": false,
+    "requestedGeneration": 14,
+    "generation": 14,
+    "selected": "B",
+    "drag": null,
+    "pointer": {
+      "viewport": {
+        "x": 284.45086669921875,
+        "y": 160.58740234375
+      },
+      "world": {
+        "x": 284.45086669921875,
+        "y": 160.58740234375
+      },
+      "local": {
+        "x": 244.13687626443917,
+        "y": 111.4336762148013
+      },
+      "spatialHit": "BoxB"
+    },
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 2,
+      "rendererDisposed": 1,
+      "liveDisplayRenderers": 1,
+      "maxDisplayRenderers": 2,
+      "sceneSubmits": 13,
+      "renders": 13,
+      "transactions": 11,
+      "captureTransfers": 8,
+      "pointerEvents": 17,
+      "binds": 13,
+      "unbinds": 12,
+      "oldDomCallbacks": 0,
+      "errors": 1,
+      "ignored": 0,
+      "openCalls": 1,
+      "pngCalls": 0,
+      "pngTemporaryCanvases": 0,
+      "disposeCalls": 0
+    },
+    "activeBindings": 1,
+    "failure": null,
+    "saved": {
+      "filename": "diagram-document.json",
+      "byteLength": 3976
+    },
+    "png": null,
+    "opened": null,
+    "pointerLog": [
+      "g1:1:pointermove:LabelA:LabelA",
+      "g1:1:pointermove:NodeA:LabelA",
+      "g1:1:pointermove:DiagramFrame:LabelA",
+      "g1:1:pointermove:stage:LabelA",
+      "g1:1:pointerdown:LabelA:LabelA",
+      "g1:1:pointerdown:NodeA:LabelA",
+      "g1:1:pointerdown:DiagramFrame:LabelA",
+      "g1:1:pointerdown:stage:LabelA",
+      "g1:1:pointerup:NodeA:NodeA",
+      "g1:1:pointerup:DiagramFrame:NodeA",
+      "g1:1:pointerup:stage:NodeA",
+      "g1:1:pointermove:BoxA:BoxA",
+      "g1:1:pointermove:NodeA:BoxA",
+      "g1:1:pointermove:DiagramFrame:BoxA",
+      "g1:1:pointermove:stage:BoxA",
+      "g1:1:pointerdown:BoxA:BoxA",
+      "g1:1:pointerdown:NodeA:BoxA",
+      "g1:1:pointerdown:DiagramFrame:BoxA",
+      "g1:1:pointerdown:stage:BoxA",
+      "g1:1:pointermove:NodeA:NodeA",
+      "g1:1:pointermove:DiagramFrame:NodeA",
+      "g1:1:pointermove:stage:NodeA",
+      "g2:1:pointermove:NodeA:NodeA",
+      "g2:1:pointermove:DiagramFrame:NodeA",
+      "g2:1:pointermove:stage:NodeA",
+      "g3:1:pointermove:NodeA:NodeA",
+      "g3:1:pointermove:DiagramFrame:NodeA",
+      "g3:1:pointermove:stage:NodeA",
+      "g4:1:pointermove:NodeA:NodeA",
+      "g4:1:pointermove:DiagramFrame:NodeA",
+      "g4:1:pointermove:stage:NodeA",
+      "g5:1:pointermove:NodeA:NodeA",
+      "g5:1:pointermove:DiagramFrame:NodeA",
+      "g5:1:pointermove:stage:NodeA",
+      "g6:1:pointermove:NodeA:NodeA",
+      "g6:1:pointermove:DiagramFrame:NodeA",
+      "g6:1:pointermove:stage:NodeA",
+      "g7:1:pointerup:NodeA:NodeA",
+      "g7:1:pointerup:DiagramFrame:NodeA",
+      "g7:1:pointerup:stage:NodeA",
+      "g12:1:pointermove:BoxB:BoxB",
+      "g12:1:pointermove:NodeB:BoxB",
+      "g12:1:pointermove:DiagramFrame:BoxB",
+      "g12:1:pointermove:stage:BoxB",
+      "g12:1:pointerdown:BoxB:BoxB",
+      "g12:1:pointerdown:NodeB:BoxB",
+      "g12:1:pointerdown:DiagramFrame:BoxB",
+      "g12:1:pointerdown:stage:BoxB",
+      "g12:1:pointermove:NodeB:NodeB",
+      "g12:1:pointermove:DiagramFrame:NodeB",
+      "g12:1:pointermove:stage:NodeB",
+      "g13:1:pointermove:NodeB:NodeB",
+      "g13:1:pointermove:DiagramFrame:NodeB",
+      "g13:1:pointermove:stage:NodeB",
+      "g14:1:pointerup:NodeB:NodeB",
+      "g14:1:pointerup:DiagramFrame:NodeB",
+      "g14:1:pointerup:stage:NodeB"
+    ],
+    "hoverLog": [
+      "1:pointerenter:LabelA",
+      "1:pointerleave:LabelA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxB",
+      "1:pointerenter:BoxB",
+      "1:pointerenter:BoxB"
+    ],
+    "accepted": {
+      "generation": 14,
+      "canvasGeneration": 2,
+      "source": "edit",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": 40,
+          "y": 40,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 169.13688718636064,
+          "y": 73.43368905759036,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "H",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 84.99999999999999,
+          "y": 64.99999999999999
+        },
+        {
+          "kind": "L",
+          "x": 214.1368871863606,
+          "y": 98.43368905759033
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 3,
+            "y": 5
+          },
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 3,
+            "y": 4
+          },
+          "viewport": {
+            "x": 103.93650433973501,
+            "y": 95.51987102864096
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 229.828701416472,
+            "y": 141.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 227.83509800386676,
+            "y": 141.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 158.39885009520574,
+          "y": 116.94072289805916
+        },
+        "boxB": {
+          "x": 284.45087655988107,
+          "y": 160.58741601828604
+        },
+        "connector": {
+          "x": 192.5597031600641,
+          "y": 123.40820645716335
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelA",
+          "hits": [
+            "LabelA",
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 103.93650433973501,
+            "y": 95.51987102864096
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 229.828701416472,
+            "y": 141.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 227.83509800386676,
+            "y": 141.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 158.39885009520574,
+            "y": 116.94072289805916
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxB": {
+          "viewport": {
+            "x": 284.45087655988107,
+            "y": 160.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 192.5597031600641,
+            "y": 123.40820645716335
+          },
+          "rgba": [
+            255,
+            204,
+            0,
+            255
+          ],
+          "hit": "Connector",
+          "hits": [
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": null,
+      "nativeCapture": false,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  },
+  "restoredLabel": {
+    "disposed": false,
+    "requestedGeneration": 15,
+    "generation": 15,
+    "selected": "B",
+    "drag": null,
+    "pointer": {
+      "viewport": {
+        "x": 284.45086669921875,
+        "y": 160.58740234375
+      },
+      "world": {
+        "x": 284.45086669921875,
+        "y": 160.58740234375
+      },
+      "local": {
+        "x": 244.13687626443917,
+        "y": 111.4336762148013
+      },
+      "spatialHit": "BoxB"
+    },
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 2,
+      "rendererDisposed": 1,
+      "liveDisplayRenderers": 1,
+      "maxDisplayRenderers": 2,
+      "sceneSubmits": 14,
+      "renders": 14,
+      "transactions": 12,
+      "captureTransfers": 8,
+      "pointerEvents": 17,
+      "binds": 14,
+      "unbinds": 13,
+      "oldDomCallbacks": 0,
+      "errors": 1,
+      "ignored": 0,
+      "openCalls": 1,
+      "pngCalls": 0,
+      "pngTemporaryCanvases": 0,
+      "disposeCalls": 0
+    },
+    "activeBindings": 1,
+    "failure": null,
+    "saved": {
+      "filename": "diagram-document.json",
+      "byteLength": 3976
+    },
+    "png": null,
+    "opened": null,
+    "pointerLog": [
+      "g1:1:pointermove:LabelA:LabelA",
+      "g1:1:pointermove:NodeA:LabelA",
+      "g1:1:pointermove:DiagramFrame:LabelA",
+      "g1:1:pointermove:stage:LabelA",
+      "g1:1:pointerdown:LabelA:LabelA",
+      "g1:1:pointerdown:NodeA:LabelA",
+      "g1:1:pointerdown:DiagramFrame:LabelA",
+      "g1:1:pointerdown:stage:LabelA",
+      "g1:1:pointerup:NodeA:NodeA",
+      "g1:1:pointerup:DiagramFrame:NodeA",
+      "g1:1:pointerup:stage:NodeA",
+      "g1:1:pointermove:BoxA:BoxA",
+      "g1:1:pointermove:NodeA:BoxA",
+      "g1:1:pointermove:DiagramFrame:BoxA",
+      "g1:1:pointermove:stage:BoxA",
+      "g1:1:pointerdown:BoxA:BoxA",
+      "g1:1:pointerdown:NodeA:BoxA",
+      "g1:1:pointerdown:DiagramFrame:BoxA",
+      "g1:1:pointerdown:stage:BoxA",
+      "g1:1:pointermove:NodeA:NodeA",
+      "g1:1:pointermove:DiagramFrame:NodeA",
+      "g1:1:pointermove:stage:NodeA",
+      "g2:1:pointermove:NodeA:NodeA",
+      "g2:1:pointermove:DiagramFrame:NodeA",
+      "g2:1:pointermove:stage:NodeA",
+      "g3:1:pointermove:NodeA:NodeA",
+      "g3:1:pointermove:DiagramFrame:NodeA",
+      "g3:1:pointermove:stage:NodeA",
+      "g4:1:pointermove:NodeA:NodeA",
+      "g4:1:pointermove:DiagramFrame:NodeA",
+      "g4:1:pointermove:stage:NodeA",
+      "g5:1:pointermove:NodeA:NodeA",
+      "g5:1:pointermove:DiagramFrame:NodeA",
+      "g5:1:pointermove:stage:NodeA",
+      "g6:1:pointermove:NodeA:NodeA",
+      "g6:1:pointermove:DiagramFrame:NodeA",
+      "g6:1:pointermove:stage:NodeA",
+      "g7:1:pointerup:NodeA:NodeA",
+      "g7:1:pointerup:DiagramFrame:NodeA",
+      "g7:1:pointerup:stage:NodeA",
+      "g12:1:pointermove:BoxB:BoxB",
+      "g12:1:pointermove:NodeB:BoxB",
+      "g12:1:pointermove:DiagramFrame:BoxB",
+      "g12:1:pointermove:stage:BoxB",
+      "g12:1:pointerdown:BoxB:BoxB",
+      "g12:1:pointerdown:NodeB:BoxB",
+      "g12:1:pointerdown:DiagramFrame:BoxB",
+      "g12:1:pointerdown:stage:BoxB",
+      "g12:1:pointermove:NodeB:NodeB",
+      "g12:1:pointermove:DiagramFrame:NodeB",
+      "g12:1:pointermove:stage:NodeB",
+      "g13:1:pointermove:NodeB:NodeB",
+      "g13:1:pointermove:DiagramFrame:NodeB",
+      "g13:1:pointermove:stage:NodeB",
+      "g14:1:pointerup:NodeB:NodeB",
+      "g14:1:pointerup:DiagramFrame:NodeB",
+      "g14:1:pointerup:stage:NodeB"
+    ],
+    "hoverLog": [
+      "1:pointerenter:LabelA",
+      "1:pointerleave:LabelA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxB",
+      "1:pointerenter:BoxB",
+      "1:pointerenter:BoxB"
+    ],
+    "accepted": {
+      "generation": 15,
+      "canvasGeneration": 2,
+      "source": "edit",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": 40,
+          "y": 40,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 169.13688718636064,
+          "y": 73.43368905759036,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "I",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 84.99999999999999,
+          "y": 64.99999999999999
+        },
+        {
+          "kind": "L",
+          "x": 214.1368871863606,
+          "y": 98.43368905759033
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 101.78307153919143,
+            "y": 97.35364505330786
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 229.828701416472,
+            "y": 141.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 227.83509800386676,
+            "y": 141.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 158.39885009520574,
+          "y": 116.94072289805916
+        },
+        "boxB": {
+          "x": 284.45087655988107,
+          "y": 160.58741601828604
+        },
+        "connector": {
+          "x": 192.5597031600641,
+          "y": 123.40820645716335
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelA",
+          "hits": [
+            "LabelA",
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 101.78307153919143,
+            "y": 97.35364505330786
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 229.828701416472,
+            "y": 141.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 227.83509800386676,
+            "y": 141.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 158.39885009520574,
+            "y": 116.94072289805916
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxB": {
+          "viewport": {
+            "x": 284.45087655988107,
+            "y": 160.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 192.5597031600641,
+            "y": 123.40820645716335
+          },
+          "rgba": [
+            255,
+            204,
+            0,
+            255
+          ],
+          "hit": "Connector",
+          "hits": [
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": null,
+      "nativeCapture": false,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  },
+  "corrupt": {
+    "disposed": false,
+    "requestedGeneration": 16,
+    "generation": 15,
+    "selected": "B",
+    "drag": null,
+    "pointer": {
+      "viewport": {
+        "x": 284.45086669921875,
+        "y": 160.58740234375
+      },
+      "world": {
+        "x": 284.45086669921875,
+        "y": 160.58740234375
+      },
+      "local": {
+        "x": 244.13687626443917,
+        "y": 111.4336762148013
+      },
+      "spatialHit": "BoxB"
+    },
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 2,
+      "rendererDisposed": 1,
+      "liveDisplayRenderers": 1,
+      "maxDisplayRenderers": 2,
+      "sceneSubmits": 14,
+      "renders": 14,
+      "transactions": 12,
+      "captureTransfers": 8,
+      "pointerEvents": 17,
+      "binds": 14,
+      "unbinds": 13,
+      "oldDomCallbacks": 0,
+      "errors": 2,
+      "ignored": 0,
+      "openCalls": 2,
+      "pngCalls": 0,
+      "pngTemporaryCanvases": 0,
+      "disposeCalls": 0
+    },
+    "activeBindings": 1,
+    "failure": {
+      "code": "INVALID_ASSET",
+      "retained": true,
+      "generation": 16
+    },
+    "saved": {
+      "filename": "diagram-document.json",
+      "byteLength": 3976
+    },
+    "png": null,
+    "opened": null,
+    "pointerLog": [
+      "g1:1:pointermove:LabelA:LabelA",
+      "g1:1:pointermove:NodeA:LabelA",
+      "g1:1:pointermove:DiagramFrame:LabelA",
+      "g1:1:pointermove:stage:LabelA",
+      "g1:1:pointerdown:LabelA:LabelA",
+      "g1:1:pointerdown:NodeA:LabelA",
+      "g1:1:pointerdown:DiagramFrame:LabelA",
+      "g1:1:pointerdown:stage:LabelA",
+      "g1:1:pointerup:NodeA:NodeA",
+      "g1:1:pointerup:DiagramFrame:NodeA",
+      "g1:1:pointerup:stage:NodeA",
+      "g1:1:pointermove:BoxA:BoxA",
+      "g1:1:pointermove:NodeA:BoxA",
+      "g1:1:pointermove:DiagramFrame:BoxA",
+      "g1:1:pointermove:stage:BoxA",
+      "g1:1:pointerdown:BoxA:BoxA",
+      "g1:1:pointerdown:NodeA:BoxA",
+      "g1:1:pointerdown:DiagramFrame:BoxA",
+      "g1:1:pointerdown:stage:BoxA",
+      "g1:1:pointermove:NodeA:NodeA",
+      "g1:1:pointermove:DiagramFrame:NodeA",
+      "g1:1:pointermove:stage:NodeA",
+      "g2:1:pointermove:NodeA:NodeA",
+      "g2:1:pointermove:DiagramFrame:NodeA",
+      "g2:1:pointermove:stage:NodeA",
+      "g3:1:pointermove:NodeA:NodeA",
+      "g3:1:pointermove:DiagramFrame:NodeA",
+      "g3:1:pointermove:stage:NodeA",
+      "g4:1:pointermove:NodeA:NodeA",
+      "g4:1:pointermove:DiagramFrame:NodeA",
+      "g4:1:pointermove:stage:NodeA",
+      "g5:1:pointermove:NodeA:NodeA",
+      "g5:1:pointermove:DiagramFrame:NodeA",
+      "g5:1:pointermove:stage:NodeA",
+      "g6:1:pointermove:NodeA:NodeA",
+      "g6:1:pointermove:DiagramFrame:NodeA",
+      "g6:1:pointermove:stage:NodeA",
+      "g7:1:pointerup:NodeA:NodeA",
+      "g7:1:pointerup:DiagramFrame:NodeA",
+      "g7:1:pointerup:stage:NodeA",
+      "g12:1:pointermove:BoxB:BoxB",
+      "g12:1:pointermove:NodeB:BoxB",
+      "g12:1:pointermove:DiagramFrame:BoxB",
+      "g12:1:pointermove:stage:BoxB",
+      "g12:1:pointerdown:BoxB:BoxB",
+      "g12:1:pointerdown:NodeB:BoxB",
+      "g12:1:pointerdown:DiagramFrame:BoxB",
+      "g12:1:pointerdown:stage:BoxB",
+      "g12:1:pointermove:NodeB:NodeB",
+      "g12:1:pointermove:DiagramFrame:NodeB",
+      "g12:1:pointermove:stage:NodeB",
+      "g13:1:pointermove:NodeB:NodeB",
+      "g13:1:pointermove:DiagramFrame:NodeB",
+      "g13:1:pointermove:stage:NodeB",
+      "g14:1:pointerup:NodeB:NodeB",
+      "g14:1:pointerup:DiagramFrame:NodeB",
+      "g14:1:pointerup:stage:NodeB"
+    ],
+    "hoverLog": [
+      "1:pointerenter:LabelA",
+      "1:pointerleave:LabelA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxB",
+      "1:pointerenter:BoxB",
+      "1:pointerenter:BoxB"
+    ],
+    "accepted": {
+      "generation": 15,
+      "canvasGeneration": 2,
+      "source": "edit",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": 40,
+          "y": 40,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 169.13688718636064,
+          "y": 73.43368905759036,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "I",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 84.99999999999999,
+          "y": 64.99999999999999
+        },
+        {
+          "kind": "L",
+          "x": 214.1368871863606,
+          "y": 98.43368905759033
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 101.78307153919143,
+            "y": 97.35364505330786
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 229.828701416472,
+            "y": 141.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 227.83509800386676,
+            "y": 141.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 158.39885009520574,
+          "y": 116.94072289805916
+        },
+        "boxB": {
+          "x": 284.45087655988107,
+          "y": 160.58741601828604
+        },
+        "connector": {
+          "x": 192.5597031600641,
+          "y": 123.40820645716335
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelA",
+          "hits": [
+            "LabelA",
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 101.78307153919143,
+            "y": 97.35364505330786
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 229.828701416472,
+            "y": 141.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 227.83509800386676,
+            "y": 141.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 158.39885009520574,
+            "y": 116.94072289805916
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxB": {
+          "viewport": {
+            "x": 284.45087655988107,
+            "y": 160.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 192.5597031600641,
+            "y": 123.40820645716335
+          },
+          "rgba": [
+            255,
+            204,
+            0,
+            255
+          ],
+          "hit": "Connector",
+          "hits": [
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": null,
+      "nativeCapture": false,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  },
+  "noncanonical": {
+    "disposed": false,
+    "requestedGeneration": 17,
+    "generation": 15,
+    "selected": "B",
+    "drag": null,
+    "pointer": {
+      "viewport": {
+        "x": 284.45086669921875,
+        "y": 160.58740234375
+      },
+      "world": {
+        "x": 284.45086669921875,
+        "y": 160.58740234375
+      },
+      "local": {
+        "x": 244.13687626443917,
+        "y": 111.4336762148013
+      },
+      "spatialHit": "BoxB"
+    },
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 2,
+      "rendererDisposed": 1,
+      "liveDisplayRenderers": 1,
+      "maxDisplayRenderers": 2,
+      "sceneSubmits": 14,
+      "renders": 14,
+      "transactions": 12,
+      "captureTransfers": 8,
+      "pointerEvents": 17,
+      "binds": 14,
+      "unbinds": 13,
+      "oldDomCallbacks": 0,
+      "errors": 3,
+      "ignored": 0,
+      "openCalls": 3,
+      "pngCalls": 0,
+      "pngTemporaryCanvases": 0,
+      "disposeCalls": 0
+    },
+    "activeBindings": 1,
+    "failure": {
+      "code": "SERIALIZATION",
+      "retained": true,
+      "generation": 17
+    },
+    "saved": {
+      "filename": "diagram-document.json",
+      "byteLength": 3976
+    },
+    "png": null,
+    "opened": null,
+    "pointerLog": [
+      "g1:1:pointermove:LabelA:LabelA",
+      "g1:1:pointermove:NodeA:LabelA",
+      "g1:1:pointermove:DiagramFrame:LabelA",
+      "g1:1:pointermove:stage:LabelA",
+      "g1:1:pointerdown:LabelA:LabelA",
+      "g1:1:pointerdown:NodeA:LabelA",
+      "g1:1:pointerdown:DiagramFrame:LabelA",
+      "g1:1:pointerdown:stage:LabelA",
+      "g1:1:pointerup:NodeA:NodeA",
+      "g1:1:pointerup:DiagramFrame:NodeA",
+      "g1:1:pointerup:stage:NodeA",
+      "g1:1:pointermove:BoxA:BoxA",
+      "g1:1:pointermove:NodeA:BoxA",
+      "g1:1:pointermove:DiagramFrame:BoxA",
+      "g1:1:pointermove:stage:BoxA",
+      "g1:1:pointerdown:BoxA:BoxA",
+      "g1:1:pointerdown:NodeA:BoxA",
+      "g1:1:pointerdown:DiagramFrame:BoxA",
+      "g1:1:pointerdown:stage:BoxA",
+      "g1:1:pointermove:NodeA:NodeA",
+      "g1:1:pointermove:DiagramFrame:NodeA",
+      "g1:1:pointermove:stage:NodeA",
+      "g2:1:pointermove:NodeA:NodeA",
+      "g2:1:pointermove:DiagramFrame:NodeA",
+      "g2:1:pointermove:stage:NodeA",
+      "g3:1:pointermove:NodeA:NodeA",
+      "g3:1:pointermove:DiagramFrame:NodeA",
+      "g3:1:pointermove:stage:NodeA",
+      "g4:1:pointermove:NodeA:NodeA",
+      "g4:1:pointermove:DiagramFrame:NodeA",
+      "g4:1:pointermove:stage:NodeA",
+      "g5:1:pointermove:NodeA:NodeA",
+      "g5:1:pointermove:DiagramFrame:NodeA",
+      "g5:1:pointermove:stage:NodeA",
+      "g6:1:pointermove:NodeA:NodeA",
+      "g6:1:pointermove:DiagramFrame:NodeA",
+      "g6:1:pointermove:stage:NodeA",
+      "g7:1:pointerup:NodeA:NodeA",
+      "g7:1:pointerup:DiagramFrame:NodeA",
+      "g7:1:pointerup:stage:NodeA",
+      "g12:1:pointermove:BoxB:BoxB",
+      "g12:1:pointermove:NodeB:BoxB",
+      "g12:1:pointermove:DiagramFrame:BoxB",
+      "g12:1:pointermove:stage:BoxB",
+      "g12:1:pointerdown:BoxB:BoxB",
+      "g12:1:pointerdown:NodeB:BoxB",
+      "g12:1:pointerdown:DiagramFrame:BoxB",
+      "g12:1:pointerdown:stage:BoxB",
+      "g12:1:pointermove:NodeB:NodeB",
+      "g12:1:pointermove:DiagramFrame:NodeB",
+      "g12:1:pointermove:stage:NodeB",
+      "g13:1:pointermove:NodeB:NodeB",
+      "g13:1:pointermove:DiagramFrame:NodeB",
+      "g13:1:pointermove:stage:NodeB",
+      "g14:1:pointerup:NodeB:NodeB",
+      "g14:1:pointerup:DiagramFrame:NodeB",
+      "g14:1:pointerup:stage:NodeB"
+    ],
+    "hoverLog": [
+      "1:pointerenter:LabelA",
+      "1:pointerleave:LabelA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxB",
+      "1:pointerenter:BoxB",
+      "1:pointerenter:BoxB"
+    ],
+    "accepted": {
+      "generation": 15,
+      "canvasGeneration": 2,
+      "source": "edit",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": 40,
+          "y": 40,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 169.13688718636064,
+          "y": 73.43368905759036,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "I",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 84.99999999999999,
+          "y": 64.99999999999999
+        },
+        {
+          "kind": "L",
+          "x": 214.1368871863606,
+          "y": 98.43368905759033
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 101.78307153919143,
+            "y": 97.35364505330786
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 229.828701416472,
+            "y": 141.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 227.83509800386676,
+            "y": 141.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 158.39885009520574,
+          "y": 116.94072289805916
+        },
+        "boxB": {
+          "x": 284.45087655988107,
+          "y": 160.58741601828604
+        },
+        "connector": {
+          "x": 192.5597031600641,
+          "y": 123.40820645716335
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelA",
+          "hits": [
+            "LabelA",
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 101.78307153919143,
+            "y": 97.35364505330786
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 229.828701416472,
+            "y": 141.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 227.83509800386676,
+            "y": 141.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 158.39885009520574,
+            "y": 116.94072289805916
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxB": {
+          "viewport": {
+            "x": 284.45087655988107,
+            "y": 160.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 192.5597031600641,
+            "y": 123.40820645716335
+          },
+          "rgba": [
+            255,
+            204,
+            0,
+            255
+          ],
+          "hit": "Connector",
+          "hits": [
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": null,
+      "nativeCapture": false,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  },
+  "topology": {
+    "disposed": false,
+    "requestedGeneration": 18,
+    "generation": 15,
+    "selected": "B",
+    "drag": null,
+    "pointer": {
+      "viewport": {
+        "x": 284.45086669921875,
+        "y": 160.58740234375
+      },
+      "world": {
+        "x": 284.45086669921875,
+        "y": 160.58740234375
+      },
+      "local": {
+        "x": 244.13687626443917,
+        "y": 111.4336762148013
+      },
+      "spatialHit": "BoxB"
+    },
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 2,
+      "rendererDisposed": 1,
+      "liveDisplayRenderers": 1,
+      "maxDisplayRenderers": 2,
+      "sceneSubmits": 14,
+      "renders": 14,
+      "transactions": 12,
+      "captureTransfers": 8,
+      "pointerEvents": 17,
+      "binds": 14,
+      "unbinds": 13,
+      "oldDomCallbacks": 0,
+      "errors": 4,
+      "ignored": 0,
+      "openCalls": 4,
+      "pngCalls": 0,
+      "pngTemporaryCanvases": 0,
+      "disposeCalls": 0
+    },
+    "activeBindings": 1,
+    "failure": {
+      "code": "HOST_DIAGRAM",
+      "retained": true,
+      "generation": 18
+    },
+    "saved": {
+      "filename": "diagram-document.json",
+      "byteLength": 3976
+    },
+    "png": null,
+    "opened": null,
+    "pointerLog": [
+      "g1:1:pointermove:LabelA:LabelA",
+      "g1:1:pointermove:NodeA:LabelA",
+      "g1:1:pointermove:DiagramFrame:LabelA",
+      "g1:1:pointermove:stage:LabelA",
+      "g1:1:pointerdown:LabelA:LabelA",
+      "g1:1:pointerdown:NodeA:LabelA",
+      "g1:1:pointerdown:DiagramFrame:LabelA",
+      "g1:1:pointerdown:stage:LabelA",
+      "g1:1:pointerup:NodeA:NodeA",
+      "g1:1:pointerup:DiagramFrame:NodeA",
+      "g1:1:pointerup:stage:NodeA",
+      "g1:1:pointermove:BoxA:BoxA",
+      "g1:1:pointermove:NodeA:BoxA",
+      "g1:1:pointermove:DiagramFrame:BoxA",
+      "g1:1:pointermove:stage:BoxA",
+      "g1:1:pointerdown:BoxA:BoxA",
+      "g1:1:pointerdown:NodeA:BoxA",
+      "g1:1:pointerdown:DiagramFrame:BoxA",
+      "g1:1:pointerdown:stage:BoxA",
+      "g1:1:pointermove:NodeA:NodeA",
+      "g1:1:pointermove:DiagramFrame:NodeA",
+      "g1:1:pointermove:stage:NodeA",
+      "g2:1:pointermove:NodeA:NodeA",
+      "g2:1:pointermove:DiagramFrame:NodeA",
+      "g2:1:pointermove:stage:NodeA",
+      "g3:1:pointermove:NodeA:NodeA",
+      "g3:1:pointermove:DiagramFrame:NodeA",
+      "g3:1:pointermove:stage:NodeA",
+      "g4:1:pointermove:NodeA:NodeA",
+      "g4:1:pointermove:DiagramFrame:NodeA",
+      "g4:1:pointermove:stage:NodeA",
+      "g5:1:pointermove:NodeA:NodeA",
+      "g5:1:pointermove:DiagramFrame:NodeA",
+      "g5:1:pointermove:stage:NodeA",
+      "g6:1:pointermove:NodeA:NodeA",
+      "g6:1:pointermove:DiagramFrame:NodeA",
+      "g6:1:pointermove:stage:NodeA",
+      "g7:1:pointerup:NodeA:NodeA",
+      "g7:1:pointerup:DiagramFrame:NodeA",
+      "g7:1:pointerup:stage:NodeA",
+      "g12:1:pointermove:BoxB:BoxB",
+      "g12:1:pointermove:NodeB:BoxB",
+      "g12:1:pointermove:DiagramFrame:BoxB",
+      "g12:1:pointermove:stage:BoxB",
+      "g12:1:pointerdown:BoxB:BoxB",
+      "g12:1:pointerdown:NodeB:BoxB",
+      "g12:1:pointerdown:DiagramFrame:BoxB",
+      "g12:1:pointerdown:stage:BoxB",
+      "g12:1:pointermove:NodeB:NodeB",
+      "g12:1:pointermove:DiagramFrame:NodeB",
+      "g12:1:pointermove:stage:NodeB",
+      "g13:1:pointermove:NodeB:NodeB",
+      "g13:1:pointermove:DiagramFrame:NodeB",
+      "g13:1:pointermove:stage:NodeB",
+      "g14:1:pointerup:NodeB:NodeB",
+      "g14:1:pointerup:DiagramFrame:NodeB",
+      "g14:1:pointerup:stage:NodeB"
+    ],
+    "hoverLog": [
+      "1:pointerenter:LabelA",
+      "1:pointerleave:LabelA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxB",
+      "1:pointerenter:BoxB",
+      "1:pointerenter:BoxB"
+    ],
+    "accepted": {
+      "generation": 15,
+      "canvasGeneration": 2,
+      "source": "edit",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": 40,
+          "y": 40,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 169.13688718636064,
+          "y": 73.43368905759036,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "I",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 84.99999999999999,
+          "y": 64.99999999999999
+        },
+        {
+          "kind": "L",
+          "x": 214.1368871863606,
+          "y": 98.43368905759033
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 101.78307153919143,
+            "y": 97.35364505330786
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 229.828701416472,
+            "y": 141.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 227.83509800386676,
+            "y": 141.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 158.39885009520574,
+          "y": 116.94072289805916
+        },
+        "boxB": {
+          "x": 284.45087655988107,
+          "y": 160.58741601828604
+        },
+        "connector": {
+          "x": 192.5597031600641,
+          "y": 123.40820645716335
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelA",
+          "hits": [
+            "LabelA",
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 101.78307153919143,
+            "y": 97.35364505330786
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 229.828701416472,
+            "y": 141.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 227.83509800386676,
+            "y": 141.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 158.39885009520574,
+            "y": 116.94072289805916
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxB": {
+          "viewport": {
+            "x": 284.45087655988107,
+            "y": 160.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 192.5597031600641,
+            "y": 123.40820645716335
+          },
+          "rgba": [
+            255,
+            204,
+            0,
+            255
+          ],
+          "hit": "Connector",
+          "hits": [
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": null,
+      "nativeCapture": false,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  },
+  "pngExpected": {
+    "opaqueA": {
+      "viewport": {
+        "x": 103.77667495179666,
+        "y": 97.5134744412462
+      },
+      "rgba": [
+        255,
+        255,
+        255,
+        255
+      ],
+      "hit": "LabelA",
+      "hits": [
+        "LabelA",
+        "BoxA",
+        "DiagramFrame",
+        "Back"
+      ]
+    },
+    "transparentA": {
+      "viewport": {
+        "x": 101.78307153919143,
+        "y": 97.35364505330786
+      },
+      "rgba": [
+        204,
+        51,
+        51,
+        255
+      ],
+      "hit": "BoxA",
+      "hits": [
+        "BoxA",
+        "DiagramFrame",
+        "Back"
+      ]
+    },
+    "opaqueB": {
+      "viewport": {
+        "x": 229.828701416472,
+        "y": 141.1601675614731
+      },
+      "rgba": [
+        255,
+        255,
+        255,
+        255
+      ],
+      "hit": "LabelB",
+      "hits": [
+        "LabelB",
+        "BoxB",
+        "DiagramFrame",
+        "Back"
+      ]
+    },
+    "transparentB": {
+      "viewport": {
+        "x": 227.83509800386676,
+        "y": 141.00033817353471
+      },
+      "rgba": [
+        51,
+        102,
+        204,
+        255
+      ],
+      "hit": "BoxB",
+      "hits": [
+        "BoxB",
+        "DiagramFrame",
+        "Back"
+      ]
+    },
+    "boxA": {
+      "viewport": {
+        "x": 158.39885009520574,
+        "y": 116.94072289805916
+      },
+      "rgba": [
+        204,
+        51,
+        51,
+        255
+      ],
+      "hit": "BoxA",
+      "hits": [
+        "BoxA",
+        "DiagramFrame",
+        "Back"
+      ]
+    },
+    "boxB": {
+      "viewport": {
+        "x": 284.45087655988107,
+        "y": 160.58741601828604
+      },
+      "rgba": [
+        51,
+        102,
+        204,
+        255
+      ],
+      "hit": "BoxB",
+      "hits": [
+        "BoxB",
+        "DiagramFrame",
+        "Back"
+      ]
+    },
+    "connector": {
+      "viewport": {
+        "x": 192.5597031600641,
+        "y": 123.40820645716335
+      },
+      "rgba": [
+        255,
+        204,
+        0,
+        255
+      ],
+      "hit": "Connector",
+      "hits": [
+        "Connector",
+        "DiagramFrame",
+        "Back"
+      ]
+    },
+    "clipOutside": {
+      "viewport": {
+        "x": 40.41876459694743,
+        "y": 99.45646066530666
+      },
+      "rgba": [
+        26,
+        31,
+        41,
+        255
+      ],
+      "hit": "Back",
+      "hits": [
+        "Back"
+      ]
+    },
+    "background": {
+      "viewport": {
+        "x": 12,
+        "y": 12
+      },
+      "rgba": [
+        26,
+        31,
+        41,
+        255
+      ],
+      "hit": "Back",
+      "hits": [
+        "Back"
+      ]
+    }
+  },
+  "png": {
+    "disposed": false,
+    "requestedGeneration": 18,
+    "generation": 15,
+    "selected": "B",
+    "drag": null,
+    "pointer": {
+      "viewport": {
+        "x": 284.45086669921875,
+        "y": 160.58740234375
+      },
+      "world": {
+        "x": 284.45086669921875,
+        "y": 160.58740234375
+      },
+      "local": {
+        "x": 244.13687626443917,
+        "y": 111.4336762148013
+      },
+      "spatialHit": "BoxB"
+    },
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 2,
+      "rendererDisposed": 1,
+      "liveDisplayRenderers": 1,
+      "maxDisplayRenderers": 2,
+      "sceneSubmits": 14,
+      "renders": 14,
+      "transactions": 12,
+      "captureTransfers": 8,
+      "pointerEvents": 17,
+      "binds": 14,
+      "unbinds": 13,
+      "oldDomCallbacks": 0,
+      "errors": 4,
+      "ignored": 0,
+      "openCalls": 4,
+      "pngCalls": 1,
+      "pngTemporaryCanvases": 1,
+      "disposeCalls": 0
+    },
+    "activeBindings": 1,
+    "failure": {
+      "code": "HOST_DIAGRAM",
+      "retained": true,
+      "generation": 18
+    },
+    "saved": {
+      "filename": "diagram-document.json",
+      "byteLength": 3976
+    },
+    "png": {
+      "filename": "diagram.png",
+      "byteLength": 11147,
+      "backingWidth": 720,
+      "backingHeight": 480
+    },
+    "opened": null,
+    "pointerLog": [
+      "g1:1:pointermove:LabelA:LabelA",
+      "g1:1:pointermove:NodeA:LabelA",
+      "g1:1:pointermove:DiagramFrame:LabelA",
+      "g1:1:pointermove:stage:LabelA",
+      "g1:1:pointerdown:LabelA:LabelA",
+      "g1:1:pointerdown:NodeA:LabelA",
+      "g1:1:pointerdown:DiagramFrame:LabelA",
+      "g1:1:pointerdown:stage:LabelA",
+      "g1:1:pointerup:NodeA:NodeA",
+      "g1:1:pointerup:DiagramFrame:NodeA",
+      "g1:1:pointerup:stage:NodeA",
+      "g1:1:pointermove:BoxA:BoxA",
+      "g1:1:pointermove:NodeA:BoxA",
+      "g1:1:pointermove:DiagramFrame:BoxA",
+      "g1:1:pointermove:stage:BoxA",
+      "g1:1:pointerdown:BoxA:BoxA",
+      "g1:1:pointerdown:NodeA:BoxA",
+      "g1:1:pointerdown:DiagramFrame:BoxA",
+      "g1:1:pointerdown:stage:BoxA",
+      "g1:1:pointermove:NodeA:NodeA",
+      "g1:1:pointermove:DiagramFrame:NodeA",
+      "g1:1:pointermove:stage:NodeA",
+      "g2:1:pointermove:NodeA:NodeA",
+      "g2:1:pointermove:DiagramFrame:NodeA",
+      "g2:1:pointermove:stage:NodeA",
+      "g3:1:pointermove:NodeA:NodeA",
+      "g3:1:pointermove:DiagramFrame:NodeA",
+      "g3:1:pointermove:stage:NodeA",
+      "g4:1:pointermove:NodeA:NodeA",
+      "g4:1:pointermove:DiagramFrame:NodeA",
+      "g4:1:pointermove:stage:NodeA",
+      "g5:1:pointermove:NodeA:NodeA",
+      "g5:1:pointermove:DiagramFrame:NodeA",
+      "g5:1:pointermove:stage:NodeA",
+      "g6:1:pointermove:NodeA:NodeA",
+      "g6:1:pointermove:DiagramFrame:NodeA",
+      "g6:1:pointermove:stage:NodeA",
+      "g7:1:pointerup:NodeA:NodeA",
+      "g7:1:pointerup:DiagramFrame:NodeA",
+      "g7:1:pointerup:stage:NodeA",
+      "g12:1:pointermove:BoxB:BoxB",
+      "g12:1:pointermove:NodeB:BoxB",
+      "g12:1:pointermove:DiagramFrame:BoxB",
+      "g12:1:pointermove:stage:BoxB",
+      "g12:1:pointerdown:BoxB:BoxB",
+      "g12:1:pointerdown:NodeB:BoxB",
+      "g12:1:pointerdown:DiagramFrame:BoxB",
+      "g12:1:pointerdown:stage:BoxB",
+      "g12:1:pointermove:NodeB:NodeB",
+      "g12:1:pointermove:DiagramFrame:NodeB",
+      "g12:1:pointermove:stage:NodeB",
+      "g13:1:pointermove:NodeB:NodeB",
+      "g13:1:pointermove:DiagramFrame:NodeB",
+      "g13:1:pointermove:stage:NodeB",
+      "g14:1:pointerup:NodeB:NodeB",
+      "g14:1:pointerup:DiagramFrame:NodeB",
+      "g14:1:pointerup:stage:NodeB"
+    ],
+    "hoverLog": [
+      "1:pointerenter:LabelA",
+      "1:pointerleave:LabelA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxB",
+      "1:pointerenter:BoxB",
+      "1:pointerenter:BoxB"
+    ],
+    "accepted": {
+      "generation": 15,
+      "canvasGeneration": 2,
+      "source": "edit",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": 40,
+          "y": 40,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 169.13688718636064,
+          "y": 73.43368905759036,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "I",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 84.99999999999999,
+          "y": 64.99999999999999
+        },
+        {
+          "kind": "L",
+          "x": 214.1368871863606,
+          "y": 98.43368905759033
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 101.78307153919143,
+            "y": 97.35364505330786
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 229.828701416472,
+            "y": 141.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 227.83509800386676,
+            "y": 141.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 158.39885009520574,
+          "y": 116.94072289805916
+        },
+        "boxB": {
+          "x": 284.45087655988107,
+          "y": 160.58741601828604
+        },
+        "connector": {
+          "x": 192.5597031600641,
+          "y": 123.40820645716335
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelA",
+          "hits": [
+            "LabelA",
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 101.78307153919143,
+            "y": 97.35364505330786
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 229.828701416472,
+            "y": 141.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 227.83509800386676,
+            "y": 141.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 158.39885009520574,
+            "y": 116.94072289805916
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxB": {
+          "viewport": {
+            "x": 284.45087655988107,
+            "y": 160.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 192.5597031600641,
+            "y": 123.40820645716335
+          },
+          "rgba": [
+            255,
+            204,
+            0,
+            255
+          ],
+          "hit": "Connector",
+          "hits": [
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": null,
+      "nativeCapture": false,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  },
+  "decodedPNG": {
+    "width": 720,
+    "height": 480,
+    "samples": {
+      "opaqueA": {
+        "rgba": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "expected": [
+          255,
+          255,
+          255,
+          255
+        ]
+      },
+      "transparentA": {
+        "rgba": [
+          204,
+          51,
+          51,
+          255
+        ],
+        "expected": [
+          204,
+          51,
+          51,
+          255
+        ]
+      },
+      "opaqueB": {
+        "rgba": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "expected": [
+          255,
+          255,
+          255,
+          255
+        ]
+      },
+      "transparentB": {
+        "rgba": [
+          51,
+          102,
+          204,
+          255
+        ],
+        "expected": [
+          51,
+          102,
+          204,
+          255
+        ]
+      },
+      "boxA": {
+        "rgba": [
+          204,
+          51,
+          51,
+          255
+        ],
+        "expected": [
+          204,
+          51,
+          51,
+          255
+        ]
+      },
+      "boxB": {
+        "rgba": [
+          51,
+          102,
+          204,
+          255
+        ],
+        "expected": [
+          51,
+          102,
+          204,
+          255
+        ]
+      },
+      "connector": {
+        "rgba": [
+          255,
+          204,
+          0,
+          255
+        ],
+        "expected": [
+          255,
+          204,
+          0,
+          255
+        ]
+      },
+      "clipOutside": {
+        "rgba": [
+          26,
+          31,
+          41,
+          255
+        ],
+        "expected": [
+          26,
+          31,
+          41,
+          255
+        ]
+      },
+      "background": {
+        "rgba": [
+          26,
+          31,
+          41,
+          255
+        ],
+        "expected": [
+          26,
+          31,
+          41,
+          255
+        ]
+      }
+    }
+  },
+  "beforeDispose": {
+    "disposed": false,
+    "requestedGeneration": 18,
+    "generation": 15,
+    "selected": "B",
+    "drag": null,
+    "pointer": {
+      "viewport": {
+        "x": 284.45086669921875,
+        "y": 160.58740234375
+      },
+      "world": {
+        "x": 284.45086669921875,
+        "y": 160.58740234375
+      },
+      "local": {
+        "x": 244.13687626443917,
+        "y": 111.4336762148013
+      },
+      "spatialHit": "BoxB"
+    },
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 2,
+      "rendererDisposed": 1,
+      "liveDisplayRenderers": 1,
+      "maxDisplayRenderers": 2,
+      "sceneSubmits": 14,
+      "renders": 14,
+      "transactions": 12,
+      "captureTransfers": 8,
+      "pointerEvents": 17,
+      "binds": 14,
+      "unbinds": 13,
+      "oldDomCallbacks": 0,
+      "errors": 4,
+      "ignored": 0,
+      "openCalls": 4,
+      "pngCalls": 1,
+      "pngTemporaryCanvases": 1,
+      "disposeCalls": 0
+    },
+    "activeBindings": 1,
+    "failure": {
+      "code": "HOST_DIAGRAM",
+      "retained": true,
+      "generation": 18
+    },
+    "saved": {
+      "filename": "diagram-document.json",
+      "byteLength": 3976
+    },
+    "png": {
+      "filename": "diagram.png",
+      "byteLength": 11147,
+      "backingWidth": 720,
+      "backingHeight": 480
+    },
+    "opened": null,
+    "pointerLog": [
+      "g1:1:pointermove:LabelA:LabelA",
+      "g1:1:pointermove:NodeA:LabelA",
+      "g1:1:pointermove:DiagramFrame:LabelA",
+      "g1:1:pointermove:stage:LabelA",
+      "g1:1:pointerdown:LabelA:LabelA",
+      "g1:1:pointerdown:NodeA:LabelA",
+      "g1:1:pointerdown:DiagramFrame:LabelA",
+      "g1:1:pointerdown:stage:LabelA",
+      "g1:1:pointerup:NodeA:NodeA",
+      "g1:1:pointerup:DiagramFrame:NodeA",
+      "g1:1:pointerup:stage:NodeA",
+      "g1:1:pointermove:BoxA:BoxA",
+      "g1:1:pointermove:NodeA:BoxA",
+      "g1:1:pointermove:DiagramFrame:BoxA",
+      "g1:1:pointermove:stage:BoxA",
+      "g1:1:pointerdown:BoxA:BoxA",
+      "g1:1:pointerdown:NodeA:BoxA",
+      "g1:1:pointerdown:DiagramFrame:BoxA",
+      "g1:1:pointerdown:stage:BoxA",
+      "g1:1:pointermove:NodeA:NodeA",
+      "g1:1:pointermove:DiagramFrame:NodeA",
+      "g1:1:pointermove:stage:NodeA",
+      "g2:1:pointermove:NodeA:NodeA",
+      "g2:1:pointermove:DiagramFrame:NodeA",
+      "g2:1:pointermove:stage:NodeA",
+      "g3:1:pointermove:NodeA:NodeA",
+      "g3:1:pointermove:DiagramFrame:NodeA",
+      "g3:1:pointermove:stage:NodeA",
+      "g4:1:pointermove:NodeA:NodeA",
+      "g4:1:pointermove:DiagramFrame:NodeA",
+      "g4:1:pointermove:stage:NodeA",
+      "g5:1:pointermove:NodeA:NodeA",
+      "g5:1:pointermove:DiagramFrame:NodeA",
+      "g5:1:pointermove:stage:NodeA",
+      "g6:1:pointermove:NodeA:NodeA",
+      "g6:1:pointermove:DiagramFrame:NodeA",
+      "g6:1:pointermove:stage:NodeA",
+      "g7:1:pointerup:NodeA:NodeA",
+      "g7:1:pointerup:DiagramFrame:NodeA",
+      "g7:1:pointerup:stage:NodeA",
+      "g12:1:pointermove:BoxB:BoxB",
+      "g12:1:pointermove:NodeB:BoxB",
+      "g12:1:pointermove:DiagramFrame:BoxB",
+      "g12:1:pointermove:stage:BoxB",
+      "g12:1:pointerdown:BoxB:BoxB",
+      "g12:1:pointerdown:NodeB:BoxB",
+      "g12:1:pointerdown:DiagramFrame:BoxB",
+      "g12:1:pointerdown:stage:BoxB",
+      "g12:1:pointermove:NodeB:NodeB",
+      "g12:1:pointermove:DiagramFrame:NodeB",
+      "g12:1:pointermove:stage:NodeB",
+      "g13:1:pointermove:NodeB:NodeB",
+      "g13:1:pointermove:DiagramFrame:NodeB",
+      "g13:1:pointermove:stage:NodeB",
+      "g14:1:pointerup:NodeB:NodeB",
+      "g14:1:pointerup:DiagramFrame:NodeB",
+      "g14:1:pointerup:stage:NodeB"
+    ],
+    "hoverLog": [
+      "1:pointerenter:LabelA",
+      "1:pointerleave:LabelA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxB",
+      "1:pointerenter:BoxB",
+      "1:pointerenter:BoxB"
+    ],
+    "accepted": {
+      "generation": 15,
+      "canvasGeneration": 2,
+      "source": "edit",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": 40,
+          "y": 40,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 169.13688718636064,
+          "y": 73.43368905759036,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "I",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 84.99999999999999,
+          "y": 64.99999999999999
+        },
+        {
+          "kind": "L",
+          "x": 214.1368871863606,
+          "y": 98.43368905759033
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 101.78307153919143,
+            "y": 97.35364505330786
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 229.828701416472,
+            "y": 141.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 227.83509800386676,
+            "y": 141.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 158.39885009520574,
+          "y": 116.94072289805916
+        },
+        "boxB": {
+          "x": 284.45087655988107,
+          "y": 160.58741601828604
+        },
+        "connector": {
+          "x": 192.5597031600641,
+          "y": 123.40820645716335
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelA",
+          "hits": [
+            "LabelA",
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 101.78307153919143,
+            "y": 97.35364505330786
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 229.828701416472,
+            "y": 141.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 227.83509800386676,
+            "y": 141.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 158.39885009520574,
+            "y": 116.94072289805916
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxB": {
+          "viewport": {
+            "x": 284.45087655988107,
+            "y": 160.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 192.5597031600641,
+            "y": 123.40820645716335
+          },
+          "rgba": [
+            255,
+            204,
+            0,
+            255
+          ],
+          "hit": "Connector",
+          "hits": [
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": null,
+      "nativeCapture": false,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  },
+  "disposed": {
+    "disposed": true,
+    "requestedGeneration": 19,
+    "generation": 15,
+    "selected": null,
+    "drag": null,
+    "pointer": {
+      "viewport": {
+        "x": 284.45086669921875,
+        "y": 160.58740234375
+      },
+      "world": {
+        "x": 284.45086669921875,
+        "y": 160.58740234375
+      },
+      "local": {
+        "x": 244.13687626443917,
+        "y": 111.4336762148013
+      },
+      "spatialHit": "BoxB"
+    },
+    "temporary": null,
+    "view": {
+      "panX": 0,
+      "panY": 0,
+      "zoom": 1
+    },
+    "counts": {
+      "rendererCreated": 2,
+      "rendererDisposed": 2,
+      "liveDisplayRenderers": 0,
+      "maxDisplayRenderers": 2,
+      "sceneSubmits": 14,
+      "renders": 14,
+      "transactions": 12,
+      "captureTransfers": 8,
+      "pointerEvents": 17,
+      "binds": 14,
+      "unbinds": 14,
+      "oldDomCallbacks": 0,
+      "errors": 4,
+      "ignored": 0,
+      "openCalls": 4,
+      "pngCalls": 1,
+      "pngTemporaryCanvases": 1,
+      "disposeCalls": 1
+    },
+    "activeBindings": 0,
+    "failure": {
+      "code": "HOST_DIAGRAM",
+      "retained": true,
+      "generation": 18
+    },
+    "saved": {
+      "filename": "diagram-document.json",
+      "byteLength": 3976
+    },
+    "png": {
+      "filename": "diagram.png",
+      "byteLength": 11147,
+      "backingWidth": 720,
+      "backingHeight": 480
+    },
+    "opened": null,
+    "pointerLog": [
+      "g1:1:pointermove:LabelA:LabelA",
+      "g1:1:pointermove:NodeA:LabelA",
+      "g1:1:pointermove:DiagramFrame:LabelA",
+      "g1:1:pointermove:stage:LabelA",
+      "g1:1:pointerdown:LabelA:LabelA",
+      "g1:1:pointerdown:NodeA:LabelA",
+      "g1:1:pointerdown:DiagramFrame:LabelA",
+      "g1:1:pointerdown:stage:LabelA",
+      "g1:1:pointerup:NodeA:NodeA",
+      "g1:1:pointerup:DiagramFrame:NodeA",
+      "g1:1:pointerup:stage:NodeA",
+      "g1:1:pointermove:BoxA:BoxA",
+      "g1:1:pointermove:NodeA:BoxA",
+      "g1:1:pointermove:DiagramFrame:BoxA",
+      "g1:1:pointermove:stage:BoxA",
+      "g1:1:pointerdown:BoxA:BoxA",
+      "g1:1:pointerdown:NodeA:BoxA",
+      "g1:1:pointerdown:DiagramFrame:BoxA",
+      "g1:1:pointerdown:stage:BoxA",
+      "g1:1:pointermove:NodeA:NodeA",
+      "g1:1:pointermove:DiagramFrame:NodeA",
+      "g1:1:pointermove:stage:NodeA",
+      "g2:1:pointermove:NodeA:NodeA",
+      "g2:1:pointermove:DiagramFrame:NodeA",
+      "g2:1:pointermove:stage:NodeA",
+      "g3:1:pointermove:NodeA:NodeA",
+      "g3:1:pointermove:DiagramFrame:NodeA",
+      "g3:1:pointermove:stage:NodeA",
+      "g4:1:pointermove:NodeA:NodeA",
+      "g4:1:pointermove:DiagramFrame:NodeA",
+      "g4:1:pointermove:stage:NodeA",
+      "g5:1:pointermove:NodeA:NodeA",
+      "g5:1:pointermove:DiagramFrame:NodeA",
+      "g5:1:pointermove:stage:NodeA",
+      "g6:1:pointermove:NodeA:NodeA",
+      "g6:1:pointermove:DiagramFrame:NodeA",
+      "g6:1:pointermove:stage:NodeA",
+      "g7:1:pointerup:NodeA:NodeA",
+      "g7:1:pointerup:DiagramFrame:NodeA",
+      "g7:1:pointerup:stage:NodeA",
+      "g12:1:pointermove:BoxB:BoxB",
+      "g12:1:pointermove:NodeB:BoxB",
+      "g12:1:pointermove:DiagramFrame:BoxB",
+      "g12:1:pointermove:stage:BoxB",
+      "g12:1:pointerdown:BoxB:BoxB",
+      "g12:1:pointerdown:NodeB:BoxB",
+      "g12:1:pointerdown:DiagramFrame:BoxB",
+      "g12:1:pointerdown:stage:BoxB",
+      "g12:1:pointermove:NodeB:NodeB",
+      "g12:1:pointermove:DiagramFrame:NodeB",
+      "g12:1:pointermove:stage:NodeB",
+      "g13:1:pointermove:NodeB:NodeB",
+      "g13:1:pointermove:DiagramFrame:NodeB",
+      "g13:1:pointermove:stage:NodeB",
+      "g14:1:pointerup:NodeB:NodeB",
+      "g14:1:pointerup:DiagramFrame:NodeB",
+      "g14:1:pointerup:stage:NodeB"
+    ],
+    "hoverLog": [
+      "1:pointerenter:LabelA",
+      "1:pointerleave:LabelA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxA",
+      "1:pointerenter:BoxB",
+      "1:pointerenter:BoxB",
+      "1:pointerenter:BoxB"
+    ],
+    "accepted": {
+      "generation": 15,
+      "canvasGeneration": 2,
+      "source": "edit",
+      "version": 24,
+      "positions": {
+        "A": {
+          "x": 40,
+          "y": 40,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "B": {
+          "x": 169.13688718636064,
+          "y": 73.43368905759036,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        }
+      },
+      "labels": {
+        "A": "I",
+        "B": "I"
+      },
+      "connector": [
+        {
+          "kind": "M",
+          "x": 84.99999999999999,
+          "y": 64.99999999999999
+        },
+        {
+          "kind": "L",
+          "x": 214.1368871863606,
+          "y": 98.43368905759033
+        }
+      ],
+      "ids": [
+        "Back",
+        "DiagramFrame",
+        "Connector",
+        "NodeA",
+        "BoxA",
+        "LabelA",
+        "NodeB",
+        "BoxB",
+        "LabelB"
+      ],
+      "atlas": {
+        "width": 16,
+        "height": 12,
+        "byteLength": 768,
+        "hash": "2b87f6e5"
+      },
+      "atlasMatchesRenderer": true,
+      "points": {
+        "opaqueA": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          }
+        },
+        "transparentA": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 101.78307153919143,
+            "y": 97.35364505330786
+          }
+        },
+        "opaqueB": {
+          "atlas": {
+            "x": 11,
+            "y": 5
+          },
+          "viewport": {
+            "x": 229.828701416472,
+            "y": 141.1601675614731
+          }
+        },
+        "transparentB": {
+          "atlas": {
+            "x": 10,
+            "y": 5
+          },
+          "viewport": {
+            "x": 227.83509800386676,
+            "y": 141.00033817353471
+          }
+        },
+        "boxA": {
+          "x": 158.39885009520574,
+          "y": 116.94072289805916
+        },
+        "boxB": {
+          "x": 284.45087655988107,
+          "y": 160.58741601828604
+        },
+        "connector": {
+          "x": 192.5597031600641,
+          "y": 123.40820645716335
+        },
+        "clipOutside": {
+          "x": 40.41876459694743,
+          "y": 99.45646066530666
+        },
+        "background": {
+          "x": 12,
+          "y": 12
+        }
+      },
+      "samples": {
+        "opaqueA": {
+          "viewport": {
+            "x": 103.77667495179666,
+            "y": 97.5134744412462
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelA",
+          "hits": [
+            "LabelA",
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentA": {
+          "viewport": {
+            "x": 101.78307153919143,
+            "y": 97.35364505330786
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "opaqueB": {
+          "viewport": {
+            "x": 229.828701416472,
+            "y": 141.1601675614731
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "LabelB",
+          "hits": [
+            "LabelB",
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "transparentB": {
+          "viewport": {
+            "x": 227.83509800386676,
+            "y": 141.00033817353471
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxA": {
+          "viewport": {
+            "x": 158.39885009520574,
+            "y": 116.94072289805916
+          },
+          "rgba": [
+            204,
+            51,
+            51,
+            255
+          ],
+          "hit": "BoxA",
+          "hits": [
+            "BoxA",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "boxB": {
+          "viewport": {
+            "x": 284.45087655988107,
+            "y": 160.58741601828604
+          },
+          "rgba": [
+            51,
+            102,
+            204,
+            255
+          ],
+          "hit": "BoxB",
+          "hits": [
+            "BoxB",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "connector": {
+          "viewport": {
+            "x": 192.5597031600641,
+            "y": 123.40820645716335
+          },
+          "rgba": [
+            255,
+            204,
+            0,
+            255
+          ],
+          "hit": "Connector",
+          "hits": [
+            "Connector",
+            "DiagramFrame",
+            "Back"
+          ]
+        },
+        "clipOutside": {
+          "viewport": {
+            "x": 40.41876459694743,
+            "y": 99.45646066530666
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "viewport": {
+            "x": 12,
+            "y": 12
+          },
+          "rgba": [
+            26,
+            31,
+            41,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        }
+      },
+      "capture": null,
+      "nativeCapture": false,
+      "sceneMatchesTree": true,
+      "backing": {
+        "width": 720,
+        "height": 480
+      }
+    }
+  }
+}

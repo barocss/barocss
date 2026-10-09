@@ -87,3 +87,7 @@ The [`round-join.html`](round-join.html) page authors Scene v19 bevel and round 
 The [`stroke-dash.html`](stroke-dash.html) page authors a Scene v20 path with bounded on/off stroke lengths. It checks WebGL2 on and gap pixels, semantic hit fallthrough, real pointer routing, a transformed dashed path, rejected edit and view rollback, and a v1 document Save/Open on a fresh renderer/tree followed by an offset edit. The [stroke dash observation](evidence/stroke-dash/observation.md) records the browser and file flow.
 
 `miter-join.html` checks Scene v21 bounded miter joins, bevel fallback, pointer hits and document restore.
+
+## Fixed glyph diagram consumer
+
+[`diagram.html`](diagram.html) composes nine public Scene v24 objects: two groups with a box and H/I glyph run, a connector, a transformed clipping frame, and a background. A fixed 16x12 host RGBA8 atlas supplies the glyph pixels. This host does not load a font or shape arbitrary text. Drag uses native canvas capture and public display-tree capture. Each valid edit stages a separate tree, updates the existing renderer, and replaces handles and listeners after admission. Open stages a fresh canvas and restores the saved atlas bytes. Save/Open, restored edits, bounded refusals, PNG decode and Dispose are recorded in [the diagram observation](evidence/diagram/observation.md).
