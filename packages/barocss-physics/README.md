@@ -117,6 +117,14 @@ Optional `broadPhase:'aabb'` filters the existing eligible pair list before narr
 
 `PhysicsError.code` identifies `INVALID_CONFIG`, `INVALID_STEP`, `INVALID_COMMAND`, `INVALID_QUERY`, `INVALID_SNAPSHOT`, `STALE_SOURCE`, `STALE_SNAPSHOT`, `WORLD_LIMIT`, `NUMERIC_LIMIT` or `DISPOSED`.
 
+The root, `/cloth`, `/fluid` and `/fluid-cad` export the same `PhysicsError`
+constructor within one installed package instance. A caller can catch a genuine
+subpath error with the root error class. This does not guarantee identity across
+separate package versions, realms or independently built consumer bundles.
+The compiled root is an ESM bundle that imports sibling `dist/types.js`.
+Keep that file beside `dist/index.js` when serving the compiled root directly.
+Existing bundled browser hosts resolve the sibling during their bundle step.
+
 Limits: 1–32 bodies by default or 1–64 in `large-v1`, at least one dynamic body, 3600 steps, fixed step 1/240–1/30 s. Each position component is within ±10000 m, velocity and gravity components within ±1000 m/s, mass 0.000001–1000000 kg, sphere radius and box half extents 0.0001–1000 m, restitution 0–1. Force and torque components are within ±1000000 N or N·m; linear and angular impulse components are within ±100000 N·s or N·m·s. One step refuses movement or measured penetration above 10 m. Body IDs are unique ASCII identifiers, up to 64 characters, starting with a letter. Contact pairs have ascending IDs; `normalAtoB` points from A to B. See [Issue #751](https://github.com/barocss/barocss/issues/751) for v0 and [PHYS-02 #765](https://github.com/barocss/barocss/issues/765#issuecomment-6058662978) for linear control.
 
 Workspace defaults resolve the root, `/cad-proxy`, `/replay`, `/fluid`, `/fluid-cad` and `/cloth` to `src/*.ts` without a source condition. Browser examples may also bundle source directly. Published entries use the complete `publishConfig` dist map. Explicit compiled checkpoints must resolve transitive own imports from those published maps. See the [shared source consumer](../../examples/workspace-source/README.md) for source-only and compiled-only commands, cache reuse and edit invalidation.
