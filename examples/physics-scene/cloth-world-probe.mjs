@@ -54,7 +54,7 @@ function sceneAdmission() {
   const accessor = scene();
   Object.defineProperty(accessor, 'revision', { enumerable: true, get() { getterCalls++; return 'clothRev1'; } });
   const invalid = [null, undefined, [], 1, 'scene', { ...scene(), extra: true },
-    { ...scene(), [Symbol('extra')]: true }, accessor, Object.assign(Object.create({}), scene()),
+    { ...scene(), [Symbol('extra')]: true }, accessor, Object.assign(Object.create({}), scene()), Object.assign(Object.create(null), scene()),
     { ...scene(), format: 'other' }, { ...scene(), version: 0 }, { ...scene(), version: '1' },
     { ...scene(), basis: 'left-handed-xyz-metres' }, { ...scene(), fixedStepSeconds: 1 / 60 },
     { ...scene(), fixedStepSeconds: Number.NaN }, { ...scene(), profile: 'arbitrary-mesh' }];

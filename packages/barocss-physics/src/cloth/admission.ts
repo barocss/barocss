@@ -9,7 +9,7 @@ export function admitClothScene(value: unknown): string {
   try {
     if (!value || typeof value !== 'object' || Array.isArray(value)) invalid();
     const proto = Object.getPrototypeOf(value);
-    if (proto !== Object.prototype && proto !== null) invalid();
+    if (proto !== Object.prototype) invalid();
     const fields = ['format', 'version', 'revision', 'basis', 'fixedStepSeconds', 'profile'];
     const keys = Reflect.ownKeys(value);
     if (keys.length !== fields.length || keys.some(key => typeof key !== 'string' || !fields.includes(key))) invalid();
