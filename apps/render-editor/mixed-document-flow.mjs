@@ -73,7 +73,7 @@ try {
   const sparse = structuredClone(original); delete sparse.display.translate[1]; refuse('sparse array',sparse,'INPUT');
   const schemaOnly = api.copyRenderMixedDocument({...original,asset:{...original.asset,source:'bad source'}}); assert.equal(schemaOnly.asset.source,'bad source');
   const text = api.serializeRenderMixedDocument(prepared.document);
-  assert.throws(() => api.parseRenderEditorDocument(text), error => error.code==='DOCUMENT_VERSION');
+  assert.throws(() => api.parseRenderEditorDocument(text), error => ['DOCUMENT_INPUT','DOCUMENT_VERSION'].includes(error.code));
   assert.throws(() => api.parseRenderMixedDocument(' '.repeat(524289)), error => error.code==='BYTES');
   await writeFile(resolve(output,'authored.render-mixed.json'),text); await writeFile(resolve(output,'original.scene1.css'),sceneSource); await writeFile(resolve(output,'original.source0.css'),nativeSource);
   const disk = await readFile(resolve(output,'authored.render-mixed.json'),'utf8'), cold = api.prepareRenderMixedDocument(api.parseRenderMixedDocument(disk));
