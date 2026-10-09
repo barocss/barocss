@@ -82,6 +82,10 @@ try {
     assert.equal(cold.ok, true, `${item.key}: ${JSON.stringify(cold.diagnostics)}`);
     assert.deepEqual(cold.model, owned.model);
     assert.deepEqual(cold.model.objects, owned.instances.map(member => member.geometry));
+    assert.equal(report.kind, item.kind, `${item.key}: manifest kind differs from native report`);
+    assert.equal(owned.original.kind, item.kind, `${item.key}: manifest kind differs from original geometry`);
+    assert.deepEqual(cold.model.objects.map(object => object.kind), Array(item.count).fill(item.kind),
+      `${item.key}: manifest kind differs from complete native Model`);
     if (item.count > 4) {
       assert.throws(() => loader.parse(owned.source), /1\.\.4 total native objects/);
       refused.push(`${item.key}: full five-member preview limit`);
