@@ -1,5 +1,5 @@
 import { Canvas2DError, copyImageAsset, validateImageAssetId, validatePoint, validateScene, validateSize, validateView } from './schema.js';
-import type { Color, HitArea, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, NodeV12, NodeV13, NodeV14, NodeV15, NodeV16, NodeV17, NodeV18, NodeV19, NodeV20, NodeV21, NodeV22, PathLinearFill, Point, Scene, Size, SourceRect, Transform, View } from './schema.js';
+import type { Color, HitArea, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, NodeV12, NodeV13, NodeV14, NodeV15, NodeV16, NodeV17, NodeV18, NodeV19, NodeV20, NodeV21, NodeV22, NodeV23, PathLinearFill, PathRadialFill, Point, Scene, Size, SourceRect, Transform, View } from './schema.js';
 import { tessellatePath } from './path.js';
 import type { FillObservation, PathObservation } from './path.js';
 import { createImageGpu, createImageTexture, disposeImageGpu, renderImage, sampledAlpha, sourceRect } from './image.js';
@@ -8,20 +8,22 @@ import { tileSpans } from './tile.js';
 
 type Matrix = [number, number, number, number, number, number];
 type Clip = { left: number; top: number; right: number; bottom: number };
-type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 | NodeV18 | NodeV19 | NodeV20 | NodeV21 | NodeV22;
+type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 | NodeV18 | NodeV19 | NodeV20 | NodeV21 | NodeV22 | NodeV23;
 type DrawNode = RenderNode;
 type Draw = {
   id: string; kind: 'group' | 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun'; node: DrawNode;
   matrix: Matrix; inverse: Matrix; color: Color; vertices: Float32Array; clip: Clip | null; visible: boolean; hitEnabled: boolean;
   observation?: PathObservation; fillObservation?: FillObservation;
   maskVertices?: Float32Array; contours?: Float32Array[]; fillRule?: 'evenodd' | 'nonzero';
-  linear?: PathLinearFill;
+  linear?: PathLinearFill; radial?: PathRadialFill;
   imageAsset?: ImageAsset; imageNode?: ImageNode; imageClamp?: SourceRect; imageHitInverse?: Matrix;
 };
 type Gpu = { program: WebGLProgram; buffer: WebGLBuffer; vao: WebGLVertexArrayObject;
   size: WebGLUniformLocation; view: WebGLUniformLocation; color: WebGLUniformLocation;
-  linearEnabled: WebGLUniformLocation; inverse0: WebGLUniformLocation; inverse1: WebGLUniformLocation;
+  linearEnabled: WebGLUniformLocation; radialEnabled: WebGLUniformLocation;
+  inverse0: WebGLUniformLocation; inverse1: WebGLUniformLocation;
   linearFrom: WebGLUniformLocation; linearDirection: WebGLUniformLocation;
+  radialCenter: WebGLUniformLocation; radialRadius: WebGLUniformLocation;
   startColor: WebGLUniformLocation; endColor: WebGLUniformLocation;
   image: ImageGpu };
 
@@ -40,21 +42,26 @@ const fragmentShader = `#version 300 es
 precision highp float;
 uniform vec4 u_color;
 uniform bool u_linear_enabled;
+uniform bool u_radial_enabled;
 uniform vec3 u_inverse0;
 uniform vec3 u_inverse1;
 uniform vec2 u_linear_from;
 uniform vec2 u_linear_direction;
+uniform vec2 u_radial_center;
+uniform float u_radial_radius;
 uniform vec4 u_start_color;
 uniform vec4 u_end_color;
 in vec2 v_world;
 out vec4 out_color;
 void main() {
   vec4 color = u_color;
-  if (u_linear_enabled) {
+  if (u_linear_enabled || u_radial_enabled) {
     vec3 world = vec3(v_world, 1.0);
     vec2 local = vec2(dot(world, u_inverse0), dot(world, u_inverse1));
-    float t = clamp(dot(local - u_linear_from, u_linear_direction) /
-      dot(u_linear_direction, u_linear_direction), 0.0, 1.0);
+    float t = u_radial_enabled
+      ? clamp(distance(local, u_radial_center) / u_radial_radius, 0.0, 1.0)
+      : clamp(dot(local - u_linear_from, u_linear_direction) /
+        dot(u_linear_direction, u_linear_direction), 0.0, 1.0);
     color = mix(u_start_color, u_end_color, t);
     color.a *= u_color.a;
   }
@@ -85,6 +92,11 @@ function linearOpacity(fill: PathLinearFill, local: Point): number {
   const dx = fill.to.x - fill.from.x, dy = fill.to.y - fill.from.y;
   const t = Math.max(0, Math.min(1,
     ((local.x - fill.from.x) * dx + (local.y - fill.from.y) * dy) / (dx * dx + dy * dy)));
+  return fill.startColor[3] + (fill.endColor[3] - fill.startColor[3]) * t;
+}
+function radialOpacity(fill: PathRadialFill, local: Point): number {
+  const t = Math.max(0, Math.min(1,
+    Math.hypot(local.x - fill.center.x, local.y - fill.center.y) / fill.radius));
   return fill.startColor[3] + (fill.endColor[3] - fill.startColor[3]) * t;
 }
 function rectangle(m: Matrix, width: number, height: number): Float32Array {
@@ -246,6 +258,7 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
         const geometry = tessellatePath(node, matrix, view, dpr, tolerance);
         const fill = 'fill' in node ? node.fill : undefined;
         const linear = fill && 'linear' in fill ? fill.linear : undefined;
+        const radial = fill && 'radial' in fill ? fill.radial : undefined;
         if (linear) {
           const from = point(matrix, linear.from.x, linear.from.y);
           const to = point(matrix, linear.to.x, linear.to.y);
@@ -259,8 +272,23 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
             throw new Canvas2DError('SCENE_LIMIT', 'linear path fill endpoints exceed device precision');
           }
         }
+        if (radial) {
+          const center = point(matrix, radial.center.x, radial.center.y);
+          const edgeX = point(matrix, radial.center.x + radial.radius, radial.center.y);
+          const edgeY = point(matrix, radial.center.x, radial.center.y + radial.radius);
+          const device = (p: Point) => ({ x: (p.x * view.zoom + view.panX) * dpr,
+            y: (p.y * view.zoom + view.panY) * dpr });
+          const a = device(center), b = device(edgeX), c = device(edgeY);
+          if ([...Object.values(center), ...Object.values(edgeX), ...Object.values(edgeY),
+            ...Object.values(a), ...Object.values(b), ...Object.values(c), ...Object.values(inv)].some(v =>
+            !Number.isFinite(v) || Math.abs(v) > 1e9) ||
+            (Math.fround(a.x) === Math.fround(b.x) && Math.fround(a.y) === Math.fround(b.y)) ||
+            (Math.fround(a.x) === Math.fround(c.x) && Math.fround(a.y) === Math.fround(c.y))) {
+            throw new Canvas2DError('SCENE_LIMIT', 'radial path fill exceeds device precision');
+          }
+        }
         if (geometry.fill) add({ id: node.id, kind: 'path', node, matrix, inverse: inv,
-          color: fill && 'color' in fill ? fill.color : [1, 1, 1, 1], linear,
+          color: fill && 'color' in fill ? fill.color : [1, 1, 1, 1], linear, radial,
           vertices: geometry.fill.coverVertices, maskVertices: geometry.fill.maskVertices,
           contours: geometry.fill.contours,
           fillRule: fill ? fill.rule : 'evenodd',
@@ -293,6 +321,7 @@ function contains(draw: Draw, world: Point): boolean {
   }
   const p = point(draw.inverse, world.x, world.y);
   if (draw.linear && linearOpacity(draw.linear, p) <= 0) return false;
+  if (draw.radial && radialOpacity(draw.radial, p) <= 0) return false;
   const node = draw.node;
   const imageNode = draw.imageNode ?? (node.kind === 'image' ? node : null);
   if (draw.imageClamp && imageNode &&
@@ -368,21 +397,26 @@ function createGpu(gl: WebGL2RenderingContext): Gpu {
     const view = gl.getUniformLocation(program, 'u_view');
     const color = gl.getUniformLocation(program, 'u_color');
     const linearEnabled = gl.getUniformLocation(program, 'u_linear_enabled');
+    const radialEnabled = gl.getUniformLocation(program, 'u_radial_enabled');
     const inverse0 = gl.getUniformLocation(program, 'u_inverse0');
     const inverse1 = gl.getUniformLocation(program, 'u_inverse1');
     const linearFrom = gl.getUniformLocation(program, 'u_linear_from');
     const linearDirection = gl.getUniformLocation(program, 'u_linear_direction');
+    const radialCenter = gl.getUniformLocation(program, 'u_radial_center');
+    const radialRadius = gl.getUniformLocation(program, 'u_radial_radius');
     const startColor = gl.getUniformLocation(program, 'u_start_color');
     const endColor = gl.getUniformLocation(program, 'u_end_color');
-    if (!buffer || !vao || !size || !view || !color || !linearEnabled || !inverse0 || !inverse1 ||
-      !linearFrom || !linearDirection || !startColor || !endColor) {
+    if (!buffer || !vao || !size || !view || !color || !linearEnabled || !radialEnabled ||
+      !inverse0 || !inverse1 || !linearFrom || !linearDirection || !radialCenter ||
+      !radialRadius || !startColor || !endColor) {
       throw new Canvas2DError('WEBGL_UNAVAILABLE', 'cannot create GPU state');
     }
     gl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
     gl.bindVertexArray(null); gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    return { program, buffer, vao, size, view, color, linearEnabled, inverse0, inverse1,
-      linearFrom, linearDirection, startColor, endColor, image: createImageGpu(gl) };
+    return { program, buffer, vao, size, view, color, linearEnabled, radialEnabled, inverse0, inverse1,
+      linearFrom, linearDirection, radialCenter, radialRadius, startColor, endColor,
+      image: createImageGpu(gl) };
   } catch (error) {
     if (vao) gl.deleteVertexArray(vao);
     if (buffer) gl.deleteBuffer(buffer);
@@ -698,14 +732,24 @@ export class Canvas2DRenderer {
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
       }
       gl.uniform1i(gpu.linearEnabled, draw.linear ? 1 : 0);
-      if (draw.linear) {
-        const inverse = draw.inverse, linear = draw.linear;
+      gl.uniform1i(gpu.radialEnabled, draw.radial ? 1 : 0);
+      if (draw.linear || draw.radial) {
+        const inverse = draw.inverse;
         gl.uniform3f(gpu.inverse0, inverse[0], inverse[2], inverse[4]);
         gl.uniform3f(gpu.inverse1, inverse[1], inverse[3], inverse[5]);
+      }
+      if (draw.linear) {
+        const linear = draw.linear;
         gl.uniform2f(gpu.linearFrom, linear.from.x, linear.from.y);
         gl.uniform2f(gpu.linearDirection, linear.to.x - linear.from.x, linear.to.y - linear.from.y);
         gl.uniform4fv(gpu.startColor, linear.startColor);
         gl.uniform4fv(gpu.endColor, linear.endColor);
+      } else if (draw.radial) {
+        const radial = draw.radial;
+        gl.uniform2f(gpu.radialCenter, radial.center.x, radial.center.y);
+        gl.uniform1f(gpu.radialRadius, radial.radius);
+        gl.uniform4fv(gpu.startColor, radial.startColor);
+        gl.uniform4fv(gpu.endColor, radial.endColor);
       }
       gl.uniform4fv(gpu.color, draw.color);
       gl.bufferData(gl.ARRAY_BUFFER, draw.vertices, gl.STREAM_DRAW);
