@@ -87,3 +87,11 @@ The [`round-join.html`](round-join.html) page authors Scene v19 bevel and round 
 The [`stroke-dash.html`](stroke-dash.html) page authors a Scene v20 path with bounded on/off stroke lengths. It checks WebGL2 on and gap pixels, semantic hit fallthrough, real pointer routing, a transformed dashed path, rejected edit and view rollback, and a v1 document Save/Open on a fresh renderer/tree followed by an offset edit. The [stroke dash observation](evidence/stroke-dash/observation.md) records the browser and file flow.
 
 `miter-join.html` checks Scene v21 bounded miter joins, bevel fallback, pointer hits and document restore.
+
+## Public atlas game composition
+
+[`game.html`](game.html) composes the public atlas, animation, ticker, display tree and pointer APIs on a 320×200 logical canvas at DPR2. Build the package and run the consumer type check using the commands above, then open `/packages/barocss-canvas2d/consumer/game.html` on the local HTTP server. The committed PNG is fetched through the bounded URL loader; its RGBA bytes are explicitly registered with the renderer. Atlas metadata does not register a texture.
+
+Play/Pause controls host scheduling. Step advances one 100 ms animation frame while paused. Drag the actor over one of three tokens and release to collect it once; the score is host state. Reset pauses, restores frame0 and pose, and shows all tokens with score0. Input converts CSS → logical viewport → world → parent-local coordinates and uses both DOM and display-tree pointer capture. Visibility loss pauses and releases drag. Dispose detaches listeners and ends ticker/animation/renderer lifetime; there is no DisplayTree dispose API. The host ignores load results after cancellation or disposal.
+
+This consumer uses positive group transforms and existing public exports. It does not use transformed Frame clip, SVG export, Physics, automatic text layout or a new Application facade. It imports compiled public entries and is checked against their declarations. The [native observation](evidence/game/observation.md) and compact browser data record executed Node22/types/timing and actual Chromium155/WebGL2 controls, pointer/pixels and teardown. Native and Integration acceptance remain separate.

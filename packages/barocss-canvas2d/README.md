@@ -240,3 +240,7 @@ The [package-local consumers](consumer/README.md) import the two public `@barocs
 `createSpriteAtlas(imageId, imageSize, entries)` validates 1..64 named source-pixel crops inside one host-owned image. `frame(name)` and `sequence(names)` return copies suitable for `createSpriteAnimation`; the host registers the image and drives time. It does not parse third-party spritesheet formats.
 
 Scene v7 adds a required normalized RGB `tint` to image nodes. `createSprite` defaults omitted tint to white, and `SpriteHandle.setTint` changes one sprite without copying its asset. Older Scene versions still parse and render with effective white tint; display-tree reconstruction accepts v6–v10, upgrading absent tint, blend mode, visibility and alpha to white, normal, true and 1 in v10 snapshots.
+
+### Composed atlas game host
+
+See [the game consumer](consumer/game.html) and [run/lifetime instructions](consumer/README.md#public-atlas-game-composition) for a small public-API app combining bounded PNG loading, named atlas frames, host-driven animation/ticker, captured drag and explicit teardown. Its score/token logic is host-owned and is not serialized library state.

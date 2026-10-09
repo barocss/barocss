@@ -1,0 +1,159 @@
+{
+  "browser": "HeadlessChrome155/WebGL2",
+  "logicalSize": {
+    "width": 320,
+    "height": 200
+  },
+  "backingSize": {
+    "width": 640,
+    "height": 400
+  },
+  "dpr": 2,
+  "outsideCapturedDrag": {
+    "capture": "Actor",
+    "dom": true,
+    "routes": [
+      "1:pointermove:Actor:Actor",
+      "1:pointermove:Actor:World",
+      "1:pointermove:Actor:stage",
+      "1:pointermove:Actor:Actor",
+      "1:pointermove:Actor:World",
+      "1:pointermove:Actor:stage"
+    ],
+    "hover": [
+      "1:pointerenter:Actor",
+      "1:pointerleave:Actor"
+    ],
+    "position": {
+      "x": 244,
+      "y": 142
+    }
+  },
+  "pickup": {
+    "repeatScore": 1,
+    "score": 3,
+    "collected": [
+      "Token1",
+      "Token2",
+      "Token3"
+    ],
+    "pickups": 3
+  },
+  "pauseStable": true,
+  "pausedPendingFrames": 0,
+  "transparentClick": {
+    "sample": {
+      "point": {
+        "x": 83.76220768555397,
+        "y": 67.45087473050513
+      },
+      "rgba": [
+        32,
+        40,
+        56,
+        255
+      ],
+      "hit": "Back",
+      "hits": [
+        "Back"
+      ]
+    },
+    "routes": [
+      "1:pointermove:Back:Back",
+      "1:pointermove:Back:stage",
+      "1:pointerdown:Back:Back",
+      "1:pointerdown:Back:stage",
+      "1:pointerup:Back:Back",
+      "1:pointerup:Back:stage"
+    ]
+  },
+  "teardown": {
+    "before": {
+      "loadsStarted": 1,
+      "loadsDecoded": 1,
+      "loadsIgnored": 0,
+      "rendererCreations": 1,
+      "frameRequests": 1177,
+      "frameCancels": 2,
+      "nativeCallbacks": 1175,
+      "tickCallbacks": 1175,
+      "submits": 1206,
+      "renders": 1208,
+      "steps": 2,
+      "resets": 3,
+      "pointerEvents": 37,
+      "pickups": 3,
+      "staleCallbacks": 0,
+      "disposeCalls": 1,
+      "errors": 0
+    },
+    "after": {
+      "loadsStarted": 1,
+      "loadsDecoded": 1,
+      "loadsIgnored": 0,
+      "rendererCreations": 1,
+      "frameRequests": 1177,
+      "frameCancels": 2,
+      "nativeCallbacks": 1175,
+      "tickCallbacks": 1175,
+      "submits": 1206,
+      "renders": 1208,
+      "steps": 2,
+      "resets": 3,
+      "pointerEvents": 37,
+      "pickups": 3,
+      "staleCallbacks": 0,
+      "disposeCalls": 2,
+      "errors": 0
+    },
+    "pending": 0,
+    "state": "disposed",
+    "stable": true
+  },
+  "cancelThenLoad": {
+    "canceled": {
+      "state": "canceled",
+      "counts": {
+        "loadsStarted": 1,
+        "loadsDecoded": 1,
+        "loadsIgnored": 1,
+        "rendererCreations": 0,
+        "frameRequests": 0,
+        "frameCancels": 0,
+        "nativeCallbacks": 0,
+        "tickCallbacks": 0,
+        "submits": 0,
+        "renders": 0,
+        "steps": 0,
+        "resets": 0,
+        "pointerEvents": 0,
+        "pickups": 0,
+        "staleCallbacks": 0,
+        "disposeCalls": 0,
+        "errors": 0
+      }
+    },
+    "loaded": {
+      "state": "ready",
+      "counts": {
+        "loadsStarted": 2,
+        "loadsDecoded": 2,
+        "loadsIgnored": 1,
+        "rendererCreations": 1,
+        "frameRequests": 0,
+        "frameCancels": 0,
+        "nativeCallbacks": 0,
+        "tickCallbacks": 0,
+        "submits": 1,
+        "renders": 1,
+        "steps": 0,
+        "resets": 0,
+        "pointerEvents": 0,
+        "pickups": 0,
+        "staleCallbacks": 0,
+        "disposeCalls": 0,
+        "errors": 0
+      }
+    }
+  }
+}
