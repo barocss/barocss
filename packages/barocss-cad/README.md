@@ -7250,3 +7250,41 @@ trims, periodic interpolation and whole-Surface validity need separate contracts
 ```sh
 node examples/cad-nurbs/surface-interpolation-demo.mjs --source /tmp/cad-surface-interpolation
 ```
+
+## Point-based Curve parameter selection
+
+`buildParameterizedInterpolatingCurve` selects parameters for supplied XYZ
+points, then calls the native through-point Curve builder. The caller chooses
+`uniform`, `chord-length` or `centripetal` and supplies the requested domain.
+These choices can produce different interpolating Curves from the same points.
+
+```ts
+const interpolation = cad.buildParameterizedInterpolatingCurve([
+  [0, 0, 0], [1, 2, 0], [3, 2, 1], [9, 0, 2], [10, 4, 1],
+], {
+  curveId: 'point_curve', degree: 3,
+  method: 'centripetal', domain: [-3, 7],
+  maximumMetricEvaluations: 15,
+  maximumBasisEvaluations: 256,
+  maximumEliminationSteps: 120,
+});
+cad.validateParameterizedInterpolatingCurve(interpolation);
+```
+
+Uniform selection uses equal increments. Chord-length selection uses the
+distance between consecutive authored points. Centripetal selection uses the
+square root of that distance. The increments determine interior fractions,
+which map to the explicit requested domain. Endpoint parameter bits remain
+exact copies of the supplied domain. The report retains distances, units,
+increments, fractions and actual native interpolation data.
+
+The measured chords belong to the authored point sequence. They are not the
+generated Curve's arc length. No method guarantees the best shape, regularity
+or absence of loops. Repeated adjacent points refuse distance-based methods;
+uniform selection can retain them. Lost cumulative contributions, collapsed
+mapped parameters, uncertain native pivots and insufficient budgets return
+no replacement result.
+
+```sh
+node examples/cad-nurbs/curve-parameterization-demo.mjs --source /tmp/cad-parameters
+```
