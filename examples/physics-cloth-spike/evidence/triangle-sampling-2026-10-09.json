@@ -1,0 +1,23 @@
+{
+  "result": "measured",
+  "peakSampledPenetrationM": 0.0013840839157666096,
+  "peakStep": 28,
+  "snapshots": [
+    {
+      "step": 0,
+      "sampledPenetrationM": 0
+    },
+    {
+      "step": 60,
+      "sampledPenetrationM": 0.0012793519802418718
+    },
+    {
+      "step": 240,
+      "sampledPenetrationM": 0.0004585823962817148
+    }
+  ],
+  "samplesPerTriangle": 4,
+  "triangles": 512,
+  "continuousTriangleCollision": false,
+  "codeHead": "88b25604821ea73dce8fb883a02253e333ba4aa5"
+}
