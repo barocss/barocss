@@ -273,3 +273,7 @@ Each successful tick runs app update listeners, snapshots the tree, admits the S
 An invalid Scene admission retains the renderer's previously accepted frame. Successful tree, asset or view changes before that failure are not rolled back. Repair the data and explicitly render or restart. Callback errors halt scheduling and propagate unchanged. The existing ticker retains first/resume delta0, capped deltaMS100 and its late-callback guard.
 
 `app.dispose()` removes its listeners and disposes ticker then renderer. It is idempotent and attempts renderer cleanup even if host scheduler cancellation throws. Later app methods refuse DISPOSED. Tree handles are CPU objects with their existing lifetime; Application disposal does not invalidate them. Host DOM listeners, capture, file URLs and animation controllers remain host-owned. See `consumer/application.html` and its focused evidence.
+
+### Composed atlas game host
+
+See [the game consumer](consumer/game.html) and [run/lifetime instructions](consumer/README.md#public-atlas-game-composition) for a small public-API app combining bounded PNG loading, named atlas frames, host-driven animation/ticker, captured drag and explicit teardown. Its score/token logic is host-owned and is not serialized library state.

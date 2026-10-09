@@ -67,6 +67,7 @@
     "radial-fill.mjs",
     "background.mjs",
     "transformed-clip.mjs",
-    "application.mjs"
+    "application.mjs",
+    "game.mjs"
   ]
 }
