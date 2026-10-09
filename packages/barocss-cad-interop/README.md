@@ -543,6 +543,18 @@ Run `node examples/boolean-extrusion-feature-graph-url-verify.mjs --source
 files over local HTTP, 21 progress events and 14 refusal cases. No
 renderer, packed npm or publication follows from this URL flow.
 
+The same direct and URL readers also accept the seven saved CAD #915
+parameter lifecycle graph files. They preserve the final authored parameter
+table, revision and complete evaluated native result. The host can call
+the public CAD `transactBooleanExtrusionFeatureGraphParameters` on a loaded
+result, serialize only the edited authored graph and cold-read it through
+the same URL reader. Run
+`node examples/boolean-extrusion-parameter-lifecycle-loader-verify.mjs --source
+<saved-915-directory>` after the CAD and interop builds. This checks the
+seven original files against their paired native results, a new height
+5→6 edit, cold HTTP read and refusal retention. The separate CAD #922
+feature-node lifecycle and renderer output are not part of this check.
+
 ### Display native filled Boolean extrusion Shells in Three.js
 
 The optional `./three-boolean-extrusion-mesh` entry consumes the complete
