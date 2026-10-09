@@ -2039,3 +2039,27 @@ objects. The original section Curves, compatible U bases and complete
 loft Surface remain authoritative. The 8×8 meshes do not certify
 arbitrary section matching, guides, caps, Shell/Solid quality, other
 engine parity or npm release readiness.
+
+## Native translational Sweep Surfaces in Three.js
+
+`examples/translational-sweep-three-data/` holds six byte-exact CAD #934
+source0 files. Each retains its original profile Curve, rail Curve and
+fixed-orientation rational translational Sweep Surface. Five produce 8×8
+display meshes; the valid native zero-translation Surface must refuse
+collapsed display triangles. The Node verifier checks the six original
+owned results with the public CAD validator, cold source0 compilation,
+exact file hashes, native Surface probes, five neutral/Three mesh buffers,
+the real numeric rail edit and the authentic display refusal:
+
+```sh
+node packages/barocss-cad-interop/examples/translational-sweep-three-verify.mjs /Users/user/.barocss-ai/v3/evidence-934-cad/integration/demo-output
+```
+
+Serve `examples/translational-sweep-three.html` through the local Vite
+server for the headed Three.js WebGL2 flow. It fetches all six saved files
+over HTTP, spaces only the five accepted display Groups, checks their
+visible Meshes, retains the frame after invalid candidates, and releases
+only adapter-owned resources. The original profile, rail, native Sweep
+Surface and U/V domains remain authoritative. Constructor Curves are not
+B-Rep boundaries. The 8×8 meshes do not certify moving frames, global
+regularity, caps, Shell/Solid quality, other engine parity or npm release.
