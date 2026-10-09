@@ -677,6 +677,29 @@ checks distinct height and edited frames, checks empty frames, and exercises
 true Curve edges, invalid selections and owned display cleanup. These are
 separate output displays; they do not certify a joined CAD assembly or Solid.
 
+### Display each authored fan-out output in Babylon.js
+
+The same graph reader and qualified mesh bridge can feed the existing
+`./babylon-boolean-extrusion-mesh` adapter. Select one exact feature and
+output slot per display. The host owns its right-handed Scene, Engine,
+canvas and authored graph. Use the explicit `authored-xyz-matches-rhyup`
+basis and `0.001` scene units per millimetre. The shared Face and Boolean
+results remain native inputs; overlapping extrusion leaves are separate
+Shell displays.
+
+Run `node examples/boolean-extrusion-fanout-babylon-verify.mjs --source
+<saved-927-directory>` after the CAD and interop builds. It reads all six
+exact #927 saved authored files and current paired results through local
+HTTP, then checks each selected leaf against direct CAD tessellation and
+Babylon NullEngine face, CAD UV and true Curve edge buffers. The local test
+server closes each response connection because native evaluation between
+requests can outlast a keep-alive interval. This does not change the public
+URL reader. `examples/boolean-extrusion-fanout-babylon.html` loads the three
+copied authentic #927 files in headed Babylon WebGL2 and measures original,
+edited and empty sibling frames, separate true edges, refusals and owned
+cleanup. This example does not add a Babylon file loader or claim a joined
+assembly, Solid, Pixi3D fan-out or package publication.
+
 ### Display native filled Boolean extrusion Shells in Three.js
 
 The optional `./three-boolean-extrusion-mesh` entry consumes the complete
