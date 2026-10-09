@@ -1,0 +1,2 @@
+export function encodeF64(values){const bytes=new Uint8Array(values.length*8),view=new DataView(bytes.buffer);for(let i=0;i<values.length;i++)view.setFloat64(i*8,values[i],true);return bytes;}
+export function decodeF64(bytes){if(bytes.byteLength%8)throw new Error('Invalid F64 byte count');const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength),out=new Float64Array(bytes.byteLength/8);for(let i=0;i<out.length;i++)out[i]=view.getFloat64(i*8,true);return out;}
