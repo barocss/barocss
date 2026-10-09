@@ -200,6 +200,9 @@ const session = createCadEditorSession(parseCadDocument('{}').document);
 const props: CadEditorProps = { session, displayOptions: { viewer: {mmToSceneUnit:0.01,background:[0.07,0.08,0.10]}, document: {basis:'authored-xyz-matches-rhyup',native:{sourceVersion:0,countU:17,countV:17,unitsPerMillimeter:1,curveDisplay:{chordToleranceMM:0.1,maxSegments:64,maxDepth:8}},bodyIds:['surface_body','curve_body']} }, onDisplay: receipt => {const index:number = receipt.readIndex; const hash:string = receipt.pixelHash;}, onAccepted: accepted => {const generation:number=accepted.generation;} };
 const element = <CadEditor {...props}/>;
 const candidate: CadEditorCandidate | null = session.prepareApply();
+const decision = session.requestSelection({bodyId:'surface_body',uIndex:1,vIndex:1});
+if (decision) session.resolveSelectionTransition(decision.token, 'cancel');
+const selectedBody:string|null = session.getSnapshot().selectedBodyId;
 `);
     const consumerProgram = ts.createProgram([consumerPath], {
       target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,moduleResolution:ts.ModuleResolutionKind.Bundler,

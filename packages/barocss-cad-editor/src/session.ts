@@ -1,4 +1,5 @@
 import {
+  CadReferenceDiagnosticCode, CadReferenceError,
   compileCadModel, createCadDocument, createCadGeometryReference, editSurfaceControlNet,
   parseCadDocument, resolveCadGeometryReference, serializeCadDocument,
   validateCadDocumentResult, validateCurve, validateSurface,
@@ -7,7 +8,7 @@ import type { CadDocumentResult, CadDocumentV1, Surface, SurfacePoleEdit } from 
 import { CadEditorError } from './types.js';
 import type {
   CadEditorCandidate, CadEditorDiagnosticCode, CadEditorPoleField, CadEditorSelectedPole,
-  CadEditorSession, CadEditorSnapshot, CadEditorSurfaceSelection,
+  CadEditorSelectionTarget, CadEditorSelectionTransition, CadEditorSession, CadEditorSnapshot, CadEditorSurfaceSelection,
 } from './types.js';
 
 const FILE_LIMIT = 524288;
@@ -52,7 +53,8 @@ function native<T>(action: () => T, message: string, documentId?: string,
   context: CadEditorError['context'] = {}): T {
   try { return action(); } catch (cause) {
     if (cause instanceof CadEditorError) throw cause;
-    throw new CadEditorError('NATIVE', message, { documentId, ...context }, cause);
+    const code = cause instanceof CadReferenceError && cause.code === CadReferenceDiagnosticCode.STALE ? 'STALE' : 'NATIVE';
+    throw new CadEditorError(code, message, { documentId, ...context }, cause);
   }
 }
 
@@ -119,7 +121,10 @@ function nextRevision(revision: number): number {
 }
 
 interface HistoryState { document: CadDocumentV1; bytes: number }
-interface Prepared { candidate: CadEditorCandidate; historyIndex?: number }
+interface Prepared {
+  candidate: CadEditorCandidate; historyIndex?: number;
+  selectionTarget?: CadEditorSelectionTarget; transitionToken?: string;
+}
 
 /** Create an owned source-authoritative editor. No renderer or browser resources are created. */
 export function createCadEditorSession(initialDocument: CadDocumentV1): CadEditorSession {
@@ -128,7 +133,9 @@ export function createCadEditorSession(initialDocument: CadDocumentV1): CadEdito
   let tokenSequence = 0;
   let generation = 0;
   let disposed = false;
+  let selectedBodyId: string | null = null;
   let selection: CadEditorSelectedPole | null = null;
+  let selectionTransition: CadEditorSelectionTransition | null = null;
   let pending: CadEditorSnapshot['pending'] = {};
   let prepared: Prepared | null = null;
   let history: HistoryState[] = [{ document: copy(accepted.document), bytes: fileBudget(serialize(accepted)) }];
@@ -152,32 +159,77 @@ export function createCadEditorSession(initialDocument: CadDocumentV1): CadEdito
   const newToken = () => `cad-editor-${sessionId}-${++tokenSequence}`;
   const historyBytes = () => history.reduce((total, state) => total + state.bytes, 0);
   const snapshot = (): CadEditorSnapshot => copy({
-    accepted, generation, selection, pending, candidate: prepared?.candidate ?? null,
+    accepted, generation, selectedBodyId, selection, selectionTransition, pending, candidate: prepared?.candidate ?? null,
     history: { index: historyIndex, count: history.length, bytes: historyBytes(), canUndo: historyIndex > 0, canRedo: historyIndex < history.length - 1 },
     dirty, downloadStatus, disposed, lastProvenance,
   });
   const select = (input: CadEditorSurfaceSelection, document = accepted): CadEditorSelectedPole => {
-    requireEditor(input !== null && typeof input === 'object' && typeof input.bodyId === 'string', 'INPUT', 'Surface body selection is required.');
-    const reference = native(() => createCadGeometryReference(document, { bodyId: input.bodyId }), 'Native body reference creation failed.', document.document.documentId).reference;
-    const resolved = native(() => resolveCadGeometryReference(document, reference), 'Native body reference resolution failed.', document.document.documentId);
-    requireEditor(resolved.geometry.kind === 'surface', 'UNSUPPORTED', 'Curve poles are read-only in this editor.');
+    const context = { documentId: document.document.documentId, bodyId: input?.bodyId, field: 'selection-transition' };
+    requireEditor(input !== null && typeof input === 'object' && typeof input.bodyId === 'string', 'INPUT', 'Surface body selection is required.', context);
+    const reference = native(() => createCadGeometryReference(document, { bodyId: input.bodyId }), 'Native body reference creation failed.', document.document.documentId, context).reference;
+    const resolved = native(() => resolveCadGeometryReference(document, reference), 'Native body reference resolution failed.', document.document.documentId, context);
+    requireEditor(resolved.geometry.kind === 'surface', 'UNSUPPORTED', 'Curve poles are read-only in this editor.', context);
     const surface = resolved.geometry;
     const countU = surface.controlPoints.length, countV = surface.controlPoints[0].length;
     requireEditor(Number.isInteger(input.uIndex) && input.uIndex >= 0 && input.uIndex < countU
-      && Number.isInteger(input.vIndex) && input.vIndex >= 0 && input.vIndex < countV, 'INPUT', 'Pole indices must be inside the original Surface grid.');
+      && Number.isInteger(input.vIndex) && input.vIndex >= 0 && input.vIndex < countV, 'INPUT', 'Pole indices must be inside the original Surface grid.', context);
     const point = surface.controlPoints[input.uIndex][input.vIndex];
     return { bodyId: input.bodyId, uIndex: input.uIndex, vIndex: input.vIndex, reference, countU, countV,
       accepted: { xMM: point[0], yMM: point[1], zMM: point[2], weight: surface.weights[input.uIndex][input.vIndex] } };
   };
+  const resolveTarget = (input: CadEditorSelectionTarget, document = accepted) => {
+    const context = { documentId: document.document.documentId, bodyId: input?.bodyId, field: 'selection-transition' };
+    requireEditor(input !== null && typeof input === 'object' && !Array.isArray(input)
+      && typeof input.bodyId === 'string', 'INPUT', 'Select an existing document body.', context);
+    requireEditor(document.document.bodies.some(body => body.id === input.bodyId), 'INPUT', 'The selected body is missing.', context);
+    const reference = input.reference === undefined
+      ? native(() => createCadGeometryReference(document, { bodyId: input.bodyId }), 'Native body reference creation failed.', document.document.documentId, context).reference
+      : native(() => resolveCadGeometryReference(document, input.reference!), 'Native selection reference resolution failed.', document.document.documentId, context).reference;
+    requireEditor(reference.bodyId === input.bodyId, 'INPUT', 'The native reference must match the selected body.', context);
+    const resolved = native(() => resolveCadGeometryReference(document, reference), 'Native body reference resolution failed.', document.document.documentId, context);
+    if (resolved.geometry.kind === 'curve') {
+      requireEditor(input.uIndex === undefined && input.vIndex === undefined, 'INPUT', 'Curve selection has no editable pole indices.', context);
+      return { target: { bodyId: input.bodyId, reference } satisfies CadEditorSelectionTarget, pole: null };
+    }
+    requireEditor((input.uIndex === undefined) === (input.vIndex === undefined), 'INPUT', 'Provide both Surface pole indices.', context);
+    const uIndex = input.uIndex === undefined ? (selection?.bodyId === input.bodyId ? selection.uIndex : 0) : input.uIndex;
+    const vIndex = input.vIndex === undefined ? (selection?.bodyId === input.bodyId ? selection.vIndex : 0) : input.vIndex;
+    const pole = select({ bodyId: input.bodyId, uIndex, vIndex }, document);
+    return { target: { bodyId: input.bodyId, uIndex, vIndex, reference } satisfies CadEditorSelectionTarget, pole };
+  };
+  const switchTarget = (input: CadEditorSelectionTarget) => {
+    const resolved = resolveTarget(input);
+    selectedBodyId = resolved.target.bodyId; selection = resolved.pole;
+  };
+  const requestSelection = (input: CadEditorSelectionTarget): CadEditorSelectionTransition | null => {
+    live();
+    const resolved = resolveTarget(input);
+    if (resolved.target.bodyId === selectedBodyId && (resolved.pole === null ? selection === null
+      : selection !== null && selection.uIndex === resolved.pole.uIndex && selection.vIndex === resolved.pole.vIndex)) return null;
+    prepared = null;
+    if (Object.keys(pending).length > 0) {
+      selectionTransition = { token: newToken(), baseGeneration: generation, target: copy(resolved.target) };
+      const returned = copy(selectionTransition); emit(); return returned;
+    }
+    selectedBodyId = resolved.target.bodyId; selection = resolved.pole; selectionTransition = null; emit(); return null;
+  };
+  const requireResolvedDraft = () => requireEditor(Object.keys(pending).length === 0 && selectionTransition === null,
+    'INPUT', 'Apply or discard the draft before Open or history.',
+    { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: 'selection-transition' });
   const prepare = (kind: CadEditorCandidate['kind'], result: CadDocumentResult,
-    provenance: CadEditorCandidate['provenance'] = [], targetIndex?: number): CadEditorCandidate => {
-    prepared = { candidate: { kind, result, provenance, token: newToken(), baseGeneration: generation }, historyIndex: targetIndex };
+    provenance: CadEditorCandidate['provenance'] = [], targetIndex?: number,
+    postSelection?: CadEditorSelectionTransition): CadEditorCandidate => {
+    prepared = { candidate: { kind, result, provenance, token: newToken(), baseGeneration: generation }, historyIndex: targetIndex,
+      selectionTarget: postSelection === undefined ? undefined : {
+        bodyId: postSelection.target.bodyId, uIndex: postSelection.target.uIndex, vIndex: postSelection.target.vIndex,
+      }, transitionToken: postSelection?.token };
     const returned = copy(prepared.candidate);
     emit();
     return returned;
   };
   const restore = (direction: -1 | 1): CadEditorCandidate => {
     live();
+    requireResolvedDraft();
     invalidatePrepared();
     const targetIndex = historyIndex + direction;
     requireEditor(targetIndex >= 0 && targetIndex < history.length, 'INPUT', 'This history direction is unavailable.');
@@ -192,6 +244,35 @@ export function createCadEditorSession(initialDocument: CadDocumentV1): CadEdito
     const result = admit(native(() => createCadDocument(document), 'Native history reconstruction failed.', document.documentId));
     return prepare(direction < 0 ? 'undo' : 'redo', result, [], targetIndex);
   };
+  const prepareApply = (): CadEditorCandidate | null => {
+    live(); requireEditor(selection !== null, 'INPUT', 'Select an original Surface pole first.');
+    invalidatePrepared();
+    const transition = selectionTransition;
+    if (Object.keys(pending).length === 0) { prepared = null; emit(); return null; }
+    const edit: SurfacePoleEdit = { uIndex: selection.uIndex, vIndex: selection.vIndex };
+    for (const field of FIELDS) if (Object.hasOwn(pending, field)) {
+      const text = pending[field]!.trim();
+      const context = { documentId: accepted.document.documentId, bodyId: selection.bodyId, field };
+      requireEditor(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text), 'INPUT', 'Pole input must be a decimal or exponent number.', context);
+      const value = Number(text);
+      requireEditor(Number.isFinite(value), 'INPUT', 'Pole input must be finite.', context);
+      edit[field] = value;
+    }
+    const resolved = native(() => resolveCadGeometryReference(accepted, selection!.reference), 'Native selected Surface resolution failed.', accepted.document.documentId);
+    // Finite authored scalars reach the actual native complete-grid/range validator.
+    const edited = native(() => editSurfaceControlNet(resolved.geometry as Surface, { poleEdits: [edit] }),
+      'Native Surface control-net edit failed.', accepted.document.documentId, { bodyId: selection.bodyId });
+    if (edited.provenance.every(pole => pole.changedFields.length === 0)) {
+      if (transition !== null) switchTarget(transition.target);
+      pending = {}; prepared = null; selectionTransition = null; emit(); return null;
+    }
+    const document = copy(accepted.document);
+    document.revision = nextRevision(document.revision);
+    document.assets = document.assets.map(asset => asset.id === selection!.reference.assetId
+      ? { ...asset, source: edited.source, revision: nextRevision(asset.revision) } : asset);
+    const result = admit(native(() => createCadDocument(document), 'Native edited document creation failed.', document.documentId));
+    return prepare('apply', result, edited.provenance, undefined, transition ?? undefined);
+  };
 
   return {
     getSnapshot: snapshot,
@@ -199,45 +280,36 @@ export function createCadEditorSession(initialDocument: CadDocumentV1): CadEdito
       live(); requireEditor(typeof listener === 'function', 'INPUT', 'A subscription listener is required.');
       listeners.add(listener); return () => { listeners.delete(listener); };
     },
+    requestSelection,
+    resolveSelectionTransition(token, choice) {
+      live();
+      const context = { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: 'selection-transition' };
+      requireEditor(selectionTransition !== null && selectionTransition.token === token
+        && selectionTransition.baseGeneration === generation, 'STALE', 'The selection decision is no longer current.', context);
+      requireEditor(choice === 'apply' || choice === 'discard' || choice === 'cancel', 'INPUT', 'Choose Apply, Discard or Cancel.', context);
+      if (choice === 'apply') return prepareApply();
+      if (choice === 'discard') {
+        switchTarget(selectionTransition.target);
+        pending = {};
+      }
+      selectionTransition = null; prepared = null; emit(); return null;
+    },
     selectSurfacePole(input) {
-      live(); const next = select(input);
-      selection = next; pending = {}; prepared = null; emit();
+      requestSelection(input);
     },
     stageSurfacePoleField(field, rawText) {
       live(); requireEditor(selection !== null, 'INPUT', 'Select an original Surface pole first.');
       requireEditor(FIELDS.includes(field), 'INPUT', 'The pole field is unsupported.');
       requireEditor(typeof rawText === 'string' && rawText.length <= 128, 'BUDGET', 'Pole input must have at most 128 characters.');
-      pending = { ...pending, [field]: rawText }; prepared = null; emit();
+      pending = { ...pending, [field]: rawText }; prepared = null; selectionTransition = null; emit();
     },
-    discardPending() { live(); pending = {}; prepared = null; emit(); },
-    prepareApply() {
-      live(); requireEditor(selection !== null, 'INPUT', 'Select an original Surface pole first.');
-      invalidatePrepared();
-      if (Object.keys(pending).length === 0) { prepared = null; emit(); return null; }
-      const edit: SurfacePoleEdit = { uIndex: selection.uIndex, vIndex: selection.vIndex };
-      for (const field of FIELDS) if (Object.hasOwn(pending, field)) {
-        const text = pending[field]!.trim();
-        const context = { documentId: accepted.document.documentId, bodyId: selection.bodyId, field };
-        requireEditor(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text), 'INPUT', 'Pole input must be a decimal or exponent number.', context);
-        const value = Number(text);
-        requireEditor(Number.isFinite(value), 'INPUT', 'Pole input must be finite.', context);
-        edit[field] = value;
-      }
-      const resolved = native(() => resolveCadGeometryReference(accepted, selection!.reference), 'Native selected Surface resolution failed.', accepted.document.documentId);
-      // Finite authored scalars reach the actual native complete-grid/range validator.
-      const edited = native(() => editSurfaceControlNet(resolved.geometry as Surface, { poleEdits: [edit] }),
-        'Native Surface control-net edit failed.', accepted.document.documentId, { bodyId: selection.bodyId });
-      if (edited.provenance.every(pole => pole.changedFields.length === 0)) { pending = {}; prepared = null; emit(); return null; }
-      const document = copy(accepted.document);
-      document.revision = nextRevision(document.revision);
-      document.assets = document.assets.map(asset => asset.id === selection!.reference.assetId
-        ? { ...asset, source: edited.source, revision: nextRevision(asset.revision) } : asset);
-      const result = admit(native(() => createCadDocument(document), 'Native edited document creation failed.', document.documentId));
-      return prepare('apply', result, edited.provenance);
-    },
+    discardPending() { live(); pending = {}; prepared = null; selectionTransition = null; emit(); },
+    prepareApply,
     prepareOpen(text) {
-      live(); invalidatePrepared(); fileBudget(text);
+      live(); fileBudget(text);
       const result = admit(native(() => parseCadDocument(text), 'Native document Open failed.'));
+      requireResolvedDraft();
+      invalidatePrepared();
       return prepare('open', result);
     },
     prepareUndo() { return restore(-1); },
@@ -248,7 +320,12 @@ export function createCadEditorSession(initialDocument: CadDocumentV1): CadEdito
         'STALE', 'The prepared candidate is no longer current.');
       const current = prepared;
       const result = current.candidate.result;
-      const nextSelection = current.candidate.kind === 'open' || selection === null ? null : select(selection, result);
+      requireEditor(current.transitionToken === undefined || selectionTransition !== null
+        && selectionTransition.token === current.transitionToken && selectionTransition.baseGeneration === generation,
+        'STALE', 'The selection decision is no longer current.', { field: 'selection-transition' });
+      const target = current.candidate.kind === 'open' || selectedBodyId === null ? null
+        : current.selectionTarget ?? { bodyId: selectedBodyId, uIndex: selection?.uIndex, vIndex: selection?.vIndex };
+      const nextTarget = target === null ? null : resolveTarget(target, result);
       const state: HistoryState = { document: copy(result.document), bytes: fileBudget(serialize(result)) };
       if (current.candidate.kind === 'open') { history = [state]; historyIndex = 0; }
       else if (current.candidate.kind === 'apply') {
@@ -256,7 +333,8 @@ export function createCadEditorSession(initialDocument: CadDocumentV1): CadEdito
         while (history.length > HISTORY_LIMIT || historyBytes() > HISTORY_BYTES) history.shift();
         historyIndex = history.length - 1;
       } else historyIndex = current.historyIndex!;
-      accepted = result; selection = nextSelection; generation++; pending = {}; prepared = null;
+      accepted = result; selectedBodyId = nextTarget?.target.bodyId ?? null; selection = nextTarget?.pole ?? null;
+      generation++; pending = {}; prepared = null; selectionTransition = null;
       lastProvenance = copy(current.candidate.provenance);
       dirty = current.candidate.kind !== 'open'; downloadStatus = 'Not downloaded'; download = null;
       const returned = snapshot(); emit(); return returned;
@@ -277,7 +355,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1): CadEdito
     },
     dispose() {
       if (disposed) return;
-      disposed = true; prepared = null; download = null; pending = {}; emit(); listeners.clear();
+      disposed = true; prepared = null; selectionTransition = null; download = null; pending = {}; emit(); listeners.clear();
     },
   };
 }

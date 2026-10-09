@@ -78,6 +78,32 @@ native files. `subscribe(listener)` returns an unsubscribe function.
 `discardPending()` clears raw fields. `dispose()` is idempotent; later mutations
 refuse with `LIFECYCLE`.
 
+## Draft selection and keys
+
+`requestSelection({bodyId,uIndex?,vIndex?,reference?})` validates a native target.
+Surface targets use original pole indices. Curve targets select the read-only body.
+An optional native reference must resolve at the current document/asset revisions.
+The snapshot reports `selectedBodyId` and `selectionTransition`. With pending
+fields, a different target creates a copied `{token,baseGeneration,target}` decision.
+The accepted selection and draft stay unchanged.
+
+`resolveSelectionTransition(token, 'apply'|'discard'|'cancel')` makes the decision.
+Apply validates the real native edit and switches to the requested selection only
+after the candidate displays and commits. Failure retains the decision, draft,
+accepted selection, history and frame. Discard explicitly clears the draft and
+switches. Cancel retains the draft and selection. Stale decisions refuse.
+`selectSurfacePole` delegates to this path. Same targets do not clear drafts.
+Valid Open and Undo/Redo refuse unresolved drafts; apply or discard them first.
+
+Enter in a coefficient input applies after composition ends. Enter during
+composition cannot apply. Escape in that input retains its draft and focus.
+Escape in the selection decision means Cancel and restores the last input focus.
+Cmd/Ctrl+Z, Shift+Cmd/Ctrl+Z and Ctrl+Y outside editable fields use accepted
+history only when no draft/decision is active. Text undo stays in the browser.
+Canvas Escape retains the accepted editor selection. Native camera controls remain
+owned by Viewer. The bounded browser flow uses the actual Chromium CDP composition
+pipeline; it does not certify every operating-system input method.
+
 ## Current support
 
 The foundation admits exactly two original Source0 assets/bodies: one Surface
@@ -98,7 +124,7 @@ Authored XYZ has no hidden axis conversion. Viewer uses one positive mm scale;
 the reference app uses `0.01`, with native sampling units unchanged. Sampling and
 picking are display approximations. This package does not certify solids,
 topology, manufacturing tolerances, general feature graphs or assemblies.
-Curve poles remain read-only. Keyboard draft-transition UI is tracked in #1044.
+Curve poles remain read-only. Body selection can highlight the reference Curve.
 
 Errors use `INPUT`, `UNSUPPORTED`, `BUDGET`, `STALE`, `NATIVE`, `DISPLAY`, `FILE`,
 `REVISION` or `LIFECYCLE`, messages bounded to 1024 characters, and actual reached

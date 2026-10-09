@@ -25,9 +25,11 @@ function sameOptions(a: unknown, b: unknown): boolean {
 }
 
 function selectBody(viewer: Viewer, bodyId: string | null) {
+  const current = viewer.getState();
   const ref = bodyId === null ? null
-    : viewer.getState().documentBodies.find(body => body.binding.bodyId === bodyId)?.ref;
+    : current.documentBodies.find(body => body.binding.bodyId === bodyId)?.ref;
   if (ref === undefined) throw new CadEditorError('DISPLAY', 'The selected body has no admitted native display binding.');
+  if (sameOptions(current.selectedGeometry, ref)) return;
   viewer.selectGeometry(ref);
 }
 
@@ -127,7 +129,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
       mountedRef.current = { viewer, options, generation: initial.generation, admitting: false, optionsRefused: false };
       resize();
       viewer.loadDocument(initial.accepted, options.document);
-      selectBody(viewer, initial.selection?.bodyId ?? null);
+      selectBody(viewer, initial.selectedBodyId);
       const receipt = displayReceipt(viewer, canvas, options.viewer.background, lifecycleRef.current, readIndexRef);
       pointer = viewer.attachPointerControls({ onError: cause => report(cause, 'Pointer control failed') });
       keyboard = viewer.attachKeyboardControls({ onError: cause => report(cause, 'Keyboard control failed') });
@@ -195,7 +197,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
         try {
           mounted.viewer.loadDocument(accepted.accepted, next.document);
           displayed = true;
-          selectBody(mounted.viewer, accepted.selection?.bodyId ?? null);
+          selectBody(mounted.viewer, accepted.selectedBodyId);
           const receipt = displayReceipt(mounted.viewer, canvas, next.viewer.background, lifecycleRef.current, readIndexRef);
           mounted.options = next;
           mounted.generation = accepted.generation;
@@ -237,7 +239,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
       if (mounted.optionsRefused) throw new CadEditorError('DISPLAY', 'The display options were refused. The pending values remain available.');
       mounted.viewer.loadDocument(candidate.result, mounted.options.document);
       displayed = true;
-      selectBody(mounted.viewer, candidate.kind === 'open' ? null : current.selection?.bodyId ?? null);
+      selectBody(mounted.viewer, candidate.kind === 'open' ? null : current.selectionTransition?.target.bodyId ?? current.selectedBodyId);
       const receipt = displayReceipt(mounted.viewer, canvas, mounted.options.viewer.background, lifecycleRef.current, readIndexRef);
       const accepted = session.acceptCandidate(candidate.token);
       mounted.generation = accepted.generation;
@@ -274,10 +276,10 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     const current = session.getSnapshot();
     if (current.candidate || current.disposed) return;
     try {
-      selectBody(mounted.viewer, current.selection?.bodyId ?? null);
+      selectBody(mounted.viewer, current.selectedBodyId);
       notify(displayReceipt(mounted.viewer, canvas, mounted.options.viewer.background, lifecycleRef.current, readIndexRef));
     } catch (cause) { report(cause, 'Selecting the native body failed'); }
-  }, [snapshot.selection?.bodyId, snapshot.generation, session, ready]);
+  }, [snapshot.selectedBodyId, snapshot.generation, session, ready]);
 
   useEffect(() => {
     const mounted = mountedRef.current;
@@ -303,6 +305,16 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
 
   return <div className={cn('cad-editor-viewport', className)} data-viewer-ready={ready}>
     <canvas ref={canvasRef} width={640} height={480} tabIndex={0} className="cad-editor-canvas"
+      onKeyDownCapture={event => {
+        if (event.key !== 'Escape') return;
+        event.preventDefault();
+        event.stopPropagation();
+        const mounted = mountedRef.current;
+        const canvas = canvasRef.current;
+        if (!mounted || !canvas) return;
+        try { notify(displayReceipt(mounted.viewer, canvas, mounted.options.viewer.background, lifecycleRef.current, readIndexRef)); }
+        catch (cause) { report(cause, 'Reading the displayed frame failed'); }
+      }}
       data-testid="cad-editor-canvas" aria-label="CAD viewport. Drag to orbit. Shift drag to pan. Scroll to zoom. Press F to fit." />
     {errorMessage && <p className="cad-editor-error" role="alert">{errorMessage}</p>}
   </div>;

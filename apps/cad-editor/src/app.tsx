@@ -13,6 +13,8 @@ function actionError(error: CadEditorError): string {
   if (cause.includes('Weights must')) return 'Enter a weight from 0.000001 to 1000000.';
   if (error.message.includes('two assets and two bodies')) return 'Open a document with one Surface and one Curve.';
   if (error.message.includes('Native document Open')) return 'Cannot open this file. Select a valid CAD document.';
+  if (error.context.field === 'history') return 'Apply or discard the pending values before using history.';
+  if (error.context.field === 'selection-transition') return 'Apply or discard the pending values before this action.';
   if (error.code === 'DISPLAY') return 'Cannot display this change. The current document is retained.';
   if (error.code === 'BUDGET') return 'This input exceeds the supported size. Open a smaller document.';
   if (error.code === 'REVISION') return 'This document reached its edit limit. Open a new document.';
@@ -72,6 +74,7 @@ export function App() {
   };
   const newSample = () => run(() => { pendingFilename.current = 'Weighted surface'; session.prepareOpen(fixtureText); });
   const busy = snapshot.candidate !== null;
+  const hasDraft = Object.keys(snapshot.pending).length > 0 || snapshot.selectionTransition !== null;
   const projectView = route === '#/projects';
 
   return <div className="cad-app">
@@ -85,8 +88,8 @@ export function App() {
           <MenubarSeparator/><MenubarItem onSelect={() => { location.hash = '/projects'; }}>Projects</MenubarItem>
         </MenubarContent></MenubarMenu>
         <MenubarMenu><MenubarTrigger>Edit</MenubarTrigger><MenubarContent>
-          <MenubarItem disabled={!snapshot.history.canUndo || busy} onSelect={() => run(() => session.prepareUndo())}>Undo</MenubarItem>
-          <MenubarItem disabled={!snapshot.history.canRedo || busy} onSelect={() => run(() => session.prepareRedo())}>Redo</MenubarItem>
+          <MenubarItem disabled={!snapshot.history.canUndo || busy || hasDraft} onSelect={() => run(() => session.prepareUndo())}>Undo</MenubarItem>
+          <MenubarItem disabled={!snapshot.history.canRedo || busy || hasDraft} onSelect={() => run(() => session.prepareRedo())}>Redo</MenubarItem>
           <MenubarSeparator/><MenubarItem onSelect={() => run(() => session.discardPending())}>Discard pending fields</MenubarItem>
         </MenubarContent></MenubarMenu>
         <MenubarMenu><MenubarTrigger>View</MenubarTrigger><MenubarContent><MenubarItem onSelect={() => setFitRequest(value => value + 1)}>Fit document</MenubarItem></MenubarContent></MenubarMenu>
@@ -98,8 +101,8 @@ export function App() {
       <input ref={fileInput} type="file" accept=".json,.cad-document.json" aria-label="Open native document file" className="file-input" onChange={event => { void openFile(event.target.files?.[0]); event.target.value = ''; }}/>
     </header>
     <div className="app-toolbar"><span className="breadcrumb"><a href="#/projects">Projects</a><ChevronRight size={12}/><span>{filename}</span></span><div className="toolbar-actions">
-      <Button variant="ghost" size="icon-sm" aria-label="Undo" disabled={!snapshot.history.canUndo || busy} onClick={() => run(() => session.prepareUndo())}><Undo2/></Button>
-      <Button variant="ghost" size="icon-sm" aria-label="Redo" disabled={!snapshot.history.canRedo || busy} onClick={() => run(() => session.prepareRedo())}><Redo2/></Button>
+      <Button variant="ghost" size="icon-sm" aria-label="Undo" disabled={!snapshot.history.canUndo || busy || hasDraft} onClick={() => run(() => session.prepareUndo())}><Undo2/></Button>
+      <Button variant="ghost" size="icon-sm" aria-label="Redo" disabled={!snapshot.history.canRedo || busy || hasDraft} onClick={() => run(() => session.prepareRedo())}><Redo2/></Button>
       <span className="toolbar-divider"/><Button variant="ghost" size="sm" onClick={() => setFitRequest(value => value + 1)}><Maximize/>Fit</Button>
     </div></div>
     {error && <div className="app-error" role="alert">{actionError(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
@@ -108,8 +111,8 @@ export function App() {
         <div className="tree-section">BODIES <span>{snapshot.accepted.document.bodies.length}</span></div>
         {snapshot.accepted.document.bodies.map(body => {
           const binding = snapshot.accepted.bodyBindings.find(item => item.bodyId === body.id)!;
-          const selected = snapshot.selection?.bodyId === body.id;
-          return <button key={body.id} className={'tree-body' + (selected ? ' selected' : '')} onClick={() => binding.geometryKind === 'surface' && run(() => session.selectSurfacePole({ bodyId: body.id, uIndex: 1, vIndex: 1 }))} aria-pressed={selected}>
+          const selected = snapshot.selectedBodyId === body.id;
+          return <button key={body.id} className={'tree-body' + (selected ? ' selected' : '')} onClick={() => run(() => session.requestSelection(binding.geometryKind === 'surface' ? { bodyId: body.id, uIndex: 1, vIndex: 1 } : { bodyId: body.id }))} aria-pressed={selected}>
             <span className={'body-symbol ' + binding.geometryKind}>{binding.geometryKind === 'surface' ? '▱' : '╱'}</span><span>{body.name}<small>{binding.geometryKind === 'surface' ? 'Editable surface' : 'Read-only curve'}</small></span><span className="visible-mark" aria-label="Visible">●</span>
           </button>;
         })}

@@ -48,3 +48,11 @@ The app preserves authored XYZ and uses the existing Viewer basis assertion,
 native sampling units1 and one mm-to-scene scale0.01. Camera and display data are
 absent from downloaded native files. General documents, native feature graphs,
 sketches, assemblies and exchange remain separate roadmap stages.
+
+For #1044 draft/selection evidence, add `--draft` to either focused flow command.
+The additional real browser flow records native composition events, guards Enter
+during composition, checks selection Apply/Discard/Cancel and focus, refuses an
+invalid native weight without changing the accepted frame, highlights the read-only
+Curve, refuses stale targets, exercises actual text/document keyboard undo and
+performs a genuine Download → fresh Open → Enter re-edit. Its extra midpoint
+checks are `[30,20,68/5]`, `[30,20,72/5]` and `[30,20,76/5]`.

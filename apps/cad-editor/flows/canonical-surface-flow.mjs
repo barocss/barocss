@@ -71,6 +71,30 @@ try {
   assert.throws(() => pure.markDownloaded(staleDownload.token), error => error.code === 'STALE');
   pure.dispose(); pure.dispose();
   assert.throws(() => pure.stageSurfacePoleField('zMM', '26'), error => error.code === 'LIFECYCLE');
+  if (args.includes('--draft')) {
+    const selectionSession = editor.createCadEditorSession(cad.parseCadDocument(readFileSync(fixture, 'utf8')).document);
+    selectionSession.selectSurfacePole({bodyId:'surface_body',uIndex:1,vIndex:1});
+    selectionSession.stageSurfacePoleField('zMM','24');
+    const choice = selectionSession.requestSelection({bodyId:'surface_body',uIndex:0,vIndex:1});
+    choice.target.bodyId = 'curve_body';
+    const privateCandidate = selectionSession.resolveSelectionTransition(choice.token, 'apply');
+    const privateAccepted = selectionSession.acceptCandidate(privateCandidate.token);
+    assert.equal(privateAccepted.selection.uIndex,0); assert.equal(privateAccepted.selectedBodyId,'surface_body');
+    selectionSession.stageSurfacePoleField('zMM','20');
+    const retry = selectionSession.requestSelection({bodyId:'surface_body',uIndex:1,vIndex:1});
+    const keptCandidate = selectionSession.resolveSelectionTransition(retry.token,'apply');
+    const beforeOpen = selectionSession.getSnapshot();
+    assert.throws(()=>selectionSession.prepareOpen(readFileSync(fixture,'utf8')),error=>error.code==='INPUT');
+    assert.deepEqual(selectionSession.getSnapshot(),beforeOpen);
+    assert.throws(()=>selectionSession.prepareUndo(),error=>error.code==='INPUT');
+    assert.deepEqual(selectionSession.getSnapshot(),beforeOpen);
+    selectionSession.cancelCandidate(keptCandidate.token);
+    assert.ok(selectionSession.getSnapshot().selectionTransition);
+    selectionSession.resolveSelectionTransition(retry.token,'cancel');
+    assert.equal(selectionSession.getSnapshot().pending.zMM,'20');
+    selectionSession.dispose();
+    result.events.push({stage:'pure-draft-decisions',privateSelectionTarget:true,openAndHistoryRefusalRetainedCandidateDraft:true,displayCancelDecisionRetained:true});
+  }
   result.events.push({ stage: 'pure-root', browserGlobalsAbsent: true, candidateOwnership: true, staleDownload: true, disposedRefusal: true });
 
   const runtime = option('--playwright', '/Users/user/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs');
@@ -237,6 +261,10 @@ try {
   assert.ok(freshDisplay.nonBackgroundPixels > 0); assert.equal(freshDisplay.state.curves.length, 1);
   await fresh.screenshot({ path: resolve(evidence, prefix + '-fresh-reedit.png') });
   result.events.push({ stage: 'fresh-open-reedit', native: observe(reopened, 64 / 5), display: freshDisplay, curveUnchanged: true });
+  if (args.includes('--draft')) {
+    const { runDraftSelectionFlow } = await import('./draft-selection-flow.mjs');
+    await runDraftSelectionFlow({ page: fresh, cad, result, curveUnchanged, evidence, prefix, resolve });
+  }
   const retained = await fresh.evaluate(() => window.__cadEditorFlow.snapshot());
   await fresh.evaluate(() => window.__cadEditorFlow.setMounted(false));
   await fresh.waitForFunction(() => window.__cadEditorFlow.display()?.state.status === 'disposed');
