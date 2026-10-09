@@ -205,6 +205,15 @@ floating-point containment proof. Existing `fit()` and `fitGeometry()` still
 frame displayed geometry. `examples/viewer-native-bounds` shows both modes
 with an authentic weighted Curve and document revision edit.
 
+`viewer.fitNativeDocumentBodies({ refs, documentRevision })` frames an explicit
+set of two to four visible bodies in the same current CAD document. Pass
+qualified refs from `getState().documentBodies` and the current revision.
+Viewer validates each original body binding and combines their control-pole
+hulls after each accepted display pose. The call changes only the camera.
+Duplicate, hidden, foreign and stale refs are rejected. It does not add
+unlisted bodies or infer assembly placement. A one-body fit uses
+`fitNativeDocumentBody`; `fit()` still frames displayed geometry.
+
 `examples/viewer-curve-length` combines a source-qualified CAD Curve
 arc-length estimate with `projectNativePoint` in one own-GPU canvas. The
 caller moves its DOM label after camera and display pose changes. The
