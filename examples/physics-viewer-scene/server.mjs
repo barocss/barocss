@@ -10,10 +10,16 @@ const jointBundle = await build({
   entryPoints: [new URL('joint-demo.js', import.meta.url).pathname],
   bundle: true, write: false, format: 'esm', platform: 'browser', target: 'es2022',
 });
+const motorBundle = await build({
+  entryPoints: [new URL('motor-demo.js', import.meta.url).pathname],
+  bundle: true, write: false, format: 'esm', platform: 'browser', target: 'es2022',
+});
 const files = new Map([
   ['/bundle.js', { body: bundle.outputFiles[0].contents, type: 'text/javascript' }],
   ['/joint-demo.js', { body: jointBundle.outputFiles[0].contents, type: 'text/javascript' }],
   ['/joint-demo.html', { body: await readFile(new URL('joint-demo.html', import.meta.url)), type: 'text/html' }],
+  ['/motor-demo.js', { body: motorBundle.outputFiles[0].contents, type: 'text/javascript' }],
+  ['/motor-demo.html', { body: await readFile(new URL('motor-demo.html', import.meta.url)), type: 'text/html' }],
   ['/', { body: await readFile(new URL('index.html', import.meta.url)), type: 'text/html' }],
   ['/two-surfaces.barocad', { body: await readFile(new URL('two-surfaces.barocad', import.meta.url)), type: 'text/plain' }],
 ]);

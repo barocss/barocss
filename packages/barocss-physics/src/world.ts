@@ -3,6 +3,7 @@ import { MAX_BODIES, MAX_LARGE_BODIES, MAX_STEPS, MAX_STEP_DISPLACEMENT_M, SOLVE
 import { error, record, fields, finite, vector, parseBody, parseCommands, copyBody, copyShape, queryRecord, queryVector, queryNumber, includeSensors } from './validation.js';
 import { add, scale, inverseInertia, advanceOrientation } from './math.js';
 import { parseJoints, projectJoint } from './joints.js';
+import { driveHingeMotor } from './joint-motor.js';
 import { detect, solve, validateResult, sphereOverlaps, rayDistance } from './collision.js';
 import { boxFaceManifold } from './contact-manifold.js';
 import { correctPersistentPair, solvePersistentPoint, warmStartPoint } from './persistent-box-contact.js';
@@ -72,6 +73,8 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
   if (!bodies.some((body) => body.kind === 'dynamic')) error('INVALID_CONFIG', 'at least one dynamic body is required');
   if (new Set(bodies.map((body) => body.id)).size !== bodies.length) error('INVALID_CONFIG', 'duplicate body ID');
   const joints = parseJoints(Object.hasOwn(input, 'joints') ? input.joints : [], bodies);
+  const motorByBody = new Map(joints.flatMap((joint, index) => joint.motor
+    ? [[joint.bIndex, { joint, index }] as const] : []));
   const ccd = admitCcd(bodies, joints.length, gravity);
   if (ccd.kind === 'box-pair' && usePersistentBox) {
     error('INVALID_CONFIG', 'box CCD excludes persistent-box-v1');
@@ -96,7 +99,8 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
   let jointStates: PhysicsJointState[] = joints.map((joint) => ({ id: joint.id, kind: joint.kind,
     aId: bodies[joint.aIndex].id, bId: bodies[joint.bIndex].id,
     linearImpulseNs: [0, 0, 0], angularImpulseNms: [0, 0, 0],
-    ...(joint.kind === 'hinge' ? { angleRad: 0 } : {}) }));
+    ...(joint.kind === 'hinge' ? { angleRad: 0 } : {}),
+    ...(joint.motor ? { motorImpulseNms: 0 } : {}) }));
   let activePairs = new Map<string, Omit<PhysicsEvent, 'phase'>>();
   let persistentPoints = new Map<string, PointImpulse>();
   let sleepFrames = bodies.map(() => 0);
@@ -112,9 +116,11 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
       const actions = parseCommands(commands, bodies);
       if (ccd.kind === 'box-pair') rejectAngularBoxCommand(actions.get(bodies[ccd.boxIndex].id));
       const next = bodies.map(copyBody);
+      const motorImpulses = joints.map(() => 0);
       const nextSleepFrames = sleepFrames.slice();
       if (largeMode) wakeForActions(next, contacts, actions, nextSleepFrames);
-      for (const body of next) {
+      for (let bodyIndex = 0; bodyIndex < next.length; bodyIndex++) {
+        const body = next[bodyIndex];
         const action = actions.get(body.id);
         if (body.kind === 'kinematic') {
           const target = action?.positionM ?? body.positionM;
@@ -131,6 +137,9 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
           const torque = action?.torqueNm ?? [0, 0, 0];
           body.angularVelocityRadps = add(body.angularVelocityRadps,
             inverseInertia(body, add(angularImpulse, scale(torque, dt))));
+          const motor = motorByBody.get(bodyIndex);
+          if (motor) motorImpulses[motor.index] = driveHingeMotor(motor.joint, body,
+            jointStates[motor.index].angleRad!);
           if (body.angularVelocityRadps.some((value) => !Number.isFinite(value) || Math.abs(value) > 1000) ||
             Math.hypot(...body.angularVelocityRadps) * dt > 10) {
             error('NUMERIC_LIMIT', `${body.id} exceeded angular movement limit`);
@@ -159,8 +168,10 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
       const found = new Map<string, PhysicsContact>();
       const nextPersistentPoints = new Map<string, PointImpulse>();
       const sensed = new Map<string, Omit<PhysicsEvent, 'phase'>>();
-      const nextJoints = jointStates.map((joint) => ({ ...joint,
-        linearImpulseNs: [0, 0, 0] as Vec3, angularImpulseNms: [0, 0, 0] as Vec3 }));
+      const nextJoints = jointStates.map((joint, index) => ({ ...joint,
+        linearImpulseNs: [0, 0, 0] as Vec3, angularImpulseNms: [0, 0, 0] as Vec3,
+        ...(joint.motorImpulseNms === undefined ? {} :
+          { motorImpulseNms: motorImpulses[index] }) }));
       const bounds = useAabb ? next.map(bodyBounds) : null;
       for (let pass = 0; pass < SOLVER_PASSES; pass++) {
         if (bounds && pass > 0) for (let index = 0; index < next.length; index++) {
@@ -259,6 +270,12 @@ export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
       if (nextJoints.some((joint) => [...joint.linearImpulseNs, ...joint.angularImpulseNms].some((value) =>
         !Number.isFinite(value)) || (joint.angleRad !== undefined && !Number.isFinite(joint.angleRad)))) {
         error('NUMERIC_LIMIT', 'unsafe joint reaction');
+      }
+      for (let index = 0; index < joints.length; index++) {
+        const motor = joints[index].motor;
+        if (motor && Math.hypot(...nextJoints[index].angularImpulseNms) > motor.maxReactionNms) {
+          error('NUMERIC_LIMIT', `${joints[index].id} exceeded motor reaction limit`);
+        }
       }
       bodies = next;
       contacts = nextContacts;

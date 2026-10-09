@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>BaroCSS hinge motor preview</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #081521; color: #ecf6ff; }
+    main { max-width: 1080px; margin: auto; padding: 24px; }
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    p { color: #abc4d6; line-height: 1.5; }
+    canvas { display: block; width: 100%; background: #091525; border: 1px solid #36546b; border-radius: 12px; }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+    button { padding: 10px 14px; border: 1px solid #5b8199; border-radius: 8px;
+      background: #21405a; color: inherit; cursor: pointer; font: inherit; }
+    .readout { display: flex; flex-wrap: wrap; gap: 20px; padding: 14px; background: #10283b; border-radius: 10px; }
+    small { display: block; color: #a9c5d4; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Hinge motor on an original Surface</h1>
+    <p>The flat panel stays fixed. The rational panel follows a 1 kg sphere proxy that rotates around a fixed +Z hinge. The CAD Surfaces stay unchanged.</p>
+    <canvas id="viewer" width="960" height="560" aria-label="Original BaroCAD Surfaces with a hinge motor"></canvas>
+    <div class="controls">
+      <button id="play">Play</button><button id="one-step">One step</button>
+      <button id="reset">Reset</button><button id="fit">Fit</button>
+      <button id="reject">Test invalid binding</button>
+      <button id="stale">Test stale source</button>
+      <button id="overload">Test overload after step 120</button>
+    </div>
+    <div class="readout">
+      <div><small>Step</small><strong id="step">0</strong></div>
+      <div><small>Angle</small><strong id="angle">0 rad</strong></div>
+      <div><small>Motor impulse</small><strong id="motor">0 N·m·s</strong></div>
+      <div><small>Constraint reaction Z</small><strong id="reaction">0 N·m·s</strong></div>
+      <div><small>Status</small><strong id="status">Paused</strong></div>
+    </div>
+    <p>Physics uses metres and a caller-owned 1/120 s step. Viewer shows the accepted pose in millimetres. This is a bounded visual proxy. It does not claim an engineering load or a calibrated break law.</p>
+  </main>
+  <script type="module" src="/motor-demo.js"></script>
+</body>
+</html>

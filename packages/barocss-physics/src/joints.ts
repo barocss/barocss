@@ -1,4 +1,4 @@
-import type { Body, Joint, PhysicsJointState, Quat, Vec3 } from './types.js';
+import type { Body, Joint, PhysicsHingeMotorConfig, PhysicsJointState, Quat, Vec3 } from './types.js';
 import { ID, MAX_STEP_DISPLACEMENT_M } from './limits.js';
 import { error, record, fields, finite, vector } from './validation.js';
 import { sub, worldPoint, multiplyQuaternion, inverse, dot, scale, rotate, inertia } from './math.js';
@@ -23,7 +23,7 @@ export function parseJoints(value: unknown, bodies: Body[]): Joint[] {
     if (input.kind !== 'fixed' && input.kind !== 'hinge') error('INVALID_CONFIG', 'unsupported joint kind');
     fields(input, input.kind === 'fixed'
       ? ['id', 'kind', 'aId', 'bId', 'anchorALocalM', 'anchorBLocalM']
-      : ['id', 'kind', 'aId', 'bId', 'anchorALocalM', 'anchorBLocalM', 'axisWorld', 'limitRad'], 'joint');
+      : ['id', 'kind', 'aId', 'bId', 'anchorALocalM', 'anchorBLocalM', 'axisWorld', 'limitRad', 'motor'], 'joint');
     if (typeof input.id !== 'string' || !ID.test(input.id) || seenIds.has(input.id)) {
       error('INVALID_CONFIG', 'joint IDs must be unique valid identifiers');
     }
@@ -43,6 +43,7 @@ export function parseJoints(value: unknown, bodies: Body[]): Joint[] {
       error('INVALID_CONFIG', 'initial joint anchors must coincide');
     }
     let axisWorld: Vec3 | undefined, limitRad: [number, number] | undefined;
+    let motor: PhysicsHingeMotorConfig | undefined;
     if (input.kind === 'hinge') {
       axisWorld = denseJointVector(input.axisWorld, 1 + 1e-9, 'axisWorld');
       if (Math.abs(Math.hypot(...axisWorld) - 1) > 1e-9) error('INVALID_CONFIG', 'hinge axis must be unit length');
@@ -54,6 +55,17 @@ export function parseJoints(value: unknown, bodies: Body[]): Joint[] {
       const low = finite(limits[0], -Math.PI / 2, 0, 'limitRad[0]');
       const high = finite(limits[1], 0, Math.PI / 2, 'limitRad[1]');
       limitRad = [low, high];
+      if (Object.hasOwn(input, 'motor')) {
+        const motorInput = record(input.motor, 'motor');
+        fields(motorInput, ['targetSpeedRadps', 'maxImpulseNms', 'maxReactionNms'], 'motor');
+        const targetSpeedRadps = finite(motorInput.targetSpeedRadps, -2, 2, 'motor.targetSpeedRadps');
+        const maxImpulseNms = finite(motorInput.maxImpulseNms, 0, 0.05, 'motor.maxImpulseNms');
+        const maxReactionNms = finite(motorInput.maxReactionNms, 0, 1, 'motor.maxReactionNms');
+        if (maxImpulseNms === 0 || maxReactionNms === 0) {
+          error('INVALID_CONFIG', 'motor impulse and reaction limits must be positive');
+        }
+        motor = { targetSpeedRadps, maxImpulseNms, maxReactionNms };
+      }
     }
     seenIds.add(input.id);
     seenDynamic.add(b.body.id);
@@ -62,7 +74,8 @@ export function parseJoints(value: unknown, bodies: Body[]): Joint[] {
       referenceOrientation: input.kind === 'fixed'
         ? multiplyQuaternion(inverse(a.body.orientation), b.body.orientation)
         : [...b.body.orientation],
-      ...(axisWorld ? { axisWorld } : {}), ...(limitRad ? { limitRad } : {}) };
+      ...(axisWorld ? { axisWorld } : {}), ...(limitRad ? { limitRad } : {}),
+      ...(motor ? { motor } : {}) };
   });
   return joints;
 }
