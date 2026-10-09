@@ -8,7 +8,7 @@ const tree = createDisplayTree('PivotProbe');
 const rect = tree.createRect({ id: 'Rect', layer: 0, transform: pose(20, 20, Math.PI / 2),
   width: 10, height: 4, fill: [1, 0, 0, 1] });
 tree.stage.addChild(rect);
-assert.equal(tree.snapshot().version, 16);
+assert.equal(tree.snapshot().version, 17);
 closePoint(rect.toWorld({ x: 0, y: 0 }), { x: 20, y: 20 });
 rect.setPivot(5, 2);
 assert.deepEqual(rect.data.pivot, { x: 5, y: 2 });
@@ -49,7 +49,7 @@ assert.equal('setPivot' in tree.stage, false);
 
 const finalScene = tree.snapshot();
 const restored = createDisplayTreeFromScene(parseSceneJSON(stringifySceneJSON(finalScene)));
-assert.equal(restored.snapshot().version, 16);
+assert.equal(restored.snapshot().version, 17);
 assert.equal(stringifySceneJSON(restored.snapshot()), stringifySceneJSON(finalScene));
 assert.deepEqual(restored.get('Parent')?.data.pivot, { x: 10, y: 0 });
 restored.get('Rect')?.setPivot(0, 0);
@@ -59,7 +59,7 @@ const old = structuredClone(finalScene); old.version = 13;
 for (const node of old.nodes) delete node.pivot;
 delete old.nodes[1].children[0].pivot;
 assert.equal(parseSceneJSON(JSON.stringify(old)).version, 13);
-assert.equal(createDisplayTreeFromScene(old).snapshot().version, 16);
+assert.equal(createDisplayTreeFromScene(old).snapshot().version, 17);
 old.nodes[0].pivot = { x: 5, y: 2 };
 assert.throws(() => parseSceneJSON(JSON.stringify(old)), error => error.code === 'INVALID_SCENE');
 for (const version of Array.from({ length: 15 }, (_, index) => index)) {
@@ -71,5 +71,5 @@ for (const pivot of [null, {}, { x: 1 }, { x: 1, y: 2, z: 3 }, { x: -0, y: 0 },
   assert.throws(() => stringifySceneJSON(bad), error => error.code === 'INVALID_SCENE');
 }
 
-console.log(JSON.stringify({ result: 'ok', sceneVersion: 16, oldVersions: 14,
+console.log(JSON.stringify({ result: 'ok', sceneVersion: 17, oldVersions: 14,
   worldBounds: bounds, pivot: rect.data.pivot }));
