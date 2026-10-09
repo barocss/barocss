@@ -51,7 +51,20 @@ class Parser {
  if(/^[A-Za-z_][A-Za-z0-9_]*$/.test(token.text)){
  this.i++;if(this.current().text==='('){const name=token.text;if(!['sin','cos','mix','clamp'].includes(name))fail('SYNTAX','Unsupported material function',token);this.take('(');const args:Term[]=[];if(this.current().text!==')'){for(;;){args.push(this.expression(0,nesting+1));if(this.current().text!==',')break;this.take(',');}}this.take(')');let type:'float'|'color'='float',range:[number,number];
  if(name==='sin'||name==='cos'){if(args.length!==1)fail('TYPE','sin/cos requires one float',token);this.float(args[0],token);if(args[0].range.some(n=>Math.abs(n)>1000))fail('RANGE','sin/cos argument exceeds±1000',token);range=[-1,1];}
- else if(name==='mix'){if(args.length!==3||args[0].type!=='color'||args[1].type!=='color'||args[2].type!=='float')fail('TYPE','mix requires color,color,float',token);if(args[2].range[0]<0||args[2].range[1]>1)fail('RANGE','mix ratio must be bounded within0..1',token);type='color';range=[0,1];}
+ else if(name==='mix'){
+ if(args.length!==3||args[0].type!==args[1].type||args[2].type!=='float')fail('TYPE','mix requires color,color,float or float,float,float',token);
+ if(args[2].range[0]<0||args[2].range[1]>1)fail('RANGE','mix ratio must be bounded within0..1',token);
+ if(args[0].type==='float'){
+  const[a,b,t]=args;
+  // a appears twice in the expanded arithmetic; charge its full subtree again.
+  if(this.nodes+a.size>256)fail('BUDGET','Material exceeds256 definition and expanded expression nodes',token);
+  this.nodes+=a.size;
+  const difference=this.term({kind:'binary',type:'float',operator:'-',left:b.expression,right:a.expression},'float',[b.range[0]-a.range[1],b.range[1]-a.range[0]],[b,a],token);
+  const[x,y]=difference.range,[u,v]=t.range;
+  const product=this.term({kind:'binary',type:'float',operator:'*',left:difference.expression,right:t.expression},'float',[Math.min(x*u,x*v,y*u,y*v),Math.max(x*u,x*v,y*u,y*v)],[difference,t],token);
+  return this.term({kind:'binary',type:'float',operator:'+',left:a.expression,right:product.expression},'float',[a.range[0]+product.range[0],a.range[1]+product.range[1]],[a,product],token);
+ }
+ type='color';range=[0,1];}
  else{if(args.length!==3)fail('TYPE','clamp requires three floats',token);args.forEach(arg=>this.float(arg,token));if(args[1].range[1]>args[2].range[0])fail('RANGE','clamp bounds are not ordered',token);range=[args[1].range[0],args[2].range[1]];}
  return this.term({kind:'call',type,name:name as 'sin'|'cos'|'mix'|'clamp',args:args.map(a=>a.expression)},type,range,args,token);
  }
