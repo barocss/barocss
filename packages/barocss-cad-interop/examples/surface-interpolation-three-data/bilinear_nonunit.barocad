@@ -1,0 +1,1 @@
+@model bilinear_surface { version:0; length-unit:mm; @surface #bilinear_surface { type:nurbs; degree-u:1; degree-v:1; knots-u:[-3,-3,7,7]; knots-v:[2,2,5,5]; control-points:[[[-0,-0,-0],[0,3,0]],[[2,0,0],[2,3,3]]]; weights:[[1,1],[1,1]]; } }

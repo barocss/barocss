@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native interpolated Surfaces in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 1020px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+  button { margin: 8px 8px 8px 0; padding: 7px 12px; }
+</style>
+<main>
+  <h1>Native interpolated Surfaces in Three.js</h1>
+  <p>Five saved native Surfaces appear as spaced 8×8 display meshes. The sixth valid native source has coincident XYZ triangles, so the display loader refuses it.</p>
+  <div id="view"></div>
+  <button id="reject">Try invalid candidates</button><button id="dispose">Dispose loaded display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Group, OrthographicCamera, Scene, WebGLRenderer } from 'three';
+  import { parseBaroCadSource } from '../dist/native.js';
+  import { BaroCADLoader } from '../dist/three.js';
+
+  const options = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001 };
+  const cases = [
+    { key: 'bilinear_nonunit', id: 'bilinear_surface', hash: '8053273b5a7e55b30a92b91f4caebc1846340ec2ea468a9536dca8dfea8f2d45', offsetX: 0 },
+    { key: 'quadratic_linear_rectangular', id: 'quadratic_surface', hash: 'f90fb0982ab9f8090025c4332b4b40acf55658499cf7229f3797cc413c816b17', offsetX: 0.014 },
+    { key: 'known_bicubic_nonunit', id: 'bicubic_surface', hash: 'e94f93d773fd009f19c8df363dbbc3443a7d5d165a281131b1e7233a6288d408', offsetX: 0.028 },
+    { key: 'numeric_point_edit', id: 'bicubic_surface', hash: 'c5c2f6843cd8d6509f75fc635929141bea55a40245700a50b2ef157aa0795558', offsetX: 0.042 },
+    { key: 'maximum_16_by_16', id: 'maximum_surface', hash: '928d7719d947126c09748b9643ea4b64ea1be0160fe99f94595adf295f72800f', offsetX: 0.056 },
+    { key: 'coincident_xyz_grid', id: 'coincident_surface', hash: 'dcf6c27137ce3861fe81bb9863ba7cada59941504d40c8c5b0885a81f3a14b1d', refuse: true },
+  ];
+  const status = document.querySelector('#status');
+  const renderer = new WebGLRenderer({ antialias: false, preserveDrawingBuffer: true });
+  renderer.setSize(960, 520);
+  renderer.setClearColor(0x142236);
+  document.querySelector('#view').append(renderer.domElement);
+  const scene = new Scene();
+  const callerChild = new Group();
+  callerChild.name = 'caller marker';
+  scene.add(callerChild);
+  // Native XYZ remains unchanged. The host view looks from +Z with +Y up.
+  const camera = new OrthographicCamera(-0.037, 0.037, 0.020, -0.020, 0.001, 0.2);
+  camera.position.set(0.030, 0.004, 0.08);
+  camera.up.set(0, 1, 0);
+  camera.lookAt(0.030, 0.004, 0);
+  const loader = new BaroCADLoader(options);
+  const accepted = [];
+  const sources = new Map();
+  const pixels = () => {
+    const data = new Uint8Array(960 * 520 * 4);
+    const gl = renderer.getContext();
+    gl.readPixels(0, 0, 960, 520, gl.RGBA, gl.UNSIGNED_BYTE, data);
+    return data;
+  };
+  const hashPixels = data => data.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const coloredPixels = data => {
+    let count = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i] !== 20 || data[i + 1] !== 34 || data[i + 2] !== 54) count++;
+    }
+    return count;
+  };
+  const sha256 = async data => [...new Uint8Array(await crypto.subtle.digest('SHA-256', data))]
+    .map(byte => byte.toString(16).padStart(2, '0')).join('');
+  try {
+    if (!(renderer.getContext() instanceof WebGL2RenderingContext)) throw new Error('WebGL2 required');
+    let coincidentRefused = false;
+    for (const item of cases) {
+      const url = new URL(`./surface-interpolation-three-data/${item.key}.barocad`, location.href);
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
+      const bytes = await response.arrayBuffer();
+      if (await sha256(bytes) !== item.hash) throw new Error(`Saved source SHA mismatch: ${item.key}`);
+      const source = new TextDecoder().decode(bytes);
+      sources.set(item.key, source);
+      if (item.refuse) {
+        let neutralRefused = false, threeRefused = false;
+        try { parseBaroCadSource(source, options); } catch (error) { neutralRefused = /Collapsed or nonfinite preview triangle/.test(String(error)); }
+        try { loader.parse(source); } catch (error) { threeRefused = /Collapsed or nonfinite preview triangle/.test(String(error)); }
+        if (!neutralRefused || !threeRefused) throw new Error('Coincident native Surface must refuse collapsed display triangles');
+        coincidentRefused = true;
+        continue;
+      }
+      const neutral = parseBaroCadSource(source, options);
+      const display = loader.parse(source);
+      if (neutral.model.objects.length !== 1 || neutral.model.objects[0].id !== item.id || neutral.surfaces.length !== 1)
+        throw new Error(`Native Surface identity mismatch: ${item.key}`);
+      const mesh = display.group.children[0];
+      if (display.group.children.length !== 1 || mesh.type !== 'Mesh' || mesh.name !== item.id || mesh.userData.surfaceId !== item.id)
+        throw new Error(`Expected one native-bound Mesh: ${item.key}`);
+      for (const [attribute, values] of [['position', neutral.surfaces[0].mesh.positions],
+        ['normal', neutral.surfaces[0].mesh.normals], ['_CAD_UV', neutral.surfaces[0].mesh.parameters]]) {
+        const got = mesh.geometry.getAttribute(attribute).array;
+        if (got.length !== values.length || got.some((value, index) => !Object.is(value, values[index])))
+          throw new Error(`${attribute} mismatch: ${item.key}`);
+      }
+      const index = mesh.geometry.getIndex().array, nativeIndex = neutral.surfaces[0].mesh.indices;
+      if (index.length !== nativeIndex.length || index.some((value, i) => value !== nativeIndex[i]))
+        throw new Error(`index mismatch: ${item.key}`);
+      const disposal = { geometry: 0, material: 0 };
+      mesh.geometry.addEventListener('dispose', () => disposal.geometry++);
+      mesh.material.addEventListener('dispose', () => disposal.material++);
+      display.group.position.x = item.offsetX;
+      scene.add(display.group);
+      accepted.push({ key: item.key, source, display, mesh, disposal,
+        nativeId: item.id, vertices: neutral.surfaces[0].report.vertexCount,
+        triangles: neutral.surfaces[0].report.triangleCount, sourceBytes: bytes.byteLength });
+    }
+    if (accepted.length !== 5 || !coincidentRefused) throw new Error('Expected five Meshes and one authentic refusal');
+    const individuallyVisible = {};
+    for (const item of accepted) {
+      for (const other of accepted) other.display.group.visible = other === item;
+      renderer.render(scene, camera);
+      individuallyVisible[item.key] = coloredPixels(pixels());
+      if (individuallyVisible[item.key] === 0) throw new Error(`No visible Mesh pixels: ${item.key}`);
+    }
+    for (const item of accepted) item.display.group.visible = true;
+    renderer.render(scene, camera);
+    const frame = pixels();
+    const evidence = { target: 'Three.js 0.186.1 WebGL2', webgl2: true,
+      sourceFrame: 'authored XYZ, camera +Z, up +Y', unitsPerMillimeter: 0.001,
+      cases: accepted.map(({ key, nativeId, vertices, triangles, sourceBytes }) => ({ key, nativeId, vertices, triangles, sourceBytes, meshCount: 1 })),
+      coincidentNativeSourceFetched: sources.has('coincident_xyz_grid'), coincidentDisplayRefused: true,
+      individuallyVisible, combinedPixels: coloredPixels(frame), pixelHash: hashPixels(frame),
+      callerChildRetained: scene.children.includes(callerChild) };
+    window.__baroSurfaceInterpolationEvidence = evidence;
+    status.textContent = JSON.stringify(evidence, null, 2);
+    const acceptedSources = new Map(sources);
+    document.querySelector('#reject').onclick = () => {
+      let refused = 0;
+      for (const candidate of [
+        () => loader.parse('@model invalid {}'),
+        () => new BaroCADLoader({ ...options, sourceVersion: 1 }).parse(accepted[0].source),
+        () => new BaroCADLoader({ ...options, countU: 1 }).parse(accepted[0].source),
+        () => loader.parse(sources.get('coincident_xyz_grid')),
+      ]) { try { candidate(); } catch { refused++; } }
+      renderer.render(scene, camera);
+      evidence.invalidCandidatesRefused = refused;
+      evidence.acceptedSceneRetained = accepted.every(item => scene.children.includes(item.display.group));
+      evidence.acceptedSourcesRetained = cases.every(item => sources.get(item.key) === acceptedSources.get(item.key));
+      evidence.acceptedPixelsRetained = hashPixels(pixels()) === evidence.pixelHash;
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+    document.querySelector('#dispose').onclick = () => {
+      for (const item of accepted) { item.display.dispose(); item.display.dispose(); }
+      renderer.render(scene, camera);
+      evidence.disposed = accepted.every(item => !scene.children.includes(item.display.group) &&
+        item.disposal.geometry === 1 && item.disposal.material === 1);
+      evidence.callerChildRetained = scene.children.includes(callerChild);
+      evidence.callerRendererRetained = renderer.getContext() instanceof WebGL2RenderingContext;
+      evidence.callerCanvasRetained = document.querySelector('#view').contains(renderer.domElement);
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+  } catch (error) {
+    for (const item of accepted) item.display.dispose();
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroSurfaceInterpolationError = String(error);
+  }
+</script>
+</html>

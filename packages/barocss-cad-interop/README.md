@@ -1969,3 +1969,25 @@ the original source0 native Curves and CAD owned results carry the
 construction authority. This example does not establish true arc length,
 global shape accuracy, Surface or Solid behavior, other target parity,
 or npm release readiness.
+
+## Interpolated native Surface grids in Three.js
+
+`examples/surface-interpolation-three-data/` holds six byte-exact CAD #946
+source0 outputs. Five can produce 8×8 display meshes. The valid native
+coincident-XYZ Surface must refuse preview because its sampled triangles
+collapse. The Node verifier checks each original authored grid and owned
+Surface with public CAD, cold source0 compilation, exact source hashes,
+five neutral/Three mesh buffers and the one authentic display refusal:
+
+```sh
+node packages/barocss-cad-interop/examples/surface-interpolation-three-verify.mjs /Users/user/.barocss-ai/v3/evidence-946-cad/integration/demo-output
+```
+
+Serve `examples/surface-interpolation-three.html` through the local Vite
+server for the headed Three.js WebGL2 flow. It fetches all six files over
+HTTP, spaces only the five accepted display Groups, checks each visible
+Mesh, retains the frame after invalid candidates, and disposes only the
+adapter-owned meshes. The original native Surface U/V grids and
+coefficients remain authoritative. The 8×8 meshes do not replace the
+16×16 native construction, certify fit or regularity, create a Solid,
+or establish other engine or npm release readiness.
