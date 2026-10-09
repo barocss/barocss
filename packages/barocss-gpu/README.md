@@ -1,5 +1,28 @@
 # @barocss/gpu (experimental v0)
 
+## Complete integer-box Boolean CPU buffers
+
+`prepareAxisBoxBooleanBuffers(result, {basis:'authored-xyz-matches-rhyup',
+mmToSceneUnit, translate})` validates the complete CAD integer-axis-box Boolean
+result and stages every generated panel. It retains copied original operands,
+unused original geometry, generated sources, body/shell relationships and qualified
+lineage. Exact two-by-two native tessellation provides separate hard-normal
+vertices: at most72 panels,288 vertices,144 triangles and7776 geometry bytes.
+Valid empty results keep their native data and return empty arrays/null bounds.
+
+The native integer-cell Solid proof remains native. Float32 positions/normals and
+Uint16 indices are independent caller-owned display copies. Metadata/native/options
+are frozen. `AxisBoxBooleanBufferError` codes are INPUT, BUDGET, NATIVE, BINDING and
+CONVERSION, with the actual cause retained. The explicit basis declares authored
+XYZ agreement with renderer Y-up; scale/translation apply once. Unsafe coordinate
+loss and degenerate display triangles refuse without a partial public result.
+
+This CPU profile is separate from existing extrusion-Shell and limited Face/Mesh
+renderer inputs. It is not an original Surface, a renderer or a Viewer adoption.
+No edges, colors, camera, picking or GLB are added. The focused
+`axis-box-boolean-buffers-flow.mjs --output <dir>` uses recorded native results,
+actual source/compiled public API and cold files; it requires no browser or GL.
+
 ## Native Curve coordinate conversion
 
 Primitive Curve display preparation refuses a nonzero posed millimetre coordinate
