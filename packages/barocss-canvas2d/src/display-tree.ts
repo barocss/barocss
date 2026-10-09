@@ -176,6 +176,9 @@ export type DisplayTree = {
   createLine(spec: LineSpec): LineHandle;
   reparentChild(child: DisplayHandle, target: StageHandle | ContainerHandle | FrameHandle, index: number): void;
   get(id: string): DisplayHandle | null;
+  capturePointer(pointerId: number, handle: DisplayHandle): void;
+  releasePointer(pointerId: number): void;
+  getPointerCapture(pointerId: number): DisplayHandle | null;
   dispatchPointer(input: PointerInput): void;
   dispatchHover(input: HoverInput): void;
   snapshot(): SceneV13;
@@ -328,6 +331,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
   const listeners = new WeakMap<RecordNode, Map<PointerEventType, { listener: PointerListener }[]>>();
   const hoverListeners = new WeakMap<RecordNode, Map<HoverEventType, { listener: HoverListener }[]>>();
   const hoverRoutes = new Map<number, RecordNode[]>();
+  const pointerCaptures = new Map<number, RecordNode>();
   const pointerTypes: readonly PointerEventType[] = ['pointerdown', 'pointerup', 'pointermove', 'pointercancel'];
   const hoverTypes: readonly HoverEventType[] = ['pointerenter', 'pointerleave'];
 
@@ -375,6 +379,18 @@ export function createDisplayTree(contextId: string): DisplayTree {
     for (const [pointerId, route] of hoverRoutes) {
       if (route.includes(record)) hoverRoutes.delete(pointerId);
     }
+  }
+  function clearPointerCapturesThrough(record: RecordNode): void {
+    for (const [pointerId, target] of pointerCaptures) {
+      for (let cursor: RecordNode | null = target; cursor; cursor = cursor.parent) {
+        if (cursor === record) { pointerCaptures.delete(pointerId); break; }
+      }
+    }
+  }
+  function isAttached(record: RecordNode): boolean {
+    let top = record;
+    while (top.parent) top = top.parent;
+    return top === root;
   }
   function findRecord(id: string): RecordNode | null {
     const find = (children: RecordNode[]): RecordNode | null => {
@@ -567,6 +583,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
         if (index < 0) invalid('display object is not a child of this parent');
         parent.children.splice(index, 1); record.parent = null;
         clearHoverRoutesThrough(record);
+        clearPointerCapturesThrough(record);
       },
       setChildIndex(child: DisplayHandle, index: number) {
         const record = known(child);
@@ -598,12 +615,7 @@ export function createDisplayTree(contextId: string): DisplayTree {
           destination.data?.kind !== 'frame')) invalid('target is not a parent in this display tree');
       const source = record.parent;
       if (!source || source === destination) invalid('child must have a different parent');
-      const attached = (node: RecordNode) => {
-        let top = node;
-        while (top.parent) top = top.parent;
-        return top === root;
-      };
-      if (!attached(record) || !attached(destination)) invalid('child and target must be attached');
+      if (!isAttached(record) || !isAttached(destination)) invalid('child and target must be attached');
       if (!Number.isInteger(index) || Object.is(index, -0) ||
           index < 0 || index > destination.children.length) invalid('child index is outside its range');
       for (let cursor: RecordNode | null = destination; cursor; cursor = cursor.parent) {
@@ -818,25 +830,45 @@ export function createDisplayTree(contextId: string): DisplayTree {
       }
       return (findRecord(id)?.handle as DisplayHandle | undefined) ?? null;
     },
+    capturePointer(pointerId: number, handle: DisplayHandle): void {
+      const id = checkedPointerId(pointerId);
+      const target = known(handle);
+      if (!isAttached(target)) invalid('pointer capture target is detached');
+      if (!pointerCaptures.has(id) && pointerCaptures.size >= 16) {
+        throw new Canvas2DError('SCENE_LIMIT', 'pointer capture limit is 16');
+      }
+      pointerCaptures.set(id, target);
+    },
+    releasePointer(pointerId: number): void {
+      pointerCaptures.delete(checkedPointerId(pointerId));
+    },
+    getPointerCapture(pointerId: number): DisplayHandle | null {
+      return (pointerCaptures.get(checkedPointerId(pointerId))?.handle as DisplayHandle | undefined) ?? null;
+    },
     dispatchPointer(input: PointerInput): void {
       const fields = exactSpec(input, ['type', 'pointerId', 'point', 'hit']);
       const type = checkedPointerType(fields.type);
       const pointerId = checkedPointerId(fields.pointerId);
       const point = validatePoint(fields.point);
-      const target = claimedTarget(fields.hit);
+      const spatialTarget = claimedTarget(fields.hit);
+      const target = pointerCaptures.get(pointerId) ?? spatialTarget;
       const route: RecordNode[] = [];
       for (let cursor: RecordNode | null = target ?? root; cursor; cursor = cursor.parent) route.push(cursor);
       const planned = route.map(record => ({ record,
         callbacks: (listeners.get(record)?.get(type) ?? []).map(registration => registration.listener) }));
       let stopped = false;
-      for (const { record, callbacks } of planned) {
-        for (const callback of callbacks) {
-          callback(Object.freeze({ type, pointerId, point: Object.freeze({ ...point }),
-            target: (target?.handle as DisplayHandle | undefined) ?? null,
-            currentTarget: record.handle,
-            stopPropagation() { stopped = true; } }));
+      try {
+        for (const { record, callbacks } of planned) {
+          for (const callback of callbacks) {
+            callback(Object.freeze({ type, pointerId, point: Object.freeze({ ...point }),
+              target: (target?.handle as DisplayHandle | undefined) ?? null,
+              currentTarget: record.handle,
+              stopPropagation() { stopped = true; } }));
+          }
+          if (stopped) break;
         }
-        if (stopped) break;
+      } finally {
+        if (type === 'pointerup' || type === 'pointercancel') pointerCaptures.delete(pointerId);
       }
     },
     dispatchHover(input: HoverInput): void {
