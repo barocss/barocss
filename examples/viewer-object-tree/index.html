@@ -26,6 +26,9 @@
     button { border: 1px solid #7198bc; border-radius: 4px; background: #244462; color: white; padding: 5px 8px; cursor: pointer; }
     button:disabled { opacity: .5; cursor: not-allowed; }
     .toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .selection-filter { display: block; margin-bottom: 10px; }
+    .selection-filter select { margin-left: 6px; padding: 5px; border: 1px solid #7198bc;
+      border-radius: 4px; background: #101b2c; color: #eaf4ff; }
     #bodies { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
     #bodies li { border: 1px solid #486989; border-radius: 4px; padding: 8px; }
     #bodies li[aria-selected="true"] { border-color: #ffe577; background: #353d3d; }
@@ -60,6 +63,13 @@
     </div>
     <aside>
       <h2>Document bodies</h2>
+      <label class="selection-filter">Selection filter
+        <select id="selection-filter">
+          <option value="all">All</option>
+          <option value="surface">Surfaces</option>
+          <option value="curve">Curves</option>
+        </select>
+      </label>
       <div class="toolbar">
         <button id="fit-all">Fit all</button>
         <button id="show-all">Show all</button>
