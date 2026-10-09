@@ -87,3 +87,7 @@ The [`round-join.html`](round-join.html) page authors Scene v19 bevel and round 
 The [`stroke-dash.html`](stroke-dash.html) page authors a Scene v20 path with bounded on/off stroke lengths. It checks WebGL2 on and gap pixels, semantic hit fallthrough, real pointer routing, a transformed dashed path, rejected edit and view rollback, and a v1 document Save/Open on a fresh renderer/tree followed by an offset edit. The [stroke dash observation](evidence/stroke-dash/observation.md) records the browser and file flow.
 
 `miter-join.html` checks Scene v21 bounded miter joins, bevel fallback, pointer hits and document restore.
+
+## Public clipped chart consumer (#995)
+
+After the compiled build, open `/packages/barocss-canvas2d/consumer/chart.html`. Two fixed eight-point series use public Path/Rect handles inside a rotated clipped Frame. Host controls pan/zoom, bounded hit-stack selection and one-point editing. CSS input becomes logical viewport input for renderer hits; public conversion supplies world/plot-local data for tree events. Changes stage a fresh tree/canvas before adoption. Save clears transient selection and stores accepted Scene; Open resets host view/selection, validates exact chart topology and derives data from admitted commands before restoring editable handles. No plotting framework, host dataset metadata or SVG export is provided.

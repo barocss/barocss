@@ -66,6 +66,8 @@
     "linear-fill.mjs",
     "radial-fill.mjs",
     "background.mjs",
-    "transformed-clip.mjs"
+    "transformed-clip.mjs",
+    "chart.mjs",
+    "chart-host.mjs"
   ]
 }
