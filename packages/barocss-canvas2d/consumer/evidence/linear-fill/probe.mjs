@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createDisplayTree, createDisplayTreeFromScene } from '../../../dist/index.js';
 import { validateScene } from '../../../dist/schema.js';
+import { tessellatePath } from '../../../dist/path.js';
 
 const pose = { x: 0, y: 0, scaleX: 1, scaleY: 1, rotation: 0 };
 const commands = [{ kind: 'M', x: 0, y: 0 }, { kind: 'L', x: 20, y: 0 },
@@ -19,6 +20,12 @@ code(() => validateScene(scene(21, linear)), 'INVALID_SCENE');
 assert.equal(validateScene(scene(22, solid)).version, 22);
 const accepted = validateScene(scene(22, linear));
 assert.deepEqual(accepted.nodes[0].fill, linear);
+for (const fillRule of ['evenodd', 'nonzero']) {
+  const node = validateScene(scene(22, { ...linear, rule: fillRule })).nodes[0];
+  const geometry = tessellatePath(node, [1, 0, 0, 1, 0, 0],
+    { panX: 0, panY: 0, zoom: 1 }, 2, 0.25);
+  assert(geometry.fill && geometry.fill.coverVertices.length > 0);
+}
 linear.linear.startColor[0] = 0.5;
 assert.equal(accepted.nodes[0].fill.linear.startColor[0], 1);
 const invalid = [
@@ -45,4 +52,4 @@ assert.equal(tree.snapshot().nodes[0].fill.rule, 'nonzero');
 assert.deepEqual(createDisplayTreeFromScene(tree.snapshot()).get('P').data.fill, handle.data.fill);
 assert.deepEqual(createDisplayTreeFromScene(validateScene(scene(21, solid))).get('P').data.fill, solid);
 console.log(JSON.stringify({ version: 22, refusals: invalid.length + 1,
-  solidCompatibility: true, copiedStops: true, reconstruction: true }));
+  solidCompatibility: true, bothFillRules: true, copiedStops: true, reconstruction: true }));
