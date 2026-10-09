@@ -2118,3 +2118,65 @@ and materials. Display gallery offsets do not change native mm spacing;
 the adapter applies 0.001 scene units/mm once in a right-handed Y-up Scene.
 This does not prove direct five-object loading, own GPU adoption, assembly,
 union, circular patterns, Solid quality or npm publication.
+
+## Opt in to complete native source0 Models
+
+The optional `nativeCapacity` profile lets the existing neutral and named
+native adapters read a complete source0 Model with up to sixteen objects.
+The fixed profile matches the CAD compiler's declaration limit:
+
+```js
+const options = {
+  sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+  curveDisplay: { version: 1, chordToleranceMM: 0.1, maxSegments: 512, maxDepth: 16 },
+  nativeCapacity: { version: 1, maximumObjects: 16 },
+};
+
+const native = parseBaroCadSource(completeSource, options);
+// native.model keeps every original object in source order.
+// Use the same options with BaroCADLoader, BaroCADBabylonLoader,
+// or the pinned BaroCADPixi3DLoader.
+```
+
+`BaroCadNativeCapacityV1` is exported by the existing `./native` entry.
+The profile must contain exactly the own data fields `version: 1` and
+`maximumObjects: 16`. Other versions/counts, getters, missing/extra fields,
+foreign prototypes and symbols refuse. Validation makes an independent
+profile snapshot and leaves caller data unchanged. The neutral URL reader
+already snapshots parse options before fetching; named renderer URL loaders
+retain their existing constructor-option timing.
+
+Omitting `nativeCapacity` preserves legacy admission: Curve display requires
+1–4 total native objects; Surface-only display requires 1–4 Surfaces and
+retains unrendered Curves. With the profile, all native objects count toward
+1–16, including unrendered Curves. Curve-only files still require
+`curveDisplay`; Pixi3D still requires its explicit v1 form. This option does
+not change native basis, source version, sample algorithms, Float32 refusal
+or the requested mm conversion.
+
+| Bound per parse result | Complete-source profile |
+|---|---|
+| Native source | 16 declarations, 262144 UTF-8 bytes; existing compiler AST/token guards |
+| Curve display total | 4096 points and 4092 segments; existing v0/v1 per-Curve limits |
+| Surface grid | 2–17 samples per axis |
+| Surface allocation envelope | 4624 vertices, 8192 triangles, 24576 indices; prechecked before previews |
+| Native IDs | Source order and IDs retained; generated sample prefix conflicts still refuse |
+
+Each complete five-member source now produces five selected target objects
+when it passes preview checks. No original/copy pair projection is needed.
+The caller still owns the Scene/Stage, engine, camera and unrelated resources;
+each loader result owns only the display objects/resources it creates.
+
+Document selected-body limits, assembly instance limits, model-set asset
+counts and own-GPU projection limits stay separate. A selected document body
+may now prepare a larger underlying asset when this profile is requested;
+unselected prepared resources remain owned by the result and are disposed.
+Native source-to-GLB still refuses more than four total native objects.
+
+`examples/native-capacity-verify.mjs` checks the four hash-pinned complete
+CAD #964/#967 files and public native/neutral authority. The focused contract
+checks are in `test/native-capacity.test.mjs`. The Three, Babylon and Pixi3D
+`examples/native-capacity-*.html` pages consume those complete sources
+directly and check all native member buffers, visible pixels, refusal
+retention and owned cleanup. The independent packed consumer remains #801;
+this profile does not establish registry publication or global CAD quality.

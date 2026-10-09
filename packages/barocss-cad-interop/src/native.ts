@@ -24,6 +24,11 @@ export interface BaroCadCurveDisplayV1 extends BaroCadCurveDisplayV0 {
   version: 1;
 }
 
+export interface BaroCadNativeCapacityV1 {
+  version: 1;
+  maximumObjects: 16;
+}
+
 export interface BaroCadParseOptions {
   sourceVersion: 0;
   countU: number;
@@ -32,6 +37,8 @@ export interface BaroCadParseOptions {
   unitsPerMillimeter: number;
   /** Explicit opt-in. Curve parameters retain the authored knot domain. */
   curveDisplay?: BaroCadCurveDisplayV0 | BaroCadCurveDisplayV1;
+  /** Explicit whole-source admission. Counts rendered and unrendered native objects. */
+  nativeCapacity?: BaroCadNativeCapacityV1;
 }
 
 export interface BaroCadSurfacePreview {
@@ -84,9 +91,11 @@ export function validateBaroCadParseOptions(input: unknown): BaroCadParseOptions
   if (prototype !== Object.prototype && prototype !== null) throw new TypeError('BaroCAD options must be a plain object');
   const expected = ['sourceVersion', 'countU', 'countV', 'unitsPerMillimeter'];
   const keys = Reflect.ownKeys(input);
-  if (keys.length < expected.length || keys.length > expected.length + 1 ||
-      !keys.every(key => typeof key === 'string' && (expected.includes(key) || key === 'curveDisplay'))) {
-    throw new TypeError('BaroCAD options require sourceVersion, countU, countV, unitsPerMillimeter and optional curveDisplay only');
+  if (keys.length < expected.length || keys.length > expected.length + 2 ||
+      !keys.every(key => typeof key === 'string' && (expected.includes(key) || key === 'curveDisplay' || key === 'nativeCapacity'))) {
+    throw new TypeError(keys.includes('nativeCapacity') ?
+      'BaroCAD options require sourceVersion, countU, countV, unitsPerMillimeter and optional curveDisplay or nativeCapacity only' :
+      'BaroCAD options require sourceVersion, countU, countV, unitsPerMillimeter and optional curveDisplay only');
   }
   const values: Record<string, unknown> = {};
   for (const key of expected) {
@@ -103,6 +112,31 @@ export function validateBaroCadParseOptions(input: unknown): BaroCadParseOptions
   }
   if (typeof values.unitsPerMillimeter !== 'number' || !Number.isFinite(values.unitsPerMillimeter) || values.unitsPerMillimeter <= 0) {
     throw new RangeError('BaroCAD unitsPerMillimeter must be finite and positive');
+  }
+  if (keys.includes('nativeCapacity')) {
+    const descriptor = Object.getOwnPropertyDescriptor(input, 'nativeCapacity');
+    if (!descriptor?.enumerable || !('value' in descriptor)) throw new TypeError('BaroCAD nativeCapacity must be data');
+    const capacity = descriptor.value;
+    if (capacity === null || typeof capacity !== 'object' || Array.isArray(capacity) ||
+        ![Object.prototype, null].includes(Object.getPrototypeOf(capacity))) {
+      throw new TypeError('BaroCAD nativeCapacity must be a plain object');
+    }
+    const fields = ['version', 'maximumObjects'];
+    const capacityKeys = Reflect.ownKeys(capacity);
+    if (capacityKeys.length !== fields.length ||
+        !capacityKeys.every(key => typeof key === 'string' && fields.includes(key))) {
+      throw new TypeError('BaroCAD nativeCapacity requires version and maximumObjects only');
+    }
+    const snapshot: Record<string, unknown> = {};
+    for (const key of fields) {
+      const field = Object.getOwnPropertyDescriptor(capacity, key);
+      if (!field?.enumerable || !('value' in field)) throw new TypeError(`BaroCAD nativeCapacity ${key} must be data`);
+      snapshot[key] = field.value;
+    }
+    if (snapshot.version !== 1 || snapshot.maximumObjects !== 16) {
+      throw new RangeError('BaroCAD nativeCapacity requires version 1 and maximumObjects 16');
+    }
+    values.nativeCapacity = snapshot;
   }
   if (keys.includes('curveDisplay')) {
     const descriptor = Object.getOwnPropertyDescriptor(input, 'curveDisplay');
@@ -166,7 +200,19 @@ export function parseBaroCadSource(source: string, options: BaroCadParseOptions)
   if (!compiled.ok) throw new BaroCadSourceError(compiled.diagnostics);
   const surfaces = compiled.model.objects.filter(object => object.kind === 'surface');
   const nativeCurves = compiled.model.objects.filter(object => object.kind === 'curve');
-  if (parsedOptions.curveDisplay) {
+  if (parsedOptions.nativeCapacity) {
+    if (compiled.model.objects.length < 1 || compiled.model.objects.length > parsedOptions.nativeCapacity.maximumObjects) {
+      throw new RangeError('BaroCAD nativeCapacity requires 1..16 total native objects');
+    }
+    if (!parsedOptions.curveDisplay && surfaces.length === 0) {
+      throw new RangeError('BaroCAD nativeCapacity Curve-only display requires curveDisplay');
+    }
+    const vertices = surfaces.length * parsedOptions.countU * parsedOptions.countV;
+    const triangles = surfaces.length * (parsedOptions.countU - 1) * (parsedOptions.countV - 1) * 2;
+    if (vertices > 4624 || triangles > 8192 || triangles * 3 > 24576) {
+      throw new RangeError('BaroCAD nativeCapacity exceeds aggregate Surface grid capacity');
+    }
+  } else if (parsedOptions.curveDisplay) {
     if (surfaces.length + nativeCurves.length < 1 || surfaces.length + nativeCurves.length > 4) {
       throw new RangeError('BaroCAD Curve display requires 1..4 total native objects');
     }
