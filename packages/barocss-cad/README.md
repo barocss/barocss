@@ -7922,3 +7922,49 @@ node examples/cad-nurbs/closed-exact-patch-shell-demo.mjs --source EVIDENCE_DIR
 The scoped native checkpoint uses one affected build and this actual
 source/file/API/cold/owned/explicit compiled-map flow. Integration and renderer
 acceptance remain separate.
+
+## V-linear Surface–finite Plane section — #1069
+
+`buildVLinearSurfacePlaneSection(surfaceAsset,planeAsset,options)` constructs a
+full-strip section of an original rational Surface and a finite affine Plane.
+Each asset has sourceId/source/surface, with actual whole Source0 models and
+selected Surface bits retained. Options contain evaluationId/curveId/
+surfacePcurveId/planePcurveId/maximumObservations, requiring five observations.
+The owned validator rebuilds the complete construction and proof.
+
+The first profile has a single U Bézier span of degree1..2 and Vdegree1. Plane
+has degree1x1,2x2 poles,equal weight bits and an exact fourth-corner affine
+relation. Original domains remain unchanged. Exact strict opposite signed-plane
+Bernstein columns admit one full-strip parametric section. Tangent, partial,
+nonlinear-V, outside-chart or unsafe inputs refuse.
+
+Exact rational arithmetic on original binary64 data constructs the homogeneous
+section and dual UV maps. Bernstein denominator scales2/12 for world and2/3 for
+SurfaceUV are disclosed. Derived weights must be exactly represented and remain
+within native1e-6..1e6; original weights are unchanged. This is a bounded subset
+of valid weighted Surfaces. Cartesian divisions use exact nearest-even rounding.
+World Curve degree is2p<=4; SurfaceUV degreep+1<=3; PlaneUV degree2p<=4. UV
+pcurves are dimensionless JSON sidecars and are excluded from mm Source0 files.
+
+Positive-weight control-hull bounds limit whole coefficient-defined model gaps.
+World pole rounding plus original-unit Surface/Plane Lipschitz bounds must stay
+within1e-7mm. Exact fractions and upward binary64 bounds, including subnormal
+values, are retained. This proof concerns model representation. Global native
+evaluator rounding, regularity, embedding, manufacturing and Solid remain
+uncertified. Actual world/twoUV/twoSurface D0/D1 observations and chain residuals
+are recorded separately. Finite Plane control-hull containment is required; no
+clipping or snapped geometry is returned.
+
+Source parameter/coordinate limits10000 and spans>=1e-6 apply. Exact arithmetic
+has fixed operation/GCD/bit/string/search budgets and refuses oversized work.
+Native causes and previous accepted files remain on failure. The result retains
+original assets/options/models, worldSource0, UV sidecars, exact proof, native
+observations and report. Existing source/math/Plane helpers remain unchanged.
+
+```sh
+node examples/cad-nurbs/vlinear-plane-section-demo.mjs --source EVIDENCE_DIR
+```
+
+This is an intersection foundation. General Surface–Surface, native trimming,
+inside/outside and Solid Boolean remain separate. Existing adaptive Curve
+samplers still cap degree3; a native degree4 result does not widen renderers.
