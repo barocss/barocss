@@ -1,4 +1,4 @@
-import { createViewer } from '../../packages/barocss-viewer/dist/index.js';
+import { createViewer, VIEWER_POSE_LIMITS } from '../../packages/barocss-viewer/dist/index.js';
 import { loadBaroCadDocument } from '../../packages/barocss-cad-interop/dist/document.js';
 
 const canvas = document.querySelector('#view');
@@ -34,7 +34,7 @@ if (proof) {
   }
 }
 
-const viewer = createViewer(canvas, { mmToSceneUnit: 0.05, background: [0.015, 0.02, 0.03] });
+const viewer = createViewer(canvas, { mmToSceneUnit: 0.11, background: [0.015, 0.02, 0.03] });
 const native = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 1,
   curveDisplay: { version: 1, chordToleranceMM: 0.02, maxSegments: 512, maxDepth: 16 } };
 const options = { native, basis: 'authored-xyz-matches-rhyup',
@@ -46,6 +46,15 @@ let refusalReport = null;
 const sameRef = (a, b) => a?.kind === b?.kind && a?.modelId === b?.modelId
   && (a?.kind === 'surface' ? a.surfaceId === b.surfaceId : a?.curveId === b?.curveId);
 const shown = (state, ref) => state.visibleGeometry.some(value => sameRef(value, ref));
+const decimal = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
+function translationValue(text, axis) {
+  const trimmed = text.trim();
+  if (!decimal.test(trimmed)) throw new Error(axis + ' must be a complete decimal in mm.');
+  const value = Number(trimmed);
+  if (!Number.isFinite(value) || Math.abs(value) > VIEWER_POSE_LIMITS.translationMm)
+    throw new Error(axis + ' must be finite and within ±' + VIEWER_POSE_LIMITS.translationMm + ' mm.');
+  return value;
+}
 const say = (message, error = false) => {
   status.textContent = message;
   status.dataset.error = String(error);
@@ -68,6 +77,71 @@ function property(name, value) {
   const dt = document.createElement('dt'), dd = document.createElement('dd');
   dt.textContent = name; dd.textContent = String(value);
   return [dt, dd];
+}
+function selectedPose(state, ref) {
+  const motion = state.geometryMotion;
+  if (!motion || motion.basis !== 'part-xyz-matches-rhyup'
+      || motion.bindings.length !== state.documentBodies.length
+      || motion.displayPoses.length !== motion.bindings.length
+      || motion.bindings.some((binding, index) => !sameRef(binding.ref, state.documentBodies[index].ref)))
+    throw new Error('The accepted complete body pose frame is unavailable.');
+  const index = motion.bindings.findIndex(binding => sameRef(binding.ref, ref));
+  if (index < 0) throw new Error('The selected body has no current display pose.');
+  return { motion, index, pose: motion.displayPoses[index] };
+}
+function translationEditor(state, selected, revision, epoch) {
+  const { pose } = selectedPose(state, selected.ref);
+  const section = document.createElement('section');
+  section.className = 'translation-editor';
+  const heading = document.createElement('h3');
+  heading.textContent = 'Display translation';
+  const note = document.createElement('p');
+  note.textContent = 'X/Y/Z in mm. Display only; original CAD source stays unchanged.';
+  const inputs = ['X', 'Y', 'Z'].map((axis, index) => {
+    const label = document.createElement('label'), input = document.createElement('input');
+    label.textContent = axis + ' (mm)';
+    input.type = 'text'; input.inputMode = 'decimal'; input.value = String(pose.translationMm[index]);
+    input.setAttribute('aria-label', axis + ' display translation (mm)');
+    label.append(input); section.append(label);
+    return input;
+  });
+  const actions = document.createElement('div');
+  actions.className = 'actions';
+  const apply = document.createElement('button'), discard = document.createElement('button');
+  apply.textContent = 'Apply'; discard.textContent = 'Discard';
+  apply.addEventListener('click', () => {
+    try {
+      if (!section.isConnected) throw new Error('This property panel is stale.');
+      const accepted = current(selected.ref, selected.binding.bodyId, revision, epoch);
+      if (!shown(accepted, selected.ref) || !sameRef(accepted.selectedGeometry, selected.ref))
+        throw new Error('The selected body is no longer visible and current.');
+      const translation = inputs.map((input, index) => translationValue(input.value, 'XYZ'[index]));
+      const { motion, index } = selectedPose(accepted, selected.ref);
+      const frame = motion.frame;
+      const targetId = motion.bindings[index].targetId;
+      const poses = frame.poses.map(pose => pose.targetId === targetId
+        ? { ...pose, translation } : pose);
+      viewer.applyGeometryMotionFrame({ contextId: frame.contextId,
+        timeSeconds: frame.timeSeconds, poses }, motion.bindings, { basis: motion.basis });
+      render(); say('Display translation applied to ' + selected.binding.bodyId + '.');
+    } catch (error) {
+      // Keep the draft text in these live inputs so it can be corrected.
+      publishProof(viewer.getState());
+      say('Display translation refused: ' + error.message, true);
+    }
+  }, { signal: listener.signal });
+  discard.addEventListener('click', () => {
+    try {
+      if (!section.isConnected) throw new Error('This property panel is stale.');
+      const accepted = current(selected.ref, selected.binding.bodyId, revision, epoch);
+      if (!shown(accepted, selected.ref) || !sameRef(accepted.selectedGeometry, selected.ref))
+        throw new Error('The selected body is no longer visible and current.');
+      render(); say('Display translation draft discarded.');
+    } catch (error) { say('Discard refused: ' + error.message, true); }
+  }, { signal: listener.signal });
+  actions.append(apply, discard); section.prepend(note); section.prepend(heading);
+  section.append(actions);
+  return section;
 }
 function publishProof(state) {
   if (!proof) return;
@@ -107,11 +181,19 @@ function publishProof(state) {
   proofOutput.textContent = JSON.stringify({
     status: state.status, documentId: state.document?.document.documentId ?? null,
     documentRevision: state.document?.document.revision ?? null,
+    documentSourceHash: state.document ? (() => {
+      let value = 2166136261;
+      for (const byte of new TextEncoder().encode(JSON.stringify(state.document.document)))
+        value = Math.imul(value ^ byte, 16777619) >>> 0;
+      return value;
+    })() : null,
     sourceBytes: state.document?.document.assets.map(asset => new TextEncoder().encode(asset.source).length) ?? [],
     bodies: state.documentBodies.map(body => ({
       kind: body.ref.kind, modelId: body.ref.modelId, bodyId: body.binding.bodyId,
       assetId: body.binding.assetId, geometryId: body.binding.geometryId })),
     visible: state.visibleGeometry, selected: state.selectedGeometry, camera: state.camera,
+    geometryMotion: state.geometryMotion,
+    draft: [...properties.querySelectorAll('.translation-editor input')].map(input => input.value),
     pixelHash, hitSamples, refusalReport, contexts: contexts.size,
     glErrors: [...contexts].map(context => context.getError()),
     resources: Object.fromEntries(Object.entries(resources).map(([kind, live]) => [kind, live.size])),
@@ -175,6 +257,10 @@ function render() {
       ...property('Document revision', revision), ...property('Source frame', binding.sourceFrame),
       ...property('Native frame', binding.nativeFrame), ...property('Source unit', state.sourceUnit));
     properties.append(values);
+    if (shown(state, selected.ref)) {
+      try { properties.append(translationEditor(state, selected, revision, epoch)); }
+      catch (error) { say('Display translation unavailable: ' + error.message, true); }
+    }
   } else {
     const empty = document.createElement('span');
     empty.textContent = 'Select a visible body.';
@@ -252,6 +338,13 @@ if (proof) {
     }
     const foreign = { ...before.documentBodies[0].ref, modelId: 'foreign' };
     try { viewer.selectGeometry(foreign); } catch { failures.push('foreign'); }
+    if (before.geometryMotion) {
+      const motion = before.geometryMotion;
+      const wrong = motion.bindings.map((binding, index) => index === 0
+        ? { ...binding, ref: { ...binding.ref, modelId: 'foreign' } } : binding);
+      try { viewer.applyGeometryMotionFrame(motion.frame, wrong, { basis: motion.basis }); }
+      catch { failures.push('motion-binding'); }
+    }
     try { current(before.documentBodies[0].ref, before.documentBodies[0].binding.bodyId,
       before.document.document.revision, sceneEpoch - 1); } catch { failures.push('stale'); }
     const after = viewer.getState(), afterPixels = viewer.readPixels();
