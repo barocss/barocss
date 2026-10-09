@@ -7120,3 +7120,44 @@ The feature lifecycle working/operation limit remains eight. General mixed
 operations, selective rebuild, suppression/reorder/history, persistent topology,
 Solid/assembly/manufacturing certification and actual target rendering remain
 separate work.
+
+## Fixed-orientation Curve path sweep
+
+`buildTranslationalSweepSurface` moves a native profile Curve along a native
+rail Curve while keeping the profile orientation fixed. The Surface uses the
+original profile parameter as U and the original rail parameter as V. Its point
+relation is `S(u,v) = P(u) + R(v) - R(vMin)`. The anchor comes from the actual
+native rail evaluator at the original domain minimum.
+
+The profile and rail can have different degrees, knots, domains, pole counts
+and rational weights. Each supports degree 1 through 3 and 2 through 16 poles.
+The tensor grid can contain up to 256 poles. Generated weights are products of
+the original weights and must stay within the existing native weight bounds.
+Generated coordinates must remain within the native world-coordinate bounds.
+
+```ts
+const sweep = cad.buildTranslationalSweepSurface(profile, rail, {
+  surfaceId: 'path_sweep',
+  maximumObservations: 961,
+});
+cad.validateTranslationalSweepSurface(sweep);
+```
+
+The result keeps both original Curves, the generated Surface, their three-object
+Source0 Model and tensor coefficient provenance. Native point and derivative
+observations use original knot boundaries and represented interval midpoints.
+A C0 knot retains actual derivative refusal states. Finite local observations
+do not certify the whole Surface. The caller observation budget must cover the
+complete sample grid before construction.
+
+The operation builds a Surface. Moving frames, profile rotation or twist, end
+caps, trimmed Shells, Solids and self-intersection validation need separate
+contracts. A collapsed rail or folded Surface does not become a certified part.
+Source and owned result files can be saved and reconstructed with the current
+native compiler and validator.
+
+Run the current native sweep flow after the library build:
+
+```sh
+node examples/cad-nurbs/translational-sweep-demo.mjs --source /tmp/cad-sweep
+```

@@ -224,3 +224,6 @@ export type { BooleanExtrusionFeatureOperation, BooleanExtrusionFeatureTransacti
 
 export { measureCoplanarFaceBooleanExtrusion, validateCoplanarFaceBooleanExtrusionProperties, CoplanarFaceBooleanExtrusionPropertiesError, CoplanarFaceBooleanExtrusionPropertiesDiagnosticCode } from './coplanar-face-boolean-extrusion-properties.js';
 export type { CoplanarFaceBooleanExtrusionPropertiesOptions, CoplanarFaceBooleanExtrusionPropertiesComponent, CoplanarFaceBooleanExtrusionPropertiesReport, CoplanarFaceBooleanExtrusionPropertiesResult } from './coplanar-face-boolean-extrusion-properties.js';
+
+export { buildTranslationalSweepSurface, validateTranslationalSweepSurface, TranslationalSweepError, TranslationalSweepDiagnosticCode } from './translational-sweep-surface.js';
+export type { TranslationalSweepOptions, TranslationalSweepProvenance, TranslationalSweepObservation, TranslationalSweepReport, TranslationalSweepResult } from './translational-sweep-surface.js';
