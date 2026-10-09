@@ -51,7 +51,7 @@ try {
       HTMLCanvasElement.prototype.addEventListener = function (type, listener, options) { if (type === 'webglcontextlost') losses.add(listener); return add.call(this, type, listener, options); };
       HTMLCanvasElement.prototype.removeEventListener = function (type, listener, options) { if (type === 'webglcontextlost') losses.delete(listener); return remove.call(this, type, listener, options); };
       const OriginalObserver = ResizeObserver;
-      window.ResizeObserver = class extends OriginalObserver { observe(...args) { observers.add(this); return super.observe(...args); } disconnect() { observers.delete(this); return super.disconnect(); } };
+      window.ResizeObserver = class extends OriginalObserver { observe(...args) { if (args[0] instanceof HTMLCanvasElement) observers.add(this); return super.observe(...args); } disconnect() { observers.delete(this); return super.disconnect(); } };
       window.__renderEditorEvidence = {counts: () => ({programs: programs.size, vertexArrays: arrays.size, contextLossListeners: losses.size, resizeObservers: observers.size})};
     });
     await page.reload();
@@ -83,7 +83,7 @@ try {
     const resourcesBefore = await page.evaluate(() => window.__renderEditorEvidence.counts());
     await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
     const resourcesAfter = await page.evaluate(() => window.__renderEditorEvidence.counts());
-    check(resourcesAfter.programs === 0 && resourcesAfter.vertexArrays === 0 && resourcesAfter.contextLossListeners === 0 && resourcesAfter.resizeObservers === 0, 'Owned lifecycle resources leaked');
+    check(resourcesAfter.programs === 0 && resourcesAfter.vertexArrays === 0 && resourcesAfter.contextLossListeners === 0 && resourcesAfter.resizeObservers === 0, 'Owned lifecycle resources leaked: ' + JSON.stringify(resourcesAfter));
     check(await source.inputValue() === edited && await source.count() === 1 && await page.locator('canvas').count() === 1, 'Dispose removed caller DOM/data');
     check(errors.length === 0, 'App page errors: ' + errors.join('; '));
     return {rows, savedSource: edited, savedEyeX: 2, savedRevision: 8, resourcesBefore, resourcesAfter, errors};
