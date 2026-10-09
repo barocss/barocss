@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native circular geometry patterns in Pixi3D</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 1240px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+  button { margin: 8px 8px 8px 0; padding: 7px 12px; }
+</style>
+<main>
+  <h1>Native circular geometry patterns in Pixi3D</h1>
+  <p>Seven saved patterns contain 25 actual original and rotated native members. The display preserves their axis, angle and millimetre geometry. Larger patterns use the producer's saved original/copy pairs.</p>
+  <div id="view"></div>
+  <button id="reject">Try invalid candidates</button><button id="dispose">Dispose loaded display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Application, DRAW_MODES, Graphics } from 'pixi.js';
+  import { Camera, Color } from 'pixi3d/pixi7';
+  import { compileCadModel, validateCircularGeometryPattern } from '@barocss/cad';
+  import { parseBaroCadSource } from '../dist/native.js';
+  import { BaroCADPixi3DLoader } from '../dist/pixi3d.js';
+
+  const status = document.querySelector('#status');
+  const app = new Application({ width: 1200, height: 700, background: '#142236', antialias: false,
+    preserveDrawingBuffer: true });
+  app.stop();
+  document.querySelector('#view').append(app.view);
+  const callerMarker = new Graphics();
+  app.stage.addChild(callerMarker);
+  const camera = Camera.main ?? new Camera(app.renderer);
+  camera.orthographic = true;
+  camera.orthographicSize = 0.06;
+  camera.position.set(0, 0, 0.4);
+  const options = { sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+    curveDisplay: { version: 1, chordToleranceMM: 0.1, maxSegments: 512, maxDepth: 16 } };
+  const loader = new BaroCADPixi3DLoader(options);
+  const displays = [];
+  const selected = [];
+  const allMeshes = [];
+  const sources = new Map();
+  const digest = async bytes => [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))]
+    .map(byte => byte.toString(16).padStart(2, '0')).join('');
+  const fetchExact = async (file, hash) => {
+    const response = await fetch(new URL(`./circular-geometry-pattern-pixi3d-data/${file}`, location.href));
+    if (!response.ok) throw new Error(`${file}: HTTP ${response.status}`);
+    const bytes = await response.arrayBuffer();
+    if (await digest(bytes) !== hash) throw new Error(`${file}: SHA-256 mismatch`);
+    return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+  };
+  const same = (a, b) => Object.is(a, b) || (a !== null && b !== null && typeof a === 'object' &&
+    typeof b === 'object' && Object.keys(a).length === Object.keys(b).length &&
+    Object.keys(a).every(key => Object.hasOwn(b, key) && same(a[key], b[key])));
+  const sameBuffer = (a, b) => a?.length === b.length && Array.from(a).every((value, i) => Object.is(value, b[i]));
+  const pixels = () => {
+    const bytes = new Uint8Array(1200 * 700 * 4);
+    const gl = app.view.getContext('webgl2');
+    gl.readPixels(0, 0, 1200, 700, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
+    return bytes;
+  };
+  const colored = bytes => {
+    let count = 0;
+    for (let i = 0; i < bytes.length; i += 4)
+      if (bytes[i] !== 20 || bytes[i + 1] !== 34 || bytes[i + 2] !== 54) count++;
+    return count;
+  };
+  const frameHash = bytes => bytes.reduce((hash, byte) => Math.imul(hash ^ byte, 16777619) >>> 0, 2166136261);
+  const track = result => {
+    const meshes = [...result.renderedCurves, ...result.renderedSurfaces].map(binding => {
+      const mesh = binding.mesh;
+      const item = { mesh, meshDestroy: 0, geometryDestroy: 0, materialDestroy: 0 };
+      for (const [object, counter] of [[mesh, 'meshDestroy'], [mesh.geometry, 'geometryDestroy'], [mesh.material, 'materialDestroy']]) {
+        const original = object.destroy;
+        object.destroy = function (...args) { item[counter]++; return original.apply(this, args); };
+      }
+      allMeshes.push(mesh);
+      return item;
+    });
+    displays.push({ result, meshes });
+  };
+  const bind = (result, neutral, native, key) => {
+    const binding = native.kind === 'curve' ? result.renderedCurves.find(entry => entry.curveId === native.id) :
+      result.renderedSurfaces.find(entry => entry.surfaceId === native.id);
+    if (!binding || !same(result.model.objects.find(object => object.id === native.id), native))
+      throw new Error(`Native binding mismatch: ${key}/${native.id}`);
+    const mesh = binding.mesh;
+    if (native.kind === 'curve') {
+      const preview = neutral.curves.find(entry => entry.curveId === native.id);
+      if (!preview || mesh.material.drawMode !== DRAW_MODES.LINE_STRIP ||
+        !sameBuffer(mesh.geometry.positions.buffer, preview.positions) ||
+        !same(binding.nativeParameters, preview.sample.parameters) ||
+        !same(binding.nativeIntervals, preview.sample.segments.map(segment => segment.domain)) ||
+        mesh.geometry.indices.buffer.length !== preview.sample.pointsMM.length ||
+        mesh.geometry.indices.buffer.some((value, index) => value !== index))
+        throw new Error(`Curve buffer mismatch: ${key}/${native.id}`);
+    } else {
+      const preview = neutral.surfaces.find(entry => entry.surfaceId === native.id);
+      const retained = result.surfaces.find(entry => entry.surfaceId === native.id);
+      if (!preview || preview.report.vertexCount !== 64 || preview.report.triangleCount !== 98 ||
+        !sameBuffer(mesh.geometry.positions.buffer, preview.mesh.positions) ||
+        !sameBuffer(mesh.geometry.normals.buffer, preview.mesh.normals) ||
+        !sameBuffer(mesh.geometry.indices.buffer, preview.mesh.indices) ||
+        !sameBuffer(retained.mesh.parameters, preview.mesh.parameters))
+        throw new Error(`Surface buffer mismatch: ${key}/${native.id}`);
+    }
+    mesh.material.baseColor = native.id === result.model.objects[0].id ? new Color(0.16, 0.79, 0.92) : new Color(0.94, 0.39, 0.87);
+    return mesh;
+  };
+  try {
+    if (!(app.view.getContext('webgl2') instanceof WebGL2RenderingContext)) throw new Error('WebGL2 required');
+    const response = await fetch(new URL('./circular-geometry-pattern-pixi3d-data/manifest.json', location.href));
+    if (!response.ok) throw new Error(`Manifest HTTP ${response.status}`);
+    const manifest = await response.json();
+    if (manifest.schema !== 'barocss-circular-pattern-pixi3d-example' || manifest.cases.length !== 7)
+      throw new Error('Unexpected native manifest');
+    let originalOwned;
+    const caseEvidence = [];
+    for (const [caseIndex, item] of manifest.cases.entries()) {
+      const full = await fetchExact(item.file, item.sourceSha256);
+      sources.set(item.key, full);
+      const cold = compileCadModel(full, { sourceVersion: 0 });
+      if (!cold.ok || cold.model.objects.length !== item.count ||
+        !same(cold.model.objects.map(object => object.id), item.ids) || item.pairs.length !== item.count - 1)
+        throw new Error(`Complete native pattern mismatch: ${item.key}`);
+      const original = cold.model.objects[0];
+      for (const [index, native] of cold.model.objects.entries()) {
+        const originalPoints = original.kind === 'curve' ? original.controlPoints : original.controlPoints.flat();
+        const nativePoints = native.kind === 'curve' ? native.controlPoints : native.controlPoints.flat();
+        const matrix = item.matrices[index];
+        if (native.kind !== original.kind || !same({ ...native, id: original.id, controlPoints: original.controlPoints }, original) ||
+          nativePoints.length !== originalPoints.length || nativePoints.some((point, p) => point.some((value, axis) =>
+            Math.abs(value - (matrix[axis * 4] * originalPoints[p][0] + matrix[axis * 4 + 1] * originalPoints[p][1] +
+              matrix[axis * 4 + 2] * originalPoints[p][2] + matrix[axis * 4 + 3])) > 1e-11)))
+          throw new Error(`Baked native rotation/basis mismatch: ${item.key}/${native.id}`);
+      }
+      if (item.ownedFile) {
+        originalOwned = JSON.parse(await fetchExact(item.ownedFile, item.ownedSha256));
+        if (!same(validateCircularGeometryPattern(originalOwned), originalOwned.report)) throw new Error('Owned pattern validation mismatch');
+      }
+      const pairSources = new Map();
+      for (const pair of item.pairs) {
+        const source = await fetchExact(pair.file, pair.sha256);
+        const pairCold = compileCadModel(source, { sourceVersion: 0 });
+        if (!pairCold.ok || !same(pairCold.model.objects, [original, cold.model.objects[pair.index]]))
+          throw new Error(`Actual pair mismatch: ${item.key}/${pair.index}`);
+        pairSources.set(pair.index, source);
+      }
+      const pose = [(caseIndex % 4 - 1.5) * 0.045, caseIndex < 4 ? 0.025 : -0.025, 0];
+      const attach = result => { result.root.position.set(...pose); app.stage.addChild(result.root); track(result); };
+      if (item.count <= 4) {
+        const neutral = parseBaroCadSource(full, options);
+        const result = loader.parse(full);
+        attach(result);
+        for (const native of cold.model.objects)
+          selected.push({ key: item.key, id: native.id, mesh: bind(result, neutral, native, item.key) });
+      } else {
+        let refused = false;
+        try { loader.parse(full); } catch (error) { refused = /1\.\.4 total native objects/.test(String(error)); }
+        if (!refused) throw new Error(`Five-member preview limit lost: ${item.key}`);
+        for (const pair of item.pairs) {
+          const source = pairSources.get(pair.index);
+          const neutral = parseBaroCadSource(source, options);
+          const result = loader.parse(source);
+          attach(result);
+          const seed = bind(result, neutral, original, item.key);
+          const child = bind(result, neutral, cold.model.objects[pair.index], item.key);
+          if (pair.index === 1) selected.push({ key: item.key, id: original.id, mesh: seed });
+          else seed.visible = false;
+          selected.push({ key: item.key, id: item.ids[pair.index], mesh: child });
+        }
+      }
+      caseEvidence.push({ key: item.key, count: item.count, ids: item.ids, axisOriginMM: item.options.axisOriginMM,
+        authoredAxis: item.options.axisDirection, normalizedAxis: item.normalizedAxis, anglesDegrees: item.anglesDegrees });
+    }
+    if (selected.length !== 25 || allMeshes.length !== 31 || !originalOwned) throw new Error('Native member/resource count mismatch');
+    const individuallyVisible = {};
+    for (const entry of selected) {
+      for (const mesh of allMeshes) mesh.visible = mesh === entry.mesh;
+      app.renderer.render(app.stage);
+      const count = colored(pixels());
+      individuallyVisible[`${entry.key}/${entry.id}`] = count;
+      if (count === 0) throw new Error(`Invisible native member: ${entry.key}/${entry.id}`);
+    }
+    for (const mesh of allMeshes) mesh.visible = selected.some(entry => entry.mesh === mesh);
+    app.renderer.render(app.stage);
+    const frame = pixels();
+    const evidence = { target: 'Pixi3D 2.5.0 / PixiJS 7.2.4 WebGL2', nativeCases: 7, nativeMembers: 25,
+      selectedMembers: selected.length, adapterOwnedMeshes: allMeshes.length, pairSources: 18,
+      sourceFrame: 'raw authored XYZ/mm; camera +Z/up+Y; gallery translations only', unitsPerMillimeter: 0.001,
+      nativeUvAuthority: 'neutral packet, not Pixi texture UV', cases: caseEvidence, individuallyVisible,
+      combinedPixels: colored(frame), frameHash: frameHash(frame), callerMarkerRetained: app.stage.children.includes(callerMarker) };
+    window.__baroCircularPatternPixiEvidence = evidence;
+    status.textContent = JSON.stringify(evidence, null, 2);
+    const acceptedSources = new Map(sources);
+    document.querySelector('#reject').onclick = () => {
+      const source = sources.get('seed_only');
+      const candidates = [
+        () => loader.parse('@model invalid {}'),
+        () => new BaroCADPixi3DLoader({ ...options, sourceVersion: 1 }).parse(source),
+        () => new BaroCADPixi3DLoader({ ...options, curveDisplay: { chordToleranceMM: 0.1, maxSegments: 512, maxDepth: 16 } }).parse(source),
+        () => new BaroCADPixi3DLoader({ ...options, curveDisplay: { ...options.curveDisplay, maxSegments: 4093 } }).parse(source),
+        () => new BaroCADPixi3DLoader({ ...options, countU: 1 }).parse(sources.get('tilted_nonunit_axis')),
+        () => loader.parse(sources.get('maximum64_curve_five_instances')),
+        () => { const stale = structuredClone(originalOwned); stale.instances[1].angleDegrees = 37; validateCircularGeometryPattern(stale); },
+      ];
+      let refused = 0;
+      for (const candidate of candidates) { try { candidate(); } catch { refused++; } }
+      app.renderer.render(app.stage);
+      evidence.invalidCandidatesRefused = refused;
+      evidence.acceptedSourcesRetained = [...acceptedSources].every(([key, value]) => sources.get(key) === value);
+      evidence.acceptedSceneRetained = displays.every(({ result }) => app.stage.children.includes(result.root) && !result.root.destroyed);
+      evidence.acceptedFrameRetained = frameHash(pixels()) === evidence.frameHash;
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+    document.querySelector('#dispose').onclick = () => {
+      for (const { result } of displays) { result.dispose(); result.dispose(); }
+      app.renderer.render(app.stage);
+      evidence.disposed = displays.every(({ result, meshes }) => result.root.destroyed && !app.stage.children.includes(result.root) &&
+        meshes.every(item => item.mesh.destroyed && item.meshDestroy === 1 && item.geometryDestroy === 1 && item.materialDestroy === 1));
+      evidence.callerMarkerRetained = app.stage.children.includes(callerMarker) && !callerMarker.destroyed;
+      evidence.callerRendererRetained = app.renderer.gl instanceof WebGL2RenderingContext;
+      evidence.callerCanvasRetained = document.querySelector('#view').contains(app.view);
+      evidence.nativeSourcesRetained = [...acceptedSources].every(([key, value]) => sources.get(key) === value);
+      status.textContent = JSON.stringify(evidence, null, 2);
+    };
+  } catch (error) {
+    for (const { result } of displays) result.dispose();
+    status.textContent = `Failed: ${error?.stack ?? error}`;
+    window.__baroCircularPatternPixiError = String(error);
+  }
+</script>
+</html>

@@ -2084,3 +2084,34 @@ coefficients, domains and units do not change. The browser checks each
 visible Line/Mesh, refusal retention and adapter-owned disposal.
 Determinant parity and native derivatives do not certify B-Rep face
 orientation, Solid quality, other target parity or npm release.
+
+## Authored-axis native circular patterns in Pixi3D
+
+`examples/circular-geometry-pattern-pixi3d-data/` contains seven byte-exact
+CAD #967 complete source0 patterns, eighteen genuine original/copy pair
+sources and one original owned result for browser refusal checks. The
+manifest pins file SHA-256 values, member IDs, authored and normalized axes,
+axis origins, signed angles and each native matrix. The complete native
+Model and public circular-pattern validator remain the authority.
+
+The example reads complete sources directly when they contain at most four
+objects. The two five-member sources exceed the current display limit and
+correctly refuse direct loading. Their saved pair sources show the original
+seed once and every actual copied member. Extra pair seed displays stay
+hidden and are disposed with their result. This produces 25 selected
+members and 31 adapter-owned meshes without expanding the loader limit.
+
+```sh
+node packages/barocss-cad-interop/examples/circular-geometry-pattern-pixi3d-verify.mjs <saved-CAD-967-output-directory>
+```
+
+The Node flow checks native owned reconstruction, full/pair source bytes,
+matrices, native D0/D1 observations and neutral previews. Serve
+`examples/circular-geometry-pattern-pixi3d.html` through Vite for the actual
+Pixi3D 2.5.0/PixiJS 7.2.4 WebGL2/HTTP flow. It compares original native data
+with target Line/Mesh buffers, checks every member's visible pixels,
+refusal retention and double disposal. Native U/V remains in the neutral
+packet; it is not a Pixi texture UV attribute. The adapter scales raw
+XYZ/mm by 0.001 once; a +Z camera and gallery translations affect display
+pose only. Direct five-object loading, own GPU consumption, feature-tree
+patterns, assembly, union, Solid quality and publication are separate.

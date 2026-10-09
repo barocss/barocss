@@ -1,0 +1,765 @@
+{
+  "schema": "barocss-circular-pattern-pixi3d-example",
+  "version": 0,
+  "producerIssue": 967,
+  "consumerIssue": 973,
+  "target": "Pixi3D 2.5.0 / PixiJS 7.2.4",
+  "cases": [
+    {
+      "key": "seed_only",
+      "kind": "curve",
+      "count": 1,
+      "ids": [
+        "quarter_seed"
+      ],
+      "options": {
+        "patternId": "seed_pattern",
+        "idPrefix": "unused_copy",
+        "count": 1,
+        "axisOriginMM": [
+          1,
+          -2,
+          3
+        ],
+        "axisDirection": [
+          0,
+          -0,
+          2
+        ],
+        "angleStepDegrees": 0,
+        "maximumCopyObservations": 0
+      },
+      "normalizedAxis": [
+        0,
+        -0,
+        1
+      ],
+      "anglesDegrees": [
+        0
+      ],
+      "matrices": [
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ]
+      ],
+      "file": "seed_only.barocad",
+      "sourceSha256": "90e906e599bebbb0119e2a45a789ec1db5c0554898cec06b6af8a5205a596c7e",
+      "ownedSha256": "48dc9751ce49029deb1c1eaf89d704b60c17db95d6151b90606fcd6156a20df4",
+      "pairs": []
+    },
+    {
+      "key": "offset_positive90",
+      "kind": "curve",
+      "count": 4,
+      "ids": [
+        "quarter_seed",
+        "positive_copy_1",
+        "positive_copy_2",
+        "positive_copy_3"
+      ],
+      "options": {
+        "patternId": "positive_pattern",
+        "idPrefix": "positive_copy",
+        "count": 4,
+        "axisOriginMM": [
+          1,
+          -2,
+          3
+        ],
+        "axisDirection": [
+          0,
+          0,
+          2
+        ],
+        "angleStepDegrees": 90,
+        "maximumCopyObservations": 9
+      },
+      "normalizedAxis": [
+        0,
+        0,
+        1
+      ],
+      "anglesDegrees": [
+        0,
+        90,
+        180,
+        270
+      ],
+      "matrices": [
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          -1,
+          0,
+          -1,
+          1,
+          0,
+          0,
+          -3,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          -1,
+          0,
+          0,
+          2,
+          0,
+          -1,
+          0,
+          -4,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          3,
+          -1,
+          0,
+          0,
+          -1,
+          0,
+          0,
+          1,
+          0
+        ]
+      ],
+      "file": "offset_positive90.barocad",
+      "sourceSha256": "c648aecd0a3d47557ed612babf5575735607aefd43454cff761c605dc7d5797b",
+      "ownedSha256": "a6a7c7269a1465cda1d558b9d901e5a0c06b1a3e0f8b54320c513cf2da553b1e",
+      "pairs": [
+        {
+          "index": 1,
+          "file": "offset_positive90.pair-1.barocad",
+          "sha256": "7fc56c8cf09795f5e09650d635af08e13a394fc9ef8b84ad4cd14f4ca9b266c3"
+        },
+        {
+          "index": 2,
+          "file": "offset_positive90.pair-2.barocad",
+          "sha256": "e180a36e07883816c247c91f79ff7f53ddd776e78a475f139e14bf80cb217163"
+        },
+        {
+          "index": 3,
+          "file": "offset_positive90.pair-3.barocad",
+          "sha256": "9d30b8408bc2013c62ba5886de656e2ed44b58635696aab90663c0e15ecbc128"
+        }
+      ],
+      "ownedFile": "offset_positive90.owned-circular-pattern.json"
+    },
+    {
+      "key": "offset_negative90",
+      "kind": "curve",
+      "count": 3,
+      "ids": [
+        "quarter_seed",
+        "negative_copy_1",
+        "negative_copy_2"
+      ],
+      "options": {
+        "patternId": "negative_pattern",
+        "idPrefix": "negative_copy",
+        "count": 3,
+        "axisOriginMM": [
+          1,
+          -2,
+          3
+        ],
+        "axisDirection": [
+          0,
+          0,
+          2
+        ],
+        "angleStepDegrees": -90,
+        "maximumCopyObservations": 6
+      },
+      "normalizedAxis": [
+        0,
+        0,
+        1
+      ],
+      "anglesDegrees": [
+        0,
+        -90,
+        -180
+      ],
+      "matrices": [
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          3,
+          -1,
+          0,
+          0,
+          -1,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          -1,
+          0,
+          0,
+          2,
+          0,
+          -1,
+          0,
+          -4,
+          0,
+          0,
+          1,
+          0
+        ]
+      ],
+      "file": "offset_negative90.barocad",
+      "sourceSha256": "06e308e99d79cdc6e16d8b792479079969b4219001ae14a02a2720e2f6b416fb",
+      "ownedSha256": "94b12b1e6a7854faeae4a695bed8d3b85b0813290a8a6ff9d3fc5f26f1b1e13e",
+      "pairs": [
+        {
+          "index": 1,
+          "file": "offset_negative90.pair-1.barocad",
+          "sha256": "c0cbcb0e41ebc530b7d5a154bf92d3e644995125b5e69ced7d9c6f53dc0a6ff0"
+        },
+        {
+          "index": 2,
+          "file": "offset_negative90.pair-2.barocad",
+          "sha256": "cdbe90d6df6ac79f9d96a865bc9bb8bfef0c466f2c9e70107611d0f5e7032bf7"
+        }
+      ]
+    },
+    {
+      "key": "tilted_nonunit_axis",
+      "kind": "surface",
+      "count": 3,
+      "ids": [
+        "plane_seed",
+        "tilted_copy_1",
+        "tilted_copy_2"
+      ],
+      "options": {
+        "patternId": "tilted_pattern",
+        "idPrefix": "tilted_copy",
+        "count": 3,
+        "axisOriginMM": [
+          1,
+          -2,
+          3
+        ],
+        "axisDirection": [
+          1,
+          2,
+          3
+        ],
+        "angleStepDegrees": 37,
+        "maximumCopyObservations": 18
+      },
+      "normalizedAxis": [
+        0.2672612419124244,
+        0.5345224838248488,
+        0.8017837257372733
+      ],
+      "anglesDegrees": [
+        0,
+        37,
+        74
+      ],
+      "matrices": [
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0.8130186879010576,
+          -0.45375913575998306,
+          0.36483319453963614,
+          -1.8150365430399322,
+          0.5112918471750423,
+          0.856168221462352,
+          -0.07454276336658205,
+          -0.575327114150592,
+          -0.2785341274170473,
+          0.24714089761175967,
+          0.928084110731176,
+          0.9885635904470385
+        ],
+        [
+          0.32737754468721353,
+          -0.6672436062375265,
+          0.6690365559292799,
+          -2.6689744249501066,
+          0.874204361718384,
+          0.48259811129785657,
+          0.05353313856196773,
+          -2.069607554808574,
+          -0.3585954227079937,
+          0.5673491278806045,
+          0.7412990556489285,
+          2.2693965115224177
+        ]
+      ],
+      "file": "tilted_nonunit_axis.barocad",
+      "sourceSha256": "24183acb5f1496d4840b05e2d31a50d82d23333de2fff6d51c02ab225ed4a6b1",
+      "ownedSha256": "c4f242076ac59c14db96261646416c9b4f8409839b240edfd5b2cd3735cd6d36",
+      "pairs": [
+        {
+          "index": 1,
+          "file": "tilted_nonunit_axis.pair-1.barocad",
+          "sha256": "4a24a5fa944532ee0ed9d339e67ae97530cf12d6527b677a5e6b734db3648c16"
+        },
+        {
+          "index": 2,
+          "file": "tilted_nonunit_axis.pair-2.barocad",
+          "sha256": "7afa42fcf9efc6ec3fd3c41b589c7176efafea86ed737df9734a29eea72a22f6"
+        }
+      ]
+    },
+    {
+      "key": "angle_edit_same_roles",
+      "kind": "curve",
+      "count": 4,
+      "ids": [
+        "quarter_seed",
+        "positive_copy_1",
+        "positive_copy_2",
+        "positive_copy_3"
+      ],
+      "options": {
+        "patternId": "positive_pattern",
+        "idPrefix": "positive_copy",
+        "count": 4,
+        "axisOriginMM": [
+          1,
+          -2,
+          3
+        ],
+        "axisDirection": [
+          0,
+          0,
+          2
+        ],
+        "angleStepDegrees": 37,
+        "maximumCopyObservations": 9
+      },
+      "normalizedAxis": [
+        0,
+        0,
+        1
+      ],
+      "anglesDegrees": [
+        0,
+        37,
+        74,
+        111
+      ],
+      "matrices": [
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0.7986355100472928,
+          -0.6018150231520483,
+          0,
+          -1.0022655563513894,
+          0.6018150231520483,
+          0.7986355100472928,
+          0,
+          -1.0045440030574626,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0.27563735581699916,
+          -0.9612616959383189,
+          0,
+          -1.198160747693637,
+          0.9612616959383189,
+          0.27563735581699916,
+          0,
+          -2.4099869843043207,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          -0.35836794954530027,
+          -0.9335804264972017,
+          0,
+          -0.5087929034491032,
+          0.9335804264972017,
+          -0.35836794954530027,
+          0,
+          -3.650316325587802,
+          0,
+          0,
+          1.0000000000000002,
+          -8.881784197001252e-16
+        ]
+      ],
+      "file": "angle_edit_same_roles.barocad",
+      "sourceSha256": "b665201b0eeae5dfbb7483d2c9ead144a76c1a97fe106962704981bc0b53a5e7",
+      "ownedSha256": "02d9f31a486e3661feb69e103b9394ebcad54256bc479c6caecf719837c85a68",
+      "pairs": [
+        {
+          "index": 1,
+          "file": "angle_edit_same_roles.pair-1.barocad",
+          "sha256": "e6f5ff4207344297336e03679af3e9bcd21988fff717335ea451ca80c605cd73"
+        },
+        {
+          "index": 2,
+          "file": "angle_edit_same_roles.pair-2.barocad",
+          "sha256": "94f5b5cac2e683b47b2da2578cd186e9646df33085a2bb7ed7f0ab37e1fce7a0"
+        },
+        {
+          "index": 3,
+          "file": "angle_edit_same_roles.pair-3.barocad",
+          "sha256": "bfa64796ea969504649b0f1f79b77e0d88c789b8c9bf55a142f6c81c4c290849"
+        }
+      ]
+    },
+    {
+      "key": "maximum64_curve_five_instances",
+      "kind": "curve",
+      "count": 5,
+      "ids": [
+        "wide_seed",
+        "wide_curve_copy_1",
+        "wide_curve_copy_2",
+        "wide_curve_copy_3",
+        "wide_curve_copy_4"
+      ],
+      "options": {
+        "patternId": "wide_curve_pattern",
+        "idPrefix": "wide_curve_copy",
+        "count": 5,
+        "axisOriginMM": [
+          0,
+          0,
+          0
+        ],
+        "axisDirection": [
+          0,
+          0,
+          1
+        ],
+        "angleStepDegrees": 45,
+        "maximumCopyObservations": 508
+      },
+      "normalizedAxis": [
+        0,
+        0,
+        1
+      ],
+      "anglesDegrees": [
+        0,
+        45,
+        90,
+        135,
+        180
+      ],
+      "matrices": [
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0.7071067811865476,
+          -0.7071067811865475,
+          0,
+          0,
+          0.7071067811865475,
+          0.7071067811865476,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          -1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          -0.7071067811865475,
+          -0.7071067811865476,
+          0,
+          0,
+          0.7071067811865476,
+          -0.7071067811865475,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          -1,
+          0,
+          0,
+          0,
+          0,
+          -1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ]
+      ],
+      "file": "maximum64_curve_five_instances.barocad",
+      "sourceSha256": "aaa3dab6af0f91bdb2c1ad6b7ec955d7d91622d8a0f176047e6b5d9325370be6",
+      "ownedSha256": "ca26cffa869f4dab412f51f3bc320ca878cfb939c0c9e4917e2519991415a59c",
+      "pairs": [
+        {
+          "index": 1,
+          "file": "maximum64_curve_five_instances.pair-1.barocad",
+          "sha256": "7dd97ff9f05b4e6a57777a86032513d81cfbc1082e51656d589c2ba9dd5e65c4"
+        },
+        {
+          "index": 2,
+          "file": "maximum64_curve_five_instances.pair-2.barocad",
+          "sha256": "7af5c6ceb8079bb3041557f5cb1090239b423776ae18a74a37c85a80f69110f9"
+        },
+        {
+          "index": 3,
+          "file": "maximum64_curve_five_instances.pair-3.barocad",
+          "sha256": "cefb8c539564355f0a3c132f05d50e3adeaf4d7069229d8cd3a41793255d9b90"
+        },
+        {
+          "index": 4,
+          "file": "maximum64_curve_five_instances.pair-4.barocad",
+          "sha256": "efb2128fb9f5b7801d118073f0594c7ed6109a3bb038582a41b0cddd2a8e5422"
+        }
+      ]
+    },
+    {
+      "key": "maximum16_by16_surface_five_instances",
+      "kind": "surface",
+      "count": 5,
+      "ids": [
+        "wide_surface_seed",
+        "wide_surface_copy_1",
+        "wide_surface_copy_2",
+        "wide_surface_copy_3",
+        "wide_surface_copy_4"
+      ],
+      "options": {
+        "patternId": "wide_surface_pattern",
+        "idPrefix": "wide_surface_copy",
+        "count": 5,
+        "axisOriginMM": [
+          0,
+          0,
+          0
+        ],
+        "axisDirection": [
+          0,
+          0,
+          1
+        ],
+        "angleStepDegrees": 45,
+        "maximumCopyObservations": 3844
+      },
+      "normalizedAxis": [
+        0,
+        0,
+        1
+      ],
+      "anglesDegrees": [
+        0,
+        45,
+        90,
+        135,
+        180
+      ],
+      "matrices": [
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0.7071067811865476,
+          -0.7071067811865475,
+          0,
+          0,
+          0.7071067811865475,
+          0.7071067811865476,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          -1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          -0.7071067811865475,
+          -0.7071067811865476,
+          0,
+          0,
+          0.7071067811865476,
+          -0.7071067811865475,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          -1,
+          0,
+          0,
+          0,
+          0,
+          -1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ]
+      ],
+      "file": "maximum16_by16_surface_five_instances.barocad",
+      "sourceSha256": "4327141b2386739395bdd51561e3dfbd39f86c9722315db771f2a5a0fceb5c8a",
+      "ownedSha256": "5c140a599fb39266450beb07a7db61ca823aa44044a7f23104f762b2968bcd04",
+      "pairs": [
+        {
+          "index": 1,
+          "file": "maximum16_by16_surface_five_instances.pair-1.barocad",
+          "sha256": "e6c3c68fdb86378e0a335b91bd1f9e6cdd557e821244b3bbb5b1a1d492ee1f83"
+        },
+        {
+          "index": 2,
+          "file": "maximum16_by16_surface_five_instances.pair-2.barocad",
+          "sha256": "cdb08205ed8f20ab9636c2112e88def4e4e7522b64fac72852e6d780c0fa2dd0"
+        },
+        {
+          "index": 3,
+          "file": "maximum16_by16_surface_five_instances.pair-3.barocad",
+          "sha256": "4bc323723013f29f3d253004a34fd572d84d9006c0407950eb8b1ec356acbd51"
+        },
+        {
+          "index": 4,
+          "file": "maximum16_by16_surface_five_instances.pair-4.barocad",
+          "sha256": "a126e23db03301f0902a4424e331783dee45e761150fa4904cc2903a1fb6e275"
+        }
+      ]
+    }
+  ]
+}

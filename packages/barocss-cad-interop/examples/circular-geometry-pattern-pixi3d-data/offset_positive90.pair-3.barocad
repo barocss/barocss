@@ -1,0 +1,1 @@
+@model positive_copy_3 { version:0; length-unit:mm; @curve #quarter_seed { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[2,-0,-0],[2,2,-0],[0,2,-0]]; weights:[1,0.7071067811865476,1]; } @curve #positive_copy_3 { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[3,-3,-0],[5,-3,-0],[5,-1,-0]]; weights:[1,0.7071067811865476,1]; } }
