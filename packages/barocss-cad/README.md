@@ -7478,3 +7478,39 @@ remain separate operations.
 ```sh
 node examples/cad-nurbs/circular-geometry-pattern-demo.mjs --source /tmp/cad-circular-pattern
 ```
+
+## Analytic native second derivatives
+
+`evaluateCurveD2` returns `point`, `derivative` and `secondDerivative`.
+`evaluateSurfaceD2` returns `point`, `du`, `dv`, `duu`, `duv` and `dvv`.
+The point and first derivatives retain the exact values returned by the existing
+native D1 evaluator. Each result array is independent of the caller data.
+
+```ts
+const curveQuery = cad.evaluateCurveD2(originalCurve, parameter);
+const surfaceQuery = cad.evaluateSurfaceD2(originalSurface, u, v);
+```
+
+Second derivatives use analytic homogeneous derivatives and the rational
+quotient rule. They retain the original knot parameter scale. The implementation
+uses no finite differences or parameter nudging. A rational degree-one Curve
+can have a nonzero second derivative because its parameter speed can vary.
+
+Endpoints use the interior one-sided span. At an exact interior knot, D2 refuses
+when degree minus knot multiplicity is less than two. A Surface query checks
+both axes. This conservative rule also applies when particular coefficients
+could cancel a discontinuity. A discontinuity elsewhere does not itself block
+a query within another span. Zero derivatives and singular geometry are valid
+finite results. The query does not assert a regular tangent, normal, curvature
+or continuity between separate patches.
+
+The query profile supports Curve degrees 1 through 5 with at most 64 poles,
+and Surface degrees 1 through 5 with at most 16 poles per axis. Coordinates,
+knots and parameters must be finite and within 10000 in magnitude; coordinates
+use mm. Native positive weights retain their existing bounds. Invalid input,
+insufficient local continuity or unrepresentable arithmetic throws a bounded
+`NativeSecondDerivativeError`. Previous input data and results remain unchanged.
+
+```sh
+node examples/cad-nurbs/second-derivatives-demo.mjs --source /tmp/cad-native-d2
+```
