@@ -177,9 +177,11 @@ function curvePositions(
   const positions = new Float32Array(pointsMM.length * 3);
   for (let index = 0; index < pointsMM.length; index++) {
     for (let axis = 0; axis < 3; axis++) {
-      const scaled = pointsMM[index][axis] * unitsPerMillimeter;
+      const original = pointsMM[index][axis];
+      const scaled = original * unitsPerMillimeter;
       const converted = Math.fround(scaled);
-      if (!Number.isFinite(scaled) || !Number.isFinite(converted) || (scaled !== 0 && converted === 0)) {
+      if (!Number.isFinite(scaled) || !Number.isFinite(converted) ||
+          (original !== 0 && scaled === 0) || (scaled !== 0 && converted === 0)) {
         throw new RangeError('BaroCAD Curve position is unsafe in renderer Float32 units');
       }
       positions[index * 3 + axis] = converted;

@@ -1304,6 +1304,15 @@ before target objects are created. Fixed generated prefixes are `bcv0c0` through
 `bcv0c3`, based on original object order; a model or object ID matching a
 prefix or starting with that prefix plus `_` is rejected.
 
+Both Curve display profiles also refuse a nonzero native coordinate when its
+positive unit-scale product becomes binary64 zero, before Float32 conversion.
+For example, native `1e-320` scaled by `1e-10` now throws the existing
+`RangeError: BaroCAD Curve position is unsafe in renderer Float32 units`.
+This previously accepted component loss is rejected. Legitimate zero values,
+original Model sign bits and safe small conversions are preserved. Run the
+focused source check with Node 22:
+`node packages/barocss-cad-interop/test/curve-position-binary64-underflow.test.mjs --output EVIDENCE_DIR`.
+
 These lines are display approximations from actual native adaptive samples.
 The report contains finite chord estimates and local observations. It does
 not certify a global tolerance, topology edge, smoothness or manufacturing
