@@ -1,0 +1,23 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,"><title>BaroCSS selected Curve from original mixed source</title>
+<style>:root{font:15px/1.5 system-ui,sans-serif;color-scheme:dark}body{max-width:1100px;margin:24px auto;padding:0 16px;background:#102032;color:#e7f0fa}
+.layout{display:grid;grid-template-columns:minmax(0,640px) minmax(260px,1fr);gap:16px}canvas{display:block;max-width:100%;height:auto;border:1px solid #718da7}
+button,select{margin:4px;padding:6px 10px;background:#244462;color:white;border:1px solid #7198bc;border-radius:4px}button:disabled{opacity:.5}
+ul{padding:0;list-style:none}li{padding:8px;margin-bottom:8px;border:1px solid #56748f;overflow-wrap:anywhere}small{display:block}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}@media(max-width:900px){.layout{grid-template-columns:1fr}}</style></head><body>
+<h1>One selected Curve from the whole original source</h1>
+<p>Display one explicitly selected Curve. Other original Curves and Surfaces remain CPU native data and are not drawn.</p>
+<div class="layout"><div><canvas id="view" width="640" height="480" tabindex="0" aria-label="Selected original uniform Curve"></canvas>
+<label>Source <select id="source" disabled></select></label><label>Curve <select id="curve" disabled></select></label>
+<label>Observations <select id="count" disabled><option value="129">129</option><option value="33">33</option><option value="2">2</option></select></label>
+<button id="load" disabled>Load selected Curve</button><button id="query" disabled>Inspect selected native point</button>
+<button id="unshown-query" disabled>Inspect retained CPU geometry</button><button id="select" disabled>Select displayed Curve</button>
+<label><input id="visible" type="checkbox" checked disabled>Show displayed Curve</label><button id="fit" disabled>Fit selected observations</button>
+<button id="orbit" disabled>Turn view</button><button id="pan" disabled>Pan view</button><button id="clear" disabled>Clear viewer</button>
+<button id="run-proof" disabled>Run proof</button><button id="lose-context" disabled>Lose context</button><button id="dispose" disabled>Dispose viewer</button>
+<pre id="inspection" aria-label="Selected native original point">Load an original source to inspect.</pre>
+<pre id="unshown-output" aria-label="Retained CPU native geometry points">Retained objects are not displayed.</pre>
+</div><aside><h2>Whole original source inventory</h2><ul id="objects"></ul></aside></div>
+<p>Uniform segments and picking are approximate. Native inspection uses original coefficients; fit excludes retained unshown objects.
+No whole-source display or global NURBS precision certificate is implied.</p>
+<pre id="status" role="status" aria-live="polite">Loading original mixed source files…</pre><script type="module" src="/bundle.js"></script></body></html>

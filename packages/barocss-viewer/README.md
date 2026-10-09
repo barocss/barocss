@@ -616,3 +616,35 @@ See `examples/viewer-uniform-curve-scene` for original saved Source0 files and t
 The exact `display` record has `motion`, `visibleGeometry` and `camera`. Motion is null or `{ frame, bindings, basis: 'part-xyz-matches-rhyup' }` using the existing complete Geometry Motion contract for every admitted object, including hidden ones. Visibility is a unique subset of the1..4 admitted refs. An explicit camera is copied; null fits visible posed observations and refuses if all are hidden. An all-hidden candidate with a valid explicit camera keeps admitted native inventory. Native source and measurement coordinates remain original-local; display transforms apply mmToSceneUnit once.
 
 One qualified GPU candidate succeeds before CPU state commits. Failed source/settings/allocation keep the prior source, display state, pixels and layers. Accepted replacement clears prior selection, measurements, materials and simulation modes. This first input does not restore appearance, model-set packets, assembly, Shell, uniform or SDF modes. A separate accepted generation and Clear reset its lifecycle ownership. Context loss keeps copied CPU authority and retires its backend while GL is lost; caller restoration does not remount it. Dispose clears this replacement generation's authority and inventory. See `examples/viewer-native-scene-replacement` for original file and display-setting verification. Render Editor Save/Open acceptance remains a separate consumer result.
+
+
+### Selected uniform Curve with the complete original model
+
+`loadSelectedUniformCurvePreview(dto, {basis: 'authored-xyz-matches-rhyup'})`
+consumes public GPU `SelectedUniformCurvePreview` DTO1. Prepare it with
+`prepareSelectedUniformCurvePreview({source, curveId, count})`. The complete
+unchanged Source0/mm Model0 has1..4 original objects; only the named Curve is
+drawn, fitted, picked and posed. Native degree1..5/count2..129 observations
+are uniform display data, not an adaptive error certificate. No source
+truncation, alias or fabricated native result is used.
+
+`getState().selectedUniformCurve` holds an independent complete DTO1/model
+copy; `uniformCurve` remains the old DTO0 field and is null in this mode.
+`curveSampleVersion` is3 for this displayed Curve. Original unselected
+Surfaces/Curves stay CPU authority. Existing native Surface/Curve/mixed-point
+measurements may inspect them under current model/domain/ref limits; this
+does not draw them or include them in fit. Projection/visibility/selection/
+pose/picking use only the displayed selected Curve; hidden selected native
+projection returns null after ref/domain validation. Approximate Curve picks
+evaluate the original Curve at their estimated parameter.
+
+Admission validates/reconstructs the complete source, prepares the selected
+GPU candidate and commits CPU state only after presentation. A refusal keeps
+the previous complete frame/source/layers. Success clears other source modes
+and layers and advances the request generation. Other successful loads and
+Clear reset DTO1; failed loads retain it. Context loss retires owned handles
+and retains CPU source/native queries, with sticky GPU refusal after caller
+restoration. Dispose clears this mode's source, inventory and measurements.
+No automatic context recreation, retained-object rendering or material/
+particle/cloth co-display is promised. See the independent selected-source
+example under `examples/viewer-selected-uniform-curve-scene`.

@@ -1,0 +1,1 @@
+@model profile { version:0; length-unit:mm; @curve #signed_zero { type:nurbs; degree:5; knots:[-0,-0,-0,-0,-0,-0,1,1,1,1,1,1]; control-points:[[-0,0,-0],[-0,0,-0],[-0,0,-0],[0,0,0],[0,0,0],[-0,0,-0]]; weights:[1,1,1,1,1,1]; } }
