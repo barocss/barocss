@@ -700,6 +700,48 @@ edited and empty sibling frames, separate true edges, refusals and owned
 cleanup. This example does not add a Babylon file loader or claim a joined
 assembly, Solid, Pixi3D fan-out or package publication.
 
+### Measure one qualified native extrusion output
+
+The optional neutral `./boolean-extrusion-feature-properties` entry selects
+one exact current graph/revision/feature/output slot. It validates the whole
+native graph, calls CAD's construction-property measure on that selected
+extrusion and validates the complete owned property result. It returns the
+qualified binding beside the native result. The existing mesh bridge uses
+the same strict selector; property measurement does not tessellate a mesh.
+
+```js
+import { deriveBaroCadBooleanExtrusionFeatureProperties }
+  from '@barocss/cad-interop/boolean-extrusion-feature-properties';
+
+const { binding, nativeProperties } = deriveBaroCadBooleanExtrusionFeatureProperties(
+  read.native,
+  { graphId: read.native.document.id, revision: read.native.document.revision,
+    featureId: 'leaf_middle', outputSlotId: 'leaf_slot_1' },
+  { maximumBoundarySegments: 64, maximumSurfaceEvaluations: 8 },
+);
+console.log(binding.featureId, nativeProperties.report.areaMM2,
+  nativeProperties.report.volumeMM3, nativeProperties.report.centroidMM);
+```
+
+The result owns authored XYZ millimetre coordinates, square-millimetre area,
+cubic-millimetre volume, geometric centroid and source/component/Shell/loop
+identity. A genuinely empty output has area and volume zero and centroid
+`null`. Each sibling is measured separately; overlapping siblings are not
+one union volume. A geometric centroid need not lie inside the material.
+This is a bounded native construction estimate, not density, mass, inertia,
+a sewn Solid or a manufacturing certificate. Scene pose and display scale do
+not change the native measurement.
+
+Run `node examples/boolean-extrusion-feature-properties-verify.mjs --source
+<saved-927-directory> --topology <saved-903-directory>` after the public CAD
+and interop builds. The example compares each selected result to direct CAD
+measurement and whole validation on real saved authored graphs. Historical
+single-output owned caches are rebuilt from their authored documents. The
+separate #931 off-centre-hole property file does not carry this graph's
+qualified feature identity, so it is not presented as graph-bridge evidence.
+Graph validation, CAD measurement's parent validation and the property
+validator's reconstruction are separate native work.
+
 ### Display native filled Boolean extrusion Shells in Three.js
 
 The optional `./three-boolean-extrusion-mesh` entry consumes the complete

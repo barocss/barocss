@@ -29,6 +29,10 @@
       "types": "./dist/boolean-extrusion-feature-mesh.d.ts",
       "import": "./dist/boolean-extrusion-feature-mesh.js"
     },
+    "./boolean-extrusion-feature-properties": {
+      "types": "./dist/boolean-extrusion-feature-properties.d.ts",
+      "import": "./dist/boolean-extrusion-feature-properties.js"
+    },
     "./assembly": {
       "types": "./dist/assembly.d.ts",
       "import": "./dist/assembly.js"
