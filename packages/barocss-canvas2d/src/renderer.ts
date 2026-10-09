@@ -1,20 +1,21 @@
 import { Canvas2DError, copyImageAsset, validateImageAssetId, validatePoint, validateScene, validateSize, validateView } from './schema.js';
-import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, NodeV12, Point, Scene, Size, Transform, View } from './schema.js';
+import type { Color, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, NodeV12, NodeV13, Point, Scene, Size, SourceRect, Transform, View } from './schema.js';
 import { tessellatePath } from './path.js';
 import type { FillObservation, PathObservation } from './path.js';
 import { createImageGpu, createImageTexture, disposeImageGpu, renderImage, sampledAlpha, sourceRect } from './image.js';
 import type { ImageAsset, ImageGpu } from './image.js';
+import { tileSpans } from './tile.js';
 
 type Matrix = [number, number, number, number, number, number];
 type Clip = { left: number; top: number; right: number; bottom: number };
-type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12;
+type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13;
 type DrawNode = Exclude<RenderNode, { kind: 'group' }>;
 type Draw = {
   id: string; kind: 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun'; node: DrawNode;
   matrix: Matrix; inverse: Matrix; color: Color; vertices: Float32Array; clip: Clip | null; visible: boolean; hitEnabled: boolean;
   observation?: PathObservation; fillObservation?: FillObservation;
   maskVertices?: Float32Array; contours?: Float32Array[]; fillRule?: 'evenodd' | 'nonzero';
-  imageAsset?: ImageAsset; imageNode?: ImageNode;
+  imageAsset?: ImageAsset; imageNode?: ImageNode; imageClamp?: SourceRect;
 };
 type Gpu = { program: WebGLProgram; buffer: WebGLBuffer; vao: WebGLVertexArrayObject;
   size: WebGLUniformLocation; view: WebGLUniformLocation; color: WebGLUniformLocation;
@@ -128,7 +129,26 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
         const imageMatrix = 'anchorX' in node
           ? multiply(matrix, [1, 0, 0, 1, -node.anchorX * node.width, -node.anchorY * node.height])
           : matrix;
-        if ('slice' in node && node.slice) {
+        if ('tile' in node && node.tile) {
+          const columns = tileSpans(node.width, node.tile.width, node.tile.offsetX);
+          const rows = tileSpans(node.height, node.tile.height, node.tile.offsetY);
+          if (!columns || !rows || columns.length * rows.length > 2730) {
+            throw new Canvas2DError('SCENE_LIMIT', 'tiled image exceeds draw vertex limit');
+          }
+          for (const row of rows) for (const column of columns) {
+            const width = column.end - column.start, height = row.end - row.start;
+            const tileMatrix = multiply(imageMatrix, [1, 0, 0, 1, column.start, row.start]);
+            const imageNode: ImageNode = { ...node, width, height, sourceRect: {
+              x: crop.x + column.from * crop.width,
+              y: crop.y + row.from * crop.height,
+              width: (column.to - column.from) * crop.width,
+              height: (row.to - row.from) * crop.height,
+            } };
+            add({ id: node.id, kind: 'image', node, matrix: tileMatrix, inverse: inverse(tileMatrix),
+              color: [1, 1, 1, node.opacity], vertices: rectangle(tileMatrix, width, height),
+              imageAsset: asset, imageNode, imageClamp: crop, clip: inheritedClip });
+          }
+        } else if ('slice' in node && node.slice) {
           const { left, right, top, bottom } = node.slice;
           const sourceX = [crop.x, crop.x + left, crop.x + crop.width - right, crop.x + crop.width];
           const sourceY = [crop.y, crop.y + top, crop.y + crop.height - bottom, crop.y + crop.height];
@@ -194,7 +214,9 @@ function contains(draw: Draw, world: Point): boolean {
   const p = point(draw.inverse, world.x, world.y);
   const node = draw.node;
   const imageNode = draw.imageNode ?? (node.kind === 'image' ? node : null);
-  if (imageNode) return !!draw.imageAsset && sampledAlpha(imageNode, draw.imageAsset, p) > 0;
+  if (draw.imageClamp && imageNode &&
+      (p.x < 0 || p.y < 0 || p.x >= imageNode.width || p.y >= imageNode.height)) return false;
+  if (imageNode) return !!draw.imageAsset && sampledAlpha(imageNode, draw.imageAsset, p, draw.imageClamp) > 0;
   if (draw.contours) {
     let winding = 0;
     for (const contour of draw.contours) {
@@ -534,7 +556,7 @@ export class Canvas2DRenderer {
         }
         try {
           renderImage(gl, gpu.image, draw.vertices, imageNode, draw.imageAsset,
-            draw.color[3], this.size, this.view);
+            draw.color[3], this.size, this.view, draw.imageClamp);
         } finally {
           gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         }

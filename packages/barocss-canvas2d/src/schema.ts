@@ -1,3 +1,5 @@
+import { tileSpans } from './tile.js';
+
 export type ErrorCode = 'INVALID_SCENE' | 'SCENE_LIMIT' | 'INVALID_VIEW' | 'INVALID_SIZE' |
   'WEBGL_UNAVAILABLE' | 'CONTEXT_LOST' | 'DISPOSED' | 'SERIALIZATION' | 'UNSUPPORTED_FEATURE' |
   'INVALID_ASSET' | 'ASSET_LIMIT' | 'ASSET_IN_USE';
@@ -94,10 +96,15 @@ export type ImageNodeV11 = WithHitMode<ImageNodeV10>;
 export type GlyphRunNodeV11 = WithHitMode<GlyphRunNodeV10>;
 export type NodeV11 = GroupNodeV11 | FrameNodeV11 | RectNodeV11 | LineNodeV11 | PathNodeV11 | ImageNodeV11 | GlyphRunNodeV11;
 export type NineSliceInsets = { left: number; right: number; top: number; bottom: number };
+export type TilePattern = { width: number; height: number; offsetX: number; offsetY: number };
 export type GroupNodeV12 = Omit<GroupNodeV11, 'children'> & { children: NodeV12[] };
 export type FrameNodeV12 = Omit<FrameNodeV11, 'children'> & { children: NodeV12[] };
 export type ImageNodeV12 = ImageNodeV11 & { slice?: NineSliceInsets };
 export type NodeV12 = GroupNodeV12 | FrameNodeV12 | RectNodeV11 | LineNodeV11 | PathNodeV11 | ImageNodeV12 | GlyphRunNodeV11;
+export type GroupNodeV13 = Omit<GroupNodeV12, 'children'> & { children: NodeV13[] };
+export type FrameNodeV13 = Omit<FrameNodeV12, 'children'> & { children: NodeV13[] };
+export type ImageNodeV13 = ImageNodeV12 & { tile?: TilePattern };
+export type NodeV13 = GroupNodeV13 | FrameNodeV13 | RectNodeV11 | LineNodeV11 | PathNodeV11 | ImageNodeV13 | GlyphRunNodeV11;
 export type OldGroupNode = Omit<GroupNode, 'children'> & { children: OldNode[] };
 export type OldFrameNode = Omit<FrameNode, 'children'> & { children: OldNode[] };
 export type OldNode = OldGroupNode | OldFrameNode | RectNode | LineNode;
@@ -114,7 +121,8 @@ export type SceneV9 = { version: 9; unit: 'logical-px'; contextId: string; nodes
 export type SceneV10 = { version: 10; unit: 'logical-px'; contextId: string; nodes: NodeV10[] };
 export type SceneV11 = { version: 11; unit: 'logical-px'; contextId: string; nodes: NodeV11[] };
 export type SceneV12 = { version: 12; unit: 'logical-px'; contextId: string; nodes: NodeV12[] };
-export type Scene = SceneV0 | SceneV1 | SceneV2 | SceneV3 | SceneV4 | SceneV5 | SceneV6 | SceneV7 | SceneV8 | SceneV9 | SceneV10 | SceneV11 | SceneV12;
+export type SceneV13 = { version: 13; unit: 'logical-px'; contextId: string; nodes: NodeV13[] };
+export type Scene = SceneV0 | SceneV1 | SceneV2 | SceneV3 | SceneV4 | SceneV5 | SceneV6 | SceneV7 | SceneV8 | SceneV9 | SceneV10 | SceneV11 | SceneV12 | SceneV13;
 
 const MAX_BYTES = 1024 * 1024;
 const idPattern = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
@@ -301,6 +309,16 @@ function nineSliceInsets(value: unknown, path: string, seen: WeakSet<object>): N
   return { left: inset('left'), right: inset('right'), top: inset('top'), bottom: inset('bottom') };
 }
 
+function tilePattern(value: unknown, path: string, seen: WeakSet<object>): TilePattern {
+  const raw = object(value, ['width', 'height', 'offsetX', 'offsetY'], path, seen);
+  return {
+    width: number(raw.width, `${path}.width`, 1, 4096),
+    height: number(raw.height, `${path}.height`, 1, 4096),
+    offsetX: number(raw.offsetX, `${path}.offsetX`, -1e6, 1e6),
+    offsetY: number(raw.offsetY, `${path}.offsetY`, -1e6, 1e6),
+  };
+}
+
 function validText(value: unknown, path: string): string {
   if (typeof value !== 'string' || value.length < 1 || value.length > 512) {
     fail('INVALID_SCENE', `${path} needs 1..512 UTF-16 units`);
@@ -317,11 +335,11 @@ function validText(value: unknown, path: string): string {
 
 type Counter = { nodes: number; vertices: number; paths: number; glyphRuns: number; ids: Set<string> };
 function nodes(value: unknown, depth: number, path: string, ancestorRotated: boolean,
-  seen: WeakSet<object>, counter: Counter, version: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12): (Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12)[] {
+  seen: WeakSet<object>, counter: Counter, version: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13): (Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13)[] {
   if (depth > 16) fail('SCENE_LIMIT', 'scene depth exceeds 16');
   const raw = array(value, path, seen);
   if (raw.length > 256) fail('SCENE_LIMIT', 'scene has too many siblings');
-  return raw.map((item, index): Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 => {
+  return raw.map((item, index): Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 => {
     const nodePath = `${path}[${index}]`;
     if (item === null || typeof item !== 'object') fail('INVALID_SCENE', `${nodePath} must be a node`);
     const kindDescriptor = Object.getOwnPropertyDescriptor(item, 'kind');
@@ -344,7 +362,8 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
       'opacity', 'sampling', ...(version >= 6 ? ['anchorX', 'anchorY'] : []), ...(version >= 7 ? ['tint'] : []),
       ...(version >= 8 ? ['blendMode'] : []),
       ...(Object.hasOwn(item, 'sourceRect') ? ['sourceRect'] : []),
-      ...(version >= 12 && Object.hasOwn(item, 'slice') ? ['slice'] : [])];
+      ...(version >= 12 && Object.hasOwn(item, 'slice') ? ['slice'] : []),
+      ...(version >= 13 && Object.hasOwn(item, 'tile') ? ['tile'] : [])];
     else if (kind === 'glyphRun' && version >= 4) fields = [...common, 'atlasId', 'text', 'baseline',
       'opacity', 'sampling', 'glyphs'];
     else fail('INVALID_SCENE', `${nodePath}.kind is unsupported`);
@@ -415,12 +434,22 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
       const height = number(data.height, `${nodePath}.height`, Number.MIN_VALUE, 1e6);
       const slice = Object.hasOwn(data, 'slice')
         ? nineSliceInsets(data.slice, `${nodePath}.slice`, seen) : undefined;
+      const tile = Object.hasOwn(data, 'tile')
+        ? tilePattern(data.tile, `${nodePath}.tile`, seen) : undefined;
       if (slice && (!sourceRect || slice.left + slice.right >= sourceRect.width ||
           slice.top + slice.bottom >= sourceRect.height ||
           slice.left + slice.right >= width || slice.top + slice.bottom >= height)) {
         fail('INVALID_SCENE', `${nodePath}.slice needs positive source and destination centers and an explicit crop`);
       }
-      counter.vertices += slice
+      if (tile && (!sourceRect || slice)) {
+        fail('INVALID_SCENE', `${nodePath}.tile needs an explicit crop and excludes slice`);
+      }
+      const columns = tile ? tileSpans(width, tile.width, tile.offsetX) : null;
+      const rows = tile ? tileSpans(height, tile.height, tile.offsetY) : null;
+      if (tile && (!columns || !rows || columns.length * rows.length > 2730)) {
+        fail('SCENE_LIMIT', `${nodePath}.tile exceeds the scene vertex limit`);
+      }
+      counter.vertices += tile ? 6 * columns!.length * rows!.length : slice
         ? 6 * (1 + Number(slice.left > 0) + Number(slice.right > 0)) *
           (1 + Number(slice.top > 0) + Number(slice.bottom > 0)) : 6;
       if (counter.vertices > 16384) fail('SCENE_LIMIT', 'scene geometry exceeds vertex limit');
@@ -433,7 +462,7 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
           anchorY: number(data.anchorY, `${nodePath}.anchorY`, 0, 1),
         } : {}), ...(version >= 7 ? { tint: tint(data.tint, `${nodePath}.tint`, seen) } : {}),
         ...(version >= 8 ? { blendMode: data.blendMode as 'normal' | 'add' } : {}),
-        ...(sourceRect ? { sourceRect } : {}), ...(slice ? { slice } : {}) };
+        ...(sourceRect ? { sourceRect } : {}), ...(slice ? { slice } : {}), ...(tile ? { tile } : {}) };
     }
     if (kind === 'glyphRun') {
       if (++counter.glyphRuns > 32) fail('SCENE_LIMIT', 'scene exceeds 32 glyph runs');
@@ -483,8 +512,8 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
 export function validateScene(value: unknown): Scene {
   const seen = new WeakSet<object>();
   const raw = object(value, ['version', 'unit', 'contextId', 'nodes'], 'scene', seen);
-  if ((raw.version !== 0 && raw.version !== 1 && raw.version !== 2 && raw.version !== 3 && raw.version !== 4 && raw.version !== 5 && raw.version !== 6 && raw.version !== 7 && raw.version !== 8 && raw.version !== 9 && raw.version !== 10 && raw.version !== 11 && raw.version !== 12) || raw.unit !== 'logical-px') fail('INVALID_SCENE', 'unsupported scene version or unit');
-  const version = raw.version as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+  if ((raw.version !== 0 && raw.version !== 1 && raw.version !== 2 && raw.version !== 3 && raw.version !== 4 && raw.version !== 5 && raw.version !== 6 && raw.version !== 7 && raw.version !== 8 && raw.version !== 9 && raw.version !== 10 && raw.version !== 11 && raw.version !== 12 && raw.version !== 13) || raw.unit !== 'logical-px') fail('INVALID_SCENE', 'unsupported scene version or unit');
+  const version = raw.version as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;
   const contextId = id(raw.contextId, 'scene.contextId');
   const parsedNodes = nodes(raw.nodes, 1, 'scene.nodes', false, seen,
     { nodes: 0, vertices: 0, paths: 0, glyphRuns: 0, ids: new Set() }, version);
@@ -501,7 +530,8 @@ export function validateScene(value: unknown): Scene {
     : version === 9 ? { version: 9, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV9[] }
     : version === 10 ? { version: 10, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV10[] }
     : version === 11 ? { version: 11, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV11[] }
-    : { version: 12, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV12[] };
+    : version === 12 ? { version: 12, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV12[] }
+    : { version: 13, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV13[] };
   if (new TextEncoder().encode(JSON.stringify(scene)).length > MAX_BYTES) fail('SCENE_LIMIT', 'scene snapshot exceeds 1 MiB');
   return scene;
 }
