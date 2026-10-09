@@ -7550,6 +7550,38 @@ arrays. Curvature results do not certify a Solid normal, trim validity, patch
 G2 continuity or manufacturing tolerance. Analysis displays require separate
 consumer evidence.
 
+## Stored curved trim UV material classification — #1098
+
+`classifyVLinearSurfacePlaneTrimUV(trim, queries, options)` classifies original
+dimensionless UV points against the two stored curved regions from #1083.
+Queries contain queryId/u/v. Options contain evaluationId, maxQueries:1..4 and
+maxSubdivisions:0..16. `validateVLinearSurfacePlaneTrimUVClassification(result)`
+reconstructs the entire operation, retaining the complete parent trim and its
+source/proofs. Caller data and previous accepted results remain unchanged.
+
+Original chart boundaries and cut endpoints use exact represented-value
+comparisons. Interior queries use homogeneous de Casteljau subdivision and the
+existing strictly increasing stored U graph. Positive-weight restricted hulls
+certify below or above. Exact U/V root equality or a constant exact V witness
+can certify the shared cut boundary. Native floating point sample equality
+does not establish exact boundary membership.
+
+Each result reports chart status, cut relation and the classification of both
+source-qualified faces. A point below the cut is inside the lower face and
+outside the upper face; chart boundary status remains explicit. An exact point
+on the shared cut is a boundary point of both faces. Exhausting the subdivision
+limit returns `uncertain` with the retained exact bracket/hull. Hard arithmetic
+budget failures remain typed atomic errors. Limits bound the work; they do not
+promise that every query can be resolved.
+
+```sh
+node examples/cad-nurbs/vlinear-plane-trim-classification-demo.mjs --source EVIDENCE_DIR
+```
+
+This is material classification in the original UV chart against the stored
+graph. World point projection, ideal Plane half-space membership, support
+embedding, occupied Solid volume and general 3D Boolean require later features.
+
 ```sh
 node examples/cad-nurbs/local-curvature-demo.mjs --source /tmp/cad-local-curvature
 ```
