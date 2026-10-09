@@ -21,9 +21,11 @@ The development server uses `http://127.0.0.1:52047` with a strict port. Hash ro
 - Open checks native `File.size` against the module's file limit before reading. Invalid files retain the accepted document, displayed revision, and project route.
 - Workspace entries preserve accepted edits in this tab. They do not persist after reload. Save files before closing the tab. A browser unload prompt covers unsaved accepted edits and drafts.
 - Keyboard shortcuts use Ctrl or Cmd with N, O, S, Z, or Shift+Z. Editable controls and composition events retain their native keyboard behavior.
+- File and edit errors show the failed action and a next step. Optional Details retains the actual error message and code. Error overlays do not resize the preview.
+- A refused preview update says Preview unchanged when the previous scene remains displayed. Restore preview is available only when the preview is unavailable and the controller is live. The reusable editor owns preview notices and compiler source errors as separate categories.
 
 The fixtures cover sphere, box, cylinder, torus, and capsule in two different scenes. The current editor supports sourceVersion 1 SDF scenes. CAD, material qualification, and Physics are later provider tasks.
 
 ## Native-flow selectors
 
-The host exposes stable `data-testid` selectors: `open-file`, `save-file`, `scene-file-input`, `draft-dialog`, `draft-apply`, `draft-discard`, `draft-cancel`, `app-error`, `accepted-revision`, `presented-revision`, and `project-forms` / `project-assembly`. They refer to real controls and status text. There is no application debug global.
+The host exposes stable `data-testid` selectors: `open-file`, `save-file`, `scene-file-input`, `draft-dialog`, `draft-apply`, `draft-discard`, `draft-cancel`, `app-error`, `app-error-details`, `accepted-revision`, `presented-revision`, and `project-forms` / `project-assembly`. `app-error` contains task copy; open its Details control to read `app-error-details`. The revision data attributes keep the actual accepted and presented revisions. Selectors refer to real controls and status text. There is no application debug global.

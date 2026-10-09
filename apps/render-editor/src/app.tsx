@@ -3,6 +3,7 @@ import { Box, ChevronRight, FilePlus2, FolderOpen, Grid2X2, RotateCcw, Save, Und
 import {
   createRenderEditorController, createRenderEditorSession, parseRenderEditorDocument,
   serializeRenderEditorDocument,
+  RENDER_EDITOR_LIMITS,
 } from '@barocss/render-editor';
 import type { RenderEditorError, RenderSceneDocumentV0 } from '@barocss/render-editor';
 import { RenderEditor } from '@barocss/render-editor/react';
@@ -18,9 +19,42 @@ import { createWorkspace, readProjectRoute, replaceProjectRoute } from './worksp
 import type { WorkspaceProject } from './workspace';
 
 type PendingAction = { label: string; execute: () => void };
+type ErrorOperation = 'open' | 'save' | 'edit' | 'history' | 'restore' | 'project';
+type AppErrorNotice = { error: Error; operation: ErrorOperation; copy: string };
 
-function message(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
+function errorCode(error: Error): string | null {
+  return 'code' in error && typeof error.code === 'string' ? error.code : null;
+}
+
+function errorCopy(error: Error, operation: ErrorOperation, presentedRevision: number | null): string {
+  const code = errorCode(error);
+  if (operation === 'open') {
+    if (code === 'DOCUMENT_BYTES') return 'File could not open. Use a Render Editor file of 256 KiB or less. The current scene is unchanged.';
+    if (code === 'DOCUMENT_VERSION') return 'This file format is not supported. Choose a Render Editor scene file. The current scene is unchanged.';
+    if (code === 'SOURCE_REFUSED') return 'The file source has an error. Correct it or choose another scene file. The current scene is unchanged.';
+    if (code === 'PRESENTATION_REFUSED' && presentedRevision === null) return 'File could not open. The current scene is unchanged. Restore the preview, then open the file again.';
+    if (code === 'PRESENTATION_REFUSED') return 'File could not open. The previous scene is still shown. The current scene is unchanged. Try Open again.';
+    return 'File could not open. The current scene is unchanged. Check the Render Editor file and try again.';
+  }
+  if (operation === 'save') return 'File could not save. Your scene is still in this tab. Try Save again.';
+  if (operation === 'project') {
+    if (code === 'PRESENTATION_REFUSED' && presentedRevision === null) return 'Project could not open. The current scene is unchanged. Restore the preview, then select the project again.';
+    return 'Project could not open. The current scene is unchanged. Select a project from Workspace and try again.';
+  }
+  if (code === 'SOURCE_REFUSED') return 'Source could not apply. Correct the source errors and try Apply again. Your draft is kept.';
+  if (code === 'PRESENTATION_REFUSED') {
+    if (presentedRevision === null) return 'The preview is unavailable. Your scene and draft are kept. Restore the preview, then try again.';
+    return 'Update failed. The previous scene is still shown. Your draft is kept. Try the action again.';
+  }
+  if (operation === 'history') return 'Undo or Redo could not apply. The current scene is unchanged. Check the preview and try again.';
+  if (operation === 'restore') return 'The preview could not be restored. Your scene is kept. Try Restore preview again.';
+  if (code === 'HISTORY_LIMIT') return 'Changes could not apply. The edit exceeds the history limit. Reduce the edit and try again. Your draft is kept.';
+  return 'Changes could not apply. Check the camera values and try Apply again. Your draft is kept.';
+}
+
+function AppErrorDetails({ notice }: { notice: AppErrorNotice }) {
+  const code = errorCode(notice.error);
+  return <details className="app-error-details"><summary>Details</summary><pre data-testid="app-error-details">{code ? `${code}: ` : ''}{notice.error.message}</pre></details>;
 }
 
 function createAppState() {
@@ -43,7 +77,7 @@ export function App() {
   const [pending, setPending] = useState<PendingAction | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
   const [notice, setNotice] = useState('Select an object or edit the source. Apply changes to render.');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<AppErrorNotice | null>(null);
   const [busy, setBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const fileReadToken = useRef(0);
@@ -58,12 +92,16 @@ export function App() {
     updateProjects(projectsRef.current.map((project) => project.key === activeKeyRef.current ? { ...project, document: accepted } : project));
   }
 
-  function report(error: unknown) { setError(message(error)); }
+  function report(input: unknown, operation: ErrorOperation, copy?: string) {
+    const cause = input instanceof Error ? input : new Error(typeof input === 'string' ? input : 'The action failed.');
+    if (errorCode(cause) === 'PRESENTATION_REFUSED' && !pending && ['edit', 'history', 'restore'].includes(operation)) return;
+    setError({ error: cause, operation, copy: copy ?? errorCopy(cause, operation, controller.getSnapshot().presentedRevision) });
+  }
 
   function runGuarded(action: PendingAction) {
     if (busy || pending) return;
     const current = session.getSnapshot();
-    if (current.sourceDirty || current.cameraDirty) setPending(action);
+    if (current.sourceDirty || current.cameraDirty) { setError(null); setPending(action); }
     else action.execute();
   }
 
@@ -71,7 +109,7 @@ export function App() {
     const project = projectsRef.current.find((item) => item.key === key);
     if (!project || key === activeKeyRef.current) return;
     const result = controller.open(serializeRenderEditorDocument(project.document));
-    if (!result.ok) { report(result.error); return; }
+    if (!result.ok) { report(result.error, 'project'); return; }
     activeKeyRef.current = key;
     setActiveKey(key);
     replaceProjectRoute(key);
@@ -86,7 +124,7 @@ export function App() {
 
   function adopt(document: RenderSceneDocumentV0, origin: WorkspaceProject['origin']) {
     const result = controller.open(serializeRenderEditorDocument(document));
-    if (!result.ok) { report(result.error); return; }
+    if (!result.ok) { report(result.error, origin === 'file' ? 'open' : 'project'); return; }
     const key = `${document.documentId}-${crypto.randomUUID().slice(0, 8)}`;
     updateProjects([...projectsRef.current, { key, document, origin, savedRevision: origin === 'file' ? document.revision : null }]);
     activeKeyRef.current = key;
@@ -116,12 +154,13 @@ export function App() {
       const text = await readSceneFile(file);
       if (token !== fileReadToken.current) return;
       if (session.getSnapshot() !== readSnapshot || activeKeyRef.current !== readProjectKey) {
-        throw new Error('The scene changed while the file was being read. Open the file again. The current scene and draft are retained.');
+        report(new Error('The scene changed while the file was being read. Open the file again. The current scene and draft are retained.'), 'open', 'The scene changed while the file was read. The current scene and draft are unchanged. Open the file again.');
+        return;
       }
       const document = parseRenderEditorDocument(text);
       rememberAccepted();
       adopt(document, 'file');
-    } catch (error) { if (token === fileReadToken.current) report(error); }
+    } catch (error) { if (token === fileReadToken.current) report(error, 'open', file.size > RENDER_EDITOR_LIMITS.fileBytes ? 'The file is too large. Choose a scene file of 256 KiB or less. The current scene is unchanged.' : undefined); }
     finally { if (token === fileReadToken.current) setBusy(false); }
   }
 
@@ -133,21 +172,21 @@ export function App() {
       updateProjects(projectsRef.current.map((project) => project.key === activeKeyRef.current ? { ...project, document: accepted, savedRevision: accepted.revision } : project));
       setError(null);
       setNotice('Download started.');
-    } catch (error) { report(error); }
+    } catch (error) { report(error, 'save'); }
   }
 
   function saveFile() { runGuarded({ label: 'save the file', execute: saveAccepted }); }
 
   function history(direction: 'undo' | 'redo') {
     const result = controller[direction]();
-    if (!result.ok) report(result.error);
+    if (!result.ok) report(result.error, 'history');
     else { setError(null); setNotice(direction === 'undo' ? 'Undo applied to the viewport.' : 'Redo applied to the viewport.'); }
   }
 
   function applyPending() {
     if (!pending) return;
     const result = controller.apply('both');
-    if (!result.ok) { report(result.error); return; }
+    if (!result.ok) { report(result.error, 'edit'); return; }
     const action = pending;
     setPending(null);
     action.execute();
@@ -162,6 +201,16 @@ export function App() {
   }
 
   useEffect(() => {
+    if (presentation.presentationError === null) {
+      setError((notice) => notice && errorCode(notice.error) === 'PRESENTATION_REFUSED' ? null : notice);
+    }
+  }, [presentation.presentationError]);
+
+  useEffect(() => {
+    setError((notice) => notice && ['edit', 'history'].includes(notice.operation) ? null : notice);
+  }, [snapshot.accepted]);
+
+  useEffect(() => {
     replaceProjectRoute(activeKeyRef.current);
     const release = () => { fileReadToken.current += 1; controller.dispose(); session.dispose(); };
     window.addEventListener('pagehide', release, { once: true });
@@ -171,12 +220,12 @@ export function App() {
   useEffect(() => {
     const routeChanged = () => {
       fileReadToken.current += 1;
-      if (busy) setError('Project navigation canceled the file read. The current scene and draft are retained.');
+      if (busy) report(new Error('Project navigation canceled the file read. The current scene and draft are retained.'), 'open', 'Project navigation canceled the file read. The current scene and draft are unchanged. Open the file again.');
       setBusy(false);
       const key = readProjectRoute();
       replaceProjectRoute(activeKeyRef.current);
       if (key && projectsRef.current.some((project) => project.key === key)) switchProject(key);
-      else setError('Project route is unavailable. The current scene is retained.');
+      else report(new Error('Project route is unavailable. The current scene is retained.'), 'project');
     };
     const keyPressed = (event: KeyboardEvent) => {
       const target = event.target;
@@ -209,6 +258,10 @@ export function App() {
   const dirty = snapshot.sourceDirty || snapshot.cameraDirty;
   const downloaded = activeProject?.savedRevision === snapshot.accepted.revision;
   const actionDisabled = busy || pending !== null;
+  const previewUnavailable = presentation.presentedRevision === null;
+  const previewRefused = presentation.presentationError !== null;
+  const canRestorePreview = previewUnavailable && previewRefused && !presentation.disposed;
+  const previewStatus = presentation.disposed ? 'Preview closed' : previewUnavailable ? previewRefused ? 'Preview unavailable' : 'Opening preview…' : previewRefused ? 'Preview unchanged' : 'Preview ready';
 
   return (
     <main className="app-shell" data-testid="render-editor-app">
@@ -224,7 +277,7 @@ export function App() {
           <MenubarMenu><MenubarTrigger>Edit</MenubarTrigger><MenubarContent>
             <MenubarItem disabled={!snapshot.canUndo || actionDisabled} onSelect={() => history('undo')}><Undo2 />Undo<MenubarShortcut>⌘Z</MenubarShortcut></MenubarItem>
             <MenubarItem disabled={!snapshot.canRedo || actionDisabled} onSelect={() => history('redo')}><Redo2 />Redo<MenubarShortcut>⇧⌘Z</MenubarShortcut></MenubarItem>
-            <MenubarSeparator /><MenubarItem disabled={!dirty || actionDisabled} onSelect={() => session.discardDraft()}>Discard draft</MenubarItem>
+            <MenubarSeparator /><MenubarItem disabled={!dirty || actionDisabled} onSelect={() => { session.discardDraft(); setError(notice => notice?.operation === 'edit' ? null : notice); }}>Discard draft</MenubarItem>
           </MenubarContent></MenubarMenu>
           <MenubarMenu><MenubarTrigger>Workspace</MenubarTrigger><MenubarContent>
             {projects.map((project) => <MenubarItem key={project.key} disabled={actionDisabled} onSelect={() => switchProject(project.key)}>{project.document.title}</MenubarItem>)}
@@ -251,18 +304,21 @@ export function App() {
           <div className="app-document-bar"><div><span className="app-eyebrow">Scene</span><h1 data-testid="document-title">{snapshot.accepted.title}</h1></div><span className="app-document-state">{dirty ? 'Draft changes' : activeProject?.origin === 'example' && downloaded ? 'Example' : downloaded ? 'File opened / downloaded' : 'Not downloaded'}</span>
             <div className="app-history"><Button variant="ghost" size="icon-sm" aria-label="Undo" disabled={!snapshot.canUndo || actionDisabled} onClick={() => history('undo')}><Undo2 /></Button><Button variant="ghost" size="icon-sm" aria-label="Redo" disabled={!snapshot.canRedo || actionDisabled} onClick={() => history('redo')}><Redo2 /></Button></div>
           </div>
-          {error ? <div className="app-error" role="alert" data-testid="app-error">{error}<button aria-label="Dismiss error" onClick={() => setError(null)}>×</button></div> : null}
-          <RenderEditor controller={controller} onError={(error: RenderEditorError) => report(error)} />
+          {error && !pending ? <div className="app-error" role="alert" data-testid="app-error"><div><p>{error.copy}</p><AppErrorDetails key={error.error.message} notice={error} /></div><button aria-label="Dismiss error" onClick={() => setError(null)}>×</button></div> : null}
+          <RenderEditor controller={controller} onError={(error: RenderEditorError) => {
+            if (error.code === 'PRESENTATION_REFUSED' || (error.code === 'SOURCE_REFUSED' && error.diagnostics.length > 0)) { setError(notice => notice && ['edit', 'history', 'restore'].includes(notice.operation) ? null : notice); return; }
+            report(error, 'edit');
+          }} />
         </section>
       </div>
 
       <footer className="app-status" aria-live="polite">
-        <span className={`app-status-dot ${presentation.presentationError ? 'has-error' : ''}`} />
-        <span data-testid="app-status">{busy ? 'Reading file…' : notice}</span>
+        <span className={`app-status-dot ${previewRefused ? previewUnavailable ? 'has-error' : 'has-warning' : ''}`} />
+        <span data-testid="app-status">{busy ? 'Reading file…' : previewRefused || previewUnavailable || presentation.disposed ? previewStatus : notice}</span>
         <span className="app-status-spacer" />
-        {presentation.presentationError ? <Button variant="ghost" size="xs" onClick={() => { const result = controller.recover(); if (!result.ok) report(result.error); }}><RotateCcw />Recover viewport</Button> : null}
+        {canRestorePreview ? <Button variant="ghost" size="xs" onClick={() => { const result = controller.recover(); if (!result.ok) report(result.error, 'restore'); }}><RotateCcw />Restore preview</Button> : null}
         <span data-testid="accepted-revision" data-revision={snapshot.accepted.revision}>{dirty ? 'Draft changes' : 'Applied'}</span>
-        <span data-testid="presented-revision" data-revision={presentation.presentedRevision ?? 'none'}>{presentation.presentedRevision === null ? 'Preview unavailable' : 'Preview ready'}</span>
+        <span data-testid="presented-revision" data-revision={presentation.presentedRevision ?? 'none'}>{previewStatus}</span>
         <span>{snapshot.metadata.objects.length} objects</span>
       </footer>
 
@@ -276,7 +332,7 @@ export function App() {
         <DialogContent showCloseButton={false} data-testid="draft-dialog"><DialogHeader>
           <DialogTitle>Resolve draft changes</DialogTitle>
           <DialogDescription>Apply or discard your source and camera drafts before you {pending?.label}. Apply must succeed in the viewport to continue. Cancel keeps the draft.</DialogDescription>
-        </DialogHeader>{error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}<DialogFooter>
+        </DialogHeader>{error ? <div role="alert" className="app-dialog-error" data-testid="app-error"><p>{error.copy}</p><AppErrorDetails key={error.error.message} notice={error} /></div> : null}<DialogFooter>
           <Button variant="ghost" onClick={() => setPending(null)} data-testid="draft-cancel">Cancel</Button>
           <Button variant="secondary" onClick={discardPending} data-testid="draft-discard">Discard</Button>
           <Button onClick={applyPending} data-testid="draft-apply">Apply and continue</Button>
