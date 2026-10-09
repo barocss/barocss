@@ -20,7 +20,9 @@ app.stop();
 const stage = app.stage, renderer = app.renderer, canvas = app.view;
 document.querySelector('#view').append(canvas);
 const camera = Camera.main ?? new Camera(renderer);
-camera.orthographic = true; camera.orthographicSize = 0.008; camera.position.set(0, 0, 0.05);
+camera.orthographic = true;
+// Explicit clipping planes for scene metres; Pixi defaults near to 0.1.
+camera.near = 0.0001; camera.far = 1;
 const lighting = LightingEnvironment.main ?? new LightingEnvironment(renderer);
 const light = new Light(); light.type = LightType.directional; light.intensity = 1;
 lighting.lights.push(light); stage.addChild(light);
@@ -116,7 +118,7 @@ async function load() {
             same(retained.packet, preview.packet), `Surface buffers/native parameters changed: ${key}`);
           requireFact(preview.packet.positions.every((value, p) => Object.is(Math.fround(value * 0.001), preview.mesh.positions[p])), `Incorrect Surface mm conversion: ${key}`);
         }
-        nextMembers.push({ key, mesh, kind: native.kind });
+        nextMembers.push({ key, mesh, kind: native.kind, pose: item.pose });
         for (const [kind, resource] of Object.entries({ mesh, geometry: mesh.geometry, material: mesh.material }))
           nextResources.push(trackDestroy(resource, key, kind));
       }
@@ -129,6 +131,23 @@ async function load() {
     for (const record of accepted) record.result.dispose();
     accepted = next.splice(0); members = nextMembers; resources = nextResources;
     for (const { result } of accepted) stage.addChild(result.root);
+    // Fit actual display buffers after their host translations. Native/local data stays unchanged.
+    const low = [Infinity, Infinity, Infinity], high = [-Infinity, -Infinity, -Infinity];
+    for (const member of members) {
+      const positions = member.mesh.geometry.positions.buffer;
+      for (let index = 0; index < positions.length; index += 3) for (let axis = 0; axis < 3; axis++) {
+        const value = positions[index + axis] + member.pose[axis];
+        low[axis] = Math.min(low[axis], value); high[axis] = Math.max(high[axis], value);
+      }
+    }
+    const center = low.map((value, axis) => (value + high[axis]) / 2);
+    const aspect = renderer.width / renderer.height;
+    // Pixi3D 2.5 projects +/-orthographicSize vertically and +/-size*aspect horizontally.
+    camera.orthographicSize = Math.max((high[1] - low[1]) * 0.65, (high[0] - low[0]) * 0.65 / aspect, 0.001);
+    camera.position.set(center[0], center[1], high[2] + 0.05);
+    evidence.cameraFit = { boundsSceneUnits: { min: low, max: high }, centerSceneUnits: center,
+      positionSceneUnits: [center[0], center[1], high[2] + 0.05], halfHeightSceneUnits: camera.orthographicSize,
+      aspect, near: camera.near, far: camera.far, role: 'derived host view of translated display buffers' };
     members.forEach(record => { record.mesh.visible = false; });
     const background = frame();
     evidence.members = [];
