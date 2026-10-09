@@ -91,7 +91,7 @@ export function transactBooleanExtrusionFeatureGraphParameters(previousInput: Bo
   const parameterInputs = data.parameterOperations, distanceInputs = data.distanceEdits;
   check(Array.isArray(parameterInputs) && parameterInputs.length >= 1 && parameterInputs.length <= 16, CODE.BUDGET,
     'required1..16 parameter operations', { path: '$transaction.parameterOperations' });
-  check(Array.isArray(distanceInputs) && distanceInputs.length <= 1, CODE.BUDGET, 'explicit0..1 distance edits required', { path: '$transaction.distanceEdits' });
+  check(Array.isArray(distanceInputs) && distanceInputs.length <= 4, CODE.BUDGET, 'explicit0..4 distance edits required', { path: '$transaction.distanceEdits' });
   const starting = new Map(previous.document.parameters.map(parameter => [parameter.id, parameter])), reserved = startingIdentities(previous), targets = new Set<string>();
   const operations: BooleanExtrusionParameterOperation[] = parameterInputs.map((input, index) => {
     const path = '$transaction.parameterOperations[' + index + ']';
@@ -116,9 +116,11 @@ export function transactBooleanExtrusionFeatureGraphParameters(previousInput: Bo
     check(starting.has(parameterId), CODE.PARAMETER, 'removal must target an existing STARTING parameter only', context);
     return { kind, parameterId };
   });
+  const distanceTargets = new Set<string>();
   const distanceEdits = distanceInputs.map((input, index) => {
     const path = '$transaction.distanceEdits[' + index + ']', edit = record(input, ['featureId', 'definition'], { path });
     const featureId = id(edit.featureId, { path: path + '.featureId' }), feature = previous.document.features.find(feature => feature.id === featureId);
+    check(!distanceTargets.has(featureId), CODE.INPUT, 'duplicate distance repair feature target', { path, featureId }); distanceTargets.add(featureId);
     check(feature !== undefined && feature.kind === 'normal-extrusion', CODE.DEPENDENCY, 'distance edit must target the actual STARTING extrusion feature', { path, featureId });
     return { featureId, definition: admitDefinition(edit.definition, { path: path + '.definition', featureId }) };
   });

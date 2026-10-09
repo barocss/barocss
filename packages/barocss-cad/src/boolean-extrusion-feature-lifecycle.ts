@@ -167,6 +167,6 @@ export function transactBooleanExtrusionFeatureGraphFeatures(previousInput: Bool
     }
     check(candidate.features.length <= 8, CODE.BUDGET, 'bounded WORKING feature table exceeds8', { path: '$transaction.featureOperations', featureId });
   }
-  // Final exact four kinds/references/native profiles/unused lengths/budgets remain original903 admission.
+  // Final current two-Face/one-Boolean/one-through-four-extrusion profile and references/native profiles/unused lengths/budgets remain original903 admission.
   return evaluateBooleanExtrusionFeatureGraph(candidate, previous.options);
 }
