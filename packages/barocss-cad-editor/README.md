@@ -287,3 +287,30 @@ advances native generation/revision; logical output choice and displayGeneration
 stay unchanged. Removed tree selection is cleared. Native, mesh and GPU failures
 retain the previous accepted graph, history, view and dialog choices. Save/Open
 retains the complete authored graph; Undo/Redo retains the current output choice.
+
+## Coupled authored Face corners
+
+`getFaceCorners(featureId)` returns copied, revision-qualified
+`CadEditorFaceCorner` records from an accepted authored Face. Corner index i joins
+the previous ordered Line's pole1 and the next Line's pole0. Line IDs, pole indices,
+feature/output-slot identity and native graph revision form the binding.
+Current native Face admission already requires exact endpoint closure with
+`Object.is`, including signed zero. The corner API repeats this exact-pair guard;
+it does not weld, skip or renumber endpoints. No admitted near-closure refusal
+route is claimed for the current native profile.
+
+`prepareFaceCornerEdit(binding, pointMM)` copies the binding and XYZ/mm tuple,
+checks every current identity/index and changes exactly the two endpoint triples
+on a private authored Face copy. One real native feature transaction upserts the
+existing Face and rebuilds its Boolean and current one-to-four extrusion outputs.
+The provider owns coordinate limits, coplanarity, closure, convexity and CONTACT
+refusals. No projection, snapping, constraints or evaluated mesh authoring is used.
+Other poles, Line/Plane IDs, knots, weights, options, parameters and signed-zero
+fields remain unchanged. Unresolved scalar drafts and active candidates refuse.
+
+The structure candidate follows the existing full GPU scene/readback gate.
+Acceptance adds one native history state and revision, retaining the logical
+output set/displayGeneration and surviving tree selection. Invalid bindings,
+native geometry, mesh or GPU admission retain the accepted graph and raw host
+dialog values. Save serializes the complete native graph; Undo/Redo restores
+authored content at fresh revisions rather than reviving old corner bindings.

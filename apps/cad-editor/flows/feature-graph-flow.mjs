@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { createRequire, register } from 'node:module';
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
@@ -16,7 +16,9 @@ const compiled = args.includes('--compiled'), mode = compiled ? 'compiled' : 'so
 mkdirSync(evidence, {recursive:true});
 const attempt = readdirSync(evidence).filter(n => new RegExp('^' + mode + '-attempt-\\d+\\.json$').test(n)).length + 1;
 const prefix = mode + '-attempt-' + String(attempt).padStart(3, '0');
-const result = {mode,node:process.version,events:[],pageErrors:[],outcome:'running'};
+const head=execFileSync('git',['rev-parse','HEAD'],{cwd:repo,encoding:'utf8'}).trim();
+const workingTree=execFileSync('git',['status','--porcelain'],{cwd:repo,encoding:'utf8'}).trim();
+const result = {mode,node:process.version,head,workingTree,events:[],pageErrors:[],outcome:'running'};
 const save = () => writeFileSync(resolve(evidence,prefix+'.json'),JSON.stringify(result,null,2)+'\n');
 const hash = data => createHash('sha256').update(data).digest('hex');
 const fixtureText = readFileSync(resolve(repo,'apps/cad-editor/fixtures/boolean-extrusion.authored-graph.json'),'utf8');
@@ -24,6 +26,7 @@ const opts = {native:{maximumParameterResolutions:8,maximumFeatureEvaluations:7}
 let server,browser,context,freshContext,activePage,serverExited=false;
 try {
   assert.equal(Number(process.versions.node.split('.')[0]),22);
+  if(args.includes('--face-corner')) assert.equal(workingTree,'','Face corner acceptance needs a clean exact head.');
   let cad,editor,runtimeMapPath;
   if(compiled) {
     const {prepareCompiledCheckpoint}=await import('./compiled-checkpoint.mjs');
@@ -163,6 +166,11 @@ try {
     if(args.includes('--fanout')&&!args.includes('--lifecycle')) await fresh.getByTestId('feature-discard').click();
     const {runReferencedFeatureFlow}=await import('./referenced-feature-flow.mjs');
     await runReferencedFeatureFlow({page:fresh,browser,cad,editor,result,evidence,prefix,repo});
+    reopened=await snapshot(fresh);
+  }
+  if(args.includes('--face-corner')) {
+    const {runFaceCornerFlow}=await import('./face-corner-flow.mjs');
+    await runFaceCornerFlow({page:fresh,browser,cad,editor,result,evidence,prefix,repo});
     reopened=await snapshot(fresh);
   }
   await fresh.evaluate(()=>window.__cadFeatureFlow.setMounted(false));await fresh.waitForFunction(()=>window.__cadFeatureFlow.display()?.status==='disposed');const disposed=await display(fresh);assert.deepEqual(disposed.lifecycle,{mounts:1,disposals:1});assert.ok(Object.values(disposed.resourceCounts).every(n=>n===0));assert.deepEqual(await snapshot(fresh),reopened);

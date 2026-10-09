@@ -178,3 +178,39 @@ qualified meshes enter one actual GPU Shell scene update and RGBA read before
 commit. Native suppression, feature reorder and general solid Boolean remain
 unsupported. Undo/Redo restores the complete authored structure with the current
 logical extrusion display choice. Download serializes only accepted native data.
+
+## Edit Face corners
+
+Select a Face in the feature tree. The reusable inspector lists **Corner 1..N**
+from the original ordered native Line endpoints, with authored XYZ/mm values.
+Choose **Edit** for one corner. The app dialog keeps raw X, Y and Z text until
+you select **Apply**. Enter, Tab and composition do not apply a change, and
+there is no live preview. Coordinates must be finite and from -10000 to 10000 mm.
+Keep the point on and within the current face plane's finite authored domains,
+and preserve its closed convex boundary.
+
+One corner joins the previous Line's pole 1 to the next Line's pole 0. The exact
+shared endpoint triples, including signed-zero bits, define its current qualified
+binding. Exact endpoint pairing is required by the native Face profile. Missing
+or unsupported bindings show an honest unavailable message; the editor does not
+weld or renumber endpoints.
+Apply changes exactly both adjacent endpoint triples to the same explicit point.
+It preserves Plane data, all other Line coefficients, IDs, order, knots, weights,
+options, sibling Face, Boolean, lengths including signed zero and extrusion leaves.
+The existing native transaction rebuilds the Boolean and all selected output
+meshes. Full GPU scene admission and a fresh RGBA read precede acceptance.
+
+A native coordinate, coplanarity, closure, convexity, CONTACT or GPU refusal keeps
+the dialog raw fields and accepted graph/history/selection/camera/frame. Nested
+Help keeps values and errors and returns to its Help trigger. Cancel/Escape drops
+only the dialog values and restores its corner Edit trigger. A genuinely accepted
+edit closes the dialog and restores the same corner focus. Undo/Redo and Download
+use complete accepted native data; raw coordinates, camera and visibility remain
+outside the saved file. Fixed dialog actions and a scrolling body leave the
+viewport layout unchanged.
+
+The public `getFaceCorners` result carries the exact graph/revision/feature/slot,
+corner index and adjacent Line/pole identities. `prepareFaceCornerEdit` verifies
+that current binding and uses one existing-Face upsert through the actual native
+feature transaction. There is no projection, snapping, solver, mesh-derived
+authoring, arbitrary Curve/NURBS weight editor, drag or certified solid claim.
