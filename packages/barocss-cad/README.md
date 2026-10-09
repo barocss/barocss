@@ -7598,3 +7598,44 @@ certify a global binary64 enclosure or manufacturing tolerance.
 ```sh
 node examples/cad-nurbs/curve-planar-face-material-demo.mjs --source /tmp/cad-face-crossings
 ```
+
+## Uniform-density extrusion construction mass and inertia
+
+`estimateCoplanarFaceBooleanExtrusionMass` extends the actual construction
+volume and centroid query with uniform density and centroidal inertia.
+
+```ts
+const mass = cad.estimateCoplanarFaceBooleanExtrusionMass(extrusion, {
+  densityKgPerM3: 7850,
+  maximumBoundarySegments: 64, maximumSurfaceEvaluations: 8,
+  maximumSurfacePointEvaluations: 64,
+});
+cad.validateCoplanarFaceBooleanExtrusionMass(mass);
+```
+
+Density is explicit in kg/m³. Mass uses kg, centers retain authored XYZ in mm,
+and centered inertia uses kg·m². The report states both unit conversions.
+Uniform density preserves the actual geometric centroid. Empty material has
+mass zero, center null and centroidal inertia null.
+
+The estimator calls the existing properties API once. It retains the complete
+parent result and uses its actual support D1 for a physical plane basis.
+Canonical trim vertices are queried on the original Surface. Directed outer
+and hole loops provide centered physical polygon moments, and actual extrusion
+translation supplies thickness moments. Separate component tensors combine
+with the full parallel-axis term.
+
+The calculation targets the declared canonical trim construction. Original
+unsnapped native edges and their binding residuals remain distinct. The query
+does not move geometry or certify a Solid or material density. Parent component,
+source and budget bounds still apply. New canonical Surface point work is
+prechecked and limited to 64 calls. Invalid density, insufficient budgets or
+unrepresentable or cancellation-uncertain moments refuse atomically.
+
+Outputs own their CPU arrays, including every tensor row. Principal inertia
+axes, nonuniform density, general Solid integrals, physical consumer acceptance
+and manufacturing accuracy require separate contracts.
+
+```sh
+node examples/cad-nurbs/coplanar-face-boolean-extrusion-mass-demo.mjs --source /tmp/cad-extrusion-mass
+```
