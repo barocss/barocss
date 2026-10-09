@@ -27,6 +27,16 @@ touch-action CSS and control lifetime. It does not select geometry or change
 native measurements or display poses. The runnable `examples/viewer-scene`
 uses this adapter with its existing click-to-select handler.
 
+For focused canvas keys, give the host canvas `tabIndex=0`, then call
+`const keys = viewer.attachKeyboardControls({ onError })` and later
+`keys.dispose()`. Unmodified `F` fits the currently visible displayed
+geometry; `Escape` clears current Surface or Curve selection. The adapter
+listens only on the Viewer canvas and does not set focus or change native
+source. Modified, repeated and composing keys are ignored. Failed fit is
+reported to `onError` without preventing the browser default. The host owns
+canvas focus and the adapter lifetime. `examples/viewer-scene` shows the
+focused key flow beside its existing buttons and pointer controls.
+
 `viewer.clear()` explicitly returns the caller canvas to a real blank GPU
 frame. It clears displayed objects, native/model-set source, selection, poses
 and measurements, while keeping the accepted camera, scale, background and

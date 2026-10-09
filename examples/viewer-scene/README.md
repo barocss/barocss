@@ -22,6 +22,21 @@ click-to-select handler; a click without drag still selects a Surface.
 The adapter owns only its canvas listeners and can be stopped with
 `window.viewerDemo.controls.dispose()`.
 
+The canvas is keyboard-focusable. Focus it, then press **F** to fit the
+currently visible scene or **Escape** to clear selection. The bounded
+`attachKeyboardControls` adapter ignores modified/repeated/composing keys
+and keys aimed at the measurement fields. It does not change the native
+source or pointer controls. Stop it with
+`window.viewerDemo.keyboardControls.dispose()`.
+
+For the focused keyboard lifecycle probe, open
+<http://127.0.0.1:52165/?keyboardProof=1>. It runs on the same compiled
+source in Chromium and writes a JSON result in the status panel. It compares
+direct and key-driven fit pixels/camera, selection clearing, ignored keys,
+empty/context-loss errors, adapter and Viewer disposal, one context and
+Viewer-owned GL resource cleanup. The ordinary route remains interactive;
+press its actual focused F and Escape keys to verify physical keyboard input.
+
 The measurement panel accepts two qualified native Surface parameters. Its
 initial values include an interior point on the nonunit weighted Surface.
 Press **Measure native points** to show the native XYZ points and
