@@ -1,5 +1,5 @@
 import { Canvas2DError, copyImageAsset, validateImageAssetId, validatePoint, validateScene, validateSize, validateView } from './schema.js';
-import type { Color, HitArea, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, NodeV12, NodeV13, NodeV14, NodeV15, NodeV16, NodeV17, NodeV18, NodeV19, NodeV20, NodeV21, Point, Scene, Size, SourceRect, Transform, View } from './schema.js';
+import type { Color, HitArea, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, NodeV12, NodeV13, NodeV14, NodeV15, NodeV16, NodeV17, NodeV18, NodeV19, NodeV20, NodeV21, NodeV22, PathLinearFill, Point, Scene, Size, SourceRect, Transform, View } from './schema.js';
 import { tessellatePath } from './path.js';
 import type { FillObservation, PathObservation } from './path.js';
 import { createImageGpu, createImageTexture, disposeImageGpu, renderImage, sampledAlpha, sourceRect } from './image.js';
@@ -8,17 +8,21 @@ import { tileSpans } from './tile.js';
 
 type Matrix = [number, number, number, number, number, number];
 type Clip = { left: number; top: number; right: number; bottom: number };
-type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 | NodeV18 | NodeV19 | NodeV20 | NodeV21;
+type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 | NodeV18 | NodeV19 | NodeV20 | NodeV21 | NodeV22;
 type DrawNode = RenderNode;
 type Draw = {
   id: string; kind: 'group' | 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun'; node: DrawNode;
   matrix: Matrix; inverse: Matrix; color: Color; vertices: Float32Array; clip: Clip | null; visible: boolean; hitEnabled: boolean;
   observation?: PathObservation; fillObservation?: FillObservation;
   maskVertices?: Float32Array; contours?: Float32Array[]; fillRule?: 'evenodd' | 'nonzero';
+  linear?: PathLinearFill;
   imageAsset?: ImageAsset; imageNode?: ImageNode; imageClamp?: SourceRect; imageHitInverse?: Matrix;
 };
 type Gpu = { program: WebGLProgram; buffer: WebGLBuffer; vao: WebGLVertexArrayObject;
   size: WebGLUniformLocation; view: WebGLUniformLocation; color: WebGLUniformLocation;
+  linearEnabled: WebGLUniformLocation; inverse0: WebGLUniformLocation; inverse1: WebGLUniformLocation;
+  linearFrom: WebGLUniformLocation; linearDirection: WebGLUniformLocation;
+  startColor: WebGLUniformLocation; endColor: WebGLUniformLocation;
   image: ImageGpu };
 
 const vertexShader = `#version 300 es
@@ -26,15 +30,36 @@ precision highp float;
 layout(location=0) in vec2 a_position;
 uniform vec2 u_size;
 uniform vec3 u_view;
+out vec2 v_world;
 void main() {
+  v_world = a_position;
   vec2 p = (a_position * u_view.z + u_view.xy) / u_size;
   gl_Position = vec4(p.x * 2.0 - 1.0, 1.0 - p.y * 2.0, 0.0, 1.0);
 }`;
 const fragmentShader = `#version 300 es
 precision highp float;
 uniform vec4 u_color;
+uniform bool u_linear_enabled;
+uniform vec3 u_inverse0;
+uniform vec3 u_inverse1;
+uniform vec2 u_linear_from;
+uniform vec2 u_linear_direction;
+uniform vec4 u_start_color;
+uniform vec4 u_end_color;
+in vec2 v_world;
 out vec4 out_color;
-void main() { out_color = vec4(u_color.rgb * u_color.a, u_color.a); }`;
+void main() {
+  vec4 color = u_color;
+  if (u_linear_enabled) {
+    vec3 world = vec3(v_world, 1.0);
+    vec2 local = vec2(dot(world, u_inverse0), dot(world, u_inverse1));
+    float t = clamp(dot(local - u_linear_from, u_linear_direction) /
+      dot(u_linear_direction, u_linear_direction), 0.0, 1.0);
+    color = mix(u_start_color, u_end_color, t);
+    color.a *= u_color.a;
+  }
+  out_color = vec4(color.rgb * color.a, color.a);
+}`;
 
 function multiply(a: Matrix, b: Matrix): Matrix {
   return [a[0] * b[0] + a[2] * b[1], a[1] * b[0] + a[3] * b[1],
@@ -55,6 +80,12 @@ function inverse(m: Matrix): Matrix {
 }
 function point(m: Matrix, x: number, y: number): Point {
   return { x: m[0] * x + m[2] * y + m[4], y: m[1] * x + m[3] * y + m[5] };
+}
+function linearOpacity(fill: PathLinearFill, local: Point): number {
+  const dx = fill.to.x - fill.from.x, dy = fill.to.y - fill.from.y;
+  const t = Math.max(0, Math.min(1,
+    ((local.x - fill.from.x) * dx + (local.y - fill.from.y) * dy) / (dx * dx + dy * dy)));
+  return fill.startColor[3] + (fill.endColor[3] - fill.startColor[3]) * t;
 }
 function rectangle(m: Matrix, width: number, height: number): Float32Array {
   const p0 = point(m, 0, 0), p1 = point(m, width, 0);
@@ -213,11 +244,26 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
         }
       } else {
         const geometry = tessellatePath(node, matrix, view, dpr, tolerance);
+        const fill = 'fill' in node ? node.fill : undefined;
+        const linear = fill && 'linear' in fill ? fill.linear : undefined;
+        if (linear) {
+          const from = point(matrix, linear.from.x, linear.from.y);
+          const to = point(matrix, linear.to.x, linear.to.y);
+          const device = (p: Point) => ({ x: (p.x * view.zoom + view.panX) * dpr,
+            y: (p.y * view.zoom + view.panY) * dpr });
+          const a = device(from), b = device(to);
+          if ([...Object.values(from), ...Object.values(to), ...Object.values(a),
+            ...Object.values(b), ...Object.values(inv)].some(v =>
+            !Number.isFinite(v) || Math.abs(v) > 1e9) ||
+            (Math.fround(a.x) === Math.fround(b.x) && Math.fround(a.y) === Math.fround(b.y))) {
+            throw new Canvas2DError('SCENE_LIMIT', 'linear path fill endpoints exceed device precision');
+          }
+        }
         if (geometry.fill) add({ id: node.id, kind: 'path', node, matrix, inverse: inv,
-          color: 'fill' in node && node.fill ? node.fill.color : [0, 0, 0, 0],
+          color: fill && 'color' in fill ? fill.color : [1, 1, 1, 1], linear,
           vertices: geometry.fill.coverVertices, maskVertices: geometry.fill.maskVertices,
           contours: geometry.fill.contours,
-          fillRule: 'fill' in node && node.fill ? node.fill.rule : 'evenodd',
+          fillRule: fill ? fill.rule : 'evenodd',
           fillObservation: geometry.fill.observation,
           observation: geometry.observation, clip: inheritedClip });
         if (geometry.vertices.length) add({ id: node.id, kind: 'path', node, matrix, inverse: inv,
@@ -246,6 +292,7 @@ function contains(draw: Draw, world: Point): boolean {
       p.x < area.x + area.width && p.y < area.y + area.height;
   }
   const p = point(draw.inverse, world.x, world.y);
+  if (draw.linear && linearOpacity(draw.linear, p) <= 0) return false;
   const node = draw.node;
   const imageNode = draw.imageNode ?? (node.kind === 'image' ? node : null);
   if (draw.imageClamp && imageNode &&
@@ -320,11 +367,22 @@ function createGpu(gl: WebGL2RenderingContext): Gpu {
     const size = gl.getUniformLocation(program, 'u_size');
     const view = gl.getUniformLocation(program, 'u_view');
     const color = gl.getUniformLocation(program, 'u_color');
-    if (!buffer || !vao || !size || !view || !color) throw new Canvas2DError('WEBGL_UNAVAILABLE', 'cannot create GPU state');
+    const linearEnabled = gl.getUniformLocation(program, 'u_linear_enabled');
+    const inverse0 = gl.getUniformLocation(program, 'u_inverse0');
+    const inverse1 = gl.getUniformLocation(program, 'u_inverse1');
+    const linearFrom = gl.getUniformLocation(program, 'u_linear_from');
+    const linearDirection = gl.getUniformLocation(program, 'u_linear_direction');
+    const startColor = gl.getUniformLocation(program, 'u_start_color');
+    const endColor = gl.getUniformLocation(program, 'u_end_color');
+    if (!buffer || !vao || !size || !view || !color || !linearEnabled || !inverse0 || !inverse1 ||
+      !linearFrom || !linearDirection || !startColor || !endColor) {
+      throw new Canvas2DError('WEBGL_UNAVAILABLE', 'cannot create GPU state');
+    }
     gl.bindVertexArray(vao); gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
     gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
     gl.bindVertexArray(null); gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    return { program, buffer, vao, size, view, color, image: createImageGpu(gl) };
+    return { program, buffer, vao, size, view, color, linearEnabled, inverse0, inverse1,
+      linearFrom, linearDirection, startColor, endColor, image: createImageGpu(gl) };
   } catch (error) {
     if (vao) gl.deleteVertexArray(vao);
     if (buffer) gl.deleteBuffer(buffer);
@@ -638,6 +696,16 @@ export class Canvas2DRenderer {
         if (draw.fillRule === 'nonzero') gl.stencilFunc(gl.NOTEQUAL, 0, 0xff);
         else gl.stencilFunc(gl.EQUAL, 1, 1);
         gl.stencilOp(gl.KEEP, gl.KEEP, gl.KEEP);
+      }
+      gl.uniform1i(gpu.linearEnabled, draw.linear ? 1 : 0);
+      if (draw.linear) {
+        const inverse = draw.inverse, linear = draw.linear;
+        gl.uniform3f(gpu.inverse0, inverse[0], inverse[2], inverse[4]);
+        gl.uniform3f(gpu.inverse1, inverse[1], inverse[3], inverse[5]);
+        gl.uniform2f(gpu.linearFrom, linear.from.x, linear.from.y);
+        gl.uniform2f(gpu.linearDirection, linear.to.x - linear.from.x, linear.to.y - linear.from.y);
+        gl.uniform4fv(gpu.startColor, linear.startColor);
+        gl.uniform4fv(gpu.endColor, linear.endColor);
       }
       gl.uniform4fv(gpu.color, draw.color);
       gl.bufferData(gl.ARRAY_BUFFER, draw.vertices, gl.STREAM_DRAW);

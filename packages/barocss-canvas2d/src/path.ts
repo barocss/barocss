@@ -1,5 +1,5 @@
 import { Canvas2DError } from './schema.js';
-import type { PathDash, PathNode, PathNodeV2, PathNodeV5, PathNodeV18, PathNodeV19, PathNodeV20, PathNodeV21, Point, View } from './schema.js';
+import type { PathDash, PathNode, PathNodeV2, PathNodeV5, PathNodeV18, PathNodeV19, PathNodeV20, PathNodeV21, PathNodeV22, Point, View } from './schema.js';
 
 export type Matrix = [number, number, number, number, number, number];
 export type PathSample = { commandIndex: number; t: number; x: number; y: number };
@@ -170,7 +170,7 @@ function dashStrokeSubpaths(subpaths: MutableSubpath[], dash: PathDash): StrokeS
   return result;
 }
 
-export function tessellatePath(node: PathNode | PathNodeV2 | PathNodeV5 | PathNodeV18 | PathNodeV19 | PathNodeV20 | PathNodeV21, matrix: Matrix, view: View, dpr: number,
+export function tessellatePath(node: PathNode | PathNodeV2 | PathNodeV5 | PathNodeV18 | PathNodeV19 | PathNodeV20 | PathNodeV21 | PathNodeV22, matrix: Matrix, view: View, dpr: number,
   tolerance: number): PathGeometry {
   const subpaths: MutableSubpath[] = [];
   let active: MutableSubpath | null = null;
