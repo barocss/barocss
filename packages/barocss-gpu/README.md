@@ -1,5 +1,22 @@
 # @barocss/gpu (experimental v0)
 
+## Native Curve coordinate conversion
+
+Primitive Curve display preparation refuses a nonzero posed millimetre coordinate
+that becomes zero when multiplied by `mmToSceneUnit`. It also refuses a nonzero
+final scene coordinate that becomes zero in Float32. Scene translation cannot
+hide scaling loss. These refusals use the existing `GPUError` and update result
+contracts; original source, native points, IDs and uniform/adaptive profiles remain
+unchanged. Exact zero, legitimate pose cancellation and nonzero Float32 subnormals
+remain admitted subject to the existing range and segment-collapse guards.
+
+This tightens admission for previously accepted lossy conversions. It does not
+certify lossless pose/translation arithmetic, pixel accuracy or device capacity.
+The focused `examples/gpu-scene/curve-coordinate-admission-flow.mjs --output <dir>`
+checks actual source and compiled API CPU preparation using an intentional null
+context boundary. It creates no WebGL renderer and does not prove visible-frame
+retention or replace an actual browser flow.
+
 An independent CSS-shaped scene language and original WebGL2 SDF renderer.
 This package has no React, Three.js, GSS, CAD or existing utility-class dependency.
 Its local package configuration is public (`private:false`, `publishConfig.access:public`).

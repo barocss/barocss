@@ -98,7 +98,13 @@ function curvePositions(sample:NativeCurveSample,options:MeshOptions,pose?:MeshS
  const rotate=pose?sceneRotation(pose):null,converted:number[]=[];
  for(const raw of sample.pointsMM){
   const point=pose?rotate!(raw[0]*pose.scale[0],raw[1]*pose.scale[1],raw[2]*pose.scale[2]):raw;
-  for(let axis=0;axis<3;axis++){const n=(point[axis]+(pose?.translationMm[axis]??0))*options.mmToSceneUnit+options.translate[axis];check(Number.isFinite(n)&&Math.abs(n)<=1000,'Curve display positions exceed ±1000 scene units');converted.push(n);}
+  for(let axis=0;axis<3;axis++){
+   const millimeters=point[axis]+(pose?.translationMm[axis]??0),scaled=millimeters*options.mmToSceneUnit;
+   check(Number.isFinite(scaled)&&(millimeters===0||scaled!==0),'Native Curve coordinate overflows or underflows during scene scaling');
+   const n=scaled+options.translate[axis];check(Number.isFinite(n)&&Math.abs(n)<=1000,'Curve display positions exceed ±1000 scene units');
+   const f32=Math.fround(n);check(Number.isFinite(f32)&&(n===0||f32!==0),'Native Curve coordinate underflows in Float32 display');
+   converted.push(n);
+  }
  }
  const positions=Float32Array.from(converted);
  for(let i=1;i<sample.pointsMM.length;i++){
