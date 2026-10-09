@@ -61,6 +61,16 @@ move and a Viewer refusal leave the accepted pose in place. The handle uses
 an approximate native-point projection; it does not test occlusion or edit the
 CAD source. Fit remains a separate action.
 
+The `↻ Y` handle is a screen-horizontal display yaw control for the same
+selected body. Dragging 2 CSS pixels right adds 1 degree to accepted Y yaw.
+The marker sits beside an approximate original native-point projection; it is
+not a geometric rotation ring or CAD pivot. During drag, only the marker and
+status preview move. Releasing after 2 through 160 CSS pixels applies the
+selected body's new pure Y quaternion and updates the numeric yaw field.
+Moving more than 24 CSS pixels vertically, exceeding ±180 degrees or leaving
+a numeric draft pending refuses the gesture. Translation, scale, other body
+poses and the original CAD source remain unchanged.
+
 The optional `?proof` route exposes `window.viewerObjectTreeProbe` and tracks
 Viewer-created WebGL resources for an actual browser lifecycle check. Its Lose
 context button invokes the browser's `WEBGL_lose_context` extension to check
