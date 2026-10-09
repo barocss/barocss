@@ -42,8 +42,8 @@ export function SceneViewport({controller, onError}: RenderEditorPanelProps) {
   }, [controller]);
   return <section className="re-viewport" aria-label="Scene viewport">
     <canvas ref={ref} width={960} height={640} aria-label="Rendered scene" data-testid="scene-canvas" />
-    <div className="re-viewport-label">{presentation.presentedRevision === null ? 'Viewport unavailable' : `Presented revision ${presentation.presentedRevision}`}<span>Source 1 · WebGL2</span></div>
-    {presentation.presentedRevision === null && <div className="re-viewport-fault" role="status"><p>{presentation.presentationError?.message ?? 'Mounting viewport…'}</p><button type="button" onClick={() => action(controller.recover(), onError)}>Recover viewport</button></div>}
+    <div className="re-viewport-label">Scene<span>Perspective</span></div>
+    {presentation.presentedRevision === null && <div className="re-viewport-fault" role="status"><p>{presentation.presentationError?.message ?? 'Opening scene…'}</p><button type="button" aria-label="Recover viewport" disabled={presentation.disposed} onClick={() => action(controller.recover(), onError)}>Restore preview</button></div>}
   </section>;
 }
 
@@ -56,8 +56,8 @@ export function SourcePanel({controller, onError}: RenderEditorPanelProps) {
     if (range) source.current?.setSelectionRange(range.start, range.end);
   }, [snapshot.activeObjectId]);
   return <section className="re-source re-panel" aria-label="Scene source editor">
-    <div className="re-panel-heading"><h2>Scene source</h2><span>{snapshot.sourceDirty ? 'Draft' : 'Accepted'} · source 1</span><button type="button" disabled={!snapshot.sourceDirty} onClick={() => action(controller.apply('source'), onError)}>Apply source</button></div>
-    <textarea ref={source} aria-label="Scene source" data-testid="scene-source" spellCheck={false} value={snapshot.draftSource} onChange={event => { try { controller.session.setDraftSource(event.target.value); } catch (error) { onError?.(normalizeRenderEditorError(error)); } }} />
+    <div className="re-panel-heading"><h2>Source</h2><span>{snapshot.sourceDirty ? 'Draft' : 'Applied'}</span><button type="button" aria-label="Apply source" disabled={!snapshot.sourceDirty || snapshot.disposed} onClick={() => action(controller.apply('source'), onError)}>Apply</button></div>
+    <textarea ref={source} aria-label="Scene source" data-testid="scene-source" disabled={snapshot.disposed} spellCheck={false} value={snapshot.draftSource} onChange={event => { try { controller.session.setDraftSource(event.target.value); } catch (error) { onError?.(normalizeRenderEditorError(error)); } }} />
   </section>;
 }
 
@@ -65,9 +65,8 @@ export function ObjectPanel({controller}: RenderEditorPanelProps) {
   const snapshot = useSession(controller);
   return <section className="re-objects re-panel" aria-label="Scene objects">
     <div className="re-panel-heading"><h2>Objects</h2><span>{snapshot.metadata.objects.length}</span></div>
-    <p className="re-caption">Accepted scene · {snapshot.metadata.name}</p>
-    <ul>{snapshot.metadata.objects.map(object => <li key={object.id}><button type="button" aria-pressed={snapshot.activeObjectId === object.id} onClick={() => controller.session.setActiveObject(object.id)}><span className="re-object-symbol">◇</span><span>{object.id}</span><small>{object.type}</small></button></li>)}</ul>
-    <p className="re-caption re-object-note">Select an ID to locate its source declaration.</p>
+    <p className="re-caption">{snapshot.metadata.name}</p>
+    <ul>{snapshot.metadata.objects.map(object => <li key={object.id}><button type="button" disabled={snapshot.disposed} aria-pressed={snapshot.activeObjectId === object.id} onClick={() => controller.session.setActiveObject(object.id)}><span className="re-object-symbol">◇</span><span>{object.id}</span><small>{object.type}</small></button></li>)}</ul>
   </section>;
 }
 
@@ -79,11 +78,13 @@ export function CameraPanel({controller, onError}: RenderEditorPanelProps) {
     else (camera[field] as [number, number, number])[axis] = value;
     controller.session.setDraftCamera(camera);
   };
+  const vector = (field: 'eye' | 'target' | 'up') => <fieldset key={field}><legend>{field === 'eye' ? 'Position · scene units' : field === 'target' ? 'Target · scene units' : 'Up direction'}</legend><div className="re-vector">{snapshot.draftCamera[field].map((value, axis) => <label key={axis}><span>{['X', 'Y', 'Z'][axis]}</span><input type="number" disabled={snapshot.disposed} step="0.1" aria-label={`${field} ${['X', 'Y', 'Z'][axis]}`} value={Number.isFinite(value) ? value : ''} onChange={event => set(field, event.target.value === '' ? NaN : Number(event.target.value), axis)} /></label>)}</div></fieldset>;
+  const scalar = (field: 'fovYDegrees' | 'near' | 'far') => <label className="re-scalar" key={field}><span>{field === 'fovYDegrees' ? 'Field of view (°)' : field === 'near' ? 'Near clip · scene units' : 'Far clip · scene units'}</span><input type="number" disabled={snapshot.disposed} step={field === 'fovYDegrees' ? 1 : 0.01} aria-label={field} value={Number.isFinite(snapshot.draftCamera[field]) ? snapshot.draftCamera[field] : ''} onChange={event => set(field, event.target.value === '' ? NaN : Number(event.target.value))} /></label>;
   return <section className="re-camera re-panel" aria-label="Camera settings">
-    <div className="re-panel-heading"><h2>Camera</h2><span>{snapshot.cameraDirty ? 'Draft' : 'Accepted'}</span></div>
-    {(['eye', 'target', 'up'] as const).map(field => <fieldset key={field}><legend>{field === 'eye' ? 'Eye' : field === 'target' ? 'Target' : 'Up'}</legend><div className="re-vector">{snapshot.draftCamera[field].map((value, axis) => <label key={axis}><span>{['X', 'Y', 'Z'][axis]}</span><input type="number" step="0.1" aria-label={`${field} ${['X', 'Y', 'Z'][axis]}`} value={Number.isFinite(value) ? value : ''} onChange={event => set(field, event.target.value === '' ? NaN : Number(event.target.value), axis)} /></label>)}</div></fieldset>)}
-    {(['fovYDegrees', 'near', 'far'] as const).map(field => <label className="re-scalar" key={field}><span>{field === 'fovYDegrees' ? 'Field of view (°)' : field === 'near' ? 'Near clip' : 'Far clip'}</span><input type="number" step={field === 'fovYDegrees' ? 1 : 0.01} aria-label={field} value={Number.isFinite(snapshot.draftCamera[field]) ? snapshot.draftCamera[field] : ''} onChange={event => set(field, event.target.value === '' ? NaN : Number(event.target.value))} /></label>)}
-    <button type="button" className="re-primary" disabled={!snapshot.cameraDirty} onClick={() => action(controller.apply('camera'), onError)}>Apply camera</button>
+    <div className="re-panel-heading"><h2>Camera</h2><span>{snapshot.cameraDirty ? 'Draft' : 'Applied'}</span></div>
+    {vector('eye')}{vector('target')}{scalar('fovYDegrees')}
+    <details className="re-camera-advanced"><summary>Advanced camera</summary>{vector('up')}{scalar('near')}{scalar('far')}</details>
+    <button type="button" className="re-primary" aria-label="Apply camera" disabled={!snapshot.cameraDirty || snapshot.disposed} onClick={() => action(controller.apply('camera'), onError)}>Apply</button>
   </section>;
 }
 
@@ -91,7 +92,7 @@ export function DiagnosticsPanel({controller}: RenderEditorPanelProps) {
   const snapshot = useSession(controller);
   const presentation = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
   return <section className="re-diagnostics re-panel" aria-label="Diagnostics"><div className="re-panel-heading"><h2>Diagnostics</h2><span>{snapshot.diagnostics.length}</span></div>
-    <div role="status">{snapshot.diagnostics.length === 0 && !presentation.presentationError ? <p className="re-caption">{snapshot.sourceDirty ? 'Draft compiles. Apply to update the scene.' : 'Accepted source compiles.'}</p> : <ul>{snapshot.diagnostics.map((diagnostic, index) => <li key={index}><strong>{diagnostic.code}</strong> {diagnostic.range ? `${diagnostic.range.line}:${diagnostic.range.column} ` : ''}{diagnostic.message}</li>)}{presentation.presentationError && <li>{presentation.presentationError.message}</li>}</ul>}</div>
+    <div role="status">{snapshot.diagnostics.length === 0 && !presentation.presentationError ? <p className="re-caption">{snapshot.sourceDirty ? 'Ready to apply.' : 'No errors.'}</p> : <ul>{snapshot.diagnostics.map((diagnostic, index) => <li key={index}>{diagnostic.range ? `Line ${diagnostic.range.line}, column ${diagnostic.range.column}: ` : ''}{diagnostic.message}</li>)}{presentation.presentationError && <li>{presentation.presentationError.message}</li>}</ul>}</div>
   </section>;
 }
 

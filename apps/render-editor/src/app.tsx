@@ -34,17 +34,14 @@ export function App() {
   const [initial] = useState(createAppState);
   const controller = initial.controller;
   const session = controller.session;
-  const snapshot = useSyncExternalStore(
-    (listener) => session.subscribe(listener), () => session.getSnapshot(),
-  );
-  const presentation = useSyncExternalStore(
-    (listener) => controller.subscribe(listener), () => controller.getSnapshot(),
-  );
+  const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot);
+  const presentation = useSyncExternalStore(controller.subscribe, controller.getSnapshot);
   const [projects, setProjects] = useState(initial.projects);
   const projectsRef = useRef(projects);
   const [activeKey, setActiveKey] = useState(initial.initial.key);
   const activeKeyRef = useRef(activeKey);
   const [pending, setPending] = useState<PendingAction | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
   const [notice, setNotice] = useState('Select an object or edit the source. Apply changes to render.');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -135,7 +132,7 @@ export function App() {
       session.markSaved(accepted.revision);
       updateProjects(projectsRef.current.map((project) => project.key === activeKeyRef.current ? { ...project, document: accepted, savedRevision: accepted.revision } : project));
       setError(null);
-      setNotice(`Download started for revision ${accepted.revision}.`);
+      setNotice('Download started.');
     } catch (error) { report(error); }
   }
 
@@ -232,9 +229,9 @@ export function App() {
           <MenubarMenu><MenubarTrigger>Workspace</MenubarTrigger><MenubarContent>
             {projects.map((project) => <MenubarItem key={project.key} disabled={actionDisabled} onSelect={() => switchProject(project.key)}>{project.document.title}</MenubarItem>)}
           </MenubarContent></MenubarMenu>
+          <MenubarMenu><MenubarTrigger>Help</MenubarTrigger><MenubarContent><MenubarItem onSelect={() => setHelpOpen(true)}>Scene editing</MenubarItem></MenubarContent></MenubarMenu>
         </Menubar>
         <div className="app-topbar-spacer" />
-        <span className="app-build-label">Experimental</span>
         <Button size="sm" variant="ghost" disabled={actionDisabled} onClick={openFile} data-testid="open-file"><FolderOpen />Open</Button>
         <Button size="sm" variant="secondary" disabled={actionDisabled} onClick={saveFile} data-testid="save-file"><Save />Save</Button>
       </header>
@@ -264,8 +261,8 @@ export function App() {
         <span data-testid="app-status">{busy ? 'Reading file…' : notice}</span>
         <span className="app-status-spacer" />
         {presentation.presentationError ? <Button variant="ghost" size="xs" onClick={() => { const result = controller.recover(); if (!result.ok) report(result.error); }}><RotateCcw />Recover viewport</Button> : null}
-        <span data-testid="accepted-revision">Accepted {snapshot.accepted.revision}</span>
-        <span data-testid="presented-revision">Displayed {presentation.presentedRevision ?? 'none'}</span>
+        <span data-testid="accepted-revision" data-revision={snapshot.accepted.revision}>{dirty ? 'Draft changes' : 'Applied'}</span>
+        <span data-testid="presented-revision" data-revision={presentation.presentedRevision ?? 'none'}>{presentation.presentedRevision === null ? 'Preview unavailable' : 'Preview ready'}</span>
         <span>{snapshot.metadata.objects.length} objects</span>
       </footer>
 
@@ -285,6 +282,7 @@ export function App() {
           <Button onClick={applyPending} data-testid="draft-apply">Apply and continue</Button>
         </DialogFooter></DialogContent>
       </Dialog>
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}><DialogContent><DialogHeader><DialogTitle>Scene editing</DialogTitle><DialogDescription>Edit the source or camera, then Apply to update the preview. A refused change keeps the applied scene.</DialogDescription></DialogHeader><div className="space-y-3 text-sm text-muted-foreground"><p>Select an object to locate its source declaration. Positions and dimensions use scene units. Camera field of view uses degrees.</p><p>Supported objects: sphere, box, cylinder, capsule, rounded box, and torus. Each scene can contain up to 32 objects. Source can contain up to 64 KiB.</p><p>Save downloads the applied scene source and camera. Open accepts Render Editor version 0 JSON files with scene source version 1, up to 256 KiB. CAD files and material files need their own authoring tools.</p><p>Projects remain in this tab. Save a file to keep your work after closing. Downloads depend on browser settings; check the downloaded file.</p><p>Use File for New, Open, and Save. Use Edit for Undo, Redo, and Discard draft. Keyboard commands do not replace normal text editing.</p></div></DialogContent></Dialog>
     </main>
   );
 }
