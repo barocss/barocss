@@ -164,7 +164,7 @@ export function buildVLinearSurfacePlaneTrimCandidates(sectionInput: VLinearSurf
   ];
   const edges: VLinearSurfacePlaneTrimEdge[] = edgeDefinitions.map((definition, index) => {
     const endpoints = definition.vertexIndices.map(vertex => nominalUV[vertex]), actualDomain = domain(definition.curve);
-    const pcurve = index === 6 ? section.pcurves.surface : { coordinateSystem: 'native-surface-uv' as const, lengthUnit: 'dimensionless' as const, curve: { kind: 'curve' as const, id: uvIds[index], degree: 1, knots: [actualDomain[0], actualDomain[0], actualDomain[1], actualDomain[1]], controlPoints: endpoints, weights: [1, 1] } };
+    const pcurve = index === 6 ? { coordinateSystem: 'native-surface-uv' as const, lengthUnit: section.pcurves.surface.lengthUnit, curve: section.pcurves.surface.curve } : { coordinateSystem: 'native-surface-uv' as const, lengthUnit: 'dimensionless' as const, curve: { kind: 'curve' as const, id: uvIds[index], degree: 1, knots: [actualDomain[0], actualDomain[0], actualDomain[1], actualDomain[1]], controlPoints: endpoints, weights: [1, 1] } };
     if (index !== 6) child(() => validateCurve(pcurve.curve), CODE.NATIVE, 'Actual dimensionless linear UV Curve validation failed');
     check(same(pcurve.curve.controlPoints[0], endpoints[0]) && same(pcurve.curve.controlPoints.at(-1), endpoints[1]), CODE.BINDING, 'Every UV model endpoint must equal its unchanged nominal logical vertex');
     return { id: edgeIds[index], role: definition.role, curve: definition.curve, vertexIds: definition.vertexIndices.map(vertex => vertexIds[vertex]) as [string, string], pcurve, origin: definition.origin };
