@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native filled CAD Shell mesh in Pixi3D</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 900px; margin: 20px auto; }
+  canvas { display: block; border: 1px solid #44617d; }
+  button { margin: 12px 8px 0 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; font-size: 13px; }
+</style>
+<main>
+  <h1>Native filled CAD Boolean extrusion · Pixi3D</h1>
+  <p>Filled native Shell faces and sampled true Curve paths have separate roots.</p>
+  <div id="view"></div>
+  <button id="edges" type="button">Show true edges</button>
+  <button id="reject" type="button">Try invalid candidates</button>
+  <button id="dispose" type="button">Dispose display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module">
+  import { Application, DRAW_MODES, Graphics } from 'pixi.js';
+  import { Camera, Container3D, Mesh3D, MeshGeometry3D, Point3D, StandardMaterial } from 'pixi3d/pixi7';
+  import { validateCoplanarFaceBooleanExtrusionMesh } from '@barocss/cad';
+  import { createBaroCadBooleanExtrusionPixi3DMesh } from '@barocss/cad-interop/pixi3d-boolean-extrusion-mesh';
+
+  const status = document.querySelector('#status');
+  const app = new Application({ width: 800, height: 600, background: '#101b2c',
+    antialias: false, preserveDrawingBuffer: true });
+  const canvas = app.view;
+  document.querySelector('#view').append(canvas);
+  const caller = new Graphics().beginFill(0xffffff).drawCircle(22, 22, 6).endFill();
+  app.stage.addChild(caller);
+  const camera = Camera.main ?? new Camera(app.renderer);
+  camera.orthographic = true;
+  camera.orthographicSize = 0.024;
+  camera.position.set(0.08, 0.03, -0.08);
+  camera.transform.updateTransform();
+  camera.transform.lookAt(new Point3D(-0.0025, -0.004, -0.0013));
+  camera.near = 0.001; camera.far = 1;
+  const options = { unitsPerMillimeter: 0.001, basis: 'authored-xyz-matches-rhyup' };
+  const hash = bytes => bytes.reduce((value, byte) => Math.imul(value ^ byte, 16777619) >>> 0, 2166136261);
+  const background = (r, g, b) => Math.abs(r - 16) <= 12 && Math.abs(g - 27) <= 12 && Math.abs(b - 44) <= 12;
+  const render = () => {
+    app.renderer.render(app.stage);
+    const gl = app.renderer.gl;
+    const bytes = new Uint8Array(canvas.width * canvas.height * 4);
+    gl.readPixels(0, 0, canvas.width, canvas.height, gl.RGBA, gl.UNSIGNED_BYTE, bytes);
+    if (gl.getError() !== gl.NO_ERROR) throw new Error('Pixi Shell WebGL readPixels failed');
+    return bytes;
+  };
+  const count = bytes => {
+    let total = 0;
+    for (let i = 0; i < bytes.length; i += 4) {
+      if (!background(bytes[i], bytes[i + 1], bytes[i + 2])) total++;
+    }
+    return total;
+  };
+  const sample = (bytes, pointMM) => {
+    const projected = camera.worldToScreen(...pointMM.map(value => value * options.unitsPerMillimeter));
+    const x = Math.round(projected.x), y = canvas.height - 1 - Math.round(projected.y);
+    if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) throw new Error('CAD probe outside camera');
+    const offset = (y * canvas.width + x) * 4;
+    return { x, y, rgb: [...bytes.slice(offset, offset + 3)],
+      background: background(bytes[offset], bytes[offset + 1], bytes[offset + 2]) };
+  };
+  const load = async name => {
+    const url = new URL(`./boolean-extrusion-pixi3d-data/${name}.owned-extrusion-mesh.json`, location.href);
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${name}`);
+    const result = await response.json();
+    validateCoplanarFaceBooleanExtrusionMesh(result);
+    return result;
+  };
+  const verifyBuffers = (display, result) => {
+    if (display.edgeRoot.parent || display.faces.length !== result.faceRanges.length ||
+        display.edges.length !== result.edgePaths.length) throw new Error('Pixi Shell grouping differs');
+    for (const binding of display.faces) {
+      const geometry = binding.object.geometry;
+      const face = result.faceRanges.find(item => item.faceId === binding.face.faceId);
+      const expectedIndices = result.mesh.indices.slice(face.indexStart, face.indexStart + face.indexCount);
+      if (!(binding.object instanceof Mesh3D) || binding.object.parent !== display.shells.find(shell =>
+          shell.shellId === face.shellId).faces ||
+          binding.meshId !== result.mesh.id ||
+          binding.extrusionEvaluationId !== result.mesh.binding.extrusionEvaluationId ||
+          binding.booleanEvaluationId !== result.mesh.binding.booleanEvaluationId ||
+          JSON.stringify(binding.sourceAssetIds) !== JSON.stringify(result.mesh.binding.sourceAssetIds) ||
+          JSON.stringify([...geometry.indices.buffer]) !== JSON.stringify(expectedIndices) ||
+          JSON.stringify(binding.face) !== JSON.stringify(face) || geometry.uvs !== undefined) {
+        throw new Error('Pixi face binding, indices or CAD UV policy differs');
+      }
+      for (let i = 0; i < result.mesh.positionsMM.length; i++) {
+        if (!Object.is(geometry.positions.buffer[i], Math.fround(result.mesh.positionsMM[i] * options.unitsPerMillimeter)) ||
+            !Object.is(geometry.normals.buffer[i], Math.fround(result.mesh.normals[i]))) {
+          throw new Error('Pixi face Float32 position/normal differs from native');
+        }
+      }
+      for (let i = 0; i < result.mesh.parametersUV.length; i++) {
+        if (!Object.is(binding.cadParametersUV[i], Math.fround(result.mesh.parametersUV[i]))) {
+          throw new Error('Pixi binding CAD UV differs from native');
+        }
+      }
+    }
+    for (const binding of display.edges) {
+      const path = result.edgePaths.find(item => item.edgeId === binding.path.edgeId);
+      const geometry = binding.object.geometry;
+      const nativePoints = path.samples.flatMap(item => item.curveD1.point);
+      if (binding.object.material.drawMode !== DRAW_MODES.LINE_STRIP ||
+          JSON.stringify([...geometry.indices.buffer]) !== '[0,1,2]' ||
+          JSON.stringify(binding.path) !== JSON.stringify(path) ||
+          binding.object.parent !== display.shells.find(shell => shell.shellId === path.shellId).edges) {
+        throw new Error('Pixi true native Curve path binding differs');
+      }
+      for (let i = 0; i < nativePoints.length; i++) {
+        if (!Object.is(geometry.positions.buffer[i], Math.fround(nativePoints[i] * options.unitsPerMillimeter))) {
+          throw new Error('Pixi true Curve D1 sample differs');
+        }
+      }
+    }
+  };
+  const callerFrame = render();
+  const callerPixels = count(callerFrame);
+  let accepted, display, evidence;
+  const show = () => { status.textContent = JSON.stringify(evidence, null, 2); };
+  try {
+    const cases = [
+      ['containment_hole', 1, 10, 24, 32],
+      ['strip_two_components', 2, 12, 24, 24],
+      ['reverse_containment_empty', 0, 0, 0, 0],
+      ['cross_union', 1, 10, 24, 28],
+      ['cross_union_distance_edit', 1, 10, 24, 28],
+    ];
+    const originals = {}, observations = [];
+    for (const [name, shells, faces, edges, triangles] of cases) {
+      const result = await load(name); originals[name] = result;
+      const candidate = createBaroCadBooleanExtrusionPixi3DMesh(result, options);
+      verifyBuffers(candidate, result);
+      if (candidate.shells.length !== shells || candidate.faces.length !== faces ||
+          candidate.edges.length !== edges ||
+          candidate.faces.reduce((sum, binding) => sum + binding.face.triangleCount, 0) !== triangles) {
+        throw new Error(`Pixi Shell native counts differ: ${name}`);
+      }
+      app.stage.addChild(candidate.root);
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const pixels = render();
+      const isolated = [];
+      if (name === 'strip_two_components') {
+        for (const shell of candidate.shells) {
+          for (const other of candidate.shells) other.faces.visible = other === shell;
+          isolated.push({ shellId: shell.shellId, pixels: count(render()) - callerPixels });
+        }
+        for (const shell of candidate.shells) shell.faces.visible = true;
+      }
+      let holeProbe = null, materialProbe = null, wallOnlyPixels = null;
+      if (name === 'containment_hole') {
+        const hole = result.extrusion.region.loops.find(loop => loop.role === 'hole');
+        const average = hole.vertexIds.map(id => result.extrusion.region.vertices.find(vertex => vertex.id === id).pointMM)
+          .reduce((sum, point, _, points) => sum.map((value, axis) => value + point[axis] / points.length), [0, 0, 0]);
+        holeProbe = sample(pixels, average);
+        const top = result.faceRanges.find(face => face.kind === 'top-cap');
+        const vertices = top.triangles[0].vertexIndices.map(index => result.mesh.positionsMM.slice(3 * index, 3 * index + 3));
+        materialProbe = sample(pixels, [0, 1, 2].map(axis =>
+          vertices.reduce((sum, vertex) => sum + vertex[axis] / 3, 0)));
+        if (!holeProbe.background || materialProbe.background) {
+          throw new Error(`Pixi Shell hole/material probe differs: ${JSON.stringify({ holeProbe, materialProbe })}`);
+        }
+        for (const binding of candidate.faces) binding.object.visible = binding.face.kind === 'wall';
+        wallOnlyPixels = count(render()) - callerPixels;
+        for (const binding of candidate.faces) binding.object.visible = true;
+        if (wallOnlyPixels < 100) throw new Error('Pixi Shell walls were not visible');
+      }
+      if ((triangles === 0 ? count(pixels) !== callerPixels : count(pixels) - callerPixels < 100) ||
+          isolated.some(item => item.pixels < 30)) throw new Error(`Pixi Shell pixels differ: ${name}`);
+      observations.push({ name, shells, faces, edges, triangles, visiblePixels: count(pixels) - callerPixels,
+        isolated, holeProbe, materialProbe, wallOnlyPixels, hash: hash(pixels) });
+      candidate.dispose();
+    }
+    if (observations[3].hash === observations[4].hash) throw new Error('Native distance edit did not change Pixi Shell frame');
+    accepted = originals.containment_hole;
+    display = createBaroCadBooleanExtrusionPixi3DMesh(accepted, options);
+    app.stage.addChild(display.root);
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const acceptedFrame = render();
+    if (hash(acceptedFrame) !== observations[0].hash ||
+        !(app.renderer.gl instanceof WebGL2RenderingContext)) {
+      throw new Error('Accepted Pixi Shell frame differs');
+    }
+    evidence = { fixtures: observations, callerPixels, acceptedHash: hash(acceptedFrame), webgl2: true,
+      callerRetained: app.stage.children.includes(caller), trueEdgesVisible: false, refused: 0, disposed: false };
+    window.__baroBooleanExtrusionPixiEvidence = evidence; show();
+    document.querySelector('#edges').onclick = () => {
+      const before = hash(render());
+      app.stage.addChild(display.edgeRoot);
+      const after = hash(render());
+      if (after === before) throw new Error('Pixi true Curve edges did not change the frame');
+      evidence.trueEdgesVisible = true; evidence.trueEdgesFrameHash = after; show();
+    };
+    document.querySelector('#reject').onclick = () => {
+      const before = hash(render());
+      const forged = structuredClone(accepted); forged.mesh.positionsMM[0] += 1;
+      const getter = { ...options }; let getterCalls = 0;
+      Object.defineProperty(getter, 'basis', { enumerable: true, get() { getterCalls++; return options.basis; } });
+      let refused = 0;
+      for (const action of [
+        () => createBaroCadBooleanExtrusionPixi3DMesh(forged, options),
+        () => createBaroCadBooleanExtrusionPixi3DMesh(accepted, { ...options, basis: 'unknown' }),
+        () => createBaroCadBooleanExtrusionPixi3DMesh(accepted, { ...options, unitsPerMillimeter: 0 }),
+        () => createBaroCadBooleanExtrusionPixi3DMesh(accepted, getter),
+      ]) { try { action(); } catch { refused++; } }
+      const originalAddChild = Container3D.prototype.addChild;
+      const originalGeometryDestroy = MeshGeometry3D.prototype.destroy;
+      const originalMaterialDestroy = StandardMaterial.prototype.destroy;
+      let calls = 0, geometriesDisposed = 0, materialsDisposed = 0;
+      try {
+        Container3D.prototype.addChild = function (...children) {
+          if (children[0] instanceof Mesh3D && ++calls === 2) throw new Error('injected later-face attachment failure');
+          return originalAddChild.apply(this, children);
+        };
+        MeshGeometry3D.prototype.destroy = function (...args) {
+          geometriesDisposed++; return originalGeometryDestroy.apply(this, args);
+        };
+        StandardMaterial.prototype.destroy = function (...args) {
+          materialsDisposed++; return originalMaterialDestroy.apply(this, args);
+        };
+        try { createBaroCadBooleanExtrusionPixi3DMesh(originals.strip_two_components, options); }
+        catch { refused++; }
+      } finally {
+        Container3D.prototype.addChild = originalAddChild;
+        MeshGeometry3D.prototype.destroy = originalGeometryDestroy;
+        StandardMaterial.prototype.destroy = originalMaterialDestroy;
+      }
+      if (refused !== 5 || getterCalls !== 0 || calls !== 2 || geometriesDisposed !== 2 ||
+          materialsDisposed !== 2 || hash(render()) !== before ||
+          display.faces.some(binding => binding.object.destroyed) || !app.stage.children.includes(caller)) {
+        throw new Error('Rejected Pixi Shell changed accepted frame or leaked resources');
+      }
+      evidence.refused = refused; evidence.stagedGeometriesDisposed = geometriesDisposed;
+      evidence.stagedMaterialsDisposed = materialsDisposed; evidence.acceptedFrameRetained = true; show();
+    };
+    document.querySelector('#dispose').onclick = () => {
+      const owned = [...display.faces, ...display.edges].map(binding => binding.object);
+      display.dispose(); display.dispose();
+      const after = render();
+      if (owned.some(mesh => !mesh.destroyed) || !display.root.destroyed || !display.edgeRoot.destroyed ||
+          app.stage.children.includes(display.root) || app.stage.children.includes(display.edgeRoot) ||
+          !app.stage.children.includes(caller) || hash(after) !== hash(callerFrame) ||
+          app.renderer.gl === null || document.querySelectorAll('canvas').length !== 1) {
+        throw new Error('Pixi Shell disposal changed caller resources');
+      }
+      evidence.disposed = true; evidence.afterDisposePixels = count(after);
+      evidence.callerFrameRetained = true; show();
+    };
+  } catch (error) {
+    display?.dispose();
+    evidence = { error: String(error), stack: error.stack };
+    window.__baroBooleanExtrusionPixiEvidence = evidence; show();
+  }
+</script>
