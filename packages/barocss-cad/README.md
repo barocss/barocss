@@ -7403,3 +7403,37 @@ separate contracts.
 ```sh
 node examples/cad-nurbs/affine-geometry-transform-demo.mjs --source /tmp/cad-affine-copy
 ```
+
+## Linear native geometry patterns
+
+`buildLinearGeometryPattern` retains an original Curve or Surface and creates
+up to four translated native copies. `count` includes the original at index 0.
+Each copy is derived directly from the original, with translation equal to
+its index times `spacingMM`.
+
+```ts
+const pattern = cad.buildLinearGeometryPattern(originalCurve, {
+  patternId: 'linear_parts', idPrefix: 'part_copy', count: 5,
+  spacingMM: [3, 0, 0], maximumCopyObservations: 3844,
+});
+cad.validateLinearGeometryPattern(pattern);
+```
+
+The builder reserves all active IDs and checks translation and observation
+budgets before creating copies. Each copy uses the actual native affine
+transform constructor and retains its complete geometry/source/point/D1 proof.
+The source Model contains the original followed by all copies in index order.
+All degree, knot, weight and parameter bits remain unchanged.
+
+A count of one creates a genuine seed-only pattern with zero copy work.
+Multiple instances require nonzero spacing. If any copy fails, the builder
+returns no partial pattern and reports the failing instance and native cause.
+Previous caller inputs, accepted results and files remain unchanged.
+
+These are separate baked native geometries. The operation does not union
+overlapping shapes, create assembly placements or add a generic feature-tree
+pattern, circular pattern, topology naming or Solid validity certificate.
+
+```sh
+node examples/cad-nurbs/linear-geometry-pattern-demo.mjs --source /tmp/cad-linear-pattern
+```
