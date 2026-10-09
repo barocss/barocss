@@ -227,6 +227,177 @@ importers:
       '@barocss/gpu':
         specifier: workspace:*
         version: link:../barocss-gpu
+  apps/cad-editor:
+    dependencies:
+      '@barocss/cad':
+        specifier: workspace:*
+        version: link:../../packages/barocss-cad
+      '@barocss/cad-editor':
+        specifier: workspace:*
+        version: link:../../packages/barocss-cad-editor
+      class-variance-authority:
+        specifier: 0.7.1
+        version: 0.7.1
+      clsx:
+        specifier: 2.1.1
+        version: 2.1.1
+      lucide-react:
+        specifier: 1.52.0
+        version: 1.52.0(@types/react@19.3.0)(react@19.2.3)
+      radix-ui:
+        specifier: 1.7.0
+        version: 1.7.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      react:
+        specifier: 19.2.3
+        version: 19.2.3
+      react-dom:
+        specifier: 19.2.3
+        version: 19.2.3(react@19.2.3)
+      tailwind-merge:
+        specifier: 3.7.0
+        version: 3.7.0
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: 4.3.3
+        version: 4.3.3(vite@8.3.1(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.91.0)(sass@1.91.0)(terser@5.43.1))
+      '@types/node':
+        specifier: 26.6.4
+        version: 26.6.4
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: 19.3.0
+        version: 19.3.0(@types/react@19.3.0)
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
+      tailwindcss:
+        specifier: 4.3.3
+        version: 4.3.3
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+      vite:
+        specifier: 8.3.1
+        version: 8.3.1(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.91.0)(sass@1.91.0)(terser@5.43.1)
+  packages/barocss-cad-editor:
+    dependencies:
+      '@barocss/cad':
+        specifier: workspace:*
+        version: link:../barocss-cad
+      '@barocss/cad-interop':
+        specifier: workspace:*
+        version: link:../barocss-cad-interop
+      '@barocss/viewer':
+        specifier: workspace:*
+        version: link:../barocss-viewer
+      class-variance-authority:
+        specifier: 0.7.1
+        version: 0.7.1
+      clsx:
+        specifier: 2.1.1
+        version: 2.1.1
+      lucide-react:
+        specifier: 1.52.0
+        version: 1.52.0(@types/react@19.3.0)(react@19.2.3)
+      radix-ui:
+        specifier: 1.7.0
+        version: 1.7.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      react:
+        specifier: 19.2.3
+        version: 19.2.3
+      react-dom:
+        specifier: 19.2.3
+        version: 19.2.3(react@19.2.3)
+      tailwind-merge:
+        specifier: 3.7.0
+        version: 3.7.0
+    devDependencies:
+      '@types/node':
+        specifier: 26.6.4
+        version: 26.6.4
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: 19.3.0
+        version: 19.3.0(@types/react@19.3.0)
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+      vite:
+        specifier: 8.3.1
+        version: 8.3.1(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.91.0)(sass@1.91.0)(terser@5.43.1)
+  apps/render-editor:
+    dependencies:
+      '@barocss/render-editor':
+        specifier: workspace:*
+        version: link:../../packages/barocss-render-editor
+      class-variance-authority:
+        specifier: 0.7.1
+        version: 0.7.1
+      clsx:
+        specifier: 2.1.1
+        version: 2.1.1
+      lucide-react:
+        specifier: 1.52.0
+        version: 1.52.0(@types/react@19.3.0)(react@19.2.3)
+      radix-ui:
+        specifier: 1.7.0
+        version: 1.7.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      react:
+        specifier: 19.2.3
+        version: 19.2.3
+      react-dom:
+        specifier: 19.2.3
+        version: 19.2.3(react@19.2.3)
+      tailwind-merge:
+        specifier: 3.7.0
+        version: 3.7.0
+    devDependencies:
+      '@tailwindcss/vite':
+        specifier: 4.3.3
+        version: 4.3.3(vite@8.3.1(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.91.0)(sass@1.91.0)(terser@5.43.1))
+      '@types/node':
+        specifier: 26.6.4
+        version: 26.6.4
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      '@types/react-dom':
+        specifier: 19.3.0
+        version: 19.3.0(@types/react@19.3.0)
+      tailwindcss:
+        specifier: 4.3.3
+        version: 4.3.3
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+      vite:
+        specifier: 8.3.1
+        version: 8.3.1(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.91.0)(sass@1.91.0)(terser@5.43.1)
+  packages/barocss-render-editor:
+    dependencies:
+      '@barocss/gpu':
+        specifier: workspace:*
+        version: link:../barocss-gpu
+      react:
+        specifier: ^19.2.3
+        version: 19.2.3
+    devDependencies:
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      esbuild:
+        specifier: 0.28.2
+        version: 0.28.2
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
 
 packages:
 
