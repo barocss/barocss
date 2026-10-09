@@ -33,5 +33,16 @@ Changing selection, hiding the selected body, Reload and Clear discard drafts.
 This control changes only the Viewer display pose. It does not edit the CAD
 source or the native document binding.
 
+The same panel accepts an absolute Y-axis yaw in degrees from -180 through
+180. The rotation is about the original authored source origin, before the
+display translation and scene-unit conversion. It is not a native CAD edit or
+a local-center drag handle. The panel only represents accepted pure Y-axis
+quaternions; it refuses other rotations instead of showing a false yaw value.
+Apply changes the selected body's translation and yaw in one complete Viewer
+frame while retaining its scale and the other bodies' poses. A yaw draft and
+Discard have the same no-change behavior as translation drafts. The field shows
+12 significant decimal digits. Leaving it unchanged retains the full accepted
+quaternion rather than rounding the pose to the displayed text.
+
 The optional `?proof` route exposes `window.viewerObjectTreeProbe` and tracks
 Viewer-created WebGL resources for an actual browser lifecycle check.

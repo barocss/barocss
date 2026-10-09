@@ -42,7 +42,7 @@ const options = { native, basis: 'authored-xyz-matches-rhyup',
 const listener = new AbortController();
 let sceneEpoch = 0, requestEpoch = 0, disposed = false;
 let sampleCamera = null, sampleCoordinates = [];
-let refusalReport = null;
+let refusalReport = null, nonYReport = null;
 const sameRef = (a, b) => a?.kind === b?.kind && a?.modelId === b?.modelId
   && (a?.kind === 'surface' ? a.surfaceId === b.surfaceId : a?.curveId === b?.curveId);
 const shown = (state, ref) => state.visibleGeometry.some(value => sameRef(value, ref));
@@ -54,6 +54,25 @@ function translationValue(text, axis) {
   if (!Number.isFinite(value) || Math.abs(value) > VIEWER_POSE_LIMITS.translationMm)
     throw new Error(axis + ' must be finite and within ±' + VIEWER_POSE_LIMITS.translationMm + ' mm.');
   return value;
+}
+function yawValue(text) {
+  const trimmed = text.trim();
+  if (!decimal.test(trimmed)) throw new Error('Yaw must be a complete decimal in degrees.');
+  const value = Number(trimmed);
+  if (!Number.isFinite(value) || Math.abs(value) > 180)
+    throw new Error('Yaw must be finite and within ±180 degrees.');
+  return value;
+}
+function acceptedYaw(rotation) {
+  const [x, y, z, w] = rotation;
+  const norm = Math.hypot(x, y, z, w);
+  if (![x, y, z, w].every(Number.isFinite) || Math.abs(x) > 1e-9 || Math.abs(z) > 1e-9
+      || Math.abs(norm - 1) > VIEWER_POSE_LIMITS.quaternionNormTolerance)
+    throw new Error('The accepted rotation is not a pure Y-axis pose.');
+  const degrees = 2 * Math.atan2(y, w) * 180 / Math.PI;
+  if (Math.abs(degrees) > 180 + 1e-9)
+    throw new Error('The accepted yaw is outside ±180 degrees.');
+  return Math.max(-180, Math.min(180, degrees));
 }
 const say = (message, error = false) => {
   status.textContent = message;
@@ -91,20 +110,29 @@ function selectedPose(state, ref) {
 }
 function translationEditor(state, selected, revision, epoch) {
   const { pose } = selectedPose(state, selected.ref);
+  const yaw = acceptedYaw(pose.rotationXYZW);
+  const acceptedTranslationText = pose.translationMm.map(String);
+  // Show a stable decimal while retaining the original quaternion when this draft is unchanged.
+  const acceptedYawText = String(Number(yaw.toPrecision(12)));
   const section = document.createElement('section');
   section.className = 'translation-editor';
   const heading = document.createElement('h3');
-  heading.textContent = 'Display translation';
+  heading.textContent = 'Display pose';
   const note = document.createElement('p');
-  note.textContent = 'X/Y/Z in mm. Display only; original CAD source stays unchanged.';
+  note.textContent = 'X/Y/Z in mm and Y yaw in degrees about the authored origin. Display only; original CAD source stays unchanged.';
   const inputs = ['X', 'Y', 'Z'].map((axis, index) => {
     const label = document.createElement('label'), input = document.createElement('input');
     label.textContent = axis + ' (mm)';
-    input.type = 'text'; input.inputMode = 'decimal'; input.value = String(pose.translationMm[index]);
+    input.type = 'text'; input.inputMode = 'decimal'; input.value = acceptedTranslationText[index];
     input.setAttribute('aria-label', axis + ' display translation (mm)');
     label.append(input); section.append(label);
     return input;
   });
+  const yawLabel = document.createElement('label'), yawInput = document.createElement('input');
+  yawLabel.textContent = 'Yaw Y (deg)';
+  yawInput.type = 'text'; yawInput.inputMode = 'decimal'; yawInput.value = acceptedYawText;
+  yawInput.setAttribute('aria-label', 'Yaw display rotation (deg)');
+  yawLabel.append(yawInput); section.append(yawLabel);
   const actions = document.createElement('div');
   actions.className = 'actions';
   const apply = document.createElement('button'), discard = document.createElement('button');
@@ -115,19 +143,25 @@ function translationEditor(state, selected, revision, epoch) {
       const accepted = current(selected.ref, selected.binding.bodyId, revision, epoch);
       if (!shown(accepted, selected.ref) || !sameRef(accepted.selectedGeometry, selected.ref))
         throw new Error('The selected body is no longer visible and current.');
-      const translation = inputs.map((input, index) => translationValue(input.value, 'XYZ'[index]));
-      const { motion, index } = selectedPose(accepted, selected.ref);
+      const { motion, index, pose } = selectedPose(accepted, selected.ref);
+      acceptedYaw(pose.rotationXYZW);
+      const translation = inputs.map((input, axis) => input.value === acceptedTranslationText[axis]
+        ? pose.translationMm[axis] : translationValue(input.value, 'XYZ'[axis]));
+      const rotation = yawInput.value === acceptedYawText ? pose.rotationXYZW : (() => {
+        const radians = yawValue(yawInput.value) * Math.PI / 180;
+        return [0, Math.sin(radians / 2), 0, Math.cos(radians / 2)];
+      })();
       const frame = motion.frame;
       const targetId = motion.bindings[index].targetId;
       const poses = frame.poses.map(pose => pose.targetId === targetId
-        ? { ...pose, translation } : pose);
+        ? { ...pose, translation, rotation } : pose);
       viewer.applyGeometryMotionFrame({ contextId: frame.contextId,
         timeSeconds: frame.timeSeconds, poses }, motion.bindings, { basis: motion.basis });
-      render(); say('Display translation applied to ' + selected.binding.bodyId + '.');
+      render(); say('Display pose applied to ' + selected.binding.bodyId + '.');
     } catch (error) {
       // Keep the draft text in these live inputs so it can be corrected.
       publishProof(viewer.getState());
-      say('Display translation refused: ' + error.message, true);
+      say('Display pose refused: ' + error.message, true);
     }
   }, { signal: listener.signal });
   discard.addEventListener('click', () => {
@@ -136,7 +170,7 @@ function translationEditor(state, selected, revision, epoch) {
       const accepted = current(selected.ref, selected.binding.bodyId, revision, epoch);
       if (!shown(accepted, selected.ref) || !sameRef(accepted.selectedGeometry, selected.ref))
         throw new Error('The selected body is no longer visible and current.');
-      render(); say('Display translation draft discarded.');
+      render(); say('Display pose draft discarded.');
     } catch (error) { say('Discard refused: ' + error.message, true); }
   }, { signal: listener.signal });
   actions.append(apply, discard); section.prepend(note); section.prepend(heading);
@@ -194,7 +228,7 @@ function publishProof(state) {
     visible: state.visibleGeometry, selected: state.selectedGeometry, camera: state.camera,
     geometryMotion: state.geometryMotion,
     draft: [...properties.querySelectorAll('.translation-editor input')].map(input => input.value),
-    pixelHash, hitSamples, refusalReport, contexts: contexts.size,
+    pixelHash, hitSamples, refusalReport, nonYReport, contexts: contexts.size,
     glErrors: [...contexts].map(context => context.getError()),
     resources: Object.fromEntries(Object.entries(resources).map(([kind, live]) => [kind, live.size])),
   }, null, 2);
@@ -259,7 +293,7 @@ function render() {
     properties.append(values);
     if (shown(state, selected.ref)) {
       try { properties.append(translationEditor(state, selected, revision, epoch)); }
-      catch (error) { say('Display translation unavailable: ' + error.message, true); }
+      catch (error) { say('Display pose unavailable: ' + error.message, true); }
     }
   } else {
     const empty = document.createElement('span');
@@ -273,6 +307,7 @@ function render() {
   buttons.clear.disabled = disposed || state.status === 'empty';
   if (proof) {
     document.querySelector('#check-refusals').disabled = !ready;
+    document.querySelector('#check-non-y').disabled = !ready || !selected;
     document.querySelector('#dispose-proof').disabled = disposed;
   }
   publishProof(state);
@@ -329,6 +364,27 @@ function dispose() {
   disposed = true; requestEpoch++; listener.abort(); viewer.dispose(); render(); say('Viewer disposed.');
 }
 if (proof) {
+  document.querySelector('#check-non-y').addEventListener('click', () => {
+    const before = viewer.getState(), beforePixels = viewer.readPixels();
+    const motion = before.geometryMotion;
+    const binding = motion?.bindings.find(value => sameRef(value.ref, before.selectedGeometry));
+    if (!binding) { say('Non-Y check needs a selected display pose.', true); return; }
+    const angle = Math.PI / 8;
+    const poses = motion.frame.poses.map(pose => pose.targetId === binding.targetId
+      ? { ...pose, rotation: [Math.sin(angle), 0, 0, Math.cos(angle)] } : pose);
+    try {
+      viewer.applyGeometryMotionFrame({ ...motion.frame, poses }, motion.bindings, { basis: motion.basis });
+      render();
+      const unavailable = !properties.querySelector('.translation-editor')
+        && status.textContent.includes('not a pure Y-axis pose');
+      viewer.applyGeometryMotionFrame(motion.frame, motion.bindings, { basis: motion.basis });
+      const after = viewer.getState(), afterPixels = viewer.readPixels();
+      nonYReport = { unavailable, restored: JSON.stringify(before) === JSON.stringify(after)
+        && beforePixels.length === afterPixels.length
+        && beforePixels.every((byte, index) => byte === afterPixels[index]) };
+      render(); say('Non-Y pose unavailable; restored=' + nonYReport.restored);
+    } catch (error) { render(); say('Non-Y check refused: ' + error.message, true); }
+  }, { signal: listener.signal });
   document.querySelector('#check-refusals').addEventListener('click', () => {
     const before = viewer.getState(), beforePixels = viewer.readPixels();
     const failures = [];
@@ -347,6 +403,13 @@ if (proof) {
     }
     try { current(before.documentBodies[0].ref, before.documentBodies[0].binding.bodyId,
       before.document.document.revision, sceneEpoch - 1); } catch { failures.push('stale'); }
+    const detachedApply = properties.querySelector('.translation-editor button');
+    if (detachedApply) {
+      render();
+      detachedApply.click();
+      if (status.dataset.error === 'true' && status.textContent.includes('This property panel is stale.'))
+        failures.push('detached-panel');
+    }
     const after = viewer.getState(), afterPixels = viewer.readPixels();
     refusalReport = { failures, retained: JSON.stringify(before) === JSON.stringify(after)
       && beforePixels.length === afterPixels.length
