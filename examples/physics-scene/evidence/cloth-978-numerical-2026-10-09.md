@@ -20,3 +20,9 @@ The evidence child changes only these reports. Node22.22.0.
 A helper initially compared `/cloth`'s PhysicsError constructor with the bundled root constructor. That assertion failed. The existing root build bundles its own class; compiled subpaths use the shared unbundled types module. Cross-entry constructor identity is not part of this Issue's contract, and this existing root architecture was preserved. The corrected assertion verifies errors against the actual `/cloth` exported class; consumers can use stable error.code.
 
 This is a public numerical visual-profile candidate, not a Viewer cloth acceptance, calibrated material model, engineering stress, self-collision, arbitrary-mesh solver or release. Integration remains the only shared develop writer and must adopt the native delta once, build and run the focused compiled/source consumer before closure. Actual 3D delivery remains #979/#980/#981.
+
+## Independent review correction and final clean run
+
+A read-only reviewer found that null-prototype records were accepted despite the frozen custom-prototype refusal. Corrected at `11c4be8f1ada95887fe36dd7415ea8d43787245d`: require exactly Object.prototype, add the null-prototype refusal to the probe, and clarify README. This is an admission correction; solver code and original numeric reports above remain unchanged.
+
+The final clean-source compiled/source probes ran on that commit, recorded sourceTreeDirty:false and passed. Final reports are `cloth-978-final-world-2026-10-09.json` and `cloth-978-final-source-2026-10-09.json`. Thirty malformed configs now refuse; nine numerical guard/recovery cases, copied-state/lifecycle, exact reference snapshots/hashes, sampled-loss and named Node/source imports all pass. Final public CPU warm p95 trials are1.306083/1.312458/1.225500ms. The initial reports at6cd35e8e remain preserved as earlier evidence; they did not cover null-prototype refusal. No actual Viewer acceptance is implied.
