@@ -219,7 +219,7 @@ The React bridge renders the selected native meshes in one actual GPU depth scen
 
 ## Extrusion lifecycle
 
-`prepareExtrusionTransaction(request, postDisplayOutputs?)` consumes the actual CAD `BooleanExtrusionFeatureTransaction`. Only normal-extrusion upsert/removal is supported. The provider validates stable existing IDs/slots/options, next revision, complete dependencies and final one-to-four leaves. Parameter-table lifecycle, Face/Boolean CRUD, reorder and suppression are separate unsupported operations here.
+`prepareExtrusionTransaction(request, postDisplayOutputs?)` consumes the actual CAD `BooleanExtrusionFeatureTransaction`. Only normal-extrusion upsert/removal is supported. The provider validates stable existing IDs/slots/options, next revision, complete dependencies and final one-to-four leaves. Parameter-table lifecycle uses its separate method below. Face/Boolean CRUD, reorder and suppression remain unsupported here.
 
 Unresolved scalar drafts and active candidates refuse. A displayed removed leaf requires an explicit complete resulting-revision output set; no output is chosen automatically. Actual native derivation, full-scene GPU admission and fresh RGBA precede acceptance. Lifecycle acceptance records one authored history entry and invalidates captured Download tokens. Changed output configuration also advances displayGeneration. Surviving selection remains; a removed selection clears. Undo/Redo keeps the current display choice and refuses if it is absent in the target; choose a surviving view before retrying.
 
@@ -233,3 +233,30 @@ preservation before and after genuine native Download/fresh Open/re-edit. A
 same-asset degree5 Curve can be source-edit legal yet refuse default whole-asset
 preview; a separate hidden degree5 asset remains untouched. No degree5 display,
 packed/parity/publication or commercial quality certificate follows.
+
+## Native parameter table lifecycle
+
+`prepareParameterTransaction(request: BooleanExtrusionParameterTransaction)`
+consumes actual CAD #915 and returns a private `parameter` candidate. The native
+request has expectedRevision/revision, 1–16 parameterOperations and 0–4
+distanceEdits. Length Upsert uses actual id/type/definition; Remove targets a
+starting parameter. Dependent parameter definitions and extrusion distances must
+be explicitly repaired in that same parameter transaction. The final table is
+0–8 lengths; temporary native working capacity16 does not widen it.
+
+Native next revision, existing IDs/types/order, all-name reservation, unique
+operation targets, complete dependencies/cycles and final geometry are enforced
+by the provider. Remove/recreate and automatic cascade are unavailable. Feature
+IDs/options/source/order remain; this does not combine #915 with #922 feature
+transactions. Unresolved scalar drafts and active candidates refuse before
+staging. Descriptor-safe bounded copies retain caller ownership without getter
+execution.
+
+Every current explicit output receives a fresh native revision-qualified mesh.
+The React bridge must admit the entire GPU scene and read fresh RGBA before
+accepting the candidate. A parameter acceptance records one authored history
+entry, advances generation, invalidates captured downloads and marks dirty.
+Logical display choices/displayGeneration and surviving feature selection stay
+unchanged. A transaction that restates a value still follows the native revision
+policy. Native/mesh/display refusal keeps prior accepted state. Host modal raw
+values and explicit repair choices remain outside the native file.

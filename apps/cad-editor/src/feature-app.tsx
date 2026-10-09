@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Box, Download, FolderOpen, Layers3, Maximize, Redo2, Undo2 } from 'lucide-react';
-import { parseBooleanExtrusionFeatureGraph, type BooleanExtrusionExtrusionFeature, type BooleanExtrusionLengthDefinition } from '@barocss/cad';
+import { parseBooleanExtrusionFeatureGraph, type BooleanExtrusionExtrusionFeature, type BooleanExtrusionLengthDefinition,
+  type BooleanExtrusionLengthParameter, type BooleanExtrusionParameterTransaction } from '@barocss/cad';
 import { CadEditorError, createCadEditorFeatureSession, type CadEditorFeatureSessionOptions } from '@barocss/cad-editor';
 import { CadEditorFeature, useCadEditorFeatureSnapshot, type CadEditorFeatureDisplayReceipt } from '@barocss/cad-editor/react';
 import fixture from '../fixtures/boolean-extrusion.authored-graph.json?raw';
 import sharedFixture from '../fixtures/shared-extrusions.authored-graph.json?raw';
 import { Button } from './components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarTrigger } from './components/ui/menubar';
 import { downloadAccepted, readCadEditorFile } from './file-actions';
 
@@ -21,14 +22,25 @@ interface ExtrusionDialog {
   feature: BooleanExtrusionExtrusionFeature;
   kind: 'literal' | 'offset'; raw: string; parameterId: string; shown: string[];
 }
-function scalar(raw: string): number {
+interface LengthDraft {
+  kind: 'literal' | 'offset'; raw: string; parameterId: string;
+}
+interface LengthRepair extends LengthDraft {
+  id: string; target: 'parameter' | 'extrusion'; enabled: boolean;
+}
+interface LengthDialog {
+  mode: 'add' | 'edit' | 'remove'; parameter: BooleanExtrusionLengthParameter;
+  definition: LengthDraft; repairs: LengthRepair[];
+}
+function scalar(raw: string, field = 'extrusion-length'): number {
   const text = raw.trim();
   if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text) || !Number.isFinite(Number(text)))
-    throw new CadEditorError('INPUT', 'Enter a finite decimal length.', {field:'extrusion-length'});
+    throw new CadEditorError('INPUT', 'Enter a finite decimal length.', {field});
   return Number(text);
 }
 
-function message(error: CadEditorError): string {
+function message(error: CadEditorError, mode?: LengthDialog['mode']): string {
+  if (error.context.field === 'parameter-length') return 'Enter a finite length in millimeters.';
   if (error.context.field === 'extrusion-length') return 'Enter a finite length in millimeters.';
   if (error.context.field === 'extrusion-view') return 'Choose one to four remaining extrusions to display.';
   if (error.context.field === 'feature-outputs' && error.cause) return 'Choose a retained extrusion view before this change or history action.';
@@ -40,6 +52,12 @@ function message(error: CadEditorError): string {
   if (error.code === 'STALE') return 'The graph changed. Try the action again.';
   const cause = error.cause instanceof Error ? error.cause : null;
   const code = cause && 'code' in cause ? String(cause.code) : '';
+  if (error.context.field === 'parameter-transaction') {
+    if (cause?.message.includes('distance0.0001..10000mm')) return 'Keep each extrusion height from 0.0001 to 10000 mm.';
+    if (mode === 'remove' && (code === 'DEPENDENCY' || code === 'PARAMETER')) return 'Choose a replacement for each dependent length and extrusion height. Remove circular references.';
+    if (code === 'DEPENDENCY' || code === 'PARAMETER') return 'Check the length value and its parameter references.';
+    return 'Cannot change this length. Check its value and enabled replacements.';
+  }
   if (code === 'DEPENDENCY') return 'Choose an existing length parameter. Remove cyclic references.';
   if (error.context.field === 'feature-history' || error.context.field === 'feature-selection' || error.context.field === 'feature-draft') return 'Apply or discard the pending values before this action.';
   if (error.context.field === 'feature-file') return 'Cannot open this graph. Select a supported Boolean extrusion file.';
@@ -55,6 +73,8 @@ export function FeatureApp() {
   const [session] = useState(() => createCadEditorFeatureSession(parseBooleanExtrusionFeatureGraph(fixture, options.native).document, options));
   const snapshot = useCadEditorFeatureSnapshot(session);
   const name = (id: string) => names[id] ?? (() => {
+    const generatedLength = /^ce_length_(\d+)$/.exec(id);
+    if (generatedLength) return 'Length ' + generatedLength[1];
     const leaves = snapshot.accepted.document.features.filter(feature => feature.kind === 'normal-extrusion');
     const index = leaves.findIndex(feature => feature.id === id);
     if (index >= 0) return 'Extrusion ' + (index + 1);
@@ -66,6 +86,12 @@ export function FeatureApp() {
   const lifecycleTrigger = useRef<HTMLElement | null>(null);
   const addExtrusionButton = useRef<HTMLButtonElement | null>(null);
   const newLeafSequence = useRef(0);
+  const [lengthDialog, setLengthDialog] = useState<LengthDialog | null>(null);
+  const lengthToken = useRef<string | null>(null);
+  const lengthExpectedGeneration = useRef<number | null>(null);
+  const lengthTrigger = useRef<HTMLElement | null>(null);
+  const addLengthButton = useRef<HTMLButtonElement | null>(null);
+  const newLengthSequence = useRef(0);
   const [error, setError] = useState<CadEditorError | null>(null);
   const [receipt, setReceipt] = useState<CadEditorFeatureDisplayReceipt | null>(null);
   const [filename, setFilename] = useState('Boolean extrusion');
@@ -140,6 +166,72 @@ export function FeatureApp() {
   }
   const dialogLeaves = lifecycle?.mode === 'remove' ? extrusionFeatures.filter(feature => feature.id !== lifecycle.feature.id)
     : lifecycle?.mode === 'add' ? [...extrusionFeatures,lifecycle.feature] : extrusionFeatures;
+  function lengthDraft(definition: BooleanExtrusionLengthDefinition, unchosenReference = false): LengthDraft {
+    const value = definition.kind === 'literal' ? definition.valueMM : definition.offsetMM;
+    return { kind: definition.kind, raw: Object.is(value, -0) ? '-0' : String(value),
+      parameterId: definition.kind === 'offset' && !unchosenReference ? definition.parameterId : '' };
+  }
+  function openLength(mode: LengthDialog['mode'], parameterId: string | null, trigger: HTMLElement) {
+    run(() => {
+      if (busy || draft || lifecycle || lengthDialog) throw new CadEditorError('INPUT', 'Resolve pending changes before opening a length dialog.', {field:'feature-draft'});
+      let parameter: BooleanExtrusionLengthParameter;
+      if (mode === 'add') {
+        const reserved = JSON.stringify(snapshot.accepted.document) + JSON.stringify(snapshot.accepted.report.qualifiedBindings);
+        let id: string;
+        do { id = 'ce_length_' + (++newLengthSequence.current); } while (reserved.includes(id));
+        if (id.length > 48) throw new CadEditorError('BUDGET', 'Fresh length identity budget reached.', {field:'parameter-transaction'});
+        parameter = { id, type: 'length', definition: {kind:'literal',valueMM:3} };
+      } else {
+        const current = snapshot.accepted.document.parameters.find(value => value.id === parameterId);
+        if (!current) throw new CadEditorError('STALE', 'The selected length no longer exists.', {field:'parameter-transaction'});
+        parameter = current;
+      }
+      const repairs: LengthRepair[] = mode !== 'remove' ? [] : [
+        ...snapshot.accepted.document.parameters.filter(value => value.definition.kind === 'offset' && value.definition.parameterId === parameter.id)
+          .map(value => ({id:value.id,target:'parameter' as const,enabled:false,...lengthDraft(value.definition,true)})),
+        ...extrusionFeatures.filter(value => value.distance.kind === 'offset' && value.distance.parameterId === parameter.id)
+          .map(value => ({id:value.id,target:'extrusion' as const,enabled:false,...lengthDraft(value.distance,true)})),
+      ];
+      lengthTrigger.current = trigger; lengthToken.current = null; lengthExpectedGeneration.current = null;
+      setLengthDialog({mode,parameter,definition:lengthDraft(parameter.definition),repairs});
+    });
+  }
+  function authoredLength(draft: LengthDraft): BooleanExtrusionLengthDefinition {
+    const value = scalar(draft.raw,'parameter-length');
+    return draft.kind === 'literal' ? {kind:'literal',valueMM:value} : {kind:'offset',parameterId:draft.parameterId,offsetMM:value};
+  }
+  function submitLength() {
+    if (!lengthDialog) return;
+    run(() => {
+      const {mode,parameter,definition,repairs} = lengthDialog;
+      const parameterOperations: BooleanExtrusionParameterTransaction['parameterOperations'] = mode === 'remove'
+        ? [{kind:'remove',parameterId:parameter.id}]
+        : [{kind:'upsert',parameter:{id:parameter.id,type:parameter.type,definition:authoredLength(definition)}}];
+      const distanceEdits: BooleanExtrusionParameterTransaction['distanceEdits'] = [];
+      for (const repair of repairs) if (repair.enabled) {
+        const replacement = authoredLength(repair);
+        if (repair.target === 'parameter') {
+          const current = snapshot.accepted.document.parameters.find(value => value.id === repair.id);
+          if (!current) throw new CadEditorError('STALE', 'A dependent length no longer exists.', {field:'parameter-transaction'});
+          parameterOperations.push({kind:'upsert',parameter:{id:current.id,type:current.type,definition:replacement}});
+        } else distanceEdits.push({featureId:repair.id,definition:replacement});
+      }
+      const candidate = session.prepareParameterTransaction({expectedRevision:snapshot.accepted.document.revision,
+        revision:snapshot.accepted.document.revision+1,parameterOperations,distanceEdits});
+      lengthToken.current = candidate.token;
+      lengthExpectedGeneration.current = candidate.baseGeneration + 1;
+    });
+  }
+  function cancelLength() { if (!busy) {lengthToken.current=null;lengthExpectedGeneration.current=null;setLengthDialog(null);setError(null);} }
+  function updateLengthDefinition(change: Partial<LengthDraft>) {
+    setLengthDialog(current => current ? {...current,definition:{...current.definition,...change}} : current);
+  }
+  function updateRepair(id: string, change: Partial<LengthRepair>) {
+    setLengthDialog(current => current ? {...current,repairs:current.repairs.map(repair => repair.id === id ? {...repair,...change} : repair)} : current);
+  }
+  const replacementParameters = lengthDialog?.mode === 'remove'
+    ? snapshot.accepted.document.parameters.filter(parameter => parameter.id !== lengthDialog.parameter.id)
+    : snapshot.accepted.document.parameters;
   return <div className="cad-app">
     <header className="app-header">
       <a className="app-brand" href="#/features/cad_boolean_extrusion"><Box size={20}/><span>barocss<span className="brand-sub">CAD</span></span></a>
@@ -167,7 +259,7 @@ export function FeatureApp() {
       <Button variant="ghost" size="sm" data-testid="show-all-outputs" disabled={busy} onClick={() => run(() => session.prepareDisplayOutputs(extrusionFeatures.map(feature => output(feature.id))))}>Show all</Button>
       <Button variant="ghost" size="sm" data-testid="solo-selected-output" disabled={busy || !extrusionFeatures.some(feature => feature.id === snapshot.selectedFeatureId)} onClick={() => run(() => session.prepareDisplayOutputs([output(snapshot.selectedFeatureId!)]))}>Show only selected</Button>
     </div></div>
-    {error && !lifecycle && <div className="app-error" role="alert">{message(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
+    {error && !lifecycle && !lengthDialog && <div className="app-error" role="alert">{message(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
     <div className="app-workspace">
       <aside className="document-tree"><h2><Layers3 size={15}/>Features</h2><div className="tree-document"><Box size={16}/><span>{filename}</span></div>
         {snapshot.accepted.document.features.map(feature => <div key={feature.id} className="tree-body-row">
@@ -176,14 +268,26 @@ export function FeatureApp() {
           </button>
           {feature.kind === 'normal-extrusion' && <input type="checkbox" data-testid={'output-visible-' + feature.id} aria-label={(visible.includes(feature.id) ? 'Hide ' : 'Show ') + name(feature.id)} checked={visible.includes(feature.id)} disabled={busy} onChange={() => run(() => session.prepareDisplayOutputs((visible.includes(feature.id) ? visible.filter(id => id !== feature.id) : [...visible,feature.id]).map(id => output(id))))} />}
         </div>)}
-        <div className="tree-section">LENGTHS <span>{snapshot.accepted.parameters.length}</span></div>
-        {snapshot.accepted.parameters.map(parameter => <div key={parameter.id} className="feature-parameter-summary" data-testid={'parameter-summary-' + parameter.id}><span>{name(parameter.id)}{parameter.dependencyIds.length > 0 && <small>{parameter.dependencyIds.map(name).join(' + ')}</small>}</span><strong>{Object.is(parameter.valueMM,-0) ? '-0' : parameter.valueMM} mm</strong></div>)}
+        <div className="tree-section length-sidebar-heading"><span>LENGTHS · {snapshot.accepted.parameters.length}</span>
+          <Button ref={addLengthButton} variant="ghost" size="xs" data-testid="add-length" disabled={busy || draft || lifecycle !== null || lengthDialog !== null}
+            onClick={event => openLength('add',null,event.currentTarget)}>Add length</Button></div>
+        {snapshot.accepted.parameters.map(parameter => <div key={parameter.id} className="length-sidebar-row">
+          <div className="feature-parameter-summary" data-testid={'parameter-summary-' + parameter.id}><span>{name(parameter.id)}{parameter.dependencyIds.length > 0 && <small>{parameter.dependencyIds.map(name).join(' + ')}</small>}</span><strong>{Object.is(parameter.valueMM,-0) ? '-0' : parameter.valueMM} mm</strong></div>
+          <div className="length-row-actions"><Button variant="ghost" size="xs" data-testid={'edit-length-' + parameter.id}
+            disabled={busy || draft || lifecycle !== null || lengthDialog !== null} onClick={event => openLength('edit',parameter.id,event.currentTarget)}>Edit</Button>
+            <Button variant="ghost" size="xs" data-testid={'remove-length-' + parameter.id}
+              disabled={busy || draft || lifecycle !== null || lengthDialog !== null} onClick={event => openLength('remove',parameter.id,event.currentTarget)}>Remove</Button></div>
+        </div>)}
         <div className="tree-details"><span>Units</span><strong>mm</strong><span>Axes</span><strong>XYZ</strong></div>
       </aside>
       <main className="main-workspace">{mounted && <CadEditorFeature key={mountKey} session={session} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest}
         displayOptions={displayRefusal ? {mmToSceneUnit:0,translate:[0,0,0],background:[0.07,0.08,0.10],camera:{eye:[0.2,0.2,0.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:0.001,far:10}} : undefined}
-        onError={failure => { pendingFilename.current = null; lifecycleToken.current = null; setError(failure); }} onDisplay={setReceipt}
-        onAccepted={accepted => { setError(null); if (lifecycleToken.current) { lifecycleToken.current = null; setLifecycle(null); } if (pendingFilename.current) {setFilename(pendingFilename.current); pendingFilename.current = null;} location.hash = '/features/' + accepted.accepted.document.id; }}/>}</main>
+        onError={failure => { pendingFilename.current = null; lifecycleToken.current = null; lengthToken.current = null; lengthExpectedGeneration.current = null; setError(failure); }} onDisplay={setReceipt}
+        onAccepted={accepted => { setError(null); if (lifecycleToken.current) { lifecycleToken.current = null; setLifecycle(null); }
+          if (lengthToken.current !== null && accepted.generation === lengthExpectedGeneration.current) {
+            lengthToken.current = null; lengthExpectedGeneration.current = null; setLengthDialog(null);
+          }
+          if (pendingFilename.current) {setFilename(pendingFilename.current); pendingFilename.current = null;} location.hash = '/features/' + accepted.accepted.document.id; }}/>}</main>
     </div>
     <Dialog open={lifecycle !== null} onOpenChange={open => {if (!open && !busy) {setLifecycle(null);setError(null);}}}>
       <DialogContent className="cad-editor-help-dialog extrusion-dialog" showCloseButton={!busy} onCloseAutoFocus={event => {event.preventDefault();const trigger=lifecycleTrigger.current; if (trigger instanceof HTMLButtonElement && !trigger.disabled && trigger.isConnected) trigger.focus(); else addExtrusionButton.current?.focus();}} onEscapeKeyDown={event => {if (busy) event.preventDefault();}} onPointerDownOutside={event => {if (busy) event.preventDefault();}}>
@@ -198,6 +302,71 @@ export function FeatureApp() {
           <fieldset className="extrusion-outputs"><legend>Display after this change</legend>{dialogLeaves.map((feature,index) => <label key={feature.id}><input type="checkbox" data-testid={'lifecycle-visible-' + feature.id} checked={lifecycle.shown.includes(feature.id)} onChange={() => setLifecycle({...lifecycle,shown:lifecycle.shown.includes(feature.id) ? lifecycle.shown.filter(id => id !== feature.id) : [...lifecycle.shown,feature.id]})}/>{feature.id === lifecycle.feature.id && lifecycle.mode === 'add' ? 'New extrusion' : name(feature.id)}{index === dialogLeaves.length - 1 && lifecycle.mode === 'add' ? ' (new)' : ''}</label>)}</fieldset>
           {error && <p role="alert" className="extrusion-error">{message(error)}</p>}
           <DialogFooter><Button variant="outline" disabled={busy} onClick={() => {setLifecycle(null);setError(null);}}>Cancel</Button><Button data-testid="extrusion-confirm" disabled={busy || lifecycle.shown.length === 0 || lifecycle.shown.length > 4 || (lifecycle.mode === 'remove' && extrusionFeatures.length === 1)} onClick={submitExtrusion}>{busy ? 'Preparing display' : lifecycle.mode === 'remove' ? 'Remove' : lifecycle.mode === 'edit' ? 'Apply' : 'Add'}</Button></DialogFooter>
+        </>}
+      </DialogContent>
+    </Dialog>
+    <Dialog open={lengthDialog !== null} onOpenChange={open => {if (!open) cancelLength();}}>
+      <DialogContent className="cad-editor-help-dialog length-dialog" data-testid="length-dialog" showCloseButton={!busy}
+        onCloseAutoFocus={event => {
+          event.preventDefault();
+          const trigger = lengthTrigger.current;
+          if (trigger instanceof HTMLButtonElement && trigger.isConnected && !trigger.disabled) trigger.focus({preventScroll:true});
+          else addLengthButton.current?.focus({preventScroll:true});
+        }}
+        onEscapeKeyDown={event => {if (busy) event.preventDefault();}}
+        onPointerDownOutside={event => {if (busy) event.preventDefault();}}>
+        <DialogHeader><DialogTitle>{lengthDialog?.mode === 'remove' ? 'Remove length' : lengthDialog?.mode === 'edit' ? 'Edit length' : 'Add length'}</DialogTitle>
+          <DialogDescription>{lengthDialog?.mode === 'remove' ? 'Choose a replacement for each dependent length or extrusion height.' : 'Set a value in mm or use another length plus an offset.'}</DialogDescription></DialogHeader>
+        {lengthDialog && <>
+          <div className="length-dialog-body">
+          {lengthDialog.mode !== 'remove' ? <div className="extrusion-fields">
+            {lengthDialog.mode === 'edit' && <p>{name(lengthDialog.parameter.id)}</p>}
+            <label>Definition<select data-testid="length-definition" disabled={busy} value={lengthDialog.definition.kind}
+              onChange={event => updateLengthDefinition({kind:event.target.value as 'literal'|'offset'})}>
+              <option value="literal">Literal</option><option value="offset">Parameter + offset</option></select></label>
+            {lengthDialog.definition.kind === 'offset' && <label>Length parameter<select data-testid="length-parameter" disabled={busy}
+              value={lengthDialog.definition.parameterId} onChange={event => updateLengthDefinition({parameterId:event.target.value})}>
+              <option value="">Choose a length</option>{snapshot.accepted.document.parameters.map(parameter => <option key={parameter.id} value={parameter.id}>{name(parameter.id)}</option>)}
+            </select></label>}
+            <label>{lengthDialog.definition.kind === 'literal' ? 'Value (mm)' : 'Offset (mm)'}<input data-testid="length-value" disabled={busy}
+              inputMode="decimal" value={lengthDialog.definition.raw} onChange={event => updateLengthDefinition({raw:event.target.value})}/></label>
+          </div> : <>
+            <p>Remove {name(lengthDialog.parameter.id)}?</p>
+            {lengthDialog.repairs.length === 0 && <p>No lengths or extrusion heights refer to this length.</p>}
+            {lengthDialog.repairs.map(repair => <fieldset key={repair.id} className="length-repair-row">
+              <legend>{name(repair.id)} · {repair.target === 'parameter' ? 'length' : 'extrusion height'}</legend>
+              <label className="length-repair-enable"><input type="checkbox" disabled={busy} data-testid={'repair-enable-' + repair.id}
+                checked={repair.enabled} onChange={event => updateRepair(repair.id,{enabled:event.target.checked})}/>Set a replacement</label>
+              <div className="extrusion-fields">
+                <label>Definition<select data-testid={'repair-definition-' + repair.id} disabled={busy || !repair.enabled} value={repair.kind}
+                  onChange={event => updateRepair(repair.id,{kind:event.target.value as 'literal'|'offset'})}>
+                  <option value="literal">Literal</option><option value="offset">Parameter + offset</option></select></label>
+                {repair.kind === 'offset' && <label>Length parameter<select data-testid={'repair-parameter-' + repair.id}
+                  disabled={busy || !repair.enabled} value={repair.parameterId} onChange={event => updateRepair(repair.id,{parameterId:event.target.value})}>
+                  <option value="">Choose a length</option>{replacementParameters.map(parameter => <option key={parameter.id} value={parameter.id}>{name(parameter.id)}</option>)}
+                </select></label>}
+                <label>{repair.kind === 'literal' ? 'Value (mm)' : 'Offset (mm)'}<input data-testid={'repair-value-' + repair.id}
+                  disabled={busy || !repair.enabled} inputMode="decimal" value={repair.raw} onChange={event => updateRepair(repair.id,{raw:event.target.value})}/></label>
+              </div>
+            </fieldset>)}
+          </>}
+          {error && <p className="extrusion-error" role="alert">{message(error,lengthDialog.mode)}</p>}
+          </div>
+          <DialogFooter>
+            <Dialog><DialogTrigger asChild><Button variant="ghost" disabled={busy} className="length-help-trigger" data-testid="length-help">Help</Button></DialogTrigger>
+              <DialogContent className="cad-editor-help-dialog" data-testid="length-help-dialog">
+                <DialogHeader><DialogTitle>Length editing help</DialogTitle><DialogDescription>Length definitions and explicit reference repairs.</DialogDescription></DialogHeader>
+                <p>Use a literal value in mm or another length plus an offset in mm. Every parameter must resolve without circular references. Each extrusion height must be from 0.0001 to 10000 mm.</p>
+                <p>When removing a length, enable and choose a replacement for each dependent length and extrusion height. Unchecked rows are not repaired. No dependent value is replaced automatically.</p>
+                <p>Apply evaluates one native parameter transaction and rebuilds all displayed outputs. The graph changes after the GPU accepts the full scene and a fresh frame is read. Cancel or Escape keeps the accepted graph. Raw dialog values stay pending if evaluation or display fails.</p>
+                <p>The native table supports 0–8 lengths, 1–16 unique operations and 0–4 explicit distance repairs per transaction. Feature lifecycle is a separate transaction.</p>
+                <p>Manual topics: Shared length changes in Feature properties Help; Native parameter table lifecycle in the package README; Length parameter lifecycle in the app README.</p>
+                {error && <details><summary>Technical details</summary><pre>{JSON.stringify({code:error.code,message:error.message,cause:causeReceipt(error.cause)},null,2)}</pre></details>}
+                <DialogClose asChild><Button variant="outline" data-testid="length-help-close">Close help</Button></DialogClose>
+              </DialogContent>
+            </Dialog>
+            <Button variant="outline" disabled={busy} onClick={cancelLength}>Cancel</Button>
+            <Button data-testid="length-confirm" disabled={busy} onClick={submitLength}>{busy ? 'Preparing display' : lengthDialog.mode === 'remove' ? 'Remove' : lengthDialog.mode === 'edit' ? 'Apply' : 'Add'}</Button></DialogFooter>
         </>}
       </DialogContent>
     </Dialog>

@@ -148,8 +148,15 @@ try {
     reopened=await snapshot(fresh);
   }
   if(args.includes('--lifecycle')) {
+    // The fanout gate intentionally retains its draft. Start the separate fixture through the real Discard action.
+    if(args.includes('--fanout')) await fresh.getByTestId('feature-discard').click();
     const {runExtrusionLifecycleFlow}=await import('./extrusion-lifecycle-flow.mjs');
     await runExtrusionLifecycleFlow({page:fresh,browser,cad,editor,result,evidence,prefix,repo});
+    reopened=await snapshot(fresh);
+  }
+  if(args.includes('--parameter-lifecycle')) {
+    const {runParameterLifecycleFlow}=await import('./parameter-lifecycle-flow.mjs');
+    await runParameterLifecycleFlow({page:fresh,browser,cad,editor,result,evidence,prefix,repo});
     reopened=await snapshot(fresh);
   }
   await fresh.evaluate(()=>window.__cadFeatureFlow.setMounted(false));await fresh.waitForFunction(()=>window.__cadFeatureFlow.display()?.status==='disposed');const disposed=await display(fresh);assert.deepEqual(disposed.lifecycle,{mounts:1,disposals:1});assert.ok(Object.values(disposed.resourceCounts).every(n=>n===0));assert.deepEqual(await snapshot(fresh),reopened);

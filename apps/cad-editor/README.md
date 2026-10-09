@@ -97,7 +97,7 @@ File → New shared extrusions creates the native four-leaf sample. Select outpu
 
 Select an extrusion and use Edit extrusion or Remove. Add extrusion offers literal height(mm) or an existing length parameter plus offset(mm). The app creates fresh native feature/slot/evaluation/prefix identities. Choose the complete display set in the dialog. Remove requires at least one remaining visible output and keeps at least one native leaf. Cancel/Escape restores trigger focus. Refusal keeps dialog input and the accepted native file/history/camera/frame. Dialog fields are excluded from Download.
 
-History uses the current display set. If Undo would remove a newly displayed leaf, select a surviving extrusion, choose Show only selected, then retry Undo. No automatic view replacement occurs. Parameter creation/removal, suppression/reorder and general Face/Boolean creation remain separate work.
+History uses the current display set. If Undo would remove a newly displayed leaf, select a surviving extrusion, choose Show only selected, then retry Undo. No automatic view replacement occurs. Parameter creation/removal uses the separate Lengths workflow below. Suppression/reorder and general Face/Boolean creation remain separate work.
 
 Focused native lifecycle gate: `node apps/cad-editor/flows/extrusion-lifecycle-flow.mjs --headed --port 52012 --evidence <directory>`; add `--compiled` for actual built public root/React/CSS and explicit native runtime/types consumer. It checks genuine native file Download/fresh Open/re-edit, real GPU/refusal retention and explicit history view repair. This is not a broad publication/parity/release campaign.
 
@@ -110,3 +110,33 @@ runtime/types. Evidence defaults to evidence-cad-editor-source-full. It checks
 source comments/spelling/Model name/siblings, foreign/hidden assets, genuine
 Download/fresh Open/re-edit and the actual degree5 whole-asset preview refusal.
 Native source-edit eligibility and display admission are separate decisions.
+
+## Length parameter lifecycle
+
+Use Add length or the Edit/Remove controls in the Lengths sidebar. Add/Edit accepts
+a literal length in mm or an existing parameter plus an offset in mm. Existing
+native IDs/types remain; the host assigns a fresh bounded identity for new lengths.
+Remove lists direct dependent lengths and extrusion distances. Enable and choose
+each required replacement explicitly. Missing repairs reach the actual native
+dependency refusal and keep the modal values. No dependent value is silently
+replaced by its evaluated length.
+
+Apply commits only after native evaluation and actual full GPU scene admission.
+Cancel/Escape keeps the accepted graph and restores trigger focus. A refused GPU
+update keeps raw values, repair choices, history, view and fresh frame. Parameters
+and distance repairs use one actual #915 transaction; feature lifecycle remains
+a separate #922 operation.
+
+Focused gate: `node apps/cad-editor/flows/parameter-lifecycle-flow.mjs --headed
+--port 52012 --evidence <directory>`, with optional `--compiled`. It runs the
+bounded feature/fanout/extrusion core and actual length Add/Edit/Remove, missing
+repair refusals, explicit dependent length/four-distance repairs, genuine native
+Download/fresh Open/re-edit and real GPU/refusal/focus checks. Native inclined
+vectors and actual pixels are verified separately. This does not certify packed
+publication, OS-wide IME or general commercial CAD support.
+
+The length dialog's Help opens its related topic without discarding modal values.
+Close help returns focus to Help and keeps raw fields and repair choices. The long
+repair list scrolls inside fixed title/actions. Text Enter does not apply a modal
+edit; use its explicit Add/Apply/Remove button. Technical native causes are
+expandable inside Help.

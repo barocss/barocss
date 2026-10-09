@@ -2,11 +2,11 @@ import {
   BooleanExtrusionFeatureGraphDiagnosticCode, BooleanExtrusionFeatureGraphError,
   evaluateBooleanExtrusionFeatureGraph, parseBooleanExtrusionFeatureGraph,
   serializeBooleanExtrusionFeatureGraph, updateBooleanExtrusionFeatureGraph,
-  validateBooleanExtrusionFeatureGraph, transactBooleanExtrusionFeatureGraphFeatures,
+  validateBooleanExtrusionFeatureGraph, transactBooleanExtrusionFeatureGraphFeatures, transactBooleanExtrusionFeatureGraphParameters,
 } from '@barocss/cad';
 import type {
   BooleanExtrusionFeatureGraphEdits, BooleanExtrusionFeatureGraphResult,
-  BooleanExtrusionFeatureGraphV0, BooleanExtrusionFeatureTransaction, BooleanExtrusionLengthDefinition,
+  BooleanExtrusionFeatureGraphV0, BooleanExtrusionFeatureTransaction, BooleanExtrusionParameterTransaction, BooleanExtrusionLengthDefinition,
 } from '@barocss/cad';
 import { deriveBaroCadBooleanExtrusionFeatureMesh } from '@barocss/cad-interop/boolean-extrusion-feature-mesh';
 import { CadEditorError } from './types.js';
@@ -83,10 +83,10 @@ function record(input: unknown, fields: string[], field: string): Record<string,
   return Object.fromEntries(fields.map(key => [key, descriptors[key].value]));
 }
 /** Descriptor-safe ownership copy. Native transactions still own all ID/value/dependency semantics. */
-function copyRequest<T>(input: T): T {
+function copyRequest<T>(input: T, field = 'extrusion-transaction'): T {
   let remaining = 16384;
   const ancestors = new Set<object>();
-  const context = { field: 'extrusion-transaction' };
+  const context = { field };
   const visit = (value: unknown, depth: number): unknown => {
     check(--remaining >= 0 && depth <= 12, 'BUDGET', 'Lifecycle request exceeds the own-data budget.', context);
     if (value === null || typeof value === 'number' || typeof value === 'boolean') return value;
@@ -366,6 +366,16 @@ export function createCadEditorFeatureSession(document: BooleanExtrusionFeatureG
       const derived = ownedPostOutputs === undefined ? deriveCurrent(result, outputConfigs) : deriveOutputs(result, ownedPostOutputs);
       return prepare('extrusion', result, undefined, derived);
     },
+    prepareParameterTransaction(request) {
+      live(); requireResolvedDraft();
+      check(prepared === null, 'INPUT', 'Resolve the current feature candidate first.',
+        { documentId: accepted.document.id, field: 'parameter-transaction' });
+      const ownedRequest = record(copyRequest(request, 'parameter-transaction'),
+        ['expectedRevision', 'revision', 'parameterOperations', 'distanceEdits'], 'parameter-transaction') as unknown as BooleanExtrusionParameterTransaction;
+      const result = native(() => transactBooleanExtrusionFeatureGraphParameters(accepted, ownedRequest), 'Native parameter transaction failed.',
+        { documentId: accepted.document.id, field: 'parameter-transaction' });
+      return prepare('parameter', result);
+    },
     prepareUndo() { return restore(-1); },
     prepareRedo() { return restore(1); },
     acceptCandidate(token) {
@@ -380,7 +390,7 @@ export function createCadEditorFeatureSession(document: BooleanExtrusionFeatureG
       }
       const state: HistoryState = { document: copy(result.document), bytes: fileBudget(serialize(result)) };
       if (current.candidate.kind === 'open') { history = [state]; historyIndex = 0; selectedFeatureId = null; }
-      else if (current.candidate.kind === 'apply' || current.candidate.kind === 'extrusion') {
+      else if (current.candidate.kind === 'apply' || current.candidate.kind === 'extrusion' || current.candidate.kind === 'parameter') {
         history = [...history.slice(0, historyIndex + 1), state];
         while (history.length > HISTORY_LIMIT || historyBytes() > HISTORY_BYTES) history.shift();
         historyIndex = history.length - 1;
