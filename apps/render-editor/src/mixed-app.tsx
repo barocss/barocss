@@ -458,7 +458,7 @@ export function MixedApp() {
           event.preventDefault();
           runGuarded({ label: 'open Source editor', execute: () => window.location.assign('/index.html') });
         }}>Source editor</a></Button>
-        <Button ref={nativeImportTrigger} size="sm" variant="ghost" disabled={actionDisabled} onClick={startNativeImport} data-testid="import-native-source">Import CAD source</Button>
+        <Button ref={nativeImportTrigger} size="sm" variant="ghost" disabled={busy || pending !== null} onClick={startNativeImport} data-testid="import-native-source">Import CAD source</Button>
         <Button size="sm" variant="ghost" disabled={actionDisabled} onClick={openFile} data-testid="open-file"><FolderOpen />Open</Button>
         <Button size="sm" variant="secondary" disabled={actionDisabled} onClick={saveFile} data-testid="save-file"><Save />Save</Button>
       </header>
