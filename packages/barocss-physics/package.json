@@ -3,7 +3,7 @@
   "version": "0.0.0-experimental",
   "private": false,
   "type": "module",
-  "description": "Bounded renderer-neutral fixed-step 3D sphere dynamics",
+  "description": "Bounded renderer-neutral fixed-step 3D rigid and visual-water simulation",
   "license": "MIT",
   "exports": {
     ".": {
