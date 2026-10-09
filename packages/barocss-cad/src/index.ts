@@ -233,3 +233,6 @@ export type { CurveInterpolationPoint, CurveInterpolationOptions, CurveInterpola
 
 export { buildInterpolatingSurface, validateInterpolatingSurface, SurfaceInterpolationError, SurfaceInterpolationDiagnosticCode } from './surface-interpolation.js';
 export type { SurfaceInterpolationOptions, SurfaceInterpolationObservation, SurfaceInterpolationReport, SurfaceInterpolationResult } from './surface-interpolation.js';
+
+export { buildParameterizedInterpolatingCurve, validateParameterizedInterpolatingCurve, CurveParameterizationError, CurveParameterizationDiagnosticCode } from './curve-parameterization.js';
+export type { CurveParameterizationMethod, CurveParameterizationOptions, CurveParameterizationReport, CurveParameterizationResult } from './curve-parameterization.js';
