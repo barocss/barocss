@@ -52,6 +52,8 @@ const DEFAULT_OPTIONS: BooleanShellSceneOptions = {
 function numberText(value: number) { return Object.is(value, -0) ? '-0' : String(value); }
 
 function displayName(value: string): string {
+  const generatedLength = /^ce_length_(\d+)$/.exec(value);
+  if (generatedLength) return 'Length ' + generatedLength[1];
   const names: Record<string, string> = { face_a_feature: 'Face A', face_b_feature: 'Face B',
     boolean_feature: 'Combine faces', extrusion_feature: 'Extrusion', base_height: 'Base height',
     design_height: 'Extrusion height', unused: 'Reference length', leaf_middle: 'Extrusion 2',
@@ -381,13 +383,20 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
             <DialogDescription>Boolean operations, shared lengths and editing limits.</DialogDescription></DialogHeader>
             <div className="cad-editor-help-body">
               <p>This profile evaluates two authored planar face inputs, one coplanar Boolean operation and 1–4 normal extrusions. You can add, edit and remove extrusion leaves.</p>
-              <p>Adding or removing length parameters, reordering features, native suppression and general Face or Boolean creation/removal are unavailable. Existing shared length definitions remain editable.</p>
+              <p>You can add, edit and remove shared lengths. Reordering features, native suppression and general Face or Boolean creation/removal are unavailable.</p>
               <p>The extrusions can share the same Boolean region and length parameters. A shared edit rebuilds every native output.</p>
               <h3>Extrusion changes</h3>
               <p>Add extrusion uses the current Boolean region. Choose a literal height in mm or an existing length parameter plus an offset. Edit extrusion keeps its existing identity and output slot.</p>
               <p>When removing a displayed extrusion, choose the complete retained output set explicitly. The editor does not silently replace a removed output. At least one extrusion must remain.</p>
               <p>Apply or discard shared length and Boolean drafts before an extrusion change. The dialog values remain pending if native evaluation or display admission fails. Cancel or Escape discards only the dialog values and returns focus to its trigger.</p>
               <p>Undo and Redo keep the current displayed output choice. If a displayed leaf does not exist in the target history, choose a surviving displayed output and retry. There is no automatic history fallback.</p>
+              <h3>Shared length changes</h3>
+              <p>Add length creates a fresh native length identity. Edit keeps the existing ID, type and authored table position. Choose a literal value in mm or an existing length parameter plus an offset.</p>
+              <p>Remove lists direct dependent length definitions and extrusion heights. Enable and choose each replacement individually. Disabled rows are not repaired. The editor does not delete dependents or replace them with evaluated values automatically.</p>
+              <p>Missing or circular repairs reach the actual native provider refusal. Dialog values and enabled repairs remain pending after native or GPU rejection. Cancel or Escape discards only these dialog values and restores trigger focus. Accepted removal returns focus to Add length when the old trigger is gone.</p>
+              <p>Parameter lifecycle uses prepareParameterTransaction and the actual transactBooleanExtrusionFeatureGraphParameters provider. One transaction contains 1–16 unique parameter operations and 0–4 explicit extrusion distance repairs. Temporary table capacity is 16; the final authored table contains 0–8 parameters.</p>
+              <p>Parameter and extrusion lifecycle transactions stay separate. Apply or discard existing scalar drafts first. Every accepted parameter transaction follows the native revision policy, adds one native history entry and rebuilds all displayed output references. The logical display choice and selected feature remain unchanged.</p>
+              <p>Undo and Redo restore the complete authored parameter table and distance definitions. Downloads contain accepted native data, not pending dialog values, repairs, camera or visibility.</p>
               <h3>Displayed outputs</h3>
               <p>Show, hide and solo change only the displayed outputs. They do not suppress or delete native features. One GPU scene uses depth to combine the displayed meshes. Nested extrusions with the same footprint can cover each other.</p>
               <p>Outputs share one display material. Use Show only selected to inspect overlapping leaves. The editor does not move outputs apart or change their authored coordinates.</p>
