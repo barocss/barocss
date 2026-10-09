@@ -65,6 +65,7 @@
     "miter-join.mjs",
     "linear-fill.mjs",
     "radial-fill.mjs",
-    "background.mjs"
+    "background.mjs",
+    "transformed-clip.mjs"
   ]
 }

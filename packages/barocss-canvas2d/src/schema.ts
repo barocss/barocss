@@ -161,6 +161,9 @@ export type PathNodeV23 = Omit<PathNodeV22, 'fill'> & { fill?: PathFillV23 };
 export type GroupNodeV23 = Omit<GroupNodeV22, 'children'> & { children: NodeV23[] };
 export type FrameNodeV23 = Omit<FrameNodeV22, 'children'> & { children: NodeV23[] };
 export type NodeV23 = GroupNodeV23 | FrameNodeV23 | RectNodeV14 | LineNodeV14 | PathNodeV23 | ImageNodeV16 | GlyphRunNodeV14;
+export type GroupNodeV24 = Omit<GroupNodeV23, 'children'> & { children: NodeV24[] };
+export type FrameNodeV24 = Omit<FrameNodeV23, 'children'> & { children: NodeV24[] };
+export type NodeV24 = GroupNodeV24 | FrameNodeV24 | RectNodeV14 | LineNodeV14 | PathNodeV23 | ImageNodeV16 | GlyphRunNodeV14;
 export type OldGroupNode = Omit<GroupNode, 'children'> & { children: OldNode[] };
 export type OldFrameNode = Omit<FrameNode, 'children'> & { children: OldNode[] };
 export type OldNode = OldGroupNode | OldFrameNode | RectNode | LineNode;
@@ -188,7 +191,8 @@ export type SceneV20 = { version: 20; unit: 'logical-px'; contextId: string; nod
 export type SceneV21 = { version: 21; unit: 'logical-px'; contextId: string; nodes: NodeV21[] };
 export type SceneV22 = { version: 22; unit: 'logical-px'; contextId: string; nodes: NodeV22[] };
 export type SceneV23 = { version: 23; unit: 'logical-px'; contextId: string; nodes: NodeV23[] };
-export type Scene = SceneV0 | SceneV1 | SceneV2 | SceneV3 | SceneV4 | SceneV5 | SceneV6 | SceneV7 | SceneV8 | SceneV9 | SceneV10 | SceneV11 | SceneV12 | SceneV13 | SceneV14 | SceneV15 | SceneV16 | SceneV17 | SceneV18 | SceneV19 | SceneV20 | SceneV21 | SceneV22 | SceneV23;
+export type SceneV24 = { version: 24; unit: 'logical-px'; contextId: string; nodes: NodeV24[] };
+export type Scene = SceneV0 | SceneV1 | SceneV2 | SceneV3 | SceneV4 | SceneV5 | SceneV6 | SceneV7 | SceneV8 | SceneV9 | SceneV10 | SceneV11 | SceneV12 | SceneV13 | SceneV14 | SceneV15 | SceneV16 | SceneV17 | SceneV18 | SceneV19 | SceneV20 | SceneV21 | SceneV22 | SceneV23 | SceneV24;
 
 const MAX_BYTES = 1024 * 1024;
 const idPattern = /^[A-Za-z][A-Za-z0-9_-]{0,63}$/;
@@ -523,7 +527,7 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
       children: nodes(data.children, depth + 1, `${nodePath}.children`, rotated, seen, counter, version) } as NodeV18;
     if (kind === 'frame') {
       if (typeof data.clip !== 'boolean') fail('INVALID_SCENE', `${nodePath}.clip must be boolean`);
-      if (data.clip && rotated) fail('INVALID_SCENE', `${nodePath} has unsupported rotated clip`);
+      if (version < 24 && data.clip && rotated) fail('INVALID_SCENE', `${nodePath} has unsupported rotated clip`);
       counter.vertices += 6;
       if (counter.vertices > 16384) fail('SCENE_LIMIT', 'scene geometry exceeds vertex limit');
       return { kind, ...base,
@@ -664,7 +668,7 @@ function nodes(value: unknown, depth: number, path: string, ancestorRotated: boo
 export function validateScene(value: unknown): Scene {
   const seen = new WeakSet<object>();
   const raw = object(value, ['version', 'unit', 'contextId', 'nodes'], 'scene', seen);
-  if ((!Number.isInteger(raw.version) || (raw.version as number) < 0 || (raw.version as number) > 23) || raw.unit !== 'logical-px') fail('INVALID_SCENE', 'unsupported scene version or unit');
+  if ((!Number.isInteger(raw.version) || (raw.version as number) < 0 || (raw.version as number) > 24) || raw.unit !== 'logical-px') fail('INVALID_SCENE', 'unsupported scene version or unit');
   const version = raw.version as Scene['version'];
   const contextId = id(raw.contextId, 'scene.contextId');
   const parsedNodes = nodes(raw.nodes, 1, 'scene.nodes', false, seen,
@@ -693,7 +697,8 @@ export function validateScene(value: unknown): Scene {
     : version === 20 ? { version: 20, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV20[] }
     : version === 21 ? { version: 21, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV21[] }
     : version === 22 ? { version: 22, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV22[] }
-    : { version: 23, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV23[] };
+    : version === 23 ? { version: 23, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV23[] }
+    : { version: 24, unit: 'logical-px', contextId, nodes: parsedNodes as NodeV24[] };
   if (new TextEncoder().encode(JSON.stringify(scene)).length > MAX_BYTES) fail('SCENE_LIMIT', 'scene snapshot exceeds 1 MiB');
   return scene;
 }

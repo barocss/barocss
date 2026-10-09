@@ -1,18 +1,20 @@
 import { Canvas2DError, copyImageAsset, validateColor, validateImageAssetId, validatePoint, validateScene, validateSize, validateView } from './schema.js';
-import type { Color, HitArea, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, NodeV12, NodeV13, NodeV14, NodeV15, NodeV16, NodeV17, NodeV18, NodeV19, NodeV20, NodeV21, NodeV22, NodeV23, PathLinearFill, PathRadialFill, Point, Scene, Size, SourceRect, Transform, View } from './schema.js';
+import type { Color, HitArea, ImageAssetInput, ImageNode, LineNode, Node, NodeV2, NodeV3, NodeV4, NodeV5, NodeV6, NodeV7, NodeV8, NodeV9, NodeV10, NodeV11, NodeV12, NodeV13, NodeV14, NodeV15, NodeV16, NodeV17, NodeV18, NodeV19, NodeV20, NodeV21, NodeV22, NodeV23, NodeV24, PathLinearFill, PathRadialFill, Point, Scene, Size, SourceRect, Transform, View } from './schema.js';
 import { tessellatePath } from './path.js';
 import type { FillObservation, PathObservation } from './path.js';
 import { createImageGpu, createImageTexture, disposeImageGpu, renderImage, sampledAlpha, sourceRect } from './image.js';
 import type { ImageAsset, ImageGpu } from './image.js';
+import { clipDeclarations, clipDiscard, createClipGpu, insideClips, setClipGpu } from './clip.js';
+import type { ClipGpu, TransformClip } from './clip.js';
 import { tileSpans } from './tile.js';
 
 type Matrix = [number, number, number, number, number, number];
 type Clip = { left: number; top: number; right: number; bottom: number };
-type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 | NodeV18 | NodeV19 | NodeV20 | NodeV21 | NodeV22 | NodeV23;
+type RenderNode = Node | NodeV2 | NodeV3 | NodeV4 | NodeV5 | NodeV6 | NodeV7 | NodeV8 | NodeV9 | NodeV10 | NodeV11 | NodeV12 | NodeV13 | NodeV14 | NodeV15 | NodeV16 | NodeV17 | NodeV18 | NodeV19 | NodeV20 | NodeV21 | NodeV22 | NodeV23 | NodeV24;
 type DrawNode = RenderNode;
 type Draw = {
   id: string; kind: 'group' | 'frame' | 'rect' | 'line' | 'path' | 'image' | 'glyphRun'; node: DrawNode;
-  matrix: Matrix; inverse: Matrix; color: Color; vertices: Float32Array; clip: Clip | null; visible: boolean; hitEnabled: boolean;
+  matrix: Matrix; inverse: Matrix; color: Color; vertices: Float32Array; clip: Clip | null; transformClips: readonly TransformClip[]; visible: boolean; hitEnabled: boolean;
   observation?: PathObservation; fillObservation?: FillObservation;
   maskVertices?: Float32Array; contours?: Float32Array[]; fillRule?: 'evenodd' | 'nonzero';
   linear?: PathLinearFill; radial?: PathRadialFill;
@@ -25,7 +27,7 @@ type Gpu = { program: WebGLProgram; buffer: WebGLBuffer; vao: WebGLVertexArrayOb
   linearFrom: WebGLUniformLocation; linearDirection: WebGLUniformLocation;
   radialCenter: WebGLUniformLocation; radialRadius: WebGLUniformLocation;
   startColor: WebGLUniformLocation; endColor: WebGLUniformLocation;
-  image: ImageGpu };
+  clips: ClipGpu; image: ImageGpu };
 
 const vertexShader = `#version 300 es
 precision highp float;
@@ -40,6 +42,7 @@ void main() {
 }`;
 const fragmentShader = `#version 300 es
 precision highp float;
+${clipDeclarations}
 uniform vec4 u_color;
 uniform bool u_linear_enabled;
 uniform bool u_radial_enabled;
@@ -54,6 +57,7 @@ uniform vec4 u_end_color;
 in vec2 v_world;
 out vec4 out_color;
 void main() {
+  ${clipDiscard}
   vec4 color = u_color;
   if (u_linear_enabled || u_radial_enabled) {
     vec3 world = vec3(v_world, 1.0);
@@ -112,6 +116,36 @@ function line(m: Matrix, node: LineNode): Float32Array {
   const c = point(m, node.x2 - nx, node.y2 - ny), d = point(m, node.x1 - nx, node.y1 - ny);
   return new Float32Array([a.x,a.y,b.x,b.y,c.x,c.y,a.x,a.y,c.x,c.y,d.x,d.y]);
 }
+function checkedTransformClip(matrix: Matrix, inv: Matrix, width: number, height: number,
+  corners: Point[], view: View, dpr: number): TransformClip {
+  const determinant = matrix[0] * matrix[3] - matrix[1] * matrix[2];
+  const roundedInverse = inv.map(Math.fround) as Matrix;
+  const device = corners.map(p => ({ x: (p.x * view.zoom + view.panX) * dpr,
+    y: (p.y * view.zoom + view.panY) * dpr }));
+  const values = [...matrix, ...inv, ...roundedInverse, width, height,
+    ...corners.flatMap(p => [p.x, p.y]), ...device.flatMap(p => [p.x, p.y])];
+  const collapsed = (points: Point[]) => {
+    const rounded = points.map(p => ({ x: Math.fround(p.x), y: Math.fround(p.y) }));
+    let orientation = 0;
+    return rounded.some((p, i) => {
+      const next = rounded[(i + 1) % rounded.length];
+      const previous = rounded[(i + rounded.length - 1) % rounded.length];
+      const area = (next.x - p.x) * (previous.y - p.y) -
+        (next.y - p.y) * (previous.x - p.x);
+      if (area === 0 || !Number.isFinite(area)) return true;
+      if (orientation === 0) orientation = Math.sign(area);
+      return Math.sign(area) !== orientation;
+    });
+  };
+  const roundedDeterminant = roundedInverse[0] * roundedInverse[3] - roundedInverse[1] * roundedInverse[2];
+  if (!Number.isFinite(determinant) || determinant === 0 || roundedDeterminant === 0 ||
+      values.some(v => !Number.isFinite(v) || Math.abs(v) > 1e9) ||
+      Math.fround(width) <= 0 || Math.fround(height) <= 0 || collapsed(corners) || collapsed(device)) {
+    throw new Canvas2DError('SCENE_LIMIT', 'transformed frame clip exceeds world or device precision');
+  }
+  return { inverse: roundedInverse, width: Math.fround(width), height: Math.fround(height) };
+}
+
 function intersection(a: Clip | null, b: Clip): Clip {
   if (!a) return b;
   return { left: Math.max(a.left, b.left), top: Math.max(a.top, b.top),
@@ -145,6 +179,7 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
     }
   }
   function visit(siblings: RenderNode[], parent: Matrix, inheritedClip: Clip | null,
+    inheritedTransformClips: readonly TransformClip[],
     inheritedVisible: boolean, inheritedAlpha: number, inheritedHitEnabled: boolean): void {
     const sorted = siblings.map((node, index) => ({ node, index }))
       .sort((a, b) => a.node.layer - b.node.layer || a.index - b.index);
@@ -152,7 +187,8 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
       const visible = inheritedVisible && (!('visible' in node) || node.visible !== false);
       const alpha = inheritedAlpha * ('alpha' in node ? node.alpha : 1);
       const hitEnabled = inheritedHitEnabled && (!('hitMode' in node) || node.hitMode !== 'none');
-      const add = (draw: Omit<Draw, 'visible' | 'hitEnabled'>): void => addDraw({ ...draw,
+      const add = (draw: Omit<Draw, 'visible' | 'hitEnabled' | 'transformClips'>): void => addDraw({ ...draw,
+        transformClips: inheritedTransformClips,
         color: [draw.color[0], draw.color[1], draw.color[2], draw.color[3] * alpha], visible, hitEnabled });
       const matrix = multiply(parent, pose(node.transform, 'pivot' in node ? node.pivot : undefined));
       if (node.kind === 'group') {
@@ -161,7 +197,7 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
           add({ id: node.id, kind: 'group', node, matrix, inverse: inverse(matrix),
             color: [0, 0, 0, 1], vertices: new Float32Array(0), clip: inheritedClip });
         }
-        visit(node.children as RenderNode[], matrix, inheritedClip, visible, alpha, hitEnabled);
+        visit(node.children as RenderNode[], matrix, inheritedClip, inheritedTransformClips, visible, alpha, hitEnabled);
         continue;
       }
       const inv = inverse(matrix);
@@ -169,14 +205,26 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
         add({ id: node.id, kind: 'frame', node, matrix, inverse: inv,
           color: node.fill, vertices: rectangle(matrix, node.width, node.height), clip: inheritedClip });
         let childClip = inheritedClip;
+        let childTransformClips = inheritedTransformClips;
         if (node.clip) {
-          const topLeft = point(matrix, 0, 0), bottomRight = point(matrix, node.width, node.height);
+          const corners = [point(matrix, 0, 0), point(matrix, node.width, 0),
+            point(matrix, node.width, node.height), point(matrix, 0, node.height)];
+          const boundsCorners = scene.version >= 24
+            ? [...corners, ...corners.map(p => ({ x: Math.fround(p.x), y: Math.fround(p.y) }))]
+            : corners;
           childClip = intersection(inheritedClip, {
-            left: Math.min(topLeft.x, bottomRight.x), top: Math.min(topLeft.y, bottomRight.y),
-            right: Math.max(topLeft.x, bottomRight.x), bottom: Math.max(topLeft.y, bottomRight.y),
+            left: Math.min(...boundsCorners.map(p => p.x)), top: Math.min(...boundsCorners.map(p => p.y)),
+            right: Math.max(...boundsCorners.map(p => p.x)), bottom: Math.max(...boundsCorners.map(p => p.y)),
           });
+          if (scene.version >= 24 && (matrix[1] !== 0 || matrix[2] !== 0)) {
+            const clip = checkedTransformClip(matrix, inv, node.width, node.height, corners, view, dpr);
+            if (childTransformClips.length >= 16) {
+              throw new Canvas2DError('SCENE_LIMIT', 'frame clip list exceeds 16 entries');
+            }
+            childTransformClips = [...childTransformClips, clip];
+          }
         }
-        visit(node.children as RenderNode[], matrix, childClip, visible, alpha, hitEnabled);
+        visit(node.children as RenderNode[], matrix, childClip, childTransformClips, visible, alpha, hitEnabled);
       } else if (node.kind === 'rect') {
         add({ id: node.id, kind: 'rect', node, matrix, inverse: inv,
           color: node.fill, vertices: rectangle(matrix, node.width, node.height), clip: inheritedClip });
@@ -300,11 +348,12 @@ function compileScene(scene: Scene, view: View, dpr: number, tolerance: number,
       }
     }
   }
-  visit(scene.nodes as RenderNode[], [1, 0, 0, 1, 0, 0], null, true, 1, true);
+  visit(scene.nodes as RenderNode[], [1, 0, 0, 1, 0, 0], null, [], true, 1, true);
   return draws;
 }
 
 function contains(draw: Draw, world: Point): boolean {
+  if (!insideClips(draw.transformClips, world)) return false;
   if (draw.clip && (world.x < draw.clip.left || world.x > draw.clip.right ||
       world.y < draw.clip.top || world.y > draw.clip.bottom)) return false;
   if (draw.node.kind === 'group' && 'hitArea' in draw.node && draw.node.hitArea) {
@@ -416,7 +465,7 @@ function createGpu(gl: WebGL2RenderingContext): Gpu {
     gl.bindVertexArray(null); gl.bindBuffer(gl.ARRAY_BUFFER, null);
     return { program, buffer, vao, size, view, color, linearEnabled, radialEnabled, inverse0, inverse1,
       linearFrom, linearDirection, radialCenter, radialRadius, startColor, endColor,
-      image: createImageGpu(gl) };
+      clips: createClipGpu(gl, program), image: createImageGpu(gl) };
   } catch (error) {
     if (vao) gl.deleteVertexArray(vao);
     if (buffer) gl.deleteBuffer(buffer);
@@ -718,7 +767,7 @@ export class Canvas2DRenderer {
         }
         try {
           renderImage(gl, gpu.image, draw.vertices, imageNode, draw.imageAsset,
-            draw.color[3], this.size, this.view, draw.imageClamp);
+            draw.color[3], this.size, this.view, draw.imageClamp, draw.transformClips);
         } finally {
           gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         }
@@ -727,6 +776,7 @@ export class Canvas2DRenderer {
         gl.uniform3f(gpu.view, this.view.panX, this.view.panY, this.view.zoom);
         continue;
       }
+      setClipGpu(gl, gpu.clips, draw.transformClips);
       if (draw.maskVertices) {
         gl.enable(gl.STENCIL_TEST);
         if (draw.fillRule === 'nonzero') {
