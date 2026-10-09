@@ -7,6 +7,45 @@ The `native` entry uses `@barocss/cad`; the `three` entry uses Three.js as an
 optional peer dependency. The preview packet is shared by `@barocss/cad` and
 `@barocss/gpu`.
 
+## Select document bodies from a complete native asset
+
+[The document example](./examples/document-native-capacity-three.html) keeps one
+complete five-Curve source in a native document and displays four selected
+bodies. It uses the public `document` and `three-document` entries. The native
+capacity profile is fixed at sixteen objects per asset; body selection retains
+its independent limit of four. The request uses reversed IDs, while returned
+bindings follow authored document body order.
+
+The document and its source remain caller-held native authority. Asset-qualified
+`ref.modelId` is distinct from the original Model name. Display geometry uses
+one `0.001` scene-units-per-millimetre conversion and an explicit caller basis
+assertion. The wrapper prepares all five geometry/material pairs for the asset,
+detaches the unselected fifth child and retains its CPU resources until the
+document display is disposed. Four objects attach to the Scene. Calling the
+result's `dispose()` twice releases all five pairs once, including the detached
+child; it does not dispose the caller Scene, renderer, canvas or marker.
+
+Workspace development imports now resolve source TypeScript. Use Node22 and
+the existing esbuild/Vite transformers; no package prebuild or source alias is
+required for these source consumer commands:
+
+```sh
+node packages/barocss-cad-interop/examples/document-native-capacity-three-verify.mjs
+pnpm exec vite --config packages/barocss-cad-interop/examples/document-native-capacity-three-vite.config.mjs --host 127.0.0.1 --port 5194 --strictPort
+```
+
+Open `http://127.0.0.1:5194/packages/barocss-cad-interop/examples/document-native-capacity-three.html`.
+The saved-file verifier checks original bytes, public whole-owned validation,
+native parameters, body bindings, refusal retention and actual resource events.
+Its private observer calls the real interop loader for only the pinned source,
+listens to actual instances and restores the loader method in `finally`.
+It does not patch global Three geometry/material classes or add a runtime API.
+Source execution is separate from published compiled JS/types and held packed
+consumer [#801](https://github.com/barocss/barocss/issues/801).
+[#990](https://github.com/barocss/barocss/issues/990) records actual verification
+and later Integration; [#1017](https://github.com/barocss/barocss/issues/1017)
+owns the SDK source/compiled checkpoint reconciliation.
+
 ## From CAD to a GLB
 
 ```js

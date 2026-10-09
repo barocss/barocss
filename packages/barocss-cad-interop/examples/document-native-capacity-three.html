@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Selected native document bodies in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 840px; margin: 24px auto; padding: 0 16px; }
+  canvas { display: block; width: 800px; height: 350px; border: 1px solid #44617d; }
+  button { margin: 12px 8px 12px 0; padding: 7px 12px; }
+  pre { white-space: pre-wrap; }
+</style>
+<main>
+  <h1>Selected native document bodies in Three.js</h1>
+  <p>Four selected bodies display in authored order. The complete source and native Model retain all five Curves.
+    The detached fifth display member is prepared and owned until result disposal.</p>
+  <div id="view"></div>
+  <button id="load">Load selected document bodies</button>
+  <button id="reject" disabled>Try invalid candidates</button>
+  <button id="dispose" disabled>Dispose loaded display</button>
+  <pre id="status">Loading…</pre>
+</main>
+<script type="module" src="./document-native-capacity-three.mjs"></script>
+</html>
