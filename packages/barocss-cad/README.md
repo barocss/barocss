@@ -7968,3 +7968,39 @@ node examples/cad-nurbs/vlinear-plane-section-demo.mjs --source EVIDENCE_DIR
 This is an intersection foundation. General Surface–Surface, native trimming,
 inside/outside and Solid Boolean remain separate. Existing adaptive Curve
 samplers still cap degree3; a native degree4 result does not widen renderers.
+
+## Complete Source0 selected-Surface control-net edit — #1071
+
+`editSourceSurfaceControlNet(request)` edits an explicit selected Surface in its
+original complete Source0 file. Request fields are source/sourceVersion:0/
+surfaceId/edits, with the existing `SurfaceControlNetEdits` shape. The result
+retains request/originalModel/model/source/full native edit/patches/report.
+`validateSourceSurfaceControlNetEdit(owned)` reconstructs the full operation.
+Typed errors preserve actual compiler and native causes.
+
+Actual compiler AST numeric ranges bind every changed field to the selected
+Surface and original coefficient bits. Actual `editSurfaceControlNet` runs once.
+Only its changed fields produce scalar replacements via the existing decimal
+emitter. Patches contain uIndex/vIndex/field/startUTF16/endUTF16/originalText/
+replacementText, ordered by original offset; application runs in reverse order.
+All other source spans, comments, whitespace, model name, object order, IDs and
+sibling native fields retain their exact state. No-op preserves the original
+file text; +0 to -0 is a real change. Child one-Surface source remains child
+proof, while the complete candidate file is authoritative for the full model.
+
+Original and candidate UTF-16 units and UTF-8 bytes are at most262144. Whole
+Model0 has1..16 native objects; unselected degree5 Curves remain legal. Selected
+Surface uses actual native619 degree1..3/grid<=16x16/coordinate10000/positive
+weight limits and1..16 unique pole edits, at most64 scalar patches. Full source
+compilation before and after editing verifies selected child geometry and all
+untouched fields. SourceVersion2 expressions and malformed/missing/duplicate
+Source0 fields refuse at their real compiler/input stages. No implicit literal
+insertion or geometry-only full-file replacement is performed.
+
+```sh
+node examples/cad-nurbs/source-surface-control-net-demo.mjs --source EVIDENCE_DIR
+```
+
+The scoped native checkpoint is one affected build plus this actual mixed-file/
+API/cold/owned/explicit compiled-map flow. Actual editor adoption, rendering,
+source revisions, hash/history and global geometry certification stay separate.
