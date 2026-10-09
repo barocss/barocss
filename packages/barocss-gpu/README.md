@@ -878,6 +878,20 @@ The version0/profile and compiler budgets remain unchanged. The compiled CPU/fil
 flow is `node examples/gpu-scene/material-shorthand-flow.mjs --output <directory>`;
 this does not establish a new renderer or consumer adoption.
 
+After uniforms and before the fragment, declare up to16 immutable expressions:
+`@let fade: float(clamp(amount,0,1));` and
+`@let tint: color(mix(#112233,#AABBCC,fade));`. Later declarations and the fragment
+can reference earlier locals. Names are case-sensitive ASCII identifiers1..32;
+uniform/local collisions and sin/cos/mix/clamp/float/color names refuse. Forward,
+self or cyclic references and mismatched declared types refuse. Locals inline
+into the existing version0 expression IR; source remains original and no extra
+uniform, schema field or runtime branch is introduced. Caller bindings accept
+only declared uniforms. Every definition node and every full reference expansion
+counts against the existing256-node compilation limit, including unused locals;
+expanded depth stays16. Repeated references cannot evade these limits. Run the
+compiled source/file flow with
+`node examples/gpu-scene/material-locals-flow.mjs --output <directory>`.
+
 Hex colors decode once using legacy gamma2.2; expressions are linear RGB, then one
 existing ambient/directional lighting multiplication and one gamma2.2 encode, alpha1.
 No CSSColor4/exact sRGB-transfer/PBR certification. No division/loops/conditions/eval/

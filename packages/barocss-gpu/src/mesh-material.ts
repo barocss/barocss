@@ -16,7 +16,7 @@ export interface MeshMaterialIR {format:'barocss-gpu-mesh-material';version:0;pr
 export interface MeshMaterialBinding {material:MeshMaterialIR;uniforms:Record<string,number>}
 export interface LoweredMeshMaterial {expression:string;uniformDeclarations:string;uniformLayout:(MeshMaterialUniform&{glslName:string})[]}
 type Token={text:string;start:number;end:number};
-type Term={expression:MeshMaterialExpression;type:'float'|'color';range:[number,number];depth:number};
+type Term={expression:MeshMaterialExpression;type:'float'|'color';range:[number,number];depth:number;size:number};
 function fail(code:MeshMaterialCode,message:string,token?:Token):never{throw new MeshMaterialError(code,message,token?.start??0,token?.end??0);}
 const zero=(n:number)=>n===0?0:n;
 function freeze<T>(value:T):T{if(value&&typeof value==='object'&&!Object.isFrozen(value)){Object.values(value).forEach(freeze);Object.freeze(value);}return value;}
@@ -35,11 +35,12 @@ function tokens(source:string):Token[]{
 }
 class Parser {
  private i=0;private nodes=0;private uniforms:MeshMaterialUniform[]=[];
+ private locals=new Map<string,Term>();
  constructor(private readonly source:string,private readonly list:Token[]){}
  private current(){return this.list[this.i];}
  private take(text:string){const t=this.current();if(t.text!==text)fail('SYNTAX','Expected '+text,t);this.i++;return t;}
  private signedNumber(){let sign=1;if(this.current().text==='-'||this.current().text==='+'){sign=this.current().text==='-'?-1:1;this.i++;}const token=this.current();if(!/^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$/.test(token.text))fail('SYNTAX','Numeric literal required',token);this.i++;const n=zero(sign*Number(token.text));if(!Number.isFinite(n)||Math.abs(n)>1000)fail('RANGE','Literal must be finite within±1000',token);return n;}
- private term(expression:MeshMaterialExpression,type:'float'|'color',range:[number,number],children:Term[],token:Token):Term{if(++this.nodes>256)fail('BUDGET','Material exceeds256 expression nodes',token);const depth=1+Math.max(0,...children.map(c=>c.depth));if(depth>16)fail('BUDGET','Material expression exceeds depth16',token);if(!range.every(n=>Number.isFinite(n)&&Math.abs(n)<=1e6))fail('RANGE','Intermediate bound exceeds±1e6',token);return{expression,type,range,depth};}
+ private term(expression:MeshMaterialExpression,type:'float'|'color',range:[number,number],children:Term[],token:Token):Term{if(++this.nodes>256)fail('BUDGET','Material exceeds256 expression nodes',token);const depth=1+Math.max(0,...children.map(c=>c.depth));if(depth>16)fail('BUDGET','Material expression exceeds depth16',token);if(!range.every(n=>Number.isFinite(n)&&Math.abs(n)<=1e6))fail('RANGE','Intermediate bound exceeds±1e6',token);return{expression,type,range,depth,size:1+children.reduce((sum,child)=>sum+child.size,0)};}
  private float(term:Term,token:Token){if(term.type!=='float')fail('TYPE','Float expression required',token);}
  private primary(nesting:number):Term{
  if(nesting>16)fail('BUDGET','Material parse nesting exceeds16',this.current());const token=this.current();
@@ -54,6 +55,7 @@ class Parser {
  else{if(args.length!==3)fail('TYPE','clamp requires three floats',token);args.forEach(arg=>this.float(arg,token));if(args[1].range[1]>args[2].range[0])fail('RANGE','clamp bounds are not ordered',token);range=[args[1].range[0],args[2].range[1]];}
  return this.term({kind:'call',type,name:name as 'sin'|'cos'|'mix'|'clamp',args:args.map(a=>a.expression)},type,range,args,token);
  }
+ const local=this.locals.get(token.text);if(local){if(this.nodes+local.size>256)fail('BUDGET','Material exceeds256 definition and expanded expression nodes',token);this.nodes+=local.size;return local;}
  const uniform=this.uniforms.find(u=>u.name===token.text);if(!uniform)fail('TYPE','Undeclared material uniform '+token.text,token);return this.term({kind:'uniform',type:'float',name:token.text},'float',[uniform.min,uniform.max],[],token);
  }
  fail('SYNTAX','Material expression required',token);
@@ -63,6 +65,9 @@ class Parser {
  this.take('@');this.take('shader');const id=this.current();if(!/^#[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(id.text))fail('SYNTAX','Shader ID requires ASCII1..64',id);this.i++;this.take('{');
  while(this.current().text==='@'&&this.list[this.i+1]?.text==='uniform'){
  this.take('@');this.take('uniform');const name=this.current();if(!/^[A-Za-z_][A-Za-z0-9_]{0,31}$/.test(name.text))fail('SYNTAX','Uniform name requires ASCII1..32',name);if(this.uniforms.some(u=>u.name===name.text))fail('TYPE','Duplicate uniform name',name);this.i++;this.take(':');this.take('float');this.take('(');const min=this.signedNumber();this.take(',');const max=this.signedNumber();this.take(',');const value=this.signedNumber();this.take(')');this.take(';');if(min>max||value<min||value>max)fail('RANGE','Uniform min/default/max are not ordered',name);this.uniforms.push({name:name.text,type:'float',min,max,default:value});if(this.uniforms.length>16)fail('BUDGET','Material exceeds16 uniforms',name);
+ }
+ while(this.current().text==='@'&&this.list[this.i+1]?.text==='let'){
+ this.take('@');this.take('let');const name=this.current();if(!/^[A-Za-z_][A-Za-z0-9_]{0,31}$/.test(name.text))fail('SYNTAX','Local name requires ASCII1..32',name);if(this.locals.has(name.text)||this.uniforms.some(u=>u.name===name.text)||['sin','cos','mix','clamp','float','color'].includes(name.text))fail('TYPE','Local name collides with an existing or reserved name',name);if(this.locals.size>=16)fail('BUDGET','Material exceeds16 local declarations',name);this.i++;this.take(':');const type=this.current();if(type.text!=='float'&&type.text!=='color')fail('SYNTAX','Local type requires float or color',type);this.i++;this.take('(');const value=this.expression();this.take(')');this.take(';');if(value.type!==type.text)fail('TYPE','Local expression does not match its declared type',type);this.locals.set(name.text,value);
  }
  this.take('@');this.take('fragment');this.take('{');this.take('color');this.take(':');const expression=this.expression();if(expression.type!=='color')fail('TYPE','Opaque material output requires color',this.current());this.take(';');this.take('}');this.take('}');this.take('<eof>');
  return freeze({format:'barocss-gpu-mesh-material',version:0,profile:'mesh-opaque-fragment-v0',source:this.source,shaderId:id.text.slice(1),uniforms:this.uniforms,expression:expression.expression});
