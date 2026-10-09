@@ -43,3 +43,6 @@ export type {PreparedBooleanShellBuffers} from './boolean-shell-buffers.js';
 
 export {mountBooleanShell,BooleanShellRenderer} from './boolean-shell-renderer.js';
 export type {BooleanShellOptions,BooleanShellResourceCounts} from './boolean-shell-renderer.js';
+
+export {mountBooleanShellScene,BooleanShellSceneRenderer} from './boolean-shell-scene-renderer.js';
+export type {BooleanShellSceneInputV0,BooleanShellSceneEntry,BooleanShellLeafRef,BooleanShellSceneOptions} from './boolean-shell-scene-input.js';

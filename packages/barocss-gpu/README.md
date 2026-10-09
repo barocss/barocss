@@ -1069,4 +1069,55 @@ pnpm --filter @barocss/gpu build:library
 node examples/gpu-scene/shell-render-flow.mjs --build-only --output /tmp/shell-render-build
 ```
 
-The actual target command in #908 remains pending until trusted policy restoration.
+The actual #908 flow later passed after owner permission/app restoration and was
+separately accepted on local Integration; historical denial evidence is retained.
+
+### Qualified native Shell depth scene (#941)
+
+`mountBooleanShellScene(canvas, scene, options)` uses one exclusive WebGL2 context
+and one shared depth framebuffer for up to4 caller-selected complete native Shell
+meshes. Scene input is exactly `{schema:'barocss-gpu-boolean-shell-scene',version:0,
+entries}`. Each entry has `{ref,native,color,edges}`; color is explicit RGB[0,1],
+edges is explicitly null or `{color:RGB}`. Ref is the exact caller qualification
+`{graphId,graphRevision,featureId,outputSlotId}`: case-sensitive ASCII IDs1..64 and
+a nonnegative safe revision. Duplicate complete tuples refuse. GPU validates the
+tuple/profile, not its relationship to a CAD graph; callers obtain current leaves
+from actual CAD evaluation. Native local IDs may repeat across qualified leaves.
+
+Options are `{mmToSceneUnit,translate,background,camera,lighting?}` with required
+explicit MeshCamera and current optional MeshLighting. Original authored XYZ/mm
+enters one positive scale/translation without axis conversion, native reconstruction
+or welding. Complete native source/F64/UV/face/Shell/true Curve identity is copied
+separately from private display arrays. Copied `scene`, `options`, `bounds` getters,
+`empty` and live `resourceCounts` provide inspection. Empty entries retain identity;
+explicit empty scenes draw only the background. No Surface retag or native union.
+
+`update(scene,options)` and `setOptions(options)` return UpdateResult; resize,
+render, readPixels and idempotent dispose follow the single-Shell lifecycle. A
+whole candidate must validate, stage and present before adoption. Refusal retains
+all accepted entries/native/frame/resources; dimensions roll back on resize failure.
+Same-conversion view updates reuse private CPU buffers. Context loss rejects GL
+operations while retaining CPU provenance until disposal; mount a new renderer
+explicitly after a restored context. render re-presents the accepted framebuffer.
+
+Draw all opaque triangles first with LESS/depth writes, then all original sampled
+Curve paths with LEQUAL/no depth writes/width1. Enabled edges apply the existing
+polygon offset to their own filled entry. Equal-depth ties follow input order;
+sampled display bias is not certified CAD hidden-line or topology resolution.
+Caps per mesh stay384 vertices/288 triangles/192 paths/80 faces/8 Shells. Four-entry
+aggregate caps are1536/1152/768/320/32 respectively, at most1536 sampled line segments
+and77568 derived geometry-array bytes, excluding native/JS/framebuffer memory.
+Native snapshot work stays1048576 values per mesh, bounded by4 entries. Frame size
+is1..4096 per axis and area4194304. Accepted plus one staged target uses at most4
+programs/4 shaders/16 VAOs/40 buffers/2 framebuffer-texture-depth sets; shader handles
+are transient. These are owned-handle limits, not physical memory/performance claims.
+
+Actual source/file/browser flow command:
+
+```sh
+node examples/gpu-scene/shell-scene-flow.mjs --graphs <927-authored-files> --meshes <896-mesh-files> --output <directory>
+```
+
+Native implementation, local Integration, named consumer adoption and publication
+are separate stages recorded in #941. No assembly poses/picking/material language,
+Solid certification or arbitrary meshes are added by this scene profile.
