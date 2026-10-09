@@ -1,6 +1,7 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { build } from 'esbuild';
+import { basinSource } from '../physics-scene/fluid-viewer/basin-source.mjs';
 
 const bundle = await build({
   entryPoints: [new URL('app.js', import.meta.url).pathname],
@@ -22,6 +23,10 @@ const offsetHingeBundle = await build({
   entryPoints: [new URL('offset-hinge-demo.js', import.meta.url).pathname],
   bundle: true, write: false, format: 'esm', platform: 'browser', target: 'es2022',
 });
+const waterBundle = await build({
+  entryPoints: [new URL('../physics-scene/fluid-viewer/app.js', import.meta.url).pathname],
+  bundle: true, write: false, format: 'esm', platform: 'browser', target: 'es2022',
+});
 const files = new Map([
   ['/bundle.js', { body: bundle.outputFiles[0].contents, type: 'text/javascript' }],
   ['/joint-demo.js', { body: jointBundle.outputFiles[0].contents, type: 'text/javascript' }],
@@ -32,6 +37,9 @@ const files = new Map([
   ['/dynamic-hinge-demo.html', { body: await readFile(new URL('dynamic-hinge-demo.html', import.meta.url)), type: 'text/html' }],
   ['/offset-hinge-demo.js', { body: offsetHingeBundle.outputFiles[0].contents, type: 'text/javascript' }],
   ['/offset-hinge-demo.html', { body: await readFile(new URL('offset-hinge-demo.html', import.meta.url)), type: 'text/html' }],
+  ['/water/', { body: await readFile(new URL('../physics-scene/fluid-viewer/index.html', import.meta.url)), type: 'text/html' }],
+  ['/water/bundle.js', { body: waterBundle.outputFiles[0].contents, type: 'text/javascript' }],
+  ['/water/basin.barocad', { body: basinSource, type: 'text/plain' }],
   ['/', { body: await readFile(new URL('index.html', import.meta.url)), type: 'text/html' }],
   ['/two-surfaces.barocad', { body: await readFile(new URL('two-surfaces.barocad', import.meta.url)), type: 'text/plain' }],
 ]);

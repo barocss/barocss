@@ -1,18 +1,14 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { build } from 'esbuild';
+import { basinSource } from './basin-source.mjs';
 
-const source = '@model fluid_basin { version:0; length-unit:mm; '
-  + '@surface #floor { type:nurbs; degree-u:1; degree-v:1; '
-  + 'knots-u:[0,0,1,1]; knots-v:[0,0,1,1]; '
-  + 'control-points:[[[0,0,0],[0,0,500]],[[700,0,0],[700,0,500]]]; '
-  + 'weights:[[1,1],[1,1]]; } }';
 const bundle = await build({ entryPoints: [new URL('app.js', import.meta.url).pathname],
   bundle: true, write: false, format: 'esm', platform: 'browser', target: 'es2022' });
 const files = new Map([
   ['/', { body: await readFile(new URL('index.html', import.meta.url)), type: 'text/html' }],
   ['/bundle.js', { body: bundle.outputFiles[0].contents, type: 'text/javascript' }],
-  ['/basin.barocad', { body: source, type: 'text/plain' }],
+  ['/basin.barocad', { body: basinSource, type: 'text/plain' }],
 ]);
 const port = Number(process.env.PORT || 52952);
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('PORT must be 1..65535');
