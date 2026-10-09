@@ -11,7 +11,7 @@ export async function runBodyInventoryFlow({page,cad,editor,result,evidence,pref
   assert.throws(()=>editor.createCadEditorSession(native.document),error=>error.context.field==='display-body-set');
   const pure = editor.createCadEditorSession(native.document,{displayBodyIds:requested});
   assert.deepEqual(pure.getSnapshot().displayBodyIds,ordered);
-  assert.equal(pure.getSnapshot().bodyCapabilities.find(body=>body.bodyId==='foreign_surface_body').reason,'asset-has-siblings');
+  assert.equal(pure.getSnapshot().bodyCapabilities.find(body=>body.bodyId==='foreign_surface_body').canEditSurfacePole,true);
   pure.selectSurfacePole({bodyId:'surface_body',uIndex:1,vIndex:1});
   pure.stageSurfacePoleField('zMM','24');
   const beforePureDisplay=pure.getSnapshot(),pureDownload=pure.serializeAccepted();
@@ -52,12 +52,13 @@ export async function runBodyInventoryFlow({page,cad,editor,result,evidence,pref
 
   await page.getByTestId('body-select-foreign_surface_body').click();
   await page.waitForFunction(()=>window.__cadEditorFlow.display().state.selectedGeometry?.modelId==='foreign_asset');
-  assert.equal(await page.getByTestId('cad-editor-zMM').isDisabled(),true);
-  const readonly = await page.evaluate(()=>{
-    const s=window.__cadEditorFlow.session,before=s.getSnapshot();
-    try{s.stageSurfacePoleField('zMM','99');return {code:'accepted'};}catch(error){return {code:error.code,context:error.context,before,after:s.getSnapshot()};}
-  });
-  assert.equal(readonly.code,'UNSUPPORTED'); assert.equal(readonly.context.field,'edit-capability'); assert.deepEqual(readonly.after,readonly.before);
+  assert.equal(await page.getByTestId('cad-editor-zMM').isDisabled(),false);
+  const foreignBefore=await snap();
+  await page.getByTestId('cad-editor-zMM').fill('99');
+  assert.equal((await snap()).selection.reference.assetId,'foreign_asset');
+  assert.deepEqual((await snap()).accepted,foreignBefore.accepted);
+  await page.getByTestId('cad-editor-discard').click();
+  assert.deepEqual((await snap()).accepted,foreignBefore.accepted);
   await page.getByTestId('fit-selected-body').click();
   const foreignFit = await frame();
   await page.getByTestId('body-select-surface_body').click();
@@ -81,7 +82,7 @@ export async function runBodyInventoryFlow({page,cad,editor,result,evidence,pref
   await page.getByTestId('cad-editor-transition-cancel').click();
   assert.equal((await snap()).pending.zMM,'24'); assert.deepEqual((await snap()).accepted,beforePick.accepted);
   await page.getByTestId('cad-editor-discard').click();
-  result.events.push({stage:'qualified-real-pointer-pick-and-fit',foreignRef:(await snap()).accepted.bodyBindings.find(body=>body.bodyId==='foreign_surface_body'),readonlySiblingAssetRefused:true,foreignFitCamera:foreignFit.state.camera,ambiguousPickRefusedWithoutNativeMutation:true,pickUsesAssetNamespace:true,draftPickCancelRetained:true});
+  result.events.push({stage:'qualified-real-pointer-pick-and-fit',foreignRef:(await snap()).accepted.bodyBindings.find(body=>body.bodyId==='foreign_surface_body'),foreignSiblingAssetEditableDraftDiscardRetained:true,foreignFitCamera:foreignFit.state.camera,ambiguousPickRefusedWithoutNativeMutation:true,pickUsesAssetNamespace:true,draftPickCancelRetained:true});
 
   await page.getByTestId('cad-editor-zMM').fill('24');
   const beforeDisplay = await snap();

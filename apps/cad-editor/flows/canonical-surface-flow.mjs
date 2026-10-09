@@ -204,7 +204,7 @@ try {
       return { pixelHash: actual.pixelHash, readIndex: actual.readIndex, width: actual.width, height: actual.height };
     };
     await page.getByTestId('cad-editor-weight').fill('0'); await page.getByTestId('cad-editor-apply').click();
-    await page.waitForFunction(() => window.__cadEditorFlow.error()?.message.includes('Native Surface control-net edit failed'));
+    await page.waitForFunction(() => window.__cadEditorFlow.error()?.code==='NATIVE');
     await page.getByRole('alert').first().waitFor();
     const refused = await snapshot();
     assert.deepEqual(refused.accepted, prior.accepted); assert.deepEqual(refused.history, prior.history); assert.equal(refused.pending.weight, '0');
@@ -273,6 +273,10 @@ try {
   if (args.includes('--inventory')) {
     const { runBodyInventoryFlow } = await import('./body-inventory-flow.mjs');
     await runBodyInventoryFlow({page:fresh,cad,editor,result,evidence,prefix,resolve,repo});
+  }
+  if(args.includes('--source-full')) {
+    const {runSourcePreservingFlow}=await import('./source-preserving-flow.mjs');
+    await runSourcePreservingFlow({page:fresh,browser,cad,editor,result,evidence,prefix,repo});
   }
   const retained = await fresh.evaluate(() => window.__cadEditorFlow.snapshot());
   await fresh.evaluate(() => window.__cadEditorFlow.setMounted(false));

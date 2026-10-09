@@ -194,7 +194,8 @@ export async function prepareCompiledCheckpoint({ repo, evidence }) {
     sourceFiles.add(resolve(repo, 'packages/barocss-cad-editor/src/styles.css'));
 
     const consumerPath = resolve(checkpoint, 'published-consumer.tsx');
-    await writeFile(consumerPath, `import { createCadEditorSession, createCadEditorFeatureSession, type CadEditorCandidate, type CadEditorFeatureSessionOptions, type CadEditorFeatureOutput } from '@barocss/cad-editor';
+    await writeFile(consumerPath, `import { editSourceSurfaceControlNet, validateSourceSurfaceControlNetEdit, type SourceSurfaceControlNetResult } from '@barocss/cad';
+import { createCadEditorSession, createCadEditorFeatureSession, type CadEditorCandidate, type CadEditorFeatureSessionOptions, type CadEditorFeatureOutput } from '@barocss/cad-editor';
 import { CadEditor, CadEditorFeature, type CadEditorProps, type CadEditorFeatureProps } from '@barocss/cad-editor/react';
 import { parseCadDocument, parseBooleanExtrusionFeatureGraph } from '@barocss/cad';
 const session = createCadEditorSession(parseCadDocument('{}').document);
@@ -219,6 +220,9 @@ const viewCandidate=featureSession.prepareDisplayOutputs(outputs);
 const viewGeneration:number=viewCandidate.baseDisplayGeneration;
 const extrusionCandidate=featureSession.prepareExtrusionTransaction({expectedRevision:0,revision:1,featureOperations:[]},outputs);
 const extrusionKind: 'apply'|'open'|'undo'|'redo'|'display'|'extrusion'=extrusionCandidate.kind;
+const sourceResult:SourceSurfaceControlNetResult=editSourceSurfaceControlNet({source:'',sourceVersion:0,surfaceId:'surface_fixture',edits:{poleEdits:[]}});
+validateSourceSurfaceControlNetEdit(sourceResult);
+const fullSource:string=sourceResult.source;
 const selectedFit:CadEditorFeatureProps={...featureProps,fitSelectedRequest:1};
 `);
     const consumerProgram = ts.createProgram([consumerPath], {

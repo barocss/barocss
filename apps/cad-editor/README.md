@@ -63,8 +63,8 @@ assets and sixteen bodies. Open asks for one to four visible objects before
 adoption. Checkboxes hide/reveal bodies without modifying native data. Fit selected
 uses actual native bounds, and actual canvas picking resolves a full qualified
 body reference. A foreign asset has the same Surface ID and remains unchanged.
-Multi-object Surface assets are explicitly read-only until a public native asset
-replacement writer exists. A hidden degree5Curve remains valid native content;
+Supported Surface poles in multi-object assets are editable through the actual
+whole-source API; Model names and sibling source/native data are retained. A hidden degree5Curve remains valid native content;
 showing its asset reaches the actual unsupported-preview refusal and retains
 the prior frame. Over-display-budget requests are refused without truncation.
 The genuine full-document download retains all hidden sources/models/body IDs
@@ -100,3 +100,13 @@ Select an extrusion and use Edit extrusion or Remove. Add extrusion offers liter
 History uses the current display set. If Undo would remove a newly displayed leaf, select a surviving extrusion, choose Show only selected, then retry Undo. No automatic view replacement occurs. Parameter creation/removal, suppression/reorder and general Face/Boolean creation remain separate work.
 
 Focused native lifecycle gate: `node apps/cad-editor/flows/extrusion-lifecycle-flow.mjs --headed --port 52012 --evidence <directory>`; add `--compiled` for actual built public root/React/CSS and explicit native runtime/types consumer. It checks genuine native file Download/fresh Open/re-edit, real GPU/refusal retention and explicit history view repair. This is not a broad publication/parity/release campaign.
+
+## Full-source Surface edits
+
+`node apps/cad-editor/flows/source-preserving-flow.mjs --headed --port 52012`
+runs the existing bounded draft/inventory gate and the full-source mixed Model
+fixture. Add `--compiled` to consume actual built public root/React/CSS and native
+runtime/types. Evidence defaults to evidence-cad-editor-source-full. It checks
+source comments/spelling/Model name/siblings, foreign/hidden assets, genuine
+Download/fresh Open/re-edit and the actual degree5 whole-asset preview refusal.
+Native source-edit eligibility and display admission are separate decisions.

@@ -60,7 +60,7 @@ export async function runDraftSelectionFlow({ page, cad, result, curveUnchanged,
   await page.getByTestId('cad-editor-u').selectOption('0');
   const beforeInvalid = await frame();
   await page.getByTestId('cad-editor-transition-apply').click();
-  await page.waitForFunction(() => window.__cadEditorFlow.error()?.cause?.includes('Weights must'));
+  await page.waitForFunction(() => window.__cadEditorFlow.error()?.causeChain?.some(cause=>cause.message.includes('Weights must')));
   await page.waitForFunction(read => window.__cadEditorFlow.display().readIndex > read, beforeInvalid.readIndex);
   const invalid = await snap();
   const invalidFrame = await frame();

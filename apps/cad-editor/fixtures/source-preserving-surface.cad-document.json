@@ -1,0 +1,95 @@
+{
+  "schema": "barocss-cad-document",
+  "version": 1,
+  "profile": "direct-geometry",
+  "documentId": "cad_source_preserved",
+  "revision": 7,
+  "units": {
+    "length": "mm",
+    "angle": "rad"
+  },
+  "nativeFrame": "authored-xyz-no-axis-conversion",
+  "assets": [
+    {
+      "id": "surface_asset",
+      "revision": 2,
+      "role": "authored-native-source",
+      "sourceVersion": 0,
+      "sourceFrame": "authored-xyz-no-axis-conversion",
+      "source": "@model original_workpiece { version:0; length-unit:mm; @surface #surface_fixture { type:nurbs; degree-u:2; degree-v:2; knots-u:[0,0,0,1,1,1]; knots-v:[0,0,0,1,1,1]; /* 원본 제어점: preserve this Unicode comment. */\n  control-points:[[[0.00,-0,0.000],[0,20,3],[0,40,0]],[[30,0,5],[30,20,18],[30,40,5]],[[60,0,0],[60,20,3],[60,40,0]]]; weights:[[1,1,1],[1,1.5,1],[1,1,1]]; } \n  /* Reference line stays exact after a selected Surface edit. */\n  @curve #sibling_line { type:nurbs; degree:1; knots:[-0,-0,1,1]; control-points:[[75,-10,-5],[75,50,-5]]; weights:[1,1]; }\n  @surface #sibling_plane { type:nurbs; degree-u:1; degree-v:1; knots-u:[0,0,1,1]; knots-v:[0,0,1,1]; control-points:[[[80,-10,-8],[80,10,-8]],[[90,-10,-8],[90,10,-8]]]; weights:[[1,1],[1,1]]; }\n  /* End of original three-object Model. */\n}\n"
+    },
+    {
+      "id": "curve_asset",
+      "revision": 0,
+      "role": "authored-native-source",
+      "sourceVersion": 0,
+      "sourceFrame": "authored-xyz-no-axis-conversion",
+      "source": "@model reference_line { version:0; length-unit:mm; @curve #reference_line { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[-15,-10,-5],[-15,50,-5]]; weights:[1,1]; } }\n"
+    },
+    {
+      "id": "foreign_asset",
+      "revision": 3,
+      "role": "authored-native-source",
+      "sourceVersion": 0,
+      "sourceFrame": "authored-xyz-no-axis-conversion",
+      "source": "@model foreign_model { version:0; length-unit:mm; @surface #surface_fixture { type:nurbs; degree-u:2; degree-v:2; knots-u:[0,0,0,1,1,1]; knots-v:[0,0,0,1,1,1]; control-points:[[[80,-0,6],[80,20,6],[80,40,6]],[[110,0,6],[110,20,6],[110,40,6]],[[140,0,6],[140,20,6],[140,40,6]]]; weights:[[1,1,1],[1,1.5,1],[1,1,1]]; }  @curve #reference_line { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[70,-10,-5],[70,50,-5]]; weights:[1,1]; } @curve #foreign_line_1 { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[75,-10,-5],[75,50,-5]]; weights:[1,1]; } @curve #foreign_line_2 { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[80,-10,-5],[80,50,-5]]; weights:[1,1]; } @curve #foreign_line_3 { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[85,-10,-5],[85,50,-5]]; weights:[1,1]; } }\n"
+    },
+    {
+      "id": "hidden_asset",
+      "revision": 5,
+      "role": "authored-native-source",
+      "sourceVersion": 0,
+      "sourceFrame": "authored-xyz-no-axis-conversion",
+      "source": "@model hidden_lines { version:0; length-unit:mm; @curve #reference_line { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[155,-10,-5],[155,50,-5]]; weights:[1,1]; } @curve #line_1 { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[161,-10,-5],[161,50,-5]]; weights:[1,1]; } @curve #line_2 { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[167,-10,-5],[167,50,-5]]; weights:[1,1]; } @curve #line_3 { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[173,-10,-5],[173,50,-5]]; weights:[1,1]; } @curve #line_4 { type:nurbs; degree:5; knots:[0,0,0,0,0,0,1,1,1,1,1,1]; control-points:[[155,0,0],[155,10,0],[155,20,0],[155,30,0],[155,40,0],[155,50,0]]; weights:[1,1,1,1,1,1]; } }\n"
+    }
+  ],
+  "bodies": [
+    {
+      "id": "surface_body",
+      "name": "Weighted surface",
+      "kind": "direct-geometry-object",
+      "assetId": "surface_asset",
+      "geometryId": "surface_fixture"
+    },
+    {
+      "id": "sibling_line_body",
+      "name": "Reference in surface asset",
+      "kind": "direct-geometry-object",
+      "assetId": "surface_asset",
+      "geometryId": "sibling_line"
+    },
+    {
+      "id": "sibling_plane_body",
+      "name": "Reference plane",
+      "kind": "direct-geometry-object",
+      "assetId": "surface_asset",
+      "geometryId": "sibling_plane"
+    },
+    {
+      "id": "curve_body",
+      "name": "Reference line",
+      "kind": "direct-geometry-object",
+      "assetId": "curve_asset",
+      "geometryId": "reference_line"
+    },
+    {
+      "id": "foreign_surface_body",
+      "name": "Foreign surface",
+      "kind": "direct-geometry-object",
+      "assetId": "foreign_asset",
+      "geometryId": "surface_fixture"
+    },
+    {
+      "id": "hidden_curve_body",
+      "name": "Hidden original curve",
+      "kind": "direct-geometry-object",
+      "assetId": "hidden_asset",
+      "geometryId": "line_4"
+    }
+  ],
+  "features": [],
+  "parameters": [],
+  "constraints": [],
+  "placements": [],
+  "derivedCaches": []
+}
