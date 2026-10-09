@@ -75,7 +75,7 @@ Surface; foreign same-ID geometry stays exact. Native file budget is2MiB.
 
 File → New Boolean extrusion opens the separate feature workspace. The tree shows actual native Face/Boolean/extrusion dependencies. Length controls edit literal values or offsets from existing parameters. Select Combine faces to change union/intersection/difference, then Apply. Discard removes unapplied values. Surface and feature modes retain their host sessions when navigating between them.
 
-The workspace uses the public native Boolean graph evaluator/updater/serializer and the existing qualified native mesh/GPU Shell renderer. The native profile is two coplanar Faces →Boolean →normal extrusion, not two solids. Suppression is unavailable. Parameter/feature lifecycle creation/removal, full parametric constraints, assembly, Viewer Shell selection and certified solid modeling are later contracts. Original inclined authored XYZ/mm stays intact; display scale is0.01.
+The workspace uses the public native Boolean graph evaluator/updater/serializer and the existing qualified native mesh/GPU Shell renderer. The native profile is two coplanar Faces →Boolean →normal extrusion, not two solids. Extrusion/length lifecycle and referenced Face/Boolean replacement use the bounded workflows below. Suppression, full parametric constraints, assembly, Viewer Shell pointer selection and certified solid modeling remain unavailable. Original inclined authored XYZ/mm stays intact; display scale is0.01.
 
 Download saves the accepted authored graph. Open reads that same graph format and requires the configured extrusion/output slot. Pending fields and display state are excluded from files. Invalid length/dependency/contact/file/native mesh/GPU changes retain accepted graph/history/draft/frame. Help contains technical profile details.
 
@@ -140,3 +140,41 @@ Close help returns focus to Help and keeps raw fields and repair choices. The lo
 repair list scrolls inside fixed title/actions. Text Enter does not apply a modal
 edit; use its explicit Add/Apply/Remove button. Technical native causes are
 expandable inside Help.
+
+## Replace referenced features
+
+Use **Replace** in a Face or **Combine faces** sidebar row. Face replacement keeps
+the actual authored Plane and ordered Line input and creates a fresh logical
+feature and output slot. It changes identity and references, not coordinates or
+imported geometry. Combination replacement copies the original operands and
+budgets, creates a fresh native evaluation/prefix context, and offers Union,
+Intersection and Difference. Generated IDs stay in native data; task controls
+show **Face replacement N** or **Combine faces N**.
+
+Choose **Use replacement face** for every direct dependent Boolean operand, or
+**Use replacement combination** for every dependent extrusion. All repair choices
+start unchecked. Only checked feature upserts enter one actual native feature
+transaction, followed by removal of the original target. Missing or partial
+repairs reach the native dependency refusal. There is no automatic cascade,
+parameter transaction or extrusion creation/removal in this action. Existing
+leaf distances, slots, options, source inputs and parameter definitions remain
+authoritative. Apply or discard existing scalar drafts before replacement.
+
+The dialog keeps the accepted viewport while choosing; it does not preview
+pending operations. A native, mesh or GPU refusal retains the operation, checked
+repairs, error, accepted graph/history, camera and fresh frame. Replace closes only
+after actual bridge acceptance and focuses the new row's Replace button without
+selecting it. Cancel/Escape restores the old trigger. Nested **Help** closes to
+its Help trigger and preserves all choices and errors; native/API limits and
+technical diagnostic details stay there. The fixed dialog header/footer and
+scrolling body keep actions reachable without resizing the viewport.
+
+The narrow facade uses `prepareReferencedFeatureTransaction` with the actual
+`BooleanExtrusionFeatureTransaction`: expected revision, exact next revision and
+1–8 unique feature operations. The native provider owns whole graph admission,
+working capacity8, final two Faces/one Boolean/1–4 extrusion leaves, stable
+existing identities/options and fresh replacement names. All current selected
+qualified meshes enter one actual GPU Shell scene update and RGBA read before
+commit. Native suppression, feature reorder and general solid Boolean remain
+unsupported. Undo/Redo restores the complete authored structure with the current
+logical extrusion display choice. Download serializes only accepted native data.

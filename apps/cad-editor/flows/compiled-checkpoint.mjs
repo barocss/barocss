@@ -219,9 +219,11 @@ const outputs:CadEditorFeatureOutput[]=displays.map(display=>({selection:display
 const viewCandidate=featureSession.prepareDisplayOutputs(outputs);
 const viewGeneration:number=viewCandidate.baseDisplayGeneration;
 const extrusionCandidate=featureSession.prepareExtrusionTransaction({expectedRevision:0,revision:1,featureOperations:[]},outputs);
-const extrusionKind: 'apply'|'open'|'undo'|'redo'|'display'|'extrusion'|'parameter'=extrusionCandidate.kind;
+const extrusionKind: 'apply'|'open'|'undo'|'redo'|'display'|'extrusion'|'parameter'|'structure'=extrusionCandidate.kind;
 const parameterCandidate=featureSession.prepareParameterTransaction({expectedRevision:0,revision:1,parameterOperations:[],distanceEdits:[]});
-const parameterKind:'apply'|'open'|'undo'|'redo'|'display'|'extrusion'|'parameter'=parameterCandidate.kind;
+const structureCandidate=featureSession.prepareReferencedFeatureTransaction({expectedRevision:0,revision:1,featureOperations:[]});
+const parameterKind:'apply'|'open'|'undo'|'redo'|'display'|'extrusion'|'parameter'|'structure'=parameterCandidate.kind;
+const structureKind:typeof parameterKind=structureCandidate.kind;
 const sourceResult:SourceSurfaceControlNetResult=editSourceSurfaceControlNet({source:'',sourceVersion:0,surfaceId:'surface_fixture',edits:{poleEdits:[]}});
 validateSourceSurfaceControlNetEdit(sourceResult);
 const fullSource:string=sourceResult.source;

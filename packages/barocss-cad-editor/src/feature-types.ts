@@ -28,7 +28,7 @@ export interface CadEditorFeatureOutput {
 }
 export interface CadEditorFeatureCandidate {
   token: string; baseGeneration: number; baseDisplayGeneration: number;
-  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'extrusion' | 'parameter';
+  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'extrusion' | 'parameter' | 'structure';
   result: BooleanExtrusionFeatureGraphResult;
   display: CadEditorFeatureDisplay;
   displays: CadEditorFeatureDisplay[];
@@ -60,6 +60,7 @@ export interface CadEditorFeatureSession {
   prepareDisplayOutputs(outputs: CadEditorFeatureOutput[]): CadEditorFeatureCandidate;
   prepareExtrusionTransaction(request: BooleanExtrusionFeatureTransaction, postDisplayOutputs?: CadEditorFeatureOutput[]): CadEditorFeatureCandidate;
   prepareParameterTransaction(request: BooleanExtrusionParameterTransaction): CadEditorFeatureCandidate;
+  prepareReferencedFeatureTransaction(request: BooleanExtrusionFeatureTransaction): CadEditorFeatureCandidate;
   prepareUndo(): CadEditorFeatureCandidate;
   prepareRedo(): CadEditorFeatureCandidate;
   acceptCandidate(token: string): CadEditorFeatureSnapshot;

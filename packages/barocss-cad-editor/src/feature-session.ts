@@ -141,6 +141,41 @@ function extrusionRequest(input: BooleanExtrusionFeatureTransaction, previous: B
   }
   return own as unknown as BooleanExtrusionFeatureTransaction;
 }
+function referencedRequest(input: BooleanExtrusionFeatureTransaction, previous: BooleanExtrusionFeatureGraphResult): BooleanExtrusionFeatureTransaction {
+  const field = 'referenced-feature-transaction', context = { documentId: previous.document.id, field };
+  const own = record(input, ['expectedRevision', 'revision', 'featureOperations'], field);
+  check(Array.isArray(own.featureOperations), 'INPUT', 'Use the native feature operation array.', context);
+  let structural = false;
+  for (const operationInput of own.featureOperations) {
+    check(operationInput !== null && typeof operationInput === 'object' && !Array.isArray(operationInput),
+      'INPUT', 'Use a plain native feature operation.', context);
+    const kind = (operationInput as Record<string, unknown>).kind;
+    check(kind === 'upsert' || kind === 'remove', 'UNSUPPORTED', 'Referenced feature transactions support Upsert and Remove only.', context);
+    const fields = record(operationInput, kind === 'upsert' ? ['kind', 'feature'] : ['kind', 'featureId'], field);
+    if (kind === 'upsert') {
+      check(fields.feature !== null && typeof fields.feature === 'object' && !Array.isArray(fields.feature),
+        'INPUT', 'Use an authored native feature.', context);
+      const feature = fields.feature as Record<string, unknown>;
+      if (feature.kind === 'face-input' || feature.kind === 'coplanar-boolean') structural = true;
+      else {
+        const starting = previous.document.features.find(row => row.id === feature.id);
+        check(feature.kind === 'normal-extrusion' && starting?.kind === 'normal-extrusion',
+          'UNSUPPORTED', 'Only existing extrusion region references can be repaired here.', context);
+        const { regionFeatureId: previousRegion, ...before } = starting;
+        const { regionFeatureId: nextRegion, ...after } = feature;
+        void previousRegion; void nextRegion;
+        check(same(before, after), 'UNSUPPORTED', 'Keep every extrusion field unchanged except its region reference.', context);
+      }
+    } else {
+      const starting = previous.document.features.find(row => row.id === fields.featureId);
+      check(starting?.kind === 'face-input' || starting?.kind === 'coplanar-boolean',
+        'UNSUPPORTED', 'Only starting Face or Boolean features can be removed here.', context);
+      structural = true;
+    }
+  }
+  check(structural, 'UNSUPPORTED', 'Include at least one Face or Boolean operation.', context);
+  return own as unknown as BooleanExtrusionFeatureTransaction;
+}
 function options(input: CadEditorFeatureSessionOptions): CadEditorFeatureSessionOptions {
   const own = record(input, ['native', 'display', 'mesh'], 'feature-options');
   const display = record(own.display, ['featureId', 'outputSlotId'], 'feature-display');
@@ -376,6 +411,15 @@ export function createCadEditorFeatureSession(document: BooleanExtrusionFeatureG
         { documentId: accepted.document.id, field: 'parameter-transaction' });
       return prepare('parameter', result);
     },
+    prepareReferencedFeatureTransaction(request) {
+      live(); requireResolvedDraft();
+      check(prepared === null, 'INPUT', 'Resolve the current feature candidate first.',
+        { documentId: accepted.document.id, field: 'referenced-feature-transaction' });
+      const ownedRequest = referencedRequest(copyRequest(request, 'referenced-feature-transaction'), accepted);
+      const result = native(() => transactBooleanExtrusionFeatureGraphFeatures(accepted, ownedRequest), 'Native referenced feature transaction failed.',
+        { documentId: accepted.document.id, field: 'referenced-feature-transaction' });
+      return prepare('structure', result);
+    },
     prepareUndo() { return restore(-1); },
     prepareRedo() { return restore(1); },
     acceptCandidate(token) {
@@ -390,7 +434,7 @@ export function createCadEditorFeatureSession(document: BooleanExtrusionFeatureG
       }
       const state: HistoryState = { document: copy(result.document), bytes: fileBudget(serialize(result)) };
       if (current.candidate.kind === 'open') { history = [state]; historyIndex = 0; selectedFeatureId = null; }
-      else if (current.candidate.kind === 'apply' || current.candidate.kind === 'extrusion' || current.candidate.kind === 'parameter') {
+      else if (current.candidate.kind === 'apply' || current.candidate.kind === 'extrusion' || current.candidate.kind === 'parameter' || current.candidate.kind === 'structure') {
         history = [...history.slice(0, historyIndex + 1), state];
         while (history.length > HISTORY_LIMIT || historyBytes() > HISTORY_BYTES) history.shift();
         historyIndex = history.length - 1;

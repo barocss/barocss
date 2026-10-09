@@ -260,3 +260,30 @@ Logical display choices/displayGeneration and surviving feature selection stay
 unchanged. A transaction that restates a value still follows the native revision
 policy. Native/mesh/display refusal keeps prior accepted state. Host modal raw
 values and explicit repair choices remain outside the native file.
+
+## Referenced feature transactions
+
+`prepareReferencedFeatureTransaction(request)` consumes the actual CAD
+`BooleanExtrusionFeatureTransaction` through a separate structural facade.
+Include at least one Face or coplanar Boolean upsert/removal. Existing extrusion
+upserts may repair only `regionFeatureId`; their IDs, slots, distance definitions
+and native options must remain bit-identical. Creating/removing leaves, changing
+their heights/options, parameter lifecycle, suppression and reorder use neither
+this method nor an implicit combined transaction.
+
+Supply every dependent operand or region repair explicitly in the same request.
+For example, replace a Face with a fresh logical ID/slot, upsert its dependent
+Boolean operand, then remove the old Face. To replace a Boolean, explicitly
+upsert each dependent extrusion region reference before removing the old node.
+Use authored Face input, not evaluated mesh data. The native provider owns stable
+IDs/options, identity reservation, exact revision advance, dependency/profile
+admission, 1..8 operations, working capacity eight and final two-Face/one-Boolean/
+one-to-four-extrusion limits. Missing repairs reach actual native refusal.
+
+Unresolved scalar drafts and active candidates refuse preparation. Native result
+and every current selected mesh are prepared before GPU admission and a fresh
+RGBA read permit acceptance. Acceptance records one authored history state and
+advances native generation/revision; logical output choice and displayGeneration
+stay unchanged. Removed tree selection is cleared. Native, mesh and GPU failures
+retain the previous accepted graph, history, view and dialog choices. Save/Open
+retains the complete authored graph; Undo/Redo retains the current output choice.

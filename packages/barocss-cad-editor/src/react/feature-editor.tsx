@@ -54,6 +54,9 @@ function numberText(value: number) { return Object.is(value, -0) ? '-0' : String
 function displayName(value: string): string {
   const generatedLength = /^ce_length_(\d+)$/.exec(value);
   if (generatedLength) return 'Length ' + generatedLength[1];
+  const faceReplacement = /^rf(\d+)_face$/.exec(value), booleanReplacement = /^rb(\d+)_combine$/.exec(value);
+  if (faceReplacement) return 'Face replacement ' + faceReplacement[1];
+  if (booleanReplacement) return 'Combine faces ' + booleanReplacement[1];
   const names: Record<string, string> = { face_a_feature: 'Face A', face_b_feature: 'Face B',
     boolean_feature: 'Combine faces', extrusion_feature: 'Extrusion', base_height: 'Base height',
     design_height: 'Extrusion height', unused: 'Reference length', leaf_middle: 'Extrusion 2',
@@ -383,7 +386,7 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
             <DialogDescription>Boolean operations, shared lengths and editing limits.</DialogDescription></DialogHeader>
             <div className="cad-editor-help-body">
               <p>This profile evaluates two authored planar face inputs, one coplanar Boolean operation and 1–4 normal extrusions. You can add, edit and remove extrusion leaves.</p>
-              <p>You can add, edit and remove shared lengths. Reordering features, native suppression and general Face or Boolean creation/removal are unavailable.</p>
+              <p>You can add, edit and remove shared lengths. Referenced Face and Boolean features can be replaced through explicit repairs. Reordering, native suppression and general Face or Boolean creation/removal remain unavailable.</p>
               <p>The extrusions can share the same Boolean region and length parameters. A shared edit rebuilds every native output.</p>
               <h3>Extrusion changes</h3>
               <p>Add extrusion uses the current Boolean region. Choose a literal height in mm or an existing length parameter plus an offset. Edit extrusion keeps its existing identity and output slot.</p>
@@ -397,6 +400,15 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
               <p>Parameter lifecycle uses prepareParameterTransaction and the actual transactBooleanExtrusionFeatureGraphParameters provider. One transaction contains 1–16 unique parameter operations and 0–4 explicit extrusion distance repairs. Temporary table capacity is 16; the final authored table contains 0–8 parameters.</p>
               <p>Parameter and extrusion lifecycle transactions stay separate. Apply or discard existing scalar drafts first. Every accepted parameter transaction follows the native revision policy, adds one native history entry and rebuilds all displayed output references. The logical display choice and selected feature remain unchanged.</p>
               <p>Undo and Redo restore the complete authored parameter table and distance definitions. Downloads contain accepted native data, not pending dialog values, repairs, camera or visibility.</p>
+              <h3>Referenced feature replacement</h3>
+              <p>Use Replace in a Face or combination row. Face replacement keeps the actual authored Plane and ordered Line input and creates a fresh logical feature and output slot. It does not edit coordinates or use mesh-derived geometry.</p>
+              <p>Combination replacement copies the original operands and budgets, uses Union, Intersection or Difference, and creates a fresh logical/native evaluation context.</p>
+              <p>Direct dependent Boolean operands and extrusion regions start unchecked. Only chosen repairs enter the same transaction before the old target is removed. Missing repairs reach the actual native dependency refusal. There is no cascade or automatic replacement.</p>
+              <p>The current accepted scene stays in place while you choose. Help closes to its trigger without changing operation, repair choices or errors. Cancel or Escape drops only dialog choices and restores the original Replace trigger.</p>
+              <p>Acceptance follows full native evaluation, all selected qualified meshes, one complete GPU scene admission and a fresh RGBA read. It focuses the new Replace row without selecting that feature. Native or GPU refusal retains dialog choices, accepted graph, history, view and raw drafts.</p>
+              <p>prepareReferencedFeatureTransaction consumes the actual transactBooleanExtrusionFeatureGraphFeatures provider. The request has 1–8 unique targets, a working table of at most 8 and a final two-Face/one-Boolean/1–4-extrusion graph.</p>
+              <p>Existing extrusion repairs change only their region reference. This workflow does not create/remove extrusions, edit their distances or options, change parameters, reorder or suppress features. Undo and Redo restore complete authored identities, references and operation.</p>
+              <p>Manual topics: Referenced feature transactions in the package README; Replace referenced features in the app README.</p>
               <h3>Displayed outputs</h3>
               <p>Show, hide and solo change only the displayed outputs. They do not suppress or delete native features. One GPU scene uses depth to combine the displayed meshes. Nested extrusions with the same footprint can cover each other.</p>
               <p>Outputs share one display material. Use Show only selected to inspect overlapping leaves. The editor does not move outputs apart or change their authored coordinates.</p>
