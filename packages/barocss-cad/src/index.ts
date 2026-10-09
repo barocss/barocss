@@ -245,3 +245,6 @@ export type { MultiSectionLoftOptions, MultiSectionLoftProvenance, MultiSectionL
 
 export { transformNativeGeometryAffine, validateAffineGeometryTransform, AffineGeometryTransformError, AffineGeometryTransformDiagnosticCode } from './affine-geometry-transform.js';
 export type { CadAffineMatrix3x4, AffineGeometryTransformOptions, AffineGeometryTransformObservation, AffineGeometryTransformReport, AffineGeometryTransformResult } from './affine-geometry-transform.js';
+
+export { buildLinearGeometryPattern, validateLinearGeometryPattern, LinearGeometryPatternError, LinearGeometryPatternDiagnosticCode } from './linear-geometry-pattern.js';
+export type { LinearGeometryPatternOptions, LinearGeometryPatternInstance, LinearGeometryPatternReport, LinearGeometryPatternResult } from './linear-geometry-pattern.js';
