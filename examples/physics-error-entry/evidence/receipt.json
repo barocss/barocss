@@ -1,0 +1,74 @@
+{
+  "issue": 1022,
+  "stage": "native implementation complete; Integration pending",
+  "contract": "https://github.com/barocss/barocss/issues/1022#issuecomment-6082089711",
+  "dependency": {
+    "issue": 1010,
+    "acceptedCommit": "ab81aacade3def44e1736ab0b935a8f6b72278ae",
+    "receipt": "https://github.com/barocss/barocss/issues/1010#issuecomment-6081921614"
+  },
+  "branch": "codex/physics-error-1022",
+  "parent": "ab81aacade3def44e1736ab0b935a8f6b72278ae",
+  "baselineHarness": "31b0e35f3e72f0d152ea35894a79a2cf80699c50",
+  "measuredCleanSource": "3807229443f0f5de1c2b035e995a341913e1d705",
+  "baseline": {
+    "file": "baseline-compiled.json",
+    "sourceTreeDirty": false,
+    "rootDifferentFromThreeSubpaths": true,
+    "allExistingErrorBehaviorPassed": true,
+    "scope": "Expected observed constructor discrepancy; prior identity was not promised"
+  },
+  "repair": {
+    "file": "packages/barocss-physics/package.json",
+    "change": "build:library adds --external:./types.js only",
+    "allOtherManifestFieldsUnchanged": true,
+    "kernelTypeClassApiSourceChanged": false,
+    "readme": "shared class within one own package; compiled root requires sibling dist/types.js"
+  },
+  "source": {
+    "sourceFiles": 186,
+    "compiledFiles": 0,
+    "sourceTreeDirty": false,
+    "constructorsEqual": true,
+    "genuineErrors": 6,
+    "errorInstancesMatchAllFourEntries": true,
+    "normalResolution": true
+  },
+  "compiled": {
+    "sourceFiles": 0,
+    "compiledFiles": 162,
+    "sourceTreeDirty": false,
+    "constructorsEqual": true,
+    "genuineErrors": 6,
+    "errorInstancesMatchAllFourEntries": true,
+    "publishedMapResolutions": 5,
+    "physicsJsDeclarationTargetsExist": 12
+  },
+  "checks": {
+    "baselineAffectedBuild": "exit0 at ab81aac",
+    "firstFixedWorkingBuild": "exit0 before fixed source commit, retained separately",
+    "canonicalFixedBuild": "exit0 at clean38072294",
+    "moduleSyntax": "passed",
+    "scopedDiff": "passed",
+    "readOnlyReview": "no material issue",
+    "preservedCodesNamesMessagesCauseState": "all six cases equal across baseline/source/compiled",
+    "rigidInvalidDtCompleteStateRetention": true,
+    "clothStepsPerFlow": 1
+  },
+  "browserBundle": {
+    "entry": "examples/physics-viewer-scene/joint-demo.js",
+    "result": "passed",
+    "sourceTreeDirty": false,
+    "physicsDistRootAndSiblingTypesActuallyConsumed": true,
+    "scope": "bundle resolution only; no new browser/WebGL/Viewer pixel or timing acceptance"
+  },
+  "scope": "One own package module graph; no identity across versions/realms/independent consumer bundles; no packed/archive/publication or solver performance claim",
+  "integration": "Pending exact native adoption plus affected build/short public source+compiled consumer receipt; Issue stays OPEN",
+  "commands": [
+    "pnpm --filter @barocss/physics build:library",
+    "node examples/physics-error-entry/setup.mjs",
+    "node examples/physics-error-entry/probe.mjs source",
+    "node examples/physics-error-entry/probe.mjs compiled"
+  ],
+  "productPushPrDeployRelease": "not performed"
+}

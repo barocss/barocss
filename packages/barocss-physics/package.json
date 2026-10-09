@@ -41,7 +41,7 @@
   "types": "./src/index.ts",
   "files": ["src", "dist", "README.md", "LICENSE"],
   "scripts": {
-    "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=dist/index.js"
+    "build:library": "tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --external:./types.js --outfile=dist/index.js"
   },
   "dependencies": {
     "@barocss/cad": "workspace:*"

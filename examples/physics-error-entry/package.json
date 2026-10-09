@@ -1,0 +1,9 @@
+{
+  "name": "@barocss/physics-error-entry-example",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@barocss/cad": "workspace:*",
+    "@barocss/physics": "workspace:*"
+  }
+}
