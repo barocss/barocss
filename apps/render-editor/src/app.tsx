@@ -3,6 +3,7 @@ import { Box, ChevronRight, FilePlus2, FolderOpen, Grid2X2, RotateCcw, Save, Und
 import {
   createRenderEditorController, createRenderEditorSession, parseRenderEditorDocument,
   serializeRenderEditorDocument,
+  RENDER_EDITOR_LIMITS,
 } from '@barocss/render-editor';
 import type { RenderEditorError, RenderSceneDocumentV0 } from '@barocss/render-editor';
 import { RenderEditor } from '@barocss/render-editor/react';
@@ -29,6 +30,8 @@ function errorCopy(error: Error, operation: ErrorOperation, presentedRevision: n
   const code = errorCode(error);
   if (operation === 'open') {
     if (code === 'DOCUMENT_BYTES') return 'File could not open. Use a Render Editor file of 256 KiB or less. The current scene is unchanged.';
+    if (code === 'DOCUMENT_VERSION') return 'This file format is not supported. Choose a Render Editor scene file. The current scene is unchanged.';
+    if (code === 'SOURCE_REFUSED') return 'The file source has an error. Correct it or choose another scene file. The current scene is unchanged.';
     if (code === 'PRESENTATION_REFUSED' && presentedRevision === null) return 'File could not open. The current scene is unchanged. Restore the preview, then open the file again.';
     if (code === 'PRESENTATION_REFUSED') return 'File could not open. The previous scene is still shown. The current scene is unchanged. Try Open again.';
     return 'File could not open. The current scene is unchanged. Check the Render Editor file and try again.';
@@ -157,7 +160,7 @@ export function App() {
       const document = parseRenderEditorDocument(text);
       rememberAccepted();
       adopt(document, 'file');
-    } catch (error) { if (token === fileReadToken.current) report(error, 'open'); }
+    } catch (error) { if (token === fileReadToken.current) report(error, 'open', file.size > RENDER_EDITOR_LIMITS.fileBytes ? 'The file is too large. Choose a scene file of 256 KiB or less. The current scene is unchanged.' : undefined); }
     finally { if (token === fileReadToken.current) setBusy(false); }
   }
 
