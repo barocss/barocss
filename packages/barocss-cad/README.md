@@ -6872,7 +6872,9 @@ edit refuses. A nonempty same-value edit can advance revision. Any failed edit
 returns no replacement result and leaves earlier data intact.
 
 Original native IDs can repeat across the two operand contexts. Native references
-therefore include graph, revision, feature and output-slot context. Generated
+therefore include graph, revision, feature and output-slot context. Each binding
+lists entities defined by its owning feature. Original operand references stay
+in the complete native evaluations and resolve through input dependencies. Generated
 ordinal names are current native roles, not persistent topology names. Earlier
 revision-qualified references become stale when the caller advances revision.
 A fresh authored file is a declared snapshot; it does not prove external history.
