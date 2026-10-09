@@ -1,0 +1,58 @@
+{
+  "parent": "1817567e02432916295f3d517849a5947f3108d0",
+  "measuredCleanSource": "69de9359d220699287fa77d3fe832bca09eb40bb",
+  "branch": "codex/physics-capsule-reuse-830",
+  "node": "v22.22.0",
+  "browser": "155.0.8059.39",
+  "sourceTreeDirty": false,
+  "contract": "https://github.com/barocss/barocss/issues/830#issuecomment-6086709289",
+  "nativeDecision": "Bounded fixed-reference GO; public API/controller/Viewer not implemented",
+  "fixedCases": 22,
+  "allOriginalInputOutputBitsAndIdentitiesErrorsMatch": true,
+  "allBaselineFilesUnchanged": true,
+  "rawTotalBytes": 7048,
+  "refusals": 19,
+  "workCounts": [
+    {
+      "name": "32-identical",
+      "sourceCount": 32,
+      "groupCount": 1,
+      "actualSweeps": 1
+    },
+    {
+      "name": "32-distinct",
+      "sourceCount": 32,
+      "groupCount": 32,
+      "actualSweeps": 32
+    },
+    {
+      "name": "excluded-singleton",
+      "sourceCount": 1,
+      "groupCount": 1,
+      "actualSweeps": 0
+    }
+  ],
+  "nodeCap32P95Ms": [
+    0.20579200000003084,
+    0.04370899999997846,
+    0.03412500000001728
+  ],
+  "browserCap32P95Ms": [
+    0.10000000894069672,
+    0.19999998807907104,
+    0.10000000894069672
+  ],
+  "browserMinimumObservedPositiveClockIncrementMs": 0.09999999403953552,
+  "errors": [],
+  "warnings": [],
+  "actualViewerExecuted": false,
+  "distinct32GeometryCostMeasured": false,
+  "assetInstancingAcrossDifferentPosesAdmitted": false,
+  "affectedProductBuild": "none required; plain ESM research only",
+  "packedCompiledPublicConsumerExecuted": false,
+  "productPushPRDeployPublishRelease": false,
+  "ownBrowserServerClosed": "driver finally; process exit0",
+  "firstCampaignFailure": null,
+  "firstControlsFailure": null,
+  "review": "no remaining defect found; helpers stopped numerical work before serial timing"
+}
