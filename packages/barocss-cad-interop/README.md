@@ -481,8 +481,8 @@ not a native Surface, solid, B-Rep or manufacturing certificate.
 
 The optional `./boolean-extrusion-feature-graph` entry reads the authored
 CAD graph0 text. It returns the original text and the complete evaluated
-native result from the public CAD parser. The host reads and retains file
-bytes; this entry does not fetch URLs or choose a renderer.
+native result from the public CAD parser. The host can read and retain file
+bytes itself. Neither reader chooses a renderer.
 
 ```js
 import { readFileSync } from 'node:fs';
@@ -513,6 +513,35 @@ After building CAD and interop, run
 with the seven authentic #903 authored files. It checks file hashes,
 native geometry, a real height edit and cold read, prior-data retention and
 refusals. It does not prove a renderer or npm publication.
+
+The same subpath also exports `loadBaroCadBooleanExtrusionFeatureGraph` for
+absolute HTTP(S) URLs. It reads a bounded byte stream with fatal UTF-8
+decoding, then calls the text reader once. The returned DTO is the same.
+
+```js
+import { loadBaroCadBooleanExtrusionFeatureGraph }
+  from '@barocss/cad-interop/boolean-extrusion-feature-graph';
+
+const controller = new AbortController();
+const accepted = await loadBaroCadBooleanExtrusionFeatureGraph(
+  'https://example.test/part.authored-graph.json',
+  { maximumParameterResolutions: 8, maximumFeatureEvaluations: 4 },
+  { signal: controller.signal, onProgress(event) {
+    console.log(event.loadedBytes, event.declaredTotalBytes);
+  } },
+);
+```
+
+The URL reader enforces the native 1 MiB file limit on both declared and
+received bytes, at most 4,096 chunks, and the existing abort/progress
+contract. Callback `false` aborts; a callback error propagates unless the
+signal was aborted. Abort is checked before and during download and after
+parsing. It cannot interrupt synchronous native evaluation. The host still
+owns original response bytes if it needs to preserve them separately.
+Run `node examples/boolean-extrusion-feature-graph-url-verify.mjs --source
+<saved-903-directory>` after the affected builds for seven actual saved
+files over local HTTP, 21 progress events and 14 refusal cases. No
+renderer, packed npm or publication follows from this URL flow.
 
 ### Display native filled Boolean extrusion Shells in Three.js
 
