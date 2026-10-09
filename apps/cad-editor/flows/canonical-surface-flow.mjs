@@ -21,7 +21,7 @@ const result = { mode, node: process.version, events: [], pageErrors: [], outcom
 const save = () => writeFileSync(resolve(evidence, prefix + '.json'), JSON.stringify(result, null, 2));
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const fixture = resolve(repo, 'apps/cad-editor/fixtures/canonical-surface-and-curve.cad-document.json');
-let server, browser, context;
+let server, browser, context, activePage;
 let serverExited = false;
 
 try {
@@ -104,7 +104,7 @@ try {
   result.runtime = { playwright: runtime, executablePath };
   const require = createRequire(resolve(repo, 'package.json'));
   const vite = resolve(dirname(require.resolve('vite/package.json')), 'bin/vite.js');
-  server = spawn(process.execPath, [vite, '--host', '127.0.0.1', '--port', String(port)], {
+  server = spawn(process.execPath, [vite, '--force', '--host', '127.0.0.1', '--port', String(port)], {
     cwd: resolve(repo, 'apps/cad-editor'), env: { ...process.env, ...(compiled ? { CAD_EDITOR_COMPILED_MAP: runtimeMapPath } : {}) }, stdio: ['ignore', 'pipe', 'pipe'],
   });
   let serverLog = '';
@@ -114,13 +114,17 @@ try {
   const deadline = Date.now() + 20000;
   while (true) {
     assert.equal(serverExited, false, 'The owned Vite server exited.');
-    try { if ((await fetch(url)).ok) break; } catch {}
+    assert.ok(!serverLog.includes('already in use'), 'The port is occupied; do not connect to another Work server.');
+    if (serverLog.includes(`http://127.0.0.1:${port}/`)) {
+      try { if ((await fetch(url)).ok) break; } catch {}
+    }
     assert.ok(Date.now() < deadline, 'Vite startup timed out.');
     await new Promise(resolve => setTimeout(resolve, 100));
   }
+  result.ownedServer = {port, pid:server.pid, worktree:repo, url, childListeningConfirmed:true};
   browser = await chromium.launch({ headless: !args.includes('--headed'), executablePath });
   context = await browser.newContext({ viewport: { width: 1440, height: 960 }, deviceScaleFactor: 1, acceptDownloads: true });
-  const page = await context.newPage();
+  const page = await context.newPage(); activePage = page;
   page.on('pageerror', error => result.pageErrors.push(error.message));
   await page.goto(url);
   await page.locator('[data-viewer-ready="true"]').waitFor();
@@ -148,6 +152,7 @@ try {
   await page.screenshot({path:resolve(evidence,prefix+'-help.png')});
   await page.keyboard.press('Escape');
   await page.getByRole('dialog').waitFor({state:'hidden'});
+  await page.waitForFunction(() => document.activeElement?.getAttribute('data-testid') === 'cad-editor-help', undefined, {timeout:3000});
   assert.equal(await page.getByTestId('cad-editor-help').evaluate(element=>element===document.activeElement),true);
   assert.equal((await receipt()).pixelHash,initialDisplay.pixelHash);
   result.events.push({stage:'contextual-help',keyboardClose:true,focusRestored:true,viewportRetained:true});
@@ -210,13 +215,13 @@ try {
     await page.getByLabel('Open native document file').setInputFiles(malformed);
     await page.waitForFunction(() => window.__cadEditorFlow.error()?.message.includes('Native document Open failed'));
     assert.deepEqual((await snapshot()).accepted, prior.accepted); await retainedFrame();
-    const unsupported = JSON.parse(readFileSync(fixture, 'utf8')); unsupported.assets.push({ ...unsupported.assets[0], id: 'third_asset' }); unsupported.bodies.push({ ...unsupported.bodies[0], id: 'third_body', assetId: 'third_asset' });
+    const unsupported = JSON.parse(readFileSync(fixture, 'utf8')); unsupported.assets[1].source = '@model reference_line { version:0; length-unit:mm; @curve #reference_line { type:nurbs; degree:5; knots:[0,0,0,0,0,0,1,1,1,1,1,1]; control-points:[[-15,-10,-5],[-15,0,-5],[-15,10,-5],[-15,20,-5],[-15,30,-5],[-15,50,-5]]; weights:[1,1,1,1,1,1]; } }';
     cad.createCadDocument(unsupported);
     const unsupportedPath = resolve(evidence, 'unsupported.cad-document.json'); writeFileSync(unsupportedPath, JSON.stringify(unsupported));
     await page.getByLabel('Open native document file').setInputFiles(unsupportedPath);
-    await page.waitForFunction(() => window.__cadEditorFlow.error()?.code === 'UNSUPPORTED');
+    await page.waitForFunction(() => window.__cadEditorFlow.error()?.code === 'DISPLAY');
     assert.deepEqual((await snapshot()).accepted, prior.accepted); await retainedFrame();
-    result.events.push({ stage: 'file-refusals', malformedParserReached: true, unsupportedProfileRefused: true, acceptedFrameRetained: true });
+    result.events.push({ stage: 'file-refusals', malformedParserReached: true, actualUnsupportedNativePreviewRefused: true, acceptedFrameRetained: true });
     await page.getByTestId('cad-editor-zMM').fill('26');
     await page.evaluate(() => window.__cadEditorFlow.setDisplayRefusal(true));
     await page.waitForFunction(() => window.__cadEditorFlow.error()?.message.includes('Display options were refused'));
@@ -247,7 +252,7 @@ try {
   assert.equal((await snapshot()).pending.zMM, '29');
   result.events.push({ stage: 'genuine-download', path: downloadedPath, sha256: hash(downloadedBytes), coldNativePoint: observe({ accepted: cold }, 56 / 5), pendingExcluded: true });
   const freshContext = await browser.newContext({ viewport: { width: 1440, height: 960 }, deviceScaleFactor: 1, acceptDownloads: true });
-  const fresh = await freshContext.newPage(); fresh.on('pageerror', error => result.pageErrors.push(error.message));
+  const fresh = await freshContext.newPage(); activePage = fresh; fresh.on('pageerror', error => result.pageErrors.push(error.message));
   await fresh.goto(url); await fresh.locator('[data-viewer-ready="true"]').waitFor();
   await fresh.getByLabel('Open native document file').setInputFiles(downloadedPath);
   await fresh.waitForFunction(() => window.__cadEditorFlow.snapshot().generation === 1 && !window.__cadEditorFlow.snapshot().candidate);
@@ -265,6 +270,10 @@ try {
     const { runDraftSelectionFlow } = await import('./draft-selection-flow.mjs');
     await runDraftSelectionFlow({ page: fresh, cad, result, curveUnchanged, evidence, prefix, resolve });
   }
+  if (args.includes('--inventory')) {
+    const { runBodyInventoryFlow } = await import('./body-inventory-flow.mjs');
+    await runBodyInventoryFlow({page:fresh,cad,editor,result,evidence,prefix,resolve,repo});
+  }
   const retained = await fresh.evaluate(() => window.__cadEditorFlow.snapshot());
   await fresh.evaluate(() => window.__cadEditorFlow.setMounted(false));
   await fresh.waitForFunction(() => window.__cadEditorFlow.display()?.state.status === 'disposed');
@@ -280,6 +289,9 @@ try {
   result.outcome = 'passed'; save();
   process.stdout.write(JSON.stringify({ mode, outcome: result.outcome, stages: result.events.map(event => event.stage), evidence: resolve(evidence, prefix + '.json') }) + '\n');
 } catch (error) {
+  if (activePage) {
+    try { result.failureWindowState = await activePage.evaluate(() => ({activeElement:{tag:document.activeElement?.tagName,testId:document.activeElement?.getAttribute('data-testid')},error:window.__cadEditorFlow?.error(),snapshot:window.__cadEditorFlow?.snapshot(),display:window.__cadEditorFlow?.display()})); await activePage.screenshot({path:resolve(evidence,prefix+'-failure.png')}); } catch {}
+  }
   result.outcome = 'failed'; result.failure = { message: error.message, stack: error.stack }; save();
   process.stderr.write(error.stack + '\n'); process.exitCode = 1;
 } finally {

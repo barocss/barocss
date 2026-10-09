@@ -35,7 +35,8 @@ function actionableMessage(error: CadEditorError): string {
   const field = FIELDS.find(item => item.field === error.context.field);
   if (error.code === 'INPUT' && field) return `Enter a finite number for ${field.label}.`;
   if (error.code === 'BUDGET') return 'Use a shorter value and try again.';
-  if (error.code === 'UNSUPPORTED') return 'Select a Surface. The reference Curve is read-only.';
+  if (error.context.field === 'edit-capability') return 'Choose an editable Surface to change control points.';
+  if (error.code === 'UNSUPPORTED') return 'Choose an editable Surface. Curves are read-only.';
   if (error.code === 'STALE') return 'Select the control pole again, then apply the change.';
   if (error.code === 'LIFECYCLE') return 'Reopen the document to continue editing.';
   return 'The change was not applied. Check the values and try again.';
@@ -54,6 +55,8 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
   const { selection, accepted, pending, candidate } = snapshot;
   const transition = snapshot.selectionTransition;
   const busy = candidate !== null || snapshot.disposed;
+  const capability = snapshot.bodyCapabilities.find(body => body.bodyId === snapshot.selectedBodyId);
+  const canEdit = selection !== null && capability?.canEditSurfacePole === true;
   useEffect(() => {
     if (!transition) {
       attemptedTransitionRef.current = null;
@@ -96,7 +99,10 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
             <DialogDescription>Editing limits and document details.</DialogDescription></DialogHeader>
           <div className="cad-editor-help-body">
             <section><h3>Editing limits</h3>
-              <p>This workflow uses one editable Surface and one reference Curve. The editor can operate on at most two bodies. The reference Curve is read-only.</p>
+              <p>The native document can contain 1–4 source assets and up to 16 bodies. The viewport displays 1–4 chosen bodies at a time.</p>
+              <p>Choose the displayed bodies in the object list. You can select and inspect a hidden body. Show it before using Fit Selected.</p>
+              <p>Curves are read-only. A Surface is editable only when its complete source contains one supported Surface. A Surface in a source with other objects is read-only.</p>
+              <p>Display parsing reads the whole source asset, including hidden sibling objects. Hiding bodies does not remove those siblings from the source or bypass parsing limits.</p>
               <p>Coordinates use authored X, Y and Z in mm. They map directly to the display axes. The editor does not silently swap or convert axes.</p>
               <p>U and V select an original Surface control pole. Coordinates and weight edit its native coefficients. Display samples are separate from these coefficients.</p>
             </section>
@@ -104,6 +110,7 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
               <p>Changed fields remain pending until you select Apply. Discard restores the current values.</p>
               <p>When you select another object or control pole with a draft, choose Apply, Discard or Cancel. Cancel keeps the draft and returns focus to the last coordinate or weight field.</p>
               <p>Apply prepares a native source candidate. The candidate becomes accepted after native validation and successful display. Download writes the accepted document.</p>
+              <p>Changing the displayed set does not edit the source, clear a draft or add a history entry. A rejected display change keeps the current view and displayed set.</p>
               {Object.keys(pending).length > 0 && <dl className="cad-editor-reference">
                 {FIELDS.filter(({ field }) => Object.hasOwn(pending, field)).map(({ field, label }) => <div key={field}>
                   <dt>Draft {label}</dt><dd>{pending[field]}</dd>
@@ -115,6 +122,7 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
               <p>Enter in a coordinate or weight field applies the draft. During text composition, Enter commits text only. Escape in the field keeps its draft and focus.</p>
               <p>Outside text fields, Cmd/Ctrl+Z undoes a change. Shift+Cmd/Ctrl+Z and Ctrl+Y redo it. Apply or discard pending values before using these shortcuts. Text fields keep the browser text undo.</p>
               <p>Escape in the selection decision cancels the selection change. Escape in the viewport keeps the selected object and camera.</p>
+              <p>Click a displayed object to select it. Drag to orbit or Shift-drag to pan without changing selection. Fit Document uses the native bounds of the displayed set; Fit Selected uses the displayed selected body's native bounds.</p>
             </section>
             {selection && <details className="cad-editor-source">
               <summary className="cad-editor-source-title">Original native coefficients and binding</summary>
@@ -132,7 +140,12 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
                 <h4>{asset.id} · revision {asset.revision}</h4><pre>{asset.source}</pre>
               </section>)}
             </details>
-            {candidate && <details className="cad-editor-source" open>
+            {candidate?.kind === 'display' && <details className="cad-editor-source" open>
+              <summary className="cad-editor-source-title">Pending display set</summary>
+              <p>{candidate.displayBodyIds.map(bodyId => accepted.document.bodies.find(body => body.id === bodyId)?.name ?? bodyId).join(', ')}</p>
+              <p>The accepted native source is unchanged.</p>
+            </details>}
+            {candidate && candidate.kind !== 'display' && <details className="cad-editor-source" open>
               <summary className="cad-editor-source-title">Pending native source · awaiting display</summary>
               {candidate.result.document.assets.map(asset => <section key={asset.id}>
                 <h4>{asset.id} · revision {asset.revision}</h4><pre>{asset.source}</pre>
@@ -142,6 +155,7 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
               <summary className="cad-editor-source-title">Accepted history</summary>
               <p>State {snapshot.history.index + 1} of {snapshot.history.count} · {snapshot.history.bytes} bytes</p>
               <p>Document revision {accepted.document.revision} · {snapshot.downloadStatus}</p>
+              <p>Displayed bodies {snapshot.displayBodyIds.length} · display generation {snapshot.displayGeneration}</p>
             </details>
             {lastError && <details className="cad-editor-source">
               <summary className="cad-editor-source-title">Last error details</summary>
@@ -179,11 +193,18 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
         data-testid="cad-editor-body" onChange={event => action(() => session.requestSelection({ bodyId: event.target.value }))}>
         {snapshot.selectedBodyId === null && <option value="">Select an object</option>}
         {accepted.document.bodies.map(body => <option key={body.id} value={body.id}>
-          {body.name}{accepted.bodyBindings.find(binding => binding.bodyId === body.id)?.geometryKind === 'curve' ? ' · read-only' : ''}
+          {body.name}{snapshot.bodyCapabilities.find(capability => capability.bodyId === body.id)?.canEditSurfacePole === false ? ' · read-only' : ''}
         </option>)}
       </select>
     </div>
     {selection ? <>
+      {!canEdit && <p className="cad-editor-readonly" role="status" data-testid="cad-editor-readonly-surface">
+        {capability?.reason === 'asset-has-siblings'
+          ? 'This Surface shares its source with other objects and is read-only.'
+          : 'These control points are read-only. Choose an editable Surface to change them.'}
+      </p>}
+      {snapshot.selectedBodyId !== null && !snapshot.displayBodyIds.includes(snapshot.selectedBodyId)
+        && <p className="cad-editor-hidden-body" role="status">This object is not displayed. Show it to fit or select it in the viewport.</p>}
       <div className="cad-editor-selection">
         <div className="cad-editor-field"><Label htmlFor={`${id}-u`}>U index</Label>
           <select id={`${id}-u`} value={selection.uIndex} disabled={busy} data-testid="cad-editor-u"
@@ -202,7 +223,7 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
       {Object.keys(pending).length > 0 && <p className="cad-editor-draft-status">Unapplied changes</p>}
       {FIELDS.map(({ field, label }) => <div className="cad-editor-field" key={field}>
         <Label htmlFor={`${id}-${field}`}>{label}</Label>
-        <Input id={`${id}-${field}`} type="text" inputMode="decimal" disabled={busy}
+        <Input id={`${id}-${field}`} type="text" inputMode="decimal" disabled={busy || !canEdit}
           value={pending[field] ?? numberText(selection.accepted[field])} data-testid={`cad-editor-${field}`}
           onFocus={event => { lastFieldRef.current = event.currentTarget; }}
           onCompositionStart={() => { composingFieldsRef.current.add(field); }}
@@ -213,7 +234,7 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
               event.stopPropagation();
               return;
             }
-            if (event.key !== 'Enter' || event.nativeEvent.isComposing || event.keyCode === 229
+            if (!canEdit || event.key !== 'Enter' || event.nativeEvent.isComposing || event.keyCode === 229
               || composingFieldsRef.current.has(field) || event.repeat
               || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
             event.preventDefault();
@@ -224,14 +245,14 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
           aria-describedby={Object.hasOwn(pending, field) ? `${id}-${field}-accepted` : undefined} />
         {Object.hasOwn(pending, field) && <span id={`${id}-${field}-accepted`} className="cad-editor-accepted">Current: {numberText(selection.accepted[field])}</span>}
       </div>)}
-      <div className="cad-editor-actions">
+      {canEdit && <div className="cad-editor-actions">
         <Button type="button" disabled={busy || Object.keys(pending).length === 0} data-testid="cad-editor-apply"
           onClick={() => action(() => { session.prepareApply(); })}>{candidate ? 'Applying…' : 'Apply'}</Button>
         <Button type="button" variant="outline" disabled={busy || Object.keys(pending).length === 0}
           data-testid="cad-editor-discard" onClick={() => action(() => session.discardPending())}>Discard</Button>
-      </div>
-    </> : <p role="status">{snapshot.selectedBodyId === null
-      ? 'Select a Surface to edit its control points.' : 'The reference Curve is read-only.'}</p>}
+      </div>}
+    </> : <p role="status" data-testid={snapshot.selectedBodyId === null ? undefined : 'cad-editor-readonly-curve'}>{snapshot.selectedBodyId === null
+      ? 'Select a Surface to edit its control points.' : 'This Curve is read-only.'}</p>}
     {errorMessage && <p className="cad-editor-error" role="alert">{errorMessage}</p>}
   </aside>;
 }

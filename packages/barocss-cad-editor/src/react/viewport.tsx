@@ -10,6 +10,7 @@ interface MountedViewer {
   viewer: Viewer;
   options: CadEditorDisplayOptions;
   generation: number;
+  displayGeneration: number;
   admitting: boolean;
   optionsRefused: boolean;
 }
@@ -27,10 +28,25 @@ function sameOptions(a: unknown, b: unknown): boolean {
 function selectBody(viewer: Viewer, bodyId: string | null) {
   const current = viewer.getState();
   const ref = bodyId === null ? null
-    : current.documentBodies.find(body => body.binding.bodyId === bodyId)?.ref;
-  if (ref === undefined) throw new CadEditorError('DISPLAY', 'The selected body has no admitted native display binding.');
+    : current.documentBodies.find(body => body.binding.bodyId === bodyId)?.ref ?? null;
   if (sameOptions(current.selectedGeometry, ref)) return;
   viewer.selectGeometry(ref);
+}
+
+function documentOptions(options: CadEditorDisplayOptions['document'], bodyIds: string[]) {
+  return { ...options, bodyIds: [...bodyIds] };
+}
+
+function fitDisplayed(viewer: Viewer) {
+  const state = viewer.getState();
+  const documentRevision = state.document?.document.revision;
+  const refs = state.documentBodies.map(body => body.ref).filter(ref =>
+    state.visibleGeometry.some(visible => sameOptions(visible, ref)));
+  if (documentRevision === undefined || refs.length === 0) {
+    throw new CadEditorError('DISPLAY', 'A displayed native document body is required for fitting.');
+  }
+  if (refs.length === 1) viewer.fitNativeDocumentBody({ ref: refs[0], documentRevision });
+  else viewer.fitNativeDocumentBodies({ refs, documentRevision });
 }
 
 function restoreSelection(viewer: Viewer, state: ViewerState) {
@@ -70,6 +86,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
   propsRef.current = props;
   const lifecycleRef = useRef({ mounts: 0, disposals: 0 });
   const readIndexRef = useRef(0);
+  const lastFitSelectedRequestRef = useRef(props.fitSelectedRequest);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -80,6 +97,10 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
       ? 'Cannot restore the current view. Reopen the viewport.'
       : detail === 'Opening the Viewer failed'
         ? 'Cannot open the viewport. Check the document and display settings.'
+        : detail === 'Selecting the picked body failed'
+          ? 'Select the object from the list. This display point cannot be selected.'
+          : detail === 'Fitting the selected body failed'
+            ? 'Select a displayed object before fitting it.'
         : 'Cannot display this change. The current view is retained.');
     try { propsRef.current.onError?.(error); } catch { /* Host callbacks do not change admission. */ }
   }
@@ -100,6 +121,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     let observer: ResizeObserver | null = null;
     let disposed = false;
     let published = false;
+    let clickGesture: { id: number; x: number; y: number; moved: boolean } | null = null;
     function publish() {
       if (!viewer || disposed || !published) return;
       try { notify(displayReceipt(viewer, canvas, mountedRef.current!.options.viewer.background, lifecycleRef.current, readIndexRef)); }
@@ -118,6 +140,42 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
         publish();
       } catch (cause) { report(cause, 'Resizing the Viewer failed'); }
     }
+    function down(event: PointerEvent) {
+      clickGesture = null;
+      if (disposed || !event.isPrimary || event.button !== 0 || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
+      clickGesture = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
+    }
+    function move(event: PointerEvent) {
+      if (clickGesture?.id === event.pointerId
+        && Math.hypot(event.clientX - clickGesture.x, event.clientY - clickGesture.y) > 3) clickGesture.moved = true;
+    }
+    function cancel() { clickGesture = null; }
+    function picked(event: PointerEvent) {
+      const gesture = clickGesture;
+      clickGesture = null;
+      if (!viewer || disposed || !gesture || gesture.id !== event.pointerId || gesture.moved
+        || Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) > 3) return;
+      const mounted = mountedRef.current;
+      const current = session.getSnapshot();
+      if (!mounted || mounted.admitting || current.candidate || current.selectionTransition || current.disposed) return;
+      try {
+        const bounds = canvas.getBoundingClientRect();
+        const pick = viewer.pickGeometry({ xCss: event.clientX - bounds.left, yCss: event.clientY - bounds.top });
+        if (!pick) return;
+        if (pick.ambiguous) throw new CadEditorError('DISPLAY', 'The display pick is ambiguous. Select the object from the object list.');
+        const state = viewer.getState();
+        const body = state.documentBodies.find(body => body.ref.kind === pick.kind
+          && body.ref.modelId === pick.ref.modelId
+          && (body.ref.kind === 'surface' && pick.kind === 'surface'
+            ? body.ref.surfaceId === pick.ref.surfaceId
+            : body.ref.kind === 'curve' && pick.kind === 'curve' && body.ref.curveId === pick.ref.curveId));
+        if (!body || body.binding.documentId !== current.accepted.document.documentId
+          || body.binding.documentRevision !== current.accepted.document.revision) {
+          throw new CadEditorError('STALE', 'The picked display body does not match the current native document.');
+        }
+        session.requestSelection({ bodyId: body.binding.bodyId });
+      } catch (cause) { report(cause, 'Selecting the picked body failed'); }
+    }
     setReady(false);
     setErrorMessage(null);
     readIndexRef.current = 0;
@@ -126,9 +184,10 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
       const initial = session.getSnapshot();
       viewer = createViewer(canvas, options.viewer);
       lifecycleRef.current.mounts++;
-      mountedRef.current = { viewer, options, generation: initial.generation, admitting: false, optionsRefused: false };
+      mountedRef.current = { viewer, options, generation: initial.generation,
+        displayGeneration: initial.displayGeneration, admitting: false, optionsRefused: false };
       resize();
-      viewer.loadDocument(initial.accepted, options.document);
+      viewer.loadDocument(initial.accepted, documentOptions(options.document, initial.displayBodyIds));
       selectBody(viewer, initial.selectedBodyId);
       const receipt = displayReceipt(viewer, canvas, options.viewer.background, lifecycleRef.current, readIndexRef);
       pointer = viewer.attachPointerControls({ onError: cause => report(cause, 'Pointer control failed') });
@@ -142,6 +201,11 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
       canvas.addEventListener('pointerup', publish);
       canvas.addEventListener('wheel', publish);
       canvas.addEventListener('keydown', publish);
+      canvas.addEventListener('pointerdown', down);
+      canvas.addEventListener('pointermove', move);
+      canvas.addEventListener('pointerup', picked);
+      canvas.addEventListener('pointercancel', cancel);
+      canvas.addEventListener('wheel', cancel);
     } catch (cause) {
       mountedRef.current = null;
       report(cause, 'Opening the Viewer failed');
@@ -162,6 +226,11 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
       canvas.removeEventListener('pointerup', publish);
       canvas.removeEventListener('wheel', publish);
       canvas.removeEventListener('keydown', publish);
+      canvas.removeEventListener('pointerdown', down);
+      canvas.removeEventListener('pointermove', move);
+      canvas.removeEventListener('pointerup', picked);
+      canvas.removeEventListener('pointercancel', cancel);
+      canvas.removeEventListener('wheel', cancel);
       pointer?.dispose();
       keyboard?.dispose();
       if (viewer) {
@@ -190,17 +259,18 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
         mounted.optionsRefused = true;
         throw new CadEditorError('DISPLAY', 'Viewer scale, background and lighting cannot change while mounted. Reopen the viewport to use new options.');
       }
-      if (!sameOptions(next.document, mounted.options.document)) {
+      if (!sameOptions(documentOptions(next.document, []), documentOptions(mounted.options.document, []))) {
         const before = mounted.viewer.getState();
         const accepted = session.getSnapshot();
         let displayed = false;
         try {
-          mounted.viewer.loadDocument(accepted.accepted, next.document);
+          mounted.viewer.loadDocument(accepted.accepted, documentOptions(next.document, accepted.displayBodyIds));
           displayed = true;
           selectBody(mounted.viewer, accepted.selectedBodyId);
           const receipt = displayReceipt(mounted.viewer, canvas, next.viewer.background, lifecycleRef.current, readIndexRef);
           mounted.options = next;
           mounted.generation = accepted.generation;
+          mounted.displayGeneration = accepted.displayGeneration;
           mounted.optionsRefused = false;
           setErrorMessage(null);
           notify(receipt);
@@ -209,7 +279,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
           // loadDocument is transactional; restore only if readPixels failed after admission.
           if (displayed) {
             try {
-              mounted.viewer.loadDocument(accepted.accepted, mounted.options.document);
+              mounted.viewer.loadDocument(accepted.accepted, documentOptions(mounted.options.document, accepted.displayBodyIds));
               mounted.viewer.setView(before.camera);
               restoreSelection(mounted.viewer, before);
             } catch (restoreCause) {
@@ -237,12 +307,14 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     let displayed = false;
     try {
       if (mounted.optionsRefused) throw new CadEditorError('DISPLAY', 'The display options were refused. The pending values remain available.');
-      mounted.viewer.loadDocument(candidate.result, mounted.options.document);
+      mounted.viewer.loadDocument(candidate.result, documentOptions(mounted.options.document, candidate.displayBodyIds));
       displayed = true;
+      if (candidate.kind === 'display') mounted.viewer.setView(before.camera);
       selectBody(mounted.viewer, candidate.kind === 'open' ? null : current.selectionTransition?.target.bodyId ?? current.selectedBodyId);
       const receipt = displayReceipt(mounted.viewer, canvas, mounted.options.viewer.background, lifecycleRef.current, readIndexRef);
       const accepted = session.acceptCandidate(candidate.token);
       mounted.generation = accepted.generation;
+      mounted.displayGeneration = accepted.displayGeneration;
       setErrorMessage(null);
       notify(receipt);
       try { propsRef.current.onAccepted?.(accepted); }
@@ -252,11 +324,12 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
       if (displayed) {
         try {
           const accepted = session.getSnapshot();
-          mounted.viewer.loadDocument(accepted.accepted, mounted.options.document);
+          mounted.viewer.loadDocument(accepted.accepted, documentOptions(mounted.options.document, accepted.displayBodyIds));
           // A stale candidate must not reset the previous accepted camera.
           mounted.viewer.setView(before.camera);
           restoreSelection(mounted.viewer, before);
           mounted.generation = accepted.generation;
+          mounted.displayGeneration = accepted.displayGeneration;
           notify(displayReceipt(mounted.viewer, canvas, mounted.options.viewer.background, lifecycleRef.current, readIndexRef));
         } catch (restoreCause) { restoreFailure = { cause: restoreCause }; }
       }
@@ -277,19 +350,37 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     if (current.candidate || current.disposed) return;
     try {
       selectBody(mounted.viewer, current.selectedBodyId);
+      setErrorMessage(null);
       notify(displayReceipt(mounted.viewer, canvas, mounted.options.viewer.background, lifecycleRef.current, readIndexRef));
     } catch (cause) { report(cause, 'Selecting the native body failed'); }
-  }, [snapshot.selectedBodyId, snapshot.generation, session, ready]);
+  }, [snapshot.selectedBodyId, snapshot.generation, snapshot.displayGeneration, session, ready]);
 
   useEffect(() => {
     const mounted = mountedRef.current;
     const canvas = canvasRef.current;
     if (!mounted || !canvas || mounted.admitting || props.fitRequest === undefined) return;
     try {
-      mounted.viewer.fit();
+      fitDisplayed(mounted.viewer);
       notify(displayReceipt(mounted.viewer, canvas, mounted.options.viewer.background, lifecycleRef.current, readIndexRef));
     } catch (cause) { report(cause, 'Fitting the viewport failed'); }
   }, [props.fitRequest, session, ready]);
+
+  useEffect(() => {
+    const requested = props.fitSelectedRequest;
+    if (requested === lastFitSelectedRequestRef.current) return;
+    lastFitSelectedRequestRef.current = requested;
+    const mounted = mountedRef.current;
+    const canvas = canvasRef.current;
+    if (!mounted || !canvas || mounted.admitting || requested === undefined) return;
+    try {
+      const current = session.getSnapshot();
+      const state = mounted.viewer.getState();
+      const body = state.documentBodies.find(body => body.binding.bodyId === current.selectedBodyId);
+      if (!body) throw new CadEditorError('DISPLAY', 'Select a displayed body before fitting it.', { field: 'fit-selection' });
+      mounted.viewer.fitNativeDocumentBody({ ref: body.ref, documentRevision: current.accepted.document.revision });
+      notify(displayReceipt(mounted.viewer, canvas, mounted.options.viewer.background, lifecycleRef.current, readIndexRef));
+    } catch (cause) { report(cause, 'Fitting the selected body failed'); }
+  }, [props.fitSelectedRequest, session, ready]);
 
   useEffect(() => {
     const mounted = mountedRef.current;
@@ -306,13 +397,19 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
   return <div className={cn('cad-editor-viewport', className)} data-viewer-ready={ready}>
     <canvas ref={canvasRef} width={640} height={480} tabIndex={0} className="cad-editor-canvas"
       onKeyDownCapture={event => {
-        if (event.key !== 'Escape') return;
+        const fitKey = (event.key === 'f' || event.key === 'F') && !event.repeat
+          && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey
+          && !event.nativeEvent.isComposing && event.keyCode !== 229;
+        if (event.key !== 'Escape' && !fitKey) return;
         event.preventDefault();
         event.stopPropagation();
         const mounted = mountedRef.current;
         const canvas = canvasRef.current;
         if (!mounted || !canvas) return;
-        try { notify(displayReceipt(mounted.viewer, canvas, mounted.options.viewer.background, lifecycleRef.current, readIndexRef)); }
+        try {
+          if (fitKey) fitDisplayed(mounted.viewer);
+          notify(displayReceipt(mounted.viewer, canvas, mounted.options.viewer.background, lifecycleRef.current, readIndexRef));
+        }
         catch (cause) { report(cause, 'Reading the displayed frame failed'); }
       }}
       data-testid="cad-editor-canvas" aria-label="CAD viewport. Drag to orbit. Shift drag to pan. Scroll to zoom. Press F to fit." />

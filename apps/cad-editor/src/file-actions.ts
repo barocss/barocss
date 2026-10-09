@@ -1,8 +1,8 @@
 import { CadEditorError, type CadEditorSession } from '@barocss/cad-editor';
 
-export const MAXIMUM_FILE_BYTES = 524288;
+export const MAXIMUM_FILE_BYTES = 2097152;
 export async function readCadEditorFile(file: File): Promise<string> {
-  if (file.size > MAXIMUM_FILE_BYTES) throw new CadEditorError('BUDGET', 'File exceeds 524288 bytes.');
+  if (file.size > MAXIMUM_FILE_BYTES) throw new CadEditorError('BUDGET', 'File exceeds 2097152 bytes.');
   try {
     const text = new TextDecoder('utf-8', { fatal: true }).decode(await file.arrayBuffer());
     if (text.length > MAXIMUM_FILE_BYTES || new TextEncoder().encode(text).length > MAXIMUM_FILE_BYTES) throw new CadEditorError('BUDGET', 'File exceeds the text limit.');

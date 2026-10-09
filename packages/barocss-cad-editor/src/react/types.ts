@@ -25,6 +25,8 @@ export interface CadEditorViewportProps {
   session: CadEditorSession;
   displayOptions: CadEditorDisplayOptions;
   fitRequest?: number;
+  /** Fit the selected body using its actual native bounds; hidden bodies are refused. */
+  fitSelectedRequest?: number;
   /** Read the current frame without changing Viewer input, camera or selection. */
   readRequest?: number;
   onError?: (error: CadEditorError) => void;
