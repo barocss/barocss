@@ -8350,3 +8350,66 @@ This provides authored edits for the restricted integer-axis box family.
 General rotated/cylindrical/curved Solid Boolean, arbitrary authored boundary
 Curve rebinding, persistent topology naming, whole-Solid assemblies, rendering,
 live document sessions and integrated file/recovery acceptance remain separate.
+
+
+## Complete original Source0 Curve scalar editing — #1134
+
+`editSourceCurveControlPolygon({source, sourceVersion: 0, curveId, edits})`
+changes selected Curve coordinate/weight literals inside a complete mixed
+original source. The actual native Curve profile is degree1..5,2..64poles,
+knots=count+degree+1<=70, coordinateswithin±1e6mm and weights1e-6..1e6.
+`edits: {poleEdits}` accepts1..64unique indices with a nonempty subset of
+xMM/yMM/zMM/weight, up to256requested fields. Degree, knots, original domain,
+ID, count and pole order are immutable. Existing normal/Wide editors and their
+own degree/pole/report profiles remain unchanged.
+
+```js
+const result = cad.editSourceCurveControlPolygon({
+  source: originalWholeSource,
+  sourceVersion: 0,
+  curveId: 'selected_curve',
+  edits: {poleEdits: [{index: 1, xMM: 12, weight: 2}]},
+});
+const report = cad.validateSourceCurveControlPolygonEdit(result);
+// result.source is the complete accepted candidate, including all siblings.
+```
+
+Original whole Source0 compilation binds the selected Curve, actual AST/IR
+identity, exclusive UTF-16 numeric ranges and native coefficient bits. A new
+copied Curve receives the requested scalar edits and passes actual native
+validation. Every requested scalar, including no-op, binds its original
+lexeme/AST/coefficient. Only Object.is changed fields produce sorted literal
+patches using the existing decimal emitter. Private patch application and full
+candidate compilation verify original Model metadata/name/object order/IDs,
+all unrelated Curve+Surface geometry and the exact edited selected Curve.
+Unchanged spans, Unicode/CRLF/comments and untouched signed-zero bits remain.
+No-op keeps original unusual decimal spelling; +0/-0 is a real edit.
+
+Exactly three represented original parameters are left, left/2+right/2 and
+right. Narrow domains can repeat a parameter; the exact parameters are retained
+without perturbation. Native D0 before/after must succeed, or the operation
+refuses atomically. Native D1 before/after is attempted at each parameter and
+returns actual evaluated data or a labelled native refusal. C0 and arithmetic
+refusal messages remain; no zero derivative is fabricated. The maximum observed
+point change is a sample observation, not a global geometry/error bound.
+
+The eight result fields retain request/originalModel/model/source/curve/
+provenance/patches/report. Every caller occurrence is independently copied.
+The owned validator repeats the complete original operation and compares all
+numeric bits, source bytes, patches, observations and reports. Failures publish
+no partial source/result and do not mutate caller data or write files.
+
+Bounds are source262144UTF-16 units and UTF-8 bytes, Model1..16objects,
+256patches/64edits, replacementliteral512characters, copied1Mvalues/depth64.
+Direct work is originalCompile1/candidateCompile1/nativeEditedCurveValidation1/
+domainQuery1/nativeD0calls6/nativeD1attempts6 and one decimal emission per changed
+field. D1 success/refusal counts are explicit; inherited validations are separate.
+
+```sh
+node examples/cad-nurbs/source-curve-control-polygon-demo.mjs --source EVIDENCE_DIR
+```
+
+This is a source-preserving authoring operation. Live document revisions,
+qualified topology rebinding, global evaluator bounds, self-intersection/Solid,
+manufacturing, renderer/consumer adoption and integrated file recovery remain
+separate requirements. Source0 expressions retain actual compiler refusal.
