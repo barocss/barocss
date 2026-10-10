@@ -77,7 +77,7 @@ export function MixedWorkbenchLayout(props: MixedWorkbenchLayoutProps) {
   const root = useRef<HTMLDivElement>(null), center = useRef<HTMLDivElement>(null);
   const sourceToggle = useRef<HTMLButtonElement>(null), problemsToggle = useRef<HTMLButtonElement>(null);
   const [bounds, setBounds] = useState({ width: 1000, height: 600 });
-  const [sizes, setSizes] = useState({ left: 220, right: 280, source: 240 });
+  const [sizes, setSizes] = useState({ left: 180, right: 240, source: 240 });
   useEffect(() => {
     const measure = () => {
       const width = root.current?.clientWidth ?? 1000, height = center.current?.clientHeight ?? 600;
@@ -88,12 +88,12 @@ export function MixedWorkbenchLayout(props: MixedWorkbenchLayoutProps) {
     if (center.current) observer.observe(center.current);
     measure(); return () => observer.disconnect();
   }, []);
-  const leftMax = Math.max(180, Math.min(300, bounds.width - sizes.right - 328));
+  const leftMax = Math.max(160, Math.min(300, bounds.width - sizes.right - 328));
   const left = Math.min(sizes.left, leftMax);
-  const rightMax = Math.max(240, Math.min(360, bounds.width - left - 328));
+  const rightMax = Math.max(220, Math.min(360, bounds.width - left - 328));
   const right = Math.min(sizes.right, rightMax);
-  // Header 54 + disclosure strip 30 leave a real canvas height of at least220.
-  const sourceMax = Math.max(160, Math.min(360, bounds.height - 304));
+  // Header 44 + disclosure strip 24 leave a real canvas height of at least220.
+  const sourceMax = Math.max(160, Math.min(360, bounds.height - 288));
   const sourceHeight = Math.min(sizes.source, sourceMax);
   const styles = { '--re-left-width': `${left}px`, '--re-right-width': `${right}px`, '--re-drawer-height': `${sourceHeight}px` } as CSSProperties;
   const id = useId();
@@ -105,7 +105,7 @@ export function MixedWorkbenchLayout(props: MixedWorkbenchLayoutProps) {
           { key: 'scene', label: 'Scene', icon: 'sphere', testId: 'workbench-scene-tab', content: props.scene },
           { key: 'projects', label: 'Projects', icon: 'projects', testId: 'workbench-projects-tab', content: props.projects },
         ]} /></aside>
-      <Splitter label="Scene panel width" direction="vertical" value={left} min={180} max={leftMax} sign={1}
+      <Splitter label="Scene panel width" direction="vertical" value={left} min={160} max={leftMax} sign={1}
         testId="workbench-left-splitter" onChange={(left) => setSizes((current) => ({ ...current, left }))} />
       <div ref={center} className="re-center re-workbench-center">
         <div className="re-workbench-viewport-slot">{props.viewport}<div className="re-workbench-actions">{props.actions}</div></div>
@@ -126,7 +126,7 @@ export function MixedWorkbenchLayout(props: MixedWorkbenchLayoutProps) {
           <section id={`${id}-problems`} className="re-workbench-drawer-panel" data-testid="workbench-problems-panel" hidden={props.drawer !== 'problems'} aria-hidden={props.drawer !== 'problems'}>{props.problems}</section>
         </div>
       </div>
-      <Splitter label="Properties panel width" direction="vertical" value={right} min={240} max={rightMax} sign={-1}
+      <Splitter label="Properties panel width" direction="vertical" value={right} min={220} max={rightMax} sign={-1}
         testId="workbench-right-splitter" onChange={(right) => setSizes((current) => ({ ...current, right }))} />
       <aside className="re-right re-workbench-right" aria-label="Properties"><Dock label="Inspector tabs" selected={props.inspectorTab}
         onSelect={(key) => props.onInspectorTab(key as 'object' | 'camera')} items={[

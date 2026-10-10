@@ -110,45 +110,45 @@ body:has(.app-shell--mixed) {
   background: #222428;
 }
 .app-shell--mixed { font-size: 12px; background: #222428; color: #d9dbe0; }
-.app-shell--mixed .app-topbar { height: 38px; gap: 6px; padding: 0 10px; background: #26282d; border-color: #15171a; }
+.app-shell--mixed .app-topbar { height: 32px; gap: 4px; padding: 0 6px; background: #26282d; border-color: #15171a; }
 .app-shell--mixed .app-brand { gap: 6px; margin-right: 8px; }
 .app-shell--mixed .app-brand svg { width: 16px; height: 16px; color: #aeb5c0; }
 .app-shell--mixed .app-brand strong { font-size: 12px; letter-spacing: -.15px; }
 .app-shell--mixed .app-brand > span { display: none; }
-.app-shell--mixed .app-menubar { height: 28px; margin: 0; padding: 0; gap: 1px; }
-.app-shell--mixed .app-menubar [data-slot="menubar-trigger"] { color: #c5c8cf; font-size: 12px; padding: 5px 8px; border-radius: 3px; }
+.app-shell--mixed .app-menubar { height: 26px; margin: 0; padding: 0; gap: 1px; }
+.app-shell--mixed .app-menubar [data-slot="menubar-trigger"] { color: #c5c8cf; font-size: 12px; padding: 3px 6px; border-radius: 3px; }
 .app-shell--mixed .app-menubar [data-slot="menubar-trigger"]:hover { background: #35383e; }
-.app-shell--mixed [data-slot="button"] { min-height: 26px; height: 26px; padding-top: 0; padding-bottom: 0; gap: 5px; font-size: 12px; border-radius: 3px; box-shadow: none; }
+.app-shell--mixed [data-slot="button"] { min-height: 24px; height: 24px; padding-top: 0; padding-bottom: 0; gap: 5px; font-size: 12px; border-radius: 3px; box-shadow: none; }
 .app-shell--mixed [data-slot="button"][data-size="icon-sm"] { width: 27px; padding: 0; }
 .app-shell--mixed [data-slot="button"][data-size="icon-xs"] { width: 24px; min-height: 24px; height: 24px; padding: 0; }
 .app-shell--mixed [data-slot="button"] svg { width: 14px; height: 14px; }
 .app-shell--mixed .app-body { min-width: 0; }
 .app-shell--mixed .app-workspace { background: #222428; }
-.app-shell--mixed .app-document-bar { height: 42px; min-height: 42px; padding: 0 12px; gap: 8px; border-color: #15171a; background: #292b30; }
+.app-shell--mixed .app-document-bar { height: 30px; min-height: 30px; padding: 0 6px; gap: 4px; border-color: #15171a; background: #292b30; }
 .app-shell--mixed .app-document-bar > div:first-child { flex: 0 1 auto; min-width: 80px; max-width: 50%; }
 .app-shell--mixed .app-document-bar h1 { font-size: 12px; font-weight: 500; line-height: 1.3; letter-spacing: 0; }
-.app-shell--mixed .app-document-state { flex: 1; margin-left: 10px; text-align: right; color: #a0a5ae; font-size: 11px; }
+.app-shell--mixed .app-document-state { flex: 1; margin-left: 6px; text-align: right; color: #a0a5ae; font-size: 11px; }
 .app-shell--mixed .app-history { gap: 0; padding-left: 6px; border-color: #41444b; }
 .app-shell--mixed .app-history button { color: #b4bac4; }
 .app-shell--mixed .app-error { top: auto; bottom: 8px; left: auto; right: 8px; width: min(420px, calc(100% - 16px)); max-height: 200px; overflow: auto; padding: 9px 12px; border-radius: 3px; font-size: 12px; }
-.app-shell--mixed .app-projects--embedded { width: auto; height: 100%; min-width: 0; min-height: 0; border: 0; padding: 12px 8px; background: transparent; }
-.app-shell--mixed .app-projects--embedded .app-sidebar-heading { margin: 0 6px 8px; color: #a9adb5; }
+.app-shell--mixed .app-projects--embedded { width: auto; height: 100%; min-width: 0; min-height: 0; border: 0; padding: 6px 4px; background: transparent; }
+.app-shell--mixed .app-projects--embedded .app-sidebar-heading { margin: 0 2px 4px; color: #a9adb5; }
 .app-shell--mixed .app-projects--embedded nav { flex: 1; min-height: 0; gap: 2px; }
-.app-shell--mixed .app-projects--embedded .app-project { min-height: 30px; padding: 6px 8px; border-radius: 3px; gap: 7px; color: #b5bac3; }
+.app-shell--mixed .app-projects--embedded .app-project { min-height: 26px; padding: 4px 6px; border-radius: 3px; gap: 7px; color: #b5bac3; }
 .app-shell--mixed .app-projects--embedded .app-project span { font-size: 12px; }
 .app-shell--mixed .app-projects--embedded .app-project:hover { background: #343840; color: #f1f3f7; }
 .app-shell--mixed .app-projects--embedded .app-project.is-active { background: #303d52; color: #d4e5ff; }
-.app-shell--mixed .app-projects--embedded .app-sidebar-note { padding-top: 14px; margin: 0 7px; font-size: 10px; color: #858b96; }
+.app-shell--mixed .app-projects--embedded .app-sidebar-note { padding-top: 6px; margin: 0 4px; font-size: 10px; color: #858b96; }
 .app-shell--mixed .app-projects--embedded .app-sidebar-note span { color: #a5acb7; }
-.app-shell--mixed .app-status { min-height: 24px; height: 24px; padding: 0 10px; gap: 12px; color: #969da8; background: #24262b; border-color: #15171a; font-size: 10px; }
+.app-shell--mixed .app-status { min-height: 20px; height: 20px; padding: 0 6px; gap: 8px; color: #969da8; background: #24262b; border-color: #15171a; font-size: 10px; }
 .app-shell--mixed .app-status-dot { background: #6899e8; }
 .app-shell--mixed .app-status-dot.has-error { background: #d19585; }
 .app-shell--mixed .app-status-dot.has-warning { background: #cab383; }
 body:has(.app-shell--mixed) [data-slot="menubar-content"],
 body:has(.app-shell--mixed) [data-slot="menubar-sub-content"] { border-color: #43464e; border-radius: 4px; padding: 4px; background: #2b2d32; color: #d9dbe0; }
-body:has(.app-shell--mixed) [data-slot="menubar-item"] { font-size: 12px; border-radius: 3px; padding: 6px 9px; }
+body:has(.app-shell--mixed) [data-slot="menubar-item"] { font-size: 12px; border-radius: 3px; padding: 4px 6px; }
 body:has(.app-shell--mixed) [data-slot="menubar-item"]:focus { background: #35435d; color: #edf4ff; }
-body:has(.app-shell--mixed) [data-slot="dialog-content"] { padding: 20px; border-color: #444852; border-radius: 5px; background: #282b30; color: #e0e3e9; font-size: 12px; }
+body:has(.app-shell--mixed) [data-slot="dialog-content"] { padding: 14px; border-color: #444852; border-radius: 5px; background: #282b30; color: #e0e3e9; font-size: 12px; }
 body:has(.app-shell--mixed) [data-slot="dialog-title"] { font-size: 15px; }
 body:has(.app-shell--mixed) [data-slot="dialog-description"] { font-size: 12px; line-height: 1.6; color: #aeb5c0; }
 body:has(.app-shell--mixed) [data-slot="dialog-content"] [data-slot="button"] { height: 29px; border-radius: 3px; font-size: 12px; }
