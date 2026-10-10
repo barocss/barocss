@@ -161,3 +161,43 @@
 .re-editor--workbench .re-animation-error{color:#e3b2a2}
 .re-editor--workbench .re-animation-error p,.re-editor--workbench .re-animation-help p{margin:3px 0}
 .re-editor--workbench .re-animation-error pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:10px}
+
+/* CPU material authoring uses an independent source/inspection layout. */
+.re-material-editor{--re-material-bg:#222428;--re-material-line:#40444a;--re-material-muted:#a1a8b2;display:flex;flex-direction:column;min-height:0;height:100%;background:var(--re-material-bg);color:#e2e6ec;font:12px/1.45 system-ui,sans-serif}
+.re-material-editor *{box-sizing:border-box}
+.re-material-editor button,.re-material-editor input,.re-material-editor textarea{font:inherit;color:inherit}
+.re-material-editor button{border:1px solid var(--re-material-line);border-radius:3px;background:#2c3036;min-height:26px;padding:3px 8px;cursor:pointer}
+.re-material-editor button:hover{background:#363c45}
+.re-material-editor button:disabled{opacity:.45;cursor:default}
+.re-material-editor button:focus-visible,.re-material-editor input:focus-visible,.re-material-editor textarea:focus-visible{outline:2px solid #79a8e2;outline-offset:1px}
+.re-material-toolbar{display:flex;align-items:center;gap:6px;flex:none;height:36px;padding:4px 6px;border-bottom:1px solid var(--re-material-line)}
+.re-material-toolbar strong{font-size:12px;font-weight:600}
+.re-material-toolbar>span{margin-left:auto;color:var(--re-material-muted);font-size:11px}
+.re-material-toolbar [data-testid="material-apply"]{background:#36577e;border-color:#658db9;color:#eff6ff}
+.re-material-workspace{display:grid;grid-template-columns:minmax(0,1fr) 280px;flex:1;min-height:0}
+.re-material-source{display:flex;min-width:0;min-height:0;flex-direction:column}
+.re-material-heading{display:flex;align-items:center;gap:6px;min-height:32px;padding:4px 6px;border-bottom:1px solid var(--re-material-line)}
+.re-material-heading h2{margin:0;font-size:11px;font-weight:600}
+.re-material-heading>span,.re-material-heading>button{margin-left:auto;font-size:10px}
+.re-material-heading>span{color:var(--re-material-muted)}
+.re-material-source textarea{flex:1;display:block;width:100%;min-height:0;resize:none;border:0;background:#1c1e22;padding:8px 10px;font:12px/1.65 ui-monospace,SFMono-Regular,monospace;white-space:pre;overflow:auto;tab-size:2}
+.re-material-inspector{min-height:0;overflow:auto;border-left:1px solid var(--re-material-line);background:#26292e}
+.re-material-caption{margin:6px;color:var(--re-material-muted);font-size:11px;overflow-wrap:anywhere}
+.re-material-uniform{padding:6px;border-bottom:1px solid #353940}
+.re-material-uniform>label{display:flex;align-items:center;gap:4px;font:11px/1.45 ui-monospace,monospace;margin-bottom:4px}
+.re-material-uniform>label>span{margin-left:auto;color:var(--re-material-muted);font:10px/1.4 system-ui,sans-serif}
+.re-material-uniform input{width:100%;min-width:0;border:1px solid var(--re-material-line);border-radius:3px;background:#1e2024;padding:4px 6px;font:12px/1.4 ui-monospace,monospace}
+.re-material-uniform input[aria-invalid="true"]{border-color:#cf8a79}
+.re-material-uniform p{margin:3px 0 0;color:var(--re-material-muted);font-size:10px}
+.re-material-sample{border-top:1px solid var(--re-material-line)}
+.re-material-sample dl{display:grid;grid-template-columns:70px minmax(0,1fr);gap:4px;margin:6px;font-size:11px}
+.re-material-sample dl>div{display:contents}
+.re-material-sample dt{color:var(--re-material-muted)}
+.re-material-sample dd{margin:0;overflow-wrap:anywhere;font:11px/1.45 ui-monospace,monospace}
+.re-material-swatch{height:48px;margin:6px;border:1px solid #59616b;border-radius:2px}
+.re-material-diagnostics{border-top:1px solid var(--re-material-line)}
+.re-material-diagnostics ul{list-style:none;margin:0;padding:6px;color:#e5b7a8;font-size:11px}
+.re-material-diagnostics li+li{margin-top:6px}
+.re-material-error{padding:6px;font-size:11px;color:#e5b7a8}
+.re-material-error p{margin:0 0 4px}
+.re-material-error pre{white-space:pre-wrap;overflow-wrap:anywhere;font:10px/1.4 ui-monospace,monospace}

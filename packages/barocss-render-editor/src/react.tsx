@@ -18,6 +18,8 @@ import type {RenderSceneObjectKind} from './scene-object-source.js';
 const OBJECT_LABELS: Record<RenderSceneObjectKind, string> = {sphere:'Sphere',box:'Box',cylinder:'Cylinder',capsule:'Capsule','rounded-box':'Rounded box',torus:'Torus'};
 export {createSceneViewportPresenter} from './scene-viewport.js';
 export * from './mixed-react.js';
+export {MaterialEditor} from './material-editor.js';
+export type {MaterialEditorProps} from './material-editor.js';
 
 export interface RenderEditorPanelProps {controller: RenderEditorController; onError?: (error: RenderEditorError) => void; onCameraHelp?: () => void; onObjectSelection?:(objectId:string)=>void; navigationDisabled?: boolean; onGizmoHelp?: () => void; onTransformGesture?: (active:boolean) => void; onPlaybackChange?: (active:boolean) => void; onAnimationHelp?: () => void; gizmoMode?:RenderSceneGizmoMode; onGizmoModeChange?:(mode:RenderSceneGizmoMode)=>void; showGizmoModeButtons?:boolean; onFrameCommandChange?:(command:((scope:'all'|'selected')=>void)|null)=>void}
 export interface RenderEditorProps extends RenderEditorPanelProps {
