@@ -8606,3 +8606,58 @@ This implements plane-based native Sketch intent and World Curve regeneration.
 Arc/constraint solving, region/Face/Solid, persistent topology naming, plane-
 attached feature recipes, assembly, live UI/consumer rendering, manufacturing,
 global binary64 bounds and integrated recovery/release remain separate.
+
+
+## Native arcs from a start angle and directed sweep — #1158
+
+`buildXYAngleArc(request)` constructs an original degree2 rational XY Curve
+from explicit mm centre/radius and radian start/signed sweep. Positive sweep
+is counter-clockwise; negative is clockwise. This additive API extends native
+construction beyond the old quadrant-only `buildXYArc`. Existing arc and
+Sketch document formats retain their existing meaning.
+
+```js
+const arc = cad.buildXYAngleArc({
+  id: 'directed_arc',
+  lengthUnit: 'mm',
+  angleUnit: 'rad',
+  centerMM: [3, -2],
+  radiusMM: 2,
+  startAngleRad: Math.PI / 6,
+  sweepAngleRad: -Math.PI / 3,
+});
+const report = cad.validateXYAngleArc(arc);
+```
+
+The request preserves original bits and does not wrap authored angles. IDs
+allow48 characters; centre and generated poles stay within±10000mm. Radius
+is0.001..10000mm, start magnitude at most2π and sweep magnitude1e-6..2π.
+One to four angular spans use at most9poles/12knots. Each angular bisector
+middle pole has radial distance radius/cos(half-span), with weight cos(half-span).
+The clamped native knot domain is0..spanCount. Native parameter is NOT angle:
+quarter-span values generally differ from linear angular interpolation.
+
+Exact cardinal-quarter angles use a disclosed sine/cosine lookup; nearby
+angles use native Math trigonometry. An exactly authored ±2π sweep copies
+last endpoint bits from the first. Endpoint closure does not make the
+nonperiodic Curve periodic or certify continuity/global exact circularity.
+Original degree/weights/knots/poles are adopted through actual Source0
+compilation. Complete source/model/request/Curve/report remain independent
+copied data; owned validation reconstructs every field from the request.
+
+Up to17 unique quarter-span observations retain actual D0 and D1 values.
+The independent rational angular map checks point/radius/derivative residuals
+within1e-7mm and tangent radial residual within1e-7. Exact doubled interior
+knots retain the real conservative C0 derivative refusal and reason. These
+are sampled numerical witnesses, not global manufacturing error bounds.
+Angle absorption, collapsed poles, coordinate overflow, unsupported input,
+source/native/observation failure and tampered owned data refuse atomically.
+No result is published on failure; the API does not write files.
+
+```sh
+node examples/cad-nurbs/xy-angle-arc-demo.mjs --source EVIDENCE_DIR
+```
+
+Arbitrary workplane arc intent, interactive tools, driving constraints, region,
+Face/Solid, persistent topology naming, consumer rendering and release remain
+separate requirements. This native builder does not change the old XY documents.
