@@ -18,3 +18,7 @@ node examples/ui-compiler-package/cwd-repro.mjs
 The package has local public configuration and emitted declarations. Integration owns workspace and lockfile adoption. This native flow does not prove integrated runtime behavior, publication, hostile JavaScript safety or CPU isolation.
 
 `cwd-repro.mjs` checks that the same emitted package and a relocated copy produce identical bundle bytes from different process working directories. It uses only the staged dependencies.
+
+`layout-repro.mjs` compares the staged emitted package with an independently installed emitted package. Set `INSTALLED_COMPILER_ENTRY` to the absolute path of that installed package's `dist/index.js`. It requires byte-identical bundles and CSS from the same authored source and module ID. The installed package and its dependencies must be prepared separately; this script does not install or download them.
+
+The compiler minifies browser output and preserves function and class names. This removes esbuild's dependency-path labels from the bundle while keeping authored names available to the UI code.

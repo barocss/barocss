@@ -60,6 +60,7 @@ export async function compileUi(source, options) {
     entryPoints: ['ui-compiler-frame'], bundle: true, write: false,
     absWorkingDir: dependencyRoot,
     format: 'iife', platform: 'browser', target: 'es2022', jsx: 'automatic', logLevel: 'silent',
+    minify: true, keepNames: true,
     define: { 'process.env.NODE_ENV': '"production"' },
     plugins: [{ name: 'bounded-generated-module', setup(plugin) {
       plugin.onResolve({ filter: /.*/ }, (args) => {
