@@ -1,8 +1,9 @@
 import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {Box, FolderOpen, Save, FilePlus2, Undo2, Redo2} from 'lucide-react';
-import {createRenderMaterialSession, parseRenderMaterialDocument, serializeRenderMaterialDocument, normalizeRenderEditorError, RENDER_MATERIAL_LIMITS} from '@barocss/render-editor';
+import {createRenderMaterialSession, createRenderMaterialController, parseRenderMaterialDocument, serializeRenderMaterialDocument, normalizeRenderEditorError, RENDER_MATERIAL_LIMITS} from '@barocss/render-editor';
 import type {RenderEditorError, RenderMaterialDocument} from '@barocss/render-editor';
 import {MaterialEditor} from '@barocss/render-editor/react';
+import {MaterialPreview} from './material-preview';
 import {Button} from './components/ui/button';
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from './components/ui/dialog';
 import {Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger} from './components/ui/menubar';
@@ -13,19 +14,20 @@ export const initialMaterialDocument: RenderMaterialDocument = {
 };
 type FileAction = {label: string; execute: () => void};
 
-/** A separate material document host; it never replaces or binds a scene. */
+/** Material-only documents rendered on the fixed native reference Surface. */
 export function MaterialApp() {
-  const [session, setSession] = useState(() => createRenderMaterialSession(initialMaterialDocument));
+  const [{cpu, controller}, setHost] = useState(() => {const cpu = createRenderMaterialSession(initialMaterialDocument); return {cpu, controller: createRenderMaterialController(cpu)};});
+  const session = controller.editorSession;
   const snapshot = useSyncExternalStore(session.subscribe, session.getSnapshot, session.getSnapshot);
-  const [notice, setNotice] = useState('Material document · CPU inspection'), [error, setError] = useState<RenderEditorError | null>(null);
+  const [notice, setNotice] = useState('Material document · native Surface preview'), [error, setError] = useState<RenderEditorError | null>(null);
   const [pending, setPending] = useState<FileAction | null>(null), [busy, setBusy] = useState(false), [helpOpen, setHelpOpen] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null), helpButton = useRef<HTMLButtonElement>(null), returnFocus = useRef<HTMLElement | null>(null);
   const busyRef = useRef(false), epoch = useRef(0), pendingRef = useRef(pending), helpRef = useRef(helpOpen), mounted = useRef(true);
   pendingRef.current = pending; helpRef.current = helpOpen;
-  useEffect(() => {mounted.current = true; return () => {mounted.current = false; epoch.current++; session.dispose();};}, [session]);
+  useEffect(() => {mounted.current = true; return () => {mounted.current = false; epoch.current++; controller.dispose(); cpu.dispose();};}, [session]);
   // A commit or Discard resolves an earlier authoring refusal, without hiding a current invalid draft.
   useEffect(() => {
-    if (!snapshot.dirty && error?.code === 'SOURCE_REFUSED') {setError(null); setNotice('Material ready.');}
+    if (!snapshot.dirty && (error?.code === 'SOURCE_REFUSED' || error?.code === 'PRESENTATION_REFUSED' && controller.getSnapshot().displayed === snapshot.accepted)) {setError(null); setNotice('Material ready.');}
   }, [snapshot.accepted, snapshot.dirty]);
   const report = (cause: unknown) => {setError(normalizeRenderEditorError(cause)); setNotice('Correct the material draft, then try again.');};
   const guard = (action: FileAction) => {
@@ -47,7 +49,8 @@ export function MaterialApp() {
   const newAccepted = () => {
     try {
       const document = {...initialMaterialDocument, documentId: 'material-' + crypto.randomUUID(), title: 'Untitled material'};
-      setSession(createRenderMaterialSession(document));
+      const nextCpu = createRenderMaterialSession(document);
+      setHost({cpu: nextCpu, controller: createRenderMaterialController(nextCpu)});
       setError(null); setNotice('New material document.');
     } catch (cause) {report(cause);}
   };
@@ -114,13 +117,13 @@ export function MaterialApp() {
       <Button variant="ghost" size="icon-xs" aria-label="Undo material change" data-testid="material-undo" disabled={disabled || snapshot.dirty || !snapshot.canUndo} onClick={() => history('undo')}><Undo2/></Button>
       <Button variant="ghost" size="icon-xs" aria-label="Redo material change" data-testid="material-redo" disabled={disabled || snapshot.dirty || !snapshot.canRedo} onClick={() => history('redo')}><Redo2/></Button>
     </div>
-    <MaterialEditor session={session} disabled={disabled} onError={report}/>
+    <MaterialEditor session={session} disabled={disabled} onError={report} preview={<MaterialPreview controller={controller} disabled={disabled} onError={report}/>}/>
     <footer className="app-status"><span role="status" data-testid="material-app-status">{error ? error.code + ': ' + error.message : notice}</span><span className="app-status-spacer"/><span data-testid="material-accepted-revision" data-revision={snapshot.accepted.revision}>Applied {snapshot.accepted.revision}</span><span>CPU · linear RGB</span></footer>
     <input ref={fileInput} type="file" accept=".material.json,application/json" hidden data-testid="material-file-input" onChange={event => {const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; void readFile(file);}}/>
     <Dialog open={pending !== null} onOpenChange={value => {if (!value) {pendingRef.current = null; setPending(null);}}}><DialogContent><DialogHeader><DialogTitle>Keep material changes?</DialogTitle><DialogDescription>Apply or Discard the draft before you {pending?.label}. Cancel keeps the current text.</DialogDescription></DialogHeader>
       {error && <p role="alert">{error.message}</p>}<DialogFooter><Button variant="ghost" onClick={() => {pendingRef.current = null; setPending(null);}}>Cancel</Button><Button variant="secondary" onClick={() => finishPending(false)}>Discard</Button><Button onClick={() => finishPending(true)}>Apply</Button></DialogFooter></DialogContent></Dialog>
     <Dialog open={helpOpen} onOpenChange={setHelpOpen}><DialogContent onCloseAutoFocus={event => {event.preventDefault(); returnFocus.current?.focus();}}><DialogHeader><DialogTitle>Material editing</DialogTitle><DialogDescription>Shader source and supplied uniform values form one material document.</DialogDescription></DialogHeader>
-      <div className="app-help-copy"><p>Edit the original shader and declared uniforms, then Apply. The last applied CPU sample stays visible if a draft is invalid. Uniform ranges and defaults come from the shader. Use defaults removes supplied overrides.</p><p>Sample values are dimensionless linear RGB calculated on the CPU. The swatch displays those values with CSS color. This document is separate from a 3D scene; it does not bind a material to geometry or preview lighting, textures or rendered shader pixels.</p><p>Incomplete values and shader text stay drafts. Discard restores the applied material. Apply or Discard before Undo/Redo or a file transition; Cancel retains text. Source editing preserves supplied uniform drafts. Removed uniforms need Use defaults or Remove override.</p><p>Save stores the exact shader source and supplied numbers. Open accepts material version 0 files up to 256 KiB, recompiles the shader and calculates a fresh sample. Generated IR, sample and local field text are not stored. Source1 scene and CAD files use their own editors.</p></div>
+      <div className="app-help-copy"><p>Edit the original shader and declared uniforms, then Apply. The last applied CPU sample stays visible if a draft is invalid. Uniform ranges and defaults come from the shader. Use defaults removes supplied overrides.</p><p>The center Canvas renders the authored material on a fixed native reference Surface with fixed lighting. Drag to orbit, Shift + drag to pan, or use the wheel to zoom. The CPU swatch shows linear RGB separately; rendered pixels include lighting and gamma. Show the Surface before Apply. Graphics failure may make the preview unavailable.</p><p>Incomplete values and shader text stay drafts. Discard restores the applied material. Apply or Discard before Undo/Redo or a file transition; Cancel retains text. Source editing preserves supplied uniform drafts. Removed uniforms need Use defaults or Remove override.</p><p>Save stores the exact shader source and supplied numbers. Open accepts material version 0 files up to 256 KiB, recompiles the shader and calculates a fresh sample. Generated IR, sample and local field text are not stored. Geometry, camera and lighting are supplied by this preview host and are not saved in a material file. Fresh Open uses the same reference asset. Source1 scene and CAD files use their own editors.</p></div>
     </DialogContent></Dialog>
   </main>;
 }

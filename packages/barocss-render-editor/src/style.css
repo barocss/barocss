@@ -162,7 +162,7 @@
 .re-editor--workbench .re-animation-error p,.re-editor--workbench .re-animation-help p{margin:3px 0}
 .re-editor--workbench .re-animation-error pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:10px}
 
-/* CPU material authoring uses an independent source/inspection layout. */
+/* Material authoring uses source/inspection panes and an optional host preview. */
 .re-material-editor{--re-material-bg:#222428;--re-material-line:#40444a;--re-material-muted:#a1a8b2;display:flex;flex-direction:column;min-height:0;height:100%;background:var(--re-material-bg);color:#e2e6ec;font:12px/1.45 system-ui,sans-serif}
 .re-material-editor *{box-sizing:border-box}
 .re-material-editor button,.re-material-editor input,.re-material-editor textarea{font:inherit;color:inherit}
@@ -201,3 +201,6 @@
 .re-material-error{padding:6px;font-size:11px;color:#e5b7a8}
 .re-material-error p{margin:0 0 4px}
 .re-material-error pre{white-space:pre-wrap;overflow-wrap:anywhere;font:10px/1.4 ui-monospace,monospace}
+
+.re-material-editor--preview .re-material-workspace{grid-template-columns:minmax(260px,280px) minmax(0,1fr) 280px}
+.re-material-preview{position:relative;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;border-left:1px solid var(--re-material-line);background:#1a1d22}

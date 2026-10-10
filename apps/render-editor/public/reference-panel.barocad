@@ -1,0 +1,13 @@
+@model cloth_reference_981 {
+  version: 0;
+  length-unit: mm;
+  @surface #reference_panel {
+    type: nurbs;
+    degree-u: 1;
+    degree-v: 1;
+    knots-u: [-0,-0,5,5];
+    knots-v: [10,10,20,20];
+    control-points: [[[-700,-550,-700],[-700,-550,700]],[[700,-550,-700],[700,-550,700]]];
+    weights: [[1,1],[1,1]];
+  }
+}

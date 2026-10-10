@@ -30,7 +30,7 @@ export interface RenderMaterialSession {
   prepareOpen(text: string): RenderMaterialPreparedCandidate;
   prepareUndo(): RenderMaterialPreparedCandidate | null;
   prepareRedo(): RenderMaterialPreparedCandidate | null;
-  commitPrepared(candidate: RenderMaterialPreparedCandidate): void;
+  commitPrepared(candidate: RenderMaterialPreparedCandidate, beforeCommit?: () => void): void;
   discardDraft(): void;
   markSaved(revision: number): void;
   dispose(): void;
@@ -38,6 +38,7 @@ export interface RenderMaterialSession {
 interface HistoryEntry {readonly document: RenderMaterialDocument; readonly bytes: number}
 interface CandidateState {readonly generation: number; readonly historyIndex: number | null; readonly bytes: number; used: boolean}
 const EMPTY_DIAGNOSTICS: RenderEditorError['diagnostics'] = Object.freeze([]);
+const ASYNC_FUNCTION = Object.getPrototypeOf(async function () {});
 function equalUniforms(a: Readonly<Record<string, number>>, b: Readonly<Record<string, number>>): boolean {
   const keys = Object.keys(a);
   return keys.length === Object.keys(b).length && keys.every(key => Object.hasOwn(b, key) && Object.is(a[key], b[key]));
@@ -108,7 +109,7 @@ export function createRenderMaterialSession(initial: RenderMaterialDocument): Re
     prepareOpen(text) { return qualify(() => prepare(parseRenderMaterialDocument(text), 'open')); },
     prepareUndo() { return qualify(() => historyIndex === 0 ? null : prepare({...history[historyIndex - 1]!.document, revision: nextRevision()}, 'undo', historyIndex - 1)); },
     prepareRedo() { return qualify(() => historyIndex === history.length - 1 ? null : prepare({...history[historyIndex + 1]!.document, revision: nextRevision()}, 'redo', historyIndex + 1)); },
-    commitPrepared(candidate) {
+    commitPrepared(candidate, beforeCommit) {
       qualify(() => {
         const state = candidate !== null && typeof candidate === 'object' ? candidates.get(candidate) : undefined;
         if (!state || state.used || state.generation !== generation) throw new RenderEditorError('STALE_CANDIDATE', 'Material candidate is stale, foreign, forged, or already used.');
@@ -120,6 +121,14 @@ export function createRenderMaterialSession(initial: RenderMaterialDocument): Re
         if (nextHistory.length > RENDER_MATERIAL_LIMITS.historyEntries
           || nextHistory.reduce((sum, item) => sum + item.bytes, 0) > RENDER_MATERIAL_LIMITS.historyBytes) {
           throw new RenderEditorError('HISTORY_LIMIT', 'Material history exceeds its entry or byte limit.');
+        }
+        if (beforeCommit !== undefined) {
+          if (typeof beforeCommit !== 'function') throw new RenderEditorError('DOCUMENT_INPUT', 'Material presentation callback must be a function.');
+          if (Object.getPrototypeOf(beforeCommit) === ASYNC_FUNCTION) throw new RenderEditorError('PRESENTATION_REFUSED', 'Material presentation callback must be synchronous.');
+          const result: unknown = beforeCommit();
+          if (result !== null && (typeof result === 'object' || typeof result === 'function') && 'then' in result) {
+            throw new RenderEditorError('PRESENTATION_REFUSED', 'Material presentation callback must be synchronous.');
+          }
         }
         accepted = candidate.document; sample = candidate.sample;
         history = nextHistory; historyIndex = nextIndex; state.used = true;

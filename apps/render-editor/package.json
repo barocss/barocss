@@ -15,7 +15,10 @@
     "lucide-react": "1.52.0",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
-    "tailwind-merge": "3.7.0"
+    "tailwind-merge": "3.7.0",
+    "@barocss/viewer": "workspace:*",
+    "@barocss/cad-interop": "workspace:*",
+    "@barocss/gpu": "workspace:*"
   },
   "devDependencies": {
     "tailwindcss": "4.3.3",

@@ -29,3 +29,4 @@ export type {RenderSceneFramingViewport} from './scene-framing.js';
 export {RENDER_MATERIAL_LIMITS, prepareRenderMaterialDocument, validateRenderMaterialDocument, parseRenderMaterialDocument, serializeRenderMaterialDocument} from './material-document.js';
 export type {RenderMaterialDocument, RenderMaterialPreparation} from './material-document.js';
 export * from './material-session.js';
+export * from './material-controller.js';
