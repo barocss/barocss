@@ -291,6 +291,9 @@ export type { VLinearSurfacePlaneSectionAsset, VLinearSurfacePlaneSectionOptions
 export { editSourceSurfaceControlNet, validateSourceSurfaceControlNetEdit, SourceSurfaceControlNetError, SourceSurfaceControlNetDiagnosticCode } from './source-surface-control-net.js';
 export type { SourceSurfaceControlNetRequest, SourceSurfaceControlNetPatch, SourceSurfaceControlNetReport, SourceSurfaceControlNetResult } from './source-surface-control-net.js';
 
+export { editSourceSurfaceControlNetWide, validateSourceSurfaceControlNetWideEdit, SourceSurfaceControlNetWideError, SourceSurfaceControlNetWideDiagnosticCode } from './source-surface-control-net-wide.js';
+export type { SourceSurfaceControlNetWideRequest, SourceSurfaceControlNetWidePatch, SourceSurfaceControlNetWideReport, SourceSurfaceControlNetWideResult } from './source-surface-control-net-wide.js';
+
 export { editSourceCurveControlPolygon, validateSourceCurveControlPolygonEdit, SourceCurveControlPolygonError, SourceCurveControlPolygonDiagnosticCode } from './source-curve-control-polygon.js';
 export type { SourceCurveControlPolygonRequest, SourceCurveControlPolygonPatch, SourceCurveControlPolygonReport, SourceCurveControlPolygonResult } from './source-curve-control-polygon.js';
 
