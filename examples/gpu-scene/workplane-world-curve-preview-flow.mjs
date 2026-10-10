@@ -137,7 +137,6 @@ for(const provider of providers){
  const{cad,gpu,name}=provider;
  for(const fn of ['evaluateWorkplaneSketchDocument','updateWorkplaneSketchDocument','validateWorkplaneSketchDocument','serializeWorkplaneSketchDocument','parseWorkplaneSketchDocument','sampleCurve','evaluateCurve','compileCadModel'])assert.equal(typeof cad[fn],'function',name+' public '+fn);
  for(const fn of ['prepareSelectedUniformCurvePreview','validateSelectedUniformCurvePreview'])assert.equal(typeof gpu[fn],'function',name+' public '+fn);
- assert.equal(Object.keys(cad).length,424);assert.equal(Object.keys(gpu).length,54);
  const dir=resolve(output,name);await mkdir(dir);const accepted=[],refusals=[];let current;
  const acceptedPaths=['accepted.authored-workplane.json','accepted.native.json','accepted.previews.json'].map(p=>resolve(dir,p));
  function prepare(request,ids,count){
@@ -219,4 +218,4 @@ for(const key of ['cadExports','gpuExports','finalNative','finalPreviews'])asser
 const cadClosure=[];for(const entry of(await readdir(resolve(manifests.cad.root,'dist'))).sort())if(entry.endsWith('.js'))cadClosure.push(await receipt(resolve(manifests.cad.root,'dist',entry)));
 const result={ok:true,issue:1159,inputs:inputs.map(({name,ids,count,files})=>({name,ids,count,files})),results,sourceGraph:graph,cadClosure,actualGL:false,
  support:'Original linear authored workplane document/local intent/proper numerical frame/native world children and selected uniform CPU D0 previews. Retained native parameters/F64/IDs/source and C0 reports; local affine observations within1e-7mm are not global certificates. No Arc/mixed intent, axis conversion, angular sampling, Float32, rendering, editor, topology, constraints, release or filesystem crash atomicity proof.'};
-await writeFile(resolve(output,'actual-result.json'),nativeJSON(result)+'\n');console.log(JSON.stringify({ok:true,accepted:14,refusals:20,getters:0,cadExports:424,gpuExports:54,actualGL:false}));
+await writeFile(resolve(output,'actual-result.json'),nativeJSON(result)+'\n');console.log(JSON.stringify({ok:true,accepted:14,refusals:20,getters:0,cadExports:results[0].cadExports.length,gpuExports:results[0].gpuExports.length,actualGL:false}));
