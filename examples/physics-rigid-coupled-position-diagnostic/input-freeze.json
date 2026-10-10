@@ -1,0 +1,3417 @@
+{
+  "issue": 1308,
+  "base": "63d20195a9d980a31930c682ed56e8be87d5a11f",
+  "parent": {
+    "manifestPath": "evidence/native-ecc4dccc/manifest.json",
+    "manifestSha256": "327ab9e319b9d7e2e3d63309fef682216751fe8d88cc7208bb730e25606d473f",
+    "base": "201681689d398f8b2a9e3472579076c8f4fa43af",
+    "measuredSource": "ecc4dccc7a50a5753c236647be3b491a4fafd3fa",
+    "native": "d2e6f59aaa30164db4eb8ae971c1d03b5c2c86be",
+    "graphs": [
+      "source",
+      "source-repeat",
+      "compiled-dependencies"
+    ],
+    "scenes": [
+      "ALIGNED",
+      "OFFSET",
+      "YAW"
+    ],
+    "failures": {
+      "ALIGNED": 5,
+      "OFFSET": 3,
+      "YAW": 4
+    },
+    "artifactCount": 63,
+    "frameBytes": 936,
+    "ids": [
+      "b0",
+      "b1",
+      "b2",
+      "b3",
+      "b4",
+      "b5",
+      "b6",
+      "b7",
+      "floor"
+    ]
+  },
+  "archiveErrors": {
+    "manifest": "coupled archive manifest is invalid",
+    "manifestHash": "coupled archive manifest hash mismatch",
+    "fileSet": "coupled archive file set mismatch",
+    "path": "coupled archive artifact path is invalid",
+    "artifactHash": "coupled archive artifact hash mismatch",
+    "decoded": "coupled archive decoded artifact is invalid",
+    "decodedHash": "coupled archive decoded artifact hash mismatch",
+    "provenance": "coupled archive provenance is invalid",
+    "report": "coupled archive report identity is invalid",
+    "cursor": "coupled archive cursor or attempt mapping is invalid",
+    "raw": "coupled archive raw layout or byte count is invalid",
+    "rawHash": "coupled archive raw stream hash mismatch",
+    "body": "coupled archive body metadata is invalid",
+    "pose": "coupled archive coupled pose correspondence is invalid",
+    "rows": "coupled archive row mapping is invalid",
+    "result": "coupled archive result or certificate is invalid"
+  },
+  "coverageGates": {
+    "scalarM": 1e-12,
+    "rawNormalizedM": 1e-12,
+    "decimalPrecisionM": "1e-25",
+    "detectorRawM": 1e-12,
+    "originalRowM": 1e-12,
+    "uniquePhysicalAxis": false
+  },
+  "coverageErrors": {
+    "request": "coverage reference requires before, after, translations and explicit row",
+    "geometry": "coverage reference support geometry changed",
+    "identity": "coverage reference pair IDs or kinds changed",
+    "translation": "coverage reference translation must be a finite 3-vector",
+    "row": "coverage reference row must name the ordered pair",
+    "normal": "coverage reference row normal must be finite and unit",
+    "depth": "coverage reference row depth must be finite and within zero to ten metres",
+    "number": "reference number must be a finite Float64; bool is invalid"
+  },
+  "coverageLiteralControls": [
+    {
+      "name": "unchanged-overlap",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            0,
+            0
+          ]
+        },
+        "row": null
+      },
+      "expected": {
+        "beforeClass": "overlap",
+        "afterClass": "overlap",
+        "beforeDepthM": 0.01,
+        "afterDepthM": 0.01
+      }
+    },
+    {
+      "name": "unchanged-separated",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.51,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.51,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            0,
+            0
+          ]
+        },
+        "row": null
+      },
+      "expected": {
+        "beforeClass": "separated",
+        "afterClass": "separated",
+        "beforeMarginM": -0.01,
+        "afterMarginM": -0.01
+      }
+    },
+    {
+      "name": "unchanged-touching",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.5,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.5,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            0,
+            0
+          ]
+        },
+        "row": null
+      },
+      "expected": {
+        "beforeClass": "touching",
+        "afterClass": "touching",
+        "beforeMarginM": 0,
+        "afterMarginM": 0
+      }
+    },
+    {
+      "name": "separated-gap-consumed",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.51,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            -0.02,
+            0
+          ]
+        },
+        "row": null
+      },
+      "expected": {
+        "beforeClass": "separated",
+        "afterClass": "overlap",
+        "beforeMarginM": -0.01,
+        "afterDepthM": 0.01
+      }
+    },
+    {
+      "name": "included-row-clears",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.51,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            0.02,
+            0
+          ]
+        },
+        "row": {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "depthM": 0.01
+        }
+      },
+      "expected": {
+        "beforeClass": "overlap",
+        "afterClass": "separated",
+        "rowResidualM": 0.01
+      }
+    },
+    {
+      "name": "same-translation-creates-omitted-pair-overlap",
+      "input": {
+        "before": {
+          "a": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "c",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.51,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "c",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0.02,
+            0
+          ],
+          "bM": [
+            0,
+            0,
+            0
+          ]
+        },
+        "row": null
+      },
+      "expected": {
+        "beforeClass": "separated",
+        "afterClass": "overlap",
+        "beforeMarginM": -0.01,
+        "afterDepthM": 0.01
+      }
+    },
+    {
+      "name": "centre-projection-crosses-zero",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.4,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -0.4,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0,
+            0
+          ],
+          "bM": [
+            -0.8,
+            0,
+            0
+          ]
+        },
+        "row": null
+      },
+      "expected": {
+        "beforeDepthM": 0.1,
+        "afterDepthM": 0.1,
+        "signChanged": true
+      }
+    },
+    {
+      "name": "multiple-ties-and-normal-ambiguity",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            0,
+            0
+          ]
+        },
+        "row": null
+      },
+      "expected": {
+        "beforeDepthM": 0.5,
+        "afterDepthM": 0.5,
+        "multipleTies": true,
+        "normalAmbiguous": true
+      }
+    },
+    {
+      "name": "tiny-nonzero-cross-axis-retained",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              5e-14,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              5e-14,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            0,
+            0
+          ]
+        },
+        "row": null
+      },
+      "expected": {
+        "beforeDepthM": 0.01,
+        "afterDepthM": 0.01,
+        "nearParallel": true
+      }
+    },
+    {
+      "name": "altered-orientation",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0.1,
+              0,
+              0.99498743710662
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            0,
+            0
+          ]
+        },
+        "row": null
+      },
+      "error": "coverage reference support geometry changed"
+    },
+    {
+      "name": "altered-shape",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.26,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            0,
+            0
+          ]
+        },
+        "row": null
+      },
+      "error": "coverage reference support geometry changed"
+    },
+    {
+      "name": "altered-ID",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "changed",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            0,
+            0
+          ]
+        },
+        "row": null
+      },
+      "error": "coverage reference pair IDs or kinds changed"
+    },
+    {
+      "name": "null-raw-position",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              null,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            0,
+            0
+          ]
+        },
+        "row": null
+      },
+      "error": "reference number must be a finite Float64; bool is invalid"
+    },
+    {
+      "name": "boolean-raw-position",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              false,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            0,
+            0
+          ]
+        },
+        "row": null
+      },
+      "error": "reference number must be a finite Float64; bool is invalid"
+    },
+    {
+      "name": "nonfinite-raw-position-codec",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              null,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            0,
+            0
+          ]
+        },
+        "row": null
+      },
+      "error": "reference number must be a finite Float64; bool is invalid"
+    },
+    {
+      "name": "null-translation",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            null,
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            0,
+            0
+          ]
+        },
+        "row": null
+      },
+      "error": "coverage reference translation must be a finite 3-vector"
+    },
+    {
+      "name": "short-translation",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            0,
+            0
+          ]
+        },
+        "row": null
+      },
+      "error": "coverage reference translation must be a finite 3-vector"
+    },
+    {
+      "name": "wrong-row-endpoints",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            0,
+            0
+          ]
+        },
+        "row": {
+          "aId": "b",
+          "bId": "a",
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "depthM": 0.01
+        }
+      },
+      "error": "coverage reference row must name the ordered pair"
+    },
+    {
+      "name": "nonunit-row-normal",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            0,
+            0
+          ]
+        },
+        "row": {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            0,
+            2,
+            0
+          ],
+          "depthM": 0.01
+        }
+      },
+      "error": "coverage reference row normal must be finite and unit"
+    },
+    {
+      "name": "null-row-depth",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            0,
+            0
+          ]
+        },
+        "row": {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "depthM": null
+        }
+      },
+      "error": "coverage reference row depth must be finite and within zero to ten metres"
+    },
+    {
+      "name": "missing-row-is-not-null",
+      "input": {
+        "before": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "after": {
+          "a": {
+            "id": "a",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          "b": {
+            "id": "b",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.49,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "translations": {
+          "aM": [
+            0,
+            0,
+            0
+          ],
+          "bM": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "error": "coverage reference requires before, after, translations and explicit row"
+    }
+  ],
+  "framesPerGraph": 9,
+  "pairsPerFrame": 36,
+  "pairObservationsTotal": 972,
+  "coverageTransitionsTotal": 324,
+  "linearProblems": 9,
+  "worldCreated": false,
+  "worldStepped": false,
+  "sourceOnlyInputCollection": true,
+  "geometryComparisonExecuted": false
+}

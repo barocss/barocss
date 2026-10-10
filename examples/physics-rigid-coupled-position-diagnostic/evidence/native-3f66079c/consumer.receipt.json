@@ -1,0 +1,16 @@
+{
+  "phase": "consumer",
+  "command": [
+    "node",
+    "examples/physics-rigid-coupled-position-diagnostic/runner.mjs",
+    "/tmp/physics-1308-canonical"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 5.265190124511719,
+  "measuredHead": "3f66079c2e4acf10d48422d6511b46c031b27ca8",
+  "sourceFreezeSha256": "ed5c8773b6bc0a51e95f99fbf454db779ccf9c8ddd348b15e3d1200321164d0d",
+  "stdoutBytes": 6111,
+  "stdoutSha256": "0210233a5953be51d023ec1c8260173b0c46b7c0b38e38e316621bd1b7131f80",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,18 @@
+{
+  "issue": 1308,
+  "chosenBase": "63d20195a9d980a31930c682ed56e8be87d5a11f",
+  "adoptionReceipt": {
+    "issue": 1264,
+    "adoption": "41d3bf353078cdad5cb1c0cdbd99b972e0eb79cc",
+    "parents": "41d3bf353078cdad5cb1c0cdbd99b972e0eb79cc 239c64eecaa279c790d57dccb37eecde7bc66487",
+    "native": "d2e6f59aaa30164db4eb8ae971c1d03b5c2c86be",
+    "ownedPathCount": 86,
+    "mismatches": [],
+    "head": "18a30a463cfc4e2fa947c5ae4d057bc4d13ac659",
+    "adoptionAncestor": true
+  },
+  "parentManifestSha256": "327ab9e319b9d7e2e3d63309fef682216751fe8d88cc7208bb730e25606d473f",
+  "artifactCount": 63,
+  "allCompressedAndDecodedHashesVerified": true,
+  "newWorldOrTrialExecuted": false
+}

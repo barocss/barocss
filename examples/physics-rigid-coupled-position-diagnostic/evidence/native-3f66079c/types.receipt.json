@@ -1,0 +1,17 @@
+{
+  "phase": "types",
+  "command": [
+    "node",
+    "node_modules/typescript/bin/tsc",
+    "-p",
+    "examples/physics-rigid-coupled-position-diagnostic/tsconfig.json"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 1.327859878540039,
+  "measuredHead": "3f66079c2e4acf10d48422d6511b46c031b27ca8",
+  "sourceFreezeSha256": "ed5c8773b6bc0a51e95f99fbf454db779ccf9c8ddd348b15e3d1200321164d0d",
+  "stdoutBytes": 0,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

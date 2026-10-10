@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {readFile,writeFile} from 'node:fs/promises';
+import {execFileSync} from 'node:child_process';
+import {dirname,resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {digest,PARENT} from './archive.mjs';
+const here=dirname(fileURLToPath(import.meta.url)),root=resolve(here,'../..');
+assert.equal(process.version,'v22.22.0');
+const scopes=['examples/physics-rigid-coupled-position-diagnostic','packages/barocss-physics/src','packages/barocss-cad/src','examples/physics-rigid-feature-penetration-diagnostic','examples/physics-rigid-feature-geometry','examples/physics-rigid-coupled-position-reference','examples/physics-rigid-coupled-position-world'];
+const listed=execFileSync('rg',['--files','--hidden',...scopes],{cwd:root,encoding:'utf8'}).trim().split('\n').filter(p=>!p.startsWith('examples/physics-rigid-coupled-position-diagnostic/evidence/')&&!p.endsWith('/source-freeze.json')&&(!p.includes('/evidence/')||p.startsWith('examples/physics-rigid-coupled-position-world/evidence/native-ecc4dccc/')));
+listed.push('examples/physics-rigid-coupled-position-world/source-freeze.json','examples/physics-rigid-coupled-position-world/evidence/native-ecc4dccc/source-freeze.json','examples/physics-rigid-engine-reference/build-local.mjs','examples/physics-rigid-contact-reference/fixtures.mjs','examples/physics-rigid-contact-diagnostic/observer.mjs','packages/barocss-physics/package.json','packages/barocss-physics/tsconfig.json','packages/barocss-cad/package.json','packages/barocss-cad/tsconfig.json','package.json','pnpm-lock.yaml','pnpm-workspace.yaml');
+const sources=[];for(const path of [...new Set(listed)].sort())sources.push({path,sha256:digest(await readFile(resolve(root,path)))});
+const freeze={issue:1308,base:'63d20195a9d980a31930c682ed56e8be87d5a11f',node:process.version,parent:PARENT,gates:{detectorRawDepthM:1e-12,rawNormalizedDepthM:1e-12,precisionM:1e-25,rowAndTranslationM:1e-12,fractionCertificate:1e-12,physicalFailureRetainedM:.002},sourceOnlyPreTrial:true,sources};
+const bytes=JSON.stringify(freeze,null,2)+'\n';await writeFile(resolve(here,'source-freeze.json'),bytes);console.log(JSON.stringify({sources:sources.length,sha256:digest(Buffer.from(bytes)),preTrial:true}));

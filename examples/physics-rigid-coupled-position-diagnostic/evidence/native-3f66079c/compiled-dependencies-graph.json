@@ -1,0 +1,211 @@
+{
+  "audit": {
+    "graph": "compiled-dependencies",
+    "originalSourceCount": 0,
+    "originalDistCount": 6,
+    "privateAdapterSource": true,
+    "adoptedSelectorSource": true,
+    "worldCreated": false,
+    "worldStepped": false,
+    "jsSolvePositionCalled": false,
+    "inputs": [
+      {
+        "path": "packages/barocss-physics/dist/types.js",
+        "sha256": "932dad524c2e342e7335203e1e47aafb4025b3da32339385d79847c51283be1e"
+      },
+      {
+        "path": "packages/barocss-physics/dist/limits.js",
+        "sha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219"
+      },
+      {
+        "path": "packages/barocss-physics/dist/validation.js",
+        "sha256": "d7bb0ca0e1ac7f0485b60e46d72d4a49a2856473276cf28e56967895f06fe919"
+      },
+      {
+        "path": "packages/barocss-physics/dist/math.js",
+        "sha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028"
+      },
+      {
+        "path": "packages/barocss-physics/dist/capsule-contact.js",
+        "sha256": "7519483aec208b282ae23bb6985868af199b19d00d3d00564b3a5438d2113ad1"
+      },
+      {
+        "path": "packages/barocss-physics/dist/collision.js",
+        "sha256": "404bbb24c4552828f8bd943481a15b11af7d93333c5651c4c8f8cae88e3dd28a"
+      },
+      {
+        "path": "examples/physics-rigid-feature-geometry/sat-feature.ts",
+        "sha256": "5c84e0327d621a0bdcf1ca85d73244147fd2b05ae29fa6dfc25ded7d3af460af"
+      },
+      {
+        "path": "examples/physics-rigid-feature-penetration-diagnostic/entry.ts",
+        "sha256": "bb1ac67ba458e5ab2846047686b8c25bd21c1365e8aab7f74876f8ca03c9c109"
+      },
+      {
+        "path": "examples/physics-rigid-coupled-position-diagnostic/entry.ts",
+        "sha256": "ee666b0200c631363eb36f4cca9d68534d464bb391257c0e08fe2682756f3bde"
+      }
+    ]
+  },
+  "metafile": {
+    "inputs": {
+      "packages/barocss-physics/dist/types.js": {
+        "bytes": 179,
+        "imports": [],
+        "format": "esm"
+      },
+      "packages/barocss-physics/dist/limits.js": {
+        "bytes": 416,
+        "imports": [],
+        "format": "esm"
+      },
+      "packages/barocss-physics/dist/validation.js": {
+        "bytes": 13787,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/dist/types.js",
+            "kind": "import-statement",
+            "original": "./types.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/limits.js",
+            "kind": "import-statement",
+            "original": "./limits.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/dist/math.js": {
+        "bytes": 2114,
+        "imports": [],
+        "format": "esm"
+      },
+      "packages/barocss-physics/dist/capsule-contact.js": {
+        "bytes": 5708,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/dist/math.js",
+            "kind": "import-statement",
+            "original": "./math.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/dist/collision.js": {
+        "bytes": 13712,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/dist/validation.js",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/math.js",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/capsule-contact.js",
+            "kind": "import-statement",
+            "original": "./capsule-contact.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-feature-geometry/sat-feature.ts": {
+        "bytes": 6166,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/dist/math.js",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/math.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/validation.js",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/validation.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-feature-penetration-diagnostic/entry.ts": {
+        "bytes": 586,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/dist/collision.js",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/collision.js"
+          },
+          {
+            "path": "examples/physics-rigid-feature-geometry/sat-feature.ts",
+            "kind": "import-statement",
+            "original": "../physics-rigid-feature-geometry/sat-feature.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/validation.js",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/types.js",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/types.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-coupled-position-diagnostic/entry.ts": {
+        "bytes": 113,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-feature-penetration-diagnostic/entry.ts",
+            "kind": "import-statement",
+            "original": "../physics-rigid-feature-penetration-diagnostic/entry.js"
+          }
+        ],
+        "format": "esm"
+      }
+    },
+    "outputs": {
+      "../../../../../../tmp/physics-1308-canonical/compiled-dependencies.mjs": {
+        "imports": [],
+        "exports": [
+          "PhysicsError",
+          "inspectPair",
+          "parseBody"
+        ],
+        "entryPoint": "examples/physics-rigid-coupled-position-diagnostic/entry.ts",
+        "inputs": {
+          "packages/barocss-physics/dist/types.js": {
+            "bytesInOutput": 161
+          },
+          "packages/barocss-physics/dist/limits.js": {
+            "bytesInOutput": 44
+          },
+          "packages/barocss-physics/dist/validation.js": {
+            "bytesInOutput": 7481
+          },
+          "packages/barocss-physics/dist/math.js": {
+            "bytesInOutput": 766
+          },
+          "packages/barocss-physics/dist/capsule-contact.js": {
+            "bytesInOutput": 5220
+          },
+          "packages/barocss-physics/dist/collision.js": {
+            "bytesInOutput": 5423
+          },
+          "examples/physics-rigid-feature-geometry/sat-feature.ts": {
+            "bytesInOutput": 4217
+          },
+          "examples/physics-rigid-feature-penetration-diagnostic/entry.ts": {
+            "bytesInOutput": 101
+          },
+          "examples/physics-rigid-coupled-position-diagnostic/entry.ts": {
+            "bytesInOutput": 0
+          }
+        },
+        "bytes": 23870
+      }
+    }
+  }
+}

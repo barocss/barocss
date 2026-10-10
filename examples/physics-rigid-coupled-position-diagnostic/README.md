@@ -1,0 +1,11 @@
+# Archived coupled-position diagnostic — Issue1308
+
+This example reads the authenticated #1264 failure archive. It creates no world and runs no JS position solver. It observes the previous accepted, pre-coupled working and first failed accepted poses of ALIGNED5, OFFSET3 and YAW4. Each graph checks nine frames and every36pair perframe. The three graphs contain972pair-frame observations and324pre/final pair transitions.
+
+The new archive adapter understands the parent's63artifact manifest array, nested paths and compressed/decoded hashes. It reuses accepted state/working pose restoration primitives. It validates cursors, attempted-step linkage, original body metadata and raw13Float64LE values. Pre-coupled data is labelled working data, not an accepted historical state. Nominal translations, binary64 rounded prePosition+translation and actual final-pre displacement are recorded separately.
+
+Original detector/selector and independent raw/normalized Decimal SAT remain unchanged. Detector/raw and raw/normalized depth agreement both use1e-12m; Decimal80/120 uses1e-25. Every usable axis, tie, branch change and failed pair is retained. The exact Fraction reference rechecks the copied first-failure row problems. Row inclusion follows the original pre-phase detector, including touching. Independent pre-existing overlap is distinct from detector absence. A passing row residual is separate from final pair geometry.
+
+The independent coverage worker owns coverage-reference.py and reference-controls.mjs. Its copied protocol compares before/after geometry, fixed support and sign-aware directional margin changes. The lead owns archive/frames/coverage/compare/controls/entry/bundle/runner. Importing modules does not execute a trial. Root owns complete source/input/error/import freeze, original build, strict types, emitted freeze and the one archived comparison flow.
+
+Diagnostic GO means authentic, resolved archived correspondence. The parent's2mmworld failures remain evidence. No cap/row/iteration/law/tolerance change, hidden phase/cache replay, alternate solve, browser/cost campaign, public API or world repair follows. Original/current helper pins are recorded separately from historical complete package pins. No product push, PR, deploy or release.

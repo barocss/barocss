@@ -1,0 +1,810 @@
+{
+  "scenes": {
+    "ALIGNED": {
+      "step": 5,
+      "depthM": 0.0034315556403973985,
+      "failedPairs": [
+        {
+          "aId": "b4",
+          "bId": "b5",
+          "classification": "previously-separated-or-touching-omitted-pair-post-overlap",
+          "includedRow": false,
+          "independentRawBefore": "separated",
+          "independentNormalizedBefore": "separated",
+          "detectorBeforePresent": false,
+          "normalizingConventionTransitionAgrees": true,
+          "ties": {
+            "rawBefore": [
+              "A.edge.2xB.edge.0"
+            ],
+            "rawAfter": [
+              "A.edge.2xB.edge.0"
+            ],
+            "normalizedBefore": [
+              "A.edge.2xB.edge.0"
+            ],
+            "normalizedAfter": [
+              "A.edge.2xB.edge.0"
+            ]
+          },
+          "minimizingAxisChanged": {
+            "raw": false,
+            "normalized": false
+          }
+        }
+      ],
+      "rawFrameSha256": "8b1995326166efadb9877ab2333b21b12facf8ace2fb13ed73b9dbd98aeca56e",
+      "rawBytes": 2808,
+      "linear": {
+        "agree": true,
+        "displacementDeltaM": 3.2526065174565133e-18,
+        "objectiveDeltaKgM2": 1.6940658945086007e-20,
+        "certificateAgrees": true,
+        "exactCertificateAgrees": true
+      },
+      "rounding": [
+        {
+          "id": "b0",
+          "nominalTranslationM": [
+            2.9058376275352075e-06,
+            0.000711343948290144,
+            2.0563266457527354e-06
+          ],
+          "roundedFinalM": [
+            6.699343499950374e-05,
+            0.2500941741013477,
+            3.5100523213077626e-05
+          ],
+          "actualDeltaM": [
+            2.905837627535204e-06,
+            0.0007113439482901718,
+            2.056326645752732e-06
+          ],
+          "nominalActualDeltaDifferenceM": [
+            -3.3881317890172014e-21,
+            2.7755575615628914e-17,
+            -3.3881317890172014e-21
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b1",
+          "nominalTranslationM": [
+            -8.648616170839394e-06,
+            0.0007816531873097478,
+            -1.946389604118542e-07
+          ],
+          "roundedFinalM": [
+            -0.00014028758807712785,
+            0.7501639738476493,
+            -0.00010786454095944524
+          ],
+          "actualDeltaM": [
+            -8.648616170839384e-06,
+            0.0007816531873097166,
+            -1.9463896041184826e-07
+          ],
+          "nominalActualDeltaDifferenceM": [
+            1.0164395367051604e-20,
+            -3.122502256758253e-17,
+            5.929230630780102e-21
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b2",
+          "nominalTranslationM": [
+            1.0625326042341301e-05,
+            0.0013570979059998158,
+            -8.652978677221281e-06
+          ],
+          "roundedFinalM": [
+            -0.000122683125476686,
+            1.250755839155016,
+            -0.0003979890145636546
+          ],
+          "actualDeltaM": [
+            1.0625326042341292e-05,
+            0.0013570979059998045,
+            -8.652978677221293e-06
+          ],
+          "nominalActualDeltaDifferenceM": [
+            -8.470329472543003e-21,
+            -1.1275702593849246e-17,
+            -1.1858461261560205e-20
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b3",
+          "nominalTranslationM": [
+            -2.129044506279607e-06,
+            0.0026583954854058804,
+            5.353111282747229e-06
+          ],
+          "roundedFinalM": [
+            -0.0001826109852131675,
+            1.7517983984654841,
+            -0.00039498500183355814
+          ],
+          "actualDeltaM": [
+            -2.129044506279595e-06,
+            0.0026583954854058067,
+            5.353111282747219e-06
+          ],
+          "nominalActualDeltaDifferenceM": [
+            1.1858461261560205e-20,
+            -7.37257477290143e-17,
+            -1.0164395367051604e-20
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b4",
+          "nominalTranslationM": [
+            -2.7535029927575065e-06,
+            0.0034431533800781938,
+            1.4381797091331706e-06
+          ],
+          "roundedFinalM": [
+            -0.0006598160390397526,
+            2.252190149658273,
+            -0.0002936023194095888
+          ],
+          "actualDeltaM": [
+            -2.753502992757558e-06,
+            0.0034431533800782788,
+            1.43817970913319e-06
+          ],
+          "nominalActualDeltaDifferenceM": [
+            -5.166900978251232e-20,
+            8.500145032286355e-17,
+            1.9481757786848908e-20
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b5",
+          "nominalTranslationM": [
+            -1.6772965410840304e-08,
+            -1.9967280445796445e-05,
+            -1.455082931044299e-08
+          ],
+          "roundedFinalM": [
+            -0.0004159943089384002,
+            2.7490279686918577,
+            -1.6197801577310096e-05
+          ],
+          "actualDeltaM": [
+            -1.6772965410842815e-08,
+            -1.996728044595386e-05,
+            -1.4550829310444428e-08
+          ],
+          "nominalActualDeltaDifferenceM": [
+            -2.511320339710992e-21,
+            -1.574159910495282e-16,
+            -1.4376399046171621e-21
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b6",
+          "nominalTranslationM": [
+            1.6772965410840304e-08,
+            1.9967280445796445e-05,
+            1.455082931044299e-08
+          ],
+          "roundedFinalM": [
+            0.00013903776116367756,
+            3.249182428781839,
+            0.0003535589130781668
+          ],
+          "actualDeltaM": [
+            1.6772965410842815e-08,
+            1.996728044595386e-05,
+            1.4550829310444428e-08
+          ],
+          "nominalActualDeltaDifferenceM": [
+            2.511320339710992e-21,
+            1.574159910495282e-16,
+            1.4376399046171621e-21
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b7",
+          "nominalTranslationM": [
+            0,
+            0,
+            0
+          ],
+          "roundedFinalM": [
+            0.0008164113315251245,
+            3.7493311266237495,
+            0.0005003641254993764
+          ],
+          "actualDeltaM": [
+            0,
+            0,
+            0
+          ],
+          "nominalActualDeltaDifferenceM": [
+            0,
+            0,
+            0
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "floor",
+          "nominalTranslationM": [
+            0,
+            0,
+            0
+          ],
+          "roundedFinalM": [
+            0,
+            -0.1,
+            0
+          ],
+          "actualDeltaM": [
+            0,
+            0,
+            0
+          ],
+          "nominalActualDeltaDifferenceM": [
+            0,
+            0,
+            0
+          ],
+          "exactRoundedFinalMatch": true
+        }
+      ]
+    },
+    "OFFSET": {
+      "step": 3,
+      "depthM": 0.0021964824677117244,
+      "failedPairs": [
+        {
+          "aId": "b1",
+          "bId": "b2",
+          "classification": "previously-separated-or-touching-omitted-pair-post-overlap",
+          "includedRow": false,
+          "independentRawBefore": "separated",
+          "independentNormalizedBefore": "separated",
+          "detectorBeforePresent": false,
+          "normalizingConventionTransitionAgrees": true,
+          "ties": {
+            "rawBefore": [
+              "A.face.1",
+              "A.edge.0xB.edge.2"
+            ],
+            "rawAfter": [
+              "A.face.1"
+            ],
+            "normalizedBefore": [
+              "A.face.1",
+              "A.edge.0xB.edge.2"
+            ],
+            "normalizedAfter": [
+              "A.face.1"
+            ]
+          },
+          "minimizingAxisChanged": {
+            "raw": false,
+            "normalized": false
+          }
+        }
+      ],
+      "rawFrameSha256": "cf4716826ea97d14d8519cd082a1fe632ddaef31193cfb755cabafdc464eb327",
+      "rawBytes": 2808,
+      "linear": {
+        "agree": true,
+        "displacementDeltaM": 3.7947076036992655e-19,
+        "objectiveDeltaKgM2": 8.470329472543003e-22,
+        "certificateAgrees": true,
+        "exactCertificateAgrees": true
+      },
+      "rounding": [
+        {
+          "id": "b0",
+          "nominalTranslationM": [
+            -2.70931715214146e-07,
+            0.0006765741434693329,
+            6.762028432253698e-07
+          ],
+          "roundedFinalM": [
+            -2.619992678355102e-06,
+            0.25006085762861335,
+            6.386516310241219e-05
+          ],
+          "actualDeltaM": [
+            -2.709317152141462e-07,
+            0.0006765741434693329,
+            6.762028432253758e-07
+          ],
+          "nominalActualDeltaDifferenceM": [
+            -2.117582368135751e-22,
+            0,
+            6.03510974918689e-21
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b1",
+          "nominalTranslationM": [
+            2.70931715214146e-07,
+            0.001191774997754245,
+            -6.762028432253698e-07
+          ],
+          "roundedFinalM": [
+            0.05002104370221862,
+            0.7503089697829967,
+            -5.373388819520704e-05
+          ],
+          "actualDeltaM": [
+            2.709317152155277e-07,
+            0.0011917749977542469,
+            -6.76202843225369e-07
+          ],
+          "nominalActualDeltaDifferenceM": [
+            1.3817224952085774e-18,
+            1.951563910473908e-18,
+            7.411538288475128e-22
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b2",
+          "nominalTranslationM": [
+            -4.910760496264972e-07,
+            -0.0010057491562320505,
+            -8.016000542441518e-07
+          ],
+          "roundedFinalM": [
+            0.0001354535399065791,
+            1.2481245962398924,
+            -0.00033173667490106484
+          ],
+          "actualDeltaM": [
+            -4.910760496265089e-07,
+            -0.001005749156232083,
+            -8.016000542441755e-07
+          ],
+          "nominalActualDeltaDifferenceM": [
+            -1.164670302474663e-20,
+            -3.252606517456513e-17,
+            -2.371692252312041e-20
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b3",
+          "nominalTranslationM": [
+            1.1272307146351462e-06,
+            -0.00020780954407011209,
+            6.041135416122058e-07
+          ],
+          "roundedFinalM": [
+            0.05011440457174275,
+            1.7485054286924158,
+            -7.618252123219468e-05
+          ],
+          "actualDeltaM": [
+            1.1272307146384386e-06,
+            -0.00020780954407007002,
+            6.041135416122114e-07
+          ],
+          "nominalActualDeltaDifferenceM": [
+            3.2924170659774654e-18,
+            4.206704429243757e-17,
+            5.61159327555974e-21
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b4",
+          "nominalTranslationM": [
+            -6.316073292262806e-07,
+            0.0002476912572288377,
+            1.9572023843090533e-07
+          ],
+          "roundedFinalM": [
+            4.078633554135436e-05,
+            2.2488906848265935,
+            3.0362163627089436e-05
+          ],
+          "actualDeltaM": [
+            -6.316073292262787e-07,
+            0.00024769125722867713,
+            1.9572023843090474e-07
+          ],
+          "nominalActualDeltaDifferenceM": [
+            1.9058241313221758e-21,
+            -1.605703417451032e-16,
+            -5.823351512373315e-22
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b5",
+          "nominalTranslationM": [
+            4.253932745609802e-10,
+            0.0004814296182403454,
+            8.804276044098033e-10
+          ],
+          "roundedFinalM": [
+            0.05001222735707329,
+            2.749061017198586,
+            -2.1427187469597716e-06
+          ],
+          "actualDeltaM": [
+            4.253932761599799e-10,
+            0.00048142961824027,
+            8.804276044097884e-10
+          ],
+          "nominalActualDeltaDifferenceM": [
+            1.5989996810691063e-18,
+            -7.540626109636683e-17,
+            -1.4889251025954498e-23
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b6",
+          "nominalTranslationM": [
+            -4.972729056929191e-09,
+            0.00048443782483297953,
+            8.85846596630816e-10
+          ],
+          "roundedFinalM": [
+            7.432432474044429e-06,
+            3.2490621470067182,
+            -3.3019774992116025e-06
+          ],
+          "actualDeltaM": [
+            -4.972729056929532e-09,
+            0.0004844378248329839,
+            8.858465966309194e-10
+          ],
+          "nominalActualDeltaDifferenceM": [
+            -3.407984123718474e-22,
+            4.391018798566293e-18,
+            1.0339757656912846e-22
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b7",
+          "nominalTranslationM": [
+            0,
+            0,
+            0
+          ],
+          "roundedFinalM": [
+            0.0500030267359658,
+            3.748579479600448,
+            -1.4770020734357252e-06
+          ],
+          "actualDeltaM": [
+            0,
+            0,
+            0
+          ],
+          "nominalActualDeltaDifferenceM": [
+            0,
+            0,
+            0
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "floor",
+          "nominalTranslationM": [
+            0,
+            0,
+            0
+          ],
+          "roundedFinalM": [
+            0,
+            -0.1,
+            0
+          ],
+          "actualDeltaM": [
+            0,
+            0,
+            0
+          ],
+          "nominalActualDeltaDifferenceM": [
+            0,
+            0,
+            0
+          ],
+          "exactRoundedFinalMatch": true
+        }
+      ]
+    },
+    "YAW": {
+      "step": 4,
+      "depthM": 0.0021317300099907652,
+      "failedPairs": [
+        {
+          "aId": "b1",
+          "bId": "b2",
+          "classification": "previously-separated-or-touching-omitted-pair-post-overlap",
+          "includedRow": false,
+          "independentRawBefore": "separated",
+          "independentNormalizedBefore": "separated",
+          "detectorBeforePresent": false,
+          "normalizingConventionTransitionAgrees": true,
+          "ties": {
+            "rawBefore": [
+              "B.face.1"
+            ],
+            "rawAfter": [
+              "B.face.1"
+            ],
+            "normalizedBefore": [
+              "B.face.1"
+            ],
+            "normalizedAfter": [
+              "B.face.1"
+            ]
+          },
+          "minimizingAxisChanged": {
+            "raw": false,
+            "normalized": false
+          }
+        }
+      ],
+      "rawFrameSha256": "43b441282a9d705d940578c4d09754d1e96d9922e08a0bd5fb23588d0fb9ded2",
+      "rawBytes": 2808,
+      "linear": {
+        "agree": true,
+        "displacementDeltaM": 6.505213034913027e-19,
+        "objectiveDeltaKgM2": 1.2705494208814505e-21,
+        "certificateAgrees": true,
+        "exactCertificateAgrees": true
+      },
+      "rounding": [
+        {
+          "id": "b0",
+          "nominalTranslationM": [
+            -2.5994575545285786e-07,
+            0.0006816001569687202,
+            2.0371080242861568e-07
+          ],
+          "roundedFinalM": [
+            7.895331458387626e-05,
+            0.2501118284720386,
+            -3.56998456627362e-05
+          ],
+          "actualDeltaM": [
+            -2.5994575545286013e-07,
+            0.0006816001569687202,
+            2.037108024286125e-07
+          ],
+          "nominalActualDeltaDifferenceM": [
+            -2.276401045745932e-21,
+            0,
+            -3.1763735522036263e-21
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b1",
+          "nominalTranslationM": [
+            2.5994575545285786e-07,
+            0.000738932956072499,
+            -2.0371080242861568e-07
+          ],
+          "roundedFinalM": [
+            0.05022647821805981,
+            0.7501522453742144,
+            -0.00017603928524988777
+          ],
+          "actualDeltaM": [
+            2.5994575545557064e-07,
+            0.0007389329560725244,
+            -2.0371080242860573e-07
+          ],
+          "nominalActualDeltaDifferenceM": [
+            2.712781832259507e-18,
+            2.5370330836160804e-17,
+            9.952637130238029e-21
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b2",
+          "nominalTranslationM": [
+            5.574795676556355e-07,
+            -0.0014091792808358448,
+            -4.183506373763458e-07
+          ],
+          "roundedFinalM": [
+            0.00019318844697059368,
+            1.248318258694965,
+            -0.00013226948852391863
+          ],
+          "actualDeltaM": [
+            5.574795676556487e-07,
+            -0.0014091792808359482,
+            -4.1835063737633385e-07
+          ],
+          "nominalActualDeltaDifferenceM": [
+            1.3129010682441655e-20,
+            -1.0343288725511712e-16,
+            1.1964340379966992e-20
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b3",
+          "nominalTranslationM": [
+            2.269779727429049e-06,
+            -0.0007770113220924651,
+            -3.1002015844248775e-07
+          ],
+          "roundedFinalM": [
+            0.04977288554872292,
+            1.7486865750787628,
+            0.00014805717265974305
+          ],
+          "actualDeltaM": [
+            2.2697797274276454e-06,
+            -0.0007770113220924024,
+            -3.100201584424901e-07
+          ],
+          "nominalActualDeltaDifferenceM": [
+            -1.4035335936003757e-18,
+            6.266688556966216e-17,
+            -2.329340604949326e-21
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b4",
+          "nominalTranslationM": [
+            -4.776721672999425e-06,
+            0.0002044123441650317,
+            4.7331324495661377e-07
+          ],
+          "roundedFinalM": [
+            -8.496755348973915e-05,
+            2.2492978242696684,
+            0.00018022216189003408
+          ],
+          "actualDeltaM": [
+            -4.776721672999432e-06,
+            0.000204412344165128,
+            4.733132449566055e-07
+          ],
+          "nominalActualDeltaDifferenceM": [
+            -6.776263578034403e-21,
+            9.627715291671279e-17,
+            -8.258571235729428e-21
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b5",
+          "nominalTranslationM": [
+            2.3437730839516155e-06,
+            0.0006361685886600195,
+            -6.996512363021101e-07
+          ],
+          "roundedFinalM": [
+            0.04995106968401634,
+            2.7495232294387186,
+            3.620416357808426e-05
+          ],
+          "actualDeltaM": [
+            2.3437730839528936e-06,
+            0.0006361685886600021,
+            -6.996512363021095e-07
+          ],
+          "nominalActualDeltaDifferenceM": [
+            1.2781727174067392e-18,
+            -1.734723475976807e-17,
+            5.293955920339377e-22
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b6",
+          "nominalTranslationM": [
+            -1.5076839582827436e-07,
+            0.0006362256502347699,
+            1.1639197428104913e-06
+          ],
+          "roundedFinalM": [
+            -0.00013090889701960454,
+            3.2497285982990385,
+            0.00023682057628785402
+          ],
+          "actualDeltaM": [
+            -1.5076839582827892e-07,
+            0.0006362256502345787,
+            1.1639197428104926e-06
+          ],
+          "nominalActualDeltaDifferenceM": [
+            -4.552802091491864e-21,
+            -1.9125326322644298e-16,
+            1.2705494208814505e-21
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "b7",
+          "nominalTranslationM": [
+            -2.4354231020860054e-07,
+            0.0007093840198684888,
+            -2.0921095564616152e-07
+          ],
+          "roundedFinalM": [
+            0.049864865629586946,
+            3.7500275476900065,
+            0.0001282739782439909
+          ],
+          "actualDeltaM": [
+            -2.4354231020762285e-07,
+            0.0007093840198684198,
+            -2.0921095564616467e-07
+          ],
+          "nominalActualDeltaDifferenceM": [
+            9.776877793682762e-19,
+            -6.895525817007808e-17,
+            -3.1499037726019294e-21
+          ],
+          "exactRoundedFinalMatch": true
+        },
+        {
+          "id": "floor",
+          "nominalTranslationM": [
+            0,
+            0,
+            0
+          ],
+          "roundedFinalM": [
+            0,
+            -0.1,
+            0
+          ],
+          "actualDeltaM": [
+            0,
+            0,
+            0
+          ],
+          "nominalActualDeltaDifferenceM": [
+            0,
+            0,
+            0
+          ],
+          "exactRoundedFinalMatch": true
+        }
+      ]
+    }
+  },
+  "pairFrames": 972,
+  "transitions": 324,
+  "linearProblems": 9,
+  "worldStepped": false,
+  "controlSummary": {
+    "receipt": 29,
+    "sourceDriftRefused": true,
+    "archiveInputCopies": true,
+    "originalInputCopies": true,
+    "exactFrameRawPreserved": true,
+    "legacyNormalizationExceptionOnlyControl": true,
+    "worldCreated": false,
+    "worldStepped": false
+  },
+  "independentControlSummary": {
+    "originalPairReceipts": 11,
+    "transitionReceipts": 23,
+    "worldCreated": false,
+    "worldStepped": false,
+    "jsSolvePositionCalled": false
+  }
+}

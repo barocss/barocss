@@ -1,0 +1,8 @@
+
+> @barocss/cad@0.0.0-experimental build:library /Users/user/.codex/worktrees/physics-coupled-diagnostic-1308/barocss/packages/barocss-cad
+> node scripts/tool.mjs build
+
+
+> @barocss/physics@0.0.0-experimental build:library /Users/user/.codex/worktrees/physics-coupled-diagnostic-1308/barocss/packages/barocss-physics
+> tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --external:./types.js --outfile=dist/index.js
+
