@@ -13,6 +13,7 @@ const NATIVE_ENTRIES = [
   ['barocss-cad-interop', './document'],
   ['barocss-cad-interop', './model-set'],
   ['barocss-cad-interop', './boolean-extrusion-feature-mesh'],
+  ['barocss-cad-interop', './boolean-extrusion-feature-properties'],
 ];
 const EDITOR_ENTRIES = ['.', './react', './styles.css'];
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -195,7 +196,7 @@ export async function prepareCompiledCheckpoint({ repo, evidence }) {
 
     const consumerPath = resolve(checkpoint, 'published-consumer.tsx');
     await writeFile(consumerPath, `import { editSourceSurfaceControlNet, validateSourceSurfaceControlNetEdit, type SourceSurfaceControlNetResult } from '@barocss/cad';
-import { createCadEditorSession, createCadEditorFeatureSession, type CadEditorCandidate, type CadEditorFeatureSessionOptions, type CadEditorFeatureOutput, type CadEditorFaceCornerBinding, type CadEditorFaceCorner } from '@barocss/cad-editor';
+import { createCadEditorSession, createCadEditorFeatureSession, type CadEditorCandidate, type CadEditorFeatureSessionOptions, type CadEditorFeatureOutput, type CadEditorFaceCornerBinding, type CadEditorFaceCorner, type CadEditorFeatureProperties, type CadEditorFeaturePropertiesOptions } from '@barocss/cad-editor';
 import { CadEditor, CadEditorFeature, type CadEditorProps, type CadEditorFeatureProps } from '@barocss/cad-editor/react';
 import { parseCadDocument, parseBooleanExtrusionFeatureGraph } from '@barocss/cad';
 const session = createCadEditorSession(parseCadDocument('{}').document);
@@ -231,6 +232,9 @@ const selectedFit:CadEditorFeatureProps={...featureProps,fitSelectedRequest:1};
 const corners:CadEditorFaceCorner[]=featureSession.getFaceCorners('face_a_feature');
 const cornerBinding:CadEditorFaceCornerBinding=corners[0].binding;
 const cornerCandidate=featureSession.prepareFaceCornerEdit(cornerBinding,[1,-3,1]);
+const propertyOptions:CadEditorFeaturePropertiesOptions={maximumBoundarySegments:64,maximumSurfaceEvaluations:8};
+const nativeProperties:CadEditorFeatureProperties=featureSession.inspectExtrusionProperties(displays[0].selection,propertyOptions);
+const propertyProps:CadEditorFeatureProps={...featureProps,propertiesOptions:propertyOptions,onProperties:properties=>{if(properties){const area:number=properties.nativeProperties.report.areaMM2;const centroid:number[]|null=properties.nativeProperties.report.centroidMM;}}};
 const cornerProps:CadEditorFeatureProps={...featureProps,onEditFaceCorner:(corner,trigger)=>{const binding:CadEditorFaceCornerBinding=corner.binding;const point:[number,number,number]=corner.pointMM;const button:HTMLButtonElement=trigger;}};
 `);
     const consumerProgram = ts.createProgram([consumerPath], {

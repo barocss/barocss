@@ -9,6 +9,7 @@ import type {
   BooleanExtrusionFeatureGraphV0, BooleanExtrusionFeatureTransaction, BooleanExtrusionParameterTransaction, BooleanExtrusionLengthDefinition, BooleanExtrusionFaceFeature,
 } from '@barocss/cad';
 import { deriveBaroCadBooleanExtrusionFeatureMesh } from '@barocss/cad-interop/boolean-extrusion-feature-mesh';
+import { deriveBaroCadBooleanExtrusionFeatureProperties } from '@barocss/cad-interop/boolean-extrusion-feature-properties';
 import { CadEditorError } from './types.js';
 import type {
   CadEditorFeatureCandidate, CadEditorFeatureDisplay, CadEditorFeatureOutput, CadEditorFaceCorner, CadEditorFeatureParameterDraft,
@@ -342,6 +343,15 @@ export function createCadEditorFeatureSession(document: BooleanExtrusionFeatureG
     subscribe(listener) {
       live(); check(typeof listener === 'function', 'INPUT', 'A subscription listener is required.');
       listeners.add(listener); return () => { listeners.delete(listener); };
+    },
+    inspectExtrusionProperties(selection, propertyOptions) {
+      live();
+      const field = 'extrusion-properties';
+      const selected = record(copyRequest(selection, field), ['graphId', 'revision', 'featureId', 'outputSlotId'], field) as unknown as typeof selection;
+      const budgets = record(copyRequest(propertyOptions, field), ['maximumBoundarySegments', 'maximumSurfaceEvaluations'], field) as unknown as typeof propertyOptions;
+      const properties = native(() => deriveBaroCadBooleanExtrusionFeatureProperties(accepted, selected, budgets),
+        'Native accepted extrusion property inspection failed.', { documentId: accepted.document.id, field });
+      return copy(properties);
     },
     selectFeature(featureId) {
       live(); check(typeof featureId === 'string' && accepted.document.features.some(feature => feature.id === featureId),

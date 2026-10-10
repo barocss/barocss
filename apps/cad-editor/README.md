@@ -214,3 +214,42 @@ corner index and adjacent Line/pole identities. `prepareFaceCornerEdit` verifies
 that current binding and uses one existing-Face upsert through the actual native
 feature transaction. There is no projection, snapping, solver, mesh-derived
 authoring, arbitrary Curve/NURBS weight editor, drag or certified solid claim.
+
+## Inspect native extrusion properties
+
+Select a normal extrusion and choose **Inspect native properties** in its
+inspector. The explicit read shows the accepted graph revision, **Section area
+(mm2)**, **Construction volume estimate (mm3)** and **Centroid X/Y/Z (mm)**. It
+measures the accepted native output even while scalar fields have pending
+values. It does not measure a draft or use the displayed mesh, pose, scene scale,
+camera, pixel coverage or bounding box as authority. The button is disabled
+during a candidate; selection and typing do not trigger a query.
+
+Readable numbers are rounded to six decimal places. The public typed
+`onProperties` callback receives a separately copied full native result, including
+its qualified binding and original unrounded numeric values. A real empty
+output reports zero area/volume, no components and centroid unavailable.
+ConstructionEstimateOnly remains true. The geometric centroid is not an interior
+witness and can lie outside material or in a hole. Topology, Solid, manifold,
+sewing, manufacturing, density, mass and inertia certifications remain false.
+Each read measures one selected output; it does not total or union overlapping
+extrusion leaves.
+
+Native geometry/revision/selected feature/output-slot changes and unmount clear
+the previous summary and send `onProperties(null)`. A new native acceptance also
+invalidates a report if Open reuses the same declared graph/revision tuple.
+Camera and display-only changes retain a still-current report. Query refusal
+retains such a report, native state/history/drafts/capture and viewport; successful
+requery clears only the property-query error. Use **Help** for actual native
+quality, work/budget scope, error details and requery guidance. Closing Help
+returns focus to Help without changing query data or native state.
+
+The actual public interop bridge reconstructs/validates the native extrusion and
+measures its original directed boundaries/support. Budgets allow 0–64 boundary
+segments and 0–8 new component support evaluations; parent reconstruction work
+is excluded and native helpers can perform it more than once. The default
+reusable `propertiesOptions` is 64/8. The focused `?flow` host exposes copied
+`properties()`, an actual `setPropertiesBudget(boundary,surface)` prop control,
+and `readFrame()` using the existing read request. These are flow-only controls,
+with no user-facing budget knobs or provider mocks. Native files exclude property
+reports and all query/display UI state.

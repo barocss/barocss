@@ -1,11 +1,15 @@
 import type {
   BooleanExtrusionFeatureGraphOptions, BooleanExtrusionFeatureGraphResult, BooleanExtrusionFeatureTransaction, BooleanExtrusionParameterTransaction,
-  CoplanarFaceBooleanExtrusionMeshOptions,
+  CoplanarFaceBooleanExtrusionMeshOptions, CoplanarFaceBooleanExtrusionPropertiesOptions,
 } from '@barocss/cad';
 import type {
   BaroCadBooleanExtrusionFeatureMesh, BaroCadBooleanExtrusionFeatureSelection,
 } from '@barocss/cad-interop/boolean-extrusion-feature-mesh';
+import type { BaroCadBooleanExtrusionFeatureProperties } from '@barocss/cad-interop/boolean-extrusion-feature-properties';
 import type { CadEditorDownload } from './types.js';
+
+export type CadEditorFeatureProperties = BaroCadBooleanExtrusionFeatureProperties;
+export type CadEditorFeaturePropertiesOptions = CoplanarFaceBooleanExtrusionPropertiesOptions;
 
 export interface CadEditorFeatureSessionOptions {
   native: BooleanExtrusionFeatureGraphOptions;
@@ -61,6 +65,7 @@ export interface CadEditorFeatureSession {
   getSnapshot(): CadEditorFeatureSnapshot;
   subscribe(listener: () => void): () => void;
   selectFeature(featureId: string): void;
+  inspectExtrusionProperties(selection: BaroCadBooleanExtrusionFeatureSelection, options: CadEditorFeaturePropertiesOptions): CadEditorFeatureProperties;
   getFaceCorners(featureId: string): CadEditorFaceCorner[];
   prepareFaceCornerEdit(binding: CadEditorFaceCornerBinding, pointMM: [number, number, number]): CadEditorFeatureCandidate;
   stageLengthParameter(parameterId: string, draft: CadEditorFeatureParameterDraft): void;

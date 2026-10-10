@@ -3,7 +3,8 @@ import { Box, Download, FolderOpen, Layers3, Maximize, Redo2, Undo2 } from 'luci
 import { parseBooleanExtrusionFeatureGraph, type BooleanExtrusionExtrusionFeature, type BooleanExtrusionLengthDefinition,
   type BooleanExtrusionLengthParameter, type BooleanExtrusionParameterTransaction,
   type BooleanExtrusionFaceFeature, type BooleanExtrusionBooleanFeature, type BooleanExtrusionFeatureTransaction } from '@barocss/cad';
-import { CadEditorError, createCadEditorFeatureSession, type CadEditorFeatureSessionOptions, type CadEditorFaceCorner } from '@barocss/cad-editor';
+import { CadEditorError, createCadEditorFeatureSession, type CadEditorFeatureSessionOptions, type CadEditorFaceCorner,
+  type CadEditorFeatureProperties, type CadEditorFeaturePropertiesOptions } from '@barocss/cad-editor';
 import { CadEditorFeature, useCadEditorFeatureSnapshot, type CadEditorFeatureDisplayReceipt } from '@barocss/cad-editor/react';
 import fixture from '../fixtures/boolean-extrusion.authored-graph.json?raw';
 import sharedFixture from '../fixtures/shared-extrusions.authored-graph.json?raw';
@@ -51,6 +52,7 @@ function scalar(raw: string, field = 'extrusion-length'): number {
 }
 
 function message(error: CadEditorError, mode?: LengthDialog['mode']): string {
+  if(error.context.field==='extrusion-properties')return 'Cannot inspect these native properties. Check the selected extrusion and try again.';
   if (error.context.field === 'face-corner-coordinate') return 'Enter finite X, Y and Z coordinates in mm.';
   if (error.context.field === 'parameter-length') return 'Enter a finite length in millimeters.';
   if (error.context.field === 'extrusion-length') return 'Enter a finite length in millimeters.';
@@ -136,6 +138,8 @@ export function FeatureApp() {
   const cornerTrigger=useRef<HTMLButtonElement|null>(null);
   const [error, setError] = useState<CadEditorError | null>(null);
   const [receipt, setReceipt] = useState<CadEditorFeatureDisplayReceipt | null>(null);
+  const [properties,setProperties]=useState<CadEditorFeatureProperties|null>(null);
+  const [propertiesOptions,setPropertiesOptions]=useState<CadEditorFeaturePropertiesOptions>({maximumBoundarySegments:64,maximumSurfaceEvaluations:8});
   const [filename, setFilename] = useState('Boolean extrusion');
   const [fitRequest, setFitRequest] = useState(0);
   const [fitSelectedRequest, setFitSelectedRequest] = useState(0);
@@ -152,10 +156,12 @@ export function FeatureApp() {
   useEffect(() => () => session.dispose(), [session]);
   useEffect(() => {
     if (!flowMode) return;
-    Object.assign(window, { __cadFeatureFlow: { session, snapshot: () => session.getSnapshot(), display: () => structuredClone(receipt), error: () => error ? {code:error.code,message:error.message,context:error.context,cause:causeReceipt(error.cause)} : null,
+    Object.assign(window, { __cadFeatureFlow: { session, snapshot: () => session.getSnapshot(), display: () => structuredClone(receipt),
+      properties:()=>structuredClone(properties),setPropertiesBudget:(boundary:number,surface:number)=>setPropertiesOptions({maximumBoundarySegments:boundary,maximumSurfaceEvaluations:surface}),
+      readFrame:()=>setReadRequest(value=>value+1),error: () => error ? {code:error.code,message:error.message,context:error.context,cause:causeReceipt(error.cause)} : null,
       setDisplayRefusal, setMounted: (value: boolean) => { setMounted(value); if (value) setMountKey(n => n + 1); } } });
     return () => { delete (window as Window & { __cadFeatureFlow?: unknown }).__cadFeatureFlow; };
-  }, [flowMode, session, receipt, error]);
+  }, [flowMode, session, receipt, properties, error]);
   async function openFile(file: File | undefined) {
     if (!file) return;
     try { setError(null); const text = await readCadEditorFile(file); pendingFilename.current = file.name; session.prepareOpen(text,options); }
@@ -402,6 +408,7 @@ export function FeatureApp() {
         <div className="tree-details"><span>Units</span><strong>mm</strong><span>Axes</span><strong>XYZ</strong></div>
       </aside>
       <main className="main-workspace">{mounted && <CadEditorFeature key={mountKey} session={session} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest} onEditFaceCorner={openFaceCorner}
+        propertiesOptions={propertiesOptions} onProperties={result=>{setProperties(result);if(result!==null)setError(current=>current?.context.field==='extrusion-properties'?null:current);}}
         displayOptions={displayRefusal ? {mmToSceneUnit:0,translate:[0,0,0],background:[0.07,0.08,0.10],camera:{eye:[0.2,0.2,0.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:0.001,far:10}} : undefined}
         onError={failure => { pendingFilename.current = null; lifecycleToken.current = null; lengthToken.current = null; lengthExpectedGeneration.current = null;
           replaceToken.current=null;replaceExpectedGeneration.current=null;replaceFocusAfterAccept.current=null;
