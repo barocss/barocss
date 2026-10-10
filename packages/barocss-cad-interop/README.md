@@ -2635,3 +2635,16 @@ memory and records the actual CAD/interop source inputs with zero own dist
 inputs. Source development requires no package prebuild, aliases or custom
 conditions. This example is a workspace source consumer; explicit published
 JS/types checks and the held independent packed consumer #801 remain separate.
+
+## Complete Solid mass and stored principal moments in Three
+
+`examples/solid-mass-principal-three.html` preserves all original Boolean panels while showing native total or Body mass, centroid, stored inertia tensor, sorted principal moments and observed degeneracy clusters. Body selection changes property readout while the complete display and its resource identities remain fixed. Repeated moments retain `axesUnique:false`; empty material retains null centroid/tensor/axes. Canonical directions are stored-tensor numerical results, with the full exact mass/conversion proof preserved.
+
+The example uses 51 unchanged native producer files and ordinary public source entries, `measureAxisBoxSolidBooleanMass` / `analyzeAxisBoxSolidPrincipalInertia` and their whole validators. Its fixed caller camera keeps authored XYZ, one mm conversion and default Three normal materials. Full original Model/Body/Shell/source qualification remains available after owned target disposal.
+
+```sh
+node packages/barocss-cad-interop/examples/solid-mass-principal-three-verify.mjs --output /absolute/private/evidence
+pnpm exec vite --config packages/barocss-cad-interop/examples/solid-mass-principal-three.config.mjs --host 127.0.0.1 --port 5231 --strictPort
+```
+
+Open `/packages/barocss-cad-interop/examples/solid-mass-principal-three.html`. Follow the buttons from rect total through disjoint total/Body selection, nonunique cube, empty material, cold reopening and cleanup. Native author verification, exact local merge, integrated UI/file checks and npm publication are separate receipts in Issue1131.
