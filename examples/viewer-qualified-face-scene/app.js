@@ -21,6 +21,7 @@ import {queryQualifiedTreeCurveLength} from './tree-curve-length.js';
 import {queryQualifiedTreeSurfaceArea} from './tree-surface-area.js';
 import {queryQualifiedTreeCurveCurvature} from './tree-curve-curvature.js';
 import {queryQualifiedTreeSurfaceCurvature} from './tree-surface-curvature.js';
+import {queryQualifiedTreeTangentAngle} from './tree-curve-tangent-angle.js';
 import {parseBaroCadSource} from '@barocss/cad-interop/native';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2} from '@barocss/cad-interop/document';
@@ -58,6 +59,8 @@ const inspectTreeCurvatureButton=document.querySelector('#inspect-tree-curvature
 const treeCurvatureOutput=document.querySelector('#tree-curvature-output'),treeCurvatureLabel=document.querySelector('#tree-curvature-label');
 const inspectTreeSurfaceCurvatureButton=document.querySelector('#inspect-tree-surface-curvature'),resetTreeSurfaceCurvatureButton=document.querySelector('#reset-tree-surface-curvature');
 const treeSurfaceCurvatureOutput=document.querySelector('#tree-surface-curvature-output'),treeSurfaceCurvatureLabel=document.querySelector('#tree-surface-curvature-label');
+const captureTreeTangentButton=document.querySelector('#capture-tree-tangent'),resetTreeTangentAngleButton=document.querySelector('#reset-tree-tangent-angle'),treeTangentAngleOutput=document.querySelector('#tree-tangent-angle-output');
+const treeTangentLabels=Object.fromEntries(['first','second','angle'].map(side=>[side,document.querySelector('#tree-tangent-'+side+'-label')]));
 const assetCount=document.querySelector('#asset-count'),countU=document.querySelector('#count-u'),countV=document.querySelector('#count-v');
 const colorAsset=document.querySelector('#color-asset'),colorInput=document.querySelector('#color');
 const measureButton=document.querySelector('#measure-points'),measurementOutput=document.querySelector('#measurement-output');
@@ -126,6 +129,7 @@ let treeCurveLengthReport=null,treeCurveLengthProjection=null;
 let treeSurfaceAreaReport=null,treeSurfaceAreaProjection=null;
 let treeCurveCurvatureReport=null,treeCurveCurvatureProjection=null;
 let treeSurfaceCurvatureReport=null,treeSurfaceCurvatureProjection=null;
+let treeTangentFirstCapture=null,treeTangentAngleReport=null,treeTangentProjections={first:null,second:null,angle:null},treeTangentHidden={first:false,second:false};
 const colors=[[.9,.3,.2],[.25,.8,.4],[.25,.45,.95],[.95,.7,.2],[.3,.8,.9],[.85,.35,.75]];
 const camera={eye:[2,1.5,3.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:10},mmToSceneUnit=.12,background=[.02,.03,.04],translateScene=[-.6,-.6,-.7];
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
@@ -333,7 +337,7 @@ function qualifiedTreeSnapshot(){return{tree:clone(qualifiedTreeData),selected:c
   enabled:!inspectTreePointButton.disabled,frameEnabled:!frameTreeFaceButton.disabled};}
 function clearQualifiedTree(){if(qualifiedTreeData||qualifiedTreeContent)treeGeneration++;qualifiedTreeContent=null;qualifiedTreeData=null;treeNodeButtons=[];
   qualifiedTreeFilter={query:'',sourceId:null,kind:'all'};qualifiedTreeFiltered=null;treeFilterStatus.textContent='';restoreQualifiedTreeFilterControls();
-  qualifiedTreeElement.replaceChildren();clearTreeSelection();}
+  qualifiedTreeElement.replaceChildren();clearTreeSelection();clearTreeTangentAngle();captureTreeTangentButton.disabled=true;resetTreeTangentAngleButton.disabled=true;}
 function restoreQualifiedTreeFilterControls(){for(const[input,value]of[[treeFilterQuery,qualifiedTreeFilter.query],[treeFilterSource,qualifiedTreeFilter.sourceId??''],[treeFilterKind,qualifiedTreeFilter.kind]])if(input.value!==value)input.value=value;}
 function qualifiedTreeNodeVisible(ref){return !!qualifiedTreeFiltered?.sources.some(source=>source.geometries.some(geometry=>same(geometry.ref,ref)));}
 function setQualifiedTreeFilter(input){let next;try{next=filterQualifiedFaceTree(viewer,input);}catch(error){restoreQualifiedTreeFilterControls();throw error;}
@@ -457,6 +461,57 @@ function inspectTreeSurfaceCurvature(u,v){refreshQualifiedTree();check(!inspectT
     +' · k1 '+signedCurvature(curvature.principalCurvaturesPerMM[0])+', k2 '+signedCurvature(curvature.principalCurvaturesPerMM[1])+' 1/mm';
   refreshQualifiedTree();display('Original tree Surface curvature ready for '+ref.sourceId+'/'+ref.geometryId+'.');return clone(report);}
 function resetTreeSurfaceCurvature(){clearTreeSurfaceCurvature();refreshQualifiedTree();display('Tree Surface curvature reset.');}
+function hideTreeTangentLabels(){treeTangentProjections={first:null,second:null,angle:null};for(const label of Object.values(treeTangentLabels))label.hidden=true;}
+function clearTreeTangentAngle(){treeTangentFirstCapture=null;treeTangentAngleReport=null;treeTangentHidden={first:false,second:false};treeTangentAngleOutput.textContent='';hideTreeTangentLabels();}
+function treeTangentAngleSnapshot(){return{phase:treeTangentAngleReport?'complete':treeTangentFirstCapture?'first':'empty',first:clone(treeTangentFirstCapture),report:clone(treeTangentAngleReport),
+  output:treeTangentAngleOutput.textContent,enabled:!captureTreeTangentButton.disabled,projections:clone(treeTangentProjections),
+  labels:Object.fromEntries(Object.entries(treeTangentLabels).map(([side,label])=>[side,pickedChordLabelSnapshot(label)])),hidden:clone(treeTangentHidden)};}
+function treeTangentPin(node,t){const ref=node.ref;return{kind:'curve',sourceId:ref.sourceId,expectedSource:ref.expectedSource,faceId:ref.faceId,modelId:ref.modelId,geometryId:ref.geometryId,t};}
+function treeTangentCapture(candidate){const native=candidate.measurement.first;return clone({node:candidate.first.node,t:candidate.first.t,
+  derivatives:native.derivatives,tangentNormMM:native.tangentNormMM,unitTangent:native.unitTangent});}
+function treeTangentDescription(node,t){return node.ref.sourceId+'/'+node.ref.geometryId+' at t '+areaNumber(t);}
+function renderTreeTangentOutput(){const first=treeTangentFirstCapture,second=treeTangentAngleReport?.second;
+  treeTangentAngleOutput.textContent=treeTangentAngleReport?treeTangentDescription(first.node,first.t)+' ↔ '+treeTangentDescription(second.node,second.t)+' · '+areaNumber(treeTangentAngleReport.measurement.angleDegrees)+'°'
+    :first?'First tangent '+treeTangentDescription(first.node,first.t)+'. Select a Curve for the second tangent.':'';
+  if(first&&treeTangentHidden.first)treeTangentAngleOutput.textContent+=' First '+first.node.ref.sourceId+'/'+first.node.ref.geometryId+' is outside the filter.';
+  if(second&&treeTangentHidden.second)treeTangentAngleOutput.textContent+=' Second '+second.node.ref.sourceId+'/'+second.node.ref.geometryId+' is outside the filter.';}
+function refreshTreeTangentAngle(){if(disposed){clearTreeTangentAngle();captureTreeTangentButton.disabled=true;resetTreeTangentAngleButton.disabled=true;return treeTangentAngleSnapshot();}
+  const state=viewer.getState();let current=!!state.qualifiedFaceScene;
+  try{for(const node of[treeTangentFirstCapture?.node,treeTangentAngleReport?.second.node])if(node)queryQualifiedFaceTreeNode(viewer,node.ref);}catch{current=false;}
+  if(!current)clearTreeTangentAngle();captureTreeTangentButton.disabled=running||!state.qualifiedFaceScene||qualifiedTreeSelected?.ref.kind!=='curve';
+  resetTreeTangentAngleButton.disabled=running||!treeTangentFirstCapture;
+  const first=treeTangentFirstCapture,second=treeTangentAngleReport?.second;
+  treeTangentHidden={first:!!first&&!qualifiedTreeNodeVisible(first.node.ref),second:!!second&&!qualifiedTreeNodeVisible(second.node.ref)};
+  renderTreeTangentOutput();hideTreeTangentLabels();if(state.status!=='ready'||!first)return treeTangentAngleSnapshot();
+  for(const[side,capture]of[['first',first],['second',second]]){if(!capture||treeTangentHidden[side])continue;
+    try{treeTangentProjections[side]=viewer.projectQualifiedFacePoint(treeTangentPin(capture.node,capture.t));}catch{}
+    const projection=treeTangentProjections[side],label=treeTangentLabels[side];if(!projection)continue;
+    label.textContent=(side==='first'?'1: ':'2: ')+capture.node.ref.sourceId+'/'+capture.node.ref.geometryId;
+    label.style.left=projection.xCss+'px';label.style.top=projection.yCss+'px';label.hidden=false;}
+  if(treeTangentAngleReport&&treeTangentProjections.first){const projection=treeTangentProjections.first;treeTangentProjections.angle=clone(projection);
+    treeTangentLabels.angle.textContent=areaNumber(treeTangentAngleReport.measurement.angleDegrees)+'°';treeTangentLabels.angle.style.left=projection.xCss+'px';
+    treeTangentLabels.angle.style.top=(projection.yCss+18)+'px';treeTangentLabels.angle.hidden=false;}
+  return treeTangentAngleSnapshot();}
+function captureTreeTangent(t){refreshQualifiedTree();check(!captureTreeTangentButton.disabled&&qualifiedTreeSelected,'Select a current original Curve first.');
+  const selected=clone(qualifiedTreeSelected.ref),current=queryQualifiedFaceTreeNode(viewer,selected);check(current.ref.kind==='curve','Select a current original Curve first.');
+  if(arguments.length===0)t=treeControlParameters().t;
+  const priorFirst=clone(treeTangentFirstCapture),priorReport=clone(treeTangentAngleReport),pair=!!priorFirst&&!priorReport;
+  if(priorFirst)queryQualifiedFaceTreeNode(viewer,priorFirst.node.ref);
+  const firstRef=pair?priorFirst.node.ref:selected,firstT=pair?priorFirst.t:t,next=queryQualifiedTreeTangentAngle(viewer,firstRef,firstT,selected,t);
+  const firstCurrent=queryQualifiedFaceTreeNode(viewer,firstRef),secondCurrent=queryQualifiedFaceTreeNode(viewer,selected);
+  check(qualifiedTreeSelected&&same(selected,qualifiedTreeSelected.ref)&&same(selected,secondCurrent.ref)&&same(firstRef,firstCurrent.ref)
+    &&same(priorFirst,treeTangentFirstCapture)&&same(priorReport,treeTangentAngleReport),'The original tangent capture changed during inspection.');
+  if(priorFirst)queryQualifiedFaceTreeNode(viewer,priorFirst.node.ref);
+  const first=treeTangentCapture(next),report=pair?clone(next):null;treeTangentFirstCapture=first;treeTangentAngleReport=report;
+  refreshQualifiedTree();display(report?'Original tree tangent angle ready.':'First original tree tangent captured. Select the second Curve.');return treeTangentAngleSnapshot();}
+function remeasureTreeTangentAngle(){refreshQualifiedTree();check(!disposed&&!running&&treeTangentAngleReport,'Capture two current original Curve tangents first.');
+  const priorFirst=clone(treeTangentFirstCapture),priorReport=clone(treeTangentAngleReport),first=priorReport.first,second=priorReport.second;
+  const next=queryQualifiedTreeTangentAngle(viewer,first.node.ref,first.t,second.node.ref,second.t);
+  queryQualifiedFaceTreeNode(viewer,first.node.ref);queryQualifiedFaceTreeNode(viewer,second.node.ref);
+  check(same(priorFirst,treeTangentFirstCapture)&&same(priorReport,treeTangentAngleReport),'The original tangent pair changed during inspection.');
+  const capture=treeTangentCapture(next),report=clone(next);treeTangentFirstCapture=capture;treeTangentAngleReport=report;
+  refreshQualifiedTree();display('Original tree tangent angle measured again.');return clone(report);}
+function resetTreeTangentAngle(){clearTreeTangentAngle();refreshQualifiedTree();display('Tree tangent angle reset.');}
 function refreshQualifiedTree(){if(disposed){clearQualifiedTree();for(const input of[treeU,treeV,treeT,inspectTreePointButton,frameTreeFaceButton,clearTreeSelectionButton,syncFaceTree,treeFilterQuery,treeFilterSource,treeFilterKind,clearTreeFiltersButton])input.disabled=true;return qualifiedTreeSnapshot();}
   const state=viewer.getState(),scene=state.qualifiedFaceScene,content=scene?scene.assets.map(asset=>({sourceId:asset.sourceId,source:asset.source,face:asset.face}))
     .sort((a,b)=>a.sourceId<b.sourceId?-1:a.sourceId>b.sourceId?1:0):null;
@@ -475,7 +530,7 @@ function refreshQualifiedTree(){if(disposed){clearQualifiedTree();for(const inpu
   inspectTreePointButton.disabled=!selected;frameTreeFaceButton.disabled=!selected||state.status!=='ready';clearTreeSelectionButton.disabled=!selected;
   treeU.disabled=!selected||!surface;treeV.disabled=!selected||!surface;treeT.disabled=!selected||surface;
   document.querySelector('#tree-u-label').hidden=!surface;document.querySelector('#tree-v-label').hidden=!surface;document.querySelector('#tree-t-label').hidden=!qualifiedTreeSelected||surface;
-  markQualifiedTreeSelection();updateTreePointLabel();refreshTreeCurveLength();refreshTreeSurfaceArea();refreshTreeCurveCurvature();refreshTreeSurfaceCurvature();return qualifiedTreeSnapshot();
+  markQualifiedTreeSelection();updateTreePointLabel();refreshTreeCurveLength();refreshTreeSurfaceArea();refreshTreeCurveCurvature();refreshTreeSurfaceCurvature();refreshTreeTangentAngle();return qualifiedTreeSnapshot();
 }
 function treeDomainMidpoint(domain){const value=domain[0]/2+domain[1]/2;check(Number.isFinite(value)&&value>=domain[0]&&value<=domain[1],'Original parameter-domain midpoint is not finite or inclusive.');return Object.is(value,-0)?'-0':String(value);}
 function selectQualifiedTreeNode(ref){refreshQualifiedTree();const next=queryQualifiedFaceTreeNode(viewer,ref),changed=!qualifiedTreeSelected||!same(qualifiedTreeSelected.ref,next.ref);
@@ -949,6 +1004,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
     queryQualifiedTreeSurfaceArea,inspectTreeSurfaceArea,resetTreeSurfaceArea,treeSurfaceAreaSnapshot,
     queryQualifiedTreeCurveCurvature,inspectTreeCurveCurvature,resetTreeCurveCurvature,treeCurveCurvatureSnapshot,
     queryQualifiedTreeSurfaceCurvature,inspectTreeSurfaceCurvature,resetTreeSurfaceCurvature,treeSurfaceCurvatureSnapshot,
+    queryQualifiedTreeTangentAngle,captureTreeTangent,refreshTreeTangentAngle,remeasureTreeTangentAngle,resetTreeTangentAngle,treeTangentAngleSnapshot,
     AREA_OPTIONS,areaPin,queryQualifiedFaceSurfaceArea,inspectArea,updateAreaLabel,areaSnapshot,mismatchCandidate,dispose,resourceCounts,uploads,draws,glErrors,errors,warnings,lossExtension,failAllocation,
     LENGTH_OPTIONS,lengthPin,queryQualifiedFaceCurveLength,inspectLength,updateLengthLabel,lengthSnapshot,
     queryQualifiedFaceAngle,measureAngle,updateAngleLabel,angleSnapshot,
@@ -968,7 +1024,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
     get surfaceCurvatureReport(){return clone(surfaceCurvatureReport);},get tangentAngleReport(){return clone(tangentAngleReport);},get normalAngleReport(){return clone(normalAngleReport);},
     get nativeSampleReport(){return clone(nativeSampleRecord?.sample??null);},get pickedChordReport(){return clone(pickedChordReport);},get pickedAngleReport(){return clone(pickedAngleReport);},
     get pickedSurfaceCurvatureReport(){return clone(pickedSurfaceCurvatureReport);},get pickedNormalAngleReport(){return clone(pickedNormalAngleReport);},
-    get treeCurveLengthReport(){return clone(treeCurveLengthReport);},get treeSurfaceAreaReport(){return clone(treeSurfaceAreaReport);},get treeCurveCurvatureReport(){return clone(treeCurveCurvatureReport);},get treeSurfaceCurvatureReport(){return clone(treeSurfaceCurvatureReport);},get result(){return result;}};
+    get treeCurveLengthReport(){return clone(treeCurveLengthReport);},get treeSurfaceAreaReport(){return clone(treeSurfaceAreaReport);},get treeCurveCurvatureReport(){return clone(treeCurveCurvatureReport);},get treeSurfaceCurvatureReport(){return clone(treeSurfaceCurvatureReport);},get treeTangentAngleReport(){return clone(treeTangentAngleReport);},get result(){return result;}};
   display('Original Faces ready. Inspect a current source from its row.');
 }catch(error){display('Original Faces could not load: '+error.message);}
 buttons.load.addEventListener('click',()=>action(()=>load(candidate({assetCount:Number(assetCount.value),countU:Number(countU.value),countV:Number(countV.value)}))));
@@ -1008,6 +1064,7 @@ measureTreeLengthButton.addEventListener('click',()=>action(()=>measureTreeCurve
 inspectTreeAreaButton.addEventListener('click',()=>action(()=>inspectTreeSurfaceArea()));resetTreeAreaButton.addEventListener('click',()=>action(resetTreeSurfaceArea));
 inspectTreeCurvatureButton.addEventListener('click',()=>action(()=>inspectTreeCurveCurvature()));resetTreeCurvatureButton.addEventListener('click',()=>action(resetTreeCurveCurvature));
 inspectTreeSurfaceCurvatureButton.addEventListener('click',()=>action(()=>inspectTreeSurfaceCurvature()));resetTreeSurfaceCurvatureButton.addEventListener('click',()=>action(resetTreeSurfaceCurvature));
+captureTreeTangentButton.addEventListener('click',()=>action(()=>captureTreeTangent()));resetTreeTangentAngleButton.addEventListener('click',()=>action(resetTreeTangentAngle));
 canvas.addEventListener('click',event=>{const inspectEnabled=faceInspectMode.checked&&!faceInspectMode.disabled,sampleEnabled=nativeSampleMode.checked&&!nativeSampleMode.disabled,
   chordEnabled=pickedChordMode.checked&&!pickedChordMode.disabled,angleEnabled=pickedAngleMode.checked&&!pickedAngleMode.disabled,normalAngleEnabled=pickedNormalAngleMode.checked&&!pickedNormalAngleMode.disabled;
   if(!inspectEnabled&&!sampleEnabled&&!chordEnabled&&!angleEnabled&&!normalAngleEnabled)return;const rect=canvas.getBoundingClientRect(),point={xCss:event.clientX-rect.left,yCss:event.clientY-rect.top};

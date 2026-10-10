@@ -30,7 +30,9 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <span id="tree-length-label" class="measurement-label" hidden></span>
 <span id="tree-area-label" class="measurement-label" hidden></span>
 <span id="tree-curvature-label" class="measurement-label" hidden></span>
-<span id="tree-surface-curvature-label" class="measurement-label" hidden></span></div></div>
+<span id="tree-surface-curvature-label" class="measurement-label" hidden></span>
+<span id="tree-tangent-first-label" class="measurement-label" hidden></span><span id="tree-tangent-second-label" class="measurement-label" hidden></span>
+<span id="tree-tangent-angle-label" class="measurement-label" hidden></span></div></div>
 <label>Assets <select id="asset-count" disabled><option>6</option><option>2</option></select></label>
 <label>Grid U <select id="count-u" disabled><option>17</option><option>9</option><option>2</option></select></label>
 <label>Grid V <select id="count-v" disabled><option>17</option><option>9</option><option>2</option></select></label>
@@ -267,6 +269,14 @@ Mean and principal signs follow the original U/V normal, not an outward solid no
 The native report retains the derivative, metric and discriminant roundoff data. It does not supply principal radii, directions or a whole-Surface regularity certificate.
 The label projects the original parameter point approximately, without occlusion testing or a native screen-hit claim. Hidden current Surface selections remain inspectable while their labels stay hidden.
 Reset clears only this report. Local curvature does not certify manufacturing or global accuracy.</p></details>
+<button id="capture-tree-tangent" disabled>Capture selected Curve tangent</button><button id="reset-tree-tangent-angle" disabled>Reset tree tangent angle</button>
+<p id="tree-tangent-angle-output" role="status" aria-live="polite"></p>
+<details id="tree-tangent-angle-help"><summary>About captured tree tangent angles</summary>
+<p>Capture the selected original Curve at its declared native t, then select a Curve and capture its tangent to measure an unsigned angle from 0° to 180°.
+A capture after a complete pair starts a new first tangent. Changing or clearing the tree row selection, or changing the view, keeps valid captures; a change to either captured original Source or complete Face clears the pair.
+Directions follow increasing original t, not edge-loop traversal, solid orientation or a chord. Derivative norms use mm per original numeric parameter, not physical velocity. This action needs first derivatives, without a curvature or second-derivative prerequisite.
+Hidden captures stay valid and are disclosed in the output. Their labels stay hidden until their rows match the filter. Labels use approximate original-point projection without occlusion testing; the angle label is placed below the first point.
+Reset clears only these captures and their angle. No tangent-arrow layer, native screen hit, dihedral or global angular accuracy is certified.</p></details>
 <details id="tree-help"><summary>About the original geometry tree</summary>
 <p>Each source retains its complete Face and five original native objects. Expand the Source and Face groups, then choose a geometry.
 Parameters use the original numeric domain; defaults are its checked midpoint. Control points use mm, while weights and UV parameter data are dimensionless.
