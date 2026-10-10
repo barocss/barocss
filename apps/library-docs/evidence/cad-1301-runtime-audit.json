@@ -1,0 +1,67 @@
+{
+  "format": "barocss-docs-cad-1301-runtime-audit-v1",
+  "sourceCommit": "ded1ef68b9877de2b487721bc7228e37daed2865",
+  "nativeCommit": "51821d21c7880edbdb54ad7f2688b848ae56bde2",
+  "packageName": "@barocss/cad",
+  "packageVersion": "0.0.0-experimental",
+  "origin": {
+    "directory": "/Users/user/.barocss-ai/v3/evidence-qualified-translated-strip-body-cad2/native-emitted.initial",
+    "ledger": "/Users/user/.barocss-ai/v3/evidence-qualified-translated-strip-body-cad2/runtime-closure.initial.json",
+    "ledgerSha256": "1726665c2cd0e3a76107d27a476fb47d8ac52f3147ac638b19caa4af92cc46e6",
+    "manifestGitPath": "packages/barocss-cad/package.json",
+    "licenseGitPath": "packages/barocss-cad/LICENSE"
+  },
+  "treeProof": {
+    "sourceTree": "d5b931669cf99bdda76406d7252f4bb5be3753e5",
+    "nativeTree": "d5b931669cf99bdda76406d7252f4bb5be3753e5",
+    "exact": true
+  },
+  "copiedFiles": 358,
+  "javascriptFiles": 179,
+  "declarationFiles": 179,
+  "originalFileBytes": 3776691,
+  "verifiedLedgerHashes": 358,
+  "verifiedReadbackHashes": 358,
+  "mismatches": [],
+  "externalRuntimeImports": [],
+  "missingRelativeTargets": [],
+  "archive": {
+    "path": "scripts/profiles/cad-1301.runtime.json.gz",
+    "bytes": 1373697,
+    "sha256": "df11345e4098f7bb286098c4e6805af0a618b971cc0fe31daf1363cc05b4441d",
+    "uncompressedJSONBytes": 5086604,
+    "gzipMtime": 0,
+    "repeatedCompressionIdentical": true
+  },
+  "manifest": {
+    "nativeFileSha256": "7f18887b37ed966cebfa183520064b7833aee5dafee20fd21bfa265bf68ecd22",
+    "archiveObjectSha256": "0fd6fe6b9d2d7042eae1e952798157b79d2f3273cc3bad55d00687872242034d",
+    "profileHashEncoding": "Exact UTF-8 archive.manifestText from git show nativeCommit:packages/barocss-cad/package.json",
+    "workspaceExports": {
+      ".": {
+        "types": "./src/index.ts",
+        "import": "./src/index.ts"
+      }
+    },
+    "publishConfigUnchanged": true,
+    "compiledRootEntry": "dist/index.js",
+    "compiledRootTypes": "dist/index.d.ts",
+    "profileSha256": "7f18887b37ed966cebfa183520064b7833aee5dafee20fd21bfa265bf68ecd22",
+    "originalTextIncluded": true,
+    "parsedTextMatchesManifest": true
+  },
+  "license": {
+    "sha256": "587b99177f040869418fb5aa955d981ecb66bb142b69bc59bc613499b4749a9d",
+    "bytes": 1087,
+    "exactGitBytesPreserved": true
+  },
+  "priorCheckpoint": {
+    "nativeBuildAndFlow": "Passed in retained native receipt; not rerun here",
+    "compiledPublicEntry": "demo-output/compiled-consumer.json and native demo public-entry flow",
+    "nodeMajor": 24,
+    "nodeVersionEvidence": "https://github.com/barocss/barocss/issues/1301#issuecomment-6097913350",
+    "integrationStatus": "Source adopted; integrated Node22/consumer/UI checks remain separate"
+  },
+  "newCLI": "Not implemented or executed by this runtime-copy audit",
+  "scope": "Copied and hashed original emitted bytes only. No donor replay, build, install, runtime execution, source alias, root change, publication or renderer/Boolean/general Solid claim."
+}

@@ -4,6 +4,16 @@ Compile original geometry, query it, then prepare a separate display mesh. These
 
 [Open the CAD playground](/playground#cad-surface) · [Compiler signature](./reference#compilecadmodel) · [Surface sampling signature](./reference#tessellatesurface)
 
+## Run the versioned qualified Body CLI
+
+The [Body1301 guide](./body-1301) adds a separate compiled-public API sample at provider `ded1ef68`; it is not part of the `5f` source runner or the live Curve/Surface gallery. Run from the repository root with Node22+:
+
+```sh
+node apps/library-docs/scripts/run-cad-body-1301.mjs
+```
+
+The bundled complete677219-byte input yields8Vertices/12Edges/6Faces/24Uses, two Models with16and2objects, volume92.5mm³ and exact185/2. The CLI also verifies an actual OWNED refusal while preserving the accepted result and input bytes. This is a CPU Body/material proof for a restricted translated-strip profile, not a renderer, public CAD file codec, general Boolean/membership or manufacturing qualification. Read the guide's input schema, source/native profile and supported boundary before adapting another complete request.
+
 ## Run the complete CPU examples
 
 The saved module contains all four selected language/native flows and the Surface→GPU buffer preparation below. From the repository root with Node22+ and existing dependencies:
