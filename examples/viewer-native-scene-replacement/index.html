@@ -12,6 +12,13 @@ Original native geometry stays unchanged. Hidden bodies remain in the source inv
 <label>Original Source0 file <input id="native-file-choice" type="file" accept=".barocad,.source0.css" aria-label="Original Source0 file" disabled></label>
 <button id="open-native-file" disabled>Open original source</button><button id="discard-native-file" disabled>Discard file choice</button>
 <p id="staged-native-file" role="status" aria-live="polite">No file choice.</p><p id="accepted-native-file" role="status" aria-live="polite">No local file is accepted.</p>
+<button id="download-native-source" disabled>Download original source</button>
+<p id="native-source-download-output" role="status" aria-live="polite"></p>
+<details id="native-source-download-help"><summary>About original source downloads</summary>
+<p>This downloads the current accepted native Source0 text, including its whole original geometry. A staged file choice is not downloaded.
+It preserves original UTF-8 source bytes within the supported one-to-four-object profile. The offered filename comes from the matching opened file or is generated from the original Model name.
+The source contains no current view, visibility, display poses, document or Face topology, assembly, Shell or editing history. Reopening fits the original native objects rather than restoring display settings.
+This is an original-source download, not project Save As. It can remain available when native source is retained after presentation loss.</p></details>
 <details id="native-file-help"><summary>About local original files</summary>
 <p>Choose a local Source0 file, then select Open. Choosing or discarding a file does not change accepted geometry. Open uses the whole original source in mm and displays all one to four admitted Surface or Curve objects with a fitted view.
 Files must contain 1 to 65,536 UTF-8 bytes. The filename and extension do not determine the geometry. Unsupported or invalid files leave the accepted original scene in place when presentation recovery is available.

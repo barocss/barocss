@@ -8,6 +8,7 @@ import {compileCadModel,evaluateCurve,evaluateSurface,curveDomain,parseBooleanEx
 import {prepareUniformCurvePreview,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer} from '@barocss/gpu';
 import {createClothWorld} from '@barocss/physics/cloth';
 import {readNativeFile,createNativeFileOpen} from './native-file-open.js';
+import {prepareNativeSourceDownload,createNativeSourceDownload} from './native-source-download.js';
 
 const check=(condition,message)=>{if(!condition)throw Error(message);},clone=value=>structuredClone(value);
 const same=(a,b)=>Object.is(a,b)||!!a&&!!b&&typeof a==='object'&&typeof b==='object'&&Object.keys(a).length===Object.keys(b).length
@@ -18,6 +19,7 @@ const sha=async bytes=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',b
 const canvas=document.querySelector('canvas'),status=document.querySelector('#status'),inspection=document.querySelector('#inspection'),list=document.querySelector('#bodies');
 const nativeFileChoice=document.querySelector('#native-file-choice'),openNativeFileButton=document.querySelector('#open-native-file'),discardNativeFileButton=document.querySelector('#discard-native-file');
 const stagedNativeFile=document.querySelector('#staged-native-file'),acceptedNativeFile=document.querySelector('#accepted-native-file');
+const downloadNativeSourceButton=document.querySelector('#download-native-source'),nativeSourceDownloadOutput=document.querySelector('#native-source-download-output');
 const buttons=Object.fromEntries(['replacement','fit-replacement','document','native','native-replacement','show-all','hide-all','fit','saved-view','query','clear','run-proof','lose-context','dispose']
   .map(id=>[id,document.querySelector('button#'+id)]));
 const contexts=new Set(),resources={},peaks={},uploads=[],draws=[],errors=[],warnings=[];
@@ -42,7 +44,7 @@ const nativeOptions={sourceVersion:0,countU:5,countV:5,curveDisplay:{version:1,c
 const bodyIds=['body_0_curve','body_0_surface','body_1_curve','body_1_surface'];
 const documentOptions={native:{...clone(nativeOptions),unitsPerMillimeter:1},basis:'authored-xyz-matches-rhyup',bodyIds};
 const mmToSceneUnit=.13,fixedCamera={eye:[4,3,7],target:[.35,.2,.3],up:[0,1,0],fovYDegrees:45,near:.01,far:30};
-let documentResult=null,originalBytes=null,originalText='',projection=[],manifest=[],viewer=null,running=false,disposed=false,result=null,nativeFileOpen=null;
+let documentResult=null,originalBytes=null,originalText='',projection=[],manifest=[],viewer=null,running=false,disposed=false,result=null,nativeFileOpen=null,nativeSourceDownload=null;
 const sources={};
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
 const glErrors=()=>[...contexts].map(gl=>gl.getError());
@@ -82,6 +84,14 @@ function invalidateNativeFile(){if(!disposed)nativeFileOpen?.invalidate();return
 function sourceAction(callback){invalidateNativeFile();try{const value=callback();nativeFileOpen?.clearAccepted();inspection.textContent='';render();return value;}catch(error){render();throw error;}}
 function commitReplacement(candidate){uploads.length=0;draws.length=0;viewer.replaceNativeScene(candidate);return viewer.getState();}
 function replace(candidate){return sourceAction(()=>commitReplacement(candidate===undefined?buildCandidate():candidate));}
+function nativeSourceDownloadSnapshot(){return nativeSourceDownload?clone(nativeSourceDownload.snapshot()):{version:0,pending:false,disposed,enabled:false,report:null,error:null,activeUrls:0,activeAnchors:0,activeTimers:0};}
+function renderNativeSourceDownloadControls(snapshot=nativeSourceDownloadSnapshot()){downloadNativeSourceButton.disabled=disposed||running||!snapshot.enabled;
+  nativeSourceDownloadOutput.textContent=snapshot.report?'Original source offered: '+snapshot.report.name+' · '+snapshot.report.bytes+' bytes · SHA-256 '+snapshot.report.sha256
+    +(snapshot.report.filenameOrigin==='generated'?' · generated filename':' · opened-file filename'):'';
+  if(snapshot.pending)nativeSourceDownloadOutput.textContent+=(nativeSourceDownloadOutput.textContent?' · ':'')+'Preparing original source…';
+  if(snapshot.error)nativeSourceDownloadOutput.textContent+=(nativeSourceDownloadOutput.textContent?' · ':'')+snapshot.error.message;}
+async function downloadNativeSource(){check(nativeSourceDownload&&!disposed&&!running,'Source download needs a live host.');const report=await nativeSourceDownload.download();
+  if(report&&!disposed)display('Original source download offered: '+report.name+'.');return report;}
 function inventory(){const state=viewer.getState();return state.documentBodies.length?state.documentBodies.map(body=>({ref:body.ref,label:body.binding.bodyId,pin:body.binding}))
   :[...state.surfaces.map(ref=>({ref:{kind:'surface',...ref},label:ref.surfaceId})),...state.curves.map(ref=>({ref:{kind:'curve',...ref},label:ref.curveId}))];}
 function render(){const state=viewer.getState(),live=!disposed&&state.status!=='context-lost',ready=live&&state.status==='ready';
@@ -94,7 +104,7 @@ function render(){const state=viewer.getState(),live=!disposed&&state.status!=='
     checkbox.addEventListener('change',()=>action(()=>{if(!item.isConnected)throw Error('This body list is stale.');
       const accepted=viewer.getState(),refs=inventory().map(body=>body.ref).filter(ref=>sameRef(ref,body.ref)?checkbox.checked:accepted.visibleGeometry.some(value=>sameRef(value,ref)));
       viewer.setVisibleGeometry(refs);}));item.append(label,identity);return item;}));
-  nativeFileOpen?.sync();renderNativeFileControls();
+  nativeFileOpen?.sync();renderNativeFileControls();nativeSourceDownload?.sync();renderNativeSourceDownloadControls();
 }
 function action(callback){if(disposed)return;try{callback();render();}catch(error){display(error.message);}}
 function transformedPoint(point,pose){if(!pose)return point.map(n=>n*mmToSceneUnit);const[x,y,z,w]=pose.rotation,
@@ -183,7 +193,7 @@ async function runProof(){invalidateNativeFile();if(running||disposed||viewer.ge
     documentBytes:manifest[0]?.bytes,contextCount:contexts.size,resources:resourceCounts(),limits:result.scope});
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}
   return result;}
-function dispose(){if(disposed)return;nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
+function dispose(){if(disposed)return;nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
   contextCount:contexts.size,errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display(receipt);return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=await(await fetch('/document.cad-document.json')).arrayBuffer();
   check(bytes.byteLength===manifest[0].bytes&&await sha(bytes)===manifest[0].sha256,'Unchanged original document bytes/hash differ');originalBytes=new Uint8Array(bytes);originalText=new TextDecoder().decode(bytes);
@@ -192,8 +202,10 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=awa
   viewer=createViewer(canvas,{mmToSceneUnit,background:[.035,.065,.105]});nativeFileOpen=createNativeFileOpen(viewer,{
     onChange:snapshot=>renderNativeFileControls(snapshot),onAccepted:accepted=>{inspection.textContent='';render();display('Opened original source '+accepted.name+'.');},
     onError:error=>{render();display(error instanceof Error?error.message:String(error));}});
+  nativeSourceDownload=createNativeSourceDownload(viewer,canvas,{getAcceptedFile:()=>nativeFileSnapshot().accepted,
+    onChange:snapshot=>renderNativeSourceDownloadControls(snapshot),onError:error=>display(error instanceof Error?error.message:String(error))});
   replace();lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
-  window.__viewerReplacementProof={viewer,createViewer,readNativeFile,createNativeFileOpen,stageNativeFile,openNativeFile,discardNativeFile,invalidateNativeFile,nativeFileSnapshot,documentResult,originalBytes,originalText,manifest,sources,projection,bodyIds,nativeOptions,documentOptions,fixedCamera,mmToSceneUnit,canvas,
+  window.__viewerReplacementProof={viewer,createViewer,prepareNativeSourceDownload,createNativeSourceDownload,downloadNativeSource,nativeSourceDownloadSnapshot,readNativeFile,createNativeFileOpen,stageNativeFile,openNativeFile,discardNativeFile,invalidateNativeFile,nativeFileSnapshot,documentResult,originalBytes,originalText,manifest,sources,projection,bodyIds,nativeOptions,documentOptions,fixedCamera,mmToSceneUnit,canvas,
     buildCandidate,makeCandidate:buildCandidate,buildNativeCandidate,initialDisplay,refFor,refs:projection.map(refFor),refsFor:()=>projection.map(refFor),replace,nativeEntries,candidatePoints,transformedPoint,expectedFit,uploadWitness,query,inventory,render,
     loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2,parseBaroCadSource,compileCadModel,evaluateCurve,evaluateSurface,curveDomain,
     createCadGeometryReference,queryCadDocumentPoint,parseBooleanExtrusionFeatureGraph,prepareUniformCurvePreview,parseBaroCadAssembly,loadBaroCadAssembly,loadBaroCadModelSet,
@@ -203,6 +215,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=awa
   window.__viewerReplacementProof.nativeSourcePanel=await(await fetch('/original-panel.barocad')).text();
   display('Ready: revision5 original two-asset document, four posed bodies, three visible, exact saved camera.');
 }catch(error){display({ok:false,stage:'startup',error:error.stack||error.message});}
+downloadNativeSourceButton.addEventListener('click',()=>{downloadNativeSource().catch(()=>{});});
 nativeFileChoice.addEventListener('change',()=>{const file=nativeFileChoice.files?.[0];if(file)try{stageNativeFile(file);}catch{}});
 openNativeFileButton.addEventListener('click',()=>{openNativeFile().catch(()=>{});});discardNativeFileButton.addEventListener('click',()=>{if(disposed)return;try{discardNativeFile();}catch(error){display(error.message);}});
 buttons.replacement.addEventListener('click',()=>action(()=>replace()));buttons['fit-replacement'].addEventListener('click',()=>action(()=>sourceAction(()=>commitReplacement(buildCandidate(null)))));
