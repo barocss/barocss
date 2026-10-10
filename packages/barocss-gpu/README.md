@@ -1806,3 +1806,58 @@ qualify GPU resources. Generic linearRGB/sRGB rendering is a separate stage.
 
 ONE source/API/ray/file flow:
 `node examples/gpu-scene/engine-lighting-bindings-flow.mjs --output <fresh-directory>`.
+
+### General engine authored material source (companion0, CPU)
+
+`prepareEngineMaterialBindings(scene, companion)` connects the existing
+MeshMaterial compiler and trusted lowering to original scene0 material IDs.
+The companion has exactly `format: 'barocss-gpu-engine-material-bindings'`,
+`version: 0`, `sceneId` and `bindings`. Each binding has exactly `materialId`,
+`material` (full original MeshMaterialIR/source) and `uniforms` (supplied scalar
+record). Up to eight unique existing material IDs are supported, including
+hidden and unused materials. Original scene unlit material records stay intact.
+This companion describes untextured opaque emission; rendering is a separate stage.
+
+The result has exactly `scene`, `materialBindings`, `resolvedBindings` and
+`loweredBindings`. The first is one actual prepared complete scene.
+`materialBindings` retains full original IR/source and supplied uniform values,
+including signed zero and omissions. `resolvedBindings` entries have
+`{materialId, binding}` with the actual reconstructed MeshMaterialBinding;
+the unchanged internal binder fills defaults, checks declared ranges and
+normalizes zero. `loweredBindings` entries have `{materialId, lowered}` with
+the existing trusted expression, declarations and uniform layout. Catalogs
+retain binding order, are independently copied/deeply frozen and have no nested
+aliases to caller data or each other. Scene execution buffers remain mutable
+and independently owned. The internal standalone binder is not a public export.
+
+All source/header/count guards and own-data snapshots precede providers.
+Limits are eight bindings, 64KiB aggregate UTF8 source (code-unit preflight
+before encoding), 16 declared/supplied uniforms per binding and 128 of each
+in aggregate, 8192 snapshot values per binding (65536 aggregate) and depth24.
+Snapshot records allow at most16 own keys; dense arrays allow at most256 values,
+with length guards before enumeration. Accessors, hidden/symbol fields, foreign
+prototypes, cycles, nonfinite data and unsupported fields refuse. Root/binding
+records may use a null prototype; full IR and supplied/nested records require
+Object.prototype. Snapshot counts are confirmed before provider calls.
+`__proto__` uniform declarations/values refuse `INPUT` because the existing
+internal binder cannot supply an own numeric property for that name. The
+compiler and native binding paths are unchanged. All other accepted names,
+grammar, canonical IR, range and zero behavior remain existing provider authority.
+
+There is one actual binder and one actual lowerer call per binding, up to16
+source reconstructions, followed by one actual complete scene preparation and
+all scene/material reference checks. No parser cache or geometry rescan is
+claimed. Codes are `INPUT`, `VERSION`, `BUDGET`, `REFERENCE`, `MATERIAL`, `SCENE`;
+actual material/scene/reflection causes remain available. Refusal returns no
+partial source and preserves caller and previously accepted originals.
+
+Persist the full original scene/companion, with an explicit sign sidecar where
+ordinary JSON discards negative zero. Resolved defaults/lowering are derived
+data and must not replace original supplied uniform records. Shader ID alone
+does not identify source: the same ID can have different complete sources;
+different material bindings can supply different values for the same source.
+This service has no program cache, GLSL from callers, geometry attributes,
+texture/light/alpha composition, pixels, GL resources or consumer adoption.
+
+ONE source/API/file/cold flow:
+`node examples/gpu-scene/engine-material-bindings-flow.mjs --output <fresh-directory>`.

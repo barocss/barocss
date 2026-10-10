@@ -93,3 +93,5 @@ export {prepareEngineOpacityBindings,EngineOpacityBindingsError,EngineOpacityBin
 export type {EngineOpacityBindingV0,EngineOpacityBindingsV0,PreparedEngineOpacityBindings} from './engine-opacity-bindings.js';
 export {prepareEngineLightingBindings,EngineLightingBindingsError,EngineLightingBindingsDiagnosticCode} from './engine-lighting-bindings.js';
 export type {EngineLightingBindingV0,EngineLightingBindingsV0,PreparedEngineLightingBindings} from './engine-lighting-bindings.js';
+export {prepareEngineMaterialBindings,EngineMaterialBindingsError,EngineMaterialBindingsDiagnosticCode} from './engine-material-bindings.js';
+export type {EngineMaterialBindingV0,EngineMaterialBindingsV0,PreparedEngineMaterialBindings} from './engine-material-bindings.js';
