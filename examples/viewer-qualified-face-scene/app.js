@@ -52,7 +52,7 @@ const distanceFormat=new Intl.NumberFormat('en',{maximumFractionDigits:4});
 const measurementControls=['first','second'].map(side=>({side,
   source:document.querySelector('#measure-'+side+'-source'),geometry:document.querySelector('#measure-'+side+'-geometry'),
   u:document.querySelector('#measure-'+side+'-u'),v:document.querySelector('#measure-'+side+'-v'),t:document.querySelector('#measure-'+side+'-t')}));
-const buttons=Object.fromEntries(['load','interior-edit','mismatch','reverse','apply-color','saved-view','orbit','pan','resize','clear','run-proof','lose-context','dispose']
+const buttons=Object.fromEntries(['load','interior-edit','mismatch','reverse','apply-color','saved-view','frame-all-faces','orbit','pan','resize','clear','run-proof','lose-context','dispose']
   .map(id=>[id,document.querySelector('#'+id)]));
 const contexts=new Set(),resources={},peaks={},uploads=[],draws=[],errors=[],warnings=[];
 let faultType=null,faultAt=0,faultAttempts=0,faultConsumed=false,lossExtension=null;
@@ -429,6 +429,7 @@ function render(){refreshFaceInspection();const state=viewer.getState(),scene=st
   if(tangentAngleScopeChanged(scene))clearTangentAngle();
   if(normalAngleScopeChanged(scene))clearNormalAngle();
   for(const[id,button]of Object.entries(buttons))button.disabled=id==='dispose'?disposed:!available||running;
+  buttons['frame-all-faces'].disabled=!available||running||!scene||state.status!=='ready';
   for(const control of[assetCount,countU,countV,colorAsset,colorInput])control.disabled=!available||running;
   if(scene){assetCount.value=String(scene.assets.length);countU.value=String(scene.countU);countV.value=String(scene.countV);}
   const previous=colorAsset.value;colorAsset.replaceChildren(...(scene?.assets??[]).map(asset=>{const option=document.createElement('option');option.value=asset.sourceId;option.textContent=asset.sourceId;return option;}));
@@ -457,6 +458,7 @@ function render(){refreshFaceInspection();const state=viewer.getState(),scene=st
 function load(input=candidate()){uploads.length=0;draws.length=0;viewer.loadQualifiedFaceScene(input);invalidateFaceInspection();clearInspection();clearMeasurement();render();return viewer.getState();}
 function action(callback){if(disposed)return;try{callback();render();}catch(error){render();display(error.message);}}
 function changeView(callback){callback();invalidateFaceInspection();}
+function frameAllFaces(){check(viewer.getState().qualifiedFaceScene,'Load current Faces first.');changeView(()=>viewer.fit());render();display('All current Faces framed.');}
 function inspect(sourceId){const scene=viewer.getState().qualifiedFaceScene,asset=scene?.assets.find(value=>value.sourceId===sourceId);check(asset,'This source is not in the current accepted scene.');
   const compiled=compileCadModel(asset.source,{sourceVersion:0});check(compiled.ok&&same(compiled.model,asset.face.geometry),'Current original source/Face binding differs');
   const report=validateFaceBundle(asset.face),surface=asset.face.geometry.objects.find(object=>object.kind==='surface'&&object.id===asset.face.topology.face.surfaceId);
@@ -500,7 +502,8 @@ async function runProof(){if(running||disposed||['context-lost','unavailable'].i
     retained('native source accessor',()=>viewer.loadQualifiedFaceScene(getter));check(getterCalls===0,'Caller getter invoked');
     uploads.length=0;failAllocation('Buffer',16);try{retained('late sixteenth Face buffer',()=>viewer.loadQualifiedFaceScene(original));}finally{result.allocation=clearAllocationFault();}
     check(result.allocation.consumed&&uploads.length>0,'Late sixth-Face allocation was not consumed');
-    for(const[label,callback]of[['combined fit',()=>viewer.fit()],['unqualified pick',()=>viewer.pickGeometry({xCss:20,yCss:20})],
+    for(const[label,callback]of[['individual geometry fit',()=>viewer.fitGeometry({kind:'surface',modelId:original.assets[0].face.geometry.name,
+      surfaceId:original.assets[0].face.topology.face.surfaceId})],['unqualified pick',()=>viewer.pickGeometry({xCss:20,yCss:20})],
       ['unqualified selection',()=>viewer.selectGeometry(null)],['unqualified native metric',()=>viewer.measureNativeSurfacePoints(
         {modelId:original.assets[0].face.geometry.name,surfaceId:'patch_A',u:.5,v:.5},{modelId:original.assets[0].face.geometry.name,surfaceId:'patch_A',u:0,v:0})],
       ['null cloth',()=>viewer.setClothFrame(null)],['null fluid',()=>viewer.setFluidFrame(null)]])retained(label,callback);
@@ -547,7 +550,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
   check(fixtures['interior_edit_F.source0.css'].text===originalRequests.interior_edit.assets[5].source,'Original interior-edit Source0 association differs');
   viewer=createViewer(canvas,{mmToSceneUnit,background});load(candidate());lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
   labelResizeObserver=new ResizeObserver(()=>{refreshFaceInspection();updateLabels();updateAreaLabel();updateLengthLabel();updateAngleLabel();updateCurvatureLabel();updateSurfaceCurvatureLabel();updateTangentAngleLabel();updateNormalAngleLabel();});labelResizeObserver.observe(canvas);
-  window.__viewerQualifiedFaceProof={viewer,createViewer,candidate,load,render,inspect,inspectFaceAt,faceInspectionSnapshot,refreshFaceInspection,measurementInput,measure,updateLabels,labelSnapshot,
+  window.__viewerQualifiedFaceProof={viewer,createViewer,candidate,load,render,frameAllFaces,inspect,inspectFaceAt,faceInspectionSnapshot,refreshFaceInspection,measurementInput,measure,updateLabels,labelSnapshot,
     AREA_OPTIONS,areaPin,queryQualifiedFaceSurfaceArea,inspectArea,updateAreaLabel,areaSnapshot,mismatchCandidate,dispose,resourceCounts,uploads,draws,glErrors,errors,warnings,lossExtension,failAllocation,
     LENGTH_OPTIONS,lengthPin,queryQualifiedFaceCurveLength,inspectLength,updateLengthLabel,lengthSnapshot,
     queryQualifiedFaceAngle,measureAngle,updateAngleLabel,angleSnapshot,
@@ -574,6 +577,7 @@ buttons['apply-color'].addEventListener('click',()=>action(()=>{const scene=view
   check(asset,'Choose a current source');asset.color=[1,3,5].map(index=>parseInt(colorInput.value.slice(index,index+2),16)/255);
   load({version:0,basis:scene.basis,assets,countU:scene.countU,countV:scene.countV,camera:clone(scene.camera),translateScene:[...scene.translate]});}));
 buttons['saved-view'].addEventListener('click',()=>action(()=>changeView(()=>viewer.setView(camera))));buttons.orbit.addEventListener('click',()=>action(()=>changeView(()=>viewer.orbit(.05,.02))));buttons.pan.addEventListener('click',()=>action(()=>changeView(()=>viewer.pan(.01,0))));
+buttons['frame-all-faces'].addEventListener('click',()=>action(frameAllFaces));
 buttons.resize.addEventListener('click',()=>action(()=>changeView(()=>viewer.resize(canvas.width===640?480:640,canvas.height===480?360:480))));buttons.clear.addEventListener('click',()=>action(()=>{viewer.clear();invalidateFaceInspection();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();clearSurfaceCurvature();clearTangentAngle();clearNormalAngle();}));
 for(const control of measurementControls)for(const field of['source','geometry'])control[field].addEventListener('change',()=>renderMeasurementControls(viewer.getState().qualifiedFaceScene));
 measureButton.addEventListener('click',()=>action(()=>measure()));
