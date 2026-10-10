@@ -63,3 +63,6 @@ export {mountQualifiedFaceScene,QualifiedFaceSceneRenderer} from './qualified-fa
 
 export {prepareAxisBoxBooleanBuffers,AxisBoxBooleanBufferError} from './axis-box-boolean-buffers.js';
 export type {AxisBoxBooleanBufferOptions,PreparedAxisBoxBooleanBuffers,AxisBoxBooleanPanelRange,AxisBoxBooleanBufferDiagnosticCode} from './axis-box-boolean-buffers.js';
+
+export {prepareTriangleGeometry,TriangleGeometryError,TriangleGeometryDiagnosticCode} from './triangle-geometry.js';
+export type {TriangleGeometryV0,PreparedTriangleGeometry} from './triangle-geometry.js';
