@@ -98,14 +98,13 @@ function DirectApp() {
   const [recoveryHandover,setRecoveryHandover]=useState(false);
   function provenance(value:boolean){recoveredUnsavedRef.current=value;setRecoveredUnsaved(value);}
   function cancelRecoveryConfirmation(){recoveryDecision.current=null;setRecoveryConfirmation(null);}
-  async function refreshRecovery(message?:string){
+  async function refreshRecovery(){
     if(recoveryMutation.current)return;
     const serial=++recoveryReadSerial.current;
     try{
       const slot=await readRecoverySlot();if(serial!==recoveryReadSerial.current)return;
       recoverySlotRef.current=slot;setRecoverySlot(slot);setRecoveryStatus(slot.error?'failed':slot.record?'ready':'empty');
       if(recoveryDecision.current&&slot.raw!==recoveryDecision.current.raw){cancelRecoveryConfirmation();setRecoveryMessage('The recovery copy changed. Review it before trying again.');}
-      else if(message!==undefined)setRecoveryMessage(message);
       const request=replacementRef.current;
       if(request?.recovery&&slot.raw!==request.recovery.raw)replacementError(new CadEditorError('STALE','The recovery copy changed.',{field:'document-recovery'}));
     }catch(cause){if(serial!==recoveryReadSerial.current)return;recoverySlotRef.current=null;setRecoverySlot(null);setRecoveryStatus('failed');setRecoveryMessage('Recovery storage is unavailable. Retry from File.');}
@@ -117,7 +116,7 @@ function DirectApp() {
     window.addEventListener('focus',refresh);refresh();
     return()=>{recoveryReadSerial.current++;channel?.close();window.removeEventListener('focus',refresh);};
   },[]);
-  function showRecovery(){clearReplacement();cancelRecoveryConfirmation();setRecoveryMessage(Object.keys(session.getSnapshot().pending).length||session.getSnapshot().selectionTransition?'Draft fields are excluded from the copy.':null);setRecoveryHandover(false);setRecoveryOpen(true);void refreshRecovery();}
+  function showRecovery(){clearReplacement();cancelRecoveryConfirmation();setRecoveryMessage(Object.keys(session.getSnapshot().pending).length||session.getSnapshot().selectionTransition?'Draft fields are excluded. Apply or discard them before opening a copy.':null);setRecoveryHandover(false);setRecoveryOpen(true);void refreshRecovery();}
   function closeRecovery(){if(recoveryMutation.current)return;clearReplacement();cancelRecoveryConfirmation();setRecoveryOpen(false);}
   async function mutateRecovery(kind:'replace'|'delete',raw:string|undefined,record?:RecoveryRecord){
     if(recoveryMutation.current)return;
@@ -128,7 +127,8 @@ function DirectApp() {
       message=kind==='delete'?'Recovery copy deleted.':'Copy stored in this browser.'+(record?.hadPending?' Draft fields were not copied.':'')+' Later changes are not included.';
     }catch(cause){message=cause instanceof Error&&'code' in cause&&cause.code==='STALE'?'The recovery copy changed. Review it before trying again.':'Cannot change the recovery copy. The current document is retained.';}
     finally{recoveryMutation.current=false;setRecoveryBusy(false);cancelRecoveryConfirmation();}
-    await refreshRecovery(message);
+    setRecoveryMessage(message);
+    await refreshRecovery();
   }
   function saveRecovery(){
     try{
@@ -280,7 +280,7 @@ function DirectApp() {
         </MenubarContent></MenubarMenu>
         <MenubarMenu><MenubarTrigger>View</MenubarTrigger><MenubarContent><MenubarItem onSelect={() => setFitRequest(value => value + 1)}>Fit document</MenubarItem></MenubarContent></MenubarMenu>
       </Menubar>
-      <span className="document-title">{filename}<span className="dirty-dot" aria-label={effectiveUnsaved ? 'Changed since open or download' : 'Accepted content unchanged'}>{effectiveUnsaved ? ' •' : ''}</span></span>
+      <span className="document-title">{filename}<span className="dirty-dot" aria-label={effectiveUnsaved ? 'Unsaved accepted changes' : 'Accepted content unchanged'}>{effectiveUnsaved ? ' •' : ''}</span></span>
 
       <Button ref={openButton} data-testid="document-open" variant="outline" size="sm" onClick={chooseOpenFile} disabled={busy}><FolderOpen/>Open</Button>
       <Button size="sm" onClick={() => run(downloadCurrent)}><Download/>Download</Button>
