@@ -114,7 +114,7 @@ export function createRenderMixedController(session:RenderMixedSession, initial?
           // Preserve every unrelated source/display/title draft and its raw data.
           session.setDraftCamera(camera);
           const staged=session.getSnapshot(),draft=staged.draft;
-          if(staged.accepted!==baseline.accepted||draft.sceneSource!==baseline.draft.sceneSource||draft.asset!==baseline.draft.asset||draft.display!==baseline.draft.display||draft.title!==baseline.draft.title
+          if(staged.accepted!==baseline.accepted||staged.sphereInputInvalid!==baseline.sphereInputInvalid||draft.sceneSource!==baseline.draft.sceneSource||draft.asset!==baseline.draft.asset||draft.display!==baseline.draft.display||draft.title!==baseline.draft.title
             ||(['eye','target','up'] as const).some(field=>draft.camera[field].some((value,axis)=>!Object.is(value,camera[field][axis])))
             ||!Object.is(draft.camera.fovYDegrees,camera.fovYDegrees)||!Object.is(draft.camera.near,camera.near)||!Object.is(draft.camera.far,camera.far)){
             throw new RenderMixedDocumentError('INPUT','The scene or draft changed while the camera view was staged. Your drafts are kept. Apply them explicitly.');

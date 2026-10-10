@@ -69,6 +69,16 @@ Selecting an object row changes the local editing target and matching source tab
 
 Hidden Surface controls remain mounted and retain raw minus signs, empty text, and invalid position drafts. A hidden invalid axis still blocks Apply and the existing file guard's Apply and continue action. Use Edit Surface position in Diagnostics to reveal the Surface controls and focus the first invalid axis. Correct the field or Discard to restore accepted values. Import, Open, Save, project routes, and keyboard guards retain their existing behavior.
 
+## Sphere properties
+
+Select Sphere to edit Radius and Position X/Y/Z in scene units, plus opaque hexadecimal Color. Values come from the actual original Source1 compiler's effective defaults and selector cascade. They stage a narrow source edit; the GPU frame changes only after complete Apply. A source edit preserves original comments, object identity and unrelated properties. This is authored Sphere placement, separate from the native Surface's display Position.
+
+Incomplete, invalid and out-of-range fields stay as typed. Hidden Sphere fields still block Apply, File Apply-and-continue and camera Use view. Diagnostics can reveal and focus the first invalid Sphere field. The last valid Scene source is kept while local inputs are incomplete. Explicit Scene source editing replaces those local field drafts; Discard restores applied properties. Profile refusals keep applied scene/history/frame and correction input. Pending camera navigation disables authoring until Use or Cancel.
+
+Help → Sphere properties explains limits and commit/cancel behavior, returns focus and preserves fields. Save stores applied source, not raw inputs or a guard. Fresh Open reads effective fields again and retains the complete original native model and independent camera/display. This profile still shows one Sphere and one selected native Surface; general Add, picking, gizmos, material/light and animation tools remain separate.
+
+The `sphere-properties-flow.mjs` script checks source/API and actual downloaded files in two phases. CUA drives the real browser on an isolated strict52067 host. Previous author previews remain intact. Browser proof, CPU mock presentation units, affected builds and later integrated acceptance are separate records.
+
 The target defaults to Sphere for each mounted editor. It stays selected through Apply, same-page Open, and project changes; names/references refresh from current document data. A fresh page starts on Sphere. Help closes to the persistent Help menu trigger and preserves raw position text and all other drafts.
 
 
