@@ -10,6 +10,8 @@ For a width-limited ASCII label with decoration, see [diagram labels](./diagram-
 
 ## Build a path
 
+To edit existing Q/C controls through public copied commands and viewport-to-local mapping, see [path editing](./path-editing). Its application-owned preview and Undo/Redo keep an accepted scene during a gesture and support physical JSON Save/Open.
+
 ```ts
 import { createPathBuilder } from '@barocss/canvas2d';
 const commands = createPathBuilder()

@@ -19,6 +19,8 @@ For input selection, units and result interpretation, read [Use the interactive 
 
 [Open the diagram label](/playground#diagram-label) to shorten its display while keeping full semantic text and a separate outline. Read [Diagram labels](./packages/canvas2d/diagram-labels) for pixel units, hits and document files.
 
+[Open the path control editor](/playground#path-edit) to drag authored quadratic and cubic controls. Read [Edit path controls](./packages/canvas2d/path-editing) for coordinate mapping, paint preservation and document files.
+
 <VisualExamples />
 
 ## Follow the language and the data
