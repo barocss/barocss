@@ -10,3 +10,13 @@ export function publicContracts(scene:Scene,renderer:EmittedRenderer,sourceRende
  candidate(scene,{id:'Quadratic',index:1,slot:'end'},point);
  return {a,b,edited};
 }
+
+import { splitPathSegment as splitSource } from '../../../packages/barocss-canvas2d/src/index.js';
+import { splitPathSegment as splitEmitted } from '../../../packages/barocss-canvas2d/dist/index.js';
+import type { PathCommand } from '../../../packages/barocss-canvas2d/dist/index.js';
+import { anchorCandidate, anchorControl } from './controls.mjs';
+export function splitContracts(commands:readonly PathCommand[],scene:Scene){const a:PathCommand[]=splitSource(commands,1,.5),b:PathCommand[]=splitEmitted(commands,1,.5),tree=compiled(scene);anchorControl(tree,{id:'Cubic',index:1});anchorCandidate(scene,{id:'Cubic',index:1},{x:1,y:2});
+ // @ts-expect-error parameter required
+ splitEmitted(commands,1);
+ // @ts-expect-error no string parameter
+ splitSource(commands,1,'0.5');return{a,b};}

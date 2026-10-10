@@ -47,3 +47,16 @@ Evidence is in `evidence/`; source/emitted controlled adapter checks and the
 one actual browser/file flow have separate scopes. Existing engine primitives
 and other examples were not replayed or modified. Native completion, adoption,
 current-root1254/674 acceptance and publication are separate.
+
+## Authored segment split profile
+
+Open `index.html?split=1` to insert one authored cubic midpoint, then drag its new A anchor.
+The default page keeps the existing Q/C control editor. `splitPathSegment(commands,index,t)`
+validates/copies full commands and returns two same-degree L/Q/C commands in place of one.
+M/Z and constant selected segments refuse; invalid arguments retain the source. Output stays
+within256 commands. Binary64 subdivision is not a CAD or device raster equality certificate.
+The profile preserves original ID/paint/transform/endpoints/Q/Marker, uses copied CPU candidates
+and fresh GPU admission before history commits, and one lazy preview per completed drag.
+Moving the shared endpoint does not automatically adjust controls or enforce smoothness.
+Undo/Redo and Save/Open retain original commands. The file carries no editor overlay or private
+profile. Dispose releases callbacks/captures/observer/renderers; PNG0 in this profile.
