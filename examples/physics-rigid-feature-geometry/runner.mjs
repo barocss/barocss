@@ -21,7 +21,7 @@ try {
       const saved=structuredClone(row.workingBodies),results=[];
       for(const encounter of row.report.encounters) {
         const a=row.workingBodies.find(b=>b.id===encounter.aId),b=row.workingBodies.find(b=>b.id===encounter.bId);
-        const hit=m.detect(a,b);assert.deepEqual(hit,encounter.hit,'unchanged original hit archive parity');const selected=m.selectBoxSATFeature(a,b);assert.deepEqual(selected?.hit??null,hit,'selected original hit bits');
+        const hit=m.detect(a,b);assert.deepEqual(JSON.parse(JSON.stringify(hit)),encounter.hit,'archive JSON numeric hit parity (JSON does not preserve -0)');const selected=m.selectBoxSATFeature(a,b);assert.deepEqual(selected?.hit??null,hit,'selected original hit bits');
         if(!hit){assert.equal(m.featureContact(a,b),null);results.push({aId:a.id,bId:b.id,hit:null});continue;}
         let geometry=null,refusal=null,independent=null;
         try {geometry=m.featureContact(a,b);} catch(error){assert.equal(error.code,'NUMERIC_LIMIT');assert.equal(error.message,'private feature contact requires valid box witnesses');refusal={code:error.code,message:error.message};}
