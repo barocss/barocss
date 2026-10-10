@@ -1511,3 +1511,47 @@ assert Float32 raster agreement, pick native CAD parameters or replace Viewer
 queries. Existing generic ray query visibility, numerical edge ambiguity,
 work limits and authored identity rules remain in force. Save the full original
 camera/request/scene and re-derive after opening the file.
+
+### Caller-time translation clips for general engine scenes
+
+`sampleEngineTranslationClip(originalScene, clip, request)` returns frozen
+`{originalScene, clip, request, scene}` with independently owned complete source
+scenes. Only the tracked local translations in the derived `scene` change.
+
+```js
+const sampled = sampleEngineTranslationClip(originalScene, {
+  format: 'barocss-gpu-engine-translation-clip', version: 0,
+  id: 'move_clip', sceneId: originalScene.id,
+  coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
+  timeUnit: 'seconds', interpolation: 'linear',
+  tracks: [{nodeId: 'mesh', keys: [
+    {timeSeconds: 0, translation: [0, 0, 0]},
+    {timeSeconds: 2, translation: [2, 0, 0]},
+  ]}],
+}, {
+  format: 'barocss-gpu-engine-translation-clip-request', version: 0,
+  timeSeconds: 1,
+});
+const preparedFrame = prepareEngineScene(sampled.scene);
+```
+
+Each track names one unique current group or mesh. Local positions use scene
+units within `-1000..1000`. Times use caller seconds within `0..3600`;
+keys must increase with gaps of at least `1e-6` seconds. Limits are 32 tracks,
+32 keys per track and 512 keys in total. Empty tracks and empty scenes work.
+Before the first key and after the last key, the endpoint holds. At an exact
+key time, the literal translation retains its sign bits. Inside a segment,
+each component uses `left + (right - left) * alpha` in Number arithmetic.
+
+Original and derived complete scenes pass the real `prepareEngineScene`.
+`EngineTranslationClipError` uses `SCENE` for original admission and `FRAME`
+for derived admission, retaining the actual provider error as its cause.
+Other codes are `INPUT`, `VERSION`, `BUDGET`, `REFERENCE` and `RANGE`.
+Valid local key values can still fail a nested world-transform or Float32
+limit at the requested time. Only that sampled frame is validated.
+
+Geometry, material, camera, hierarchy, rotations, scales, visibility and IDs
+retain their original values. Save the full original scene, clip and request
+to reconstruct the frame after opening the file. This CPU source service owns
+no clock, playback loop, renderer, native CAD pose, simulation or browser.
+It provides no quaternion, scale, blend, easing, event or interval certificate.
