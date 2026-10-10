@@ -1648,3 +1648,54 @@ partial result or mutable execution plan is exposed on refusal.
 This CPU source service owns no clock, player, loop, blending, events,
 renderer, native CAD pose, simulation or browser. Slerp, multiple-turn spin,
 scale/skin/morph channels and full interval validity are unsupported.
+
+
+### Caller-time positive local-scale clips
+
+`sampleEngineScaleClip(originalScene, originalClip, request)` samples a
+separate positive scale source at one caller-owned second:
+
+```js
+const sampled = sampleEngineScaleClip(originalScene, {
+  format: 'barocss-gpu-engine-scale-clip', version: 0,
+  id: 'resize', sceneId: originalScene.id,
+  coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
+  timeUnit: 'seconds', interpolation: 'linear',
+  tracks: [{ nodeId: 'parent', keys: [
+    { timeSeconds: 0, scale: [1, 1, 1] },
+    { timeSeconds: 2, scale: [2, 3, 4] },
+  ] }],
+}, {
+  format: 'barocss-gpu-engine-scale-clip-request', version: 0,
+  timeSeconds: 1,
+});
+```
+
+The frozen independent source result is `{originalScene, clip, request, scene}`.
+Only tracked local `scale` changes in the complete derived scene. Original
+geometry positions, normals, UVs, indices, hierarchy, IDs, translations,
+rotations, materials, camera and visibility retain their values. Nonuniform
+scale uses the existing actual world and inverse-transpose normal transforms;
+it is not baked into original geometry. Explicit source-service composition
+retains each original scene, clip and request for cold reconstruction.
+
+Dimensionless scale components must be finite Numbers in `0.01..100`.
+Request/key time is `0..3600` seconds, with increasing key gaps of at least
+`1e-6`. There are `0..32` unique group/mesh tracks, `1..32` keys per track,
+and at most 512 total keys. Empty scenes and empty tracks are valid. Held
+endpoints and exact internal keys copy literal coefficients before arithmetic;
+strict interior segments use componentwise linear interpolation. This contract
+has no zero, negative, mirrored, logarithmic or blended scale.
+
+Own data, metadata, key counts/ranges, complete original scene, all references,
+interpolation and complete derived frame are checked in that order.
+`EngineScaleClipError` codes are `INPUT`, `VERSION`, `BUDGET`, `REFERENCE`,
+`RANGE`, `SCENE` and `FRAME`; the last two retain the actual scene provider
+cause. Positive local keys can still fail nested world, normal, triangle or
+Float32 limits. Refusal returns no partial frame. Two unchanged bounded scene
+preparations retain their source/work limits. Only the selected frame is
+validated, with declared Number rounding and no interval certificate.
+
+Save the full original scene, clip and request. This CPU source service owns
+no clock, player, loop, renderer, native CAD scaling, simulation or browser.
+Existing native millimetre display poses have a separate scale contract.
