@@ -1,5 +1,5 @@
 import { Canvas2DError } from './schema.js';
-import type { ImageNode, Point, Size, SourceRect, View } from './schema.js';
+import type { ImageNode, ImageNodeV27, Point, Size, SourceRect, View } from './schema.js';
 import { clipDeclarations, clipDiscard, createClipGpu, setClipGpu } from './clip.js';
 import type { ClipGpu, TransformClip } from './clip.js';
 import { polygonMaskDeclarations, polygonMaskDiscard, createPolygonMaskGpu,
@@ -10,6 +10,7 @@ export type ImageAsset = { width: number; height: number; pixels: Uint8Array; te
 export type ImageGpu = { program: WebGLProgram; positionBuffer: WebGLBuffer; uvBuffer: WebGLBuffer;
   vao: WebGLVertexArrayObject; size: WebGLUniformLocation; view: WebGLUniformLocation;
   opacity: WebGLUniformLocation; tint: WebGLUniformLocation;
+  rgbRow0: WebGLUniformLocation; rgbRow1: WebGLUniformLocation; rgbRow2: WebGLUniformLocation;
   sampler: WebGLUniformLocation; uvClamp: WebGLUniformLocation; clips: ClipGpu;
   polygonMask: PolygonMaskGpu };
 
@@ -38,13 +39,19 @@ uniform sampler2D u_image;
 uniform vec4 u_uvClamp;
 uniform float u_opacity;
 uniform vec3 u_tint;
+uniform vec4 u_rgb_row0;
+uniform vec4 u_rgb_row1;
+uniform vec4 u_rgb_row2;
 out vec4 out_color;
 void main() {
 ${clipDiscard}
 ${polygonMaskDiscard}
   vec4 sampleColor = texture(u_image, clamp(v_uv, u_uvClamp.xy, u_uvClamp.zw));
+  vec4 rgbInput = vec4(sampleColor.rgb, 1.0);
+  vec3 rgb = clamp(vec3(dot(u_rgb_row0, rgbInput), dot(u_rgb_row1, rgbInput),
+    dot(u_rgb_row2, rgbInput)), 0.0, 1.0);
   float alpha = sampleColor.a * u_opacity;
-  out_color = vec4(sampleColor.rgb * u_tint * alpha, alpha);
+  out_color = vec4(rgb * u_tint * alpha, alpha);
 }`;
 
 function compile(gl: WebGL2RenderingContext, kind: number, source: string): WebGLShader {
@@ -78,11 +85,15 @@ export function createImageGpu(gl: WebGL2RenderingContext): ImageGpu {
     const view = gl.getUniformLocation(program, 'u_view');
     const opacity = gl.getUniformLocation(program, 'u_opacity');
     const tint = gl.getUniformLocation(program, 'u_tint');
+    const rgbRow0 = gl.getUniformLocation(program, 'u_rgb_row0');
+    const rgbRow1 = gl.getUniformLocation(program, 'u_rgb_row1');
+    const rgbRow2 = gl.getUniformLocation(program, 'u_rgb_row2');
     const sampler = gl.getUniformLocation(program, 'u_image');
     const uvClamp = gl.getUniformLocation(program, 'u_uvClamp');
     const clips = createClipGpu(gl, program);
     const polygonMask = createPolygonMaskGpu(gl, program);
-    if (!positionBuffer || !uvBuffer || !vao || !size || !view || !opacity || !tint || !sampler || !uvClamp) {
+    if (!positionBuffer || !uvBuffer || !vao || !size || !view || !opacity || !tint ||
+        !rgbRow0 || !rgbRow1 || !rgbRow2 || !sampler || !uvClamp) {
       throw new Canvas2DError('WEBGL_UNAVAILABLE', 'cannot create image GPU state');
     }
     gl.bindVertexArray(vao);
@@ -91,7 +102,8 @@ export function createImageGpu(gl: WebGL2RenderingContext): ImageGpu {
     gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer); gl.enableVertexAttribArray(1);
     gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
     gl.bindVertexArray(null); gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    return { program, positionBuffer, uvBuffer, vao, size, view, opacity, tint, sampler, uvClamp,
+    return { program, positionBuffer, uvBuffer, vao, size, view, opacity, tint, rgbRow0, rgbRow1, rgbRow2,
+      sampler, uvClamp,
       clips, polygonMask };
   } catch (error) {
     if (vao) gl.deleteVertexArray(vao);
@@ -137,11 +149,41 @@ export function sourceRect(node: ImageNode, asset: ImageAsset): SourceRect {
   return node.sourceRect ?? { x: 0, y: 0, width: asset.width, height: asset.height };
 }
 
+function imageRGBRows(node: ImageNode | ImageNodeV27): Float32Array {
+  const field = Object.getOwnPropertyDescriptor(node, 'rgbMatrix');
+  if (!field) return new Float32Array([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0]);
+  if (!field.enumerable || !('value' in field)) {
+    throw new Canvas2DError('INVALID_SCENE', 'image RGB matrix must be an own data field');
+  }
+  const matrix: unknown = field.value;
+  if (!Array.isArray(matrix) || Object.getPrototypeOf(matrix) !== Array.prototype || matrix.length !== 12) {
+    throw new Canvas2DError('INVALID_SCENE', 'image RGB matrix needs twelve ordinary values');
+  }
+  const keys = Reflect.ownKeys(matrix);
+  if (keys.length !== 13 || keys.some(key => key !== 'length' &&
+      (typeof key !== 'string' || !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= 12))) {
+    throw new Canvas2DError('INVALID_SCENE', 'image RGB matrix must be dense without extra fields');
+  }
+  const rows = new Float32Array(12);
+  for (let index = 0; index < 12; index++) {
+    const element = Object.getOwnPropertyDescriptor(matrix, String(index));
+    const bound = index % 4 === 3 ? 1 : 4;
+    if (!element?.enumerable || !('value' in element) || typeof element.value !== 'number' ||
+        !Number.isFinite(element.value) || Object.is(element.value, -0) || Math.abs(element.value) > bound) {
+      throw new Canvas2DError('INVALID_SCENE', 'image RGB matrix values exceed the finite row range');
+    }
+    rows[index] = element.value;
+  }
+  return rows;
+}
+
 export function renderImage(gl: WebGL2RenderingContext, gpu: ImageGpu,
-  vertices: Float32Array, node: ImageNode, asset: ImageAsset, opacity: number,
+  vertices: Float32Array, node: ImageNode | ImageNodeV27, asset: ImageAsset, opacity: number,
   size: Size, view: View, clampRect?: SourceRect,
   transformClips: readonly TransformClip[] = [], polygonContours: readonly Float32Array[] = []): void {
   if (!asset.texture) throw new Canvas2DError('CONTEXT_LOST', 'image texture is unavailable');
+  // Validate and snapshot the entire row payload before any draw uniform changes.
+  const rgbRows = imageRGBRows(node);
   const rect = sourceRect(node, asset);
   const u0 = rect.x / asset.width, u1 = (rect.x + rect.width) / asset.width;
   const v0 = rect.y / asset.height, v1 = (rect.y + rect.height) / asset.height;
@@ -154,6 +196,9 @@ export function renderImage(gl: WebGL2RenderingContext, gpu: ImageGpu,
   gl.uniform1f(gpu.opacity, opacity); gl.uniform1i(gpu.sampler, 0);
   const tint = 'tint' in node ? node.tint as [number, number, number] : [1, 1, 1];
   gl.uniform3f(gpu.tint, tint[0], tint[1], tint[2]);
+  gl.uniform4fv(gpu.rgbRow0, rgbRows.subarray(0, 4));
+  gl.uniform4fv(gpu.rgbRow1, rgbRows.subarray(4, 8));
+  gl.uniform4fv(gpu.rgbRow2, rgbRows.subarray(8, 12));
   const clamp = clampRect ?? rect;
   gl.uniform4f(gpu.uvClamp, (clamp.x + 0.5) / asset.width, (clamp.y + 0.5) / asset.height,
     (clamp.x + clamp.width - 0.5) / asset.width, (clamp.y + clamp.height - 0.5) / asset.height);

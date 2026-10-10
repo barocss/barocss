@@ -1,0 +1,218 @@
+{
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+  "capacity": 4096,
+  "linked": [
+    {
+      "linked": true,
+      "uniforms": [
+        {
+          "name": "u_size",
+          "size": 1,
+          "type": 35664
+        },
+        {
+          "name": "u_view",
+          "size": 1,
+          "type": 35665
+        },
+        {
+          "name": "u_clip_count",
+          "size": 1,
+          "type": 5124
+        },
+        {
+          "name": "u_polygon_mask_count0",
+          "size": 1,
+          "type": 5124
+        },
+        {
+          "name": "u_polygon_mask_count1",
+          "size": 1,
+          "type": 5124
+        },
+        {
+          "name": "u_linear_enabled",
+          "size": 1,
+          "type": 35670
+        },
+        {
+          "name": "u_radial_enabled",
+          "size": 1,
+          "type": 35670
+        },
+        {
+          "name": "u_clip_inverse0[0]",
+          "size": 16,
+          "type": 35665
+        },
+        {
+          "name": "u_clip_inverse1[0]",
+          "size": 16,
+          "type": 35665
+        },
+        {
+          "name": "u_clip_size[0]",
+          "size": 16,
+          "type": 35664
+        },
+        {
+          "name": "u_polygon_mask_points[0]",
+          "size": 64,
+          "type": 35664
+        },
+        {
+          "name": "u_color",
+          "size": 1,
+          "type": 35666
+        },
+        {
+          "name": "u_inverse0",
+          "size": 1,
+          "type": 35665
+        },
+        {
+          "name": "u_inverse1",
+          "size": 1,
+          "type": 35665
+        },
+        {
+          "name": "u_linear_from",
+          "size": 1,
+          "type": 35664
+        },
+        {
+          "name": "u_linear_direction",
+          "size": 1,
+          "type": 35664
+        },
+        {
+          "name": "u_radial_center",
+          "size": 1,
+          "type": 35664
+        },
+        {
+          "name": "u_radial_radius",
+          "size": 1,
+          "type": 5126
+        },
+        {
+          "name": "u_start_color",
+          "size": 1,
+          "type": 35666
+        },
+        {
+          "name": "u_end_color",
+          "size": 1,
+          "type": 35666
+        }
+      ]
+    },
+    {
+      "linked": true,
+      "uniforms": [
+        {
+          "name": "u_size",
+          "size": 1,
+          "type": 35664
+        },
+        {
+          "name": "u_view",
+          "size": 1,
+          "type": 35665
+        },
+        {
+          "name": "u_clip_count",
+          "size": 1,
+          "type": 5124
+        },
+        {
+          "name": "u_polygon_mask_count0",
+          "size": 1,
+          "type": 5124
+        },
+        {
+          "name": "u_polygon_mask_count1",
+          "size": 1,
+          "type": 5124
+        },
+        {
+          "name": "u_clip_inverse0[0]",
+          "size": 16,
+          "type": 35665
+        },
+        {
+          "name": "u_clip_inverse1[0]",
+          "size": 16,
+          "type": 35665
+        },
+        {
+          "name": "u_clip_size[0]",
+          "size": 16,
+          "type": 35664
+        },
+        {
+          "name": "u_polygon_mask_points[0]",
+          "size": 64,
+          "type": 35664
+        },
+        {
+          "name": "u_uvClamp",
+          "size": 1,
+          "type": 35666
+        },
+        {
+          "name": "u_opacity",
+          "size": 1,
+          "type": 5126
+        },
+        {
+          "name": "u_tint",
+          "size": 1,
+          "type": 35665
+        },
+        {
+          "name": "u_rgb_row0",
+          "size": 1,
+          "type": 35666
+        },
+        {
+          "name": "u_rgb_row1",
+          "size": 1,
+          "type": 35666
+        },
+        {
+          "name": "u_rgb_row2",
+          "size": 1,
+          "type": 35666
+        },
+        {
+          "name": "u_image",
+          "size": 1,
+          "type": 35678
+        }
+      ]
+    }
+  ],
+  "vectors": [
+    126,
+    122
+  ],
+  "created": {
+    "shader": 4,
+    "program": 2,
+    "buffer": 3,
+    "vertexArray": 2
+  },
+  "deleted": {
+    "shader": 4,
+    "program": 2,
+    "buffer": 3,
+    "vertexArray": 2
+  },
+  "glError": 0,
+  "injectedReported127": {
+    "code": "UNSUPPORTED_FEATURE",
+    "shaders": 0,
+    "programCount": 0
+  }
+}
