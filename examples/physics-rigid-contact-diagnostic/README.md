@@ -43,3 +43,38 @@ reopened pair, and validates all counts/order/copies/endpoint and graph parity.
 Diagnostic validity never changes the physical model's NO-GO. No refinement,
 cost, browser, Viewer, public cap extension or publication follows from this
 six-step diagnostic.
+
+
+## Actual phase result
+
+The independent analyzer passes all63accepted snapshots and1,134trace frames;
+its13synthetic controls and the original65geometry controls pass. Counts/order,
+all36pairs/frame, Decimal80/120 precision, pair continuity, accepted endpoints
+and unchanged graph traces pass. This validates the diagnostic, not the model.
+
+At step6/pass7, b0/b1 has a four-point manifold in every scene. Its correction
+removes its own geometric overlap (YAW leaves only2.59e-17m, within the1e-10m
+classification band). Then b0/floor correction reopens b0/b1; b1/b2 correction
+increases that existing residual to the original failing final value:
+
+| Scene | Before b0/b1 correction | After own correction | After floor correction | After b1/b2 correction |
+| --- | --- | --- | --- | --- |
+| ALIGNED | 2.202602784mm | 0mm | 1.101301392mm | 2.110962872mm |
+| OFFSET | 2.336689209mm | 0mm | 1.168344604mm | 2.240780274mm |
+| YAW | 2.342667207mm | within1e-10m | 1.171333603mm | 2.246556736mm |
+
+In the36recorded pair decisions at this final pass, missed detection and
+single-point fallback counts are zero in each scene. That is a bounded
+observation, not complete manifold/detector validation. Eight events reopen neighboring
+pairs and six events increase existing residuals in each recorded scene/pass.
+Original outer passes reduce the worst overlap during step6 but still finish
+above2mm. Later pair corrections causally reopen an already solved contact in
+this exact trace. General schedule convergence, velocity settling, manifold
+adequacy and ten-second physical quality remain unqualified.
+
+The next question is one bounded additional global position relaxation stage
+after the unchanged response, with its own frozen input/quality/cost contract.
+No such physical-model change was implemented by this diagnostic.
+
+Durable actual logs, raw fields, full copied reports, independent analysis,
+control receipts and hashes are in evidence/native-866f7edf/.

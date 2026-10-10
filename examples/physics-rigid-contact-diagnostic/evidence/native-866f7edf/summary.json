@@ -1,0 +1,189 @@
+{
+  "base": "d2ad0f050c302e1d8082aedc48474064b625353b",
+  "measuredHead": "866f7edf2b4038521f3f8a8fe80937c99f6b8f05",
+  "node": "v22.22.0",
+  "audits": [
+    {
+      "graph": "source",
+      "sourceCount": 20,
+      "distCount": 0,
+      "privateCandidateIsSource": true,
+      "inputs": [
+        "packages/barocss-physics/src/limits.ts",
+        "packages/barocss-physics/src/types.ts",
+        "packages/barocss-physics/src/validation.ts",
+        "packages/barocss-physics/src/math.ts",
+        "packages/barocss-physics/src/dynamic-anchor-pair.ts",
+        "packages/barocss-physics/src/dynamic-fixed-joint.ts",
+        "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+        "packages/barocss-physics/src/joints.ts",
+        "packages/barocss-physics/src/joint-motor.ts",
+        "packages/barocss-physics/src/capsule-contact.ts",
+        "packages/barocss-physics/src/collision.ts",
+        "packages/barocss-physics/src/contact-manifold.ts",
+        "packages/barocss-physics/src/persistent-box-contact.ts",
+        "packages/barocss-physics/src/ccd-slab.ts",
+        "packages/barocss-physics/src/ccd-box.ts",
+        "packages/barocss-physics/src/ccd.ts",
+        "packages/barocss-physics/src/ccd-pair.ts",
+        "packages/barocss-physics/src/broadphase.ts",
+        "packages/barocss-physics/src/scene-profile.ts",
+        "packages/barocss-physics/src/sleep.ts",
+        "examples/physics-rigid-contact-diagnostic/instrumented-world.ts",
+        "examples/physics-rigid-contact-diagnostic/trace.ts",
+        "examples/physics-rigid-contact-diagnostic/entry.mjs"
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "sourceCount": 20,
+      "distCount": 0,
+      "privateCandidateIsSource": true,
+      "inputs": [
+        "packages/barocss-physics/src/limits.ts",
+        "packages/barocss-physics/src/types.ts",
+        "packages/barocss-physics/src/validation.ts",
+        "packages/barocss-physics/src/math.ts",
+        "packages/barocss-physics/src/dynamic-anchor-pair.ts",
+        "packages/barocss-physics/src/dynamic-fixed-joint.ts",
+        "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+        "packages/barocss-physics/src/joints.ts",
+        "packages/barocss-physics/src/joint-motor.ts",
+        "packages/barocss-physics/src/capsule-contact.ts",
+        "packages/barocss-physics/src/collision.ts",
+        "packages/barocss-physics/src/contact-manifold.ts",
+        "packages/barocss-physics/src/persistent-box-contact.ts",
+        "packages/barocss-physics/src/ccd-slab.ts",
+        "packages/barocss-physics/src/ccd-box.ts",
+        "packages/barocss-physics/src/ccd.ts",
+        "packages/barocss-physics/src/ccd-pair.ts",
+        "packages/barocss-physics/src/broadphase.ts",
+        "packages/barocss-physics/src/scene-profile.ts",
+        "packages/barocss-physics/src/sleep.ts",
+        "examples/physics-rigid-contact-diagnostic/instrumented-world.ts",
+        "examples/physics-rigid-contact-diagnostic/trace.ts",
+        "examples/physics-rigid-contact-diagnostic/entry.mjs"
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "sourceCount": 0,
+      "distCount": 20,
+      "privateCandidateIsSource": true,
+      "inputs": [
+        "packages/barocss-physics/dist/limits.js",
+        "packages/barocss-physics/dist/types.js",
+        "packages/barocss-physics/dist/validation.js",
+        "packages/barocss-physics/dist/math.js",
+        "packages/barocss-physics/dist/dynamic-anchor-pair.js",
+        "packages/barocss-physics/dist/dynamic-fixed-joint.js",
+        "packages/barocss-physics/dist/dynamic-hinge-joint.js",
+        "packages/barocss-physics/dist/joints.js",
+        "packages/barocss-physics/dist/joint-motor.js",
+        "packages/barocss-physics/dist/capsule-contact.js",
+        "packages/barocss-physics/dist/collision.js",
+        "packages/barocss-physics/dist/contact-manifold.js",
+        "packages/barocss-physics/dist/persistent-box-contact.js",
+        "packages/barocss-physics/dist/ccd-slab.js",
+        "packages/barocss-physics/dist/ccd-box.js",
+        "packages/barocss-physics/dist/ccd.js",
+        "packages/barocss-physics/dist/ccd-pair.js",
+        "packages/barocss-physics/dist/broadphase.js",
+        "packages/barocss-physics/dist/scene-profile.js",
+        "packages/barocss-physics/dist/sleep.js",
+        "examples/physics-rigid-contact-diagnostic/instrumented-world.ts",
+        "examples/physics-rigid-contact-diagnostic/trace.ts",
+        "examples/physics-rigid-contact-diagnostic/entry.mjs"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "acceptedSnapshots": 7,
+      "traceFrames": 126,
+      "rawSha256": "02800999321708e9c679f119d61a6a3865c191dfcb67f0e7c94b4f80f3041320",
+      "traceRawSha256": "25b568885e75ecb47bfd06f89acc4f5dfcb0c7c35540bbd6daa9265151dc7504",
+      "originalParity": true
+    },
+    {
+      "graph": "source",
+      "scene": "OFFSET",
+      "acceptedSnapshots": 7,
+      "traceFrames": 126,
+      "rawSha256": "369808568723e855add8dd251ba5fe43297b0e83ca0b5dc9efb30f80162654b2",
+      "traceRawSha256": "dd30f51f3bdf8106aebf64e688f5c76d757a3e3a44bfac35d1cbe5bb3f994236",
+      "originalParity": true
+    },
+    {
+      "graph": "source",
+      "scene": "YAW",
+      "acceptedSnapshots": 7,
+      "traceFrames": 126,
+      "rawSha256": "7926aa66c506cc77787081cf643c54359ef9e2a06a48769150fe94625cc5e010",
+      "traceRawSha256": "d1d287b93cc94266465ab285d8b39af8e5ed9c63feb6d74ffad3b3e31de7031a",
+      "originalParity": true
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "ALIGNED",
+      "acceptedSnapshots": 7,
+      "traceFrames": 126,
+      "rawSha256": "02800999321708e9c679f119d61a6a3865c191dfcb67f0e7c94b4f80f3041320",
+      "traceRawSha256": "25b568885e75ecb47bfd06f89acc4f5dfcb0c7c35540bbd6daa9265151dc7504",
+      "originalParity": true
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "OFFSET",
+      "acceptedSnapshots": 7,
+      "traceFrames": 126,
+      "rawSha256": "369808568723e855add8dd251ba5fe43297b0e83ca0b5dc9efb30f80162654b2",
+      "traceRawSha256": "dd30f51f3bdf8106aebf64e688f5c76d757a3e3a44bfac35d1cbe5bb3f994236",
+      "originalParity": true
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "YAW",
+      "acceptedSnapshots": 7,
+      "traceFrames": 126,
+      "rawSha256": "7926aa66c506cc77787081cf643c54359ef9e2a06a48769150fe94625cc5e010",
+      "traceRawSha256": "d1d287b93cc94266465ab285d8b39af8e5ed9c63feb6d74ffad3b3e31de7031a",
+      "originalParity": true
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "ALIGNED",
+      "acceptedSnapshots": 7,
+      "traceFrames": 126,
+      "rawSha256": "02800999321708e9c679f119d61a6a3865c191dfcb67f0e7c94b4f80f3041320",
+      "traceRawSha256": "25b568885e75ecb47bfd06f89acc4f5dfcb0c7c35540bbd6daa9265151dc7504",
+      "originalParity": true
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "OFFSET",
+      "acceptedSnapshots": 7,
+      "traceFrames": 126,
+      "rawSha256": "369808568723e855add8dd251ba5fe43297b0e83ca0b5dc9efb30f80162654b2",
+      "traceRawSha256": "dd30f51f3bdf8106aebf64e688f5c76d757a3e3a44bfac35d1cbe5bb3f994236",
+      "originalParity": true
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "YAW",
+      "acceptedSnapshots": 7,
+      "traceFrames": 126,
+      "rawSha256": "7926aa66c506cc77787081cf643c54359ef9e2a06a48769150fe94625cc5e010",
+      "traceRawSha256": "d1d287b93cc94266465ab285d8b39af8e5ed9c63feb6d74ffad3b3e31de7031a",
+      "originalParity": true
+    }
+  ],
+  "acceptedRawParity": true,
+  "phaseGraphParity": true,
+  "physicalModelGO": false,
+  "costMeasured": false,
+  "browserExecuted": false,
+  "observerStderr": ""
+}
