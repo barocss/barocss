@@ -1,0 +1,46 @@
+{
+  "graph": "source-repeat",
+  "originalSourceCount": 6,
+  "originalDistCount": 0,
+  "privateAdapterSource": true,
+  "worldCreated": false,
+  "worldStepped": false,
+  "inputs": [
+    {
+      "path": "packages/barocss-physics/src/types.ts",
+      "sha256": "e8befc80c94e1b109f5024581f056639acff2c19ed445f2875e20eaf2d3bf240"
+    },
+    {
+      "path": "packages/barocss-physics/src/limits.ts",
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    {
+      "path": "packages/barocss-physics/src/validation.ts",
+      "sha256": "5b0a3016c32ef19076984e6b7f529253af581c29eb9dd1adb19cc8dba185479f"
+    },
+    {
+      "path": "packages/barocss-physics/src/math.ts",
+      "sha256": "6605633830fa7fdf39f9531fbf988b52e306a6835655a318c961eb44c6b05ff8"
+    },
+    {
+      "path": "packages/barocss-physics/src/capsule-contact.ts",
+      "sha256": "a9df21430e4e2a37b1055143a5954a6a3f997b758c46432daebc11998630f3cd"
+    },
+    {
+      "path": "packages/barocss-physics/src/collision.ts",
+      "sha256": "2ba769697e5f9c5174f30a7a9ae8dceb61c1ba03c6fb507c24b6b6f7d4240388"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/sat-feature.ts",
+      "sha256": "5c84e0327d621a0bdcf1ca85d73244147fd2b05ae29fa6dfc25ded7d3af460af"
+    },
+    {
+      "path": "examples/physics-rigid-feature-penetration-diagnostic/entry.ts",
+      "sha256": "bb1ac67ba458e5ab2846047686b8c25bd21c1365e8aab7f74876f8ca03c9c109"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-position-reference/entry.ts",
+      "sha256": "cd0a3aa9b0b77764faaf90be5d13a77dd88ad6229333c9e47240124b8c68d84e"
+    }
+  ]
+}

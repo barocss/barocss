@@ -1,0 +1,33 @@
+{
+  "base": "86d10516858410906482397450a3b265c1a8b096",
+  "worldArchiveMeasuredHead": "665aa5aebdb715c4ca54338fae0fa45c67b70e73",
+  "worldArchiveManifestSha256": "c2f5ae3946aa06e41584f3ed2e89d39f5e5a65bc59a334b64b3bab61780268f6",
+  "diagnosticMeasuredHead": "85e23b70767f1fb7beb1e800877414f712081b5c",
+  "diagnosticManifestSha256": "008417caebec6c3e698dfb57a03295ab2f131c2337f875ab8b74d606aa5326ef",
+  "scenes": {
+    "ALIGNED": 81,
+    "OFFSET": 54,
+    "YAW": 65
+  },
+  "graphs": [
+    "source",
+    "source-repeat",
+    "compiled-dependencies"
+  ],
+  "frames": 9,
+  "pairsPerFrame": 36,
+  "bodyLimit": 9,
+  "rowLimit": 8,
+  "maskLimit": 256,
+  "pivotRelativeTolerance": 1e-14,
+  "candidateFeasibilityTolerance": 1e-12,
+  "objectiveTieToleranceKgM2": 1e-24,
+  "displacementToleranceM": 1e-12,
+  "objectiveToleranceKgM2": 1e-12,
+  "geometryToleranceM": 1e-09,
+  "geometryPrecisionToleranceM": 1e-25,
+  "rawNormalizedDepthToleranceM": 1e-12,
+  "worldStepped": false,
+  "historicalPhaseReplay": false,
+  "physicalModelGO": false
+}
