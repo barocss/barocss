@@ -229,3 +229,37 @@ Hook: `curvaturePin`, `queryQualifiedFaceCurveCurvature`, `inspectCurvature(pin?
 CAD `evaluateCurveCurvature` and `evaluateCurveD2` support independent controls.
 No derivative substitution, global accuracy, manufacturing or release claim is
 made. The earlier #1080 transition anomaly remains a separate pending check.
+
+
+## Original Surface local curvature (#1154)
+
+Choose a current source and original **u**, **v**, then select **Inspect Surface
+curvature**. The output shows signed mean H and ordered principal curvatures in
+1/mm, and Gaussian K in 1/mm². Sign follows the original native U/V normal;
+Gaussian curvature is independent of orientation. A regular plane has zero
+curvature. Failed derivatives or a singular metric are errors, not plane values.
+
+`surfaceCurvaturePin(scene,sourceId,u=.5,v=.5)` captures current qualification.
+`queryQualifiedFaceSurfaceCurvature(scene,pin)` validates seven own data fields,
+recompiles the complete original Source0 Model and checks all original geometry
+bits. It calls public native curvature once. The copied result retains actual
+D2 point/du/dv/duu/duv/dvv, native unit normal, normalized metric/second form,
+mean, Gaussian, sorted principals and discriminant roundoff/clamp metadata.
+Literal defaults .5 are original parameters, not normalized domain fractions.
+Native domain, continuity, regularity and arithmetic errors keep their causes.
+
+The label uses that original parameter point. CSS projection is approximate
+and does not test occlusion. View, grid, color, order and CSS changes retain the
+native result. Source/reference changes clear it; failed queries retain prior
+output. Retained CPU authority remains queryable after context loss or unavailable
+presentation, while projection refuses and the label hides. Clear, mode change
+and Dispose invalidate authority. Other five inspection panels are independent.
+
+Hook: `surfaceCurvaturePin`, `queryQualifiedFaceSurfaceCurvature`,
+`inspectSurfaceCurvature(pin?)`, `updateSurfaceCurvatureLabel`,
+`surfaceCurvatureSnapshot` and a copied `surfaceCurvatureReport`. Public CAD
+`evaluateSurfaceCurvature` and `evaluateSurfaceD2` support independent controls.
+These are local native values. They do not certify whole-Surface regularity,
+Face/Solid orientation, manufacturing, principal directions or global accuracy.
+No principal radius or heatmap is inferred. The earlier #1080 transition anomaly
+remains a separate pending Integration check.

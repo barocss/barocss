@@ -15,7 +15,7 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <span id="measurement-point-1" class="measurement-label" hidden></span><span id="measurement-point-2" class="measurement-label" hidden></span>
 <span id="measurement-distance" class="measurement-label" hidden></span><span id="surface-area-label" class="measurement-label" hidden></span>
 <span id="curve-length-label" class="measurement-label" hidden></span><span id="native-angle-label" class="measurement-label" hidden></span>
-<span id="curve-curvature-label" class="measurement-label" hidden></span></div></div>
+<span id="curve-curvature-label" class="measurement-label" hidden></span><span id="surface-curvature-label" class="measurement-label" hidden></span></div></div>
 <label>Assets <select id="asset-count" disabled><option>6</option><option>2</option></select></label>
 <label>Grid U <select id="count-u" disabled><option>17</option><option>9</option><option>2</option></select></label>
 <label>Grid V <select id="count-v" disabled><option>17</option><option>9</option><option>2</option></select></label>
@@ -26,6 +26,18 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <button id="resize" disabled>Resize view</button><button id="clear" disabled>Clear viewer</button><button id="run-proof" disabled>Run proof</button>
 <button id="lose-context" disabled>Lose context</button><button id="dispose" disabled>Dispose viewer</button>
 <pre id="inspection" aria-label="Read-only original source and Face inspection">Inspect an admitted source from its row.</pre>
+<section aria-label="Original Surface local curvature inspection">
+<h2>Inspect original Surface curvature</h2>
+<label>Source <select id="surface-curvature-source" aria-label="Surface curvature source" disabled></select></label>
+<label>Native u <input id="surface-curvature-u" aria-label="Surface curvature u" type="text" inputmode="decimal" value="0.5" disabled></label>
+<label>Native v <input id="surface-curvature-v" aria-label="Surface curvature v" type="text" inputmode="decimal" value="0.5" disabled></label>
+<button id="inspect-surface-curvature" disabled>Inspect Surface curvature</button><p id="surface-curvature-output" role="status" aria-live="polite"></p>
+<details id="surface-curvature-help"><summary>About this signed Surface curvature</summary>
+<p>This local result uses original native Surface second derivatives at literal u/v. Signed mean H and ordered principal k1/k2 use 1/mm;
+Gaussian K uses 1/mm². Signs follow the original native U/V normal, not Face or Solid orientation. Original discriminant roundoff metadata remains in the complete report.
+A regular plane's zero values are distinct from derivative or metric refusal. No principal radii, directions, global accuracy or manufacturing certificate are implied.
+The point label uses approximate CSS camera mapping without an occlusion test.</p></details>
+</section>
 <section aria-label="Original Curve local curvature inspection">
 <h2>Inspect original Curve local radius</h2>
 <label>Source <select id="curvature-source" aria-label="Curvature source" disabled></select></label>
