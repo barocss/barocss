@@ -1297,3 +1297,14 @@ node examples/gpu-scene/cloth-layer-flow.mjs --trial <825-selected-trial.json> -
 
 Native GPU implementation, local Integration, Physics world, Viewer bridge/host,
 numeric collision/performance certification and publication are distinct stages.
+
+### Bounded scalar material absolute value
+
+`abs(float)` accepts one expression bounded within `[-1000,1000]`. For example,
+`mix(#123,#ABC,abs(phase))` accepts a uniform phase declared in `[-1,1]`.
+The compiler expands it to existing `clamp(x,0,1000)+clamp(-x,0,1000)` IR.
+It charges both copies of x and all eight generated nodes against the existing
+work and depth limits. No new IR variant or runtime shader function is added.
+Existing bare uniforms and locals named `abs` remain valid. Source text stays
+unchanged; canonical scalar zero follows the existing positive-zero policy.
+This is CPU authoring support; actual renderer and consumer adoption are separate.

@@ -64,7 +64,22 @@ class Parser {
   }
   this.take(')');return this.color('#'+channels.map(value=>value.toString(16).padStart(2,'0')).join('').toUpperCase(),token);
  }
- if(!['sin','cos','mix','clamp'].includes(name))fail('SYNTAX','Unsupported material function',token);this.take('(');const args:Term[]=[];if(this.current().text!==')'){for(;;){args.push(this.expression(0,nesting+1));if(this.current().text!==',')break;this.take(',');}}this.take(')');let type:'float'|'color'='float',range:[number,number];
+ if(!['sin','cos','mix','clamp','abs'].includes(name))fail('SYNTAX','Unsupported material function',token);this.take('(');const args:Term[]=[];if(this.current().text!==')'){for(;;){args.push(this.expression(0,nesting+1));if(this.current().text!==',')break;this.take(',');}}this.take(')');let type:'float'|'color'='float',range:[number,number];
+ if(name==='abs'){
+  if(args.length!==1)fail('TYPE','abs requires one float',token);this.float(args[0],token);
+  const value=args[0],maximum=Math.max(...value.range.map(Math.abs));
+  if(maximum>1000)fail('RANGE','abs argument exceeds±1000',token);
+  // Reuse the existing clamp/unary/addition IR and charge the second value tree.
+  if(this.nodes+value.size>256)fail('BUDGET','Material exceeds256 definition and expanded expression nodes',token);
+  this.nodes+=value.size;
+  const literal=(n:number)=>this.term({kind:'float',type:'float',value:n},'float',[n,n],[],token);
+  const positiveArgs=[value,literal(0),literal(1000)];
+  const positive=this.term({kind:'call',type:'float',name:'clamp',args:positiveArgs.map(a=>a.expression)},'float',[0,1000],positiveArgs,token);
+  const negative=this.term({kind:'unary',type:'float',operator:'-',value:value.expression},'float',[-value.range[1],-value.range[0]],[value],token);
+  const negativeArgs=[negative,literal(0),literal(1000)];
+  const magnitude=this.term({kind:'call',type:'float',name:'clamp',args:negativeArgs.map(a=>a.expression)},'float',[0,1000],negativeArgs,token);
+  return this.term({kind:'binary',type:'float',operator:'+',left:positive.expression,right:magnitude.expression},'float',[0,maximum],[positive,magnitude],token);
+ }
  if(name==='sin'||name==='cos'){if(args.length!==1)fail('TYPE','sin/cos requires one float',token);this.float(args[0],token);if(args[0].range.some(n=>Math.abs(n)>1000))fail('RANGE','sin/cos argument exceeds±1000',token);range=[-1,1];}
  else if(name==='mix'){
  if(args.length!==3||args[0].type!==args[1].type||args[2].type!=='float')fail('TYPE','mix requires color,color,float or float,float,float',token);
