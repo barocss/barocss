@@ -1593,3 +1593,58 @@ No geometry/source edit or renderer draw replacement occurs. Save the full
 original scene and viewport request to reconstruct the classification.
 This CPU service provides no CSS/DPR mapping, Float32 raster agreement,
 occlusion, native CAD hit, exact floating certificate or performance claim.
+
+
+### Caller-time local quaternion rotation clips
+
+`sampleEngineRotationClip(originalScene, originalClip, request)` evaluates one
+caller-owned second using a separately versioned rotation source:
+
+```js
+const sampled = sampleEngineRotationClip(originalScene, {
+  format: 'barocss-gpu-engine-rotation-clip', version: 0,
+  id: 'turn', sceneId: originalScene.id,
+  coordinateSystem: 'right-handed-y-up', positionUnit: 'scene',
+  timeUnit: 'seconds', rotationOrder: 'xyzw',
+  interpolation: 'shortest-path-nlerp',
+  tracks: [{ nodeId: 'parent', keys: [
+    { timeSeconds: 0, rotationXYZW: [0, 0, 0, 1] },
+    { timeSeconds: 2, rotationXYZW: [0, 0, 1, 0] },
+  ] }],
+}, {
+  format: 'barocss-gpu-engine-rotation-clip-request', version: 0,
+  timeSeconds: 1,
+});
+```
+
+The recursively frozen result is `{originalScene, clip, request, scene}`.
+All four are independently owned source records. Only tracked local
+`rotationXYZW` values change in the derived complete scene; original keys,
+geometry, material, camera, hierarchy, translations, scales, visibility and
+IDs retain their values. Save the full original scene, clip and request to
+reconstruct the selected frame. Explicit composition with translation clips
+uses the previous admitted derived scene and preserves both provenance records.
+
+Time is a finite Number in `0..3600` seconds. Each uniquely identified group
+or mesh track has `1..32` keys, with `0..32` tracks and at most 512 keys total.
+Key times increase with separation of at least `1e-6` seconds. XYZW components
+are finite dimensionless Numbers in `[-1,1]`, with unit norm within `1e-9`.
+At held endpoints and exact internal keys, original coefficients and signed
+zeros are copied before arithmetic. Inside a segment, temporary endpoints
+are normalized; a negative dot negates only the temporary right endpoint,
+and a zero dot retains its authored sign. Linear component interpolation is
+then normalized. This explicit shortest-path nlerp has variable angular
+speed; exact keys can change quaternion signs without changing orientation.
+
+Request, clip metadata, key caps and coefficients, complete original scene,
+all references, interpolation and complete derived scene are checked in that
+order. `EngineRotationClipError` codes are `INPUT`, `VERSION`, `BUDGET`,
+`REFERENCE`, `RANGE`, `SCENE` and `FRAME`. The last two retain the actual
+`EngineSceneError` cause. Local valid keys can still fail world bounds or
+representation at the selected time. Only that frame is validated. Two
+existing bounded scene preparations retain their source/work limits; no
+partial result or mutable execution plan is exposed on refusal.
+
+This CPU source service owns no clock, player, loop, blending, events,
+renderer, native CAD pose, simulation or browser. Slerp, multiple-turn spin,
+scale/skin/morph channels and full interval validity are unsupported.

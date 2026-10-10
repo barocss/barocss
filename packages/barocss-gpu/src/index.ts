@@ -83,3 +83,6 @@ export type {EngineSceneFrustumRequestV0,EngineSceneFrustumEntryV0,PreparedEngin
 
 export {prepareEngineTextureBindings,EngineTextureBindingsError,EngineTextureBindingsDiagnosticCode} from './engine-texture-bindings.js';
 export type {EngineTextureV0,EngineTextureBindingV0,EngineTextureBindingsV0,PreparedEngineTexture,PreparedEngineTextureBindings} from './engine-texture-bindings.js';
+
+export {sampleEngineRotationClip,EngineRotationClipError,EngineRotationClipDiagnosticCode} from './engine-rotation-clip.js';
+export type {EngineRotationClipV0,EngineRotationTrackV0,EngineRotationKeyV0,EngineRotationClipRequestV0,SampledEngineRotationClip} from './engine-rotation-clip.js';
