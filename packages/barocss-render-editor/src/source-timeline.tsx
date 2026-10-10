@@ -21,7 +21,7 @@ export function SourceTimeline({controller,disabled=false,onError,onHelp,onPlayb
   const help=useRef<HTMLButtonElement>(null),frame=useRef<number|null>(null),playing=useRef(false),presenting=useRef(false),baseline=useRef<ReturnType<typeof controller.session.getSnapshot>|null>(null),expected=useRef(view.animationPreview);
   const callbacks=useRef({disabled,onError,onPlaybackChange});callbacks.current={disabled,onError,onPlaybackChange};
   const changed=stored.accepted!==snapshot.accepted||stored.output!==fingerprint(snapshot.draftAnimation)||(stored.invalid&&!snapshot.animationInputInvalid);
-  const current=changed?read(snapshot):stored;if(changed){store.current=current;setStored(current);}
+  const current=changed?read(snapshot):stored;if(changed){store.current=current;setStored(current);setError(null);}
   const publish=(value:Store)=>{store.current=value;setStored(value);};
   const stop=()=>{if(frame.current!==null){cancelAnimationFrame(frame.current);frame.current=null;}playing.current=false;setRunning(false);callbacks.current.onPlaybackChange?.(false);};
   const report=(cause:unknown)=>{const result=normalizeRenderEditorError(cause);if(result!==cause)Object.defineProperty(result,'cause',{value:cause,configurable:true});setError(result);callbacks.current.onError?.(result);};

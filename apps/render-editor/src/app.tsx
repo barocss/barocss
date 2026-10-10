@@ -369,7 +369,7 @@ export function App() {
       <Dialog open={pending !== null} onOpenChange={(open) => { if (!open) setPending(null); }}>
         <DialogContent showCloseButton={false} data-testid="draft-dialog"><DialogHeader>
           <DialogTitle>Resolve draft changes</DialogTitle>
-          <DialogDescription>Apply or discard your source and camera drafts before you {pending?.label}. Apply must succeed in the viewport to continue. Cancel keeps the draft.</DialogDescription>
+          <DialogDescription>Apply or discard your source, camera, and animation key drafts before you {pending?.label}. Apply must succeed in the viewport to continue. Cancel keeps the draft.</DialogDescription>
         </DialogHeader>{error ? <div role="alert" className="app-dialog-error" data-testid="app-error"><p>{error.copy}</p><AppErrorDetails key={error.error.message} notice={error} /></div> : null}<DialogFooter>
           <Button variant="ghost" onClick={() => setPending(null)} data-testid="draft-cancel">Cancel</Button>
           <Button variant="secondary" onClick={discardPending} data-testid="draft-discard">Discard</Button>
