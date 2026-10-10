@@ -1,0 +1,10 @@
+
+> @barocss/physics@0.0.0-experimental build:library /Users/user/.codex/worktrees/physics-demo-959/barocss/packages/barocss-physics
+> tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --external:./types.js --outfile=dist/index.js
+
+src/capsule-query/admission.ts(55,1): error TS1005: ',' expected.
+src/capsule-query/admission.ts(61,1): error TS1005: ',' expected.
+src/capsule-query/admission.ts(90,1): error TS1005: '}' expected.
+/Users/user/.codex/worktrees/physics-demo-959/barocss/packages/barocss-physics:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @barocss/physics@0.0.0-experimental build:library: `tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --external:./types.js --outfile=dist/index.js`
+Exit status 2

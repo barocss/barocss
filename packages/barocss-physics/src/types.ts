@@ -3,7 +3,7 @@
 export type Vec3 = [number, number, number];
 /** Local-to-world quaternion in [x, y, z, w] order. */
 export type Quat = [number, number, number, number];
-export type PhysicsErrorCode = 'INVALID_CONFIG' | 'INVALID_STEP' | 'INVALID_COMMAND' | 'INVALID_QUERY' | 'INVALID_SNAPSHOT' | 'STALE_SOURCE' | 'STALE_SNAPSHOT' | 'WORLD_LIMIT' | 'NUMERIC_LIMIT' | 'DISPOSED';
+export type PhysicsErrorCode = 'INVALID_CONFIG' | 'INVALID_STEP' | 'INVALID_COMMAND' | 'INVALID_QUERY' | 'INVALID_SNAPSHOT' | 'STALE_SOURCE' | 'STALE_SNAPSHOT' | 'WORLD_LIMIT' | 'NUMERIC_LIMIT' | 'INITIAL_OVERLAP' | 'ITERATION_LIMIT' | 'DISPOSED';
 
 export class PhysicsError extends Error {
   constructor(readonly code: PhysicsErrorCode, message: string) {

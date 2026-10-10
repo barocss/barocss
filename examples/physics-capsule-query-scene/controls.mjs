@@ -1,0 +1,73 @@
+import { createUprightCapsuleQuery,PhysicsError } from '@barocss/physics';
+import { PhysicsError as ClothError } from '@barocss/physics/cloth';
+import { PhysicsError as FluidError } from '@barocss/physics/fluid';
+import { PhysicsError as CadFluidError } from '@barocss/physics/fluid-cad';
+import { CASES } from './fixture.mjs';
+import { publicScene } from './public-snapshot.mjs';
+import { encodeF64 } from '../physics-capsule-sweep-reference/binary.mjs';
+const ensure=(condition,label)=>{if(!condition)throw new Error(label);};
+const same=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+const clone=value=>structuredClone(value);
+const bits=values=>Array.from(encodeF64(Float64Array.from(values))).join(',');
+const hitBits=hit=>hit?bits([hit.toiFraction,...hit.normalFixtureToCapsule,...hit.pointM,...hit.segmentPointM,hit.iterations]):'';
+const sceneBits=scene=>bits(scene.boxes.flatMap(box=>[...box.centerM,...box.halfExtentsM,...box.orientationXYZW]));
+export function runControls(){
+ const constructors=[PhysicsError,ClothError,FluidError,CadFluidError],errors=[];
+ ensure(constructors.every(c=>c===PhysicsError),'Canonical constructor inside this provider graph');
+ const wall=CASES.find(c=>c.name==='WALL'),input=clone(publicScene(wall.scene)),query=clone(wall.query);
+ const world=createUprightCapsuleQuery(input),other=createUprightCapsuleQuery(clone(input)),accepted=world.getSnapshot(),first=world.sweep(query),originalBits=hitBits(first);
+ ensure(first.bodyId==='wall'&&first.toiFraction>=0&&first.toiFraction<=1,'Real public wall hit');
+ ensure(same(accepted,publicScene(wall.scene))&&accepted.version===1&&accepted.profile==='upright-capsule-box-v1','Exact public snapshot fields');
+ ensure(same(Object.keys(first).sort(),['bodyId','toiFraction','normalFixtureToCapsule','pointM','segmentPointM','iterations'].sort()),'Exact public hit fields');
+ input.boxes[0].centerM[0]=9;first.normalFixtureToCapsule[0]=99;first.pointM[0]=99;first.segmentPointM[0]=99;
+ const exposed=world.getSnapshot();exposed.boxes[0].orientationXYZW[0]=.5;exposed.boxes.length=0;
+ ensure(same(world.getSnapshot(),accepted)&&sceneBits(world.getSnapshot())===sceneBits(accepted),'Deep copied scene retained');
+ ensure(hitBits(world.sweep(query))===originalBits&&hitBits(other.sweep(query))===originalBits,'Caller output/source mutation and independent query');
+ function reject(name,action,code){let error;try{action();}catch(e){error=e;}
+  ensure(error instanceof PhysicsError&&constructors.every(c=>error instanceof c)&&error.constructor===PhysicsError,'Canonical actual error: '+name);
+  ensure(error.code===code&&error.name==='PhysicsError','Expected error '+name);
+  ensure(same(world.getSnapshot(),accepted)&&sceneBits(world.getSnapshot())===sceneBits(accepted)&&hitBits(world.sweep(query))===originalBits,'Rejected caller retains scene and future outputs: '+name);
+  errors.push({name,code:error.code,errorName:error.name,message:error.message,allEntryInstanceof:true});
+ }
+ const invalidScene=(name,mutate)=>{const scene=clone(accepted);mutate(scene);reject(name,()=>createUprightCapsuleQuery(scene),'INVALID_CONFIG');};
+ invalidScene('version',s=>s.version=2);invalidScene('profile',s=>s.profile='unknown');invalidScene('extra-scene',s=>s.extra=1);
+ invalidScene('nan-scene',s=>s.boxes[0].centerM[0]=NaN);invalidScene('centre-bound',s=>s.boxes[0].centerM[0]=10.01);
+ invalidScene('extent-small',s=>s.boxes[0].halfExtentsM[0]=.00001);invalidScene('extent-large',s=>s.boxes[0].halfExtentsM[0]=5.01);
+ invalidScene('quaternion-norm',s=>s.boxes[0].orientationXYZW=[0,0,0,.9]);invalidScene('duplicate',s=>s.boxes.push(clone(s.boxes[0])));
+ invalidScene('capacity33',s=>s.boxes=Array.from({length:33},(_,i)=>({...clone(s.boxes[0]),id:'b'+i})));
+ invalidScene('sparse',s=>s.boxes.length=2);invalidScene('extra-tuple',s=>s.boxes[0].centerM.extra=1);
+ invalidScene('typed-tuple',s=>s.boxes[0].centerM=new Float64Array(s.boxes[0].centerM));
+ invalidScene('symbol-scene',s=>s[Symbol('extra')]=1);invalidScene('null-prototype',s=>Object.setPrototypeOf(s,null));
+ invalidScene('array-subclass',s=>s.boxes=class extends Array{}.of(s.boxes[0]));
+ let getters=0;
+ invalidScene('scene-accessor',s=>Object.defineProperty(s,'revision',{get(){getters++;return 'bad';}}));
+ invalidScene('box-accessor',s=>Object.defineProperty(s.boxes,'0',{get(){getters++;return {};}}));
+ invalidScene('tuple-accessor',s=>Object.defineProperty(s.boxes[0].centerM,'0',{get(){getters++;return 0;}}));
+ const invalidQuery=(name,mutate,code='INVALID_QUERY')=>{const q=clone(query);mutate(q);reject(name,()=>world.sweep(q),code);};
+ invalidQuery('stale',q=>q.revision='stale','STALE_SNAPSHOT');invalidQuery('unknown-exclude',q=>q.excludeId='unknown');
+ invalidQuery('stale-and-unknown',q=>{q.revision='stale';q.excludeId='unknown';},'STALE_SNAPSHOT');
+ invalidQuery('stale-and-nan',q=>{q.revision='stale';q.centerM[0]=NaN;});invalidQuery('stale-and-bad-id',q=>{q.revision='stale';q.excludeId=5;});
+ invalidQuery('query-bound',q=>q.centerM[0]=5.01);invalidQuery('displacement-norm',q=>q.displacementM=[2,2,0]);
+ invalidQuery('extra-query',q=>q.extra=1);invalidQuery('tuple-length',q=>q.centerM=[0,0]);
+ invalidQuery('query-accessor',q=>Object.defineProperty(q,'excludeId',{get(){getters++;return null;}}));
+ reject('reflection-throw',()=>world.sweep(new Proxy(query,{getPrototypeOf(){throw new Error('reflection');}})),'INVALID_QUERY');
+ reject('caller-error-factory',()=>createUprightCapsuleQuery(new Proxy(accepted,{getPrototypeOf(){throw new PhysicsError('DISPOSED','caller trap');}})),'INVALID_CONFIG');
+ reject('caller-error-query',()=>world.sweep(new Proxy(query,{ownKeys(){throw new PhysicsError('INITIAL_OVERLAP','caller trap');}})),'INVALID_QUERY');
+ const revoked=Proxy.revocable(query,{});revoked.revoke();reject('revoked-proxy',()=>world.sweep(revoked.proxy),'INVALID_QUERY');
+ const overlap=CASES.find(c=>c.name==='DISTINCT_32_OVERLAP_LAST'),overlapWorld=createUprightCapsuleQuery(clone(publicScene(overlap.scene))),overlapBefore=overlapWorld.getSnapshot();
+ reject('last-initial-overlap',()=>overlapWorld.sweep(overlap.query),'INITIAL_OVERLAP');
+ ensure(same(overlapWorld.getSnapshot(),overlapBefore),'Last overlap retains all copied32boxes');overlapWorld.dispose();
+ const zeroScene=clone(accepted);zeroScene.boxes[0].centerM[2]=-0;zeroScene.boxes[0].orientationXYZW[0]=-0;
+ const originalQ=[0,0,0,1-5e-13],signed=createUprightCapsuleQuery(zeroScene),nearScene=clone(accepted);nearScene.boxes[0].orientationXYZW=originalQ;
+ const near=createUprightCapsuleQuery(nearScene);ensure(Object.is(signed.getSnapshot().boxes[0].centerM[2],-0)&&Object.is(signed.getSnapshot().boxes[0].orientationXYZW[0],-0),'Original signed zero retained');
+ ensure(bits(near.getSnapshot().boxes[0].orientationXYZW)===bits(originalQ),'Original near-unit quaternion copied, not normalized');signed.dispose();near.dispose();
+ const three=clone(accepted);three.boxes=[['z-first',.5],['m-tied',.5+1.6e-9],['a-too-late',.5+3.2e-9]].map(([id,x])=>({...clone(accepted.boxes[0]),id,centerM:[x,.6,0]}));
+ for(const order of[three.boxes,[...three.boxes].reverse(),[three.boxes[1],three.boxes[0],three.boxes[2]]]){const w=createUprightCapsuleQuery({...three,boxes:order});ensure(w.sweep(query).bodyId==='m-tied','Tie anchored to true global minimum');w.dispose();}
+ const grouped=clone(accepted);grouped.boxes=[{...clone(accepted.boxes[0]),id:'z'},{...clone(accepted.boxes[0]),id:'a'}];
+ const groupedWorld=createUprightCapsuleQuery(grouped);ensure(groupedWorld.sweep({...query,excludeId:'z'}).bodyId==='a','Excluded representative retains eligible ID');groupedWorld.dispose();
+ world.dispose();world.dispose();let disposedCode;try{world.sweep(new Proxy({},{getPrototypeOf(){getters++;throw new Error('should not inspect');}}));}catch(e){ensure(e instanceof PhysicsError,'Disposed root error');disposedCode=e.code;}
+ ensure(disposedCode==='DISPOSED'&&getters===0,'Dispose wins without input/getter inspection');
+ let stateDisposed=false;try{world.getSnapshot();}catch(e){stateDisposed=e instanceof PhysicsError&&e.code==='DISPOSED';}ensure(stateDisposed,'Disposed snapshot refuses');
+ ensure(hitBits(other.sweep(query))===originalBits,'Other query survives disposal');other.dispose();const fresh=createUprightCapsuleQuery(clone(accepted));ensure(hitBits(fresh.sweep(query))===originalBits,'Fresh equivalent object');fresh.dispose();
+ return {passed:true,errors,getters,canonicalWithinProviderGraph:true,copiedSceneAndOutput:true,signedZero:true,originalQuaternion:true,globalMinimumTie:true,representativeExclusion:true,compoundPrecedence:true,disposedBeforeInspection:true,independentObjects:true,numericLimitPublicObserved:false,iterationLimit64PublicObserved:false};
+}

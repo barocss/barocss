@@ -1,0 +1,7 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Public upright capsule query</title>
+<style>body{font:16px system-ui;max-width:980px;margin:30px auto;padding:0 20px}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:5px;border-bottom:1px solid #ddd}</style>
+<h1>Public upright capsule query</h1><p>Actual @barocss/physics public consumer. Fixed upright capsule: radius0.15m, centreline half-length0.35m. A query returns contact data; it does not move a body or render a Viewer scene.</p>
+<p id="mode"></p><button id="run">Run31 fixed cases</button><p id="status">Preparing</p>
+<table><thead><tr><th>Case</th><th>Result</th><th>Original box ID</th><th>Contact fraction</th></tr></thead><tbody id="rows"></tbody></table>
+<script type="module">const mode=new URLSearchParams(location.search).get('mode');if(!['source','compiled'].includes(mode))throw new Error('Select source or compiled');document.getElementById('mode').textContent='Provider graph: '+mode;await import('./'+mode+'.bundle.mjs');document.getElementById('run').onclick=()=>window.runReference();</script>
+</html>
