@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { classesFor } from '@barocss/render';
 import { ServerRuntime } from '@barocss/server';
@@ -9,6 +10,8 @@ const require = createRequire(import.meta.url);
 const { build } = require('esbuild');
 const ts = require('typescript');
 const here = fileURLToPath(new URL('./', import.meta.url));
+// Virtual entries need a stable anchor for esbuild's module labels.
+const dependencyRoot = path.dirname(path.dirname(require.resolve('react/package.json')));
 const sha = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const versions = Object.freeze({
   react: require('react/package.json').version,
@@ -55,6 +58,7 @@ export async function compileUi(source, options) {
   ]);
   const result = await build({
     entryPoints: ['ui-compiler-frame'], bundle: true, write: false,
+    absWorkingDir: dependencyRoot,
     format: 'iife', platform: 'browser', target: 'es2022', jsx: 'automatic', logLevel: 'silent',
     define: { 'process.env.NODE_ENV': '"production"' },
     plugins: [{ name: 'bounded-generated-module', setup(plugin) {
