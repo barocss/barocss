@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Box, ChevronRight, Crosshair, Download, Expand, FolderOpen, Layers3, Maximize, MousePointer2, PanelLeftClose, PanelRightClose, Redo2, Shrink, Spline, Undo2 } from 'lucide-react';
 import { parseCadDocument } from '@barocss/cad';
 import { CadEditorError, createCadEditorSession, type CadEditorExportResult, type CadEditorGeometryAnalysisResult, type CadEditorCurveLength, type CadEditorView } from '@barocss/cad-editor';
@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from './components/ui/button';
 import { Menubar, MenubarCheckboxItem, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from './components/ui/menubar';
 import {useWorkspaceLayout} from './workspace-layout';
+import {WorkspacePanelDivider} from './panel-divider';
 import { downloadAccepted, downloadReviewedExport, readCadEditorFile } from './file-actions';
 import { FeatureApp } from './feature-app';
 import { ReplacementDialog } from './replacement-dialog';
@@ -284,26 +285,33 @@ function DirectApp() {
     snapshot.view.kind==='curve-focus'?curveDisplay?.state.status==='ready'&&curveDisplay.generation===snapshot.generation
       &&curveDisplay.displayGeneration===snapshot.displayGeneration:receipt?.state.status==='ready'
       &&JSON.stringify(receipt.state.document)===JSON.stringify(snapshot.accepted));
+  const modelBusy=busy||layout.resizing;
+  const panelStyle={
+    '--cad-objects-width':layout.objectsWidth===null?undefined:layout.objectsWidth+'px',
+    '--cad-properties-width':layout.propertiesWidth===null?undefined:layout.propertiesWidth+'px',
+  } as CSSProperties;
 
   return <div ref={appRoot} className="cad-app cad-direct-app" data-objects-visible={layout.objectsVisible}
-    data-properties-visible={layout.propertiesVisible} data-canvas-focused={layout.focused}>
+    data-properties-visible={layout.propertiesVisible} data-canvas-focused={layout.focused} data-panel-resizing={layout.resizing}
+    data-object-panel-width={layout.objectsWidth??'auto'} data-property-panel-width={layout.propertiesWidth??'auto'} style={panelStyle}
+    onKeyDownCapture={event=>{if(layout.resizing&&event.key!=='Escape'){event.preventDefault();event.stopPropagation();}}}>
     <header className="app-header">
       <a className="app-brand" href="#/projects"><Box size={20} strokeWidth={1.6} /><span>barocss<span className="brand-sub">CAD</span></span></a>
       <Menubar className="app-menubar">
         <MenubarMenu><MenubarTrigger ref={fileMenu}>File</MenubarTrigger><MenubarContent>
-          <MenubarItem onSelect={newSample} disabled={busy}>New sample<MenubarShortcut>01</MenubarShortcut></MenubarItem>
-          <MenubarItem onSelect={chooseOpenFile} disabled={busy}>Open native document…</MenubarItem>
-          <MenubarItem disabled={busy} onSelect={() => { location.hash = "/features/cad_boolean_extrusion"; }}>New Boolean extrusion</MenubarItem>
-          <MenubarSeparator/><MenubarItem onSelect={showRecovery} disabled={busy}>Recovery copies…</MenubarItem>
-          <MenubarItem onSelect={() => run(downloadCurrent)}>Download accepted document</MenubarItem>
-          <MenubarSeparator/><MenubarItem onSelect={() => { location.hash = '/projects'; }}>Projects</MenubarItem>
+          <MenubarItem onSelect={newSample} disabled={modelBusy}>New sample<MenubarShortcut>01</MenubarShortcut></MenubarItem>
+          <MenubarItem onSelect={chooseOpenFile} disabled={modelBusy}>Open native document…</MenubarItem>
+          <MenubarItem disabled={modelBusy} onSelect={() => { location.hash = "/features/cad_boolean_extrusion"; }}>New Boolean extrusion</MenubarItem>
+          <MenubarSeparator/><MenubarItem onSelect={showRecovery} disabled={modelBusy}>Recovery copies…</MenubarItem>
+          <MenubarItem disabled={layout.resizing} onSelect={() => run(downloadCurrent)}>Download accepted document</MenubarItem>
+          <MenubarSeparator/><MenubarItem disabled={layout.resizing} onSelect={() => { location.hash = '/projects'; }}>Projects</MenubarItem>
         </MenubarContent></MenubarMenu>
         <MenubarMenu><MenubarTrigger>Edit</MenubarTrigger><MenubarContent>
-          <MenubarItem disabled={!snapshot.history.canUndo || busy || hasDraft} onSelect={() => run(() => session.prepareUndo())}>Undo</MenubarItem>
-          <MenubarItem disabled={!snapshot.history.canRedo || busy || hasDraft} onSelect={() => run(() => session.prepareRedo())}>Redo</MenubarItem>
-          <MenubarSeparator/><MenubarItem onSelect={() => run(() => session.discardPending())}>Discard pending fields</MenubarItem>
+          <MenubarItem disabled={!snapshot.history.canUndo || modelBusy || hasDraft} onSelect={() => run(() => session.prepareUndo())}>Undo</MenubarItem>
+          <MenubarItem disabled={!snapshot.history.canRedo || modelBusy || hasDraft} onSelect={() => run(() => session.prepareRedo())}>Redo</MenubarItem>
+          <MenubarSeparator/><MenubarItem disabled={layout.resizing} onSelect={() => run(() => session.discardPending())}>Discard pending fields</MenubarItem>
         </MenubarContent></MenubarMenu>
-        <MenubarMenu><MenubarTrigger>View</MenubarTrigger><MenubarContent><MenubarItem onSelect={() => setFitRequest(value => value + 1)}>Fit document</MenubarItem>
+        <MenubarMenu><MenubarTrigger>View</MenubarTrigger><MenubarContent><MenubarItem disabled={layout.resizing} onSelect={() => setFitRequest(value => value + 1)}>Fit document</MenubarItem>
           <MenubarSeparator/>
           <MenubarCheckboxItem checked={layout.objectsVisible} disabled={layout.disabled||layout.focused} onCheckedChange={layout.toggleObjects}>Objects</MenubarCheckboxItem>
           <MenubarCheckboxItem checked={layout.propertiesVisible} disabled={layout.disabled||layout.focused} onCheckedChange={layout.toggleProperties}>Properties</MenubarCheckboxItem>
@@ -312,8 +320,8 @@ function DirectApp() {
       </Menubar>
       <span className="document-title" title={filename}>{filename}<span className="dirty-dot" aria-label={effectiveUnsaved ? 'Unsaved accepted changes' : 'Accepted content unchanged'}>{effectiveUnsaved ? ' •' : ''}</span></span>
 
-      <Button ref={openButton} data-testid="document-open" variant="outline" size="sm" onClick={chooseOpenFile} disabled={busy}><FolderOpen/>Open</Button>
-      <Button size="sm" onClick={() => run(downloadCurrent)}><Download/>Download</Button>
+      <Button ref={openButton} data-testid="document-open" variant="outline" size="sm" onClick={chooseOpenFile} disabled={modelBusy}><FolderOpen/>Open</Button>
+      <Button size="sm" disabled={layout.resizing} onClick={() => run(downloadCurrent)}><Download/>Download</Button>
       <input ref={fileInput} type="file" accept=".json,.cad-document.json" aria-label="Open native document file" className="file-input" onChange={event => { void openFile(event.target.files?.[0]); event.target.value = ''; }}/>
     </header>
     <div className="app-toolbar modeling-toolbar">
@@ -322,16 +330,16 @@ function DirectApp() {
       </div>
       <div className="toolbar-actions">
       <div className="command-group" role="group" aria-label="History commands"><span className="command-group-label">History</span><div className="command-group-actions">
-      <Button variant="ghost" size="icon-sm" aria-label="Undo" disabled={!snapshot.history.canUndo || busy || hasDraft} onClick={() => run(() => session.prepareUndo())}><Undo2/></Button>
-      <Button variant="ghost" size="icon-sm" aria-label="Redo" disabled={!snapshot.history.canRedo || busy || hasDraft} onClick={() => run(() => session.prepareRedo())}><Redo2/></Button>
+      <Button variant="ghost" size="icon-sm" aria-label="Undo" disabled={!snapshot.history.canUndo || modelBusy || hasDraft} onClick={() => run(() => session.prepareUndo())}><Undo2/></Button>
+      <Button variant="ghost" size="icon-sm" aria-label="Redo" disabled={!snapshot.history.canRedo || modelBusy || hasDraft} onClick={() => run(() => session.prepareRedo())}><Redo2/></Button>
       </div></div>
       <div className="command-group" role="group" aria-label="View commands"><span className="command-group-label">View</span><div className="command-group-actions">
-      <Button variant="ghost" size="sm" onClick={() => setFitRequest(value => value + 1)}><Maximize/>Fit</Button><Button variant="ghost" size="sm" data-testid="fit-selected-body" disabled={!snapshot.selectedBodyId} onClick={() => setFitSelectedRequest(value => value + 1)}><Crosshair/>Fit selected</Button>
+      <Button variant="ghost" size="sm" disabled={layout.resizing} onClick={() => setFitRequest(value => value + 1)}><Maximize/>Fit</Button><Button variant="ghost" size="sm" data-testid="fit-selected-body" disabled={!snapshot.selectedBodyId||layout.resizing} onClick={() => setFitSelectedRequest(value => value + 1)}><Crosshair/>Fit selected</Button>
       <Button variant="ghost" size="icon-sm" data-testid="toggle-object-panel" aria-label={layout.objectsVisible?'Hide objects':'Show objects'} title={layout.objectsVisible?'Hide objects':'Show objects'} aria-pressed={layout.objectsVisible} disabled={layout.disabled||layout.focused} onClick={layout.toggleObjects}><PanelLeftClose/></Button>
       <Button variant="ghost" size="icon-sm" data-testid="toggle-property-panel" aria-label={layout.propertiesVisible?'Hide properties':'Show properties'} title={layout.propertiesVisible?'Hide properties':'Show properties'} aria-pressed={layout.propertiesVisible} disabled={layout.disabled||layout.focused} onClick={layout.toggleProperties}><PanelRightClose/></Button>
       <Button variant="ghost" size="icon-sm" data-testid="toggle-canvas-focus" aria-label={layout.focused?'Restore panels (F8)':'Canvas focus (F8)'} title={layout.focused?'Restore panels (F8)':'Canvas focus (F8)'} aria-pressed={layout.focused} aria-keyshortcuts="F8" disabled={layout.disabled} onClick={layout.toggleFocus}>{layout.focused?<Shrink/>:<Expand/>}</Button>
       </div></div>
-      <div className="command-group" role="group" aria-label="Export commands"><span className="command-group-label">Export</span><div className="command-group-actions">
+      <div className="command-group" role="group" aria-label="Export commands" inert={layout.resizing}><span className="command-group-label">Export</span><div className="command-group-actions">
       {mount && <CadEditorExportReview session={session}
         onReview={result=>{setExportReview(result);if(result!==null)setError(current=>current?.context.field==='document-export'?null:current);}}
         onError={failure=>{setReadRequest(value=>value+1);setError(failure);}}
@@ -340,7 +348,7 @@ function DirectApp() {
     </div></div>
     {error && <div className="app-error" role="alert">{actionError(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
     <div className="app-workspace">
-      <aside className="document-tree" hidden={!layout.objectsVisible} aria-label="Object browser"><h2><Layers3 size={15}/>Objects<span className="tree-count">{snapshot.accepted.document.bodies.length}</span></h2>
+      <aside className="document-tree" inert={layout.resizing} hidden={!layout.objectsVisible} aria-label="Object browser"><h2><Layers3 size={15}/>Objects<span className="tree-count">{snapshot.accepted.document.bodies.length}</span></h2>
         {snapshot.accepted.document.bodies.map(body => {
           const binding = snapshot.accepted.bodyBindings.find(item => item.bodyId === body.id)!;
           const selected = snapshot.selectedBodyId === body.id;
@@ -351,16 +359,18 @@ function DirectApp() {
               <span className={'body-symbol ' + binding.geometryKind}>{binding.geometryKind === 'surface' ? <Layers3 size={16}/> : <Spline size={16}/>}</span><span className="tree-body-name" title={body.name}>{body.name}</span>
             </button>
             <input type="checkbox" data-testid={'body-visible-' + body.id} aria-label={(shown?'Hide ':'Show ')+body.name+(snapshot.view.kind==='curve-focus'?' in document view':'')}
-              checked={shown} disabled={busy} onChange={() => run(() => session.prepareDisplayBodies(shown ? snapshot.displayBodyIds.filter(id => id !== body.id) : [...snapshot.displayBodyIds, body.id]))} />
+              checked={shown} disabled={modelBusy} onChange={() => run(() => session.prepareDisplayBodies(shown ? snapshot.displayBodyIds.filter(id => id !== body.id) : [...snapshot.displayBodyIds, body.id]))} />
           </div>;
         })}
       </aside>
-      <main className="main-workspace">
+      <main className="main-workspace" inert={layout.resizing}>
         {projectView ? <section className="projects-view"><span className="eyebrow">LOCAL DOCUMENTS</span><h1>Projects</h1><p>Start with the weighted surface, or open a native document.</p><button className="sample-project" data-testid="project-new-sample" onClick={newSample}><span className="sample-symbol">▱</span><span><strong>Weighted surface</strong><small>Quadratic 3 × 3 surface · Reference line</small></span><ChevronRight size={20}/></button><Button variant="outline" onClick={chooseOpenFile}><FolderOpen/>Open document</Button></section> : mount && <CadEditor key={mountKey} session={session} displayOptions={displayOptions} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest}
           onLength={result=>{setCurveLength(result);if(result!==null)setError(current=>current?.context.field==='curve-length'?null:current);}}
           onAnalysis={result=>{setGeometryAnalysis(result);if(result!==null)setError(current=>current?.context.field==='geometry-analysis'?null:current);}}
           onCurveDisplay={setCurveDisplay} onError={failure => { pendingOpen.current=null;setError(failure); }} onAccepted={(accepted,candidate) => { setError(null);if(candidate.kind==='open'&&pendingOpen.current?.token===candidate.token){setFilename(pendingOpen.current.filename);provenance(pendingOpen.current.recovery?.wasDirty??false);if(pendingOpen.current.recovery)setRecoveryMessage(pendingOpen.current.recovery.hadPending?'Recovery copy opened. Draft fields were not restored.':'Recovery copy opened.');}pendingOpen.current=null;location.hash='/documents/'+accepted.accepted.document.documentId; }} onDisplay={setReceipt}/>}
       </main>
+      <WorkspacePanelDivider {...layout.dividerProps('objects')}/>
+      <WorkspacePanelDivider {...layout.dividerProps('properties')}/>
     </div>
     <ReplacementDialog open={replacement!==null} currentName={filename} action={replacement?.target.kind??'open'} targetName={replacement?.target.filename??''} downloadStarted={replacement?.downloadStarted??false} returnFocus={replacement?.focus??null} busy={replacementBusy} onCancel={clearReplacement} onDownload={downloadReplacementCopy} onContinue={continueReplacement}/>
     <RecoveryDialog open={recoveryOpen} currentName={recoveryDecision.current?.record?.filename??filename} copy={recoverySlot?.record?{name:recoverySlot.record.filename,savedAtText:new Date(recoverySlot.record.savedAtUTC).toLocaleString(),savedWithPending:recoverySlot.record.hadPending}:null}

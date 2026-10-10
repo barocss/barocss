@@ -137,3 +137,19 @@
 .cad-direct-app[data-properties-visible="false"] .cad-editor-inspector {display:none;}
 .cad-direct-app[data-objects-visible="false"] .app-error {left:8px;}
 .cad-direct-app .command-group-actions button[aria-pressed="true"] {color:#cee2bc;background:#36442f;}
+
+/* Panel widths are CSS layout settings, separate from authored CAD dimensions. */
+.cad-direct-app {--cad-objects-width:176px;--cad-properties-width:248px;--cad-active-objects-width:var(--cad-objects-width);}
+.cad-direct-app[data-objects-visible="false"] {--cad-active-objects-width:0px;}
+.cad-direct-app .app-workspace {position:relative;container-type:inline-size;--cad-render-properties-width:min(var(--cad-properties-width),calc(100cqw - var(--cad-active-objects-width) - 360px));}
+.cad-direct-app .document-tree {width:var(--cad-objects-width);}
+.cad-direct-app .cad-editor {grid-template-columns:minmax(0,1fr) var(--cad-render-properties-width);}
+.workspace-panel-divider {position:absolute;top:0;bottom:0;width:8px;z-index:8;cursor:col-resize;touch-action:none;outline:none;}
+.workspace-panel-divider-objects {left:calc(var(--cad-objects-width) - 4px);}
+.workspace-panel-divider-properties {right:calc(var(--cad-render-properties-width) - 4px);}
+.workspace-panel-divider::after {content:"";position:absolute;left:3px;top:0;bottom:0;width:1px;background:#3b4146;pointer-events:none;}
+.workspace-panel-divider:hover::after,.workspace-panel-divider:focus-visible::after {width:2px;background:#b8d599;}
+.workspace-panel-divider[aria-disabled="true"] {cursor:default;}
+.workspace-panel-divider[aria-disabled="true"]::after {background:#3b4146;}
+.cad-direct-app[data-panel-resizing="true"],.cad-direct-app[data-panel-resizing="true"] * {cursor:col-resize;user-select:none;}
+@media(min-width:1000px) and (max-width:1050px) {.cad-direct-app {--cad-objects-width:152px;--cad-properties-width:232px;}}
