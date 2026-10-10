@@ -268,3 +268,30 @@ text.assembly-translation-guide { fill:#b9cbd9; stroke:none; font-size:10px; }
 text.assembly-translation-guide[data-axis="x"] { fill:#d89983; stroke:none; }
 text.assembly-translation-guide[data-axis="y"] { fill:#9bbf8b; stroke:none; }
 text.assembly-translation-guide[data-axis="z"] { fill:#8babcf; stroke:none; }
+
+/* Driving constraints use existing native IDs and leave Canvas dominant. */
+.cad-editor-driving { min-width:0; min-height:0; }
+.cad-editor-driving .cad-editor-field { grid-template-columns:72px minmax(0,1fr); margin:6px 0; }
+.cad-editor-driving .cad-editor-field input,.cad-editor-driving .cad-editor-field select { min-width:0; height:28px; padding:4px 6px; font-size:11px; }
+.cad-editor-driving .cad-editor-field label { line-height:1.3; }
+.cad-editor-driving .cad-editor-properties-note { margin:4px 0 6px; font-size:10px; line-height:1.4; color:#aab8c0; overflow-wrap:anywhere; }
+.cad-editor-driving .driving-constraints-heading,.cad-editor-driving .driving-constraint-title { display:flex; align-items:center; justify-content:space-between; gap:6px; }
+.cad-editor-driving .driving-constraints-heading { margin:12px 0 4px; }
+.cad-editor-driving .driving-constraints-heading h3 { margin:0; font-size:11px; font-weight:550; }
+.cad-editor-driving .driving-constraint-title strong { font-size:11px; font-weight:550; }
+.cad-editor-driving .driving-constraint-row { border-top:1px solid #39434a; padding:7px 0 3px; }
+.cad-editor-driving .driving-constraint-title button,.cad-editor-driving .driving-constraints-heading button { flex:0 0 auto; height:23px; min-height:23px; padding:3px 6px; font-size:10px; }
+.cad-editor-driving-controls { position:absolute; inset:0; z-index:2; pointer-events:none; }
+.cad-editor-driving-controls .driving-dimension-svg { overflow:hidden; pointer-events:none; }
+.cad-editor-driving-controls .driving-dimension-guide { fill:#bdd8a3; stroke:#bdd8a3; stroke-width:1.5; pointer-events:none; }
+.cad-editor-driving-controls .driving-dimension-guide text { font-size:10px; stroke:none; }
+.cad-editor-driving-controls .driving-dimension-handle { fill:#bdd8a3; stroke:#f0f5e9; stroke-width:1.5; pointer-events:all; touch-action:none; cursor:grab; }
+.cad-editor-driving-controls .driving-dimension-handle:active { cursor:grabbing; }
+.cad-editor-driving-controls .driving-dimension-handle:focus-visible { outline:none; stroke:#fff; stroke-width:3; }
+.cad-editor-driving-controls .driving-dimension-handle[aria-disabled="true"] { opacity:.45; cursor:default; }
+.cad-editor-driving-controls .driving-dimension-ghost { fill:none; stroke:#dfc685; stroke-width:2; stroke-dasharray:4 3; pointer-events:none; }
+.cad-editor-driving-controls .driving-dimension-status { position:absolute; left:8px; bottom:8px; margin:0; padding:4px 6px; max-width:calc(100% - 16px); border:1px solid #39444a; border-radius:3px; background:#22272be8; color:#b9c7cf; font-size:10px; line-height:1.4; pointer-events:none; }
+.driving-add-dialog .cad-editor-field { grid-template-columns:100px minmax(0,1fr); margin:8px 0; }
+.driving-add-dialog .cad-editor-field input,.driving-add-dialog .cad-editor-field select { width:100%; min-width:0; height:28px; border:1px solid #454e55; border-radius:4px; padding:4px 7px; background:#1c2023; color:#dce4e8; font-size:11px; }
+.driving-add-actions { display:flex; align-items:center; justify-content:flex-end; gap:7px; margin-top:14px; }
+.driving-add-actions>button:first-child { margin-right:auto; }

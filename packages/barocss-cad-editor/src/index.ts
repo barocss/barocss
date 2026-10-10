@@ -19,3 +19,8 @@ export type { CadEditorCurveD2, CadEditorSurfaceD2, CadEditorCurveCurvature, Cad
 export type { CadEditorExportCapability, CadEditorExportSelection, CadEditorExportOptions, CadEditorExportReport, CadEditorExportResult } from './types.js';
 export type { CadEditorSession, CadEditorSessionOptions, CadEditorSnapshot, CadEditorSurfaceSelection, CadEditorSelectionTarget, CadEditorSelectionTransition, CadEditorSelectedPole, CadEditorPoleField, CadEditorCandidate, CadEditorDiagnosticCode, CadEditorDownload } from './types.js';
 export type { CadEditorFeatureProperties, CadEditorFeaturePropertiesOptions, CadEditorFeatureSessionOptions, CadEditorFeatureParameterDraft, CadEditorFeaturePending, CadEditorFeatureDisplay, CadEditorFeatureOutput, CadEditorFaceCornerBinding, CadEditorFaceCorner, CadEditorFeatureCandidate, CadEditorFeatureSnapshot, CadEditorFeatureSession } from './feature-types.js';
+
+export { createCadEditorDrivingSketchSession } from './driving-session.js';
+export type { CadEditorDrivingSketchConstraintField, CadEditorDrivingSketchView,
+  CadEditorDrivingSketchSessionOptions, CadEditorDrivingSketchSelection, CadEditorDrivingSketchPending,
+  CadEditorDrivingSketchCandidate, CadEditorDrivingSketchSnapshot, CadEditorDrivingSketchSession } from './driving-types.js';

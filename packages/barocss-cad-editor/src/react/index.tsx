@@ -85,3 +85,7 @@ export { CadEditorGeometryAnalysis } from './geometry-analysis.js';
 export type { CadEditorGeometryAnalysisProps } from './geometry-analysis.js';
 export { CadEditorBodyRename } from './body-rename.js';
 export type { CadEditorBodyRenameProps } from './body-rename.js';
+
+export { CadEditorDrivingSketchEditor } from './driving-sketch-editor.js';
+export type { CadEditorDrivingSketchEditorProps, CadEditorDrivingSketchDisplayOptions,
+  CadEditorDrivingSketchDisplayReceipt, CadEditorDrivingSketchFrameReceipt } from './driving-sketch-editor.js';
