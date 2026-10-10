@@ -3,19 +3,26 @@
 <link rel="icon" href="data:,"><title>BaroCSS selected native Shells</title>
 <style>
   :root {font:15px/1.5 system-ui,sans-serif;color-scheme:dark} body{max-width:1100px;margin:24px auto;padding:0 16px;background:#102032;color:#e7f0fa}
-  .layout{display:grid;grid-template-columns:minmax(0,640px) minmax(260px,1fr);gap:16px} canvas{display:block;max-width:100%;height:auto;border:1px solid #718da7}
+  .layout{display:grid;grid-template-columns:minmax(0,640px) minmax(260px,1fr);gap:16px} canvas{display:block;max-width:100%;height:auto;border:0;padding:0;margin:0}
   button,select{margin:4px;padding:6px 10px;background:#244462;color:white;border:1px solid #7198bc;border-radius:4px} button:disabled{opacity:.5}
   ul{padding:0;list-style:none}li{padding:8px;margin-bottom:8px;border:1px solid #56748f;overflow-wrap:anywhere}small{display:block}
+  li[data-inspected="true"]{border-color:#ffe577;background:#243e53}
   pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}@media(max-width:900px){.layout{grid-template-columns:1fr}}
 </style></head><body>
 <h1>Selected native Shell leaves</h1>
 <p>Show current extrusion leaves, including holes, separate components and empty results.
-  Each leaf keeps its original graph reference. Shell picking is not available in this view.</p>
+  Each leaf keeps its original graph reference. Inspect mode reports a current approximate filled-triangle query.</p>
 <div class="layout"><div><canvas id="view" width="640" height="480" aria-label="Selected native Shell view"></canvas>
 <label>Source <select id="fixture" disabled></select></label><button id="load" disabled>Show source</button>
 <button id="show-all" disabled>Show all leaves</button><button id="clear" disabled>Clear viewer</button>
 <button id="fit" disabled>Fit leaves</button><button id="orbit" disabled>Turn view</button><button id="pan" disabled>Pan view</button>
 <button id="run-proof" disabled>Run proof</button><button id="lose-context" disabled>Lose context</button><button id="dispose" disabled>Dispose viewer</button>
+<label><input id="inspect-mode" type="checkbox" disabled>Inspect mode</label>
+<p id="shell-inspection" role="status" aria-live="polite"></p>
+<details id="shell-inspection-help"><summary>About Shell inspection</summary>
+<p>A click reports one current qualified leaf and derived triangle/depth. The marked row is a DOM annotation, not a GPU highlight.
+The query uses prepared display geometry and camera, ignores edge previews and does not certify native topology or rendered pixel/depth equality.
+Requery after a scene, view or canvas-size change. Equal-depth leaf ties can be ambiguous.</p></details>
 </div><aside><h2>Original leaf inventory</h2><ul id="leaves"></ul></aside></div>
 <p>Face fills share depth. Optional edge previews do not certify hidden lines, topology or solid validity.</p>
 <pre id="status" role="status" aria-live="polite">Loading original native graphs…</pre>

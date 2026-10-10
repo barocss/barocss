@@ -26,7 +26,7 @@ list; they do not invoke unsupported primitive visibility/picking methods.
 Show all leaves, Clear viewer, Fit leaves, Turn view and Pan view are physical
 DOM controls. Holes and components retain native provenance. Zero selected
 entries and genuinely empty selected leaves have distinct copied states.
-There is no Shell picking, face editing, material authoring or playback UI.
+Inspect mode queries current filled Shell leaves. Face editing, material authoring and playback are unavailable.
 
 After building providers and Viewer, the required explicit compiled checkpoint
 resolves every transitive own public entry/subpath through the complete
@@ -79,3 +79,10 @@ held URL races, extra exact-input cases, separate actual context loss and
 normal disposal resources0. Lost-context deletion counters0 are not claimed.
 Source/build/assertion existence, actual execution, native completion,
 Integration and publication remain separate evidence stages.
+
+
+## Inspect current filled Shell leaves
+
+Enable **Inspect mode**, then click the canvas. The host marks the current original graph/feature/output-slot row and shows approximate display depth. GPU colors and Viewer selection stay unchanged. This result describes the lowered filled triangle preview; it does not certify a native face hit, edge pixel, topology or hidden-line result. Ambiguous leaves use the documented global-depth tolerance and deterministic full-reference ordering.
+
+A successful source/view/backing/CSS change clears inspection. A failed candidate retains the accepted row. Empty selection and genuine empty leaves give no hit. Lost/unavailable/disposed presentation refuses inspection; CPU provenance remains separately readable after loss. The host canvas is borderless and axis-aligned so click coordinates use its bounding box. Source and all-transitive compiled verification are separate checkpoints.
