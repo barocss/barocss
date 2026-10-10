@@ -23,6 +23,7 @@ export type { PathObservation, FillObservation, PathSample } from './path.js';
 export { createPathBuilder } from './path-builder.js';
 export type { PathBuilder } from './path-builder.js';
 export { decodeImageBlob } from './image-decode.js';
+export { blurImageAsset } from './image-blur.js';
 export { loadImageURL } from './image-url.js';
 export type { ImageURLLoadOptions } from './image-url.js';
 export { createImageAssetCache } from './image-cache.js';
