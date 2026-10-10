@@ -359,3 +359,6 @@ export type { PairedSectionPlaneCapOptions, PairedSectionPlaneCapEdge, PairedSec
 
 export { buildSectionExactSurfaceBinding, validateSectionExactSurfaceBinding, SectionExactSurfaceBindingError, SectionExactSurfaceBindingDiagnosticCode } from './section-exact-surface-binding.js';
 export type { SectionExactSurfaceBindingOptions, SectionExactSurfaceBindingSpanProof, SectionExactSurfaceBindingReport, SectionExactSurfaceBindingResult } from './section-exact-surface-binding.js';
+
+export { buildExactSurfaceLowerTrim, validateExactSurfaceLowerTrim, ExactSurfaceLowerTrimError, ExactSurfaceLowerTrimDiagnosticCode } from './exact-surface-lower-trim.js';
+export type { ExactSurfaceLowerTrimOptions, ExactSurfaceLowerTrimEdge, ExactSurfaceLowerTrimReport, ExactSurfaceLowerTrimResult } from './exact-surface-lower-trim.js';
