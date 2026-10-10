@@ -219,6 +219,14 @@ try {
   await fresh.getByTestId('body-select-surface_body').click(); await fresh.getByTestId('view-isometric').click();
   await fresh.getByTestId('pole-axis-x').waitFor(); const beforeFresh = await snapshot(fresh), freshGhost = await beginAxis(fresh);
   await release(fresh); await ready(fresh, beforeFresh.generation + 1); const reedit = editProof(beforeFresh, await snapshot(fresh), Number(freshGhost.pending.xMM));
+  const beforeTitleResize = await snapshot(fresh);
+  await fresh.setViewportSize({width: 1000, height: 700});
+  await fresh.waitForFunction(() => {
+    const canvas = document.querySelector('[data-testid="cad-editor-canvas"]'), f = window.__cadEditorFlow.display();
+    const box = canvas?.getBoundingClientRect();
+    return box && f?.state.status === 'ready' && f.width === Math.round(box.width) && f.height === Math.round(box.height);
+  });
+  const compactTitleFrame = await read(fresh); assert.deepEqual(await snapshot(fresh), beforeTitleResize);
   const title = await fresh.locator('.cad-direct-app .document-title').evaluate(node => {
     const style = getComputedStyle(node); return {title: node.title, textOverflow: style.textOverflow, whiteSpace: style.whiteSpace,
       overflowX: style.overflowX, width: node.clientWidth, contentWidth: node.scrollWidth};
@@ -226,8 +234,17 @@ try {
   assert.equal(title.title, basename(nativePath)); assert.equal(title.textOverflow, 'ellipsis'); assert.equal(title.whiteSpace, 'nowrap');
   assert.equal(title.overflowX, 'hidden'); assert.ok(title.contentWidth > title.width, 'The actual long accepted filename must truncate inside its header space.');
   await fresh.screenshot({path: resolve(evidence, prefix + '-fresh-native-reedit-long-name.png')});
+  await fresh.setViewportSize({width: 1440, height: 960});
+  await fresh.waitForFunction(() => {
+    const box = document.querySelector('[data-testid="cad-editor-canvas"]')?.getBoundingClientRect(), f = window.__cadEditorFlow.display();
+    return box && f?.state.status === 'ready' && f.width === Math.round(box.width) && f.height === Math.round(box.height);
+  });
+  await read(fresh);
+  assert.deepEqual(await snapshot(fresh), beforeTitleResize);
   result.events.push({stage: 'genuine-native-download-fresh-picker-reedit-and-document-ellipsis', nativePath,
-    nativeFileSHA256: hash(readFileSync(nativePath)), reedit, title, acceptedFilenameTokenRespected: true}); save();
+    nativeFileSHA256: hash(readFileSync(nativePath)), reedit, title, titleViewport: [1000, 700],
+    titleFrame: {width: compactTitleFrame.width, height: compactTitleFrame.height}, nativeHistoryRetainedDuringTitleResize: true,
+    acceptedFilenameTokenRespected: true}); save();
 
   const retained = await snapshot(fresh);
   await fresh.getByRole('menuitem', {name: 'File', exact: true}).click(); await fresh.getByRole('menuitem', {name: 'New Boolean extrusion', exact: true}).click();
