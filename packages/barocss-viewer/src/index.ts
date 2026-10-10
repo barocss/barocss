@@ -33,6 +33,9 @@ export type ViewerAssemblyPoint = CadAssemblyInstancePointResult;
 import { prepareViewerShellGraph } from './shell-graph.js';
 import type { ViewerShellLoadOptions, ViewerShellState } from './shell-graph.js';
 export type { ViewerShellEntry, ViewerShellLoadOptions, ViewerShellState } from './shell-graph.js';
+import { pickViewerShell } from './shell-pick.js';
+import type { ViewerShellPick } from './shell-pick.js';
+export type { ViewerShellPick } from './shell-pick.js';
 import type { BooleanExtrusionFeatureGraphResult } from '@barocss/cad';
 import { prepareViewerMixedDepth } from './mixed-depth.js';
 import type { ViewerMixedDepthInputV0, ViewerMixedDepthState } from './mixed-depth.js';
@@ -2112,6 +2115,13 @@ export class Viewer {
       }
     }
     return best;
+  }
+  pickShell(point: ViewerGeometryPoint): ViewerShellPick | null {
+    this.gpuLive(); check(!this.contextLost, 'Cannot pick Shell after WebGL2 context loss');
+    check(this.shell, 'Viewer has no current Shell scene');
+    const rect = this.canvas.getBoundingClientRect();
+    return pickViewerShell(this.shell, point, this.camera, this.options.mmToSceneUnit,
+      this.canvas.width, this.canvas.height, rect.width, rect.height);
   }
   pickGeometry(pointInput: ViewerGeometryPoint,
     optionsInput?: ViewerGeometryPickOptions): ViewerGeometryPick | null {
