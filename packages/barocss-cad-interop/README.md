@@ -2733,3 +2733,30 @@ The adapter uses Pixi3D2.5.0/PixiJS7.2.4 LINE_STRIP with original XYZ and one ex
 The [independent example](./examples/section-uniform-curve-pixi3d.html) retains both complete parent Models, both dimensionless UV charts and the full original section proof. It draws only the world Curve. The [contract](https://github.com/barocss/barocss/wiki/Loader-Section-Uniform-Curve-Pixi3D) records the five originals, real camera, refusals, cold reopen and resource checks. Pixi peer initialization requires a genuine browser; Node verifies native CPU data and bundle/type graphs separately.
 
 From the workspace root run the example verifier with `--mode source --output ABSOLUTE_EVIDENCE_DIR` before own CAD/interop builds. Run the source Vite config and genuine browser flow. After affected library builds, use `--mode compiled` and start the same config with `LOADER1142_COMPILED_BUNDLE=ABSOLUTE_EVIDENCE_DIR/browser.bundle.mjs` for the actual published-entry browser flow. These checks and local exports do not publish npm packages.
+
+## Selected complete Source0 Curve in Babylon
+
+The optional entry @barocss/cad-interop/babylon-selected-uniform-curve exports
+BaroCADSelectedUniformCurveBabylonLoader. Pass explicit sourceVersion:0,
+unitsPerMillimeter:0.001, uniformCurveDisplay:{version:1,count:129}, and the
+original curveId. parse(source, scene) and loadAsync(url, scene, transport)
+require a live Babylon Scene with useRightHandedSystem:true.
+
+The result retains the complete source and Model, selected original object
+ordinal and copied Curve, unrendered sibling IDs, native domain, parameters,
+millimeter samples, intervals and display quality. Its one identity LinesMesh
+is registered in the caller Scene and initially disabled. Validate the complete
+candidate before enabling its line and replacing the previous result. The
+target position buffer is a distinct Float32 copy, scaled once. Uniform native
+parameter intervals are approximate display samples.
+
+dispose() releases the original captured LinesMesh, Geometry and explicit
+ShaderMaterial once. Caller geometry/material replacements, children, Scene,
+Engine and camera remain caller owned. Native CPU data remain readable.
+
+examples/source-curve-control-polygon-babylon.html demonstrates whole original
+mixed-file selection, genuine source edits, both cold reopen checkpoints and
+refused-candidate retention using the unchanged CAD-produced files. The source
+and emitted public consumers use source-curve-control-polygon-babylon-verify.mjs.
+Source edits retain full source/proof authority; they do not preserve obsolete
+section UV associations or certify topology, a Solid or global display error.
