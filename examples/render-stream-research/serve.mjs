@@ -27,7 +27,8 @@ export function* authoredRecords(identity, { tone = 'light', broken = false } = 
   yield node('save', 'Button', { label: '저장' }, [], { press: { action: broken ? 'undeclared' : 'save' } });
   yield record('checkpoint'); yield record('commit');
 }
-export async function createResearchServer({ port = 0, checkpointGate = async () => {}, finalGate = async () => {} } = {}) {
+export async function createResearchServer({ port = 0, checkpointGate = async () => {}, finalGate = async () => {},
+  compiledResponse = null } = {}) {
   const bundle = (await build({ entryPoints: [fileURLToPath(new URL('browser.jsx', import.meta.url))],
     bundle: true, write: false, format: 'iife', platform: 'browser', jsx: 'automatic', logLevel: 'error',
     define: { 'process.env.NODE_ENV': '"production"' },
@@ -89,6 +90,31 @@ export async function createResearchServer({ port = 0, checkpointGate = async ()
       if (!res.write(bytes)) await Promise.race([once(res, 'drain'), once(res, 'close')]);
     };
     try {
+      if (compiledResponse) {
+        const response = compiledResponse({ identity, contract, signal: abort.signal, includePreview: body.mode === 'stream',
+          source: async function* (signal) {
+            for (const record of authoredRecords(identity, body)) {
+              if (signal.aborted) throw new Error('Cancelled');
+              observation.sourceRecords++; yield encoder.encode(JSON.stringify(record) + '\n');
+              if (record.seq === 5) await checkpointGate({ identity, mode: body.mode, signal });
+            }
+            await finalGate({ identity, mode: body.mode, signal });
+          },
+          acceptFinal() {
+            if (abort.signal.aborted || identity.revision !== revision) throw new Error('Stale source');
+            accepted = { ...identity, used: false }; observation.sourceComplete = true;
+          },
+        });
+        if (!(response instanceof Response) || !response.body || response.status !== 200
+          || response.headers.get('x-stream-id') !== identity.streamId
+          || response.headers.get('x-revision') !== String(identity.revision)) throw new Error('Invalid Fetch response');
+        const observer = createJsonlDecoder({ identity, kind: 'output', onRecord() { observation.snapshots++; } });
+        for await (const bytes of response.body) {
+          observer.push(bytes); observation.bytes += bytes.length;
+          if (!res.write(bytes)) await Promise.race([once(res, 'drain'), once(res, 'close')]);
+        }
+        observer.finish(); res.end(); return;
+      }
       const compiler = createCompiler({ identity, contract });
       const pending = [];
       const decoder = createJsonlDecoder({ identity, kind: 'input', onRecord(record) {

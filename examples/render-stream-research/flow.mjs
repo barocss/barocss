@@ -91,7 +91,55 @@ function gate(stage) { return ({ identity: run, mode, signal }) => new Promise((
   entry[stage] = () => { signal.removeEventListener('abort', aborted); resolve(); };
   if (signal.aborted) aborted(); else signal.addEventListener('abort', aborted, { once: true });
 }); }
-const app = await createResearchServer({ checkpointGate: gate('checkpoint'), finalGate: gate('final') });
+const hostKind = process.env.STREAM_HOST ?? 'node';
+if (!['node', 'fetch'].includes(hostKind)) throw new Error('Unknown stream host');
+const compiledResponse = hostKind === 'fetch' ? (await import('./fetch-host.mjs')).createCompiledResponse : null;
+if (compiledResponse) {
+  const responseControl = async (name, run) => { await run(); controls.push(name); };
+  await responseControl('Fetch pull demand and one final admission', async () => {
+    let reads = 0, admits = 0;
+    const response = compiledResponse({ identity, contract, source: async function* () {
+      for (const record of source) { reads++; yield encodeRecord(record); }
+    }, acceptFinal() { admits++; } });
+    assert.equal(reads, 0); assert.equal(admits, 0);
+    const reader = response.body.getReader(); assert.equal((await reader.read()).done, false);
+    assert.equal(reads, 5); assert.equal(admits, 0);
+    const output = decoder('output');
+    // The first frame is already consumed; inspect subsequent reads through a fresh decoder below.
+    let frames = 1;
+    while (!(await reader.read()).done) frames++;
+    assert.equal(frames, 3); assert.equal(reads, 10); assert.equal(admits, 1);
+    reader.releaseLock();
+    const replay = compiledResponse({ identity, contract, source: async function* () { yield bytes; }, acceptFinal() {} });
+    for await (const part of replay.body) output.push(part);
+    assert.equal(output.finish().records, 3);
+  });
+  await responseControl('Fetch cancellation aborts pending source', async () => {
+    let sourceSignal, admits = 0, returned = 0;
+    const response = compiledResponse({ identity, contract, source(signal) {
+      sourceSignal = signal;
+      return { [Symbol.asyncIterator]() { return this; },
+        next() { return new Promise((_, reject) => signal.addEventListener('abort', () => reject(new Error('Source aborted')), { once: true })); },
+        return() { returned++; return Promise.resolve({ done: true }); } };
+    }, acceptFinal() { admits++; } });
+    const reader = response.body.getReader(), pending = reader.read();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await reader.cancel('host cancelled'); await pending;
+    assert.equal(sourceSignal.aborted, true); assert.equal(returned, 1); assert.equal(admits, 0);
+    reader.releaseLock();
+  });
+  await responseControl('Fetch invalid EOF and refused host admission', async () => {
+    for (const failure of ['tail', 'missing', 'admission']) {
+      let admits = 0;
+      const response = compiledResponse({ identity, contract, source: async function* () {
+        yield failure === 'tail' ? Buffer.concat([bytes, Buffer.from('x')]) : failure === 'missing' ? encodeRecord(source[0]) : bytes;
+      }, acceptFinal() { admits++; if (failure === 'admission') throw new Error('Host refused'); } });
+      await assert.rejects(async () => { for await (const part of response.body) assert(part instanceof Uint8Array); });
+      assert.equal(admits, failure === 'admission' ? 1 : 0);
+    }
+  });
+}
+const app = await createResearchServer({ checkpointGate: gate('checkpoint'), finalGate: gate('final'), compiledResponse });
 let browser, page;
 const errors = [], csp = [], external = [], milestones = [];
 const wait = async (read, name) => {
@@ -189,14 +237,14 @@ try {
   await page.unroute('**/stream'); milestones.push({ kind: 'duplicate-final-does-not-release-actions' });
   csp.push(...await page.evaluate(() => window.CSP_ERRORS));
   assert.deepEqual(errors, []); assert.deepEqual(csp, []); assert.deepEqual(external, []);
-  const report = { status: 'passed', source: 'authored deterministic records; no model calls',
+  const report = { status: 'passed', host: hostKind, source: 'authored deterministic records; no model calls',
     browser: browser.version(), browserBundleBytes: app.bundleBytes,
     compiled: JSON.parse(await fs.readFile(path.join(here, '.build/provenance.json'), 'utf8')),
     controls, milestones, sourceRuns: app.records, saves: app.saves,
     browserTrace: afterFault.trace, pageErrors: errors, cspErrors: csp, externalRequests: external,
     timingMeaning: 'same browser performance clock; held-source causal relation, not model latency or physical paint' };
   await fs.writeFile(path.join(out, 'report.json'), JSON.stringify(report, null, 2));
-  console.log(JSON.stringify({ status: report.status, browser: report.browser, sourceRuns: app.records.length,
+  console.log(JSON.stringify({ status: report.status, host: hostKind, browser: report.browser, sourceRuns: app.records.length,
     controls: controls.length, milestones: milestones.length, pageErrors: errors.length, cspErrors: csp.length, externalRequests: external.length, report: path.join(out, 'report.json') }));
 } catch (error) {
   await fs.writeFile(path.join(out, 'failure.json'), JSON.stringify({ message: error.message, stack: error.stack, controls, sourceRuns: app.records, errors, csp, external }, null, 2));

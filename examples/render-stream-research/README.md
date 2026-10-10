@@ -39,6 +39,7 @@ compiler. Its fixed host stylesheet covers typography and native controls.
 | `protocol.mjs` | UTF-8/LF framing, identities, exact fields, sequence and size limits |
 | `compiler.mjs` | Assemble nodes, validate a complete graph, generate a full CSS sheet |
 | `serve.mjs` | Authored source, loopback HTTP stream, host final admission and Save |
+| `fetch-host.mjs` | Demand-driven WHATWG Response adapter reusing the same compiler |
 | `browser.jsx` | Registered components, preview/final lifecycle, host input and recovery |
 | `flow.mjs` | One focused real-browser flow and narrow protocol/compiler controls |
 | `RESEARCH.md` | Source comparisons and package choices |
@@ -193,3 +194,78 @@ The next research gate is reuse in a second host with the same admission,
 state/action and cancellation guarantees. Actual AI performance qualification
 is separate from package extraction. Native completion, Integration adoption,
 integrated verification and publication remain separate states.
+
+## Second host-boundary result — #1352
+
+Parent: `8e957a7ffc5e74750cb53185b8a08e539cc4d6f6`. This successor adds the
+WHATWG `Response`/`ReadableStream` adapter, a Node HTTP bridge option and focused
+response controls. The renderer catalog, compiler, protocol and browser are
+reused. It is a second transport-host boundary, not a second deployed framework
+application or a delivered public package.
+
+```sh
+STREAM_HOST=fetch PLAYWRIGHT_CORE_DIR=/absolute/path/to/playwright-core \
+  RESULT_ROOT=/absolute/path/to/fetch-results \
+  node examples/render-stream-research/flow.mjs
+```
+
+The **first Fetch-host run passed** on Chrome155.0.8059.39: six authored runs,
+eleven control groups, seven browser milestones, page/CSP/external errors0.
+Artifacts: `/tmp/render-1352-fetch-first/report.json` and four actual PNGs;
+original log: `/tmp/render-1352-fetch-first.log`.
+
+The previous Node-host flow was not rerun. The new host repeated the observable
+useful-preview/final-edit-Save/equivalent-complete/cancel/error/supersession/
+duplicate-final flow against the Response adapter. Final spec/CSS and response
+counts were unchanged: stream3/3538bytes, complete1/1259bytes. Three new control
+groups verified zero source reads before consumer demand, one snapshot per
+read and once-only final admission; cancellation of a pending source read with
+signal abort and one iterator-return request; invalid tail/missing terminal and
+refused host admission producing no accepted output.
+
+`createCompiledResponse({identity,contract,source,signal,includePreview,acceptFinal})`
+takes `source(ownedSignal) → AsyncIterable<Uint8Array>`. It returns a Response
+with NDJSON and identity headers. The ReadableStream has highWaterMark0, advances
+the source on demand and emits at most one queued snapshot per pull. Complete
+input EOF plus decoder/compiler finish and bounded output checks precede the
+once-only `acceptFinal(record, signal)` callback and committed output. A false
+return or thrown/rejected callback refuses admission. Failure errors the body;
+cancellation aborts the source signal and requests iterator.return without
+waiting indefinitely for an upstream implementation that ignores cancellation.
+
+The source must honor its signal to stop actual pending work. Already performed
+effects inside an asynchronous acceptFinal callback cannot be rolled back by
+this adapter. The host should perform its current-run check and admission
+synchronously, or own the transaction. Auth, state/actions and route policy
+remain in the host. The HTTP bridge reports output observations and honors
+response backpressure. Node HTTP buffering, network buffers and a future
+provider's internal buffering are not controlled by ReadableStream demand.
+
+This result strengthens the reuse case for `/protocol` and `/server` plus a
+separate `/fetch` entry. It does not establish that an optional React lifecycle
+adapter is necessary, or make the existing renderer's React peer disappear.
+
+## JSX and state are a separate execution path
+
+The owner asked whether OpenAI instead sends JSX and state. Its
+[public announcement](https://openai.com/index/gpt-6-for-everyone/) does not
+identify JSX, compiler location or a state wire format. This experiment's
+component-data delivery should not be described as its implementation.
+
+A server can compile JSX to a JavaScript bundle with
+[esbuild](https://esbuild.github.io/content-types/#jsx), then send that bundle
+and serializable initial state/props to a browser React runtime. Hooks, event
+functions and live state then execute in the browser; closures/setters are
+not serialized as plain state JSON. React Server Components are another path:
+rendered values and client-module references are transmitted, rather than the
+server JSX source. Pinned React19.2.3 source distinguishes
+[client references](https://github.com/facebook/react/blob/612e371fb215498edde4c853bd1e0c8e9203808f/packages/react-server/src/ReactFlightServer.js#L2752)
+and rejects ordinary
+[event functions](https://github.com/facebook/react/blob/612e371fb215498edde4c853bd1e0c8e9203808f/packages/react-server/src/ReactFlightServer.js#L3817).
+
+The compiled-JSX path supports newly authored component behavior beyond the
+current finite catalog. It needs an explicit module/runtime version, load
+identity, local state lifecycle and execution/host-action boundary. A bounded
+next experiment is one authored JSX counter/form module, a server-produced
+bundle, separate initial-state JSON and an isolated frame with a small host
+bridge. The current two host flows **do not validate that execution path**.
