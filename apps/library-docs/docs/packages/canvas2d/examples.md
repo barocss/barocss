@@ -10,6 +10,8 @@ Use [Unicode labels](./unicode-labels) for the newer browser-text profile and [t
 
 The [diagram label guide](./diagram-labels) combines ASCII ellipsis with a separate bitmap outline, keeps the full semantic label and saves or opens an actual JSON file. [Try the diagram label](/playground#diagram-label); its source profile is separate from the rectangle and Unicode examples.
 
+[Edit quadratic and cubic controls](./path-editing) with public `setPath`, copied paint and local-coordinate mapping. [Try the path editor](/playground#path-edit) for a completed drag, one-edit Undo/Redo and physical JSON Save/Open; this uses its own matching Canvas source profile.
+
 ## Create and submit a retained object
 
 Use a browser host with a TypeScript-capable bundler and the workspace package dependency. Put this HTML in the host page and use the following module as its `main.ts` entry. The bundler resolves public imports and transforms TypeScript; the browser receives JavaScript.
