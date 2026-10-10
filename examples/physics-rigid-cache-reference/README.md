@@ -19,4 +19,8 @@ Threeoriginal1/120scenes ×source/repeat/genuinecompiled-helper graphs useorigin
 
 ## Current result
 
-UNMEASURED. No physicalmodelGO/publication claimed. Exactsource/native/build/campaign/results willberecorded afteractualexecution.
+ActualoriginalCAD/Physicsbuild/private stricttypes exit0. Sole rootcampaign at7a01b66facef12850bd284f6144a69c4cd26cdd5 exits0:9cases/5,730accepted snapshots. Raw13LEFloat64/signbits/publicfields/projection+warmcachecounters/independentgeometry/firstfailures matchsource/repeat/genuinecompiledhelpers. Source39originalsrc/0dist vscompiled0src/21dist; privatecandidate/modules remainsourcebothgraphs. Actualoriginaltwo-box/copy/typedrefusal/counterretention/disposalflows pass. Allacceptedwarmcounters are nonnegativeintegers, tested=compatible+incompatible. Immutable65geometry+6two-boxanalyticcontrolsretained.
+
+Allthreefirstfailures arefinitefloorfootprint: ALIGNED799/6.658333333s, OFFSET504/4.2s, YAW604/5.033333333s. FullqualityNO-GO. Noexact8sbaseline/last2ssettling/refinement/cost/Chrome/Viewer executed, no policyretune. Mixed earlier/later escape times vs1191are not stability improvement or a causalcertificate. The guard alone doesnotqualify the originalstacks. No publicsolver/cap/API/physicalGO/publication.
+
+Fullraw/report/controls/graphs/build/type/producerlogs/source-compiledhashes/counterreceipts/manifest retained in evidence/native-7a01b66f/.
