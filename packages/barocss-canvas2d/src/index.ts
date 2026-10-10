@@ -65,3 +65,5 @@ export type { ImageShadowOptions } from './image-shadow.js';
 
 export { resizeImageAsset } from './image-resize.js';
 export type { ImageResizeSampling } from './image-resize.js';
+
+export { cropImageAsset } from './image-crop.js';

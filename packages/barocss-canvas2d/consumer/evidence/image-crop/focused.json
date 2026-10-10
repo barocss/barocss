@@ -1,0 +1,967 @@
+{
+  "runtime": "v22.22.0",
+  "results": [
+    {
+      "target": "file:///Users/user/.codex/worktrees/canvas2d-image-crop/barocss/packages/barocss-canvas2d/dist/index.js",
+      "cases": 700,
+      "comparedBytes": 9800,
+      "literalAtlasBytes": 16,
+      "literalCropBytes": 8,
+      "offsetHiddenRGB": true,
+      "fullCopy": true,
+      "repeatedMutationIndependent": true,
+      "nullPrototype": true,
+      "refusals": [
+        {
+          "label": "assetNull",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetArray",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectNull",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetAccessor:width",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetHidden:width",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetMissing:width",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetAccessor:height",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetHidden:height",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetMissing:height",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetAccessor:pixels",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetHidden:pixels",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetMissing:pixels",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectAccessor:x",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:x:0",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:x:-1",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:x:NaN",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:x:Infinity",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:x:1.5",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:x:1",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:x:4097",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectHidden:x",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectAccessor:y",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:y:0",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:y:-1",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:y:NaN",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:y:Infinity",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:y:1.5",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:y:1",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:y:4097",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectHidden:y",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectAccessor:width",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:width:0",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:width:-1",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:width:NaN",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:width:Infinity",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:width:1.5",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:width:1",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:width:4097",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectHidden:width",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectAccessor:height",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:height:0",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:height:-1",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:height:NaN",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:height:Infinity",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:height:1.5",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:height:1",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:height:4097",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectHidden:height",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectZeroWidth",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectZeroHeight",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectExtra",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectSymbol",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetExtra",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetSymbol",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "inputWidth:0",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "inputWidth:0",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "inputWidth:-1",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "inputWidth:NaN",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "inputWidth:Infinity",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "inputWidth:1.5",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "inputWidth:2",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "inputWidth:4097",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "outsideRight",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "outsideBottom",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "pixelsWrongType",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "pixelsWrongLength",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "shared",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "pixelsSubclass",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "metadata:buffer",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "metadata:byteLength",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "metadata:byteOffset",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "metadata:length",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "validInputOverflow",
+          "code": "ASSET_LIMIT",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "fullOutputOverflow",
+          "code": "ASSET_LIMIT",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "malformedRectBeforeOverflow",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "outsideBeforeOverflow",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        }
+      ],
+      "getterReads": 0,
+      "budget": {
+        "inputBytes": 1048576,
+        "outputBytes": 1048576,
+        "measuredTypedAllocations": [
+          1048576,
+          1048576
+        ],
+        "totalBytes": 2097152,
+        "copies": 512
+      },
+      "thinLimitBytes": 2048
+    },
+    {
+      "target": "file:///tmp/c2d1273-source.mjs",
+      "cases": 700,
+      "comparedBytes": 9800,
+      "literalAtlasBytes": 16,
+      "literalCropBytes": 8,
+      "offsetHiddenRGB": true,
+      "fullCopy": true,
+      "repeatedMutationIndependent": true,
+      "nullPrototype": true,
+      "refusals": [
+        {
+          "label": "assetNull",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetArray",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectNull",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetAccessor:width",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetHidden:width",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetMissing:width",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetAccessor:height",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetHidden:height",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetMissing:height",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetAccessor:pixels",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetHidden:pixels",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetMissing:pixels",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectAccessor:x",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:x:0",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:x:-1",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:x:NaN",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:x:Infinity",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:x:1.5",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:x:1",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:x:4097",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectHidden:x",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectAccessor:y",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:y:0",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:y:-1",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:y:NaN",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:y:Infinity",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:y:1.5",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:y:1",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:y:4097",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectHidden:y",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectAccessor:width",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:width:0",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:width:-1",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:width:NaN",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:width:Infinity",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:width:1.5",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:width:1",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:width:4097",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectHidden:width",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectAccessor:height",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:height:0",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:height:-1",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:height:NaN",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:height:Infinity",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:height:1.5",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:height:1",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectValue:height:4097",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectHidden:height",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectZeroWidth",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectZeroHeight",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectExtra",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "rectSymbol",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetExtra",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "assetSymbol",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "inputWidth:0",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "inputWidth:0",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "inputWidth:-1",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "inputWidth:NaN",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "inputWidth:Infinity",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "inputWidth:1.5",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "inputWidth:2",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "inputWidth:4097",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "outsideRight",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "outsideBottom",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "pixelsWrongType",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "pixelsWrongLength",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "shared",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "pixelsSubclass",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "metadata:buffer",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "metadata:byteLength",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "metadata:byteOffset",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "metadata:length",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "validInputOverflow",
+          "code": "ASSET_LIMIT",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "fullOutputOverflow",
+          "code": "ASSET_LIMIT",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "malformedRectBeforeOverflow",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        },
+        {
+          "label": "outsideBeforeOverflow",
+          "code": "INVALID_ASSET",
+          "allocations": 0,
+          "copies": 0
+        }
+      ],
+      "getterReads": 0,
+      "budget": {
+        "inputBytes": 1048576,
+        "outputBytes": 1048576,
+        "measuredTypedAllocations": [
+          1048576,
+          1048576
+        ],
+        "totalBytes": 2097152,
+        "copies": 512
+      },
+      "thinLimitBytes": 2048
+    }
+  ]
+}

@@ -7,10 +7,12 @@
   pre { max-width: 760px; white-space: pre-wrap; background: white; padding: 12px; }
 </style>
 <h1>Canvas2D sprite source rectangle</h1>
-<p>Choose a 2×2 atlas cell, clear the crop, then save and reopen the editable sprite.</p>
+<p>Choose a 2×2 atlas cell, clear the crop, then save and reopen the editable sprite. Extract the right column as a new image. The logical Sprite stays 80×80.</p>
 <button id="red">Red cell</button><button id="transparent">Transparent cell</button>
 <button id="green">Green cell</button><button id="blue">Blue cell</button><button id="full">Full atlas</button>
 <button id="invalid">Invalid crop</button><button id="out-of-bounds">Out of bounds</button>
+<button id="extract">Extract right column</button><button id="edit">Move restored Sprite</button>
+<button id="png">Export PNG</button><button id="dispose">Dispose</button>
 <button id="save">Save document</button>
 <label>Open document <input id="open" type="file" accept="application/json,.json"></label>
 <p id="status" role="status">Loading</p><canvas id="scene"></canvas><pre id="observation"></pre>

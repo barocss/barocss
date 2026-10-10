@@ -1,6 +1,6 @@
 // @ts-check
-import { createCanvas2D, createDisplayTree, createDisplayTreeFromScene, stringifySceneJSON } from '@barocss/canvas2d';
-import { serializeCanvasDocument, stageCanvasDocument } from '@barocss/canvas2d/document';
+import { createCanvas2D, createDisplayTree, createDisplayTreeFromScene, stringifySceneJSON, cropImageAsset, Canvas2DError } from '@barocss/canvas2d';
+import { serializeCanvasDocument, stageCanvasDocument, exportCanvasDocumentPNG } from '@barocss/canvas2d/document';
 
 /** @type {import('@barocss/canvas2d').Canvas2DOptions} */
 const options = { logicalSize: { width: 160, height: 120 }, dpr: 2 };
@@ -30,12 +30,18 @@ let sprite = tree.createSprite({ id: 'Sprite', layer: 1, transform: pose(20, 20)
 tree.stage.addChild(team); team.addChild(back); team.addChild(sprite);
 /** @type {HTMLCanvasElement} */
 let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
+/** @typedef {{created:number,deleted:number,objects:object[],live:()=>number}} Resource */
+/** @type {{gl:WebGL2RenderingContext,lost:boolean,calls:{draw:number,read:number},resources:Record<string,Resource>}[]} */const contexts=[];
+/** @param {HTMLCanvasElement} canvas */
+function instrument(canvas){const get=canvas.getContext.bind(canvas);canvas.getContext=/** @type {HTMLCanvasElement['getContext']} */((/** @type {string} */kind,/** @type {any} */attrs)=>{const gl=/** @type {WebGL2RenderingContext|null} */(get(/** @type {'webgl2'} */(kind),attrs));if(kind==='webgl2'&&gl&&!contexts.some(c=>c.gl===gl)){const c={gl,lost:false,calls:{draw:0,read:0},resources:/** @type {Record<string,Resource>} */({})};contexts.push(c);canvas.addEventListener('webglcontextlost',()=>{c.lost=true;});for(const [name,create,del,is] of [['shader','createShader','deleteShader','isShader'],['program','createProgram','deleteProgram','isProgram'],['buffer','createBuffer','deleteBuffer','isBuffer'],['vao','createVertexArray','deleteVertexArray','isVertexArray'],['texture','createTexture','deleteTexture','isTexture'],['fbo','createFramebuffer','deleteFramebuffer','isFramebuffer']]){const raw=/** @type {any} */(gl),a=raw[create].bind(gl),b=raw[del].bind(gl),test=raw[is].bind(gl);const r={created:0,deleted:0,objects:/** @type {object[]} */([]),live:()=>r.objects.filter(v=>test(v)).length};c.resources[name]=r;raw[create]=/** @param {...any} args */(...args)=>{const v=a(...args);if(v){r.created++;r.objects.push(v);}return v;};raw[del]=(/** @type {object|null} */v)=>{if(v)r.deleted++;return b(v);};}for(const [name,key] of [['drawArrays','draw'],['readPixels','read']]){const raw=/** @type {any} */(gl),f=raw[name].bind(gl);raw[name]=/** @param {...any} args */(...args)=>{c.calls[/** @type {'draw'|'read'} */(key)]++;return f(...args);};}}return gl;});return canvas;}
+instrument(canvas);
 let renderer = createCanvas2D(canvas, options);
 renderer.setImageAsset('Atlas', atlas);
 /** @type {import('@barocss/canvas2d').Scene} */
 let accepted = tree.snapshot();
 renderer.updateScene(accepted); renderer.render();
-let generation = 1;
+let generation = 1, preparations = 0, opens = 0, edits = 0, saves = 0, pngs = 0;
+let disposed = false, binds = 0, unbinds = 0;
 /** @type {string[]} */ let pointerLog = [];
 /** @type {() => void} */ let unbind = () => {};
 const status = /** @type {HTMLElement} */ (document.querySelector('#status'));
@@ -54,10 +60,12 @@ function pixel(x, y) {
   return [...bytes];
 }
 function observe() {
-  return { generation, crop: sprite.data.sourceRect ?? null,
+  return { generation, disposed, preparations, opens, edits, saves, pngs, binds, unbinds, contextId: accepted.contextId, sceneVersion: accepted.version, spriteData: sprite.data, crop: sprite.data.sourceRect ?? null,
     scene: stringifySceneJSON(accepted), treeScene: stringifySceneJSON(tree.snapshot()),
-    assetBytes: [...(renderer.getImageAsset('Atlas')?.pixels ?? [])],
-    samples: samples.map(([x, y]) => ({ x, y, rgba: pixel(x, y),
+    assetBytes: disposed ? [] : [...(renderer.getImageAsset(sprite.data.imageId)?.pixels ?? [])],
+    originalBytes: [...atlas.pixels],
+    contexts: contexts.map(c => ({ lost: c.lost, calls: {...c.calls}, error: c.gl.getError(), resources: Object.fromEntries(Object.entries(c.resources).map(([k,r]) => [k,{created:r.created,deleted:r.deleted,live:r.live()}])) })),
+    samples: disposed ? [] : samples.map(([x, y]) => ({ x, y, rgba: pixel(x, y),
       hit: renderer.hitTest({ x, y })?.id ?? null })), pointerLog: [...pointerLog] };
 }
 /** @param {string} message */
@@ -78,8 +86,8 @@ function bind() {
       point, hit: renderer.hitTest(point) });
     show('Dispatched pointerdown');
   };
-  current.addEventListener('pointerdown', onPointer);
-  return () => current.removeEventListener('pointerdown', onPointer);
+  current.addEventListener('pointerdown', onPointer); binds++;
+  return () => { current.removeEventListener('pointerdown', onPointer); unbinds++; };
 }
 /** @param {string} message */
 function submit(message) {
@@ -106,8 +114,9 @@ function outOfBounds() {
   show(`Renderer refused crop ${code}; retained ${JSON.stringify(observe()) === before}`);
   return code;
 }
+async function documentText() { return serializeCanvasDocument(accepted, id => renderer.getImageAsset(id)); }
 async function save() {
-  const text = await serializeCanvasDocument(accepted, id => renderer.getImageAsset(id));
+  const text = await documentText(); saves++;
   const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
   const link = document.createElement('a'); link.href = url; link.download = 'sprite-crop-document.json'; link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -115,7 +124,8 @@ async function save() {
 }
 /** @param {string} text */
 async function openText(text) {
-  const fresh = document.createElement('canvas'); fresh.id = 'scene';
+  if (disposed) throw new Canvas2DError('DISPOSED', 'host disposed');
+  const fresh = instrument(document.createElement('canvas')); fresh.id = 'scene';
   const staged = await stageCanvasDocument(text, fresh, options);
   /** @type {import('@barocss/canvas2d').DisplayTree} */ let nextTree;
   /** @type {import('@barocss/canvas2d').ContainerHandle} */ let nextTeam;
@@ -135,9 +145,42 @@ async function openText(text) {
   canvas.replaceWith(fresh); canvas = fresh; renderer = staged.renderer;
   tree = nextTree; team = nextTeam; back = nextBack; sprite = nextSprite;
   accepted = /** @type {import('@barocss/canvas2d').Scene} */ (staged.scene);
-  generation++; pointerLog = []; subscribe(); unbind = bind(); old.dispose();
+  generation++; opens++; pointerLog = []; subscribe(); unbind = bind(); old.dispose();
   show('Opened editable cropped sprite');
 }
+/** @param {import('@barocss/canvas2d').SourceRect} rect @param {import('@barocss/canvas2d').ImageAssetInput} [input] */
+function extract(rect, input = atlas) {
+  if (disposed) throw new Canvas2DError('DISPOSED', 'host disposed');
+  const prepared = cropImageAsset(input, rect);
+  const nextTree = createDisplayTreeFromScene(accepted);
+  const group = nextTree.get('Team'), background = nextTree.get('Back'), image = nextTree.get('Sprite');
+  if (group?.kind !== 'container' || background?.kind !== 'rect' || image?.kind !== 'sprite') {
+    throw new Error('Consumer objects missing');
+  }
+  image.setImageSource('Extracted', { x: 0, y: 0, width: prepared.width, height: prepared.height });
+  const fresh = instrument(document.createElement('canvas')); fresh.id = 'scene';
+  const nextRenderer = createCanvas2D(fresh, options);
+  try {
+    nextRenderer.setImageAsset('Extracted', prepared);
+    nextRenderer.updateScene(nextTree.snapshot()); nextRenderer.render();
+  } catch (error) { nextRenderer.dispose(); throw error; }
+  // Admit the complete copied tree and renderer before replacing the live host.
+  unbind(); const old = renderer;
+  canvas.replaceWith(fresh); canvas = fresh; renderer = nextRenderer;
+  tree = nextTree; team = group; back = background; sprite = image; accepted = tree.snapshot();
+  generation++; preparations++; pointerLog = []; subscribe(); unbind = bind(); old.dispose();
+  show('Extracted right column as independent pixels');
+  return prepared;
+}
+function edit() { sprite.setPosition(28, 20); submit('Moved restored Sprite'); edits++; }
+async function png() {
+  const text = await documentText();
+  const result = await exportCanvasDocumentPNG(text, options, () => instrument(document.createElement('canvas')));
+  const url = URL.createObjectURL(result.blob), link = document.createElement('a');
+  link.href = url; link.download = 'sprite-crop.png'; link.click(); pngs++;
+  setTimeout(() => URL.revokeObjectURL(url), 1000); show('Exported PNG');
+}
+function dispose() { if (disposed) return; unbind(); renderer.dispose(); disposed = true; show('Disposed'); }
 subscribe(); unbind = bind();
 document.querySelector('#red')?.addEventListener('click', () => setCrop(red));
 document.querySelector('#transparent')?.addEventListener('click', () => setCrop(transparent));
@@ -146,12 +189,18 @@ document.querySelector('#blue')?.addEventListener('click', () => setCrop(blue));
 document.querySelector('#full')?.addEventListener('click', () => setCrop(null));
 document.querySelector('#invalid')?.addEventListener('click', invalid);
 document.querySelector('#out-of-bounds')?.addEventListener('click', outOfBounds);
+document.querySelector('#extract')?.addEventListener('click', () => extract({ x: 1, y: 0, width: 1, height: 2 }));
+document.querySelector('#edit')?.addEventListener('click', edit);
+document.querySelector('#png')?.addEventListener('click', () => { void png(); });
+document.querySelector('#dispose')?.addEventListener('click', dispose);
 document.querySelector('#save')?.addEventListener('click', () => { void save(); });
 openInput.addEventListener('change', () => {
   const file = openInput.files?.[0]; if (!file) return;
   void file.text().then(openText).catch(error => show(`Open failed: ${error.code ?? 'ERROR'}`));
   openInput.value = '';
 });
-Object.assign(window, { __cropConsumer: { observe, setCrop, invalid, outOfBounds, save, openText,
+Object.assign(window, { __cropConsumer: { observe, setCrop, invalid, outOfBounds, save, openText, extract, edit, png, dispose, documentText, contexts,
+  asset: () => renderer.getImageAsset(sprite.data.imageId), original: () => atlas, tree: () => tree,
+  get renderer() { return renderer; },
   get canvas() { return canvas; }, blue, green, red, transparent } });
 show('Ready with red source cell');
