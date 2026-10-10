@@ -119,14 +119,14 @@
 .re-editor--workbench .re-gizmo-toolbar {position:absolute;left:6px;top:6px;z-index:4;display:flex;gap:4px;align-items:center;padding:3px;background:#222428e8;border:1px solid #41454a;border-radius:4px}
 .re-editor--workbench .re-gizmo-toolbar button {min-height:24px;padding:2px 6px;font-size:11px}
 .re-editor--workbench .re-gizmo-toolbar button[aria-pressed="true"] {background:#354862;color:#d9eaff;border-color:#6195d0}
-.re-editor--workbench .re-gizmo-handle {pointer-events:all;cursor:grab;color:#e86666;outline:none}
+.re-editor--workbench .re-gizmo-handle {pointer-events:none;cursor:grab;color:#e86666;outline:none}
 .re-editor--workbench .re-gizmo-axis-y {color:#81c86a}
 .re-editor--workbench .re-gizmo-axis-z {color:#6da5f5}
 .re-editor--workbench .re-gizmo-axis-uniform {color:#e8d48b}
-.re-editor--workbench .re-gizmo-line {fill:none;stroke:currentColor;stroke-width:2;filter:drop-shadow(0 1px 1px #000)}
+.re-editor--workbench .re-gizmo-line {pointer-events:none;fill:none;stroke:currentColor;stroke-width:2;filter:drop-shadow(0 1px 1px #000)}
 .re-editor--workbench .re-gizmo-hit {fill:none;stroke:transparent;stroke-width:18;pointer-events:stroke}
-.re-editor--workbench .re-gizmo-hit-anchor {fill:transparent;stroke:none}
-.re-editor--workbench .re-gizmo-anchor {fill:currentColor;stroke:#202226;stroke-width:1.5}
+.re-editor--workbench .re-gizmo-hit-anchor {fill:transparent;stroke:none;pointer-events:all}
+.re-editor--workbench .re-gizmo-anchor {pointer-events:none;fill:currentColor;stroke:#202226;stroke-width:1.5}
 .re-editor--workbench .re-gizmo-handle text {fill:currentColor;font-size:11px;font-weight:700;paint-order:stroke;stroke:#202226;stroke-width:3;pointer-events:none}
 .re-editor--workbench .re-gizmo-handle:focus .re-gizmo-line {stroke-width:4}
 .re-editor--workbench .re-gizmo-status {position:absolute;left:6px;bottom:6px;max-width:calc(100% - 100px);z-index:4;pointer-events:none;margin:0;padding:3px 5px;background:#222428dd;font-size:11px;color:#d7dbe2;border-radius:3px}
