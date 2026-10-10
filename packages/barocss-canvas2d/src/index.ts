@@ -78,3 +78,6 @@ export { compositeImageAssets } from './image-composite.js';
 
 export { trimImageAsset } from './image-trim.js';
 export type { TrimmedImageAsset } from './image-trim.js';
+
+export { padImageAsset } from './image-pad.js';
+export type { ImagePadding } from './image-pad.js';

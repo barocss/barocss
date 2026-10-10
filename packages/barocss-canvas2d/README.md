@@ -519,3 +519,9 @@ The existing [image source consumer](consumer/sprite-image-source.html) composes
 `trimImageAsset(asset)` returns `TrimmedImageAsset | null`. Nonempty results contain an independent cropped `asset` and source-pixel `offsetX`/`offsetY`. Bounds include every alpha byte greater than zero. Interior RGBA bytes, including hidden RGB in transparent holes, remain exact. Outside pixels and their hidden RGB are discarded. Fully transparent input returns `null` after one source copy. Full bounds still return independent output. The offsets do not change Sprite geometry automatically.
 
 Strict ordinary asset validation completes before copying. Malformed input throws `INVALID_ASSET`; valid input above 1 MiB throws `ASSET_LIMIT`. Dimensions are integers 1..4096. Source copy plus output use at most 2 MiB of typed pixel storage; an empty result uses only the source copy. No scratch image, DOM, GPU, DPR or automatic registration is used.
+
+### Transparent image padding
+
+`padImageAsset(asset, padding)` returns copied straight RGBA8 pixels with transparent zero RGBA margins. Both arguments are required. `ImagePadding` has exactly `top`, `right`, `bottom` and `left` integer fields in 0..4096. The source bytes, including RGB beneath zero alpha, remain exact at `(left, top)`. Zero margins also return independent pixels.
+
+The helper validates all asset and padding fields before allocation. Malformed values throw `INVALID_ASSET`. Valid input or output above 1 MiB, or derived dimensions above 4096, throw `ASSET_LIMIT`. The internal source copy and output use at most 2 MiB of typed pixel storage. The helper does not use DOM, GPU, DPR or registration.
