@@ -630,3 +630,48 @@ Hooks add `resetTreeSurfaceCurvature()`, `treeSurfaceCurvatureSnapshot()` and
 copied `treeSurfaceCurvatureReport`. DOM IDs: inspect-tree-surface-curvature,
 reset-tree-surface-curvature, tree-surface-curvature-output,
 tree-surface-curvature-label and tree-surface-curvature-help.
+
+
+## Capture two original Curve tangents
+
+Capture selected Curve tangent uses the current full source-qualified Curve
+ref and original tree t. Empty or completed state captures a new first tangent
+only after its self-pair D1 query succeeds. Select another Curve row and capture
+again to complete the pair. A regular same-tangent pair is valid zero degrees.
+The next capture starts a new first. Surface rows disable capture but retain
+the current valid first/pair. Changing the current row never substitutes a
+stored Curve or clears a valid capture merely because another row is selected.
+
+The unchanged native helper validates both complete Source0/five-object Models
+before two original Curve D1 evaluations. The angle follows native increasing-t
+directions and is unsigned0..180 degrees. It is not Edge-loop/Solid orientation,
+a Surface dihedral, chord angle or a global accuracy certificate. Tangent norm
+is mm per original numeric parameter, not physical velocity. No D2 requirement
+or synthetic derivative/solver is added.
+
+Captured source/full Face refs remain the content authority. If any referenced
+Source/Face/object becomes stale or absent, the dependent first/pair clears
+atomically. Unrelated edits, views/CSS, grid, color, order, Scene translation
+and filters retain the fixed native captures. Failed captures keep accepted
+state. Reset clears only this capture panel and labels. Other inspection panels
+keep their own existing selection/lifetime rules.
+
+Each captured endpoint label requires its full ref to be visible in the current
+filtered tree. The angle label is anchored at the first parameter point and
+hides when that first ref is filtered out. Output discloses hidden captures.
+Clearing filters restores available labels. Projection is approximate with
+occlusion not tested; retained Curves need not be separately rendered. Loss/
+unavailability hides all three labels while CPU capture and pair remeasurement
+remain available. Frame stays blocked. Clear/mode/Dispose clears authority.
+
+`queryQualifiedTreeTangentAngle(viewer,firstRef,firstT,secondRef,secondT)` requires
+both explicit finite native t values and returns copied
+`{version:0,first:{node,t},second:{node,t},measurement}`. The whole old D1/pin/
+norm/unit tangent/angle/anchor metadata is retained. `captureTreeTangent()`
+parses the current t draft only with zero arguments; explicit undefined/null
+refuses. `remeasureTreeTangentAngle()` uses the stored pair rather than the
+current row or draft. `resetTreeTangentAngle()`, `refreshTreeTangentAngle()`,
+`treeTangentAngleSnapshot()` and a copied `treeTangentAngleReport` getter expose
+caller state for bounded actual checks. DOM IDs: capture-tree-tangent,
+reset-tree-tangent-angle, tree-tangent-angle-output, tree-tangent-angle-help,
+tree-tangent-first-label, tree-tangent-second-label, tree-tangent-angle-label.
