@@ -365,3 +365,6 @@ export type { ExactSurfaceLowerTrimOptions, ExactSurfaceLowerTrimEdge, ExactSurf
 
 export { buildTranslatedSurfaceBaseFace, validateTranslatedSurfaceBaseFace, TranslatedSurfaceBaseFaceError, TranslatedSurfaceBaseFaceDiagnosticCode } from './translated-surface-base-face.js';
 export type { TranslatedSurfaceBaseFaceOptions, TranslatedSurfaceBaseFaceEdge, TranslatedSurfaceBaseFaceReport, TranslatedSurfaceBaseFaceResult } from './translated-surface-base-face.js';
+
+export { measureTranslatedSurfaceStripVolume, validateTranslatedSurfaceStripVolume, TranslatedSurfaceStripVolumeError, TranslatedSurfaceStripVolumeDiagnosticCode } from './translated-surface-strip-volume.js';
+export type { TranslatedSurfaceStripVolumeOptions, TranslatedSurfaceStripVolumeSpan, TranslatedSurfaceStripVolumeReport, TranslatedSurfaceStripVolumeResult } from './translated-surface-strip-volume.js';

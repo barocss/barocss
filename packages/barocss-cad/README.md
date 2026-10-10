@@ -8971,3 +8971,56 @@ Options contain `evaluationId`, `resultIdPrefix`, `baseLeftCurveId`, `baseRightC
 The actual reverse loop is leftF/upperF/rightR/lowerR. Exact original translation, copied ruled coefficients and zero boundary residuals prove this individual base Face is an embedded disk. Its oriented normal has negative Z; exact normal and Gram lower bounds apply per smooth patch and one-sided endpoints. Native C0 derivative refusals and local floating observations remain separate. `validateTranslatedSurfaceBaseFace(result)` rebuilds both parents, native constructor, source, geometry, all proofs and observations, then compares every field with `Object.is` semantics.
 
 The recorded wall relationships prove unchanged Curve geometry and opposite Uses. Generated Edge IDs remain distinct; these results do not sew topology or certify a Body, Solid, occupied volume, outward Solid orientation, Boolean, global floating accuracy or manufacturing. One through four original spans produce at most40 new observation slots. Root arithmetic and ownership caps are explicit; valid geometry can still exhaust them. Run `node examples/cad-nurbs/translated-surface-base-face-demo.mjs --source <new-output-directory>` after the affected CAD build for the original-source, independent fraction proof, edit, file, cold, owned and compiled-public flow. Execution status is recorded separately at the exact native checkpoint.
+
+
+### Exact volume of a source-defined translated Surface strip — #1287
+
+`measureTranslatedSurfaceStripVolume(lowerWall, upperWall, cap, options)`
+measures the actual region defined by the original lower Surface, its stored
+exact cut UV graph and a positive exact Y translation. The two complete walls
+and the paired Plane cap are required. Their canonical orientations are lower
+forward, upper reverse and cap forward. The result retains all three parents.
+
+```ts
+const volume = cad.measureTranslatedSurfaceStripVolume(lowerWall, upperWall, cap, {
+  evaluationId: 'strip_volume', maximumParents: 3, maximumObservations: 17,
+});
+console.log(volume.total.volumeMM3, volume.total.exactVolumeMM3);
+cad.validateTranslatedSurfaceStripVolume(volume);
+```
+
+The region map is `B(u,v,w)=S_lower(u,v)+[0,h*w,0]`. Native U covers the
+original domain. Native V covers its minimum through the actual stored roof
+`Vcut(u)`. Extrusion W covers `[0,1]`. Strictly positive original X(U) and
+Z(V) derivatives make this map injective, even when Y is warped. Every original
+upper Cartesian pole must differ by exactly `[0,h,0]`. Matching bases, weight
+bits, complete Plane context and exact stored UV geometry are required.
+
+Each span integrates `h*ZDerivative*XDerivative*(Vcut-Vmin)` with exact
+Bernstein products of degree at most 3. The result retains every coefficient,
+integral and reduced fraction. Only the positive total volume is rounded to
+nearest-even binary64. Its exact absolute conversion error and least upward
+bound are retained. A positive total that rounds to zero or overflows is refused.
+
+Actual stored UV D0 gives each observation's native U. Both original Surfaces
+supply D0 and D1 at this U and native V minimum. Exact C0 D1 refusal remains
+explicit. Local floating height and native Jacobians are observations. They do
+not control admission or integration. The maximum relative Jacobian gap remains
+an exact fraction, so no extra float conversion is needed.
+
+This certifies the geometric volume of the named source-defined region. Native
+Body topology, shared sewn Edges, manifold, Solid, outward material, density,
+mass, inertia, manufacturing tolerance and global floating evaluator error remain
+separate. The parents' certificates and flags remain unchanged.
+
+```sh
+node examples/cad-nurbs/translated-surface-strip-volume-demo.mjs --source EVIDENCE_DIR
+```
+
+The bounded source/file/public flow covers warped and linear Y, nonuniform U,
+wide native V, one span, uniform half weights and an original source edit.
+Physical X from 0 to 40, roof Z `2+x/16` and h4 gives 520 mm3. A one-span X
+range from 0 to 10 gives 92.5 mm3. A real upper-source Y edit to h5 gives
+650 mm3. Full owned validation rebuilds parents, coefficients, integrals, final
+conversion and native observations. Atomic refusals preserve caller data and
+accepted files. Base and end Face construction remains independent.
