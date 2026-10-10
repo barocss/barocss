@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Box, ChevronRight, Crosshair, Download, Expand, FolderOpen, Layers3, Maximize, MousePointer2, PanelLeftClose, PanelRightClose, Redo2, Shrink, Spline, Undo2 } from 'lucide-react';
-import { parseCadDocument } from '@barocss/cad';
-import { CadEditorError, createCadEditorSession, type CadEditorExportResult, type CadEditorGeometryAnalysisResult, type CadEditorCurveLength, type CadEditorView } from '@barocss/cad-editor';
+import { parseCadDocument, resolveCadGeometryReference } from '@barocss/cad';
+import { CadEditorError, createCadEditorSession, type CadEditorExportResult, type CadEditorGeometryAnalysisResult, type CadEditorCurveLength, type CadEditorView, type CadEditorSnapshot, type CadEditorEditTarget } from '@barocss/cad-editor';
 import { CadEditor, CadEditorExportReview, useCadEditorSnapshot, type CadEditorDisplayOptions, type CadEditorDisplayReceipt, type CadEditorCurveFocusReceipt } from '@barocss/cad-editor/react';
 import fixtureText from '../fixtures/canonical-surface-and-curve.cad-document.json?raw';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './components/ui/dialog';
@@ -9,6 +9,7 @@ import { Button } from './components/ui/button';
 import { Menubar, MenubarCheckboxItem, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from './components/ui/menubar';
 import {useWorkspaceLayout} from './workspace-layout';
 import {WorkspacePanelDivider} from './panel-divider';
+import {CadCommandPalette,type CommandId,type PaletteCommand} from './command-palette';
 import { downloadAccepted, downloadReviewedExport, readCadEditorFile } from './file-actions';
 import { FeatureApp } from './feature-app';
 import { ReplacementDialog } from './replacement-dialog';
@@ -290,6 +291,61 @@ function DirectApp() {
     '--cad-objects-width':layout.objectsWidth===null?undefined:layout.objectsWidth+'px',
     '--cad-properties-width':layout.propertiesWidth===null?undefined:layout.propertiesWidth+'px',
   } as CSSProperties;
+  function commandBlocked(){
+    const current=session.getSnapshot();
+    return current.candidate!==null||current.selectionTransition!==null||current.disposed||projectView||!mount||layout.resizing
+      ||replacement!==null||openChoice!==null||recoveryOpen||replacementAttempt.current||replacementBusy||recoveryChecking
+      ||recoveryMutation.current||recoveryCommitRef.current!==null;
+  }
+  function commandReady(current:CadEditorSnapshot=session.getSnapshot()){
+    return current.view.kind==='curve-focus'?curveDisplay?.state.status==='ready'&&curveDisplay.generation===current.generation
+      &&curveDisplay.displayGeneration===current.displayGeneration:receipt?.state.status==='ready'
+      &&JSON.stringify(receipt.state.document)===JSON.stringify(current.accepted);
+  }
+  function commandAvailable(id:CommandId,current:CadEditorSnapshot=session.getSnapshot()):boolean {
+    if(commandBlocked()||!commandReady(current))return false;
+    if(id==='objects'||id==='properties')return !layout.focused;
+    if(id==='focus'||id==='fit-document')return true;
+    if(id==='fit-selected')return current.selectedBodyId!==null&&(current.view.kind==='curve-focus'
+      ?current.view.bodyId===current.selectedBodyId&&curveDisplay?.reference.bodyId===current.selectedBodyId
+      :current.displayBodyIds.includes(current.selectedBodyId)&&receipt?.state.documentBodies.some(body=>body.binding.bodyId===current.selectedBodyId)===true);
+    if(Object.keys(current.pending).length)return false;
+    const cap=current.bodyCapabilities.find(body=>body.bodyId===current.selectedBodyId);
+    const supported=id==='object'?cap?.canTranslateBody:id==='rotation'?cap?.canRotateBody:id==='scale'?cap?.canScaleBody
+      :current.view.kind==='document'?cap?.canEditSurfacePole:cap?.canEditCurvePole;
+    if(!supported)return false;
+    try {
+      if(current.view.kind==='document'&&current.selection&&current.selection.bodyId===current.selectedBodyId
+        &&current.displayBodyIds.includes(current.selection.bodyId)
+        &&receipt?.state.documentBodies.some(body=>body.binding.bodyId===current.selection?.bodyId&&body.ref.kind==='surface'))
+        return resolveCadGeometryReference(current.accepted,current.selection.reference).geometry.kind==='surface';
+      if(current.view.kind==='curve-focus'&&current.curveSelection&&current.view.bodyId===current.curveSelection.bodyId
+        &&current.curveSelection.bodyId===current.selectedBodyId&&curveDisplay
+        &&JSON.stringify(curveDisplay.reference)===JSON.stringify(current.curveSelection.reference)){
+        const resolved=resolveCadGeometryReference(current.accepted,current.curveSelection.reference);
+        return resolved.geometry.kind==='curve'&&resolved.source===curveDisplay.preview.source;
+      }
+    }catch{return false;}
+    return false;
+  }
+  function executeCommand(id:CommandId){
+    if(!commandAvailable(id))return;
+    if(id==='fit-document')setFitRequest(value=>value+1);
+    else if(id==='fit-selected')setFitSelectedRequest(value=>value+1);
+    else if(id==='objects')layout.toggleObjects();
+    else if(id==='properties')layout.toggleProperties();
+    else if(id==='focus')layout.toggleFocus();
+    else run(()=>session.setEditTarget(id as CadEditorEditTarget));
+  }
+  const paletteCommands:PaletteCommand[]=[
+    {id:'pole',name:'Control point',shortcut:'Q'}, {id:'object',name:'Move object',shortcut:'W'},
+    {id:'rotation',name:'Rotate object',shortcut:'E'}, {id:'scale',name:'Scale object',shortcut:'R'},
+    {id:'fit-document',name:'Fit document'}, {id:'fit-selected',name:'Fit selected'},
+    {id:'objects',name:'Objects',status:layout.objectsVisible?'Shown':'Hidden'},
+    {id:'properties',name:'Properties',status:layout.propertiesVisible?'Shown':'Hidden'},
+    {id:'focus',name:layout.focused?'Restore panels':'Canvas focus',shortcut:'F8'},
+  ].map(command=>({...command,id:command.id as CommandId,disabled:!commandAvailable(command.id as CommandId,snapshot),
+    status:command.id===snapshot.editTarget?'Current':command.status}));
 
   return <div ref={appRoot} className="cad-app cad-direct-app" data-objects-visible={layout.objectsVisible}
     data-properties-visible={layout.propertiesVisible} data-canvas-focused={layout.focused} data-panel-resizing={layout.resizing}
@@ -319,7 +375,7 @@ function DirectApp() {
         </MenubarContent></MenubarMenu>
       </Menubar>
       <span className="document-title" title={filename}>{filename}<span className="dirty-dot" aria-label={effectiveUnsaved ? 'Unsaved accepted changes' : 'Accepted content unchanged'}>{effectiveUnsaved ? ' •' : ''}</span></span>
-
+      <CadCommandPalette root={appRoot} commands={paletteCommands} blocked={commandBlocked} ready={commandReady} available={commandAvailable} execute={executeCommand}/>
       <Button ref={openButton} data-testid="document-open" variant="outline" size="sm" onClick={chooseOpenFile} disabled={modelBusy}><FolderOpen/>Open</Button>
       <Button size="sm" disabled={layout.resizing} onClick={() => run(downloadCurrent)}><Download/>Download</Button>
       <input ref={fileInput} type="file" accept=".json,.cad-document.json" aria-label="Open native document file" className="file-input" onChange={event => { void openFile(event.target.files?.[0]); event.target.value = ''; }}/>
