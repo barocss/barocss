@@ -18,6 +18,26 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <button id="resize" disabled>Resize view</button><button id="clear" disabled>Clear viewer</button><button id="run-proof" disabled>Run proof</button>
 <button id="lose-context" disabled>Lose context</button><button id="dispose" disabled>Dispose viewer</button>
 <pre id="inspection" aria-label="Read-only original source and Face inspection">Inspect an admitted source from its row.</pre>
+<section aria-label="Qualified native point measurement">
+<h2>Measure two original native points</h2>
+<fieldset><legend>First point</legend>
+<label>Source <select id="measure-first-source" aria-label="First source" disabled></select></label>
+<label>Geometry <select id="measure-first-geometry" aria-label="First geometry" disabled></select></label>
+<label id="measure-first-u-label">U <input id="measure-first-u" aria-label="First U" type="text" inputmode="decimal" value="0.5" disabled></label>
+<label id="measure-first-v-label">V <input id="measure-first-v" aria-label="First V" type="text" inputmode="decimal" value="0.5" disabled></label>
+<label id="measure-first-t-label" hidden>t <input id="measure-first-t" aria-label="First t" type="text" inputmode="decimal" value="0.5" disabled></label>
+</fieldset>
+<fieldset><legend>Second point</legend>
+<label>Source <select id="measure-second-source" aria-label="Second source" disabled></select></label>
+<label>Geometry <select id="measure-second-geometry" aria-label="Second geometry" disabled></select></label>
+<label id="measure-second-u-label">U <input id="measure-second-u" aria-label="Second U" type="text" inputmode="decimal" value="0.5" disabled></label>
+<label id="measure-second-v-label">V <input id="measure-second-v" aria-label="Second V" type="text" inputmode="decimal" value="0.5" disabled></label>
+<label id="measure-second-t-label" hidden>t <input id="measure-second-t" aria-label="Second t" type="text" inputmode="decimal" value="0.5" disabled></label>
+</fieldset>
+<button id="measure-points" disabled>Measure native points</button>
+<p>Read-only straight chord: original native mm and current scene units. This is not an arc length or a certified measurement.</p>
+<pre id="measurement-output" aria-label="Read-only native mm and scene-unit measurement"></pre>
+</section>
 </div><aside><h2>Current source-qualified Faces</h2><ul id="assets"></ul></aside></div>
 <p>Row inspection is read-only source data. Combined fit, picking, selection and extra layers are unavailable.</p>
 <pre id="status" role="status" aria-live="polite">Loading original Face assets…</pre><script type="module" src="/bundle.js"></script></body></html>

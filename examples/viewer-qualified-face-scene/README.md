@@ -38,6 +38,16 @@ Successful scene replacement/Clear/Dispose clears it; failed candidates and
 camera/resize preserve it. The host has no combined fit, legacy native metric,
 picking/selection/motion/material/particle/cloth controls in this first profile.
 
+The two point controls measure a source-qualified original Face Surface or
+retained Curve through `measureQualifiedFacePoints`. Each point pins the current
+sourceId, exact source text, Face/model/geometry IDs and original U/V or t.
+The read-only result labels native points/distances in mm and converted points/
+distances in scene units. It is a straight chord, not arc length or a certified
+measurement. Source replacement/Clear/Dispose clears the report after success;
+failure keeps it. Camera/resize leaves the report intact. Retained CPU sources
+keep the Measure action enabled after context loss or presentation unavailability.
+The existing source inspection remains separate; no highlight or overlay is added.
+
 With Node22, ordinary development uses public package names through normal
 source-default exports without aliases or custom conditions:
 
@@ -79,6 +89,11 @@ draw order under strict LESS; whole-frame hash equality is not promised.
 original requests/source files/raw bytes/manifest, `candidate(overrides)`,
 `load`, `inspect`, `render`, native upload `witness`, `pixelInfo`, global seven
 resource counters/readbacks/errors, allocation hooks and `dispose`.
+`measurementInput(sourceId,geometryId,params)` creates the current exact pin;
+`measure(first,second)` calls the public CPU query and displays its result.
+The `measurementReport` getter returns an independent copy. The physical
+Measure button is `#measure-points`; First/Second source/geometry/U/V/t labels
+identify the two sets of controls.
 Public CAD `tessellateSurface`, `validateFaceBundle`, original evaluation, GPU
 `prepareCamera`/qualified scene and renderer APIs, mixed/uniform/Shell providers,
 Assembly/Model-set/document Loader and Physics cloth creation are available for
