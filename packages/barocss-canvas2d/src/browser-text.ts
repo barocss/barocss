@@ -22,6 +22,28 @@ export type BrowserTextRaster = {
   bounds: { left: number; top: number; width: number; height: number };
 };
 
+export type BrowserMultilineTextOptions = {
+  text: string;
+  font: string;
+  atlasId: string;
+  /** Positive logical distance between adjacent alphabetic baselines. */
+  lineAdvance: number;
+  dpr?: number;
+};
+
+export type BrowserMultilineTextLine = {
+  /** UTF-16 offsets in the original text, excluding the separating LF. */
+  textStart: number;
+  textEnd: number;
+  baseline: number;
+  advance: number;
+};
+
+export type BrowserMultilineTextRaster = BrowserTextRaster & {
+  lineAdvance: number;
+  lines: BrowserMultilineTextLine[];
+};
+
 function invalid(message: string): never {
   throw new Canvas2DError('INVALID_SCENE', message);
 }
@@ -70,15 +92,63 @@ function optionsOf(value: unknown): Required<BrowserTextOptions> {
   return { text, font, dpr, textPolicy, atlasId: validateImageAssetId(fields.atlasId.value) };
 }
 
+function multilineOptionsOf(value: unknown): Required<BrowserTextOptions> & { lineAdvance: number } {
+  if (!value || typeof value !== 'object' || Array.isArray(value) ||
+      Object.getPrototypeOf(value) !== Object.prototype) {
+    invalid('browser multiline text options must be an ordinary data record');
+  }
+  const fields = Object.getOwnPropertyDescriptors(value);
+  for (const key of Reflect.ownKeys(fields)) {
+    if (typeof key !== 'string' || !['text', 'font', 'atlasId', 'dpr', 'lineAdvance'].includes(key)) {
+      invalid('browser multiline text options contain an unknown field');
+    }
+    if (!fields[key].enumerable || !('value' in fields[key])) invalid('browser multiline text options require data fields');
+  }
+  for (const key of ['text', 'font', 'atlasId', 'lineAdvance']) {
+    if (!Object.hasOwn(fields, key)) invalid(`browser multiline text options require ${key}`);
+  }
+  const text: unknown = fields.text.value, font: unknown = fields.font.value;
+  const dpr: unknown = Object.hasOwn(fields, 'dpr') ? fields.dpr.value : 1;
+  const lineAdvance: unknown = fields.lineAdvance.value;
+  if (typeof text !== 'string' || text.length < 1 || text.length > 128) {
+    invalid('browser multiline text requires 1..128 characters including LF');
+  }
+  const lines = text.split('\n');
+  if (lines.length > 4 || lines.some(line => !/^[\x20-\x7E]+$/.test(line) || !/[^ ]/.test(line))) {
+    invalid('browser multiline text requires 1..4 printable ASCII lines with ink');
+  }
+  if (typeof font !== 'string' || font.trim().length === 0 || font.length > 256 || /[\r\n\0]/.test(font)) {
+    invalid('browser text font must be a nonempty CSS declaration of at most 256 characters');
+  }
+  if (typeof dpr !== 'number' || !Number.isFinite(dpr) || dpr < 1 || dpr > 4) {
+    invalid('browser text DPR must be finite and within 1..4');
+  }
+  if (typeof lineAdvance !== 'number' || !Number.isFinite(lineAdvance) || lineAdvance <= 0 ||
+      lineAdvance > 1e6 || (lines.length - 1) * lineAdvance > 1e6) {
+    invalid('browser multiline baseline advance must be positive within finite coordinate limits');
+  }
+  return { text, font, dpr, lineAdvance, textPolicy: 'printable-ascii', atlasId: validateImageAssetId(fields.atlasId.value) };
+}
+
 /** Prepare owned raster data. The host must prepare fonts before this call. */
 export function rasterizeBrowserText(options: BrowserTextOptions): BrowserTextRaster {
-  const input = optionsOf(options);
+  return rasterize(optionsOf(options));
+}
+
+/** Prepare one copied whole-label atlas from explicit LF-separated lines.
+ * The host prepares fonts. Overlapping lines use source-over in text order. */
+export function rasterizeBrowserMultilineText(options: BrowserMultilineTextOptions): BrowserMultilineTextRaster {
+  return rasterize(multilineOptionsOf(options)) as BrowserMultilineTextRaster;
+}
+
+function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number }): BrowserTextRaster | BrowserMultilineTextRaster {
   if (typeof document === 'undefined' || typeof document.createElement !== 'function' ||
       !document.fonts || typeof document.fonts.check !== 'function') {
     throw new Canvas2DError('UNSUPPORTED_FEATURE', 'browser text and font APIs are unavailable');
   }
+  let canvas: HTMLCanvasElement | undefined;
   try {
-    const canvas = document.createElement('canvas');
+    canvas = document.createElement('canvas');
     if (typeof canvas.getContext !== 'function') {
       throw new Canvas2DError('UNSUPPORTED_FEATURE', 'scratch canvas API is unavailable');
     }
@@ -116,16 +186,26 @@ export function rasterizeBrowserText(options: BrowserTextOptions): BrowserTextRa
       if ('wordSpacing' in context!) context!.wordSpacing = '0px';
     }
     configure();
-    const measured = context.measureText(input.text);
-    const values = [measured.width, measured.actualBoundingBoxLeft, measured.actualBoundingBoxRight,
-      measured.actualBoundingBoxAscent, measured.actualBoundingBoxDescent];
-    if (!values.every(value => Number.isFinite(value) && Math.abs(value) <= 1e6) || measured.width < 0) {
-      throw new Canvas2DError('INVALID_ASSET', 'browser text metrics are outside finite coordinate limits');
+    const texts = input.lineAdvance === undefined ? [input.text] : input.text.split('\n');
+    const lines: BrowserMultilineTextLine[] = [];
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, advance = 0, textStart = 0;
+    for (const [index, text] of texts.entries()) {
+      const measured = context.measureText(text);
+      const values = [measured.width, measured.actualBoundingBoxLeft, measured.actualBoundingBoxRight,
+        measured.actualBoundingBoxAscent, measured.actualBoundingBoxDescent];
+      const baseline = index * (input.lineAdvance ?? 0);
+      const inkTop = baseline - measured.actualBoundingBoxAscent, inkBottom = baseline + measured.actualBoundingBoxDescent;
+      if (!values.every(value => Number.isFinite(value) && Math.abs(value) <= 1e6) || measured.width < 0 ||
+          ![inkTop, inkBottom].every(value => Number.isFinite(value) && Math.abs(value) <= 1e6)) {
+        throw new Canvas2DError('INVALID_ASSET', 'browser text metrics are outside finite coordinate limits');
+      }
+      minX = Math.min(minX, -measured.actualBoundingBoxLeft); maxX = Math.max(maxX, measured.actualBoundingBoxRight);
+      minY = Math.min(minY, inkTop); maxY = Math.max(maxY, inkBottom); advance = Math.max(advance, measured.width);
+      lines.push({ textStart, textEnd: textStart + text.length, baseline, advance: measured.width });
+      textStart += text.length + 1;
     }
-    const left = Math.floor(-measured.actualBoundingBoxLeft) - 2;
-    const right = Math.ceil(measured.actualBoundingBoxRight) + 2;
-    const top = Math.floor(-measured.actualBoundingBoxAscent) - 2;
-    const bottom = Math.ceil(measured.actualBoundingBoxDescent) + 2;
+    const left = Math.floor(minX) - 2, right = Math.ceil(maxX) + 2;
+    const top = Math.floor(minY) - 2, bottom = Math.ceil(maxY) + 2;
     const width = Math.ceil((right - left) * input.dpr);
     const height = Math.ceil((bottom - top) * input.dpr);
     if (![left, right, top, bottom].every(value => Math.abs(value) <= 1e6) ||
@@ -139,7 +219,7 @@ export function rasterizeBrowserText(options: BrowserTextOptions): BrowserTextRa
     canvas.height = height;
     configure();
     context.scale(input.dpr, input.dpr);
-    context.fillText(input.text, -left, -top);
+    for (const [index, text] of texts.entries()) context.fillText(text, -left, lines[index].baseline - top);
     const data: unknown = context.getImageData(0, 0, width, height).data;
     if (!(data instanceof Uint8ClampedArray || data instanceof Uint8Array) || data.length !== width * height * 4) {
       throw new Canvas2DError('INVALID_ASSET', 'browser text readback has an invalid RGBA8 extent');
@@ -151,12 +231,18 @@ export function rasterizeBrowserText(options: BrowserTextOptions): BrowserTextRa
     }
     if (!hasInk) throw new Canvas2DError('INVALID_ASSET', 'browser text raster has no ink');
     const bounds = { left, top, width: width / input.dpr, height: height / input.dpr };
-    return { asset: { width, height, pixels }, font, dpr: input.dpr, advance: measured.width,
+    const result: BrowserTextRaster = { asset: { width, height, pixels }, font, dpr: input.dpr, advance: input.lineAdvance === undefined ? lines[0].advance : advance,
       bounds, layout: { atlasId: input.atlasId, text: input.text, baseline: 0, opacity: 1, sampling: 'nearest',
         glyphs: [{ sourceRect: { x: 0, y: 0, width, height }, x: left, y: top,
           width: bounds.width, height: bounds.height, textStart: 0, textEnd: input.text.length }] } };
+    return input.lineAdvance === undefined ? result : { ...result, lineAdvance: input.lineAdvance, lines };
   } catch (error) {
     if (error instanceof Canvas2DError) throw error;
     throw new Canvas2DError('INVALID_ASSET', 'browser could not allocate, measure, draw or read text');
+  } finally {
+    if (input.lineAdvance !== undefined && canvas) {
+      // Release the rejected or copied composite backing without hiding its error.
+      try { canvas.width = 0; canvas.height = 0; } catch { /* No owned renderer was allocated. */ }
+    }
   }
 }

@@ -50,7 +50,7 @@ export type { SceneV26, NodeV26, GroupNodeV26, FrameNodeV26 } from './schema.js'
 
 export type { SceneV27, NodeV27, GroupNodeV27, FrameNodeV27, ImageNodeV27, SpriteRGBMatrix } from './schema.js';
 
-export { rasterizeBrowserText } from './browser-text.js';
-export type { BrowserTextOptions, BrowserTextRaster, BrowserTextPolicy } from './browser-text.js';
+export { rasterizeBrowserText, rasterizeBrowserMultilineText } from './browser-text.js';
+export type { BrowserTextOptions, BrowserTextRaster, BrowserTextPolicy, BrowserMultilineTextOptions, BrowserMultilineTextRaster, BrowserMultilineTextLine } from './browser-text.js';
 
 export type { SceneV28, NodeV28, GroupNodeV28, FrameNodeV28, ImageNodeV28 } from './schema.js';
