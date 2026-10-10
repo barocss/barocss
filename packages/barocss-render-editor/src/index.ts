@@ -22,3 +22,6 @@ export type {RenderSceneGizmoMode, RenderSceneGizmoAxis, RenderSceneGizmoKey, Re
 
 export {validateRenderSceneAnimationClip, sampleRenderSceneAnimationSource} from './source-animation.js';
 export type {RenderSceneAnimationKeyV0, RenderSceneAnimationTrackV0, RenderSceneAnimationClipV0} from './source-animation.js';
+
+export {deriveRenderSceneFramingCamera} from './scene-framing.js';
+export type {RenderSceneFramingViewport} from './scene-framing.js';
