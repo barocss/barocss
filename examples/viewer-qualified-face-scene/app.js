@@ -3,10 +3,11 @@ import {prepareQualifiedFaceScene,QualifiedFaceSceneRenderer,MixedDepthRenderer,
   prepareUniformCurvePreview,prepareSelectedUniformCurvePreview,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer} from '@barocss/gpu';
 import {compileCadModel,validateFaceBundle,tessellateSurface,evaluateSurface,evaluateCurve,curveDomain,parseBooleanExtrusionFeatureGraph,
   createCadDocument,createCadGeometryReference,queryCadDocumentSurfaceArea,validateCadDocumentSurfaceArea,
-  queryCadDocumentCurveArcLength,validateCadDocumentCurveArcLength} from '@barocss/cad';
+  queryCadDocumentCurveArcLength,validateCadDocumentCurveArcLength,evaluateCurveCurvature,evaluateCurveD2} from '@barocss/cad';
 import {AREA_OPTIONS,areaPin,queryQualifiedFaceSurfaceArea} from './surface-area.js';
 import {LENGTH_OPTIONS,lengthPin,queryQualifiedFaceCurveLength} from './curve-length.js';
 import {queryQualifiedFaceAngle} from './native-angle.js';
+import {curvaturePin,queryQualifiedFaceCurveCurvature} from './curve-curvature.js';
 import {parseBaroCadSource} from '@barocss/cad-interop/native';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2} from '@barocss/cad-interop/document';
@@ -29,6 +30,8 @@ const areaLabel=document.querySelector('#surface-area-label'),areaFormat=new Int
 const lengthSource=document.querySelector('#length-source'),lengthCurve=document.querySelector('#length-curve'),inspectLengthButton=document.querySelector('#inspect-length');
 const lengthOutput=document.querySelector('#length-output'),lengthLabel=document.querySelector('#curve-length-label');
 const angleButton=document.querySelector('#measure-angle'),angleOutput=document.querySelector('#angle-output'),angleLabel=document.querySelector('#native-angle-label');
+const curvatureSource=document.querySelector('#curvature-source'),curvatureCurve=document.querySelector('#curvature-curve'),curvatureT=document.querySelector('#curvature-t');
+const inspectCurvatureButton=document.querySelector('#inspect-curvature'),curvatureOutput=document.querySelector('#curvature-output'),curvatureLabel=document.querySelector('#curve-curvature-label');
 const angleControls=['first','vertex','third'].map(point=>({side:'angle-'+point,
   source:document.querySelector('#angle-'+point+'-source'),geometry:document.querySelector('#angle-'+point+'-geometry'),
   u:document.querySelector('#angle-'+point+'-u'),v:document.querySelector('#angle-'+point+'-v'),t:document.querySelector('#angle-'+point+'-t')}));
@@ -61,6 +64,7 @@ let labelPins=null,currentProjections=[null,null],labelResizeObserver=null;
 let areaReport=null,areaProjection=null;
 let lengthReport=null,lengthProjection=null;
 let angleReport=null,angleProjection=null;
+let curvatureReport=null,curvatureProjection=null;
 const colors=[[.9,.3,.2],[.25,.8,.4],[.25,.45,.95],[.95,.7,.2],[.3,.8,.9],[.85,.35,.75]];
 const camera={eye:[2,1.5,3.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:10},mmToSceneUnit=.12,background=[.02,.03,.04],translateScene=[-.6,-.6,-.7];
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
@@ -68,6 +72,45 @@ const glErrors=()=>[...contexts].map(gl=>gl.getError());
 const pixelInfo=()=>({hash:hash(viewer.readPixels())});
 const display=value=>status.textContent=typeof value==='string'?value:JSON.stringify(value,null,2);
 function clearInspection(){inspectionReport=null;inspection.textContent='';}
+function clearCurvature(){curvatureReport=null;curvatureProjection=null;curvatureOutput.textContent='';curvatureLabel.hidden=true;}
+function curvatureScopeChanged(scene){if(!curvatureReport)return false;const pin=curvatureReport.pin,asset=scene?.assets.find(value=>value.sourceId===pin.sourceId);
+  return !asset||asset.source!==pin.expectedSource||asset.face.topology.face.id!==pin.faceId||asset.face.geometry.name!==pin.modelId
+    ||!asset.face.geometry.objects.some(object=>object.id===pin.curveId&&object.kind==='curve');}
+function updateCurvatureLabel(){if(!viewer||disposed||!curvatureReport){curvatureProjection=null;curvatureLabel.hidden=true;return;}
+  const state=viewer.getState();if(curvatureScopeChanged(state.qualifiedFaceScene)){clearCurvature();return;}
+  if(state.status!=='ready'){curvatureProjection=null;curvatureLabel.hidden=true;return;}
+  try{curvatureProjection=viewer.projectQualifiedFacePoint(curvatureReport.anchor);}catch{curvatureProjection=null;}
+  curvatureLabel.hidden=!curvatureProjection;if(!curvatureProjection)return;
+  const radius=curvatureReport.curvature.radiusMM;
+  curvatureLabel.textContent=curvatureReport.pin.sourceId+'/'+curvatureReport.pin.curveId+' · '
+    +(radius===null?'straight · no finite radius':'radius '+distanceFormat.format(radius)+' mm');
+  curvatureLabel.style.left=curvatureProjection.xCss+'px';curvatureLabel.style.top=curvatureProjection.yCss+'px';
+}
+function renderCurvatureControls(scene){const previousSource=curvatureSource.value,previousCurve=curvatureCurve.value;
+  curvatureSource.replaceChildren(...(scene?.assets??[]).map(asset=>{const option=document.createElement('option');option.value=asset.sourceId;option.textContent=asset.sourceId;return option;}));
+  if(scene?.assets.some(asset=>asset.sourceId===previousSource))curvatureSource.value=previousSource;
+  else if(scene?.assets.some(asset=>asset.sourceId==='F'))curvatureSource.value='F';
+  const asset=scene?.assets.find(value=>value.sourceId===curvatureSource.value);
+  curvatureCurve.replaceChildren(...(asset?.face.geometry.objects??[]).filter(object=>object.kind==='curve').map(curve=>{
+    const option=document.createElement('option');option.value=curve.id;option.textContent=curve.id;return option;}));
+  if([...curvatureCurve.options].some(option=>option.value===previousCurve))curvatureCurve.value=previousCurve;
+  else if([...curvatureCurve.options].some(option=>option.value==='c2'))curvatureCurve.value='c2';
+  const enabled=!disposed&&!running&&!!scene&&curvatureCurve.options.length>0;
+  for(const control of[curvatureSource,curvatureCurve,curvatureT,inspectCurvatureButton])control.disabled=!enabled;
+}
+function curvatureParameter(){const text=curvatureT.value.trim(),value=Number(text);
+  check(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text)&&Number.isFinite(value),'Curvature t must be a complete finite decimal.');return value;}
+function inspectCurvature(pin=curvaturePin(viewer.getState().qualifiedFaceScene,curvatureSource.value,curvatureCurve.value,curvatureParameter())){
+  const next=queryQualifiedFaceCurveCurvature(viewer.getState().qualifiedFaceScene,pin);curvatureReport=clone(next);
+  const curvature=next.curvature;
+  curvatureOutput.textContent=next.pin.sourceId+'/'+next.pin.curveId+' · t '+areaNumber(next.pin.t)+' · '
+    +(curvature.radiusMM===null?'regular straight point · no finite radius · curvature 0 1/mm'
+      :'local radius '+areaNumber(curvature.radiusMM)+' mm · curvature '+areaNumber(curvature.curvaturePerMM)+' 1/mm');
+  updateCurvatureLabel();display('Original Curve curvature ready for '+next.pin.sourceId+'/'+next.pin.curveId+'.');return clone(next);
+}
+function curvatureSnapshot(){return{sourceId:curvatureSource.value,curveId:curvatureCurve.value,t:curvatureT.value,enabled:!inspectCurvatureButton.disabled,
+  output:curvatureOutput.textContent,report:clone(curvatureReport),projection:clone(curvatureProjection),label:{visible:!curvatureLabel.hidden,
+    text:curvatureLabel.hidden?null:curvatureLabel.textContent,xCss:curvatureLabel.hidden?null:Number.parseFloat(curvatureLabel.style.left),yCss:curvatureLabel.hidden?null:Number.parseFloat(curvatureLabel.style.top)}};}
 function clearAngle(){angleReport=null;angleProjection=null;angleOutput.textContent='';angleLabel.hidden=true;}
 function angleScopeChanged(scene){return angleReport&&[angleReport.first,angleReport.vertex,angleReport.third].some(point=>{
   const asset=scene?.assets.find(value=>value.sourceId===point.sourceId);
@@ -230,6 +273,7 @@ function render(){const state=viewer.getState(),scene=state.qualifiedFaceScene,a
   if(areaScopeChanged(scene))clearArea();
   if(lengthScopeChanged(scene))clearLength();
   if(angleScopeChanged(scene))clearAngle();
+  if(curvatureScopeChanged(scene))clearCurvature();
   for(const[id,button]of Object.entries(buttons))button.disabled=id==='dispose'?disposed:!available||running;
   for(const control of[assetCount,countU,countV,colorAsset,colorInput])control.disabled=!available||running;
   if(scene){assetCount.value=String(scene.assets.length);countU.value=String(scene.countU);countV.value=String(scene.countV);}
@@ -245,6 +289,7 @@ function render(){const state=viewer.getState(),scene=state.qualifiedFaceScene,a
   renderAreaControls(scene);updateAreaLabel();
   renderLengthControls(scene);updateLengthLabel();
   renderAngleControls(scene);updateAngleLabel();
+  renderCurvatureControls(scene);updateCurvatureLabel();
 }
 function load(input=candidate()){uploads.length=0;draws.length=0;viewer.loadQualifiedFaceScene(input);clearInspection();clearMeasurement();render();return viewer.getState();}
 function action(callback){if(disposed)return;try{callback();render();}catch(error){render();display(error.message);}}
@@ -323,13 +368,13 @@ async function runProof(){if(running||disposed||['context-lost','unavailable'].i
     inspect('F');const report=inspection.textContent;viewer.orbit(.03,.02);viewer.pan(.01,0);viewer.zoom(1.02);viewer.resize(480,360);viewer.resize(640,480);viewer.setView(camera);
     check(inspection.textContent===report,'Camera/resize changed source inspection');capture('camera-retains-current-original-Faces');
     load(candidate({assetCount:2}));capture('two-original-Faces');check(viewer.getState().qualifiedFaceScene.assets.length===2,'Two-asset admission failed');
-    viewer.clear();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();check(viewer.getState().qualifiedFaceScene===null,'Clear retained qualified Face authority');load(original);
+    viewer.clear();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();check(viewer.getState().qualifiedFaceScene===null,'Clear retained qualified Face authority');load(original);
     result.contextCount=contexts.size;result.resources=resourceCounts();result.glErrors=glErrors();result.errors=[...errors];result.warnings=[...warnings];result.getterCalls=getterCalls;
     check(contexts.size===1&&result.glErrors.every(n=>n===0)&&!errors.length&&!warnings.length,'Context/GL/browser gate failed');result.ok=true;
   }catch(error){result.error=error.stack||error.message;result.failures.push({error:result.error,completed:result.cases.length});result.resources=resourceCounts();result.errors=[...errors];}
   finally{running=false;render();window.__viewerQualifiedFaceResult=result;display(result.ok?'Original Face checks completed.':('Face checks stopped: '+(result.error??'Unknown error')));
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}return result;}
-function dispose(){if(disposed)return;viewer.dispose();viewer.dispose();disposed=true;labelResizeObserver?.disconnect();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();render();const receipt={status:viewer.getState().status,resources:resourceCounts(),contextCount:contexts.size,
+function dispose(){if(disposed)return;viewer.dispose();viewer.dispose();disposed=true;labelResizeObserver?.disconnect();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();render();const receipt={status:viewer.getState().status,resources:resourceCounts(),contextCount:contexts.size,
   glErrors:glErrors(),errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display('Viewer disposed.');return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item of manifest){const bytes=await(await fetch(item.url)).arrayBuffer();
     check(bytes.byteLength===item.bytes&&await sha(bytes)===item.sha256,'Original Face fixture bytes/hash changed');fixtures[item.name]={...item,bytes:new Uint8Array(bytes),text:new TextDecoder().decode(bytes)};}
@@ -337,11 +382,12 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
   for(const id of'ABCDEF'){const source=fixtures['warped_'+id+'.source0.css'].text;check(source===originalRequests.warped.assets.find(asset=>asset.sourceId===id).source,'Original source file/Face association differs');originalSources[id]=source;}
   check(fixtures['interior_edit_F.source0.css'].text===originalRequests.interior_edit.assets[5].source,'Original interior-edit Source0 association differs');
   viewer=createViewer(canvas,{mmToSceneUnit,background});load(candidate());lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
-  labelResizeObserver=new ResizeObserver(()=>{updateLabels();updateAreaLabel();updateLengthLabel();updateAngleLabel();});labelResizeObserver.observe(canvas);
+  labelResizeObserver=new ResizeObserver(()=>{updateLabels();updateAreaLabel();updateLengthLabel();updateAngleLabel();updateCurvatureLabel();});labelResizeObserver.observe(canvas);
   window.__viewerQualifiedFaceProof={viewer,createViewer,candidate,load,render,inspect,measurementInput,measure,updateLabels,labelSnapshot,
     AREA_OPTIONS,areaPin,queryQualifiedFaceSurfaceArea,inspectArea,updateAreaLabel,areaSnapshot,mismatchCandidate,dispose,resourceCounts,uploads,draws,glErrors,errors,warnings,lossExtension,failAllocation,
     LENGTH_OPTIONS,lengthPin,queryQualifiedFaceCurveLength,inspectLength,updateLengthLabel,lengthSnapshot,
     queryQualifiedFaceAngle,measureAngle,updateAngleLabel,angleSnapshot,
+    curvaturePin,queryQualifiedFaceCurveCurvature,inspectCurvature,updateCurvatureLabel,curvatureSnapshot,evaluateCurveCurvature,evaluateCurveD2,
     failNextBuffer(at=16){failAllocation('Buffer',at);},clearAllocationFault,originalRequests,originalSources,fixtures,manifest,colors,camera,translateScene,mmToSceneUnit,background,pixelInfo,witness,retained,capture,runProof,
     prepareQualifiedFaceScene,QualifiedFaceSceneRenderer,MixedDepthRenderer,prepareMixedDepthFrame,compileGpu,prepareCamera,prepareUniformCurvePreview,prepareSelectedUniformCurvePreview,
     compileCadModel,validateFaceBundle,tessellateSurface,evaluateSurface,evaluateCurve,curveDomain,parseBooleanExtrusionFeatureGraph,parseBaroCadSource,
@@ -350,7 +396,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
     createClothWorld,createPhysicsClothWorld:createClothWorld,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer,canvas,
     get gl(){return[...contexts][0];},get state(){return viewer.getState();},get currentScene(){return viewer.getState().qualifiedFaceScene;},get inspectionReport(){return clone(inspectionReport);},
     get measurementReport(){return clone(measurementReport);},get currentProjections(){return clone(currentProjections);},get areaReport(){return clone(areaReport);},
-    get lengthReport(){return clone(lengthReport);},get angleReport(){return clone(angleReport);},get result(){return result;}};
+    get lengthReport(){return clone(lengthReport);},get angleReport(){return clone(angleReport);},get curvatureReport(){return clone(curvatureReport);},get result(){return result;}};
   display('Original Faces ready. Inspect a current source from its row.');
 }catch(error){display('Original Faces could not load: '+error.message);}
 buttons.load.addEventListener('click',()=>action(()=>load(candidate({assetCount:Number(assetCount.value),countU:Number(countU.value),countV:Number(countV.value)}))));
@@ -360,7 +406,7 @@ buttons['apply-color'].addEventListener('click',()=>action(()=>{const scene=view
   check(asset,'Choose a current source');asset.color=[1,3,5].map(index=>parseInt(colorInput.value.slice(index,index+2),16)/255);
   load({version:0,basis:scene.basis,assets,countU:scene.countU,countV:scene.countV,camera:clone(scene.camera),translateScene:[...scene.translate]});}));
 buttons['saved-view'].addEventListener('click',()=>action(()=>viewer.setView(camera)));buttons.orbit.addEventListener('click',()=>action(()=>viewer.orbit(.05,.02)));buttons.pan.addEventListener('click',()=>action(()=>viewer.pan(.01,0)));
-buttons.resize.addEventListener('click',()=>action(()=>viewer.resize(canvas.width===640?480:640,canvas.height===480?360:480)));buttons.clear.addEventListener('click',()=>action(()=>{viewer.clear();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();}));
+buttons.resize.addEventListener('click',()=>action(()=>viewer.resize(canvas.width===640?480:640,canvas.height===480?360:480)));buttons.clear.addEventListener('click',()=>action(()=>{viewer.clear();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();}));
 for(const control of measurementControls)for(const field of['source','geometry'])control[field].addEventListener('change',()=>renderMeasurementControls(viewer.getState().qualifiedFaceScene));
 measureButton.addEventListener('click',()=>action(()=>measure()));
 inspectAreaButton.addEventListener('click',()=>action(()=>inspectArea()));
@@ -368,5 +414,7 @@ lengthSource.addEventListener('change',()=>renderLengthControls(viewer.getState(
 inspectLengthButton.addEventListener('click',()=>action(()=>inspectLength()));
 for(const control of angleControls)for(const field of['source','geometry'])control[field].addEventListener('change',()=>renderAngleControls(viewer.getState().qualifiedFaceScene));
 angleButton.addEventListener('click',()=>action(()=>measureAngle()));
+curvatureSource.addEventListener('change',()=>renderCurvatureControls(viewer.getState().qualifiedFaceScene));
+inspectCurvatureButton.addEventListener('click',()=>action(()=>inspectCurvature()));
 buttons['run-proof'].addEventListener('click',runProof);buttons.dispose.addEventListener('click',dispose);buttons['lose-context'].addEventListener('click',()=>lossExtension?.loseContext());
 canvas.addEventListener('webglcontextlost',()=>{render();display('Context lost. Original source inspection remains available.');});window.addEventListener('beforeunload',()=>{if(viewer)dispose();});
