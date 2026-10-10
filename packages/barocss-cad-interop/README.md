@@ -2889,3 +2889,36 @@ node packages/barocss-cad-interop/examples/xy-angle-arc-pixi3d-verify.mjs --mode
 
 The Node probe checks public CAD and neutral CPU data. Run the example in an
 actual PixiJS7/Pixi3D2.5 browser to check rendering and target lifetime.
+
+## Original multi-span Surface Plane sections in Three
+
+`examples/multispan-section-three.html` loads fourteen unchanged CAD files.
+It shows the original global World Curve beside complete Support Surface and
+Plane previews. The readout retains both whole parent Models, unrendered Curve
+siblings, dual dimensionless UV, span lineage, proof bounds and observations.
+
+Use CAD `buildMultiSpanVLinearSurfacePlaneSection` and
+`validateMultiSpanVLinearSurfacePlaneSection` to check the complete original
+section. The example checks exact original file binding and compares the saved
+result with a fresh construction in the same runtime before target allocation.
+This bounded section authority is specific to its admitted V-linear inputs.
+
+The existing `three-uniform-curve` loader displays 129 native parameter samples
+of the degree-four World Curve. The existing `three` loader previews every
+Surface in each original parent with `countU:17`, `countV:9`. Both use explicit
+`sourceVersion:0` and `unitsPerMillimeter:0.001`. UV pcurves remain dimensionless
+CPU data. Triangle normals are approximate display data. Native C0 derivative
+refusals remain visible; a smooth-looking Line does not certify regularity.
+
+The host checks complete native and target data before it replaces an accepted
+result. Actual public refusals retain the accepted data and resources. Cold
+reopen reads all seven final-family files, then uses public World `loadAsync`
+and parent `loadAbortable` methods. Double cleanup releases only captured owned
+resources once. Caller Scene, camera, renderer and resources remain usable.
+
+Use `multispan-section-three-verify.mjs --mode source --output <directory>`
+before own package builds. After the affected builds, use `--mode compiled` for
+actual published entry and declaration consumers. Run from the repository root
+with Node 22 or later. This example does not add an SDK entry or extend native
+section, trim, topology or Solid contracts. Native verification, integrated
+verification and npm publication have separate receipts.
