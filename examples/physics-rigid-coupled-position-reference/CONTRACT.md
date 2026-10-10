@@ -35,3 +35,15 @@ GO means only this bounded detached reference passes both linear certificates an
 ### Delivery
 
 Record measured/native source and exact sole adoption separately. Close this scoped reference only after required actual native proof and exact adoption; track current #674/#1254 unrun composed checks as `merged; integration validation pending`. Planner receives only this new number/title. No product push, PR, deploy, package publication or release.
+
+### Pre-trial contract details
+
+The bounded linear adapter uses original admitted mass bounds: inverseMass=0 or [1e-6,1e6] kg^-1, depth[0,10]m, <=9bodies/8rows. Invalid fields use PositionReferenceError INVALID_INPUT; cap violations use PROFILE_LIMIT; infeasible candidate rowsets remain data, not a thrown world error. Deterministic maximum-absolute partial-pivot selection keeps the lowest index on equal magnitudes; pivot<=1e-14*max(1,maxAbsGram) marks that mask singular. Feasibility/multiplier acceptance1e-12; objective improvements must exceed1e-24kg*m², otherwise retain earliest mask. Preserve all singular masks and candidate/reference certificates; no unique active-mask or force claim. Exact reference uses exact rational feasibility and exact objective ordering. Compare displacements/objective, not nonunique degenerate multiplier choices. Stationarity residual also≤1e-12kg*m. These numerical rules cannot be tuned after first execution.
+
+The detached floor check is conservative: centre X/Z plus the .25*sqrt(3)m half-diagonal must fit the original2m floor halfextents. This supplies a sufficient containment condition; it is not an exact oriented footprint measurement. Raw archived diagnostics restore13fields from their own LE bytes before comparison. Archived JSON hit values have declared signed-zero loss; compare those values with JSON-normalized fresh observations, independently compare fresh detect/selection bits with Object.is, and preserve full fresh signed-bit/source-repeat-compiled equality. A structured reference refusal remains a persisted NO-GO result; missing depth cannot become an incidental TypeError. Unexpected errors propagate.
+
+### Frozen evidence semantics
+
+Record raw original and hypothetical copied-pose 13Float64LE bytes separately. Hypothetical poses are not historical or accepted new world states. The exact reference also reports stationarity and Gram/primal consistency; both must be exact zero. Degenerate active masks/multipliers are not compared as unique physical quantities. The literal nonfinite1e309 control is parsed as Infinity in Node and serialized as null for Python transport; each side must reject it as INVALID_INPUT, with original input/copy unchanged. Source/repeat/compiled reuse parent11geometry,4negative-comparison and9archive/source controls plus new literal linear/input/refusal controls; no World step.
+
+Finite exact rationals outside Float64 may have null numeric representations. Keep exact fields and record numeric-comparison NO-GO; never coerce null to0. Compare only finite numeric translations and objectives. A negative comparison control freezes this behavior.
