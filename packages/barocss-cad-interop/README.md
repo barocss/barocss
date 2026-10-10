@@ -2824,3 +2824,35 @@ Use `xy-angle-arc-three-verify.mjs` for the bounded source and emitted public
 consumers. This example adds no loader entry, workplane editor, constraints,
 region or Solid support. Native completion, local integration checks and npm
 publication are recorded separately.
+
+
+## Original signed-sweep XY arcs in Babylon.js
+
+`examples/xy-angle-arc-babylon.html` uses the existing `babylon-uniform-curve`
+entry with forty unchanged CAD-produced files. Each case retains the complete
+original Source0, authored mm/rad request, native artifact and rational-angle
+witness. CAD `verifyXYAngleArcArtifact(original)` returns the unchanged copied
+artifact and a separate portable report. The whole verification validator checks
+both. The example binds the original CSS to the artifact before native sampling.
+Fresh construction and the old strict validator remain separate runtime controls.
+
+Authored angle radians differ from the original rational Curve parameter.
+Uniform native samples do not represent uniform angles or arc length. True C0
+derivative refusals stay visible. A full turn has a copied seam and remains
+nonperiodic. The portable numerical association report states field rules,
+units and bounds; it does not replace the saved construction report.
+
+The caller provides a live right handed Scene. The existing options-only
+`BaroCADUniformCurveBabylonLoader` parses the original source in that Scene.
+Its initially disabled LinesMesh has 129 vertices, 256 paired line indices,
+copied Float32 positions and an explicit ShaderMaterial. The host validates
+complete CPU and target data before enabling the candidate. It releases the
+previous captured line, geometry and material before its callback. Cold reopen
+reads all four unchanged files and the public source URL. Refusal retains
+accepted data, resources and the displayed frame. Double cleanup preserves
+caller Scene, Engine, camera and readable native CPU arrays.
+
+Use `xy-angle-arc-babylon-verify.mjs` for bounded source and emitted public
+consumers. This example adds no loader entry, workplane editor, constraints,
+region or Solid support. Native verification, current integration and npm
+publication are recorded separately.
