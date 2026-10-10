@@ -9217,3 +9217,39 @@ node examples/cad-nurbs/translated-strip-interval-boolean-demo.mjs --source EVID
 This is a restricted material Boolean for the stated common map. Different
 roof or X/Z maps, arbitrary curved Solid operations, ID repair, tolerance
 welding and manufacturing have separate admission requirements.
+
+### Mesh the actual trimmed six-Face Body boundary
+
+`tessellateQualifiedTranslatedStripBody(body, options)` samples the six actual
+trimmed domains of a complete qualified translated-strip Body. Options name
+`evaluationId` and `meshId`, with fixed subdivisions of 4 per original U span,
+4 in T and 4 in W. Fixed limits are 290 vertices, 576 triangles and 1104 native
+sample attempts. Whole support-Surface meshes do not represent these trims.
+
+The binary64 packet shares the eight stored Body corners and native samples
+of the twelve global World Edges. Positions are joined by actual topology IDs.
+Each Face retains its actual support reference, Use pcurves, native UV, source
+provenance and sampled gaps. Native D1 refusal at exact C0 knots remains a
+null native normal state. Face orientation is applied once. Closed triangle
+incidence, opposite directions, connected vertex links and Euler 2 are checked.
+
+Four original U spans use 290 shared positions and 576 triangles. Six faceted
+display chunks expand triangle corners with Float32 positions and explicitly
+approximate triangle normals. Actual native normals stay separate. Finite
+Float32 values, noncollapsed triangles, winding and measured quantization gaps
+are checked. The packet retains its binary64 authority and full parent Body.
+
+`validateQualifiedTranslatedStripBodyMesh` rebuilds the parent validation,
+native sample schedule, shared graph, source references and display chunks.
+New request and result limits are 4 MiB in both UTF16 and UTF8, including the
+final newline and negative zero. The parent Body keeps its 2 MiB and Model16
+plus Model2 limits. Failures publish no partial mesh and preserve accepted data.
+
+```sh
+node examples/cad-nurbs/qualified-translated-strip-body-mesh-demo.mjs --source EVIDENCE_DIR
+```
+
+Triangles and faceted normals are approximations. Indexed manifold checks
+remain separate from the parent's exact material certificate. Mesh geometric
+embedding, global error, manufacturing, renderer and Loader acceptance require
+separate verification.

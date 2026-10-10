@@ -386,3 +386,6 @@ export type { ExactSurfaceBandTrimOptions, ExactSurfaceBandTrimEdge, ExactSurfac
 
 export { buildTranslatedStripIntervalBoolean, validateTranslatedStripIntervalBoolean, TranslatedStripIntervalBooleanError, TranslatedStripIntervalBooleanDiagnosticCode } from './translated-strip-interval-boolean.js';
 export type { TranslatedStripIntervalBooleanOptions, TranslatedStripIntervalBooleanOutput, TranslatedStripIntervalBooleanReport, TranslatedStripIntervalBooleanResult } from './translated-strip-interval-boolean.js';
+
+export { tessellateQualifiedTranslatedStripBody, validateQualifiedTranslatedStripBodyMesh, QualifiedTranslatedStripBodyMeshError, QualifiedTranslatedStripBodyMeshDiagnosticCode } from './qualified-translated-strip-body-mesh.js';
+export type { QualifiedTranslatedStripBodyMeshOptions, QualifiedTranslatedStripBodyMeshPacket, QualifiedTranslatedStripBodyMeshReport, QualifiedTranslatedStripBodyMeshResult } from './qualified-translated-strip-body-mesh.js';
