@@ -2414,3 +2414,38 @@ retain separate contracts.
 `examples/gpu-scene/cylinder-geometry-flow.mjs --output <fresh-directory>` checks
 source/emitted APIs, side/cap seam and normal/UV splits, shared Scene/ray queries,
 original parameter files, copies, refusals and cold reconstruction.
+
+## Original closed indexed Cone geometry
+
+`prepareConeGeometry(input)` admits exact original parameters:
+`{format:'barocss-gpu-cone-geometry',version:0,id,coordinateSystem:'right-handed-y-up',positionUnit:'scene',radius,height,radialSegments,heightSegments}`.
+Finite scene-unit radius satisfies `0 < radius <= 1000`, height `0 < height <= 2000`.
+Radial cells are integers 3..128; height cells 1..128. Original half-height and
+both normalized slope components must remain positive. Always closed along Y,
+base at -height/2, apex at +height/2. Open, truncated and partial arcs are excluded.
+
+Exact frozen `{source,prepared}` retains copied original parameters and generated
+frozen Number geometry through one `prepareTriangleGeometry` call. Mutable own
+Float32 attributes and Uint16 indices are separate. Positive-radius side rows
+j=0..H-1 use `rho=r*(1-j/H)`, `y=h*(j/H-.5)`, `phi=(2*PI)*(i/S)`. Positions are
+`[rho*cos(phi),y,rho*sin(phi)]`; normals are `[(h*cos(phi))/L,r/L,(h*sin(phi))/L]`
+with `L=Math.hypot(h,r)`; UV `[i/S,j/H]`. Final column copies its first position/normal
+bits with U=1. S distinct apex vertices use sector-midpoint normals and UV
+`[(i+.5)/S,1]`; this is an authored shading choice at a nondifferentiable apex.
+
+A separate bottom rim copies side row0 positions with flat -Y normals and disk UV
+`[(cos(phi)+1)/2,(sin(phi)+1)/2]`, including a copied UV seam. Cap UV does not use
+scaled side normals. Centre UV is `[.5,.5]`. Vertex order is positive side rows,
+sector apex vertices, bottom rim, centre. Quads use `[a,d,b,a,c,d]`, apex triangles
+`[a,apex_i,b]`, and bottom fans `[centre,current,next]`; all CCW outward. Maximum
+16,770 vertices, 32,768 triangles and 733,248 typed bytes remain within existing budgets.
+
+Existing TriangleGeometryError codes and original/F32 admission remain. Original
+half-height or slope underflow refuses GEOMETRY before generation; no clamp or
+healing. Sampled bounds, authored apex normals and original mesh CPU ray queries
+are separate from analytical enclosure, native CAD identity, SDF, raster picking,
+GL, performance, parity and publication. Existing providers and exports remain.
+
+`examples/gpu-scene/cone-geometry-flow.mjs --output <fresh-directory>` checks
+source/emitted/DTS APIs, literal topology/winding/seams/cap UV/apex normals, shared
+Scene/rays, originals/copies/refusals and real cold original-file reconstruction.

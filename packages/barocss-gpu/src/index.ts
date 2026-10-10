@@ -143,3 +143,6 @@ export type { TorusGeometrySourceV0, PreparedTorusGeometry } from './torus-geome
 
 export { prepareCylinderGeometry } from './cylinder-geometry.js';
 export type { CylinderGeometrySourceV0, PreparedCylinderGeometry } from './cylinder-geometry.js';
+
+export { prepareConeGeometry } from './cone-geometry.js';
+export type { ConeGeometrySourceV0, PreparedConeGeometry } from './cone-geometry.js';
