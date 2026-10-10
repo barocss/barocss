@@ -66,3 +66,6 @@ export type {AxisBoxBooleanBufferOptions,PreparedAxisBoxBooleanBuffers,AxisBoxBo
 
 export {prepareTriangleGeometry,TriangleGeometryError,TriangleGeometryDiagnosticCode} from './triangle-geometry.js';
 export type {TriangleGeometryV0,PreparedTriangleGeometry} from './triangle-geometry.js';
+
+export {prepareEngineScene,EngineSceneError,EngineSceneDiagnosticCode} from './engine-scene.js';
+export type {EngineSceneV0,EngineSceneMaterialV0,EngineSceneNodeV0,PreparedEngineSceneNode,PreparedEngineSceneDraw,PreparedEngineScene} from './engine-scene.js';
