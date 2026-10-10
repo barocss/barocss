@@ -1,0 +1,183 @@
+{
+  "development": {
+    "receiptKind": "caustics-dev-final",
+    "initial": {
+      "available": true,
+      "backend": "Example WebGL2 host \u00b7 public lowered UV material",
+      "controls": [
+        {
+          "default": 6,
+          "max": 12,
+          "min": 2,
+          "name": "density",
+          "type": "float"
+        },
+        {
+          "default": 0.35,
+          "max": 1,
+          "min": 0,
+          "name": "warp",
+          "type": "float"
+        },
+        {
+          "default": 0,
+          "max": 6.283185307179586,
+          "min": 0,
+          "name": "phase",
+          "type": "float"
+        },
+        {
+          "default": 0.7,
+          "max": 1,
+          "min": 0,
+          "name": "glow",
+          "type": "float"
+        }
+      ],
+      "depth": 14,
+      "frameCount": 1,
+      "loweredExpression": "clamp(mix(mix(vec3(0.00026154375454849144,0.020951131914781092,0.042987010162657116),vec3(0.028991186547107816,0.70116950153140212,0.63877945565081684),clamp((((cos((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))+sin((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2)))*0.25000000000000000)+0.50000000000000000),0.0,1.0)),vec3(1.0000000000000000,0.64555527244493449,0.18014428915439032),clamp(((((cos(((((fract(v_engine_uv.x)+fract(v_engine_uv.y))*mat_u_0)*6.2831853071795862)+(sin((((fract(v_engine_uv.x)-fract(v_engine_uv.y))*6.2831853071795862)+mat_u_2))*mat_u_1)))*0.50000000000000000)+0.50000000000000000)*((cos(((((fract(v_engine_uv.x)+fract(v_engine_uv.y))*mat_u_0)*6.2831853071795862)+(sin((((fract(v_engine_uv.x)-fract(v_engine_uv.y))*6.2831853071795862)+mat_u_2))*mat_u_1)))*0.50000000000000000)+0.50000000000000000))*mat_u_3),0.0,1.0)),vec3(0.0),vec3(1.0))",
+      "nodeCount": 85,
+      "shaderId": "interference_caustics",
+      "sourceProfile": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+      "uniforms": {
+        "density": 6,
+        "glow": 0.7,
+        "phase": 0,
+        "warp": 0.35
+      }
+    },
+    "controls": {
+      "density": 6.25,
+      "glow": 0.65,
+      "phase": 2,
+      "warp": 0.4
+    },
+    "playFrame": 50,
+    "pauseFrame": 51,
+    "pauseStopped": true,
+    "refusal": "Input refused: SYNTAX: SYNTAX: Unsupported material function [265,270). The last accepted output stays visible while the sample remains live.",
+    "acceptedStateRetained": true,
+    "correctiveDraftRetained": true,
+    "oldAfterDispose": true,
+    "mobile": {
+      "available": true,
+      "scrollWidth": 390,
+      "width": 390
+    },
+    "errors": []
+  },
+  "screenshots": {
+    "images": [
+      {
+        "file": "caustics-shader.jpg",
+        "bytes": 23040,
+        "dimensions": [
+          570,
+          374
+        ],
+        "sha256": "69891851c9b4afc4508ac2600831550a85447d724eec9205af53efc3fa109110"
+      },
+      {
+        "file": "caustics-shader-phase.jpg",
+        "bytes": 23320,
+        "dimensions": [
+          570,
+          374
+        ],
+        "sha256": "10af52be01fc49fb78049eda0ef965d3d3c6fb89beecd931f41a056de9ad75c0"
+      }
+    ],
+    "differentDecodedPixelsAbove8": 200895,
+    "totalPixels": 213180
+  },
+  "qualification": "Actual native browser at development52949. Two JPEG screenshots are unmodified screenshot bytes. Pixel-difference count compares decoded screenshot RGB with threshold8; it is not CPU/GPU parity. Initial and phase2 captures use defaults except phase. Report retention after noise source rejection was executed; context loss was not repeated for the reused host.",
+  "production": {
+    "receiptKind": "caustics-production",
+    "guideImages": [
+      {
+        "complete": true,
+        "height": 374,
+        "src": "/examples/caustics-shader.jpg",
+        "width": 570
+      },
+      {
+        "complete": true,
+        "height": 374,
+        "src": "/examples/caustics-shader-phase.jpg",
+        "width": 570
+      }
+    ],
+    "guideCompleteSource": true,
+    "guideBlocks": 2,
+    "initial": {
+      "available": true,
+      "backend": "Example WebGL2 host \u00b7 public lowered UV material",
+      "controls": [
+        {
+          "default": 6,
+          "max": 12,
+          "min": 2,
+          "name": "density",
+          "type": "float"
+        },
+        {
+          "default": 0.35,
+          "max": 1,
+          "min": 0,
+          "name": "warp",
+          "type": "float"
+        },
+        {
+          "default": 0,
+          "max": 6.283185307179586,
+          "min": 0,
+          "name": "phase",
+          "type": "float"
+        },
+        {
+          "default": 0.7,
+          "max": 1,
+          "min": 0,
+          "name": "glow",
+          "type": "float"
+        }
+      ],
+      "depth": 14,
+      "frameCount": 1,
+      "loweredExpression": "clamp(mix(mix(vec3(0.00026154375454849144,0.020951131914781092,0.042987010162657116),vec3(0.028991186547107816,0.70116950153140212,0.63877945565081684),clamp((((cos((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))+sin((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2)))*0.25000000000000000)+0.50000000000000000),0.0,1.0)),vec3(1.0000000000000000,0.64555527244493449,0.18014428915439032),clamp(((((cos(((((fract(v_engine_uv.x)+fract(v_engine_uv.y))*mat_u_0)*6.2831853071795862)+(sin((((fract(v_engine_uv.x)-fract(v_engine_uv.y))*6.2831853071795862)+mat_u_2))*mat_u_1)))*0.50000000000000000)+0.50000000000000000)*((cos(((((fract(v_engine_uv.x)+fract(v_engine_uv.y))*mat_u_0)*6.2831853071795862)+(sin((((fract(v_engine_uv.x)-fract(v_engine_uv.y))*6.2831853071795862)+mat_u_2))*mat_u_1)))*0.50000000000000000)+0.50000000000000000))*mat_u_3),0.0,1.0)),vec3(0.0),vec3(1.0))",
+      "nodeCount": 85,
+      "shaderId": "interference_caustics",
+      "sourceProfile": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+      "uniforms": {
+        "density": 6,
+        "glow": 0.7,
+        "phase": 0,
+        "warp": 0.35
+      }
+    },
+    "uniformRefusal": "Input refused: MATERIAL: Engine material bindings: Actual material reconstruction/binding/lowering refused (UNIFORM: Uniform density outside its finite declared range). The last accepted output stays visible while the sample remains live.",
+    "acceptedReportRetained": true,
+    "resetAndUpdated": {
+      "density": 6,
+      "glow": 0.7,
+      "phase": 0.05,
+      "warp": 0.35
+    },
+    "guideMobile": {
+      "scrollWidth": 390,
+      "width": 390
+    },
+    "errors": []
+  },
+  "build": {
+    "seconds": 32.41,
+    "pages": 89,
+    "packages": 12,
+    "checkedInternalLinks": 5283,
+    "checkedImageAssets": 41,
+    "checkedDownloadAssets": 1,
+    "manifestHashes": "matched",
+    "warning": "Existing shared visual bundle exceeds500kB chunk warning; no threshold or bundling policy retuning."
+  }
+}

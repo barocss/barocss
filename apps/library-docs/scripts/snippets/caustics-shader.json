@@ -1,0 +1,40 @@
+{
+  "kind": "advanced",
+  "title": "GPU interference material · cyan and gold caustics",
+  "label": "Caustics shader",
+  "anchor": "caustics-shader",
+  "language": "GPU repeating UV material · engine-opaque-uv-repeating-fragment-v0",
+  "source": "@shader #interference_caustics {\n  @uniform density: float(2,12,6);\n  @uniform warp: float(0,1,.35);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform glow: float(0,1,.7);\n  @let u: float(fract(uv_u));\n  @let v: float(fract(uv_v));\n  @let crossing: float((cos(u*density*6.283185307179586+phase)+sin(v*density*6.283185307179586-phase))*.25+.5);\n  @let bend: float(sin((u-v)*6.283185307179586+phase)*warp);\n  @let bands: float(cos((u+v)*density*6.283185307179586+bend)*.5+.5);\n  @let body: color(mix(#062C3D,#33D9D0,crossing));\n  @fragment { color: mix(body,#FFD175,pow(bands,2)*glow); }\n}",
+  "sourceProfile": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+  "controls": [
+    {
+      "name": "density",
+      "min": 2,
+      "max": 12,
+      "step": 0.25,
+      "default": 6
+    },
+    {
+      "name": "warp",
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "default": 0.35
+    },
+    {
+      "name": "phase",
+      "min": 0,
+      "max": 6.283185307179586,
+      "step": 0.05,
+      "default": 0
+    },
+    {
+      "name": "glow",
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "default": 0.7
+    }
+  ],
+  "description": "Crossing cosine and sine fields color the cyan body. A separately warped diagonal band field is squared once to sharpen gold caustic highlights. Change density, phase bend, phase or glow, or play the example host clock."
+}
