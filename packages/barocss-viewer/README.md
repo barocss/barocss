@@ -854,3 +854,42 @@ This guard covers result-returning primitive scene, complete-frame, clear,
 particle/cloth layer and material transactions. Primitive resize, readback
 throws and renderer-mount recovery keep their existing public contracts.
 Other Mesh, Shell, Mixed and qualified Face recovery rules remain separate.
+
+
+### Pure native scene and appearance preparation
+
+`prepareViewerNativeSceneAppearance(input, context)` prepares a complete
+canonical document candidate on CPU. It does not need a Viewer instance or a
+canvas. This is a preparation API; `replaceNativeScene` still accepts its
+existing version0 contract.
+
+The explicit version1 input has `source`, `display` and `appearance` beside
+`version`. Source is a complete canonical direct-geometry document result,
+existing native projection options and exact expected document/body/asset
+bindings. Display supplies all-object motion, a unique visible subset and an
+explicit camera. Appearance supplies explicit lighting and up to four opaque
+bindings for visible candidate Surfaces. Bare original Model names do not
+replace the document's asset display namespaces.
+
+Context is `{mmToSceneUnit,background}`, with the existing constructor bounds.
+The result has exact `format`, `version:0`, `context`, `source`, `inventory`,
+`display` and `prepared` fields. The original complete sources, compiled Models,
+revisions and fresh document bindings remain owned source data. Canonical
+materials, uniform defaults and lighting are in `prepared.frame`.
+
+The function validates the full admitted inventory before filtering. Hidden
+geometry still needs valid poses and bounds. It performs another CPU pass only
+when the visible list differs. An all-hidden candidate uses the explicit empty
+Viewport profile and has no materials. Palette assignment uses the complete
+Surface-first inventory, so hiding an earlier object does not shift colors.
+
+Plain owned inputs are bounded and reject getters, hidden fields, symbols,
+cycles and Proxy inputs. Provider document, native sample, material and camera
+limits also apply. Errors and causes from public providers remain intact.
+Returned execution buffers are independently mutable; they do not authorize a
+future backend. Re-admit `prepared.frame` through an actual supported mount or
+update operation. Bounds describe derived F32 display data.
+
+This function does not mount or present a frame, commit source or appearance,
+change Viewer lighting, cancel a pending request, or prove rendered file Open.
+The complete first-frame mount and full #1369 transaction remain separate.
