@@ -1,0 +1,406 @@
+{
+  "runtime": "v22.22.0",
+  "module": "compiled-root",
+  "refusals": 74,
+  "getters": 0,
+  "domReads": 0,
+  "syntheticMetrics": true,
+  "fractionalOffsets": true,
+  "signedOverhang": true,
+  "copiedRGBA": true,
+  "multilineCleanup": true,
+  "oversizeDrawReadDelta0": true,
+  "shiftedCoordinateDrawReadDelta0": true,
+  "defaultExplicitLeftMatchesPrior": true,
+  "singleLineShapeRetained": true,
+  "synthetic": [
+    {
+      "lineAlign": "left",
+      "bounds": {
+        "left": -5,
+        "top": -10,
+        "width": 24,
+        "height": 41.333333333333336
+      },
+      "draws": [
+        {
+          "text": "Wide",
+          "x": 5,
+          "y": 10
+        },
+        {
+          "text": "n",
+          "x": 5,
+          "y": 22.25
+        },
+        {
+          "text": "j",
+          "x": 5,
+          "y": 34.5
+        }
+      ],
+      "atlas": {
+        "width": 36,
+        "height": 62
+      }
+    },
+    {
+      "lineAlign": "center",
+      "bounds": {
+        "left": -4,
+        "top": -10,
+        "width": 25.333333333333332,
+        "height": 41.333333333333336
+      },
+      "draws": [
+        {
+          "text": "Wide",
+          "x": 4,
+          "y": 10
+        },
+        {
+          "text": "n",
+          "x": 10.25,
+          "y": 22.25
+        },
+        {
+          "text": "j",
+          "x": 7.625,
+          "y": 34.5
+        }
+      ],
+      "atlas": {
+        "width": 38,
+        "height": 62
+      }
+    },
+    {
+      "lineAlign": "right",
+      "bounds": {
+        "left": -4,
+        "top": -10,
+        "width": 29.333333333333332,
+        "height": 41.333333333333336
+      },
+      "draws": [
+        {
+          "text": "Wide",
+          "x": 4,
+          "y": 10
+        },
+        {
+          "text": "n",
+          "x": 16.5,
+          "y": 22.25
+        },
+        {
+          "text": "j",
+          "x": 11.25,
+          "y": 34.5
+        }
+      ],
+      "atlas": {
+        "width": 44,
+        "height": 62
+      }
+    }
+  ],
+  "refusalCases": [
+    {
+      "name": "alignment undefined",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "alignment null",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "alignment ",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "alignment justify",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "alignment Left",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "alignment 0",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "alignment true",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "alignment [object Object]",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "alignment ",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "text \"\"",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "text \"A\\n\"",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "text \"\\nA\"",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "text \"A\\n\\nB\"",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "text \"A\\n \\nB\"",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "text \"A\\nB\\nC\\nD\\nE\"",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "text \"A\\r\\nB\"",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "text \"A\\tB\"",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "text \"A\\u0000B\"",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "text \"A\"",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "text \"é\"",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "text \"한글\"",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "text \"😀\"",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "text \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "text \"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\\nB\"",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "advance undefined",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "advance null",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "advance 0",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "advance -1",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "advance NaN",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "advance Infinity",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "advance 1000001",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "advance 40",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "displaced baseline limit",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "DPR undefined",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "DPR null",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "DPR 0",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "DPR 4.1",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "DPR NaN",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "font ",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "font null",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "font aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "font A\nB",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "record",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "record",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "record",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "record",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "record",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "record",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "accessor text",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "hidden text",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "accessor font",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "hidden font",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "accessor atlasId",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "hidden atlasId",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "accessor lineAdvance",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "hidden lineAdvance",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "accessor dpr",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "hidden dpr",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "accessor lineAlign",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "hidden lineAlign",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "missing text",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "missing font",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "missing atlasId",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "missing lineAdvance",
+      "code": "INVALID_SCENE"
+    },
+    {
+      "name": "without browser left",
+      "code": "UNSUPPORTED_FEATURE"
+    },
+    {
+      "name": "without browser center",
+      "code": "UNSUPPORTED_FEATURE"
+    },
+    {
+      "name": "without browser right",
+      "code": "UNSUPPORTED_FEATURE"
+    },
+    {
+      "name": "badMetric",
+      "code": "INVALID_ASSET"
+    },
+    {
+      "name": "drawThrow",
+      "code": "INVALID_ASSET"
+    },
+    {
+      "name": "noInk",
+      "code": "INVALID_ASSET"
+    },
+    {
+      "name": "short",
+      "code": "INVALID_ASSET"
+    },
+    {
+      "name": "height limit",
+      "code": "ASSET_LIMIT"
+    },
+    {
+      "name": "aligned width limit",
+      "code": "ASSET_LIMIT"
+    },
+    {
+      "name": "shifted coordinate limit",
+      "code": "INVALID_ASSET"
+    }
+  ]
+}

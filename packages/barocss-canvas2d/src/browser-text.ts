@@ -22,12 +22,16 @@ export type BrowserTextRaster = {
   bounds: { left: number; top: number; width: number; height: number };
 };
 
+export type BrowserMultilineTextAlignment = 'left' | 'center' | 'right';
+
 export type BrowserMultilineTextOptions = {
   text: string;
   font: string;
   atlasId: string;
   /** Positive logical distance between adjacent alphabetic baselines. */
   lineAdvance: number;
+  /** Align measured advance boxes within the widest line. */
+  lineAlign?: BrowserMultilineTextAlignment;
   dpr?: number;
 };
 
@@ -92,14 +96,14 @@ function optionsOf(value: unknown): Required<BrowserTextOptions> {
   return { text, font, dpr, textPolicy, atlasId: validateImageAssetId(fields.atlasId.value) };
 }
 
-function multilineOptionsOf(value: unknown): Required<BrowserTextOptions> & { lineAdvance: number } {
+function multilineOptionsOf(value: unknown): Required<BrowserTextOptions> & { lineAdvance: number; lineAlign: BrowserMultilineTextAlignment } {
   if (!value || typeof value !== 'object' || Array.isArray(value) ||
       Object.getPrototypeOf(value) !== Object.prototype) {
     invalid('browser multiline text options must be an ordinary data record');
   }
   const fields = Object.getOwnPropertyDescriptors(value);
   for (const key of Reflect.ownKeys(fields)) {
-    if (typeof key !== 'string' || !['text', 'font', 'atlasId', 'dpr', 'lineAdvance'].includes(key)) {
+    if (typeof key !== 'string' || !['text', 'font', 'atlasId', 'dpr', 'lineAdvance', 'lineAlign'].includes(key)) {
       invalid('browser multiline text options contain an unknown field');
     }
     if (!fields[key].enumerable || !('value' in fields[key])) invalid('browser multiline text options require data fields');
@@ -110,6 +114,10 @@ function multilineOptionsOf(value: unknown): Required<BrowserTextOptions> & { li
   const text: unknown = fields.text.value, font: unknown = fields.font.value;
   const dpr: unknown = Object.hasOwn(fields, 'dpr') ? fields.dpr.value : 1;
   const lineAdvance: unknown = fields.lineAdvance.value;
+  const lineAlign: unknown = Object.hasOwn(fields, 'lineAlign') ? fields.lineAlign.value : 'left';
+  if (lineAlign !== 'left' && lineAlign !== 'center' && lineAlign !== 'right') {
+    invalid('browser multiline alignment is unsupported');
+  }
   if (typeof text !== 'string' || text.length < 1 || text.length > 128) {
     invalid('browser multiline text requires 1..128 characters including LF');
   }
@@ -127,7 +135,7 @@ function multilineOptionsOf(value: unknown): Required<BrowserTextOptions> & { li
       lineAdvance > 1e6 || (lines.length - 1) * lineAdvance > 1e6) {
     invalid('browser multiline baseline advance must be positive within finite coordinate limits');
   }
-  return { text, font, dpr, lineAdvance, textPolicy: 'printable-ascii', atlasId: validateImageAssetId(fields.atlasId.value) };
+  return { text, font, dpr, lineAdvance, lineAlign, textPolicy: 'printable-ascii', atlasId: validateImageAssetId(fields.atlasId.value) };
 }
 
 /** Prepare owned raster data. The host must prepare fonts before this call. */
@@ -141,7 +149,7 @@ export function rasterizeBrowserMultilineText(options: BrowserMultilineTextOptio
   return rasterize(multilineOptionsOf(options)) as BrowserMultilineTextRaster;
 }
 
-function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number }): BrowserTextRaster | BrowserMultilineTextRaster {
+function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number; lineAlign?: BrowserMultilineTextAlignment }): BrowserTextRaster | BrowserMultilineTextRaster {
   if (typeof document === 'undefined' || typeof document.createElement !== 'function' ||
       !document.fonts || typeof document.fonts.check !== 'function') {
     throw new Canvas2DError('UNSUPPORTED_FEATURE', 'browser text and font APIs are unavailable');
@@ -188,6 +196,7 @@ function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number 
     configure();
     const texts = input.lineAdvance === undefined ? [input.text] : input.text.split('\n');
     const lines: BrowserMultilineTextLine[] = [];
+    const inkEdges: { left: number; right: number }[] = [];
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, advance = 0, textStart = 0;
     for (const [index, text] of texts.entries()) {
       const measured = context.measureText(text);
@@ -199,10 +208,19 @@ function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number 
           ![inkTop, inkBottom].every(value => Number.isFinite(value) && Math.abs(value) <= 1e6)) {
         throw new Canvas2DError('INVALID_ASSET', 'browser text metrics are outside finite coordinate limits');
       }
-      minX = Math.min(minX, -measured.actualBoundingBoxLeft); maxX = Math.max(maxX, measured.actualBoundingBoxRight);
+      inkEdges.push({ left: -measured.actualBoundingBoxLeft, right: measured.actualBoundingBoxRight });
       minY = Math.min(minY, inkTop); maxY = Math.max(maxY, inkBottom); advance = Math.max(advance, measured.width);
       lines.push({ textStart, textEnd: textStart + text.length, baseline, advance: measured.width });
       textStart += text.length + 1;
+    }
+    const offsets = lines.map(line => input.lineAlign === 'center' ? (advance - line.advance) / 2 :
+      input.lineAlign === 'right' ? advance - line.advance : 0);
+    for (const [index, ink] of inkEdges.entries()) {
+      const inkLeft = offsets[index] + ink.left, inkRight = offsets[index] + ink.right;
+      if (![inkLeft, inkRight].every(value => Number.isFinite(value) && Math.abs(value) <= 1e6)) {
+        throw new Canvas2DError('INVALID_ASSET', 'browser text metrics are outside finite coordinate limits');
+      }
+      minX = Math.min(minX, inkLeft); maxX = Math.max(maxX, inkRight);
     }
     const left = Math.floor(minX) - 2, right = Math.ceil(maxX) + 2;
     const top = Math.floor(minY) - 2, bottom = Math.ceil(maxY) + 2;
@@ -219,7 +237,7 @@ function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number 
     canvas.height = height;
     configure();
     context.scale(input.dpr, input.dpr);
-    for (const [index, text] of texts.entries()) context.fillText(text, -left, lines[index].baseline - top);
+    for (const [index, text] of texts.entries()) context.fillText(text, offsets[index] - left, lines[index].baseline - top);
     const data: unknown = context.getImageData(0, 0, width, height).data;
     if (!(data instanceof Uint8ClampedArray || data instanceof Uint8Array) || data.length !== width * height * 4) {
       throw new Canvas2DError('INVALID_ASSET', 'browser text readback has an invalid RGBA8 extent');
