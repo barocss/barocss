@@ -74,3 +74,5 @@ export type { CadEditorDisplayOptions, CadEditorDisplayReceipt, CadEditorViewpor
 export { CadEditorFeature } from './feature-editor.js';
 export type { CadEditorFeatureProps, CadEditorFeatureDisplayReceipt } from './feature-editor.js';
 export { useCadEditorFeatureSnapshot } from './use-feature-session.js';
+export { CadEditorExportReview } from './export-review.js';
+export type { CadEditorExportReviewProps } from './export-review.js';

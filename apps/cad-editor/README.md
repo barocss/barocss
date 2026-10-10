@@ -253,3 +253,53 @@ reusable `propertiesOptions` is 64/8. The focused `?flow` host exposes copied
 and `readFrame()` using the existing read request. These are flow-only controls,
 with no user-facing budget knobs or provider mocks. Native files exclude property
 reports and all query/display UI state.
+
+## Review and download IGES
+
+In the direct document workspace, choose **Export IGES** in the toolbar. Select
+1–16 original canonical bodies independently of the visible subset. Hidden and
+read-only Curve/Surface bodies remain eligible original geometry; the writer
+supports Source0 degree1–5 independently of the Viewer preview limits. Set the
+explicit model ID and each selected output ID. IDs must be distinct ASCII
+identifiers, from 1 to 48 characters, beginning with a letter or underscore.
+The app does not automatically truncate, rename or repair collisions.
+
+**Review export** calls the actual accepted-document exporter once and captures
+its real IGES5.3 ASCII bytes and native loss/identity report. Review never exports
+pending pole edits or displayed mesh/pose. The panel shows accepted revision,
+mm/authored XYZ, selected/unselected counts, byte count, Curve126/Surface128
+entities/domains and directory/parameter mapping. Directory labels have eight
+characters and can truncate or collide; retain the full-ID loss sidecar. The
+reported numeric negative-zero normalization is visible, while original native
+source/coefficient bits remain unchanged. Writer geometryLoss none does not
+mean original comments/source, full native identities, unselected objects or
+authoring history are embedded in IGES. Actual omissions and unsupported domains
+are listed and the complete native report remains available in details.
+
+Choose **Download IGES** for the captured `.igs` file and **Download loss report**
+for the captured native report JSON. They are independent explicit downloads of
+copied capture data and do not call native `markDownloaded`, clear pending fields,
+change dirty/download status or replace the native save capture. Use the existing
+**Download** native-document action separately to retain complete authored data.
+The fixed native writer output limit is 2MiB; its records contain80ASCIIcolumns
+plus LF. No IGES reader/reimport/equivalence or certified Solid/manufacturing
+claim follows from this export.
+
+Changing raw export options or accepted native content invalidates the review
+and its download actions. Selection, camera and display-only changes keep a
+still-current capture. Failed review preserves raw options and any earlier
+capture that is still current; changed options require Review again. Downloads
+recheck current qualified references and use captured bytes only. Close/Escape
+returns focus to Export IGES. Nested Help closes to Help without changing options.
+Technical capability/loss/limit/error details stay in Help and report details.
+Feature mode does not offer a fabricated exporter. STEP is unsupported here;
+GLB remains an external derived bridge rather than this canonical writer.
+
+The flow-only `?flow` host exposes a copied `exportReview()` and `readFrame()`
+using the existing actual Viewer read request. Existing `setMounted(false)`
+unmounts both Viewer and review UI, invalidating the capture while preserving
+the host-owned native session. The canonical Viewer has no public GPU resource
+counts; disposal/status/lifecycle, fresh remount pixels and native state retention
+are separate evidence.
+
+The ordinary export review shows object names, format/mm, selection and real geometry-only/history/name-loss decisions. Export naming is secondary; full native mappings, signed-zero counts and certification details remain in expandable Export details and Help. No generic No loss claim follows from the writer geometry-loss field.

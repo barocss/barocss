@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Box, ChevronRight, CircleHelp, Download, FolderOpen, Layers3, Maximize, Redo2, Undo2 } from 'lucide-react';
 import { parseCadDocument } from '@barocss/cad';
-import { CadEditorError, createCadEditorSession } from '@barocss/cad-editor';
-import { CadEditor, useCadEditorSnapshot, type CadEditorDisplayOptions, type CadEditorDisplayReceipt } from '@barocss/cad-editor/react';
+import { CadEditorError, createCadEditorSession, type CadEditorExportResult } from '@barocss/cad-editor';
+import { CadEditor, CadEditorExportReview, useCadEditorSnapshot, type CadEditorDisplayOptions, type CadEditorDisplayReceipt } from '@barocss/cad-editor/react';
 import fixtureText from '../fixtures/canonical-surface-and-curve.cad-document.json?raw';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './components/ui/dialog';
 import { Button } from './components/ui/button';
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from './components/ui/menubar';
-import { downloadAccepted, readCadEditorFile } from './file-actions';
+import { downloadAccepted, downloadReviewedExport, readCadEditorFile } from './file-actions';
 import { FeatureApp } from './feature-app';
 
 function nativeCauses(error: Error): {message:string;code:string|null}[] {
@@ -20,6 +20,7 @@ function nativeCauses(error: Error): {message:string;code:string|null}[] {
   return causes;
 }
 function actionError(error: CadEditorError): string {
+  if(error.context.field==='document-export' || error.context.field==='export-download')return 'Cannot complete this export. Check the captured review, selected bodies and output IDs.';
   const chain=nativeCauses(error), cause=chain.map(item=>item.message).join('\n');
   if(chain.some(item=>item.code==='BINDING')) return 'Select a Surface with directly entered control-point values.';
   if (cause.includes('Weights must')) return 'Enter a weight from 0.000001 to 1000000.';
@@ -50,6 +51,7 @@ function DirectApp() {
   const [error, setError] = useState<CadEditorError | null>(null);
   const [filename, setFilename] = useState('Weighted surface');
   const [receipt, setReceipt] = useState<CadEditorDisplayReceipt | null>(null);
+  const [exportReview,setExportReview]=useState<CadEditorExportResult|null>(null);
   const [displayOptions, setDisplayOptions] = useState(defaultDisplay);
   const [fitSelectedRequest, setFitSelectedRequest] = useState(0);
   const [openChoice, setOpenChoice] = useState<{text:string;filename:string;bodies:{id:string;name:string}[];selected:string[]} | null>(null);
@@ -75,13 +77,14 @@ function DirectApp() {
     // This focused flow seam exposes copied data and declared host actions only.
     const api = {
       snapshot: () => session.getSnapshot(), display: () => structuredClone(receipt), error: () => error ? {code:error.code,message:error.message,context:{...error.context},cause:error.cause instanceof Error ? error.cause.message : null,causeChain:nativeCauses(error)} : null,
+      exportReview:()=>structuredClone(exportReview),readFrame:()=>setReadRequest(value=>value+1),
       setDisplayRefusal: (refuse: boolean) => setDisplayOptions(refuse ? { ...defaultDisplay, document: { ...defaultDisplay.document, native: { ...defaultDisplay.document.native, countU: 1 } } } : defaultDisplay),
       setMounted: (mounted: boolean) => { setMount(mounted); if (mounted) setMountKey(key => key + 1); },
       session,
     };
     Object.assign(window, { __cadEditorFlow: api });
     return () => { delete (window as Window & { __cadEditorFlow?: unknown }).__cadEditorFlow; };
-  }, [flowMode, session, receipt, error]);
+  }, [flowMode, session, receipt, exportReview, error]);
   const openFile = async (file: File | undefined) => {
     if (!file) return;
     try {
@@ -127,6 +130,10 @@ function DirectApp() {
       <Button variant="ghost" size="icon-sm" aria-label="Undo" disabled={!snapshot.history.canUndo || busy || hasDraft} onClick={() => run(() => session.prepareUndo())}><Undo2/></Button>
       <Button variant="ghost" size="icon-sm" aria-label="Redo" disabled={!snapshot.history.canRedo || busy || hasDraft} onClick={() => run(() => session.prepareRedo())}><Redo2/></Button>
       <span className="toolbar-divider"/><Button variant="ghost" size="sm" onClick={() => setFitRequest(value => value + 1)}><Maximize/>Fit</Button><Button variant="ghost" size="sm" data-testid="fit-selected-body" disabled={!snapshot.selectedBodyId} onClick={() => setFitSelectedRequest(value => value + 1)}>Fit selected</Button>
+      {mount && <CadEditorExportReview session={session}
+        onReview={result=>{setExportReview(result);if(result!==null)setError(current=>current?.context.field==='document-export'?null:current);}}
+        onError={failure=>{setReadRequest(value=>value+1);setError(failure);}}
+        onDownload={downloadReviewedExport}/>}
     </div></div>
     {error && <div className="app-error" role="alert">{actionError(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
     <div className="app-workspace">
