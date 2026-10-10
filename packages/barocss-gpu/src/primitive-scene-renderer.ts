@@ -19,6 +19,18 @@ import {meshLightingShaders,applyMeshLighting,materialMeshShaders,applyMeshMater
 import {validateMeshMaterialBinding} from './mesh-material.js';
 import type {MeshMaterialBinding} from './mesh-material.js';
 
+/** Accepted presentation recovery failed; CONTEXT does not certify hardware loss. */
+export class PrimitiveSceneRecoveryError extends AggregateError {
+ readonly code = 'CONTEXT' as const;
+ constructor(original: unknown, recovery: unknown) {
+  super([original, recovery], 'Primitive scene candidate and accepted presentation recovery failed');
+  this.name = 'PrimitiveSceneRecoveryError';
+  Object.freeze(this.errors);
+  Object.defineProperty(this, 'errors', { writable: false, configurable: false });
+  Object.defineProperty(this, 'code', { writable: false, configurable: false });
+ }
+}
+
 export type PrimitiveSceneEntry=
  |{kind:'surface';packet:PreviewPacket;color:RGB;transform?:MeshSceneTransform}
  |{kind:'curve';sample:AdaptiveCurveSamplingResult;basis:'authored-xyz-matches-rhyup';color:RGB;transform?:MeshSceneTransform};
@@ -170,7 +182,7 @@ function prepareV2(input:unknown,options:unknown):ReturnType<typeof prepare>{con
 
 /** Genuine sampled native Curves and Surface packets share one candidate frame/depth. */
 class PrimitiveSceneBackend {
- private readonly gl:WebGL2RenderingContext;private accepted:Frame|null=null;private disposed=false;private lost=false;
+ private readonly gl:WebGL2RenderingContext;private accepted:Frame|null=null;private disposed=false;private lost=false;private presentationUnavailable=false;
  private readonly onLoss=(event:Event)=>{event.preventDefault();this.lost=true;};
  constructor(private readonly canvas:HTMLCanvasElement,prepared:ReturnType<typeof prepare>){
   this.dimensions(canvas.width,canvas.height);
@@ -181,7 +193,7 @@ class PrimitiveSceneBackend {
  protected copyEntries():(PrimitiveSceneEntry|PrimitiveSceneEntryV1|PrimitiveSceneEntryV2)[]{this.live();return this.accepted!.draws.map(d=>structuredClone(d.entry));}
  get options():PrimitiveSceneOptions{this.live();return structuredClone(this.accepted!.options);}
  get bounds():MeshSceneBounds{this.live();const draws=this.accepted!.draws;return{min:[0,1,2].map(a=>Math.min(...draws.map(d=>d.bounds.min[a]))) as Vec3,max:[0,1,2].map(a=>Math.max(...draws.map(d=>d.bounds.max[a]))) as Vec3};}
- private live(){check(!this.disposed,'Primitive renderer is disposed');check(!this.lost&&!this.gl.isContextLost(),'WebGL2 context is lost; mount a new renderer');}
+ private live(){check(!this.disposed,'Primitive renderer is disposed');check(!this.lost&&!this.gl.isContextLost(),'WebGL2 context is lost; mount a new renderer');check(!this.presentationUnavailable,'Primitive presentation is unavailable; mount a new renderer');}
  private dimensions(width:number,height:number){check(Number.isInteger(width)&&Number.isInteger(height)&&width>=1&&height>=1&&width<=4096&&height<=4096&&width*height<=4194304,'Buffer dimensions exceed limits');}
  private checkGL(){const error=this.gl.getError();check(error===this.gl.NO_ERROR,'WebGL2 error 0x'+error.toString(16));check(!this.gl.isContextLost(),'WebGL2 context is lost');}
  private program(source:{vertex:string;fragment:string}):WebGLProgram {
@@ -284,7 +296,16 @@ class PrimitiveSceneBackend {
  }
  protected updatePrepared(candidate:()=>PreparedScene):UpdateResult{
   let frame:Frame|null=null;try{this.live();const p=candidate();frame=this.create(p.primitives,p.options,this.canvas.width,this.canvas.height,p.particles??null,p.cloth??null);this.present(frame);const prior=this.accepted!;this.accepted=frame;this.release(prior);return{ok:true};}
-  catch(error){if(frame)this.release(frame);if(!this.disposed&&!this.lost&&!this.gl.isContextLost()&&this.accepted){try{this.present(this.accepted);}catch{this.lost=true;}}return{ok:false,error:error instanceof Error?error:new GPUError('Primitive scene update failed')};}
+  catch(error){
+   if(frame)this.release(frame);
+   if(!this.disposed&&!this.lost&&!this.presentationUnavailable&&!this.gl.isContextLost()&&this.accepted){
+    try{this.present(this.accepted);}catch(recovery){
+     this.presentationUnavailable=true;
+     return{ok:false,error:new PrimitiveSceneRecoveryError(error,recovery)};
+    }
+   }
+   return{ok:false,error:error instanceof Error?error:new GPUError('Primitive scene update failed')};
+  }
  }
  resize(width=this.canvas.width,height=this.canvas.height):void{
   this.live();this.dimensions(width,height);const prior=this.accepted!;let frame:Frame|null=null;

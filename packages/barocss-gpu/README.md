@@ -1212,3 +1212,21 @@ node examples/gpu-scene/cloth-layer-flow.mjs --trial <825-selected-trial.json> -
 
 Native GPU implementation, local Integration, Physics world, Viewer bridge/host,
 numeric collision/performance certification and publication are distinct stages.
+
+
+### Primitive presentation recovery failure
+
+A failed candidate plus failed accepted-frame presentation recovery returns
+`PrimitiveSceneRecoveryError extends AggregateError`, with fixed name/message,
+readonly `code:'CONTEXT'` and standard `errors` exactly `[original,recovery]`.
+The owned two-element array is frozen; cause objects retain their identities
+and are not frozen or normalized. Successful recovery retains the original
+candidate Error object and existing UpdateResult signature.
+
+Failed recovery makes presentation unavailable. It does not assert actual
+hardware context loss. Subsequent GPU presentation/readback refuses; dispose
+still releases owned live-context resources using actual `gl.isContextLost()`.
+Viewer must consume the published fatal error to retain native CPU/provenance
+while fencing Open/Fit/presentation. There is no public private-state getter,
+new renderer/profile or resize-recovery promise. Code/build/public-error checks
+are separate from actual single/double-fault WebGL2/Viewer/resource proof.
