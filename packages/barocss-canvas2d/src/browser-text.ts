@@ -2,11 +2,14 @@ import { Canvas2DError, validateImageAssetId } from './schema.js';
 import type { ImageAssetInput } from './schema.js';
 import type { GlyphRunLayout } from './display-tree.js';
 
+export type BrowserTextPolicy = 'alphanumeric' | 'printable-ascii';
+
 export type BrowserTextOptions = {
   text: string;
   font: string;
   atlasId: string;
   dpr?: number;
+  textPolicy?: BrowserTextPolicy;
 };
 
 export type BrowserTextRaster = {
@@ -30,7 +33,7 @@ function optionsOf(value: unknown): Required<BrowserTextOptions> {
   }
   const fields = Object.getOwnPropertyDescriptors(value);
   for (const key of Reflect.ownKeys(fields)) {
-    if (typeof key !== 'string' || !['text', 'font', 'atlasId', 'dpr'].includes(key)) {
+    if (typeof key !== 'string' || !['text', 'font', 'atlasId', 'dpr', 'textPolicy'].includes(key)) {
       invalid('browser text options contain an unknown field');
     }
     const descriptor = fields[key];
@@ -42,9 +45,21 @@ function optionsOf(value: unknown): Required<BrowserTextOptions> {
   const text: unknown = fields.text.value;
   const font: unknown = fields.font.value;
   const dpr: unknown = Object.hasOwn(fields, 'dpr') ? fields.dpr.value : 1;
-  if (typeof text !== 'string' || text.length < 1 || text.length > 128 ||
-      !/^[A-Za-z0-9 ]+$/.test(text) || !/[A-Za-z0-9]/.test(text)) {
-    invalid('browser text requires 1..128 ASCII letters, digits or spaces with ink');
+  const textPolicy: unknown = Object.hasOwn(fields, 'textPolicy') ? fields.textPolicy.value : 'alphanumeric';
+  if (textPolicy !== 'alphanumeric' && textPolicy !== 'printable-ascii') {
+    invalid('browser text policy is unsupported');
+  }
+  if (typeof text !== 'string' || text.length < 1 || text.length > 128) {
+    invalid(textPolicy === 'alphanumeric'
+      ? 'browser text requires 1..128 ASCII letters, digits or spaces with ink'
+      : 'browser text requires 1..128 printable ASCII characters');
+  }
+  if (textPolicy === 'alphanumeric') {
+    if (!/^[A-Za-z0-9 ]+$/.test(text) || !/[A-Za-z0-9]/.test(text)) {
+      invalid('browser text requires 1..128 ASCII letters, digits or spaces with ink');
+    }
+  } else if (!/^[\x20-\x7E]+$/.test(text) || !/[^ ]/.test(text)) {
+    invalid('browser text requires printable ASCII with a nonspace character');
   }
   if (typeof font !== 'string' || font.trim().length === 0 || font.length > 256 || /[\r\n\0]/.test(font)) {
     invalid('browser text font must be a nonempty CSS declaration of at most 256 characters');
@@ -52,7 +67,7 @@ function optionsOf(value: unknown): Required<BrowserTextOptions> {
   if (typeof dpr !== 'number' || !Number.isFinite(dpr) || dpr < 1 || dpr > 4) {
     invalid('browser text DPR must be finite and within 1..4');
   }
-  return { text, font, dpr, atlasId: validateImageAssetId(fields.atlasId.value) };
+  return { text, font, dpr, textPolicy, atlasId: validateImageAssetId(fields.atlasId.value) };
 }
 
 /** Prepare owned raster data. The host must prepare fonts before this call. */

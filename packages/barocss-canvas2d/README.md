@@ -354,3 +354,9 @@ typography parity or performance claims.
 ## Browser-font raster text consumer (#1011)
 
 After the compiled package build, open `/packages/barocss-canvas2d/consumer/text-raster.html`. This host prepares a fixed 24px monospace ASCII label with browser font readiness, measured baseline bounds and copied DPR2 RGBA bytes. One public glyph run represents the complete label; spaces remain transparent. An edit uses a fresh candidate canvas/tree/renderer and commits only the newest accepted generation. Failed or late candidates retain the live label. Save stores Scene and RGBA bytes in v1; Open restores pixels without preparing a font, and later edits use the current host font. PNG uses an actual export file. Font metadata, Unicode shaping and per-character caret mapping are outside this consumer.
+
+## Printable ASCII browser labels
+
+`rasterizeBrowserText({text:'-$20',font:'24px monospace',atlasId:'Label',textPolicy:'printable-ascii'})` prepares decimal, currency and status labels through the existing owned raster/layout path. Exported `BrowserTextPolicy` is `alphanumeric | printable-ascii`. Omit `textPolicy` for the original letters/digits/spaces contract. Explicit unknown/undefined/null/accessor fields refuse. Printable mode allows U+0020..U+007E,1..128 characters with nonspace; no control/DEL/Unicode/newline/multiline support. Existing font/DPR/1024x256/1MiB limits, font preparation ownership and copiedRGBA/wholelabel result apply.
+
+Existing `consumer/browser-text.html` shows 12.5, -$20 and FPS:60, byte-only coldOpen, restoredhelper/setLayout and PNG/Dispose. `consumer/evidence/printable-text/observation.md` separates actualbrowser/file proof from Node validation and pendingintegration/release. The policy is raster preparation only; document envelope/Scene and savedglyphtext/layout/bytes do not change.
