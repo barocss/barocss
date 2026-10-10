@@ -1,0 +1,544 @@
+{
+  "runtime": "v22.22.0",
+  "module": "compiled-root",
+  "oracle": "independent BigInt center coordinates and rational premultiplied weights",
+  "comparisons": 190,
+  "randomImages": 64,
+  "modes": [
+    "nearest",
+    "linear"
+  ],
+  "shapes": [
+    [
+      1,
+      1
+    ],
+    [
+      1,
+      7
+    ],
+    [
+      7,
+      1
+    ],
+    [
+      2,
+      2
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      5,
+      3
+    ],
+    [
+      9,
+      7
+    ]
+  ],
+  "literals": [
+    {
+      "name": "nearest center mapping",
+      "width": 3,
+      "height": 1,
+      "sampling": "nearest",
+      "pixels": [
+        255,
+        0,
+        0,
+        255,
+        0,
+        255,
+        0,
+        128,
+        0,
+        255,
+        0,
+        128
+      ]
+    },
+    {
+      "name": "linear premultiplied center and clamped edges",
+      "width": 3,
+      "height": 1,
+      "sampling": "linear",
+      "pixels": [
+        255,
+        0,
+        0,
+        255,
+        170,
+        85,
+        0,
+        192,
+        0,
+        255,
+        0,
+        128
+      ]
+    },
+    {
+      "name": "nearest identity retains hidden RGB",
+      "width": 2,
+      "height": 1,
+      "sampling": "nearest",
+      "pixels": [
+        200,
+        40,
+        90,
+        0,
+        0,
+        0,
+        255,
+        255
+      ]
+    },
+    {
+      "name": "linear identity normalizes alpha zero",
+      "width": 2,
+      "height": 1,
+      "sampling": "linear",
+      "pixels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        255,
+        255
+      ]
+    },
+    {
+      "name": "linear hidden colors cannot bleed",
+      "width": 3,
+      "height": 1,
+      "sampling": "linear",
+      "pixels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        255,
+        128,
+        0,
+        0,
+        255,
+        255
+      ]
+    },
+    {
+      "name": "positive interpolated alpha can round to zero",
+      "width": 4,
+      "height": 1,
+      "sampling": "linear",
+      "pixels": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        255,
+        0,
+        0,
+        1,
+        255,
+        0,
+        0,
+        1
+      ]
+    }
+  ],
+  "clampedEdges": true,
+  "halfUpRounding": true,
+  "nearestHiddenRGBCopy": true,
+  "linearZeroAlphaNormalization": true,
+  "noIntermediateQuantization": true,
+  "independentCopies": true,
+  "inputRetained": true,
+  "getters": 0,
+  "refusalAllocations": 0,
+  "refusals": 72,
+  "exactOneMiBInputOutputAdmitted": true,
+  "maximumAllocations": [
+    {
+      "type": "Uint8Array",
+      "bytes": 1048576
+    },
+    {
+      "type": "Uint8Array",
+      "bytes": 1048576
+    }
+  ],
+  "maximumTypedPayload": 2097152,
+  "maxDimension4096Admitted": true,
+  "refusalCases": [
+    {
+      "name": "sampling undefined",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "sampling null",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "sampling ",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "sampling cubic",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "sampling Nearest",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "sampling 0",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "sampling [object Object]",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "sampling ",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination width undefined",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination width null",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination width 0",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination width 0",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination width -1",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination width 1.5",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination width 4097",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination width NaN",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination width Infinity",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination width 1",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination height undefined",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination height null",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination height 0",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination height 0",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination height -1",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination height 1.5",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination height 4097",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination height NaN",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination height Infinity",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "destination height 1",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset record",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset record",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset record",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset record",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset record",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "missing asset width",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset accessor width",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "hidden asset width",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "missing asset height",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset accessor height",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "hidden asset height",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "missing asset pixels",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset accessor pixels",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "hidden asset pixels",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "source width 0",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "source width 0",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "source width 1.5",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "source width 4097",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "source width NaN",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "source width Infinity",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "source width 1",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "source height 0",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "source height 0",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "source height 1.5",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "source height 4097",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "source height NaN",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "source height Infinity",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "source height 1",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel type or extent",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel type or extent",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel type or extent",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel type or extent",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel type or extent",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "shared pixel buffer",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel metadata accessor buffer",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel metadata override buffer",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel metadata accessor byteLength",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel metadata override byteLength",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel metadata accessor byteOffset",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel metadata override byteOffset",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel metadata accessor length",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel metadata override length",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "input byte budget",
+      "code": "ASSET_LIMIT",
+      "allocations": 0
+    },
+    {
+      "name": "output byte budget",
+      "code": "ASSET_LIMIT",
+      "allocations": 0
+    }
+  ]
+}

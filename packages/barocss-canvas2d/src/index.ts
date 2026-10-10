@@ -62,3 +62,6 @@ export type { SceneV29, NodeV29, GroupNodeV29, FrameNodeV29, ImageNodeV29, Sprit
 
 export { shadowImageAsset } from './image-shadow.js';
 export type { ImageShadowOptions } from './image-shadow.js';
+
+export { resizeImageAsset } from './image-resize.js';
+export type { ImageResizeSampling } from './image-resize.js';
