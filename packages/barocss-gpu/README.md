@@ -2079,3 +2079,31 @@ geometry admission; it does not allocate WebGL resources.
 
 The source, emitted API and cold-file example is
 `examples/gpu-scene/triangle-normal-generation-flow.mjs`.
+
+
+### Atomic local TRS clips
+
+`sampleEngineTransformClip(scene, clip, request)` samples complete local
+translation, XYZW quaternion and scale keys at one explicit caller time. The
+new `barocss-gpu-engine-transform-clip` version 0 profile uses scene units,
+right-handed Y-up coordinates, seconds and
+`linear-trs-shortest-path-nlerp` interpolation. All three channels are required
+on each key. Translation and scale interpolate linearly; rotation uses the
+existing shortest-path normalized linear interpolation semantics. Held and
+exact endpoints preserve authored coefficients.
+
+All tracked node transforms replace together before final scene admission. This
+allows a valid complete frame even when a single-channel intermediate exceeds
+world bounds. Original scene, clip and request remain frozen and independent;
+`result.scene` is the final prepared scene with separately mutable execution
+buffers. Existing sparse translation, rotation and scale clips stay unchanged.
+
+Limits are 32 tracks, 32 keys per track and 512 aggregate keys. Seconds are
+0..3600 with key gaps at least 1e-6. Translation is within +/-1000, positive
+scale .01..100 and unit quaternion tolerance 1e-9. Exactly one original and one
+final scene admission retain the existing scene budgets. Errors preserve actual
+reflection or scene causes; `SCENE` identifies original admission and `FRAME`
+identifies final admission. This API has no clock, renderer or playback loop.
+
+The source, emitted API and cold-file example is
+`examples/gpu-scene/engine-transform-clip-flow.mjs`.

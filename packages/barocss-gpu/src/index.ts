@@ -111,3 +111,6 @@ export type {EngineUVRepeatingMaterialBinding} from './mesh-material.js';
 
 export { prepareTriangleGeometryWithNormals } from './triangle-normal-generation.js';
 export type { TriangleNormalSourceV0, PreparedTriangleGeometryWithNormals } from './triangle-normal-generation.js';
+
+export { sampleEngineTransformClip, EngineTransformClipError, EngineTransformClipDiagnosticCode } from './engine-transform-clip.js';
+export type { EngineTransformKeyV0, EngineTransformTrackV0, EngineTransformClipV0, EngineTransformClipRequestV0, SampledEngineTransformClip } from './engine-transform-clip.js';
