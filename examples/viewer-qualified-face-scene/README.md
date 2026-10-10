@@ -172,3 +172,31 @@ Native author, actual consumer verification, exact code merge availability,
 later integrated checks and publication remain separate. No global closure,
 manufacturing accuracy, persistent topology/picking, editor Save/Open,
 performance or lost-handle deletion0 is inferred from these original inputs.
+
+## Original three-point angle (#1141)
+
+Choose three current original Surface or Curve points, then select **Measure
+native angle**. The middle point is the vertex. The output shows the unsigned
+angle in degrees. These are original native parameter points, not picked mesh
+vertices. Each point keeps its complete source, sourceId, Face, Model, geometry
+and parameter pin. The caller label sits at the native vertex; its CSS mapping
+is approximate and does not test occlusion.
+
+`queryQualifiedFaceAngle(viewer,first,vertex,third)` reuses two public native
+point-pair queries. It checks repeated vertex bits, then normalizes the two
+original mm vectors and uses atan2 of cross magnitude and dot product. Zero or
+nonfinite legs, nonzero normalization collapse and nonzero multiplication
+underflow refuse. Ordinary binary64 cancellation remains; there is no global
+angular accuracy certificate. Radians, degrees, original points and leg lengths
+are copied to the caller. This is not a screen, tangent, dihedral or Solid angle.
+
+View, grid, color, order and CSS changes preserve the native report. Original
+source or reference changes clear it. Failed queries retain the prior report.
+Retained CPU authority can query after context loss or presentation failure,
+while projection refuses and the label hides. Clear, mode change and Dispose
+invalidate it. Existing distance, area and Curve length outputs are independent.
+
+The hook exposes `queryQualifiedFaceAngle`, `measureAngle(first?,vertex?,third?)`,
+`updateAngleLabel`, `angleSnapshot` and a copied `angleReport` getter. No SDK,
+provider, package config, release or broad earlier campaign changes are part of
+this example. The earlier #1080 transition anomaly remains separately pending.
