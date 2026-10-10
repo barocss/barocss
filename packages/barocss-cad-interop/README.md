@@ -3318,3 +3318,27 @@ Only owned Lines, geometries and automatic materials are disposed. Caller resour
 Native curve parameters and source units remain separate from scaled display coordinates.
 This is a caller workflow; it adds no Loader manager or general transaction guarantee.
 Package publication and current composed acceptance remain separate.
+
+## Original exact lower-strip Face in Babylon (#1313)
+
+This independent host reads 22 unchanged CAD originals for the low and high Face.
+It checks the saved and fresh complete native certificates and 80 observations.
+The Model keeps one Support and four unrendered Curve siblings.
+The preview shows the complete, untrimmed Support; native UV remains CAD metadata.
+Face orientation does not change display triangles or certify a general Solid.
+
+Use Node 22. Run source verification before building this checkout's libraries:
+
+```sh
+node packages/barocss-cad-interop/examples/exact-lower-strip-face-babylon-verify.mjs --mode source --output /tmp/loader1313-source
+pnpm exec vite --config packages/barocss-cad-interop/examples/exact-lower-strip-face-babylon.config.mjs
+```
+
+Open the printed host URL. Follow refusals, transport, high Face, cold reload and cleanup.
+The host checks all native data, copied buffers, its fixed camera and full frame.
+It stages Babylon candidates while disabled and prepares their real materials.
+It releases each owned Mesh, Geometry and material once and retains caller resources.
+For emitted verification, build CAD and interop, then use `--mode compiled`.
+Serve its generated browser bundle with `LOADER1313_COMPILED_BUNDLE`.
+This is a selected original-data consumer, not an all-peer or manufacturing certificate.
+Source/emitted proof and exact local adoption remain separate from npm publication.
