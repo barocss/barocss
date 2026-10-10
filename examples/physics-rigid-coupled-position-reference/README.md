@@ -16,4 +16,6 @@ The runner defaults to `/tmp/physics-1263-canonical`. Read whole reports: a cand
 
 Diagnostic JSON retains numeric values but loses signed zero. Both original input and hypothetical copied-pose raw13Float64LE artifacts preserve their actual bits. Fresh original detector/selector bits and graph parity are checked separately. A hypothetical pose is not a historical phase state or an accepted new world state.
 
-Status: source drafts and pre-trial scope only; build/controls/canonical trial not yet executed. Parent#1234 remains physicalNO-GO. Exact adoption and later#674/#1254 integrated acceptance are separate from reference qualification.
+Status: native detached reference GO at measured a59b0967c80fa36a9f9642e30788dc9efd3beb1d. Actual CAD/Physics build, strict types and single root consumer exited0. Nine recorded frames/324 original pair observations/324 hypothetical pair observations pass all three graphs. Seventeen linear controls plus original analytical/copy/archive/error controls pass per graph. Evidence lives in evidence/native-a59b0967. Parent#1234 remains physicalNO-GO. Exact adoption and later#674/#1254 integrated acceptance are separate from reference qualification.
+
+Maximum correction0.005465161812547457m; post-translation penetration1.6373873695002593e-16m; Float64/exact displacement difference1.3877787807814457e-17m. This is a detached-state reference GO only. #1264 world quality remains unexecuted and conditional on actual adopted interfaces. Native-only proof and adoption are separate.

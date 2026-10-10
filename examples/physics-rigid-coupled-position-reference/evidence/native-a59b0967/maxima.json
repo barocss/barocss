@@ -1,0 +1,10 @@
+{
+  "primalViolationM": 9.974659986866641e-18,
+  "negativeMultiplierKgM": 0,
+  "complementarityKgM2": 2.9267470739365505e-19,
+  "stationarityKgM": 0,
+  "displacementDeltaM": 1.3877787807814457e-17,
+  "objectiveDeltaKgM2": 3.3881317890172014e-19,
+  "precisionMaxDifferenceM": 3.9349452647928925e-79,
+  "rawNormalizedDepthDifferenceM": 1.0889967623568145e-18
+}
