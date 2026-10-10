@@ -5,6 +5,7 @@ import { performance } from 'node:perf_hooks';
 import { fileURLToPath } from 'node:url';
 import { buildArgv, validatePacket, DECLARATION_DIGEST, OUTER_SCHEMA } from './launch-packet.mjs';
 import { REQUEST_CONTRACT, SCREEN_DECLARATIONS, requestScreen, checkRequestScreen } from './scenario.mjs';
+import { completionUsage } from './usage.mjs';
 
 const manifestRoot = new URL('../../packages/barocss-render/', import.meta.url);
 const manifest = JSON.parse(fs.readFileSync(new URL('package.json', manifestRoot), 'utf8'));
@@ -93,6 +94,7 @@ export function createCodexTransport({ packet, approval, spawnProcess = spawn, c
       PATH: `${packet.cli.nodeBin}:/usr/bin:/bin`, LANG: 'en_US.UTF-8', TERM: 'dumb', NO_COLOR: '1' };
     let child, reason = null, raw = [], stderr = [], bytes = 0, stderrBytes = 0, pending = Buffer.alloc(0);
     let modelId = null, finalText = null, turnStarted = false, turnCompleted = false;
+    let completionEvents = 0, firstUsage;
     let timeout, escalation, kill;
     const stop = (why) => { if (reason) return; reason = why; invalidate(why); kill?.(); };
     attempted++;
@@ -129,7 +131,10 @@ export function createCodexTransport({ packet, approval, spawnProcess = spawn, c
             finalText = event.item.text;
           }
         }
-        if (event.type === 'turn.completed') turnCompleted = true;
+        if (event.type === 'turn.completed') {
+          turnCompleted = true;
+          if (++completionEvents === 1) firstUsage = event.usage;
+        }
       };
       child.stdout.on('data', (chunk) => {
         const buffer = Buffer.from(chunk);
@@ -177,7 +182,10 @@ export function createCodexTransport({ packet, approval, spawnProcess = spawn, c
       if (reason && child?.pid) { try { process.kill(-child.pid, 'SIGKILL'); } catch { /* owned group already gone */ } }
       write(`${prefix}-stdout.jsonl`, Buffer.concat(raw)); write(`${prefix}-stderr.txt`, Buffer.concat(stderr));
       write(`${prefix}-result.json`, { reservations, attempted, completed, accepted, reason: reason ?? (halted ? 'turn-failed' : null), observation,
-        packetDigest, declarationsDigest: DECLARATION_DIGEST });
+        candidateSha: packet.candidateSha, packetDigest, declarationsDigest: DECLARATION_DIGEST,
+        usage: { reservation: number, runId: approval.runId, hostSessionId: request.sessionId, revision: request.revision,
+          requestId: request.requestId, codexThreadId: modelId, source: fake ? 'injected-process' : 'native-cli',
+          ...completionUsage(completionEvents, firstUsage) } });
     }
   };
   brands.set(generate, { mode: fake ? 'codex-cli-fake' : 'codex-cli', dispose() { active?.stop('disposed'); invalidate('disposed'); } });

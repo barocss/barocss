@@ -7,6 +7,7 @@ import { createRequire } from 'node:module';
 import { preparePacket, validatePacket, digest, DECLARATION_DIGEST, buildArgv } from './launch-packet.mjs';
 import { createPacketApp } from './codex-transport.mjs';
 import { requestScreen } from './scenario.mjs';
+import { packetUsage } from './usage.mjs';
 
 const repo = fileURLToPath(new URL('../../', import.meta.url));
 const ownFile = fileURLToPath(import.meta.url);
@@ -197,7 +198,8 @@ export async function runExperiment(experiment, { approval, spawnProcess = spawn
   if (errors.length || csp.length || external.length || displays.length !== 5) failure ??= 'terminal-experiment-failure';
   const files = fs.readdirSync(root);
   const results = files.filter((name) => /^turn-\d+-result.json$/.test(name)).sort((a, b) => Number(a.split('-')[1]) - Number(b.split('-')[1]));
-  const last = results.length ? privateFile(path.join(root, results.at(-1))) : null;
+  const turnResults = results.map((name) => privateFile(path.join(root, name)));
+  const last = turnResults.at(-1) ?? null;
   const counts = { reserved: files.filter((name) => /^turn-\d+-reservation.json$/.test(name)).length,
     attempted: last?.attempted ?? 0, completed: last?.completed ?? 0, accepted: last?.accepted ?? 0, useful: displays.length };
   const samples = displays.map((record) => record.actionToUsefulMs).filter((value) => value !== null).sort((a, b) => a - b);
@@ -205,7 +207,8 @@ export async function runExperiment(experiment, { approval, spawnProcess = spawn
     median: samples.length ? (samples[Math.floor((samples.length - 1) / 2)] + samples[Math.floor(samples.length / 2)]) / 2 : null,
     min: samples[0] ?? null, max: samples.at(-1) ?? null, liveModelEvidence: approval.kind === 'owner-approved' };
   const report = { status: failure ? 'partial-failure' : 'completed', failure, mode: app.mode, candidateSha: experiment.candidateSha,
-    packetDigest: experiment.packetDigest, experimentDigest: checkExperiment(experiment), counts, displays, latency, errors, csp, external,
+    packetDigest: experiment.packetDigest, declarationsDigest: DECLARATION_DIGEST, runId: experiment.runId,
+    experimentDigest: checkExperiment(experiment), counts, displays, latency, usage: packetUsage(turnResults), errors, csp, external,
     terminalHostState, limits: 'No retries; five reservations; 180s per turn/900s total. No real-time suitability claim.' };
   write(path.join(root, 'report.json'), report);
   return { status: report.status, mode: app.mode, counts, packetDigest: experiment.packetDigest, experimentDigest: report.experimentDigest };

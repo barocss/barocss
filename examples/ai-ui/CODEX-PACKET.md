@@ -105,3 +105,27 @@ node --test examples/ai-ui/session.test.mjs examples/ai-ui/server.test.mjs examp
 ```
 
 The runner tests use the actual browser and an injected child process for all five displays and both edits. They check permitted structural variants, styles, correlation, action dispatch, authority rejection and terminal partial failure. This proves host wiring only. It does not prove account/model/profile acceptance, live generation quality, physical paint, real-time suitability or user value. Fresh direct live authority and live evidence remain separate work.
+## Usage observations — #1171
+
+Each private `turn-N-result.json` records the number of `turn.completed` events,
+the known reported counters and host/request/revision/Codex-thread/run correlation.
+Status is `reported`, `no-completion`, `missing`, `malformed` or `ambiguous`.
+The raw stdout JSONL remains the original evidence, including unfamiliar fields.
+Missing optional reasoning output is null; missing/invalid counters are never zero.
+
+The private browser report includes these rows for accepted and failed attempts.
+`source` distinguishes `injected-process` from `native-cli`; an injected row is
+authored verification, not actual model usage. Usage does not change UI acceptance,
+host authority or current stop conditions. Private telemetry is not returned to the
+browser or printed in the command's public summary.
+
+The [official exec JSONL example](https://learn.chatgpt.com/docs/non-interactive-mode)
+documents the reported counter fields. Counter scope across resumed processes has
+not been established for this packet. `counterScope` is `unverified`; `tokenTotals`
+is null. Counters are not summed or differenced. Billed amount/currency remain null:
+ChatGPT account billing cannot be inferred by applying API token prices.
+
+Run `node examples/ai-ui/usage-flow.mjs` after the compiled renderer dependency
+build for one authored five-display browser packet and a rejected-screen telemetry
+check. It invokes zero models. A future live packet still requires the existing
+fresh exact candidate/digests/run/budget/direct-owner record; old packets are unchanged.
