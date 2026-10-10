@@ -16,7 +16,7 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <span id="measurement-distance" class="measurement-label" hidden></span><span id="surface-area-label" class="measurement-label" hidden></span>
 <span id="curve-length-label" class="measurement-label" hidden></span><span id="native-angle-label" class="measurement-label" hidden></span>
 <span id="curve-curvature-label" class="measurement-label" hidden></span><span id="surface-curvature-label" class="measurement-label" hidden></span>
-<span id="native-tangent-angle-label" class="measurement-label" hidden></span></div></div>
+<span id="native-tangent-angle-label" class="measurement-label" hidden></span><span id="native-normal-angle-label" class="measurement-label" hidden></span></div></div>
 <label>Assets <select id="asset-count" disabled><option>6</option><option>2</option></select></label>
 <label>Grid U <select id="count-u" disabled><option>17</option><option>9</option><option>2</option></select></label>
 <label>Grid V <select id="count-v" disabled><option>17</option><option>9</option><option>2</option></select></label>
@@ -27,6 +27,27 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <button id="resize" disabled>Resize view</button><button id="clear" disabled>Clear viewer</button><button id="run-proof" disabled>Run proof</button>
 <button id="lose-context" disabled>Lose context</button><button id="dispose" disabled>Dispose viewer</button>
 <pre id="inspection" aria-label="Read-only original source and Face inspection">Inspect an admitted source from its row.</pre>
+<section aria-label="Original native Surface normal angle">
+<h2>Measure original native normal angle</h2>
+<fieldset><legend>First normal</legend>
+<label>Source <select id="normal-first-source" aria-label="First normal source" disabled></select></label>
+<label>Surface <select id="normal-first-surface" aria-label="First normal Surface" disabled></select></label>
+<label>Native u <input id="normal-first-u" aria-label="First normal u" type="text" inputmode="decimal" value="0.5" disabled></label>
+<label>Native v <input id="normal-first-v" aria-label="First normal v" type="text" inputmode="decimal" value="0.5" disabled></label>
+</fieldset>
+<fieldset><legend>Second normal</legend>
+<label>Source <select id="normal-second-source" aria-label="Second normal source" disabled></select></label>
+<label>Surface <select id="normal-second-surface" aria-label="Second normal Surface" disabled></select></label>
+<label>Native u <input id="normal-second-u" aria-label="Second normal u" type="text" inputmode="decimal" value="0.5" disabled></label>
+<label>Native v <input id="normal-second-v" aria-label="Second normal v" type="text" inputmode="decimal" value="0.5" disabled></label>
+</fieldset>
+<button id="measure-normal-angle" disabled>Measure native normal angle</button><p id="normal-angle-output" role="status" aria-live="polite"></p>
+<details id="normal-angle-help"><summary>About this native normal angle</summary>
+<p>This unsigned local angle uses the original Surface du × dv parameter normals at literal native u/v.
+The parameter normal does not specify outward Face or Solid orientation. The result is not an adjacency dihedral or an acute plane angle.
+Derivative norms use mm per original numeric parameter; normalized vectors are dimensionless. Display scale, translation and camera do not enter the angle.
+The first-point label uses approximate CSS camera mapping without occlusion testing. No normal arrows or global angular accuracy certificate are implied.</p></details>
+</section>
 <section aria-label="Original native Curve tangent angle">
 <h2>Measure original native tangent angle</h2>
 <fieldset><legend>First tangent</legend>

@@ -299,3 +299,40 @@ Hook: `tangentAnglePin`, `queryQualifiedFaceTangentAngle`,
 `tangentAngleSnapshot`, copied `tangentAngleReport`, and public CAD
 `evaluateCurveD1`. No new SDK/provider API or release is claimed. The earlier
 #1080 transition anomaly remains an independent pending Integration check.
+
+## Native Surface parameter-normal angle (#1166)
+
+Choose two current Sources, their Face Surfaces and original **U/V** parameters.
+Select **Measure native normal angle**. The copied report gives the unsigned
+angle, 0..180°, between native `du × dv` parameter-normal directions. It does
+not give outward Face/Solid orientation, an acute unoriented plane angle or a
+topological dihedral angle. Display scale, translation and camera do not change
+the original native angle.
+
+`normalAnglePin(scene,sourceId,u=.5,v=.5)` captures the seven current fields.
+`queryQualifiedFaceNormalAngle(scene,first,second)` validates both pins and both
+complete Source0 Models before two public `evaluateSurfaceD1` calls. All five
+original objects must bit-match each current Face geometry. D2 is not required:
+a D1-valid C1 Surface can be inspected when D2 continuity refuses.
+
+The result retains original D1 points/du/dv, derivative norms in mm per original
+numeric parameter, normalized tangents, their dimensionless cross and unit
+normal, radians and degrees. Finite positive derivative and Surface cross norms
+are required. Nonzero components/products must remain representable. A zero
+Surface cross refuses; a zero cross between two valid normals gives 0° or 180°.
+Represented nonzero near-parallel tangents use the same calculation without an
+epsilon or clamp. This does not certify global regularity or angular accuracy.
+
+The caller label uses the first declared native parameter point. Projection is
+approximate and does not test occlusion. View/grid/color/order/CSS changes retain
+and reproject the report. Current source/Face/Model/Surface changes invalidate
+it. Failed queries retain accepted output. Retained CPU authority remains
+queryable after loss or unavailable presentation; projection refuses and the
+label hides. Clear/mode/Dispose removes authority. The seven prior panels remain
+independent. The F interior pole edit changes its non-midpoint normal while the
+midpoint D1/normal stays unchanged; the complete Source pin changes in both cases.
+
+Hooks: `normalAnglePin`, `queryQualifiedFaceNormalAngle`, `measureNormalAngle`,
+`updateNormalAngleLabel`, `normalAngleSnapshot`, copied `normalAngleReport`, and
+public `evaluateSurfaceD1`. No new SDK/provider API or release is claimed. The
+earlier #1080 transition anomaly remains an independent Integration follow-up.
