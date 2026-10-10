@@ -37,6 +37,8 @@ The source-link receipt confirms the fixed commit is local-only (actual GitHub42
 
 ## Runnable visual examples and languages
 
+The site guide `/concepts/run-examples` gives repository setup, exact saved CPU commands, expected results, source-pin behavior and the distinction between Node consumers and browser hosts.
+
 Open `/playground` from the portal navigation. It contains editable GPU source1, CAD source0 Curve/Surface and opaque mesh-material inputs. These use real source APIs and admitted WebGL2 renderers. The Curve plot uses CAD evaluation plus host Canvas2D; it is not BaroCSS Canvas2D runtime evidence. Source/input/result screenshots are stored in docs/public/examples and embedded in the task pages. CAD source0/1/2 and GPU scene/material language pages describe exact grammar and refusal rules.
 
 `pnpm dev` and `pnpm build` generate an ignored app-local ESM bundle before VitePress. Generation uses existing esbuild and ordinary public package imports, checks the fixed package source pin and refuses package dist or foreign package source inputs. If later workspace manifest/src trees differ, it materializes exact pinned Git blobs into an ignored app-local cache, then resolves their normal public export maps. Cache blobs are rechecked; no moving-main substitution or package source mutation. Snapshot fallback consumers must be standalone and use literal bare imports; consumer-relative imports are refused rather than silently remapped. No generated package artifacts or dependency install is required. To run a saved CPU task:

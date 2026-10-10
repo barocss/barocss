@@ -50,6 +50,12 @@ The packet preserves authored XYZ in millimetres and declares right-handed Y-up.
 
 `prepareMesh` is a CPU operation. Its Float32 positions/normals and Uint16 indices are owned output buffers. It validates conversion, triangle area and winding. A successful CPU preparation does not establish a successful draw. The report's sampled deviation is an observation, not a certified tolerance.
 
+## Bind a material and retain accepted state
+
+Compile the material before mounting its mesh. If the first `setMaterial` call fails, dispose that newly mounted renderer before reporting the setup error. For a later uniform edit, update host state only when `setMaterial` succeeds. A refused candidate keeps the accepted binding while the context remains live.
+
+The [material setup recipe](./material-language#complete-blend-material) includes a named slider listener and cleanup. The [caller-time recipe](./material-language#supply-caller-time-on-demand) maps elapsed seconds into the declared0..2 range and samples only on a button click. Both remove caller-owned listeners before renderer disposal. These source-backed host recipes are separate from the recorded playground browser checks.
+
 ## Select a larger preview profile
 
 Use `mountMeshScene` for its bounded mesh scene; use `mountPrimitiveSceneV2` for its qualified native references and explicit versioned input. Read the exact public types in [API](./api) before constructing these records. They are separate from source0 SDF, general Engine Scene data and a native CAD document. A frame version does not change the native model version.

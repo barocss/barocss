@@ -11,6 +11,8 @@ import VisualExamples from './.vitepress/components/VisualExamples.vue'
 
 Choose an input. Read its actual result. Edit the source and select **Run input**. Use **Reset example** to restore the original input. These examples run the fixed local source APIs in your browser. WebGL2 is required for the GPU views.
 
+For setup, saved CPU commands and input-version selection, read [Run the examples](/concepts/run-examples).
+
 <VisualExamples />
 
 ## Follow the language and the data

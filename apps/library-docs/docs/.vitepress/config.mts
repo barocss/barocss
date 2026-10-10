@@ -2,6 +2,7 @@ import { defineConfig } from 'vitepress'
 const packages = ['kit', 'browser', 'server', 'render', 'gpu', 'cad', 'cad-interop', 'canvas2d', 'viewer', 'physics', 'cad-editor', 'render-editor']
 const names = { 'cad-interop': 'CAD Interop (Loader)', 'cad-editor': 'CAD Editor', 'render-editor': 'Render Editor', canvas2d: 'Canvas2D', gpu: 'GPU', cad: 'CAD' }
 const common = [
+  { text: 'Run the examples', link: '/concepts/run-examples' },
   { text: 'Run visual examples', link: '/playground' },
   { text: 'Library catalog', link: '/packages/' },
   { text: 'Coordinates and units', link: '/concepts/coordinates' },
