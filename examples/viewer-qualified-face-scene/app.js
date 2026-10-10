@@ -22,6 +22,7 @@ import {queryQualifiedTreeSurfaceArea} from './tree-surface-area.js';
 import {queryQualifiedTreeCurveCurvature} from './tree-curve-curvature.js';
 import {queryQualifiedTreeSurfaceCurvature} from './tree-surface-curvature.js';
 import {queryQualifiedTreeTangentAngle} from './tree-curve-tangent-angle.js';
+import {queryQualifiedTreeNormalAngle} from './tree-surface-normal-angle.js';
 import {parseBaroCadSource} from '@barocss/cad-interop/native';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2} from '@barocss/cad-interop/document';
@@ -61,6 +62,8 @@ const inspectTreeSurfaceCurvatureButton=document.querySelector('#inspect-tree-su
 const treeSurfaceCurvatureOutput=document.querySelector('#tree-surface-curvature-output'),treeSurfaceCurvatureLabel=document.querySelector('#tree-surface-curvature-label');
 const captureTreeTangentButton=document.querySelector('#capture-tree-tangent'),resetTreeTangentAngleButton=document.querySelector('#reset-tree-tangent-angle'),treeTangentAngleOutput=document.querySelector('#tree-tangent-angle-output');
 const treeTangentLabels=Object.fromEntries(['first','second','angle'].map(side=>[side,document.querySelector('#tree-tangent-'+side+'-label')]));
+const captureTreeNormalButton=document.querySelector('#capture-tree-normal'),resetTreeNormalAngleButton=document.querySelector('#reset-tree-normal-angle'),treeNormalAngleOutput=document.querySelector('#tree-normal-angle-output');
+const treeNormalLabels=Object.fromEntries(['first','second','angle'].map(side=>[side,document.querySelector('#tree-normal-'+side+'-label')]));
 const assetCount=document.querySelector('#asset-count'),countU=document.querySelector('#count-u'),countV=document.querySelector('#count-v');
 const colorAsset=document.querySelector('#color-asset'),colorInput=document.querySelector('#color');
 const measureButton=document.querySelector('#measure-points'),measurementOutput=document.querySelector('#measurement-output');
@@ -130,6 +133,7 @@ let treeSurfaceAreaReport=null,treeSurfaceAreaProjection=null;
 let treeCurveCurvatureReport=null,treeCurveCurvatureProjection=null;
 let treeSurfaceCurvatureReport=null,treeSurfaceCurvatureProjection=null;
 let treeTangentFirstCapture=null,treeTangentAngleReport=null,treeTangentProjections={first:null,second:null,angle:null},treeTangentHidden={first:false,second:false};
+let treeNormalFirstCapture=null,treeNormalAngleReport=null,treeNormalProjections={first:null,second:null,angle:null},treeNormalHidden={first:false,second:false};
 const colors=[[.9,.3,.2],[.25,.8,.4],[.25,.45,.95],[.95,.7,.2],[.3,.8,.9],[.85,.35,.75]];
 const camera={eye:[2,1.5,3.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:10},mmToSceneUnit=.12,background=[.02,.03,.04],translateScene=[-.6,-.6,-.7];
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
@@ -337,7 +341,8 @@ function qualifiedTreeSnapshot(){return{tree:clone(qualifiedTreeData),selected:c
   enabled:!inspectTreePointButton.disabled,frameEnabled:!frameTreeFaceButton.disabled};}
 function clearQualifiedTree(){if(qualifiedTreeData||qualifiedTreeContent)treeGeneration++;qualifiedTreeContent=null;qualifiedTreeData=null;treeNodeButtons=[];
   qualifiedTreeFilter={query:'',sourceId:null,kind:'all'};qualifiedTreeFiltered=null;treeFilterStatus.textContent='';restoreQualifiedTreeFilterControls();
-  qualifiedTreeElement.replaceChildren();clearTreeSelection();clearTreeTangentAngle();captureTreeTangentButton.disabled=true;resetTreeTangentAngleButton.disabled=true;}
+  qualifiedTreeElement.replaceChildren();clearTreeSelection();clearTreeTangentAngle();captureTreeTangentButton.disabled=true;resetTreeTangentAngleButton.disabled=true;
+  clearTreeNormalAngle();captureTreeNormalButton.disabled=true;resetTreeNormalAngleButton.disabled=true;}
 function restoreQualifiedTreeFilterControls(){for(const[input,value]of[[treeFilterQuery,qualifiedTreeFilter.query],[treeFilterSource,qualifiedTreeFilter.sourceId??''],[treeFilterKind,qualifiedTreeFilter.kind]])if(input.value!==value)input.value=value;}
 function qualifiedTreeNodeVisible(ref){return !!qualifiedTreeFiltered?.sources.some(source=>source.geometries.some(geometry=>same(geometry.ref,ref)));}
 function setQualifiedTreeFilter(input){let next;try{next=filterQualifiedFaceTree(viewer,input);}catch(error){restoreQualifiedTreeFilterControls();throw error;}
@@ -512,6 +517,58 @@ function remeasureTreeTangentAngle(){refreshQualifiedTree();check(!disposed&&!ru
   const capture=treeTangentCapture(next),report=clone(next);treeTangentFirstCapture=capture;treeTangentAngleReport=report;
   refreshQualifiedTree();display('Original tree tangent angle measured again.');return clone(report);}
 function resetTreeTangentAngle(){clearTreeTangentAngle();refreshQualifiedTree();display('Tree tangent angle reset.');}
+function hideTreeNormalLabels(){treeNormalProjections={first:null,second:null,angle:null};for(const label of Object.values(treeNormalLabels))label.hidden=true;}
+function clearTreeNormalAngle(){treeNormalFirstCapture=null;treeNormalAngleReport=null;treeNormalHidden={first:false,second:false};treeNormalAngleOutput.textContent='';hideTreeNormalLabels();}
+function treeNormalAngleSnapshot(){return{phase:treeNormalAngleReport?'complete':treeNormalFirstCapture?'first':'empty',first:clone(treeNormalFirstCapture),report:clone(treeNormalAngleReport),
+  output:treeNormalAngleOutput.textContent,enabled:!captureTreeNormalButton.disabled,projections:clone(treeNormalProjections),
+  labels:Object.fromEntries(Object.entries(treeNormalLabels).map(([side,label])=>[side,pickedChordLabelSnapshot(label)])),hidden:clone(treeNormalHidden)};}
+function treeNormalPin(node,u,v){const ref=node.ref;return{kind:'surface',sourceId:ref.sourceId,expectedSource:ref.expectedSource,faceId:ref.faceId,modelId:ref.modelId,geometryId:ref.geometryId,u,v};}
+function treeNormalCapture(candidate){const native=candidate.measurement.first;return clone({node:candidate.first.node,u:candidate.first.u,v:candidate.first.v,
+  derivatives:native.derivatives,duNormMM:native.duNormMM,dvNormMM:native.dvNormMM,unitDu:native.unitDu,unitDv:native.unitDv,
+  parameterCross:native.parameterCross,crossNorm:native.crossNorm,unitNormal:native.unitNormal});}
+function treeNormalDescription(node,u,v){return node.ref.sourceId+'/'+node.ref.geometryId+' at u '+areaNumber(u)+', v '+areaNumber(v);}
+function renderTreeNormalOutput(){const first=treeNormalFirstCapture,second=treeNormalAngleReport?.second;
+  treeNormalAngleOutput.textContent=treeNormalAngleReport?treeNormalDescription(first.node,first.u,first.v)+' ↔ '+treeNormalDescription(second.node,second.u,second.v)+' · '+areaNumber(treeNormalAngleReport.measurement.angleDegrees)+'°'
+    :first?'First normal '+treeNormalDescription(first.node,first.u,first.v)+'. Select a Surface for the second normal.':'';
+  if(first&&treeNormalHidden.first)treeNormalAngleOutput.textContent+=' First '+first.node.ref.sourceId+'/'+first.node.ref.geometryId+' is outside the filter.';
+  if(second&&treeNormalHidden.second)treeNormalAngleOutput.textContent+=' Second '+second.node.ref.sourceId+'/'+second.node.ref.geometryId+' is outside the filter.';}
+function refreshTreeNormalAngle(){if(disposed){clearTreeNormalAngle();captureTreeNormalButton.disabled=true;resetTreeNormalAngleButton.disabled=true;return treeNormalAngleSnapshot();}
+  const state=viewer.getState();let current=!!state.qualifiedFaceScene;
+  try{for(const node of[treeNormalFirstCapture?.node,treeNormalAngleReport?.second.node])if(node)queryQualifiedFaceTreeNode(viewer,node.ref);}catch{current=false;}
+  if(!current)clearTreeNormalAngle();captureTreeNormalButton.disabled=running||!state.qualifiedFaceScene||qualifiedTreeSelected?.ref.kind!=='surface';
+  resetTreeNormalAngleButton.disabled=running||!treeNormalFirstCapture;
+  const first=treeNormalFirstCapture,second=treeNormalAngleReport?.second;
+  treeNormalHidden={first:!!first&&!qualifiedTreeNodeVisible(first.node.ref),second:!!second&&!qualifiedTreeNodeVisible(second.node.ref)};
+  renderTreeNormalOutput();hideTreeNormalLabels();if(state.status!=='ready'||!first)return treeNormalAngleSnapshot();
+  for(const[side,capture]of[['first',first],['second',second]]){if(!capture||treeNormalHidden[side])continue;
+    try{treeNormalProjections[side]=viewer.projectQualifiedFacePoint(treeNormalPin(capture.node,capture.u,capture.v));}catch{}
+    const projection=treeNormalProjections[side],label=treeNormalLabels[side];if(!projection)continue;
+    label.textContent=(side==='first'?'1: ':'2: ')+capture.node.ref.sourceId+'/'+capture.node.ref.geometryId;
+    label.style.left=projection.xCss+'px';label.style.top=projection.yCss+'px';label.hidden=false;}
+  if(treeNormalAngleReport&&treeNormalProjections.first){const projection=treeNormalProjections.first;treeNormalProjections.angle=clone(projection);
+    treeNormalLabels.angle.textContent=areaNumber(treeNormalAngleReport.measurement.angleDegrees)+'°';treeNormalLabels.angle.style.left=projection.xCss+'px';
+    treeNormalLabels.angle.style.top=(projection.yCss+18)+'px';treeNormalLabels.angle.hidden=false;}
+  return treeNormalAngleSnapshot();}
+function captureTreeNormal(u,v){refreshQualifiedTree();check(!captureTreeNormalButton.disabled&&qualifiedTreeSelected,'Select a current original Surface first.');
+  const selected=clone(qualifiedTreeSelected.ref),current=queryQualifiedFaceTreeNode(viewer,selected);check(current.ref.kind==='surface','Select a current original Surface first.');
+  if(arguments.length===0){const parameters=treeControlParameters();u=parameters.u;v=parameters.v;}
+  const priorFirst=clone(treeNormalFirstCapture),priorReport=clone(treeNormalAngleReport),pair=!!priorFirst&&!priorReport;
+  if(priorFirst)queryQualifiedFaceTreeNode(viewer,priorFirst.node.ref);
+  const firstRef=pair?priorFirst.node.ref:selected,firstU=pair?priorFirst.u:u,firstV=pair?priorFirst.v:v;
+  const next=queryQualifiedTreeNormalAngle(viewer,firstRef,firstU,firstV,selected,u,v),firstCurrent=queryQualifiedFaceTreeNode(viewer,firstRef),secondCurrent=queryQualifiedFaceTreeNode(viewer,selected);
+  check(qualifiedTreeSelected&&same(selected,qualifiedTreeSelected.ref)&&same(selected,secondCurrent.ref)&&same(firstRef,firstCurrent.ref)
+    &&same(priorFirst,treeNormalFirstCapture)&&same(priorReport,treeNormalAngleReport),'The original normal capture changed during inspection.');
+  if(priorFirst)queryQualifiedFaceTreeNode(viewer,priorFirst.node.ref);
+  const first=treeNormalCapture(next),report=pair?clone(next):null;treeNormalFirstCapture=first;treeNormalAngleReport=report;
+  refreshQualifiedTree();display(report?'Original tree normal angle ready.':'First original tree normal captured. Select the second Surface.');return treeNormalAngleSnapshot();}
+function remeasureTreeNormalAngle(){refreshQualifiedTree();check(!disposed&&!running&&treeNormalAngleReport,'Capture two current original Surface normals first.');
+  const priorFirst=clone(treeNormalFirstCapture),priorReport=clone(treeNormalAngleReport),first=priorReport.first,second=priorReport.second;
+  const next=queryQualifiedTreeNormalAngle(viewer,first.node.ref,first.u,first.v,second.node.ref,second.u,second.v);
+  queryQualifiedFaceTreeNode(viewer,first.node.ref);queryQualifiedFaceTreeNode(viewer,second.node.ref);
+  check(same(priorFirst,treeNormalFirstCapture)&&same(priorReport,treeNormalAngleReport),'The original normal pair changed during inspection.');
+  const capture=treeNormalCapture(next),report=clone(next);treeNormalFirstCapture=capture;treeNormalAngleReport=report;
+  refreshQualifiedTree();display('Original tree normal angle measured again.');return clone(report);}
+function resetTreeNormalAngle(){clearTreeNormalAngle();refreshQualifiedTree();display('Tree normal angle reset.');}
 function refreshQualifiedTree(){if(disposed){clearQualifiedTree();for(const input of[treeU,treeV,treeT,inspectTreePointButton,frameTreeFaceButton,clearTreeSelectionButton,syncFaceTree,treeFilterQuery,treeFilterSource,treeFilterKind,clearTreeFiltersButton])input.disabled=true;return qualifiedTreeSnapshot();}
   const state=viewer.getState(),scene=state.qualifiedFaceScene,content=scene?scene.assets.map(asset=>({sourceId:asset.sourceId,source:asset.source,face:asset.face}))
     .sort((a,b)=>a.sourceId<b.sourceId?-1:a.sourceId>b.sourceId?1:0):null;
@@ -530,7 +587,7 @@ function refreshQualifiedTree(){if(disposed){clearQualifiedTree();for(const inpu
   inspectTreePointButton.disabled=!selected;frameTreeFaceButton.disabled=!selected||state.status!=='ready';clearTreeSelectionButton.disabled=!selected;
   treeU.disabled=!selected||!surface;treeV.disabled=!selected||!surface;treeT.disabled=!selected||surface;
   document.querySelector('#tree-u-label').hidden=!surface;document.querySelector('#tree-v-label').hidden=!surface;document.querySelector('#tree-t-label').hidden=!qualifiedTreeSelected||surface;
-  markQualifiedTreeSelection();updateTreePointLabel();refreshTreeCurveLength();refreshTreeSurfaceArea();refreshTreeCurveCurvature();refreshTreeSurfaceCurvature();refreshTreeTangentAngle();return qualifiedTreeSnapshot();
+  markQualifiedTreeSelection();updateTreePointLabel();refreshTreeCurveLength();refreshTreeSurfaceArea();refreshTreeCurveCurvature();refreshTreeSurfaceCurvature();refreshTreeTangentAngle();refreshTreeNormalAngle();return qualifiedTreeSnapshot();
 }
 function treeDomainMidpoint(domain){const value=domain[0]/2+domain[1]/2;check(Number.isFinite(value)&&value>=domain[0]&&value<=domain[1],'Original parameter-domain midpoint is not finite or inclusive.');return Object.is(value,-0)?'-0':String(value);}
 function selectQualifiedTreeNode(ref){refreshQualifiedTree();const next=queryQualifiedFaceTreeNode(viewer,ref),changed=!qualifiedTreeSelected||!same(qualifiedTreeSelected.ref,next.ref);
@@ -1005,6 +1062,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
     queryQualifiedTreeCurveCurvature,inspectTreeCurveCurvature,resetTreeCurveCurvature,treeCurveCurvatureSnapshot,
     queryQualifiedTreeSurfaceCurvature,inspectTreeSurfaceCurvature,resetTreeSurfaceCurvature,treeSurfaceCurvatureSnapshot,
     queryQualifiedTreeTangentAngle,captureTreeTangent,refreshTreeTangentAngle,remeasureTreeTangentAngle,resetTreeTangentAngle,treeTangentAngleSnapshot,
+    queryQualifiedTreeNormalAngle,captureTreeNormal,refreshTreeNormalAngle,remeasureTreeNormalAngle,resetTreeNormalAngle,treeNormalAngleSnapshot,
     AREA_OPTIONS,areaPin,queryQualifiedFaceSurfaceArea,inspectArea,updateAreaLabel,areaSnapshot,mismatchCandidate,dispose,resourceCounts,uploads,draws,glErrors,errors,warnings,lossExtension,failAllocation,
     LENGTH_OPTIONS,lengthPin,queryQualifiedFaceCurveLength,inspectLength,updateLengthLabel,lengthSnapshot,
     queryQualifiedFaceAngle,measureAngle,updateAngleLabel,angleSnapshot,
@@ -1024,7 +1082,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
     get surfaceCurvatureReport(){return clone(surfaceCurvatureReport);},get tangentAngleReport(){return clone(tangentAngleReport);},get normalAngleReport(){return clone(normalAngleReport);},
     get nativeSampleReport(){return clone(nativeSampleRecord?.sample??null);},get pickedChordReport(){return clone(pickedChordReport);},get pickedAngleReport(){return clone(pickedAngleReport);},
     get pickedSurfaceCurvatureReport(){return clone(pickedSurfaceCurvatureReport);},get pickedNormalAngleReport(){return clone(pickedNormalAngleReport);},
-    get treeCurveLengthReport(){return clone(treeCurveLengthReport);},get treeSurfaceAreaReport(){return clone(treeSurfaceAreaReport);},get treeCurveCurvatureReport(){return clone(treeCurveCurvatureReport);},get treeSurfaceCurvatureReport(){return clone(treeSurfaceCurvatureReport);},get treeTangentAngleReport(){return clone(treeTangentAngleReport);},get result(){return result;}};
+    get treeCurveLengthReport(){return clone(treeCurveLengthReport);},get treeSurfaceAreaReport(){return clone(treeSurfaceAreaReport);},get treeCurveCurvatureReport(){return clone(treeCurveCurvatureReport);},get treeSurfaceCurvatureReport(){return clone(treeSurfaceCurvatureReport);},get treeTangentAngleReport(){return clone(treeTangentAngleReport);},get treeNormalAngleReport(){return clone(treeNormalAngleReport);},get result(){return result;}};
   display('Original Faces ready. Inspect a current source from its row.');
 }catch(error){display('Original Faces could not load: '+error.message);}
 buttons.load.addEventListener('click',()=>action(()=>load(candidate({assetCount:Number(assetCount.value),countU:Number(countU.value),countV:Number(countV.value)}))));
@@ -1065,6 +1123,7 @@ inspectTreeAreaButton.addEventListener('click',()=>action(()=>inspectTreeSurface
 inspectTreeCurvatureButton.addEventListener('click',()=>action(()=>inspectTreeCurveCurvature()));resetTreeCurvatureButton.addEventListener('click',()=>action(resetTreeCurveCurvature));
 inspectTreeSurfaceCurvatureButton.addEventListener('click',()=>action(()=>inspectTreeSurfaceCurvature()));resetTreeSurfaceCurvatureButton.addEventListener('click',()=>action(resetTreeSurfaceCurvature));
 captureTreeTangentButton.addEventListener('click',()=>action(()=>captureTreeTangent()));resetTreeTangentAngleButton.addEventListener('click',()=>action(resetTreeTangentAngle));
+captureTreeNormalButton.addEventListener('click',()=>action(()=>captureTreeNormal()));resetTreeNormalAngleButton.addEventListener('click',()=>action(resetTreeNormalAngle));
 canvas.addEventListener('click',event=>{const inspectEnabled=faceInspectMode.checked&&!faceInspectMode.disabled,sampleEnabled=nativeSampleMode.checked&&!nativeSampleMode.disabled,
   chordEnabled=pickedChordMode.checked&&!pickedChordMode.disabled,angleEnabled=pickedAngleMode.checked&&!pickedAngleMode.disabled,normalAngleEnabled=pickedNormalAngleMode.checked&&!pickedNormalAngleMode.disabled;
   if(!inspectEnabled&&!sampleEnabled&&!chordEnabled&&!angleEnabled&&!normalAngleEnabled)return;const rect=canvas.getBoundingClientRect(),point={xCss:event.clientX-rect.left,yCss:event.clientY-rect.top};
