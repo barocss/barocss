@@ -6,7 +6,7 @@ interface DockItem { key: string; label: string; content: ReactNode; icon?: 'sph
 function Dock({ label, selected, onSelect, items }: { label: string; selected: string; onSelect: (key: string) => void; items: DockItem[] }) {
   const id = useId(), buttons = useRef<HTMLDivElement>(null);
   const key = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
-    if (event.isComposing || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (event.nativeEvent.isComposing || event.ctrlKey || event.metaKey || event.altKey) return;
     const next = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1
       : event.key === 'ArrowLeft' ? (index + items.length - 1) % items.length : event.key === 'ArrowRight' ? (index + 1) % items.length : null;
     if (next === null) return;
@@ -53,7 +53,7 @@ function Splitter({ label, direction, value, min, max, sign, onChange, testId }:
       event.preventDefault();
     }} onPointerUp={release} onPointerCancel={release} onLostPointerCapture={release} onBlur={release}
     onKeyDown={(event) => {
-      if (event.isComposing || event.ctrlKey || event.metaKey || event.altKey) return;
+      if (event.nativeEvent.isComposing || event.ctrlKey || event.metaKey || event.altKey) return;
       if (event.key === 'Home') { event.preventDefault(); bounded(min); }
       else if (event.key === 'End') { event.preventDefault(); bounded(max); }
       else if (direction === 'vertical' && (event.key === 'ArrowLeft' || event.key === 'ArrowRight')) {
