@@ -8,6 +8,10 @@ Compile original geometry, query it, then prepare a separate display mesh. These
 
 Use the [complete NURBS Loft graph example](./nurbs-loft-graph) to change a middle section pole and weight, preserve unrelated original geometry, and inspect affected versus reused results. The guide uses a separate newer API version and explains authored Save/Open versus complete evaluated result ingestion.
 
+## Sample a complete Body boundary
+
+Use the [Body boundary mesh example](./body-boundary-mesh) to sample the occupied, trimmed six-Face boundary. Download its complete Body input and compare original topology with the shared mesh and faceted display data. Its numeric projection shows actual mesh positions; renderer admission remains a separate step.
+
 ## Compile and evaluate geometry {#run-the-complete-cpu-examples}
 
 Use `compileCadModel` to turn complete language input into native geometry. Query original parameters with `evaluateCurve` or `evaluateSurface`. For display, create a separate sampled packet with `tessellateSurface` and convert its millimetres to scene units once.
