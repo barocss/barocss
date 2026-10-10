@@ -42,9 +42,10 @@ export async function bundleAdvancedShader(app = defaultApp, platform = 'browser
       if (error.code !== 'EEXIST' || resolve(namespace, await readlink(link)) !== target) throw error;
     }
   }
-  const preset = JSON.parse(await readFile(resolve(app, 'scripts/snippets/advanced-shader.json'), 'utf8'));
+  const presets = Object.fromEntries(await Promise.all(['advanced-shader', 'caustics-shader'].map(async name =>
+    [name, JSON.parse(await readFile(resolve(app, `scripts/snippets/${name}.json`), 'utf8'))])));
   const host = consumerText === undefined ? await readFile(resolve(app, 'scripts/snippets/advanced-shader-host.mjs'), 'utf8') : '';
-  const text = consumerText ?? `${host}\nexport const presets = { 'advanced-shader': ${JSON.stringify(preset)} };\n`;
+  const text = consumerText ?? `${host}\nexport const presets = ${JSON.stringify(presets)};\n`;
   const consumers = resolve(snapshot, 'consumers');
   await mkdir(consumers, { recursive: true });
   const entry = resolve(consumers, platform === 'browser' ? 'advanced-shader-entry.mjs' : 'advanced-shader-check.mjs');

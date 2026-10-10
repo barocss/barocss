@@ -8,6 +8,8 @@ These examples describe the local experimental `@barocss/gpu` version0.0.0 at so
 
 The [advanced shader example](./advanced-shader) combines UV wrapping, domain distortion, interference waves and diagonal highlights. Edit the full shader, adjust four uniforms, or use its host Play/Pause controls. Its separate API version and example WebGL2 host are stated in the guide.
 
+The [interference caustics example](./caustics-shader) combines crossing wave fields and narrow highlights. It has its own editable source and controls and uses the same public UV material profile and example host.
+
 ## More scene and material examples
 
 Use [GPU compositions](./composition-examples) for style precedence, local rotations and a material transition window. Each source is complete and editable in the playground.
