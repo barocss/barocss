@@ -1968,3 +1968,52 @@ and actual renderer composition require their own contracts and receipts.
 
 ONE source/API/file/cold flow:
 `node examples/gpu-scene/engine-uv-material-bindings-flow.mjs --output <fresh-directory>`.
+
+### Repeating original UV material grammar (distinct source profile, CPU)
+
+`compileEngineUVRepeatingMaterial(source)` adds only `fract(floatExpression)`
+to the existing UV grammar, in a distinct profile. Its result shape is the
+existing `{ok: true, material}` or `{ok: false, diagnostics}`. IR has exactly
+seven fields: `format: 'barocss-gpu-engine-uv-repeating-material'`, `version: 0`,
+`profile: 'engine-opaque-uv-repeating-fragment-v0'`, full original `source`,
+`shaderId`, `uniforms`, `expression`. The new scalar call is
+`{kind: 'call', type: 'float', name: 'fract', args: [expression]}`.
+
+```css
+@shader #repeating_gradient {
+  @let ratio: float(fract(uv_u));
+  @fragment { color: mix(#000000, #FFFFFF, ratio); }
+}
+```
+
+Declared semantics are `x - floor(x)`, including negative inputs. The entire
+argument interval must remain within `[-1000, 1000]`; otherwise `RANGE` refuses
+at the original call token. Its conservative compiler interval is `[0, 1]`,
+so the example can use it as a mix ratio. This is one call node plus the actual
+argument/expanded-local nodes. Exactly one float argument is required (`TYPE`).
+The new profile reserves the local name `fract`; bare declared uniforms with
+this name keep the existing uniform semantics. Original UV units/ranges,
+source bytes, tokens, declarations, nodes and depth limits remain unchanged.
+
+`validateEngineUVRepeatingMaterialIR(input)` uses one inherited own snapshot
+and one reconstruction from full source, then exact canonical comparison.
+Reflection errors retain their actual cause; source refusal retains the real
+compiler diagnostic and original UTF16 offsets. UTF8 source budget remains
+64KiB. Successful IR is fresh and frozen; source/comments are retained and
+canonical zero is positive. Inherited own-data guards/limits remain unchanged.
+
+`lowerEngineUVRepeatingMaterial(input)` validates once, then uses the same
+trusted lowerer. It emits `fract(...)` and the existing fixed UV input
+ declaration, uniform declarations/layout and output/mix clamps. Its exact
+four-field result and copied layouts are frozen. This is GLSL text; hardware
+precision at wrapping boundaries and actual shader/pixel behavior are unrun.
+No evaluator or caller-provided UV values are introduced.
+
+Legacy and UV0 grammar/IR types exclude `fract` and still refuse this call.
+Their validation/lowering paths refuse repeating IR, and repeating validation
+refuses their IR. Current material and UV companion0 reject this new profile;
+a future explicit binding/document/renderer contract is required. No silent
+profile upgrade, renderer/cache/resource/consumer or publication support.
+
+ONE source/IR/API/file/cold flow:
+`node examples/gpu-scene/engine-uv-repeating-material-flow.mjs --output <fresh-directory>`.

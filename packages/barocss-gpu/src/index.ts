@@ -101,3 +101,6 @@ export type {EngineMaterialBindingV0,EngineMaterialBindingsV0,PreparedEngineMate
 export {prepareEngineUVMaterialBindings} from './engine-material-bindings.js';
 export type {EngineUVMaterialBindingV0,EngineUVMaterialBindingsV0,PreparedEngineUVMaterialBindings} from './engine-material-bindings.js';
 export type {EngineUVMaterialBinding} from './mesh-material.js';
+
+export {compileEngineUVRepeatingMaterial,validateEngineUVRepeatingMaterialIR,lowerEngineUVRepeatingMaterial} from './mesh-material.js';
+export type {EngineUVRepeatingMaterialExpression,EngineUVRepeatingMaterialIR} from './mesh-material.js';
