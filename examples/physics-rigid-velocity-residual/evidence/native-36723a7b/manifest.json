@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "path": "analysis.json.gz",
+      "bytes": 822919,
+      "sha256": "a5fb89feed937cb3f733fa6ffe343c26c210c0d70d9a910da82660d65b0b0bfd"
+    },
+    {
+      "path": "analysis.log.gz",
+      "bytes": 138,
+      "sha256": "472b2636228f8aaa2cf2b22e242990f77228027c0acec36175e337c86a181651"
+    },
+    {
+      "path": "math-controls.json",
+      "bytes": 6506,
+      "sha256": "8609008beac2643ee1876ae1c5c96b1f3eff67ba1713a12e96bb9b5e75ad5a64"
+    },
+    {
+      "path": "named-observations.json",
+      "bytes": 4132,
+      "sha256": "c7167366cce34d64267aa54a4fc1918aed04e3b5e9fd6d069d48e62d82a744d4"
+    },
+    {
+      "path": "provenance.json",
+      "bytes": 819,
+      "sha256": "3f327d1f50ebf7b3afd5ffeb20e9763762747f929c8aff5e12fbe2a214764ad6"
+    }
+  ]
+}

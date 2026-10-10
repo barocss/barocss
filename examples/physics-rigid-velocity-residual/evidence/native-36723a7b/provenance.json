@@ -1,0 +1,19 @@
+{
+  "base": "4f6a8ce1cf51b1cd671b4fb8274db4fca7f827e4",
+  "measuredHead": "36723a7b19389ca587208ac8dc90d6515386bb81",
+  "observerFlowExit": 0,
+  "mathControlsExit": 0,
+  "mathControls": 51,
+  "diagnosticValid": true,
+  "physicalModelGO": false,
+  "originalInputNative": "d2aec4d564a7fb835bc902ac62fce74af9999bbf",
+  "originalInputValidatorSha256": "357965a9e710f077141612097e6ae433ee45bf688c75d8f918f6c81487551bbc",
+  "frozenObserver": {
+    "analyze.py": "6569814906ac9df03e078fb5654f161ae241b2404fe0734a64c3e012f262a66b",
+    "residual_math.py": "d3a54c2c5e568fc801d619eda373a1571032710e8645c6d47c33549dd62b7e82"
+  },
+  "originalManifestSha256": "4855266544d2e7d448af8866a6c31c88c84e0c27b08f26d9189f325501e8cd86",
+  "newWorldCampaign": false,
+  "newProductBuild": false,
+  "sourceRepeatCompiledArchiveParity": true
+}
