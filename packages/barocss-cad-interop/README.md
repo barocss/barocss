@@ -3587,3 +3587,43 @@ It does not certify global geometric error, mesh embedding, a new Solid, manufac
 
 `examples/qualified-body-boundary-mesh-verify.mjs` checks the three original complete files, copies, private signed-file round trips and scoped refusals.
 `examples/qualified-body-boundary-mesh-contract.ts` checks the public reader and typed projection declarations.
+
+## Complete-source Curve knot insertion receipts (#1362)
+
+This optional reader accepts complete-source Curve knot insertion receipts.
+Optional entry: `@barocss/cad-interop/source-curve-knot-insertion`.
+Read complete saved native receipts through `parseBaroCadSourceCurveKnotInsertion(text)` or
+`readBaroCadSourceCurveKnotInsertion(ownedData)`.
+Both return `{ native, validationReport, profile, sourceText }`.
+`native` retains all eight fields: request, source, originalModel, model,
+originalCurve, curve, provenance and report. The matching whole CAD validator
+returns only a report; that report is retained as an independent mutable copy.
+Exact admitted text stays in sourceText; owned-data reads return null there.
+Only the deeply frozen metadata profile can be shared between calls.
+
+Strict JSON and descriptor copies use the unchanged private 2MiB/1M codec.
+Raw UTF8 and UTF16, canonical signed JSON plus newline and each copy pass are bounded.
+Finite represented numbers and numeric -0 are preserved; getters, cycles,
+decoded duplicate keys and unsupported own data refuse before eligible native work.
+The public read error has INPUT/JSON/OWNED/BUDGET/SCHEMA/NATIVE codes.
+Codec and native errors keep their actual cause; no Body error is the primary knot-reader error.
+
+Original Source0, candidate Source0, full ordered Models and unrelated siblings remain intact.
+All three UTF16 AST array patches and untouched comments/Unicode/CRLF are retained.
+Native parameterMap remains identity u=t with d1Factor1; no reparameterization occurs.
+The 128-station limit is the original/refined span-union schedule, not a uniform sample count.
+Four retained cases contain 147 reported stations and actual before/refined D0/D1 unions.
+The reader adds no direct evaluator calls; whole validation still reconstructs native work.
+Native C0 refusal values and relative derivative differences stay null where reported.
+
+Independent ideal homogeneous identity and actual stored binary64 exactness are separate.
+The rational degree-five main oracle reports actualStoredExact=false; other selected oracles report true.
+These facts do not turn native geometricValidity/not-certified into global shape certification.
+Global shape/binary64/G1G2/topology/Solid/manufacturing/editor/persistent/publication flags are retained.
+
+The example file checkpoint uses four complete result files plus four unchanged math oracles (259171B).
+Each result follows text parse, owned read and private signed native-only save/reopen.
+Twelve successful admissions and sixteen bounded refusals preserve whole data, -0 and independent ownership.
+Source/emitted public JS, selected declarations, exact file SHA and actual first failures are checked separately.
+This entry has no renderer, URL, byte input, serializer, dispose or direct insertion API.
+Current composed validation, packed consumer #801 and npm/release acceptance remain separate.

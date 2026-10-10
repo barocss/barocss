@@ -162,6 +162,10 @@
       "./qualified-body-boundary-mesh": {
         "types": "./dist/qualified-body-boundary-mesh.d.ts",
         "import": "./dist/qualified-body-boundary-mesh.js"
+      },
+      "./source-curve-knot-insertion": {
+        "types": "./dist/source-curve-knot-insertion.d.ts",
+        "import": "./dist/source-curve-knot-insertion.js"
       }
     }
   },
@@ -326,6 +330,10 @@
     "./qualified-body-boundary-mesh": {
       "types": "./src/qualified-body-boundary-mesh.ts",
       "import": "./src/qualified-body-boundary-mesh.ts"
+    },
+    "./source-curve-knot-insertion": {
+      "types": "./src/source-curve-knot-insertion.ts",
+      "import": "./src/source-curve-knot-insertion.ts"
     }
   },
   "files": [
