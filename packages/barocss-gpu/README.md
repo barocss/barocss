@@ -9,9 +9,12 @@ unused original geometry, generated sources, body/shell relationships and qualif
 lineage. Exact two-by-two native tessellation provides separate hard-normal
 vertices: at most72 panels,288 vertices,144 triangles and7776 geometry bytes.
 Valid empty results keep their native data and return empty arrays/null bounds.
-This first CPU profile requires positive operand overlap on all three axes.
-Newer CAD contact/separated-input admission requires a separate GPU scope and
-actual target preparation receipt; it is not silently inherited here.
+The current CPU domain includes validated separated and full/partial face-contact
+results. Edge/corner-only unions still refuse through the actual native validator;
+their admitted intersections/differences retain explicit empty or original material
+semantics. This does not add general curved, rotated or floating-coordinate Boolean
+support. GPU conversion limits still apply, including explicit placement for far
+native coordinates. Original native empty-gap volume remains native data.
 
 The native integer-cell Solid proof remains native. Float32 positions/normals and
 Uint16 indices are independent caller-owned display copies. Metadata/native/options

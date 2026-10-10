@@ -59,9 +59,6 @@ export function prepareAxisBoxBooleanBuffers(input:unknown,optionsInput:AxisBoxB
  child('NATIVE','Complete native integer-box Boolean validation refused',()=>validateAxisBoxSolidBoolean(native));
  check(native.report.schema==='barocss-axis-box-solid-boolean'&&native.report.version===0&&native.report.lengthUnit==='mm'&&
   native.report.geometryFamily==='exact-integer-orthogonal-cell-solid-v0','BINDING','Unsupported validated native family');
- const [left,right]=native.operandReports.map(report=>report.boundsMM);
- check([0,1,2].every(axis=>Math.max(left.min[axis],right.min[axis])<Math.min(left.max[axis],right.max[axis])),
-  'NATIVE','This GPU CPU profile requires positive operand overlap on all three axes');
  const count=native.panels.length;
  check(count<=72&&native.sources.length===count,'BUDGET','Complete output exceeds72 panel/source slots');
  check(native.report.panelCount===count&&native.report.sourceCount===count,'BINDING','Native panel/source counts differ');
