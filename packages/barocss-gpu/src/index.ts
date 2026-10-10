@@ -114,3 +114,6 @@ export type { TriangleNormalSourceV0, PreparedTriangleGeometryWithNormals } from
 
 export { sampleEngineTransformClip, EngineTransformClipError, EngineTransformClipDiagnosticCode } from './engine-transform-clip.js';
 export type { EngineTransformKeyV0, EngineTransformTrackV0, EngineTransformClipV0, EngineTransformClipRequestV0, SampledEngineTransformClip } from './engine-transform-clip.js';
+
+export { compileAffineSceneSource } from './affine-scene-source.js';
+export type { AffineSceneObject2, AffineScene2, CompiledAffineSceneSource } from './affine-scene-source.js';

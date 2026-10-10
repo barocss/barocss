@@ -1,0 +1,74 @@
+/* Original Source2 authoring fixture. Preserve dimensions and source text.
+   Positive local XYZ scale is applied before X, Y, and Z rotation.
+   The minimum-scale field is conservative in ideal arithmetic.
+   It is not exact world distance or evidence of GPU rendering. */
+@scene affine_authoring {
+  version: 2;
+  background: #102030;
+  sphere #orb;
+  box #brick;
+  cylinder #column;
+  capsule #link;
+  rounded-box #rounded;
+  torus #ring;
+}
+
+/* An ID rule wins over the later type rule. Original -0 stays in text. */
+#orb {
+  color: #336699;
+  radius: .75;
+  translate: -2 -0 0;
+  rotate-x: 23deg;
+  rotate-y: -37deg;
+  rotate-z: 41deg;
+  scale: 2 .5 1.5;
+}
+sphere { scale: 3 2 1; }
+
+/* The last scale declaration at the same specificity wins. */
+#brick {
+  color: #cc6633;
+  size: 1.5 2 .5;
+  translate: 0 -0 0;
+  scale: .5 .75 1.25;
+  scale: 1.25 .75 .5;
+}
+box { scale: 2 3 4; }
+
+#column {
+  color: #669933;
+  radius: .4;
+  height: 1.6;
+  translate: 2 0 0;
+  scale: .8 1.2 1.6;
+}
+cylinder { scale: 2 1 3; }
+
+#link {
+  color: #9933cc;
+  radius: .2;
+  start: -0 -.6 0;
+  end: .3 .6 .2;
+  translate: -2 0 -2;
+  scale: 1.5 .5 2;
+}
+capsule { scale: .5 2 3; }
+
+#rounded {
+  color: #33cccc;
+  size: 1.2 1.6 2;
+  radius: .15;
+  translate: 0 0 -2;
+  scale: .75 1.25 1.5;
+}
+rounded-box { scale: 2 3 1; }
+
+/* Both admitted scale endpoints are intentional. Visibility is unqualified. */
+#ring {
+  color: #cc3399;
+  major-radius: .7;
+  minor-radius: .15;
+  translate: 2 0 -2;
+  scale: .01 100 1;
+}
+torus { scale: 2 .5 3; }

@@ -2107,3 +2107,31 @@ identifies final admission. This API has no clock, renderer or playback loop.
 
 The source, emitted API and cold-file example is
 `examples/gpu-scene/engine-transform-clip-flow.mjs`.
+
+
+### Source2 local XYZ scale
+
+`compileAffineSceneSource(source)` compiles a distinct Source2 source profile for
+Sphere, Box, Cylinder, Capsule, Rounded Box and Torus. Use `version: 2` and
+`scale: x y z;` on type or ID rules. Each scale is dimensionless and within
+.01..100; omitted scale is `[1, 1, 1]`. Existing shape dimensions, endpoint
+coordinates and Euler rotations keep their original meaning. Transforms apply
+local scale, then X/Y/Z rotation, then translation about the existing local
+origin. Source0 and Source1 APIs keep their original profiles.
+
+The frozen result preserves full original source, canonical Scene2 and trusted
+vertex/fragment text under `source2-local-positive-xyz-min-step-v0`. It reuses
+the existing parser, semantic shape validators and distance kernels. Source
+limits remain 64 KiB UTF8, 32 objects, 128 rules and 512 declarations. Error
+diagnostics use original UTF16 positions. Reopen by compiling the full original
+source string; generated shader text is derived data.
+
+Nonuniform scale maps queries through inverse rotation and component division,
+then multiplies local distance by the minimum executed scale. The resulting
+field is conservative in ideal arithmetic and is not exact world distance.
+Original Number values and executed Float32 constants stay distinct. Hardware
+precision, ray convergence, normals, pixels and resources have not been
+qualified by this source compiler. Existing renderers do not accept Source2.
+
+A six-shape source is `examples/gpu-scene/affine-scene-authoring.css`. The source,
+emitted API and cold-file flow is `affine-scene-source-flow.mjs` in that folder.

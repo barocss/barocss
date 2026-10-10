@@ -22,6 +22,19 @@ function vec(value: Vec3): string { return `vec3(${value.map(scalar).join(',')})
 
 /** Validate structured input again: identifiers and source text never enter GLSL. */
 export function lowerSceneShaders(scene: AnyScene): SceneShaders {
+  return lowerSceneShadersInternal(scene);
+}
+
+/** Internal trusted Source2 lowering. Existing Source0/1 admission is unchanged. */
+export function lowerAffineSceneShaders(scene: Scene1, scales: readonly Vec3[]): SceneShaders {
+  if (!Array.isArray(scales) || scales.length !== scene.objects.length) throw new Error('Invalid affine scale count');
+  for (const scale of scales) {
+    vector(scale, true, 100);
+    if (scale.some(value => value < .01)) throw new Error('Affine scale must remain within .01..100');
+  }
+  return lowerSceneShadersInternal(scene, scales);
+}
+function lowerSceneShadersInternal(scene: AnyScene, scales?: readonly Vec3[]): SceneShaders {
   if (!scene || (scene.version !== 0 && scene.version !== 1) || !Array.isArray(scene.objects) || scene.objects.length > GPU_LIMITS.maxObjects) throw new Error('Invalid scene');
   color(scene.background);
   const seen = new Set<string>();
@@ -38,6 +51,9 @@ export function lowerSceneShaders(scene: AnyScene): SceneShaders {
       const rotation=scene.objects[index].rotateDegrees;
       if(rotation.some(n=>n!==0))point=`(mat3(${inverseRotation(rotation).map(scalar).join(',')})*(${point}))`;
     }
+    const scale = scales?.[index];
+    const affine = scale !== undefined && scale.some(value => value !== 1);
+    if (affine) point = `((${point})/${vec(scale)})`;
     if(object.type==='cylinder'&&(!Number.isFinite(object.height)||object.height<=0||object.height>1000||Math.fround(object.height/2)<=0))throw new Error('Invalid cylinder height');
     if(object.type==='capsule'){vector(object.start,false,1000);vector(object.end,false,1000);validateCapsuleSegment(object.start,object.end);}
     if(object.type==='torus')validateTorusRadii(object.majorRadius,object.minorRadius);
@@ -52,7 +68,10 @@ export function lowerSceneShaders(scene: AnyScene): SceneShaders {
       : object.type === 'sphere'
       ? `length(${point})-${scalar(object.radius)}`
       : `boxDistance(${point},${vec(object.size.map(n => n / 2) as Vec3)})`;
-    shapes.push(`d=${distance}; if(d<nearest){nearest=d; material=${vec(object.color)};}`);
+    // The multiplier uses the same executed Float32 scale constants as point division.
+    // This is a conservative field in ideal arithmetic, not exact world distance.
+    const field = affine ? `(${distance})*${scalar(Math.min(...scale.map(Math.fround)))}` : distance;
+    shapes.push(`d=${field}; if(d<nearest){nearest=d; material=${vec(object.color)};}`);
   });
   const vertex = `#version 300 es
 precision highp float;
