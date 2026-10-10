@@ -1,0 +1,33 @@
+{
+  "passed": true,
+  "importsNoCandidate": true,
+  "sourceCompiledPixelsExact": true,
+  "summaries": {
+    "source": {
+      "savedFrames": 241,
+      "rawStateBitsExact": true,
+      "pixelCases": 16,
+      "rawPixelHashes": true,
+      "timingSamples": 720,
+      "normalTwinSteps": 1440,
+      "worstSolverP95Ms": 2.5,
+      "worstSubmitP95Ms": 5.5,
+      "minPlaybackRatio": 0.9888262632284652,
+      "resourceZero": true,
+      "restoredUIHealthy": true
+    },
+    "compiled": {
+      "savedFrames": 241,
+      "rawStateBitsExact": true,
+      "pixelCases": 16,
+      "rawPixelHashes": true,
+      "timingSamples": 720,
+      "normalTwinSteps": 1440,
+      "worstSolverP95Ms": 2.5,
+      "worstSubmitP95Ms": 6.200000002980232,
+      "minPlaybackRatio": 0.9894622272809325,
+      "resourceZero": true,
+      "restoredUIHealthy": true
+    }
+  }
+}
