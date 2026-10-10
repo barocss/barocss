@@ -1,0 +1,521 @@
+{
+  "runtime": "v22.22.0",
+  "module": "compiled-root",
+  "controlledStreams": true,
+  "cases": 22,
+  "preflightCases": 5,
+  "preflightFetchDecodeCalls": 0,
+  "exactCopiedEncodedBytes": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "exactCopiedDecodedRGBA": true,
+  "cancelAtMostOnce": true,
+  "lateBodyCancelRequested": true,
+  "normalEOFNoCancel": true,
+  "decoderFailureNoCancel": true,
+  "listenerAndLockRelease": true,
+  "refusalDecodeCalls0": true,
+  "originalErrorsRetained": true,
+  "cleanupRejectThrowSuppressed": true,
+  "unhandledRejections": 0,
+  "caseDetails": [
+    {
+      "name": "success EOF copied chunks and decoded RGBA",
+      "counts": {
+        "fetch": 1,
+        "reader": 1,
+        "read": 3,
+        "cancel": 0,
+        "bodyCancel": 0,
+        "release": 1,
+        "add": 1,
+        "remove": 1,
+        "decode": 1,
+        "canvas": 1,
+        "bitmapClose": 1
+      },
+      "events": [
+        "fetch",
+        "read",
+        "read",
+        "read",
+        "release"
+      ]
+    },
+    {
+      "name": "invalid chunk",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "fetch": 1,
+        "reader": 1,
+        "read": 1,
+        "cancel": 1,
+        "bodyCancel": 0,
+        "release": 1,
+        "add": 1,
+        "remove": 1,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "read",
+        "cancel",
+        "release"
+      ]
+    },
+    {
+      "name": "invalid chunk",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "fetch": 1,
+        "reader": 1,
+        "read": 1,
+        "cancel": 1,
+        "bodyCancel": 0,
+        "release": 1,
+        "add": 1,
+        "remove": 1,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "read",
+        "cancel",
+        "release"
+      ]
+    },
+    {
+      "name": "invalid chunk",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "fetch": 1,
+        "reader": 1,
+        "read": 1,
+        "cancel": 1,
+        "bodyCancel": 0,
+        "release": 1,
+        "add": 1,
+        "remove": 1,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "read",
+        "cancel",
+        "release"
+      ]
+    },
+    {
+      "name": "invalid chunk",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "fetch": 1,
+        "reader": 1,
+        "read": 1,
+        "cancel": 1,
+        "bodyCancel": 0,
+        "release": 1,
+        "add": 1,
+        "remove": 1,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "read",
+        "cancel",
+        "release"
+      ]
+    },
+    {
+      "name": "read rejects",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "fetch": 1,
+        "reader": 1,
+        "read": 1,
+        "cancel": 1,
+        "bodyCancel": 0,
+        "release": 1,
+        "add": 1,
+        "remove": 1,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "read",
+        "cancel",
+        "release"
+      ]
+    },
+    {
+      "name": "read throws",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "fetch": 1,
+        "reader": 1,
+        "read": 1,
+        "cancel": 1,
+        "bodyCancel": 0,
+        "release": 1,
+        "add": 1,
+        "remove": 1,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "read",
+        "cancel",
+        "release"
+      ]
+    },
+    {
+      "name": "overflow",
+      "code": "ASSET_LIMIT",
+      "counts": {
+        "fetch": 1,
+        "reader": 1,
+        "read": 2,
+        "cancel": 1,
+        "bodyCancel": 0,
+        "release": 1,
+        "add": 1,
+        "remove": 1,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "read",
+        "read",
+        "cancel",
+        "release"
+      ]
+    },
+    {
+      "name": "invalid chunk cancel reject",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "fetch": 1,
+        "reader": 1,
+        "read": 1,
+        "cancel": 1,
+        "bodyCancel": 0,
+        "release": 1,
+        "add": 1,
+        "remove": 1,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "read",
+        "cancel",
+        "release"
+      ]
+    },
+    {
+      "name": "read failure cancel reject",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "fetch": 1,
+        "reader": 1,
+        "read": 1,
+        "cancel": 1,
+        "bodyCancel": 0,
+        "release": 1,
+        "add": 1,
+        "remove": 1,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "read",
+        "cancel",
+        "release"
+      ]
+    },
+    {
+      "name": "invalid chunk cancel throw",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "fetch": 1,
+        "reader": 1,
+        "read": 1,
+        "cancel": 1,
+        "bodyCancel": 0,
+        "release": 1,
+        "add": 1,
+        "remove": 1,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "read",
+        "cancel",
+        "release"
+      ]
+    },
+    {
+      "name": "read failure cancel throw",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "fetch": 1,
+        "reader": 1,
+        "read": 1,
+        "cancel": 1,
+        "bodyCancel": 0,
+        "release": 1,
+        "add": 1,
+        "remove": 1,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "read",
+        "cancel",
+        "release"
+      ]
+    },
+    {
+      "name": "abort blocked read cancel ok",
+      "code": "AbortError",
+      "counts": {
+        "fetch": 1,
+        "reader": 1,
+        "read": 1,
+        "cancel": 1,
+        "bodyCancel": 0,
+        "release": 1,
+        "add": 1,
+        "remove": 1,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "read",
+        "cancel",
+        "release"
+      ]
+    },
+    {
+      "name": "abort blocked read cancel reject",
+      "code": "AbortError",
+      "counts": {
+        "fetch": 1,
+        "reader": 1,
+        "read": 1,
+        "cancel": 1,
+        "bodyCancel": 0,
+        "release": 1,
+        "add": 1,
+        "remove": 1,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "read",
+        "cancel",
+        "release"
+      ]
+    },
+    {
+      "name": "abort blocked read cancel throw",
+      "code": "AbortError",
+      "counts": {
+        "fetch": 1,
+        "reader": 1,
+        "read": 1,
+        "cancel": 1,
+        "bodyCancel": 0,
+        "release": 1,
+        "add": 1,
+        "remove": 1,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "read",
+        "cancel",
+        "release"
+      ]
+    },
+    {
+      "name": "late response body cancel ok",
+      "code": "AbortError",
+      "counts": {
+        "fetch": 1,
+        "reader": 0,
+        "read": 0,
+        "cancel": 0,
+        "bodyCancel": 1,
+        "release": 0,
+        "add": 0,
+        "remove": 0,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "bodyCancel"
+      ]
+    },
+    {
+      "name": "late response body cancel reject",
+      "code": "AbortError",
+      "counts": {
+        "fetch": 1,
+        "reader": 0,
+        "read": 0,
+        "cancel": 0,
+        "bodyCancel": 1,
+        "release": 0,
+        "add": 0,
+        "remove": 0,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "bodyCancel"
+      ]
+    },
+    {
+      "name": "late response body cancel throw",
+      "code": "AbortError",
+      "counts": {
+        "fetch": 1,
+        "reader": 0,
+        "read": 0,
+        "cancel": 0,
+        "bodyCancel": 1,
+        "release": 0,
+        "add": 0,
+        "remove": 0,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "bodyCancel"
+      ]
+    },
+    {
+      "name": "non-OK body cancel",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "fetch": 1,
+        "reader": 0,
+        "read": 0,
+        "cancel": 0,
+        "bodyCancel": 1,
+        "release": 0,
+        "add": 0,
+        "remove": 0,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "bodyCancel"
+      ]
+    },
+    {
+      "name": "MIME refusal body cancel rejects",
+      "code": "UNSUPPORTED_FEATURE",
+      "counts": {
+        "fetch": 1,
+        "reader": 0,
+        "read": 0,
+        "cancel": 0,
+        "bodyCancel": 1,
+        "release": 0,
+        "add": 0,
+        "remove": 0,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "bodyCancel"
+      ]
+    },
+    {
+      "name": "declared size refusal",
+      "code": "ASSET_LIMIT",
+      "counts": {
+        "fetch": 1,
+        "reader": 0,
+        "read": 0,
+        "cancel": 0,
+        "bodyCancel": 1,
+        "release": 0,
+        "add": 0,
+        "remove": 0,
+        "decode": 0,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "bodyCancel"
+      ]
+    },
+    {
+      "name": "decoder failure after EOF does not cancel",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "fetch": 1,
+        "reader": 1,
+        "read": 2,
+        "cancel": 0,
+        "bodyCancel": 0,
+        "release": 1,
+        "add": 1,
+        "remove": 1,
+        "decode": 1,
+        "canvas": 0,
+        "bitmapClose": 0
+      },
+      "events": [
+        "fetch",
+        "read",
+        "read",
+        "release"
+      ]
+    }
+  ]
+}

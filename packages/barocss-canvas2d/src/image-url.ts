@@ -20,7 +20,7 @@ function isAbort(error: unknown): boolean {
 }
 function cancelBody(response: Response): void {
   if (response.body && typeof response.body.cancel === 'function') {
-    void response.body.cancel().catch(() => {});
+    try { void response.body.cancel().catch(() => {}); } catch { /* Best-effort cleanup. */ }
   }
 }
 
@@ -54,7 +54,10 @@ export async function loadImageURL(url: string, options: ImageURLLoadOptions = {
     if (signal?.aborted || isAbort(error)) throw abortError();
     throw new Canvas2DError('INVALID_ASSET', 'image fetch failed');
   }
-  checkAbort(signal);
+  if (signal?.aborted) {
+    if (response) cancelBody(response);
+    throw abortError();
+  }
   if (!response || !response.ok || !response.headers || typeof response.headers.get !== 'function') {
     if (response) cancelBody(response);
     invalid('image response is not OK');
@@ -75,7 +78,13 @@ export async function loadImageURL(url: string, options: ImageURLLoadOptions = {
   let reader: ReadableStreamDefaultReader<Uint8Array>;
   try { reader = response.body.getReader(); }
   catch { throw new Canvas2DError('INVALID_ASSET', 'image response stream is unavailable'); }
-  const onAbort = () => { void reader.cancel().catch(() => {}); };
+  let cancellationRequested = false;
+  const cancelReader = () => {
+    if (cancellationRequested) return;
+    cancellationRequested = true;
+    try { void reader.cancel().catch(() => {}); } catch { /* Keep the original refusal. */ }
+  };
+  const onAbort = cancelReader;
   signal?.addEventListener('abort', onAbort, { once: true });
   const chunks: ArrayBuffer[] = [];
   let size = 0;
@@ -93,13 +102,16 @@ export async function loadImageURL(url: string, options: ImageURLLoadOptions = {
       if (!(result.value instanceof Uint8Array)) invalid('image response chunk is invalid');
       size += result.value.byteLength;
       if (size > maxEncodedBytes) {
-        void reader.cancel().catch(() => {});
+        cancelReader();
         throw new Canvas2DError('ASSET_LIMIT', 'encoded image exceeds 8 MiB');
       }
       const copy = new Uint8Array(result.value.byteLength);
       copy.set(result.value);
       chunks.push(copy.buffer);
     }
+  } catch (error) {
+    cancelReader();
+    throw error;
   } finally {
     signal?.removeEventListener('abort', onAbort);
     reader.releaseLock();

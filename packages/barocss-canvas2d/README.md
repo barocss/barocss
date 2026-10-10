@@ -456,3 +456,14 @@ Resize controls admit a copied candidate tree/crop and new renderer before swapp
 ## Temporary image decode backing
 
 `decodeImageBlob` resets its private readback canvas to0×0 in `finally` on success or failure. It also closes each created ImageBitmap once. The copied output remains independent after release. Early Blob/decoded dimension refusal creates no temporary canvas. This extends the original decoder lifecycle; PNG/JPEG/WebP admission,8MiB encoded/32MiB decoded limits, dimensions4096, public return/error behavior and browser-decoded color scope remain unchanged. Throwing cleanup is covered as a controlled probe; no browser GC or memory measurement is claimed. Existing `image-decode.html` remains the consumer. See `consumer/evidence/decode-cleanup/observation.md` for native proof, separate from future composed validation or release.
+
+### Rejected URL stream lifetime (#1258)
+
+`loadImageURL` requests cancellation of unread response data on stream refusal
+(invalid chunk, read failure or encoded overflow) and on abort. It requests
+cancellation at most once per acquired reader, removes the abort listener and
+releases the reader lock. A response received after abort is cancelled before
+rejection. Cleanup failures do not replace the original error. Normal EOF and
+later decoder failures do not trigger reader cancellation. This is local stream
+ownership; it does not guarantee that a remote server stops transmitting.
+The URL, fetch, MIME, 8 MiB encoded and decoded image policies stay unchanged.
