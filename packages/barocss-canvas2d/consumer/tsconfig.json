@@ -74,6 +74,8 @@
     "rgb-matrix.mjs",
     "text-raster.mjs",
     "text-raster-host.mjs",
-    "initial-scene.mjs"
+    "initial-scene.mjs",
+    "chart.mjs",
+    "chart-host.mjs"
   ]
 }
