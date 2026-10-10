@@ -132,3 +132,8 @@
 @media(min-width:1000px) and (max-width:1050px) {.cad-app:not(.cad-direct-app) .document-tree {width:152px;padding:10px 6px;}}
 
 .cad-direct-app .tree-count {margin-left:auto;font-size:10px;font-weight:400;font-variant-numeric:tabular-nums;color:#96a1a9;}
+.cad-direct-app[data-objects-visible="false"] .document-tree {display:none;}
+.cad-direct-app[data-properties-visible="false"] .cad-editor {grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr);}
+.cad-direct-app[data-properties-visible="false"] .cad-editor-inspector {display:none;}
+.cad-direct-app[data-objects-visible="false"] .app-error {left:8px;}
+.cad-direct-app .command-group-actions button[aria-pressed="true"] {color:#cee2bc;background:#36442f;}

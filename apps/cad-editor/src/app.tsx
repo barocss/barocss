@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { Box, ChevronRight, Crosshair, Download, FolderOpen, Layers3, Maximize, MousePointer2, Redo2, Spline, Undo2 } from 'lucide-react';
+import { Box, ChevronRight, Crosshair, Download, Expand, FolderOpen, Layers3, Maximize, MousePointer2, PanelLeftClose, PanelRightClose, Redo2, Shrink, Spline, Undo2 } from 'lucide-react';
 import { parseCadDocument } from '@barocss/cad';
 import { CadEditorError, createCadEditorSession, type CadEditorExportResult, type CadEditorGeometryAnalysisResult, type CadEditorCurveLength, type CadEditorView } from '@barocss/cad-editor';
 import { CadEditor, CadEditorExportReview, useCadEditorSnapshot, type CadEditorDisplayOptions, type CadEditorDisplayReceipt, type CadEditorCurveFocusReceipt } from '@barocss/cad-editor/react';
 import fixtureText from '../fixtures/canonical-surface-and-curve.cad-document.json?raw';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './components/ui/dialog';
 import { Button } from './components/ui/button';
-import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from './components/ui/menubar';
+import { Menubar, MenubarCheckboxItem, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from './components/ui/menubar';
+import {useWorkspaceLayout} from './workspace-layout';
 import { downloadAccepted, downloadReviewedExport, readCadEditorFile } from './file-actions';
 import { FeatureApp } from './feature-app';
 import { ReplacementDialog } from './replacement-dialog';
@@ -63,6 +64,7 @@ interface ReplacementRequest { id:number;anchor:ReplacementAnchor;target:Replace
 interface OpenChoice { id:number;anchor:ReplacementAnchor;focus:HTMLElement|null;text:string;filename:string;bodies:{id:string;name:string}[];curveBodies:{id:string;name:string}[];selected:string[];view:CadEditorView;recovery?:RecoveryOrigin }
 
 function DirectApp() {
+  const appRoot=useRef<HTMLDivElement>(null);
   const [session] = useState(() => createCadEditorSession(parseCadDocument(fixtureText).document));
   const snapshot = useCadEditorSnapshot(session);
   const [error, setError] = useState<CadEditorError | null>(null);
@@ -276,8 +278,15 @@ function DirectApp() {
   const projectView = route === '#/projects';
   const selectedBody = snapshot.accepted.document.bodies.find(body => body.id === snapshot.selectedBodyId);
   const selectedKind = snapshot.accepted.bodyBindings.find(binding => binding.bodyId === snapshot.selectedBodyId)?.geometryKind;
+  const layout=useWorkspaceLayout(appRoot,session,()=>busy||snapshot.selectionTransition!==null||snapshot.disposed||projectView||!mount
+    ||replacement!==null||openChoice!==null||recoveryOpen||replacementAttempt.current||replacementBusy||recoveryChecking
+    ||recoveryMutation.current||recoveryCommitRef.current!==null,
+    snapshot.view.kind==='curve-focus'?curveDisplay?.state.status==='ready'&&curveDisplay.generation===snapshot.generation
+      &&curveDisplay.displayGeneration===snapshot.displayGeneration:receipt?.state.status==='ready'
+      &&JSON.stringify(receipt.state.document)===JSON.stringify(snapshot.accepted));
 
-  return <div className="cad-app cad-direct-app">
+  return <div ref={appRoot} className="cad-app cad-direct-app" data-objects-visible={layout.objectsVisible}
+    data-properties-visible={layout.propertiesVisible} data-canvas-focused={layout.focused}>
     <header className="app-header">
       <a className="app-brand" href="#/projects"><Box size={20} strokeWidth={1.6} /><span>barocss<span className="brand-sub">CAD</span></span></a>
       <Menubar className="app-menubar">
@@ -294,7 +303,12 @@ function DirectApp() {
           <MenubarItem disabled={!snapshot.history.canRedo || busy || hasDraft} onSelect={() => run(() => session.prepareRedo())}>Redo</MenubarItem>
           <MenubarSeparator/><MenubarItem onSelect={() => run(() => session.discardPending())}>Discard pending fields</MenubarItem>
         </MenubarContent></MenubarMenu>
-        <MenubarMenu><MenubarTrigger>View</MenubarTrigger><MenubarContent><MenubarItem onSelect={() => setFitRequest(value => value + 1)}>Fit document</MenubarItem></MenubarContent></MenubarMenu>
+        <MenubarMenu><MenubarTrigger>View</MenubarTrigger><MenubarContent><MenubarItem onSelect={() => setFitRequest(value => value + 1)}>Fit document</MenubarItem>
+          <MenubarSeparator/>
+          <MenubarCheckboxItem checked={layout.objectsVisible} disabled={layout.disabled||layout.focused} onCheckedChange={layout.toggleObjects}>Objects</MenubarCheckboxItem>
+          <MenubarCheckboxItem checked={layout.propertiesVisible} disabled={layout.disabled||layout.focused} onCheckedChange={layout.toggleProperties}>Properties</MenubarCheckboxItem>
+          <MenubarItem disabled={layout.disabled} onSelect={layout.toggleFocus}>{layout.focused?'Restore panels':'Canvas focus'}<MenubarShortcut>F8</MenubarShortcut></MenubarItem>
+        </MenubarContent></MenubarMenu>
       </Menubar>
       <span className="document-title" title={filename}>{filename}<span className="dirty-dot" aria-label={effectiveUnsaved ? 'Unsaved accepted changes' : 'Accepted content unchanged'}>{effectiveUnsaved ? ' •' : ''}</span></span>
 
@@ -313,6 +327,9 @@ function DirectApp() {
       </div></div>
       <div className="command-group" role="group" aria-label="View commands"><span className="command-group-label">View</span><div className="command-group-actions">
       <Button variant="ghost" size="sm" onClick={() => setFitRequest(value => value + 1)}><Maximize/>Fit</Button><Button variant="ghost" size="sm" data-testid="fit-selected-body" disabled={!snapshot.selectedBodyId} onClick={() => setFitSelectedRequest(value => value + 1)}><Crosshair/>Fit selected</Button>
+      <Button variant="ghost" size="icon-sm" data-testid="toggle-object-panel" aria-label={layout.objectsVisible?'Hide objects':'Show objects'} title={layout.objectsVisible?'Hide objects':'Show objects'} aria-pressed={layout.objectsVisible} disabled={layout.disabled||layout.focused} onClick={layout.toggleObjects}><PanelLeftClose/></Button>
+      <Button variant="ghost" size="icon-sm" data-testid="toggle-property-panel" aria-label={layout.propertiesVisible?'Hide properties':'Show properties'} title={layout.propertiesVisible?'Hide properties':'Show properties'} aria-pressed={layout.propertiesVisible} disabled={layout.disabled||layout.focused} onClick={layout.toggleProperties}><PanelRightClose/></Button>
+      <Button variant="ghost" size="icon-sm" data-testid="toggle-canvas-focus" aria-label={layout.focused?'Restore panels (F8)':'Canvas focus (F8)'} title={layout.focused?'Restore panels (F8)':'Canvas focus (F8)'} aria-pressed={layout.focused} aria-keyshortcuts="F8" disabled={layout.disabled} onClick={layout.toggleFocus}>{layout.focused?<Shrink/>:<Expand/>}</Button>
       </div></div>
       <div className="command-group" role="group" aria-label="Export commands"><span className="command-group-label">Export</span><div className="command-group-actions">
       {mount && <CadEditorExportReview session={session}
@@ -323,7 +340,7 @@ function DirectApp() {
     </div></div>
     {error && <div className="app-error" role="alert">{actionError(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
     <div className="app-workspace">
-      <aside className="document-tree" aria-label="Object browser"><h2><Layers3 size={15}/>Objects<span className="tree-count">{snapshot.accepted.document.bodies.length}</span></h2>
+      <aside className="document-tree" hidden={!layout.objectsVisible} aria-label="Object browser"><h2><Layers3 size={15}/>Objects<span className="tree-count">{snapshot.accepted.document.bodies.length}</span></h2>
         {snapshot.accepted.document.bodies.map(body => {
           const binding = snapshot.accepted.bodyBindings.find(item => item.bodyId === body.id)!;
           const selected = snapshot.selectedBodyId === body.id;
