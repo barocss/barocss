@@ -354,3 +354,18 @@ typography parity or performance claims.
 ## Browser-font raster text consumer (#1011)
 
 After the compiled package build, open `/packages/barocss-canvas2d/consumer/text-raster.html`. This host prepares a fixed 24px monospace ASCII label with browser font readiness, measured baseline bounds and copied DPR2 RGBA bytes. One public glyph run represents the complete label; spaces remain transparent. An edit uses a fresh candidate canvas/tree/renderer and commits only the newest accepted generation. Failed or late candidates retain the live label. Save stores Scene and RGBA bytes in v1; Open restores pixels without preparing a font, and later edits use the current host font. PNG uses an actual export file. Font metadata, Unicode shaping and per-character caret mapping are outside this consumer.
+
+### Existing font consumer uses the public helper (#1150)
+
+`consumer/text-raster.html` now uses `rasterizeBrowserText` for its asset and
+whole-label layout. The host keeps its 1..32 ASCII label policy, fixed 24px
+monospace font, font readiness and five-second timeout. It checks cancellation
+after readiness and before calling the synchronous helper, then checks again
+before display admission. Its narrower 1024x128 and 512 KiB example guard runs
+after helper preparation. This does not add a core raster limit.
+
+Cold Open restores document bytes without preparing a font or calling the
+helper. A later restored edit prepares the current font and calls the helper,
+then applies the result with `GlyphRunHandle.setLayout` on a copied candidate
+tree. The accepted renderer and tree remain live until candidate admission
+succeeds. Original native consumer observations remain historical evidence.

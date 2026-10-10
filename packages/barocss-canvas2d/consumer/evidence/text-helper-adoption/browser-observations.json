@@ -1,0 +1,3827 @@
+{
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+  "dpr": 2,
+  "flow": [
+    {
+      "label": "initial",
+      "state": "ready",
+      "disposed": false,
+      "requestedGeneration": 1,
+      "acceptedGeneration": 1,
+      "staged": null,
+      "dpr": 2,
+      "counts": {
+        "prepareCalls": 1,
+        "candidates": 1,
+        "accepted": 1,
+        "ignored": 0,
+        "errors": 0,
+        "rendererCreated": 1,
+        "rendererDisposed": 0,
+        "liveDisplayRenderers": 1,
+        "maxDisplayRenderers": 1,
+        "sceneSubmits": 1,
+        "renders": 1,
+        "pointerEvents": 0,
+        "openCalls": 0,
+        "pngCalls": 0,
+        "pngTemporaryCanvases": 0,
+        "disposeCalls": 0,
+        "bindings": 1,
+        "unbindings": 0,
+        "layoutEdits": 0,
+        "helperCalls": 1
+      },
+      "failure": null,
+      "ignored": null,
+      "opened": null,
+      "saved": null,
+      "png": null,
+      "pointerLog": [],
+      "accepted": {
+        "generation": 1,
+        "source": "prepared",
+        "text": "Canvas2D",
+        "sceneVersion": 27,
+        "bounds": {
+          "left": -2,
+          "top": -18,
+          "width": 119,
+          "height": 21,
+          "right": 117,
+          "bottom": 3,
+          "backingWidth": 238,
+          "backingHeight": 42,
+          "advance": 115.21875
+        },
+        "font": {
+          "style": "24px monospace",
+          "loadedFaces": 0,
+          "check": true
+        },
+        "contextId": "TextRasterConsumer",
+        "layout": {
+          "atlasId": "TextAtlas",
+          "text": "Canvas2D",
+          "baseline": 0,
+          "opacity": 1,
+          "sampling": "nearest",
+          "glyphs": [
+            {
+              "sourceRect": {
+                "x": 0,
+                "y": 0,
+                "width": 238,
+                "height": 42
+              },
+              "x": -2,
+              "y": -18,
+              "width": 119,
+              "height": 21,
+              "textStart": 0,
+              "textEnd": 8
+            }
+          ]
+        },
+        "atlas": {
+          "width": 238,
+          "height": 42,
+          "byteLength": 39984,
+          "hash": "e167b731"
+        },
+        "atlasMatchesRenderer": true,
+        "quad": {
+          "sourceRect": {
+            "x": 0,
+            "y": 0,
+            "width": 238,
+            "height": 42
+          },
+          "x": -2,
+          "y": -18,
+          "width": 119,
+          "height": 21,
+          "textStart": 0,
+          "textEnd": 8
+        },
+        "baseline": {
+          "x": 24,
+          "y": 64,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "value": 0
+        },
+        "points": {
+          "ink": {
+            "atlas": {
+              "x": 186,
+              "y": 6
+            },
+            "alpha": 255,
+            "point": {
+              "x": 115.25,
+              "y": 49.25
+            }
+          },
+          "space": {
+            "atlas": {
+              "x": 176,
+              "y": 20
+            },
+            "alpha": 0,
+            "point": {
+              "x": 110.25,
+              "y": 56.25
+            },
+            "emptyColumn": true,
+            "labelHasSpace": false
+          },
+          "inkBounds": {
+            "leftInk": 5,
+            "rightInk": 232,
+            "topInk": 5,
+            "bottomInk": 36
+          }
+        },
+        "ink": {
+          "point": {
+            "x": 115.25,
+            "y": 49.25
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "Label",
+          "hits": [
+            "Label",
+            "Back"
+          ]
+        },
+        "space": {
+          "point": {
+            "x": 110.25,
+            "y": 56.25
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "point": {
+            "x": 300,
+            "y": 110
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "sceneMatchesTree": true,
+        "backing": {
+          "width": 640,
+          "height": 256
+        },
+        "ids": [
+          "Back",
+          "Label"
+        ]
+      },
+      "runtime": {
+        "scratch2D": 1,
+        "draws": 1,
+        "fontLoads": 1,
+        "fontChecks": 2,
+        "glContexts": 1
+      }
+    },
+    {
+      "label": "HI",
+      "state": "ready",
+      "disposed": false,
+      "requestedGeneration": 2,
+      "acceptedGeneration": 2,
+      "staged": null,
+      "dpr": 2,
+      "counts": {
+        "prepareCalls": 2,
+        "candidates": 2,
+        "accepted": 2,
+        "ignored": 0,
+        "errors": 0,
+        "rendererCreated": 2,
+        "rendererDisposed": 1,
+        "liveDisplayRenderers": 1,
+        "maxDisplayRenderers": 2,
+        "sceneSubmits": 2,
+        "renders": 2,
+        "pointerEvents": 4,
+        "openCalls": 0,
+        "pngCalls": 0,
+        "pngTemporaryCanvases": 0,
+        "disposeCalls": 0,
+        "bindings": 2,
+        "unbindings": 1,
+        "layoutEdits": 0,
+        "helperCalls": 2
+      },
+      "failure": null,
+      "ignored": null,
+      "opened": null,
+      "saved": null,
+      "png": null,
+      "pointerLog": [
+        "g1:Label:Label",
+        "g1:stage:Label",
+        "g1:Back:Back",
+        "g1:stage:Back",
+        "g2:Label:Label",
+        "g2:stage:Label",
+        "g2:Back:Back",
+        "g2:stage:Back"
+      ],
+      "accepted": {
+        "generation": 2,
+        "source": "prepared",
+        "text": "HI",
+        "sceneVersion": 27,
+        "bounds": {
+          "left": -1,
+          "top": -16,
+          "width": 30,
+          "height": 18,
+          "right": 29,
+          "bottom": 2,
+          "backingWidth": 60,
+          "backingHeight": 36,
+          "advance": 28.8046875
+        },
+        "font": {
+          "style": "24px monospace",
+          "loadedFaces": 0,
+          "check": true
+        },
+        "contextId": "TextRasterConsumer",
+        "layout": {
+          "atlasId": "TextAtlas",
+          "text": "HI",
+          "baseline": 0,
+          "opacity": 1,
+          "sampling": "nearest",
+          "glyphs": [
+            {
+              "sourceRect": {
+                "x": 0,
+                "y": 0,
+                "width": 60,
+                "height": 36
+              },
+              "x": -1,
+              "y": -16,
+              "width": 30,
+              "height": 18,
+              "textStart": 0,
+              "textEnd": 2
+            }
+          ]
+        },
+        "atlas": {
+          "width": 60,
+          "height": 36,
+          "byteLength": 8640,
+          "hash": "27416252"
+        },
+        "atlasMatchesRenderer": true,
+        "quad": {
+          "sourceRect": {
+            "x": 0,
+            "y": 0,
+            "width": 60,
+            "height": 36
+          },
+          "x": -1,
+          "y": -16,
+          "width": 30,
+          "height": 18,
+          "textStart": 0,
+          "textEnd": 2
+        },
+        "baseline": {
+          "x": 24,
+          "y": 64,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "value": 0
+        },
+        "points": {
+          "ink": {
+            "atlas": {
+              "x": 5,
+              "y": 4
+            },
+            "alpha": 255,
+            "point": {
+              "x": 25.75,
+              "y": 50.25
+            }
+          },
+          "space": {
+            "atlas": {
+              "x": 31,
+              "y": 17
+            },
+            "alpha": 0,
+            "point": {
+              "x": 38.75,
+              "y": 56.75
+            },
+            "emptyColumn": true,
+            "labelHasSpace": false
+          },
+          "inkBounds": {
+            "leftInk": 4,
+            "rightInk": 55,
+            "topInk": 3,
+            "bottomInk": 31
+          }
+        },
+        "ink": {
+          "point": {
+            "x": 25.75,
+            "y": 50.25
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "Label",
+          "hits": [
+            "Label",
+            "Back"
+          ]
+        },
+        "space": {
+          "point": {
+            "x": 38.75,
+            "y": 56.75
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "point": {
+            "x": 300,
+            "y": 110
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "sceneMatchesTree": true,
+        "backing": {
+          "width": 640,
+          "height": 256
+        },
+        "ids": [
+          "Back",
+          "Label"
+        ]
+      },
+      "runtime": {
+        "scratch2D": 2,
+        "draws": 2,
+        "fontLoads": 2,
+        "fontChecks": 4,
+        "glContexts": 2
+      }
+    },
+    {
+      "label": "H I",
+      "state": "ready",
+      "disposed": false,
+      "requestedGeneration": 3,
+      "acceptedGeneration": 3,
+      "staged": null,
+      "dpr": 2,
+      "counts": {
+        "prepareCalls": 3,
+        "candidates": 3,
+        "accepted": 3,
+        "ignored": 0,
+        "errors": 0,
+        "rendererCreated": 3,
+        "rendererDisposed": 2,
+        "liveDisplayRenderers": 1,
+        "maxDisplayRenderers": 2,
+        "sceneSubmits": 3,
+        "renders": 3,
+        "pointerEvents": 6,
+        "openCalls": 0,
+        "pngCalls": 0,
+        "pngTemporaryCanvases": 0,
+        "disposeCalls": 0,
+        "bindings": 3,
+        "unbindings": 2,
+        "layoutEdits": 0,
+        "helperCalls": 3
+      },
+      "failure": null,
+      "ignored": null,
+      "opened": null,
+      "saved": null,
+      "png": null,
+      "pointerLog": [
+        "g1:Label:Label",
+        "g1:stage:Label",
+        "g1:Back:Back",
+        "g1:stage:Back",
+        "g2:Label:Label",
+        "g2:stage:Label",
+        "g2:Back:Back",
+        "g2:stage:Back",
+        "g3:Label:Label",
+        "g3:stage:Label",
+        "g3:Back:Back",
+        "g3:stage:Back"
+      ],
+      "accepted": {
+        "generation": 3,
+        "source": "prepared",
+        "text": "H I",
+        "sceneVersion": 27,
+        "bounds": {
+          "left": -1,
+          "top": -16,
+          "width": 44,
+          "height": 18,
+          "right": 43,
+          "bottom": 2,
+          "backingWidth": 88,
+          "backingHeight": 36,
+          "advance": 43.20703125
+        },
+        "font": {
+          "style": "24px monospace",
+          "loadedFaces": 0,
+          "check": true
+        },
+        "contextId": "TextRasterConsumer",
+        "layout": {
+          "atlasId": "TextAtlas",
+          "text": "H I",
+          "baseline": 0,
+          "opacity": 1,
+          "sampling": "nearest",
+          "glyphs": [
+            {
+              "sourceRect": {
+                "x": 0,
+                "y": 0,
+                "width": 88,
+                "height": 36
+              },
+              "x": -1,
+              "y": -16,
+              "width": 44,
+              "height": 18,
+              "textStart": 0,
+              "textEnd": 3
+            }
+          ]
+        },
+        "atlas": {
+          "width": 88,
+          "height": 36,
+          "byteLength": 12672,
+          "hash": "a160ba2d"
+        },
+        "atlasMatchesRenderer": true,
+        "quad": {
+          "sourceRect": {
+            "x": 0,
+            "y": 0,
+            "width": 88,
+            "height": 36
+          },
+          "x": -1,
+          "y": -16,
+          "width": 44,
+          "height": 18,
+          "textStart": 0,
+          "textEnd": 3
+        },
+        "baseline": {
+          "x": 24,
+          "y": 64,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "value": 0
+        },
+        "points": {
+          "ink": {
+            "atlas": {
+              "x": 5,
+              "y": 4
+            },
+            "alpha": 255,
+            "point": {
+              "x": 25.75,
+              "y": 50.25
+            }
+          },
+          "space": {
+            "atlas": {
+              "x": 46,
+              "y": 17
+            },
+            "alpha": 0,
+            "point": {
+              "x": 46.25,
+              "y": 56.75
+            },
+            "emptyColumn": true,
+            "labelHasSpace": true
+          },
+          "inkBounds": {
+            "leftInk": 4,
+            "rightInk": 84,
+            "topInk": 3,
+            "bottomInk": 31
+          }
+        },
+        "ink": {
+          "point": {
+            "x": 25.75,
+            "y": 50.25
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "Label",
+          "hits": [
+            "Label",
+            "Back"
+          ]
+        },
+        "space": {
+          "point": {
+            "x": 46.25,
+            "y": 56.75
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "point": {
+            "x": 300,
+            "y": 110
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "sceneMatchesTree": true,
+        "backing": {
+          "width": 640,
+          "height": 256
+        },
+        "ids": [
+          "Back",
+          "Label"
+        ]
+      },
+      "runtime": {
+        "scratch2D": 3,
+        "draws": 3,
+        "fontLoads": 3,
+        "fontChecks": 6,
+        "glContexts": 3
+      }
+    },
+    {
+      "label": "malformed",
+      "state": "ready",
+      "disposed": false,
+      "requestedGeneration": 4,
+      "acceptedGeneration": 3,
+      "staged": null,
+      "dpr": 2,
+      "counts": {
+        "prepareCalls": 4,
+        "candidates": 4,
+        "accepted": 3,
+        "ignored": 0,
+        "errors": 1,
+        "rendererCreated": 3,
+        "rendererDisposed": 2,
+        "liveDisplayRenderers": 1,
+        "maxDisplayRenderers": 2,
+        "sceneSubmits": 3,
+        "renders": 3,
+        "pointerEvents": 6,
+        "openCalls": 0,
+        "pngCalls": 0,
+        "pngTemporaryCanvases": 0,
+        "disposeCalls": 0,
+        "bindings": 3,
+        "unbindings": 2,
+        "layoutEdits": 0,
+        "helperCalls": 3
+      },
+      "failure": {
+        "code": "HOST_TEXT",
+        "retained": true,
+        "generation": 4
+      },
+      "ignored": null,
+      "opened": null,
+      "saved": null,
+      "png": null,
+      "pointerLog": [
+        "g1:Label:Label",
+        "g1:stage:Label",
+        "g1:Back:Back",
+        "g1:stage:Back",
+        "g2:Label:Label",
+        "g2:stage:Label",
+        "g2:Back:Back",
+        "g2:stage:Back",
+        "g3:Label:Label",
+        "g3:stage:Label",
+        "g3:Back:Back",
+        "g3:stage:Back"
+      ],
+      "accepted": {
+        "generation": 3,
+        "source": "prepared",
+        "text": "H I",
+        "sceneVersion": 27,
+        "bounds": {
+          "left": -1,
+          "top": -16,
+          "width": 44,
+          "height": 18,
+          "right": 43,
+          "bottom": 2,
+          "backingWidth": 88,
+          "backingHeight": 36,
+          "advance": 43.20703125
+        },
+        "font": {
+          "style": "24px monospace",
+          "loadedFaces": 0,
+          "check": true
+        },
+        "contextId": "TextRasterConsumer",
+        "layout": {
+          "atlasId": "TextAtlas",
+          "text": "H I",
+          "baseline": 0,
+          "opacity": 1,
+          "sampling": "nearest",
+          "glyphs": [
+            {
+              "sourceRect": {
+                "x": 0,
+                "y": 0,
+                "width": 88,
+                "height": 36
+              },
+              "x": -1,
+              "y": -16,
+              "width": 44,
+              "height": 18,
+              "textStart": 0,
+              "textEnd": 3
+            }
+          ]
+        },
+        "atlas": {
+          "width": 88,
+          "height": 36,
+          "byteLength": 12672,
+          "hash": "a160ba2d"
+        },
+        "atlasMatchesRenderer": true,
+        "quad": {
+          "sourceRect": {
+            "x": 0,
+            "y": 0,
+            "width": 88,
+            "height": 36
+          },
+          "x": -1,
+          "y": -16,
+          "width": 44,
+          "height": 18,
+          "textStart": 0,
+          "textEnd": 3
+        },
+        "baseline": {
+          "x": 24,
+          "y": 64,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "value": 0
+        },
+        "points": {
+          "ink": {
+            "atlas": {
+              "x": 5,
+              "y": 4
+            },
+            "alpha": 255,
+            "point": {
+              "x": 25.75,
+              "y": 50.25
+            }
+          },
+          "space": {
+            "atlas": {
+              "x": 46,
+              "y": 17
+            },
+            "alpha": 0,
+            "point": {
+              "x": 46.25,
+              "y": 56.75
+            },
+            "emptyColumn": true,
+            "labelHasSpace": true
+          },
+          "inkBounds": {
+            "leftInk": 4,
+            "rightInk": 84,
+            "topInk": 3,
+            "bottomInk": 31
+          }
+        },
+        "ink": {
+          "point": {
+            "x": 25.75,
+            "y": 50.25
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "Label",
+          "hits": [
+            "Label",
+            "Back"
+          ]
+        },
+        "space": {
+          "point": {
+            "x": 46.25,
+            "y": 56.75
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "point": {
+            "x": 300,
+            "y": 110
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "sceneMatchesTree": true,
+        "backing": {
+          "width": 640,
+          "height": 256
+        },
+        "ids": [
+          "Back",
+          "Label"
+        ]
+      },
+      "runtime": {
+        "scratch2D": 3,
+        "draws": 3,
+        "fontLoads": 3,
+        "fontChecks": 6,
+        "glContexts": 3
+      }
+    },
+    {
+      "label": "actualOversize32M1000px",
+      "state": "ready",
+      "disposed": false,
+      "requestedGeneration": 5,
+      "acceptedGeneration": 3,
+      "staged": null,
+      "dpr": 2,
+      "counts": {
+        "prepareCalls": 4,
+        "candidates": 4,
+        "accepted": 3,
+        "ignored": 0,
+        "errors": 2,
+        "rendererCreated": 3,
+        "rendererDisposed": 2,
+        "liveDisplayRenderers": 1,
+        "maxDisplayRenderers": 2,
+        "sceneSubmits": 3,
+        "renders": 3,
+        "pointerEvents": 6,
+        "openCalls": 0,
+        "pngCalls": 0,
+        "pngTemporaryCanvases": 0,
+        "disposeCalls": 0,
+        "bindings": 3,
+        "unbindings": 2,
+        "layoutEdits": 0,
+        "helperCalls": 4
+      },
+      "failure": {
+        "code": "ASSET_LIMIT",
+        "retained": true,
+        "generation": 5
+      },
+      "ignored": null,
+      "opened": null,
+      "saved": null,
+      "png": null,
+      "pointerLog": [
+        "g1:Label:Label",
+        "g1:stage:Label",
+        "g1:Back:Back",
+        "g1:stage:Back",
+        "g2:Label:Label",
+        "g2:stage:Label",
+        "g2:Back:Back",
+        "g2:stage:Back",
+        "g3:Label:Label",
+        "g3:stage:Label",
+        "g3:Back:Back",
+        "g3:stage:Back"
+      ],
+      "accepted": {
+        "generation": 3,
+        "source": "prepared",
+        "text": "H I",
+        "sceneVersion": 27,
+        "bounds": {
+          "left": -1,
+          "top": -16,
+          "width": 44,
+          "height": 18,
+          "right": 43,
+          "bottom": 2,
+          "backingWidth": 88,
+          "backingHeight": 36,
+          "advance": 43.20703125
+        },
+        "font": {
+          "style": "24px monospace",
+          "loadedFaces": 0,
+          "check": true
+        },
+        "contextId": "TextRasterConsumer",
+        "layout": {
+          "atlasId": "TextAtlas",
+          "text": "H I",
+          "baseline": 0,
+          "opacity": 1,
+          "sampling": "nearest",
+          "glyphs": [
+            {
+              "sourceRect": {
+                "x": 0,
+                "y": 0,
+                "width": 88,
+                "height": 36
+              },
+              "x": -1,
+              "y": -16,
+              "width": 44,
+              "height": 18,
+              "textStart": 0,
+              "textEnd": 3
+            }
+          ]
+        },
+        "atlas": {
+          "width": 88,
+          "height": 36,
+          "byteLength": 12672,
+          "hash": "a160ba2d"
+        },
+        "atlasMatchesRenderer": true,
+        "quad": {
+          "sourceRect": {
+            "x": 0,
+            "y": 0,
+            "width": 88,
+            "height": 36
+          },
+          "x": -1,
+          "y": -16,
+          "width": 44,
+          "height": 18,
+          "textStart": 0,
+          "textEnd": 3
+        },
+        "baseline": {
+          "x": 24,
+          "y": 64,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "value": 0
+        },
+        "points": {
+          "ink": {
+            "atlas": {
+              "x": 5,
+              "y": 4
+            },
+            "alpha": 255,
+            "point": {
+              "x": 25.75,
+              "y": 50.25
+            }
+          },
+          "space": {
+            "atlas": {
+              "x": 46,
+              "y": 17
+            },
+            "alpha": 0,
+            "point": {
+              "x": 46.25,
+              "y": 56.75
+            },
+            "emptyColumn": true,
+            "labelHasSpace": true
+          },
+          "inkBounds": {
+            "leftInk": 4,
+            "rightInk": 84,
+            "topInk": 3,
+            "bottomInk": 31
+          }
+        },
+        "ink": {
+          "point": {
+            "x": 25.75,
+            "y": 50.25
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "Label",
+          "hits": [
+            "Label",
+            "Back"
+          ]
+        },
+        "space": {
+          "point": {
+            "x": 46.25,
+            "y": 56.75
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "point": {
+            "x": 300,
+            "y": 110
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "sceneMatchesTree": true,
+        "backing": {
+          "width": 640,
+          "height": 256
+        },
+        "ids": [
+          "Back",
+          "Label"
+        ]
+      },
+      "runtime": {
+        "scratch2D": 4,
+        "draws": 3,
+        "fontLoads": 3,
+        "fontChecks": 7,
+        "glContexts": 3
+      }
+    },
+    {
+      "label": "supersededReadinessNoScratch",
+      "state": "ready",
+      "disposed": false,
+      "requestedGeneration": 7,
+      "acceptedGeneration": 7,
+      "staged": null,
+      "dpr": 2,
+      "counts": {
+        "prepareCalls": 6,
+        "candidates": 6,
+        "accepted": 4,
+        "ignored": 1,
+        "errors": 2,
+        "rendererCreated": 4,
+        "rendererDisposed": 3,
+        "liveDisplayRenderers": 1,
+        "maxDisplayRenderers": 2,
+        "sceneSubmits": 4,
+        "renders": 4,
+        "pointerEvents": 6,
+        "openCalls": 0,
+        "pngCalls": 0,
+        "pngTemporaryCanvases": 0,
+        "disposeCalls": 0,
+        "bindings": 4,
+        "unbindings": 3,
+        "layoutEdits": 0,
+        "helperCalls": 5
+      },
+      "failure": null,
+      "ignored": {
+        "generation": 6,
+        "acceptedGeneration": 7
+      },
+      "opened": null,
+      "saved": null,
+      "png": null,
+      "pointerLog": [
+        "g1:Label:Label",
+        "g1:stage:Label",
+        "g1:Back:Back",
+        "g1:stage:Back",
+        "g2:Label:Label",
+        "g2:stage:Label",
+        "g2:Back:Back",
+        "g2:stage:Back",
+        "g3:Label:Label",
+        "g3:stage:Label",
+        "g3:Back:Back",
+        "g3:stage:Back"
+      ],
+      "accepted": {
+        "generation": 7,
+        "source": "prepared",
+        "text": "H I",
+        "sceneVersion": 27,
+        "bounds": {
+          "left": -1,
+          "top": -16,
+          "width": 44,
+          "height": 18,
+          "right": 43,
+          "bottom": 2,
+          "backingWidth": 88,
+          "backingHeight": 36,
+          "advance": 43.20703125
+        },
+        "font": {
+          "style": "24px monospace",
+          "loadedFaces": 0,
+          "check": true
+        },
+        "contextId": "TextRasterConsumer",
+        "layout": {
+          "atlasId": "TextAtlas",
+          "text": "H I",
+          "baseline": 0,
+          "opacity": 1,
+          "sampling": "nearest",
+          "glyphs": [
+            {
+              "sourceRect": {
+                "x": 0,
+                "y": 0,
+                "width": 88,
+                "height": 36
+              },
+              "x": -1,
+              "y": -16,
+              "width": 44,
+              "height": 18,
+              "textStart": 0,
+              "textEnd": 3
+            }
+          ]
+        },
+        "atlas": {
+          "width": 88,
+          "height": 36,
+          "byteLength": 12672,
+          "hash": "a160ba2d"
+        },
+        "atlasMatchesRenderer": true,
+        "quad": {
+          "sourceRect": {
+            "x": 0,
+            "y": 0,
+            "width": 88,
+            "height": 36
+          },
+          "x": -1,
+          "y": -16,
+          "width": 44,
+          "height": 18,
+          "textStart": 0,
+          "textEnd": 3
+        },
+        "baseline": {
+          "x": 24,
+          "y": 64,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "value": 0
+        },
+        "points": {
+          "ink": {
+            "atlas": {
+              "x": 5,
+              "y": 4
+            },
+            "alpha": 255,
+            "point": {
+              "x": 25.75,
+              "y": 50.25
+            }
+          },
+          "space": {
+            "atlas": {
+              "x": 46,
+              "y": 17
+            },
+            "alpha": 0,
+            "point": {
+              "x": 46.25,
+              "y": 56.75
+            },
+            "emptyColumn": true,
+            "labelHasSpace": true
+          },
+          "inkBounds": {
+            "leftInk": 4,
+            "rightInk": 84,
+            "topInk": 3,
+            "bottomInk": 31
+          }
+        },
+        "ink": {
+          "point": {
+            "x": 25.75,
+            "y": 50.25
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "Label",
+          "hits": [
+            "Label",
+            "Back"
+          ]
+        },
+        "space": {
+          "point": {
+            "x": 46.25,
+            "y": 56.75
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "point": {
+            "x": 300,
+            "y": 110
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "sceneMatchesTree": true,
+        "backing": {
+          "width": 640,
+          "height": 256
+        },
+        "ids": [
+          "Back",
+          "Label"
+        ]
+      },
+      "runtime": {
+        "scratch2D": 5,
+        "draws": 4,
+        "fontLoads": 5,
+        "fontChecks": 10,
+        "glContexts": 4
+      }
+    },
+    {
+      "label": "savedCurrentScene27",
+      "state": "ready",
+      "disposed": false,
+      "requestedGeneration": 7,
+      "acceptedGeneration": 7,
+      "staged": null,
+      "dpr": 2,
+      "counts": {
+        "prepareCalls": 6,
+        "candidates": 6,
+        "accepted": 4,
+        "ignored": 1,
+        "errors": 2,
+        "rendererCreated": 4,
+        "rendererDisposed": 3,
+        "liveDisplayRenderers": 1,
+        "maxDisplayRenderers": 2,
+        "sceneSubmits": 4,
+        "renders": 4,
+        "pointerEvents": 6,
+        "openCalls": 0,
+        "pngCalls": 0,
+        "pngTemporaryCanvases": 0,
+        "disposeCalls": 0,
+        "bindings": 4,
+        "unbindings": 3,
+        "layoutEdits": 0,
+        "helperCalls": 5
+      },
+      "failure": null,
+      "ignored": {
+        "generation": 6,
+        "acceptedGeneration": 7
+      },
+      "opened": null,
+      "saved": {
+        "filename": "text-raster-H-I.json",
+        "byteLength": 17907
+      },
+      "png": null,
+      "pointerLog": [
+        "g1:Label:Label",
+        "g1:stage:Label",
+        "g1:Back:Back",
+        "g1:stage:Back",
+        "g2:Label:Label",
+        "g2:stage:Label",
+        "g2:Back:Back",
+        "g2:stage:Back",
+        "g3:Label:Label",
+        "g3:stage:Label",
+        "g3:Back:Back",
+        "g3:stage:Back"
+      ],
+      "accepted": {
+        "generation": 7,
+        "source": "prepared",
+        "text": "H I",
+        "sceneVersion": 27,
+        "bounds": {
+          "left": -1,
+          "top": -16,
+          "width": 44,
+          "height": 18,
+          "right": 43,
+          "bottom": 2,
+          "backingWidth": 88,
+          "backingHeight": 36,
+          "advance": 43.20703125
+        },
+        "font": {
+          "style": "24px monospace",
+          "loadedFaces": 0,
+          "check": true
+        },
+        "contextId": "TextRasterConsumer",
+        "layout": {
+          "atlasId": "TextAtlas",
+          "text": "H I",
+          "baseline": 0,
+          "opacity": 1,
+          "sampling": "nearest",
+          "glyphs": [
+            {
+              "sourceRect": {
+                "x": 0,
+                "y": 0,
+                "width": 88,
+                "height": 36
+              },
+              "x": -1,
+              "y": -16,
+              "width": 44,
+              "height": 18,
+              "textStart": 0,
+              "textEnd": 3
+            }
+          ]
+        },
+        "atlas": {
+          "width": 88,
+          "height": 36,
+          "byteLength": 12672,
+          "hash": "a160ba2d"
+        },
+        "atlasMatchesRenderer": true,
+        "quad": {
+          "sourceRect": {
+            "x": 0,
+            "y": 0,
+            "width": 88,
+            "height": 36
+          },
+          "x": -1,
+          "y": -16,
+          "width": 44,
+          "height": 18,
+          "textStart": 0,
+          "textEnd": 3
+        },
+        "baseline": {
+          "x": 24,
+          "y": 64,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "value": 0
+        },
+        "points": {
+          "ink": {
+            "atlas": {
+              "x": 5,
+              "y": 4
+            },
+            "alpha": 255,
+            "point": {
+              "x": 25.75,
+              "y": 50.25
+            }
+          },
+          "space": {
+            "atlas": {
+              "x": 46,
+              "y": 17
+            },
+            "alpha": 0,
+            "point": {
+              "x": 46.25,
+              "y": 56.75
+            },
+            "emptyColumn": true,
+            "labelHasSpace": true
+          },
+          "inkBounds": {
+            "leftInk": 4,
+            "rightInk": 84,
+            "topInk": 3,
+            "bottomInk": 31
+          }
+        },
+        "ink": {
+          "point": {
+            "x": 25.75,
+            "y": 50.25
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "Label",
+          "hits": [
+            "Label",
+            "Back"
+          ]
+        },
+        "space": {
+          "point": {
+            "x": 46.25,
+            "y": 56.75
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "point": {
+            "x": 300,
+            "y": 110
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "sceneMatchesTree": true,
+        "backing": {
+          "width": 640,
+          "height": 256
+        },
+        "ids": [
+          "Back",
+          "Label"
+        ]
+      },
+      "runtime": {
+        "scratch2D": 5,
+        "draws": 4,
+        "fontLoads": 5,
+        "fontChecks": 10,
+        "glContexts": 4
+      }
+    },
+    {
+      "label": "physicalOpenCurrent27",
+      "state": "ready",
+      "disposed": false,
+      "requestedGeneration": 9,
+      "acceptedGeneration": 9,
+      "staged": null,
+      "dpr": 2,
+      "counts": {
+        "prepareCalls": 6,
+        "candidates": 6,
+        "accepted": 5,
+        "ignored": 1,
+        "errors": 2,
+        "rendererCreated": 5,
+        "rendererDisposed": 4,
+        "liveDisplayRenderers": 1,
+        "maxDisplayRenderers": 2,
+        "sceneSubmits": 5,
+        "renders": 5,
+        "pointerEvents": 6,
+        "openCalls": 1,
+        "pngCalls": 0,
+        "pngTemporaryCanvases": 0,
+        "disposeCalls": 0,
+        "bindings": 5,
+        "unbindings": 4,
+        "layoutEdits": 0,
+        "helperCalls": 5
+      },
+      "failure": null,
+      "ignored": {
+        "generation": 6,
+        "acceptedGeneration": 7
+      },
+      "opened": {
+        "bytesEqualPrevious": true,
+        "samplesEqualPrevious": true,
+        "ids": [
+          "Back",
+          "Label"
+        ],
+        "fontPrepared": false,
+        "helperCallsUnchanged": true,
+        "layoutEqualPrevious": true,
+        "contextEqualPrevious": true,
+        "idsEqualPrevious": true
+      },
+      "saved": {
+        "filename": "text-raster-H-I.json",
+        "byteLength": 17907
+      },
+      "png": null,
+      "pointerLog": [
+        "g1:Label:Label",
+        "g1:stage:Label",
+        "g1:Back:Back",
+        "g1:stage:Back",
+        "g2:Label:Label",
+        "g2:stage:Label",
+        "g2:Back:Back",
+        "g2:stage:Back",
+        "g3:Label:Label",
+        "g3:stage:Label",
+        "g3:Back:Back",
+        "g3:stage:Back"
+      ],
+      "accepted": {
+        "generation": 9,
+        "source": "document",
+        "text": "H I",
+        "sceneVersion": 27,
+        "bounds": {
+          "left": -1,
+          "right": 43,
+          "top": -16,
+          "bottom": 2,
+          "width": 44,
+          "height": 18,
+          "backingWidth": 88,
+          "backingHeight": 36,
+          "advance": null
+        },
+        "font": null,
+        "contextId": "TextRasterConsumer",
+        "layout": {
+          "atlasId": "TextAtlas",
+          "text": "H I",
+          "baseline": 0,
+          "opacity": 1,
+          "sampling": "nearest",
+          "glyphs": [
+            {
+              "sourceRect": {
+                "x": 0,
+                "y": 0,
+                "width": 88,
+                "height": 36
+              },
+              "x": -1,
+              "y": -16,
+              "width": 44,
+              "height": 18,
+              "textStart": 0,
+              "textEnd": 3
+            }
+          ]
+        },
+        "atlas": {
+          "width": 88,
+          "height": 36,
+          "byteLength": 12672,
+          "hash": "a160ba2d"
+        },
+        "atlasMatchesRenderer": true,
+        "quad": {
+          "sourceRect": {
+            "x": 0,
+            "y": 0,
+            "width": 88,
+            "height": 36
+          },
+          "x": -1,
+          "y": -16,
+          "width": 44,
+          "height": 18,
+          "textStart": 0,
+          "textEnd": 3
+        },
+        "baseline": {
+          "x": 24,
+          "y": 64,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "value": 0
+        },
+        "points": {
+          "ink": {
+            "atlas": {
+              "x": 5,
+              "y": 4
+            },
+            "alpha": 255,
+            "point": {
+              "x": 25.75,
+              "y": 50.25
+            }
+          },
+          "space": {
+            "atlas": {
+              "x": 46,
+              "y": 17
+            },
+            "alpha": 0,
+            "point": {
+              "x": 46.25,
+              "y": 56.75
+            },
+            "emptyColumn": true,
+            "labelHasSpace": true
+          },
+          "inkBounds": {
+            "leftInk": 4,
+            "rightInk": 84,
+            "topInk": 3,
+            "bottomInk": 31
+          }
+        },
+        "ink": {
+          "point": {
+            "x": 25.75,
+            "y": 50.25
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "Label",
+          "hits": [
+            "Label",
+            "Back"
+          ]
+        },
+        "space": {
+          "point": {
+            "x": 46.25,
+            "y": 56.75
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "point": {
+            "x": 300,
+            "y": 110
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "sceneMatchesTree": true,
+        "backing": {
+          "width": 640,
+          "height": 256
+        },
+        "ids": [
+          "Back",
+          "Label"
+        ]
+      },
+      "runtime": {
+        "scratch2D": 5,
+        "draws": 4,
+        "fontLoads": 5,
+        "fontChecks": 10,
+        "glContexts": 5
+      }
+    },
+    {
+      "label": "restoredCurrentPublicLayoutHI",
+      "state": "ready",
+      "disposed": false,
+      "requestedGeneration": 10,
+      "acceptedGeneration": 10,
+      "staged": null,
+      "dpr": 2,
+      "counts": {
+        "prepareCalls": 7,
+        "candidates": 7,
+        "accepted": 6,
+        "ignored": 1,
+        "errors": 2,
+        "rendererCreated": 6,
+        "rendererDisposed": 5,
+        "liveDisplayRenderers": 1,
+        "maxDisplayRenderers": 2,
+        "sceneSubmits": 6,
+        "renders": 6,
+        "pointerEvents": 7,
+        "openCalls": 1,
+        "pngCalls": 0,
+        "pngTemporaryCanvases": 0,
+        "disposeCalls": 0,
+        "bindings": 6,
+        "unbindings": 5,
+        "layoutEdits": 1,
+        "helperCalls": 6
+      },
+      "failure": null,
+      "ignored": {
+        "generation": 6,
+        "acceptedGeneration": 7
+      },
+      "opened": null,
+      "saved": {
+        "filename": "text-raster-H-I.json",
+        "byteLength": 17907
+      },
+      "png": null,
+      "pointerLog": [
+        "g1:Label:Label",
+        "g1:stage:Label",
+        "g1:Back:Back",
+        "g1:stage:Back",
+        "g2:Label:Label",
+        "g2:stage:Label",
+        "g2:Back:Back",
+        "g2:stage:Back",
+        "g3:Label:Label",
+        "g3:stage:Label",
+        "g3:Back:Back",
+        "g3:stage:Back",
+        "g9:Label:Label",
+        "g9:stage:Label"
+      ],
+      "accepted": {
+        "generation": 10,
+        "source": "prepared",
+        "text": "HI",
+        "sceneVersion": 27,
+        "bounds": {
+          "left": -1,
+          "top": -16,
+          "width": 30,
+          "height": 18,
+          "right": 29,
+          "bottom": 2,
+          "backingWidth": 60,
+          "backingHeight": 36,
+          "advance": 28.8046875
+        },
+        "font": {
+          "style": "24px monospace",
+          "loadedFaces": 0,
+          "check": true
+        },
+        "contextId": "TextRasterConsumer",
+        "layout": {
+          "atlasId": "TextAtlas",
+          "text": "HI",
+          "baseline": 0,
+          "opacity": 1,
+          "sampling": "nearest",
+          "glyphs": [
+            {
+              "sourceRect": {
+                "x": 0,
+                "y": 0,
+                "width": 60,
+                "height": 36
+              },
+              "x": -1,
+              "y": -16,
+              "width": 30,
+              "height": 18,
+              "textStart": 0,
+              "textEnd": 2
+            }
+          ]
+        },
+        "atlas": {
+          "width": 60,
+          "height": 36,
+          "byteLength": 8640,
+          "hash": "27416252"
+        },
+        "atlasMatchesRenderer": true,
+        "quad": {
+          "sourceRect": {
+            "x": 0,
+            "y": 0,
+            "width": 60,
+            "height": 36
+          },
+          "x": -1,
+          "y": -16,
+          "width": 30,
+          "height": 18,
+          "textStart": 0,
+          "textEnd": 2
+        },
+        "baseline": {
+          "x": 24,
+          "y": 64,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "value": 0
+        },
+        "points": {
+          "ink": {
+            "atlas": {
+              "x": 5,
+              "y": 4
+            },
+            "alpha": 255,
+            "point": {
+              "x": 25.75,
+              "y": 50.25
+            }
+          },
+          "space": {
+            "atlas": {
+              "x": 31,
+              "y": 17
+            },
+            "alpha": 0,
+            "point": {
+              "x": 38.75,
+              "y": 56.75
+            },
+            "emptyColumn": true,
+            "labelHasSpace": false
+          },
+          "inkBounds": {
+            "leftInk": 4,
+            "rightInk": 55,
+            "topInk": 3,
+            "bottomInk": 31
+          }
+        },
+        "ink": {
+          "point": {
+            "x": 25.75,
+            "y": 50.25
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "Label",
+          "hits": [
+            "Label",
+            "Back"
+          ]
+        },
+        "space": {
+          "point": {
+            "x": 38.75,
+            "y": 56.75
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "point": {
+            "x": 300,
+            "y": 110
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "sceneMatchesTree": true,
+        "backing": {
+          "width": 640,
+          "height": 256
+        },
+        "ids": [
+          "Back",
+          "Label"
+        ]
+      },
+      "runtime": {
+        "scratch2D": 6,
+        "draws": 5,
+        "fontLoads": 6,
+        "fontChecks": 12,
+        "glContexts": 6
+      }
+    },
+    {
+      "label": "controlledReadyTimeout5s",
+      "state": "ready",
+      "disposed": false,
+      "requestedGeneration": 11,
+      "acceptedGeneration": 10,
+      "staged": null,
+      "dpr": 2,
+      "counts": {
+        "prepareCalls": 8,
+        "candidates": 8,
+        "accepted": 6,
+        "ignored": 1,
+        "errors": 3,
+        "rendererCreated": 6,
+        "rendererDisposed": 5,
+        "liveDisplayRenderers": 1,
+        "maxDisplayRenderers": 2,
+        "sceneSubmits": 6,
+        "renders": 6,
+        "pointerEvents": 7,
+        "openCalls": 1,
+        "pngCalls": 0,
+        "pngTemporaryCanvases": 0,
+        "disposeCalls": 0,
+        "bindings": 6,
+        "unbindings": 5,
+        "layoutEdits": 1,
+        "helperCalls": 6
+      },
+      "failure": {
+        "code": "HOST_FONT_TIMEOUT",
+        "retained": true,
+        "generation": 11
+      },
+      "ignored": {
+        "generation": 6,
+        "acceptedGeneration": 7
+      },
+      "opened": null,
+      "saved": {
+        "filename": "text-raster-H-I.json",
+        "byteLength": 17907
+      },
+      "png": null,
+      "pointerLog": [
+        "g1:Label:Label",
+        "g1:stage:Label",
+        "g1:Back:Back",
+        "g1:stage:Back",
+        "g2:Label:Label",
+        "g2:stage:Label",
+        "g2:Back:Back",
+        "g2:stage:Back",
+        "g3:Label:Label",
+        "g3:stage:Label",
+        "g3:Back:Back",
+        "g3:stage:Back",
+        "g9:Label:Label",
+        "g9:stage:Label"
+      ],
+      "accepted": {
+        "generation": 10,
+        "source": "prepared",
+        "text": "HI",
+        "sceneVersion": 27,
+        "bounds": {
+          "left": -1,
+          "top": -16,
+          "width": 30,
+          "height": 18,
+          "right": 29,
+          "bottom": 2,
+          "backingWidth": 60,
+          "backingHeight": 36,
+          "advance": 28.8046875
+        },
+        "font": {
+          "style": "24px monospace",
+          "loadedFaces": 0,
+          "check": true
+        },
+        "contextId": "TextRasterConsumer",
+        "layout": {
+          "atlasId": "TextAtlas",
+          "text": "HI",
+          "baseline": 0,
+          "opacity": 1,
+          "sampling": "nearest",
+          "glyphs": [
+            {
+              "sourceRect": {
+                "x": 0,
+                "y": 0,
+                "width": 60,
+                "height": 36
+              },
+              "x": -1,
+              "y": -16,
+              "width": 30,
+              "height": 18,
+              "textStart": 0,
+              "textEnd": 2
+            }
+          ]
+        },
+        "atlas": {
+          "width": 60,
+          "height": 36,
+          "byteLength": 8640,
+          "hash": "27416252"
+        },
+        "atlasMatchesRenderer": true,
+        "quad": {
+          "sourceRect": {
+            "x": 0,
+            "y": 0,
+            "width": 60,
+            "height": 36
+          },
+          "x": -1,
+          "y": -16,
+          "width": 30,
+          "height": 18,
+          "textStart": 0,
+          "textEnd": 2
+        },
+        "baseline": {
+          "x": 24,
+          "y": 64,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "value": 0
+        },
+        "points": {
+          "ink": {
+            "atlas": {
+              "x": 5,
+              "y": 4
+            },
+            "alpha": 255,
+            "point": {
+              "x": 25.75,
+              "y": 50.25
+            }
+          },
+          "space": {
+            "atlas": {
+              "x": 31,
+              "y": 17
+            },
+            "alpha": 0,
+            "point": {
+              "x": 38.75,
+              "y": 56.75
+            },
+            "emptyColumn": true,
+            "labelHasSpace": false
+          },
+          "inkBounds": {
+            "leftInk": 4,
+            "rightInk": 55,
+            "topInk": 3,
+            "bottomInk": 31
+          }
+        },
+        "ink": {
+          "point": {
+            "x": 25.75,
+            "y": 50.25
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "Label",
+          "hits": [
+            "Label",
+            "Back"
+          ]
+        },
+        "space": {
+          "point": {
+            "x": 38.75,
+            "y": 56.75
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "point": {
+            "x": 300,
+            "y": 110
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "sceneMatchesTree": true,
+        "backing": {
+          "width": 640,
+          "height": 256
+        },
+        "ids": [
+          "Back",
+          "Label"
+        ]
+      },
+      "runtime": {
+        "scratch2D": 6,
+        "draws": 5,
+        "fontLoads": 6,
+        "fontChecks": 12,
+        "glContexts": 6
+      }
+    },
+    {
+      "label": "physicalOpenNative1011Scene23",
+      "state": "ready",
+      "disposed": false,
+      "requestedGeneration": 13,
+      "acceptedGeneration": 13,
+      "staged": null,
+      "dpr": 2,
+      "counts": {
+        "prepareCalls": 8,
+        "candidates": 8,
+        "accepted": 7,
+        "ignored": 1,
+        "errors": 3,
+        "rendererCreated": 7,
+        "rendererDisposed": 6,
+        "liveDisplayRenderers": 1,
+        "maxDisplayRenderers": 2,
+        "sceneSubmits": 7,
+        "renders": 7,
+        "pointerEvents": 7,
+        "openCalls": 2,
+        "pngCalls": 0,
+        "pngTemporaryCanvases": 0,
+        "disposeCalls": 0,
+        "bindings": 7,
+        "unbindings": 6,
+        "layoutEdits": 1,
+        "helperCalls": 6
+      },
+      "failure": null,
+      "ignored": {
+        "generation": 6,
+        "acceptedGeneration": 7
+      },
+      "opened": {
+        "bytesEqualPrevious": false,
+        "samplesEqualPrevious": false,
+        "ids": [
+          "Back",
+          "Label"
+        ],
+        "fontPrepared": false,
+        "helperCallsUnchanged": true,
+        "layoutEqualPrevious": false,
+        "contextEqualPrevious": true,
+        "idsEqualPrevious": true
+      },
+      "saved": {
+        "filename": "text-raster-H-I.json",
+        "byteLength": 17907
+      },
+      "png": null,
+      "pointerLog": [
+        "g1:Label:Label",
+        "g1:stage:Label",
+        "g1:Back:Back",
+        "g1:stage:Back",
+        "g2:Label:Label",
+        "g2:stage:Label",
+        "g2:Back:Back",
+        "g2:stage:Back",
+        "g3:Label:Label",
+        "g3:stage:Label",
+        "g3:Back:Back",
+        "g3:stage:Back",
+        "g9:Label:Label",
+        "g9:stage:Label"
+      ],
+      "accepted": {
+        "generation": 13,
+        "source": "document",
+        "text": "H I",
+        "sceneVersion": 23,
+        "bounds": {
+          "left": -1,
+          "right": 43,
+          "top": -16,
+          "bottom": 2,
+          "width": 44,
+          "height": 18,
+          "backingWidth": 88,
+          "backingHeight": 36,
+          "advance": null
+        },
+        "font": null,
+        "contextId": "TextRasterConsumer",
+        "layout": {
+          "atlasId": "TextAtlas",
+          "text": "H I",
+          "baseline": 0,
+          "opacity": 1,
+          "sampling": "nearest",
+          "glyphs": [
+            {
+              "sourceRect": {
+                "x": 0,
+                "y": 0,
+                "width": 88,
+                "height": 36
+              },
+              "x": -1,
+              "y": -16,
+              "width": 44,
+              "height": 18,
+              "textStart": 0,
+              "textEnd": 3
+            }
+          ]
+        },
+        "atlas": {
+          "width": 88,
+          "height": 36,
+          "byteLength": 12672,
+          "hash": "a160ba2d"
+        },
+        "atlasMatchesRenderer": true,
+        "quad": {
+          "sourceRect": {
+            "x": 0,
+            "y": 0,
+            "width": 88,
+            "height": 36
+          },
+          "x": -1,
+          "y": -16,
+          "width": 44,
+          "height": 18,
+          "textStart": 0,
+          "textEnd": 3
+        },
+        "baseline": {
+          "x": 24,
+          "y": 64,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "value": 0
+        },
+        "points": {
+          "ink": {
+            "atlas": {
+              "x": 5,
+              "y": 4
+            },
+            "alpha": 255,
+            "point": {
+              "x": 25.75,
+              "y": 50.25
+            }
+          },
+          "space": {
+            "atlas": {
+              "x": 46,
+              "y": 17
+            },
+            "alpha": 0,
+            "point": {
+              "x": 46.25,
+              "y": 56.75
+            },
+            "emptyColumn": true,
+            "labelHasSpace": true
+          },
+          "inkBounds": {
+            "leftInk": 4,
+            "rightInk": 84,
+            "topInk": 3,
+            "bottomInk": 31
+          }
+        },
+        "ink": {
+          "point": {
+            "x": 25.75,
+            "y": 50.25
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "Label",
+          "hits": [
+            "Label",
+            "Back"
+          ]
+        },
+        "space": {
+          "point": {
+            "x": 46.25,
+            "y": 56.75
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "point": {
+            "x": 300,
+            "y": 110
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "sceneMatchesTree": false,
+        "backing": {
+          "width": 640,
+          "height": 256
+        },
+        "ids": [
+          "Back",
+          "Label"
+        ]
+      },
+      "runtime": {
+        "scratch2D": 6,
+        "draws": 5,
+        "fontLoads": 6,
+        "fontChecks": 12,
+        "glContexts": 7
+      }
+    },
+    {
+      "label": "nativeRestoredHelperSetLayoutHI",
+      "state": "ready",
+      "disposed": false,
+      "requestedGeneration": 14,
+      "acceptedGeneration": 14,
+      "staged": null,
+      "dpr": 2,
+      "counts": {
+        "prepareCalls": 9,
+        "candidates": 9,
+        "accepted": 8,
+        "ignored": 1,
+        "errors": 3,
+        "rendererCreated": 8,
+        "rendererDisposed": 7,
+        "liveDisplayRenderers": 1,
+        "maxDisplayRenderers": 2,
+        "sceneSubmits": 8,
+        "renders": 8,
+        "pointerEvents": 7,
+        "openCalls": 2,
+        "pngCalls": 0,
+        "pngTemporaryCanvases": 0,
+        "disposeCalls": 0,
+        "bindings": 8,
+        "unbindings": 7,
+        "layoutEdits": 2,
+        "helperCalls": 7
+      },
+      "failure": null,
+      "ignored": {
+        "generation": 6,
+        "acceptedGeneration": 7
+      },
+      "opened": null,
+      "saved": {
+        "filename": "text-raster-H-I.json",
+        "byteLength": 17907
+      },
+      "png": null,
+      "pointerLog": [
+        "g1:Label:Label",
+        "g1:stage:Label",
+        "g1:Back:Back",
+        "g1:stage:Back",
+        "g2:Label:Label",
+        "g2:stage:Label",
+        "g2:Back:Back",
+        "g2:stage:Back",
+        "g3:Label:Label",
+        "g3:stage:Label",
+        "g3:Back:Back",
+        "g3:stage:Back",
+        "g9:Label:Label",
+        "g9:stage:Label"
+      ],
+      "accepted": {
+        "generation": 14,
+        "source": "prepared",
+        "text": "HI",
+        "sceneVersion": 27,
+        "bounds": {
+          "left": -1,
+          "top": -16,
+          "width": 30,
+          "height": 18,
+          "right": 29,
+          "bottom": 2,
+          "backingWidth": 60,
+          "backingHeight": 36,
+          "advance": 28.8046875
+        },
+        "font": {
+          "style": "24px monospace",
+          "loadedFaces": 0,
+          "check": true
+        },
+        "contextId": "TextRasterConsumer",
+        "layout": {
+          "atlasId": "TextAtlas",
+          "text": "HI",
+          "baseline": 0,
+          "opacity": 1,
+          "sampling": "nearest",
+          "glyphs": [
+            {
+              "sourceRect": {
+                "x": 0,
+                "y": 0,
+                "width": 60,
+                "height": 36
+              },
+              "x": -1,
+              "y": -16,
+              "width": 30,
+              "height": 18,
+              "textStart": 0,
+              "textEnd": 2
+            }
+          ]
+        },
+        "atlas": {
+          "width": 60,
+          "height": 36,
+          "byteLength": 8640,
+          "hash": "27416252"
+        },
+        "atlasMatchesRenderer": true,
+        "quad": {
+          "sourceRect": {
+            "x": 0,
+            "y": 0,
+            "width": 60,
+            "height": 36
+          },
+          "x": -1,
+          "y": -16,
+          "width": 30,
+          "height": 18,
+          "textStart": 0,
+          "textEnd": 2
+        },
+        "baseline": {
+          "x": 24,
+          "y": 64,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "value": 0
+        },
+        "points": {
+          "ink": {
+            "atlas": {
+              "x": 5,
+              "y": 4
+            },
+            "alpha": 255,
+            "point": {
+              "x": 25.75,
+              "y": 50.25
+            }
+          },
+          "space": {
+            "atlas": {
+              "x": 31,
+              "y": 17
+            },
+            "alpha": 0,
+            "point": {
+              "x": 38.75,
+              "y": 56.75
+            },
+            "emptyColumn": true,
+            "labelHasSpace": false
+          },
+          "inkBounds": {
+            "leftInk": 4,
+            "rightInk": 55,
+            "topInk": 3,
+            "bottomInk": 31
+          }
+        },
+        "ink": {
+          "point": {
+            "x": 25.75,
+            "y": 50.25
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "Label",
+          "hits": [
+            "Label",
+            "Back"
+          ]
+        },
+        "space": {
+          "point": {
+            "x": 38.75,
+            "y": 56.75
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "point": {
+            "x": 300,
+            "y": 110
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "sceneMatchesTree": true,
+        "backing": {
+          "width": 640,
+          "height": 256
+        },
+        "ids": [
+          "Back",
+          "Label"
+        ]
+      },
+      "runtime": {
+        "scratch2D": 7,
+        "draws": 6,
+        "fontLoads": 7,
+        "fontChecks": 14,
+        "glContexts": 8
+      }
+    },
+    {
+      "label": "pngNativeRestoredCurrent27",
+      "state": "ready",
+      "disposed": false,
+      "requestedGeneration": 14,
+      "acceptedGeneration": 14,
+      "staged": null,
+      "dpr": 2,
+      "counts": {
+        "prepareCalls": 9,
+        "candidates": 9,
+        "accepted": 8,
+        "ignored": 1,
+        "errors": 3,
+        "rendererCreated": 8,
+        "rendererDisposed": 7,
+        "liveDisplayRenderers": 1,
+        "maxDisplayRenderers": 2,
+        "sceneSubmits": 8,
+        "renders": 8,
+        "pointerEvents": 8,
+        "openCalls": 2,
+        "pngCalls": 1,
+        "pngTemporaryCanvases": 1,
+        "disposeCalls": 0,
+        "bindings": 8,
+        "unbindings": 7,
+        "layoutEdits": 2,
+        "helperCalls": 7
+      },
+      "failure": null,
+      "ignored": {
+        "generation": 6,
+        "acceptedGeneration": 7
+      },
+      "opened": null,
+      "saved": {
+        "filename": "text-raster-H-I.json",
+        "byteLength": 17907
+      },
+      "png": {
+        "filename": "text-raster.png",
+        "byteLength": 5405,
+        "backingWidth": 640,
+        "backingHeight": 256
+      },
+      "pointerLog": [
+        "g1:Label:Label",
+        "g1:stage:Label",
+        "g1:Back:Back",
+        "g1:stage:Back",
+        "g2:Label:Label",
+        "g2:stage:Label",
+        "g2:Back:Back",
+        "g2:stage:Back",
+        "g3:Label:Label",
+        "g3:stage:Label",
+        "g3:Back:Back",
+        "g3:stage:Back",
+        "g9:Label:Label",
+        "g9:stage:Label",
+        "g14:Label:Label",
+        "g14:stage:Label"
+      ],
+      "accepted": {
+        "generation": 14,
+        "source": "prepared",
+        "text": "HI",
+        "sceneVersion": 27,
+        "bounds": {
+          "left": -1,
+          "top": -16,
+          "width": 30,
+          "height": 18,
+          "right": 29,
+          "bottom": 2,
+          "backingWidth": 60,
+          "backingHeight": 36,
+          "advance": 28.8046875
+        },
+        "font": {
+          "style": "24px monospace",
+          "loadedFaces": 0,
+          "check": true
+        },
+        "contextId": "TextRasterConsumer",
+        "layout": {
+          "atlasId": "TextAtlas",
+          "text": "HI",
+          "baseline": 0,
+          "opacity": 1,
+          "sampling": "nearest",
+          "glyphs": [
+            {
+              "sourceRect": {
+                "x": 0,
+                "y": 0,
+                "width": 60,
+                "height": 36
+              },
+              "x": -1,
+              "y": -16,
+              "width": 30,
+              "height": 18,
+              "textStart": 0,
+              "textEnd": 2
+            }
+          ]
+        },
+        "atlas": {
+          "width": 60,
+          "height": 36,
+          "byteLength": 8640,
+          "hash": "27416252"
+        },
+        "atlasMatchesRenderer": true,
+        "quad": {
+          "sourceRect": {
+            "x": 0,
+            "y": 0,
+            "width": 60,
+            "height": 36
+          },
+          "x": -1,
+          "y": -16,
+          "width": 30,
+          "height": 18,
+          "textStart": 0,
+          "textEnd": 2
+        },
+        "baseline": {
+          "x": 24,
+          "y": 64,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "value": 0
+        },
+        "points": {
+          "ink": {
+            "atlas": {
+              "x": 5,
+              "y": 4
+            },
+            "alpha": 255,
+            "point": {
+              "x": 25.75,
+              "y": 50.25
+            }
+          },
+          "space": {
+            "atlas": {
+              "x": 31,
+              "y": 17
+            },
+            "alpha": 0,
+            "point": {
+              "x": 38.75,
+              "y": 56.75
+            },
+            "emptyColumn": true,
+            "labelHasSpace": false
+          },
+          "inkBounds": {
+            "leftInk": 4,
+            "rightInk": 55,
+            "topInk": 3,
+            "bottomInk": 31
+          }
+        },
+        "ink": {
+          "point": {
+            "x": 25.75,
+            "y": 50.25
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "Label",
+          "hits": [
+            "Label",
+            "Back"
+          ]
+        },
+        "space": {
+          "point": {
+            "x": 38.75,
+            "y": 56.75
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "point": {
+            "x": 300,
+            "y": 110
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "sceneMatchesTree": true,
+        "backing": {
+          "width": 640,
+          "height": 256
+        },
+        "ids": [
+          "Back",
+          "Label"
+        ]
+      },
+      "runtime": {
+        "scratch2D": 7,
+        "draws": 6,
+        "fontLoads": 7,
+        "fontChecks": 14,
+        "glContexts": 9
+      }
+    },
+    {
+      "label": "actualDownloadedPNGDecoded",
+      "state": "ready",
+      "disposed": false,
+      "requestedGeneration": 14,
+      "acceptedGeneration": 14,
+      "staged": null,
+      "dpr": 2,
+      "counts": {
+        "prepareCalls": 9,
+        "candidates": 9,
+        "accepted": 8,
+        "ignored": 1,
+        "errors": 3,
+        "rendererCreated": 8,
+        "rendererDisposed": 7,
+        "liveDisplayRenderers": 1,
+        "maxDisplayRenderers": 2,
+        "sceneSubmits": 8,
+        "renders": 8,
+        "pointerEvents": 8,
+        "openCalls": 2,
+        "pngCalls": 1,
+        "pngTemporaryCanvases": 1,
+        "disposeCalls": 0,
+        "bindings": 8,
+        "unbindings": 7,
+        "layoutEdits": 2,
+        "helperCalls": 7
+      },
+      "failure": null,
+      "ignored": {
+        "generation": 6,
+        "acceptedGeneration": 7
+      },
+      "opened": null,
+      "saved": {
+        "filename": "text-raster-H-I.json",
+        "byteLength": 17907
+      },
+      "png": {
+        "filename": "text-raster.png",
+        "byteLength": 5405,
+        "backingWidth": 640,
+        "backingHeight": 256
+      },
+      "pointerLog": [
+        "g1:Label:Label",
+        "g1:stage:Label",
+        "g1:Back:Back",
+        "g1:stage:Back",
+        "g2:Label:Label",
+        "g2:stage:Label",
+        "g2:Back:Back",
+        "g2:stage:Back",
+        "g3:Label:Label",
+        "g3:stage:Label",
+        "g3:Back:Back",
+        "g3:stage:Back",
+        "g9:Label:Label",
+        "g9:stage:Label",
+        "g14:Label:Label",
+        "g14:stage:Label"
+      ],
+      "accepted": {
+        "generation": 14,
+        "source": "prepared",
+        "text": "HI",
+        "sceneVersion": 27,
+        "bounds": {
+          "left": -1,
+          "top": -16,
+          "width": 30,
+          "height": 18,
+          "right": 29,
+          "bottom": 2,
+          "backingWidth": 60,
+          "backingHeight": 36,
+          "advance": 28.8046875
+        },
+        "font": {
+          "style": "24px monospace",
+          "loadedFaces": 0,
+          "check": true
+        },
+        "contextId": "TextRasterConsumer",
+        "layout": {
+          "atlasId": "TextAtlas",
+          "text": "HI",
+          "baseline": 0,
+          "opacity": 1,
+          "sampling": "nearest",
+          "glyphs": [
+            {
+              "sourceRect": {
+                "x": 0,
+                "y": 0,
+                "width": 60,
+                "height": 36
+              },
+              "x": -1,
+              "y": -16,
+              "width": 30,
+              "height": 18,
+              "textStart": 0,
+              "textEnd": 2
+            }
+          ]
+        },
+        "atlas": {
+          "width": 60,
+          "height": 36,
+          "byteLength": 8640,
+          "hash": "27416252"
+        },
+        "atlasMatchesRenderer": true,
+        "quad": {
+          "sourceRect": {
+            "x": 0,
+            "y": 0,
+            "width": 60,
+            "height": 36
+          },
+          "x": -1,
+          "y": -16,
+          "width": 30,
+          "height": 18,
+          "textStart": 0,
+          "textEnd": 2
+        },
+        "baseline": {
+          "x": 24,
+          "y": 64,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "value": 0
+        },
+        "points": {
+          "ink": {
+            "atlas": {
+              "x": 5,
+              "y": 4
+            },
+            "alpha": 255,
+            "point": {
+              "x": 25.75,
+              "y": 50.25
+            }
+          },
+          "space": {
+            "atlas": {
+              "x": 31,
+              "y": 17
+            },
+            "alpha": 0,
+            "point": {
+              "x": 38.75,
+              "y": 56.75
+            },
+            "emptyColumn": true,
+            "labelHasSpace": false
+          },
+          "inkBounds": {
+            "leftInk": 4,
+            "rightInk": 55,
+            "topInk": 3,
+            "bottomInk": 31
+          }
+        },
+        "ink": {
+          "point": {
+            "x": 25.75,
+            "y": 50.25
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "Label",
+          "hits": [
+            "Label",
+            "Back"
+          ]
+        },
+        "space": {
+          "point": {
+            "x": 38.75,
+            "y": 56.75
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "point": {
+            "x": 300,
+            "y": 110
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "sceneMatchesTree": true,
+        "backing": {
+          "width": 640,
+          "height": 256
+        },
+        "ids": [
+          "Back",
+          "Label"
+        ]
+      },
+      "runtime": {
+        "scratch2D": 8,
+        "draws": 6,
+        "fontLoads": 7,
+        "fontChecks": 14,
+        "glContexts": 9
+      }
+    },
+    {
+      "label": "lateReadinessAfterDisposeAndPhysicalPointer",
+      "state": "disposed",
+      "disposed": true,
+      "requestedGeneration": 16,
+      "acceptedGeneration": 14,
+      "staged": null,
+      "dpr": 2,
+      "counts": {
+        "prepareCalls": 10,
+        "candidates": 10,
+        "accepted": 8,
+        "ignored": 2,
+        "errors": 3,
+        "rendererCreated": 8,
+        "rendererDisposed": 8,
+        "liveDisplayRenderers": 0,
+        "maxDisplayRenderers": 2,
+        "sceneSubmits": 8,
+        "renders": 8,
+        "pointerEvents": 8,
+        "openCalls": 2,
+        "pngCalls": 1,
+        "pngTemporaryCanvases": 1,
+        "disposeCalls": 1,
+        "bindings": 8,
+        "unbindings": 8,
+        "layoutEdits": 2,
+        "helperCalls": 7
+      },
+      "failure": null,
+      "ignored": {
+        "generation": 15,
+        "acceptedGeneration": null
+      },
+      "opened": null,
+      "saved": {
+        "filename": "text-raster-H-I.json",
+        "byteLength": 17907
+      },
+      "png": {
+        "filename": "text-raster.png",
+        "byteLength": 5405,
+        "backingWidth": 640,
+        "backingHeight": 256
+      },
+      "pointerLog": [
+        "g1:Label:Label",
+        "g1:stage:Label",
+        "g1:Back:Back",
+        "g1:stage:Back",
+        "g2:Label:Label",
+        "g2:stage:Label",
+        "g2:Back:Back",
+        "g2:stage:Back",
+        "g3:Label:Label",
+        "g3:stage:Label",
+        "g3:Back:Back",
+        "g3:stage:Back",
+        "g9:Label:Label",
+        "g9:stage:Label",
+        "g14:Label:Label",
+        "g14:stage:Label"
+      ],
+      "accepted": {
+        "generation": 14,
+        "source": "prepared",
+        "text": "HI",
+        "sceneVersion": 27,
+        "bounds": {
+          "left": -1,
+          "top": -16,
+          "width": 30,
+          "height": 18,
+          "right": 29,
+          "bottom": 2,
+          "backingWidth": 60,
+          "backingHeight": 36,
+          "advance": 28.8046875
+        },
+        "font": {
+          "style": "24px monospace",
+          "loadedFaces": 0,
+          "check": true
+        },
+        "contextId": "TextRasterConsumer",
+        "layout": {
+          "atlasId": "TextAtlas",
+          "text": "HI",
+          "baseline": 0,
+          "opacity": 1,
+          "sampling": "nearest",
+          "glyphs": [
+            {
+              "sourceRect": {
+                "x": 0,
+                "y": 0,
+                "width": 60,
+                "height": 36
+              },
+              "x": -1,
+              "y": -16,
+              "width": 30,
+              "height": 18,
+              "textStart": 0,
+              "textEnd": 2
+            }
+          ]
+        },
+        "atlas": {
+          "width": 60,
+          "height": 36,
+          "byteLength": 8640,
+          "hash": "27416252"
+        },
+        "atlasMatchesRenderer": true,
+        "quad": {
+          "sourceRect": {
+            "x": 0,
+            "y": 0,
+            "width": 60,
+            "height": 36
+          },
+          "x": -1,
+          "y": -16,
+          "width": 30,
+          "height": 18,
+          "textStart": 0,
+          "textEnd": 2
+        },
+        "baseline": {
+          "x": 24,
+          "y": 64,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0,
+          "value": 0
+        },
+        "points": {
+          "ink": {
+            "atlas": {
+              "x": 5,
+              "y": 4
+            },
+            "alpha": 255,
+            "point": {
+              "x": 25.75,
+              "y": 50.25
+            }
+          },
+          "space": {
+            "atlas": {
+              "x": 31,
+              "y": 17
+            },
+            "alpha": 0,
+            "point": {
+              "x": 38.75,
+              "y": 56.75
+            },
+            "emptyColumn": true,
+            "labelHasSpace": false
+          },
+          "inkBounds": {
+            "leftInk": 4,
+            "rightInk": 55,
+            "topInk": 3,
+            "bottomInk": 31
+          }
+        },
+        "ink": {
+          "point": {
+            "x": 25.75,
+            "y": 50.25
+          },
+          "rgba": [
+            255,
+            255,
+            255,
+            255
+          ],
+          "hit": "Label",
+          "hits": [
+            "Label",
+            "Back"
+          ]
+        },
+        "space": {
+          "point": {
+            "x": 38.75,
+            "y": 56.75
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "background": {
+          "point": {
+            "x": 300,
+            "y": 110
+          },
+          "rgba": [
+            32,
+            40,
+            56,
+            255
+          ],
+          "hit": "Back",
+          "hits": [
+            "Back"
+          ]
+        },
+        "sceneMatchesTree": true,
+        "backing": {
+          "width": 640,
+          "height": 256
+        },
+        "ids": [
+          "Back",
+          "Label"
+        ]
+      },
+      "runtime": {
+        "scratch2D": 8,
+        "draws": 6,
+        "fontLoads": 8,
+        "fontChecks": 15,
+        "glContexts": 9
+      }
+    }
+  ],
+  "currentOpen": {
+    "freshCanvas": true,
+    "allBytes": true,
+    "byteLength": 12672,
+    "layout": true,
+    "context": true,
+    "ids": true,
+    "ink": true,
+    "space": true,
+    "font": true,
+    "helperCalls": true,
+    "fontLoads": true,
+    "scratch": true
+  },
+  "nativeOpen": {
+    "sourceVersion": 23,
+    "admittedVersion": 23,
+    "byteLength": 12672,
+    "allBytes": true,
+    "glyphs": true,
+    "text": true,
+    "baseline": true,
+    "atlas": true,
+    "opacity": true,
+    "sampling": true,
+    "context": true,
+    "ids": true,
+    "freshCanvas": true,
+    "font": true,
+    "helperCalls": true,
+    "fontLoads": true,
+    "scratch": true,
+    "ink": true,
+    "space": true
+  },
+  "controlledTimeout": {
+    "controlledInjection": true,
+    "elapsedMS": 5041.899999991059,
+    "retained": true,
+    "helperUnchanged": true,
+    "scratchUnchanged": true,
+    "rendererUnchanged": true
+  },
+  "png": {
+    "bytes": 5405,
+    "backing": [
+      640,
+      256
+    ],
+    "samples": [
+      {
+        "key": "ink",
+        "point": {
+          "x": 25.75,
+          "y": 50.25
+        },
+        "rgba": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "expected": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "equal": true
+      },
+      {
+        "key": "space",
+        "point": {
+          "x": 38.75,
+          "y": 56.75
+        },
+        "rgba": [
+          32,
+          40,
+          56,
+          255
+        ],
+        "expected": [
+          32,
+          40,
+          56,
+          255
+        ],
+        "equal": true
+      },
+      {
+        "key": "background",
+        "point": {
+          "x": 300,
+          "y": 110
+        },
+        "rgba": [
+          32,
+          40,
+          56,
+          255
+        ],
+        "expected": [
+          32,
+          40,
+          56,
+          255
+        ],
+        "equal": true
+      }
+    ],
+    "allEqual": true
+  },
+  "lateDispose": {
+    "helperUnchanged": true,
+    "scratchUnchanged": true,
+    "drawsUnchanged": true,
+    "contextsUnchanged": true,
+    "rendererCreationsUnchanged": true,
+    "submitsUnchanged": true,
+    "rendersUnchanged": true,
+    "latePointerUnchanged": true,
+    "allDisplayDisposed": true,
+    "bindingsRemoved": true
+  },
+  "resources": [
+    {
+      "created": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "deleted": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "live": {
+        "Shader": 0,
+        "Program": 0,
+        "Buffer": 0,
+        "VertexArray": 0,
+        "Texture": 0,
+        "Framebuffer": 0
+      },
+      "capacity": 4096,
+      "error": 0
+    },
+    {
+      "created": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "deleted": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "live": {
+        "Shader": 0,
+        "Program": 0,
+        "Buffer": 0,
+        "VertexArray": 0,
+        "Texture": 0,
+        "Framebuffer": 0
+      },
+      "capacity": 4096,
+      "error": 0
+    },
+    {
+      "created": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "deleted": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "live": {
+        "Shader": 0,
+        "Program": 0,
+        "Buffer": 0,
+        "VertexArray": 0,
+        "Texture": 0,
+        "Framebuffer": 0
+      },
+      "capacity": 4096,
+      "error": 0
+    },
+    {
+      "created": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "deleted": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "live": {
+        "Shader": 0,
+        "Program": 0,
+        "Buffer": 0,
+        "VertexArray": 0,
+        "Texture": 0,
+        "Framebuffer": 0
+      },
+      "capacity": 4096,
+      "error": 0
+    },
+    {
+      "created": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "deleted": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "live": {
+        "Shader": 0,
+        "Program": 0,
+        "Buffer": 0,
+        "VertexArray": 0,
+        "Texture": 0,
+        "Framebuffer": 0
+      },
+      "capacity": 4096,
+      "error": 0
+    },
+    {
+      "created": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "deleted": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "live": {
+        "Shader": 0,
+        "Program": 0,
+        "Buffer": 0,
+        "VertexArray": 0,
+        "Texture": 0,
+        "Framebuffer": 0
+      },
+      "capacity": 4096,
+      "error": 0
+    },
+    {
+      "created": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "deleted": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "live": {
+        "Shader": 0,
+        "Program": 0,
+        "Buffer": 0,
+        "VertexArray": 0,
+        "Texture": 0,
+        "Framebuffer": 0
+      },
+      "capacity": 4096,
+      "error": 0
+    },
+    {
+      "created": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "deleted": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "live": {
+        "Shader": 0,
+        "Program": 0,
+        "Buffer": 0,
+        "VertexArray": 0,
+        "Texture": 0,
+        "Framebuffer": 0
+      },
+      "capacity": 4096,
+      "error": 0
+    },
+    {
+      "created": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "deleted": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "live": {
+        "Shader": 0,
+        "Program": 0,
+        "Buffer": 0,
+        "VertexArray": 0,
+        "Texture": 0,
+        "Framebuffer": 0
+      },
+      "capacity": 4096,
+      "error": 0
+    }
+  ],
+  "pointerAdds": 8,
+  "pointerRemoves": 8,
+  "applicationConsole": {
+    "errors": [],
+    "warnings": []
+  },
+  "actualPlatformFontTimeout": false,
+  "contextLossRun": false,
+  "performanceClaim": false
+}

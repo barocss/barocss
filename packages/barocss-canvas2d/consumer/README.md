@@ -117,3 +117,26 @@ After the compiled package build, open `browser-text.html`. The host waits for i
 ## Browser-font raster text consumer (#1011)
 
 After the compiled package build, open `/packages/barocss-canvas2d/consumer/text-raster.html`. This host prepares a fixed 24px monospace ASCII label with browser font readiness, measured baseline bounds and copied DPR2 RGBA bytes. One public glyph run represents the complete label; spaces remain transparent. An edit uses a fresh candidate canvas/tree/renderer and commits only the newest accepted generation. Failed or late candidates retain the live label. Save stores Scene and RGBA bytes in v1; Open restores pixels without preparing a font, and later edits use the current host font. PNG uses an actual export file. Font metadata, Unicode shaping and per-character caret mapping are outside this consumer.
+
+## Existing font consumer helper adoption (#1150)
+
+`text-raster.html` reuses the public `rasterizeBrowserText` helper. The host keeps
+its 1..32 ASCII policy, 24px monospace font, DPR2, 0..1000ms readiness delay and
+five-second timeout. A superseded readiness result returns before helper
+scratch allocation. The host checks the current generation again before a
+fresh display candidate. Its 1024x128, 131072-pixel and 512 KiB guard runs after
+helper preparation. The oversize button uses an actual 1000px font and a string
+of 32 copies of the letter M; public errors keep their codes and objects.
+
+Save and cold Open keep the existing v1 document flow. Open uses saved layout
+and bytes, including the preserved native Scene23 fixture, without font or
+helper calls. Restored HI uses the helper and public `setLayout` on a copied
+candidate tree before swapping its fresh canvas and renderer. `textRaster`
+reports helper calls, layout edits, bindings and renderer lifetime. The original
+`evidence/text-raster` observations remain unchanged. This adoption adds no new
+example, core API, Scene version, Application facade or package campaign.
+
+Current adoption checks use `tsc --noEmit -p consumer/tsconfig.text-helper.json`
+and `node consumer/evidence/text-helper-adoption/probe.mjs` after the package
+build. Run the historical `evidence/text-raster/probe.mjs` from the preserved
+#1011 native checkout; it checks the former private host and Scene23.
