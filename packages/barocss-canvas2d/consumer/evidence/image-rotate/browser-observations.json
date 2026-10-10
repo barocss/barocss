@@ -1,0 +1,2553 @@
+{
+  "runtime": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+  "sourceDPR": 2,
+  "sourceBacking": [
+    128,
+    64
+  ],
+  "assetSize": [
+    64,
+    128
+  ],
+  "targetDPR": 1,
+  "logicalSize": [
+    128,
+    64
+  ],
+  "fullCPUBytes": 32768,
+  "fullGPU": {
+    "comparedBytes": 32768,
+    "tolerance": 2,
+    "maxDifference": 0
+  },
+  "samples": [
+    {
+      "x": 20,
+      "y": 8,
+      "actual": {
+        "rgba": [
+          0,
+          0,
+          255,
+          255
+        ],
+        "hit": "CapturedSprite"
+      },
+      "expected": [
+        0,
+        0,
+        255,
+        255
+      ]
+    },
+    {
+      "x": 100,
+      "y": 8,
+      "actual": {
+        "rgba": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "hit": "CapturedSprite"
+      },
+      "expected": [
+        255,
+        0,
+        0,
+        255
+      ]
+    },
+    {
+      "x": 100,
+      "y": 24,
+      "actual": {
+        "rgba": [
+          0,
+          128,
+          0,
+          128
+        ],
+        "hit": "CapturedSprite"
+      },
+      "expected": [
+        0,
+        128,
+        0,
+        128
+      ]
+    },
+    {
+      "x": 20,
+      "y": 24,
+      "actual": {
+        "rgba": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "hit": null
+      },
+      "expected": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "x": 100,
+      "y": 48,
+      "actual": {
+        "rgba": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "hit": null
+      },
+      "expected": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "directSmallAllTurns": [
+    {
+      "turns": 0,
+      "width": 3,
+      "height": 2,
+      "pixels": [
+        1,
+        2,
+        3,
+        0,
+        4,
+        5,
+        6,
+        128,
+        7,
+        8,
+        9,
+        255,
+        10,
+        11,
+        12,
+        0,
+        13,
+        14,
+        15,
+        255,
+        16,
+        17,
+        18,
+        1
+      ]
+    },
+    {
+      "turns": 1,
+      "width": 2,
+      "height": 3,
+      "pixels": [
+        10,
+        11,
+        12,
+        0,
+        1,
+        2,
+        3,
+        0,
+        13,
+        14,
+        15,
+        255,
+        4,
+        5,
+        6,
+        128,
+        16,
+        17,
+        18,
+        1,
+        7,
+        8,
+        9,
+        255
+      ]
+    },
+    {
+      "turns": 2,
+      "width": 3,
+      "height": 2,
+      "pixels": [
+        16,
+        17,
+        18,
+        1,
+        13,
+        14,
+        15,
+        255,
+        10,
+        11,
+        12,
+        0,
+        7,
+        8,
+        9,
+        255,
+        4,
+        5,
+        6,
+        128,
+        1,
+        2,
+        3,
+        0
+      ]
+    },
+    {
+      "turns": 3,
+      "width": 2,
+      "height": 3,
+      "pixels": [
+        7,
+        8,
+        9,
+        255,
+        16,
+        17,
+        18,
+        1,
+        4,
+        5,
+        6,
+        128,
+        13,
+        14,
+        15,
+        255,
+        1,
+        2,
+        3,
+        0,
+        10,
+        11,
+        12,
+        0
+      ]
+    }
+  ],
+  "refusals": [
+    {
+      "label": "invalidTurn",
+      "code": "INVALID_ASSET"
+    },
+    {
+      "label": "negativeZero",
+      "code": "INVALID_ASSET"
+    },
+    {
+      "label": "accessor",
+      "code": "INVALID_ASSET"
+    },
+    {
+      "label": "oversize",
+      "code": "ASSET_LIMIT"
+    }
+  ],
+  "getterReads": 0,
+  "decoded": {
+    "publicHelper": "decodeImageBlob",
+    "bytes": 483,
+    "width": 128,
+    "height": 64,
+    "samples": [
+      {
+        "p": [
+          0,
+          8
+        ],
+        "straight": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "premultiplied": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "expected": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "p": [
+          28,
+          8
+        ],
+        "straight": [
+          0,
+          0,
+          255,
+          255
+        ],
+        "premultiplied": [
+          0,
+          0,
+          255,
+          255
+        ],
+        "expected": [
+          0,
+          0,
+          255,
+          255
+        ]
+      },
+      {
+        "p": [
+          108,
+          8
+        ],
+        "straight": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "premultiplied": [
+          255,
+          0,
+          0,
+          255
+        ],
+        "expected": [
+          255,
+          0,
+          0,
+          255
+        ]
+      },
+      {
+        "p": [
+          108,
+          24
+        ],
+        "straight": [
+          0,
+          255,
+          0,
+          128
+        ],
+        "premultiplied": [
+          0,
+          128,
+          0,
+          128
+        ],
+        "expected": [
+          0,
+          128,
+          0,
+          128
+        ]
+      },
+      {
+        "p": [
+          28,
+          24
+        ],
+        "straight": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "premultiplied": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "expected": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      {
+        "p": [
+          108,
+          48
+        ],
+        "straight": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "premultiplied": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "expected": [
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    ],
+    "tolerance": 2,
+    "maxDifference": 0,
+    "oldDecoderBackingCleanup": "pending #1249"
+  },
+  "physicalChooserUploads": 1,
+  "SaveDownloads": 1,
+  "PNGDownloads": 1,
+  "firstFailures": [],
+  "stages": [
+    {
+      "label": "readyScene29",
+      "disposed": false,
+      "opens": 0,
+      "edits": 0,
+      "blurPreparations": 0,
+      "shadowPreparations": 0,
+      "resizePreparations": 0,
+      "rotatePreparations": 0,
+      "pointers": 0,
+      "hits": [],
+      "binds": 1,
+      "unbinds": 0,
+      "contextId": "CaptureDerived",
+      "sceneVersion": 29,
+      "assetSize": null,
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 3,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 0,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "capturedOriginal",
+      "disposed": false,
+      "opens": 0,
+      "edits": 0,
+      "blurPreparations": 0,
+      "shadowPreparations": 0,
+      "resizePreparations": 0,
+      "rotatePreparations": 0,
+      "pointers": 0,
+      "hits": [],
+      "binds": 1,
+      "unbinds": 0,
+      "contextId": "CaptureDerived",
+      "sceneVersion": 29,
+      "assetSize": {
+        "width": 128,
+        "height": 64,
+        "bytes": 32768
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 6,
+            "read": 1
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 0,
+              "live": 1
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "acceptedRotationFullOracle",
+      "disposed": false,
+      "opens": 0,
+      "edits": 0,
+      "blurPreparations": 0,
+      "shadowPreparations": 0,
+      "resizePreparations": 0,
+      "rotatePreparations": 1,
+      "pointers": 0,
+      "hits": [],
+      "binds": 2,
+      "unbinds": 1,
+      "contextId": "CaptureDerived",
+      "sceneVersion": 29,
+      "assetSize": {
+        "width": 64,
+        "height": 128,
+        "bytes": 32768
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 6,
+            "read": 1
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 6
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 0,
+              "live": 1
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "realPointers",
+      "disposed": false,
+      "opens": 0,
+      "edits": 0,
+      "blurPreparations": 0,
+      "shadowPreparations": 0,
+      "resizePreparations": 0,
+      "rotatePreparations": 1,
+      "pointers": 5,
+      "hits": [
+        "CapturedSprite",
+        "CapturedSprite",
+        "CapturedSprite",
+        "none",
+        "none"
+      ],
+      "binds": 2,
+      "unbinds": 1,
+      "contextId": "CaptureDerived",
+      "sceneVersion": 29,
+      "assetSize": {
+        "width": 64,
+        "height": 128,
+        "bytes": 32768
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 6,
+            "read": 1
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 6
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 0,
+              "live": 1
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "refusalsRetained",
+      "disposed": false,
+      "opens": 0,
+      "edits": 0,
+      "blurPreparations": 0,
+      "shadowPreparations": 0,
+      "resizePreparations": 0,
+      "rotatePreparations": 1,
+      "pointers": 5,
+      "hits": [
+        "CapturedSprite",
+        "CapturedSprite",
+        "CapturedSprite",
+        "none",
+        "none"
+      ],
+      "binds": 2,
+      "unbinds": 1,
+      "contextId": "CaptureDerived",
+      "sceneVersion": 29,
+      "assetSize": {
+        "width": 64,
+        "height": 128,
+        "bytes": 32768
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 6,
+            "read": 1
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 11
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 0,
+              "live": 1
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "savedDerivedScene29",
+      "disposed": false,
+      "opens": 0,
+      "edits": 0,
+      "blurPreparations": 0,
+      "shadowPreparations": 0,
+      "resizePreparations": 0,
+      "rotatePreparations": 1,
+      "pointers": 5,
+      "hits": [
+        "CapturedSprite",
+        "CapturedSprite",
+        "CapturedSprite",
+        "none",
+        "none"
+      ],
+      "binds": 2,
+      "unbinds": 1,
+      "contextId": "CaptureDerived",
+      "sceneVersion": 29,
+      "assetSize": {
+        "width": 64,
+        "height": 128,
+        "bytes": 32768
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 6,
+            "read": 1
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 11
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 0,
+              "live": 1
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "physicalOneOpenFresh",
+      "disposed": false,
+      "opens": 1,
+      "edits": 0,
+      "blurPreparations": 0,
+      "shadowPreparations": 0,
+      "resizePreparations": 0,
+      "rotatePreparations": 1,
+      "pointers": 5,
+      "hits": [
+        "CapturedSprite",
+        "CapturedSprite",
+        "CapturedSprite",
+        "none",
+        "none"
+      ],
+      "binds": 3,
+      "unbinds": 2,
+      "contextId": "CaptureDerived",
+      "sceneVersion": 29,
+      "assetSize": {
+        "width": 64,
+        "height": 128,
+        "bytes": 32768
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 6,
+            "read": 1
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 11
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 5
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 0,
+              "live": 1
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "restoredPublicPosition8",
+      "disposed": false,
+      "opens": 1,
+      "edits": 1,
+      "blurPreparations": 0,
+      "shadowPreparations": 0,
+      "resizePreparations": 0,
+      "rotatePreparations": 1,
+      "pointers": 5,
+      "hits": [
+        "CapturedSprite",
+        "CapturedSprite",
+        "CapturedSprite",
+        "none",
+        "none"
+      ],
+      "binds": 3,
+      "unbinds": 2,
+      "contextId": "CaptureDerived",
+      "sceneVersion": 29,
+      "assetSize": {
+        "width": 64,
+        "height": 128,
+        "bytes": 32768
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 6,
+            "read": 1
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 11
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 2,
+            "read": 11
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 0,
+              "live": 1
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "exportedPNG",
+      "disposed": false,
+      "opens": 1,
+      "edits": 1,
+      "blurPreparations": 0,
+      "shadowPreparations": 0,
+      "resizePreparations": 0,
+      "rotatePreparations": 1,
+      "pointers": 5,
+      "hits": [
+        "CapturedSprite",
+        "CapturedSprite",
+        "CapturedSprite",
+        "none",
+        "none"
+      ],
+      "binds": 3,
+      "unbinds": 2,
+      "contextId": "CaptureDerived",
+      "sceneVersion": 29,
+      "assetSize": {
+        "width": 64,
+        "height": 128,
+        "bytes": 32768
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 6,
+            "read": 1
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 11
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 2,
+            "read": 11
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 0,
+              "live": 1
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "publicPNGDecode",
+      "disposed": false,
+      "opens": 1,
+      "edits": 1,
+      "blurPreparations": 0,
+      "shadowPreparations": 0,
+      "resizePreparations": 0,
+      "rotatePreparations": 1,
+      "pointers": 5,
+      "hits": [
+        "CapturedSprite",
+        "CapturedSprite",
+        "CapturedSprite",
+        "none",
+        "none"
+      ],
+      "binds": 3,
+      "unbinds": 2,
+      "contextId": "CaptureDerived",
+      "sceneVersion": 29,
+      "assetSize": {
+        "width": 64,
+        "height": 128,
+        "bytes": 32768
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 6,
+            "read": 1
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 11
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 2,
+            "read": 11
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 0,
+              "live": 1
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "DisposeLatePointer",
+      "disposed": true,
+      "opens": 1,
+      "edits": 1,
+      "blurPreparations": 0,
+      "shadowPreparations": 0,
+      "resizePreparations": 0,
+      "rotatePreparations": 1,
+      "pointers": 5,
+      "hits": [
+        "CapturedSprite",
+        "CapturedSprite",
+        "CapturedSprite",
+        "none",
+        "none"
+      ],
+      "binds": 3,
+      "unbinds": 3,
+      "contextId": "CaptureDerived",
+      "sceneVersion": 29,
+      "assetSize": {
+        "width": 64,
+        "height": 128,
+        "bytes": 32768
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 6,
+            "read": 1
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 11
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 2,
+            "read": 11
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 1,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "console": {
+    "errors": [],
+    "rejections": []
+  },
+  "cpuAfterDispose": true,
+  "final": {
+    "disposed": true,
+    "opens": 1,
+    "edits": 1,
+    "blurPreparations": 0,
+    "shadowPreparations": 0,
+    "resizePreparations": 0,
+    "rotatePreparations": 1,
+    "pointers": 5,
+    "hits": [
+      "CapturedSprite",
+      "CapturedSprite",
+      "CapturedSprite",
+      "none",
+      "none"
+    ],
+    "binds": 3,
+    "unbinds": 3,
+    "contextId": "CaptureDerived",
+    "sceneVersion": 29,
+    "assetSize": {
+      "width": 64,
+      "height": 128,
+      "bytes": 32768
+    },
+    "contexts": [
+      {
+        "lost": false,
+        "calls": {
+          "draw": 6,
+          "read": 1
+        },
+        "error": 0,
+        "resources": {
+          "shader": {
+            "created": 4,
+            "deleted": 4,
+            "live": 0
+          },
+          "program": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "buffer": {
+            "created": 3,
+            "deleted": 3,
+            "live": 0
+          },
+          "vao": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "texture": {
+            "created": 0,
+            "deleted": 0,
+            "live": 0
+          },
+          "fbo": {
+            "created": 0,
+            "deleted": 0,
+            "live": 0
+          }
+        }
+      },
+      {
+        "lost": false,
+        "calls": {
+          "draw": 1,
+          "read": 0
+        },
+        "error": 0,
+        "resources": {
+          "shader": {
+            "created": 4,
+            "deleted": 4,
+            "live": 0
+          },
+          "program": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "buffer": {
+            "created": 3,
+            "deleted": 3,
+            "live": 0
+          },
+          "vao": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "texture": {
+            "created": 1,
+            "deleted": 1,
+            "live": 0
+          },
+          "fbo": {
+            "created": 0,
+            "deleted": 0,
+            "live": 0
+          }
+        }
+      },
+      {
+        "lost": false,
+        "calls": {
+          "draw": 1,
+          "read": 11
+        },
+        "error": 0,
+        "resources": {
+          "shader": {
+            "created": 4,
+            "deleted": 4,
+            "live": 0
+          },
+          "program": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "buffer": {
+            "created": 3,
+            "deleted": 3,
+            "live": 0
+          },
+          "vao": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "texture": {
+            "created": 1,
+            "deleted": 1,
+            "live": 0
+          },
+          "fbo": {
+            "created": 0,
+            "deleted": 0,
+            "live": 0
+          }
+        }
+      },
+      {
+        "lost": false,
+        "calls": {
+          "draw": 2,
+          "read": 11
+        },
+        "error": 0,
+        "resources": {
+          "shader": {
+            "created": 4,
+            "deleted": 4,
+            "live": 0
+          },
+          "program": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "buffer": {
+            "created": 3,
+            "deleted": 3,
+            "live": 0
+          },
+          "vao": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "texture": {
+            "created": 1,
+            "deleted": 1,
+            "live": 0
+          },
+          "fbo": {
+            "created": 0,
+            "deleted": 0,
+            "live": 0
+          }
+        }
+      },
+      {
+        "lost": false,
+        "calls": {
+          "draw": 1,
+          "read": 0
+        },
+        "error": 0,
+        "resources": {
+          "shader": {
+            "created": 4,
+            "deleted": 4,
+            "live": 0
+          },
+          "program": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "buffer": {
+            "created": 3,
+            "deleted": 3,
+            "live": 0
+          },
+          "vao": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "texture": {
+            "created": 1,
+            "deleted": 1,
+            "live": 0
+          },
+          "fbo": {
+            "created": 0,
+            "deleted": 0,
+            "live": 0
+          }
+        }
+      }
+    ]
+  },
+  "finalGL": [
+    {
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "error": 0
+    },
+    {
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "error": 0
+    },
+    {
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "error": 0
+    },
+    {
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "error": 0
+    },
+    {
+      "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+      "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (LLVM 10.0.0) (0x0000C0DE)), SwiftShader driver)",
+      "error": 0
+    }
+  ],
+  "warnings": [
+    "ReadPixels GPU stall warning",
+    "ReadPixels GPU stall warning",
+    "ReadPixels GPU stall warning",
+    "ReadPixels GPU stall warning"
+  ],
+  "sourceEditsAfterFirstAcceptedRotation": false,
+  "contextsExcluded": 0,
+  "allContextsCreated": 5,
+  "screenshotInspected": "source red/partial green/blue; moved rotated target blue/red top and partial green middle; all controls remain visible"
+}

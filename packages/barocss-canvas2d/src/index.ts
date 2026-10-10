@@ -67,3 +67,6 @@ export { resizeImageAsset } from './image-resize.js';
 export type { ImageResizeSampling } from './image-resize.js';
 
 export { cropImageAsset } from './image-crop.js';
+
+export { rotateImageAsset } from './image-rotate.js';
+export type { ImageQuarterTurns } from './image-rotate.js';
