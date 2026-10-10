@@ -39,7 +39,7 @@ for(const provider of providers){
  const accepted=[],refusals=[],dir=resolve(output,name);await mkdir(dir);let current;
  const acceptedSource=resolve(dir,'accepted.source0.css'),acceptedDTO=resolve(dir,'accepted.preview.json');
  function prepare(request,count){
-  const before=clone(request),edit=cad.editSourceCurveControlPolygon(request);assert.deepEqual(request,before);const owned=cad.validateSourceCurveControlPolygonEdit(edit);assert.deepEqual(owned,edit);assert.notStrictEqual(owned,edit);
+  const before=clone(request),edit=cad.editSourceCurveControlPolygon(request);assert.deepEqual(request,before);const owned=cad.validateSourceCurveControlPolygonEdit(edit);assert.deepEqual(owned,edit.report);assert.notStrictEqual(owned,edit.report);
   const preview=gpu.prepareSelectedUniformCurvePreview({source:edit.source,curveId:request.curveId,count}),rebuilt=gpu.validateSelectedUniformCurvePreview(preview);assert.deepEqual(rebuilt,preview);assert.notStrictEqual(rebuilt,preview);
   assert.equal(preview.version,1);assert.equal(preview.profile,'native-selected-uniform-curve-v1');assert.equal(preview.sourceVersion,0);assert.equal(preview.source,edit.source);assert.deepEqual(preview.model,edit.model);
   return{edit,preview};
@@ -56,7 +56,7 @@ for(const provider of providers){
   const beforeObservations=observe(before),afterObservations=observe(preview);assert.deepEqual(beforeObservations,afterObservations);const changed=!preview.pointsMM.every((p,i)=>p.every((x,j)=>Object.is(x,before.pointsMM[i][j])));
   assert.equal(changed,!edit.report.noOp,input.name+' sampled change/no-op');if(edit.report.noOp)assert.equal(edit.source,request.source);
   const sourceFile=resolve(dir,input.name+'.source0.css'),dtoFile=resolve(dir,input.name+'.preview.json'),editFile=resolve(dir,input.name+'.edit.json');await writeFile(sourceFile,edit.source);await writeFile(dtoFile,nativeJSON(preview)+'\n');await writeFile(editFile,nativeJSON(edit)+'\n');
-  const coldSource=await readFile(sourceFile,'utf8'),coldOwned=JSON.parse(await readFile(dtoFile,'utf8')),cold=gpu.validateSelectedUniformCurvePreview(coldOwned);assert.deepEqual(cold,preview);assert.deepEqual(gpu.prepareSelectedUniformCurvePreview({source:coldSource,curveId:request.curveId,count}),preview);assert.deepEqual(cad.validateSourceCurveControlPolygonEdit(JSON.parse(await readFile(editFile,'utf8'))),edit);
+  const coldSource=await readFile(sourceFile,'utf8'),coldOwned=JSON.parse(await readFile(dtoFile,'utf8')),cold=gpu.validateSelectedUniformCurvePreview(coldOwned);assert.deepEqual(cold,preview);assert.deepEqual(gpu.prepareSelectedUniformCurvePreview({source:coldSource,curveId:request.curveId,count}),preview);assert.deepEqual(cad.validateSourceCurveControlPolygonEdit(JSON.parse(await readFile(editFile,'utf8'))),edit.report);
   const beforeCold=nativeJSON(cold);coldOwned.pointsMM[0][0]=999;assert.equal(nativeJSON(cold),beforeCold);assert(Object.isFrozen(cold.model));
   await accept(value);accepted.push({name:input.name,beforeObservations,afterObservations,changed,patches:edit.patches.length,derivativeRefusals:edit.report.directCounts.derivativeRefusalCount,files:await Promise.all([sourceFile,dtoFile,editFile].map(receipt))});
  }
@@ -69,9 +69,9 @@ for(const provider of providers){
  const altered=clone(current.preview);altered.pointsMM[0][0]+=1;await refused('altered-owned-observations',()=>gpu.validateSelectedUniformCurvePreview(altered),'RECONSTRUCTION',gpu.UniformCurvePreviewError);
  await refused('native-invalid-weight',()=>prepare({source,sourceVersion:0,curveId:'target_curve',edits:{poleEdits:[{index:0,weight:0}]}},9),'NATIVE',cad.SourceCurveControlPolygonError);
  const spare=id=>`@curve #${id} {type:nurbs;degree:1;knots:[0,0,1,1];control-points:[[0,0,0],[1,0,0]];weights:[1,1];}\n`,original=inputs[0].request.source,close=original.lastIndexOf('}');assert(close>=0);
- const five=original.slice(0,close)+spare('spare_one')+spare('spare_two')+original.slice(close),fiveEdit=cad.editSourceCurveControlPolygon({...clone(inputs[0].request),source:five});assert.equal(fiveEdit.model.objects.length,5);assert.deepEqual(cad.validateSourceCurveControlPolygonEdit(fiveEdit),fiveEdit);
+ const five=original.slice(0,close)+spare('spare_one')+spare('spare_two')+original.slice(close),fiveEdit=cad.editSourceCurveControlPolygon({...clone(inputs[0].request),source:five});assert.equal(fiveEdit.model.objects.length,5);assert.deepEqual(cad.validateSourceCurveControlPolygonEdit(fiveEdit),fiveEdit.report);
  await refused('valid-native-five-objects',()=>gpu.prepareSelectedUniformCurvePreview({source:fiveEdit.source,curveId:'target_curve',count:9}),'PROFILE',gpu.UniformCurvePreviewError);
- const long='/*'+'a'.repeat(70000)+'*/\n'+original,longEdit=cad.editSourceCurveControlPolygon({...clone(inputs[0].request),source:long});assert(longEdit.source.length>65536&&Buffer.byteLength(longEdit.source)>65536&&Buffer.byteLength(longEdit.source)<262144);assert.deepEqual(cad.validateSourceCurveControlPolygonEdit(longEdit),longEdit);
+ const long='/*'+'a'.repeat(70000)+'*/\n'+original,longEdit=cad.editSourceCurveControlPolygon({...clone(inputs[0].request),source:long});assert(longEdit.source.length>65536&&Buffer.byteLength(longEdit.source)>65536&&Buffer.byteLength(longEdit.source)<262144);assert.deepEqual(cad.validateSourceCurveControlPolygonEdit(longEdit),longEdit.report);
  await refused('valid-native-long-source',()=>gpu.prepareSelectedUniformCurvePreview({source:longEdit.source,curveId:'target_curve',count:9}),'BUDGET',gpu.UniformCurvePreviewError);
  let getters=0;const accessor={curveId:'target_curve',count:9};Object.defineProperty(accessor,'source',{enumerable:true,get(){getters++;return source;}});
  await refused('own-accessor',()=>gpu.prepareSelectedUniformCurvePreview(accessor),'INPUT',gpu.UniformCurvePreviewError);assert.equal(getters,0);
