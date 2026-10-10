@@ -30,6 +30,7 @@ export interface RenderMixedSessionSnapshot {
 export interface RenderMixedSession {
   getSnapshot(): RenderMixedSessionSnapshot;
   subscribe(listener: () => void): () => void;
+  setDraftTitle(title: string): void;
   setDraftSource(kind: 'scene' | 'asset', text: string): void;
   setDraftCamera(camera: MeshCamera): void;
   setDraftDisplay(display: RenderMixedDocumentDisplayV1): void;
@@ -166,6 +167,13 @@ export function createRenderMixedSession(initial: RenderMixedDocumentV1): Render
         if (locked) throw error('Session listener mutations are locked during presentation.');
         listeners.delete(listener);
       };
+    },
+    setDraftTitle(title) {
+      assertMutable();
+      if (typeof title !== 'string' || title.length > 256 || [...title].length > 128 || title.trim() === '') {
+        throw error('Title must contain text and have at most 128 code points.');
+      }
+      setDraft({ ...draft, title });
     },
     setDraftSource(kind, text) {
       assertMutable();

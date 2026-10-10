@@ -70,3 +70,14 @@ Selecting an object row changes the local editing target and matching source tab
 Hidden Surface controls remain mounted and retain raw minus signs, empty text, and invalid position drafts. A hidden invalid axis still blocks Apply and the existing file guard's Apply and continue action. Use Edit Surface position in Diagnostics to reveal the Surface controls and focus the first invalid axis. Correct the field or Discard to restore accepted values. Import, Open, Save, project routes, and keyboard guards retain their existing behavior.
 
 The target defaults to Sphere for each mounted editor. It stays selected through Apply, same-page Open, and project changes; names/references refresh from current document data. A fresh page starts on Sphere. Help closes to the persistent Help menu trigger and preserves raw position text and all other drafts.
+
+
+## Rename scene
+
+Use Edit→Rename scene or the persistent Rename scene button beside the document title. The dialog starts from the current draft title. Enter a nonblank title of at most 128 Unicode code points and 256 UTF-16 code units. Whitespace and Unicode stay as typed; the input does not truncate or normalize text. Use title stages only the title through the session. It does not render, reset unrelated source/camera/display drafts, or change the native asset association. Cancel or Escape before Use title leaves all session fields unchanged and returns focus to Rename scene.
+
+The header and Workspace labels show the applied title. A pending title replaces the existing document status text with Title draft until Apply succeeds. The active cached project refreshes only from accepted document changes, including Apply, Undo, Redo, and Open. Project keys/routes, original scene/native IDs, source text, display values, and download basename remain unchanged. Downloads still use the document ID. Save stores the applied authored title; fresh Open restores it.
+
+Rename captures the current snapshot and project. If another edit, file action, route change, or disposal makes it stale, Use title refuses without replacing newer drafts. A valid title can be staged while a hidden Surface position field remains invalid. Apply and the file guard still check the complete document and refuse invalid position/source/camera/display input. Discard uses the existing full-draft reset and restores the applied title with the other accepted fields.
+
+Help→Rename scene uses the existing Help dialog and returns focus to the persistent Help menu trigger. Collapsed Help inside Rename scene keeps the raw title and all other drafts. Native import, Open/Save, project navigation, keyboard composition/editing, and cleanup keep their existing behavior. The host controls expose rename-scene, rename-dialog, rename-use, rename-cancel, rename-error, and draft-title test IDs; Title is the accessible textbox label.

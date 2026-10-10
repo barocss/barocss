@@ -94,3 +94,4 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--primary); outli
 @media (max-width: 1100px) { .app-projects { width: 160px; } .app-brand span, .app-build-label { display: none; } }
 @media (max-width: 760px) { .app-projects { width: 132px; } .app-topbar { gap: 6px; padding: 0 10px; } .app-menubar { margin-left: 0; } .app-brand strong { display: none; } .app-document-state { display: none; } .app-document-bar { padding: 12px; } .app-history { margin-left: auto; } .app-status { gap: 8px; } .app-sidebar-note { margin: auto 4px 0; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
+.app-document-bar>div:first-child{min-width:0}.app-document-bar h1{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.app-document-state{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
