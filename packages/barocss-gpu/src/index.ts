@@ -32,6 +32,8 @@ export {mountPrimitiveViewport,PrimitiveViewport,mountPrimitiveScene,PrimitiveSc
 export type {PrimitiveSceneEntry,PrimitiveSceneOptions,PrimitiveSceneEntryV1,PrimitiveSceneInputV1,PrimitiveSceneRef,PrimitiveSceneMaterial,PrimitiveSceneFrameV0,PrimitiveSceneFrameV1,PrimitiveSceneEntryV2,PrimitiveSceneInputV2} from './primitive-scene-renderer.js';
 export {compileMeshMaterial,validateMeshMaterialIR,lowerMeshMaterial,MeshMaterialError} from './mesh-material.js';
 export type {MeshMaterialCode,MeshMaterialDiagnostic,MeshMaterialUniform,MeshMaterialExpression,MeshMaterialIR,MeshMaterialBinding,LoweredMeshMaterial} from './mesh-material.js';
+export {compileEngineUVMaterial,validateEngineUVMaterialIR,lowerEngineUVMaterial} from './mesh-material.js';
+export type {EngineUVMaterialExpression,EngineUVMaterialIR,LoweredEngineUVMaterial} from './mesh-material.js';
 
 export type {ParticleLayerV0} from './particle-layer.js';
 export type {ClothLayerV0} from './cloth-layer.js';

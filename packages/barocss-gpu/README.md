@@ -1861,3 +1861,62 @@ texture/light/alpha composition, pixels, GL resources or consumer adoption.
 
 ONE source/API/file/cold flow:
 `node examples/gpu-scene/engine-material-bindings-flow.mjs --output <fresh-directory>`.
+
+### Authored engine UV material grammar (distinct source profile, CPU)
+
+`compileEngineUVMaterial(source)` adds dimensionless scalar inputs `uv_u` and
+`uv_v` to the existing material grammar in a distinct profile. It returns
+`{ok: true, material}` or `{ok: false, diagnostics}`. Full IR has exactly
+`format: 'barocss-gpu-engine-uv-material'`, `version: 0`,
+`profile: 'engine-opaque-uv-fragment-v0'`, `source`, `shaderId`, `uniforms`
+and `expression`. New leaves are `{kind: 'input', type: 'float', name: 'uv_u'}`
+or `uv_v`; existing expression shapes/desugaring remain unchanged.
+
+```css
+@shader #uv_gradient {
+  @let ratio: float(clamp(uv_u, 0, 1));
+  @fragment { color: mix(#000000, #FFFFFF, ratio); }
+}
+```
+
+The input interval is `[-1000, 1000]`, matching original TriangleGeometry UV
+admission. It is not implicitly `[0, 1]`; the example explicitly clamps it.
+These channels are not screen coordinates, time, scene units or native CAD
+parameters. Existing scalar/color type and range guards apply. Each input use
+costs one node; local expansion also costs the complete expanded expression.
+Limits remain 64KiB UTF8 source, 4096 tokens plus EOF, 16 uniforms/locals,
+256 definition and expanded nodes, depth16, literals/declarations within1000
+and intermediate range within1e6. No new evaluator, texture sampling or caller GLSL.
+
+`validateEngineUVMaterialIR(input)` performs one existing bounded own snapshot
+and one reconstruction from full original source, then compares canonical IR.
+Own limits remain8192 visited values/depth24,16 record keys/256 dense array
+values; accessors, cycles, hidden/symbol fields, foreign prototypes and
+nonfinite data refuse. This inherited snapshot reflects descriptors before
+array cardinality checks. Successful compile/validation yields fresh frozen
+IR; numeric zero is canonicalized and original source text is preserved.
+Forged/unsupported IR refuses `MeshMaterialError` with code `IR`. Source
+reconstruction errors preserve actual source offsets and the actual compiler
+diagnostic as `cause`; reflection `INPUT` errors preserve the actual exception.
+Other codes remain existing `SYNTAX`, `TYPE`, `RANGE`, `BUDGET` and `INPUT`.
+New diagnostic/error messages are bounded to1024 characters.
+
+`lowerEngineUVMaterial(input)` performs one actual validation/reconstruction
+then shared trusted lowering. Its deeply frozen result has exactly `expression`,
+`uniformDeclarations`, `uniformLayout` and
+`inputDeclarations: 'in vec2 v_engine_uv;'`. Inputs lower only to
+`v_engine_uv.x/y`; uniforms remain `mat_u_N`. Existing linear color constants,
+numeric precision, mix ratio/output clamps remain. Layout records are
+independent copies. This is compiler text, without linked shader/pixel support.
+
+The legacy compiler/profile/IR and its public expression type exclude input
+leaves. Legacy declared uniforms named `uv_u`/`uv_v` retain their meaning;
+only the new profile prohibits declarations shadowing input names. Legacy
+and UV IR reject each other's validation/lowering paths. Legacy lowering
+retains its original mutable three-field result. Current material companion0
+and native renderers still accept only the legacy profile; a future distinct
+binding and renderer contract must consume the UV profile explicitly.
+No GPU program/cache/gamma/resource lifetime or consumer adoption is implied.
+
+ONE source/IR/API/file/cold flow:
+`node examples/gpu-scene/engine-uv-material-flow.mjs --output <fresh-directory>`.
