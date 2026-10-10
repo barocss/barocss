@@ -8,6 +8,8 @@ The red rectangle starts at `(20,20)` with size 80×50 logical pixels. Its right
 
 Use [Unicode labels](./unicode-labels) for the newer browser-text profile and [try the label](/playground#unicode-label). That example prepares `설계 圖面 A1` with explicit font/DPR/policy and saves or restores text, layout and copied RGBA bytes in page memory. The rectangle recipe below retains its earlier `5f5ad866` source contract.
 
+The [diagram label guide](./diagram-labels) combines ASCII ellipsis with a separate bitmap outline, keeps the full semantic label and saves or opens an actual JSON file. [Try the diagram label](/playground#diagram-label); its source profile is separate from the rectangle and Unicode examples.
+
 ## Create and submit a retained object
 
 Use a browser host with a TypeScript-capable bundler and the workspace package dependency. Put this HTML in the host page and use the following module as its `main.ts` entry. The bundler resolves public imports and transforms TypeScript; the browser receives JavaScript.

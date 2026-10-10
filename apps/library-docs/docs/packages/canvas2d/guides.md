@@ -6,6 +6,8 @@ Mutate public handles → take `tree.snapshot()` → call `renderer.updateScene(
 
 For a browser-shaped Hangul/CJK label, see [Unicode labels](./unicode-labels). This newer source profile adds explicit `unicode-single-line` admission, copied whole-label pixels and document restoration; the earlier rectangle example keeps its existing source contract.
 
+For a width-limited ASCII label with decoration, see [diagram labels](./diagram-labels). It composes public ellipsis, a separate outline Sprite and actual JSON Save/Open using its newer matching source profile.
+
 ## Build a path
 
 ```ts

@@ -1,0 +1,32 @@
+{
+  "source": "Actual Codex in-app browser JPEG screenshot; exact native screenshot bytes, no generated text or image edit",
+  "sourceProfile": "8fc5d6c46776f750d1c3a4222e255aea5d6aaaf7",
+  "path": "docs/public/examples/diagram-label.jpg",
+  "width": 375,
+  "height": 115,
+  "byteCount": 5861,
+  "sha256": "d81e38b2ce2e0aac7355428fafc51071c132b6c994a2d8bcabecda98b76181a7",
+  "capture": {
+    "bytes": 5861,
+    "crop": {
+      "height": 115,
+      "width": 375,
+      "x": 677,
+      "y": 1013
+    }
+  },
+  "semanticText": "Mounting plate dimensions and clearance",
+  "displayText": "Mounting p...",
+  "fontDeclaration": "24px monospace",
+  "rasterDPR": 2,
+  "outlineRadiusBitmapPixels": 3,
+  "parentTransform": {
+    "x": 40,
+    "y": 104,
+    "scaleX": 1,
+    "scaleY": 1,
+    "rotation": 0.08
+  },
+  "observed": "Readable truncated white label with separate cyan outline, matched GlyphRun quad and shared rotated parent",
+  "limits": "JPEG is a screen illustration, not native RGBA or cross-browser equality. Font metrics are observed only."
+}

@@ -17,6 +17,8 @@ For input selection, units and result interpretation, read [Use the interactive 
 
 [Open the Unicode label](/playground#unicode-label) to prepare a local-font label and preserve its semantic text and copied pixels. Read [Unicode labels](./packages/canvas2d/unicode-labels) for the public API and saved-data behavior.
 
+[Open the diagram label](/playground#diagram-label) to shorten its display while keeping full semantic text and a separate outline. Read [Diagram labels](./packages/canvas2d/diagram-labels) for pixel units, hits and document files.
+
 <VisualExamples />
 
 ## Follow the language and the data

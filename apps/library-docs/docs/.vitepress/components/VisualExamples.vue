@@ -3,10 +3,26 @@ import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import * as runtime from '../generated/visual.js'
 import * as advanced from '../generated/advanced-shader.js'
 import * as unicode from '../generated/unicode-label.js'
-const presets={...runtime.presets,...advanced.presets,...unicode.presets}
+import * as diagram from '../generated/diagram-label.js'
+const presets={...runtime.presets,...advanced.presets,...unicode.presets,...diagram.presets}
 const selected=ref('scene'), source=ref(''), output=ref(''), error=ref(''), canvas=ref(), ready=ref(false), epoch=ref(0), amount=ref(0)
 let controller, animationFrame
-const actionBusy=ref(false)
+const actionBusy=ref(false), diagramSlot=ref(), diagramFile=ref()
+const isDiagram=()=>presets[selected.value].kind==='diagram'
+function newDiagramCanvas(){const next=document.createElement('canvas');next.setAttribute('aria-label','Actual example output');next.style.cssText='display:block;width:100%;height:auto;background:#101820;border-radius:8px';return next}
+function downloadDiagram(text,filename){const blob=new Blob([text],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=filename;document.body.append(link);try{link.click()}finally{link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}}
+async function openDiagram(event){
+ const file=event.target.files?.[0];event.target.value='';if(!file||actionBusy.value||!isDiagram())return;
+ const openEpoch=epoch.value,prior=controller;actionBusy.value=true;error.value='';let candidate;
+ try{
+  if(file.size>48*1024*1024)throw new Error('Diagram file exceeds 48 MiB');
+  const text=await file.text();if(openEpoch!==epoch.value)return;
+  const next=newDiagramCanvas();candidate=await diagram.openDiagramLabelExample(next,text);
+  if(openEpoch!==epoch.value){candidate.dispose();candidate=undefined;return}
+  diagramSlot.value.replaceChildren(next);controller=candidate;candidate=undefined;prior?.dispose();output.value=JSON.stringify(controller.report(),null,2);
+ }catch(e){candidate?.dispose();if(openEpoch===epoch.value)error.value=describeError(e)}
+ finally{if(openEpoch===epoch.value)actionBusy.value=false}
+}
 const isUnicode=()=>presets[selected.value].kind==='unicode'
 const advancedControls=ref([]), advancedValues=ref({}), playing=ref(false)
 const isAdvanced=()=>presets[selected.value].kind==='advanced'
@@ -41,18 +57,19 @@ async function select(kind){
   source.value=presets[kind].source; await nextTick();
   if(selectionEpoch!==epoch.value)return;
   try{
-    if(isUnicode())await document.fonts?.ready;
+    if(isUnicode()||isDiagram())await document.fonts?.ready;
     if(selectionEpoch!==epoch.value)return;
-    controller=isAdvanced()?advanced.createAdvancedShaderExample(canvas.value,source.value):isUnicode()?unicode.createUnicodeTextExample(canvas.value,source.value):runtime.createExample(canvas.value,kind,source.value);
+    if(isDiagram()){const next=newDiagramCanvas();controller=diagram.createDiagramLabelExample(next,source.value);diagramSlot.value.replaceChildren(next)}
+    else controller=isAdvanced()?advanced.createAdvancedShaderExample(canvas.value,source.value):isUnicode()?unicode.createUnicodeTextExample(canvas.value,source.value):runtime.createExample(canvas.value,kind,source.value);
     const data=controller.report();if(isAdvanced())syncAdvanced(data);output.value=JSON.stringify(data,null,2)
   }catch(e){if(selectionEpoch===epoch.value)error.value=describeError(e)}
 }
-function apply(){stopAnimation();error.value='';try{const data=controller.update(source.value);if(isAdvanced())syncAdvanced(data);output.value=JSON.stringify(data,null,2)}catch(e){error.value=describeError(e);if(isAdvanced()||isUnicode()){const retained=controller.report();if(!retained.available)output.value=JSON.stringify(retained,null,2)}}}
+function apply(){stopAnimation();error.value='';try{const data=controller.update(source.value);if(isAdvanced())syncAdvanced(data);output.value=JSON.stringify(data,null,2)}catch(e){error.value=describeError(e);if(isAdvanced()||isUnicode()||isDiagram()){const retained=controller.report();if(!retained.available)output.value=JSON.stringify(retained,null,2)}}}
 function adjust(){error.value='';try{output.value=JSON.stringify(controller.setAmount(Number(amount.value)),null,2);acceptedAmount=Number(amount.value)}catch(e){amount.value=acceptedAmount;error.value=describeError(e)}}
 async function act(id){
  if(actionBusy.value||!controller)return;
  const actionEpoch=epoch.value,current=controller;actionBusy.value=true;error.value='';
- try{const result=await current.action(id);if(actionEpoch!==epoch.value)return;if(id==='resize-100'&&typeof result.acceptedSource==='string')source.value=result.acceptedSource;if(id==='reload'&&typeof result.native?.source==='string')source.value=result.native.source;output.value=JSON.stringify(result,null,2)}
+ try{const result=await current.action(id);if(actionEpoch!==epoch.value)return;if(isDiagram()&&id==='save-document'){downloadDiagram(result.documentText,result.filename);output.value=JSON.stringify(result.report,null,2);return}if(id==='resize-100'&&typeof result.acceptedSource==='string')source.value=result.acceptedSource;if(id==='reload'&&typeof result.native?.source==='string')source.value=result.native.source;output.value=JSON.stringify(result,null,2)}
  catch(e){if(actionEpoch===epoch.value)error.value=describeError(e)}
  finally{if(actionEpoch===epoch.value)actionBusy.value=false}
 }
@@ -64,7 +81,7 @@ onBeforeUnmount(()=>{epoch.value++;stopAnimation();controller?.dispose()})
   <div class="example-tabs"><button v-for="(title,kind) in titles" :key="kind" :id="anchors[kind]" :disabled="!ready" :aria-pressed="selected===kind" @click="select(kind)">{{title}}</button></div>
   <h2>{{presets[selected].title || 'Loading examples'}}</h2>
   <p class="explain">{{presets[selected].description || (selected==='curve' ? 'The cyan line is evaluated geometry. Orange points define the control polygon. Coordinates are millimetres.' : selected==='scene' ? 'Each accepted source edit compiles and draws one SDF frame. Change a size, angle or color, then select Run input.' : selected==='surface' ? 'CAD evaluates the rational patch. A 17 × 17 grid becomes a GPU triangle mesh. Pale lines show its sampled U/V grid. This display does not certify a Solid.' : 'The same sampled CAD patch uses an opaque fragment material. The host supplies amount; compilation creates no timer.')}}</p>
-  <div class="example-grid"><div><label for="visual-source">Editable input · {{presets[selected].language}}</label><textarea id="visual-source" v-model="source" spellcheck="false" aria-label="Example source"/><div class="example-actions"><button :disabled="!controller || actionBusy" @click="apply">Run input</button><button :disabled="!ready" @click="select(selected)">Reset example</button></div></div><figure><canvas :key="epoch" ref="canvas" width="640" height="420" aria-label="Actual example output"/><figcaption>{{isAdvanced() ? 'Actual WebGL2 output from this example host and public material lowering.' : isUnicode() ? 'Browser-prepared RGBA label displayed by the public Canvas2D GlyphRun renderer.' : 'Actual output from the selected public API.'}}</figcaption></figure></div>
+  <div class="example-grid"><div><label for="visual-source">Editable input · {{presets[selected].language}}</label><textarea id="visual-source" v-model="source" spellcheck="false" aria-label="Example source"/><div class="example-actions"><button :disabled="!controller || actionBusy" @click="apply">Run input</button><button :disabled="!ready" @click="select(selected)">Reset example</button></div></div><figure><div v-if="isDiagram()" :key="epoch" ref="diagramSlot"/><canvas v-else :key="epoch" ref="canvas" width="640" height="420" aria-label="Actual example output"/><figcaption>{{isAdvanced() ? 'Actual WebGL2 output from this example host and public material lowering.' : isDiagram() ? 'Ellipsized label and separate bitmap outline from public Canvas2D APIs.' : isUnicode() ? 'Browser-prepared RGBA label displayed by the public Canvas2D GlyphRun renderer.' : 'Actual output from the selected public API.'}}</figcaption></figure></div>
   <label v-if="isMaterial()" class="uniform-control">{{control().name}} = {{amount}}<input v-model="amount" aria-label="Material amount" type="range" :min="control().min" :max="control().max" :step="control().step" @input="adjust"/></label>
   <div v-if="isAdvanced()" class="advanced-controls">
     <label v-for="item in advancedControls" :key="item.name" class="uniform-control">{{item.name}} = {{Number(advancedValues[item.name]).toFixed(2)}}<input :value="advancedValues[item.name]" :aria-label="'Shader '+item.name" type="range" :min="item.min" :max="item.max" :step="presets[selected].controls.find(c=>c.name===item.name)?.step || .05" @input="stopAnimation();adjustAdvanced(item.name,$event.target.value)"/></label>
@@ -72,6 +89,7 @@ onBeforeUnmount(()=>{epoch.value++;stopAnimation();controller?.dispose()})
     <p class="explain">UV coordinates drive the pattern. Play advances phase in this example's host. Source compilation creates no clock. <a href="/packages/gpu/advanced-shader">Read the shader layers and controls</a>.</p>
   </div>
   <div v-if="presets[selected].actions" class="example-actions"><button v-for="action in presets[selected].actions" :key="action.id" :disabled="!controller || actionBusy" @click="act(action.id)">{{action.label}}</button></div>
+  <div v-if="isDiagram()" class="example-actions"><button :disabled="!controller || actionBusy" @click="diagramFile.click()">Open diagram JSON</button><input ref="diagramFile" type="file" accept=".json,application/json" aria-label="Diagram JSON file" hidden @change="openDiagram"/></div>
   <p v-if="error" role="alert" class="example-error">Input refused: {{error}}. The last accepted output stays visible while the sample remains live.</p>
   <details open><summary>Actual result data</summary><pre class="example-report">{{output}}</pre></details>
 </section>
