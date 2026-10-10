@@ -71,8 +71,11 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
   const selectedBody = accepted.document.bodies.find(body => body.id === snapshot.selectedBodyId);
   const selectedKind = accepted.bodyBindings.find(body => body.bodyId === snapshot.selectedBodyId)?.geometryKind;
   const objectMode = snapshot.editTarget === 'object';
-  const canEdit = selection !== null ? (objectMode ? capability?.canTranslateBody === true : capability?.canEditSurfacePole === true) && snapshot.view.kind === 'document'
-    : curveSelection !== null && (objectMode ? capability?.canTranslateBody === true : capability?.canEditCurvePole === true) && snapshot.view.kind === 'curve-focus' && snapshot.view.bodyId === curveSelection.bodyId;
+  const rotationMode = snapshot.editTarget === 'rotation';
+  const transformMode = objectMode||rotationMode;
+  const rotationComposing=useRef(false);
+  const canEdit = selection !== null ? (rotationMode ? capability?.canRotateBody === true : objectMode ? capability?.canTranslateBody === true : capability?.canEditSurfacePole === true) && snapshot.view.kind === 'document'
+    : curveSelection !== null && (rotationMode ? capability?.canRotateBody === true : objectMode ? capability?.canTranslateBody === true : capability?.canEditCurvePole === true) && snapshot.view.kind === 'curve-focus' && snapshot.view.bodyId === curveSelection.bodyId;
   useEffect(() => {
     if (!transition) {
       attemptedTransitionRef.current = null;
@@ -104,9 +107,9 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
       if (prepared) attemptedTransitionRef.current = current.token;
     }, true);
   }
-  return <aside className={cn('cad-editor-inspector', objectMode&&'cad-editor-object-translation', className)} aria-label="Native control point inspector">
+  return <aside className={cn('cad-editor-inspector', transformMode&&'cad-editor-object-translation', className)} aria-label="Native control point inspector">
     <div className="cad-editor-inspector-title">
-      <h2 className="cad-editor-heading">{objectMode ? 'Move object' : curveSelection ? 'Curve point' : selection ? 'Control point' : 'Object'}</h2>
+      <h2 className="cad-editor-heading">{rotationMode ? 'Rotate object' : objectMode ? 'Move object' : curveSelection ? 'Curve point' : selection ? 'Control point' : 'Object'}</h2>
       <Dialog>
         <DialogTrigger asChild><Button type="button" variant="ghost" size="xs" data-testid="cad-editor-help"
           aria-label="Control point editing help">Help</Button></DialogTrigger>
@@ -145,6 +148,13 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
               <p>The current object movement profile uses coordinates, translation and original parameters within ±10000 mm; Curve degree 1–5 with 2–64 poles, or Surface degree 1–3 with 2–16 poles per axis and at most 256. Source bindings, native numeric or display limits can still refuse a change. Curve moves require matching Curve focus; Surface moves require document view.</p>
               <p>Large Surface grids use private batches of at most 16 native pole edits. All batches must validate before one complete document candidate is prepared. One accepted movement adds one history entry. A failed batch retains the original source and offsets.</p>
               <p>The control net shifts as a pending ghost. The full accepted shape changes only after release, native validation and the actual rendered frame. Changing Target requires an empty draft and does not edit source or history. Open resets Target to Control point. Move settings and temporary transform IDs are not stored in the native document or recovery copy.</p>
+            </section>
+            <section><h3>Rotating an object</h3>
+              <p>Choose Rotate object. The selected original point is the pivot. Choose a world X, Y or Z axis, then drag the projected ring or enter an angle in degrees. Positive angles follow the right-hand rule. The current action accepts angles from -360 to 360 degrees.</p>
+              <p>Snap angle uses a separate degree step from 0.001 to 180. It does not use the movement step in mm. Arrow keys on the ring rotate by one degree without snapping, or by the selected angle step. A full turn is a native no-op.</p>
+              <p>The ring is projected from its world plane through the actual camera. A nearly edge-on plane, offscreen ring or near-pivot pointer can be refused. Choose another view or fit the selected grip. Ring angles are display observations, not certified topology picks.</p>
+              <p>Angle and marker changes remain pending. The actual native affine engine rotates every original coefficient around the captured pivot. Full-source writers retain original IDs, knots, weights and siblings, using private bounded batches. The native matrix translation and generated coordinates remain within the same ±10000 profile; rotation about a distant pivot can be refused rather than clamped.</p>
+              <p>Release prepares one native candidate. The actual Viewer and fresh rendered frame gate one history entry. Escape or pointer cancellation clears only owned current raw; a changed axis, pivot, view or raw value retains corrective data. Axis/mode settings and temporary transform IDs are not saved. Open resets Control point and Z rotation axis.</p>
             </section>
             <section><h3>Complete source preservation</h3>
               <p>Apply uses the native source-preserving edit provider's complete result.source and result.model. The source keeps untouched spelling, whitespace and comments. The Model keeps its name, object order, native IDs and sibling objects. Only the requested coordinate or weight literals change.</p>
@@ -290,13 +300,25 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
           onChange={event => action(() => session.requestSelection({ bodyId: curveSelection.bodyId, index: Number(event.target.value) }))}>
           {Array.from({ length: curveSelection.count }, (_, index) => <option key={index} value={index}>Point {index + 1}</option>)}
         </select></div>}
-      <h3 className="cad-editor-heading">{objectMode ? 'Object offset (mm)' : 'Coordinates and weight'}</h3>
+      <h3 className="cad-editor-heading">{rotationMode ? 'Rotation' : objectMode ? 'Object offset (mm)' : 'Coordinates and weight'}</h3>
       {Object.keys(pending).length > 0 && <p className="cad-editor-draft-status">Unapplied changes</p>}
-      {objectMode && !capability?.canTranslateBody && <p className="cad-editor-readonly" role="status">This object is outside the movement limits. Choose Control point editing or another object.</p>}
-      {objectMode && (!capability?.canTranslateBody || !canEdit || snapshot.view.kind==='document'&&!snapshot.displayBodyIds.includes(snapshot.selectedBodyId!)) && <div className="cad-editor-field">
+      {transformMode && !(rotationMode?capability?.canRotateBody:capability?.canTranslateBody) && <p className="cad-editor-readonly" role="status">This object is outside the movement limits. Choose Control point editing or another object.</p>}
+      {transformMode && (!(rotationMode?capability?.canRotateBody:capability?.canTranslateBody) || !canEdit || snapshot.view.kind==='document'&&!snapshot.displayBodyIds.includes(snapshot.selectedBodyId!)) && <div className="cad-editor-field">
         <Label htmlFor={`${id}-edit-target`}>Target</Label><select id={`${id}-edit-target`} data-testid="inspector-edit-target" value={snapshot.editTarget} disabled={busy||Object.keys(pending).length>0||transition!==null}
-          onChange={event=>action(()=>session.setEditTarget(event.target.value as 'pole'|'object'))}><option value="pole">Control point</option><option value="object" disabled={!capability?.canTranslateBody}>Object</option></select></div>}
-      {FIELDS.filter(({field})=>!objectMode||field!=='weight').map(({ field, label }) => <div className="cad-editor-field" key={field}>
+          onChange={event=>action(()=>session.setEditTarget(event.target.value as 'pole'|'object'|'rotation'))}><option value="pole">Control point</option><option value="object" disabled={!capability?.canTranslateBody}>Object</option><option value="rotation" disabled={!capability?.canRotateBody}>Rotate object</option></select></div>}
+      {rotationMode&&<>
+        <p className="cad-editor-grip-note">{snapshot.rotationAxis.toUpperCase()} axis · Selected grip</p>
+        <div className="cad-editor-field"><Label htmlFor={`${id}-rotation-angle`}>Angle (deg)</Label>
+          <Input id={`${id}-rotation-angle`} data-testid="cad-editor-angle-degrees" type="text" inputMode="decimal" disabled={busy||!canEdit}
+            value={pending.angleDegrees??'0'} className={Object.hasOwn(pending,'angleDegrees')?'cad-editor-pending-input':undefined}
+            onFocus={event=>{lastFieldRef.current=event.currentTarget;}}
+            onCompositionStart={()=>{rotationComposing.current=true;}} onCompositionEnd={()=>{rotationComposing.current=false;}}
+            onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();return;}if(event.key==='Enter'&&!event.repeat&&!event.nativeEvent.isComposing&&event.keyCode!==229&&!rotationComposing.current&&!event.altKey&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey){event.preventDefault();event.stopPropagation();action(()=>{session.prepareApply();});}}}
+            onChange={event=>action(()=>session.stageBodyRotation(event.target.value))}/>
+          {Object.hasOwn(pending,'angleDegrees')&&<span className="cad-editor-accepted">Current: 0</span>}
+        </div>
+      </>}
+      {!rotationMode&&FIELDS.filter(({field})=>!objectMode||field!=='weight').map(({ field, label }) => <div className="cad-editor-field" key={field}>
         <Label htmlFor={`${id}-${field}`}>{objectMode ? 'Offset '+field[0].toUpperCase() : label}</Label>
         <Input id={`${id}-${field}`} type="text" inputMode="decimal" disabled={busy || !canEdit}
           className={Object.hasOwn(pending, field) ? 'cad-editor-pending-input' : undefined}

@@ -145,3 +145,19 @@
 .pole-move-target select:focus-visible {outline:2px solid #b8d599;outline-offset:2px;}
 
 .cad-editor:not(.cad-editor-feature) .cad-editor-object-translation>.cad-editor-field {grid-template-columns:74px minmax(0,1fr);}
+
+.cad-editor-rotation-controls {position:absolute;inset:0;pointer-events:none;}
+.cad-editor-rotation-svg {display:block;overflow:hidden;pointer-events:none;}
+.rotation-ring-line {fill:none;stroke:#b6c6dd;stroke-width:1.5;pointer-events:none;}
+.rotation-ring-hit {fill:none;stroke:transparent;stroke-width:14;pointer-events:stroke;cursor:grab;touch-action:none;}
+.rotation-ring-handle {fill:#b8d599;stroke:#344231;stroke-width:2;pointer-events:all;cursor:grab;touch-action:none;}
+.rotation-ring-handle[aria-disabled="true"] {opacity:.45;cursor:default;}
+.rotation-ring-handle:focus {outline:none;}
+.rotation-ring-handle:focus-visible {stroke:#f5edcf;stroke-width:3;}
+.rotation-ring-hit:active,.rotation-ring-handle:active {cursor:grabbing;}
+.rotation-angle-line {stroke:#b8d599;stroke-width:1;pointer-events:none;}
+.cad-editor-rotation-controls.pending .rotation-ring-line {stroke:#e4b66c;stroke-dasharray:4 3;}
+.rotation-view-hint {position:absolute;left:8px;bottom:8px;max-width:calc(100% - 208px);padding:4px 6px;margin:0;background:#22272bed;color:#b9c7cf;border:1px solid #39444a;border-radius:3px;font-size:10px;line-height:1.5;pointer-events:none;}
+.cad-editor-axis-palette {z-index:1;}
+
+.cad-editor-grip-note {margin:4px 0 8px;font-size:10px;color:#aabac3;}

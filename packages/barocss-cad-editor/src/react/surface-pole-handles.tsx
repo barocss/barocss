@@ -85,7 +85,7 @@ export function SurfacePoleHandles({session,receipt,canvas,onError}:Props){
     return()=>{window.removeEventListener('keydown',key,true);const g=gesture.current;if(g){gesture.current=null;release(g);const s=session.getSnapshot();if(!s.disposed&&!s.candidate&&!s.selectionTransition&&s.generation===g.generation&&s.displayGeneration===g.displayGeneration&&s.selection?.bodyId===g.bodyId&&s.selection.uIndex===Math.floor(g.index/g.vCount)&&s.selection.vIndex===g.index%g.vCount&&sameRaw(s.pending,g.raw)){try{session.discardPending();session.requestSelection({bodyId:g.bodyId,uIndex:g.previousU,vIndex:g.previousV});}catch{}}}};
   },[session]);
   function begin(event:ReactPointerEvent<SVGCircleElement>,index:number){
-    if(snapshot.editTarget==='object'){
+    if(snapshot.editTarget!=='pole'){
       const currentState=session.getSnapshot();if(currentState.candidate||currentState.selectionTransition||currentState.disposed)return;
       if(!event.isPrimary||event.button!==0||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey||!active)return;
       event.preventDefault();event.stopPropagation();
@@ -140,6 +140,6 @@ export function SurfacePoleHandles({session,receipt,canvas,onError}:Props){
         onPointerDown={event=>begin(event,index)} onPointerMove={move} onPointerUp={end} onPointerCancel={event=>{if(gesture.current?.pointerId===event.pointerId)cancel(true);}} onLostPointerCapture={event=>{if(gesture.current?.pointerId===event.pointerId)cancel(true);}}
         onKeyDown={event=>{if((event.key==='Enter'||event.key===' ')&&!event.nativeEvent.isComposing){event.preventDefault();const state=session.getSnapshot();if(state.candidate||state.selectionTransition||state.disposed)return;try{session.requestSelection({bodyId:selectedPole.bodyId,uIndex:Math.floor(index/vCount),vIndex:index%vCount});}catch(cause){failure(cause);}}}}/>:null)}
     </svg>
-    <p className="cad-editor-surface-drag-hint" role="status" data-testid="surface-drag-status">{moving?'Release to apply. Escape cancels.':pending?'Point values pending. Apply or discard to continue.':snapshot.editTarget==='object'?'Select a grip, then drag an object axis.':'Drag a control point · Escape cancels'}</p>
+    {snapshot.editTarget!=='rotation'&&<p className="cad-editor-surface-drag-hint" role="status" data-testid="surface-drag-status">{moving?'Release to apply. Escape cancels.':pending?'Point values pending. Apply or discard to continue.':snapshot.editTarget!=='pole'?'Select a grip, then use the object handle.':'Drag a control point · Escape cancels'}</p>}
   </div>;
 }
