@@ -1,0 +1,2086 @@
+{
+  "graph": "source",
+  "referenceControls": [
+    {
+      "name": "resting-pair",
+      "result": {
+        "ok": true,
+        "resolved": true,
+        "raw": {
+          "relativeAngleRad": 0,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "anchorAM": [
+            0,
+            0,
+            0
+          ],
+          "anchorBM": [
+            0,
+            0,
+            0
+          ],
+          "anchorGapM": 0,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 0,
+          "reportedAngleDifferenceRad": 0,
+          "limitGatePassed": true,
+          "reportGatePassed": true,
+          "centerOfMassM": [
+            0,
+            0,
+            0
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 0,
+          "unitQuaternionGatePassed": true
+        },
+        "normalized": {
+          "relativeAngleRad": 0,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "anchorAM": [
+            0,
+            0,
+            0
+          ],
+          "anchorBM": [
+            0,
+            0,
+            0
+          ],
+          "anchorGapM": 0,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 0,
+          "reportedAngleDifferenceRad": 0,
+          "limitGatePassed": true,
+          "reportGatePassed": true,
+          "centerOfMassM": [
+            0,
+            0,
+            0
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 0,
+          "unitQuaternionGatePassed": true
+        },
+        "precisionMaxDifference": 2.1515550464391708e-83,
+        "precisionDifferences": {
+          ".raw.relativeQuaternionXYZW[0]": "0",
+          ".raw.relativeQuaternionXYZW[1]": "0",
+          ".raw.relativeQuaternionXYZW[2]": "0",
+          ".raw.relativeQuaternionXYZW[3]": "0",
+          ".raw.anchorAM[0]": "0E-55",
+          ".raw.anchorAM[1]": "0E-55",
+          ".raw.anchorAM[2]": "0E-55",
+          ".raw.anchorBM[0]": "0E-55",
+          ".raw.anchorBM[1]": "0E-55",
+          ".raw.anchorBM[2]": "0E-55",
+          ".raw.anchorGapM": "0E-55",
+          ".raw.centerOfMassM[0]": "0E-56",
+          ".raw.centerOfMassM[1]": "0.0",
+          ".raw.centerOfMassM[2]": "0.0",
+          ".raw.comDriftM": "0E-56",
+          ".raw.linearMomentumKgMps": "0",
+          ".raw.linearMomentumVectorKgMps[0]": "0",
+          ".raw.linearMomentumVectorKgMps[1]": "0",
+          ".raw.linearMomentumVectorKgMps[2]": "0",
+          ".raw.angularMomentumKgM2ps": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".raw.energyJ": "0E-111",
+          ".raw.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".raw.quaternionNormError": "0",
+          ".normalized.relativeQuaternionXYZW[0]": "0",
+          ".normalized.relativeQuaternionXYZW[1]": "0",
+          ".normalized.relativeQuaternionXYZW[2]": "0",
+          ".normalized.relativeQuaternionXYZW[3]": "0",
+          ".normalized.anchorAM[0]": "0E-55",
+          ".normalized.anchorAM[1]": "0E-55",
+          ".normalized.anchorAM[2]": "0E-55",
+          ".normalized.anchorBM[0]": "0E-55",
+          ".normalized.anchorBM[1]": "0E-55",
+          ".normalized.anchorBM[2]": "0E-55",
+          ".normalized.anchorGapM": "0E-55",
+          ".normalized.centerOfMassM[0]": "0E-56",
+          ".normalized.centerOfMassM[1]": "0.0",
+          ".normalized.centerOfMassM[2]": "0.0",
+          ".normalized.comDriftM": "0E-56",
+          ".normalized.linearMomentumKgMps": "0",
+          ".normalized.linearMomentumVectorKgMps[0]": "0",
+          ".normalized.linearMomentumVectorKgMps[1]": "0",
+          ".normalized.linearMomentumVectorKgMps[2]": "0",
+          ".normalized.angularMomentumKgM2ps": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".normalized.energyJ": "0E-111",
+          ".normalized.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".normalized.quaternionNormError": "0"
+        },
+        "scalarAngleRepeatMaxDifferenceRad": 0,
+        "violations": [],
+        "failureClass": null,
+        "stateValidation": {
+          "rawFieldsFinite": true,
+          "rawQuaternionUnit": true,
+          "metadataValid": true
+        },
+        "metadataSubset": "config original bodies/joints and dt; optional gravity must be zero; omitted initial motion uses original zero/identity defaults; full archive metadata remains hash-pinned",
+        "convention": "raw quaternion polynomial retained; normalized geometry separate; Decimal80/120 scalar algebra; binary scalar atan2"
+      }
+    },
+    {
+      "name": "exact-upper-limit",
+      "result": {
+        "ok": true,
+        "resolved": true,
+        "raw": {
+          "relativeAngleRad": 0.7999999999999999,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            0.38941834230865047,
+            0.9210609940028851
+          ],
+          "anchorAM": [
+            5.812042372361605e-18,
+            -0.03894183423086505,
+            0
+          ],
+          "anchorBM": [
+            -5.812042372361605e-18,
+            -0.03894183423086505,
+            0
+          ],
+          "anchorGapM": 1.162408474472321e-17,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 0,
+          "reportedAngleDifferenceRad": -1.1102230246251565e-16,
+          "limitGatePassed": true,
+          "reportGatePassed": true,
+          "centerOfMassM": [
+            0,
+            0,
+            0
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 4.594728620245838e-18,
+          "unitQuaternionGatePassed": true
+        },
+        "normalized": {
+          "relativeAngleRad": 0.8,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            0.3894183423086505,
+            0.9210609940028851
+          ],
+          "anchorAM": [
+            5.739501710339864e-18,
+            -0.03894183423086505,
+            0
+          ],
+          "anchorBM": [
+            -5.739501710339864e-18,
+            -0.03894183423086505,
+            0
+          ],
+          "anchorGapM": 1.1479003420679729e-17,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 0,
+          "reportedAngleDifferenceRad": 0,
+          "limitGatePassed": true,
+          "reportGatePassed": true,
+          "centerOfMassM": [
+            0,
+            0,
+            0
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 1e-120,
+          "unitQuaternionGatePassed": true
+        },
+        "precisionMaxDifference": 1.1535359159666541e-80,
+        "precisionDifferences": {
+          ".raw.relativeQuaternionXYZW[0]": "0E-53",
+          ".raw.relativeQuaternionXYZW[1]": "0E-53",
+          ".raw.relativeQuaternionXYZW[2]": "8.188942074775695800781250E-81",
+          ".raw.relativeQuaternionXYZW[3]": "3.4778304398059844970703125E-81",
+          ".raw.anchorAM[0]": "6.892304669245803024223696178785444096775E-82",
+          ".raw.anchorAM[1]": "7.888658691994736116895765866380518761478E-82",
+          ".raw.anchorAM[2]": "0E-108",
+          ".raw.anchorBM[0]": "6.892304669245803024223696178785444096775E-82",
+          ".raw.anchorBM[1]": "7.888658691994736116895765866380518761478E-82",
+          ".raw.anchorBM[2]": "0E-108",
+          ".raw.anchorGapM": "1.3784609338491606048447392357570888193550000000000000000E-81",
+          ".raw.centerOfMassM[0]": "0E-57",
+          ".raw.centerOfMassM[1]": "0.0",
+          ".raw.centerOfMassM[2]": "0.0",
+          ".raw.comDriftM": "0E-57",
+          ".raw.linearMomentumKgMps": "0",
+          ".raw.linearMomentumVectorKgMps[0]": "0",
+          ".raw.linearMomentumVectorKgMps[1]": "0",
+          ".raw.linearMomentumVectorKgMps[2]": "0",
+          ".raw.angularMomentumKgM2ps": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".raw.energyJ": "0E-111",
+          ".raw.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".raw.quaternionNormError": "2.415036956952757803525648527929752155394E-81",
+          ".normalized.relativeQuaternionXYZW[0]": "0",
+          ".normalized.relativeQuaternionXYZW[1]": "0",
+          ".normalized.relativeQuaternionXYZW[2]": "1.1535359159666541090032987096967385458992E-80",
+          ".normalized.relativeQuaternionXYZW[3]": "6.41218991590464576106351782407670283727E-82",
+          ".normalized.anchorAM[0]": "3.398755647047472986716536955501053010421E-82",
+          ".normalized.anchorAM[1]": "2.1596956146189658689252230690397707864038E-81",
+          ".normalized.anchorAM[2]": "0E-240",
+          ".normalized.anchorBM[0]": "3.398755647047472986716536955501053010421E-82",
+          ".normalized.anchorBM[1]": "2.1596956146189658689252230690397707864038E-81",
+          ".normalized.anchorBM[2]": "0E-240",
+          ".normalized.anchorGapM": "6.797511294094945973433073911002106020842000000000000000E-82",
+          ".normalized.centerOfMassM[0]": "0E-57",
+          ".normalized.centerOfMassM[1]": "0.0",
+          ".normalized.centerOfMassM[2]": "0.0",
+          ".normalized.comDriftM": "0E-57",
+          ".normalized.linearMomentumKgMps": "0",
+          ".normalized.linearMomentumVectorKgMps[0]": "0",
+          ".normalized.linearMomentumVectorKgMps[1]": "0",
+          ".normalized.linearMomentumVectorKgMps[2]": "0",
+          ".normalized.angularMomentumKgM2ps": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".normalized.energyJ": "0E-111",
+          ".normalized.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".normalized.quaternionNormError": "1E-120"
+        },
+        "scalarAngleRepeatMaxDifferenceRad": 0,
+        "violations": [],
+        "failureClass": null,
+        "stateValidation": {
+          "rawFieldsFinite": true,
+          "rawQuaternionUnit": true,
+          "metadataValid": true
+        },
+        "metadataSubset": "config original bodies/joints and dt; optional gravity must be zero; omitted initial motion uses original zero/identity defaults; full archive metadata remains hash-pinned",
+        "convention": "raw quaternion polynomial retained; normalized geometry separate; Decimal80/120 scalar algebra; binary scalar atan2"
+      }
+    },
+    {
+      "name": "exact-lower-limit",
+      "result": {
+        "ok": true,
+        "resolved": true,
+        "raw": {
+          "relativeAngleRad": -0.7999999999999999,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            -0.38941834230865047,
+            0.9210609940028851
+          ],
+          "anchorAM": [
+            5.812042372361605e-18,
+            0.03894183423086505,
+            0
+          ],
+          "anchorBM": [
+            -5.812042372361605e-18,
+            0.03894183423086505,
+            0
+          ],
+          "anchorGapM": 1.162408474472321e-17,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 0,
+          "reportedAngleDifferenceRad": 1.1102230246251565e-16,
+          "limitGatePassed": true,
+          "reportGatePassed": true,
+          "centerOfMassM": [
+            0,
+            0,
+            0
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 4.594728620245838e-18,
+          "unitQuaternionGatePassed": true
+        },
+        "normalized": {
+          "relativeAngleRad": -0.8,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            -0.3894183423086505,
+            0.9210609940028851
+          ],
+          "anchorAM": [
+            5.739501710339864e-18,
+            0.03894183423086505,
+            0
+          ],
+          "anchorBM": [
+            -5.739501710339864e-18,
+            0.03894183423086505,
+            0
+          ],
+          "anchorGapM": 1.1479003420679729e-17,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 0,
+          "reportedAngleDifferenceRad": 0,
+          "limitGatePassed": true,
+          "reportGatePassed": true,
+          "centerOfMassM": [
+            0,
+            0,
+            0
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 1e-120,
+          "unitQuaternionGatePassed": true
+        },
+        "precisionMaxDifference": 1.1535359159666541e-80,
+        "precisionDifferences": {
+          ".raw.relativeQuaternionXYZW[0]": "0E-53",
+          ".raw.relativeQuaternionXYZW[1]": "0E-53",
+          ".raw.relativeQuaternionXYZW[2]": "8.188942074775695800781250E-81",
+          ".raw.relativeQuaternionXYZW[3]": "3.4778304398059844970703125E-81",
+          ".raw.anchorAM[0]": "6.892304669245803024223696178785444096775E-82",
+          ".raw.anchorAM[1]": "7.888658691994736116895765866380518761478E-82",
+          ".raw.anchorAM[2]": "0E-108",
+          ".raw.anchorBM[0]": "6.892304669245803024223696178785444096775E-82",
+          ".raw.anchorBM[1]": "7.888658691994736116895765866380518761478E-82",
+          ".raw.anchorBM[2]": "0E-108",
+          ".raw.anchorGapM": "1.3784609338491606048447392357570888193550000000000000000E-81",
+          ".raw.centerOfMassM[0]": "0E-57",
+          ".raw.centerOfMassM[1]": "0.0",
+          ".raw.centerOfMassM[2]": "0.0",
+          ".raw.comDriftM": "0E-57",
+          ".raw.linearMomentumKgMps": "0",
+          ".raw.linearMomentumVectorKgMps[0]": "0",
+          ".raw.linearMomentumVectorKgMps[1]": "0",
+          ".raw.linearMomentumVectorKgMps[2]": "0",
+          ".raw.angularMomentumKgM2ps": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".raw.energyJ": "0E-111",
+          ".raw.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".raw.quaternionNormError": "2.415036956952757803525648527929752155394E-81",
+          ".normalized.relativeQuaternionXYZW[0]": "0",
+          ".normalized.relativeQuaternionXYZW[1]": "0",
+          ".normalized.relativeQuaternionXYZW[2]": "1.1535359159666541090032987096967385458992E-80",
+          ".normalized.relativeQuaternionXYZW[3]": "6.41218991590464576106351782407670283727E-82",
+          ".normalized.anchorAM[0]": "3.398755647047472986716536955501053010421E-82",
+          ".normalized.anchorAM[1]": "2.1596956146189658689252230690397707864038E-81",
+          ".normalized.anchorAM[2]": "0E-240",
+          ".normalized.anchorBM[0]": "3.398755647047472986716536955501053010421E-82",
+          ".normalized.anchorBM[1]": "2.1596956146189658689252230690397707864038E-81",
+          ".normalized.anchorBM[2]": "0E-240",
+          ".normalized.anchorGapM": "6.797511294094945973433073911002106020842000000000000000E-82",
+          ".normalized.centerOfMassM[0]": "0E-57",
+          ".normalized.centerOfMassM[1]": "0.0",
+          ".normalized.centerOfMassM[2]": "0.0",
+          ".normalized.comDriftM": "0E-57",
+          ".normalized.linearMomentumKgMps": "0",
+          ".normalized.linearMomentumVectorKgMps[0]": "0",
+          ".normalized.linearMomentumVectorKgMps[1]": "0",
+          ".normalized.linearMomentumVectorKgMps[2]": "0",
+          ".normalized.angularMomentumKgM2ps": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".normalized.energyJ": "0E-111",
+          ".normalized.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".normalized.quaternionNormError": "1E-120"
+        },
+        "scalarAngleRepeatMaxDifferenceRad": 0,
+        "violations": [],
+        "failureClass": null,
+        "stateValidation": {
+          "rawFieldsFinite": true,
+          "rawQuaternionUnit": true,
+          "metadataValid": true
+        },
+        "metadataSubset": "config original bodies/joints and dt; optional gravity must be zero; omitted initial motion uses original zero/identity defaults; full archive metadata remains hash-pinned",
+        "convention": "raw quaternion polynomial retained; normalized geometry separate; Decimal80/120 scalar algebra; binary scalar atan2"
+      }
+    },
+    {
+      "name": "slight-upper-excess",
+      "result": {
+        "ok": true,
+        "resolved": true,
+        "raw": {
+          "relativeAngleRad": 0.80000001,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            0.38941834691395544,
+            0.9210609920557933
+          ],
+          "anchorAM": [
+            6.979831732072343e-21,
+            -0.03894183469139555,
+            0
+          ],
+          "anchorBM": [
+            -6.979831732072343e-21,
+            -0.03894183469139555,
+            0
+          ],
+          "anchorGapM": 1.3959663464144685e-20,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 9.99999993922529e-9,
+          "reportedAngleDifferenceRad": 9.99999993922529e-9,
+          "limitGatePassed": false,
+          "reportGatePassed": false,
+          "centerOfMassM": [
+            0,
+            0,
+            0
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 4.54729211912744e-17,
+          "unitQuaternionGatePassed": true
+        },
+        "normalized": {
+          "relativeAngleRad": 0.8000000099999999,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            0.38941834691395544,
+            0.9210609920557934
+          ],
+          "anchorAM": [
+            -7.109376257007861e-19,
+            -0.03894183469139555,
+            0
+          ],
+          "anchorBM": [
+            7.109376257007861e-19,
+            -0.03894183469139555,
+            0
+          ],
+          "anchorGapM": 1.4218752514015723e-18,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 9.999999828202988e-9,
+          "reportedAngleDifferenceRad": 9.999999828202988e-9,
+          "limitGatePassed": false,
+          "reportGatePassed": false,
+          "centerOfMassM": [
+            0,
+            0,
+            0
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 0,
+          "unitQuaternionGatePassed": true
+        },
+        "precisionMaxDifference": 1.5553531200392922e-80,
+        "precisionDifferences": {
+          ".raw.relativeQuaternionXYZW[0]": "0E-55",
+          ".raw.relativeQuaternionXYZW[1]": "0E-55",
+          ".raw.relativeQuaternionXYZW[2]": "9.11883994936943054199218750E-81",
+          ".raw.relativeQuaternionXYZW[3]": "6.2762617133557796478271484375E-82",
+          ".raw.anchorAM[0]": "3.743257870798468664399877759717232508947E-82",
+          ".raw.anchorAM[1]": "8.66051079462219535252123816003147927390E-83",
+          ".raw.anchorAM[2]": "0E-110",
+          ".raw.anchorBM[0]": "3.743257870798468664399877759717232508947E-82",
+          ".raw.anchorBM[1]": "8.66051079462219535252123816003147927390E-83",
+          ".raw.anchorBM[2]": "0E-110",
+          ".raw.anchorGapM": "7.486515741596937328799755519434465017894000000000000000000E-82",
+          ".raw.centerOfMassM[0]": "0E-57",
+          ".raw.centerOfMassM[1]": "0.0",
+          ".raw.centerOfMassM[2]": "0.0",
+          ".raw.comDriftM": "0E-57",
+          ".raw.linearMomentumKgMps": "0",
+          ".raw.linearMomentumVectorKgMps[0]": "0",
+          ".raw.linearMomentumVectorKgMps[1]": "0",
+          ".raw.linearMomentumVectorKgMps[2]": "0",
+          ".raw.angularMomentumKgM2ps": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".raw.energyJ": "0E-111",
+          ".raw.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".raw.quaternionNormError": "5.546241416282504196501655848693516183444E-81",
+          ".normalized.relativeQuaternionXYZW[0]": "0",
+          ".normalized.relativeQuaternionXYZW[1]": "0",
+          ".normalized.relativeQuaternionXYZW[2]": "1.5553531200392921146445412413658253216104E-80",
+          ".normalized.relativeQuaternionXYZW[3]": "7.683833107293036534009367765179351687749E-81",
+          ".normalized.anchorAM[0]": "6.77047335908376920223821400506065677289E-83",
+          ".normalized.anchorAM[1]": "1.2640924192952274632290154417661166567850E-81",
+          ".normalized.anchorAM[2]": "0E-240",
+          ".normalized.anchorBM[0]": "6.77047335908376920223821400506065677289E-83",
+          ".normalized.anchorBM[1]": "1.2640924192952274632290154417661166567850E-81",
+          ".normalized.anchorBM[2]": "0E-240",
+          ".normalized.anchorGapM": "1.3540946718167538404476428010121313545780000000000000000E-82",
+          ".normalized.centerOfMassM[0]": "0E-57",
+          ".normalized.centerOfMassM[1]": "0.0",
+          ".normalized.centerOfMassM[2]": "0.0",
+          ".normalized.comDriftM": "0E-57",
+          ".normalized.linearMomentumKgMps": "0",
+          ".normalized.linearMomentumVectorKgMps[0]": "0",
+          ".normalized.linearMomentumVectorKgMps[1]": "0",
+          ".normalized.linearMomentumVectorKgMps[2]": "0",
+          ".normalized.angularMomentumKgM2ps": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".normalized.energyJ": "0E-111",
+          ".normalized.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".normalized.quaternionNormError": "0E-60"
+        },
+        "scalarAngleRepeatMaxDifferenceRad": 0,
+        "violations": [],
+        "failureClass": null,
+        "stateValidation": {
+          "rawFieldsFinite": true,
+          "rawQuaternionUnit": true,
+          "metadataValid": true
+        },
+        "metadataSubset": "config original bodies/joints and dt; optional gravity must be zero; omitted initial motion uses original zero/identity defaults; full archive metadata remains hash-pinned",
+        "convention": "raw quaternion polynomial retained; normalized geometry separate; Decimal80/120 scalar algebra; binary scalar atan2"
+      }
+    },
+    {
+      "name": "slight-lower-excess",
+      "result": {
+        "ok": true,
+        "resolved": true,
+        "raw": {
+          "relativeAngleRad": -0.80000001,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            -0.38941834691395544,
+            0.9210609920557933
+          ],
+          "anchorAM": [
+            6.979831732072343e-21,
+            0.03894183469139555,
+            0
+          ],
+          "anchorBM": [
+            -6.979831732072343e-21,
+            0.03894183469139555,
+            0
+          ],
+          "anchorGapM": 1.3959663464144685e-20,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 9.99999993922529e-9,
+          "reportedAngleDifferenceRad": -9.99999993922529e-9,
+          "limitGatePassed": false,
+          "reportGatePassed": false,
+          "centerOfMassM": [
+            0,
+            0,
+            0
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 4.54729211912744e-17,
+          "unitQuaternionGatePassed": true
+        },
+        "normalized": {
+          "relativeAngleRad": -0.8000000099999999,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            -0.38941834691395544,
+            0.9210609920557934
+          ],
+          "anchorAM": [
+            -7.109376257007861e-19,
+            0.03894183469139555,
+            0
+          ],
+          "anchorBM": [
+            7.109376257007861e-19,
+            0.03894183469139555,
+            0
+          ],
+          "anchorGapM": 1.4218752514015723e-18,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 9.999999828202988e-9,
+          "reportedAngleDifferenceRad": -9.999999828202988e-9,
+          "limitGatePassed": false,
+          "reportGatePassed": false,
+          "centerOfMassM": [
+            0,
+            0,
+            0
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 0,
+          "unitQuaternionGatePassed": true
+        },
+        "precisionMaxDifference": 1.5553531200392922e-80,
+        "precisionDifferences": {
+          ".raw.relativeQuaternionXYZW[0]": "0E-55",
+          ".raw.relativeQuaternionXYZW[1]": "0E-55",
+          ".raw.relativeQuaternionXYZW[2]": "9.11883994936943054199218750E-81",
+          ".raw.relativeQuaternionXYZW[3]": "6.2762617133557796478271484375E-82",
+          ".raw.anchorAM[0]": "3.743257870798468664399877759717232508947E-82",
+          ".raw.anchorAM[1]": "8.66051079462219535252123816003147927390E-83",
+          ".raw.anchorAM[2]": "0E-110",
+          ".raw.anchorBM[0]": "3.743257870798468664399877759717232508947E-82",
+          ".raw.anchorBM[1]": "8.66051079462219535252123816003147927390E-83",
+          ".raw.anchorBM[2]": "0E-110",
+          ".raw.anchorGapM": "7.486515741596937328799755519434465017894000000000000000000E-82",
+          ".raw.centerOfMassM[0]": "0E-57",
+          ".raw.centerOfMassM[1]": "0.0",
+          ".raw.centerOfMassM[2]": "0.0",
+          ".raw.comDriftM": "0E-57",
+          ".raw.linearMomentumKgMps": "0",
+          ".raw.linearMomentumVectorKgMps[0]": "0",
+          ".raw.linearMomentumVectorKgMps[1]": "0",
+          ".raw.linearMomentumVectorKgMps[2]": "0",
+          ".raw.angularMomentumKgM2ps": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".raw.energyJ": "0E-111",
+          ".raw.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".raw.quaternionNormError": "5.546241416282504196501655848693516183444E-81",
+          ".normalized.relativeQuaternionXYZW[0]": "0",
+          ".normalized.relativeQuaternionXYZW[1]": "0",
+          ".normalized.relativeQuaternionXYZW[2]": "1.5553531200392921146445412413658253216104E-80",
+          ".normalized.relativeQuaternionXYZW[3]": "7.683833107293036534009367765179351687749E-81",
+          ".normalized.anchorAM[0]": "6.77047335908376920223821400506065677289E-83",
+          ".normalized.anchorAM[1]": "1.2640924192952274632290154417661166567850E-81",
+          ".normalized.anchorAM[2]": "0E-240",
+          ".normalized.anchorBM[0]": "6.77047335908376920223821400506065677289E-83",
+          ".normalized.anchorBM[1]": "1.2640924192952274632290154417661166567850E-81",
+          ".normalized.anchorBM[2]": "0E-240",
+          ".normalized.anchorGapM": "1.3540946718167538404476428010121313545780000000000000000E-82",
+          ".normalized.centerOfMassM[0]": "0E-57",
+          ".normalized.centerOfMassM[1]": "0.0",
+          ".normalized.centerOfMassM[2]": "0.0",
+          ".normalized.comDriftM": "0E-57",
+          ".normalized.linearMomentumKgMps": "0",
+          ".normalized.linearMomentumVectorKgMps[0]": "0",
+          ".normalized.linearMomentumVectorKgMps[1]": "0",
+          ".normalized.linearMomentumVectorKgMps[2]": "0",
+          ".normalized.angularMomentumKgM2ps": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".normalized.energyJ": "0E-111",
+          ".normalized.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".normalized.quaternionNormError": "0E-60"
+        },
+        "scalarAngleRepeatMaxDifferenceRad": 0,
+        "violations": [],
+        "failureClass": null,
+        "stateValidation": {
+          "rawFieldsFinite": true,
+          "rawQuaternionUnit": true,
+          "metadataValid": true
+        },
+        "metadataSubset": "config original bodies/joints and dt; optional gravity must be zero; omitted initial motion uses original zero/identity defaults; full archive metadata remains hash-pinned",
+        "convention": "raw quaternion polynomial retained; normalized geometry separate; Decimal80/120 scalar algebra; binary scalar atan2"
+      }
+    },
+    {
+      "name": "sign-equivalent-quaternion",
+      "result": {
+        "ok": true,
+        "resolved": true,
+        "raw": {
+          "relativeAngleRad": 0.7999999999999998,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            -0.38941834230865047,
+            -0.9210609940028851
+          ],
+          "anchorAM": [
+            5.812042372361605e-18,
+            -0.03894183423086505,
+            0
+          ],
+          "anchorBM": [
+            -5.812042372361605e-18,
+            -0.03894183423086505,
+            0
+          ],
+          "anchorGapM": 1.162408474472321e-17,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 0,
+          "reportedAngleDifferenceRad": -2.220446049250313e-16,
+          "limitGatePassed": true,
+          "reportGatePassed": true,
+          "centerOfMassM": [
+            0,
+            0,
+            0
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 4.594728620245838e-18,
+          "unitQuaternionGatePassed": true
+        },
+        "normalized": {
+          "relativeAngleRad": 0.7999999999999998,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            -0.3894183423086505,
+            -0.9210609940028851
+          ],
+          "anchorAM": [
+            5.739501710339864e-18,
+            -0.03894183423086505,
+            0
+          ],
+          "anchorBM": [
+            -5.739501710339864e-18,
+            -0.03894183423086505,
+            0
+          ],
+          "anchorGapM": 1.1479003420679729e-17,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 0,
+          "reportedAngleDifferenceRad": -2.220446049250313e-16,
+          "limitGatePassed": true,
+          "reportGatePassed": true,
+          "centerOfMassM": [
+            0,
+            0,
+            0
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 1e-120,
+          "unitQuaternionGatePassed": true
+        },
+        "precisionMaxDifference": 1.1535359159666541e-80,
+        "precisionDifferences": {
+          ".raw.relativeQuaternionXYZW[0]": "0E-53",
+          ".raw.relativeQuaternionXYZW[1]": "0E-53",
+          ".raw.relativeQuaternionXYZW[2]": "8.188942074775695800781250E-81",
+          ".raw.relativeQuaternionXYZW[3]": "3.4778304398059844970703125E-81",
+          ".raw.anchorAM[0]": "6.892304669245803024223696178785444096775E-82",
+          ".raw.anchorAM[1]": "7.888658691994736116895765866380518761478E-82",
+          ".raw.anchorAM[2]": "0E-108",
+          ".raw.anchorBM[0]": "6.892304669245803024223696178785444096775E-82",
+          ".raw.anchorBM[1]": "7.888658691994736116895765866380518761478E-82",
+          ".raw.anchorBM[2]": "0E-108",
+          ".raw.anchorGapM": "1.3784609338491606048447392357570888193550000000000000000E-81",
+          ".raw.centerOfMassM[0]": "0E-57",
+          ".raw.centerOfMassM[1]": "0.0",
+          ".raw.centerOfMassM[2]": "0.0",
+          ".raw.comDriftM": "0E-57",
+          ".raw.linearMomentumKgMps": "0",
+          ".raw.linearMomentumVectorKgMps[0]": "0",
+          ".raw.linearMomentumVectorKgMps[1]": "0",
+          ".raw.linearMomentumVectorKgMps[2]": "0",
+          ".raw.angularMomentumKgM2ps": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".raw.energyJ": "0E-111",
+          ".raw.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".raw.quaternionNormError": "2.415036956952757803525648527929752155394E-81",
+          ".normalized.relativeQuaternionXYZW[0]": "0",
+          ".normalized.relativeQuaternionXYZW[1]": "0",
+          ".normalized.relativeQuaternionXYZW[2]": "1.1535359159666541090032987096967385458992E-80",
+          ".normalized.relativeQuaternionXYZW[3]": "6.41218991590464576106351782407670283727E-82",
+          ".normalized.anchorAM[0]": "3.398755647047472986716536955501053010421E-82",
+          ".normalized.anchorAM[1]": "2.1596956146189658689252230690397707864038E-81",
+          ".normalized.anchorAM[2]": "0E-240",
+          ".normalized.anchorBM[0]": "3.398755647047472986716536955501053010421E-82",
+          ".normalized.anchorBM[1]": "2.1596956146189658689252230690397707864038E-81",
+          ".normalized.anchorBM[2]": "0E-240",
+          ".normalized.anchorGapM": "6.797511294094945973433073911002106020842000000000000000E-82",
+          ".normalized.centerOfMassM[0]": "0E-57",
+          ".normalized.centerOfMassM[1]": "0.0",
+          ".normalized.centerOfMassM[2]": "0.0",
+          ".normalized.comDriftM": "0E-57",
+          ".normalized.linearMomentumKgMps": "0",
+          ".normalized.linearMomentumVectorKgMps[0]": "0",
+          ".normalized.linearMomentumVectorKgMps[1]": "0",
+          ".normalized.linearMomentumVectorKgMps[2]": "0",
+          ".normalized.angularMomentumKgM2ps": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".normalized.energyJ": "0E-111",
+          ".normalized.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".normalized.quaternionNormError": "1E-120"
+        },
+        "scalarAngleRepeatMaxDifferenceRad": 0,
+        "violations": [],
+        "failureClass": null,
+        "stateValidation": {
+          "rawFieldsFinite": true,
+          "rawQuaternionUnit": true,
+          "metadataValid": true
+        },
+        "metadataSubset": "config original bodies/joints and dt; optional gravity must be zero; omitted initial motion uses original zero/identity defaults; full archive metadata remains hash-pinned",
+        "convention": "raw quaternion polynomial retained; normalized geometry separate; Decimal80/120 scalar algebra; binary scalar atan2"
+      }
+    },
+    {
+      "name": "Z1-translation",
+      "result": {
+        "ok": true,
+        "resolved": true,
+        "raw": {
+          "relativeAngleRad": 0,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "anchorAM": [
+            0,
+            0,
+            1
+          ],
+          "anchorBM": [
+            0,
+            0,
+            1
+          ],
+          "anchorGapM": 0,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 0,
+          "reportedAngleDifferenceRad": 0,
+          "limitGatePassed": true,
+          "reportGatePassed": true,
+          "centerOfMassM": [
+            0,
+            0,
+            1
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 0,
+          "unitQuaternionGatePassed": true
+        },
+        "normalized": {
+          "relativeAngleRad": 0,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "anchorAM": [
+            0,
+            0,
+            1
+          ],
+          "anchorBM": [
+            0,
+            0,
+            1
+          ],
+          "anchorGapM": 0,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 0,
+          "reportedAngleDifferenceRad": 0,
+          "limitGatePassed": true,
+          "reportGatePassed": true,
+          "centerOfMassM": [
+            0,
+            0,
+            1
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 0,
+          "unitQuaternionGatePassed": true
+        },
+        "precisionMaxDifference": 2.1515550464391708e-83,
+        "precisionDifferences": {
+          ".raw.relativeQuaternionXYZW[0]": "0",
+          ".raw.relativeQuaternionXYZW[1]": "0",
+          ".raw.relativeQuaternionXYZW[2]": "0",
+          ".raw.relativeQuaternionXYZW[3]": "0",
+          ".raw.anchorAM[0]": "0E-55",
+          ".raw.anchorAM[1]": "0E-55",
+          ".raw.anchorAM[2]": "0E-55",
+          ".raw.anchorBM[0]": "0E-55",
+          ".raw.anchorBM[1]": "0E-55",
+          ".raw.anchorBM[2]": "0E-55",
+          ".raw.anchorGapM": "0E-55",
+          ".raw.centerOfMassM[0]": "0E-56",
+          ".raw.centerOfMassM[1]": "0.0",
+          ".raw.centerOfMassM[2]": "0.0",
+          ".raw.comDriftM": "0E-56",
+          ".raw.linearMomentumKgMps": "0",
+          ".raw.linearMomentumVectorKgMps[0]": "0",
+          ".raw.linearMomentumVectorKgMps[1]": "0",
+          ".raw.linearMomentumVectorKgMps[2]": "0",
+          ".raw.angularMomentumKgM2ps": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".raw.energyJ": "0E-111",
+          ".raw.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".raw.quaternionNormError": "0",
+          ".normalized.relativeQuaternionXYZW[0]": "0",
+          ".normalized.relativeQuaternionXYZW[1]": "0",
+          ".normalized.relativeQuaternionXYZW[2]": "0",
+          ".normalized.relativeQuaternionXYZW[3]": "0",
+          ".normalized.anchorAM[0]": "0E-55",
+          ".normalized.anchorAM[1]": "0E-55",
+          ".normalized.anchorAM[2]": "0E-55",
+          ".normalized.anchorBM[0]": "0E-55",
+          ".normalized.anchorBM[1]": "0E-55",
+          ".normalized.anchorBM[2]": "0E-55",
+          ".normalized.anchorGapM": "0E-55",
+          ".normalized.centerOfMassM[0]": "0E-56",
+          ".normalized.centerOfMassM[1]": "0.0",
+          ".normalized.centerOfMassM[2]": "0.0",
+          ".normalized.comDriftM": "0E-56",
+          ".normalized.linearMomentumKgMps": "0",
+          ".normalized.linearMomentumVectorKgMps[0]": "0",
+          ".normalized.linearMomentumVectorKgMps[1]": "0",
+          ".normalized.linearMomentumVectorKgMps[2]": "0",
+          ".normalized.angularMomentumKgM2ps": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".normalized.energyJ": "0E-111",
+          ".normalized.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".normalized.quaternionNormError": "0"
+        },
+        "scalarAngleRepeatMaxDifferenceRad": 0,
+        "violations": [],
+        "failureClass": null,
+        "stateValidation": {
+          "rawFieldsFinite": true,
+          "rawQuaternionUnit": true,
+          "metadataValid": true
+        },
+        "metadataSubset": "config original bodies/joints and dt; optional gravity must be zero; omitted initial motion uses original zero/identity defaults; full archive metadata remains hash-pinned",
+        "convention": "raw quaternion polynomial retained; normalized geometry separate; Decimal80/120 scalar algebra; binary scalar atan2"
+      }
+    },
+    {
+      "name": "canonical-public-pair1-Z0",
+      "result": {
+        "ok": true,
+        "resolved": true,
+        "raw": {
+          "relativeAngleRad": 0,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "anchorAM": [
+            0,
+            0,
+            0
+          ],
+          "anchorBM": [
+            0,
+            0,
+            0
+          ],
+          "anchorGapM": 0,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 0,
+          "reportedAngleDifferenceRad": 0,
+          "limitGatePassed": true,
+          "reportGatePassed": true,
+          "centerOfMassM": [
+            0,
+            0,
+            0
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 0,
+          "unitQuaternionGatePassed": true
+        },
+        "normalized": {
+          "relativeAngleRad": 0,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "anchorAM": [
+            0,
+            0,
+            0
+          ],
+          "anchorBM": [
+            0,
+            0,
+            0
+          ],
+          "anchorGapM": 0,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 0,
+          "reportedAngleDifferenceRad": 0,
+          "limitGatePassed": true,
+          "reportGatePassed": true,
+          "centerOfMassM": [
+            0,
+            0,
+            0
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 0,
+          "unitQuaternionGatePassed": true
+        },
+        "precisionMaxDifference": 2.1515550464391708e-83,
+        "precisionDifferences": {
+          ".raw.relativeQuaternionXYZW[0]": "0",
+          ".raw.relativeQuaternionXYZW[1]": "0",
+          ".raw.relativeQuaternionXYZW[2]": "0",
+          ".raw.relativeQuaternionXYZW[3]": "0",
+          ".raw.anchorAM[0]": "0E-55",
+          ".raw.anchorAM[1]": "0E-55",
+          ".raw.anchorAM[2]": "0E-55",
+          ".raw.anchorBM[0]": "0E-55",
+          ".raw.anchorBM[1]": "0E-55",
+          ".raw.anchorBM[2]": "0E-55",
+          ".raw.anchorGapM": "0E-55",
+          ".raw.centerOfMassM[0]": "0E-56",
+          ".raw.centerOfMassM[1]": "0.0",
+          ".raw.centerOfMassM[2]": "0.0",
+          ".raw.comDriftM": "0E-56",
+          ".raw.linearMomentumKgMps": "0",
+          ".raw.linearMomentumVectorKgMps[0]": "0",
+          ".raw.linearMomentumVectorKgMps[1]": "0",
+          ".raw.linearMomentumVectorKgMps[2]": "0",
+          ".raw.angularMomentumKgM2ps": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".raw.energyJ": "0E-111",
+          ".raw.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".raw.quaternionNormError": "0",
+          ".normalized.relativeQuaternionXYZW[0]": "0",
+          ".normalized.relativeQuaternionXYZW[1]": "0",
+          ".normalized.relativeQuaternionXYZW[2]": "0",
+          ".normalized.relativeQuaternionXYZW[3]": "0",
+          ".normalized.anchorAM[0]": "0E-55",
+          ".normalized.anchorAM[1]": "0E-55",
+          ".normalized.anchorAM[2]": "0E-55",
+          ".normalized.anchorBM[0]": "0E-55",
+          ".normalized.anchorBM[1]": "0E-55",
+          ".normalized.anchorBM[2]": "0E-55",
+          ".normalized.anchorGapM": "0E-55",
+          ".normalized.centerOfMassM[0]": "0E-56",
+          ".normalized.centerOfMassM[1]": "0.0",
+          ".normalized.centerOfMassM[2]": "0.0",
+          ".normalized.comDriftM": "0E-56",
+          ".normalized.linearMomentumKgMps": "0",
+          ".normalized.linearMomentumVectorKgMps[0]": "0",
+          ".normalized.linearMomentumVectorKgMps[1]": "0",
+          ".normalized.linearMomentumVectorKgMps[2]": "0",
+          ".normalized.angularMomentumKgM2ps": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".normalized.energyJ": "0E-111",
+          ".normalized.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".normalized.quaternionNormError": "0"
+        },
+        "scalarAngleRepeatMaxDifferenceRad": 0,
+        "violations": [],
+        "failureClass": null,
+        "stateValidation": {
+          "rawFieldsFinite": true,
+          "rawQuaternionUnit": true,
+          "metadataValid": true
+        },
+        "metadataSubset": "config original bodies/joints and dt; optional gravity must be zero; omitted initial motion uses original zero/identity defaults; full archive metadata remains hash-pinned",
+        "convention": "raw quaternion polynomial retained; normalized geometry separate; Decimal80/120 scalar algebra; binary scalar atan2"
+      }
+    },
+    {
+      "name": "changed-report-only",
+      "result": {
+        "ok": true,
+        "resolved": true,
+        "raw": {
+          "relativeAngleRad": 0,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "anchorAM": [
+            0,
+            0,
+            0
+          ],
+          "anchorBM": [
+            0,
+            0,
+            0
+          ],
+          "anchorGapM": 0,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 0,
+          "reportedAngleDifferenceRad": -0.2,
+          "limitGatePassed": true,
+          "reportGatePassed": false,
+          "centerOfMassM": [
+            0,
+            0,
+            0
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 0,
+          "unitQuaternionGatePassed": true
+        },
+        "normalized": {
+          "relativeAngleRad": 0,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "anchorAM": [
+            0,
+            0,
+            0
+          ],
+          "anchorBM": [
+            0,
+            0,
+            0
+          ],
+          "anchorGapM": 0,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 0,
+          "reportedAngleDifferenceRad": -0.2,
+          "limitGatePassed": true,
+          "reportGatePassed": false,
+          "centerOfMassM": [
+            0,
+            0,
+            0
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 0,
+          "unitQuaternionGatePassed": true
+        },
+        "precisionMaxDifference": 2.1515550464391708e-83,
+        "precisionDifferences": {
+          ".raw.relativeQuaternionXYZW[0]": "0",
+          ".raw.relativeQuaternionXYZW[1]": "0",
+          ".raw.relativeQuaternionXYZW[2]": "0",
+          ".raw.relativeQuaternionXYZW[3]": "0",
+          ".raw.anchorAM[0]": "0E-55",
+          ".raw.anchorAM[1]": "0E-55",
+          ".raw.anchorAM[2]": "0E-55",
+          ".raw.anchorBM[0]": "0E-55",
+          ".raw.anchorBM[1]": "0E-55",
+          ".raw.anchorBM[2]": "0E-55",
+          ".raw.anchorGapM": "0E-55",
+          ".raw.centerOfMassM[0]": "0E-56",
+          ".raw.centerOfMassM[1]": "0.0",
+          ".raw.centerOfMassM[2]": "0.0",
+          ".raw.comDriftM": "0E-56",
+          ".raw.linearMomentumKgMps": "0",
+          ".raw.linearMomentumVectorKgMps[0]": "0",
+          ".raw.linearMomentumVectorKgMps[1]": "0",
+          ".raw.linearMomentumVectorKgMps[2]": "0",
+          ".raw.angularMomentumKgM2ps": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".raw.energyJ": "0E-111",
+          ".raw.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".raw.quaternionNormError": "0",
+          ".normalized.relativeQuaternionXYZW[0]": "0",
+          ".normalized.relativeQuaternionXYZW[1]": "0",
+          ".normalized.relativeQuaternionXYZW[2]": "0",
+          ".normalized.relativeQuaternionXYZW[3]": "0",
+          ".normalized.anchorAM[0]": "0E-55",
+          ".normalized.anchorAM[1]": "0E-55",
+          ".normalized.anchorAM[2]": "0E-55",
+          ".normalized.anchorBM[0]": "0E-55",
+          ".normalized.anchorBM[1]": "0E-55",
+          ".normalized.anchorBM[2]": "0E-55",
+          ".normalized.anchorGapM": "0E-55",
+          ".normalized.centerOfMassM[0]": "0E-56",
+          ".normalized.centerOfMassM[1]": "0.0",
+          ".normalized.centerOfMassM[2]": "0.0",
+          ".normalized.comDriftM": "0E-56",
+          ".normalized.linearMomentumKgMps": "0",
+          ".normalized.linearMomentumVectorKgMps[0]": "0",
+          ".normalized.linearMomentumVectorKgMps[1]": "0",
+          ".normalized.linearMomentumVectorKgMps[2]": "0",
+          ".normalized.angularMomentumKgM2ps": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".normalized.energyJ": "0E-111",
+          ".normalized.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".normalized.quaternionNormError": "0"
+        },
+        "scalarAngleRepeatMaxDifferenceRad": 0,
+        "violations": [],
+        "failureClass": null,
+        "stateValidation": {
+          "rawFieldsFinite": true,
+          "rawQuaternionUnit": true,
+          "metadataValid": true
+        },
+        "metadataSubset": "config original bodies/joints and dt; optional gravity must be zero; omitted initial motion uses original zero/identity defaults; full archive metadata remains hash-pinned",
+        "convention": "raw quaternion polynomial retained; normalized geometry separate; Decimal80/120 scalar algebra; binary scalar atan2"
+      }
+    },
+    {
+      "name": "anchor-mismatch",
+      "result": {
+        "ok": true,
+        "resolved": true,
+        "raw": {
+          "relativeAngleRad": 0,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "anchorAM": [
+            0.010000000000000009,
+            0,
+            0
+          ],
+          "anchorBM": [
+            0,
+            0,
+            0
+          ],
+          "anchorGapM": 0.010000000000000009,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 0,
+          "reportedAngleDifferenceRad": 0,
+          "limitGatePassed": true,
+          "reportGatePassed": true,
+          "centerOfMassM": [
+            0.0050000000000000044,
+            0,
+            0
+          ],
+          "comDriftM": 0.0050000000000000044,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 0,
+          "unitQuaternionGatePassed": true
+        },
+        "normalized": {
+          "relativeAngleRad": 0,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "anchorAM": [
+            0.010000000000000009,
+            0,
+            0
+          ],
+          "anchorBM": [
+            0,
+            0,
+            0
+          ],
+          "anchorGapM": 0.010000000000000009,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 0,
+          "reportedAngleDifferenceRad": 0,
+          "limitGatePassed": true,
+          "reportGatePassed": true,
+          "centerOfMassM": [
+            0.0050000000000000044,
+            0,
+            0
+          ],
+          "comDriftM": 0.0050000000000000044,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0
+          ],
+          "energyJ": 0,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 0,
+          "unitQuaternionGatePassed": true
+        },
+        "precisionMaxDifference": 2.1515550464391708e-83,
+        "precisionDifferences": {
+          ".raw.relativeQuaternionXYZW[0]": "0",
+          ".raw.relativeQuaternionXYZW[1]": "0",
+          ".raw.relativeQuaternionXYZW[2]": "0",
+          ".raw.relativeQuaternionXYZW[3]": "0",
+          ".raw.anchorAM[0]": "0E-55",
+          ".raw.anchorAM[1]": "0E-55",
+          ".raw.anchorAM[2]": "0E-55",
+          ".raw.anchorBM[0]": "0E-55",
+          ".raw.anchorBM[1]": "0E-55",
+          ".raw.anchorBM[2]": "0E-55",
+          ".raw.anchorGapM": "0E-81",
+          ".raw.centerOfMassM[0]": "0E-56",
+          ".raw.centerOfMassM[1]": "0.0",
+          ".raw.centerOfMassM[2]": "0.0",
+          ".raw.comDriftM": "0E-82",
+          ".raw.linearMomentumKgMps": "0",
+          ".raw.linearMomentumVectorKgMps[0]": "0",
+          ".raw.linearMomentumVectorKgMps[1]": "0",
+          ".raw.linearMomentumVectorKgMps[2]": "0",
+          ".raw.angularMomentumKgM2ps": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".raw.energyJ": "0E-111",
+          ".raw.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".raw.quaternionNormError": "0",
+          ".normalized.relativeQuaternionXYZW[0]": "0",
+          ".normalized.relativeQuaternionXYZW[1]": "0",
+          ".normalized.relativeQuaternionXYZW[2]": "0",
+          ".normalized.relativeQuaternionXYZW[3]": "0",
+          ".normalized.anchorAM[0]": "0E-55",
+          ".normalized.anchorAM[1]": "0E-55",
+          ".normalized.anchorAM[2]": "0E-55",
+          ".normalized.anchorBM[0]": "0E-55",
+          ".normalized.anchorBM[1]": "0E-55",
+          ".normalized.anchorBM[2]": "0E-55",
+          ".normalized.anchorGapM": "0E-81",
+          ".normalized.centerOfMassM[0]": "0E-56",
+          ".normalized.centerOfMassM[1]": "0.0",
+          ".normalized.centerOfMassM[2]": "0.0",
+          ".normalized.comDriftM": "0E-82",
+          ".normalized.linearMomentumKgMps": "0",
+          ".normalized.linearMomentumVectorKgMps[0]": "0",
+          ".normalized.linearMomentumVectorKgMps[1]": "0",
+          ".normalized.linearMomentumVectorKgMps[2]": "0",
+          ".normalized.angularMomentumKgM2ps": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[2]": "0E-111",
+          ".normalized.energyJ": "0E-111",
+          ".normalized.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".normalized.quaternionNormError": "0"
+        },
+        "scalarAngleRepeatMaxDifferenceRad": 0,
+        "violations": [],
+        "failureClass": null,
+        "stateValidation": {
+          "rawFieldsFinite": true,
+          "rawQuaternionUnit": true,
+          "metadataValid": true
+        },
+        "metadataSubset": "config original bodies/joints and dt; optional gravity must be zero; omitted initial motion uses original zero/identity defaults; full archive metadata remains hash-pinned",
+        "convention": "raw quaternion polynomial retained; normalized geometry separate; Decimal80/120 scalar algebra; binary scalar atan2"
+      }
+    },
+    {
+      "name": "known-spin-and-orbit",
+      "result": {
+        "ok": true,
+        "resolved": true,
+        "raw": {
+          "relativeAngleRad": 0,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "anchorAM": [
+            0,
+            0,
+            0
+          ],
+          "anchorBM": [
+            0,
+            0,
+            0
+          ],
+          "anchorGapM": 0,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 0,
+          "reportedAngleDifferenceRad": 0,
+          "limitGatePassed": true,
+          "reportGatePassed": true,
+          "centerOfMassM": [
+            0,
+            0,
+            0
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0.20800000000000002,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0.20800000000000002
+          ],
+          "energyJ": 1.004,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 0,
+          "unitQuaternionGatePassed": true
+        },
+        "normalized": {
+          "relativeAngleRad": 0,
+          "relativeQuaternionXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "anchorAM": [
+            0,
+            0,
+            0
+          ],
+          "anchorBM": [
+            0,
+            0,
+            0
+          ],
+          "anchorGapM": 0,
+          "axisDeviationRad": 0,
+          "limitExcessRad": 0,
+          "reportedAngleDifferenceRad": 0,
+          "limitGatePassed": true,
+          "reportGatePassed": true,
+          "centerOfMassM": [
+            0,
+            0,
+            0
+          ],
+          "comDriftM": 0,
+          "linearMomentumKgMps": 0,
+          "linearMomentumVectorKgMps": [
+            0,
+            0,
+            0
+          ],
+          "angularMomentumKgM2ps": 0.20800000000000002,
+          "angularMomentumVectorKgM2ps": [
+            0,
+            0,
+            0.20800000000000002
+          ],
+          "energyJ": 1.004,
+          "inertiaKgM2": 0.004,
+          "quaternionNormError": 0,
+          "unitQuaternionGatePassed": true
+        },
+        "precisionMaxDifference": 4.857848444953561e-80,
+        "precisionDifferences": {
+          ".raw.relativeQuaternionXYZW[0]": "0",
+          ".raw.relativeQuaternionXYZW[1]": "0",
+          ".raw.relativeQuaternionXYZW[2]": "0",
+          ".raw.relativeQuaternionXYZW[3]": "0",
+          ".raw.anchorAM[0]": "0E-55",
+          ".raw.anchorAM[1]": "0E-55",
+          ".raw.anchorAM[2]": "0E-55",
+          ".raw.anchorBM[0]": "0E-55",
+          ".raw.anchorBM[1]": "0E-55",
+          ".raw.anchorBM[2]": "0E-55",
+          ".raw.anchorGapM": "0E-55",
+          ".raw.centerOfMassM[0]": "0E-56",
+          ".raw.centerOfMassM[1]": "0.0",
+          ".raw.centerOfMassM[2]": "0.0",
+          ".raw.comDriftM": "0E-56",
+          ".raw.linearMomentumKgMps": "0",
+          ".raw.linearMomentumVectorKgMps[0]": "0",
+          ".raw.linearMomentumVectorKgMps[1]": "0",
+          ".raw.linearMomentumVectorKgMps[2]": "0",
+          ".raw.angularMomentumKgM2ps": "2.843031100928783416748046875000000000000E-81",
+          ".raw.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".raw.angularMomentumVectorKgM2ps[2]": "2.843031100928783416748046875000E-81",
+          ".raw.energyJ": "4.8578484449535608291625976562500E-80",
+          ".raw.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".raw.quaternionNormError": "0",
+          ".normalized.relativeQuaternionXYZW[0]": "0",
+          ".normalized.relativeQuaternionXYZW[1]": "0",
+          ".normalized.relativeQuaternionXYZW[2]": "0",
+          ".normalized.relativeQuaternionXYZW[3]": "0",
+          ".normalized.anchorAM[0]": "0E-55",
+          ".normalized.anchorAM[1]": "0E-55",
+          ".normalized.anchorAM[2]": "0E-55",
+          ".normalized.anchorBM[0]": "0E-55",
+          ".normalized.anchorBM[1]": "0E-55",
+          ".normalized.anchorBM[2]": "0E-55",
+          ".normalized.anchorGapM": "0E-55",
+          ".normalized.centerOfMassM[0]": "0E-56",
+          ".normalized.centerOfMassM[1]": "0.0",
+          ".normalized.centerOfMassM[2]": "0.0",
+          ".normalized.comDriftM": "0E-56",
+          ".normalized.linearMomentumKgMps": "0",
+          ".normalized.linearMomentumVectorKgMps[0]": "0",
+          ".normalized.linearMomentumVectorKgMps[1]": "0",
+          ".normalized.linearMomentumVectorKgMps[2]": "0",
+          ".normalized.angularMomentumKgM2ps": "2.843031100928783416748046875000000000000E-81",
+          ".normalized.angularMomentumVectorKgM2ps[0]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[1]": "0E-111",
+          ".normalized.angularMomentumVectorKgM2ps[2]": "2.843031100928783416748046875000E-81",
+          ".normalized.energyJ": "4.8578484449535608291625976562500E-80",
+          ".normalized.inertiaKgM2": "2.1515550464391708374023437500E-83",
+          ".normalized.quaternionNormError": "0"
+        },
+        "scalarAngleRepeatMaxDifferenceRad": 0,
+        "violations": [],
+        "failureClass": null,
+        "stateValidation": {
+          "rawFieldsFinite": true,
+          "rawQuaternionUnit": true,
+          "metadataValid": true
+        },
+        "metadataSubset": "config original bodies/joints and dt; optional gravity must be zero; omitted initial motion uses original zero/identity defaults; full archive metadata remains hash-pinned",
+        "convention": "raw quaternion polynomial retained; normalized geometry separate; Decimal80/120 scalar algebra; binary scalar atan2"
+      }
+    },
+    {
+      "name": "null-position",
+      "result": {
+        "ok": false,
+        "resolved": false,
+        "code": "REFERENCE_INPUT",
+        "message": "Reference input must contain finite binary numbers"
+      }
+    },
+    {
+      "name": "nonfinite-position-codec",
+      "result": {
+        "ok": false,
+        "resolved": false,
+        "code": "REFERENCE_INPUT",
+        "message": "Reference input must contain finite binary numbers"
+      }
+    },
+    {
+      "name": "null-report",
+      "result": {
+        "ok": false,
+        "resolved": false,
+        "code": "REFERENCE_INPUT",
+        "message": "Reference input must contain finite binary numbers"
+      }
+    },
+    {
+      "name": "wrong-body-ID",
+      "result": {
+        "ok": false,
+        "resolved": false,
+        "code": "REFERENCE_INPUT",
+        "message": "Reference pair IDs are invalid"
+      }
+    },
+    {
+      "name": "wrong-joint-ID",
+      "result": {
+        "ok": false,
+        "resolved": false,
+        "code": "REFERENCE_INPUT",
+        "message": "Reference pair IDs are invalid"
+      }
+    },
+    {
+      "name": "short-position-vector",
+      "result": {
+        "ok": false,
+        "resolved": false,
+        "code": "REFERENCE_INPUT",
+        "message": "Reference vector must contain exactly 3 numbers"
+      }
+    },
+    {
+      "name": "short-quaternion-vector",
+      "result": {
+        "ok": false,
+        "resolved": false,
+        "code": "REFERENCE_INPUT",
+        "message": "Reference vector must contain exactly 4 numbers"
+      }
+    },
+    {
+      "name": "missing-body",
+      "result": {
+        "ok": false,
+        "resolved": false,
+        "code": "REFERENCE_INPUT",
+        "message": "Reference state requires exactly two bodies"
+      }
+    },
+    {
+      "name": "missing-joint",
+      "result": {
+        "ok": false,
+        "resolved": false,
+        "code": "REFERENCE_INPUT",
+        "message": "Reference state requires exactly one joint"
+      }
+    },
+    {
+      "name": "zero-quaternion",
+      "result": {
+        "ok": false,
+        "resolved": false,
+        "code": "REFERENCE_INPUT",
+        "message": "Reference quaternion has zero norm"
+      }
+    },
+    {
+      "name": "changed-original-material",
+      "result": {
+        "ok": false,
+        "resolved": false,
+        "code": "REFERENCE_INPUT",
+        "message": "Reference original sphere material differs"
+      }
+    },
+    {
+      "name": "changed-original-initial-motion",
+      "result": {
+        "ok": false,
+        "resolved": false,
+        "code": "REFERENCE_INPUT",
+        "message": "Reference original sphere motion differs"
+      }
+    },
+    {
+      "name": "changed-original-gravity",
+      "result": {
+        "ok": false,
+        "resolved": false,
+        "code": "REFERENCE_INPUT",
+        "message": "Reference original gravity differs"
+      }
+    },
+    {
+      "name": "changed-report-preserves-pose-geometry-momentum-energy",
+      "ok": true
+    }
+  ],
+  "typed": [
+    {
+      "name": "null-config",
+      "code": "INVALID_CONFIG",
+      "message": "private hinge diagnostic requires an admitted archived pair"
+    },
+    {
+      "name": "null-state",
+      "code": "INVALID_CONFIG",
+      "message": "private hinge diagnostic requires an admitted archived pair"
+    },
+    {
+      "name": "missing-joint",
+      "code": "INVALID_CONFIG",
+      "message": "private hinge diagnostic requires an admitted archived pair"
+    },
+    {
+      "name": "missing-body",
+      "code": "INVALID_CONFIG",
+      "message": "private hinge diagnostic requires an admitted archived pair"
+    },
+    {
+      "name": "wrong-id",
+      "code": "INVALID_CONFIG",
+      "message": "private hinge diagnostic requires an admitted archived pair"
+    },
+    {
+      "name": "null-report",
+      "code": "INVALID_CONFIG",
+      "message": "private hinge diagnostic requires an admitted archived pair"
+    },
+    {
+      "name": "null-pose",
+      "code": "INVALID_CONFIG",
+      "message": "private hinge diagnostic requires finite unit raw poses within original bounds"
+    },
+    {
+      "name": "nonfinite-pose",
+      "code": "INVALID_CONFIG",
+      "message": "private hinge diagnostic requires finite unit raw poses within original bounds"
+    },
+    {
+      "name": "zero-quaternion",
+      "code": "INVALID_CONFIG",
+      "message": "private hinge diagnostic requires finite unit raw poses within original bounds"
+    },
+    {
+      "name": "sparse-config-body",
+      "code": "INVALID_CONFIG",
+      "message": "private hinge diagnostic requires an admitted archived pair"
+    },
+    {
+      "name": "sparse-config-joint",
+      "code": "INVALID_CONFIG",
+      "message": "private hinge diagnostic requires an admitted archived pair"
+    },
+    {
+      "name": "sparse-state-body",
+      "code": "INVALID_CONFIG",
+      "message": "private hinge diagnostic requires an admitted archived pair"
+    },
+    {
+      "name": "nonzero-gravity",
+      "code": "INVALID_CONFIG",
+      "message": "private hinge diagnostic requires an admitted archived pair"
+    },
+    {
+      "name": "different-dt-metadata",
+      "code": "INVALID_CONFIG",
+      "message": "private hinge diagnostic requires an admitted archived pair"
+    },
+    {
+      "name": "explicit-inertia",
+      "code": "INVALID_CONFIG",
+      "message": "private hinge diagnostic requires an admitted archived pair"
+    },
+    {
+      "name": "zero-mass",
+      "code": "INVALID_CONFIG",
+      "message": "massKg must be finite and in [0.000001, 1000000]"
+    },
+    {
+      "name": "invalid-dt-before-projection",
+      "code": "INVALID_STEP",
+      "message": "private hinge diagnostic requires dt=1/120"
+    }
+  ],
+  "archiveControls": [
+    {
+      "name": "manifest",
+      "message": "archive manifest hash mismatch"
+    },
+    {
+      "name": "artifact",
+      "message": "archive artifact hash mismatch"
+    },
+    {
+      "name": "extra-file",
+      "message": "archive file set mismatch"
+    },
+    {
+      "name": "parent-source-pin",
+      "message": "parent source freeze hash mismatch"
+    },
+    {
+      "name": "own-source-drift"
+    },
+    {
+      "name": "raw-length",
+      "message": "raw frame length mismatch"
+    },
+    {
+      "name": "raw-nonfinite",
+      "message": "archive raw field nonfinite or out of bounds"
+    },
+    {
+      "name": "JSON-null-number",
+      "message": "archive JSON/raw field mismatch"
+    },
+    {
+      "name": "raw-IDs",
+      "message": "archive body IDs mismatch"
+    },
+    {
+      "name": "raw-null-state",
+      "message": "archive state object required"
+    }
+  ],
+  "inputOutputCopies": true,
+  "restoredSignedZero": true,
+  "nullGuard": true,
+  "projectionCallsInControls": 0,
+  "worldCreated": false,
+  "worldStepped": false
+}
