@@ -326,3 +326,6 @@ export type { AxisBoxSolidMassFramePose, AxisBoxSolidMassFrameOptions, AxisBoxSo
 
 export { buildAxisBoxSolidFeatureDocument, editAxisBoxSolidFeatureDocument, validateAxisBoxSolidFeatureDocument, serializeAxisBoxSolidFeatureDocument, parseAxisBoxSolidFeatureDocument, AxisBoxSolidFeatureDocumentError, AxisBoxSolidFeatureDocumentDiagnosticCode } from './axis-box-solid-feature-document.js';
 export type { AxisBoxSolidFeatureDocumentV0, AxisBoxSolidFeatureDocumentOperand, AxisBoxSolidFeatureDocumentEdit, AxisBoxSolidFeatureDocumentReport, AxisBoxSolidFeatureDocumentResult } from './axis-box-solid-feature-document.js';
+
+export { buildXYAngleArc, validateXYAngleArc, XYAngleArcError, XYAngleArcDiagnosticCode } from './xy-angle-arc.js';
+export type { XYAngleArcRequest, XYAngleArcReport, XYAngleArcResult } from './xy-angle-arc.js';
