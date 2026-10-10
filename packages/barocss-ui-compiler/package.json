@@ -1,0 +1,35 @@
+{
+  "name": "@barocss/ui-compiler",
+  "version": "0.0.0",
+  "private": false,
+  "type": "module",
+  "description": "Bounded server JSX compiler for BaroCSS UI artifacts",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/barocss/barocss.git",
+    "directory": "packages/barocss-ui-compiler"
+  },
+  "publishConfig": { "access": "public" },
+  "files": ["dist", "README.md", "LICENSE"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "node build.mjs",
+    "build:library": "node build.mjs"
+  },
+  "dependencies": {
+    "@barocss/render": "workspace:*",
+    "@barocss/server": "workspace:*",
+    "esbuild": "0.25.12",
+    "typescript": "5.9.3",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  }
+}

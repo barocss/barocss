@@ -1,0 +1,17 @@
+# Emitted compiler package flow
+
+This example imports the emitted `@barocss/ui-compiler` package. It stages actual compiled public `@barocss/render`, `@barocss/server` and `@barocss/kit` exports. No example `.build` import enters the compiler package.
+
+Use Node 22, existing dependencies and already built public package outputs. From the repository root:
+
+```sh
+node packages/barocss-ui-compiler/build.mjs
+PUBLIC_DEPS_ROOT=/path/to/built/barocss PACKAGE_DEPS_ROOT=/path/to/installed/deps/barocss \
+  node examples/ui-compiler-package/stage.mjs
+PLAYWRIGHT_CORE_DIR=/path/to/installed/playwright-core \
+  node examples/ui-compiler-package/flow.mjs
+```
+
+`stage.mjs` writes only ignored `.build/` files. The browser flow compiles the authored JSX module, checks malformed/foreign/dynamic inputs, serves bundle and CSS in an opaque frame, then checks the counter, calculation, input and selected state. The host fixture supplies the frame document and one `init` message. Save is disabled. It makes no provider call.
+
+The package has local public configuration and emitted declarations. Integration owns workspace and lockfile adoption. This native flow does not prove integrated runtime behavior, publication, hostile JavaScript safety or CPU isolation.
