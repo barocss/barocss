@@ -3,12 +3,13 @@ import {prepareQualifiedFaceScene,QualifiedFaceSceneRenderer,MixedDepthRenderer,
   prepareUniformCurvePreview,prepareSelectedUniformCurvePreview,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer} from '@barocss/gpu';
 import {compileCadModel,validateFaceBundle,tessellateSurface,evaluateSurface,evaluateCurve,curveDomain,parseBooleanExtrusionFeatureGraph,
   createCadDocument,createCadGeometryReference,queryCadDocumentSurfaceArea,validateCadDocumentSurfaceArea,
-  queryCadDocumentCurveArcLength,validateCadDocumentCurveArcLength,evaluateCurveCurvature,evaluateCurveD2,evaluateSurfaceCurvature,evaluateSurfaceD2} from '@barocss/cad';
+  queryCadDocumentCurveArcLength,validateCadDocumentCurveArcLength,evaluateCurveCurvature,evaluateCurveD2,evaluateSurfaceCurvature,evaluateSurfaceD2,evaluateCurveD1} from '@barocss/cad';
 import {AREA_OPTIONS,areaPin,queryQualifiedFaceSurfaceArea} from './surface-area.js';
 import {LENGTH_OPTIONS,lengthPin,queryQualifiedFaceCurveLength} from './curve-length.js';
 import {queryQualifiedFaceAngle} from './native-angle.js';
 import {curvaturePin,queryQualifiedFaceCurveCurvature} from './curve-curvature.js';
 import {surfaceCurvaturePin,queryQualifiedFaceSurfaceCurvature} from './surface-curvature.js';
+import {tangentAnglePin,queryQualifiedFaceTangentAngle} from './tangent-angle.js';
 import {parseBaroCadSource} from '@barocss/cad-interop/native';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2} from '@barocss/cad-interop/document';
@@ -35,6 +36,9 @@ const curvatureSource=document.querySelector('#curvature-source'),curvatureCurve
 const inspectCurvatureButton=document.querySelector('#inspect-curvature'),curvatureOutput=document.querySelector('#curvature-output'),curvatureLabel=document.querySelector('#curve-curvature-label');
 const surfaceCurvatureSource=document.querySelector('#surface-curvature-source'),surfaceCurvatureU=document.querySelector('#surface-curvature-u'),surfaceCurvatureV=document.querySelector('#surface-curvature-v');
 const inspectSurfaceCurvatureButton=document.querySelector('#inspect-surface-curvature'),surfaceCurvatureOutput=document.querySelector('#surface-curvature-output'),surfaceCurvatureLabel=document.querySelector('#surface-curvature-label');
+const tangentAngleButton=document.querySelector('#measure-tangent-angle'),tangentAngleOutput=document.querySelector('#tangent-angle-output'),tangentAngleLabel=document.querySelector('#native-tangent-angle-label');
+const tangentControls=['first','second'].map((side,index)=>({side,defaultSource:index===0?'E':'F',defaultCurve:index===0?'c1':'c2',
+  source:document.querySelector('#tangent-'+side+'-source'),curve:document.querySelector('#tangent-'+side+'-curve'),t:document.querySelector('#tangent-'+side+'-t')}));
 const angleControls=['first','vertex','third'].map(point=>({side:'angle-'+point,
   source:document.querySelector('#angle-'+point+'-source'),geometry:document.querySelector('#angle-'+point+'-geometry'),
   u:document.querySelector('#angle-'+point+'-u'),v:document.querySelector('#angle-'+point+'-v'),t:document.querySelector('#angle-'+point+'-t')}));
@@ -69,6 +73,7 @@ let lengthReport=null,lengthProjection=null;
 let angleReport=null,angleProjection=null;
 let curvatureReport=null,curvatureProjection=null;
 let surfaceCurvatureReport=null,surfaceCurvatureProjection=null;
+let tangentAngleReport=null,tangentAngleProjection=null;
 const colors=[[.9,.3,.2],[.25,.8,.4],[.25,.45,.95],[.95,.7,.2],[.3,.8,.9],[.85,.35,.75]];
 const camera={eye:[2,1.5,3.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:10},mmToSceneUnit=.12,background=[.02,.03,.04],translateScene=[-.6,-.6,-.7];
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
@@ -76,6 +81,41 @@ const glErrors=()=>[...contexts].map(gl=>gl.getError());
 const pixelInfo=()=>({hash:hash(viewer.readPixels())});
 const display=value=>status.textContent=typeof value==='string'?value:JSON.stringify(value,null,2);
 function clearInspection(){inspectionReport=null;inspection.textContent='';}
+function clearTangentAngle(){tangentAngleReport=null;tangentAngleProjection=null;tangentAngleOutput.textContent='';tangentAngleLabel.hidden=true;}
+function tangentAngleScopeChanged(scene){return tangentAngleReport&&[tangentAngleReport.first.pin,tangentAngleReport.second.pin].some(pin=>{
+  const asset=scene?.assets.find(value=>value.sourceId===pin.sourceId);
+  return !asset||asset.source!==pin.expectedSource||asset.face.topology.face.id!==pin.faceId||asset.face.geometry.name!==pin.modelId
+    ||!asset.face.geometry.objects.some(object=>object.id===pin.curveId&&object.kind==='curve');});}
+function updateTangentAngleLabel(){if(!viewer||disposed||!tangentAngleReport){tangentAngleProjection=null;tangentAngleLabel.hidden=true;return;}
+  const state=viewer.getState();if(tangentAngleScopeChanged(state.qualifiedFaceScene)){clearTangentAngle();return;}
+  if(state.status!=='ready'){tangentAngleProjection=null;tangentAngleLabel.hidden=true;return;}
+  try{tangentAngleProjection=viewer.projectQualifiedFacePoint(tangentAngleReport.anchor);}catch{tangentAngleProjection=null;}
+  tangentAngleLabel.hidden=!tangentAngleProjection;if(!tangentAngleProjection)return;
+  tangentAngleLabel.textContent=tangentAngleReport.first.pin.sourceId+'/'+tangentAngleReport.first.pin.curveId+' · '+distanceFormat.format(tangentAngleReport.angleDegrees)+'°';
+  tangentAngleLabel.style.left=tangentAngleProjection.xCss+'px';tangentAngleLabel.style.top=tangentAngleProjection.yCss+'px';
+}
+function renderTangentAngleControls(scene){const enabled=!disposed&&!running&&!!scene;tangentAngleButton.disabled=!enabled;
+  for(const control of tangentControls){const previousSource=control.source.value,previousCurve=control.curve.value;
+    control.source.replaceChildren(...(scene?.assets??[]).map(asset=>{const option=document.createElement('option');option.value=asset.sourceId;option.textContent=asset.sourceId;return option;}));
+    if(scene?.assets.some(asset=>asset.sourceId===previousSource))control.source.value=previousSource;
+    else if(scene?.assets.some(asset=>asset.sourceId===control.defaultSource))control.source.value=control.defaultSource;
+    const asset=scene?.assets.find(value=>value.sourceId===control.source.value);
+    control.curve.replaceChildren(...(asset?.face.geometry.objects??[]).filter(object=>object.kind==='curve').map(curve=>{const option=document.createElement('option');option.value=curve.id;option.textContent=curve.id;return option;}));
+    if([...control.curve.options].some(option=>option.value===previousCurve))control.curve.value=previousCurve;
+    else if([...control.curve.options].some(option=>option.value===control.defaultCurve))control.curve.value=control.defaultCurve;
+    for(const input of[control.source,control.curve,control.t])input.disabled=!enabled;
+  }
+}
+function controlTangentPin(control){const text=control.t.value.trim(),t=Number(text);
+  check(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text)&&Number.isFinite(t),control.side+' tangent t must be a complete finite decimal.');
+  return tangentAnglePin(viewer.getState().qualifiedFaceScene,control.source.value,control.curve.value,t);}
+function measureTangentAngle(first=controlTangentPin(tangentControls[0]),second=controlTangentPin(tangentControls[1])){
+  const next=queryQualifiedFaceTangentAngle(viewer.getState().qualifiedFaceScene,first,second);tangentAngleReport=clone(next);
+  tangentAngleOutput.textContent=[next.first.pin,next.second.pin].map(pin=>pin.sourceId+'/'+pin.curveId+' at t '+areaNumber(pin.t)).join(' ↔ ')
+    +' · '+areaNumber(next.angleDegrees)+'°';updateTangentAngleLabel();display('Original native tangent angle ready.');return clone(next);
+}
+function tangentAngleSnapshot(){return{enabled:!tangentAngleButton.disabled,output:tangentAngleOutput.textContent,report:clone(tangentAngleReport),projection:clone(tangentAngleProjection),
+  label:{visible:!tangentAngleLabel.hidden,text:tangentAngleLabel.hidden?null:tangentAngleLabel.textContent,xCss:tangentAngleLabel.hidden?null:Number.parseFloat(tangentAngleLabel.style.left),yCss:tangentAngleLabel.hidden?null:Number.parseFloat(tangentAngleLabel.style.top)}};}
 function clearSurfaceCurvature(){surfaceCurvatureReport=null;surfaceCurvatureProjection=null;surfaceCurvatureOutput.textContent='';surfaceCurvatureLabel.hidden=true;}
 function surfaceCurvatureScopeChanged(scene){if(!surfaceCurvatureReport)return false;const pin=surfaceCurvatureReport.pin,asset=scene?.assets.find(value=>value.sourceId===pin.sourceId);
   return !asset||asset.source!==pin.expectedSource||asset.face.topology.face.id!==pin.faceId||asset.face.geometry.name!==pin.modelId
@@ -313,6 +353,7 @@ function render(){const state=viewer.getState(),scene=state.qualifiedFaceScene,a
   if(angleScopeChanged(scene))clearAngle();
   if(curvatureScopeChanged(scene))clearCurvature();
   if(surfaceCurvatureScopeChanged(scene))clearSurfaceCurvature();
+  if(tangentAngleScopeChanged(scene))clearTangentAngle();
   for(const[id,button]of Object.entries(buttons))button.disabled=id==='dispose'?disposed:!available||running;
   for(const control of[assetCount,countU,countV,colorAsset,colorInput])control.disabled=!available||running;
   if(scene){assetCount.value=String(scene.assets.length);countU.value=String(scene.countU);countV.value=String(scene.countV);}
@@ -330,6 +371,7 @@ function render(){const state=viewer.getState(),scene=state.qualifiedFaceScene,a
   renderAngleControls(scene);updateAngleLabel();
   renderCurvatureControls(scene);updateCurvatureLabel();
   renderSurfaceCurvatureControls(scene);updateSurfaceCurvatureLabel();
+  renderTangentAngleControls(scene);updateTangentAngleLabel();
 }
 function load(input=candidate()){uploads.length=0;draws.length=0;viewer.loadQualifiedFaceScene(input);clearInspection();clearMeasurement();render();return viewer.getState();}
 function action(callback){if(disposed)return;try{callback();render();}catch(error){render();display(error.message);}}
@@ -408,13 +450,13 @@ async function runProof(){if(running||disposed||['context-lost','unavailable'].i
     inspect('F');const report=inspection.textContent;viewer.orbit(.03,.02);viewer.pan(.01,0);viewer.zoom(1.02);viewer.resize(480,360);viewer.resize(640,480);viewer.setView(camera);
     check(inspection.textContent===report,'Camera/resize changed source inspection');capture('camera-retains-current-original-Faces');
     load(candidate({assetCount:2}));capture('two-original-Faces');check(viewer.getState().qualifiedFaceScene.assets.length===2,'Two-asset admission failed');
-    viewer.clear();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();clearSurfaceCurvature();check(viewer.getState().qualifiedFaceScene===null,'Clear retained qualified Face authority');load(original);
+    viewer.clear();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();clearSurfaceCurvature();clearTangentAngle();check(viewer.getState().qualifiedFaceScene===null,'Clear retained qualified Face authority');load(original);
     result.contextCount=contexts.size;result.resources=resourceCounts();result.glErrors=glErrors();result.errors=[...errors];result.warnings=[...warnings];result.getterCalls=getterCalls;
     check(contexts.size===1&&result.glErrors.every(n=>n===0)&&!errors.length&&!warnings.length,'Context/GL/browser gate failed');result.ok=true;
   }catch(error){result.error=error.stack||error.message;result.failures.push({error:result.error,completed:result.cases.length});result.resources=resourceCounts();result.errors=[...errors];}
   finally{running=false;render();window.__viewerQualifiedFaceResult=result;display(result.ok?'Original Face checks completed.':('Face checks stopped: '+(result.error??'Unknown error')));
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}return result;}
-function dispose(){if(disposed)return;viewer.dispose();viewer.dispose();disposed=true;labelResizeObserver?.disconnect();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();clearSurfaceCurvature();render();const receipt={status:viewer.getState().status,resources:resourceCounts(),contextCount:contexts.size,
+function dispose(){if(disposed)return;viewer.dispose();viewer.dispose();disposed=true;labelResizeObserver?.disconnect();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();clearSurfaceCurvature();clearTangentAngle();render();const receipt={status:viewer.getState().status,resources:resourceCounts(),contextCount:contexts.size,
   glErrors:glErrors(),errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display('Viewer disposed.');return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item of manifest){const bytes=await(await fetch(item.url)).arrayBuffer();
     check(bytes.byteLength===item.bytes&&await sha(bytes)===item.sha256,'Original Face fixture bytes/hash changed');fixtures[item.name]={...item,bytes:new Uint8Array(bytes),text:new TextDecoder().decode(bytes)};}
@@ -422,13 +464,14 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
   for(const id of'ABCDEF'){const source=fixtures['warped_'+id+'.source0.css'].text;check(source===originalRequests.warped.assets.find(asset=>asset.sourceId===id).source,'Original source file/Face association differs');originalSources[id]=source;}
   check(fixtures['interior_edit_F.source0.css'].text===originalRequests.interior_edit.assets[5].source,'Original interior-edit Source0 association differs');
   viewer=createViewer(canvas,{mmToSceneUnit,background});load(candidate());lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
-  labelResizeObserver=new ResizeObserver(()=>{updateLabels();updateAreaLabel();updateLengthLabel();updateAngleLabel();updateCurvatureLabel();updateSurfaceCurvatureLabel();});labelResizeObserver.observe(canvas);
+  labelResizeObserver=new ResizeObserver(()=>{updateLabels();updateAreaLabel();updateLengthLabel();updateAngleLabel();updateCurvatureLabel();updateSurfaceCurvatureLabel();updateTangentAngleLabel();});labelResizeObserver.observe(canvas);
   window.__viewerQualifiedFaceProof={viewer,createViewer,candidate,load,render,inspect,measurementInput,measure,updateLabels,labelSnapshot,
     AREA_OPTIONS,areaPin,queryQualifiedFaceSurfaceArea,inspectArea,updateAreaLabel,areaSnapshot,mismatchCandidate,dispose,resourceCounts,uploads,draws,glErrors,errors,warnings,lossExtension,failAllocation,
     LENGTH_OPTIONS,lengthPin,queryQualifiedFaceCurveLength,inspectLength,updateLengthLabel,lengthSnapshot,
     queryQualifiedFaceAngle,measureAngle,updateAngleLabel,angleSnapshot,
     curvaturePin,queryQualifiedFaceCurveCurvature,inspectCurvature,updateCurvatureLabel,curvatureSnapshot,evaluateCurveCurvature,evaluateCurveD2,
     surfaceCurvaturePin,queryQualifiedFaceSurfaceCurvature,inspectSurfaceCurvature,updateSurfaceCurvatureLabel,surfaceCurvatureSnapshot,evaluateSurfaceCurvature,evaluateSurfaceD2,
+    tangentAnglePin,queryQualifiedFaceTangentAngle,measureTangentAngle,updateTangentAngleLabel,tangentAngleSnapshot,evaluateCurveD1,
     failNextBuffer(at=16){failAllocation('Buffer',at);},clearAllocationFault,originalRequests,originalSources,fixtures,manifest,colors,camera,translateScene,mmToSceneUnit,background,pixelInfo,witness,retained,capture,runProof,
     prepareQualifiedFaceScene,QualifiedFaceSceneRenderer,MixedDepthRenderer,prepareMixedDepthFrame,compileGpu,prepareCamera,prepareUniformCurvePreview,prepareSelectedUniformCurvePreview,
     compileCadModel,validateFaceBundle,tessellateSurface,evaluateSurface,evaluateCurve,curveDomain,parseBooleanExtrusionFeatureGraph,parseBaroCadSource,
@@ -438,7 +481,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
     get gl(){return[...contexts][0];},get state(){return viewer.getState();},get currentScene(){return viewer.getState().qualifiedFaceScene;},get inspectionReport(){return clone(inspectionReport);},
     get measurementReport(){return clone(measurementReport);},get currentProjections(){return clone(currentProjections);},get areaReport(){return clone(areaReport);},
     get lengthReport(){return clone(lengthReport);},get angleReport(){return clone(angleReport);},get curvatureReport(){return clone(curvatureReport);},
-    get surfaceCurvatureReport(){return clone(surfaceCurvatureReport);},get result(){return result;}};
+    get surfaceCurvatureReport(){return clone(surfaceCurvatureReport);},get tangentAngleReport(){return clone(tangentAngleReport);},get result(){return result;}};
   display('Original Faces ready. Inspect a current source from its row.');
 }catch(error){display('Original Faces could not load: '+error.message);}
 buttons.load.addEventListener('click',()=>action(()=>load(candidate({assetCount:Number(assetCount.value),countU:Number(countU.value),countV:Number(countV.value)}))));
@@ -448,7 +491,7 @@ buttons['apply-color'].addEventListener('click',()=>action(()=>{const scene=view
   check(asset,'Choose a current source');asset.color=[1,3,5].map(index=>parseInt(colorInput.value.slice(index,index+2),16)/255);
   load({version:0,basis:scene.basis,assets,countU:scene.countU,countV:scene.countV,camera:clone(scene.camera),translateScene:[...scene.translate]});}));
 buttons['saved-view'].addEventListener('click',()=>action(()=>viewer.setView(camera)));buttons.orbit.addEventListener('click',()=>action(()=>viewer.orbit(.05,.02)));buttons.pan.addEventListener('click',()=>action(()=>viewer.pan(.01,0)));
-buttons.resize.addEventListener('click',()=>action(()=>viewer.resize(canvas.width===640?480:640,canvas.height===480?360:480)));buttons.clear.addEventListener('click',()=>action(()=>{viewer.clear();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();clearSurfaceCurvature();}));
+buttons.resize.addEventListener('click',()=>action(()=>viewer.resize(canvas.width===640?480:640,canvas.height===480?360:480)));buttons.clear.addEventListener('click',()=>action(()=>{viewer.clear();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();clearSurfaceCurvature();clearTangentAngle();}));
 for(const control of measurementControls)for(const field of['source','geometry'])control[field].addEventListener('change',()=>renderMeasurementControls(viewer.getState().qualifiedFaceScene));
 measureButton.addEventListener('click',()=>action(()=>measure()));
 inspectAreaButton.addEventListener('click',()=>action(()=>inspectArea()));
@@ -459,5 +502,7 @@ angleButton.addEventListener('click',()=>action(()=>measureAngle()));
 curvatureSource.addEventListener('change',()=>renderCurvatureControls(viewer.getState().qualifiedFaceScene));
 inspectCurvatureButton.addEventListener('click',()=>action(()=>inspectCurvature()));
 inspectSurfaceCurvatureButton.addEventListener('click',()=>action(()=>inspectSurfaceCurvature()));
+for(const control of tangentControls)control.source.addEventListener('change',()=>renderTangentAngleControls(viewer.getState().qualifiedFaceScene));
+tangentAngleButton.addEventListener('click',()=>action(()=>measureTangentAngle()));
 buttons['run-proof'].addEventListener('click',runProof);buttons.dispose.addEventListener('click',dispose);buttons['lose-context'].addEventListener('click',()=>lossExtension?.loseContext());
 canvas.addEventListener('webglcontextlost',()=>{render();display('Context lost. Original source inspection remains available.');});window.addEventListener('beforeunload',()=>{if(viewer)dispose();});
