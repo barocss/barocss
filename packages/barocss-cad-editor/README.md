@@ -314,3 +314,31 @@ output set/displayGeneration and surviving tree selection. Invalid bindings,
 native geometry, mesh or GPU admission retain the accepted graph and raw host
 dialog values. Save serializes the complete native graph; Undo/Redo restores
 authored content at fresh revisions rather than reviving old corner bindings.
+
+## Accepted native extrusion properties
+
+`inspectExtrusionProperties(selection, options)` reads one current accepted
+extrusion through the actual qualified interop properties bridge.
+`CadEditorFeatureProperties` and `CadEditorFeaturePropertiesOptions` alias the
+original native result and budget types. Selection is the exact graph ID/revision/
+feature ID/output-slot tuple; options have maximumBoundarySegments0..64 and
+maximumSurfaceEvaluations0..8. Actual native counts must fit those budgets.
+The copied result contains the full native binding, extrusion, components and
+report, preserving signed zero. Native selection/measurement/owned validation
+causes are retained in `CadEditorError` with context `extrusion-properties`.
+
+The read uses the private accepted graph, even while drafts or a candidate exist.
+It emits no update and changes no document, history, generation, pending input,
+display, selection, dirty state or download capture. Returned reports are derived
+CPU data and never enter the saved native graph. A later graph revision makes an
+old selection stale; requery the new current binding. Camera/display-only changes
+do not change native construction metrics.
+
+Section area uses mm2, construction volume estimate mm3, and geometric centroid
+XYZ uses authored mm. Empty construction is valid: zero area/volume, no components,
+null centroid and zero new support samples. Centroid is not an interior witness
+and can lie outside material or inside a hole. Overlapping displayed leaves are
+not unioned or totaled by this API. ConstructionEstimateOnly remains true;
+Solid, topology, manifold, sewing, manufacturing, density, mass and inertia
+certification remain unavailable. The native helpers can reconstruct the parent
+multiple times; the new-support evaluation budget is not total rebuild cost.

@@ -26,7 +26,7 @@ const opts = {native:{maximumParameterResolutions:8,maximumFeatureEvaluations:7}
 let server,browser,context,freshContext,activePage,serverExited=false;
 try {
   assert.equal(Number(process.versions.node.split('.')[0]),22);
-  if(args.includes('--face-corner')) assert.equal(workingTree,'','Face corner acceptance needs a clean exact head.');
+  if(args.includes('--face-corner')||args.includes('--extrusion-properties')) assert.equal(workingTree,'','Native feature acceptance needs a clean exact head.');
   let cad,editor,runtimeMapPath;
   if(compiled) {
     const {prepareCompiledCheckpoint}=await import('./compiled-checkpoint.mjs');
@@ -172,6 +172,12 @@ try {
     const {runFaceCornerFlow}=await import('./face-corner-flow.mjs');
     save();
     await runFaceCornerFlow({page:fresh,browser,cad,editor,result,evidence,prefix,repo,persist:save});
+    reopened=await snapshot(fresh);
+  }
+  if(args.includes('--extrusion-properties')) {
+    const {runExtrusionPropertiesFlow}=await import('./extrusion-properties-flow.mjs');
+    save();
+    await runExtrusionPropertiesFlow({page:fresh,browser,cad,editor,result,evidence,prefix,repo,persist:save});
     reopened=await snapshot(fresh);
   }
   await fresh.evaluate(()=>window.__cadFeatureFlow.setMounted(false));await fresh.waitForFunction(()=>window.__cadFeatureFlow.display()?.status==='disposed');const disposed=await display(fresh);assert.deepEqual(disposed.lifecycle,{mounts:1,disposals:1});assert.ok(Object.values(disposed.resourceCounts).every(n=>n===0));assert.deepEqual(await snapshot(fresh),reopened);
