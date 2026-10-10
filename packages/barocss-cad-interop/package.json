@@ -138,6 +138,10 @@
       "./pixi3d-uniform-curve": {
         "types": "./dist/pixi3d-uniform-curve.d.ts",
         "import": "./dist/pixi3d-uniform-curve.js"
+      },
+      "./pixi3d-selected-uniform-curve": {
+        "types": "./dist/pixi3d-selected-uniform-curve.d.ts",
+        "import": "./dist/pixi3d-selected-uniform-curve.js"
       }
     }
   },
@@ -278,6 +282,10 @@
     "./pixi3d-uniform-curve": {
       "types": "./src/pixi3d-uniform-curve.ts",
       "import": "./src/pixi3d-uniform-curve.ts"
+    },
+    "./pixi3d-selected-uniform-curve": {
+      "types": "./src/pixi3d-selected-uniform-curve.ts",
+      "import": "./src/pixi3d-selected-uniform-curve.ts"
     }
   },
   "files": [

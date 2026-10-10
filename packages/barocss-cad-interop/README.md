@@ -2733,3 +2733,30 @@ The adapter uses Pixi3D2.5.0/PixiJS7.2.4 LINE_STRIP with original XYZ and one ex
 The [independent example](./examples/section-uniform-curve-pixi3d.html) retains both complete parent Models, both dimensionless UV charts and the full original section proof. It draws only the world Curve. The [contract](https://github.com/barocss/barocss/wiki/Loader-Section-Uniform-Curve-Pixi3D) records the five originals, real camera, refusals, cold reopen and resource checks. Pixi peer initialization requires a genuine browser; Node verifies native CPU data and bundle/type graphs separately.
 
 From the workspace root run the example verifier with `--mode source --output ABSOLUTE_EVIDENCE_DIR` before own CAD/interop builds. Run the source Vite config and genuine browser flow. After affected library builds, use `--mode compiled` and start the same config with `LOADER1142_COMPILED_BUNDLE=ABSOLUTE_EVIDENCE_DIR/browser.bundle.mjs` for the actual published-entry browser flow. These checks and local exports do not publish npm packages.
+
+## Selected complete Source0 Curve in Pixi3D
+
+The optional pixi3d-selected-uniform-curve entry exports
+BaroCADSelectedUniformCurvePixi3DLoader. Use explicit sourceVersion:0,
+unitsPerMillimeter:0.001, uniformCurveDisplay:{version:1,count:129}, and the
+original curveId. parse(source) and loadAsync(url, transport) retain complete
+Source0 and Model, selected original ordinal/Curve, unrendered sibling IDs,
+original domain, parameters, millimeter points, intervals and display quality.
+
+The actual Pixi3D2.5/PixiJS7 browser target is one detached identity Container3D
+with one Mesh3D. Positions are copied Float32 values, scaled once. Sequential
+indices use LINE_STRIP; unlit +Z normals are shader inputs and are not native
+Curve normals. Assign caller camera/lighting and validate the complete candidate
+before attaching it and replacing the previous captured result.
+
+dispose() releases original captured root, mesh, geometry and material once.
+Caller children and geometry/material replacements remain caller owned. Native
+CPU data remain readable. Genuine Pixi peer initialization requires its browser
+image environment; neutral data/type/composition checks in Node are separate
+from actual target construction and resource lifetime checks.
+
+examples/source-curve-control-polygon-pixi3d.html demonstrates unchanged complete
+CAD-produced files, source edits and two cold reopen checkpoints. Its verifier
+keeps actual Node native-data checks and genuine browser SDK checks distinct.
+Source edits retain whole original native authority and do not preserve obsolete
+section UV associations or certify topology, a Solid or global display error.
