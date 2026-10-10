@@ -100,6 +100,13 @@ function evaluate(scene: QualifiedFaceSceneV0, input: ViewerQualifiedFacePointIn
   return { ...input, pointMM, pointScene };
 }
 
+/** Resolve and evaluate one source-qualified original point without a paired measurement. */
+export function evaluateViewerQualifiedFacePoint(scene: QualifiedFaceSceneV0,
+  input: unknown): ViewerQualifiedFacePoint {
+  const parsed = parsePoint(input);
+  return evaluate(scene, parsed, resolve(scene, parsed));
+}
+
 /** No scene mutation, source compilation, GPU call or measurement cache. */
 export function measureViewerQualifiedFacePoints(scene: QualifiedFaceSceneV0,
   firstInput: unknown, secondInput: unknown): ViewerQualifiedFacePointDistance {

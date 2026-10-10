@@ -46,7 +46,22 @@ distances in scene units. It is a straight chord, not arc length or a certified
 measurement. Source replacement/Clear/Dispose clears the report after success;
 failure keeps it. Camera/resize leaves the report intact. Retained CPU sources
 keep the Measure action enabled after context loss or presentation unavailability.
-The existing source inspection remains separate; no highlight or overlay is added.
+The existing source inspection remains separate; no native highlight is added.
+
+After Measure, numbered sourceId/geometryId labels use copied point pins and
+public `projectQualifiedFacePoint`. The mm chord label appears at the projected
+midpoint only when both points are in view. Camera/backing resize and a
+ResizeObserver update current canvas CSS coordinates without GPU writes.
+Offscreen points remove their labels. Source/Clear/Dispose scope changes clear
+labels and report after success; failures retain the accepted context. Loss or
+unavailability removes display labels while keeping CPU measurement available.
+Dispose disconnects the observer.
+
+The canvas is borderless, padding-free and axis-aligned inside a relative
+wrapper; the overlay has pointer-events:none. Contextual About screen labels
+Help explains approximate binary64 camera mapping and not-tested occlusion.
+A point covered by another Face can still have a label; this is no native hit
+or rendered pixel/depth certificate.
 
 With Node22, ordinary development uses public package names through normal
 source-default exports without aliases or custom conditions:
@@ -94,6 +109,10 @@ resource counters/readbacks/errors, allocation hooks and `dispose`.
 The `measurementReport` getter returns an independent copy. The physical
 Measure button is `#measure-points`; First/Second source/geometry/U/V/t labels
 identify the two sets of controls.
+`updateLabels()` refreshes only DOM annotations. `labelSnapshot()` and copied
+`currentProjections` expose the accepted label context for the actual host flow.
+DOM IDs are `#qualified-face-view`, `#measurement-labels`,
+`#measurement-point-1`, `#measurement-point-2` and `#measurement-distance`.
 Public CAD `tessellateSurface`, `validateFaceBundle`, original evaluation, GPU
 `prepareCamera`/qualified scene and renderer APIs, mixed/uniform/Shell providers,
 Assembly/Model-set/document Loader and Physics cloth creation are available for

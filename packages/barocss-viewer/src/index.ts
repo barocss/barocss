@@ -44,6 +44,9 @@ import { measureViewerQualifiedFacePoints } from './qualified-face-measurement.j
 import type { ViewerQualifiedFacePointInput, ViewerQualifiedFacePointDistance } from './qualified-face-measurement.js';
 export type { ViewerQualifiedFacePointInput, ViewerQualifiedFacePoint, ViewerQualifiedFacePointDistance }
   from './qualified-face-measurement.js';
+import { projectViewerQualifiedFacePoint } from './qualified-face-projection.js';
+import type { ViewerQualifiedFacePointProjection } from './qualified-face-projection.js';
+export type { ViewerQualifiedFacePointProjection } from './qualified-face-projection.js';
 
 type Vec3 = [number, number, number];
 type Quat = [number, number, number, number];
@@ -993,6 +996,13 @@ export class Viewer {
     second: ViewerQualifiedFacePointInput): ViewerQualifiedFacePointDistance {
     this.live(); check(this.qualifiedFaceScene, 'Viewer has no current qualified Face scene');
     return measureViewerQualifiedFacePoints(this.qualifiedFaceScene, first, second);
+  }
+  projectQualifiedFacePoint(input: ViewerQualifiedFacePointInput): ViewerQualifiedFacePointProjection | null {
+    this.gpuLive(); check(!this.contextLost, 'Cannot project qualified Faces after WebGL2 context loss');
+    check(this.qualifiedFaceScene, 'Viewer has no current qualified Face scene');
+    const rect = this.canvas.getBoundingClientRect();
+    return projectViewerQualifiedFacePoint(this.qualifiedFaceScene, input,
+      this.canvas.width, this.canvas.height, rect.width, rect.height);
   }
   replaceNativeScene(input: ViewerNativeSceneReplacementV0): void {
     this.gpuLive(); check(!this.contextLost, 'Cannot replace native scene after WebGL2 context loss');
