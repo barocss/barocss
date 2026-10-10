@@ -63,6 +63,24 @@ Help explains approximate binary64 camera mapping and not-tested occlusion.
 A point covered by another Face can still have a label; this is no native hit
 or rendered pixel/depth certificate.
 
+Original Surface area inspection is a separate read-only report. Source choice
+`#area-source` defaults to F; `#inspect-area` uses the example `surface-area.js`
+helper with its frozen `AREA_OPTIONS`. It constructs a real ephemeral one-source
+document from the complete unchanged Source0, creates a public native reference,
+and completes public CAD area query/validation before adopting the result.
+`#area-output` shows the source/Surface, native mm² estimate and heuristic error
+estimate. Camera/mm scale do not rescale the original native area. Help states
+whole parametric Surface rather than trimmed Face/BRep/union and no certified
+upper error bound. A..D are planar controls; E/F are warped originals.
+
+`#surface-area-label` projects the original parameter-domain midpoint through
+1123, not a centroid or native visible hit. It reprojects on view/CSS/backing
+resize. Accepted color/grid/order changes retain this independent area report;
+original source/Face/model/content replacement or absent mode invalidates it.
+Failure preserves the accepted area context. Retained Face CPU inspection stays
+enabled after loss/unavailability while the area label is hidden. Clear/Dispose
+clears area state, and the shared observer disconnects on Dispose.
+
 With Node22, ordinary development uses public package names through normal
 source-default exports without aliases or custom conditions:
 
@@ -113,6 +131,10 @@ identify the two sets of controls.
 `currentProjections` expose the accepted label context for the actual host flow.
 DOM IDs are `#qualified-face-view`, `#measurement-labels`,
 `#measurement-point-1`, `#measurement-point-2` and `#measurement-distance`.
+Area hook members are `AREA_OPTIONS`, `areaPin`, `queryQualifiedFaceSurfaceArea`,
+`inspectArea(pin?,options?)`, `updateAreaLabel`, `areaSnapshot`, and a copied
+`areaReport` getter. Public CAD document/reference/area query/validation exports
+are available in the same hook for the main runner's independent checks.
 Public CAD `tessellateSurface`, `validateFaceBundle`, original evaluation, GPU
 `prepareCamera`/qualified scene and renderer APIs, mixed/uniform/Shell providers,
 Assembly/Model-set/document Loader and Physics cloth creation are available for
