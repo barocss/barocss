@@ -9,6 +9,7 @@ from pathlib import Path
 import struct
 import sys
 
+sys.dont_write_bytecode = True
 here = Path(__file__).resolve().parent
 spec = importlib.util.spec_from_file_location("reference", here / "geometry-reference.py")
 reference = importlib.util.module_from_spec(spec)
