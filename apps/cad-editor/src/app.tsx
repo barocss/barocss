@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Box, ChevronRight, CircleHelp, Crosshair, Download, FolderOpen, Layers3, Maximize, MousePointer2, Redo2, Spline, Undo2 } from 'lucide-react';
+import { Box, ChevronRight, Crosshair, Download, FolderOpen, Layers3, Maximize, MousePointer2, Redo2, Spline, Undo2 } from 'lucide-react';
 import { parseCadDocument } from '@barocss/cad';
 import { CadEditorError, createCadEditorSession, type CadEditorExportResult, type CadEditorGeometryAnalysisResult, type CadEditorCurveLength, type CadEditorView } from '@barocss/cad-editor';
 import { CadEditor, CadEditorExportReview, useCadEditorSnapshot, type CadEditorDisplayOptions, type CadEditorDisplayReceipt, type CadEditorCurveFocusReceipt } from '@barocss/cad-editor/react';
@@ -323,25 +323,20 @@ function DirectApp() {
     </div></div>
     {error && <div className="app-error" role="alert">{actionError(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
     <div className="app-workspace">
-      <aside className="document-tree" aria-label="Object browser"><h2><Layers3 size={15}/>Objects</h2><div className="tree-document"><Box size={15}/><span title={filename}>{filename}</span></div>
-        <div className="tree-section"><span>{snapshot.view.kind==='curve-focus'?'DOCUMENT VIEW':'BODIES'}</span><span>{snapshot.accepted.document.bodies.length}</span></div>
+      <aside className="document-tree" aria-label="Object browser"><h2><Layers3 size={15}/>Objects<span className="tree-count">{snapshot.accepted.document.bodies.length}</span></h2>
         {snapshot.accepted.document.bodies.map(body => {
           const binding = snapshot.accepted.bodyBindings.find(item => item.bodyId === body.id)!;
           const selected = snapshot.selectedBodyId === body.id;
           const shown = snapshot.displayBodyIds.includes(body.id);
-          const capability=snapshot.bodyCapabilities.find(item=>item.bodyId===body.id);
-          const editable=capability?.canEditSurfacePole,editableCurve=capability?.canEditCurvePole;
           return <div key={body.id} className={'tree-body-row' + (selected ? ' selected' : '')}>
             <button className={'tree-body' + (selected ? ' selected' : '')} data-testid={'body-select-' + body.id}
-              onClick={() => run(() => session.requestSelection(binding.geometryKind === 'surface' ? { bodyId: body.id, uIndex: 1, vIndex: 1 } : { bodyId: body.id }))} aria-pressed={selected}>
-              <span className={'body-symbol ' + binding.geometryKind}>{binding.geometryKind === 'surface' ? <Layers3 size={16}/> : <Spline size={16}/>}</span><span className="tree-body-name" title={body.name}>{body.name}<small>{editable ? 'Editable surface' : binding.geometryKind === 'surface' ? 'Read-only surface' : snapshot.view.kind==='curve-focus'&&snapshot.view.bodyId===body.id?'Focused Curve':editableCurve?'Editable Curve':'Read-only Curve'}</small></span>
+              onClick={() => run(() => session.requestSelection(binding.geometryKind === 'surface' ? { bodyId: body.id, uIndex: 1, vIndex: 1 } : { bodyId: body.id }))} aria-pressed={selected} aria-label={body.name+' '+(binding.geometryKind==='surface'?'Surface':'Curve')}>
+              <span className={'body-symbol ' + binding.geometryKind}>{binding.geometryKind === 'surface' ? <Layers3 size={16}/> : <Spline size={16}/>}</span><span className="tree-body-name" title={body.name}>{body.name}</span>
             </button>
             <input type="checkbox" data-testid={'body-visible-' + body.id} aria-label={(shown?'Hide ':'Show ')+body.name+(snapshot.view.kind==='curve-focus'?' in document view':'')}
               checked={shown} disabled={busy} onChange={() => run(() => session.prepareDisplayBodies(shown ? snapshot.displayBodyIds.filter(id => id !== body.id) : [...snapshot.displayBodyIds, body.id]))} />
           </div>;
         })}
-        <div className="tree-details"><span>Units</span><strong>mm</strong><span>Axes</span><strong>XYZ</strong>{snapshot.selection && <><span>Control grid</span><strong>{snapshot.selection.countU} × {snapshot.selection.countV}</strong></>}</div>
-        <div className="tree-foot"><CircleHelp size={14}/><p>Select an editable object to move its control points. Checkboxes set document visibility.</p></div>
       </aside>
       <main className="main-workspace">
         {projectView ? <section className="projects-view"><span className="eyebrow">LOCAL DOCUMENTS</span><h1>Projects</h1><p>Start with the weighted surface, or open a native document.</p><button className="sample-project" data-testid="project-new-sample" onClick={newSample}><span className="sample-symbol">▱</span><span><strong>Weighted surface</strong><small>Quadratic 3 × 3 surface · Reference line</small></span><ChevronRight size={20}/></button><Button variant="outline" onClick={chooseOpenFile}><FolderOpen/>Open document</Button></section> : mount && <CadEditor key={mountKey} session={session} displayOptions={displayOptions} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest}
