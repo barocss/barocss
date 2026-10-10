@@ -85,9 +85,9 @@ function context(source: string, objectId: string, camera: MeshCamera, input: Re
   if (!Number.isFinite(radius) || radius <= 0) throw refused('The source origin cannot support visible handles.');
   return {object, camera: owned, viewport, ...matrices, clip, pivot, radius};
 }
-function handle(key: RenderSceneGizmoKey, mode: RenderSceneGizmoMode, points: readonly Point[], anchor: Point): RenderSceneGizmoHandle {
+function handle(key: RenderSceneGizmoKey, mode: RenderSceneGizmoMode, points: readonly Point[], anchor: Point, label?: string): RenderSceneGizmoHandle {
   return Object.freeze({key, mode, axis: key === 'uniform' ? null : key, points: Object.freeze([...points]), anchor,
-    label: key === 'uniform' ? 'Uniform scale' : `${mode === 'translate' ? 'Move' : 'Rotate'} ${key.toUpperCase()}`});
+    label: label ?? (key === 'uniform' ? 'Uniform scale' : `${mode === 'translate' ? 'Move' : 'Rotate'} ${key.toUpperCase()}`)});
 }
 function pose(context: Context) {
   const quaternion = (axis: number, degrees: number): [number, number, number, number] => {
@@ -102,6 +102,7 @@ function pose(context: Context) {
       ]});
     const column = (node: number, axis: number): Vector => unit([0, 1, 2].map(row => rig.nodes[node]!.worldMatrix[axis * 4 + row]!) as Vector);
     return {
+      local: AXES.map((_, index) => column(2, index)),
       x: {normal: column(2, 0), a: column(1, 1), b: column(1, 2)},
       y: {normal: column(1, 1), a: column(0, 2), b: column(0, 0)},
       z: {normal: WORLD[2]!, a: WORLD[0]!, b: WORLD[1]!},
@@ -121,11 +122,16 @@ function ring(context: Context, axis: RenderSceneGizmoAxis): RenderSceneGizmoHan
   if (Math.abs(a[0]! * b[1]! - a[1]! * b[0]!) < 24) return null;
   return handle(axis, 'rotate', points, points[0]!);
 }
-function translation(context: Context, axis: RenderSceneGizmoAxis): RenderSceneGizmoHandle | null {
-  const end = css(context, clipAt(context, add(context.object.translate, WORLD[AXES.indexOf(axis)]!, context.radius)));
+function axisHandle(context: Context, direction: Vector, axis: RenderSceneGizmoAxis, mode: 'translate' | 'scale'): RenderSceneGizmoHandle | null {
+  const end = css(context, clipAt(context, add(context.object.translate, direction, context.radius)));
   if (!inside(end, context.viewport) || Math.hypot(end[0] - context.pivot[0], end[1] - context.pivot[1]) < 4) return null;
-  return handle(axis, 'translate', [context.pivot, end], end);
+  const label = mode === 'scale' ? `${context.object.type === 'rounded-box' ? 'Size' : 'Scale'} ${axis.toUpperCase()}` : undefined;
+  return handle(axis, mode, [context.pivot, end], end, label);
 }
+function translation(context: Context, axis: RenderSceneGizmoAxis): RenderSceneGizmoHandle | null {
+  return axisHandle(context, WORLD[AXES.indexOf(axis)]!, axis, 'translate');
+}
+function hasLocalSize(object: RenderSceneObjectProperties): boolean {return object.type === 'box' || object.type === 'rounded-box';}
 function scaleHandle(context: Context): RenderSceneGizmoHandle | null {
   const anchor = Object.freeze([context.pivot[0] + 46, context.pivot[1] - 46]) as Point;
   return inside(anchor, context.viewport) ? handle('uniform', 'scale', [context.pivot, anchor], anchor) : null;
@@ -135,7 +141,15 @@ function scaleHandle(context: Context): RenderSceneGizmoHandle | null {
 export function prepareRenderSceneGizmo(source: string, objectId: string, camera: MeshCamera, viewport: RenderSceneGizmoViewport, mode: RenderSceneGizmoMode): RenderSceneGizmoPreparation {
   const data = context(source, objectId, camera, viewport, mode), handles: RenderSceneGizmoHandle[] = [];
   if (inside(data.pivot, data.viewport)) {
-    if (mode === 'scale') {const value = scaleHandle(data); if (value) handles.push(value);}
+    if (mode === 'scale') {
+      if (hasLocalSize(data.object)) {
+        const local = pose(data).local;
+        for (const [index, axis] of AXES.entries()) {
+          try {const value = axisHandle(data, local[index]!, axis, 'scale'); if (value) handles.push(value);} catch { /* An unqualified local axis is not shown. */ }
+        }
+      }
+      const value = scaleHandle(data); if (value) handles.push(value);
+    }
     else for (const axis of AXES) {
       try {const value = mode === 'translate' ? translation(data, axis) : ring(data, axis); if (value) handles.push(value);} catch { /* An unqualified axis is not shown. */ }
     }
@@ -144,13 +158,12 @@ export function prepareRenderSceneGizmo(source: string, objectId: string, camera
     : mode === 'rotate' && (data.viewport.backingWidth > 2048 || data.viewport.backingHeight > 2048)
       ? 'Rotation rays require backing dimensions up to 2048. Use numeric rotation.' : 'This view cannot support the selected handles. Use numeric properties.'});
 }
-function translationParameter(context: Context, axis: RenderSceneGizmoAxis, pointer: Point): number {
-  if (!translation(context, axis)) throw refused('This axis aligns with the view or crosses a clip. Use numeric position.');
-  const axisClip = clipAt(context, WORLD[AXES.indexOf(axis)]!, true), w0 = context.clip[3]!, wa = axisClip[3]!;
+function axisParameter(context: Context, direction: Vector, pointer: Point): number {
+  const axisClip = clipAt(context, direction, true), w0 = context.clip[3]!, wa = axisClip[3]!;
   const numerator: Point = [context.viewport.width / 2 * (axisClip[0]! + wa) - context.pivot[0] * wa,
     context.viewport.height / 2 * (wa - axisClip[1]!) - context.pivot[1] * wa];
-  const length = Math.hypot(...numerator), direction: Point = [numerator[0] / length, numerator[1] / length];
-  const delta = (pointer[0] - context.pivot[0]) * direction[0] + (pointer[1] - context.pivot[1]) * direction[1];
+  const length = Math.hypot(...numerator), screenDirection: Point = [numerator[0] / length, numerator[1] / length];
+  const delta = (pointer[0] - context.pivot[0]) * screenDirection[0] + (pointer[1] - context.pivot[1]) * screenDirection[1];
   const denominator = length - delta * wa;
   if (!Number.isFinite(denominator) || Math.abs(denominator) <= 1e-9) throw refused('Axis movement reaches the projection horizon.');
   const parameter = delta * w0 / denominator;
@@ -186,11 +199,15 @@ function scalePatch(object: RenderSceneObjectProperties, factor: number): Render
 export function deriveRenderSceneGizmoPatch(source: string, objectId: string, camera: MeshCamera, viewport: RenderSceneGizmoViewport,
   mode: RenderSceneGizmoMode, key: RenderSceneGizmoKey, from: Point, to: Point): RenderSceneObjectPatch {
   const data = context(source, objectId, camera, viewport, mode), start = pointCopy(from), end = pointCopy(to);
-  if (mode === 'scale' ? key !== 'uniform' : !AXES.includes(key as RenderSceneGizmoAxis)) throw refused('Handle does not match the gizmo mode.');
+  if (mode === 'scale' ? key !== 'uniform' && (!hasLocalSize(data.object) || !AXES.includes(key as RenderSceneGizmoAxis)) : !AXES.includes(key as RenderSceneGizmoAxis)) throw refused('Handle does not match the gizmo mode.');
   let patch: RenderSceneObjectPatch;
   if (mode === 'translate') {
     const axis = key as RenderSceneGizmoAxis, position = [...data.object.translate] as Vector;
-    if (start[0] !== end[0] || start[1] !== end[1]) position[AXES.indexOf(axis)] += translationParameter(data, axis, end) - translationParameter(data, axis, start);
+    if (start[0] !== end[0] || start[1] !== end[1]) {
+      if (!translation(data, axis)) throw refused('This axis aligns with the view or crosses a clip. Use numeric position.');
+      const direction = WORLD[AXES.indexOf(axis)]!;
+      position[AXES.indexOf(axis)] += axisParameter(data, direction, end) - axisParameter(data, direction, start);
+    }
     patch = Object.freeze({translate: Object.freeze(position)});
   } else if (mode === 'rotate') {
     const axis = key as RenderSceneGizmoAxis, rotation = [...data.object.rotateDegrees] as Vector;
@@ -200,6 +217,14 @@ export function deriveRenderSceneGizmoPatch(source: string, objectId: string, ca
       rotation[AXES.indexOf(axis)] += Math.atan2(dot(normal, cross(a, b)), dot(a, b)) * 180 / Math.PI;
     }
     patch = Object.freeze({rotateDegrees: Object.freeze(rotation)});
+  } else if (key !== 'uniform') {
+    const axis = key as RenderSceneGizmoAxis, index = AXES.indexOf(axis), direction = pose(data).local[index]!;
+    if (!axisHandle(data, direction, axis, 'scale')) throw refused('This local size axis aligns with the view or crosses a clip. Use numeric size.');
+    const factor = start[0] === end[0] && start[1] === end[1] ? 1
+      : 1 + (axisParameter(data, direction, end) - axisParameter(data, direction, start)) / data.radius;
+    if (!Number.isFinite(factor) || factor <= 0) throw refused('Local size needs a finite positive axis factor.');
+    const size = [...data.object.size!] as Vector; size[index] *= factor;
+    patch = Object.freeze({size: Object.freeze(size)});
   } else {
     const initial = Math.hypot(start[0] - data.pivot[0], start[1] - data.pivot[1]), final = Math.hypot(end[0] - data.pivot[0], end[1] - data.pivot[1]);
     if (initial <= 1e-8 || !Number.isFinite(final / initial) || final <= 0) throw refused('Uniform scale needs a finite positive radial ratio.');
