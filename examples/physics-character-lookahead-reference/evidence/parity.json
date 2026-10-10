@@ -1,0 +1,12 @@
+{
+  "nodeSource": "8d72af1f11bcd4a583afbfa55f7ccf07954fd930",
+  "browserSource": "8d72af1f11bcd4a583afbfa55f7ccf07954fd930",
+  "sameFullFirstAndSecond": true,
+  "sameControls": true,
+  "sameOriginalInputs": true,
+  "sameAllStateQueryRaw": true,
+  "oldInputSHAUnchanged": true,
+  "browserTableActuallyInspected": true,
+  "unresolvedLookaheadRefusal": "source branch; no supported actual trigger observed",
+  "scope": "named8scene private model only, not actual Viewer or public controller"
+}

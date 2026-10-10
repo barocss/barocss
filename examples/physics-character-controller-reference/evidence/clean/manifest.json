@@ -1,0 +1,26 @@
+{
+  "gitHead": "923828e3e6c2cdb4074d83a40772239b97cafbf7",
+  "sourceTreeDirty": false,
+  "nodeVersion": "v22.22.0",
+  "format": "character-movement-reference-raw-v1",
+  "endianness": "little",
+  "files": [
+    {
+      "file": "inputs.f64.bin",
+      "type": "Float64Array",
+      "bytes": 1488,
+      "elements": 186,
+      "sha256": "feda47adb6facf25db155ea6ae7d25451d3bc6f2c214b21b94e71c8fc6c1b1ad"
+    },
+    {
+      "file": "outputs.f64.bin",
+      "type": "Float64Array",
+      "bytes": 817512,
+      "elements": 102189,
+      "sha256": "ee25acf34dfece215992eca012e8abaf54b8feea24184799983a0bc0b4f84b74"
+    }
+  ],
+  "totalRawBytes": 819000,
+  "negativeZeroInputOffsets": [],
+  "negativeZeroOutputOffsets": []
+}
