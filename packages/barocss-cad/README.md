@@ -9279,3 +9279,16 @@ Only the selected knot array, full control-point net and weights array are canon
 The actual schedule has at most992 occurrences within the fixed1024 budget. A native exact-C0 knot on either axis refuses the whole D1 state; both partial comparisons then remain null. All derivative comparison norms must be finite. Local observations and ideal tensor-polynomial identity are separate from rounded stored coefficients; no global shape/error, G1/G2, regularity, topology, Solid, manufacturing, display or publication certification follows.
 
 Run the bounded example with `node examples/cad-nurbs/source-surface-knot-insertion-demo.mjs --source <output-directory>`. Native and Integration/consumer status are recorded separately in Issue1363.
+
+
+## Restrict a Curve to a proper interval in its complete source
+
+`extractSourceCurveInterval({ source, sourceVersion: 0, curveId, interval, maximumObservations: 256 })` replaces one selected degree1..5 Curve by its nonempty proper original-parameter interval. The selected authored ID and complete Model stay stable. Only the selected knots/control-points/weights array values are canonicalized; they must be comment-free literals. All outside text, Model metadata/order/IDs and unrelated Curve/Surface objects remain exact. Full original/candidate sources, Models, Curve supports, plans, staged children, shared/copied/clamp mappings and native witnesses remain in the result. `validateSourceCurveIntervalExtraction(result)` rebuilds from the original complete request and compares every retained bit.
+
+Both cuts and their observation stations are planned before any coefficient insertion. Every original, temporary and output Curve stays within64 poles/70 knots and±10000mm with existing positive weights. A fresh cut that needs65 temporary poles refuses even when its final subcurve would fit. The unchanged trusted insertion kernel performs only required positive refinements; existing C0 cuts copy real indexed coefficients. The new complete request/result envelope is2MiB; Source262144, Model16, native64 and all old public split/interval limits remain unchanged.
+
+Requested outer endpoints that numerically equal the original domain adopt the original endpoint bits through an explicit receipt. Request bits stay unchanged. Opposite existing interior zero bits refuse. Native parameters are not sorted, clamped or remapped. Each actual cut samples input/refined/lower/upper D0/D1 explicitly. A source C0 derivative refusal and an available child endpoint derivative are distinct native states; different one-sided child tangents do not imply a new continuity certificate. All derivative comparison norms must remain finite.
+
+Ideal restricted homogeneous polynomial identities and rounded stored coefficients are separate. Local observations do not certify global error, G1/G2, topology, Solid, manufacturing, display or persistent feature references.
+
+Run `node examples/cad-nurbs/source-curve-interval-extraction-demo.mjs --source <output-directory>`. Native and Integration/consumer status are recorded separately in Issue1378.
