@@ -2922,3 +2922,34 @@ actual published entry and declaration consumers. Run from the repository root
 with Node 22 or later. This example does not add an SDK entry or extend native
 section, trim, topology or Solid contracts. Native verification, integrated
 verification and npm publication have separate receipts.
+
+
+### Original multi-span Surface–Plane sections in Babylon.js
+
+The independent `examples/multispan-section-babylon.html` host uses the existing
+public Babylon Surface and uniform Curve loaders. It retains all fourteen
+original files and complete parent Models, including unused Curve siblings and
+an extra Support Surface. Native World/dual UV/span proof/C0 derivative refusals
+stay separate from approximate uniform line and triangle preview data.
+
+Run the source flow before building the two libraries:
+
+```sh
+node packages/barocss-cad-interop/examples/multispan-section-babylon-verify.mjs --mode source --output /tmp/loader1222-source
+pnpm exec vite --config packages/barocss-cad-interop/examples/multispan-section-babylon.config.mjs
+pnpm --filter @barocss/cad build:library
+pnpm --filter @barocss/cad-interop build:library
+node packages/barocss-cad-interop/examples/multispan-section-babylon-verify.mjs --mode compiled --output /tmp/loader1222-compiled
+LOADER1222_COMPILED_BUNDLE=/tmp/loader1222-compiled/browser.bundle.mjs pnpm exec vite --config packages/barocss-cad-interop/examples/multispan-section-babylon.config.mjs
+```
+
+The caller owns the actual right-handed Scene, Engine, camera, light and marker.
+Surface results register enabled meshes; the host disables them immediately and
+qualifies the whole original context before enabling a candidate. World LinesMesh
+starts disabled and owns an explicit ShaderMaterial. Two Support meshes share
+one StandardMaterial; disposal observes each unique material once. Original UV
+is CPU data and Surface metadata, never a World trace or texture UV attribute.
+The host demonstrates replacement, genuine refusals, cold source URL loading
+and repeated cleanup while preserving caller resources. The source CPU flow uses
+real Babylon NullEngine objects; actual renderer/frame checks require the headed
+browser. Native completion, local integration and registry publication are separate.
