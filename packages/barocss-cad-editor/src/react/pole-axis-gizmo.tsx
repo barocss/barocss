@@ -1,8 +1,10 @@
 import {useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEvent, type KeyboardEvent as ReactKeyboardEvent} from 'react';
+import {Spline,Move,RotateCw,Scaling} from 'lucide-react';
 import {resolveCadGeometryReference, type CadGeometryReferenceV0} from '@barocss/cad';
 import {CadEditorError, type CadEditorSession, type CadEditorSnapshot, type CadEditorPoleField, type CadEditorEditTarget, type CadEditorDraftField} from '../types.js';
 import type {CadEditorDisplayReceipt, CadEditorCurveFocusReceipt} from './types.js';
 import {useCadEditorSnapshot} from './use-session.js';
+import {Button} from './ui/button.js';
 import type {PolePoint} from './curve-pole-projection.js';
 import {ObjectRotationGizmo} from './object-rotation-gizmo.js';
 import {ObjectScaleGizmo} from './object-scale-gizmo.js';
@@ -44,6 +46,12 @@ interface Gesture {
 }
 const fields = ['xMM','yMM','zMM'] as const;
 const names = ['X','Y','Z'] as const;
+const tools = [
+  {target:'pole',key:'q',name:'Control point',icon:Spline},
+  {target:'object',key:'w',name:'Move object',icon:Move},
+  {target:'rotation',key:'e',name:'Rotate object',icon:RotateCw},
+  {target:'scale',key:'r',name:'Scale object',icon:Scaling},
+] as const;
 const rawNumber = (value:number) => Object.is(value,-0) ? '-0' : String(value);
 const same = (a:unknown,b:unknown) => JSON.stringify(a) === JSON.stringify(b);
 function sameRaw(a:Partial<Record<CadEditorPoleField,string>>,b:Partial<Record<CadEditorPoleField,string>>) {
@@ -81,6 +89,9 @@ export function PoleAxisGizmo(props:Props) {
   const snapErrorId = useId();
   const latest = useRef(props); latest.current = props;
   const gesture = useRef<Gesture|null>(null);
+  const transformGesture = useRef(false);
+  const viewportPointers = useRef(new Map<number,Element>());
+  const [pointerCaptured,setPointerCaptured] = useState(false);
   const [movingAxis,setMovingAxis] = useState<PoleAxis|null>(null);
   const [snapEnabled,setSnapEnabled] = useState(false);
   const [stepRaw,setStepRaw] = useState('1');
@@ -107,7 +118,50 @@ export function PoleAxisGizmo(props:Props) {
   const capability = snapshot.bodyCapabilities.find(body=>body.bodyId===snapshot.selectedBodyId);
   const canvas = props.canvas, rect = canvas?.getBoundingClientRect();
   const pending = Object.keys(snapshot.pending).length > 0;
-  const busy = snapshot.candidate !== null || snapshot.selectionTransition !== null || snapshot.disposed || pending || movingAxis !== null || rotationMoving || scaleMoving;
+  const busy = snapshot.candidate !== null || snapshot.selectionTransition !== null || snapshot.disposed || pending || movingAxis !== null || rotationMoving || scaleMoving || pointerCaptured;
+  function viewportHasCapture():boolean {
+    return [...viewportPointers.current].some(([id,target])=>target.isConnected&&target.hasPointerCapture(id));
+  }
+  useEffect(()=>{if(pointerCaptured&&!viewportHasCapture())setPointerCaptured(false);});
+  function available(state:CadEditorSnapshot,target:CadEditorEditTarget):boolean {
+    const cap=state.bodyCapabilities.find(body=>body.bodyId===state.selectedBodyId);
+    return target==='object'?cap?.canTranslateBody===true:target==='rotation'?cap?.canRotateBody===true
+      :target==='scale'?cap?.canScaleBody===true:state.selection?cap?.canEditSurfacePole===true:cap?.canEditCurvePole===true;
+  }
+  function chooseTool(target:CadEditorEditTarget):boolean {
+    try {
+      const state=session.getSnapshot(),now=latest.current;
+      if(gesture.current||transformGesture.current||viewportHasCapture()||state.disposed||state.candidate||state.selectionTransition||Object.keys(state.pending).length
+        ||!available(state,target)||!currentControl(state,now.documentReceipt,now.curveReceipt))return false;
+      session.setEditTarget(target);return true;
+    }catch(cause){failure(cause);return false;}
+  }
+  useEffect(()=>{
+    let listening=true;
+    const down=(event:PointerEvent)=>{
+      const target=event.target,viewport=latest.current.canvas?.closest('.cad-editor-viewport');
+      if(!(target instanceof Element)||!viewport?.contains(target))return;
+      viewportPointers.current.set(event.pointerId,target);
+      // A microtask can run between capture and React's pointerdown handler.
+      setTimeout(()=>{if(listening)setPointerCaptured(viewportHasCapture());},0);
+    };
+    const release=(event:PointerEvent)=>{
+      if(event.type==='lostpointercapture'&&viewportPointers.current.get(event.pointerId)!==event.target)return;
+      viewportPointers.current.delete(event.pointerId);setPointerCaptured(viewportHasCapture());
+    };
+    const command=(event:KeyboardEvent)=>{
+      if(event.defaultPrevented||event.repeat||event.isComposing||event.keyCode===229||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
+      const tool=tools.find(item=>item.key===event.key.toLowerCase());if(!tool)return;
+      const target=event.target,viewport=latest.current.canvas?.closest('.cad-editor-viewport');
+      if(!(target instanceof Element)||!viewport?.contains(target)
+        ||target.closest('input,textarea,select,[contenteditable]:not([contenteditable="false"]),[role="dialog"],[role="menu"]'))return;
+      if(chooseTool(tool.target)){event.preventDefault();event.stopPropagation();}
+    };
+    window.addEventListener('keydown',command);window.addEventListener('pointerdown',down,true);
+    window.addEventListener('pointerup',release,true);window.addEventListener('pointercancel',release,true);window.addEventListener('lostpointercapture',release,true);
+    return()=>{listening=false;window.removeEventListener('keydown',command);window.removeEventListener('pointerdown',down,true);
+      window.removeEventListener('pointerup',release,true);window.removeEventListener('pointercancel',release,true);window.removeEventListener('lostpointercapture',release,true);viewportPointers.current.clear();};
+  },[session]);
   const projections:(PoleAxisProjection|null)[] = [];
   if (!rotationMode && !scaleMode && control && rect && rect.width > 0 && rect.height > 0 && control.receipt.width > 0 && control.receipt.height > 0) {
     const ghost = control.point.map((value,index) => {
@@ -235,6 +289,14 @@ export function PoleAxisGizmo(props:Props) {
   if (!control || !canvas || !rect || rect.width <= 0 || rect.height <= 0 || control.receipt.width <= 0 || control.receipt.height <= 0) return null;
   const visible = projections.filter(Boolean).length;
   return <div className="cad-editor-axis-controls" data-testid="pole-axis-overlay">
+    <div className={'cad-editor-native-tools'+(snapshot.view.kind==='curve-focus'?' focused':'')} role="toolbar" aria-label="Modeling tools">
+      {tools.map(tool=><Button key={tool.target} type="button" variant="ghost" size="icon-sm" data-testid={'native-tool-'+tool.target}
+        aria-label={tool.name+' ('+tool.key.toUpperCase()+')'} title={tool.name+' ('+tool.key.toUpperCase()+')'}
+        aria-keyshortcuts={tool.key.toUpperCase()} aria-pressed={snapshot.editTarget===tool.target}
+        disabled={busy||!available(snapshot,tool.target)} onClick={()=>chooseTool(tool.target)}>
+        <tool.icon size={16} aria-hidden="true"/><kbd aria-hidden="true">{tool.key.toUpperCase()}</kbd>
+      </Button>)}
+    </div>
     <svg className="cad-editor-axis-svg" width={rect.width} height={rect.height} viewBox={`0 0 ${rect.width} ${rect.height}`} aria-label="Selected control point axes">
       {projections.map((p,axisIndex) => {
         if (!p) return null;
@@ -255,10 +317,10 @@ export function PoleAxisGizmo(props:Props) {
     </svg>
     {rotationMode&&<ObjectRotationGizmo session={session} control={control} canvas={canvas} snapStep={angularSnap?angularStep:null}
       disabled={(busy&&!rotationMoving)||angularError!==null} onError={failure}
-      onGestureChange={active=>{setRotationMoving(active);latest.current.onGestureChange(active);}}/>}
+      onGestureChange={active=>{transformGesture.current=active;setRotationMoving(active);latest.current.onGestureChange(active);}}/>}
     {scaleMode&&<ObjectScaleGizmo session={session} control={control} canvas={canvas} snapStep={scaleSnap?scaleStep:null}
       disabled={(busy&&!scaleMoving)||scaleError!==null} onError={failure}
-      onGestureChange={active=>{setScaleMoving(active);latest.current.onGestureChange(active);}}/>}
+      onGestureChange={active=>{transformGesture.current=active;setScaleMoving(active);latest.current.onGestureChange(active);}}/>}
     <div className="cad-editor-axis-palette" aria-label="Control point movement">
       <div className="pole-move-title">{scaleMode?'Scale object':rotationMode?'Rotate object':objectMode?'Move object':'Move control point'} <span>{scaleMode?'XYZ · ×':rotationMode?'XYZ · deg':'XYZ · mm'}</span></div>
       <label className="pole-move-target">Target<select data-testid="gizmo-edit-target" value={snapshot.editTarget} disabled={busy}

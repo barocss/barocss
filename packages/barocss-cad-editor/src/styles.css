@@ -172,3 +172,12 @@
 .scale-axis-label {fill:#b8d599;font-size:11px;font-weight:550;paint-order:stroke;stroke:#1c2228;stroke-width:3;}
 .cad-editor-scale-controls.pending .scale-axis-line {stroke:#e4b66c;stroke-dasharray:4 3;}
 .cad-editor-scale-controls.pending .scale-axis-handle {fill:#e4b66c;stroke:#967743;}
+.cad-editor-native-tools {position:absolute;top:8px;left:8px;z-index:3;display:flex;gap:2px;padding:4px;border:1px solid #404a50;border-radius:5px;background:#22272bed;pointer-events:auto;}
+.cad-editor-native-tools.focused {top:56px;}
+.cad-editor-native-tools button {position:relative;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:4px;border:1px solid transparent;border-radius:3px;background:transparent;color:#c2cdd4;cursor:pointer;}
+.cad-editor-native-tools button>svg {width:16px;height:16px;pointer-events:none;}
+.cad-editor-native-tools kbd {position:absolute;top:1px;right:2px;font:8px ui-sans-serif,sans-serif;color:#9daeb6;pointer-events:none;}
+.cad-editor-native-tools button:hover:not(:disabled) {background:#343c41;}
+.cad-editor-native-tools button[aria-pressed="true"] {background:#36442f;color:#cee2bc;border-color:#596d4b;}
+.cad-editor-native-tools button:disabled {opacity:.45;cursor:default;}
+.cad-editor-native-tools button:focus-visible {outline:2px solid #b8d599;outline-offset:1px;}
