@@ -13,6 +13,7 @@ import {tangentAnglePin,queryQualifiedFaceTangentAngle} from './tangent-angle.js
 import {normalAnglePin,queryQualifiedFaceNormalAngle} from './normal-angle.js';
 import {createPickedFacePoint,measurePickedFaceChord,isPickedFacePointCurrent} from './picked-chord.js';
 import {measurePickedFaceAngle} from './picked-angle.js';
+import {queryPickedFaceSurfaceCurvature} from './picked-curvature.js';
 import {parseBaroCadSource} from '@barocss/cad-interop/native';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2} from '@barocss/cad-interop/document';
@@ -28,6 +29,8 @@ const sha=async bytes=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',b
 const canvas=document.querySelector('#view'),status=document.querySelector('#status'),inspection=document.querySelector('#inspection'),rows=document.querySelector('#assets');
 const faceInspectMode=document.querySelector('#face-inspect-mode'),faceScreenOutput=document.querySelector('#face-screen-inspection'),faceRowRefs=new WeakMap();
 const nativeSampleMode=document.querySelector('#native-sample-mode'),nativeSampleOutput=document.querySelector('#native-sample-output');
+const inspectPickedSurfaceCurvatureButton=document.querySelector('#inspect-picked-surface-curvature'),resetPickedSurfaceCurvatureButton=document.querySelector('#reset-picked-surface-curvature');
+const pickedSurfaceCurvatureOutput=document.querySelector('#picked-surface-curvature-output'),pickedSurfaceCurvatureLabel=document.querySelector('#picked-surface-curvature-label');
 const pickedChordMode=document.querySelector('#picked-chord-mode'),resetPickedChordButton=document.querySelector('#reset-picked-chord'),pickedChordOutput=document.querySelector('#picked-chord-output');
 const pickedChordLabels=[1,2].map(index=>document.querySelector('#picked-chord-point-'+index)),pickedChordDistanceLabel=document.querySelector('#picked-chord-distance');
 const pickedAngleMode=document.querySelector('#picked-angle-mode'),resetPickedAngleButton=document.querySelector('#reset-picked-angle'),pickedAngleOutput=document.querySelector('#picked-angle-output');
@@ -92,6 +95,7 @@ let faceInspectionEpoch=0,faceInspectionScope=null,faceInspectionRecord=null;
 let nativeSampleRecord=null;
 let pickedChordFirst=null,pickedChordReport=null,pickedChordProjections=[null,null];
 let pickedAngleFirst=null,pickedAngleVertex=null,pickedAngleReport=null,pickedAngleProjections=[null,null,null];
+let pickedSurfaceCurvatureReport=null,pickedSurfaceCurvatureProjection=null;
 const colors=[[.9,.3,.2],[.25,.8,.4],[.25,.45,.95],[.95,.7,.2],[.3,.8,.9],[.85,.35,.75]];
 const camera={eye:[2,1.5,3.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:10},mmToSceneUnit=.12,background=[.02,.03,.04],translateScene=[-.6,-.6,-.7];
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
@@ -106,7 +110,7 @@ function currentFaceRef(asset){return{sourceId:asset.sourceId,expectedSource:ass
   modelId:asset.face.geometry.name,surfaceId:asset.face.topology.face.surfaceId};}
 function markFaceInspectionRows(){for(const item of rows.children)item.dataset.screenInspected=String(!!faceInspectionRecord?.pick
   &&same(faceRowRefs.get(item),faceInspectionRecord.pick.ref));}
-function clearNativeSample(){nativeSampleRecord=null;nativeSampleOutput.textContent='';}
+function clearNativeSample(){nativeSampleRecord=null;nativeSampleOutput.textContent='';inspectPickedSurfaceCurvatureButton.disabled=true;}
 function invalidateFaceInspection(){faceInspectionEpoch++;faceInspectionRecord=null;faceScreenOutput.textContent='';clearNativeSample();markFaceInspectionRows();}
 function refreshFaceInspection(){const scope=currentFaceInspectionScope();if(!same(scope,faceInspectionScope)){invalidateFaceInspection();faceInspectionScope=clone(scope);}
   const available=!disposed&&!!scope?.scene&&!['context-lost','unavailable','disposed'].includes(scope.status);
@@ -136,11 +140,40 @@ function adoptNativeSample(record){checkFaceInspectionScope(record.epoch,record.
     +', v '+areaNumber(sample.parameters.v)+' · original point ['+sample.nativePoint.pointMM.map(areaNumber).join(', ')+'] mm'
     +' · display/native discrepancy '+areaNumber(sample.displayToNativeDistanceScene)+' scene units'+(sample.pick.ambiguous?' · ambiguous source tie':'')
     :'No current filled Face triangle at this point.';
-  display(sample?'Original native point sampled for '+sample.pick.ref.sourceId+'.':'No current filled Face triangle at this point.');return clone(sample);
+  refreshPickedSurfaceCurvature();display(sample?'Original native point sampled for '+sample.pick.ref.sourceId+'.':'No current filled Face triangle at this point.');return clone(sample);
 }
 function sampleFaceAt(point){return adoptNativeSample(readFaceSample(point));}
 function nativeSampleSnapshot(){return{mode:nativeSampleMode.checked,enabled:!nativeSampleMode.disabled,epoch:faceInspectionEpoch,scope:clone(faceInspectionScope),
   record:clone(nativeSampleRecord),report:clone(nativeSampleRecord?.sample??null),output:nativeSampleOutput.textContent};}
+function clearPickedSurfaceCurvature(){pickedSurfaceCurvatureReport=null;pickedSurfaceCurvatureProjection=null;pickedSurfaceCurvatureOutput.textContent='';pickedSurfaceCurvatureLabel.hidden=true;}
+function pickedSurfaceCurvatureSnapshot(){return{enabled:!inspectPickedSurfaceCurvatureButton.disabled,report:clone(pickedSurfaceCurvatureReport),
+  output:pickedSurfaceCurvatureOutput.textContent,projection:clone(pickedSurfaceCurvatureProjection),label:pickedChordLabelSnapshot(pickedSurfaceCurvatureLabel)};}
+function refreshPickedSurfaceCurvature(){if(disposed){clearPickedSurfaceCurvature();inspectPickedSurfaceCurvatureButton.disabled=true;resetPickedSurfaceCurvatureButton.disabled=true;return pickedSurfaceCurvatureSnapshot();}
+  refreshFaceInspection();const state=viewer.getState();
+  if(pickedSurfaceCurvatureReport){let current=false;try{current=isPickedFacePointCurrent(viewer,pickedSurfaceCurvatureReport.point);}catch{}
+    if(!current)clearPickedSurfaceCurvature();}
+  const sampleCurrent=!!nativeSampleRecord?.sample&&nativeSampleRecord.epoch===faceInspectionEpoch&&same(nativeSampleRecord.scope,faceInspectionScope);
+  inspectPickedSurfaceCurvatureButton.disabled=running||state.status!=='ready'||!state.qualifiedFaceScene||!sampleCurrent;
+  resetPickedSurfaceCurvatureButton.disabled=running||!pickedSurfaceCurvatureReport;
+  pickedSurfaceCurvatureProjection=null;pickedSurfaceCurvatureLabel.hidden=true;if(state.status!=='ready'||!pickedSurfaceCurvatureReport)return pickedSurfaceCurvatureSnapshot();
+  try{pickedSurfaceCurvatureProjection=viewer.projectQualifiedFacePoint(pickedSurfaceCurvatureReport.measurement.anchor);}catch{}
+  if(pickedSurfaceCurvatureProjection){const next=pickedSurfaceCurvatureReport.measurement;
+    pickedSurfaceCurvatureLabel.textContent=next.pin.sourceId+'/'+next.pin.surfaceId+' · H '+signedCurvature(next.curvature.meanCurvaturePerMM)+' 1/mm';
+    pickedSurfaceCurvatureLabel.style.left=pickedSurfaceCurvatureProjection.xCss+'px';pickedSurfaceCurvatureLabel.style.top=pickedSurfaceCurvatureProjection.yCss+'px';pickedSurfaceCurvatureLabel.hidden=false;}
+  return pickedSurfaceCurvatureSnapshot();
+}
+function renderPickedSurfaceCurvatureOutput(){const next=pickedSurfaceCurvatureReport.measurement,curvature=next.curvature;
+  pickedSurfaceCurvatureOutput.textContent=next.pin.sourceId+'/'+next.pin.surfaceId+' · approximate selected u '+areaNumber(next.pin.u)+', v '+areaNumber(next.pin.v)
+    +' · H '+signedCurvature(curvature.meanCurvaturePerMM)+' 1/mm · K '+signedCurvature(curvature.gaussianCurvaturePerMM2)+' 1/mm²'
+    +' · k1 '+signedCurvature(curvature.principalCurvaturesPerMM[0])+', k2 '+signedCurvature(curvature.principalCurvaturesPerMM[1])+' 1/mm';}
+function inspectPickedSurfaceCurvature(){refreshPickedSurfaceCurvature();check(!inspectPickedSurfaceCurvatureButton.disabled,'Obtain a current native sample in an available Face view first.');
+  const record=clone(nativeSampleRecord);checkFaceInspectionScope(record.epoch,record.scope);
+  const point=createPickedFacePoint(viewer,record.sample),next=queryPickedFaceSurfaceCurvature(viewer,point),report=clone(next);checkFaceInspectionScope(record.epoch,record.scope);
+  pickedSurfaceCurvatureReport=report;renderPickedSurfaceCurvatureOutput();refreshPickedSurfaceCurvature();display('Original picked Surface curvature ready for '+report.point.input.sourceId+'.');return clone(report);}
+function remeasurePickedSurfaceCurvature(){check(pickedSurfaceCurvatureReport,'Inspect a current picked Surface point first.');
+  const next=queryPickedFaceSurfaceCurvature(viewer,pickedSurfaceCurvatureReport.point),report=clone(next);pickedSurfaceCurvatureReport=report;
+  renderPickedSurfaceCurvatureOutput();refreshPickedSurfaceCurvature();display('Original picked Surface curvature measured again.');return clone(report);}
+function resetPickedSurfaceCurvature(){clearPickedSurfaceCurvature();refreshPickedSurfaceCurvature();display('Picked Surface curvature reset.');}
 function hidePickedChordLabels(){pickedChordProjections=[null,null];for(const label of[...pickedChordLabels,pickedChordDistanceLabel])label.hidden=true;}
 function clearPickedChord(){pickedChordFirst=null;pickedChordReport=null;pickedChordOutput.textContent='Select the first original point.';hidePickedChordLabels();}
 function pickedChordLabelSnapshot(label){return{visible:!label.hidden,text:label.hidden?null:label.textContent,
@@ -522,7 +555,7 @@ function candidate(overrides={}){const variant=overrides.variant??'warped',amoun
   return {version:0,basis:'authored-xyz-matches-rhyup',assets:selected.map(asset=>({...clone(asset),color:[...colors['ABCDEF'.indexOf(asset.sourceId)]]})),
     countU:17,countV:17,camera:clone(camera),translateScene:[...translateScene],...changes};
 }
-function render(){refreshFaceInspection();refreshPickedChord();refreshPickedAngle();const state=viewer.getState(),scene=state.qualifiedFaceScene,available=!disposed&&!['context-lost','unavailable'].includes(state.status);
+function render(){refreshFaceInspection();refreshPickedChord();refreshPickedAngle();refreshPickedSurfaceCurvature();const state=viewer.getState(),scene=state.qualifiedFaceScene,available=!disposed&&!['context-lost','unavailable'].includes(state.status);
   if(measurementScopeChanged(scene))clearMeasurement();
   if(areaScopeChanged(scene))clearArea();
   if(lengthScopeChanged(scene))clearLength();
@@ -651,7 +684,7 @@ async function runProof(){if(running||disposed||['context-lost','unavailable'].i
   }catch(error){result.error=error.stack||error.message;result.failures.push({error:result.error,completed:result.cases.length});result.resources=resourceCounts();result.errors=[...errors];}
   finally{running=false;render();window.__viewerQualifiedFaceResult=result;display(result.ok?'Original Face checks completed.':('Face checks stopped: '+(result.error??'Unknown error')));
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}return result;}
-function dispose(){if(disposed)return;viewer.dispose();viewer.dispose();disposed=true;labelResizeObserver?.disconnect();invalidateFaceInspection();clearPickedChord();clearPickedAngle();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();clearSurfaceCurvature();clearTangentAngle();clearNormalAngle();render();const receipt={status:viewer.getState().status,resources:resourceCounts(),contextCount:contexts.size,
+function dispose(){if(disposed)return;viewer.dispose();viewer.dispose();disposed=true;labelResizeObserver?.disconnect();invalidateFaceInspection();clearPickedChord();clearPickedAngle();clearPickedSurfaceCurvature();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();clearSurfaceCurvature();clearTangentAngle();clearNormalAngle();render();const receipt={status:viewer.getState().status,resources:resourceCounts(),contextCount:contexts.size,
   glErrors:glErrors(),errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display('Viewer disposed.');return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item of manifest){const bytes=await(await fetch(item.url)).arrayBuffer();
     check(bytes.byteLength===item.bytes&&await sha(bytes)===item.sha256,'Original Face fixture bytes/hash changed');fixtures[item.name]={...item,bytes:new Uint8Array(bytes),text:new TextDecoder().decode(bytes)};}
@@ -659,10 +692,11 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
   for(const id of'ABCDEF'){const source=fixtures['warped_'+id+'.source0.css'].text;check(source===originalRequests.warped.assets.find(asset=>asset.sourceId===id).source,'Original source file/Face association differs');originalSources[id]=source;}
   check(fixtures['interior_edit_F.source0.css'].text===originalRequests.interior_edit.assets[5].source,'Original interior-edit Source0 association differs');
   viewer=createViewer(canvas,{mmToSceneUnit,background});load(candidate());lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
-  labelResizeObserver=new ResizeObserver(()=>{refreshFaceInspection();refreshPickedChord();refreshPickedAngle();updateLabels();updateAreaLabel();updateLengthLabel();updateAngleLabel();updateCurvatureLabel();updateSurfaceCurvatureLabel();updateTangentAngleLabel();updateNormalAngleLabel();});labelResizeObserver.observe(canvas);
+  labelResizeObserver=new ResizeObserver(()=>{refreshFaceInspection();refreshPickedChord();refreshPickedAngle();refreshPickedSurfaceCurvature();updateLabels();updateAreaLabel();updateLengthLabel();updateAngleLabel();updateCurvatureLabel();updateSurfaceCurvatureLabel();updateTangentAngleLabel();updateNormalAngleLabel();});labelResizeObserver.observe(canvas);
   window.__viewerQualifiedFaceProof={viewer,createViewer,candidate,load,render,frameAllFaces,frameFace,inspect,inspectFaceAt,faceInspectionSnapshot,refreshFaceInspection,sampleFaceAt,nativeSampleSnapshot,measurementInput,measure,updateLabels,labelSnapshot,
     createPickedFacePoint,measurePickedFaceChord,isPickedFacePointCurrent,pickedChordSnapshot,pickChordAt,refreshPickedChord,remeasurePickedChord,resetPickedChord,
     measurePickedFaceAngle,pickAngleAt,refreshPickedAngle,remeasurePickedAngle,resetPickedAngle,pickedAngleSnapshot,
+    queryPickedFaceSurfaceCurvature,inspectPickedSurfaceCurvature,refreshPickedSurfaceCurvature,remeasurePickedSurfaceCurvature,resetPickedSurfaceCurvature,pickedSurfaceCurvatureSnapshot,
     AREA_OPTIONS,areaPin,queryQualifiedFaceSurfaceArea,inspectArea,updateAreaLabel,areaSnapshot,mismatchCandidate,dispose,resourceCounts,uploads,draws,glErrors,errors,warnings,lossExtension,failAllocation,
     LENGTH_OPTIONS,lengthPin,queryQualifiedFaceCurveLength,inspectLength,updateLengthLabel,lengthSnapshot,
     queryQualifiedFaceAngle,measureAngle,updateAngleLabel,angleSnapshot,
@@ -680,7 +714,8 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
     get measurementReport(){return clone(measurementReport);},get currentProjections(){return clone(currentProjections);},get areaReport(){return clone(areaReport);},
     get lengthReport(){return clone(lengthReport);},get angleReport(){return clone(angleReport);},get curvatureReport(){return clone(curvatureReport);},
     get surfaceCurvatureReport(){return clone(surfaceCurvatureReport);},get tangentAngleReport(){return clone(tangentAngleReport);},get normalAngleReport(){return clone(normalAngleReport);},
-    get nativeSampleReport(){return clone(nativeSampleRecord?.sample??null);},get pickedChordReport(){return clone(pickedChordReport);},get pickedAngleReport(){return clone(pickedAngleReport);},get result(){return result;}};
+    get nativeSampleReport(){return clone(nativeSampleRecord?.sample??null);},get pickedChordReport(){return clone(pickedChordReport);},get pickedAngleReport(){return clone(pickedAngleReport);},
+    get pickedSurfaceCurvatureReport(){return clone(pickedSurfaceCurvatureReport);},get result(){return result;}};
   display('Original Faces ready. Inspect a current source from its row.');
 }catch(error){display('Original Faces could not load: '+error.message);}
 buttons.load.addEventListener('click',()=>action(()=>load(candidate({assetCount:Number(assetCount.value),countU:Number(countU.value),countV:Number(countV.value)}))));
@@ -691,7 +726,7 @@ buttons['apply-color'].addEventListener('click',()=>action(()=>{const scene=view
   load({version:0,basis:scene.basis,assets,countU:scene.countU,countV:scene.countV,camera:clone(scene.camera),translateScene:[...scene.translate]});}));
 buttons['saved-view'].addEventListener('click',()=>action(()=>changeView(()=>viewer.setView(camera))));buttons.orbit.addEventListener('click',()=>action(()=>changeView(()=>viewer.orbit(.05,.02))));buttons.pan.addEventListener('click',()=>action(()=>changeView(()=>viewer.pan(.01,0))));
 buttons['frame-all-faces'].addEventListener('click',()=>action(frameAllFaces));
-buttons.resize.addEventListener('click',()=>action(()=>changeView(()=>viewer.resize(canvas.width===640?480:640,canvas.height===480?360:480))));buttons.clear.addEventListener('click',()=>action(()=>{viewer.clear();invalidateFaceInspection();clearPickedChord();clearPickedAngle();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();clearSurfaceCurvature();clearTangentAngle();clearNormalAngle();}));
+buttons.resize.addEventListener('click',()=>action(()=>changeView(()=>viewer.resize(canvas.width===640?480:640,canvas.height===480?360:480))));buttons.clear.addEventListener('click',()=>action(()=>{viewer.clear();invalidateFaceInspection();clearPickedChord();clearPickedAngle();clearPickedSurfaceCurvature();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();clearSurfaceCurvature();clearTangentAngle();clearNormalAngle();}));
 for(const control of measurementControls)for(const field of['source','geometry'])control[field].addEventListener('change',()=>renderMeasurementControls(viewer.getState().qualifiedFaceScene));
 measureButton.addEventListener('click',()=>action(()=>measure()));
 inspectAreaButton.addEventListener('click',()=>action(()=>inspectArea()));
@@ -710,6 +745,7 @@ faceInspectMode.addEventListener('change',()=>{faceInspectionRecord=null;faceScr
 nativeSampleMode.addEventListener('change',()=>{clearNativeSample();render();});
 pickedChordMode.addEventListener('change',render);resetPickedChordButton.addEventListener('click',()=>action(resetPickedChord));
 pickedAngleMode.addEventListener('change',render);resetPickedAngleButton.addEventListener('click',()=>action(resetPickedAngle));
+inspectPickedSurfaceCurvatureButton.addEventListener('click',()=>action(inspectPickedSurfaceCurvature));resetPickedSurfaceCurvatureButton.addEventListener('click',()=>action(resetPickedSurfaceCurvature));
 canvas.addEventListener('click',event=>{const inspectEnabled=faceInspectMode.checked&&!faceInspectMode.disabled,sampleEnabled=nativeSampleMode.checked&&!nativeSampleMode.disabled,
   chordEnabled=pickedChordMode.checked&&!pickedChordMode.disabled,angleEnabled=pickedAngleMode.checked&&!pickedAngleMode.disabled;
   if(!inspectEnabled&&!sampleEnabled&&!chordEnabled&&!angleEnabled)return;const rect=canvas.getBoundingClientRect(),point={xCss:event.clientX-rect.left,yCss:event.clientY-rect.top};

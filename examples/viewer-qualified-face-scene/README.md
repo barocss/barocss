@@ -390,3 +390,12 @@ Camera, backing size and CSS changes retain the pinned CPU points and reproject 
 Enable “Picked angle mode”. Click the first endpoint, the vertex, then the third endpoint. The original-mm vectors are evaluated with the existing native angle helper. Parameters were selected approximately from display triangles; this is not a certified native-ray angle. A zero first or third leg refuses without advancing the accepted selection. A new valid click after completion starts a new angle; Reset clears it.
 
 Camera/backing/CSS changes retain pinned native points and move caller-owned labels. Source/Face content changes, wrong mode, Clear and Dispose invalidate the affected set. Loss/unavailable disables new sampling and hides labels while retained CPU angles may be revalidated. Labels are approximate with no occlusion test; the angle label is at the vertex. Native sample, picked chord and picked angle modes share one SDK sample per click.
+
+
+## Picked Surface curvature (#1229)
+
+Enable Native sample mode, click a current filled Face, then use **Inspect picked Surface curvature**. The displayed original Surface curvature uses the approximate selected native U/V. H and ordered principal curvatures use 1/mm; K uses 1/mm². Their sign follows the native U/V normal. This does not certify an exact native ray intersection, outward Solid normal or global accuracy. D0 sampling can succeed while D2 continuity or regularity refuses; a failed query keeps the accepted report.
+
+The copied pinned report survives camera, backing, CSS, color, grid, order and Scene translation changes while its original source and full Face remain current. A view change clears the ephemeral screen sample, so a new explicit action requires a fresh click. Source/Face changes, Clear and Dispose invalidate the report. Loss/unavailable hides its approximate, occlusion-untested parameter-point label and disables new inspection; retained CPU remeasurement remains possible. Reset clears only this report. The eight manual panels, picked chord and picked angle remain independent.
+
+The example-only `queryPickedFaceSurfaceCurvature(viewer,point)` reuses the existing strict stored-point validator and original Surface curvature query, preserves native errors, and checks original D2 point bits. It writes no Viewer/GPU/cache/request/selection state. The retained provider baseline is unchanged; later Root CAD1217 is not automatically accepted by this native branch.
