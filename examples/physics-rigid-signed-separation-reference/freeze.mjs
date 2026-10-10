@@ -1,0 +1,10 @@
+import {readdir,readFile,writeFile} from 'node:fs/promises';
+import {resolve,relative,dirname} from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {createHash} from 'node:crypto';
+const here=dirname(fileURLToPath(import.meta.url)),root=resolve(here,'../..'),sources=[];
+async function collect(path,own=false){for(const e of (await readdir(path,{withFileTypes:true})).sort((a,b)=>a.name.localeCompare(b.name))){if(own&&(e.name==='evidence'||e.name==='source-freeze.json'))continue;const full=resolve(path,e.name);if(e.isDirectory())await collect(full,own);else if(e.isFile())sources.push({path:relative(root,full),sha256:createHash('sha256').update(await readFile(full)).digest('hex')});}}
+await collect(here,true);
+for(const path of ['packages/barocss-physics/src','packages/barocss-cad/src','examples/physics-rigid-coupled-position-diagnostic','examples/physics-rigid-coupled-position-world','examples/physics-rigid-coupled-position-reference','examples/physics-rigid-feature-geometry','examples/physics-rigid-feature-penetration-diagnostic','examples/physics-rigid-contact-reference','examples/physics-rigid-contact-diagnostic'])await collect(resolve(root,path));
+for(const path of ['package.json','pnpm-lock.yaml','pnpm-workspace.yaml','packages/barocss-physics/package.json','packages/barocss-physics/tsconfig.json','packages/barocss-cad/package.json','packages/barocss-cad/tsconfig.json','examples/physics-rigid-engine-reference/build-local.mjs'])sources.push({path,sha256:createHash('sha256').update(await readFile(resolve(root,path))).digest('hex')});
+sources.sort((a,b)=>a.path.localeCompare(b.path));const frozen={issue:1344,base:'d6b552f98f4a509611ffce42a65080db063fdda0',node:'v22.22.0',sources,sourceOnlyPreTrial:true,candidateCalled:false,solverCalled:false,oracleCalled:false};const output=resolve(process.argv[2]??resolve(here,'source-freeze.json'));await writeFile(output,JSON.stringify(frozen,null,2)+'\n');console.log(JSON.stringify({output,pins:sources.length,sourceOnlyPreTrial:true}));

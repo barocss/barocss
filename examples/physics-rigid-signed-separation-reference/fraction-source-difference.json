@@ -1,0 +1,11 @@
+{
+  "original": "examples/physics-rigid-coupled-position-reference/linear-reference.py",
+  "originalSha256": "be4184012775a98747ba643d87b1e795cdb781e2b14a295405805a62cfe3feac",
+  "owned": "signed-linear-reference.py",
+  "ownedSha256": "902b9b95d5f03e42de6e02b7e4cd51712eea7c9218d5096fc92fc64d82a72d93",
+  "beforeDotAdmissionChangesOnly": true,
+  "afterDotKernelExactDepthToBoundRename": true,
+  "kernelArithmeticUnchanged": true,
+  "sourceOnly": true,
+  "noExtraMaskSweep": true
+}

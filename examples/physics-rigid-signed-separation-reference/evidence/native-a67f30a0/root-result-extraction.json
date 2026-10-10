@@ -1,0 +1,140 @@
+{
+  "scenes": [
+    {
+      "scene": "ALIGNED",
+      "step": 5,
+      "rows": 8,
+      "originalRows": 6,
+      "addedRows": 2,
+      "postQuality": true,
+      "maximumRawDepthM": 3.3202289982045505e-16,
+      "maximumNormalizedDepthM": 3.3211003823696395e-16,
+      "linearCompared": {
+        "agree": true,
+        "displacementDeltaM": 8.023096076392733e-18,
+        "objectiveDeltaKgM2": 3.7269449679189215e-20,
+        "certificateAgrees": true,
+        "exactCertificateAgrees": true
+      },
+      "activeMasks": {
+        "native": 255,
+        "reference": 255,
+        "uniqueActiveSetClaimed": false
+      },
+      "objectiveKgM2": 2.867266566815387e-05,
+      "addedBounds": [
+        [
+          "b4",
+          "b5",
+          -3.15618049374633e-05
+        ],
+        [
+          "b6",
+          "b7",
+          -6.303249699968205e-09
+        ]
+      ],
+      "raw": {
+        "pre": {
+          "bytes": 936,
+          "sha256": "9a2f806398b0eb9d3f1efea8c8b7e4e5b550df44fa08876104727725cda7168b"
+        },
+        "hypothetical": {
+          "bytes": 936,
+          "sha256": "96c4e17c44603fde3c441b819480b3369cc01c73f542cfb298d3ed5c60ef41aa"
+        }
+      }
+    },
+    {
+      "scene": "OFFSET",
+      "step": 3,
+      "rows": 8,
+      "originalRows": 6,
+      "addedRows": 2,
+      "postQuality": true,
+      "maximumRawDepthM": 2.0781481200616897e-16,
+      "maximumNormalizedDepthM": 2.0782161714761664e-16,
+      "linearCompared": {
+        "agree": true,
+        "displacementDeltaM": 3.469446951953614e-18,
+        "objectiveDeltaKgM2": 1.3552527156068805e-20,
+        "certificateAgrees": true,
+        "exactCertificateAgrees": true
+      },
+      "activeMasks": {
+        "native": 255,
+        "reference": 255,
+        "uniqueActiveSetClaimed": false
+      },
+      "objectiveKgM2": 1.7385036194509894e-05,
+      "addedBounds": [
+        [
+          "b1",
+          "b2",
+          -1.0413778432916132e-06
+        ],
+        [
+          "b6",
+          "b7",
+          -3.82982534574694e-12
+        ]
+      ],
+      "raw": {
+        "pre": {
+          "bytes": 936,
+          "sha256": "8b53792cb83bb5a63081ff72a7c63877e2a605a484969ab35b0366d9eb1e8d00"
+        },
+        "hypothetical": {
+          "bytes": 936,
+          "sha256": "8d23c7442fcd66e3406a0d3a05ecc1215a34edb16a98d242e8b688a436e19089"
+        }
+      }
+    },
+    {
+      "scene": "YAW",
+      "step": 4,
+      "rows": 8,
+      "originalRows": 7,
+      "addedRows": 1,
+      "postQuality": true,
+      "maximumRawDepthM": 2.495685890466367e-16,
+      "maximumNormalizedDepthM": 2.496367524740224e-16,
+      "linearCompared": {
+        "agree": true,
+        "displacementDeltaM": 2.927345865710862e-18,
+        "objectiveDeltaKgM2": 1.3552527156068805e-20,
+        "certificateAgrees": true,
+        "exactCertificateAgrees": true
+      },
+      "activeMasks": {
+        "native": 255,
+        "reference": 255,
+        "uniqueActiveSetClaimed": false
+      },
+      "objectiveKgM2": 1.6109855897122488e-05,
+      "addedBounds": [
+        [
+          "b1",
+          "b2",
+          -1.63821455890778e-05
+        ]
+      ],
+      "raw": {
+        "pre": {
+          "bytes": 936,
+          "sha256": "c3371c4df2c8cc8d0239bcd82725adc91d8e4b9578db057395c505772ff69d2c"
+        },
+        "hypothetical": {
+          "bytes": 936,
+          "sha256": "89d70b19a6a391335e03186c3f57561eda82ed14cbb2862fa1ca88fea2a35c9a"
+        }
+      }
+    }
+  ],
+  "maximumRawPostDepthM": 3.3202289982045505e-16,
+  "maximumNormalizedPostDepthM": 3.3211003823696395e-16,
+  "maximumTranslationDeltaM": 8.023096076392733e-18,
+  "maximumObjectiveDeltaKgM2": 3.7269449679189215e-20,
+  "maximumPrimalViolationM": 4.336808689942018e-18,
+  "maximumComplementarityKgM2": 9.052552784937004e-20
+}

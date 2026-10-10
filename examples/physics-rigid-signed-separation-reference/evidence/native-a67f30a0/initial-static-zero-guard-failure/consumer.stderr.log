@@ -1,0 +1,31 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: original-nonnegative-static-support
++ actual - expected
+
+  [
+    [
+      0,
++     -0,
+      0,
+-     0
+    ],
+    [
+      0,
+      1,
+      0
+
+    at controls (file:///Users/user/.codex/worktrees/physics-signed-separation-1344/barocss/examples/physics-rigid-signed-separation-reference/controls.mjs:42:474)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///Users/user/.codex/worktrees/physics-signed-separation-1344/barocss/examples/physics-rigid-signed-separation-reference/runner.mjs:32:188 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: [ [ 0, -0, 0 ], [ 0, 1, 0 ] ],
+  expected: [ [ 0, 0, 0 ], [ 0, 1, 0 ] ],
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.0

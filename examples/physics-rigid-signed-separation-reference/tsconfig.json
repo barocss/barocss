@@ -1,0 +1,1 @@
+{"compilerOptions":{"target":"ES2022","module":"NodeNext","moduleResolution":"NodeNext","strict":true,"noEmit":true,"skipLibCheck":true,"lib":["ES2022","DOM"],"types":[],"allowJs":true,"checkJs":false},"include":["*.ts","apply.mjs","signed-input.mjs","signed-linear-core.mjs","signed-linear-solver.mjs"]}

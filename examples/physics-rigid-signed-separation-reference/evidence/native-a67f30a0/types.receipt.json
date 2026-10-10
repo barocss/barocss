@@ -1,0 +1,24 @@
+{
+  "phase": "types",
+  "command": [
+    "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+    "node_modules/typescript/bin/tsc",
+    "-p",
+    "examples/physics-rigid-signed-separation-reference/tsconfig.json"
+  ],
+  "cwd": "/Users/user/.codex/worktrees/physics-signed-separation-1344/barocss",
+  "source": "8a9ec82cad4d793f48f36c0912926f385718a1dd",
+  "startedUtc": "2026-10-10T16:47:08.183797+00:00",
+  "durationSeconds": 0.629880124994088,
+  "exitCode": 0,
+  "node": "v22.22.0",
+  "REPO_DEPS_ROOT": "/Users/user/.barocss-ai/v3/integration",
+  "stdout": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

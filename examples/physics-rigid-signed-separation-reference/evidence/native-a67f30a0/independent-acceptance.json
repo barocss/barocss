@@ -1,0 +1,1598 @@
+{
+  "issue": 1344,
+  "audit": "independent READONLY existing receipt/data/hash/text audit; no module/query/model/solver/oracle/control/build/type/AST execution",
+  "measuredSource": "a67f30a08e22b4d02be3696b50b38221f5e11a15",
+  "base": "d6b552f98f4a509611ffce42a65080db063fdda0",
+  "sources": {
+    "count": 671,
+    "sha256": "5c737b483a265c697648a651ae73289dd23e913e814f15ff7f9742bbcc183b8e",
+    "mismatches": []
+  },
+  "emitted": {
+    "count": 524,
+    "sha256": "9e9610530100ea3f784eaafed7f7c3a215a2ec5f81c7904db0f6a5aa254706e8",
+    "actualBuildSource": "8a9ec82cad4d793f48f36c0912926f385718a1dd",
+    "mismatches": []
+  },
+  "minimalTextTransforms": {
+    "JSKernel": true,
+    "PythonFractionKernel": true,
+    "unchangedConstants": "const LIMIT=8, EPS=1e-12, PIVOT=1e-14;",
+    "validationOnlyChangesSeparate": true
+  },
+  "bundles": [
+    {
+      "graph": "source",
+      "path": "/tmp/physics-1344-canonical/source.mjs",
+      "bytes": 44740,
+      "sha256": "8e698ee163bbc5ca9ccc947a53739387f2ca12ea184fe66e3ac74f027f83ad7f"
+    },
+    {
+      "graph": "source-repeat",
+      "path": "/tmp/physics-1344-canonical/source-repeat.mjs",
+      "bytes": 44740,
+      "sha256": "8e698ee163bbc5ca9ccc947a53739387f2ca12ea184fe66e3ac74f027f83ad7f"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "path": "/tmp/physics-1344-canonical/compiled-dependencies.mjs",
+      "bytes": 44928,
+      "sha256": "8b0d786598e317f69c41824d363ab00a4f36c10d34fcb973cc357f7565b726d6"
+    }
+  ],
+  "graphClosureCounts": [
+    {
+      "graph": "source",
+      "src": 6,
+      "dist": 0,
+      "inputs": 15
+    },
+    {
+      "graph": "source-repeat",
+      "src": 6,
+      "dist": 0,
+      "inputs": 15
+    },
+    {
+      "graph": "compiled-dependencies",
+      "src": 0,
+      "dist": 6,
+      "inputs": 15
+    }
+  ],
+  "counts": {
+    "problems": 9,
+    "pairs": 648,
+    "queries": 72
+  },
+  "exactSceneReportAndControlParity": true,
+  "rawStreams": [
+    {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "field": "pre",
+      "bytes": 936,
+      "sha256": "9a2f806398b0eb9d3f1efea8c8b7e4e5b550df44fa08876104727725cda7168b"
+    },
+    {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "field": "hypothetical",
+      "bytes": 936,
+      "sha256": "96c4e17c44603fde3c441b819480b3369cc01c73f542cfb298d3ed5c60ef41aa"
+    },
+    {
+      "graph": "source",
+      "scene": "OFFSET",
+      "field": "pre",
+      "bytes": 936,
+      "sha256": "8b53792cb83bb5a63081ff72a7c63877e2a605a484969ab35b0366d9eb1e8d00"
+    },
+    {
+      "graph": "source",
+      "scene": "OFFSET",
+      "field": "hypothetical",
+      "bytes": 936,
+      "sha256": "8d23c7442fcd66e3406a0d3a05ecc1215a34edb16a98d242e8b688a436e19089"
+    },
+    {
+      "graph": "source",
+      "scene": "YAW",
+      "field": "pre",
+      "bytes": 936,
+      "sha256": "c3371c4df2c8cc8d0239bcd82725adc91d8e4b9578db057395c505772ff69d2c"
+    },
+    {
+      "graph": "source",
+      "scene": "YAW",
+      "field": "hypothetical",
+      "bytes": 936,
+      "sha256": "89d70b19a6a391335e03186c3f57561eda82ed14cbb2862fa1ca88fea2a35c9a"
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "ALIGNED",
+      "field": "pre",
+      "bytes": 936,
+      "sha256": "9a2f806398b0eb9d3f1efea8c8b7e4e5b550df44fa08876104727725cda7168b"
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "ALIGNED",
+      "field": "hypothetical",
+      "bytes": 936,
+      "sha256": "96c4e17c44603fde3c441b819480b3369cc01c73f542cfb298d3ed5c60ef41aa"
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "OFFSET",
+      "field": "pre",
+      "bytes": 936,
+      "sha256": "8b53792cb83bb5a63081ff72a7c63877e2a605a484969ab35b0366d9eb1e8d00"
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "OFFSET",
+      "field": "hypothetical",
+      "bytes": 936,
+      "sha256": "8d23c7442fcd66e3406a0d3a05ecc1215a34edb16a98d242e8b688a436e19089"
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "YAW",
+      "field": "pre",
+      "bytes": 936,
+      "sha256": "c3371c4df2c8cc8d0239bcd82725adc91d8e4b9578db057395c505772ff69d2c"
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "YAW",
+      "field": "hypothetical",
+      "bytes": 936,
+      "sha256": "89d70b19a6a391335e03186c3f57561eda82ed14cbb2862fa1ca88fea2a35c9a"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "ALIGNED",
+      "field": "pre",
+      "bytes": 936,
+      "sha256": "9a2f806398b0eb9d3f1efea8c8b7e4e5b550df44fa08876104727725cda7168b"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "ALIGNED",
+      "field": "hypothetical",
+      "bytes": 936,
+      "sha256": "96c4e17c44603fde3c441b819480b3369cc01c73f542cfb298d3ed5c60ef41aa"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "OFFSET",
+      "field": "pre",
+      "bytes": 936,
+      "sha256": "8b53792cb83bb5a63081ff72a7c63877e2a605a484969ab35b0366d9eb1e8d00"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "OFFSET",
+      "field": "hypothetical",
+      "bytes": 936,
+      "sha256": "8d23c7442fcd66e3406a0d3a05ecc1215a34edb16a98d242e8b688a436e19089"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "YAW",
+      "field": "pre",
+      "bytes": 936,
+      "sha256": "c3371c4df2c8cc8d0239bcd82725adc91d8e4b9578db057395c505772ff69d2c"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "YAW",
+      "field": "hypothetical",
+      "bytes": 936,
+      "sha256": "89d70b19a6a391335e03186c3f57561eda82ed14cbb2862fa1ca88fea2a35c9a"
+    }
+  ],
+  "selectedRows": [
+    {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "index": 0,
+      "kind": "original",
+      "aId": "b0",
+      "bId": "b1",
+      "boundM": 7.031386870798295e-05,
+      "candidateIndex": 8,
+      "tiedIndices": [
+        8
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "index": 1,
+      "kind": "original",
+      "aId": "b0",
+      "bId": "floor",
+      "boundM": 0.000711343948290144,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "index": 2,
+      "kind": "original",
+      "aId": "b1",
+      "bId": "b2",
+      "boundM": 0.0005754614813584524,
+      "candidateIndex": 12,
+      "tiedIndices": [
+        12
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "index": 3,
+      "kind": "original",
+      "aId": "b2",
+      "bId": "b3",
+      "boundM": 0.0013013221523008323,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "index": 4,
+      "kind": "original",
+      "aId": "b3",
+      "bId": "b4",
+      "boundM": 0.0007847564394229956,
+      "candidateIndex": 8,
+      "tiedIndices": [
+        8
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "index": 5,
+      "kind": "original",
+      "aId": "b5",
+      "bId": "b6",
+      "boundM": 3.9934585584933124e-05,
+      "candidateIndex": 1,
+      "tiedIndices": [
+        1
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "index": 6,
+      "kind": "added",
+      "aId": "b4",
+      "bId": "b5",
+      "boundM": -3.15618049374633e-05,
+      "candidateIndex": 12,
+      "tiedIndices": [
+        12
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "index": 7,
+      "kind": "added",
+      "aId": "b6",
+      "bId": "b7",
+      "boundM": -6.303249699968205e-09,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "OFFSET",
+      "index": 0,
+      "kind": "original",
+      "aId": "b0",
+      "bId": "b1",
+      "boundM": 0.0005152016485692745,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "OFFSET",
+      "index": 1,
+      "kind": "original",
+      "aId": "b0",
+      "bId": "floor",
+      "boundM": 0.0006765741434693329,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "OFFSET",
+      "index": 2,
+      "kind": "original",
+      "aId": "b2",
+      "bId": "b3",
+      "boundM": 0.0007979411741514952,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "OFFSET",
+      "index": 3,
+      "kind": "original",
+      "aId": "b3",
+      "bId": "b4",
+      "boundM": 0.00045550158821766606,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "OFFSET",
+      "index": 4,
+      "kind": "original",
+      "aId": "b4",
+      "bId": "b5",
+      "boundM": 0.0002337383576765939,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "OFFSET",
+      "index": 5,
+      "kind": "original",
+      "aId": "b5",
+      "bId": "b6",
+      "boundM": 3.008206647892031e-06,
+      "candidateIndex": 12,
+      "tiedIndices": [
+        12
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "OFFSET",
+      "index": 6,
+      "kind": "added",
+      "aId": "b1",
+      "bId": "b2",
+      "boundM": -1.0413778432916132e-06,
+      "candidateIndex": 1,
+      "tiedIndices": [
+        1,
+        8
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "OFFSET",
+      "index": 7,
+      "kind": "added",
+      "aId": "b6",
+      "bId": "b7",
+      "boundM": -3.82982534574694e-12,
+      "candidateIndex": 12,
+      "tiedIndices": [
+        4,
+        12
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "YAW",
+      "index": 0,
+      "kind": "original",
+      "aId": "b0",
+      "bId": "b1",
+      "boundM": 5.733308858668629e-05,
+      "candidateIndex": 8,
+      "tiedIndices": [
+        8
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "YAW",
+      "index": 1,
+      "kind": "original",
+      "aId": "b0",
+      "bId": "floor",
+      "boundM": 0.0006816001569687202,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "YAW",
+      "index": 2,
+      "kind": "original",
+      "aId": "b2",
+      "bId": "b3",
+      "boundM": 0.0006321672361817021,
+      "candidateIndex": 1,
+      "tiedIndices": [
+        1
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "YAW",
+      "index": 3,
+      "kind": "original",
+      "aId": "b3",
+      "bId": "b4",
+      "boundM": 0.0009814321648536906,
+      "candidateIndex": 8,
+      "tiedIndices": [
+        8
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "YAW",
+      "index": 4,
+      "kind": "original",
+      "aId": "b4",
+      "bId": "b5",
+      "boundM": 0.0004317628854431099,
+      "candidateIndex": 8,
+      "tiedIndices": [
+        8
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "YAW",
+      "index": 5,
+      "kind": "original",
+      "aId": "b5",
+      "bId": "b6",
+      "boundM": 5.9114747097410714e-08,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "YAW",
+      "index": 6,
+      "kind": "original",
+      "aId": "b6",
+      "bId": "b7",
+      "boundM": 7.315879895397615e-05,
+      "candidateIndex": 8,
+      "tiedIndices": [
+        8
+      ]
+    },
+    {
+      "graph": "source",
+      "scene": "YAW",
+      "index": 7,
+      "kind": "added",
+      "aId": "b1",
+      "bId": "b2",
+      "boundM": -1.63821455890778e-05,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "ALIGNED",
+      "index": 0,
+      "kind": "original",
+      "aId": "b0",
+      "bId": "b1",
+      "boundM": 7.031386870798295e-05,
+      "candidateIndex": 8,
+      "tiedIndices": [
+        8
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "ALIGNED",
+      "index": 1,
+      "kind": "original",
+      "aId": "b0",
+      "bId": "floor",
+      "boundM": 0.000711343948290144,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "ALIGNED",
+      "index": 2,
+      "kind": "original",
+      "aId": "b1",
+      "bId": "b2",
+      "boundM": 0.0005754614813584524,
+      "candidateIndex": 12,
+      "tiedIndices": [
+        12
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "ALIGNED",
+      "index": 3,
+      "kind": "original",
+      "aId": "b2",
+      "bId": "b3",
+      "boundM": 0.0013013221523008323,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "ALIGNED",
+      "index": 4,
+      "kind": "original",
+      "aId": "b3",
+      "bId": "b4",
+      "boundM": 0.0007847564394229956,
+      "candidateIndex": 8,
+      "tiedIndices": [
+        8
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "ALIGNED",
+      "index": 5,
+      "kind": "original",
+      "aId": "b5",
+      "bId": "b6",
+      "boundM": 3.9934585584933124e-05,
+      "candidateIndex": 1,
+      "tiedIndices": [
+        1
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "ALIGNED",
+      "index": 6,
+      "kind": "added",
+      "aId": "b4",
+      "bId": "b5",
+      "boundM": -3.15618049374633e-05,
+      "candidateIndex": 12,
+      "tiedIndices": [
+        12
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "ALIGNED",
+      "index": 7,
+      "kind": "added",
+      "aId": "b6",
+      "bId": "b7",
+      "boundM": -6.303249699968205e-09,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "OFFSET",
+      "index": 0,
+      "kind": "original",
+      "aId": "b0",
+      "bId": "b1",
+      "boundM": 0.0005152016485692745,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "OFFSET",
+      "index": 1,
+      "kind": "original",
+      "aId": "b0",
+      "bId": "floor",
+      "boundM": 0.0006765741434693329,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "OFFSET",
+      "index": 2,
+      "kind": "original",
+      "aId": "b2",
+      "bId": "b3",
+      "boundM": 0.0007979411741514952,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "OFFSET",
+      "index": 3,
+      "kind": "original",
+      "aId": "b3",
+      "bId": "b4",
+      "boundM": 0.00045550158821766606,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "OFFSET",
+      "index": 4,
+      "kind": "original",
+      "aId": "b4",
+      "bId": "b5",
+      "boundM": 0.0002337383576765939,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "OFFSET",
+      "index": 5,
+      "kind": "original",
+      "aId": "b5",
+      "bId": "b6",
+      "boundM": 3.008206647892031e-06,
+      "candidateIndex": 12,
+      "tiedIndices": [
+        12
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "OFFSET",
+      "index": 6,
+      "kind": "added",
+      "aId": "b1",
+      "bId": "b2",
+      "boundM": -1.0413778432916132e-06,
+      "candidateIndex": 1,
+      "tiedIndices": [
+        1,
+        8
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "OFFSET",
+      "index": 7,
+      "kind": "added",
+      "aId": "b6",
+      "bId": "b7",
+      "boundM": -3.82982534574694e-12,
+      "candidateIndex": 12,
+      "tiedIndices": [
+        4,
+        12
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "YAW",
+      "index": 0,
+      "kind": "original",
+      "aId": "b0",
+      "bId": "b1",
+      "boundM": 5.733308858668629e-05,
+      "candidateIndex": 8,
+      "tiedIndices": [
+        8
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "YAW",
+      "index": 1,
+      "kind": "original",
+      "aId": "b0",
+      "bId": "floor",
+      "boundM": 0.0006816001569687202,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "YAW",
+      "index": 2,
+      "kind": "original",
+      "aId": "b2",
+      "bId": "b3",
+      "boundM": 0.0006321672361817021,
+      "candidateIndex": 1,
+      "tiedIndices": [
+        1
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "YAW",
+      "index": 3,
+      "kind": "original",
+      "aId": "b3",
+      "bId": "b4",
+      "boundM": 0.0009814321648536906,
+      "candidateIndex": 8,
+      "tiedIndices": [
+        8
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "YAW",
+      "index": 4,
+      "kind": "original",
+      "aId": "b4",
+      "bId": "b5",
+      "boundM": 0.0004317628854431099,
+      "candidateIndex": 8,
+      "tiedIndices": [
+        8
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "YAW",
+      "index": 5,
+      "kind": "original",
+      "aId": "b5",
+      "bId": "b6",
+      "boundM": 5.9114747097410714e-08,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "YAW",
+      "index": 6,
+      "kind": "original",
+      "aId": "b6",
+      "bId": "b7",
+      "boundM": 7.315879895397615e-05,
+      "candidateIndex": 8,
+      "tiedIndices": [
+        8
+      ]
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "YAW",
+      "index": 7,
+      "kind": "added",
+      "aId": "b1",
+      "bId": "b2",
+      "boundM": -1.63821455890778e-05,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "ALIGNED",
+      "index": 0,
+      "kind": "original",
+      "aId": "b0",
+      "bId": "b1",
+      "boundM": 7.031386870798295e-05,
+      "candidateIndex": 8,
+      "tiedIndices": [
+        8
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "ALIGNED",
+      "index": 1,
+      "kind": "original",
+      "aId": "b0",
+      "bId": "floor",
+      "boundM": 0.000711343948290144,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "ALIGNED",
+      "index": 2,
+      "kind": "original",
+      "aId": "b1",
+      "bId": "b2",
+      "boundM": 0.0005754614813584524,
+      "candidateIndex": 12,
+      "tiedIndices": [
+        12
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "ALIGNED",
+      "index": 3,
+      "kind": "original",
+      "aId": "b2",
+      "bId": "b3",
+      "boundM": 0.0013013221523008323,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "ALIGNED",
+      "index": 4,
+      "kind": "original",
+      "aId": "b3",
+      "bId": "b4",
+      "boundM": 0.0007847564394229956,
+      "candidateIndex": 8,
+      "tiedIndices": [
+        8
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "ALIGNED",
+      "index": 5,
+      "kind": "original",
+      "aId": "b5",
+      "bId": "b6",
+      "boundM": 3.9934585584933124e-05,
+      "candidateIndex": 1,
+      "tiedIndices": [
+        1
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "ALIGNED",
+      "index": 6,
+      "kind": "added",
+      "aId": "b4",
+      "bId": "b5",
+      "boundM": -3.15618049374633e-05,
+      "candidateIndex": 12,
+      "tiedIndices": [
+        12
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "ALIGNED",
+      "index": 7,
+      "kind": "added",
+      "aId": "b6",
+      "bId": "b7",
+      "boundM": -6.303249699968205e-09,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "OFFSET",
+      "index": 0,
+      "kind": "original",
+      "aId": "b0",
+      "bId": "b1",
+      "boundM": 0.0005152016485692745,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "OFFSET",
+      "index": 1,
+      "kind": "original",
+      "aId": "b0",
+      "bId": "floor",
+      "boundM": 0.0006765741434693329,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "OFFSET",
+      "index": 2,
+      "kind": "original",
+      "aId": "b2",
+      "bId": "b3",
+      "boundM": 0.0007979411741514952,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "OFFSET",
+      "index": 3,
+      "kind": "original",
+      "aId": "b3",
+      "bId": "b4",
+      "boundM": 0.00045550158821766606,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "OFFSET",
+      "index": 4,
+      "kind": "original",
+      "aId": "b4",
+      "bId": "b5",
+      "boundM": 0.0002337383576765939,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "OFFSET",
+      "index": 5,
+      "kind": "original",
+      "aId": "b5",
+      "bId": "b6",
+      "boundM": 3.008206647892031e-06,
+      "candidateIndex": 12,
+      "tiedIndices": [
+        12
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "OFFSET",
+      "index": 6,
+      "kind": "added",
+      "aId": "b1",
+      "bId": "b2",
+      "boundM": -1.0413778432916132e-06,
+      "candidateIndex": 1,
+      "tiedIndices": [
+        1,
+        8
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "OFFSET",
+      "index": 7,
+      "kind": "added",
+      "aId": "b6",
+      "bId": "b7",
+      "boundM": -3.82982534574694e-12,
+      "candidateIndex": 12,
+      "tiedIndices": [
+        4,
+        12
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "YAW",
+      "index": 0,
+      "kind": "original",
+      "aId": "b0",
+      "bId": "b1",
+      "boundM": 5.733308858668629e-05,
+      "candidateIndex": 8,
+      "tiedIndices": [
+        8
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "YAW",
+      "index": 1,
+      "kind": "original",
+      "aId": "b0",
+      "bId": "floor",
+      "boundM": 0.0006816001569687202,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "YAW",
+      "index": 2,
+      "kind": "original",
+      "aId": "b2",
+      "bId": "b3",
+      "boundM": 0.0006321672361817021,
+      "candidateIndex": 1,
+      "tiedIndices": [
+        1
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "YAW",
+      "index": 3,
+      "kind": "original",
+      "aId": "b3",
+      "bId": "b4",
+      "boundM": 0.0009814321648536906,
+      "candidateIndex": 8,
+      "tiedIndices": [
+        8
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "YAW",
+      "index": 4,
+      "kind": "original",
+      "aId": "b4",
+      "bId": "b5",
+      "boundM": 0.0004317628854431099,
+      "candidateIndex": 8,
+      "tiedIndices": [
+        8
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "YAW",
+      "index": 5,
+      "kind": "original",
+      "aId": "b5",
+      "bId": "b6",
+      "boundM": 5.9114747097410714e-08,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "YAW",
+      "index": 6,
+      "kind": "original",
+      "aId": "b6",
+      "bId": "b7",
+      "boundM": 7.315879895397615e-05,
+      "candidateIndex": 8,
+      "tiedIndices": [
+        8
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "YAW",
+      "index": 7,
+      "kind": "added",
+      "aId": "b1",
+      "bId": "b2",
+      "boundM": -1.63821455890778e-05,
+      "candidateIndex": 4,
+      "tiedIndices": [
+        4
+      ]
+    }
+  ],
+  "omissions": [
+    {
+      "scene": "ALIGNED",
+      "aId": "b4",
+      "bId": "b5",
+      "signedPreBoundM": -3.15618049374633e-05,
+      "oldFailedPostDepthRawM": 0.003431555640397398,
+      "postAbove2mmRaw": true,
+      "postAbove2mmNormalized": true
+    },
+    {
+      "scene": "ALIGNED",
+      "aId": "b6",
+      "bId": "b7",
+      "signedPreBoundM": -6.303249699968205e-09,
+      "oldFailedPostDepthRawM": 1.9960981263966212e-05,
+      "postAbove2mmRaw": false,
+      "postAbove2mmNormalized": false
+    },
+    {
+      "scene": "OFFSET",
+      "aId": "b1",
+      "bId": "b2",
+      "signedPreBoundM": -1.0413778432916132e-06,
+      "oldFailedPostDepthRawM": 0.0021964824677117244,
+      "postAbove2mmRaw": true,
+      "postAbove2mmNormalized": true
+    },
+    {
+      "scene": "OFFSET",
+      "aId": "b6",
+      "bId": "b7",
+      "signedPreBoundM": -3.82982534574694e-12,
+      "oldFailedPostDepthRawM": 0.00048443782102639764,
+      "postAbove2mmRaw": false,
+      "postAbove2mmNormalized": false
+    },
+    {
+      "scene": "YAW",
+      "aId": "b1",
+      "bId": "b2",
+      "signedPreBoundM": -1.63821455890778e-05,
+      "oldFailedPostDepthRawM": 0.0021317300099907652,
+      "postAbove2mmRaw": true,
+      "postAbove2mmNormalized": true
+    }
+  ],
+  "linearAgreement": [
+    {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "agree": true,
+      "displacementDeltaM": 8.023096076392733e-18,
+      "objectiveDeltaKgM2": 3.7269449679189215e-20,
+      "certificateAgrees": true,
+      "exactCertificateAgrees": true
+    },
+    {
+      "graph": "source",
+      "scene": "OFFSET",
+      "agree": true,
+      "displacementDeltaM": 3.469446951953614e-18,
+      "objectiveDeltaKgM2": 1.3552527156068805e-20,
+      "certificateAgrees": true,
+      "exactCertificateAgrees": true
+    },
+    {
+      "graph": "source",
+      "scene": "YAW",
+      "agree": true,
+      "displacementDeltaM": 2.927345865710862e-18,
+      "objectiveDeltaKgM2": 1.3552527156068805e-20,
+      "certificateAgrees": true,
+      "exactCertificateAgrees": true
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "ALIGNED",
+      "agree": true,
+      "displacementDeltaM": 8.023096076392733e-18,
+      "objectiveDeltaKgM2": 3.7269449679189215e-20,
+      "certificateAgrees": true,
+      "exactCertificateAgrees": true
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "OFFSET",
+      "agree": true,
+      "displacementDeltaM": 3.469446951953614e-18,
+      "objectiveDeltaKgM2": 1.3552527156068805e-20,
+      "certificateAgrees": true,
+      "exactCertificateAgrees": true
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "YAW",
+      "agree": true,
+      "displacementDeltaM": 2.927345865710862e-18,
+      "objectiveDeltaKgM2": 1.3552527156068805e-20,
+      "certificateAgrees": true,
+      "exactCertificateAgrees": true
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "ALIGNED",
+      "agree": true,
+      "displacementDeltaM": 8.023096076392733e-18,
+      "objectiveDeltaKgM2": 3.7269449679189215e-20,
+      "certificateAgrees": true,
+      "exactCertificateAgrees": true
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "OFFSET",
+      "agree": true,
+      "displacementDeltaM": 3.469446951953614e-18,
+      "objectiveDeltaKgM2": 1.3552527156068805e-20,
+      "certificateAgrees": true,
+      "exactCertificateAgrees": true
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "YAW",
+      "agree": true,
+      "displacementDeltaM": 2.927345865710862e-18,
+      "objectiveDeltaKgM2": 1.3552527156068805e-20,
+      "certificateAgrees": true,
+      "exactCertificateAgrees": true
+    }
+  ],
+  "maximumNativeCertificate": {
+    "primalViolationM": 4.336808689942018e-18,
+    "negativeMultiplierKgM": 0,
+    "complementarityKgM2": 9.052552784937004e-20,
+    "stationarityKgM": 0
+  },
+  "maximumHypotheticalPostRawDepthM": 3.3202289982045505e-16,
+  "maximumHypotheticalPostNormalizedDepthM": 3.3211003823696395e-16,
+  "maximumPrecisionDifferenceM": 2.539021262788438e-77,
+  "maximumRawNormalizedMarginDifferenceM": 1.3727232914532245e-19,
+  "maximumSelectedQueryDifferences": {
+    "maxSelectionDifferenceM": 4.801714581503802e-14,
+    "maxRowDifferenceM": 2.220446049250313e-16,
+    "selectedAxisDifference": 2.220446049250313e-16
+  },
+  "controlsPerGraph": {
+    "pure": 20,
+    "refusals": 34,
+    "tamper": 19,
+    "query": 11,
+    "archive": 4,
+    "independentReceipts": 32,
+    "syntheticApplicationCalls": 1,
+    "syntheticQueryCalls": 17,
+    "pureSolverApiCalls": 58,
+    "oldNegativeApiRefusals": 1,
+    "oldFractionSolveCalls": 0,
+    "archivedPhysicalCases": 0
+  },
+  "logs": [
+    {
+      "phase": "build",
+      "prefix": "",
+      "source": "8a9ec82cad4d793f48f36c0912926f385718a1dd",
+      "exitCode": 0,
+      "stdout": {
+        "bytes": 449,
+        "sha256": "453ab3ddd6de113947fc7f84fcd72c8b697d8c165c09e81c63a067db0ad655b5"
+      },
+      "stderr": {
+        "bytes": 43,
+        "sha256": "6c7fae606c4fd4b6f8d9df5dc8b384bfd6ded835eb446c7404dfe2bc8dcae649"
+      }
+    },
+    {
+      "phase": "types",
+      "prefix": "",
+      "source": "8a9ec82cad4d793f48f36c0912926f385718a1dd",
+      "exitCode": 0,
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "phase": "consumer",
+      "prefix": "initial-static-zero-guard-failure/",
+      "source": "8a9ec82cad4d793f48f36c0912926f385718a1dd",
+      "exitCode": 1,
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "bytes": 856,
+        "sha256": "99e58b81e7424bb7e11db80c0c49022294406f62e66bcbfb3c978502358b4784"
+      }
+    },
+    {
+      "phase": "consumer",
+      "prefix": "second-pair-wire-guard-failure/",
+      "source": "44262cc20663b8d6cb89f99760471a0e69eb6e68",
+      "exitCode": 1,
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "bytes": 715,
+        "sha256": "61384276b05062625c1a4151c1dc8f8590bd226cce5e4efc3a0a18a659230e1b"
+      }
+    },
+    {
+      "phase": "consumer",
+      "prefix": "",
+      "source": "a67f30a08e22b4d02be3696b50b38221f5e11a15",
+      "exitCode": 0,
+      "stdout": {
+        "bytes": 1740,
+        "sha256": "0e1d66db132729684828d9e63c3ec394235b5e31dc8824012a3fb53b31df9f41"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "preservedHistoricalFailures": [
+    {
+      "prefix": "initial-static-zero-guard-failure/",
+      "failure": {
+        "context": {
+          "graph": "source",
+          "phase": "guards"
+        },
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "original-nonnegative-static-support\n+ actual - expected\n\n  [\n    [\n      0,\n+     -0,\n      0,\n-     0\n    ],\n    [\n      0,\n      1,\n      0\n",
+        "classification": "EXECUTION_FAILURE",
+        "physicalSignedProblems": 0,
+        "completedReports": 0
+      },
+      "freezeSha256": "5c167947bbf5f9bfb3a1606c4babd5df0ffd986a736411d6bff443405a52e56c",
+      "ledgerSha256": "f4ea3aaf22245ad23e945dfc1edbd010c44958f69cca0628e68b24a3ea34da3a"
+    },
+    {
+      "prefix": "second-pair-wire-guard-failure/",
+      "failure": {
+        "context": {
+          "graph": "source",
+          "phase": "guards"
+        },
+        "name": "AssertionError",
+        "code": "ERR_ASSERTION",
+        "message": "Expected values to be strictly equal:\n\nfalse !== true\n",
+        "classification": "EXECUTION_FAILURE",
+        "physicalSignedProblems": 0,
+        "completedReports": 0
+      },
+      "freezeSha256": "195f3ffff975a4de5aa8f33ca22a4a79cb3c6c5a99b87dc601e41ef4dc03d687",
+      "ledgerSha256": "22da04a8d442e24db7542ae9de71ff8f0e802379625d3a53527bb28f736cbb69"
+    }
+  ],
+  "scope": {
+    "retrospectiveDetachedSignedRowsGO": true,
+    "worldCreated": false,
+    "worldStepped": false,
+    "liveRowClosureGO": false,
+    "fullWorldGO": false,
+    "publicPositionSolverGO": false,
+    "general36rowSolverGO": false,
+    "angularGO": false,
+    "frictionGO": false,
+    "forceCalibrationGO": false,
+    "longRunGO": false,
+    "viewerGO": false,
+    "costGO": false,
+    "releaseGO": false
+  },
+  "copyProof": "successful consumer source assertions preserve pre/problem/raw; returned-copy mutation happens after immutable report/raw capture, with no second solve/application",
+  "issues": [],
+  "parents": [
+    {
+      "native": "5f9444606dac11dc8087c3073c42cfb574a831a5",
+      "measuredSource": "3f66079c2e4acf10d48422d6511b46c031b27ca8",
+      "sourcePins": 409,
+      "freezeSha256": "ed5c8773b6bc0a51e95f99fbf454db779ccf9c8ddd348b15e3d1200321164d0d",
+      "pinMismatch": [],
+      "artifacts": 38,
+      "decodedGzip": 13,
+      "manifestSha256": "89e005c04d48a0397cc4f92bfcf655ae2286b75897c11be457d5b36c8c4c8020",
+      "artifactMismatch": []
+    },
+    {
+      "native": "d2e6f59aaa30164db4eb8ae971c1d03b5c2c86be",
+      "measuredSource": "ecc4dccc7a50a5753c236647be3b491a4fafd3fa",
+      "sourcePins": 356,
+      "freezeSha256": "155012f4859791f3cdca7ab451ea165cf15e8395df7c5ed007e2aa62a53d43a8",
+      "pinMismatch": [],
+      "artifacts": 63,
+      "decodedGzip": 52,
+      "manifestSha256": "327ab9e319b9d7e2e3d63309fef682216751fe8d88cc7208bb730e25606d473f",
+      "artifactMismatch": []
+    }
+  ],
+  "frozen1263Interfaces": {
+    "originalPrefixDiffFromBase": "",
+    "hashes": {
+      "linear-solver.mjs": "f92de1b1cb938a19c5b38ad7574a68f7925ad980c71a077a51476a9015acbb2c",
+      "linear-reference.py": "be4184012775a98747ba643d87b1e795cdb781e2b14a295405805a62cfe3feac",
+      "linear-controls.json": "26833af3db51c8f1b2af5c3d089e68a5207f2ea3cb86ba85f8f991317879567f",
+      "input.mjs": "092bb95ebc8a808981bf31f7e1e322e14df1f4b318dc413dca8d8a6296cf6a5c"
+    },
+    "negativeDepthGuard": "oldJSAPI entry throws during validation before enumeration; oldFraction validate only, no solve_exact"
+  },
+  "sourceOnlyRepairScope": {
+    "comparison": "JSON-authored translation literals use existing1e-12 numeric comparison; raw result signs never changed",
+    "wire": "exact four pair raw senders slice fixed936byte rawState buffer to first208bytes; receiver/laws/literals unchanged",
+    "oldFilesChanged": false
+  },
+  "historicalCanonicalExecutionFailureIsSecond": true,
+  "copyAndApplicationEvidence": {
+    "realCaseApplications": 9,
+    "perCaseApplications": 1,
+    "dynamicAdditionOnce": true,
+    "staticBodyAll104BitsRetained": true,
+    "qVelocityOmegaHeldInAll9BodyFrames": true,
+    "hypotheticalPostNotOriginalFailedPost": true,
+    "rootKernelWrapperFixesFrozenBeforeFirstBuild": true
+  },
+  "independentlyCheckedRecordedOneAddition": [
+    {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "dynamicPositionAdditionMatchedBinary64": true,
+      "staticPositionCopiedWithoutAddition": true
+    },
+    {
+      "graph": "source",
+      "scene": "OFFSET",
+      "dynamicPositionAdditionMatchedBinary64": true,
+      "staticPositionCopiedWithoutAddition": true
+    },
+    {
+      "graph": "source",
+      "scene": "YAW",
+      "dynamicPositionAdditionMatchedBinary64": true,
+      "staticPositionCopiedWithoutAddition": true
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "ALIGNED",
+      "dynamicPositionAdditionMatchedBinary64": true,
+      "staticPositionCopiedWithoutAddition": true
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "OFFSET",
+      "dynamicPositionAdditionMatchedBinary64": true,
+      "staticPositionCopiedWithoutAddition": true
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "YAW",
+      "dynamicPositionAdditionMatchedBinary64": true,
+      "staticPositionCopiedWithoutAddition": true
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "ALIGNED",
+      "dynamicPositionAdditionMatchedBinary64": true,
+      "staticPositionCopiedWithoutAddition": true
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "OFFSET",
+      "dynamicPositionAdditionMatchedBinary64": true,
+      "staticPositionCopiedWithoutAddition": true
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "YAW",
+      "dynamicPositionAdditionMatchedBinary64": true,
+      "staticPositionCopiedWithoutAddition": true
+    }
+  ],
+  "originalRowCorrespondences": [
+    {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "count": 6,
+      "rehydratedJSONValuesPreserved": true,
+      "historicZeroSignsNotClaimedRawBits": true
+    },
+    {
+      "graph": "source",
+      "scene": "OFFSET",
+      "count": 6,
+      "rehydratedJSONValuesPreserved": true,
+      "historicZeroSignsNotClaimedRawBits": true
+    },
+    {
+      "graph": "source",
+      "scene": "YAW",
+      "count": 7,
+      "rehydratedJSONValuesPreserved": true,
+      "historicZeroSignsNotClaimedRawBits": true
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "ALIGNED",
+      "count": 6,
+      "rehydratedJSONValuesPreserved": true,
+      "historicZeroSignsNotClaimedRawBits": true
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "OFFSET",
+      "count": 6,
+      "rehydratedJSONValuesPreserved": true,
+      "historicZeroSignsNotClaimedRawBits": true
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "YAW",
+      "count": 7,
+      "rehydratedJSONValuesPreserved": true,
+      "historicZeroSignsNotClaimedRawBits": true
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "ALIGNED",
+      "count": 6,
+      "rehydratedJSONValuesPreserved": true,
+      "historicZeroSignsNotClaimedRawBits": true
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "OFFSET",
+      "count": 6,
+      "rehydratedJSONValuesPreserved": true,
+      "historicZeroSignsNotClaimedRawBits": true
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "YAW",
+      "count": 7,
+      "rehydratedJSONValuesPreserved": true,
+      "historicZeroSignsNotClaimedRawBits": true
+    }
+  ],
+  "maximumLinearDisplacementDeltaM": 8.023096076392733e-18,
+  "maximumLinearObjectiveDeltaKgM2": 3.7269449679189215e-20
+}

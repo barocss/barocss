@@ -1,0 +1,10 @@
+{"graph":"source","scene":"ALIGNED","passed":true,"classification":"PASS","postMaximumRawDepthM":3.3202289982045505e-16,"postMaximumNormalizedDepthM":3.3211003823696395e-16}
+{"graph":"source","scene":"OFFSET","passed":true,"classification":"PASS","postMaximumRawDepthM":2.0781481200616897e-16,"postMaximumNormalizedDepthM":2.0782161714761664e-16}
+{"graph":"source","scene":"YAW","passed":true,"classification":"PASS","postMaximumRawDepthM":2.495685890466367e-16,"postMaximumNormalizedDepthM":2.496367524740224e-16}
+{"graph":"source-repeat","scene":"ALIGNED","passed":true,"classification":"PASS","postMaximumRawDepthM":3.3202289982045505e-16,"postMaximumNormalizedDepthM":3.3211003823696395e-16}
+{"graph":"source-repeat","scene":"OFFSET","passed":true,"classification":"PASS","postMaximumRawDepthM":2.0781481200616897e-16,"postMaximumNormalizedDepthM":2.0782161714761664e-16}
+{"graph":"source-repeat","scene":"YAW","passed":true,"classification":"PASS","postMaximumRawDepthM":2.495685890466367e-16,"postMaximumNormalizedDepthM":2.496367524740224e-16}
+{"graph":"compiled-dependencies","scene":"ALIGNED","passed":true,"classification":"PASS","postMaximumRawDepthM":3.3202289982045505e-16,"postMaximumNormalizedDepthM":3.3211003823696395e-16}
+{"graph":"compiled-dependencies","scene":"OFFSET","passed":true,"classification":"PASS","postMaximumRawDepthM":2.0781481200616897e-16,"postMaximumNormalizedDepthM":2.0782161714761664e-16}
+{"graph":"compiled-dependencies","scene":"YAW","passed":true,"classification":"PASS","postMaximumRawDepthM":2.495685890466367e-16,"postMaximumNormalizedDepthM":2.496367524740224e-16}
+{"retrospectiveDetachedSignedRowsGO":true,"physicalSignedProblems":9,"actualPairObservations":648,"actualSelectedRowQueries":72}

@@ -1,0 +1,11 @@
+{
+  "issue": 1308,
+  "base": "63d20195a9d980a31930c682ed56e8be87d5a11f",
+  "native": "5f9444606dac11dc8087c3073c42cfb574a831a5",
+  "adopt": "d6b552f98f4a509611ffce42a65080db063fdda0",
+  "parent": "b69ea25d574f7af638b0456f01409fb94014eddd",
+  "exactNewModesBlobs": 58,
+  "manifestSha256": "89e005c04d48a0397cc4f92bfcf655ae2286b75897c11be457d5b36c8c4c8020",
+  "artifactsVerified": 38,
+  "verdict": "DIAGNOSTIC_GO"
+}

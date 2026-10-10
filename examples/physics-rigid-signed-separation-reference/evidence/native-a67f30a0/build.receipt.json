@@ -1,0 +1,22 @@
+{
+  "phase": "build",
+  "command": [
+    "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+    "examples/physics-rigid-engine-reference/build-local.mjs"
+  ],
+  "cwd": "/Users/user/.codex/worktrees/physics-signed-separation-1344/barocss",
+  "source": "8a9ec82cad4d793f48f36c0912926f385718a1dd",
+  "startedUtc": "2026-10-10T16:44:08.559637+00:00",
+  "durationSeconds": 6.285420083004283,
+  "exitCode": 0,
+  "node": "v22.22.0",
+  "REPO_DEPS_ROOT": "/Users/user/.barocss-ai/v3/integration",
+  "stdout": {
+    "bytes": 449,
+    "sha256": "453ab3ddd6de113947fc7f84fcd72c8b697d8c165c09e81c63a067db0ad655b5"
+  },
+  "stderr": {
+    "bytes": 43,
+    "sha256": "6c7fae606c4fd4b6f8d9df5dc8b384bfd6ded835eb446c7404dfe2bc8dcae649"
+  }
+}

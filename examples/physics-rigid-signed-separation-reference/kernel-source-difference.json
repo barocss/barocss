@@ -1,0 +1,15 @@
+{
+  "original": "examples/physics-rigid-coupled-position-reference/linear-solver.mjs",
+  "owned": "signed-linear-core.mjs",
+  "changes": [
+    "replace admission import/header",
+    "rename public owned entry solvePosition to solveSignedCore",
+    "replace validateProblem entry with validateSignedProblem",
+    "replace every depthM RHS/margin read with boundM"
+  ],
+  "kernelArithmeticUnchanged": true,
+  "sourceOnly": true,
+  "originalSha256": "f92de1b1cb938a19c5b38ad7574a68f7925ad980c71a077a51476a9015acbb2c",
+  "ownedSha256": "e8c2d74820bd8b91c0f3bd1d4ba6ad7f595b5ef63e4d2e991f96372b14c9dd97",
+  "exactDeclaredTransformationVerified": true
+}

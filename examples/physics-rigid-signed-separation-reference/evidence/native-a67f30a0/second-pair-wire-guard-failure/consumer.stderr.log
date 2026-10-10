@@ -1,0 +1,20 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+false !== true
+
+    at controls (file:///Users/user/.codex/worktrees/physics-signed-separation-1344/barocss/examples/physics-rigid-signed-separation-reference/controls.mjs:53:272)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async file:///Users/user/.codex/worktrees/physics-signed-separation-1344/barocss/examples/physics-rigid-signed-separation-reference/runner.mjs:32:188 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.0

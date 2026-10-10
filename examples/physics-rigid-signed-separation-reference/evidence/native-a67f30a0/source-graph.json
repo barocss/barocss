@@ -1,0 +1,375 @@
+{
+  "audit": {
+    "graph": "source",
+    "path": "/tmp/physics-1344-canonical/source.mjs",
+    "bytes": 44740,
+    "sha256": "8e698ee163bbc5ca9ccc947a53739387f2ca12ea184fe66e3ac74f027f83ad7f",
+    "originalSourceCount": 6,
+    "originalDistCount": 0,
+    "ownedSignedCore": true,
+    "freshSignedQuery": true,
+    "worldCreated": false,
+    "worldStepped": false,
+    "oldPositionSolverCalled": false,
+    "inputs": [
+      {
+        "path": "packages/barocss-physics/src/math.ts",
+        "sha256": "6605633830fa7fdf39f9531fbf988b52e306a6835655a318c961eb44c6b05ff8"
+      },
+      {
+        "path": "packages/barocss-physics/src/limits.ts",
+        "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+      },
+      {
+        "path": "packages/barocss-physics/src/types.ts",
+        "sha256": "e8befc80c94e1b109f5024581f056639acff2c19ed445f2875e20eaf2d3bf240"
+      },
+      {
+        "path": "packages/barocss-physics/src/validation.ts",
+        "sha256": "5b0a3016c32ef19076984e6b7f529253af581c29eb9dd1adb19cc8dba185479f"
+      },
+      {
+        "path": "examples/physics-rigid-signed-separation-reference/signed-sat.ts",
+        "sha256": "2ae6a57ec0de1bd3db13812f02789572c5eacff85e9e2a0a9f2454a301933dea"
+      },
+      {
+        "path": "packages/barocss-physics/src/capsule-contact.ts",
+        "sha256": "a9df21430e4e2a37b1055143a5954a6a3f997b758c46432daebc11998630f3cd"
+      },
+      {
+        "path": "packages/barocss-physics/src/collision.ts",
+        "sha256": "2ba769697e5f9c5174f30a7a9ae8dceb61c1ba03c6fb507c24b6b6f7d4240388"
+      },
+      {
+        "path": "examples/physics-rigid-feature-geometry/sat-feature.ts",
+        "sha256": "5c84e0327d621a0bdcf1ca85d73244147fd2b05ae29fa6dfc25ded7d3af460af"
+      },
+      {
+        "path": "examples/physics-rigid-feature-penetration-diagnostic/entry.ts",
+        "sha256": "bb1ac67ba458e5ab2846047686b8c25bd21c1365e8aab7f74876f8ca03c9c109"
+      },
+      {
+        "path": "examples/physics-rigid-coupled-position-diagnostic/entry.ts",
+        "sha256": "ee666b0200c631363eb36f4cca9d68534d464bb391257c0e08fe2682756f3bde"
+      },
+      {
+        "path": "examples/physics-rigid-signed-separation-reference/signed-input.mjs",
+        "sha256": "5b457a602f89c0182f661302a5e4b6491711d5d7be7f0b390af7f93115e7a951"
+      },
+      {
+        "path": "examples/physics-rigid-signed-separation-reference/signed-linear-core.mjs",
+        "sha256": "e8c2d74820bd8b91c0f3bd1d4ba6ad7f595b5ef63e4d2e991f96372b14c9dd97"
+      },
+      {
+        "path": "examples/physics-rigid-signed-separation-reference/signed-linear-solver.mjs",
+        "sha256": "b8123f576d73bf64595f88d21420197cac0b16b48058f42b59231958e731c955"
+      },
+      {
+        "path": "examples/physics-rigid-signed-separation-reference/apply.mjs",
+        "sha256": "01b7d13b6c4b7d423a53df13f24b617afe43ecdc7866587fcf0191b82395b0dd"
+      },
+      {
+        "path": "examples/physics-rigid-signed-separation-reference/entry.ts",
+        "sha256": "d8695a5b7a7a2118a8b872ff0e4ef5a8590f6e1d0d49cc9a9397bf9f7d7488ba"
+      }
+    ]
+  },
+  "metafile": {
+    "inputs": {
+      "packages/barocss-physics/src/math.ts": {
+        "bytes": 2412,
+        "imports": [],
+        "format": "esm"
+      },
+      "packages/barocss-physics/src/limits.ts": {
+        "bytes": 417,
+        "imports": [],
+        "format": "esm"
+      },
+      "packages/barocss-physics/src/types.ts": {
+        "bytes": 5118,
+        "imports": [],
+        "format": "esm"
+      },
+      "packages/barocss-physics/src/validation.ts": {
+        "bytes": 14147,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/types.ts",
+            "kind": "import-statement",
+            "original": "./types.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/limits.ts",
+            "kind": "import-statement",
+            "original": "./limits.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-signed-separation-reference/signed-sat.ts": {
+        "bytes": 7916,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/math.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/limits.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/limits.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/validation.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/src/capsule-contact.ts": {
+        "bytes": 5606,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/src/collision.ts": {
+        "bytes": 13433,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/capsule-contact.ts",
+            "kind": "import-statement",
+            "original": "./capsule-contact.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-feature-geometry/sat-feature.ts": {
+        "bytes": 6166,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/math.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/math.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/validation.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-feature-penetration-diagnostic/entry.ts": {
+        "bytes": 586,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/collision.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/collision.js"
+          },
+          {
+            "path": "examples/physics-rigid-feature-geometry/sat-feature.ts",
+            "kind": "import-statement",
+            "original": "../physics-rigid-feature-geometry/sat-feature.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/types.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/types.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-coupled-position-diagnostic/entry.ts": {
+        "bytes": 113,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-feature-penetration-diagnostic/entry.ts",
+            "kind": "import-statement",
+            "original": "../physics-rigid-feature-penetration-diagnostic/entry.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-signed-separation-reference/signed-input.mjs": {
+        "bytes": 2637,
+        "imports": [],
+        "format": "esm"
+      },
+      "examples/physics-rigid-signed-separation-reference/signed-linear-core.mjs": {
+        "bytes": 2823,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-signed-separation-reference/signed-input.mjs",
+            "kind": "import-statement",
+            "original": "./signed-input.mjs"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-signed-separation-reference/signed-linear-solver.mjs": {
+        "bytes": 4373,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-signed-separation-reference/signed-linear-core.mjs",
+            "kind": "import-statement",
+            "original": "./signed-linear-core.mjs"
+          },
+          {
+            "path": "examples/physics-rigid-signed-separation-reference/signed-input.mjs",
+            "kind": "import-statement",
+            "original": "./signed-input.mjs"
+          },
+          {
+            "path": "examples/physics-rigid-signed-separation-reference/signed-input.mjs",
+            "kind": "import-statement",
+            "original": "./signed-input.mjs"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-signed-separation-reference/apply.mjs": {
+        "bytes": 2242,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/src/validation.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/src/collision.ts",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/collision.js"
+          },
+          {
+            "path": "examples/physics-rigid-signed-separation-reference/signed-linear-solver.mjs",
+            "kind": "import-statement",
+            "original": "./signed-linear-solver.mjs"
+          },
+          {
+            "path": "examples/physics-rigid-signed-separation-reference/signed-input.mjs",
+            "kind": "import-statement",
+            "original": "./signed-input.mjs"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-signed-separation-reference/entry.ts": {
+        "bytes": 407,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-signed-separation-reference/signed-sat.ts",
+            "kind": "import-statement",
+            "original": "./signed-sat.js"
+          },
+          {
+            "path": "examples/physics-rigid-coupled-position-diagnostic/entry.ts",
+            "kind": "import-statement",
+            "original": "../physics-rigid-coupled-position-diagnostic/entry.js"
+          },
+          {
+            "path": "examples/physics-rigid-signed-separation-reference/signed-linear-solver.mjs",
+            "kind": "import-statement",
+            "original": "./signed-linear-solver.mjs"
+          },
+          {
+            "path": "examples/physics-rigid-signed-separation-reference/apply.mjs",
+            "kind": "import-statement",
+            "original": "./apply.mjs"
+          }
+        ],
+        "format": "esm"
+      }
+    },
+    "outputs": {
+      "../../../../../../tmp/physics-1344-canonical/source.mjs": {
+        "imports": [],
+        "exports": [
+          "AXIS_MESSAGE",
+          "FEATURE_INPUT_MESSAGE",
+          "MESSAGES",
+          "PhysicsError",
+          "SignedPositionReferenceError",
+          "applySignedTranslationsOnce",
+          "inspectPair",
+          "inspectSignedBoxSAT",
+          "parseBody",
+          "solveSignedPositionReference",
+          "validateSignedProblem",
+          "validateSignedResult"
+        ],
+        "entryPoint": "examples/physics-rigid-signed-separation-reference/entry.ts",
+        "inputs": {
+          "packages/barocss-physics/src/math.ts": {
+            "bytesInOutput": 766
+          },
+          "packages/barocss-physics/src/limits.ts": {
+            "bytesInOutput": 44
+          },
+          "packages/barocss-physics/src/types.ts": {
+            "bytesInOutput": 153
+          },
+          "packages/barocss-physics/src/validation.ts": {
+            "bytesInOutput": 8224
+          },
+          "examples/physics-rigid-signed-separation-reference/signed-sat.ts": {
+            "bytesInOutput": 5609
+          },
+          "examples/physics-rigid-signed-separation-reference/entry.ts": {
+            "bytesInOutput": 0
+          },
+          "packages/barocss-physics/src/capsule-contact.ts": {
+            "bytesInOutput": 5148
+          },
+          "packages/barocss-physics/src/collision.ts": {
+            "bytesInOutput": 6346
+          },
+          "examples/physics-rigid-feature-geometry/sat-feature.ts": {
+            "bytesInOutput": 4228
+          },
+          "examples/physics-rigid-feature-penetration-diagnostic/entry.ts": {
+            "bytesInOutput": 101
+          },
+          "examples/physics-rigid-coupled-position-diagnostic/entry.ts": {
+            "bytesInOutput": 0
+          },
+          "examples/physics-rigid-signed-separation-reference/signed-input.mjs": {
+            "bytesInOutput": 2907
+          },
+          "examples/physics-rigid-signed-separation-reference/signed-linear-core.mjs": {
+            "bytesInOutput": 3299
+          },
+          "examples/physics-rigid-signed-separation-reference/signed-linear-solver.mjs": {
+            "bytesInOutput": 4660
+          },
+          "examples/physics-rigid-signed-separation-reference/apply.mjs": {
+            "bytesInOutput": 2220
+          }
+        },
+        "bytes": 44740
+      }
+    }
+  }
+}

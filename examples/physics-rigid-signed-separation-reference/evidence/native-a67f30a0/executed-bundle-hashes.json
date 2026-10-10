@@ -1,0 +1,20 @@
+[
+  {
+    "graph": "source",
+    "path": "/tmp/physics-1344-canonical/source.mjs",
+    "bytes": 44740,
+    "sha256": "8e698ee163bbc5ca9ccc947a53739387f2ca12ea184fe66e3ac74f027f83ad7f"
+  },
+  {
+    "graph": "source-repeat",
+    "path": "/tmp/physics-1344-canonical/source-repeat.mjs",
+    "bytes": 44740,
+    "sha256": "8e698ee163bbc5ca9ccc947a53739387f2ca12ea184fe66e3ac74f027f83ad7f"
+  },
+  {
+    "graph": "compiled-dependencies",
+    "path": "/tmp/physics-1344-canonical/compiled-dependencies.mjs",
+    "bytes": 44928,
+    "sha256": "8b0d786598e317f69c41824d363ab00a4f36c10d34fcb973cc357f7565b726d6"
+  }
+]

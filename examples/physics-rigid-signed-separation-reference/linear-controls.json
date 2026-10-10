@@ -1,0 +1,884 @@
+[
+  {
+    "id": "original-nonnegative-empty-rows",
+    "problem": {
+      "bodies": [
+        {
+          "id": "a",
+          "inverseMass": 1
+        }
+      ],
+      "rows": []
+    },
+    "expectedStatus": "SOLVED",
+    "expectedTranslations": [
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "expectedObjective": 0,
+    "origin": "unchanged1263literaldata"
+  },
+  {
+    "id": "original-nonnegative-static-support",
+    "problem": {
+      "bodies": [
+        {
+          "id": "floor",
+          "inverseMass": 0
+        },
+        {
+          "id": "a",
+          "inverseMass": 1
+        }
+      ],
+      "rows": [
+        {
+          "aId": "floor",
+          "bId": "a",
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "boundM": 1
+        }
+      ]
+    },
+    "expectedStatus": "SOLVED",
+    "expectedTranslations": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0
+      ]
+    ],
+    "expectedObjective": 0.5,
+    "origin": "unchanged1263literaldata"
+  },
+  {
+    "id": "original-nonnegative-equal-masses",
+    "problem": {
+      "bodies": [
+        {
+          "id": "a",
+          "inverseMass": 1
+        },
+        {
+          "id": "b",
+          "inverseMass": 1
+        }
+      ],
+      "rows": [
+        {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": 1
+        }
+      ]
+    },
+    "expectedStatus": "SOLVED",
+    "expectedTranslations": [
+      [
+        -0.5,
+        0,
+        0
+      ],
+      [
+        0.5,
+        0,
+        0
+      ]
+    ],
+    "expectedObjective": 0.25,
+    "origin": "unchanged1263literaldata"
+  },
+  {
+    "id": "original-nonnegative-unequal-masses",
+    "problem": {
+      "bodies": [
+        {
+          "id": "a",
+          "inverseMass": 1
+        },
+        {
+          "id": "b",
+          "inverseMass": 0.5
+        }
+      ],
+      "rows": [
+        {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": 1
+        }
+      ]
+    },
+    "expectedStatus": "SOLVED",
+    "expectedTranslations": [
+      [
+        -0.6666666666666666,
+        0,
+        0
+      ],
+      [
+        0.3333333333333333,
+        0,
+        0
+      ]
+    ],
+    "expectedObjective": 0.3333333333333333,
+    "exactExpectedObjective": "1/3",
+    "note": "Masses are 1 and 2 kg; translation ratio is inversely proportional to mass.",
+    "origin": "unchanged1263literaldata"
+  },
+  {
+    "id": "original-nonnegative-two-link-static-chain",
+    "problem": {
+      "bodies": [
+        {
+          "id": "floor",
+          "inverseMass": 0
+        },
+        {
+          "id": "a",
+          "inverseMass": 1
+        },
+        {
+          "id": "b",
+          "inverseMass": 1
+        }
+      ],
+      "rows": [
+        {
+          "aId": "floor",
+          "bId": "a",
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "boundM": 1
+        },
+        {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "boundM": 1
+        }
+      ]
+    },
+    "expectedStatus": "SOLVED",
+    "expectedTranslations": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        2,
+        0
+      ]
+    ],
+    "expectedObjective": 2.5,
+    "origin": "unchanged1263literaldata"
+  },
+  {
+    "id": "original-nonnegative-orthogonal-rows",
+    "problem": {
+      "bodies": [
+        {
+          "id": "floor",
+          "inverseMass": 0
+        },
+        {
+          "id": "a",
+          "inverseMass": 1
+        }
+      ],
+      "rows": [
+        {
+          "aId": "floor",
+          "bId": "a",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": 1
+        },
+        {
+          "aId": "floor",
+          "bId": "a",
+          "normal": [
+            0,
+            1,
+            0
+          ],
+          "boundM": 2
+        }
+      ]
+    },
+    "expectedStatus": "SOLVED",
+    "expectedTranslations": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        2,
+        0
+      ]
+    ],
+    "expectedObjective": 2.5,
+    "origin": "unchanged1263literaldata"
+  },
+  {
+    "id": "original-nonnegative-redundant-inactive-row",
+    "problem": {
+      "bodies": [
+        {
+          "id": "floor",
+          "inverseMass": 0
+        },
+        {
+          "id": "a",
+          "inverseMass": 1
+        }
+      ],
+      "rows": [
+        {
+          "aId": "floor",
+          "bId": "a",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": 1
+        },
+        {
+          "aId": "floor",
+          "bId": "a",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": 0.5
+        }
+      ]
+    },
+    "expectedStatus": "SOLVED",
+    "expectedTranslations": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        0
+      ]
+    ],
+    "expectedObjective": 0.5,
+    "requireSingularMask": true,
+    "origin": "unchanged1263literaldata"
+  },
+  {
+    "id": "original-nonnegative-duplicate-singular-rows",
+    "problem": {
+      "bodies": [
+        {
+          "id": "floor",
+          "inverseMass": 0
+        },
+        {
+          "id": "a",
+          "inverseMass": 1
+        }
+      ],
+      "rows": [
+        {
+          "aId": "floor",
+          "bId": "a",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": 1
+        },
+        {
+          "aId": "floor",
+          "bId": "a",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": 1
+        }
+      ]
+    },
+    "expectedStatus": "SOLVED",
+    "expectedTranslations": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        1,
+        0,
+        0
+      ]
+    ],
+    "expectedObjective": 0.5,
+    "requireSingularMask": true,
+    "origin": "unchanged1263literaldata"
+  },
+  {
+    "id": "original-nonnegative-infeasible-opposing-static-support",
+    "problem": {
+      "bodies": [
+        {
+          "id": "floor",
+          "inverseMass": 0
+        },
+        {
+          "id": "a",
+          "inverseMass": 1
+        }
+      ],
+      "rows": [
+        {
+          "aId": "floor",
+          "bId": "a",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": 1
+        },
+        {
+          "aId": "floor",
+          "bId": "a",
+          "normal": [
+            -1,
+            0,
+            0
+          ],
+          "boundM": 1
+        }
+      ]
+    },
+    "expectedStatus": "INFEASIBLE",
+    "requireSingularMask": true,
+    "origin": "unchanged1263literaldata"
+  },
+  {
+    "id": "negative-gap-zero",
+    "origin": "new-signed-algebra-guard",
+    "problem": {
+      "bodies": [
+        {
+          "id": "a",
+          "inverseMass": 1
+        },
+        {
+          "id": "b",
+          "inverseMass": 1
+        }
+      ],
+      "rows": [
+        {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": -1
+        }
+      ]
+    },
+    "expectedStatus": "SOLVED",
+    "expectedTranslations": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "expectedObjective": 0,
+    "expectedActiveMask": 0
+  },
+  {
+    "id": "gap-row-activated-by-positive-row",
+    "origin": "new-signed-algebra-guard",
+    "problem": {
+      "bodies": [
+        {
+          "id": "a",
+          "inverseMass": 1
+        },
+        {
+          "id": "b",
+          "inverseMass": 1
+        },
+        {
+          "id": "c",
+          "inverseMass": 1
+        }
+      ],
+      "rows": [
+        {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": 1
+        },
+        {
+          "aId": "b",
+          "bId": "c",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": -0.1
+        }
+      ]
+    },
+    "expectedStatus": "SOLVED",
+    "requireActiveRow": 1
+  },
+  {
+    "id": "duplicate-negative-rows",
+    "origin": "new-signed-algebra-guard",
+    "problem": {
+      "bodies": [
+        {
+          "id": "a",
+          "inverseMass": 1
+        },
+        {
+          "id": "b",
+          "inverseMass": 1
+        }
+      ],
+      "rows": [
+        {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": -1
+        },
+        {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": -1
+        }
+      ]
+    },
+    "expectedStatus": "SOLVED",
+    "requireSingularMask": true,
+    "expectedTranslations": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "expectedObjective": 0
+  },
+  {
+    "id": "duplicate-positive-rows",
+    "origin": "new-signed-algebra-guard",
+    "problem": {
+      "bodies": [
+        {
+          "id": "a",
+          "inverseMass": 1
+        },
+        {
+          "id": "b",
+          "inverseMass": 1
+        }
+      ],
+      "rows": [
+        {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": 1
+        },
+        {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": 1
+        }
+      ]
+    },
+    "expectedStatus": "SOLVED",
+    "requireSingularMask": true,
+    "expectedTranslations": [
+      [
+        -0.5,
+        0,
+        0
+      ],
+      [
+        0.5,
+        0,
+        0
+      ]
+    ],
+    "expectedObjective": 0.25
+  },
+  {
+    "id": "static-static-gap",
+    "origin": "new-signed-algebra-guard",
+    "problem": {
+      "bodies": [
+        {
+          "id": "a",
+          "inverseMass": 0
+        },
+        {
+          "id": "b",
+          "inverseMass": 0
+        }
+      ],
+      "rows": [
+        {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": -1
+        }
+      ]
+    },
+    "expectedStatus": "SOLVED",
+    "expectedTranslations": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "expectedObjective": 0
+  },
+  {
+    "id": "static-static-positive",
+    "origin": "new-signed-algebra-guard",
+    "problem": {
+      "bodies": [
+        {
+          "id": "a",
+          "inverseMass": 0
+        },
+        {
+          "id": "b",
+          "inverseMass": 0
+        }
+      ],
+      "rows": [
+        {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": 1
+        }
+      ]
+    },
+    "expectedStatus": "INFEASIBLE"
+  },
+  {
+    "id": "opposing-positive",
+    "origin": "new-signed-algebra-guard",
+    "problem": {
+      "bodies": [
+        {
+          "id": "a",
+          "inverseMass": 1
+        },
+        {
+          "id": "b",
+          "inverseMass": 1
+        }
+      ],
+      "rows": [
+        {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": 1
+        },
+        {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            -1,
+            0,
+            0
+          ],
+          "boundM": 1
+        }
+      ]
+    },
+    "expectedStatus": "INFEASIBLE",
+    "requireSingularMask": true
+  },
+  {
+    "id": "touch-positive-zero",
+    "origin": "new-signed-algebra-guard",
+    "problem": {
+      "bodies": [
+        {
+          "id": "a",
+          "inverseMass": 1
+        },
+        {
+          "id": "b",
+          "inverseMass": 1
+        }
+      ],
+      "rows": [
+        {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": 0
+        }
+      ]
+    },
+    "expectedStatus": "SOLVED",
+    "expectedTranslations": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "expectedObjective": 0
+  },
+  {
+    "id": "touch-negative-zero",
+    "origin": "new-signed-algebra-guard",
+    "problem": {
+      "bodies": [
+        {
+          "id": "a",
+          "inverseMass": 1
+        },
+        {
+          "id": "b",
+          "inverseMass": 1
+        }
+      ],
+      "rows": [
+        {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": -0.0
+        }
+      ]
+    },
+    "expectedStatus": "SOLVED",
+    "expectedTranslations": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "expectedObjective": 0,
+    "preserveNegativeZeroBound": true
+  },
+  {
+    "id": "minus-ten-boundary",
+    "origin": "new-signed-algebra-guard",
+    "problem": {
+      "bodies": [
+        {
+          "id": "a",
+          "inverseMass": 1
+        },
+        {
+          "id": "b",
+          "inverseMass": 1
+        }
+      ],
+      "rows": [
+        {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": -10
+        }
+      ]
+    },
+    "expectedStatus": "SOLVED",
+    "expectedTranslations": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0
+      ]
+    ],
+    "expectedObjective": 0
+  },
+  {
+    "id": "plus-ten-boundary",
+    "origin": "new-signed-algebra-guard",
+    "problem": {
+      "bodies": [
+        {
+          "id": "a",
+          "inverseMass": 1
+        },
+        {
+          "id": "b",
+          "inverseMass": 1
+        }
+      ],
+      "rows": [
+        {
+          "aId": "a",
+          "bId": "b",
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "boundM": 10
+        }
+      ]
+    },
+    "expectedStatus": "SOLVED",
+    "expectedTranslations": [
+      [
+        -5,
+        0,
+        0
+      ],
+      [
+        5,
+        0,
+        0
+      ]
+    ],
+    "expectedObjective": 25
+  }
+]

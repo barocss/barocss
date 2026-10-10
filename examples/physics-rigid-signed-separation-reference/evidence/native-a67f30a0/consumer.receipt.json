@@ -1,0 +1,23 @@
+{
+  "phase": "consumer",
+  "command": [
+    "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+    "examples/physics-rigid-signed-separation-reference/runner.mjs",
+    "/tmp/physics-1344-canonical"
+  ],
+  "cwd": "/Users/user/.codex/worktrees/physics-signed-separation-1344/barocss",
+  "source": "a67f30a08e22b4d02be3696b50b38221f5e11a15",
+  "startedUtc": "2026-10-10T17:15:49.592546+00:00",
+  "durationSeconds": 10.18462279200321,
+  "exitCode": 0,
+  "node": "v22.22.0",
+  "REPO_DEPS_ROOT": "/Users/user/.barocss-ai/v3/integration",
+  "stdout": {
+    "bytes": 1740,
+    "sha256": "0e1d66db132729684828d9e63c3ec394235b5e31dc8824012a3fb53b31df9f41"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

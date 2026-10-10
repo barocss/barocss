@@ -1,0 +1,165 @@
+{
+  "issue": 1344,
+  "base": "d6b552f98f4a509611ffce42a65080db063fdda0",
+  "scenes": [
+    {
+      "name": "ALIGNED",
+      "failedStep": 5,
+      "originalRows": 6,
+      "addedPairs": [
+        [
+          "b4",
+          "b5"
+        ],
+        [
+          "b6",
+          "b7"
+        ]
+      ]
+    },
+    {
+      "name": "OFFSET",
+      "failedStep": 3,
+      "originalRows": 6,
+      "addedPairs": [
+        [
+          "b1",
+          "b2"
+        ],
+        [
+          "b6",
+          "b7"
+        ]
+      ]
+    },
+    {
+      "name": "YAW",
+      "failedStep": 4,
+      "originalRows": 7,
+      "addedPairs": [
+        [
+          "b1",
+          "b2"
+        ]
+      ]
+    }
+  ],
+  "graphs": [
+    "source",
+    "source-repeat",
+    "compiled-dependencies"
+  ],
+  "bodyIds": [
+    "b0",
+    "b1",
+    "b2",
+    "b3",
+    "b4",
+    "b5",
+    "b6",
+    "b7",
+    "floor"
+  ],
+  "rowOrder": "original archived order then lexicographicfixedomissions",
+  "rowZeroConvention": "retain exact rehydratedarchivedJSON numbers; fresh correspondence numeric===; Object.is/negativezero flags diagnostic; historicbody13raw is not row-sign proof",
+  "staticZeroConvention": "staticu===0 retains copiedposition bits withoutaddition; dynamicp+u exactlyonce",
+  "allPassCounts": {
+    "linearProblems": 9,
+    "pairObservations": 648,
+    "selectedRowQueries": 72,
+    "postBodiesPerScene": 9,
+    "rawPairFrameBytes": 936
+  },
+  "kernelGates": {
+    "rows": 8,
+    "bodies": 9,
+    "EPS": 1e-12,
+    "PIVOT": 1e-14,
+    "objectiveTie": 1e-24,
+    "maxMasks": 256
+  },
+  "numericGates": {
+    "postRawAndNormalizedDepthM": 1e-12,
+    "detectorRawDepthM": 1e-12,
+    "rawNormalizedDepthM": 1e-12,
+    "rawNormalizedMarginM": 1e-12,
+    "queryAxisMarginDepthM": 1e-12,
+    "decimalPrecisionM": 1e-25,
+    "translationM": 1e-12,
+    "objectiveKgM2": 1e-12,
+    "nativeCertificate": 1e-12,
+    "independentRationalCertificate": "EXACT0"
+  },
+  "oldLinearControlsSha256": "26833af3db51c8f1b2af5c3d089e68a5207f2ea3cb86ba85f8f991317879567f",
+  "newLinearControlIds": [
+    "original-nonnegative-empty-rows",
+    "original-nonnegative-static-support",
+    "original-nonnegative-equal-masses",
+    "original-nonnegative-unequal-masses",
+    "original-nonnegative-two-link-static-chain",
+    "original-nonnegative-orthogonal-rows",
+    "original-nonnegative-redundant-inactive-row",
+    "original-nonnegative-duplicate-singular-rows",
+    "original-nonnegative-infeasible-opposing-static-support",
+    "negative-gap-zero",
+    "gap-row-activated-by-positive-row",
+    "duplicate-negative-rows",
+    "duplicate-positive-rows",
+    "static-static-gap",
+    "static-static-positive",
+    "opposing-positive",
+    "touch-positive-zero",
+    "touch-negative-zero",
+    "minus-ten-boundary",
+    "plus-ten-boundary"
+  ],
+  "queryControlIds": [
+    "aligned-overlap",
+    "aligned-gap",
+    "aligned-exact-touch",
+    "containment-escape-depth",
+    "symmetric-rotated-yaw-face",
+    "nonzero-near-parallel-cross-retained",
+    "qsign-derived-symmetric-yaw"
+  ],
+  "guardMutationNote": "Exact runtime edits/errors live in frozen controls.mjs; NaN/Infinity/sparse/reflection literals are source operations, not JSON null substitutes.",
+  "firstFailure": "persist fullproblem/pre/query/result/reference/raw thenstop; repeat sameprefix; no alternate rowchoice,axis,cap orretuning",
+  "worldCreated": false,
+  "worldStepped": false,
+  "solverCalled": false,
+  "oracleCalled": false,
+  "controlCalled": false,
+  "collectionMethod": "Python JSON reads/deepcopy of unchanged1263controls; depthkey->boundkey for nine validnonnegative controls; eleven declaredpure signedinputliteral arrays. No source import/model/reference/control evaluation.",
+  "staticSignedZeroGuard": {
+    "source": "prepared9bodyclone",
+    "edit": "floor.positionM[0]=-0",
+    "problem": "same9bodies,rows[]",
+    "result": "authoredSOLVEDzero translations/lambda/primal/objective/certificate,activeMask0,gram[],masks1",
+    "solverCalled": false,
+    "actualArchivedCase": false
+  },
+  "queryRefusalEdits": [
+    {
+      "id": "non-box",
+      "edit": "b.shape=sphere(radius.1)"
+    },
+    {
+      "id": "nonfinite",
+      "edit": "b.positionM[0]=NaN"
+    },
+    {
+      "id": "sparse-q",
+      "edit": "delete b.orientation[0]"
+    },
+    {
+      "id": "invalid-ID",
+      "edit": "b.id='invalid id'"
+    }
+  ],
+  "queryRefusalCode": "INVALID_CONFIG",
+  "queryRefusalMessage": "signed position reference requires admitted raw boxes",
+  "independentTiePolicy": "chosen nativeaxis independently supported and within1e-12 of independent minimum; sameaxis signedmargin/normal1e-12; no crossPython winner/tie-bit requirement; source/repeat/compiled exactlive/raw",
+  "activeMaskPolicy": "native and Fraction firstwinner recorded; optimizer/certificateagreement independentofmaskrepresentation; uniqueActiveSetClaimed=false",
+  "inputRefusalControlSource": "controls.mjs inputEdits exact frozen literals,31typed+3unknownidentity",
+  "resultTamperControlSource": "controls.mjs resultEdits exact frozen literals,15tamper+norm/static/INFEASIBLEGram guards;syntheticstaticzero separate"
+}
