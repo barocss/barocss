@@ -94,3 +94,29 @@ Cancel or Escape keeps accepted data/history, raw source/position/title drafts, 
 Help→Unsaved scene uses the current Help dialog and persistent Help focus return; inline Help keeps all raw drafts. The existing browser beforeunload warning is preserved, including Source editor navigation without a file copy. This is tab-local loss prevention, not operating-system/crash recovery, durable storage confirmation, or full commercial validation. The bounded native flow uses the named 1000×760 desktop workspace.
 
 Selectors: unsaved-dialog, unsaved-download, unsaved-continue, unsaved-cancel, unsaved-error, and unsaved-status for successful download initiation. Error Details retains app-error-details. Existing title1136 and file/source controls remain; Source point1143 and Duplicate1153 are separate tasks and are not added by this change.
+
+## Source point
+
+Use the Surface row and Source point in the right inspector. Enter U/V in the actual selected applied Surface's current knot domains, then Inspect. U and V are dimensionless original Source0 Surface parameters, not texture UV or sample-grid indices. XYZ is evaluated from the original CAD Surface in millimeters. Pending source, selected-reference, and Position drafts are not queried.
+
+Query inputs and results are local and ephemeral. An accepted document-context change through Apply, Undo, Redo, Open, or project navigation clears old results. Query U/V does not mark the authored document dirty and does not independently block scene Apply or File actions; the existing source/camera/position guards still apply. Inspect changes no original source, native reference, history, view, display, or authored file bytes. It performs no geometry edit, projection, picking, pixel read, or renderer marker insertion.
+
+Original-source evaluation uses the existing CAD Float64 path. The GPU preview is sampled, approximate display geometry; the query does not certify pixel or native/display equality, global geometry accuracy, or devices beyond the actual bounded flow. Help→Source point uses the existing dialog and returns focus to the persistent Help trigger while preserving draft text.
+
+## Supported desktop workspace
+
+The minimum supported workspace is **1000 × 760 CSS pixels**. The right inspector has its own scroll area so Surface controls and Source point remain accessible. Source Apply and topbar File actions remain reachable, and the footer keeps Draft changes visible. This is a named desktop layout scope for the bounded native flow. Existing smaller CSS breakpoints do not establish mobile acceptance. No size-blocking overlay is added.
+
+## Duplicate scene
+
+Use File→Duplicate scene or the persistent Duplicate scene toolbar button. Existing drafts first use the current Apply/Discard/Cancel guard. Apply must accept the complete document; invalid hidden position, source, or camera data cannot bypass that check. Cancel in the draft guard keeps the original draft and does not open a copy dialog.
+
+The copy dialog starts with the exact applied title plus ` copy`, without truncation. Enter a nonblank primitive string of at most 128 Unicode code points and 256 UTF-16 code units. Unicode and whitespace are preserved. Duplicate creates a host document ID `scene_` plus a fresh UUID without hyphens, checks it against all workspace document IDs, and calls the pure duplicate helper on accepted data. Only a successful complete controller Open adds the copy to Workspace, selects it, and changes the route.
+
+The copy starts at revision 0 with new history and no prior Undo/Redo. It has an independent document/file identity; its download basename uses its new document ID. Complete original scene/native sources, native model/Surface/asset IDs, asset revision, camera, and display remain unchanged. It retains original native identity rather than creating a new CAD model. The original workspace entry stays available and can be edited separately. The copied project is local and has not been downloaded. Save each document to keep separate files.
+
+The dialog captures accepted/draft snapshot identity, project, file/native generations, and lifecycle state. A changed snapshot or genuine hash navigation refuses duplication; a stale error remains while editing the raw title and requires Cancel/reopen. A preparation/presentation refusal keeps the original document/history/route and retains the dialog/title with task copy and actual error Details. No project is added on refusal. Cancel or Escape preserves current data and returns focus to the persistent Duplicate scene trigger. Other file/native/rename/history actions and shortcuts are guarded while the dialog is open.
+
+Help→Duplicate scene uses the existing Help dialog and persistent Help focus return. Inline Help in the copy dialog keeps the raw title. The actual host selectors are duplicate-scene, duplicate-dialog, duplicate-title, duplicate-confirm, duplicate-cancel, and duplicate-error. Existing rename/file/source selectors are preserved.
+
+Duplicate scene uses the current draft and unsaved-scene guard. Resolve Apply, Discard, or Cancel first. Then download the applied original or explicitly continue before choosing the copy title. Cancel returns focus to Duplicate scene. Open, native import, rename, history, and shortcuts are blocked while the duplicate dialog is open. A refused preview keeps that dialog and does not register or route to the copy.

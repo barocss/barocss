@@ -9,3 +9,5 @@ export * from './mixed-frame.js';
 export * from './mixed-session.js';
 export * from './mixed-controller.js';
 export * from './native-source-import.js';
+export * from './mixed-surface-point.js';
+export {duplicateRenderMixedDocument} from './mixed-duplicate.js';
