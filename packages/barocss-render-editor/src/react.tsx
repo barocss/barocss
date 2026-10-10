@@ -5,6 +5,7 @@ import type {RenderEditorError} from './errors.js';
 import {normalizeRenderEditorError} from './errors.js';
 import {createSceneViewportPresenter} from './scene-viewport.js';
 import {deriveRenderSceneFramingCamera} from './scene-framing.js';
+import {createSceneSelectionInput} from './scene-selection-input.js';
 import {createSceneCameraInput} from './scene-camera-input.js';
 import {SourceStudioLayout} from './source-studio-layout.js';
 import type {RenderSceneGizmoMode} from './scene-gizmo-projection.js';
@@ -18,7 +19,7 @@ const OBJECT_LABELS: Record<RenderSceneObjectKind, string> = {sphere:'Sphere',bo
 export {createSceneViewportPresenter} from './scene-viewport.js';
 export * from './mixed-react.js';
 
-export interface RenderEditorPanelProps {controller: RenderEditorController; onError?: (error: RenderEditorError) => void; onCameraHelp?: () => void; navigationDisabled?: boolean; onGizmoHelp?: () => void; onTransformGesture?: (active:boolean) => void; onPlaybackChange?: (active:boolean) => void; onAnimationHelp?: () => void; gizmoMode?:RenderSceneGizmoMode; onGizmoModeChange?:(mode:RenderSceneGizmoMode)=>void; showGizmoModeButtons?:boolean; onFrameCommandChange?:(command:((scope:'all'|'selected')=>void)|null)=>void}
+export interface RenderEditorPanelProps {controller: RenderEditorController; onError?: (error: RenderEditorError) => void; onCameraHelp?: () => void; onObjectSelection?:(objectId:string)=>void; navigationDisabled?: boolean; onGizmoHelp?: () => void; onTransformGesture?: (active:boolean) => void; onPlaybackChange?: (active:boolean) => void; onAnimationHelp?: () => void; gizmoMode?:RenderSceneGizmoMode; onGizmoModeChange?:(mode:RenderSceneGizmoMode)=>void; showGizmoModeButtons?:boolean; onFrameCommandChange?:(command:((scope:'all'|'selected')=>void)|null)=>void}
 export interface RenderEditorProps extends RenderEditorPanelProps {
   header?: ReactNode;
   toolbar?: ReactNode;
@@ -30,11 +31,13 @@ export interface RenderEditorProps extends RenderEditorPanelProps {
 function useSession(controller: RenderEditorController) { return useSyncExternalStore(controller.session.subscribe, controller.session.getSnapshot, controller.session.getSnapshot); }
 function action(result: RenderEditorActionResult, onError?: (error: RenderEditorError) => void) { if (!result.ok) onError?.(result.error); }
 
-export function SceneViewport({controller, onError, onCameraHelp, onGizmoHelp, onTransformGesture, gizmoMode, onGizmoModeChange, showGizmoModeButtons, onFrameCommandChange, navigationDisabled = false}: RenderEditorPanelProps) {
+export function SceneViewport({controller, onError, onCameraHelp, onObjectSelection, onGizmoHelp, onTransformGesture, gizmoMode, onGizmoModeChange, showGizmoModeButtons, onFrameCommandChange, navigationDisabled = false}: RenderEditorPanelProps) {
   const ref = useRef<HTMLCanvasElement>(null);
   const [canvasElement,setCanvasElement]=useState<HTMLCanvasElement|null>(null), gesture=useRef(false);
   const presentation = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
-  const snapshot = useSession(controller), input = useRef<ReturnType<typeof createSceneCameraInput> | null>(null);
+  const snapshot = useSession(controller), input = useRef<ReturnType<typeof createSceneCameraInput> | null>(null), selection=useRef<ReturnType<typeof createSceneSelectionInput>|null>(null);
+  const [selectionError,setSelectionError]=useState<RenderEditorError|null>(null), selectionCallback=useRef(onObjectSelection);
+  selectionCallback.current=onObjectSelection;
   const [mode, setMode] = useState<'orbit'|'pan'>('orbit'), modeRef = useRef(mode), errorRef = useRef(onError), disabledRef = useRef(navigationDisabled);
   const [frameStatus,setFrameStatus]=useState(''),frameCommand=useRef<(scope:'all'|'selected')=>void>(()=>{}), navigationPointer=useRef<number|null>(null);
   const [localHelp, setLocalHelp] = useState(false), helpButton = useRef<HTMLButtonElement>(null);
@@ -49,6 +52,12 @@ export function SceneViewport({controller, onError, onCameraHelp, onGizmoHelp, o
     presenter.dispose = () => { observer?.disconnect(); dispose(); };
     action(controller.attachPresenter(presenter), onError);
     input.current = createSceneCameraInput(canvas, controller, {mode: () => modeRef.current, onError: error => errorRef.current?.(error), canNavigate: () => !disabledRef.current && !gesture.current});
+    selection.current=createSceneSelectionInput(canvas,controller,presenter,{
+      canSelect:()=>!disabledRef.current&&!gesture.current,
+      onClick:()=>input.current?.reset(),
+      onSelection:id=>{setSelectionError(null);if(id!==null)selectionCallback.current?.(id);},
+      onError:error=>{setSelectionError(error);if(!error.message.includes('Canvas selection is unavailable'))errorRef.current?.(error);},
+    });
     const captureNavigation=(event:PointerEvent)=>{if(event.button===0&&canvas.hasPointerCapture(event.pointerId))navigationPointer.current=event.pointerId;};
     const releaseNavigation=(event?:PointerEvent)=>{if(!event||event.pointerId===navigationPointer.current)navigationPointer.current=null;};
     const framingKey=(event:KeyboardEvent)=>{
@@ -60,7 +69,7 @@ export function SceneViewport({controller, onError, onCameraHelp, onGizmoHelp, o
     canvas.addEventListener('pointerdown',captureNavigation);canvas.addEventListener('pointerup',releaseNavigation);canvas.addEventListener('pointercancel',releaseNavigation);canvas.addEventListener('lostpointercapture',releaseNavigation);
     const blurNavigation=()=>releaseNavigation();canvas.addEventListener('blur',blurNavigation);surface.addEventListener('keydown',framingKey,true);
     const resize = () => {
-      input.current?.reset();
+      selection.current?.reset();input.current?.reset();
       const box = canvas.getBoundingClientRect();
       // Respect GPU dimensions and pixel budget; CSS owns the layout size.
       const ratio = Math.min(window.devicePixelRatio || 1, 2);
@@ -73,15 +82,15 @@ export function SceneViewport({controller, onError, onCameraHelp, onGizmoHelp, o
     };
     observer = new ResizeObserver(resize);
     observer.observe(canvas); resize();
-    return () => {canvas.removeEventListener('pointerdown',captureNavigation);canvas.removeEventListener('pointerup',releaseNavigation);canvas.removeEventListener('pointercancel',releaseNavigation);canvas.removeEventListener('lostpointercapture',releaseNavigation);canvas.removeEventListener('blur',blurNavigation);surface.removeEventListener('keydown',framingKey,true);navigationPointer.current=null; input.current?.dispose(); input.current = null; observer.disconnect(); controller.detachPresenter(presenter); };
+    return () => {canvas.removeEventListener('pointerdown',captureNavigation);canvas.removeEventListener('pointerup',releaseNavigation);canvas.removeEventListener('pointercancel',releaseNavigation);canvas.removeEventListener('lostpointercapture',releaseNavigation);canvas.removeEventListener('blur',blurNavigation);surface.removeEventListener('keydown',framingKey,true);navigationPointer.current=null;selection.current?.dispose();selection.current=null; input.current?.dispose(); input.current = null; observer.disconnect(); controller.detachPresenter(presenter); };
   }, [controller]);
-  useEffect(() => { if(navigationDisabled) input.current?.reset(); }, [navigationDisabled]);
+  useEffect(() => { if(navigationDisabled){selection.current?.reset();input.current?.reset();} }, [navigationDisabled]);
   frameCommand.current=(scope)=>{
     const canvas=ref.current,current=controller.session.getSnapshot(),view=controller.getSnapshot();
     if(!canvas||disabledRef.current||gesture.current||navigationPointer.current!==null||current.disposed||view.disposed||view.presentedRevision===null||view.cameraPreview||view.transformPreview||view.animationPreview){setFrameStatus('Framing is unavailable until the current operation is finished.');return;}
     const id=scope==='selected'?current.activeObjectId:undefined;
     if(scope==='selected'&&!id){setFrameStatus('Select an applied object to frame.');return;}
-    input.current?.reset();const rect=canvas.getBoundingClientRect(),width=canvas.width,height=canvas.height;
+    selection.current?.reset();input.current?.reset();const rect=canvas.getBoundingClientRect(),width=canvas.width,height=canvas.height;
     try {
       const camera=deriveRenderSceneFramingCamera(current.accepted.sceneSource,view.viewportCamera??current.accepted.camera,{width:rect.width,height:rect.height,backingWidth:width,backingHeight:height},id??undefined);
       const nextRect=canvas.getBoundingClientRect();
@@ -92,20 +101,20 @@ export function SceneViewport({controller, onError, onCameraHelp, onGizmoHelp, o
     }catch(cause){setFrameStatus('This scene could not be framed. The previous view is kept.');onError?.(normalizeRenderEditorError(cause));}
   };
   useEffect(()=>{let live=true;onFrameCommandChange?.(scope=>{if(live)frameCommand.current(scope);});return()=>{live=false;onFrameCommandChange?.(null);};},[controller,onFrameCommandChange]);
-  useEffect(()=>setFrameStatus(''),[snapshot.accepted]);
+  useEffect(()=>{setFrameStatus('');setSelectionError(null);},[snapshot.accepted]);
   const transform = Boolean(presentation.transformPreview), preview = Boolean(presentation.cameraPreview), unavailable = presentation.disposed || presentation.presentedRevision === null;
-  const chooseMode = (value: 'orbit'|'pan') => {if(gesture.current||controller.getSnapshot().transformPreview)return;input.current?.reset();modeRef.current=value;setMode(value);};
-  const finish = (use: boolean) => {if(disabledRef.current||gesture.current||controller.getSnapshot().transformPreview)return;input.current?.reset();action(use ? controller.applyCameraPreview() : controller.cancelCameraPreview(), onError);};
+  const chooseMode = (value: 'orbit'|'pan') => {if(gesture.current||controller.getSnapshot().transformPreview)return;selection.current?.reset();input.current?.reset();modeRef.current=value;setMode(value);};
+  const finish = (use: boolean) => {if(disabledRef.current||gesture.current||controller.getSnapshot().transformPreview)return;selection.current?.reset();input.current?.reset();action(use ? controller.applyCameraPreview() : controller.cancelCameraPreview(), onError);};
   const localView=Boolean(presentation.viewportCamera);
-  const useSceneView=(apply:boolean)=>{if(disabledRef.current||gesture.current||controller.getSnapshot().cameraPreview||controller.getSnapshot().transformPreview||controller.getSnapshot().animationPreview)return;input.current?.reset();action(apply?controller.applyViewportCameraToScene():controller.resetViewportCamera(),onError);};
+  const useSceneView=(apply:boolean)=>{if(disabledRef.current||gesture.current||controller.getSnapshot().cameraPreview||controller.getSnapshot().transformPreview||controller.getSnapshot().animationPreview)return;selection.current?.reset();input.current?.reset();action(apply?controller.applyViewportCameraToScene():controller.resetViewportCamera(),onError);};
   return <section className="re-viewport re-scene-viewport" aria-label="Scene viewport">
     <div className="re-workbench-viewport-header"><div className="re-viewport-label"><span data-testid="scene-camera-view-state">{presentation.animationPreview ? 'Animation preview' : transform ? 'Transform preview' : preview ? 'View preview' : localView ? 'User view' : 'Scene view'}</span><span>Perspective</span></div>
       <div className="re-camera-toolbar" aria-label="Camera controls"><button type="button" data-testid="scene-camera-orbit" disabled={unavailable||navigationDisabled||transform||gesture.current} aria-pressed={mode==='orbit'} onClick={()=>chooseMode('orbit')}>Orbit</button><button type="button" data-testid="scene-camera-pan" disabled={unavailable||navigationDisabled||transform||gesture.current} aria-pressed={mode==='pan'} onClick={()=>chooseMode('pan')}>Pan</button><button type="button" data-testid="scene-camera-frame-all" disabled={unavailable||navigationDisabled||transform||preview||gesture.current||Boolean(presentation.animationPreview)} onClick={()=>frameCommand.current('all')}>Frame all</button><button type="button" data-testid="scene-camera-frame-selected" disabled={unavailable||navigationDisabled||transform||preview||gesture.current||Boolean(presentation.animationPreview)||!snapshot.activeObjectId} onClick={()=>frameCommand.current('selected')}>Frame selected</button>{!preview&&<><button type="button" data-testid="scene-camera-reset-view" disabled={!localView||unavailable||navigationDisabled||transform||gesture.current} onClick={()=>useSceneView(false)}>Scene camera</button><button type="button" data-testid="scene-camera-set-scene" disabled={!localView||unavailable||navigationDisabled||transform||gesture.current||snapshot.cameraDirty} onClick={()=>useSceneView(true)}>Set scene camera</button></>}{preview&&<><button type="button" data-testid="scene-camera-use-view" disabled={unavailable||navigationDisabled||transform||gesture.current} onClick={()=>finish(true)}>Use view</button>{cameraDraftChanged&&<span className="re-camera-replacement" title="Replaces camera draft">Replaces draft</span>}<button type="button" data-testid="scene-camera-cancel-view" disabled={unavailable||navigationDisabled||transform||gesture.current} onClick={()=>finish(false)}>Cancel view</button></>}<button ref={helpButton} type="button" data-testid="scene-camera-help" aria-label="Camera controls Help" onClick={()=>onCameraHelp?onCameraHelp():setLocalHelp(true)}>Help</button></div>
     </div>
-    <div className="re-workbench-canvas">{frameStatus&&<p className="re-gizmo-status re-framing-status" style={{bottom:30}} data-testid="scene-camera-frame-status" role="status">{frameStatus}</p>}<canvas ref={ref} width={960} height={640} tabIndex={0} aria-label="Rendered scene" data-testid="scene-canvas" />
-    <ViewOrientation camera={presentation.cameraPreview??presentation.viewportCamera??snapshot.accepted.camera}/><SceneGizmo mode={gizmoMode} onModeChange={onGizmoModeChange} showModeButtons={showGizmoModeButtons} controller={controller} canvas={canvasElement} disabled={navigationDisabled} onError={onError} onHelp={onGizmoHelp} onGestureChange={active=>{gesture.current=active;input.current?.reset();onTransformGesture?.(active);}}/>
+    <div className="re-workbench-canvas">{selectionError&&<details className="re-gizmo-status re-selection-notice" style={{bottom:54,pointerEvents:'auto'}} role="status" data-testid="scene-selection-status"><summary>{selectionError.message.includes('Canvas selection is unavailable')?'Canvas selection is unavailable. Use the Outliner.':'Canvas selection was refused. Use the Outliner or try again.'}</summary><pre data-testid="scene-selection-error-details">{selectionError.code}: {selectionError.message}</pre></details>}{frameStatus&&<p className="re-gizmo-status re-framing-status" style={{bottom:30}} data-testid="scene-camera-frame-status" role="status">{frameStatus}</p>}<canvas ref={ref} width={960} height={640} tabIndex={0} aria-label="Rendered scene" data-testid="scene-canvas" />
+    <ViewOrientation camera={presentation.cameraPreview??presentation.viewportCamera??snapshot.accepted.camera}/><SceneGizmo mode={gizmoMode} onModeChange={onGizmoModeChange} showModeButtons={showGizmoModeButtons} controller={controller} canvas={canvasElement} disabled={navigationDisabled} onError={onError} onHelp={onGizmoHelp} onGestureChange={active=>{gesture.current=active;selection.current?.reset();input.current?.reset();onTransformGesture?.(active);}}/>
     {presentation.presentedRevision === null && <div className="re-viewport-fault" role="status"><p>{presentation.disposed ? 'Preview closed.' : presentation.presentationError ? 'Preview unavailable. Your applied scene is kept.' : 'Opening scene…'}</p>{presentation.presentationError && !presentation.disposed && <button type="button" onClick={() => action(controller.recover(), onError)}>Restore preview</button>}</div>}</div>
-    {localHelp&&<div className="re-camera-local-help" role="dialog" aria-label="Camera controls"><p>Left drag and arrows Orbit. Shift-drag, Pan, or Shift-arrows move the view. Wheel and +/− zoom. Navigation changes only User view and keeps authoring drafts editable. Scene camera or Escape restores the stored scene view. Set scene camera applies the view through complete Apply; first Apply or Discard any manual camera draft. Frame all or Shift-F fits the applied objects; Frame selected or F fits the applied selection. F works only on the focused scene or handle. Raw drafts stay intact. Save stores the scene camera, not User view.</p><button type="button" onClick={()=>{setLocalHelp(false);helpButton.current?.focus();}}>Close Help</button></div>}
+    {localHelp&&<div className="re-camera-local-help" role="dialog" aria-label="Camera controls"><p>An unmodified primary click is intended to select an applied object, while a drag moves the view. Canvas selection requires renderer support; if it is unavailable, use the Outliner. Selection keeps editing drafts. Left drag and arrows Orbit. Shift-drag, Pan, or Shift-arrows move the view. Wheel and +/− zoom. Navigation changes only User view and keeps authoring drafts editable. Scene camera or Escape restores the stored scene view. Set scene camera applies the view through complete Apply; first Apply or Discard any manual camera draft. Frame all or Shift-F fits the applied objects; Frame selected or F fits the applied selection. F works only on the focused scene or handle. Raw drafts stay intact. Save stores the scene camera, not User view.</p><button type="button" onClick={()=>{setLocalHelp(false);helpButton.current?.focus();}}>Close Help</button></div>}
   </section>;
 }
 
@@ -175,7 +184,7 @@ export function DiagnosticsPanel({controller, onError, onCorrectObject, onCorrec
 }
 
 /** Reusable workbench. The application supplies file actions, routes and menus. */
-export function RenderEditor({controller, header, toolbar, onError, onAction, projectBrowser, onObjectHelp, onCameraHelp, onGizmoHelp, onTransformGesture, onPlaybackChange, onAnimationHelp, onDuplicateCommandChange, onFrameCommandChange, navigationDisabled}: RenderEditorProps) {
+export function RenderEditor({controller, header, toolbar, onError, onAction, projectBrowser, onObjectHelp, onCameraHelp, onObjectSelection, onGizmoHelp, onTransformGesture, onPlaybackChange, onAnimationHelp, onDuplicateCommandChange, onFrameCommandChange, navigationDisabled}: RenderEditorProps) {
   const state = useSession(controller), view = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
   const [gizmoMode,setGizmoMode]=useState<RenderSceneGizmoMode>('translate');
   const [playbackActive,setPlaybackActive]=useState(false), playbackRef=useRef(false), [keyCorrection,setKeyCorrection]=useState(0);
@@ -246,7 +255,7 @@ export function RenderEditor({controller, header, toolbar, onError, onAction, pr
   return <SourceStudioLayout scene={scene} toolRail={toolRail} addToolbar={addToolbar} projects={projectBrowser??<p className="re-caption">The host provides projects.</p>}
     object={<div ref={object}><SceneObjectInspector controller={controller} disabled={cameraPending||state.animationInputInvalid} manualEdit={manualEdit} onEditSource={editSource} onHelp={onObjectHelp} onError={onError} onInvalidObject={(id, sourceCorrection)=>{invalidObject.current=id;invalidObjectSource.current=Boolean(sourceCorrection);}}/></div>}
     camera={<CameraPanel controller={controller} onError={onError} navigationDisabled={transformGesture||playbackActive} showApply={false}/>}
-    viewport={<SceneViewport onFrameCommandChange={onFrameCommandChange} gizmoMode={gizmoMode} onGizmoModeChange={railMode} showGizmoModeButtons={false} controller={controller} onError={onError} onCameraHelp={onCameraHelp} onGizmoHelp={onGizmoHelp} onTransformGesture={active=>{transformGestureRef.current=active;setTransformGesture(active);onTransformGesture?.(active);}} navigationDisabled={navigationDisabled||playbackActive||Boolean(view.animationPreview)}/>} timeline={<SourceTimeline controller={controller} disabled={navigationDisabled} correctionRequest={keyCorrection} onError={onError} onHelp={onAnimationHelp} onPlaybackChange={active=>{playbackRef.current=active;setPlaybackActive(active);onPlaybackChange?.(active);}}/>}
+    viewport={<SceneViewport onObjectSelection={id=>{setInspectorTab('object');setBrowserTab('scene');onObjectSelection?.(id);}} onFrameCommandChange={onFrameCommandChange} gizmoMode={gizmoMode} onGizmoModeChange={railMode} showGizmoModeButtons={false} controller={controller} onError={onError} onCameraHelp={onCameraHelp} onGizmoHelp={onGizmoHelp} onTransformGesture={active=>{transformGestureRef.current=active;setTransformGesture(active);onTransformGesture?.(active);}} navigationDisabled={navigationDisabled||playbackActive||Boolean(view.animationPreview)}/>} timeline={<SourceTimeline controller={controller} disabled={navigationDisabled} correctionRequest={keyCorrection} onError={onError} onHelp={onAnimationHelp} onPlaybackChange={active=>{playbackRef.current=active;setPlaybackActive(active);onPlaybackChange?.(active);}}/>}
     actions={actions} source={<div ref={source}><SourcePanel controller={controller} onError={onError} navigationDisabled={transformGesture||playbackActive} showApply={false} onManualEdit={()=>setManualEdit(value=>value+1)}/></div>}
     problems={<DiagnosticsPanel controller={controller} onError={onError} onCorrectObject={correctObject} onCorrectAnimation={()=>setKeyCorrection(value=>value+1)} objectCorrectionLabel={invalidObjectSource.current?'Edit source':'Edit object properties'}/>}
     browserTab={browserTab} onBrowserTab={setBrowserTab} inspectorTab={inspectorTab} onInspectorTab={setInspectorTab}

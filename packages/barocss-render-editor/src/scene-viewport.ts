@@ -4,8 +4,17 @@ import type {RenderSceneDocument} from './document.js';
 import type {RenderEditorPreparedCandidate} from './session.js';
 import type {PresentationResult, RenderEditorPresenter} from './controller.js';
 
+/** Private compatibility contract for the existing GPU Source1 identity query (#1095). */
+export interface SceneViewportObjectPick {sceneName: string; sourceVersion: 1; objectId: string; approximate: true}
+export interface SceneViewportPickPoint {xCss: number; yCss: number}
+export interface SceneViewportPresenter extends RenderEditorPresenter {
+  resize(width: number, height: number): void;
+  readPixels(): Uint8Array;
+  pickObject(point: SceneViewportPickPoint, document: RenderSceneDocument, camera: MeshCamera): SceneViewportObjectPick | null;
+}
+
 /** One owned source1 renderer. No canvas, input or clock is constructed by the pure root. */
-export function createSceneViewportPresenter(canvas: HTMLCanvasElement, onUnavailable?: (error: Error) => void): RenderEditorPresenter & {resize(width: number, height: number): void; readPixels(): Uint8Array} {
+export function createSceneViewportPresenter(canvas: HTMLCanvasElement, onUnavailable?: (error: Error) => void): SceneViewportPresenter {
   let renderer: SceneRenderer<1> | null = null;
   let shown: RenderSceneDocument | null = null;
   let disposed = false;
@@ -60,6 +69,20 @@ export function createSceneViewportPresenter(canvas: HTMLCanvasElement, onUnavai
     },
     resize(width, height) { if (disposed || !renderer) return; try { renderer.resize(width, height); } catch (error) { if (!live()) onUnavailable?.(errorOf(error)); throw error; } },
     readPixels() { if (!renderer) throw new Error('The viewport is unavailable.'); return renderer.readPixels(); },
+    pickObject(point, expected, camera) {
+      if (disposed || !renderer || !shown) throw new Error('The viewport is unavailable.');
+      if (shown.documentId !== expected.documentId || shown.revision !== expected.revision || shown.version !== expected.version
+        || shown.sourceVersion !== expected.sourceVersion || shown.sceneSource !== expected.sceneSource || !sameCamera(shown.camera, camera)) {
+        throw new Error('The applied scene does not match the displayed frame.');
+      }
+      // The current merged provider can lack #1095. Refuse instead of guessing a hit.
+      const active = renderer as SceneRenderer<1> & {pickObject?: (point: SceneViewportPickPoint) => SceneViewportObjectPick | null};
+      if (typeof active.pickObject !== 'function') throw new Error('Canvas selection is unavailable in this renderer.');
+      const document = shown;
+      const result = active.pickObject(point);
+      if (disposed || renderer !== active || shown !== document) throw new Error('The displayed scene changed during selection.');
+      return result;
+    },
     dispose() { if (disposed) return; disposed = true; canvas.removeEventListener('webglcontextlost', onLoss); renderer?.dispose(); renderer = null; shown = null; }
   };
 }
