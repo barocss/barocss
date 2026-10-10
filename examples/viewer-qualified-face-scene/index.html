@@ -32,7 +32,9 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <span id="tree-curvature-label" class="measurement-label" hidden></span>
 <span id="tree-surface-curvature-label" class="measurement-label" hidden></span>
 <span id="tree-tangent-first-label" class="measurement-label" hidden></span><span id="tree-tangent-second-label" class="measurement-label" hidden></span>
-<span id="tree-tangent-angle-label" class="measurement-label" hidden></span></div></div>
+<span id="tree-tangent-angle-label" class="measurement-label" hidden></span>
+<span id="tree-normal-first-label" class="measurement-label" hidden></span><span id="tree-normal-second-label" class="measurement-label" hidden></span>
+<span id="tree-normal-angle-label" class="measurement-label" hidden></span></div></div>
 <p id="face-keyboard-hint">Focus the view: F frames all Faces; Shift+F frames the current tree parent.</p>
 <details id="face-keyboard-help"><summary>About focused view shortcuts</summary>
 <p>These shortcuts work only when the view canvas has focus. F frames all current Faces. Shift+F frames the parent Face of the current original tree node, including a Curve node.
@@ -282,6 +284,15 @@ A capture after a complete pair starts a new first tangent. Changing or clearing
 Directions follow increasing original t, not edge-loop traversal, solid orientation or a chord. Derivative norms use mm per original numeric parameter, not physical velocity. This action needs first derivatives, without a curvature or second-derivative prerequisite.
 Hidden captures stay valid and are disclosed in the output. Their labels stay hidden until their rows match the filter. Labels use approximate original-point projection without occlusion testing; the angle label is placed below the first point.
 Reset clears only these captures and their angle. No tangent-arrow layer, native screen hit, dihedral or global angular accuracy is certified.</p></details>
+<button id="capture-tree-normal" disabled>Capture selected Surface normal</button><button id="reset-tree-normal-angle" disabled>Reset tree normal angle</button>
+<p id="tree-normal-angle-output" role="status" aria-live="polite"></p>
+<details id="tree-normal-angle-help"><summary>About captured tree normal angles</summary>
+<p>Capture the selected original Surface at declared native u and v, then select a Surface and capture its normal to measure an unsigned angle from 0° to 180°.
+A capture after a complete pair starts a new first normal. Changing or clearing the tree row selection, or changing the view, keeps valid captures; a change to either captured original Source or complete Face clears the pair.
+Directions follow the original U/V parameter normal, not an outward solid normal, an acute plane angle or a topology dihedral. Du and Dv norms use mm per original numeric parameter; unit vectors and the normalized parameter cross are dimensionless.
+This action uses original first derivatives, without a curvature or second-derivative prerequisite. Hidden captures stay valid and are disclosed in the output; their labels stay hidden until the rows match the filter.
+Labels project original parameter points approximately without occlusion testing. The angle label is placed below the first point. Reset clears only these normal captures and their angle.
+No normal-arrow layer, native ray hit or global engineering accuracy is certified.</p></details>
 <details id="tree-help"><summary>About the original geometry tree</summary>
 <p>Each source retains its complete Face and five original native objects. Expand the Source and Face groups, then choose a geometry.
 Parameters use the original numeric domain; defaults are its checked midpoint. Control points use mm, while weights and UV parameter data are dimensionless.

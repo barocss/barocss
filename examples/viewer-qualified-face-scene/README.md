@@ -675,3 +675,45 @@ current row or draft. `resetTreeTangentAngle()`, `refreshTreeTangentAngle()`,
 caller state for bounded actual checks. DOM IDs: capture-tree-tangent,
 reset-tree-tangent-angle, tree-tangent-angle-output, tree-tangent-angle-help,
 tree-tangent-first-label, tree-tangent-second-label, tree-tangent-angle-label.
+
+
+## Capture two original Surface normals from the tree
+
+Select an original Surface row and set its original numeric U/V parameters.
+Choose **Capture selected Surface normal** to store the first current full
+source/Face ref and its native D1 normal. Select a second Surface and capture
+again to complete the pair. A regular self pair is valid zero degrees.
+The next capture starts a new first. Curve rows disable this capture action
+but keep an accepted first or pair. Clearing only the current tree selection
+also keeps the pair. No screen-selected parameters are inferred.
+
+The helper qualifies both complete Source0/five-object Models and current full
+Face refs before two original Surface D1 evaluations in the unchanged native
+normal helper. It uses the original increasing-U × increasing-V normal and
+unsigned atan2 angle from 0 to 180 degrees. Du/Dv norms are mm per original
+numeric parameter, not physical velocity. D2 is not a prerequisite. This is
+not outward Solid orientation, an acute plane angle, a topology dihedral or
+a global accuracy certificate. Native continuity and numeric refusals remain
+refusals; no derivative fallback or solver is added.
+
+Captured UV and the pair remain current across camera, CSS, backing size,
+color, grid, source order, Scene translation, filtering and current-row
+changes. If any captured full Source/Face becomes stale, both captures clear.
+An unrelated edit keeps them. A hidden captured row is disclosed in the output;
+its endpoint label hides. The angle label is at the first original parameter
+point and hides when that first row is filtered or clipped. Labels use checked
+approximate projection with occlusion untested. Clear filters restores current
+labels. No highlight, visible native hit or history token is implied.
+
+Current retained CPU capture and stored-pair remeasurement remain available
+after graphics loss or unavailable recovery. All three labels hide and GPU
+Frame actions stay blocked. Viewer Clear, mode change and Dispose invalidate
+the pair. **Reset tree normal angle** clears only this panel. The existing
+manual eight, tree point/length/area/curvature, captured Curve tangent pair and
+picked panels keep their independent lifetimes.
+
+`queryQualifiedTreeNormalAngle(viewer, firstRef, firstU, firstV, secondRef,
+secondU, secondV)` requires all four explicit finite primitive parameters.
+The host reads both U/V controls only when `captureTreeNormal()` has no
+arguments. Supplied partial, undefined or null values refuse. Results are
+copied and do not write Viewer, GPU, request, selection or measurement state.
