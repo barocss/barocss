@@ -1,0 +1,6 @@
+{
+  "acceptedAsNativeGO": false,
+  "reason": "Root added mandatory grounded/tilt/progress readouts and extended measured cost boundary from host.step to full caller including command and actual progress UI while the first 2dde attempt was running. Source and later compiled serving could capture different UI/clock revisions. Keep all original raw reports; do not use this attempt as exact clean-head cross-graph native acceptance. Clean final rerun required.",
+  "originalClaimedHead": "2dde922c",
+  "scope": "new example only; numerical production controller and CAD/GPU/Viewer package blobs unchanged"
+}

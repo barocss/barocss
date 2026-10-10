@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "sourceCompiledExact": true,
+  "checkpointsPerGraph": 35,
+  "identityPoseOnly": true,
+  "independentPythonLE": true
+}

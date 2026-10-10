@@ -1,0 +1,6 @@
+import {createServer} from 'node:http';
+import {readFile} from 'node:fs/promises';
+import {resolve} from 'node:path';
+import {buildConsumer,here} from './bundle.mjs';
+export async function serveHost(mode='source'){const bundle=await buildConsumer(mode,'app.mjs','browser'),files=new Map();for(const [url,file,type]of [['/','index.html','text/html'],['/style.css','style.css','text/css']])files.set(url,{bytes:await readFile(resolve(here,file)),type});files.set('/bundle.js',{bytes:bundle.bytes,type:'text/javascript'});files.set('/input-audit.json',{bytes:Buffer.from(JSON.stringify(bundle.audit)),type:'application/json'});const server=createServer((req,res)=>{const path=new URL(req.url,'http://localhost').pathname;if(path==='/favicon.ico'){res.writeHead(204);res.end();return;}const item=files.get(path);if(!item){res.writeHead(404);res.end();return;}res.writeHead(200,{'content-type':item.type+'; charset=utf-8','cache-control':'no-store'});res.end(item.bytes);});await new Promise(r=>server.listen(Number(process.env.PHYSICS_CHARACTER_PORT??0),'127.0.0.1',r));return {server,url:'http://127.0.0.1:'+server.address().port+'/',audit:bundle.audit};}
+if(process.argv[1]?.endsWith('/server.mjs')){const host=await serveHost(process.argv[2]??'source');console.log(JSON.stringify({url:host.url,audit:host.audit}));}
