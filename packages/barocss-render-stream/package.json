@@ -1,0 +1,34 @@
+{
+  "name": "@barocss/render-stream",
+  "version": "0.12.0",
+  "type": "module",
+  "description": "Bounded validated screen snapshot compilation and Fetch streaming",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/barocss/barocss.git",
+    "directory": "packages/barocss-render-stream"
+  },
+  "homepage": "https://barocss.com",
+  "publishConfig": { "access": "public" },
+  "files": ["dist", "README.md", "LICENSE"],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./protocol": { "types": "./dist/protocol.d.ts", "import": "./dist/protocol.js" },
+    "./server": { "types": "./dist/server.d.ts", "import": "./dist/server.js" },
+    "./fetch": { "types": "./dist/fetch.d.ts", "import": "./dist/fetch.js" }
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "build:library": "node build.mjs"
+  },
+  "dependencies": {
+    "@barocss/render": "workspace:*",
+    "@barocss/server": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "19.2.3"
+  }
+}
