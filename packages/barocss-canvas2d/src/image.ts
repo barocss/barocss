@@ -3,7 +3,7 @@ import type { ImageNode, Point, Size, SourceRect, View } from './schema.js';
 import { clipDeclarations, clipDiscard, createClipGpu, setClipGpu } from './clip.js';
 import type { ClipGpu, TransformClip } from './clip.js';
 import { polygonMaskDeclarations, polygonMaskDiscard, createPolygonMaskGpu,
-  setPolygonMaskGpu } from './polygon-mask-gpu.js';
+  setPolygonMaskGpu, checkPolygonMaskGpuCapacity } from './polygon-mask-gpu.js';
 import type { PolygonMaskGpu } from './polygon-mask-gpu.js';
 
 export type ImageAsset = { width: number; height: number; pixels: Uint8Array; texture: WebGLTexture | null };
@@ -60,6 +60,7 @@ function compile(gl: WebGL2RenderingContext, kind: number, source: string): WebG
 }
 
 export function createImageGpu(gl: WebGL2RenderingContext): ImageGpu {
+  checkPolygonMaskGpuCapacity(gl);
   const vs = compile(gl, gl.VERTEX_SHADER, vertexSource);
   let fs: WebGLShader | null = null;
   let program: WebGLProgram | null = null, positionBuffer: WebGLBuffer | null = null;
@@ -139,7 +140,7 @@ export function sourceRect(node: ImageNode, asset: ImageAsset): SourceRect {
 export function renderImage(gl: WebGL2RenderingContext, gpu: ImageGpu,
   vertices: Float32Array, node: ImageNode, asset: ImageAsset, opacity: number,
   size: Size, view: View, clampRect?: SourceRect,
-  transformClips: readonly TransformClip[] = [], polygonContour: Float32Array | null = null): void {
+  transformClips: readonly TransformClip[] = [], polygonContours: readonly Float32Array[] = []): void {
   if (!asset.texture) throw new Canvas2DError('CONTEXT_LOST', 'image texture is unavailable');
   const rect = sourceRect(node, asset);
   const u0 = rect.x / asset.width, u1 = (rect.x + rect.width) / asset.width;
@@ -147,7 +148,7 @@ export function renderImage(gl: WebGL2RenderingContext, gpu: ImageGpu,
   const uvs = new Float32Array([u0,v0,u1,v0,u1,v1,u0,v0,u1,v1,u0,v1]);
   gl.useProgram(gpu.program); gl.bindVertexArray(gpu.vao);
   setClipGpu(gl, gpu.clips, transformClips);
-  setPolygonMaskGpu(gl, gpu.polygonMask, polygonContour);
+  setPolygonMaskGpu(gl, gpu.polygonMask, polygonContours);
   gl.uniform2f(gpu.size, size.width, size.height);
   gl.uniform3f(gpu.view, view.panX, view.panY, view.zoom);
   gl.uniform1f(gpu.opacity, opacity); gl.uniform1i(gpu.sampler, 0);
