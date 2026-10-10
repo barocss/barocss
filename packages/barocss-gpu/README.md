@@ -1439,3 +1439,41 @@ intersection accuracy. Screen-to-ray conversion, BVH, textures and editor
 selection are separate consumers/stages. Run the single
 `examples/gpu-scene/engine-raycast-flow.mjs --output <fresh-directory>` flow after
 the GPU library build for source/emitted/file acceptance.
+
+## General engine renderer — implementation stage, graphics acceptance pending
+
+`mountEngineScene(canvas, originalScene, {width, height})` implements a separate
+opaque unlit engine-scene0 WebGL2 path. Sizes are explicit integers1..2048.
+The caller owns and exclusively assigns a real HTML canvas. Complete original
+scene, exact options and camera admission precede canvas/context allocation.
+The renderer exposes `getScene`, `render`, `update`, `resize`, `readPixels` and
+idempotent `dispose`, without a clock or DOM/layout changes.
+
+Geometry buffers are shared by geometry ID within each complete frame, with
+actual Uint16/Uint32 index dispatch and per-object world matrices. Candidate
+updates rebuild resources from original source, then stage common-depth colour
+targets before presentation and commit. Materials/background use explicit
+linear RGB to standard sRGB encoding. Alpha is opaque; texture and lighting
+profiles are separate. Original Number geometry, UVs, local poses and IDs remain
+distinct from derived Float32 arrays and GPU resources.
+
+The implementation admits at most16 used geometry resources and32 visible
+meshes; existing source scene budgets remain enforced. Logical steady GPU bytes
+are bounded by45,088,768 and complete accepted-plus-candidate by90,177,536.
+Resource handles are bounded by84 steady and170 including candidate/transient
+shaders. These counts are a code contract, not measured driver memory.
+
+Invalid CPU edits refuse without touching the accepted frame. Live GPU staging
+failures attempt rollback; dual operation/rollback errors are retained together
+and make graphics unavailable. Source getters retain frozen independent copies
+after context loss or rollback failure until disposal. Context loss is terminal.
+External backing changes require explicit resize and have no retained-pixel
+promise. Readback is owned bottom-left RGBA bytes, separate from CSS/DPR.
+
+**Actual shader compilation, pixels, resource transactions and lifecycle have
+not been browser verified.** #1183 graphics acceptance remains blocked by the
+recorded administrator-policy refusal on the original authorized browser
+target. Run `node examples/gpu-scene/engine-scene-renderer-flow.mjs --output
+<fresh-directory>` after the GPU build only for genuine source/emitted public
+module import, declarations and pre-canvas input admission. It uses no canvas,
+renderer instance, browser or mock GL and does not fulfill graphics acceptance.

@@ -72,3 +72,6 @@ export type {EngineSceneV0,EngineSceneMaterialV0,EngineSceneNodeV0,PreparedEngin
 
 export {raycastEngineScene,EngineRaycastError,EngineRaycastDiagnosticCode} from './engine-raycast.js';
 export type {EngineRayV0,EngineRayHitV0} from './engine-raycast.js';
+
+export {mountEngineScene,EngineSceneRenderer} from './engine-scene-renderer.js';
+export type {EngineSceneRendererOptions} from './engine-scene-renderer.js';
