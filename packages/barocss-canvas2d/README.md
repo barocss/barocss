@@ -350,3 +350,7 @@ edits explicitly use the current host font. See
 [consumer/browser-text.html](consumer/browser-text.html). This API does not
 provide multiline text, Unicode, wrapping, per-character carets, font discovery,
 typography parity or performance claims.
+
+## Browser-font raster text consumer (#1011)
+
+After the compiled package build, open `/packages/barocss-canvas2d/consumer/text-raster.html`. This host prepares a fixed 24px monospace ASCII label with browser font readiness, measured baseline bounds and copied DPR2 RGBA bytes. One public glyph run represents the complete label; spaces remain transparent. An edit uses a fresh candidate canvas/tree/renderer and commits only the newest accepted generation. Failed or late candidates retain the live label. Save stores Scene and RGBA bytes in v1; Open restores pixels without preparing a font, and later edits use the current host font. PNG uses an actual export file. Font metadata, Unicode shaping and per-character caret mapping are outside this consumer.
