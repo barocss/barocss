@@ -74,16 +74,22 @@ export function movePoleOnAxis(projection: PoleAxisProjection, axis: PoleAxis,
   snapStepMM: number | null): PolePoint {
   requireAxis(axis);
   if (axis !== projection.axis) throw new RangeError('The movement axis must match its captured projection.');
-  if (snapStepMM !== null) requireSnapStep(snapStepMM);
-  let delta = axisPointerParameter(projection, currentX, currentY)
-    - axisPointerParameter(projection, startX, startY);
-  if (snapStepMM !== null) delta = Math.round(delta / snapStepMM) * snapStepMM;
-  if (!Number.isFinite(delta)) throw new RangeError('Axis displacement must be finite.');
+  const delta = axisPointerDisplacement(projection,startX,startY,currentX,currentY,snapStepMM);
   const result: PolePoint = [...projection.originMM];
   if (delta === 0) return result;
   result[axis] = projection.originMM[axis] + delta;
   if (!Number.isFinite(result[axis])) throw new RangeError('The moved control point is not finite.');
   return result;
+}
+
+/** Displacement is kept separate from coordinates for native whole-object translation. */
+export function axisPointerDisplacement(projection:PoleAxisProjection,startX:number,startY:number,
+  currentX:number,currentY:number,snapStepMM:number|null):number {
+  if (snapStepMM !== null) requireSnapStep(snapStepMM);
+  let delta = axisPointerParameter(projection,currentX,currentY)-axisPointerParameter(projection,startX,startY);
+  if (snapStepMM !== null) delta = Math.round(delta/snapStepMM)*snapStepMM;
+  if (!Number.isFinite(delta)) throw new RangeError('Axis displacement must be finite.');
+  return delta;
 }
 
 export function parseMovementSnapStep(raw: string): number {

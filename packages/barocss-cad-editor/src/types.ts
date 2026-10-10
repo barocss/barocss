@@ -4,6 +4,7 @@ import type {
   CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, SurfacePoleEditProvenance,
   CadCurveArcLengthOptions, CadCurveArcLengthResult,
   CurveCurvatureResult, CurveD2Result, CurvePoleEditProvenance, SurfaceCurvatureResult, SurfaceD2Result,
+  AffineGeometryTransformReport,
 } from '@barocss/cad';
 
 export type CadEditorExportCapability = CadDocumentExportCapability;
@@ -43,6 +44,14 @@ export class CadEditorError extends Error {
   }
 }
 export type CadEditorPoleField = 'xMM' | 'yMM' | 'zMM' | 'weight';
+export type CadEditorBodyTranslationField = Exclude<CadEditorPoleField, 'weight'>;
+export type CadEditorEditTarget = 'pole' | 'object';
+export interface CadEditorBodyTranslation {
+  reference: CadGeometryReferenceV0;
+  resultReference: CadGeometryReferenceV0;
+  offsetMM: [number, number, number];
+  report: AffineGeometryTransformReport;
+}
 export type CadEditorView = { kind: 'document' } | { kind: 'curve-focus'; bodyId: string; count: number };
 export interface CadEditorSessionOptions { displayBodyIds?: string[]; view?: CadEditorView }
 export interface CadEditorSurfaceSelection { bodyId: string; uIndex: number; vIndex: number }
@@ -71,6 +80,7 @@ export interface CadEditorCandidate {
   result: CadDocumentResult;
   provenance: SurfacePoleEditProvenance[];
   curveProvenance: CurvePoleEditProvenance[];
+  bodyTranslation: CadEditorBodyTranslation | null;
 }
 export interface CadEditorSnapshot {
   accepted: CadDocumentResult;
@@ -78,7 +88,9 @@ export interface CadEditorSnapshot {
   displayGeneration: number;
   displayBodyIds: string[];
   view: CadEditorView;
+  editTarget: CadEditorEditTarget;
   bodyCapabilities: { bodyId: string; canEditSurfacePole: boolean; canEditCurvePole: boolean;
+    canTranslateBody: boolean; translationReason: null | 'translation-profile';
     reason: null | 'curve' | 'curve-profile' | 'surface-profile' | 'asset-has-siblings' }[];
   selectedBodyId: string | null;
   selection: CadEditorSelectedPole | null;
@@ -92,6 +104,7 @@ export interface CadEditorSnapshot {
   disposed: boolean;
   lastProvenance: SurfacePoleEditProvenance[];
   lastCurveProvenance: CurvePoleEditProvenance[];
+  lastBodyTranslation: CadEditorBodyTranslation | null;
 }
 export interface CadEditorDownload { token: string; text: string; suggestedFilename: string }
 export interface CadEditorSession {
@@ -109,6 +122,8 @@ export interface CadEditorSession {
   resolveSelectionTransition(token: string, choice: 'apply' | 'discard' | 'cancel'): CadEditorCandidate | null;
   selectSurfacePole(selection: CadEditorSurfaceSelection): void;
   selectCurvePole(selection: CadEditorCurveSelection): void;
+  setEditTarget(target: CadEditorEditTarget): void;
+  stageBodyTranslationField(field: CadEditorBodyTranslationField, rawText: string): void;
   stageSurfacePoleField(field: CadEditorPoleField, rawText: string): void;
   stageCurvePoleField(field: CadEditorPoleField, rawText: string): void;
   discardPending(): void;

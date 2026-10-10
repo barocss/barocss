@@ -1,10 +1,10 @@
 import {useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEvent, type KeyboardEvent as ReactKeyboardEvent} from 'react';
 import {resolveCadGeometryReference, type CadGeometryReferenceV0} from '@barocss/cad';
-import {CadEditorError, type CadEditorSession, type CadEditorSnapshot, type CadEditorPoleField} from '../types.js';
+import {CadEditorError, type CadEditorSession, type CadEditorSnapshot, type CadEditorPoleField, type CadEditorEditTarget} from '../types.js';
 import type {CadEditorDisplayReceipt, CadEditorCurveFocusReceipt} from './types.js';
 import {useCadEditorSnapshot} from './use-session.js';
 import type {PolePoint} from './curve-pole-projection.js';
-import {projectPoleAxis, movePoleOnAxis, parseMovementSnapStep, type PoleAxis, type PoleAxisProjection} from './pole-axis-projection.js';
+import {projectPoleAxis, movePoleOnAxis, axisPointerDisplacement, parseMovementSnapStep, type PoleAxis, type PoleAxisProjection} from './pole-axis-projection.js';
 
 interface Props {
   session: CadEditorSession;
@@ -25,6 +25,7 @@ interface Gesture {
   pointerId: number;
   element: SVGCircleElement;
   axis: PoleAxis;
+  editTarget: CadEditorEditTarget;
   control: Control;
   generation: number;
   displayGeneration: number;
@@ -49,7 +50,7 @@ function currentControl(snapshot:CadEditorSnapshot, documentReceipt:CadEditorDis
   if (snapshot.disposed) return null;
   const surface = snapshot.selection, curve = snapshot.curveSelection;
   const capability = snapshot.bodyCapabilities.find(body => body.bodyId === snapshot.selectedBodyId);
-  if (snapshot.view.kind === 'document' && surface && capability?.canEditSurfacePole
+  if (snapshot.view.kind === 'document' && surface && (snapshot.editTarget === 'object' ? capability?.canTranslateBody : capability?.canEditSurfacePole)
     && documentReceipt?.state.status === 'ready' && snapshot.displayBodyIds.includes(surface.bodyId)
     && documentReceipt.state.documentBodies.some(body => body.binding.bodyId === surface.bodyId && body.ref.kind === 'surface')
     && same(documentReceipt.state.document,snapshot.accepted)) {
@@ -57,7 +58,7 @@ function currentControl(snapshot:CadEditorSnapshot, documentReceipt:CadEditorDis
     if (resolved.geometry.kind === 'surface') return {point:[...resolved.geometry.controlPoints[surface.uIndex][surface.vIndex]],
       key:`surface:${surface.bodyId}:${surface.uIndex}:${surface.vIndex}`,reference:surface.reference,kind:'surface',receipt:documentReceipt};
   }
-  if (snapshot.view.kind === 'curve-focus' && curve && capability?.canEditCurvePole
+  if (snapshot.view.kind === 'curve-focus' && curve && (snapshot.editTarget === 'object' ? capability?.canTranslateBody : capability?.canEditCurvePole)
     && snapshot.view.bodyId === curve.bodyId && curveReceipt?.state.status === 'ready'
     && curveReceipt.generation === snapshot.generation && curveReceipt.displayGeneration === snapshot.displayGeneration
     && same(curveReceipt.reference,curve.reference)) {
@@ -86,6 +87,8 @@ export function PoleAxisGizmo(props:Props) {
   }
   let control:Control|null = null;
   try {control = currentControl(snapshot,props.documentReceipt,props.curveReceipt);} catch { /* Unavailable bindings have no handles. */ }
+  const objectMode = snapshot.editTarget === 'object';
+  const capability = snapshot.bodyCapabilities.find(body=>body.bodyId===snapshot.selectedBodyId);
   const canvas = props.canvas, rect = canvas?.getBoundingClientRect();
   const pending = Object.keys(snapshot.pending).length > 0;
   const busy = snapshot.candidate !== null || snapshot.selectionTransition !== null || snapshot.disposed || pending || movingAxis !== null;
@@ -93,7 +96,10 @@ export function PoleAxisGizmo(props:Props) {
   if (control && rect && rect.width > 0 && rect.height > 0 && control.receipt.width > 0 && control.receipt.height > 0) {
     const ghost = control.point.map((value,index) => {
       const raw = snapshot.pending[fields[index]];
-      return raw === undefined ? value : /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(raw.trim()) ? Number(raw) : NaN;
+      if (raw === undefined) return value;
+      if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(raw.trim())) return NaN;
+      const number = Number(raw);
+      return objectMode ? number === 0 ? value : value+number : number;
     }) as PolePoint;
     const point = ghost.every(Number.isFinite) ? ghost : control.point;
     for (const axis of [0,1,2] as const) projections.push(projectPoleAxis(point,control.receipt.state.camera,
@@ -112,9 +118,10 @@ export function PoleAxisGizmo(props:Props) {
     latest.current.onError(cause instanceof CadEditorError ? cause : new CadEditorError('INPUT',
       cause instanceof Error ? cause.message : 'Cannot move this axis.',{field:'pole-axis-drag'},cause));
   }
-  function stage(kind:Control['kind'],axis:PoleAxis,value:number) {
+  function stage(kind:Control['kind'],axis:PoleAxis,value:number,target:CadEditorEditTarget) {
     const raw = rawNumber(value);
-    if (kind === 'surface') session.stageSurfacePoleField(fields[axis],raw);
+    if (target === 'object') session.stageBodyTranslationField(fields[axis],raw);
+    else if (kind === 'surface') session.stageSurfacePoleField(fields[axis],raw);
     else session.stageCurvePoleField(fields[axis],raw);
     return raw;
   }
@@ -129,7 +136,7 @@ export function PoleAxisGizmo(props:Props) {
     const pole = state.selection ?? state.curveSelection;
     const key = state.selection ? `surface:${state.selection.bodyId}:${state.selection.uIndex}:${state.selection.vIndex}`
       : state.curveSelection ? `curve:${state.curveSelection.bodyId}:${state.curveSelection.index}` : '';
-    if (state.disposed || state.candidate || state.selectionTransition || state.generation !== g.generation
+    if (state.editTarget !== g.editTarget || state.disposed || state.candidate || state.selectionTransition || state.generation !== g.generation
       || state.displayGeneration !== g.displayGeneration || key !== g.control.key
       || !same(pole?.reference,g.control.reference) || !sameRaw(state.pending,g.raw)) return false;
     try {
@@ -170,7 +177,7 @@ export function PoleAxisGizmo(props:Props) {
         bounds.width,bounds.height,selected.receipt.width,selected.receipt.height,axis);
       if (!projection) return;
       event.currentTarget.setPointerCapture(event.pointerId);event.currentTarget.focus({preventScroll:true});
-      gesture.current = {pointerId:event.pointerId,element:event.currentTarget,axis,control:structuredClone(selected),
+      gesture.current = {pointerId:event.pointerId,element:event.currentTarget,axis,editTarget:before.editTarget,control:structuredClone(selected),
         generation:before.generation,displayGeneration:before.displayGeneration,projection,startX:event.clientX-bounds.left,
         startY:event.clientY-bounds.top,rect:{left:bounds.left,top:bounds.top,width:bounds.width,height:bounds.height},
         cameraKey:JSON.stringify(selected.receipt.state.camera),step:snapEnabled ? parseMovementSnapStep(stepRaw) : null,moved:false,raw:{}};
@@ -185,7 +192,8 @@ export function PoleAxisGizmo(props:Props) {
       const x = event.clientX-g.rect.left, y = event.clientY-g.rect.top;
       if (!g.moved && Math.hypot(x-g.startX,y-g.startY) <= 3) return;
       const point = movePoleOnAxis(g.projection,g.axis,g.startX,g.startY,x,y,g.step);
-      g.moved = true; g.raw[fields[g.axis]] = stage(g.control.kind,g.axis,point[g.axis]);
+      const value = g.editTarget === 'object' ? axisPointerDisplacement(g.projection,g.startX,g.startY,x,y,g.step) : point[g.axis];
+      g.moved = true; g.raw[fields[g.axis]] = stage(g.control.kind,g.axis,value,g.editTarget);
     } catch (cause) {cancel(false);failure(cause);}
   }
   function end(event:ReactPointerEvent<SVGCircleElement>) {
@@ -205,7 +213,7 @@ export function PoleAxisGizmo(props:Props) {
       const selected = currentControl(before,now.documentReceipt,now.curveReceipt);
       if (!selected || !control || selected.key !== control.key || before.candidate || before.selectionTransition || Object.keys(before.pending).length) return;
       const delta = (snapEnabled ? parseMovementSnapStep(stepRaw) : 1)*direction;
-      stage(selected.kind,axis,selected.point[axis]+delta);session.prepareApply();
+      stage(selected.kind,axis,before.editTarget === 'object' ? delta : selected.point[axis]+delta,before.editTarget);session.prepareApply();
     } catch (cause) {failure(cause);}
   }
   if (!control || !canvas || !rect || rect.width <= 0 || rect.height <= 0 || control.receipt.width <= 0 || control.receipt.height <= 0) return null;
@@ -230,14 +238,18 @@ export function PoleAxisGizmo(props:Props) {
       })}
     </svg>
     <div className="cad-editor-axis-palette" aria-label="Control point movement">
-      <div className="pole-move-title">Move control point <span>XYZ · mm</span></div>
+      <div className="pole-move-title">{objectMode?'Move object':'Move control point'} <span>XYZ · mm</span></div>
+      <label className="pole-move-target">Target<select data-testid="gizmo-edit-target" value={snapshot.editTarget} disabled={busy}
+        onChange={event=>{try{session.setEditTarget(event.target.value as CadEditorEditTarget);}catch(cause){failure(cause);}}}>
+        <option value="pole">Control point</option><option value="object" disabled={!capability?.canTranslateBody}>Object</option>
+      </select></label>
       <label className="pole-snap-toggle"><input type="checkbox" data-testid="pole-snap-enabled" checked={snapEnabled} disabled={busy}
         onChange={event=>setSnapEnabled(event.target.checked)}/>Snap movement</label>
       <label className="pole-snap-distance">Step (mm)<input type="text" inputMode="decimal" maxLength={128} value={stepRaw}
         data-testid="pole-snap-step" disabled={!snapEnabled || busy} aria-invalid={stepError !== null} aria-describedby={stepError?snapErrorId:undefined}
         onChange={event=>setStepRaw(event.target.value)}/></label>
       {stepError && <p id={snapErrorId} data-testid="pole-snap-error" role="alert">{stepError}</p>}
-      <p role="status" data-testid="pole-axis-status">{movingAxis !== null ? `Moving ${names[movingAxis]} · Release to apply. Escape cancels.`
+      <p role="status" data-testid="pole-axis-status">{movingAxis !== null ? `Moving ${objectMode?'object ':''}${names[movingAxis]} · Release to apply. Escape cancels.`
         : pending ? 'Values pending. Apply or discard to continue.'
         : visible === 0 ? 'Fit the selected point or edit its coordinates.'
         : visible < 3 ? 'Drag an axis. Use Isometric to reach other axes.' : 'Drag an axis. Arrow keys move one step.'}</p>
