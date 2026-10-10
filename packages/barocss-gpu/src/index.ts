@@ -149,3 +149,6 @@ export type { ConeGeometrySourceV0, PreparedConeGeometry } from './cone-geometry
 
 export { prepareCapsuleGeometry } from './capsule-geometry.js';
 export type { CapsuleGeometrySourceV0, PreparedCapsuleGeometry } from './capsule-geometry.js';
+
+export { prepareRoundedBoxGeometry } from './rounded-box-geometry.js';
+export type { RoundedBoxGeometrySourceV0, PreparedRoundedBoxGeometry } from './rounded-box-geometry.js';

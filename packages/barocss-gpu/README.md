@@ -2487,3 +2487,36 @@ enclosure/global accuracy, raster pixels, performance/parity and publication.
 `examples/gpu-scene/capsule-geometry-flow.mjs --output <fresh-directory>` checks
 source/emitted/DTS, independent rings/poles/UV/winding/equators, shared Scene/ray
 composition, original source/mesh copies/refusals and cold file reconstruction.
+
+## Authored indexed RoundedBox geometry
+
+`prepareRoundedBoxGeometry(input)` retains the exact eight-field original
+`RoundedBoxGeometrySourceV0`: format `barocss-gpu-rounded-box-geometry`, version0,
+ASCII id1..64, right-handed-y-up, positionUnit `scene`, `sizeXYZ`, `cornerRadius`
+and `segments`. Dimensions satisfy 0<size<=2000, represented positive half/core
+extents and 0<radius<min half dimension; the radius must remain distinct from
+each half extent. Integer segments2..64. No defaults, open pieces, radius0,
+Box/Sphere substitution or geometric repair.
+
+The result is frozen `{source,prepared}` with independent frozen original scalar
+and generated Number data, plus separately mutable Float32 position/normal/UV
+and Uint16 index buffers. Six plane charts, twelve quarter-cylinder charts and
+eight triangular spherical corner lattices share copied canonical boundary
+position/normal bits and split UVs. Edge UV is station/axial-row; corner UV is
+two normalized lattice indices. Outward CCW uses actual source triangle cross
+products. These sampled charts do not establish welded B-Rep or analytic contact.
+
+For N segments, vertices=4N²+36N+56, triangles=8N²+24N+12. N2 gives144 vertices,
+92 triangles/5160 bytes; N64 gives18744 vertices/34316 triangles/805704 bytes.
+Existing TriangleGeometry budgets/validation/error codes and actual causes are
+retained through one admission. Original construction failure and Float32
+triangle collapse refuse; no clamp, epsilon weld or fallback normal. Bounds are
+the sampled vertex bounds; original source remains distinct from derived views.
+
+`examples/gpu-scene/rounded-box-geometry-flow.mjs --output <fresh-directory>`
+checks ordinary/emitted public APIs/types, seams/UV/normals/winding, shared
+Scene/face rays, original parameter/mesh files, copies/refusals and genuine cold
+reconstruction. Source1/SDF, native CAD Fillet/Solid, Physics/collision, actual
+graphics/lifetime/global error/parity/current-root acceptance and publication
+remain separate. Render parameter documents require their own explicit profile
+and dispatch adoption of this factory.
