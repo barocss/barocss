@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Complete native axis-box Boolean · Three</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101b2c;color:#edf3fc}body{max-width:1160px;margin:24px auto;padding:0 20px}h1{font-size:28px;margin:0 0 8px}p{line-height:1.5;color:#bbc9dc}.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}button{background:#243a57;color:#edf3fc;border:1px solid #587294;border-radius:6px;padding:10px 14px;font:inherit;cursor:pointer}button:disabled{opacity:.4;cursor:default}#view{width:900px;max-width:100%;overflow:auto}canvas{display:block}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 ui-monospace,monospace;background:#142238;padding:14px;border-radius:6px}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;vertical-align:top;border-bottom:1px solid #354966;padding:9px;white-space:pre-line}details{margin:16px 0}summary{cursor:pointer;color:#8bd6ff}#status{color:#99e4b7;min-height:24px}#quality{color:#e0c993}.table-scroll{overflow:auto}h2{font-size:20px;margin-top:26px}
+</style></head>
+<body><h1>Complete native axis-box Boolean</h1>
+<p>Original XYZ/mm panels, Body and Shell bindings, and native point classification. All complete panels remain in one Scene. Shared depth can hide a panel in the combined view. Each panel is also observed separately without moving it.</p>
+<div class="toolbar" aria-label="Sequential case actions">
+<button id="run-refusals" disabled>Run 13 refusals</button><button id="load-cavity" disabled>Load cavity · Exterior</button>
+<button id="view-interior" disabled>Cavity interior</button><button id="view-exterior" disabled>Exterior</button>
+<button id="load-through" disabled>Load through · Exterior</button><button id="view-front" disabled>Front +Z</button>
+<button id="load-sever" disabled>Load sever · Exterior</button><button id="load-empty" disabled>Load empty · Exterior</button>
+<button id="cold-cavity" disabled>Cold reopen cavity · Exterior</button><button id="dispose" disabled>Dispose twice</button></div>
+<p id="status" role="status">Fetching all 175 original files…</p><div id="view"></div>
+<h2>Current native collection</h2><pre id="readout">Original native proof is loading.</pre>
+<div class="table-scroll"><table><thead><tr><th>Native query / original XYZ mm</th><th>Material status</th><th>Body / empty region</th><th>Qualified boundary panels</th></tr></thead><tbody id="query-rows"></tbody></table></div>
+<h2>Camera observations</h2><pre id="camera-readout">Fixed Exterior view. Camera controls select fixed presets and do not fit geometry.</pre>
+<pre id="quality">Restricted integer-cell material proof is distinct from each open panel FaceBundle. The display is not a general curved-Solid or native picking certificate.</pre>
+<details><summary>Actual refusal receipts</summary><pre id="refusal-readout"></pre></details>
+<details id="proof-details"><summary>Complete current native Boolean and point-classification proof</summary><pre id="full-proof"></pre></details>
+<details id="lifetime-details"><summary>Actual resource and camera observations</summary><pre id="lifetime-proof"></pre></details>
+<script type="module" src="./axis-box-boolean-three.mjs"></script></body></html>
