@@ -486,6 +486,8 @@ export function MixedApp() {
   const downloaded = activeProject?.savedRevision === snapshot.accepted.revision;
   const actionDisabled = busy || pending !== null || nativeImport !== null || rename !== null;
   const titleDirty = snapshot.draft.title !== snapshot.accepted.title;
+  const titleValidationError = rawTitle.trim().length === 0 ? 'Enter a nonblank title.' : rawTitle.length > 256 || [...rawTitle].length > 128 ? 'Use a title of 128 characters or fewer.' : null;
+  const titleError = renameError ?? titleValidationError;
   const nativeReplacementRequired = nativeImport !== null && (
     nativeImport.baseline.draft.asset.source !== nativeImport.baseline.accepted.asset.source
     || nativeImport.baseline.draft.asset.modelId !== nativeImport.baseline.accepted.asset.modelId
@@ -599,10 +601,10 @@ export function MixedApp() {
           <DialogTitle>Rename scene</DialogTitle>
           <DialogDescription>Use title stages the new label. Apply updates the scene.</DialogDescription>
         </DialogHeader>
-        <label className="flex flex-col gap-2 text-sm"><span>Title</span><input type="text" aria-label="Title" className="rounded-md border border-input bg-background p-2" value={rawTitle} aria-invalid={renameError !== null} aria-describedby={renameError ? 'rename-error' : undefined} onChange={event => { setRawTitle(event.currentTarget.value); setRenameError(null); }} /></label>
-        {renameError ? <p id="rename-error" role="alert" data-testid="rename-error" className="app-dialog-error">{renameError}</p> : null}
+        <label className="flex flex-col gap-2 text-sm"><span>Title</span><input type="text" aria-label="Title" className="rounded-md border border-input bg-background p-2" value={rawTitle} aria-invalid={titleError !== null} aria-describedby={titleError ? 'rename-error' : undefined} onChange={event => { setRawTitle(event.currentTarget.value); setRenameError(null); }} /></label>
+        {titleError ? <p id="rename-error" role="alert" data-testid="rename-error" className="app-dialog-error">{titleError}</p> : null}
         <details><summary className="cursor-pointer text-sm">Help</summary><div className="mt-3"><RenameSceneHelp /></div></details>
-        <DialogFooter><Button variant="ghost" onClick={cancelRename} data-testid="rename-cancel">Cancel</Button><Button onClick={useTitle} data-testid="rename-use">Use title</Button></DialogFooter>
+        <DialogFooter><Button variant="ghost" onClick={cancelRename} data-testid="rename-cancel">Cancel</Button><Button disabled={titleValidationError !== null || renameRef.current?.invalidated === true} onClick={useTitle} data-testid="rename-use">Use title</Button></DialogFooter>
         </DialogContent>
       </Dialog>
 
