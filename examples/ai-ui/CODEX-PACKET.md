@@ -143,6 +143,14 @@ Status is `reported`, `no-completion`, `missing`, `malformed` or `ambiguous`.
 The raw stdout JSONL remains the original evidence, including unfamiliar fields.
 Missing optional reasoning output is null; missing/invalid counters are never zero.
 
+Completion telemetry is observed independently from screen admission. Complete valid events
+already retained in bounded stdout remain observable after a terminal stop, including events
+in the same received chunk or later received chunks. This never restarts the stopped attempt
+or accepts its screen. Invalid UTF-8, malformed or incomplete JSON and bytes refused by the
+event limit cannot establish a completion. Original stdout bytes remain unchanged.
+After the affected renderer build, `node examples/ai-ui/terminal-usage-flow.mjs` checks one
+actual-browser failure plus focused received-event controls with zero model invocations.
+
 The private browser report includes these rows for accepted and failed attempts.
 `source` distinguishes `injected-process` from `native-cli`; an injected row is
 authored verification, not actual model usage. Usage does not change UI acceptance,

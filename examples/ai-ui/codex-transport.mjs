@@ -16,6 +16,19 @@ const brands = new WeakMap();
 const actions = [null, 'review', 'edit', 'review', 'confirm'];
 const targets = ['form', 'review', 'form', 'review', 'confirmed'];
 const notice = 'Code Mode is unavailable because code-mode host is disabled. Code mode will fail closed; enable `features.code_mode_host` and install `codex-code-mode-host`.';
+function retainedCompletionUsage(stdout) {
+  let count = 0, firstUsage, start = 0, end;
+  // Observe complete retained lines only. This never changes admission or a stop reason.
+  while ((end = stdout.indexOf(10, start)) >= 0) {
+    const line = stdout.subarray(start, end); start = end + 1;
+    let event;
+    try { event = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(line)); }
+    catch { continue; }
+    if (event && typeof event === 'object' && !Array.isArray(event) && event.type === 'turn.completed')
+      if (++count === 1) firstUsage = event.usage;
+  }
+  return completionUsage(count, firstUsage);
+}
 export const packetTransportMode = (generate) => brands.get(generate)?.mode ?? null;
 export const disposePacketTransport = (generate) => brands.get(generate)?.dispose();
 
@@ -101,7 +114,6 @@ export function createCodexTransport({ packet, approval, spawnProcess = spawn, c
       PATH: `${packet.cli.nodeBin}:/usr/bin:/bin`, LANG: 'en_US.UTF-8', TERM: 'dumb', NO_COLOR: '1' };
     let child, reason = null, raw = [], stderr = [], bytes = 0, stderrBytes = 0, pending = Buffer.alloc(0);
     let modelId = null, finalText = null, turnStarted = false, turnCompleted = false;
-    let completionEvents = 0, firstUsage;
     let timeout, escalation, kill;
     const stop = (why) => { if (reason) return; reason = why; invalidate(why); kill?.(); };
     attempted++;
@@ -140,7 +152,6 @@ export function createCodexTransport({ packet, approval, spawnProcess = spawn, c
         }
         if (event.type === 'turn.completed') {
           turnCompleted = true;
-          if (++completionEvents === 1) firstUsage = event.usage;
         }
       };
       child.stdout.on('data', (chunk) => {
@@ -187,12 +198,13 @@ export function createCodexTransport({ packet, approval, spawnProcess = spawn, c
     } finally {
       clearTimeout(timeout); clearTimeout(escalation); active = null;
       if (reason && child?.pid) { try { process.kill(-child.pid, 'SIGKILL'); } catch { /* owned group already gone */ } }
-      write(`${prefix}-stdout.jsonl`, Buffer.concat(raw)); write(`${prefix}-stderr.txt`, Buffer.concat(stderr));
+      const stdout = Buffer.concat(raw);
+      write(`${prefix}-stdout.jsonl`, stdout); write(`${prefix}-stderr.txt`, Buffer.concat(stderr));
       write(`${prefix}-result.json`, { reservations, attempted, completed, accepted, reason: reason ?? (halted ? 'turn-failed' : null), observation,
         candidateSha: packet.candidateSha, packetDigest, modelCatalogDigest: packet.modelCatalogDigest ?? null, declarationsDigest: DECLARATION_DIGEST,
         usage: { reservation: number, runId: approval.runId, hostSessionId: request.sessionId, revision: request.revision,
           requestId: request.requestId, codexThreadId: modelId, source: fake ? 'injected-process' : 'native-cli',
-          ...completionUsage(completionEvents, firstUsage) } });
+          ...retainedCompletionUsage(stdout) } });
     }
   };
   brands.set(generate, { mode: fake ? 'codex-cli-fake' : 'codex-cli', dispose() { active?.stop('disposed'); invalidate('disposed'); } });
