@@ -11,3 +11,5 @@ export * from './mixed-controller.js';
 export * from './native-source-import.js';
 export * from './mixed-surface-point.js';
 export {duplicateRenderMixedDocument} from './mixed-duplicate.js';
+export {deriveRenderCameraInteraction} from './mixed-camera-navigation.js';
+export type {RenderCameraInteraction} from './mixed-camera-navigation.js';
