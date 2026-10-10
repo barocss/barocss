@@ -353,3 +353,6 @@ export type { MultiSpanVLinearSurfacePlaneTrimOptions, MultiSpanVLinearSurfacePl
 
 export { classifyMultiSpanVLinearSurfacePlaneTrimUV, validateMultiSpanVLinearSurfacePlaneTrimUVClassification, MultiSpanVLinearSurfacePlaneTrimUVError, MultiSpanVLinearSurfacePlaneTrimUVDiagnosticCode } from './multispan-vlinear-plane-trim-classification.js';
 export type { MultiSpanVLinearSurfacePlaneTrimUVQuery, MultiSpanVLinearSurfacePlaneTrimUVOptions, MultiSpanVLinearSurfacePlaneTrimUVReport, MultiSpanVLinearSurfacePlaneTrimUVResult } from './multispan-vlinear-plane-trim-classification.js';
+
+export { buildPairedSectionPlaneCap, validatePairedSectionPlaneCap, PairedSectionPlaneCapError, PairedSectionPlaneCapDiagnosticCode } from './paired-section-plane-cap.js';
+export type { PairedSectionPlaneCapOptions, PairedSectionPlaneCapEdge, PairedSectionPlaneCapReport, PairedSectionPlaneCapResult } from './paired-section-plane-cap.js';
