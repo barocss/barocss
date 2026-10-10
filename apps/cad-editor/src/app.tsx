@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Box, ChevronRight, CircleHelp, Download, FolderOpen, Layers3, Maximize, Redo2, Undo2 } from 'lucide-react';
+import { Box, ChevronRight, CircleHelp, Crosshair, Download, FolderOpen, Layers3, Maximize, MousePointer2, Redo2, Spline, Undo2 } from 'lucide-react';
 import { parseCadDocument } from '@barocss/cad';
 import { CadEditorError, createCadEditorSession, type CadEditorExportResult, type CadEditorGeometryAnalysisResult, type CadEditorCurveLength, type CadEditorView } from '@barocss/cad-editor';
 import { CadEditor, CadEditorExportReview, useCadEditorSnapshot, type CadEditorDisplayOptions, type CadEditorDisplayReceipt, type CadEditorCurveFocusReceipt } from '@barocss/cad-editor/react';
@@ -274,8 +274,10 @@ function DirectApp() {
   const effectiveUnsaved=snapshot.dirty||recoveredUnsaved;
   const hasDraft = Object.keys(snapshot.pending).length > 0 || snapshot.selectionTransition !== null;
   const projectView = route === '#/projects';
+  const selectedBody = snapshot.accepted.document.bodies.find(body => body.id === snapshot.selectedBodyId);
+  const selectedKind = snapshot.accepted.bodyBindings.find(binding => binding.bodyId === snapshot.selectedBodyId)?.geometryKind;
 
-  return <div className="cad-app">
+  return <div className="cad-app cad-direct-app">
     <header className="app-header">
       <a className="app-brand" href="#/projects"><Box size={20} strokeWidth={1.6} /><span>barocss<span className="brand-sub">CAD</span></span></a>
       <Menubar className="app-menubar">
@@ -294,42 +296,52 @@ function DirectApp() {
         </MenubarContent></MenubarMenu>
         <MenubarMenu><MenubarTrigger>View</MenubarTrigger><MenubarContent><MenubarItem onSelect={() => setFitRequest(value => value + 1)}>Fit document</MenubarItem></MenubarContent></MenubarMenu>
       </Menubar>
-      <span className="document-title">{filename}<span className="dirty-dot" aria-label={effectiveUnsaved ? 'Unsaved accepted changes' : 'Accepted content unchanged'}>{effectiveUnsaved ? ' •' : ''}</span></span>
+      <span className="document-title" title={filename}>{filename}<span className="dirty-dot" aria-label={effectiveUnsaved ? 'Unsaved accepted changes' : 'Accepted content unchanged'}>{effectiveUnsaved ? ' •' : ''}</span></span>
 
       <Button ref={openButton} data-testid="document-open" variant="outline" size="sm" onClick={chooseOpenFile} disabled={busy}><FolderOpen/>Open</Button>
       <Button size="sm" onClick={() => run(downloadCurrent)}><Download/>Download</Button>
       <input ref={fileInput} type="file" accept=".json,.cad-document.json" aria-label="Open native document file" className="file-input" onChange={event => { void openFile(event.target.files?.[0]); event.target.value = ''; }}/>
     </header>
-    <div className="app-toolbar"><span className="breadcrumb"><a href="#/projects">Projects</a><ChevronRight size={12}/><span>{filename}</span></span><div className="toolbar-actions">
+    <div className="app-toolbar modeling-toolbar">
+      <div className="workspace-context"><span className="workspace-mode"><MousePointer2 size={13}/>Modeling<span>{snapshot.view.kind==='curve-focus'?'Curve focus':'Document view'}</span></span>
+        <span className="workspace-selection" title={selectedBody?.name}>{selectedBody?.name ?? 'Select an object'}{selectedKind && <small>{selectedKind === 'surface' ? 'Surface' : 'Curve'}</small>}</span>
+      </div>
+      <div className="toolbar-actions">
+      <div className="command-group" role="group" aria-label="History commands"><span className="command-group-label">History</span><div className="command-group-actions">
       <Button variant="ghost" size="icon-sm" aria-label="Undo" disabled={!snapshot.history.canUndo || busy || hasDraft} onClick={() => run(() => session.prepareUndo())}><Undo2/></Button>
       <Button variant="ghost" size="icon-sm" aria-label="Redo" disabled={!snapshot.history.canRedo || busy || hasDraft} onClick={() => run(() => session.prepareRedo())}><Redo2/></Button>
-      <span className="toolbar-divider"/><Button variant="ghost" size="sm" onClick={() => setFitRequest(value => value + 1)}><Maximize/>Fit</Button><Button variant="ghost" size="sm" data-testid="fit-selected-body" disabled={!snapshot.selectedBodyId} onClick={() => setFitSelectedRequest(value => value + 1)}>Fit selected</Button>
+      </div></div>
+      <div className="command-group" role="group" aria-label="View commands"><span className="command-group-label">View</span><div className="command-group-actions">
+      <Button variant="ghost" size="sm" onClick={() => setFitRequest(value => value + 1)}><Maximize/>Fit</Button><Button variant="ghost" size="sm" data-testid="fit-selected-body" disabled={!snapshot.selectedBodyId} onClick={() => setFitSelectedRequest(value => value + 1)}><Crosshair/>Fit selected</Button>
+      </div></div>
+      <div className="command-group" role="group" aria-label="Export commands"><span className="command-group-label">Export</span><div className="command-group-actions">
       {mount && <CadEditorExportReview session={session}
         onReview={result=>{setExportReview(result);if(result!==null)setError(current=>current?.context.field==='document-export'?null:current);}}
         onError={failure=>{setReadRequest(value=>value+1);setError(failure);}}
         onDownload={downloadReviewedExport}/>}
+      </div></div>
     </div></div>
     {error && <div className="app-error" role="alert">{actionError(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
     <div className="app-workspace">
-      <aside className="document-tree"><h2><Layers3 size={15}/>Document</h2><div className="tree-document"><Box size={16}/><span>{filename}</span></div>
-        <div className="tree-section">{snapshot.view.kind==='curve-focus'?'DOCUMENT VIEW':'BODIES'} <span>{snapshot.accepted.document.bodies.length}</span></div>
+      <aside className="document-tree" aria-label="Object browser"><h2><Layers3 size={15}/>Objects</h2><div className="tree-document"><Box size={15}/><span title={filename}>{filename}</span></div>
+        <div className="tree-section"><span>{snapshot.view.kind==='curve-focus'?'DOCUMENT VIEW':'BODIES'}</span><span>{snapshot.accepted.document.bodies.length}</span></div>
         {snapshot.accepted.document.bodies.map(body => {
           const binding = snapshot.accepted.bodyBindings.find(item => item.bodyId === body.id)!;
           const selected = snapshot.selectedBodyId === body.id;
           const shown = snapshot.displayBodyIds.includes(body.id);
           const capability=snapshot.bodyCapabilities.find(item=>item.bodyId===body.id);
           const editable=capability?.canEditSurfacePole,editableCurve=capability?.canEditCurvePole;
-          return <div key={body.id} className="tree-body-row">
+          return <div key={body.id} className={'tree-body-row' + (selected ? ' selected' : '')}>
             <button className={'tree-body' + (selected ? ' selected' : '')} data-testid={'body-select-' + body.id}
               onClick={() => run(() => session.requestSelection(binding.geometryKind === 'surface' ? { bodyId: body.id, uIndex: 1, vIndex: 1 } : { bodyId: body.id }))} aria-pressed={selected}>
-              <span className={'body-symbol ' + binding.geometryKind}>{binding.geometryKind === 'surface' ? '▱' : '╱'}</span><span>{body.name}<small>{editable ? 'Editable surface' : binding.geometryKind === 'surface' ? 'Read-only surface' : snapshot.view.kind==='curve-focus'&&snapshot.view.bodyId===body.id?'Focused Curve':editableCurve?'Editable Curve':'Read-only Curve'}</small></span>
+              <span className={'body-symbol ' + binding.geometryKind}>{binding.geometryKind === 'surface' ? <Layers3 size={16}/> : <Spline size={16}/>}</span><span className="tree-body-name" title={body.name}>{body.name}<small>{editable ? 'Editable surface' : binding.geometryKind === 'surface' ? 'Read-only surface' : snapshot.view.kind==='curve-focus'&&snapshot.view.bodyId===body.id?'Focused Curve':editableCurve?'Editable Curve':'Read-only Curve'}</small></span>
             </button>
             <input type="checkbox" data-testid={'body-visible-' + body.id} aria-label={(shown?'Hide ':'Show ')+body.name+(snapshot.view.kind==='curve-focus'?' in document view':'')}
               checked={shown} disabled={busy} onChange={() => run(() => session.prepareDisplayBodies(shown ? snapshot.displayBodyIds.filter(id => id !== body.id) : [...snapshot.displayBodyIds, body.id]))} />
           </div>;
         })}
         <div className="tree-details"><span>Units</span><strong>mm</strong><span>Axes</span><strong>XYZ</strong>{snapshot.selection && <><span>Control grid</span><strong>{snapshot.selection.countU} × {snapshot.selection.countV}</strong></>}</div>
-        <div className="tree-foot"><CircleHelp size={14}/><p>Select a surface to edit its control points. Use the checkboxes to show or hide objects.</p></div>
+        <div className="tree-foot"><CircleHelp size={14}/><p>Select an editable object to move its control points. Checkboxes set document visibility.</p></div>
       </aside>
       <main className="main-workspace">
         {projectView ? <section className="projects-view"><span className="eyebrow">LOCAL DOCUMENTS</span><h1>Projects</h1><p>Start with the weighted surface, or open a native document.</p><button className="sample-project" data-testid="project-new-sample" onClick={newSample}><span className="sample-symbol">▱</span><span><strong>Weighted surface</strong><small>Quadratic 3 × 3 surface · Reference line</small></span><ChevronRight size={20}/></button><Button variant="outline" onClick={chooseOpenFile}><FolderOpen/>Open document</Button></section> : mount && <CadEditor key={mountKey} session={session} displayOptions={displayOptions} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest}
@@ -362,7 +374,7 @@ function DirectApp() {
           })}>Open</Button></div>
       </DialogContent>
     </Dialog>
-    <footer className="app-status"><span className="status-led"/><span>{busy ? 'Preparing display' : Object.keys(snapshot.pending).length ? 'Pending fields' : snapshot.view.kind==='curve-focus'?'Curve focus':'Accepted document'}</span><span className="status-divider"/><span>{snapshot.downloadStatus}</span><span className="status-divider"/><span data-testid="app-unsaved-state" aria-live="polite">{effectiveUnsaved?'Unsaved changes':'No new changes'}</span><span data-testid="app-draft-state">{hasDraft?'Draft pending':'No draft'}</span><span data-testid="app-recovery-state">{recoveryStatus==='ready'?'Recovery copy ready':recoveryStatus==='failed'?'Recovery unavailable':recoveryStatus==='loading'?'Checking recovery':'No recovery copy'}</span><span className="status-spacer"/><span>History {snapshot.history.index + 1} / {snapshot.history.count}</span><span className="status-divider"/><span>XYZ · mm</span></footer>
+    <footer className="app-status"><span className="status-led"/><span>{busy ? 'Preparing display' : Object.keys(snapshot.pending).length ? 'Pending fields' : snapshot.view.kind==='curve-focus'?'Curve focus':'Accepted document'}</span><span className="status-divider"/><span>{snapshot.downloadStatus}</span><span className="status-divider"/><span data-testid="app-unsaved-state" aria-live="polite">{effectiveUnsaved?'Unsaved changes':'No new changes'}</span><span data-testid="app-draft-state" className={hasDraft?'status-pending':undefined}>{hasDraft?'Draft pending':'No draft'}</span><span data-testid="app-recovery-state">{recoveryStatus==='ready'?'Recovery copy ready':recoveryStatus==='failed'?'Recovery unavailable':recoveryStatus==='loading'?'Checking recovery':'No recovery copy'}</span><span className="status-spacer"/><span>History {snapshot.history.index + 1} / {snapshot.history.count}</span><span className="status-divider"/><span>XYZ · mm</span></footer>
   </div>;
 }
 

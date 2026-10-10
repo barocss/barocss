@@ -29,3 +29,64 @@
 .cad-editor-curve-view-actions{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 18px}.cad-editor-curve-controls{position:absolute;inset:0;pointer-events:none;z-index:1}.cad-editor-curve-control-svg{display:block;overflow:hidden;pointer-events:none}.curve-control-line{stroke:#8291a8;stroke-width:1.2;opacity:.85;pointer-events:none}.curve-control-line.pending{stroke:#e6ba73;stroke-dasharray:5 4}.curve-control-point{fill:#ced7e4;stroke:#25313e;stroke-width:2;pointer-events:all;cursor:grab;touch-action:none}.curve-control-point.selected{fill:#c9e7a8;stroke:#5d7549}.curve-control-point.pending{fill:#e6ba73;stroke:#94713e}.curve-control-point:active{cursor:grabbing}.curve-control-point:focus-visible{outline:none;stroke:#f3ffe6;stroke-width:3}.cad-editor-curve-drag-hint{position:absolute;left:12px;bottom:12px;margin:0;padding:7px 9px;background:#20262dcc;border-radius:4px;color:#c5d1df;font-size:10px;line-height:1.5;pointer-events:none}.cad-editor-viewport>.cad-editor-error{z-index:2}
 
 .cad-editor-curve-view-label{position:absolute;top:12px;left:12px;margin:0;padding:8px 10px;border-radius:4px;background:#20262de6;color:#d9e4ef;font-size:11px;line-height:1.5;pointer-events:none;z-index:1}.cad-editor-curve-view-label span{display:block;color:#a9b6c6;font-size:10px}
+
+/* Direct modeling inspector: coordinates first, analysis remains accessible. */
+.cad-editor:not(.cad-editor-feature) { color:#dce2e5; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-inspector { background:#222629; border-color:#353b3f; padding:18px; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-inspector-title { margin-bottom:17px; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-inspector-title .cad-editor-heading { color:#aab5bc; font-size:11px; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-inspector-title button { color:#aab5bc; font-size:10px; min-height:26px; padding:4px 7px; }
+.cad-editor-object-context { padding:0 0 15px; border-bottom:1px solid #3b4247; margin-bottom:15px; }
+.cad-editor-context-label { font-size:9px; color:#939fa7; }
+.cad-editor-object-context h3 { font-size:16px; font-weight:550; line-height:1.35; letter-spacing:-.2px; margin:6px 0; overflow-wrap:anywhere; color:#e3e9e5; }
+.cad-editor-object-context p { margin:0; color:#a2adb5; font-size:10px; line-height:1.6; }
+.cad-editor-object-context p>span { display:block; color:#b8d599; margin-top:4px; font-variant-numeric:tabular-nums; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-field { grid-template-columns:61px minmax(0,1fr); margin:12px 0; gap:5px 9px; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-field label { color:#b2bcc3; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-field input,.cad-editor:not(.cad-editor-feature) .cad-editor-field select { background:#1c2023; color:#dce4e8; border-color:#454e55; font-size:12px; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-field input { height:33px; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-field input:disabled { background:#24292d; color:#9aa7af; border-color:#384047; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-field input.cad-editor-pending-input { border-color:#a08250; background:#2b2923; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-selection { gap:10px; margin:17px 0 21px; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-selection>.cad-editor-field { display:flex; margin:0; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-heading { color:#dde4e7; font-size:12px; margin-bottom:14px; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-draft-status { color:#e4b66c; font-size:10px; margin:5px 0 12px; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-accepted { color:#b3a58b; font-size:10px; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-actions { margin:18px 0 22px; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-actions button:first-child { background:#b8d599; color:#24321d; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-body-rename-trigger { font-size:10px; min-height:27px; padding:5px 8px; margin-bottom:5px; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-curve-view-actions { gap:6px; margin:7px 0 17px; }
+.cad-editor:not(.cad-editor-feature) .cad-editor-curve-view-actions button { font-size:10px; min-height:28px; padding:5px 8px; }
+.cad-editor-secondary-analysis .cad-editor-analysis { margin-top:22px; padding-top:17px; border-color:#3b4247; }
+.cad-editor-secondary-analysis .cad-editor-analysis-title .cad-editor-heading { font-size:11px; color:#bcc6cd; }
+.cad-editor-secondary-analysis .cad-editor-analysis .cad-editor-field { grid-template-columns:70px minmax(0,1fr); margin:10px 0; }
+.cad-editor-secondary-analysis .cad-editor-analysis .cad-editor-field input,.cad-editor-secondary-analysis .cad-editor-analysis .cad-editor-field select { font-size:11px; height:31px; }
+.cad-editor-secondary-analysis .cad-editor-analysis-object,.cad-editor-secondary-analysis .cad-editor-analysis-note { color:#929fa8; font-size:10px; }
+.cad-editor-secondary-analysis .cad-editor-analysis-actions { gap:6px; margin:13px 0; }
+.cad-editor-secondary-analysis .cad-editor-analysis-actions button { font-size:10px; min-height:28px; padding:5px 8px; }
+.cad-editor-secondary-analysis .cad-editor-analysis-actions button:first-child { background:#303b2d; color:#c5d6b8; border:1px solid #506147; }
+
+/* The presets change the real perspective camera; overlay layout is static. */
+.cad-editor-view-tools { position:absolute; top:12px; right:12px; z-index:3; display:grid; grid-template-columns:repeat(4,auto); gap:3px; padding:7px; border:1px solid #404a50; border-radius:5px; background:#22272bed; color:#b5c1c9; box-shadow:0 2px 8px #0002; }
+.cad-editor-view-tools>span { grid-column:1/-1; font-size:9px; line-height:1.4; padding:0 3px 3px; color:#a2afb8; text-align:right; }
+.cad-editor-view-tools>button { border:1px solid transparent; border-radius:3px; min-height:27px; padding:4px 8px; background:transparent; color:#c2cdd4; font:inherit; font-size:10px; line-height:1.4; cursor:pointer; transition:background .12s,color .12s; }
+.cad-editor-view-tools>button:hover:not(:disabled) { background:#343c41; }
+.cad-editor-view-tools>button[aria-pressed="true"] { background:#36442f; color:#cee2bc; border-color:#596d4b; }
+.cad-editor-view-tools>button:focus-visible { outline:2px solid #b8d599; outline-offset:1px; }
+.cad-editor-view-tools>button:disabled { opacity:.45; cursor:default; }
+.cad-editor-curve-view-label { max-width:calc(100% - 245px); background:#22272bed; color:#d8e1e7; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cad-editor-curve-view-label span { overflow:hidden; text-overflow:ellipsis; color:#9eafb9; }
+.cad-editor-surface-controls { position:absolute; inset:0; pointer-events:none; z-index:1; }
+.cad-editor-surface-control-svg { display:block; overflow:hidden; pointer-events:none; }
+.cad-editor-surface-control-svg .curve-control-line { stroke:#9aa8ad; stroke-width:1; opacity:.65; }
+.cad-editor-surface-control-svg .surface-grid-line.v { opacity:.45; }
+.cad-editor-surface-control-svg .curve-control-line.pending { stroke:#e4b66c; stroke-dasharray:5 4; opacity:.9; }
+.cad-editor-surface-control-svg .curve-control-point { fill:#c8d0d4; stroke:#2b363d; }
+.cad-editor-surface-control-svg .curve-control-point.selected { fill:#b8d599; stroke:#667f50; }
+.cad-editor-surface-control-svg .curve-control-point.pending { fill:#e4b66c; stroke:#967743; }
+.cad-editor-surface-control-svg .curve-control-point:focus-visible { stroke:#f1ffe6; stroke-width:3; }
+.cad-editor-surface-drag-hint { position:absolute; left:12px; bottom:12px; margin:0; padding:7px 9px; background:#22272bd9; border:1px solid #39444a; border-radius:4px; color:#b6c3cb; font-size:10px; line-height:1.5; pointer-events:none; }
+@media(min-width:1000px) and (max-width:1050px) {
+  .cad-editor:not(.cad-editor-feature) .cad-editor-inspector { padding:17px 14px; }
+  .cad-editor-view-tools>button { padding:4px 7px; }
+}
