@@ -1,0 +1,8 @@
+
+> @barocss/physics@0.0.0-experimental build:library /Users/user/.codex/worktrees/physics-demo-959/barocss/packages/barocss-physics
+> tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --external:./types.js --outfile=dist/index.js
+
+
+  dist/index.js  95.5kb
+
+⚡ Done in 6ms

@@ -115,7 +115,7 @@ Optional `broadPhase:'aabb'` filters the existing eligible pair list before narr
 
 `world.overlapSphere({centerM,radiusM,includeSensors?})` returns lexically sorted body IDs. `world.raycast({originM,direction,maxDistanceM,includeSensors?})` returns the nearest `{bodyId,distanceM}` or `null`; direction must be unit length within 1e-9. A ray starting inside a shape reports distance zero. Both queries read the last accepted state; they do not advance the world. Sensor inclusion defaults to true. Query positions are within ±10000 m, radius is 0.0001–1000 m, and ray distance is 0.0001–10000 m. Spheres, oriented boxes and capsules are admitted. Invalid queries use `INVALID_QUERY` and keep accepted state. See [PHYS-03 #766](https://github.com/barocss/barocss/issues/766#issuecomment-6058738723) for the original event and query rules.
 
-`PhysicsError.code` identifies `INVALID_CONFIG`, `INVALID_STEP`, `INVALID_COMMAND`, `INVALID_QUERY`, `INVALID_SNAPSHOT`, `STALE_SOURCE`, `STALE_SNAPSHOT`, `WORLD_LIMIT`, `NUMERIC_LIMIT` or `DISPOSED`.
+`PhysicsError.code` identifies `INVALID_CONFIG`, `INVALID_STEP`, `INVALID_COMMAND`, `INVALID_QUERY`, `INVALID_SNAPSHOT`, `STALE_SOURCE`, `STALE_SNAPSHOT`, `WORLD_LIMIT`, `NUMERIC_LIMIT` or `DISPOSED`. The separate upright capsule query also uses `INITIAL_OVERLAP` and `ITERATION_LIMIT`.
 
 The root, `/cloth`, `/fluid` and `/fluid-cad` export the same `PhysicsError`
 constructor within one installed package instance. A caller can catch a genuine
@@ -130,3 +130,33 @@ Limits: 1–32 bodies by default or 1–64 in `large-v1`, at least one dynamic b
 Workspace defaults resolve the root, `/cad-proxy`, `/replay`, `/fluid`, `/fluid-cad` and `/cloth` to `src/*.ts` without a source condition. Browser examples may also bundle source directly. Published entries use the complete `publishConfig` dist map. Explicit compiled checkpoints must resolve transitive own imports from those published maps. See the [shared source consumer](../../examples/workspace-source/README.md) for source-only and compiled-only commands, cache reuse and edit invalidation.
 
 Run `node examples/physics-scene/server.mjs` to view the existing basic source scene. Restart that server after source edits. The shared workspace-source host instead reuses one context and invalidates source edits. For the current compiled checkpoint, build Physics and use the shared `compiled-probe.mjs`, which resolves transitive own dependencies from published maps. Older numerical/release probe commands retain their original compiled-default manifest scope and need explicit compiled entry resolution before replay under this convention; historical receipts are unchanged.
+
+## Upright static-box capsule query
+
+`createUprightCapsuleQuery` is a separate renderer-neutral geometric query, under [CHARACTER-01 #1062](https://github.com/barocss/barocss/issues/1062). It copies a `CapsuleQuerySceneV1` and exposes `sweep`, `getSnapshot` and idempotent `dispose`. It does not step or move a Physics body. Profile `upright-capsule-box-v1`, version1, fixes radius0.15m, centreline half-length0.35m, total height1m and world Y.
+
+```ts
+import { createUprightCapsuleQuery, PhysicsError } from '@barocss/physics';
+const query = createUprightCapsuleQuery({
+  version: 1, profile: 'upright-capsule-box-v1', revision: 'room1',
+  boxes: [{ id: 'wall', centerM: [0.5,0.6,0], halfExtentsM: [0.05,1,1], orientationXYZW: [0,0,0,1] }],
+});
+try {
+  const hit = query.sweep({revision:'room1',centerM:[-0.5,0.6,0],displacementM:[2,0,0],excludeId:null});
+  // hit?.toiFraction is about0.4. normalFixtureToCapsule is dimensionless.
+  // pointM is a box witness; segmentPointM is on the capsule centreline.
+} catch (error) {
+  if (!(error instanceof PhysicsError)) throw error;
+  // code is the stable refusal field.
+} finally { query.dispose(); }
+```
+
+The scene has0..32static boxes with unique ASCII IDs and an opaque revision matching `[A-Za-z0-9_][A-Za-z0-9_.:-]{0,63}`. Box centre components are within±10m; each half extent is0.0001..5m. Original XYZW components are within±1 and quaternion norm within1e-12 of1. Query centre components are within±5m; requested displacement norm is at most2m. Original numbers, signed zeros, source order and IDs are copied; stored quaternions are not normalized. All records have exactly the declared own data fields, all tuples are dense ordinary arrays in the current realm. Extra/symbol/accessor fields, sparse arrays, typed arrays and subclasses refuse.
+
+A hit is `{bodyId,toiFraction,normalFixtureToCapsule,pointM,segmentPointM,iterations}`; otherwise `null`. Normal is the world unit vector from the box to the capsule. Fractions are dimensionless; points are metres. Iterations count only the selected scalar hit, not total work. Exact original geometry may share computation while retaining eligible IDs. Evaluate all eligible groups before returning a hit. Choose global minimum fraction, then lexical ID within1e-9; return that selected hit's own fields. Exclusion is null or one known box ID. No hidden actor or world is created.
+
+Initial contact within1e-12m returns fraction0 even for zero/parallel/away travel. Initial overlap deeper than1e-12m gives `INITIAL_OVERLAP`; this is not depenetration. Scalar cap64/nonprogress gives `ITERATION_LIMIT`; nonfinite/crossed-contact/unresolved-normal gives `NUMERIC_LIMIT`. Invalid scene gives `INVALID_CONFIG`, invalid query `INVALID_QUERY`, well-formed stale revision `STALE_SNAPSHOT`, and disposed queries/snapshots `DISPOSED`. Complete malformed admission precedes semantic revision/exclusion; stale wins over otherwise well-formed unknown exclusion. Dispose wins before inspecting inputs. Refusals yield no partial hit and keep the copied scene unchanged. Returned data and independent query objects cannot alter later results.
+
+The canonical PhysicsError is shared inside each source or compiled package graph through an internal root error bridge. Source and compiled constructors in distinct graphs need not be identical. The compiled root still needs sibling dist/types.js under the existing #1022 build rule. No new subpath or manifest map is added.
+
+See [the full contract](https://github.com/barocss/barocss/wiki/Physics-Upright-Capsule-Query) and `examples/physics-capsule-query-scene` for the31fixed numerical cases,28accepted cost cases, source/compiled public consumers, original-bit decoder and actual browser evidence. Named crowded translations are capacity observations, not a promise that every arbitrary32rotated geometry takes2ms. No controller, dynamic obstacles, arbitrary capsule orientation, exact CAD collision, Viewer scene or physics certification follows.

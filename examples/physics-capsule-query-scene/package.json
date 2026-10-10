@@ -1,0 +1,6 @@
+{
+  "name": "physics-capsule-query-scene",
+  "private": true,
+  "type": "module",
+  "dependencies": { "@barocss/physics": "workspace:*", "@barocss/cad": "workspace:*" }
+}

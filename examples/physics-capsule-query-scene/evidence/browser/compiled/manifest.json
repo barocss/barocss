@@ -1,0 +1,24 @@
+{
+  "gitHead": "4c1f74125028d53faee787254df904e9d3274f35",
+  "sourceTreeDirty": false,
+  "nodeVersion": "v22.22.0",
+  "format": "capsule-sweep-raw-v1",
+  "endianness": "little",
+  "files": [
+    {
+      "file": "inputs.f64.bin",
+      "type": "Float64Array",
+      "elements": 2927,
+      "bytes": 23416,
+      "sha256": "48345c9f5512d61f97468f1d31e58a8566b27150299df4d5f25a1faf87886ec6"
+    },
+    {
+      "file": "outputs.f64.bin",
+      "type": "Float64Array",
+      "elements": 282,
+      "bytes": 2256,
+      "sha256": "d750103a0f45f47a0c9f9d4b2714474bd9d4b06aa6bb8ef2625ad8c9c39457b1"
+    }
+  ],
+  "totalRawBytes": 25672
+}

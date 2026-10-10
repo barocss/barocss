@@ -1,0 +1,150 @@
+{
+  "issue": 1062,
+  "parent": "8a751f550e67bb251e717537cb1a160e112eba0f",
+  "measuredSource": "4c1f74125028d53faee787254df904e9d3274f35",
+  "sourceTreeDirty": false,
+  "nativePreReceiptHead": "e7e703755e76b9fc4afd9f11655a78274f480a70",
+  "allPassed": true,
+  "allBitsExact": true,
+  "libraryUnchangedAfterMeasurement": true,
+  "publicRoot": "createUprightCapsuleQuery",
+  "profile": {
+    "version": 1,
+    "name": "upright-capsule-box-v1",
+    "radiusM": 0.15,
+    "halfLengthM": 0.35,
+    "worldAxis": "Y",
+    "maxStaticBoxes": 32
+  },
+  "counts": {
+    "namedCases": 31,
+    "hits": 20,
+    "clear": 8,
+    "initialOverlapRefusals": 3,
+    "acceptedCostCases": 28,
+    "actualCallerRefusalsPerGraph": 34
+  },
+  "environments": {
+    "source": {
+      "nodeVersion": "v22.22.0",
+      "sourceFiles": 206,
+      "compiledFiles": 0,
+      "canonicalWithinGraph": true,
+      "getters": 0,
+      "maxP95Ms": 1.1082079999999905,
+      "distinct32Trials": [
+        1.1001249999999914,
+        1.0751249999999573,
+        1.0941669999999704
+      ]
+    },
+    "compiled": {
+      "nodeVersion": "v22.22.0",
+      "sourceFiles": 0,
+      "compiledFiles": 173,
+      "canonicalWithinGraph": true,
+      "getters": 0,
+      "maxP95Ms": 1.113958000000025,
+      "distinct32Trials": [
+        1.1077910000000202,
+        1.067957999999976,
+        1.0500409999999647
+      ]
+    },
+    "browser/source": {
+      "nodeVersion": "v22.22.0",
+      "browserVersion": "155.0.8059.39",
+      "sourceFiles": 206,
+      "compiledFiles": 0,
+      "canonicalWithinGraph": true,
+      "getters": 0,
+      "maxP95Ms": 0.7999999970197678,
+      "distinct32Trials": [
+        0.7999999970197678,
+        0.7999999970197678,
+        0.7000000029802322
+      ],
+      "clockMinimumPositiveMs": 0.09999999403953552,
+      "consoleErrors": [],
+      "consoleWarnings": []
+    },
+    "browser/compiled": {
+      "nodeVersion": "v22.22.0",
+      "browserVersion": "155.0.8059.39",
+      "sourceFiles": 0,
+      "compiledFiles": 173,
+      "canonicalWithinGraph": true,
+      "getters": 0,
+      "maxP95Ms": 0.800000011920929,
+      "distinct32Trials": [
+        0.7999999970197678,
+        0.7000000029802322,
+        0.7000000029802322
+      ],
+      "clockMinimumPositiveMs": 0.09999999403953552,
+      "consoleErrors": [],
+      "consoleWarnings": []
+    }
+  },
+  "raw": {
+    "work_id": 1062,
+    "mode": "source",
+    "nodeVersion": "v22.22.0",
+    "gitHead": "4c1f74125028d53faee787254df904e9d3274f35",
+    "sourceTreeDirty": false,
+    "format": "capsule-sweep-raw-v1",
+    "endianness": "little",
+    "files": [
+      {
+        "file": "inputs.f64.bin",
+        "type": "Float64Array",
+        "elements": 2927,
+        "bytes": 23416,
+        "sha256": "48345c9f5512d61f97468f1d31e58a8566b27150299df4d5f25a1faf87886ec6"
+      },
+      {
+        "file": "outputs.f64.bin",
+        "type": "Float64Array",
+        "elements": 282,
+        "bytes": 2256,
+        "sha256": "d750103a0f45f47a0c9f9d4b2714474bd9d4b06aa6bb8ef2625ad8c9c39457b1"
+      }
+    ],
+    "totalRawBytes": 25672
+  },
+  "affectedBuild": true,
+  "sourceTypeConsumer": true,
+  "explicitEmittedTypeConsumer": true,
+  "publishedTypeExportTargetsAudited": 12,
+  "independentDecoderPassed": 4,
+  "savedDataVerified": true,
+  "actualBrowser": "Two separately loaded public provider graphs, inspected31case numerical tables, exact Node identities/data, errors/warnings0, own pages/browser/server disposed, driverexit0",
+  "firstFailures": [
+    "Nested runtime error import bypassed existing external flag; actual compiled invalid factory rootinstanceof and constructor false. Captured result/resolution/build logs retained; first emitted bundle text was not saved.",
+    "Whole-validator reflection catch trusted caller-thrown PhysicsError; static review repair before full numeric runs.",
+    "Scripted metadata repair broke tuple closure; failed build retained then repaired.",
+    "Near-unit control w>1 violated predeclared component bound; retained correct rejection, test control repaired to admitted w<1. Primary31fixtures/gates unchanged."
+  ],
+  "cleanup": {
+    "repair": "Optional tool import moved before server starts; no math/cost change",
+    "expectedMissingToolExit": 1,
+    "actualFastFailure": true,
+    "serverStart": "after successful tool import",
+    "scope": "Invalid tool path only; not a public numeric failure"
+  },
+  "numericLimitPublicObserved": false,
+  "iterationLimit64PublicObserved": false,
+  "guardCoverage": "Source guards ported unchanged; original private small-cap control is not a new genuine public64-cap result",
+  "numericalGates": "Original geometry1e-6, unit1e-10, cap64, initial1e-12, terminal1e-14, globaltie1e-9,31fixed fixtures unchanged",
+  "cost": "One full warmup then3serial100queries per28accepted named cases, everyp95<=2ms; full public admission/scalar/output copies/adapter included, constructor/oracle/hash/IO excluded",
+  "adoption": "Native only; exact candidate code not yet merged at receipt creation",
+  "actualViewer": false,
+  "controller": false,
+  "publication": false,
+  "limits": [
+    "Named fixed query/crowded translations only; no arbitrary32latency or certifiedCCD",
+    "No dynamic obstacle/controller/CAD collision/Viewer/GPU/FPS proof",
+    "Canonical errors inside each provider graph, not across graphs/versions/realms",
+    "No manifest/build/root/lock/provider changes; one pre-frozen internal root error bridge"
+  ]
+}
