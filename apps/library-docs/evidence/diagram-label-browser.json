@@ -1,0 +1,824 @@
+{
+  "sourceProfile": "8fc5d6c46776f750d1c3a4222e255aea5d6aaaf7",
+  "bundle": {
+    "verifiedBlobs": 39,
+    "ownSourceInputs": 38,
+    "ownDistInputs": 0,
+    "bundleBytes": 209938,
+    "publicEntries": [
+      "@barocss/canvas2d",
+      "@barocss/canvas2d/document"
+    ]
+  },
+  "development": {
+    "receiptKind": "diagram-label-development",
+    "initial": {
+      "backend": "Public Canvas2D renderer · retained diagram label",
+      "sourceProfile": "8fc5d6c46776f750d1c3a4222e255aea5d6aaaf7",
+      "semanticText": "Mounting plate dimensions and clearance",
+      "utf16Length": 39,
+      "sceneVersion": 29,
+      "semanticRange": [
+        0,
+        39
+      ],
+      "glyphQuad": {
+        "sourceRect": {
+          "x": 0,
+          "y": 0,
+          "width": 374,
+          "height": 58
+        },
+        "x": -2,
+        "y": -21,
+        "width": 187,
+        "height": 29,
+        "textStart": 0,
+        "textEnd": 39
+      },
+      "parentTransform": {
+        "x": 40,
+        "y": 104,
+        "scaleX": 1,
+        "scaleY": 1,
+        "rotation": 0.08
+      },
+      "outlineSprite": {
+        "transform": {
+          "x": -2,
+          "y": -21,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "width": 187,
+        "height": 29,
+        "sourceRect": {
+          "x": 0,
+          "y": 0,
+          "width": 374,
+          "height": 58
+        },
+        "hitMode": "none",
+        "anchor": [
+          0,
+          0
+        ]
+      },
+      "assets": [
+        {
+          "id": "LabelAtlasA",
+          "width": 374,
+          "height": 58,
+          "byteCount": 86768,
+          "rgbaChecksum": "fnv1a32:44f426b0"
+        },
+        {
+          "id": "OutlineAtlasA",
+          "width": 374,
+          "height": 58,
+          "byteCount": 86768,
+          "rgbaChecksum": "fnv1a32:c7abde89"
+        }
+      ],
+      "origin": "browser-preparation",
+      "font": "24px monospace",
+      "maxWidth": 200,
+      "displayText": "Mounting p...",
+      "truncated": true,
+      "visibleTextEnd": 10,
+      "rasterDPR": 2,
+      "outlineRadius": 3,
+      "outlineColor": [
+        0.1,
+        0.75,
+        1,
+        1
+      ],
+      "advance": 187.83984375,
+      "bounds": {
+        "left": -2,
+        "top": -21,
+        "width": 187,
+        "height": 29
+      },
+      "displayDPR": 2,
+      "logicalSize": {
+        "width": 320,
+        "height": 200
+      },
+      "frameCount": 1,
+      "available": true,
+      "frame": {
+        "width": 640,
+        "height": 400,
+        "byteCount": 1024000,
+        "rgbaChecksum": "fnv1a32:0cf2c3d8"
+      },
+      "inkHit": {
+        "pixel": [
+          163,
+          6
+        ],
+        "local": {
+          "x": 79.75,
+          "y": -17.75
+        },
+        "world": {
+          "x": 120.91342189558671,
+          "y": 92.67996655717003
+        },
+        "viewport": {
+          "x": 120.91342189558671,
+          "y": 92.67996655717003
+        },
+        "hit": {
+          "id": "OriginalGlyph",
+          "kind": "glyphRun"
+        },
+        "semanticText": "Mounting plate dimensions and clearance",
+        "semanticRange": [
+          0,
+          39
+        ]
+      },
+      "outlineOnlyHit": {
+        "pixel": [
+          160,
+          3
+        ],
+        "local": {
+          "x": 78.25,
+          "y": -19.25
+        },
+        "world": {
+          "x": 119.53809137708654,
+          "y": 91.06489195676234
+        },
+        "viewport": {
+          "x": 119.53809137708654,
+          "y": 91.06489195676234
+        },
+        "hit": null,
+        "semanticText": null,
+        "semanticRange": null
+      },
+      "savedDocument": null,
+      "openedDocument": null
+    },
+    "widthEdit": {
+      "backend": "Public Canvas2D renderer · retained diagram label",
+      "sourceProfile": "8fc5d6c46776f750d1c3a4222e255aea5d6aaaf7",
+      "semanticText": "Mounting plate dimensions and clearance",
+      "utf16Length": 39,
+      "sceneVersion": 29,
+      "semanticRange": [
+        0,
+        39
+      ],
+      "glyphQuad": {
+        "sourceRect": {
+          "x": 0,
+          "y": 0,
+          "width": 316,
+          "height": 58
+        },
+        "x": -2,
+        "y": -21,
+        "width": 158,
+        "height": 29,
+        "textStart": 0,
+        "textEnd": 39
+      },
+      "parentTransform": {
+        "x": 40,
+        "y": 104,
+        "scaleX": 1,
+        "scaleY": 1,
+        "rotation": 0.08
+      },
+      "outlineSprite": {
+        "transform": {
+          "x": -2,
+          "y": -21,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "width": 158,
+        "height": 29,
+        "sourceRect": {
+          "x": 0,
+          "y": 0,
+          "width": 316,
+          "height": 58
+        },
+        "hitMode": "none",
+        "anchor": [
+          0,
+          0
+        ]
+      },
+      "assets": [
+        {
+          "id": "LabelAtlasB",
+          "width": 316,
+          "height": 58,
+          "byteCount": 73312,
+          "rgbaChecksum": "fnv1a32:f2ee58d9"
+        },
+        {
+          "id": "OutlineAtlasB",
+          "width": 316,
+          "height": 58,
+          "byteCount": 73312,
+          "rgbaChecksum": "fnv1a32:cf8d573f"
+        }
+      ],
+      "origin": "browser-preparation",
+      "font": "24px monospace",
+      "maxWidth": 160,
+      "displayText": "Mounting...",
+      "truncated": true,
+      "visibleTextEnd": 8,
+      "rasterDPR": 2,
+      "outlineRadius": 3,
+      "outlineColor": [
+        0.1,
+        0.75,
+        1,
+        1
+      ],
+      "advance": 158.94140625,
+      "bounds": {
+        "left": -2,
+        "top": -21,
+        "width": 158,
+        "height": 29
+      },
+      "displayDPR": 2,
+      "logicalSize": {
+        "width": 320,
+        "height": 200
+      },
+      "frameCount": 2,
+      "available": true,
+      "frame": {
+        "width": 640,
+        "height": 400,
+        "byteCount": 1024000,
+        "rgbaChecksum": "fnv1a32:a9a01ce9"
+      },
+      "inkHit": {
+        "pixel": [
+          163,
+          6
+        ],
+        "local": {
+          "x": 79.75,
+          "y": -17.75
+        },
+        "world": {
+          "x": 120.91342189558671,
+          "y": 92.67996655717003
+        },
+        "viewport": {
+          "x": 120.91342189558671,
+          "y": 92.67996655717003
+        },
+        "hit": {
+          "id": "OriginalGlyph",
+          "kind": "glyphRun"
+        },
+        "semanticText": "Mounting plate dimensions and clearance",
+        "semanticRange": [
+          0,
+          39
+        ]
+      },
+      "outlineOnlyHit": {
+        "pixel": [
+          160,
+          3
+        ],
+        "local": {
+          "x": 78.25,
+          "y": -19.25
+        },
+        "world": {
+          "x": 119.53809137708654,
+          "y": 91.06489195676234
+        },
+        "viewport": {
+          "x": 119.53809137708654,
+          "y": 91.06489195676234
+        },
+        "hit": null,
+        "semanticText": null,
+        "semanticRange": null
+      },
+      "savedDocument": null,
+      "openedDocument": null
+    },
+    "inputRefusals": [
+      {
+        "name": "width zero",
+        "actualCode": "INVALID_SCENE",
+        "entireReportRetained": true,
+        "exactDraftRetained": true
+      },
+      {
+        "name": "radius nine",
+        "actualCode": "INVALID_ASSET",
+        "entireReportRetained": true,
+        "exactDraftRetained": true
+      },
+      {
+        "name": "dots do not fit",
+        "actualCode": "ASSET_LIMIT",
+        "entireReportRetained": true,
+        "exactDraftRetained": true
+      }
+    ],
+    "savedDocument": {
+      "format": "barocss-canvas-document",
+      "version": 1,
+      "byteCount": 197064,
+      "assets": [
+        {
+          "id": "LabelAtlasB",
+          "width": 316,
+          "height": 58,
+          "byteLength": 73312,
+          "sha256": "bc77226bb6759eae1e2cce11615d53c19311be565e276b06caf6dec084a8eb13"
+        },
+        {
+          "id": "OutlineAtlasB",
+          "width": 316,
+          "height": 58,
+          "byteLength": 73312,
+          "sha256": "7e8fc1a0647998c9adfa8172180191e2b9f1f8434bb885bf150b5cd2f44fa547"
+        }
+      ]
+    },
+    "openedDocument": {
+      "backend": "Public Canvas2D renderer · retained diagram label",
+      "sourceProfile": "8fc5d6c46776f750d1c3a4222e255aea5d6aaaf7",
+      "semanticText": "Mounting plate dimensions and clearance",
+      "utf16Length": 39,
+      "sceneVersion": 29,
+      "semanticRange": [
+        0,
+        39
+      ],
+      "glyphQuad": {
+        "sourceRect": {
+          "x": 0,
+          "y": 0,
+          "width": 316,
+          "height": 58
+        },
+        "x": -2,
+        "y": -21,
+        "width": 158,
+        "height": 29,
+        "textStart": 0,
+        "textEnd": 39
+      },
+      "parentTransform": {
+        "x": 40,
+        "y": 104,
+        "scaleX": 1,
+        "scaleY": 1,
+        "rotation": 0.08
+      },
+      "outlineSprite": {
+        "transform": {
+          "x": -2,
+          "y": -21,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "width": 158,
+        "height": 29,
+        "sourceRect": {
+          "x": 0,
+          "y": 0,
+          "width": 316,
+          "height": 58
+        },
+        "hitMode": "none",
+        "anchor": [
+          0,
+          0
+        ]
+      },
+      "assets": [
+        {
+          "id": "LabelAtlasB",
+          "width": 316,
+          "height": 58,
+          "byteCount": 73312,
+          "rgbaChecksum": "fnv1a32:f2ee58d9"
+        },
+        {
+          "id": "OutlineAtlasB",
+          "width": 316,
+          "height": 58,
+          "byteCount": 73312,
+          "rgbaChecksum": "fnv1a32:cf8d573f"
+        }
+      ],
+      "origin": "opened-document",
+      "font": null,
+      "maxWidth": null,
+      "displayText": null,
+      "truncated": null,
+      "visibleTextEnd": null,
+      "rasterDPR": null,
+      "outlineRadius": null,
+      "outlineColor": null,
+      "advance": null,
+      "bounds": null,
+      "displayDPR": 2,
+      "logicalSize": {
+        "width": 320,
+        "height": 200
+      },
+      "frameCount": 1,
+      "available": true,
+      "frame": {
+        "width": 640,
+        "height": 400,
+        "byteCount": 1024000,
+        "rgbaChecksum": "fnv1a32:a9a01ce9"
+      },
+      "inkHit": {
+        "pixel": [
+          163,
+          6
+        ],
+        "local": {
+          "x": 79.75,
+          "y": -17.75
+        },
+        "world": {
+          "x": 120.91342189558671,
+          "y": 92.67996655717003
+        },
+        "viewport": {
+          "x": 120.91342189558671,
+          "y": 92.67996655717003
+        },
+        "hit": {
+          "id": "OriginalGlyph",
+          "kind": "glyphRun"
+        },
+        "semanticText": "Mounting plate dimensions and clearance",
+        "semanticRange": [
+          0,
+          39
+        ]
+      },
+      "outlineOnlyHit": {
+        "pixel": [
+          160,
+          3
+        ],
+        "local": {
+          "x": 78.25,
+          "y": -19.25
+        },
+        "world": {
+          "x": 119.53809137708654,
+          "y": 91.06489195676234
+        },
+        "viewport": {
+          "x": 119.53809137708654,
+          "y": 91.06489195676234
+        },
+        "hit": null,
+        "semanticText": null,
+        "semanticRange": null
+      },
+      "savedDocument": null,
+      "openedDocument": {
+        "format": "barocss-canvas-document",
+        "version": 1,
+        "byteCount": 197064,
+        "assets": [
+          {
+            "id": "LabelAtlasB",
+            "width": 316,
+            "height": 58,
+            "byteLength": 73312,
+            "sha256": "bc77226bb6759eae1e2cce11615d53c19311be565e276b06caf6dec084a8eb13"
+          },
+          {
+            "id": "OutlineAtlasB",
+            "width": 316,
+            "height": 58,
+            "byteLength": 73312,
+            "sha256": "7e8fc1a0647998c9adfa8172180191e2b9f1f8434bb885bf150b5cd2f44fa547"
+          }
+        ]
+      }
+    },
+    "fileRefusals": [
+      {
+        "name": "invalid document",
+        "actualCode": "SERIALIZATION",
+        "entireAcceptedReportRetained": true,
+        "canvasCount": 1
+      },
+      {
+        "name": "wrong hit family",
+        "actualCode": "INVALID_SCENE",
+        "entireAcceptedReportRetained": true,
+        "canvasCount": 1
+      }
+    ],
+    "laterExplicitProfile": {
+      "backend": "Public Canvas2D renderer · retained diagram label",
+      "sourceProfile": "8fc5d6c46776f750d1c3a4222e255aea5d6aaaf7",
+      "semanticText": "Rotor bearing mounting clearance",
+      "utf16Length": 32,
+      "sceneVersion": 29,
+      "semanticRange": [
+        0,
+        32
+      ],
+      "glyphQuad": {
+        "sourceRect": {
+          "x": 0,
+          "y": 0,
+          "width": 372,
+          "height": 48
+        },
+        "x": -1,
+        "y": -21,
+        "width": 186,
+        "height": 24,
+        "textStart": 0,
+        "textEnd": 32
+      },
+      "parentTransform": {
+        "x": 40,
+        "y": 104,
+        "scaleX": 1,
+        "scaleY": 1,
+        "rotation": 0.08
+      },
+      "outlineSprite": {
+        "transform": {
+          "x": -1,
+          "y": -21,
+          "scaleX": 1,
+          "scaleY": 1,
+          "rotation": 0
+        },
+        "width": 186,
+        "height": 24,
+        "sourceRect": {
+          "x": 0,
+          "y": 0,
+          "width": 372,
+          "height": 48
+        },
+        "hitMode": "none",
+        "anchor": [
+          0,
+          0
+        ]
+      },
+      "assets": [
+        {
+          "id": "LabelAtlasA",
+          "width": 372,
+          "height": 48,
+          "byteCount": 71424,
+          "rgbaChecksum": "fnv1a32:bd00e10d"
+        },
+        {
+          "id": "OutlineAtlasA",
+          "width": 372,
+          "height": 48,
+          "byteCount": 71424,
+          "rgbaChecksum": "fnv1a32:db0d44c9"
+        }
+      ],
+      "origin": "browser-preparation",
+      "font": "24px monospace",
+      "maxWidth": 200,
+      "displayText": "Rotor bear...",
+      "truncated": true,
+      "visibleTextEnd": 10,
+      "rasterDPR": 2,
+      "outlineRadius": 3,
+      "outlineColor": [
+        0.1,
+        0.75,
+        1,
+        1
+      ],
+      "advance": 187.83984375,
+      "bounds": {
+        "left": -1,
+        "top": -21,
+        "width": 186,
+        "height": 24
+      },
+      "displayDPR": 2,
+      "logicalSize": {
+        "width": 320,
+        "height": 200
+      },
+      "frameCount": 2,
+      "available": true,
+      "frame": {
+        "width": 640,
+        "height": 400,
+        "byteCount": 1024000,
+        "rgbaChecksum": "fnv1a32:4f240234"
+      },
+      "inkHit": {
+        "pixel": [
+          180,
+          5
+        ],
+        "local": {
+          "x": 89.25,
+          "y": -18.25
+        },
+        "world": {
+          "x": 130.42299545244617,
+          "y": 92.94075529672585
+        },
+        "viewport": {
+          "x": 130.42299545244617,
+          "y": 92.94075529672585
+        },
+        "hit": {
+          "id": "OriginalGlyph",
+          "kind": "glyphRun"
+        },
+        "semanticText": "Rotor bearing mounting clearance",
+        "semanticRange": [
+          0,
+          32
+        ]
+      },
+      "outlineOnlyHit": {
+        "pixel": [
+          177,
+          2
+        ],
+        "local": {
+          "x": 87.75,
+          "y": -19.75
+        },
+        "world": {
+          "x": 129.047664933946,
+          "y": 91.32568069631817
+        },
+        "viewport": {
+          "x": 129.047664933946,
+          "y": 91.32568069631817
+        },
+        "hit": null,
+        "semanticText": null,
+        "semanticRange": null
+      },
+      "savedDocument": null,
+      "openedDocument": {
+        "format": "barocss-canvas-document",
+        "version": 1,
+        "byteCount": 197064,
+        "assets": [
+          {
+            "id": "LabelAtlasB",
+            "width": 316,
+            "height": 58,
+            "byteLength": 73312,
+            "sha256": "bc77226bb6759eae1e2cce11615d53c19311be565e276b06caf6dec084a8eb13"
+          },
+          {
+            "id": "OutlineAtlasB",
+            "width": 316,
+            "height": 58,
+            "byteLength": 73312,
+            "sha256": "7e8fc1a0647998c9adfa8172180191e2b9f1f8434bb885bf150b5cd2f44fa547"
+          }
+        ]
+      }
+    },
+    "actualJPEG": {
+      "bytes": 5861,
+      "crop": {
+        "height": 115,
+        "width": 375,
+        "x": 677,
+        "y": 1013
+      }
+    },
+    "downloadEvent": "Timed out; actual native Downloads file verified separately",
+    "unicodeAfterDiagramDispose": "설계 圖面 A1",
+    "liveMobile": {
+      "width": 390,
+      "scrollWidth": 390
+    },
+    "guide": {
+      "heading": "Decorate an ellipsized diagram label",
+      "codeBlocks": 2,
+      "imageWidth": 375,
+      "imageHeight": 115,
+      "width": 390,
+      "scrollWidth": 390
+    },
+    "errors": [],
+    "warnings": []
+  },
+  "actualDownloadedFile": {
+    "filename": "diagram-label.canvas.json",
+    "byteCount": 197064,
+    "sha256": "19e23b71ff07d55f03a0a36319cee96231ddc66b9d0b68a6e73162e1dde3692f",
+    "assetCount": 2,
+    "bothDecodedRGBASHA256Verified": true,
+    "fileOpenedViaActualChooser": true
+  },
+  "firstFailures": [
+    {
+      "phase": "Static family review",
+      "error": "Initial Open predicate did not reject disabled hit/visibility or optional modifiers",
+      "repair": "Before first runtime added bounded family default checks; factory output remains valid."
+    },
+    {
+      "phase": "Image byte transfer",
+      "error": "Manual base64 transcription had incorrect padding; no file was written",
+      "repair": "Decoded the exact already-captured native JPEG tool-output bytes without rerendering/reencoding; 5861bytes, visually checked."
+    },
+    {
+      "phase": "Save download observation",
+      "error": "Browser waitForEvent(download) timed out after10000ms for Blob/objectURL download",
+      "repair": "Observed actual successful Save report and native Downloads file;197064bytes/two decoded SHA-verified assets. Did not rerun Save or claim failed package serialization."
+    },
+    {
+      "phase": "Guide title predicate",
+      "error": "Driver expected an invented heading and locator timed out",
+      "repair": "Read actual heading Decorate an ellipsized diagram label; unchanged page/image/mobile/codeblock checks passed."
+    },
+    {
+      "phase": "Precommit user-doc review",
+      "error": "Guide download filename differed from actual .canvas.json and probe wording could imply GlyphRun lacked its existing alpha hit rule",
+      "repair": "Corrected only guide filename and alpha-rule explanation; final affected docs rebuild required. Initial24.12s successful build and all native consumer/file receipts retained."
+    }
+  ],
+  "qualification": "Actual public native capture returns1,024,000RGBA bytes with compact FNV report, not a parity certificate. Physical download/read/fresh filechooser Open and codec SHA evidence are consumer-specific. JPEG is a cropped actual screen image; no cross-device/font/IME/producer replay or currentRoot1254/674/publication claim.",
+  "production": {
+    "guideURL": "http://127.0.0.1:52948/packages/canvas2d/diagram-labels",
+    "exampleURL": "http://127.0.0.1:52948/playground#diagram-label",
+    "guideImageDecoded": {
+      "width": 375,
+      "height": 115
+    },
+    "initialDisplay": "Mounting p...",
+    "initialActualPublicFrameChecksumMatchesDev": true,
+    "openedDevelopmentDownloadViaActualFileChooser": true,
+    "openedFileBytes": 197064,
+    "semanticText": "Mounting plate dimensions and clearance",
+    "semanticRange": [
+      0,
+      39
+    ],
+    "bothAssetMetadataMatchSavedDev": true,
+    "actualPublicFrameChecksumMatchesSavedDev": true,
+    "actualInkHit": {
+      "id": "OriginalGlyph",
+      "kind": "glyphRun"
+    },
+    "preparationUnknown": true,
+    "canvasCount": 1,
+    "resetOriginalPassed": true,
+    "readableActualScreenObserved": true,
+    "errors": [],
+    "warnings": [],
+    "limits": "Physical Save ran once on dev; production opened that actual file, not a second producer replay. Native frame FNV equality is distinct from exact binary RGBA/screen equality."
+  },
+  "build": {
+    "pages": 87,
+    "packages": 12,
+    "checkedInternalLinks": 5261,
+    "checkedImageAssets": 38,
+    "checkedDownloadAssets": 1,
+    "manifestHashes": "matched",
+    "legacyInventoryPinUnchanged": "5f5ad866205a21510ac69552e704cc162fa253b5",
+    "legacyVisualBytes": 1279754,
+    "advancedShaderBytes": 117038,
+    "unicodeLabelBytes": 197933,
+    "warning": "Existing >500kB chunk warning retained.",
+    "initialSuccessfulSeconds": 24.12,
+    "finalSuccessfulSeconds": 24.11,
+    "finalBuiltFilenameAndAlphaRuleChecked": true
+  }
+}

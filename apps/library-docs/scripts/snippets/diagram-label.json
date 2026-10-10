@@ -1,0 +1,12 @@
+{
+  "kind": "diagram",
+  "anchor": "diagram-label",
+  "title": "Diagram label · ellipsis and outline",
+  "label": "Diagram label",
+  "language": "Printable ASCII label JSON → retained Canvas2D scene",
+  "description": "Edit the complete JSON label. Ellipsis limits its logical advance while preserving the full semantic text. A separate outline Sprite follows the actual GlyphRun quad and ignores hits. Save both atlas images and the retained scene as diagram JSON; Open uses a fresh canvas without preparing the font again.",
+  "source": "{\n  \"text\": \"Mounting plate dimensions and clearance\",\n  \"font\": \"24px monospace\",\n  \"dpr\": 2,\n  \"maxWidth\": 200,\n  \"outlineRadius\": 3,\n  \"outlineColor\": [0.1,0.75,1,1]\n}",
+  "actions": [
+    { "id": "save-document", "label": "Save diagram JSON" }
+  ]
+}
