@@ -362,3 +362,40 @@ node apps/cad-editor/flows/body-rename-flow.mjs --compiled --port 52027
 Receipts are stored outside the repository. Prepared checkpoint metadata is
 separate from actual execution. Native completion, Integration adoption and
 publication remain separate.
+
+
+## Protect accepted changes before Open or New
+
+Open/New sample first requires resolved pole fields and selection decisions. A
+valid incoming native file and visible-body choice are frozen before replacing
+accepted content. If the current accepted document has unsaved changes, choose
+Download copy, Continue without downloading, or Cancel. Download copy starts the
+actual accepted native download and keeps the decision open; it does not prove
+disk persistence or continue replacement. Cancel/Escape keeps the native file,
+history, raw fields, selected object and frame. Help explains the difference
+between accepted content and pending fields.
+
+Current-session changes or another file action invalidate the target. Failed
+copy download leaves no queued replacement. The actual Viewer must admit the
+Open candidate; only its exact accepted token updates the host filename. The
+module callback onAccepted(snapshot,candidate) supplies that accepted copy;
+existing one-argument callbacks remain valid. Host guards do not change the
+module prepareOpen API, file schema or native dirty/download semantics.
+
+CAD/Feature mode navigation retains both host sessions. This protection covers
+canonical Open/New sample. Feature-graph replacement and durable autosave, crash
+recovery, OS unload interception and verified disk storage are separate tasks.
+
+The supported desktop workspace minimum is1000x700 CSSpixels. At this compact
+size, File/Open/Download, the tree, scrolling Inspector/Apply/Discard and footer
+Unsaved changes/Draft pending state remain reachable. Below this minimum and
+mobile support are unclaimed. The focused flow also observes1440x960.
+
+```sh
+node apps/cad-editor/flows/unsaved-replacement-flow.mjs --headed --port 52028
+node apps/cad-editor/flows/unsaved-replacement-flow.mjs --compiled --port 52029
+```
+
+Selected extrusion properties shows current/refresh task status. Exact accepted
+revision/output binding remains in Help/details and full typed records, with
+Construction volume estimate and Geometric centroid terms unchanged.

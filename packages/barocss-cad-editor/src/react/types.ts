@@ -1,6 +1,6 @@
 import type { BaroCadDocumentPrimitiveOptionsV2 } from '@barocss/cad-interop/document';
 import type { ViewerOptions, ViewerState } from '@barocss/viewer';
-import type { CadEditorError, CadEditorSession, CadEditorSnapshot, CadEditorGeometryAnalysisResult } from '../types.js';
+import type { CadEditorCandidate, CadEditorError, CadEditorSession, CadEditorSnapshot, CadEditorGeometryAnalysisResult } from '../types.js';
 
 export interface CadEditorDisplayOptions {
   viewer: ViewerOptions;
@@ -30,7 +30,7 @@ export interface CadEditorViewportProps {
   /** Read the current frame without changing Viewer input, camera or selection. */
   readRequest?: number;
   onError?: (error: CadEditorError) => void;
-  onAccepted?: (snapshot: CadEditorSnapshot) => void;
+  onAccepted?: (snapshot: CadEditorSnapshot, candidate: CadEditorCandidate) => void;
   onDisplay?: (receipt: CadEditorDisplayReceipt) => void;
   className?: string;
 }
