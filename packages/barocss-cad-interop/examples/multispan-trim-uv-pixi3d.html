@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" href="data:,"><script>performance.setResourceTimingBufferSize(2048)</script>
+  <title>Original multi-span trim UV · Pixi3D</title>
+  <style>
+    :root{color-scheme:dark;font:15px/1.5 system-ui,sans-serif;background:#101b2c;color:#e5edf6}body{margin:0;padding:24px;max-width:1400px}h1{font-size:26px;margin:0 0 8px}p{max-width:1000px}button{padding:8px 12px;border:1px solid #66829f;border-radius:4px;background:#203a54;color:inherit;cursor:pointer}button:disabled{opacity:.4;cursor:default}nav{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}#view{max-width:900px}canvas{display:block;max-width:100%;height:auto!important;border:1px solid #43576d}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:8px;border-bottom:1px solid #43576d;text-align:left;vertical-align:top}th{color:#afc7df}pre{overflow:auto;max-height:400px;background:#18273a;padding:12px;white-space:pre-wrap;overflow-wrap:anywhere}summary{cursor:pointer;padding:8px 0}.note{color:#afc7df}.table-wrap{overflow:auto}#status{min-height:24px}
+  </style>
+</head>
+<body>
+  <h1>Original multi-span trim UV in Pixi3D</h1>
+  <p>Read the original query classifications beside the complete Support Surface. The Surface preview is untrimmed. UV values are dimensionless. The seven source Curves remain in the original model.</p>
+  <p class="note">The iteration limit can produce a successful <strong>uncertain</strong> result. It does not define a clipped fill or a solid.</p>
+  <nav aria-label="Original classification flow">
+    <button id="negatives" disabled>Check source refusals</button>
+    <button id="transport" disabled>Check transport refusals</button>
+    <button id="joins" disabled>Read original joins</button>
+    <button id="cap" disabled>Read cap0 uncertainty</button>
+    <button id="cold" disabled>Reopen original files</button>
+    <button id="cleanup" disabled>Clean up owned Surface twice</button>
+  </nav>
+  <p id="status" role="status">Reading the original files…</p>
+  <div id="view" aria-label="Original Support Surface and caller marker"></div>
+  <h2>Original query evidence</h2>
+  <div class="table-wrap"><table><thead><tr><th>Query / UV</th><th>Relation / method</th><th>Original span / domain / poles</th><th>Original parameter bracket / steps</th><th>Qualified Face classifications</th></tr></thead><tbody id="queries"></tbody></table></div>
+  <details><summary>Complete native source, classification and proof</summary><pre id="native"></pre></details>
+  <details><summary>Actual resource and refusal receipts</summary><pre id="receipts"></pre></details>
+  <script type="module" src="./multispan-trim-uv-pixi3d.mjs"></script>
+</body>
+</html>
