@@ -25,6 +25,7 @@ const hash=bytes=>bytes.reduce((n,byte)=>Math.imul(n^byte,16777619)>>>0,21661362
 const sha=async bytes=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');
 const canvas=document.querySelector('#view'),status=document.querySelector('#status'),inspection=document.querySelector('#inspection'),rows=document.querySelector('#assets');
 const faceInspectMode=document.querySelector('#face-inspect-mode'),faceScreenOutput=document.querySelector('#face-screen-inspection'),faceRowRefs=new WeakMap();
+const nativeSampleMode=document.querySelector('#native-sample-mode'),nativeSampleOutput=document.querySelector('#native-sample-output');
 const assetCount=document.querySelector('#asset-count'),countU=document.querySelector('#count-u'),countV=document.querySelector('#count-v');
 const colorAsset=document.querySelector('#color-asset'),colorInput=document.querySelector('#color');
 const measureButton=document.querySelector('#measure-points'),measurementOutput=document.querySelector('#measurement-output');
@@ -82,6 +83,7 @@ let surfaceCurvatureReport=null,surfaceCurvatureProjection=null;
 let tangentAngleReport=null,tangentAngleProjection=null;
 let normalAngleReport=null,normalAngleProjection=null,normalAngleFaces=null;
 let faceInspectionEpoch=0,faceInspectionScope=null,faceInspectionRecord=null;
+let nativeSampleRecord=null;
 const colors=[[.9,.3,.2],[.25,.8,.4],[.25,.45,.95],[.95,.7,.2],[.3,.8,.9],[.85,.35,.75]];
 const camera={eye:[2,1.5,3.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:10},mmToSceneUnit=.12,background=[.02,.03,.04],translateScene=[-.6,-.6,-.7];
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
@@ -96,10 +98,11 @@ function currentFaceRef(asset){return{sourceId:asset.sourceId,expectedSource:ass
   modelId:asset.face.geometry.name,surfaceId:asset.face.topology.face.surfaceId};}
 function markFaceInspectionRows(){for(const item of rows.children)item.dataset.screenInspected=String(!!faceInspectionRecord?.pick
   &&same(faceRowRefs.get(item),faceInspectionRecord.pick.ref));}
-function invalidateFaceInspection(){faceInspectionEpoch++;faceInspectionRecord=null;faceScreenOutput.textContent='';markFaceInspectionRows();}
+function clearNativeSample(){nativeSampleRecord=null;nativeSampleOutput.textContent='';}
+function invalidateFaceInspection(){faceInspectionEpoch++;faceInspectionRecord=null;faceScreenOutput.textContent='';clearNativeSample();markFaceInspectionRows();}
 function refreshFaceInspection(){const scope=currentFaceInspectionScope();if(!same(scope,faceInspectionScope)){invalidateFaceInspection();faceInspectionScope=clone(scope);}
   const available=!disposed&&!!scope?.scene&&!['context-lost','unavailable','disposed'].includes(scope.status);
-  faceInspectMode.disabled=!available||running;if(!available&&faceInspectionRecord)invalidateFaceInspection();
+  faceInspectMode.disabled=!available||running;nativeSampleMode.disabled=!available||running;if(!available&&(faceInspectionRecord||nativeSampleRecord))invalidateFaceInspection();
   markFaceInspectionRows();return clone(faceInspectionScope);
 }
 function checkFaceInspectionScope(epoch,scope){refreshFaceInspection();check(epoch===faceInspectionEpoch&&same(scope,faceInspectionScope),
@@ -115,6 +118,18 @@ function inspectFaceAt(point){refreshFaceInspection();const epoch=faceInspection
 }
 function faceInspectionSnapshot(){return{mode:faceInspectMode.checked,epoch:faceInspectionEpoch,scope:clone(faceInspectionScope),record:clone(faceInspectionRecord),
   output:faceScreenOutput.textContent,markedRefs:[...rows.children].filter(item=>item.dataset.screenInspected==='true').map(item=>clone(faceRowRefs.get(item)))};}
+function sampleFaceAt(point){refreshFaceInspection();const epoch=faceInspectionEpoch,scope=clone(faceInspectionScope);
+  check(!disposed&&scope?.scene&&!['context-lost','unavailable','disposed'].includes(scope.status),'Native screen sampling requires an available Face view.');
+  const sample=viewer.sampleQualifiedFace(point);checkFaceInspectionScope(epoch,scope);
+  nativeSampleRecord={epoch,scope,point:clone(point),sample:clone(sample)};
+  nativeSampleOutput.textContent=sample?'Current '+sample.pick.ref.sourceId+' / '+sample.pick.ref.surfaceId+' · approximate u '+areaNumber(sample.parameters.u)
+    +', v '+areaNumber(sample.parameters.v)+' · original point ['+sample.nativePoint.pointMM.map(areaNumber).join(', ')+'] mm'
+    +' · display/native discrepancy '+areaNumber(sample.displayToNativeDistanceScene)+' scene units'+(sample.pick.ambiguous?' · ambiguous source tie':'')
+    :'No current filled Face triangle at this point.';
+  display(sample?'Original native point sampled for '+sample.pick.ref.sourceId+'.':'No current filled Face triangle at this point.');return clone(sample);
+}
+function nativeSampleSnapshot(){return{mode:nativeSampleMode.checked,enabled:!nativeSampleMode.disabled,epoch:faceInspectionEpoch,scope:clone(faceInspectionScope),
+  record:clone(nativeSampleRecord),report:clone(nativeSampleRecord?.sample??null),output:nativeSampleOutput.textContent};}
 function clearNormalAngle(){normalAngleReport=null;normalAngleProjection=null;normalAngleFaces=null;normalAngleOutput.textContent='';normalAngleLabel.hidden=true;}
 function normalAngleScopeChanged(scene){return normalAngleReport&&[normalAngleReport.first.pin,normalAngleReport.second.pin].some((pin,index)=>{
   const asset=scene?.assets.find(value=>value.sourceId===pin.sourceId);
@@ -557,7 +572,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
   check(fixtures['interior_edit_F.source0.css'].text===originalRequests.interior_edit.assets[5].source,'Original interior-edit Source0 association differs');
   viewer=createViewer(canvas,{mmToSceneUnit,background});load(candidate());lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
   labelResizeObserver=new ResizeObserver(()=>{refreshFaceInspection();updateLabels();updateAreaLabel();updateLengthLabel();updateAngleLabel();updateCurvatureLabel();updateSurfaceCurvatureLabel();updateTangentAngleLabel();updateNormalAngleLabel();});labelResizeObserver.observe(canvas);
-  window.__viewerQualifiedFaceProof={viewer,createViewer,candidate,load,render,frameAllFaces,frameFace,inspect,inspectFaceAt,faceInspectionSnapshot,refreshFaceInspection,measurementInput,measure,updateLabels,labelSnapshot,
+  window.__viewerQualifiedFaceProof={viewer,createViewer,candidate,load,render,frameAllFaces,frameFace,inspect,inspectFaceAt,faceInspectionSnapshot,refreshFaceInspection,sampleFaceAt,nativeSampleSnapshot,measurementInput,measure,updateLabels,labelSnapshot,
     AREA_OPTIONS,areaPin,queryQualifiedFaceSurfaceArea,inspectArea,updateAreaLabel,areaSnapshot,mismatchCandidate,dispose,resourceCounts,uploads,draws,glErrors,errors,warnings,lossExtension,failAllocation,
     LENGTH_OPTIONS,lengthPin,queryQualifiedFaceCurveLength,inspectLength,updateLengthLabel,lengthSnapshot,
     queryQualifiedFaceAngle,measureAngle,updateAngleLabel,angleSnapshot,
@@ -574,7 +589,8 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
     get gl(){return[...contexts][0];},get state(){return viewer.getState();},get currentScene(){return viewer.getState().qualifiedFaceScene;},get inspectionReport(){return clone(inspectionReport);},
     get measurementReport(){return clone(measurementReport);},get currentProjections(){return clone(currentProjections);},get areaReport(){return clone(areaReport);},
     get lengthReport(){return clone(lengthReport);},get angleReport(){return clone(angleReport);},get curvatureReport(){return clone(curvatureReport);},
-    get surfaceCurvatureReport(){return clone(surfaceCurvatureReport);},get tangentAngleReport(){return clone(tangentAngleReport);},get normalAngleReport(){return clone(normalAngleReport);},get result(){return result;}};
+    get surfaceCurvatureReport(){return clone(surfaceCurvatureReport);},get tangentAngleReport(){return clone(tangentAngleReport);},get normalAngleReport(){return clone(normalAngleReport);},
+    get nativeSampleReport(){return clone(nativeSampleRecord?.sample??null);},get result(){return result;}};
   display('Original Faces ready. Inspect a current source from its row.');
 }catch(error){display('Original Faces could not load: '+error.message);}
 buttons.load.addEventListener('click',()=>action(()=>load(candidate({assetCount:Number(assetCount.value),countU:Number(countU.value),countV:Number(countV.value)}))));
@@ -600,8 +616,11 @@ for(const control of tangentControls)control.source.addEventListener('change',()
 tangentAngleButton.addEventListener('click',()=>action(()=>measureTangentAngle()));
 for(const control of normalControls)control.source.addEventListener('change',()=>renderNormalAngleControls(viewer.getState().qualifiedFaceScene));
 normalAngleButton.addEventListener('click',()=>action(()=>measureNormalAngle()));
-faceInspectMode.addEventListener('change',()=>{invalidateFaceInspection();render();});
-canvas.addEventListener('click',event=>{if(!faceInspectMode.checked||faceInspectMode.disabled)return;const rect=canvas.getBoundingClientRect();
-  try{inspectFaceAt({xCss:event.clientX-rect.left,yCss:event.clientY-rect.top});}catch(error){display(error.message);}});
+faceInspectMode.addEventListener('change',()=>{faceInspectionRecord=null;faceScreenOutput.textContent='';markFaceInspectionRows();render();});
+nativeSampleMode.addEventListener('change',()=>{clearNativeSample();render();});
+canvas.addEventListener('click',event=>{const inspectEnabled=faceInspectMode.checked&&!faceInspectMode.disabled,sampleEnabled=nativeSampleMode.checked&&!nativeSampleMode.disabled;
+  if(!inspectEnabled&&!sampleEnabled)return;const rect=canvas.getBoundingClientRect(),point={xCss:event.clientX-rect.left,yCss:event.clientY-rect.top};
+  if(inspectEnabled)try{inspectFaceAt(point);}catch(error){display(error.message);}
+  if(sampleEnabled)try{sampleFaceAt(point);}catch(error){display(error.message);}});
 buttons['run-proof'].addEventListener('click',runProof);buttons.dispose.addEventListener('click',dispose);buttons['lose-context'].addEventListener('click',()=>lossExtension?.loseContext());
 canvas.addEventListener('webglcontextlost',()=>{render();display('Context lost. Original source inspection remains available.');});window.addEventListener('beforeunload',()=>{if(viewer)dispose();});

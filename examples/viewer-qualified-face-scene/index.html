@@ -34,6 +34,14 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 Triangle index and depth refer to the current display grid and scene units. They do not identify native UV or topology, or certify a rendered pixel or depth value.
 An ambiguous source tie is reported explicitly. Edges are not queried. The row mark does not highlight GPU geometry.
 Inspect again after the source or view changes.</p></details>
+<label><input id="native-sample-mode" type="checkbox" disabled>Native sample mode</label>
+<p id="native-sample-output" role="status" aria-live="polite"></p>
+<details id="native-sample-help"><summary>About native screen sampling</summary>
+<p>Click the view to estimate original u/v from the current display triangle, then evaluate the original Surface at those parameters.
+The point uses original mm. The display/native discrepancy uses scene units and describes this sample only; it is not an error bound.
+Parameters are approximate. This is not a certified native ray hit, UV reconstruction or rendered-pixel measurement.
+An ambiguous source tie is reported explicitly. Native sample mode can run alongside Face inspect mode.
+Sample again after the source or view changes.</p></details>
 <pre id="inspection" aria-label="Read-only original source and Face inspection">Inspect an admitted source from its row.</pre>
 <section aria-label="Original native Surface normal angle">
 <h2>Measure original native normal angle</h2>
