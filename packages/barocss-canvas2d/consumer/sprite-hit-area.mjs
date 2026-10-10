@@ -31,7 +31,7 @@ tree.stage.addChild(back); tree.stage.addChild(under); tree.stage.addChild(sprit
 tree.stage.addChild(frame); frame.addChild(clipped); tree.stage.addChild(tiled);
 /** @type {HTMLCanvasElement} */ let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
 let renderer = createCanvas2D(canvas, options); renderer.setImageAsset('Atlas', image);
-/** @type {import('@barocss/canvas2d').SceneV16 | import('@barocss/canvas2d').SceneV17 | import('@barocss/canvas2d').SceneV18 | import('@barocss/canvas2d').SceneV19 | import('@barocss/canvas2d').SceneV20 | import('@barocss/canvas2d').SceneV21 | import('@barocss/canvas2d').SceneV22 | import('@barocss/canvas2d').SceneV24 | import('@barocss/canvas2d').SceneV25 | import('@barocss/canvas2d').SceneV26 | import('@barocss/canvas2d').SceneV27 | import('@barocss/canvas2d').SceneV28} */ let accepted = tree.snapshot();
+/** @type {import('@barocss/canvas2d').SceneV16 | import('@barocss/canvas2d').SceneV17 | import('@barocss/canvas2d').SceneV18 | import('@barocss/canvas2d').SceneV19 | import('@barocss/canvas2d').SceneV20 | import('@barocss/canvas2d').SceneV21 | import('@barocss/canvas2d').SceneV22 | import('@barocss/canvas2d').SceneV24 | import('@barocss/canvas2d').SceneV25 | import('@barocss/canvas2d').SceneV26 | import('@barocss/canvas2d').SceneV27 | import('@barocss/canvas2d').SceneV28 | import('@barocss/canvas2d').SceneV29} */ let accepted = tree.snapshot();
 renderer.updateScene(accepted); renderer.render();
 let generation = 1;
 /** @type {string | null} */ let invalidError = null;

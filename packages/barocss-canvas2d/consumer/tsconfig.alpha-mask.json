@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ES2022", "module": "NodeNext", "moduleResolution": "NodeNext",
+    "strict": true, "noEmit": true, "allowJs": true, "checkJs": true,
+    "lib": ["ES2022", "DOM"], "skipLibCheck": true,
+    "paths": {
+      "@barocss/canvas2d": ["../src/index.ts"],
+      "@barocss/canvas2d/document": ["../src/document.ts"]
+    }
+  },
+  "files": ["rgb-matrix.mjs", "alpha-mask-types.ts"]
+}

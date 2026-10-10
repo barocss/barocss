@@ -11,6 +11,7 @@ export type ImageGpu = { program: WebGLProgram; positionBuffer: WebGLBuffer; uvB
   vao: WebGLVertexArrayObject; size: WebGLUniformLocation; view: WebGLUniformLocation;
   opacity: WebGLUniformLocation; tint: WebGLUniformLocation;
   rgbRow0: WebGLUniformLocation; rgbRow1: WebGLUniformLocation; rgbRow2: WebGLUniformLocation;
+  alphaMask: WebGLUniformLocation;
   sampler: WebGLUniformLocation; uvClamp: WebGLUniformLocation; clips: ClipGpu;
   polygonMask: PolygonMaskGpu };
 
@@ -42,6 +43,7 @@ uniform vec3 u_tint;
 uniform vec4 u_rgb_row0;
 uniform vec4 u_rgb_row1;
 uniform vec4 u_rgb_row2;
+uniform vec4 u_alpha_mask;
 out vec4 out_color;
 void main() {
 ${clipDiscard}
@@ -50,7 +52,8 @@ ${polygonMaskDiscard}
   vec4 rgbInput = vec4(sampleColor.rgb, 1.0);
   vec3 rgb = clamp(vec3(dot(u_rgb_row0, rgbInput), dot(u_rgb_row1, rgbInput),
     dot(u_rgb_row2, rgbInput)), 0.0, 1.0);
-  float alpha = sampleColor.a * u_opacity;
+  float factor = clamp(dot(u_alpha_mask, rgbInput), 0.0, 1.0);
+  float alpha = sampleColor.a * u_opacity * factor;
   out_color = vec4(rgb * u_tint * alpha, alpha);
 }`;
 
@@ -88,12 +91,13 @@ export function createImageGpu(gl: WebGL2RenderingContext): ImageGpu {
     const rgbRow0 = gl.getUniformLocation(program, 'u_rgb_row0');
     const rgbRow1 = gl.getUniformLocation(program, 'u_rgb_row1');
     const rgbRow2 = gl.getUniformLocation(program, 'u_rgb_row2');
+    const alphaMask = gl.getUniformLocation(program, 'u_alpha_mask');
     const sampler = gl.getUniformLocation(program, 'u_image');
     const uvClamp = gl.getUniformLocation(program, 'u_uvClamp');
     const clips = createClipGpu(gl, program);
     const polygonMask = createPolygonMaskGpu(gl, program);
     if (!positionBuffer || !uvBuffer || !vao || !size || !view || !opacity || !tint ||
-        !rgbRow0 || !rgbRow1 || !rgbRow2 || !sampler || !uvClamp) {
+        !rgbRow0 || !rgbRow1 || !rgbRow2 || !alphaMask || !sampler || !uvClamp) {
       throw new Canvas2DError('WEBGL_UNAVAILABLE', 'cannot create image GPU state');
     }
     gl.bindVertexArray(vao);
@@ -103,7 +107,7 @@ export function createImageGpu(gl: WebGL2RenderingContext): ImageGpu {
     gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 0, 0);
     gl.bindVertexArray(null); gl.bindBuffer(gl.ARRAY_BUFFER, null);
     return { program, positionBuffer, uvBuffer, vao, size, view, opacity, tint, rgbRow0, rgbRow1, rgbRow2,
-      sampler, uvClamp,
+      alphaMask, sampler, uvClamp,
       clips, polygonMask };
   } catch (error) {
     if (vao) gl.deleteVertexArray(vao);
@@ -177,6 +181,34 @@ function imageRGBRows(node: ImageNode | ImageNodeV27): Float32Array {
   return rows;
 }
 
+function imageAlphaMask(node: ImageNode): Float32Array {
+  const field = Object.getOwnPropertyDescriptor(node, 'alphaMask');
+  if (!field) return new Float32Array([0, 0, 0, 1]);
+  if (!field.enumerable || !('value' in field)) {
+    throw new Canvas2DError('INVALID_SCENE', 'image alpha mask must be an own data field');
+  }
+  const mask: unknown = field.value;
+  if (!Array.isArray(mask) || Object.getPrototypeOf(mask) !== Array.prototype || mask.length !== 4) {
+    throw new Canvas2DError('INVALID_SCENE', 'image alpha mask needs four ordinary values');
+  }
+  const keys = Reflect.ownKeys(mask);
+  if (keys.length !== 5 || keys.some(key => key !== 'length' &&
+      (typeof key !== 'string' || !/^(0|[1-9]\d*)$/.test(key) || Number(key) >= 4))) {
+    throw new Canvas2DError('INVALID_SCENE', 'image alpha mask must be dense without extra fields');
+  }
+  const row = new Float32Array(4);
+  for (let index = 0; index < 4; index++) {
+    const element = Object.getOwnPropertyDescriptor(mask, String(index));
+    const bound = index === 3 ? 1 : 4;
+    if (!element?.enumerable || !('value' in element) || typeof element.value !== 'number' ||
+        !Number.isFinite(element.value) || Object.is(element.value, -0) || Math.abs(element.value) > bound) {
+      throw new Canvas2DError('INVALID_SCENE', 'image alpha mask values exceed the finite row range');
+    }
+    row[index] = element.value;
+  }
+  return row;
+}
+
 export function renderImage(gl: WebGL2RenderingContext, gpu: ImageGpu,
   vertices: Float32Array, node: ImageNode | ImageNodeV27, asset: ImageAsset, opacity: number,
   size: Size, view: View, clampRect?: SourceRect,
@@ -184,6 +216,7 @@ export function renderImage(gl: WebGL2RenderingContext, gpu: ImageGpu,
   if (!asset.texture) throw new Canvas2DError('CONTEXT_LOST', 'image texture is unavailable');
   // Validate and snapshot the entire row payload before any draw uniform changes.
   const rgbRows = imageRGBRows(node);
+  const alphaMask = imageAlphaMask(node);
   const rect = sourceRect(node, asset);
   const u0 = rect.x / asset.width, u1 = (rect.x + rect.width) / asset.width;
   const v0 = rect.y / asset.height, v1 = (rect.y + rect.height) / asset.height;
@@ -199,6 +232,7 @@ export function renderImage(gl: WebGL2RenderingContext, gpu: ImageGpu,
   gl.uniform4fv(gpu.rgbRow0, rgbRows.subarray(0, 4));
   gl.uniform4fv(gpu.rgbRow1, rgbRows.subarray(4, 8));
   gl.uniform4fv(gpu.rgbRow2, rgbRows.subarray(8, 12));
+  gl.uniform4fv(gpu.alphaMask, alphaMask);
   const clamp = clampRect ?? rect;
   gl.uniform4f(gpu.uvClamp, (clamp.x + 0.5) / asset.width, (clamp.y + 0.5) / asset.height,
     (clamp.x + clamp.width - 0.5) / asset.width, (clamp.y + clamp.height - 0.5) / asset.height);
@@ -216,16 +250,23 @@ export function renderImage(gl: WebGL2RenderingContext, gpu: ImageGpu,
 }
 
 export function sampledAlpha(node: ImageNode, asset: ImageAsset, local: Point, clampRect?: SourceRect): number {
+  const alphaMask = imageAlphaMask(node);
   if (local.x < 0 || local.y < 0 || local.x > node.width || local.y > node.height) return 0;
   const rect = sourceRect(node, asset);
   const clamp = clampRect ?? rect;
   const sx = rect.x + local.x / node.width * rect.width;
   const sy = rect.y + local.y / node.height * rect.height;
-  const alpha = (x: number, y: number): number => asset.pixels[(y * asset.width + x) * 4 + 3] / 255;
+  const channel = (x: number, y: number, index: number): number =>
+    asset.pixels[(y * asset.width + x) * 4 + index] / 255;
+  const maskedAlpha = (rgba: number[]): number => {
+    const factor = Math.max(0, Math.min(1, rgba[0] * alphaMask[0] + rgba[1] * alphaMask[1] +
+      rgba[2] * alphaMask[2] + alphaMask[3]));
+    return rgba[3] * node.opacity * factor;
+  };
   if (node.sampling === 'nearest') {
     const x = Math.max(clamp.x, Math.min(clamp.x + clamp.width - 1, Math.floor(sx)));
     const y = Math.max(clamp.y, Math.min(clamp.y + clamp.height - 1, Math.floor(sy)));
-    return alpha(x, y) * node.opacity;
+    return maskedAlpha([channel(x, y, 0), channel(x, y, 1), channel(x, y, 2), channel(x, y, 3)]);
   }
   const fx = Math.max(clamp.x, Math.min(clamp.x + clamp.width - 1, sx - 0.5));
   const fy = Math.max(clamp.y, Math.min(clamp.y + clamp.height - 1, sy - 0.5));
@@ -233,6 +274,8 @@ export function sampledAlpha(node: ImageNode, asset: ImageAsset, local: Point, c
   const x1 = Math.min(x0 + 1, clamp.x + clamp.width - 1);
   const y1 = Math.min(y0 + 1, clamp.y + clamp.height - 1);
   const tx = fx - x0, ty = fy - y0;
-  return ((alpha(x0, y0) * (1 - tx) + alpha(x1, y0) * tx) * (1 - ty) +
-    (alpha(x0, y1) * (1 - tx) + alpha(x1, y1) * tx) * ty) * node.opacity;
+  const rgba = [0, 1, 2, 3].map(index =>
+    (channel(x0, y0, index) * (1 - tx) + channel(x1, y0, index) * tx) * (1 - ty) +
+    (channel(x0, y1, index) * (1 - tx) + channel(x1, y1, index) * tx) * ty);
+  return maskedAlpha(rgba);
 }

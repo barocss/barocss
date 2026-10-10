@@ -54,3 +54,5 @@ export { rasterizeBrowserText, rasterizeBrowserMultilineText, rasterizeBrowserWr
 export type { BrowserTextOptions, BrowserTextRaster, BrowserTextPolicy, BrowserMultilineTextAlignment, BrowserMultilineTextOptions, BrowserMultilineTextRaster, BrowserMultilineTextLine, BrowserWrappedTextOptions, BrowserWrappedTextRaster } from './browser-text.js';
 
 export type { SceneV28, NodeV28, GroupNodeV28, FrameNodeV28, ImageNodeV28 } from './schema.js';
+
+export type { SceneV29, NodeV29, GroupNodeV29, FrameNodeV29, ImageNodeV29, SpriteAlphaMask } from './schema.js';
