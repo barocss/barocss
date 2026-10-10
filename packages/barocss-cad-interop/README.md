@@ -1553,6 +1553,65 @@ show the source-to-mesh path. Run
 Babylon mesh data, local URL loading, refusal cases, and disposal checks.
 `NullEngine` does not prove visible browser rendering or GPU performance.
 
+## Uniform original Curve source preview
+
+The optional `@barocss/cad-interop/native-uniform-curve` entry provides bounded
+uniform samples of one original source0/mm Curve of degree 1..5. It uses the
+public CAD compiler, `curveDomain` and `sampleCurve` with the authored domain.
+The compiler retains authority over source syntax, IDs, knots, poles, weights
+and coordinate limits.
+
+```ts
+import {
+  parseBaroCadUniformCurveSource,
+  BaroCadUniformCurveSourceError,
+} from '@barocss/cad-interop/native-uniform-curve';
+
+const display = parseBaroCadUniformCurveSource(source, {
+  sourceVersion: 0,
+  unitsPerMillimeter: 0.001,
+  uniformCurveDisplay: { version: 1, count: 17 },
+});
+// display.model retains the complete original single Curve.
+// display.pointsMM uses native millimetres; display.positions uses renderer units.
+// display.parameters and display.intervals retain original parameter values.
+```
+
+Options require exactly these own enumerable data fields at both levels, with
+a plain or null prototype. Accessors, hidden, inherited, symbol and extra fields
+refuse before source work. Count is an integer in 2..129 and scale is finite
+and positive. The result contains an independent options snapshot and copied
+native points, domain, parameters and adjacent intervals, plus derived
+`Float32Array` positions. Original endpoint parameter bits, including signed
+zero, follow the actual CAD sampler. Native Model sign bits remain unchanged.
+
+Each position component is scaled once. Nonfinite values, nonzero-to-zero
+binary64 or Float32 conversion and adjacent collapsed target XYZ refuse the
+complete candidate. Narrow domains whose requested samples repeat a parameter
+also refuse. Legitimate zero and safe Float32 subnormal components remain valid
+when the complete segments stay distinct.
+
+`BaroCadUniformCurveSourceError` exposes `code`, `diagnostics` and `cause`.
+Compiler refusals retain the actual diagnostic array; sampling exceptions
+retain the actual cause.
+
+| Code | Refusal boundary |
+| --- | --- |
+| `OPTIONS` | Option structure, profile version, count or scale |
+| `SOURCE` | Original CAD compiler refusal |
+| `PROFILE` | Compiled Model is outside the single original Curve profile |
+| `SAMPLING` | Actual domain/sampler exception or sample count mismatch |
+| `PARAMETERS` | Domain, endpoint bits, ordering or parameter range |
+| `POSITIONS` | Native, scaled or Float32 component safety |
+| `SEGMENTS` | Adjacent target XYZ collapse |
+
+The result identifies `mode: 'uniform-original-parameter'` and quality
+`approximateDisplay: true`, `adaptiveErrorBound: false`,
+`geometricValidity: 'not-certified'`, `topologyCertified: false`, `solid: false`.
+The caller owns this CPU data through garbage collection. Development imports
+resolve this optional entry to source; its publication map names the emitted
+JavaScript and declaration files.
+
 ## Opt-in native Curve display
 
 Use the same `curveDisplay` option with `parseBaroCadSource`, `BaroCADLoader`,
