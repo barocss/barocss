@@ -13,9 +13,20 @@ body{margin:24px;font:15px system-ui;color:#172238;background:#f4f6fa}button{mar
 <p>Download the supported solid paths. Open the SVG in a separate retained tree.</p>
 <button id="save">Download SVG</button><button id="open-button">Open SVG</button><input id="open" type="file" accept="image/svg+xml,.svg">
 <button id="edit">Edit original paint</button><button id="refuse">Refuse unsupported export</button><button id="dispose">Dispose</button>
+<span id="linear-controls" hidden><button id="save-json">Save Scene29 JSON</button><button id="open-json-button">Open Scene29 JSON</button><input id="open-json" type="file" accept="application/json,.json"><button id="edit-restored">Edit restored gradient</button></span>
 <p id="status" role="status">Preparing</p>
-<section><div><h2>Original Scene29</h2><canvas id="original"></canvas></div><div><h2>Opened SVG</h2><canvas id="opened"></canvas></div></section>
+<section><div><h2>Original Scene29</h2><canvas id="original"></canvas></div><div><h2>Opened SVG</h2><canvas id="opened"></canvas></div><div id="native-panel" hidden><h2>Native SVG file</h2><img id="native-svg" width="320" height="220" alt="Uploaded native linear SVG"></div></section>
 <pre id="observation"></pre><script type="module">
+if (new URLSearchParams(location.search).get('linear') === '1') {
+  document.querySelector('#linear-controls').hidden = false;
+  document.querySelector('#native-panel').hidden = false;
+  document.querySelector('h1').textContent = 'Scene29 linear SVG export';
+  document.querySelector('body > p').textContent = 'Display exported gradients as native SVG. Open Scene29 JSON for retained editing.';
+  document.querySelector('#open-button').textContent = 'Display native SVG';
+  document.querySelector('#edit').textContent = 'Edit original gradient';
+  document.querySelector('#refuse').textContent = 'Refuse radial export';
+  document.querySelector('#opened').previousElementSibling.textContent = 'Opened Scene29 JSON';
+}
 window.__currentSVGStartup = { phase: 'loading', error: null };
 try {
   await import('./current-v29-svg.mjs');

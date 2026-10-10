@@ -190,3 +190,163 @@ export function exportSceneSVG(input: unknown, logicalSize: Size): SVGExportResu
     `preserveAspectRatio="none">${children.join('')}</svg>`;
   return { ok: true, svg, sourceIdMap, diagnostics: [] };
 }
+
+/** Export the Scene29 solid/two-opaque-stop linear subset for native SVG display. */
+export function exportSceneLinearSVG(input: unknown, logicalSize: Size): SVGExportResult {
+  const scene = validateScene(input);
+  const { size } = validateSize(logicalSize, 1);
+  const diagnostics: SVGExportDiagnostic[] = [];
+  const used = new Set([scene.contextId]);
+  function unsupported(nodeId: string | null, feature: string): void {
+    diagnostics.push({ nodeId, code: 'UNSUPPORTED_FEATURE', feature });
+  }
+  if (scene.version !== 29) unsupported(null, 'scene version must be 29');
+
+  // Inspect the entire copied scene before producing any SVG or assigning definition IDs.
+  function inspect(nodes: Scene['nodes']): void {
+    nodes.forEach((node, index) => {
+      used.add(node.id);
+      if (node.layer !== index) unsupported(node.id, 'layer must equal sibling index');
+      if (node.id === scene.contextId) unsupported(node.id, 'node ID duplicates SVG root ID');
+      if ('hitMode' in node && node.hitMode !== 'auto') unsupported(node.id, 'hitMode must be auto');
+      if ('pivot' in node && node.pivot && (node.pivot.x !== 0 || node.pivot.y !== 0)) {
+        unsupported(node.id, 'nonzero pivot has no SVG subset mapping');
+      }
+      if (node.transform.scaleX <= 0 || node.transform.scaleY <= 0) {
+        unsupported(node.id, 'signed scale has no SVG subset mapping');
+      }
+      if (transform(node.transform) === null) unsupported(node.id, 'transform cannot be represented');
+      if (node.kind === 'group') {
+        if ('hitArea' in node && node.hitArea) unsupported(node.id, 'group hitArea has no SVG subset mapping');
+        if ('mask' in node && node.mask) unsupported(node.id, 'polygon group mask has no SVG subset mapping');
+        inspect(node.children);
+        return;
+      }
+      if (node.kind !== 'path') {
+        unsupported(node.id, `${node.kind} has no lossless SVG subset mapping`);
+        if (node.kind === 'frame') inspect(node.children);
+        return;
+      }
+      if ('fill' in node && node.fill) {
+        if ('color' in node.fill) {
+          if (paint(node.fill.color) === null) unsupported(node.id, 'fill RGB is outside the 8-bit SVG paint grid');
+        } else if ('linear' in node.fill) {
+          const linear = node.fill.linear;
+          if (linear.startColor[3] !== 1 || linear.endColor[3] !== 1) {
+            unsupported(node.id, 'linear stop alpha must be 1');
+          }
+          if (paint(linear.startColor) === null) {
+            unsupported(node.id, 'linear start RGB is outside the 8-bit SVG paint grid');
+          }
+          if (paint(linear.endColor) === null) {
+            unsupported(node.id, 'linear end RGB is outside the 8-bit SVG paint grid');
+          }
+        } else unsupported(node.id, 'radial fill has no SVG subset mapping');
+      }
+      if (node.stroke) {
+        if (('cap' in node.stroke && node.stroke.cap !== 'butt') ||
+            ('join' in node.stroke && node.stroke.join !== 'bevel') ||
+            ('dash' in node.stroke && (node.stroke.dash.lengths.length !== 0 || node.stroke.dash.offset !== 0)) ||
+            ('miterLimit' in node.stroke && node.stroke.miterLimit !== 4)) {
+          unsupported(node.id, 'stroke requires butt/bevel, empty zero-offset dash and miterLimit 4');
+        }
+        const strokeColor = 'color' in node.stroke ? node.stroke.color : node.stroke;
+        if (paint(strokeColor) === null) {
+          unsupported(node.id, 'stroke RGB is outside the 8-bit SVG paint grid');
+        }
+      }
+    });
+  }
+  inspect(scene.nodes);
+  if (scene.version !== 29 || diagnostics.length) return { ok: false, diagnostics };
+
+  const gradientIds = new Map<string, string>();
+  let candidateIndex = 0;
+  function definitions(nodes: NodeV29[]): void {
+    for (const node of nodes) {
+      if (node.kind === 'group') definitions(node.children);
+      else if (node.kind === 'path' && node.fill && 'linear' in node.fill) {
+        if (gradientIds.size >= 32) throw new Canvas2DError('SCENE_LIMIT', 'SVG exceeds 32 linear definitions');
+        let id: string;
+        do {
+          if (++candidateIndex > 289) throw new Canvas2DError('SCENE_LIMIT', 'SVG gradient ID search exceeds its bound');
+          id = `C2DLinearGradient${candidateIndex}`;
+        } while (used.has(id));
+        used.add(id);
+        gradientIds.set(node.id, id);
+      }
+    }
+  }
+  definitions(scene.nodes);
+
+  // All interpolated data is validated ASCII: IDs, finite numbers and hex colors.
+  // Check total code units before storing fragments; ASCII has the same UTF-8 length.
+  const fragments: string[] = [];
+  let length = 0;
+  function append(fragment: string): void {
+    if (fragment.length > 1_048_576 - length) {
+      throw new Canvas2DError('SCENE_LIMIT', 'SVG output exceeds 1 MiB');
+    }
+    length += fragment.length;
+    fragments.push(fragment);
+  }
+  append(`<svg xmlns="http://www.w3.org/2000/svg" id="${scene.contextId}" ` +
+    `width="${size.width}" height="${size.height}" viewBox="0 0 ${size.width} ${size.height}" ` +
+    'preserveAspectRatio="none">');
+  function emitDefinitions(nodes: NodeV29[]): void {
+    for (const node of nodes) {
+      if (node.kind === 'group') emitDefinitions(node.children);
+      else if (node.kind === 'path' && node.fill && 'linear' in node.fill) {
+        const linear = node.fill.linear;
+        append(`<linearGradient id="${gradientIds.get(node.id)}" gradientUnits="userSpaceOnUse" ` +
+          'spreadMethod="pad" color-interpolation="sRGB" ' +
+          `x1="${number(linear.from.x)}" y1="${number(linear.from.y)}" ` +
+          `x2="${number(linear.to.x)}" y2="${number(linear.to.y)}">`);
+        append(`<stop offset="0" stop-color="${paint(linear.startColor)}" stop-opacity="1"/>`);
+        append(`<stop offset="1" stop-color="${paint(linear.endColor)}" stop-opacity="1"/>`);
+        append('</linearGradient>');
+      }
+    }
+  }
+  if (gradientIds.size) {
+    append('<defs>');
+    emitDefinitions(scene.nodes);
+    append('</defs>');
+  }
+  const sourceIdMap = [{ sourceId: scene.contextId, svgId: scene.contextId }];
+  function emit(nodes: NodeV29[], inheritedAlpha: number): void {
+    for (const node of nodes) {
+      const alpha = node.visible ? inheritedAlpha * node.alpha : 0;
+      const pose = transform(node.transform) ?? '';
+      sourceIdMap.push({ sourceId: node.id, svgId: node.id });
+      if (node.kind === 'group') {
+        append(`<g id="${node.id}"${pose}>`);
+        emit(node.children, alpha);
+        append('</g>');
+        continue;
+      }
+      // The complete admission pass permits only groups and paths.
+      if (node.kind !== 'path') continue;
+      const attributes = [`id="${node.id}"`, `d="${pathData(node.commands)}"`];
+      if (pose) attributes.push(pose.trim());
+      if (node.fill) {
+        if ('color' in node.fill) {
+          attributes.push(`fill="${paint(node.fill.color)}"`, `fill-rule="${node.fill.rule}"`,
+            `fill-opacity="${number(node.fill.color[3] * alpha)}"`);
+        } else if ('linear' in node.fill) {
+          attributes.push(`fill="url(#${gradientIds.get(node.id)})"`, `fill-rule="${node.fill.rule}"`,
+            `fill-opacity="${number(alpha)}"`);
+        }
+      } else attributes.push('fill="none"');
+      if (node.stroke) {
+        attributes.push(`stroke="${paint(node.stroke.color)}"`, `stroke-width="${number(node.stroke.width)}"`,
+          `stroke-opacity="${number(node.stroke.color[3] * alpha)}"`,
+          'stroke-linejoin="bevel"', 'stroke-linecap="butt"');
+      }
+      append(`<path ${attributes.join(' ')}/>`);
+    }
+  }
+  emit(scene.nodes, 1);
+  append('</svg>');
+  return { ok: true, svg: fragments.join(''), sourceIdMap, diagnostics: [] };
+}

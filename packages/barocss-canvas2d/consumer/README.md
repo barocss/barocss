@@ -354,3 +354,8 @@ Saved files store original text/ranges and prepared raster bytes. Open does not 
 ### Prepared outline and nine-slice
 
 The existing `nine-slice.html` host retains its original palette and resize/edit-slice controls. **Prepare outline** uses a copied3×3 source with an opaque centre, radius1 and white alpha0.5. The independent Outline asset has eight white alpha128 cells and a transparent centre. Existing nine-slice insets1 display that asset as a1logical-pixel ring around a7×5 Panel over gray Back. A copied tree/new renderer and separate CPU asset snapshots are admitted before replacement. Current public document staging restores the prepared bytes without another outline call; **Move restored Panel** uses public position8,0, and PNG export uses the accepted document. Dispose removes the exact canvas callback and releases its GL resources.
+
+
+### Linear SVG display profile
+
+Open `current-v29-svg.html?linear=1` for copied Scene29 linear-path SVG export. The existing solid mode remains the default. The linear mode exports an edited transformed path, opens the genuine downloaded SVG for native browser display, and separately saves/opens the original editable Canvas JSON document. SVG display does not use the solid-only importer. A radial corrective draft is retained on export refusal. The bounded evidence is in `evidence/svg-linear/`; selected interior comparisons and exact source/file/lifetime receipts have their own declared scope, separate from broader integrated acceptance.
