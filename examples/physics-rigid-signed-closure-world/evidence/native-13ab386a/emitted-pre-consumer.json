@@ -1,0 +1,3220 @@
+{
+  "beforeNumericalConsumer": true,
+  "measuredSource": "13ab386a98eecc528172f72672f554262576df26",
+  "actualBuildHead": "93a5a9f8d8e987945c211f8422d66e2dffbe281d",
+  "node": "v22.22.0",
+  "files": [
+    {
+      "path": "packages/barocss-cad/dist/adjacency.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/adjacency.d.ts",
+      "bytes": 1631,
+      "sha256": "b5fe9d08aaea1447ac8233bfff7f63e3744b9364524faaa6766b8173730eefdd"
+    },
+    {
+      "path": "packages/barocss-cad/dist/adjacency.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/adjacency.js",
+      "bytes": 10296,
+      "sha256": "6b67d2215fe9e6236ddd0a6871da03191d8f082821705997c2a2acd5c43ffb70"
+    },
+    {
+      "path": "packages/barocss-cad/dist/affine-geometry-transform.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/affine-geometry-transform.d.ts",
+      "bytes": 7517,
+      "sha256": "a46fe64c97dcf9fe371786f11662a81e0c812504cd83f8b35abd99173c6c51e6"
+    },
+    {
+      "path": "packages/barocss-cad/dist/affine-geometry-transform.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/affine-geometry-transform.js",
+      "bytes": 24796,
+      "sha256": "3b7568816fa01faf9b88b27406191212a97b873651bd481cdc32d0273f035a86"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-boolean.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/axis-box-boolean.d.ts",
+      "bytes": 8732,
+      "sha256": "8d79e95290bac8f54e544877f93245e183a29bfaa4614058c27e28aa31b55f08"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-boolean.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/axis-box-boolean.js",
+      "bytes": 37551,
+      "sha256": "5be369eeb98dad83cb110e39bcc2d0eddee05e2999453942a2f49a365cc84fba"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-mass-frame.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/axis-box-mass-frame.d.ts",
+      "bytes": 6273,
+      "sha256": "35df52e4f59f94b6ba3d731c478510037e4866580ad6abba9e0e3be0ecbcdd54"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-mass-frame.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/axis-box-mass-frame.js",
+      "bytes": 16536,
+      "sha256": "4616a57238758c2171daadb3e109c350149f7dac60f04e28a0c8102be289e00b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-point-classification.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/axis-box-point-classification.d.ts",
+      "bytes": 5434,
+      "sha256": "02b090c5aa496fe33c6768be025992c61af11139209b3a3da70bbce8723177af"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-point-classification.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/axis-box-point-classification.js",
+      "bytes": 15972,
+      "sha256": "a082c93f3767fa149de3c4f0d94ce7902f783fc8ee0d86c66cd471b0ced261ce"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-principal-inertia.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/axis-box-principal-inertia.d.ts",
+      "bytes": 6303,
+      "sha256": "32e6b18a068eca6dfdbc7f0e68375ccab47706cdc9dc92a72e7ef6d924ac37f6"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-principal-inertia.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/axis-box-principal-inertia.js",
+      "bytes": 20152,
+      "sha256": "a3738c414bab1a7b25969d1f3fbb372c60bee1f3f0e68b2ba861174b54347cbc"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-solid-feature-document.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/axis-box-solid-feature-document.d.ts",
+      "bytes": 5811,
+      "sha256": "045884e4d36e3c13963aa4cf8d413a488cb715e4837a1846bbb3842b6a6fcdbc"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-solid-feature-document.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/axis-box-solid-feature-document.js",
+      "bytes": 22179,
+      "sha256": "6d4981d920de26b31fa32301174ad201294fe0b29729a1af512ce90a09b28973"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-solid-mass.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/axis-box-solid-mass.d.ts",
+      "bytes": 6500,
+      "sha256": "b74021fcf733c93ce3c2d768ae62728baa5461e92537724fa732cc77107fcec5"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-box-solid-mass.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/axis-box-solid-mass.js",
+      "bytes": 17027,
+      "sha256": "a48bc35d107f3961d339ed068b224bb6bf30de46d79d8fd11ef90eeb5854f32f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-rectangle-extrusion.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/axis-rectangle-extrusion.d.ts",
+      "bytes": 1552,
+      "sha256": "713c2bbf099d6fd78d3443f05b7d8d95c46731803d19f7890f2578f73855d875"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-rectangle-extrusion.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/axis-rectangle-extrusion.js",
+      "bytes": 9440,
+      "sha256": "381a54e3667cd836b41b1811727b29c016c4b6cf30b5680ca758122011c8f736"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-rectangle-feature-document.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/axis-rectangle-feature-document.d.ts",
+      "bytes": 2114,
+      "sha256": "74961967963ee9ab3311907431f6339975639ad621666282db07c9a51ad2b352"
+    },
+    {
+      "path": "packages/barocss-cad/dist/axis-rectangle-feature-document.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/axis-rectangle-feature-document.js",
+      "bytes": 12399,
+      "sha256": "de2ffe9e4a0749ba3194f75716482fa14072a278ef91eba22e4ba361ab59ad92"
+    },
+    {
+      "path": "packages/barocss-cad/dist/bezier-curve-degree-elevation.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/bezier-curve-degree-elevation.d.ts",
+      "bytes": 3340,
+      "sha256": "9fb7a07486c2dc56c511b5336d38831ec9bfb577b41123000f9e2c3aad9db23e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/bezier-curve-degree-elevation.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/bezier-curve-degree-elevation.js",
+      "bytes": 11470,
+      "sha256": "030e0a0551287ef8a5fb6dc5b2f131c4503b17fdf2674aed5153c6169e49f1d4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boolean-extrusion-feature-graph-serde.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/boolean-extrusion-feature-graph-serde.d.ts",
+      "bytes": 693,
+      "sha256": "76191ceed78458542cffa92b4e35d73aca964a69146b7b71e77a7673cbdf4318"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boolean-extrusion-feature-graph-serde.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/boolean-extrusion-feature-graph-serde.js",
+      "bytes": 2655,
+      "sha256": "d00b71061813a3ad85707fd7288b2949423db33cb13752a85be609bddb86a312"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boolean-extrusion-feature-graph.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/boolean-extrusion-feature-graph.d.ts",
+      "bytes": 9057,
+      "sha256": "c566319e4293108c5f2f1ea81563572ac15f84cb138b20c66de33610d5bd0add"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boolean-extrusion-feature-graph.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/boolean-extrusion-feature-graph.js",
+      "bytes": 38776,
+      "sha256": "7b9ab4dfc210480267879674944c588c1b92dc4880629a8448446c8d943ee0f8"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boolean-extrusion-feature-lifecycle.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/boolean-extrusion-feature-lifecycle.d.ts",
+      "bytes": 808,
+      "sha256": "62b69c4593f44179f4e22073c6dbbd0401c6bb15e77c16ecad80cd268174e145"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boolean-extrusion-feature-lifecycle.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/boolean-extrusion-feature-lifecycle.js",
+      "bytes": 14771,
+      "sha256": "ff0f79a2b4561691723fb815d7d6d5cb93bd7937212c802d1317e3de244280e6"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boolean-extrusion-parameter-lifecycle.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/boolean-extrusion-parameter-lifecycle.d.ts",
+      "bytes": 940,
+      "sha256": "0ee3c0819482b195f86e41ccaf1e7029ee838a401967fa6e9a8e650feb5cbb81"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boolean-extrusion-parameter-lifecycle.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/boolean-extrusion-parameter-lifecycle.js",
+      "bytes": 12405,
+      "sha256": "558e7b9c22590dc44975f9bdad118401a1036e801481aaaa16d8ade8f1744f3e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boundary.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/boundary.d.ts",
+      "bytes": 394,
+      "sha256": "3610e87b9584881d8d46ccdad9b9800f78b1185b82c48efcb157092b8d1d512e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/boundary.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/boundary.js",
+      "bytes": 3503,
+      "sha256": "728147260e9d5c5d9e76d11511191525a2aabb5afca00f71d2c3e46b90b923ce"
+    },
+    {
+      "path": "packages/barocss-cad/dist/box-shell.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/box-shell.d.ts",
+      "bytes": 1421,
+      "sha256": "a233684c49589ceea0d55deeb37beb5b06df4adfeef823bc6cadc6d345d92200"
+    },
+    {
+      "path": "packages/barocss-cad/dist/box-shell.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/box-shell.js",
+      "bytes": 11791,
+      "sha256": "9247edcf3cc4644ae7e5e028972b43b7e23d7a26d2b59b6535f2697d847df2f3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/box-solid.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/box-solid.d.ts",
+      "bytes": 480,
+      "sha256": "bff8f03a34cbf90cb4d739df4a200efc0feecdc15ff16d1d09b4c36be67b9369"
+    },
+    {
+      "path": "packages/barocss-cad/dist/box-solid.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/box-solid.js",
+      "bytes": 3417,
+      "sha256": "a9986410281c09c04979e6bdc00b9617887ab5a28fe935731248eba62f5b8cbe"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-assembly-instance-point.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-assembly-instance-point.d.ts",
+      "bytes": 3308,
+      "sha256": "d0f908377dfa6e48457ff36684953b5846746690b2a28630aa5685b6ee3a3324"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-assembly-instance-point.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-assembly-instance-point.js",
+      "bytes": 6726,
+      "sha256": "cc15acaf5cfd77ee287fdbc1e76aba849683d12b9ad059e02284a3bf1ce175aa"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-assembly-members.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-assembly-members.d.ts",
+      "bytes": 3647,
+      "sha256": "537d352d22dde03bc500271d7804db857a502d35636b3e87fe53e149d6fe5e2f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-assembly-members.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-assembly-members.js",
+      "bytes": 10451,
+      "sha256": "5e7771adca029a746219c0c21b32e5efe510cb733c9b4df1e1e4908a225df421"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-assembly-part-replacement.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-assembly-part-replacement.d.ts",
+      "bytes": 4690,
+      "sha256": "33728901640e54e09a1627645b69e3701d7f3ad07c5a2ef5918abf90031eeeaa"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-assembly-part-replacement.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-assembly-part-replacement.js",
+      "bytes": 17420,
+      "sha256": "67749c461c32415292a4b36fe36c49620bf0ee0960b158e653bd5d2db411cbd0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-assembly.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-assembly.d.ts",
+      "bytes": 6939,
+      "sha256": "3f23e544d7b60bb9c83eb59496a70799ab697ed9daa28c56fefb8f6f348e474f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-assembly.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-assembly.js",
+      "bytes": 22926,
+      "sha256": "181753ac066b6a2c44a0237583861b8eca7673b0cf83d4a4f3657067bd6101ba"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-curve-arc-length.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-curve-arc-length.d.ts",
+      "bytes": 5876,
+      "sha256": "8514dff15986e3e97d1b186f28f23f7c253ce02cd363d6d30abb302390f4fe1b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-curve-arc-length.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-curve-arc-length.js",
+      "bytes": 20496,
+      "sha256": "9652e98f9b81ebc187a7aa7eda29ebabf23e4ec1a078e12eb275092ae86730c4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document-bounds.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-document-bounds.d.ts",
+      "bytes": 3299,
+      "sha256": "c387d67c7ec39728166fc5506b73c352eb87ab763b7f9b20c2234452fc25f4ee"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document-bounds.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-document-bounds.js",
+      "bytes": 8080,
+      "sha256": "20e5e852b288cc1861609ec264c2739b53ef300e093aa8b363bda725ec67094d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document-compatibility.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-document-compatibility.d.ts",
+      "bytes": 5285,
+      "sha256": "f9d7a56df3c28dcc75e4fdc0ebfea60758a18b4d338f0e8a7ea1662554080634"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document-compatibility.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-document-compatibility.js",
+      "bytes": 15615,
+      "sha256": "b736e7afaaf904561c5d64e1c67725ac43702f2a6b7c7635e076ec08abfe1754"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document-export.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-document-export.d.ts",
+      "bytes": 6342,
+      "sha256": "15df2d5e78fbefab9ad7dd19e6ac91280cf22721bc8bb1691ce82d2c2da0f678"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document-export.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-document-export.js",
+      "bytes": 17456,
+      "sha256": "6f7e0f0c808fe8658c667121972f5b7f17059274e858a40070dd1cf97baf1e4f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document-reference.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-document-reference.d.ts",
+      "bytes": 6796,
+      "sha256": "69c931c241e303ab54207aed647b48a7d479307e57fa99836190a108f4b08456"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document-reference.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-document-reference.js",
+      "bytes": 18370,
+      "sha256": "b8290700d538a5296c1924d1f7a6091f78e2f2b3b237efe03d17e9c307341926"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-document.d.ts",
+      "bytes": 5134,
+      "sha256": "aca6be869facc0e9f97241f9a57b4a1d29db082ef90afd2e71579a4362d1edbf"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-document.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-document.js",
+      "bytes": 20415,
+      "sha256": "7a35b2786264f21176f03a07f973f43ca8964e558f48afcc517f21df9e34b1a1"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-surface-area.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-surface-area.d.ts",
+      "bytes": 6870,
+      "sha256": "e4f2a044891ec5d440569f949cf6510d5d93a76485b527e6909b915f11cd42e4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/cad-surface-area.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/cad-surface-area.js",
+      "bytes": 25208,
+      "sha256": "c131cdaa39bcd5eec5e1728a486b62a0e96f9be853961e502e503c0007edff9f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/circle-graph-internal.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/circle-graph-internal.d.ts",
+      "bytes": 1880,
+      "sha256": "7851d74f425a72947d14ea1e2a61e9c22992af2cffe223f3a038a0a07af0a420"
+    },
+    {
+      "path": "packages/barocss-cad/dist/circle-graph-internal.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/circle-graph-internal.js",
+      "bytes": 15168,
+      "sha256": "c9dec829f694da0c7cdb23105259b7c7e0b475188f0c6eb1601b8168e9bf1b58"
+    },
+    {
+      "path": "packages/barocss-cad/dist/circular-geometry-pattern.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/circular-geometry-pattern.d.ts",
+      "bytes": 7664,
+      "sha256": "4a11572c4e08b9f1dbdaa16aff897e714a486195c73b014845ef0e1ed880374a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/circular-geometry-pattern.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/circular-geometry-pattern.js",
+      "bytes": 25978,
+      "sha256": "db14b9bba9a5f85cb33c1f6fec2ddb432423e986938968d49a3cec0c44bd7184"
+    },
+    {
+      "path": "packages/barocss-cad/dist/closed-exact-patch-shell.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/closed-exact-patch-shell.d.ts",
+      "bytes": 5867,
+      "sha256": "67f07556de844cc6f17a3b86a30b4d5bedac64016777d1d533401e204eb5eaa8"
+    },
+    {
+      "path": "packages/barocss-cad/dist/closed-exact-patch-shell.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/closed-exact-patch-shell.js",
+      "bytes": 27894,
+      "sha256": "9e434912c325b4d8ae120d2419658f99fae11728e0dfbdddea08c00b58694346"
+    },
+    {
+      "path": "packages/barocss-cad/dist/compatible-ruled-surface.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/compatible-ruled-surface.d.ts",
+      "bytes": 2537,
+      "sha256": "f61c480994ab98f5af143c3ab8dee150cccefac858823d0644c56848fd33afa9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/compatible-ruled-surface.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/compatible-ruled-surface.js",
+      "bytes": 10409,
+      "sha256": "69d2494c97a472e595adb8681958771bd6e5da9361247feddc5dabb768735b1c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/construction-types.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/construction-types.d.ts",
+      "bytes": 331,
+      "sha256": "a1a69ae06ffc35e686bb681f9c6b9e34015481b89ea0eb4d79794ec9b27951e3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/construction-types.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/construction-types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-arrangement.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/coplanar-face-boolean-arrangement.d.ts",
+      "bytes": 2268,
+      "sha256": "ef0c7a7962486c122106be91992cf0b6dceba0bb21bead227d3347fc07b74502"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-arrangement.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/coplanar-face-boolean-arrangement.js",
+      "bytes": 21208,
+      "sha256": "3ee3a7dba5dc671065de2065f9646ca1a73cf44ffb5b7b9ea62d0bbe1d81270c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-geometry.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/coplanar-face-boolean-extrusion-geometry.d.ts",
+      "bytes": 1518,
+      "sha256": "c692120fe23f73e355e4f6412389f5a454603201803661dfcd0e27d13447d57d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-geometry.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/coplanar-face-boolean-extrusion-geometry.js",
+      "bytes": 6320,
+      "sha256": "449224f239cf4a7df49d4121a83a9ba880498e4cf240f8d58c00a43407c1d32a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-mass.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/coplanar-face-boolean-extrusion-mass.d.ts",
+      "bytes": 6655,
+      "sha256": "bf7ac6c4dd7f2d5e1184a14ab265ab5488ee79dceaf3e0a7a087d9b07a819cff"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-mass.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/coplanar-face-boolean-extrusion-mass.js",
+      "bytes": 24084,
+      "sha256": "9f3b1a5c69644c6d812ef1c80508a4478604e2eea39e2ed5e6aecd7b15e13e59"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-mesh.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/coplanar-face-boolean-extrusion-mesh.d.ts",
+      "bytes": 9833,
+      "sha256": "d7d6641769375cfead098996bd204c6a8300d3fd36a18d2c7996ecdbfe818d70"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-mesh.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/coplanar-face-boolean-extrusion-mesh.js",
+      "bytes": 32400,
+      "sha256": "502f0871c64d5c563398432bbf43b54f0fc08fe3d1d0707c3249d0b68c72a108"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-properties.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/coplanar-face-boolean-extrusion-properties.d.ts",
+      "bytes": 5373,
+      "sha256": "b802b52e41a3bc09c0b50cb3da440474312090568de19748d86ced4425554330"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion-properties.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/coplanar-face-boolean-extrusion-properties.js",
+      "bytes": 16503,
+      "sha256": "906f76c37509cb709a2145cb324ec9b2279462e9ba1b13ce7e27f0ec8723fe98"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/coplanar-face-boolean-extrusion.d.ts",
+      "bytes": 9620,
+      "sha256": "92c712fc0bc86ddb40ab5f8cb2d697363fceaa0e9f508d2e8b4923af58a53e09"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-extrusion.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/coplanar-face-boolean-extrusion.js",
+      "bytes": 31730,
+      "sha256": "bb4ecf04538c2e93c096e29b85718dd95f2e63c073e7e74d5997631478288685"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-mesh-triangulation.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/coplanar-face-boolean-mesh-triangulation.d.ts",
+      "bytes": 1146,
+      "sha256": "5df9630812cb8cc08777a69cfeec3750be6247d5b5fef2ea8bcd8825a70cd247"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-mesh-triangulation.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/coplanar-face-boolean-mesh-triangulation.js",
+      "bytes": 15540,
+      "sha256": "a0ecc1f6d4bb7b5151df94b3e339c7bd5fea3c0e9f3313dfc0b3c251660fb999"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-mesh.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/coplanar-face-boolean-mesh.d.ts",
+      "bytes": 9482,
+      "sha256": "c9e30a9c8c46cf8af34ff06514269e3752f820999ab26f1c72b01d7c9cc28d15"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean-mesh.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/coplanar-face-boolean-mesh.js",
+      "bytes": 23518,
+      "sha256": "4bd2dd5210d7ea9e9ce5968f2ab419da16a8ff5fdd18ea67e7c154e0811df2d6"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/coplanar-face-boolean.d.ts",
+      "bytes": 9205,
+      "sha256": "8dc65a6ddd9a7e30d7ef362db39244608b004fdb14d422623097e6455d9da336"
+    },
+    {
+      "path": "packages/barocss-cad/dist/coplanar-face-boolean.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/coplanar-face-boolean.js",
+      "bytes": 22451,
+      "sha256": "c3ed3755ec32936575ae4414469e520c0604396f4e0a667c3f11d1d7b8ad8a9a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-adaptive-sampling.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-adaptive-sampling.d.ts",
+      "bytes": 4956,
+      "sha256": "feb1455eca6ab9b4dfee9fcb5f32e40e9b740db6c4174c7cff75de17073200ba"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-adaptive-sampling.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-adaptive-sampling.js",
+      "bytes": 18135,
+      "sha256": "905e898f133d95aff9881dd1a776610e2de52f14c205fe367aa78832a03d544f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-bezier-spans.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-bezier-spans.d.ts",
+      "bytes": 5439,
+      "sha256": "822ab60a30c8356f73a3b109f36a2d62e1f766dfec79607647a555625191e93e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-bezier-spans.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-bezier-spans.js",
+      "bytes": 18191,
+      "sha256": "212b779117f88c7aad28e3486fafa6c06a26e8a00a872a50edb52997670c7e37"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-control-polygon.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-control-polygon.d.ts",
+      "bytes": 2853,
+      "sha256": "986801d0046fd625e78faa194a5db6ccb2c67c8220e1a492299a2815c01d357e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-control-polygon.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-control-polygon.js",
+      "bytes": 11909,
+      "sha256": "1ac6a0b7b158139f3b4151b64bef4fb39840524cf25100780ba298ca9accec1f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-endpoint-continuity.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-endpoint-continuity.d.ts",
+      "bytes": 5112,
+      "sha256": "8c3f5f862773b658ff34ffbd23204a29c4cee8f3f0b25a1e476e7adc37c82190"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-endpoint-continuity.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-endpoint-continuity.js",
+      "bytes": 14703,
+      "sha256": "e23ab1ed7d3f03c62c9e6ced18281d7ef4a14a660852b96ff6e6385c871315b3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-interpolation-kernel-internal.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-interpolation-kernel-internal.d.ts",
+      "bytes": 793,
+      "sha256": "9960b425c4f97c0dde79831b2e85e02130a2d561ea688c1429c11ab0a3e6b5e8"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-interpolation-kernel-internal.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-interpolation-kernel-internal.js",
+      "bytes": 19241,
+      "sha256": "59f0b9aa2cf3ad4235c0aecc681947661f05af40fdb9aeef18a2afc394e67648"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-interpolation.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-interpolation.d.ts",
+      "bytes": 5637,
+      "sha256": "f4847bf1fab329c0ccf2ed9e78c3e987bfe41684b8c0206c0c7a79ae68258576"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-interpolation.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-interpolation.js",
+      "bytes": 1900,
+      "sha256": "f624eb0f28d168d9a25c1397e128437a4a973c1d3e6c21d1d4fdd577b3e922fd"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-interval-extraction.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-interval-extraction.d.ts",
+      "bytes": 5224,
+      "sha256": "998a8e2baee3c15971dcc8efbb97eae403517926d08e1ae3d15ad255ddef688c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-interval-extraction.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-interval-extraction.js",
+      "bytes": 19282,
+      "sha256": "629501d9e69c8b3322c7f6d1af9ab2ea072bec674b6021b2cc55e2bb99156675"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-join.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-join.d.ts",
+      "bytes": 5005,
+      "sha256": "f681fc3c9f0b003a78467a0aecb9dc718278ffec5df598b7dbba5468ab52fbad"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-join.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-join.js",
+      "bytes": 17971,
+      "sha256": "ea83de33e81d89dfdae5ca83d0086b02242b083a6607269cd5e4ed62500991a3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-knot-insertion.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-knot-insertion.d.ts",
+      "bytes": 3388,
+      "sha256": "1b10f4d7d17851f169292c293bfa5da24b2590a99641165d22afa14046260f85"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-knot-insertion.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-knot-insertion.js",
+      "bytes": 12913,
+      "sha256": "32684911ba7124e5c6ba18d192b1d8de6bb882886f5783655e196112fa4ec418"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-parameter-split.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-parameter-split.d.ts",
+      "bytes": 4125,
+      "sha256": "6b559f9e01fd6714c0747d06fea032f38f04088c6f8a5289d39d29928c46df72"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-parameter-split.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-parameter-split.js",
+      "bytes": 15088,
+      "sha256": "5cdbf518b0906f286905b301e4eb9c2cafc72a27059773972185cd42a80d1186"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-parameterization.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-parameterization.d.ts",
+      "bytes": 4552,
+      "sha256": "5322ca64dcf6e3ddcd1b7d23bdc45dd204bbd20646eec845ff008d76c5ea805c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-parameterization.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-parameterization.js",
+      "bytes": 14413,
+      "sha256": "50b1448a0055aa03d6ba0be40fea370947dcdc5205394b385bb9fec43251f5b0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-planar-face-material.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-planar-face-material.d.ts",
+      "bytes": 6065,
+      "sha256": "dbecb02d0d9a9ed89e901ac9ddc23dedd61fbc1ce8160e7510f7aaf6eee78612"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-planar-face-material.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-planar-face-material.js",
+      "bytes": 24818,
+      "sha256": "6a7c2a418416d141a159f4abe70a019e9cdc5ea715bdad0282ad44a55f0d2052"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-reversal.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-reversal.d.ts",
+      "bytes": 5674,
+      "sha256": "591ca3c3660a63918e7fec3edd8a920374c93cbe9b2fac6b49bf296610480e9a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-reversal.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-reversal.js",
+      "bytes": 20024,
+      "sha256": "a4646d5f1d3dd63a3577b28bbe9ce780f1ea1ac282affa5b871e342c6f782e7e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-source.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-source.d.ts",
+      "bytes": 704,
+      "sha256": "608b53f6ddc6d26f396be0f7b4964f6131faa142ae537e0f69bb8db3e757a126"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-source.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-source.js",
+      "bytes": 5473,
+      "sha256": "bec580f1d5176cd0892e5e628fd885d93a5e7d04d6c595d6155ecf369804008e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-adaptive-sampling.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-wide-adaptive-sampling.d.ts",
+      "bytes": 8195,
+      "sha256": "fc517589ce96dcf151dc25808718ad0401f4a51a415a4b7485965f53542eb58f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-adaptive-sampling.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-wide-adaptive-sampling.js",
+      "bytes": 31025,
+      "sha256": "ef8ec5f38d4bbf4793af05ba8573a134b302c2f1f2e2da9ee32e54f8bcbb757a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-control-polygon.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-wide-control-polygon.d.ts",
+      "bytes": 4738,
+      "sha256": "c6ba8b8319be5e9b16f19c6ff94c123558b4cb907101a8e33be3edcfe232efac"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-control-polygon.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-wide-control-polygon.js",
+      "bytes": 15484,
+      "sha256": "0acabcd78122c3666c65ef3d35a866d95375e90bac74488791e38509ebdb57e4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-cubic-plane-intersection.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-wide-cubic-plane-intersection.d.ts",
+      "bytes": 6150,
+      "sha256": "1be8a2577b4a4b713e78dc456715c64133cf478c2a61df261ec1a01a25b089a0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-cubic-plane-intersection.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-wide-cubic-plane-intersection.js",
+      "bytes": 16548,
+      "sha256": "dd2a1ae8f4c4b3b341c85ce8f0a23a141212ed0b103925cea265a7b20cafb477"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-plane-intersection.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-wide-plane-intersection.d.ts",
+      "bytes": 5046,
+      "sha256": "4a19fa5c0ef35f50f82b9a9bfc2804567a1cc07ca53f441bcd67422d998f4326"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-plane-intersection.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-wide-plane-intersection.js",
+      "bytes": 14909,
+      "sha256": "5c3f929a61307d30ccece3291819aaa009e4c6f54a28cbf9bdb6d7edbc78df0f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-refinement.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-wide-refinement.d.ts",
+      "bytes": 5516,
+      "sha256": "ed4fd603488a956b9183bc384aba77847c594ac3144fc106395fb77411954614"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-refinement.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-wide-refinement.js",
+      "bytes": 22551,
+      "sha256": "c64584b266b2bee83bce58b15335d7e70d236d6b2cb8dce22d67d9f93ae3db18"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-reversal.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-wide-reversal.d.ts",
+      "bytes": 4075,
+      "sha256": "7930d5a2ea410275d40ef34e98da3bda363f010599ad62f4140d2b3d9b890901"
+    },
+    {
+      "path": "packages/barocss-cad/dist/curve-wide-reversal.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/curve-wide-reversal.js",
+      "bytes": 10365,
+      "sha256": "f89f2d210be96a78aef943ab5c8b7ea8300172f897d0c337973d16609740fa0b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/data-copy.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/data-copy.d.ts",
+      "bytes": 132,
+      "sha256": "3109c0d462f93956b957ba9c58bdeff06898c75c1dca046fdde11c256fa9dbb8"
+    },
+    {
+      "path": "packages/barocss-cad/dist/data-copy.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/data-copy.js",
+      "bytes": 377,
+      "sha256": "33a46d35f16486d23f2304ae473a35bf463b16ebb0816433fd1d2392944035f7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/degree-matched-bezier-ruled.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/degree-matched-bezier-ruled.d.ts",
+      "bytes": 4058,
+      "sha256": "a70d703925e40d3bcdabd40f93799c591ce8ea0811e070c05bd5325625ce2e6a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/degree-matched-bezier-ruled.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/degree-matched-bezier-ruled.js",
+      "bytes": 12733,
+      "sha256": "8dc07aa07d018d067b120b8bc4d4858d623293cb0e880a04e6bd03c04b717585"
+    },
+    {
+      "path": "packages/barocss-cad/dist/derivatives.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/derivatives.d.ts",
+      "bytes": 578,
+      "sha256": "6de6904883da744d1b49b5f0bae1047e549f72fe6f90d794bf6ebb15291820da"
+    },
+    {
+      "path": "packages/barocss-cad/dist/derivatives.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/derivatives.js",
+      "bytes": 6748,
+      "sha256": "86fdb439cb6194add50ec0d4f742cf6b361063d63a5dd160422e171607c3690d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/driven-mixed-sketch-lines.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/driven-mixed-sketch-lines.d.ts",
+      "bytes": 6346,
+      "sha256": "f6fdd0331679689f606042c50fb15b3b30ba65ecabb0e353844425b01422f5a1"
+    },
+    {
+      "path": "packages/barocss-cad/dist/driven-mixed-sketch-lines.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/driven-mixed-sketch-lines.js",
+      "bytes": 25027,
+      "sha256": "5e0fb52af0d1a5a91c8cef458eaf65dfbd77b8941c52c12c3a5b86b08692c451"
+    },
+    {
+      "path": "packages/barocss-cad/dist/driven-sketch-circle-feature-graph.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/driven-sketch-circle-feature-graph.d.ts",
+      "bytes": 5721,
+      "sha256": "172a24750d10d792eaad97a56331d297e38eccf4dbbcdd62f8e030e20a12b884"
+    },
+    {
+      "path": "packages/barocss-cad/dist/driven-sketch-circle-feature-graph.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/driven-sketch-circle-feature-graph.js",
+      "bytes": 23691,
+      "sha256": "7a9dd81f562ab7e53a83b2c0c2e3901a3ff5078710095aa818d1203d6eca4c38"
+    },
+    {
+      "path": "packages/barocss-cad/dist/exact-boundary-face-adjacency.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/exact-boundary-face-adjacency.d.ts",
+      "bytes": 6962,
+      "sha256": "fc95d0b45c6925f6a9c70ee3f4880b6d89bc0a94b94b886def0684b9e019763d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/exact-boundary-face-adjacency.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/exact-boundary-face-adjacency.js",
+      "bytes": 24315,
+      "sha256": "6b1daca7c41ea0302e9273b541c68282f7c7b212801de14accba26b7e04585ce"
+    },
+    {
+      "path": "packages/barocss-cad/dist/exact-surface-band-trim.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/exact-surface-band-trim.d.ts",
+      "bytes": 11029,
+      "sha256": "df42fe9340d8c643ed9c0bcb475f4c4cee08e6b8cb2d24a30a8e95de23279bd9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/exact-surface-band-trim.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/exact-surface-band-trim.js",
+      "bytes": 32187,
+      "sha256": "332b49f2653ca4ea2d6fca5eaf8cc49282cfefc129a15bf9f8b8407dff257408"
+    },
+    {
+      "path": "packages/barocss-cad/dist/exact-surface-lower-trim.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/exact-surface-lower-trim.d.ts",
+      "bytes": 9424,
+      "sha256": "a1d1a2ba3e9e12a63e8dee60616476763ba3e04311d4fc0093eb071833650442"
+    },
+    {
+      "path": "packages/barocss-cad/dist/exact-surface-lower-trim.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/exact-surface-lower-trim.js",
+      "bytes": 25670,
+      "sha256": "c517dade1e5221ef8e85d98ebcf935a70e025fa1e9dd3e46e9969473b02dfd5f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/expression-parser.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/expression-parser.d.ts",
+      "bytes": 1401,
+      "sha256": "5100c021c5cff5e43ebe844fdada45248bcec988b40f497585eaab9d5bc8adc9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/expression-parser.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/expression-parser.js",
+      "bytes": 5292,
+      "sha256": "b9a2339ad980ee6a1df79242f31de97161a8367be068b5742d56c45ab8f6ee60"
+    },
+    {
+      "path": "packages/barocss-cad/dist/extrusion-principal-inertia.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/extrusion-principal-inertia.d.ts",
+      "bytes": 5188,
+      "sha256": "b7b547bbd5985fb9a16e3adfa4fc8af040f8b0f18ebd1b685014a09a4872e1e2"
+    },
+    {
+      "path": "packages/barocss-cad/dist/extrusion-principal-inertia.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/extrusion-principal-inertia.js",
+      "bytes": 18587,
+      "sha256": "30304e082e94240af1164cf54bbf68220300e1cfe92c6f9c172bc827a76b8e9d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/extrusion-validation.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/extrusion-validation.d.ts",
+      "bytes": 195,
+      "sha256": "6b38d4ce4d85f037ec3d093853d011e3b4df66f31f18cdc4f95467c18fae3ac2"
+    },
+    {
+      "path": "packages/barocss-cad/dist/extrusion-validation.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/extrusion-validation.js",
+      "bytes": 3497,
+      "sha256": "72e2477f455c63ba446b6cd7228f6fbf5a9b1a548877a8e4b5ea836ccf3a8fac"
+    },
+    {
+      "path": "packages/barocss-cad/dist/extrusion.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/extrusion.d.ts",
+      "bytes": 457,
+      "sha256": "b8d117e0d3052b9581fc0ab2ecec46b5953ff6699f58b053bbb1ac78dda53e66"
+    },
+    {
+      "path": "packages/barocss-cad/dist/extrusion.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/extrusion.js",
+      "bytes": 817,
+      "sha256": "b20585fc8b63e7a0f8cb916fa3e855c1cc2635e45541e831e1658d5257a926a2"
+    },
+    {
+      "path": "packages/barocss-cad/dist/face.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/face.d.ts",
+      "bytes": 1552,
+      "sha256": "dacb2d385d35d7db13d8cc7dfeb051da219e35a80c2f14706092f418df4d6d7c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/face.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/face.js",
+      "bytes": 10538,
+      "sha256": "4bc5df71bca1c53200d278639a921a3829c63be16f9bb65aaa34eb1b605679d0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/iges.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/iges.d.ts",
+      "bytes": 903,
+      "sha256": "32e854679979362e6aa6829c7f53c8ba7aa2e154fcf4019c5c8d844fdcfba90a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/iges.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/iges.js",
+      "bytes": 7845,
+      "sha256": "e730986e4b319b2fb4b5dafacee079ae08d7c51704ea2937a41cc9105c9d42ab"
+    },
+    {
+      "path": "packages/barocss-cad/dist/index.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/index.d.ts",
+      "bytes": 60409,
+      "sha256": "eae76a67c8e1602b443abc2edebceb72526a1f4d0cfaf836a860456bdd317312"
+    },
+    {
+      "path": "packages/barocss-cad/dist/index.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/index.js",
+      "bytes": 25043,
+      "sha256": "20559d8a1ceb12e4441f747637b400529dd551efbada77e875045f3fa9025459"
+    },
+    {
+      "path": "packages/barocss-cad/dist/linear-geometry-pattern.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/linear-geometry-pattern.d.ts",
+      "bytes": 6075,
+      "sha256": "4385d586bd49ccabc393ad429a1b44386d9fd6edf123b8a3b7b8048467745f86"
+    },
+    {
+      "path": "packages/barocss-cad/dist/linear-geometry-pattern.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/linear-geometry-pattern.js",
+      "bytes": 19579,
+      "sha256": "cd0f4f45f774b246ff5cdd60d30fd0bde5a726189cf640ed91c9c1de3545f4ec"
+    },
+    {
+      "path": "packages/barocss-cad/dist/local-curvature.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/local-curvature.d.ts",
+      "bytes": 1863,
+      "sha256": "47c1387ed3ef11b789bc32126349a100dc70107d23a041032fcdd84c9e09dd85"
+    },
+    {
+      "path": "packages/barocss-cad/dist/local-curvature.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/local-curvature.js",
+      "bytes": 6717,
+      "sha256": "1557e9829def32a84f99e63324c288a955154f5a21ad9add15c64f4391d2bed8"
+    },
+    {
+      "path": "packages/barocss-cad/dist/lower-model.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/lower-model.d.ts",
+      "bytes": 356,
+      "sha256": "f2e12efa1f2b31dc5f139ed16a1718ca20e03207dabac7c803abe0ee2f104a69"
+    },
+    {
+      "path": "packages/barocss-cad/dist/lower-model.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/lower-model.js",
+      "bytes": 1018,
+      "sha256": "271059dcfce35392a7554c78e69d722e5e7b2152f929b569e3d3267685eb2e50"
+    },
+    {
+      "path": "packages/barocss-cad/dist/math.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/math.d.ts",
+      "bytes": 1233,
+      "sha256": "b73bfab66daa3166ccd9b47ca1d609b7ddc30f548eb70499c673e466f4d8715b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/math.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/math.js",
+      "bytes": 11568,
+      "sha256": "0ae19f651ac0335ee10980264932cce3f24e6959eecab6463e1a486121c91d3e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/mixed-workplane-sketch-document.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/mixed-workplane-sketch-document.d.ts",
+      "bytes": 7801,
+      "sha256": "c1d98acff6abb771ed0f63ec1f293fdc9c1b2952f9a209441031107a405f3aa0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/mixed-workplane-sketch-document.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/mixed-workplane-sketch-document.js",
+      "bytes": 28492,
+      "sha256": "db8088344d735ac6e810af87218b49b1f6666e54f9ccc02dcbd030fb041f6bf0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/model-compiler.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/model-compiler.d.ts",
+      "bytes": 1427,
+      "sha256": "f232524a09dc715ea90d9ec6c6f243fcf5e6b21dc78d9d385cc50a316bc5abf5"
+    },
+    {
+      "path": "packages/barocss-cad/dist/model-compiler.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/model-compiler.js",
+      "bytes": 2394,
+      "sha256": "14fb6320ef5ba85d48ae663206bf31035466e2c5c5348db3486e769d694c3560"
+    },
+    {
+      "path": "packages/barocss-cad/dist/multi-section-loft.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/multi-section-loft.d.ts",
+      "bytes": 7759,
+      "sha256": "9494319f4d8dafd72f9a81b9ede6df5e6817b5fb959d62312656b47c8798fcfe"
+    },
+    {
+      "path": "packages/barocss-cad/dist/multi-section-loft.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/multi-section-loft.js",
+      "bytes": 24736,
+      "sha256": "e53f50879eb136af009236782eda4ef80060ae52baaea6ecc7b47dc9b3ed45c1"
+    },
+    {
+      "path": "packages/barocss-cad/dist/multispan-vlinear-plane-section.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/multispan-vlinear-plane-section.d.ts",
+      "bytes": 9886,
+      "sha256": "b2c6d8ab22f02926eb630ff66aced68bb5304515f5fd589a990aec61953a3e7b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/multispan-vlinear-plane-section.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/multispan-vlinear-plane-section.js",
+      "bytes": 34560,
+      "sha256": "c853af3494d59e37193eb8e13aaae69fd638065754f29d106173856e1322a876"
+    },
+    {
+      "path": "packages/barocss-cad/dist/multispan-vlinear-plane-trim-classification.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/multispan-vlinear-plane-trim-classification.d.ts",
+      "bytes": 7454,
+      "sha256": "99da94e6b11f2ccfcc2f1093f66a8d040b74d7adb88418a332861f3fa10ab0c4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/multispan-vlinear-plane-trim-classification.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/multispan-vlinear-plane-trim-classification.js",
+      "bytes": 20477,
+      "sha256": "a8f7efbf01d4db94f8a9911c7d748c92301026b3f6aa9f71a44a8b84266c553d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/multispan-vlinear-plane-trim.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/multispan-vlinear-plane-trim.d.ts",
+      "bytes": 9409,
+      "sha256": "bf801c7c3a84ca275a56c62eef51fcaf145315ea7bd8824fbd15da7f6bd7348a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/multispan-vlinear-plane-trim.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/multispan-vlinear-plane-trim.js",
+      "bytes": 33137,
+      "sha256": "b29ab25328030672ca07b2fe4eb2f4408977c7b6599cd0e0a63820f6191c6fd3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/nurbs-source-loft-feature-graph.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/nurbs-source-loft-feature-graph.d.ts",
+      "bytes": 10233,
+      "sha256": "777fb70b7fa67b8fa58c8774773a0d177dd604cc87ca8ab2a949b34064827b6f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/nurbs-source-loft-feature-graph.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/nurbs-source-loft-feature-graph.js",
+      "bytes": 34721,
+      "sha256": "6b0d9e99ea090980ffb0bc9b859b7d759e2986e6e5454746b21a38c77e139c1c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/orthogonal-adjacency.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/orthogonal-adjacency.d.ts",
+      "bytes": 901,
+      "sha256": "edbc47004bd3e6d26f4477e135f093d1885a8013b8e200492fc6c67b874ba83c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/orthogonal-adjacency.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/orthogonal-adjacency.js",
+      "bytes": 10397,
+      "sha256": "ed6090db341bce5678bb22a8bcafec07191ad869bc207fe1efd2aba0559adcd2"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-affine-plane-loop-internal.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-affine-plane-loop-internal.d.ts",
+      "bytes": 1105,
+      "sha256": "88b250a3ecd54e86ad5e60b44592499f61c1fa9a26886fe8f063d3ac56c3ddc7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-affine-plane-loop-internal.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-affine-plane-loop-internal.js",
+      "bytes": 7257,
+      "sha256": "ad2a6b60ee5a28f3e8e0452af679a79a9ec7a6e23cbd318b19e652c61c7cf20d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-coincident-plane-clip.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-coincident-plane-clip.d.ts",
+      "bytes": 5900,
+      "sha256": "df05955e99432bfb4a308b61e4d08a8847acc3bc52f58d050bf5a2435b24f62c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-coincident-plane-clip.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-coincident-plane-clip.js",
+      "bytes": 23322,
+      "sha256": "b4de9abf185300bcefe8ab43eea4110464a0886b83cedeeee1b5b4cd4a627539"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-loop-clip.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-convex-loop-clip.d.ts",
+      "bytes": 5837,
+      "sha256": "3f6c2604d71f2d74c9726c93f2b9c37dd583ff4802d65c96ceb343c5548eadbf"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-loop-clip.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-convex-loop-clip.js",
+      "bytes": 26083,
+      "sha256": "eac09e766c4c1b5aea102a4da25abf03d8762d8dcfa8e2768b615a6af33808d7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-holes-intersection.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-convex-planar-face-holes-intersection.d.ts",
+      "bytes": 7163,
+      "sha256": "ce180b5f3d475cc0d382eef9cf795f318b40a0b672f9476f115dd90a5ccf32d2"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-holes-intersection.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-convex-planar-face-holes-intersection.js",
+      "bytes": 37716,
+      "sha256": "010fe7a81651740fb9cb3c104b0940c01f65e4a1ed749683de2a8b74a04dbb97"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-holes-preview.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-convex-planar-face-holes-preview.d.ts",
+      "bytes": 5156,
+      "sha256": "5b403b190c926368dce090324d28d804320faf3b226443bf3c9535800e4cd2e7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-holes-preview.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-convex-planar-face-holes-preview.js",
+      "bytes": 22826,
+      "sha256": "1637a87c57caf041f35a6707ee40d5c946b2dc5d2be17b5899c2b23e3e16b8b4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-holes-ray.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-convex-planar-face-holes-ray.d.ts",
+      "bytes": 4358,
+      "sha256": "9d4a5dacfed40bac284d758ed5377400a004b26973ff98b8d3ecaaa910a89f5e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-holes-ray.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-convex-planar-face-holes-ray.js",
+      "bytes": 11944,
+      "sha256": "a1a695442924e157db5e2ab82bfa04e0e19f2534c2a46b22b425fb6cfe406e4b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-holes.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-convex-planar-face-holes.d.ts",
+      "bytes": 5565,
+      "sha256": "7f2ad033368586a09f3313a4aa5c3f9687c37424443802ac3af50801445f7b42"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-holes.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-convex-planar-face-holes.js",
+      "bytes": 23605,
+      "sha256": "9dfbadbf68ac1c5fc4bb73e5231cca4bf53e5905477032da4ac8f47730cfafcf"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-intersection.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-convex-planar-face-intersection.d.ts",
+      "bytes": 5096,
+      "sha256": "4948fdabb23601e780935c2b63c26249cedca0be9d998aa8f110055537f309ab"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face-intersection.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-convex-planar-face-intersection.js",
+      "bytes": 24284,
+      "sha256": "f30ca92a2284186df6eacc7bd14d93746c48d8f275bf05006c36bbaf12d41166"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-convex-planar-face.d.ts",
+      "bytes": 4502,
+      "sha256": "a4ecb5dbcb53a0799d9b453dd796a0a837761b719a03a657365d112431150f35"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-convex-planar-face.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-convex-planar-face.js",
+      "bytes": 16822,
+      "sha256": "050060748aec7f18cff653cd0eb9fc7d493919920c61b7a9804d1808851fbcb3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-cubic-bernstein-roots.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-cubic-bernstein-roots.d.ts",
+      "bytes": 2364,
+      "sha256": "c0e8667568b867a0950d6ab34263a3a05b1dbf53dd52553f15d77996b4fa6488"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-cubic-bernstein-roots.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-cubic-bernstein-roots.js",
+      "bytes": 11718,
+      "sha256": "da94c51b8de5694d32e498fdaeee90d11b48b65ad7c9a6f5b1be43c904bda62c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-cubic-curve-plane-intersection.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-cubic-curve-plane-intersection.d.ts",
+      "bytes": 5398,
+      "sha256": "2f7dc13d7d95278ebc638d45c81da693c3158490b99643c4764a2f1d4c20a8f0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-cubic-curve-plane-intersection.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-cubic-curve-plane-intersection.js",
+      "bytes": 13152,
+      "sha256": "5cc1f8a4676a4f5b16263fa4e07b49ee5d28e05c0f66aedbf43d9adf1ab7ce44"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-curve-line-intersection.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-curve-line-intersection.d.ts",
+      "bytes": 6772,
+      "sha256": "261f141f99f0e5bfebba4bf12241d8766152a117c98f2381e08d9a083ce0808d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-curve-line-intersection.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-curve-line-intersection.js",
+      "bytes": 30295,
+      "sha256": "dfa438062ec9e5d79f68442138076a8a163aa77d267fbf1d74c78ec3ec855bc4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-curve-plane-intersection.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-curve-plane-intersection.d.ts",
+      "bytes": 4893,
+      "sha256": "eaa8217af84ab129e192ca8f43c52a1cf47fd69413026ef524c5c8452a7e8a35"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-curve-plane-intersection.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-curve-plane-intersection.js",
+      "bytes": 15416,
+      "sha256": "2b102edae6ab6243320d3604c1ec5039b309ba53b8bacb4293fbc33afd32f6de"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-homogeneous-bernstein-roots.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-homogeneous-bernstein-roots.d.ts",
+      "bytes": 986,
+      "sha256": "bd2718fb75f73cf00894acbb2f38deb7f2455a51cd124c730c8db2d84fcf427d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-homogeneous-bernstein-roots.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-homogeneous-bernstein-roots.js",
+      "bytes": 5564,
+      "sha256": "2c5a034d1da06e45df13373be684d9c147fc562fefebd3b41f066a36a81c26c1"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-multispan-curve-plane.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-multispan-curve-plane.d.ts",
+      "bytes": 5661,
+      "sha256": "c3485d343ef80e59f3153acfc2ff7f595ceb9e70aa6d80954d3c3fae2fe16ba1"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-multispan-curve-plane.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-multispan-curve-plane.js",
+      "bytes": 18481,
+      "sha256": "64317e524527006404eab5bb3a85e1886d3b56026664055dc748d6e53ea2fd2d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plane-cylinder-clipped.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-plane-cylinder-clipped.d.ts",
+      "bytes": 5131,
+      "sha256": "758f6f1d114a72e29bc77da646169ee672ff7d897be66f25a34eb11c283c3ee5"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plane-cylinder-clipped.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-plane-cylinder-clipped.js",
+      "bytes": 16801,
+      "sha256": "47bcb08e9677e7b80159cade098bb5c6c41d5ab309ddf0758a5a25f472012383"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plane-cylinder-intersection-internal.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-plane-cylinder-intersection-internal.d.ts",
+      "bytes": 1639,
+      "sha256": "f0f2b826b50fde3c4c0ae4505c10764689ce5465438039f363b83a0a905507ec"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plane-cylinder-intersection-internal.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-plane-cylinder-intersection-internal.js",
+      "bytes": 12880,
+      "sha256": "f465a5b9a489245209a528bcf8c9fa824a1b334b61ea114c2d31ca06429d8b16"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plane-cylinder-intersection.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-plane-cylinder-intersection.d.ts",
+      "bytes": 4552,
+      "sha256": "711103f40ffe40ad80691cefed41c7dc11c42e29655d59e8c1857bc023e7aa3b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plane-cylinder-intersection.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-plane-cylinder-intersection.js",
+      "bytes": 3650,
+      "sha256": "e45a7780f41aefa977d5f68dc0c45060aaff3737a5d6d2b58030ccb95611418a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plate-circular-hole-preview.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-plate-circular-hole-preview.d.ts",
+      "bytes": 3095,
+      "sha256": "8247ea1da3f3d6d00ab91d7070678b365f0bbd8d12bfe8c78d9e45406b9861f7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plate-circular-hole-preview.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-plate-circular-hole-preview.js",
+      "bytes": 18323,
+      "sha256": "a24729f21aa65ba6bfd69f03a76b72adad30d69f7c3b08a9a996cb22aeb3fdbb"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plate-circular-hole.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-plate-circular-hole.d.ts",
+      "bytes": 3464,
+      "sha256": "7d057de4e00111bb43b011910696b9427320472b976bb83ba0ec45fd77ca921f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/own-plate-circular-hole.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/own-plate-circular-hole.js",
+      "bytes": 16132,
+      "sha256": "4b8ade95bbb3c3eeb12cae493fdb2e5cced0a1cb39e7f8c578c245d5ec5417e8"
+    },
+    {
+      "path": "packages/barocss-cad/dist/packet.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/packet.d.ts",
+      "bytes": 804,
+      "sha256": "e1e73fe1a8694ddfa5991c3cc15cf5ed34a8361ae6741019b708e6a620dd1e22"
+    },
+    {
+      "path": "packages/barocss-cad/dist/packet.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/packet.js",
+      "bytes": 7872,
+      "sha256": "2fd8211506d0d5a5a4c49a09a5a10c35bd4e59e0500fb9b59edf4212ca55775f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/paired-section-plane-cap.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/paired-section-plane-cap.d.ts",
+      "bytes": 9980,
+      "sha256": "9097c5f5805d111caf31c2c4ea273650ede305ef99f0c368aa98cd42fd657928"
+    },
+    {
+      "path": "packages/barocss-cad/dist/paired-section-plane-cap.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/paired-section-plane-cap.js",
+      "bytes": 28738,
+      "sha256": "338a43af29c8082efb5174e5c988d6471d64eaffbd73735c35dcba93946e5885"
+    },
+    {
+      "path": "packages/barocss-cad/dist/parameter-semantics.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/parameter-semantics.d.ts",
+      "bytes": 982,
+      "sha256": "35398ee1f6ded6643211103599c9186c4917987630c3dfbc2853a10c0c1e65cd"
+    },
+    {
+      "path": "packages/barocss-cad/dist/parameter-semantics.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/parameter-semantics.js",
+      "bytes": 11009,
+      "sha256": "1103fe63e599f88b2a555888a1b42c6836802f0a40dbcb014fa79f5a4d15716c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/piecewise-rational-loft.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/piecewise-rational-loft.d.ts",
+      "bytes": 7037,
+      "sha256": "43f6c60c680df2d3eeb8e837bebe386be13252d15d23871e0ff2d49544ffaa43"
+    },
+    {
+      "path": "packages/barocss-cad/dist/piecewise-rational-loft.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/piecewise-rational-loft.js",
+      "bytes": 20771,
+      "sha256": "3750c5c25f4d7d2646b9f6056a5367b0675e327ab64744ca7afd08ae50539421"
+    },
+    {
+      "path": "packages/barocss-cad/dist/preview.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/preview.d.ts",
+      "bytes": 836,
+      "sha256": "3d16ac409b46ace0a35718e7e1bf1dfc7ee51e9b03677a2100097a6c8d5227a7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/preview.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/preview.js",
+      "bytes": 7312,
+      "sha256": "571acc416e7a05830f47711a3bc91f650146d9d2f5635508647f196d826c117c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/qualified-translated-strip-body-mesh-domain-internal.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/qualified-translated-strip-body-mesh-domain-internal.d.ts",
+      "bytes": 1909,
+      "sha256": "b67e8b3ef2ef1c57e88ee362c22e23898917bb6744caec974d28ae30e44cd95c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/qualified-translated-strip-body-mesh-domain-internal.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/qualified-translated-strip-body-mesh-domain-internal.js",
+      "bytes": 9815,
+      "sha256": "91e7787a4ee1e0fa04dcbe1b39935b1d43cd6858c4d5d957f59c188543eb8e9b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/qualified-translated-strip-body-mesh.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/qualified-translated-strip-body-mesh.d.ts",
+      "bytes": 10392,
+      "sha256": "41d13e8567347fe213281e61318c1704661bdcca53cd8002cd8989276e06b937"
+    },
+    {
+      "path": "packages/barocss-cad/dist/qualified-translated-strip-body-mesh.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/qualified-translated-strip-body-mesh.js",
+      "bytes": 40479,
+      "sha256": "d6ef40c86869d6f31cc476bc41e134f1bce6e97ce9ffa375e6d32176d49c3535"
+    },
+    {
+      "path": "packages/barocss-cad/dist/qualified-translated-strip-body.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/qualified-translated-strip-body.d.ts",
+      "bytes": 10242,
+      "sha256": "6a770c1df7e6546743e77a60d11b073e6324d2d73ba6b87fcef3e71e95aaf6ed"
+    },
+    {
+      "path": "packages/barocss-cad/dist/qualified-translated-strip-body.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/qualified-translated-strip-body.js",
+      "bytes": 36850,
+      "sha256": "4b7c6af1cfa214d835b8174167681d2c0af14bcbd9c97352c2a2eb58d598388e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/qualified-translated-strip-material-internal.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/qualified-translated-strip-material-internal.d.ts",
+      "bytes": 8233,
+      "sha256": "758e23b69efcda94e466d274ae2a82d37361f076a18dddc3f717511e756d05fb"
+    },
+    {
+      "path": "packages/barocss-cad/dist/qualified-translated-strip-material-internal.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/qualified-translated-strip-material-internal.js",
+      "bytes": 29358,
+      "sha256": "e25815530e6ffda2da6b9339ebbdee3bab6592341cbe094d077c85c11adb2ed7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/quintic-hermite-curve.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/quintic-hermite-curve.d.ts",
+      "bytes": 4980,
+      "sha256": "a87955fbbc564f855de455522deb904d960ef839d1727e6b16043fc4b2fce52d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/quintic-hermite-curve.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/quintic-hermite-curve.js",
+      "bytes": 15414,
+      "sha256": "9731714d7aad41a4e9dfa46d551272625a7e69e673d63b33236f07c0e4c1b72e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/rational-ruled-surface.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/rational-ruled-surface.d.ts",
+      "bytes": 4288,
+      "sha256": "e341414eee2f500dd07bbeaa722936997e9e7995cf2845f355d225e2dccd8940"
+    },
+    {
+      "path": "packages/barocss-cad/dist/rational-ruled-surface.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/rational-ruled-surface.js",
+      "bytes": 14418,
+      "sha256": "808469a5e4d9cae805187d96e0005d55de6be39ae51683ad7d3e07f96f56015f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/second-derivatives.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/second-derivatives.d.ts",
+      "bytes": 1250,
+      "sha256": "b570f42e9b1bb8aa470c62caff62cfbad89b72b97d0cd82f0af4353b5f1b2592"
+    },
+    {
+      "path": "packages/barocss-cad/dist/second-derivatives.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/second-derivatives.js",
+      "bytes": 14445,
+      "sha256": "4ff0505501f88c194f1491afbdc1274b0080338a109661893b54b6d357994eee"
+    },
+    {
+      "path": "packages/barocss-cad/dist/section-exact-surface-binding.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/section-exact-surface-binding.d.ts",
+      "bytes": 6800,
+      "sha256": "9b8d6dc14a63422233711ca1cdb36242572650ac891a6089ebd890a6ca44c6c4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/section-exact-surface-binding.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/section-exact-surface-binding.js",
+      "bytes": 19320,
+      "sha256": "33897022fc5bad1e73746c268b3022b925bf51859596dc23f9fa11607eeef788"
+    },
+    {
+      "path": "packages/barocss-cad/dist/section-knot-alignment.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/section-knot-alignment.d.ts",
+      "bytes": 5784,
+      "sha256": "fc5751f633b8f5b412c58ed448b326da3d723fd09dc1e32ba146107d6e6b8395"
+    },
+    {
+      "path": "packages/barocss-cad/dist/section-knot-alignment.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/section-knot-alignment.js",
+      "bytes": 20465,
+      "sha256": "c16123b9e7dddc1810ad877d5f16199b418b8fab614809c335ba100a70a0e01a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/section-rational-internal.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/section-rational-internal.d.ts",
+      "bytes": 1954,
+      "sha256": "04d219736def2fff9150974948cbadfe4fc98c8a270a751b044f9de23d4d24f2"
+    },
+    {
+      "path": "packages/barocss-cad/dist/section-rational-internal.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/section-rational-internal.js",
+      "bytes": 7531,
+      "sha256": "0cc904f223058aecc7e9e53e268b339161bce78e8edb12bba15752a8c538cb76"
+    },
+    {
+      "path": "packages/barocss-cad/dist/semantic-model.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/semantic-model.d.ts",
+      "bytes": 1783,
+      "sha256": "ef232a6bb211cb3166f4b5252d54e96521c0bc3db99c089fb705ad3e871db7bd"
+    },
+    {
+      "path": "packages/barocss-cad/dist/semantic-model.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/semantic-model.js",
+      "bytes": 7696,
+      "sha256": "60048a6eeae71e873a63e3d72b0eff5dd016da49479bd01893ed84809d05e71f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/sketch-circle-feature-graph.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/sketch-circle-feature-graph.d.ts",
+      "bytes": 5626,
+      "sha256": "3e8bd353ce14c91da25f5f7336e504ebe5b02c19e9d506e2e4fa6132073ca3e9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/sketch-circle-feature-graph.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/sketch-circle-feature-graph.js",
+      "bytes": 18368,
+      "sha256": "f0481cdb925db3465002c84c9c309723c179ded1a7829430faff7a66ea118db8"
+    },
+    {
+      "path": "packages/barocss-cad/dist/sketch-rectangle-feature-graph.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/sketch-rectangle-feature-graph.d.ts",
+      "bytes": 5397,
+      "sha256": "62d291dd79e4db2bb4816d2b38dcf36cb728a1ee09bc264cbe67225e5c08ce3b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/sketch-rectangle-feature-graph.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/sketch-rectangle-feature-graph.js",
+      "bytes": 29934,
+      "sha256": "9716b08c4bfce0fb4256a1f1924ee8642d2841b928274786ffbacbf76b6de741"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-ast.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/source-ast.d.ts",
+      "bytes": 2270,
+      "sha256": "96922babb029f2a316651ad28f2097949031a0b68ec393bae310685ae6ac6e7b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-ast.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/source-ast.js",
+      "bytes": 13017,
+      "sha256": "1877582a393df88e2e80b7eb594882d20a501421fcef5fd2ff97189822177167"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-curve-control-polygon.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/source-curve-control-polygon.d.ts",
+      "bytes": 5037,
+      "sha256": "30c48c440499c4e7619fbaa1eadfecfd6df03843784a067983707495d608e329"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-curve-control-polygon.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/source-curve-control-polygon.js",
+      "bytes": 20020,
+      "sha256": "d889469c32e5f3154d8339656c45beb2206dade1534d3918356d50b03840f5d7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-curve-interval-extraction.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/source-curve-interval-extraction.d.ts",
+      "bytes": 9445,
+      "sha256": "76609cb8941e672866b191d09b123f501fad140b23956fa5dee213c7c59ecabe"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-curve-interval-extraction.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/source-curve-interval-extraction.js",
+      "bytes": 43191,
+      "sha256": "cb514930b6c54b24083a5e6a596fc792a3d19c904646f86db520477b8d939cb8"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-curve-knot-insertion.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/source-curve-knot-insertion.d.ts",
+      "bytes": 6454,
+      "sha256": "d5a5e78ce188cd43467ac0144958e15fe7488b066ef0f0ae2bc6fc69d7830812"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-curve-knot-insertion.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/source-curve-knot-insertion.js",
+      "bytes": 27076,
+      "sha256": "1db68fcf9f4ffee47a2718d161e33b59192240d63e1e11ed375879805fca426f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-surface-control-net-wide.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/source-surface-control-net-wide.d.ts",
+      "bytes": 5691,
+      "sha256": "e1f3f9d311696e4dc866c5f205afd9115416442e59e8e24be276167822ddaed7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-surface-control-net-wide.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/source-surface-control-net-wide.js",
+      "bytes": 21260,
+      "sha256": "1dc58fcc356afd252b914af4cc28a80497e95f38fe2c6c6d8886f7b60cd5e715"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-surface-control-net.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/source-surface-control-net.d.ts",
+      "bytes": 3838,
+      "sha256": "01936038bec061f7f44361f51ef6a3f072bcd6b015f566a7ff1ed03a063d5bdf"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-surface-control-net.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/source-surface-control-net.js",
+      "bytes": 16268,
+      "sha256": "905b690de2e08602f6e8bf80b9199ca71c0767d34b4b999fbba8dacea95f2d6a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-surface-knot-insertion.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/source-surface-knot-insertion.d.ts",
+      "bytes": 7437,
+      "sha256": "11ad8c30154353f6564112915120cc4aa1b47b048b6ec5965bb107cb04ed786a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/source-surface-knot-insertion.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/source-surface-knot-insertion.js",
+      "bytes": 32460,
+      "sha256": "3280ea2e5444534c9c883d5baa97956e9953a860e3cbe8fb7a3cd20546bcdc01"
+    },
+    {
+      "path": "packages/barocss-cad/dist/stored-plate-hole-point-classification.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/stored-plate-hole-point-classification.d.ts",
+      "bytes": 4728,
+      "sha256": "e1c184a7d0a0be78136c1c47d30f0fdc6e75aaffc41991d62bb7a3c5afdc65c3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/stored-plate-hole-point-classification.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/stored-plate-hole-point-classification.js",
+      "bytes": 17765,
+      "sha256": "6807d189ffc11ad64548a20900e3cde5cfc08cb92158ef0874578c5e6b120fb4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/stored-plate-hole-solid.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/stored-plate-hole-solid.d.ts",
+      "bytes": 3483,
+      "sha256": "c399af246c844ab668c2ac1273753c4708c9cb1a28b56eb2ab2aeecf11f9fcc3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/stored-plate-hole-solid.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/stored-plate-hole-solid.js",
+      "bytes": 23442,
+      "sha256": "96ca0f349e02c5e1cadf106c3b865b52fd1045d279faf54b27401396754cf165"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-axis-reversal.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/surface-axis-reversal.d.ts",
+      "bytes": 5796,
+      "sha256": "5cec5a451dae9f242450dcd6b4468c1f77cc6cbf41b22f7abcd751dcdac17373"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-axis-reversal.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/surface-axis-reversal.js",
+      "bytes": 21793,
+      "sha256": "22381919d0cb055ab9be677b2bc9070f2e51874fd6e8d9f95a22aea16d572784"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-bezier-axis-degree-elevation.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/surface-bezier-axis-degree-elevation.d.ts",
+      "bytes": 4191,
+      "sha256": "b8cd4af5c8ee85e9356fcc5650a154bc7d0e2ed541017d47af12dbaf2da2dd4d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-bezier-axis-degree-elevation.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/surface-bezier-axis-degree-elevation.js",
+      "bytes": 14948,
+      "sha256": "8eeb04e7498c8aecf5ee5428c2349f9f9b34e5f37f30131d5767690e72ac189a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-control-net.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/surface-control-net.d.ts",
+      "bytes": 2243,
+      "sha256": "924a9b061217006c6bc0c9bc41313d6951b20781437ca9224eec3770743ad724"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-control-net.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/surface-control-net.js",
+      "bytes": 10719,
+      "sha256": "b66688766d13d729e2085d69825831dbcf04733739abc40fd6f2e8ca17836296"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-interpolation.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/surface-interpolation.d.ts",
+      "bytes": 5693,
+      "sha256": "5f48b3fc54e784ef45ccfccdb718b3a6e0de0edc7f7e58d6828e1cfcad670fda"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-interpolation.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/surface-interpolation.js",
+      "bytes": 17822,
+      "sha256": "76eb2de0d0a4b25b3c7150d3de1a6a1d8aabee4fcff9c5c4a784d4b9ab9c31f2"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-isocurve.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/surface-isocurve.d.ts",
+      "bytes": 2989,
+      "sha256": "b7b2bef9a4ab67fd93dfbd95b59d57b7c6c59828e0a7bfd95eb40a32580158bd"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-isocurve.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/surface-isocurve.js",
+      "bytes": 12228,
+      "sha256": "c472bac27e40632d06cbb2414e45a7b3e7f562a733535699cf9d50c376ae8d73"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-knot-insertion.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/surface-knot-insertion.d.ts",
+      "bytes": 2868,
+      "sha256": "4660f6e93ac85b3f887115becdd51dc64282bb9f1febef5c04b92372c7cf6797"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-knot-insertion.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/surface-knot-insertion.js",
+      "bytes": 13929,
+      "sha256": "9fa7b94d90168dfd195343a91ba4d6d7effc4ea31a06464617df74b13c03a30e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-parameter-split.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/surface-parameter-split.d.ts",
+      "bytes": 4470,
+      "sha256": "83fc0a7be5ca6458503373c5ebeea3a2784739e10e75e668b436877e191af063"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-parameter-split.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/surface-parameter-split.js",
+      "bytes": 16703,
+      "sha256": "2d90437a43b1d138e98de48d58df288cd3973af092d925583da0c9f6be35fd70"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-region.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/surface-region.d.ts",
+      "bytes": 5829,
+      "sha256": "f5aa4346a5daf98f1a2af5226678fd7b5e17156edbb76a2afd3943d5fc3af89c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/surface-region.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/surface-region.js",
+      "bytes": 22341,
+      "sha256": "db4e777525dd366ce287c0a2567170af96828a5466112a3411c9fb6e613e7593"
+    },
+    {
+      "path": "packages/barocss-cad/dist/three-section-loft.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/three-section-loft.d.ts",
+      "bytes": 6711,
+      "sha256": "f66f5fbeb3914a7a711d6476ca16549e84211a43200d44d9ee77cd203b8a4cc6"
+    },
+    {
+      "path": "packages/barocss-cad/dist/three-section-loft.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/three-section-loft.js",
+      "bytes": 20029,
+      "sha256": "1f698fd721039ad576d27828ca960f9aa63d6d37f6da2cf3c8cb18c157cf1a40"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-strip-interval-boolean-construction-internal.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/translated-strip-interval-boolean-construction-internal.d.ts",
+      "bytes": 2041,
+      "sha256": "f3da0ece6eb2c52e639c249ffbe7fca4c49e0f6b556d887c29cb4ee284f2ab63"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-strip-interval-boolean-construction-internal.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/translated-strip-interval-boolean-construction-internal.js",
+      "bytes": 3552,
+      "sha256": "5e1cfe941640d59dedc8434121838f2380399fd905941d7cab15f11241322fa9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-strip-interval-boolean.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/translated-strip-interval-boolean.d.ts",
+      "bytes": 11626,
+      "sha256": "26727ed965f9fbbf5a6e8bf57733048cbbcff72e0847e73a89e4dc0b6852e7ac"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-strip-interval-boolean.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/translated-strip-interval-boolean.js",
+      "bytes": 38401,
+      "sha256": "9c5241a0f92a1b02425a54dd8f0544729dc53c4226db6da4011b7b4cae8d56fb"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-surface-base-face.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/translated-surface-base-face.d.ts",
+      "bytes": 10676,
+      "sha256": "96fee8a050fef2ea0af9f808a91a40a9178d97d7790ea2b9616937dee36767a6"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-surface-base-face.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/translated-surface-base-face.js",
+      "bytes": 29112,
+      "sha256": "2973b47d440332733839eb7ca9e901525bac6a5915f1c06a8af46bd2aff04ea0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-surface-end-faces.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/translated-surface-end-faces.d.ts",
+      "bytes": 10344,
+      "sha256": "0829aa95f878f4c8f331cfbad3fbd91da6d0592b53523ba56dc25cbfe5efc1a4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-surface-end-faces.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/translated-surface-end-faces.js",
+      "bytes": 30000,
+      "sha256": "f73d8e8c8a3cad81b8aa36a234b5d615b91fe1b3659cefffa38df41d3df01282"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-surface-strip-volume.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/translated-surface-strip-volume.d.ts",
+      "bytes": 9010,
+      "sha256": "5a25b9219f0b1970cad381e7a86868a9757a6912b712e4efddd00580e90c5488"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-surface-strip-volume.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/translated-surface-strip-volume.js",
+      "bytes": 22913,
+      "sha256": "c78ec98069bbede86856a2469423d1383df5dc4e6c982a618d721539bac5c40a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-surface-strip-world-points.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/translated-surface-strip-world-points.d.ts",
+      "bytes": 10534,
+      "sha256": "da868ba4a9b1838cb135574dbb0396b644432ce61f9a962d3c18f46a55664eab"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translated-surface-strip-world-points.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/translated-surface-strip-world-points.js",
+      "bytes": 31147,
+      "sha256": "c2d764efd366be91be6a8981a0d6e7b557f86afbe2a13107a3f3934818102f86"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translational-sweep-surface.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/translational-sweep-surface.d.ts",
+      "bytes": 6862,
+      "sha256": "417650b84a98fd1965f6bccae8bc4a949970e8c6e86347ddb8032057dc5abccc"
+    },
+    {
+      "path": "packages/barocss-cad/dist/translational-sweep-surface.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/translational-sweep-surface.js",
+      "bytes": 20099,
+      "sha256": "955c7cc0a40f483b637a9d395ab966434dc68c197830cb39a962cddaeba42820"
+    },
+    {
+      "path": "packages/barocss-cad/dist/types.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/types.d.ts",
+      "bytes": 825,
+      "sha256": "ff9813afdf92d31bc72379e93228ebd381aa90d5950691302b52d20b70804ba9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/types.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "packages/barocss-cad/dist/vlinear-plane-section.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/vlinear-plane-section.d.ts",
+      "bytes": 8469,
+      "sha256": "9a5869baf4f1ae3b4a02e4c841b6a10db0a5afe7706ef8ffbd88da2dd43a5a16"
+    },
+    {
+      "path": "packages/barocss-cad/dist/vlinear-plane-section.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/vlinear-plane-section.js",
+      "bytes": 28051,
+      "sha256": "555e1b334398a846c4ae0cbbb7dae798b93ba919be570a22353b6cdc198398c8"
+    },
+    {
+      "path": "packages/barocss-cad/dist/vlinear-plane-trim-classification.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/vlinear-plane-trim-classification.d.ts",
+      "bytes": 6483,
+      "sha256": "04265e26c99da1df484ab1d274c30ab7128e34f70088b24686b89c3ee02e6365"
+    },
+    {
+      "path": "packages/barocss-cad/dist/vlinear-plane-trim-classification.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/vlinear-plane-trim-classification.js",
+      "bytes": 18037,
+      "sha256": "a588822f2f22d21fe6c6695c065c050c4fd303cef28d0b64345f3f02dbc2c911"
+    },
+    {
+      "path": "packages/barocss-cad/dist/vlinear-plane-trim.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/vlinear-plane-trim.d.ts",
+      "bytes": 8389,
+      "sha256": "465f0346e58dc74a074b2ac9df7854ba2fc392b7759f95a34ec528fcde505fdc"
+    },
+    {
+      "path": "packages/barocss-cad/dist/vlinear-plane-trim.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/vlinear-plane-trim.js",
+      "bytes": 28616,
+      "sha256": "ee1564b91b2043d6dd54da9d77954ca53d679f7e8b276cb1ddd34e9b98b82954"
+    },
+    {
+      "path": "packages/barocss-cad/dist/weighted-curve-interpolation.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/weighted-curve-interpolation.d.ts",
+      "bytes": 2515,
+      "sha256": "13fe3ae6026468004dc502c535c8bdd3a690eba853ac0c7ad9ab8632aaf0e78b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/weighted-curve-interpolation.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/weighted-curve-interpolation.js",
+      "bytes": 4755,
+      "sha256": "f11a2f51ebc77bc2e6d8dd7523fd73b38640de24fdacf9b833bc46b4f8a563aa"
+    },
+    {
+      "path": "packages/barocss-cad/dist/workplane-sketch-document.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/workplane-sketch-document.d.ts",
+      "bytes": 5902,
+      "sha256": "d794f205edf53330bfe08a0d5b7d32778f25be5c8fa1648aba8cf5ae93e1be01"
+    },
+    {
+      "path": "packages/barocss-cad/dist/workplane-sketch-document.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/workplane-sketch-document.js",
+      "bytes": 20277,
+      "sha256": "5c44163f6208ec4719c0b3cb29665911426f31fb89cce8224f4f9afc287a8bd7"
+    },
+    {
+      "path": "packages/barocss-cad/dist/workplane-sketch-frame-internal.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/workplane-sketch-frame-internal.d.ts",
+      "bytes": 996,
+      "sha256": "5dca9887697c21b77db3defbce11d6de0b19439375c4e4efa5ca435f85b4667c"
+    },
+    {
+      "path": "packages/barocss-cad/dist/workplane-sketch-frame-internal.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/workplane-sketch-frame-internal.js",
+      "bytes": 2588,
+      "sha256": "fd731301aa5f44d3a651473e6c187d344975293ff6c85205dc9b57d65b722f58"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-angle-arc-artifact.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-angle-arc-artifact.d.ts",
+      "bytes": 3165,
+      "sha256": "249a842224467b25413b5ad7195bad28f85b0ac6e35aefee904cf81820f2b569"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-angle-arc-artifact.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-angle-arc-artifact.js",
+      "bytes": 18180,
+      "sha256": "c50e7a17f1961e31eb500da64e5ce6fca9f0be213807157c16a5d3c2786f1fa5"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-angle-arc.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-angle-arc.d.ts",
+      "bytes": 4261,
+      "sha256": "db8c4a8dd907693cf9e7fd80551046cc6145dd77217189446051a051ae92ee42"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-angle-arc.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-angle-arc.js",
+      "bytes": 16551,
+      "sha256": "6a79efc4cc9bc5b6d99c35806b91ee9d0040bec515da05623a6b4c09e256843d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-arc-sketch-document.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-arc-sketch-document.d.ts",
+      "bytes": 2892,
+      "sha256": "5619a11fc0333c4f83c0aa49832089f60012bdef34af320b7b9c76d0eddd3160"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-arc-sketch-document.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-arc-sketch-document.js",
+      "bytes": 16372,
+      "sha256": "397d796c75a82e49c175767bf6443faa2372805c116a0f54f2156989a97a3724"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-arc.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-arc.d.ts",
+      "bytes": 1019,
+      "sha256": "be70c357c06e1fd1dc6b2561c1a977a0d1a3ea141b9e6d554aea24393e06e616"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-arc.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-arc.js",
+      "bytes": 3386,
+      "sha256": "66a7b08fe35bf6e48d85f06ac79fb488d357d137697e223fd8ab61b034425b0e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-planar-face-preview.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-circle-planar-face-preview.d.ts",
+      "bytes": 2584,
+      "sha256": "038abd98d969d2804f8c7d2e45f025a83a0ff62765be9108b1bb48c29271dd62"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-planar-face-preview.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-circle-planar-face-preview.js",
+      "bytes": 10638,
+      "sha256": "c6f0fe703df8dfd210c518d1039eba1ee5a7e9c09b65ef076bf0a8c65ee2065e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-planar-face.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-circle-planar-face.d.ts",
+      "bytes": 3323,
+      "sha256": "65a366c01979645737d7446a9a3d0b024e2bfe2c9522f70b357f8be157837808"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-planar-face.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-circle-planar-face.js",
+      "bytes": 12257,
+      "sha256": "f5a0503fc27308eb579f9aff5d209674e182fb52f218db3236fda94817899320"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-prism-document.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-circle-prism-document.d.ts",
+      "bytes": 2582,
+      "sha256": "db39bf4a4daf14ab899834de32a369839c1c3897d07b80449ec4da73718bc909"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-prism-document.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-circle-prism-document.js",
+      "bytes": 15760,
+      "sha256": "3df8d04d8a510064bffabd63105f4f5ba40a74afdb6f2632b26411d416f58217"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-prism-shell-preview.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-circle-prism-shell-preview.d.ts",
+      "bytes": 4063,
+      "sha256": "6eb0872fdc9809a70cb59d945bd0ea1eab2a31d089bcd96620614218fad62a78"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-prism-shell-preview.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-circle-prism-shell-preview.js",
+      "bytes": 16063,
+      "sha256": "b3ffaabb29599e6f781a43dce3d08d144f0481f6ed69b443197318e66e1a78e6"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-prism-shell.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-circle-prism-shell.d.ts",
+      "bytes": 4077,
+      "sha256": "08d2a1e5f5d2e2f3d1c25b9fbefa1f52a14c972f9253f66cf4929e5076a36988"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-circle-prism-shell.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-circle-prism-shell.js",
+      "bytes": 15779,
+      "sha256": "a2d804457638a9935d039d5034cdb04beadf556cb3d053886d902cb96d317e52"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-linear-sketch.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-linear-sketch.d.ts",
+      "bytes": 2923,
+      "sha256": "e0c61f0e19d385075f96c8bf6159ba9960c3cf073617e47ec665a62702f18df9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-linear-sketch.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-linear-sketch.js",
+      "bytes": 24391,
+      "sha256": "66a6a2261feebae7ca9efe77b7b4bfbd759b14456bfc6365e6d223b4c81effe4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-planar-face-hole-preview.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-planar-face-hole-preview.d.ts",
+      "bytes": 3235,
+      "sha256": "8c201534447a22a62f5664ba0eb24eccc3ab1b8c8ba29aa2c075e7178d0e93c5"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-planar-face-hole-preview.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-planar-face-hole-preview.js",
+      "bytes": 16191,
+      "sha256": "20ca4c7a1cf24b31e1181614c5879864ac3559b61c17d959360d54e7509bae58"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-planar-face-hole.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-planar-face-hole.d.ts",
+      "bytes": 3555,
+      "sha256": "109f47b4699b0673b1c95f27fbc5ed33b420706db380a965d87eb5f678a29eb9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-planar-face-hole.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-planar-face-hole.js",
+      "bytes": 15607,
+      "sha256": "1ea11b6493f9751b6f61249ec11caee42df6d2fca5e31ae7e078f4b2f7baa6cf"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-planar-face.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-planar-face.d.ts",
+      "bytes": 2354,
+      "sha256": "57c47a1ee090393404a24a8a8eab6a695de1aa4d32549c08bbdc849e6d5ecb26"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-planar-face.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-planar-face.js",
+      "bytes": 11256,
+      "sha256": "4fef7eb38164810e6962cd7916d12b9d44420cbc4052d319350d1e9a002821ff"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-preview.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-preview.d.ts",
+      "bytes": 1259,
+      "sha256": "be17763eea6a65c503736fadc9556ed0c42df2b5ae94901cd44571de200bc737"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-preview.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-preview.js",
+      "bytes": 7105,
+      "sha256": "2d7b5125b1f70c46602beeb57967a46e7cf9f70c387e8c05e29bff042f346c9f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-document.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-prism-document.d.ts",
+      "bytes": 2002,
+      "sha256": "2d43d8d6c603b78a550ef9d2cb742bf5e2fdf0b50048ac3509e0e1a7adf5da66"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-document.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-prism-document.js",
+      "bytes": 12645,
+      "sha256": "2f33c7db67cc683c0b9b2060335db9c56b5cc9824c43ac39417811de6bf9037a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-hole-document.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-prism-hole-document.d.ts",
+      "bytes": 3300,
+      "sha256": "70f62c99e681994240a669eddd4e79400ae94370d35242df36201788bf239a71"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-hole-document.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-prism-hole-document.js",
+      "bytes": 15079,
+      "sha256": "091f8660c3d6b3b76bde6ea39fedfc6f50981097c57149bc4cc7129e6a0b4f75"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-preview.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-prism-preview.d.ts",
+      "bytes": 2074,
+      "sha256": "98d2f16481e21b0c3b77e605f21faf4d6617378772eceb7719bb068fa076c1ac"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-preview.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-prism-preview.js",
+      "bytes": 8562,
+      "sha256": "b2600dee266fe199a93669deac37190341584f9b53d83d62f6f605c913db1f35"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-ray-query.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-prism-ray-query.d.ts",
+      "bytes": 2100,
+      "sha256": "c52f1808b1340880066e42d6d262b8463a10c6d16307c40a7dc00a8581add38b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-ray-query.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-prism-ray-query.js",
+      "bytes": 11488,
+      "sha256": "73edd1db9480e8f2b95d5534534956c51cc228a71d64340e32e4dd388ae6f02f"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell-hole-preview.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-prism-shell-hole-preview.d.ts",
+      "bytes": 3712,
+      "sha256": "b9a6ca49bcd6ee38cdfba58d46d8da6cde5faa329afa8333e2b67bb9521f3c91"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell-hole-preview.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-prism-shell-hole-preview.js",
+      "bytes": 15470,
+      "sha256": "741c213bf2d93e911857d180a52c7160d70336213345a50fa3a5c8a34be3bd60"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell-hole-ray-query.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-prism-shell-hole-ray-query.d.ts",
+      "bytes": 2867,
+      "sha256": "fd9d7da6e4930e3f13c047421ed4377d7f99b9ef1d5deefb226a70acff375d0e"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell-hole-ray-query.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-prism-shell-hole-ray-query.js",
+      "bytes": 12604,
+      "sha256": "84e5e98dc8de58329783632c0c47e64d6320c27d5264d8259c5bb49fa7e86700"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell-hole.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-prism-shell-hole.d.ts",
+      "bytes": 4562,
+      "sha256": "85d1f48634139a3726cc72fbe5d5c59b6f72b76f2a31354b47423101f047adf4"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell-hole.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-prism-shell-hole.js",
+      "bytes": 21505,
+      "sha256": "82ac5c05de5e4aa5cb7e3222482c147634d136c811992e01e7a09397f4bed8ec"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell-preview.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-prism-shell-preview.d.ts",
+      "bytes": 2727,
+      "sha256": "b5b9bc445ec64fce6a1e7e34147c97b33003b990fd81b9e2444a153e8fd73158"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell-preview.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-prism-shell-preview.js",
+      "bytes": 11146,
+      "sha256": "8f75e0b5957d02c55aef6292004bec77f81e23a63c865b684f53fe5d1e201cb0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-prism-shell.d.ts",
+      "bytes": 3126,
+      "sha256": "0b7583fcda3e7ab0651ad2ee800fc76366436f986ba92df5e671b9938b1aa126"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-prism-shell.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-prism-shell.js",
+      "bytes": 13823,
+      "sha256": "b2617930dd3c7a91129d23638001d86769f54669d9a570fc62d3c6913554780d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-region.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-region.d.ts",
+      "bytes": 1351,
+      "sha256": "b356ef6023b78a902fe15d816a2152bb281547a964ef78321632cd2000b0cee3"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-polygon-region.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-polygon-region.js",
+      "bytes": 10293,
+      "sha256": "960d68e5c93ae9084864f18486f1f5c3d1bde77a4b3136fa95ffef29c06060f9"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-profile.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-profile.d.ts",
+      "bytes": 984,
+      "sha256": "a6b580248ee8f544af95e4051645954900fd71fbba756e3748a27c80fb4aef8a"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-profile.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-profile.js",
+      "bytes": 3214,
+      "sha256": "4374b47dc3a6a1ddb86508f3f859fc67f79e269fd5798ee05789689f82c17f19"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-sketch-document.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-sketch-document.d.ts",
+      "bytes": 2395,
+      "sha256": "f1dcd31deb1bb1565f7635a6e00dd85917df30b83aa44f7b469de5264153bdb1"
+    },
+    {
+      "path": "packages/barocss-cad/dist/xy-sketch-document.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/xy-sketch-document.js",
+      "bytes": 16141,
+      "sha256": "2d2e4db5774161734a184389a70bc6a13a2cae35ff4d6eff100db9cf18f65555"
+    },
+    {
+      "path": "packages/barocss-cad/dist/z-axis-revolve-document.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/z-axis-revolve-document.d.ts",
+      "bytes": 2302,
+      "sha256": "94e1e1f64c75c91969e8aefbdb67337c7d1d9cfe0f0d417930fbbcc095019fe0"
+    },
+    {
+      "path": "packages/barocss-cad/dist/z-axis-revolve-document.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/z-axis-revolve-document.js",
+      "bytes": 13446,
+      "sha256": "d96da72422c2591755dc25f119ee1455a812e89a0dba56a4125b8bdc536c526b"
+    },
+    {
+      "path": "packages/barocss-cad/dist/z-axis-revolve-preview.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/z-axis-revolve-preview.d.ts",
+      "bytes": 3180,
+      "sha256": "b21bd265a2a33fcfdfa8249c8b19ac40b32bfd0e0ca0936638828dc75a3d567d"
+    },
+    {
+      "path": "packages/barocss-cad/dist/z-axis-revolve-preview.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/z-axis-revolve-preview.js",
+      "bytes": 11255,
+      "sha256": "cb53f633a6302637e8b77ada9a5c20f2bd7118f0b5199f5c593a780e1e00f4ba"
+    },
+    {
+      "path": "packages/barocss-cad/dist/z-axis-revolved-surface.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/z-axis-revolved-surface.d.ts",
+      "bytes": 2386,
+      "sha256": "8767fec28fafa6a215b25a4f37a580b827ffe3598da17e53e5d749ea78972dbf"
+    },
+    {
+      "path": "packages/barocss-cad/dist/z-axis-revolved-surface.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-cad/dist/z-axis-revolved-surface.js",
+      "bytes": 11026,
+      "sha256": "2a05d520ede941fa022487e393aa519199c424f67887531b90f0f3e09aba4517"
+    },
+    {
+      "path": "packages/barocss-physics/dist/broadphase.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/broadphase.d.ts",
+      "bytes": 230,
+      "sha256": "ed4c7e05294e99d439f238eb5c0bb3da5c6acb90ea0b846250a399b87ca1169b"
+    },
+    {
+      "path": "packages/barocss-physics/dist/broadphase.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/broadphase.js",
+      "bytes": 1253,
+      "sha256": "f35e7453719dc2b44668bb20d6fad51a739c6b2cdb9797fe875fc81187400db3"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cad-proxy-admission.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cad-proxy-admission.d.ts",
+      "bytes": 322,
+      "sha256": "e571a8936bc6df9bfa2dfd9ba0464709947026528be2b5028fb0d7964aa5ca78"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cad-proxy-admission.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cad-proxy-admission.js",
+      "bytes": 6126,
+      "sha256": "6cf2f0ba32d36b7b02b6f308ff36217e71f6f68fd72dbd6f1002d934a6876182"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cad-proxy-pose.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cad-proxy-pose.d.ts",
+      "bytes": 243,
+      "sha256": "8ed62f953840b9ed6319d507e080f771d05c48b1d3125849bbbbdde52beda981"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cad-proxy-pose.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cad-proxy-pose.js",
+      "bytes": 1183,
+      "sha256": "e8b350f3852c305a43432fc74aae3586e48e6714d6eac012ac74d9c1948de5ce"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cad-proxy-types.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cad-proxy-types.d.ts",
+      "bytes": 856,
+      "sha256": "6a07a840ab6766518666c03a20e6094944144c8cf7859ba1d2b48c7dc959974d"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cad-proxy-types.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cad-proxy-types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cad-proxy-validation.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cad-proxy-validation.d.ts",
+      "bytes": 516,
+      "sha256": "1d25ae0b81c85d792d7086c7608a13ed58f051e247f19e21ec76ad044c0cb741"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cad-proxy-validation.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cad-proxy-validation.js",
+      "bytes": 1327,
+      "sha256": "30ff7c4b15b218924f4b6a8df561830ed254365a3b474f4e718b486fd7be5155"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cad-proxy.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cad-proxy.d.ts",
+      "bytes": 258,
+      "sha256": "03745054fcec2bd660258fa9cf303aced00456bda3a705294c664e509882356b"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cad-proxy.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cad-proxy.js",
+      "bytes": 140,
+      "sha256": "775493e3d68ab03d91efa837def347ed4c85cc556e2702b51e63c9e2562c5637"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-contact.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/capsule-contact.d.ts",
+      "bytes": 189,
+      "sha256": "6886362e762a3bd07d1594de24c128d461cd7819e822d684b154b334de6160b5"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-contact.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/capsule-contact.js",
+      "bytes": 5708,
+      "sha256": "7519483aec208b282ae23bb6985868af199b19d00d3d00564b3a5438d2113ad1"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-query/admission.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/capsule-query/admission.d.ts",
+      "bytes": 250,
+      "sha256": "779417df1dbf3f0f697de4a04f918007954b13fc9f301b991105bbfc0a9cefe6"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-query/admission.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/capsule-query/admission.js",
+      "bytes": 4875,
+      "sha256": "4ec507e0c2165af9bea0091666126abf6335662f81fa736821b3978f0293ab20"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-query/geometry.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/capsule-query/geometry.d.ts",
+      "bytes": 527,
+      "sha256": "a3eb6a92d9a8647dbfd88f129e29a167ac00a1ff78ab5b0dd9fe1101ad78edc8"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-query/geometry.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/capsule-query/geometry.js",
+      "bytes": 2319,
+      "sha256": "4c9034c23c2137d54e4d2e1554b9015ff2cc6bc7776d62d8e1f3c8b905b67d04"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-query/profile.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/capsule-query/profile.d.ts",
+      "bytes": 357,
+      "sha256": "2b1626e82c8677593940e8100247b6fbb33e9ab53e80d9de001ec1f9a7411300"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-query/profile.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/capsule-query/profile.js",
+      "bytes": 294,
+      "sha256": "acfab32b60a91c29bec4b89a803902aa9b944eb2ebb6cd0d129b60e039e13210"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-query/snapshot.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/capsule-query/snapshot.d.ts",
+      "bytes": 176,
+      "sha256": "64340b99b9b456f3586ed545d7e99a570675df7972374c3ec76ecd9d73a515ea"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-query/snapshot.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/capsule-query/snapshot.js",
+      "bytes": 2468,
+      "sha256": "5ee1b97dc58a872a9cd6c56121eca158ac5f746d543729e5f197b24d08f9d55f"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-query/sweep.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/capsule-query/sweep.d.ts",
+      "bytes": 231,
+      "sha256": "e4faea63d9f9446ef0a8b5b3dee919dfcfe8be91a982b073c5f31eaff5537853"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-query/sweep.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/capsule-query/sweep.js",
+      "bytes": 1833,
+      "sha256": "f04e6a548504cad0bb838862f7813225592c9549fb0233e026bc6276f7b4929e"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-query/types.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/capsule-query/types.d.ts",
+      "bytes": 1017,
+      "sha256": "59417b6c5aac6a49b48675b7730e77bdacd1c4a6b5962a8a43f729d98ebafc4e"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-query/types.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/capsule-query/types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-query-error.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/capsule-query-error.d.ts",
+      "bytes": 43,
+      "sha256": "b105d9550d9a3a0dccc02de4bf06d3191f7ce2a0b9241ee9031c14a54dff9b6e"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-query-error.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/capsule-query-error.js",
+      "bytes": 137,
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-query.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/capsule-query.d.ts",
+      "bytes": 222,
+      "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-query.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/capsule-query.js",
+      "bytes": 73,
+      "sha256": "f44c04d06c851b807add8096cc26bf893945f53b49ab6c671148491b88e781fc"
+    },
+    {
+      "path": "packages/barocss-physics/dist/ccd-box.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/ccd-box.d.ts",
+      "bytes": 366,
+      "sha256": "b7944a4858362550851ea69ebcfd73f749c3416cad673633086a788fe5a2e5d6"
+    },
+    {
+      "path": "packages/barocss-physics/dist/ccd-box.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/ccd-box.js",
+      "bytes": 1825,
+      "sha256": "28dc449fe8f07f1d95245017299e64d3fc350fd7982819c93565999130290595"
+    },
+    {
+      "path": "packages/barocss-physics/dist/ccd-pair.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/ccd-pair.d.ts",
+      "bytes": 266,
+      "sha256": "a00ec5667f35a40f48a83443b5a75eb67853143ba14251f588f2952d63ec54e5"
+    },
+    {
+      "path": "packages/barocss-physics/dist/ccd-pair.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/ccd-pair.js",
+      "bytes": 2103,
+      "sha256": "6c89cf6f2fc9e9eeb3f83959be8ef23ed614cba42e91e48cb0e4706777234fd2"
+    },
+    {
+      "path": "packages/barocss-physics/dist/ccd-slab.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/ccd-slab.d.ts",
+      "bytes": 207,
+      "sha256": "78d5b2d258732868c2ce469e3179cbfce52f07288205b933a6f43f6eeff3eeb0"
+    },
+    {
+      "path": "packages/barocss-physics/dist/ccd-slab.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/ccd-slab.js",
+      "bytes": 1088,
+      "sha256": "cf85c1dce1ebaa899cc2fc9eead7b0c25f7096caeb3a652476beb93c5f02843f"
+    },
+    {
+      "path": "packages/barocss-physics/dist/ccd.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/ccd.d.ts",
+      "bytes": 551,
+      "sha256": "aa03547eeb32ee459ed5393a8901a61b21e63edefef91517e8a5f727e35e945a"
+    },
+    {
+      "path": "packages/barocss-physics/dist/ccd.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/ccd.js",
+      "bytes": 2966,
+      "sha256": "c2c54c3dedf0df98c8888107457dbd87041eb7f52b8f689484b18abdfbc5b54a"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/admission.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/admission.d.ts",
+      "bytes": 490,
+      "sha256": "137ef95a98e9aee44998854fe08de0aa5e2806854f05c0757ef12921d769d64e"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/admission.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/admission.js",
+      "bytes": 4100,
+      "sha256": "07cf9fb6af74299fce3e8fba82ca65871ea7e0cc67e4e73c837606be9f30e43c"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/core.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/core.d.ts",
+      "bytes": 452,
+      "sha256": "1d5e52b2e48111ab4874ab09fe6fc21bc4c9022b31f5baa0d939db67ff80e04a"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/core.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/core.js",
+      "bytes": 4194,
+      "sha256": "80a53992b06c75c9216a671c52bad2f3a01b6192bbd6002458ecfe077c3a4eb4"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/ground.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/ground.d.ts",
+      "bytes": 241,
+      "sha256": "59f59e04ae3e36883940a4c44845f3864d4a0b0deda266427198a1ff876b8e75"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/ground.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/ground.js",
+      "bytes": 1117,
+      "sha256": "96298ab6534e5e9e7f3da6b0850bbbb7acd73ac11534f6047617ac2bdcd2eb16"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/math.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/math.d.ts",
+      "bytes": 391,
+      "sha256": "433867ff46514494522dcf86c0c2412e405df55db2c8dcac593ce729ae070af9"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/math.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/math.js",
+      "bytes": 686,
+      "sha256": "1afbd07dcb7940e9808e9017d665d781b5e7442bebc290c8327d0d4fb7a79174"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/profile.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/profile.d.ts",
+      "bytes": 355,
+      "sha256": "30d583b24f52cf743763b6d877a8d4d1f742a9646d000c43a64065f1836019ce"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/profile.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/profile.js",
+      "bytes": 334,
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/query.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/query.d.ts",
+      "bytes": 646,
+      "sha256": "0303d68278a5d907ded763e36c97b923fe1c717d06eed1666b4124cdd7c4b215"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/query.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/query.js",
+      "bytes": 2186,
+      "sha256": "3b22d2772d3724bdb3974f1d88f5298054e577286a9f73aa67e62684efca1184"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/slide.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/slide.d.ts",
+      "bytes": 310,
+      "sha256": "d16855cd67d77b97846e60f3d5f6938e0445f1011fc191c30d5af60023f64d02"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/slide.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/slide.js",
+      "bytes": 2636,
+      "sha256": "10c7d825c4640a7837a0b69885bb422ea5a343c921430675c11955acafce3c57"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/state.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/state.d.ts",
+      "bytes": 495,
+      "sha256": "60a986a611ac2b2ce7fdb14c97a8ab7caa63351169b51e9a2dfc35014ef2fcbe"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/state.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/state.js",
+      "bytes": 1923,
+      "sha256": "1600bb81b883944f36c687305bcb5f7134dbf6c0751e92d9206b03622eaf9633"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/step-assist.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/step-assist.d.ts",
+      "bytes": 436,
+      "sha256": "82537d8b381418ee66fc91e3e7b527090b20220c36ff147917b17dd3237740e3"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/step-assist.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/step-assist.js",
+      "bytes": 2969,
+      "sha256": "aacc69468b9db7a62a14fbb2628a4494cab01a82640c682ad72f098fcbe7c8e5"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/types.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/types.d.ts",
+      "bytes": 2675,
+      "sha256": "1cd3915834a0ba2417658533099aecb869305eeecfc2a3a3f3a40fca677e6a24"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character/types.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character/types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character-controller.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character-controller.d.ts",
+      "bytes": 505,
+      "sha256": "58081e98e53b7c4a256dd00eac153992c61dfdbfcdbb2f15b9da8aa88df092e8"
+    },
+    {
+      "path": "packages/barocss-physics/dist/character-controller.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/character-controller.js",
+      "bytes": 1083,
+      "sha256": "7a68a578b18b42e02dcacba24011b41208fa9af3b5c1b6991dd8efbae29d75b8"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/admission.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cloth/admission.d.ts",
+      "bytes": 65,
+      "sha256": "4828945ecdd7136f98f5ebe94139490c58bf6b71905a896f7558726100bcede0"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/admission.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cloth/admission.js",
+      "bytes": 1582,
+      "sha256": "8d1837695f375cdd4a1a2b7eecdc08d386b2f973dcd9c1343791ba14aece8e87"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/constraints.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cloth/constraints.d.ts",
+      "bytes": 222,
+      "sha256": "d73f6b43a6276c83a5393ad8f5888833f6e2e91289f90d8176fe4d8cdb6f6296"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/constraints.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cloth/constraints.js",
+      "bytes": 1836,
+      "sha256": "6e2e0b09734222a87abdefd745540e3ff5f4f24414cfae51f85c1b96d15225d7"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/metrics.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cloth/metrics.d.ts",
+      "bytes": 277,
+      "sha256": "5fb418be30e84af69659615f0c87a66d0907d9422087f8fb40ca1f03379e29b0"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/metrics.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cloth/metrics.js",
+      "bytes": 1730,
+      "sha256": "78e03ac4e69c35a7be6a614e4d7aedff4e4390d64c103a28543c0f6ee056eb27"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/profile.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cloth/profile.d.ts",
+      "bytes": 604,
+      "sha256": "8f1d860e70cc6e12faa7d35c38bb116298f0ee6345e18aa53119294e531e0fa1"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/profile.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cloth/profile.js",
+      "bytes": 664,
+      "sha256": "0dc385cac798bcfde6ad9cf479b8c51cf55bfc42b478370534ccb2de1e66f807"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/solver.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cloth/solver.d.ts",
+      "bytes": 309,
+      "sha256": "02eae9d5e0564304417dcb5afc5994dc808ee261ad05c16453c36ee58a6607f0"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/solver.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cloth/solver.js",
+      "bytes": 1471,
+      "sha256": "1f7178354cc026a41996d32502ac54d888ddf83f6b955059bb43f45cc6d9453b"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/topology.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cloth/topology.d.ts",
+      "bytes": 97,
+      "sha256": "96f70c7b8084190711c77cde7e7c54ba1f549f58c0af1a92060e25d5198e8047"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/topology.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cloth/topology.js",
+      "bytes": 2033,
+      "sha256": "403cf1b19b85a3a6dd177ae8bb130b19895670e679452533df22dce26d558050"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/types.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cloth/types.d.ts",
+      "bytes": 1805,
+      "sha256": "b8d3dc96ac97b94114d1d2adcfcc996f8bd2bbd103fbb67b6dfce5ce0f413d8c"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/types.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cloth/types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/world.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cloth/world.d.ts",
+      "bytes": 116,
+      "sha256": "3ab4d9c5e896789222d1d333f805e7ffc22c7e1995a3e8293207714e44c7e3ab"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth/world.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cloth/world.js",
+      "bytes": 2960,
+      "sha256": "c5e64d36a869e3ee689d949741ad15a1cfe8e2c78d538d8c3f0b6e7cd034caaa"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cloth.d.ts",
+      "bytes": 194,
+      "sha256": "20088da3e20e782153deec6719e6946562fabe474dc5eaebe6d1ac9c20a508ce"
+    },
+    {
+      "path": "packages/barocss-physics/dist/cloth.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/cloth.js",
+      "bytes": 96,
+      "sha256": "9952183db070274b3a8db0f99cc589bdd31729eeaefc70f4ee6d05253a318960"
+    },
+    {
+      "path": "packages/barocss-physics/dist/collision.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/collision.d.ts",
+      "bytes": 526,
+      "sha256": "822b6148463875531facd48ee80876ff5d1946cfc7c20c7d116d39cbf20fe49a"
+    },
+    {
+      "path": "packages/barocss-physics/dist/collision.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/collision.js",
+      "bytes": 13712,
+      "sha256": "404bbb24c4552828f8bd943481a15b11af7d93333c5651c4c8f8cae88e3dd28a"
+    },
+    {
+      "path": "packages/barocss-physics/dist/contact-manifold.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/contact-manifold.d.ts",
+      "bytes": 311,
+      "sha256": "81615ac8c95f2a475fcf525f409cbd643ec96fb261f69ad7cf7c5b087f3e725d"
+    },
+    {
+      "path": "packages/barocss-physics/dist/contact-manifold.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/contact-manifold.js",
+      "bytes": 4249,
+      "sha256": "28835f7775388d2dd00871e1cd4d98a5143d31c9d1ee054e137937c40df54038"
+    },
+    {
+      "path": "packages/barocss-physics/dist/dynamic-anchor-pair.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/dynamic-anchor-pair.d.ts",
+      "bytes": 411,
+      "sha256": "7e8071f43912e7471bc0de57caecd7035290149b43cb94d869f42f301a34aa58"
+    },
+    {
+      "path": "packages/barocss-physics/dist/dynamic-anchor-pair.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/dynamic-anchor-pair.js",
+      "bytes": 3099,
+      "sha256": "8e20e96a9a3c803f65d78dfa21aaf530744b2c37e4f3507fd87e828190c800be"
+    },
+    {
+      "path": "packages/barocss-physics/dist/dynamic-fixed-joint.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/dynamic-fixed-joint.d.ts",
+      "bytes": 258,
+      "sha256": "0b6b35d2e6f08719b08ea1aec579868ed82ecbb78e6b9a6f5ee38ebd0db17d83"
+    },
+    {
+      "path": "packages/barocss-physics/dist/dynamic-fixed-joint.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/dynamic-fixed-joint.js",
+      "bytes": 1935,
+      "sha256": "c637c4b13cdf432103202f895e50fae7e05c88920cf0889a67f2c16e565bfb5a"
+    },
+    {
+      "path": "packages/barocss-physics/dist/dynamic-hinge-joint.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/dynamic-hinge-joint.d.ts",
+      "bytes": 466,
+      "sha256": "4b549062503ddea59e7bb511845a17e9bd7e3b374b4228369ba377a216ed4221"
+    },
+    {
+      "path": "packages/barocss-physics/dist/dynamic-hinge-joint.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/dynamic-hinge-joint.js",
+      "bytes": 4671,
+      "sha256": "8780a6887f0c7cbec6ec2f059b2ada64d0e28d0224279d7ada42e4b79e84baac"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/boundary.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/boundary.d.ts",
+      "bytes": 349,
+      "sha256": "fdc60e3e6b43b551c74fee3eb888476213132987c2b6f80e9a2a515041076b91"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/boundary.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/boundary.js",
+      "bytes": 2027,
+      "sha256": "0411aee849b18145f75e2a602a23aab5b5e6a644bc44a47cc2944ab532d0ea18"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/cad-admission.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/cad-admission.d.ts",
+      "bytes": 315,
+      "sha256": "c8cbdc9d16c1a64e73152a19d46fd6133c3a0fe805d1d5de621d69b10aef921d"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/cad-admission.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/cad-admission.js",
+      "bytes": 1729,
+      "sha256": "89d1e6869e3a762e1d7c96b9b2ee862f202f9b13358421f6d72c049049d82e93"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/cad-errors.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/cad-errors.d.ts",
+      "bytes": 145,
+      "sha256": "a3abcdbc06483ece85adf3e2c5341d79d6926259d908b7c316bb25c26570b4d5"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/cad-errors.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/cad-errors.js",
+      "bytes": 554,
+      "sha256": "28eb00a5b8d0aba227910d7c0fc93655f92d399c4b64e6effe5aac24a75b0680"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/cad-types.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/cad-types.d.ts",
+      "bytes": 784,
+      "sha256": "186d51b622ab729d8d7547b4b774b36c10a30556e49a059b5f04586579d31573"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/cad-types.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/cad-types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/cad-world.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/cad-world.d.ts",
+      "bytes": 276,
+      "sha256": "bd1b990f0baad372457867d51492a845edfa46a82f67ad6e7f85a2c7f5fc5b4a"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/cad-world.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/cad-world.js",
+      "bytes": 2110,
+      "sha256": "b52b5cd6bacf22da8998f9d6f8832e736a050a4597708c47eaf35697dcde7059"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/constants.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/constants.d.ts",
+      "bytes": 469,
+      "sha256": "7aca3254afc635652636cc6110d84f624e0604199cb9cd46e3b70b933702b34e"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/constants.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/constants.js",
+      "bytes": 396,
+      "sha256": "48cb2507298e158c9d711a3a08e36a521ccab101a26b55217d00247a9b844072"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/diagnostics.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/diagnostics.d.ts",
+      "bytes": 180,
+      "sha256": "2e528c38ac59e450feb510f421228cba10843df87d4f1b476582eb8a814f2e47"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/diagnostics.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/diagnostics.js",
+      "bytes": 1032,
+      "sha256": "b87d7b27266ca4b014d4b84b24b57216b12d4b0345088282b6ecd5270fa46c29"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/kernel.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/kernel.d.ts",
+      "bytes": 376,
+      "sha256": "4430b3611c7ea86ba71ca51f93e02b800f11a44986182059a219f2a5ab3da157"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/kernel.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/kernel.js",
+      "bytes": 1047,
+      "sha256": "264a62a2ed0aeee0c77bd5ba44a60a6d0522654ecc8f07117174c6fe328c123b"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/neighbors.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/neighbors.d.ts",
+      "bytes": 384,
+      "sha256": "f81f41caadaccc5b3150f144b0687a5a2910e456ac707114b927ba2ef18869fd"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/neighbors.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/neighbors.js",
+      "bytes": 3065,
+      "sha256": "e857766d44372269a19fb83d4bdeeabbc1816b9792230e6a9aac8cf1ea6249e5"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/pbf.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/pbf.d.ts",
+      "bytes": 722,
+      "sha256": "0475a847a3b98aadce70713913ac39d7d3c03e07a261c51e20ae86231c65e19c"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/pbf.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/pbf.js",
+      "bytes": 5606,
+      "sha256": "93ba3d6c2db8aee07c7307d74300888b9e48279279f6f060e157ea08b847241d"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/static-box.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/static-box.d.ts",
+      "bytes": 610,
+      "sha256": "8114249e35b106ca3316bdb0f7ee0eec184c2555642719f429d6ab877b5f000f"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/static-box.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/static-box.js",
+      "bytes": 2238,
+      "sha256": "120ee59f2212e86846bce3a73425b493d2bc98971dc230419a394a1235196b7c"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/types.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/types.d.ts",
+      "bytes": 1210,
+      "sha256": "fa2ac9372930ea18cbe17600c781775278c5098b2a8a1263688898bef8bc3ecb"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/types.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/validation.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/validation.d.ts",
+      "bytes": 131,
+      "sha256": "99b1b580f08a9b98ad130498280ce7249917a51f9b95db1a095d27366def5f8a"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/validation.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/validation.js",
+      "bytes": 4345,
+      "sha256": "66993795c3eba7e53214c5b3bc6f77ae2293c7ab3c35be77efbada996bce01a9"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/visual-viscosity.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/visual-viscosity.d.ts",
+      "bytes": 289,
+      "sha256": "f7917414df0b746457c9dc5fb9cd12e48dc2bc2ab6d4cc30f0a31a9c6e3a6b26"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/visual-viscosity.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/visual-viscosity.js",
+      "bytes": 1225,
+      "sha256": "0d01bcbd68f126c9d8954b46afe523f6e7f879f129817f40fc9300c297041205"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/world.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/world.d.ts",
+      "bytes": 311,
+      "sha256": "988557d9b6c28cca45c0a4faea70123845f4a9e5369054f979c5df8f2efd4d39"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid/world.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid/world.js",
+      "bytes": 3655,
+      "sha256": "a84e6b31b065e77a26f7a70c9c162da56293854a4605ecbdf2d3639a867e172d"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid-cad.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid-cad.d.ts",
+      "bytes": 302,
+      "sha256": "8078be1d069a01496fc63718294c6bbad54112f945bab00a9db1c63e1742fceb"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid-cad.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid-cad.js",
+      "bytes": 103,
+      "sha256": "de55c9a5902562e3a52dcf59ee6a9d0575ebf91ec008fb8354c1640d224f2dc8"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid.d.ts",
+      "bytes": 208,
+      "sha256": "f0af54170c9d1afdb899ae09298a58be462496d524f0e2e75d22028081aeb44b"
+    },
+    {
+      "path": "packages/barocss-physics/dist/fluid.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/fluid.js",
+      "bytes": 96,
+      "sha256": "bb20b7d945c005c508b1c7fad4de60743be20a26758adf634112ced218d136fa"
+    },
+    {
+      "path": "packages/barocss-physics/dist/index.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/index.d.ts",
+      "bytes": 1030,
+      "sha256": "61adc85d078e240041c94b2f6f8269dd5c4b355f28b3edf3f8b3b9f73a76d8a4"
+    },
+    {
+      "path": "packages/barocss-physics/dist/index.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/index.js",
+      "bytes": 115857,
+      "sha256": "8060be4ee85311bce15af37961394abff15bffa26e4e52dbe01091d2b66d7d4b"
+    },
+    {
+      "path": "packages/barocss-physics/dist/joint-motor.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/joint-motor.d.ts",
+      "bytes": 246,
+      "sha256": "b3b1929f61770ea54400899a9cc5fcbdbfc42f7cdb6251c39027aa3365f4026e"
+    },
+    {
+      "path": "packages/barocss-physics/dist/joint-motor.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/joint-motor.js",
+      "bytes": 1651,
+      "sha256": "43010c0e319717622727666e1e23f7288fdf500f1731f6fd52a443f36055c724"
+    },
+    {
+      "path": "packages/barocss-physics/dist/joints.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/joints.d.ts",
+      "bytes": 259,
+      "sha256": "39592ccaec850a2d8056721c31d2b1e4e94e8c7231c1f4a673d9a7d48a982678"
+    },
+    {
+      "path": "packages/barocss-physics/dist/joints.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/joints.js",
+      "bytes": 7382,
+      "sha256": "f2893b2f8684f338a8d4832b9fa91c356fd360bf70ebf423062e21911d433ce0"
+    },
+    {
+      "path": "packages/barocss-physics/dist/limits.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/limits.d.ts",
+      "bytes": 476,
+      "sha256": "9389e2dca0a552e1173fd3be829ea8f2cc698a86f6e7d92ddf305404192f0b6b"
+    },
+    {
+      "path": "packages/barocss-physics/dist/limits.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/limits.js",
+      "bytes": 416,
+      "sha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219"
+    },
+    {
+      "path": "packages/barocss-physics/dist/math.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/math.d.ts",
+      "bytes": 884,
+      "sha256": "36a9fd9c465be2439f3cbbf444aaeab64d3cea2bbd585a51d0107b497ec90066"
+    },
+    {
+      "path": "packages/barocss-physics/dist/math.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/math.js",
+      "bytes": 2114,
+      "sha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028"
+    },
+    {
+      "path": "packages/barocss-physics/dist/persistent-box-contact.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/persistent-box-contact.d.ts",
+      "bytes": 465,
+      "sha256": "f2088fef66e7ca221d679d544f596a3224f3244cd7ce05ef92566475b0132c79"
+    },
+    {
+      "path": "packages/barocss-physics/dist/persistent-box-contact.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/persistent-box-contact.js",
+      "bytes": 3157,
+      "sha256": "d2771c1b857df8e79feeacdaa61930927ac11d2f14f999aac31c2d9ae7a1f0cf"
+    },
+    {
+      "path": "packages/barocss-physics/dist/replay-compare.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/replay-compare.d.ts",
+      "bytes": 87,
+      "sha256": "9f0c2c538a56c78cb7fbfe9fe5131de4ce3dbe89792b7192da0b003e36021195"
+    },
+    {
+      "path": "packages/barocss-physics/dist/replay-compare.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/replay-compare.js",
+      "bytes": 974,
+      "sha256": "46e92b237a3b74725e1f973bc195f3fb3c7d182ea4978f5092608706d1400875"
+    },
+    {
+      "path": "packages/barocss-physics/dist/replay-json.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/replay-json.d.ts",
+      "bytes": 399,
+      "sha256": "fc848fd6a30b7c44f6a6b534cb19da0e191982b50afff5071b68456ca027ac85"
+    },
+    {
+      "path": "packages/barocss-physics/dist/replay-json.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/replay-json.js",
+      "bytes": 3167,
+      "sha256": "d5eac609d76c3d8c86b60545493fb9e6833a775da8c4a9fd3f0d5d98d37bde97"
+    },
+    {
+      "path": "packages/barocss-physics/dist/replay-scene.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/replay-scene.d.ts",
+      "bytes": 346,
+      "sha256": "e74489898fabc3318c64b46ac4e5951e9ef9670e0d577996766a56efce81f9b5"
+    },
+    {
+      "path": "packages/barocss-physics/dist/replay-scene.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/replay-scene.js",
+      "bytes": 1377,
+      "sha256": "d79ab9e2fbaaf6157469608b664525b5f80484f6258f2b9e9b81dde686b71423"
+    },
+    {
+      "path": "packages/barocss-physics/dist/replay-session.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/replay-session.d.ts",
+      "bytes": 340,
+      "sha256": "83319349c9769723ff92f0da0a15dbaa6e88c4746ea69dd9098b8c93dcef94eb"
+    },
+    {
+      "path": "packages/barocss-physics/dist/replay-session.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/replay-session.js",
+      "bytes": 4256,
+      "sha256": "ac9bcc030982619beae211b963ddeda6e5161c4bd71bcd9dc115d86f7dafcde6"
+    },
+    {
+      "path": "packages/barocss-physics/dist/replay-types.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/replay-types.d.ts",
+      "bytes": 706,
+      "sha256": "ea106bbb623d371995883386cba2335f143a7b132956756a77303df9683be9f1"
+    },
+    {
+      "path": "packages/barocss-physics/dist/replay-types.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/replay-types.js",
+      "bytes": 11,
+      "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+    },
+    {
+      "path": "packages/barocss-physics/dist/replay.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/replay.d.ts",
+      "bytes": 249,
+      "sha256": "6836331c3fc261272319d956c5f9f7e4b90913453a87d91673f301d8ff2d8f45"
+    },
+    {
+      "path": "packages/barocss-physics/dist/replay.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/replay.js",
+      "bytes": 151,
+      "sha256": "40d75176926d3b1425549cded722c17c391f0a3df4c0b1b59d8021fbd6bb516e"
+    },
+    {
+      "path": "packages/barocss-physics/dist/scene-profile.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/scene-profile.d.ts",
+      "bytes": 291,
+      "sha256": "8f7b1a3e8ac115a331f7c42be851baefd36ee3ec834bce2472215ff3367eb13a"
+    },
+    {
+      "path": "packages/barocss-physics/dist/scene-profile.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/scene-profile.js",
+      "bytes": 1138,
+      "sha256": "7a1198598bfaf64647f9ed89d76cb4f1035bd77e602d8b8c0b8a7914911b6e9f"
+    },
+    {
+      "path": "packages/barocss-physics/dist/sleep.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/sleep.d.ts",
+      "bytes": 387,
+      "sha256": "3a33f68d970f05e974f90ab187b74cafe6ad445555a10a8628acef1ee93be541"
+    },
+    {
+      "path": "packages/barocss-physics/dist/sleep.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/sleep.js",
+      "bytes": 4621,
+      "sha256": "681f3820fb08a61cd7f367b049f9b7bb3d2eb1a4e8f81975aec014fdefdb8250"
+    },
+    {
+      "path": "packages/barocss-physics/dist/types.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/types.d.ts",
+      "bytes": 5521,
+      "sha256": "27bcd9ef96a169602c056de1f7ee5f42f36dea951f1912d40511f32d8e87ac7f"
+    },
+    {
+      "path": "packages/barocss-physics/dist/types.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/types.js",
+      "bytes": 179,
+      "sha256": "932dad524c2e342e7335203e1e47aafb4025b3da32339385d79847c51283be1e"
+    },
+    {
+      "path": "packages/barocss-physics/dist/validation.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/validation.d.ts",
+      "bytes": 1392,
+      "sha256": "ff010dba91c4bacc1df2f5109611c3615933af84cc58127ef1ce8e440f5fc470"
+    },
+    {
+      "path": "packages/barocss-physics/dist/validation.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/validation.js",
+      "bytes": 13787,
+      "sha256": "d7bb0ca0e1ac7f0485b60e46d72d4a49a2856473276cf28e56967895f06fe919"
+    },
+    {
+      "path": "packages/barocss-physics/dist/world.d.ts",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/world.d.ts",
+      "bytes": 154,
+      "sha256": "d884aa389a62515cdaa8f89d6d6fb2374ef7747ebdee99cb85bea2b6c6f87e13"
+    },
+    {
+      "path": "packages/barocss-physics/dist/world.js",
+      "actualPath": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/packages/barocss-physics/dist/world.js",
+      "bytes": 21328,
+      "sha256": "4a02377609640f6d184e0d56bb6df8a696f9ec07114938e8fe1e7877e55b2544"
+    }
+  ],
+  "fileCount": 534,
+  "sourceFreezeSha256": "b131fe3c8f095e620aa0ca8100935afc78c808641dfb368be414c3f729d8ec58",
+  "buildReceiptSha256": "c1278d5f8795d134437a85255bc5726da5e95197f2c89bca62eb09fb02aad919",
+  "typesReceiptSha256": "67cf79ad0b2c66c561f37498a09269a13517bf75ab7320b8cb9c5c75c053a4d8",
+  "currentConsumerHead": "8ab2a455fdebee71e4021724ec42087d3ded7889",
+  "buildMeasuredSource": "649c17a57bc5e30afb470235d2b97209e2d50810",
+  "typesMeasuredSource": "649c17a57bc5e30afb470235d2b97209e2d50810",
+  "historicalSyntaxFailurePreserved": true
+}

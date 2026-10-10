@@ -1,0 +1,67 @@
+{
+  "scope": "completed source controls and immutable metadata only",
+  "readOnlyAudit": true,
+  "productOrReferenceImports": false,
+  "physicsOrReferenceExecution": false,
+  "mainTraceRead": false,
+  "worldGOClaimed": false,
+  "currentSource": "13ab386a98eecc528172f72672f554262576df26",
+  "sourceFreeze": {
+    "path": "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-signed-closure-world/source-freeze.json",
+    "bytes": 131542,
+    "sha256": "b131fe3c8f095e620aa0ca8100935afc78c808641dfb368be414c3f729d8ec58"
+  },
+  "pinsVerifiedCurrentAndMeasuredCommit": 690,
+  "emittedLedger": {
+    "path": "/tmp/physics-1384-first-native/emitted-pre-consumer.json",
+    "bytes": 179505,
+    "sha256": "10b5eaf5e6ac92034c0c5f53607dd29baf718346ccfebee0e99e7e31120fec4a"
+  },
+  "emittedVerified": 534,
+  "originalEmittedLedgerUnchanged": true,
+  "originalBuildSource": "649c17a57bc5e30afb470235d2b97209e2d50810",
+  "originalBuildHead": "93a5a9f8d8e987945c211f8422d66e2dffbe281d",
+  "firstSyntaxFailure": {
+    "path": "/tmp/physics-1384-first-native/initial-syntax-failure/consumer.stderr.log",
+    "bytes": 1143,
+    "sha256": "fc47e95974fd336767c0048ad5b4aea0387c281a49145c1bab8eb3975e4051bc"
+  },
+  "sourceGraph": {
+    "artifact": {
+      "path": "/tmp/physics-1384-first-native/source-graph.json",
+      "bytes": 57943,
+      "sha256": "9d14d0527529a1fb06cd085901da6903f709774e5e231a10352000e61e1fb5c7"
+    },
+    "inputsVerified": 56,
+    "originalSourceCount": 39,
+    "originalDistCount": 0,
+    "bundleSha256": "90de999ede697425c2e4c437cc6cc92095374a117e0a5a3fc801750ac92312a4"
+  },
+  "controls": {
+    "artifact": {
+      "path": "/tmp/physics-1384-first-native/source-controls.json.gz",
+      "bytes": 9151,
+      "sha256": "fd8835102e8bf9138a6525ef3f68a359e8321d2a9994058baf4323f1c0d70596"
+    },
+    "decodedBytes": 179647,
+    "decodedSha256": "65d0872ef51bad7dbc00eef69b5aa8651420f657345fbec45d8e7aead85cb748",
+    "policyReceipts": 41,
+    "policyPhaseCalls": 1,
+    "policySolverCalls": 28,
+    "initialCapSolverCalls": 0,
+    "worldReceipts": 37,
+    "worldCreated": 33,
+    "worldStepCalls": 45,
+    "worldAccepted": 23,
+    "worldRefused": 22,
+    "originalConstructorGuardsSeparate": 3,
+    "referenceReceipts": 50,
+    "referencePositive": 19,
+    "referenceProtocol": 22,
+    "referenceSpoofs": 9,
+    "referenceWorldCalls": 0
+  },
+  "literalAssertionEvidence": "Completed policyControls/worldControls/referenceControls receipts match immutable measured source assertions. Pure/static signed-zero/application mutation and typed refusal guards are distinct from long-world evidence. No independent solver rerun.",
+  "mismatches": [],
+  "acceptance": true
+}

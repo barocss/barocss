@@ -1,0 +1,28 @@
+[
+  {
+    "issue": 1344,
+    "native": "2ef09ad2ac481bbe5c84ff7850c54115a69fc655",
+    "base": "d6b552f98f4a509611ffce42a65080db063fdda0",
+    "adoption": "1a4278a8fc4a1e84cbf73591027f55e591678571",
+    "parent": "9aac98fdfbe12faadd59b678559657396b81a701",
+    "onlyNewExactModeBlobPaths": 90,
+    "artifacts": 64,
+    "decoded": 15,
+    "manifestSha256": "ac4542622ca95781198a01f9ba4da4ba43bf5555f15f0a860188a1b256eda90f",
+    "state": "merged; integration validation pending",
+    "runtimeReplayed": false
+  },
+  {
+    "issue": 1349,
+    "native": "0e296d1e75c837e767329634f6a2ac6f5832e54f",
+    "base": "d6b552f98f4a509611ffce42a65080db063fdda0",
+    "adoption": "527a4407207e32a801365f1b59c071469948aa19",
+    "parent": "1a4278a8fc4a1e84cbf73591027f55e591678571",
+    "onlyNewExactModeBlobPaths": 71,
+    "artifacts": 47,
+    "decoded": 7,
+    "manifestSha256": "7023a98bc7833b536e37e9dbcb20e1c3f2cd6901ede275bb6f54f2e46bbc39bf",
+    "state": "merged; integration validation pending",
+    "runtimeReplayed": false
+  }
+]

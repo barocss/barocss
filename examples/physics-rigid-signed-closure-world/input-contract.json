@@ -1,0 +1,10 @@
+{
+ "issue":1384,"base":"527a4407207e32a801365f1b59c071469948aa19","state":"before-code selected contract; unmeasured",
+ "scenes":["ALIGNED","OFFSET","YAW"],"fixture":"examples/physics-rigid-contact-reference/fixtures.mjs","dtExpression":"1/120","steps":1200,"baselineStep":960,
+ "bodyRange":[1,9],"mainBodies":9,"mainEligiblePairs":36,"rowCap":8,"choiceCap":9,"maskCap":256,"velocitySweeps":64,"positionPhases":1,
+ "candidateClosureBoundM":1e-12,"independentClosureBoundM":1e-12,"fractionAgreement":1e-12,"precisionDifference":1e-25,"momentumResidual":1e-7,
+ "worldPenetrationM":0.002,"finalVerticalDriftM":0.005,"horizontalDriftM":0.01,"linearSpeedMps":0.02,"angularSpeedRadps":0.02,"tiltDegree":1,"movementM":10,
+ "commands":"per-step input; no persistent queue","contactGeometry":"velocity assembly","netPointImpulse":"normal*FINALnormalNs+FINALtangentNs; -J A/+J B","separateFrictionWorkMeasured":false,
+ "optionalHistoricalPreSelectorExecuted":false,"graphs":["source","source-repeat","compiled-dependencies"],"rawFields":[["positionM",3],["velocityMps",3],["orientation",4],["angularVelocityRadps",3]],
+ "evidenceBudgetBytes":314572800,"mainTraceBudgetBytes":293601280,"fixedEvidenceReserveBytes":20971520,"emergencyReserveBytes":2097152,"fullWorldMeasured":false,"viewerMeasured":false,"publicEngineQualified":false,"publicationAuthorized":false
+}

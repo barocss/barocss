@@ -1,0 +1,101 @@
+[
+  {
+    "scene": "ALIGNED",
+    "attemptedStep": 153,
+    "acceptedStep": 152,
+    "initialRows": 6,
+    "choices": 3,
+    "lastRows": 8,
+    "activeMask": 247,
+    "failingPair": "b6\u0000b7",
+    "hypNativeDepthM": 0.028939269254203093,
+    "refGrowth": {
+      "expectedAction": "row-cap-refusal",
+      "pairKey": "b6\u0000b7",
+      "nativeFailingPairs": [
+        "b6\u0000b7"
+      ],
+      "rawFailingPairs": [
+        "b6\u0000b7"
+      ],
+      "normalizedFailingPairs": [
+        "b6\u0000b7"
+      ],
+      "initialRowsMatch": true,
+      "oneImmutableAppendMatches": true,
+      "hypothesisDepthsAreTransient": true
+    },
+    "allErrors": {
+      "kind": "typed-refusal",
+      "name": "PhysicsError",
+      "code": "NUMERIC_LIMIT",
+      "message": "private live signed closure exceeds eight rows"
+    }
+  },
+  {
+    "scene": "OFFSET",
+    "attemptedStep": 177,
+    "acceptedStep": 176,
+    "initialRows": 6,
+    "choices": 3,
+    "lastRows": 8,
+    "activeMask": 239,
+    "failingPair": "b5\u0000b6",
+    "hypNativeDepthM": 0.024145229419428982,
+    "refGrowth": {
+      "expectedAction": "row-cap-refusal",
+      "pairKey": "b5\u0000b6",
+      "nativeFailingPairs": [
+        "b5\u0000b6"
+      ],
+      "rawFailingPairs": [
+        "b5\u0000b6"
+      ],
+      "normalizedFailingPairs": [
+        "b5\u0000b6"
+      ],
+      "initialRowsMatch": true,
+      "oneImmutableAppendMatches": true,
+      "hypothesisDepthsAreTransient": true
+    },
+    "allErrors": {
+      "kind": "typed-refusal",
+      "name": "PhysicsError",
+      "code": "NUMERIC_LIMIT",
+      "message": "private live signed closure exceeds eight rows"
+    }
+  },
+  {
+    "scene": "YAW",
+    "attemptedStep": 180,
+    "acceptedStep": 179,
+    "initialRows": 6,
+    "choices": 3,
+    "lastRows": 8,
+    "activeMask": 255,
+    "failingPair": "b5\u0000b6",
+    "hypNativeDepthM": 0.03516774816887469,
+    "refGrowth": {
+      "expectedAction": "row-cap-refusal",
+      "pairKey": "b5\u0000b6",
+      "nativeFailingPairs": [
+        "b5\u0000b6"
+      ],
+      "rawFailingPairs": [
+        "b5\u0000b6"
+      ],
+      "normalizedFailingPairs": [
+        "b5\u0000b6"
+      ],
+      "initialRowsMatch": true,
+      "oneImmutableAppendMatches": true,
+      "hypothesisDepthsAreTransient": true
+    },
+    "allErrors": {
+      "kind": "typed-refusal",
+      "name": "PhysicsError",
+      "code": "NUMERIC_LIMIT",
+      "message": "private live signed closure exceeds eight rows"
+    }
+  }
+]

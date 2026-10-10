@@ -1,0 +1,24 @@
+{
+  "gate": "build",
+  "argv": [
+    "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+    "examples/physics-rigid-engine-reference/build-local.mjs"
+  ],
+  "beforeHead": "93a5a9f8d8e987945c211f8422d66e2dffbe281d",
+  "measuredSource": "649c17a57bc5e30afb470235d2b97209e2d50810",
+  "elapsedSeconds": 9.26223124997341,
+  "exitCode": 0,
+  "artifacts": [
+    {
+      "path": "build.stdout.log",
+      "bytes": 455,
+      "sha256": "fd18c78de396894e437a4e046477bec85f7f2d4603ad0280af5e5bda20da1a04"
+    },
+    {
+      "path": "build.stderr.log",
+      "bytes": 43,
+      "sha256": "b10db0c234c0590c75143e4c14d8518a3a7788200366aebf93338a6c94f7e763"
+    }
+  ],
+  "sourceFreezeSha256": "ca864d176b394a428e9df1346d0ef6455d21b0e53133eace3e064b65ddb5a3a6"
+}

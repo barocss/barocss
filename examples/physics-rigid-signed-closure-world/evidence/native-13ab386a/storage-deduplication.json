@@ -1,0 +1,104 @@
+{
+  "copyFailure": "ENOSPC during own uncommitted destination copy",
+  "partialOwnCopyRemoved": true,
+  "otherWorktreesOrUserFilesTouched": false,
+  "identicalCanonicalNamesRetainedByHardLinks": [
+    {
+      "path": "source-repeat-ALIGNED.jsonl.gz",
+      "source": "source-ALIGNED.jsonl.gz",
+      "bytes": 12437260,
+      "sha256": "a090007deddf14553adaa40d81ccb13f62d3d48369855802db51912e58e9ba3c",
+      "originalMtimeNs": 1791657443592492643,
+      "contentChanged": false
+    },
+    {
+      "path": "compiled-dependencies-ALIGNED.jsonl.gz",
+      "source": "source-ALIGNED.jsonl.gz",
+      "bytes": 12437260,
+      "sha256": "a090007deddf14553adaa40d81ccb13f62d3d48369855802db51912e58e9ba3c",
+      "originalMtimeNs": 1791657753714330174,
+      "contentChanged": false
+    },
+    {
+      "path": "source-repeat-ALIGNED.f64le.gz",
+      "source": "source-ALIGNED.f64le.gz",
+      "bytes": 348963,
+      "sha256": "0fb189b1768675a8fdc70d926f89b471860dec3bf9f12f452b508e20bed939f1",
+      "originalMtimeNs": 1791657443592699686,
+      "contentChanged": false
+    },
+    {
+      "path": "compiled-dependencies-ALIGNED.f64le.gz",
+      "source": "source-ALIGNED.f64le.gz",
+      "bytes": 348963,
+      "sha256": "0fb189b1768675a8fdc70d926f89b471860dec3bf9f12f452b508e20bed939f1",
+      "originalMtimeNs": 1791657753714578093,
+      "contentChanged": false
+    },
+    {
+      "path": "source-repeat-OFFSET.jsonl.gz",
+      "source": "source-OFFSET.jsonl.gz",
+      "bytes": 14379521,
+      "sha256": "ecd58fb5dd13267a41d434faaa5380e9a75b2115c595b0cfdc3cb6fa55c50f8a",
+      "originalMtimeNs": 1791657552550104977,
+      "contentChanged": false
+    },
+    {
+      "path": "compiled-dependencies-OFFSET.jsonl.gz",
+      "source": "source-OFFSET.jsonl.gz",
+      "bytes": 14379521,
+      "sha256": "ecd58fb5dd13267a41d434faaa5380e9a75b2115c595b0cfdc3cb6fa55c50f8a",
+      "originalMtimeNs": 1791657861623658019,
+      "contentChanged": false
+    },
+    {
+      "path": "source-repeat-OFFSET.f64le.gz",
+      "source": "source-OFFSET.f64le.gz",
+      "bytes": 395776,
+      "sha256": "00d96ce395198b0374b66fc68232e53538123a9bdb2c018ab86568d47381e409",
+      "originalMtimeNs": 1791657552550381479,
+      "contentChanged": false
+    },
+    {
+      "path": "compiled-dependencies-OFFSET.f64le.gz",
+      "source": "source-OFFSET.f64le.gz",
+      "bytes": 395776,
+      "sha256": "00d96ce395198b0374b66fc68232e53538123a9bdb2c018ab86568d47381e409",
+      "originalMtimeNs": 1791657861623898438,
+      "contentChanged": false
+    },
+    {
+      "path": "source-repeat-YAW.jsonl.gz",
+      "source": "source-YAW.jsonl.gz",
+      "bytes": 14762052,
+      "sha256": "65c35bf73f57952b2beccb09a5516b2ab918acf3a0df769a2d6d7eeb1e06e7c9",
+      "originalMtimeNs": 1791657661452869448,
+      "contentChanged": false
+    },
+    {
+      "path": "compiled-dependencies-YAW.jsonl.gz",
+      "source": "source-YAW.jsonl.gz",
+      "bytes": 14762052,
+      "sha256": "65c35bf73f57952b2beccb09a5516b2ab918acf3a0df769a2d6d7eeb1e06e7c9",
+      "originalMtimeNs": 1791657970437895065,
+      "contentChanged": false
+    },
+    {
+      "path": "source-repeat-YAW.f64le.gz",
+      "source": "source-YAW.f64le.gz",
+      "bytes": 406406,
+      "sha256": "d9213d2f6f43c2c03adf72b1f91c8242f48dfcb2d8b7104b2f39e7e93ef3619d",
+      "originalMtimeNs": 1791657661453139575,
+      "contentChanged": false
+    },
+    {
+      "path": "compiled-dependencies-YAW.f64le.gz",
+      "source": "source-YAW.f64le.gz",
+      "bytes": 406406,
+      "sha256": "d9213d2f6f43c2c03adf72b1f91c8242f48dfcb2d8b7104b2f39e7e93ef3619d",
+      "originalMtimeNs": 1791657970438150984,
+      "contentChanged": false
+    }
+  ],
+  "modelReplay": false
+}

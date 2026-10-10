@@ -1,0 +1,54 @@
+{
+  "parserOnly": true,
+  "source": "13ab386a98eecc528172f72672f554262576df26",
+  "commands": [
+    [
+      "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+      "--check",
+      "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-signed-closure-world/archive.mjs"
+    ],
+    [
+      "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+      "--check",
+      "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-signed-closure-world/bundle.mjs"
+    ],
+    [
+      "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+      "--check",
+      "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-signed-closure-world/consumer.mjs"
+    ],
+    [
+      "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+      "--check",
+      "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-signed-closure-world/entry.mjs"
+    ],
+    [
+      "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+      "--check",
+      "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-signed-closure-world/freeze.mjs"
+    ],
+    [
+      "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+      "--check",
+      "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-signed-closure-world/policy-controls.mjs"
+    ],
+    [
+      "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+      "--check",
+      "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-signed-closure-world/reference-controls.mjs"
+    ],
+    [
+      "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+      "--check",
+      "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-signed-closure-world/runner.mjs"
+    ],
+    [
+      "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+      "--check",
+      "/Users/user/.codex/worktrees/physics-signed-closure-world-1384/barocss/examples/physics-rigid-signed-closure-world/world-controls.mjs"
+    ]
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 0.19621562500833534,
+  "worldSolverReferenceCalls": 0
+}

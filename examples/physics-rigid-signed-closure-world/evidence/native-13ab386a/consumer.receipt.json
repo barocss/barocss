@@ -1,0 +1,23 @@
+{
+  "argv": [
+    "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+    "examples/physics-rigid-signed-closure-world/runner.mjs",
+    "/tmp/physics-1384-first-native"
+  ],
+  "beforeHead": "8ab2a455fdebee71e4021724ec42087d3ded7889",
+  "measuredSource": "13ab386a98eecc528172f72672f554262576df26",
+  "elapsedSeconds": 928.9405177499866,
+  "exitCode": 0,
+  "artifacts": [
+    {
+      "path": "consumer.stdout.log",
+      "bytes": 2985,
+      "sha256": "cabeecb21044b436412e38b0716d8087964d2de04153cfa60cfecebc8a5ae356"
+    },
+    {
+      "path": "consumer.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}
