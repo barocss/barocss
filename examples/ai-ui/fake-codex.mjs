@@ -25,7 +25,8 @@ export function fakeCodex(options = {}) {
           ? 'bbbbbbbb-bbbb-4ccc-8ddd-eeeeeeeeeeee' : CODEX_ID });
         events.push({ type: 'turn.started' });
         if (options.tool) events.push({ type: 'item.started', item: { type: 'command_execution', command: 'authored-not-executed' } });
-        events.push({ type: 'item.completed', item: { type: 'agent_message', text } }, { type: 'turn.completed' });
+        events.push({ type: 'item.completed', item: { type: 'agent_message', text } });
+        events.push(...(options.completionEvents?.(calls.length) ?? [{ type: 'turn.completed' }]));
         const bytes = Buffer.from(events.map((event) => JSON.stringify(event)).join('\n')+'\n');
         // Preserve original bytes even when a multibyte character is split across chunks.
         const split = bytes.indexOf(Buffer.from('민')) + 1;
