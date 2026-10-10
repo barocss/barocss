@@ -13,6 +13,8 @@ Choose an input. Read its actual result. Edit the source and select **Run input*
 
 For input selection, units and result interpretation, read [Use the interactive examples](/concepts/run-examples).
 
+[Open the procedural UV shader](/playground#advanced-shader) or read the [full shader and its layers](/packages/gpu/advanced-shader). The example uses a separate material API version and a small WebGL2 host.
+
 <VisualExamples />
 
 ## Follow the language and the data

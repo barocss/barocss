@@ -1,0 +1,23 @@
+{
+  "images": [
+    {
+      "path": "apps/library-docs/docs/public/examples/advanced-shader.png",
+      "sha256": "2c3d952e28b3ebb24ae8a83f5a90cf18a1792e960d56f49bbf024d75efad5124",
+      "bytes": 413146,
+      "width": 640,
+      "height": 420,
+      "phase": 0
+    },
+    {
+      "path": "apps/library-docs/docs/public/examples/advanced-shader-phase.png",
+      "sha256": "55f90a3cabcded47b68b3c65fca1de72b5464749b7832edc35ff532740673d40",
+      "bytes": 413598,
+      "width": 640,
+      "height": 420,
+      "phase": 2
+    }
+  ],
+  "visualReview": "Both real WebGL2 frames inspected: warped pink plasma, crossed waves and pale diagonal highlights, phases0and2. No generated illustration or CPU raster used.",
+  "oldImageAssetsUnchanged": 31,
+  "oldVisualRuntimeAndGalleryUnchanged": true
+}

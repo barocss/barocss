@@ -1,0 +1,27 @@
+# Complex procedural UV shader playground — #1247
+
+Directhuman requests a verycomplexshader example. Before-code16-pathfreeze https://github.com/barocss/barocss/issues/1247#issuecomment-6099951497. Nativeparent90668c5ca9a617fbe5f00678f93869beb6486f60; branchcodex/library-docs-1248, managedappworktree. Threehelpers+primary/fourslots: shader/data/guide, focusedWebGLhost, selectedCPUconsumer, primarybundle/UI/animation/images/build/browser. Priorlanguageaggregate3ae6671fff4b5ab9535a29f3f67f3b6a55c4bfda adoptionreported; olderreceipts preserved.
+
+## Actual supported API and app consumer
+
+Latest92b6f7ef GPUmaterial implementation/manifest bytes equalexistingimmutable7e96profile. Reusecpu-material-v0.json (GPU+CADdependency) withoutmodification; separateadvancedbrowserbundle pinned7e96b959746a3fee957644fd1b5ccaf79c992c6c,242verifiedGitmanifest/srcblobs/239consumedownsource0dist/117038bytes. NormalpubliccompileEngineUVRepeatingMaterial+prepareEngineUVRepeatingMaterialBindings andtrustedpublicloweredtext/layout/buffers only; noprivatehelpers/callerGLSL. Configasync hook buildsseparatebundle transparentlyfornormaldev/build/preview. Old5fvisualbundle remains1279754B/308src0dist, old27presetdata/runtime/31images andallprofiles unchanged.
+
+Publicpackagehasno mountedUVrenderer. NewAPP-ONLYfixedWebGL2quad host consumestrustedlowering; it doesnotclaimpackageEngineRenderer/camera renderer. Wholeactualquadscene/UV/bindings admitted bypublicpreparer,4vertices6indices UV0..1; clippedidentityquad/unlitfixedwrapper, authoredlinearRGB/finalclamp/pow1/2.2display once. NoexactpiecewisesRGB/lighting/CPU-F32parity claim. Uniformupdates validatewholepublicbinding thenreuseprogram; sourceupdates stagecompile/link/buffers/bindings beforeadoption, cleanupfailures/replacedresources, restoreacceptedonrefusal; idempotentdispose/contextlisteners. Contextloss marksunavailable; Root stopsclock andResetexplicitlyrecreatescanvas/host.
+
+One completewarped_plasma source:4uniforms(scale2..12,warp0..3,phase0..2pi,glow0..1),7locals, wrappedUV/sine domainwarp/horizontalvein/crosscosine/pinkpalette/diagonalpow3highlight. Compileradmittedwithoutcandidate/source/capretuning. Canonicalfinalexpression91nodes/depth14 measured, notestimateddefinitioncharge242. Limits256chargednodes/depth16/uniforms16/locals16/64KiB/tokens4096 remain. Controls+fullsourceeditor+reset+explicithostPlay/Pause(defaultpaused); no shader-createdclock, hostthrottlesdrawrequests at50ms andvalidatesphase. New28thexample joinsUIregistryseparately; old27 unchanged.
+
+## Executed proof
+
+ActualNode22selectedcompile/reconstruct/lower/wholequadbindings/publicCPUevaluator3independentRGBreferencewitnesses/copy+source+freezing/unknownSYNTAX/glow2wrappedUNIFORM refusal/accepteddataretention passed239ownsource0dist; actualGLfalseexplicit. Receiptadvanced-shader-consumer.json. ThisdoesnotreplayoldCPU/gallery/nativeproducers/types/maps/packed.
+
+RealdevWebGL2drawinitialframe had623distinctRGBsamples/GLerror0. All4sliders changeactualpixels; sourcepaletteeditchangespixels; unsupportedsourcepreservespreviousreport/frame; Resetrestoresoriginalsource+exactinitialPNG; Playadvancesphase/actualpixels andPausefreezesframe/report; selectingoldCurveafteradvanceddisposepasses.390pxliveviewnooverflow, errors[]warnings[]. Twoactualnative640x420PNGframes capturedphase0and2, visuallyinspectedwarpedpinkplasma/crossedwaves/palediagonalhighlights; noCPU-raster/generatedimagefake. Imagehashesadvanced-shader-images.json.
+
+Productionactualphase0/2 framesEXACTbyte-equalsavedbuiltimages. Newvalidsource narrowingglowrange whilecurrentvalue.65 refusesMATERIAL/causeUNIFORM, retainsfullacceptedreport/frame. ActualWEBGL_lose_context triggersunavailableerror+reportavailablefalse; ResetrecreateshostandrestoresoriginalnativePNG. Guidefullsource/twoimagesdecoded/390pxnooverflow, errors[]warnings[]. Receiptadvanced-shader-browser.json.
+
+Initialbuild28.25s passed. Improvedadvancedcause/unavailableUIdisplay afteractualfirsttestobservation; finalaffectedbuild27.15s/85pages/12matchedmanifesthashes/5242builtlinks/36imagerefs/1unchangedJSONdownload passed. Existing >500kBchunkwarningretained. Exact16pathscope; no package.json/root/lock/source/rendererlibrary/dependency/install/sourcepin/APIrefresh/publicationchange.
+
+## First failures and limits
+
+Initialdevfavicon.ico404beforehydration preservedseparately. Staticpre-browserreview correctedtwooldruntime-onlytemplate lookups to mergedregistry. Firstproductiondriver wronglyexpectedinnerUNIFORMmessage inouterMATERIALwrapper; actualstate/framewerepreserved, Rootnowdisplayscauseandunavailableflag. Secondsame-fragmentnavigation retainedrejecteduserdraft; privatefixtureusesfreshdocumentreload. Thirddriverexpectedwordcontext butactualmessageisWebGLhostunavailable; actualisContextLost/availablefalseobserved andfixturematchesstablefailure/flag. Finalsameboundedflowpasses; no sample/API/budget/expectedRGBretuning. Existing failures are not erased.
+
+Nativecomplete/localadoption/currentRoot1254/674qualification separate; full1247OPEN. This newappShaderhost doesnotestablish packageUVrenderer, generalEnginecamera/scene backend, physicalGPU/device/parity, lighting/texture/G1G2/Solid/registry/publication. ExistingnextUnicodeguidecandidate remainsfuturework, currenttaskshadercompletedfirst. No oldprofile/runtime27data/imagechanges, newWork/automation/model/productpush/PR/deploy/release.

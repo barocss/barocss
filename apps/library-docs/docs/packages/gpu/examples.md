@@ -4,6 +4,10 @@ Start the [visual playground](/playground). It runs the real source APIs in your
 
 These examples describe the local experimental `@barocss/gpu` version0.0.0 at source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`. The scene samples use source1; the material samples use `mesh-opaque-fragment-v0`. The images show the browser-rendered samples.
 
+## Procedural UV plasma
+
+The [advanced shader example](./advanced-shader) combines UV wrapping, domain distortion, interference waves and diagonal highlights. Edit the full shader, adjust four uniforms, or use its host Play/Pause controls. Its separate API version and example WebGL2 host are stated in the guide.
+
 ## More scene and material examples
 
 Use [GPU compositions](./composition-examples) for style precedence, local rotations and a material transition window. Each source is complete and editable in the playground.

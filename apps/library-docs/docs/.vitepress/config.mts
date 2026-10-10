@@ -1,4 +1,7 @@
 import { defineConfig } from 'vitepress'
+import { fileURLToPath } from 'node:url'
+import { buildAdvancedShader } from '../../scripts/build-advanced-shader.mjs'
+await buildAdvancedShader(fileURLToPath(new URL('../../', import.meta.url)))
 const packages = ['kit', 'browser', 'server', 'render', 'gpu', 'cad', 'cad-interop', 'canvas2d', 'viewer', 'physics', 'cad-editor', 'render-editor']
 const names = { 'cad-interop': 'CAD Interop (Loader)', 'cad-editor': 'CAD Editor', 'render-editor': 'Render Editor', canvas2d: 'Canvas2D', gpu: 'GPU', cad: 'CAD' }
 const common = [
@@ -13,7 +16,7 @@ const catalog = { text: 'Packages', items: packages.map(p => ({ text: names[p] |
 const sidebar = Object.fromEntries(packages.map(p => [`/packages/${p}/`, [
   { text: names[p] || p[0].toUpperCase() + p.slice(1), items: [
     { text: 'Overview', link: `/packages/${p}/` },
-    ...(packages.indexOf(p) < 3 ? [] : ['quickstart', 'guides', ...(p === 'cad' || p === 'gpu' ? ['language'] : []), ...(p === 'cad' ? ['language-examples', 'body-1301', 'body-boundary-mesh', 'nurbs-loft-graph'] : []), ...(p === 'cad-interop' ? ['loft-graph-ingestion'] : []), ...(p === 'gpu' ? ['composition-examples', 'material-language', 'function-examples', 'cpu-material-evaluation'] : []), 'api', 'reference', 'examples', 'limits'].map(page => ({ text: { language: 'Language reference', 'language-examples': 'Language practice', 'composition-examples': 'Scene and material compositions', 'nurbs-loft-graph': 'Edit sections and a Loft', 'loft-graph-ingestion': 'Read Loft graphs and updates', 'body-1301': 'Body and topology', 'body-boundary-mesh': 'Body boundary mesh', 'cpu-material-evaluation': 'CPU material color', 'material-language': 'Material language', 'function-examples': 'Material function examples', quickstart: 'Quickstart', guides: 'Guides', api: 'API reference', reference: 'Public signatures', examples: 'Examples', limits: 'Limits and lifecycle' }[page], link: `/packages/${p}/${page}` })))
+    ...(packages.indexOf(p) < 3 ? [] : ['quickstart', 'guides', ...(p === 'cad' || p === 'gpu' ? ['language'] : []), ...(p === 'cad' ? ['language-examples', 'body-1301', 'body-boundary-mesh', 'nurbs-loft-graph'] : []), ...(p === 'cad-interop' ? ['loft-graph-ingestion'] : []), ...(p === 'gpu' ? ['advanced-shader', 'composition-examples', 'material-language', 'function-examples', 'cpu-material-evaluation'] : []), 'api', 'reference', 'examples', 'limits'].map(page => ({ text: { language: 'Language reference', 'language-examples': 'Language practice', 'advanced-shader': 'Procedural shader lab', 'composition-examples': 'Scene and material compositions', 'nurbs-loft-graph': 'Edit sections and a Loft', 'loft-graph-ingestion': 'Read Loft graphs and updates', 'body-1301': 'Body and topology', 'body-boundary-mesh': 'Body boundary mesh', 'cpu-material-evaluation': 'CPU material color', 'material-language': 'Material language', 'function-examples': 'Material function examples', quickstart: 'Quickstart', guides: 'Guides', api: 'API reference', reference: 'Public signatures', examples: 'Examples', limits: 'Limits and lifecycle' }[page], link: `/packages/${p}/${page}` })))
   ] }, { text: 'Shared concepts', items: common }, catalog
 ]]))
 export default defineConfig({
