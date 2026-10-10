@@ -10,7 +10,7 @@ const polygonMaskCapacity = 32;
 const polygonMaskSlots = 2;
 
 // Conservative fragment vectors: clip arrays/count 49 + mask points/counts 66
-// + common fill uniforms 11 = 126. The image program uses 119; reserve 128.
+// + common fill uniforms 11 = 126. The image program uses 122; reserve 128.
 export function checkPolygonMaskGpuCapacity(gl: WebGL2RenderingContext): void {
   const vectors = gl.getParameter(gl.MAX_FRAGMENT_UNIFORM_VECTORS) as number;
   if (!Number.isInteger(vectors) || vectors < 128) {

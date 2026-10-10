@@ -70,6 +70,7 @@
     "application.mjs",
     "game.mjs",
     "polygon-mask.mjs",
-    "nested-mask.mjs"
+    "nested-mask.mjs",
+    "rgb-matrix.mjs"
   ]
 }
