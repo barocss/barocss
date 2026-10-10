@@ -1,0 +1,11 @@
+{
+  "issue": 1294,
+  "adoption": "63d20195a9d980a31930c682ed56e8be87d5a11f",
+  "parents": "63d20195a9d980a31930c682ed56e8be87d5a11f 18a30a463cfc4e2fa947c5ae4d057bc4d13ac659",
+  "native": "4e4f307097eb54b9173552edad68a704457a7f76",
+  "ownedPathCount": 44,
+  "mismatches": [],
+  "head": "63d20195a9d980a31930c682ed56e8be87d5a11f",
+  "adoptionAncestor": true,
+  "externalNative1279Head": "0de27c51574e2da6b09966c7ef0c28435d9c9592"
+}

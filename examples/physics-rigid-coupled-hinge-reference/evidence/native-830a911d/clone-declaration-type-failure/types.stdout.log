@@ -1,0 +1,8 @@
+examples/physics-rigid-coupled-hinge-reference/admission.ts(36,40): error TS2345: Argument of type 'PhysicsWorldConfig' is not assignable to parameter of type 'PairConfig'.
+  Types of property 'joints' are incompatible.
+    Type 'PhysicsJointConfig[] | undefined' is not assignable to type 'PhysicsJointConfig[]'.
+      Type 'undefined' is not assignable to type 'PhysicsJointConfig[]'.
+examples/physics-rigid-coupled-hinge-reference/admission.ts(38,52): error TS2345: Argument of type 'PhysicsWorldConfig' is not assignable to parameter of type 'PairConfig'.
+  Types of property 'joints' are incompatible.
+    Type 'PhysicsJointConfig[] | undefined' is not assignable to type 'PhysicsJointConfig[]'.
+      Type 'undefined' is not assignable to type 'PhysicsJointConfig[]'.

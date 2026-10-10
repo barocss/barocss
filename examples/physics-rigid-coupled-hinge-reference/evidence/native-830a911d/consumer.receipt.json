@@ -1,0 +1,17 @@
+{
+  "phase": "consumer",
+  "command": [
+    "node",
+    "examples/physics-rigid-coupled-hinge-reference/runner.mjs",
+    "/Users/user/.codex/worktrees/physics-multi-hinge/barocss",
+    "/tmp/physics-1309-canonical"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 3.9347450733184814,
+  "measuredHead": "830a911d333ab5f3a8a82c790068170a181b19dc",
+  "sourceFreezeSha256": "4126dab207f24bb0b61b1fc3247a9f980ae7a38ec3338fd61d6acae40c4effc1",
+  "stdoutBytes": 1019,
+  "stdoutSha256": "c1c5244ecb591fa461a462c55596a5ef058a130235441d398b02940b920b7a90",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

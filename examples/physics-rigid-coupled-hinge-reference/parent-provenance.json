@@ -1,0 +1,8 @@
+{
+  "parentManifestSha256": "4053c025ac041b468f6b68fafd676b4fce382ede58f11b9d9f82edf2c8075fe0",
+  "adopted1294EvidenceHashes": 27,
+  "nativeSource": "4e4f307097eb54b9173552edad68a704457a7f76",
+  "external1279Head": "0de27c51574e2da6b09966c7ef0c28435d9c9592",
+  "historicalProducerReplayed": false,
+  "oldSourcePinsRewritten": false
+}

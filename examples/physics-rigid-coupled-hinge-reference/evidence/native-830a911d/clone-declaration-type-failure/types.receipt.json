@@ -1,0 +1,17 @@
+{
+  "phase": "types",
+  "command": [
+    "node",
+    "node_modules/typescript/bin/tsc",
+    "-p",
+    "examples/physics-rigid-coupled-hinge-reference/tsconfig.json"
+  ],
+  "exitCode": 2,
+  "elapsedSeconds": 0.7058820724487305,
+  "measuredHead": "f4ea88a6f43c9d646314a90c943621b0e1949a15",
+  "sourceFreezeSha256": "925bfe625ad16ed07c2f987308e31db3b07b4444ff7fba6c4997a2a04329a2f9",
+  "stdoutBytes": 774,
+  "stdoutSha256": "12f8cd985f7ead4d33212e0d535b4a0df11f8fafb82f8d3eca81cac566fea383",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

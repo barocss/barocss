@@ -1,0 +1,4 @@
+examples/physics-rigid-coupled-hinge-reference/admission.ts(34,21): error TS2304: Cannot find name 'structuredClone'.
+examples/physics-rigid-coupled-hinge-reference/candidate.ts(44,49): error TS2304: Cannot find name 'structuredClone'.
+examples/physics-rigid-coupled-hinge-reference/candidate.ts(44,89): error TS2304: Cannot find name 'structuredClone'.
+examples/physics-rigid-coupled-hinge-reference/profile.ts(20,9): error TS2304: Cannot find name 'structuredClone'.
