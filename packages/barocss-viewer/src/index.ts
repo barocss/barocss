@@ -14,7 +14,11 @@ import { mountMeshScene, mountPrimitiveScene, mountPrimitiveSceneV1, mountPrimit
   PrimitiveSceneRendererV2, PrimitiveViewport, prepareMesh,
   validateMeshCamera, validatePreviewPacket } from '@barocss/gpu';
 import type { MeshCamera, MeshLighting, PreviewPacket, PrimitiveSceneEntryV1,
-  PrimitiveSceneEntryV2, PrimitiveSceneFrameV0, MeshMaterialBinding, ParticleLayerV0 } from '@barocss/gpu';
+  PrimitiveSceneEntryV2, PrimitiveSceneFrameV0, PrimitiveSceneFrameV1, MeshMaterialBinding, ParticleLayerV0, ClothLayerV0 } from '@barocss/gpu';
+
+import { prepareViewerClothFrame } from './cloth-frame.js';
+import type { ViewerClothFrameV0 } from './cloth-frame.js';
+export type { ViewerClothFrameV0 } from './cloth-frame.js';
 
 type Vec3 = [number, number, number];
 type Quat = [number, number, number, number];
@@ -193,6 +197,7 @@ export interface ViewerState {
   surfaceCurveMeasurement: ViewerNativeSurfaceCurveMeasurement | null;
   nativeMeasurement: ViewerNativePointDistance | null;
   fluidFrame: ViewerFluidFrameV0 | null;
+  clothFrame: ViewerClothFrameV0 | null;
   surfaceMaterial: ViewerSurfaceMaterial | null;
   surfaceMaterials: ViewerSurfaceMaterial[];
 }
@@ -548,6 +553,8 @@ export class Viewer {
   private nativeMeasurement: ViewerNativePointDistance | null = null;
   private fluidFrame: ViewerFluidFrameV0 | null = null;
   private particleLayer: ParticleLayerV0 | null = null;
+  private clothFrame: ViewerClothFrameV0 | null = null;
+  private clothLayer: ClothLayerV0 | null = null;
   private surfaceMaterials: ViewerSurfaceMaterial[] = [];
   private camera: MeshCamera = validateMeshCamera(INITIAL_CAMERA);
   private selected: ViewerRef | null = null;
@@ -600,11 +607,14 @@ export class Viewer {
     qualified = this.modelSet !== null || this.document !== null,
     hiddenGeometry = this.hiddenGeometry,
     particleLayer: ParticleLayerV0 | null = this.particleLayer,
-    surfaceMaterials: ViewerSurfaceMaterial[] = this.surfaceMaterials): void {
+    surfaceMaterials: ViewerSurfaceMaterial[] = this.surfaceMaterials,
+    clothLayer: ClothLayerV0 | null = this.clothLayer): void {
     const packets = allPackets.filter(entry => !hiddenGeometry.some(hidden => sameGeometryRef(hidden,
       { kind: 'surface', modelId: entry.modelId, surfaceId: entry.packet.surfaceId })));
     const curves = allCurves.filter(entry => !hiddenGeometry.some(hidden => sameGeometryRef(hidden,
       { kind: 'curve', modelId: entry.modelId, curveId: entry.sample.curve.id })));
+    check(!clothLayer || (qualified && packets.length === 1 && curves.length === 0),
+      'Active cloth requires one visible qualified native Surface');
     const surfaces = this.gpuEntries(packets, selected, motion, geometryMotion), options = this.gpuOptions(camera);
     if (packets.length + curves.length === 0) {
       if (this.renderer instanceof PrimitiveViewport) {
@@ -643,12 +653,15 @@ export class Viewer {
       const input = { version: 2 as const, entries };
       if (this.renderer instanceof PrimitiveSceneRendererV2
         || this.renderer instanceof PrimitiveViewport) {
-        const result = surfaceMaterials.length
-          ? this.renderer.updateFrame({ version: 0, scene: input, options,
-            particles: particleLayer, materials: surfaceMaterials.map(value => ({ ref: {
-              modelId: value.ref.modelId, geometryId: value.ref.surfaceId },
-              binding: value.binding })) } satisfies PrimitiveSceneFrameV0)
-          : this.renderer.update(input, options, particleLayer);
+        const materials = surfaceMaterials.map(value => ({ ref: {
+          modelId: value.ref.modelId, geometryId: value.ref.surfaceId }, binding: value.binding }));
+        const result = clothLayer
+          ? this.renderer.updateFrameV1({ version: 1, scene: input, options,
+            particles: particleLayer, materials, cloth: clothLayer } satisfies PrimitiveSceneFrameV1)
+          : surfaceMaterials.length
+            ? this.renderer.updateFrame({ version: 0, scene: input, options,
+              particles: particleLayer, materials } satisfies PrimitiveSceneFrameV0)
+            : this.renderer.update(input, options, particleLayer);
         if (!result.ok) throw result.error;
       } else {
         const prior = this.renderer;
@@ -759,7 +772,7 @@ export class Viewer {
     check(packets.length + curves.length >= 1 && packets.length + curves.length <= 4,
       'Viewer requires 1..4 total display objects');
     const camera = fittedCamera(packets, curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
-    this.present(packets, curves, camera, null, null, null, null, qualified, [], null, []);
+    this.present(packets, curves, camera, null, null, null, null, qualified, [], null, [], null);
     this.packets = packets; this.curves = curves; this.camera = camera;
     this.selected = null; this.selectedGeometry = null; this.native = native; this.modelSet = modelSet;
     this.document = document; this.documentBodies = documentBodies;
@@ -767,6 +780,7 @@ export class Viewer {
     this.measurement = null; this.motion = null; this.geometryMotion = null; this.curveMeasurement = null;
     this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
     this.fluidFrame = null; this.particleLayer = null; this.surfaceMaterials = [];
+    this.clothFrame = null; this.clothLayer = null;
   }
   private admitNative(native: BaroCadNativeResult,
     options: NativeLoadOptions | ViewerNativeCurveLoadOptions | ViewerNativeCurveLoadOptionsV1): void {
@@ -869,7 +883,7 @@ export class Viewer {
   setPackets(input: ViewerPacket[]): void { this.live(); this.accept(input, null); this.sceneRequest++; }
   clear(): void {
     this.live();
-    this.present([], [], this.camera, null, null, null, null, false, [], null, []);
+    this.present([], [], this.camera, null, null, null, null, false, [], null, [], null);
     this.packets = []; this.curves = []; this.native = null; this.modelSet = null;
     this.document = null; this.documentBodies = [];
     this.hiddenGeometry = [];
@@ -878,7 +892,34 @@ export class Viewer {
     this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
     this.motion = null; this.geometryMotion = null;
     this.fluidFrame = null; this.particleLayer = null; this.surfaceMaterials = [];
+    this.clothFrame = null; this.clothLayer = null;
     this.sceneRequest++;
+  }
+  setClothFrame(input: ViewerClothFrameV0 | null): void {
+    this.live();
+    check(!this.contextLost, 'Cannot change cloth frame after WebGL2 context loss');
+    if (input === null) {
+      if (!this.clothFrame) return;
+      check(this.renderer instanceof PrimitiveSceneRendererV2 || this.renderer instanceof PrimitiveViewport,
+        'Cloth layer requires a qualified GPU scene');
+      const result = this.renderer.setClothLayer(null);
+      if (!result.ok) throw result.error;
+      this.clothFrame = null; this.clothLayer = null;
+      return;
+    }
+    check(this.modelSet !== null || this.document !== null,
+      'Cloth layer requires a qualified native scene');
+    check(this.packets.length === 1 && this.curves.length === 0 &&
+      this.visible({ kind: 'surface', modelId: this.packets[0].modelId,
+        surfaceId: this.packets[0].packet.surfaceId }),
+    'Cloth layer requires one visible native Surface and no Curves');
+    check(this.renderer instanceof PrimitiveSceneRendererV2 || this.renderer instanceof PrimitiveViewport,
+      'Cloth layer requires a qualified GPU scene');
+    const candidate = prepareViewerClothFrame(input, this.options.mmToSceneUnit, this.clothFrame);
+    if (candidate.unchanged) return;
+    const result = this.renderer.setClothLayer(candidate.layer);
+    if (!result.ok) throw result.error;
+    this.clothFrame = candidate.frame; this.clothLayer = candidate.layer;
   }
   setFluidFrame(input: ViewerFluidFrameV0 | null): void {
     this.live();
@@ -1212,6 +1253,8 @@ export class Viewer {
     check(requested.every((ref, index) => requested.findIndex(value => sameGeometryRef(value, ref)) === index),
       'Visible geometry references must be unique');
     const hidden = inventory.filter(ref => !requested.some(value => sameGeometryRef(value, ref)));
+    check(!this.clothFrame || requested.some(ref => ref.kind === 'surface'),
+      'Clear cloth layer before hiding the native Surface');
     check(!this.fluidFrame || requested.some(ref => ref.kind === 'surface'),
       'Clear fluid layer before hiding the native Surface');
     check(this.surfaceMaterials.every(material => requested.some(ref => ref.kind === 'surface'
@@ -1727,7 +1770,7 @@ export class Viewer {
       documentBodies: this.documentBodies, measurement: this.measurement,
       curveMeasurement: this.curveMeasurement, surfaceCurveMeasurement: this.surfaceCurveMeasurement,
       nativeMeasurement: this.nativeMeasurement, motion: this.motion,
-      geometryMotion: this.geometryMotion, fluidFrame: this.fluidFrame,
+      geometryMotion: this.geometryMotion, fluidFrame: this.fluidFrame, clothFrame: this.clothFrame,
       surfaceMaterial: this.surfaceMaterials.length === 1 ? this.surfaceMaterials[0] : null,
       surfaceMaterials: this.surfaceMaterials });
   }
@@ -1735,7 +1778,7 @@ export class Viewer {
   dispose(): void { if (this.disposed) return; this.disposed = true;
     this.canvas.removeEventListener('webglcontextlost', this.onContextLost);
     this.renderer?.dispose(); this.renderer = null; this.fluidFrame = null; this.particleLayer = null;
-    this.surfaceMaterials = []; }
+    this.surfaceMaterials = []; this.clothFrame = null; this.clothLayer = null; }
 }
 
 export function createViewer(canvas: HTMLCanvasElement, options: ViewerOptions): Viewer {

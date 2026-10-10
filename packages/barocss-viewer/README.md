@@ -75,6 +75,64 @@ or a second canvas. The Surface is display geometry, not a certified fluid
 collision obstacle. `examples/viewer-fluid-scene` exercises the actual Physics
 and native Surface path in Chromium WebGL2.
 
+## Caller-owned cloth frames
+
+After loading one qualified visible native Surface with `loadModelSet` or
+`loadDocument`, submit a copied public Physics sheet state. The host owns time,
+identity and the Physics world. Viewer performs no solver step:
+
+```js
+const state = clothWorld.getState();
+viewer.setClothFrame({ version: 0, layerId: 'sheet_1', contextId: 'run_1',
+  sceneRevision: state.sceneRevision, stepIndex: state.stepIndex,
+  vertexCount: 289, triangleCount: 512,
+  positionsM: state.positionsM, triangles: state.triangles });
+viewer.setClothFrame(null); // clear only cloth and its accepted step cursor
+```
+
+`ViewerClothFrameV0` accepts exactly these nine own enumerable data fields.
+Layer/context/revision tags are opaque ASCII identifiers matching
+`[A-Za-z_][A-Za-z0-9_.:-]{0,127}`. Step is an integer from 0 through 240.
+Positions are an ordinary same-realm Float64Array of 867 finite metre values;
+triangles are an ordinary same-realm Uint16Array of 1536 canonical indices.
+Both views require nonshared ArrayBuffer storage and no extra, accessor or
+custom-prototype fields. Nonzero view offsets are allowed. Spoofed, proxied,
+detached or incompatible views refuse without reading caller getters. Topology
+is the fixed 17 by 17 row-major sheet: each cell `a=z*17+x` uses
+`[a,a+17,a+1,a+1,a+17,a+18]`. No mesh repair or alternate winding is admitted.
+
+Viewer owns independent copies and maps each original coordinate with
+`metres * 1000 * mmToSceneUnit`, in that order, once. Converted coordinates must
+be finite and within ±1000 scene units. Viewer preserves original signed-zero
+bits; GPU alone lowers positions to Float32 and validates triangle areas and
+normals. `getState().clothFrame` returns independent copies. A supplied frame
+need not be certified Physics output; this method validates display admission.
+
+The active layer/context/revision identity must stay unchanged until explicit
+null clear or successful native replacement. Steps cannot decrease. Exact
+same-step original data is an idempotent no-op after full validation; changed
+same-step bits, including +0 versus -0, refuse. Resetting a world from step240
+to step0 requires clearing cloth first. Validation and GPU refusal retain the
+complete accepted native/derived state, pixels and resources.
+
+Only one total qualified visible Surface and no Curves are admitted. Materials
+and the existing 256-particle layer can coexist. Camera, selection, display
+pose, fit and retain-visible updates carry a complete GPU FrameV1; native poses
+move only native geometry while cloth stays in scene coordinates. Dedicated
+material/particle updates and resize retain cloth. Hiding the sole Surface
+requires clearing cloth first. Successful native/packet/source replacement or
+Viewer clear drops cloth; failed, aborted or superseded loads retain it.
+Context loss retains copied cloth metadata for inspection, but refuses layer
+updates and clear. Dispose clears Viewer metadata and GPU resources; the caller
+still owns its canvas and Physics world.
+
+Cloth has no native CAD reference, pick hit, measurement or native bounds.
+Native picking ignores cloth occlusion: a visually covered Surface can still
+be picked. Native-only fit may clip cloth. Supply an explicit camera covering
+both. Shared depth proves display coexistence, not physical collision or
+fabric accuracy. `examples/viewer-cloth-scene` uses real public Physics
+step0/60/240 in an explicit proof action; #981 owns separate playback.
+
 For a qualified native Surface, compile an opaque CSS-shaped material with
 `@barocss/gpu` and bind it through Viewer:
 
@@ -444,3 +502,17 @@ canvas and source text; `dispose()` releases only viewer-owned GPU resources.
 After WebGL context loss, `getState().status` reports `context-lost`; dispose and
 create a new Viewer to render again.
 No npm publication or release is implied by the public package metadata.
+
+## Workspace development and explicit compiled checkpoints
+
+Development main/types and the public root export resolve to source TypeScript.
+Use a TS-capable bundler or runner with ordinary `@barocss/viewer` imports.
+Plain Node does not automatically map internal `.js` source imports to `.ts`.
+The complete `publishConfig` map targets emitted dist JS/declarations; local
+configuration is not publication. Node22 `pnpm -r --filter @barocss/viewer... build:library` emits the affected dependencies and Viewer declarations.
+
+Explicit compiled verification must resolve every transitive own package entry
+through its published dist map, rather than bundle a dist root with source
+workspace dependencies. The cloth example server has a separately labelled
+compiled proof mode and records its actual input graph. Ordinary source mode
+uses normal package resolution with no source aliases or custom condition.
