@@ -1475,3 +1475,39 @@ Texture shader sampling, tint colour conversion, atomic renderer resources and
 actual pixels remain a later #1184 graphics stage. This API makes no rendered
 texture support claim. After the GPU build, run the one CPU source/emitted/file
 flow `node examples/gpu-scene/engine-texture-bindings-flow.mjs --output <fresh-directory>`.
+
+### Original camera rays for general engine scenes
+
+`prepareEngineCameraRay(camera, request)` derives one Number-space ray for the
+existing `raycastEngineScene` API. Use the same complete original scene's camera
+and original scene for both operations. The request requires all eight fields:
+
+```js
+const prepared = prepareEngineCameraRay(originalScene.camera, {
+  format: 'barocss-gpu-engine-camera-ray-request', version: 0,
+  pixelOrigin: 'bottom-left', sampling: 'pixel-center',
+  viewportWidth: 5, viewportHeight: 5, pixelX: 2, pixelY: 2,
+});
+const hit = raycastEngineScene(originalScene, prepared.ray);
+```
+
+The frozen result contains `{camera, request, ray}`. Camera and request retain
+owned original values, including signed zero. Ray origin is a separate eye copy;
+its unit direction and near/far distances are derived from the original Number
+camera basis. The original perpendicular camera clip planes become distances
+along the normalized query ray. They are not clamped: an off-axis ray from a
+valid camera with `far: 10000` can exceed the existing ray distance limit and
+refuse with `EngineCameraRayError` code `RANGE`.
+
+Dimensions are explicit integers in `1..2048`; pixel indices must lie inside
+the viewport. Sampling uses `(x + 0.5, y + 0.5)` from the bottom left. No CSS
+coordinates, device-pixel ratio, canvas inspection or inferred camera defaults
+are accepted. Complete camera admission uses the real `validateMeshCamera`;
+its refusal is retained as the cause of code `CAMERA`. Other codes are `INPUT`,
+`VERSION`, `RANGE` and `NUMERICAL`.
+
+This is CPU source-camera ray derivation. It does not read rendered pixels,
+assert Float32 raster agreement, pick native CAD parameters or replace Viewer
+queries. Existing generic ray query visibility, numerical edge ambiguity,
+work limits and authored identity rules remain in force. Save the full original
+camera/request/scene and re-derive after opening the file.

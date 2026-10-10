@@ -72,6 +72,8 @@ export type {EngineSceneV0,EngineSceneMaterialV0,EngineSceneNodeV0,PreparedEngin
 
 export {raycastEngineScene,EngineRaycastError,EngineRaycastDiagnosticCode} from './engine-raycast.js';
 export type {EngineRayV0,EngineRayHitV0} from './engine-raycast.js';
+export {prepareEngineCameraRay,EngineCameraRayError,EngineCameraRayDiagnosticCode} from './engine-camera-ray.js';
+export type {EngineCameraRayRequestV0,PreparedEngineCameraRay} from './engine-camera-ray.js';
 
 export {prepareEngineTextureBindings,EngineTextureBindingsError,EngineTextureBindingsDiagnosticCode} from './engine-texture-bindings.js';
 export type {EngineTextureV0,EngineTextureBindingV0,EngineTextureBindingsV0,PreparedEngineTexture,PreparedEngineTextureBindings} from './engine-texture-bindings.js';
