@@ -13,7 +13,7 @@ li[data-screen-inspected=true]{border-color:#ffd479;background:#29445d}
 <h1>Independent original Face assets</h1><p>Each source keeps its whole native model, forward Face and UV boundary data.
 Faces share the view depth; this scene does not create a global Shell or Solid.</p>
 <div class="layout"><div><div id="qualified-face-view" class="face-view">
-<canvas id="view" width="640" height="480" tabindex="0" aria-label="Independent source-qualified native Faces"></canvas>
+<canvas id="view" width="640" height="480" tabindex="0" aria-keyshortcuts="F Shift+F" aria-describedby="face-keyboard-hint face-keyboard-help" aria-label="Independent source-qualified native Faces"></canvas>
 <div id="measurement-labels" class="measurement-labels" aria-hidden="true">
 <span id="measurement-point-1" class="measurement-label" hidden></span><span id="measurement-point-2" class="measurement-label" hidden></span>
 <span id="measurement-distance" class="measurement-label" hidden></span><span id="surface-area-label" class="measurement-label" hidden></span>
@@ -35,6 +35,11 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <span id="tree-tangent-angle-label" class="measurement-label" hidden></span>
 <span id="tree-normal-first-label" class="measurement-label" hidden></span><span id="tree-normal-second-label" class="measurement-label" hidden></span>
 <span id="tree-normal-angle-label" class="measurement-label" hidden></span></div></div>
+<p id="face-keyboard-hint">Focus the view: F frames all Faces; Shift+F frames the current tree parent.</p>
+<details id="face-keyboard-help"><summary>About focused view shortcuts</summary>
+<p>These shortcuts work only when the view canvas has focus. F frames all current Faces. Shift+F frames the parent Face of the current original tree node, including a Curve node.
+Framing uses sampled filled Surface display bounds and keeps original geometry, native parameters and stored reports. Input fields retain their own keys.
+Repeated or composing keys and Ctrl, Alt or Meta combinations are ignored. Escape is not a selection or pointer-gesture cancellation shortcut here.</p></details>
 <label>Assets <select id="asset-count" disabled><option>6</option><option>2</option></select></label>
 <label>Grid U <select id="count-u" disabled><option>17</option><option>9</option><option>2</option></select></label>
 <label>Grid V <select id="count-v" disabled><option>17</option><option>9</option><option>2</option></select></label>

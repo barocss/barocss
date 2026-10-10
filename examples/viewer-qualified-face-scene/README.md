@@ -723,3 +723,24 @@ CPU inspection remains separate from unavailable camera navigation.
 This is a single-primary-pointer and wheel workflow. Multitouch, inertia,
 keyboard camera maps, pixel-exact native hits and global accuracy are outside
 this example. It does not claim detection of an unobserved identical reload.
+
+
+## Focused keyboard framing
+
+Focus the Face canvas, then press **F** to frame all current Face display
+triangles. Press **Shift+F** to frame the current geometry tree node's parent
+Face. A Curve row frames its whole parent Face; it does not fit Curve bounds.
+These actions use the same checked routines as the existing Frame buttons.
+They preserve original source identity, native reports, filters and drafts.
+Screen inspection/sample scope refreshes with the accepted camera change.
+
+The handler belongs to this canvas. Text and numeric inputs, other targets,
+Ctrl/Alt/Meta combinations, repeated keys, composition and other keys are
+ignored. The handler prevents the default only after a successful frame.
+A missing current parent, unavailable view or failed candidate reports the
+original error and retains accepted state under the existing frame policy.
+
+Dispose removes the keyboard listener before pointer controls and Viewer.
+No focus is taken during render. Existing pointer navigation remains separate.
+These keys provide sampled display framing; they do not add primitive
+selection, native bounds, gesture cancellation or an editor shortcut map.
