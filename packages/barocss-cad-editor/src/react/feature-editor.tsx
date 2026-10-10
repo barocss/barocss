@@ -12,6 +12,7 @@ import { Input } from './ui/input.js';
 import { Label } from './ui/label.js';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog.js';
 import { useCadEditorFeatureSnapshot } from './use-feature-session.js';
+import { ExtrusionHeightHandle } from './extrusion-height-handle.js';
 
 export interface CadEditorFeatureDisplayReceipt {
   status: 'ready' | 'disposed';
@@ -56,6 +57,7 @@ const DEFAULT_OPTIONS: BooleanShellSceneOptions = {
 const DEFAULT_PROPERTIES_OPTIONS: CadEditorFeaturePropertiesOptions = {maximumBoundarySegments:64,maximumSurfaceEvaluations:8};
 
 function numberText(value: number) { return Object.is(value, -0) ? '-0' : String(value); }
+const heightSummaryFormat = new Intl.NumberFormat('en-US', {maximumFractionDigits:6,useGrouping:false});
 function propertyNumberText(value: number): string {
   if(Object.is(value,-0))return '-0';
   return value.toFixed(6).replace(/(\.\d*?[1-9])0+$|\.0+$/,'$1');
@@ -154,6 +156,8 @@ interface MountedFeature {
   displayGeneration: number;
   requestedOptions: BooleanShellSceneOptions;
   admitting: boolean;
+  optionsRefused: boolean;
+  unavailable: boolean;
 }
 
 export function CadEditorFeature(props: CadEditorFeatureProps) {
@@ -171,6 +175,35 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
   const [error, setError] = useState<CadEditorError | null>(null);
   const [properties,setProperties]=useState<{session:CadEditorFeatureSession;generation:number;result:CadEditorFeatureProperties}|null>(null);
   const [propertiesError,setPropertiesError]=useState<CadEditorError|null>(null);
+  const [displayReceipt,setDisplayReceipt]=useState<CadEditorFeatureDisplayReceipt|null>(null);
+  const heightGestureRef=useRef(false),observedPointers=useRef(new Set<number>());
+  const [heightGestureActive,setHeightGestureActive]=useState(false),[captured,setCaptured]=useState(false);
+  function hasActualCapture() {
+    return [...observedPointers.current].some(pointerId => [document.documentElement,...document.querySelectorAll('*')]
+      .some(element=>element.hasPointerCapture(pointerId)));
+  }
+  function commandsBlocked() {
+    return heightGestureRef.current || hasActualCapture() || !!canvasRef.current?.closest('[data-feature-host-busy="true"]');
+  }
+  function currentHeightFrame(frame:CadEditorFeatureDisplayReceipt):boolean {
+    const mounted=mountedRef.current,canvas=canvasRef.current;
+    if(!mounted||!canvas||mounted.admitting||mounted.optionsRefused||mounted.unavailable
+      ||canvas.closest('.cad-editor-viewport')?.getAttribute('data-feature-ready')!=='true')return false;
+    try{return !canvas.getContext('webgl2')?.isContextLost() && sameData(mounted.renderer.options,frame.options)
+      &&sameData(mounted.renderer.scene,frame.scene) &&mounted.displayGeneration===frame.displayGeneration;}
+    catch{return false;}
+  }
+  useEffect(()=>{
+    let active=true;
+    const down=(event:PointerEvent)=>{observedPointers.current.add(event.pointerId);setTimeout(()=>{if(active)setCaptured(hasActualCapture());},0);};
+    const release=(event:PointerEvent)=>{if(event.type!=='lostpointercapture')observedPointers.current.delete(event.pointerId);
+      setTimeout(()=>{if(active)setCaptured(hasActualCapture());},0);};
+    window.addEventListener('pointerdown',down,true);window.addEventListener('pointerup',release,true);
+    window.addEventListener('pointercancel',release,true);window.addEventListener('lostpointercapture',release,true);
+    return()=>{active=false;observedPointers.current.clear();window.removeEventListener('pointerdown',down,true);
+      window.removeEventListener('pointerup',release,true);window.removeEventListener('pointercancel',release,true);
+      window.removeEventListener('lostpointercapture',release,true);};
+  },[session]);
 
   function receipt(mounted: MountedFeature, displays = mounted.displays): CadEditorFeatureDisplayReceipt {
     const display = displays[0];
@@ -198,6 +231,7 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
   }
 
   function notify(value: CadEditorFeatureDisplayReceipt) {
+    setDisplayReceipt(structuredClone(value));
     try { propsRef.current.onDisplay?.(value); }
     catch (cause) { report(new CadEditorError('DISPLAY', 'Feature display callback failed.', { field: 'display-callback' }, cause), false); }
   }
@@ -208,6 +242,7 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
     setError(diagnostic);
     try { propsRef.current.onError?.(diagnostic); } catch { /* Host callbacks do not change native admission. */ }
     const mounted = mountedRef.current;
+    if(mounted&&(diagnostic.context.field==='restore-frame'||canvasRef.current?.getContext('webgl2')?.isContextLost()))mounted.unavailable=true;
     if (mounted && freshRead) {
       try { notify(receipt(mounted)); }
       catch (readCause) { report(new CadEditorError('DISPLAY', 'Reading the current feature frame failed.', { field: 'pixel-read' }, readCause), false); }
@@ -215,6 +250,7 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
   }
 
   function action(run: () => void) {
+    if(commandsBlocked())return;
     try { run(); setError(null); }
     catch (cause) { report(cause instanceof CadEditorError ? cause
       : new CadEditorError('NATIVE', 'The native feature operation was refused.', {}, cause)); }
@@ -224,6 +260,7 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
     catch(cause){report(new CadEditorError('LIFECYCLE','Native properties callback failed.',{field:'extrusion-properties-callback'},cause));}
   }
   function queryProperties() {
+    if(commandsBlocked())return;
     const current=session.getSnapshot();
     const feature=current.accepted.document.features.find(value=>value.id===current.selectedFeatureId);
     try {
@@ -243,7 +280,7 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
     const canvas = canvasRef.current!;
     let mounted: MountedFeature | null = null;
     let observer: ResizeObserver | null = null;
-    setReady(false); setError(null); readIndexRef.current = 0;
+    setReady(false); setError(null); setDisplayReceipt(null); readIndexRef.current = 0;
     function resize() {
       if (!mounted) return;
       const bounds = canvas.getBoundingClientRect();
@@ -263,7 +300,7 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
       const renderer = mountBooleanShellScene(canvas, sceneFor(current.displays, current.accepted), options);
       lifecycleRef.current.mounts++;
       mounted = { renderer, display: current.display, displays: current.displays,
-        displayGeneration: current.displayGeneration, requestedOptions: options, admitting: false };
+        displayGeneration: current.displayGeneration, requestedOptions: options, admitting: false, optionsRefused:false, unavailable:false };
       mountedRef.current = mounted;
       resize();
       if (!propsRef.current.displayOptions) {
@@ -315,8 +352,10 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
       const updated = mounted.renderer.update(priorScene, next);
       if (!updated.ok) throw updated.error;
       displayed = true;
+      mounted.optionsRefused=false;
       const read = receipt(mounted); setError(null); notify(read);
     } catch (cause) {
+      mounted.optionsRefused=true;
       if (displayed) {
         const restored = mounted.renderer.update(priorScene, priorOptions);
         if (!restored.ok) { report(new CadEditorError('DISPLAY', 'Restoring the feature frame failed.', { field: 'restore-frame' }, restored.error)); return; }
@@ -368,7 +407,7 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
   useEffect(() => {
     const mounted = mountedRef.current;
     const canvas = canvasRef.current;
-    if (!mounted || !canvas || mounted.admitting || props.fitRequest === undefined) return;
+    if (!mounted || !canvas || mounted.admitting || commandsBlocked() || props.fitRequest === undefined) return;
     try {
       const fitted = mounted.renderer.setOptions(fittedOptions(mounted.renderer, canvas.width / canvas.height));
       if (!fitted.ok) throw fitted.error;
@@ -381,7 +420,7 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
     if (requested === lastFitSelectedRequestRef.current) return;
     lastFitSelectedRequestRef.current = requested;
     const mounted = mountedRef.current, canvas = canvasRef.current;
-    if (!mounted || !canvas || mounted.admitting || requested === undefined) return;
+    if (!mounted || !canvas || mounted.admitting || commandsBlocked() || requested === undefined) return;
     try {
       const current = session.getSnapshot();
       const feature = current.accepted.document.features.find(value => value.id === current.selectedFeatureId);
@@ -404,7 +443,7 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
 
   const { accepted, pending } = snapshot;
   const selected = accepted.document.features.find(feature => feature.id === snapshot.selectedFeatureId);
-  const busy = snapshot.candidate !== null || snapshot.disposed;
+  const busy = snapshot.candidate !== null || snapshot.disposed || heightGestureActive || captured;
   const hasPending = Object.keys(pending.parameters).length + Object.keys(pending.booleanOperations).length > 0;
   const cornerView = useMemo(() => {
     if (selected?.kind !== 'face-input' || snapshot.disposed) return {corners:[] as CadEditorFaceCorner[],error:null};
@@ -424,10 +463,15 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
   },[session,snapshot.generation,accepted.document.id,accepted.document.revision,snapshot.selectedFeatureId,selectedSlot,snapshot.disposed]);
   useEffect(()=>()=>{try{propsRef.current.onProperties?.(null);}catch{/* Unmount invalidates a copied receipt without touching the native session. */}},[session]);
 
-  return <div className={cn('cad-editor cad-editor-feature', className)}>
+  return <div className={cn('cad-editor cad-editor-feature', className)}
+    onClickCapture={event=>{if(commandsBlocked()){event.preventDefault();event.stopPropagation();}}}
+    onKeyDownCapture={event=>{if(heightGestureRef.current&&event.key!=='Escape'){event.preventDefault();event.stopPropagation();}}}>
     <div className="cad-editor-viewport" data-feature-ready={ready}>
       <canvas ref={canvasRef} width={640} height={480} tabIndex={0} className="cad-editor-canvas"
         data-testid="cad-editor-feature-canvas" aria-label="Native Boolean extrusion feature view. Use Fit to frame the result." />
+      <ExtrusionHeightHandle session={session} canvas={canvasRef.current} receipt={displayReceipt}
+        isCurrentFrame={currentHeightFrame} onError={report}
+        onGestureChange={active=>{heightGestureRef.current=active;setHeightGestureActive(active);}} />
     </div>
     <aside className="cad-editor-inspector" aria-label="Boolean extrusion feature inspector">
       <div className="cad-editor-inspector-title"><h2 className="cad-editor-heading">Feature properties</h2>
@@ -438,6 +482,7 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
               <p>This profile evaluates two authored planar face inputs, one coplanar Boolean operation and 1–4 normal extrusions. You can add, edit and remove extrusion leaves.</p>
               <p>You can add, edit and remove shared lengths. Referenced Face and Boolean features can be replaced through explicit repairs. Reordering, native suppression and general Face or Boolean creation/removal remain unavailable.</p>
               <p>The extrusions can share the same Boolean region and length parameters. A shared edit rebuilds every native output.</p>
+              <p>The height handle follows the selected displayed extrusion's native normal from its original top vertex. Drag changes its direct shared length parameter, preserving a literal or parameter-plus-offset definition and all dependent extrusions. The pending endpoint is a guide; accepted Shells stay unchanged until release and full native/GPU frame admission. A release adds one history entry. Escape or pointer cancellation clears only a still-owned draft. Hidden, empty or literal-distance leaves use the existing fields and Edit extrusion dialog. Native height, coordinate and display limits can refuse a change; corrective raw remains available. These are bounded extrusion Shells and construction estimates, not certified Solid/BRep modeling.</p>
               <h3>Native extrusion properties</h3>
               <p>Inspect native properties reads one selected normal extrusion from the accepted graph revision. Scalar drafts are not measured. The action does not change source, selection, history, save capture or camera.</p>
               <p>Section area uses mm2. Construction volume estimate uses mm3. Centroid uses authored XYZ/mm. Display numbers are rounded to six decimal places; the typed onProperties result retains full native values.</p>
@@ -519,7 +564,7 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
         </select>
         {pending.booleanOperations[selected.id] && <span className="cad-editor-accepted">Current: {selected.options.operation}</span>}
       </div>}
-      {selected?.kind === 'normal-extrusion' && <p>Current height: {numberText(accepted.report.distances.find(row => row.featureId === selected.id)!.valueMM)} mm</p>}
+      {selected?.kind === 'normal-extrusion' && <p title={numberText(accepted.report.distances.find(row => row.featureId === selected.id)!.valueMM)+' mm'}>Current height: {heightSummaryFormat.format(accepted.report.distances.find(row => row.featureId === selected.id)!.valueMM)} mm</p>}
       {selected?.kind==='normal-extrusion' && <section className="cad-editor-native-properties" aria-label="Selected native extrusion properties">
         <div className="cad-editor-inspector-title"><h3 className="cad-editor-heading">Native properties</h3>
           <Dialog><DialogTrigger asChild><Button type="button" variant="ghost" size="xs" data-testid="feature-properties-help">Help</Button></DialogTrigger>

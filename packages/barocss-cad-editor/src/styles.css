@@ -209,3 +209,18 @@
 .object-plane-handle[data-plane="yz"] {fill:#db8279;stroke:#db8279;}
 .object-plane-handle:hover,.object-plane-handle:focus-visible {fill-opacity:.6;stroke-width:2;outline:none;}
 .object-plane-handle[aria-disabled="true"] {opacity:.4;cursor:default;}
+
+.cad-editor-feature .cad-editor-feature-height-controls { position:absolute; inset:0; z-index:3; pointer-events:none; }
+.cad-editor-feature .feature-height-svg { width:100%; height:100%; overflow:hidden; pointer-events:none; }
+.cad-editor-feature .feature-height-guide { fill:none; stroke:#b8d599; stroke-width:1.5; vector-effect:non-scaling-stroke; }
+.cad-editor-feature .feature-height-handle { fill:#b8d599; stroke:#1b2820; stroke-width:2; vector-effect:non-scaling-stroke; pointer-events:all; touch-action:none; cursor:ns-resize; }
+.cad-editor-feature .feature-height-handle:hover { fill:#d3e7bb; stroke:#edf6df; }
+.cad-editor-feature .feature-height-handle:focus-visible { outline:none; stroke:#edf6df; stroke-width:3; }
+.cad-editor-feature .feature-height-handle[aria-disabled="true"] { cursor:default; opacity:.45; }
+.cad-editor-feature .feature-height-ghost { fill:none; stroke:#e4b66c; stroke-width:2; stroke-dasharray:4 3; vector-effect:non-scaling-stroke; pointer-events:none; }
+.cad-editor-feature .feature-height-status { position:absolute; left:8px; bottom:8px; max-width:calc(100% - 16px); padding:5px 7px; color:#bdc8cf; background:#20272ce8; border:1px solid #3c494f; border-radius:3px; font-size:10px; line-height:1.4; pointer-events:none; }
+
+.cad-editor-feature .feature-height-label { fill:#b8d599; font-size:10px; font-weight:600; pointer-events:none; }
+.cad-app .feature-parameter-summary { gap:8px; }
+.cad-app .feature-parameter-summary>span { flex:1; min-width:0; overflow:hidden; }
+.cad-app .feature-parameter-summary>strong { flex:0 0 auto; max-width:55%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-variant-numeric:tabular-nums; }

@@ -19,6 +19,8 @@ const options: CadEditorFeatureSessionOptions = {
   mesh: { meshId: 'editor_mesh', maximumVertices: 384, maximumTriangles: 288, maximumEdgePaths: 192, maximumNativeSamples: 1024 },
 };
 const names: Record<string, string> = { face_a_feature: 'Face A', face_b_feature: 'Face B', boolean_feature: 'Combine faces', extrusion_feature: 'Extrusion', base_height: 'Base height', design_height: 'Extrusion height', unused: 'Reference length', leaf_middle: 'Extrusion 2', leaf_high: 'Extrusion 3', leaf_top: 'Extrusion 4' };
+const summaryFormat = new Intl.NumberFormat('en-US', {maximumFractionDigits:6,useGrouping:false});
+const summaryNumber = (value: number) => Object.is(value,-0) ? '-0' : summaryFormat.format(value);
 interface ExtrusionDialog {
   mode: 'add' | 'edit' | 'remove';
   feature: BooleanExtrusionExtrusionFeature;
@@ -149,10 +151,40 @@ export function FeatureApp() {
   const [displayRefusal, setDisplayRefusal] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const pendingFilename = useRef<string | null>(null);
+  const hostRoot = useRef<HTMLDivElement>(null);
+  const hostPointers = useRef(new Set<number>());
+  const hostFileBusy = useRef(false);
+  const [fileBusy, setFileBusy] = useState(false);
+  const [captured, setCaptured] = useState(false);
   const flowMode = new URLSearchParams(location.search).has('flow');
-  const busy = snapshot.candidate !== null;
+  const captureFor = (id: number) => [...(hostRoot.current?.querySelectorAll('*') ?? [])]
+    .some(element => element.hasPointerCapture(id)) || !!hostRoot.current?.hasPointerCapture(id);
+  const hostCaptured = () => [...hostPointers.current].some(captureFor);
+  const hostBlocked = () => hostFileBusy.current || hostCaptured() || session.getSnapshot().disposed || session.getSnapshot().candidate !== null;
+  const busy = snapshot.candidate !== null || captured || fileBusy;
   const draft = Object.keys(snapshot.pending.parameters).length > 0 || Object.keys(snapshot.pending.booleanOperations).length > 0;
-  const run = (action: () => unknown) => { try { setError(null); action(); } catch (cause) { setReadRequest(n => n + 1); setError(cause instanceof CadEditorError ? cause : new CadEditorError('FILE', 'Action failed.', {}, cause)); } };
+  const run = (action: () => unknown) => { if (hostBlocked()) return; try { setError(null); action(); } catch (cause) { setReadRequest(n => n + 1); setError(cause instanceof CadEditorError ? cause : new CadEditorError('FILE', 'Action failed.', {}, cause)); } };
+  useEffect(() => {
+    let listening = true;
+    const refresh = () => { if (listening) setCaptured(hostCaptured()); };
+    const down = (event: PointerEvent) => {
+      if (!(event.target instanceof Element) || !hostRoot.current?.contains(event.target)) return;
+      hostPointers.current.add(event.pointerId);
+      setTimeout(refresh, 0);
+    };
+    const release = (event: PointerEvent) => {
+      if (!captureFor(event.pointerId)) hostPointers.current.delete(event.pointerId);
+      refresh();
+      setTimeout(() => { if (!listening) return; if (!captureFor(event.pointerId)) hostPointers.current.delete(event.pointerId); refresh(); }, 0);
+    };
+    window.addEventListener('pointerdown', down, true);
+    window.addEventListener('pointerup', release, true);
+    window.addEventListener('pointercancel', release, true);
+    window.addEventListener('lostpointercapture', release, true);
+    return () => { listening = false; hostPointers.current.clear();
+      window.removeEventListener('pointerdown', down, true); window.removeEventListener('pointerup', release, true);
+      window.removeEventListener('pointercancel', release, true); window.removeEventListener('lostpointercapture', release, true); };
+  }, [session]);
   useEffect(() => () => session.dispose(), [session]);
   useEffect(() => {
     if (!flowMode) return;
@@ -163,9 +195,16 @@ export function FeatureApp() {
     return () => { delete (window as Window & { __cadFeatureFlow?: unknown }).__cadFeatureFlow; };
   }, [flowMode, session, receipt, properties, error]);
   async function openFile(file: File | undefined) {
-    if (!file) return;
-    try { setError(null); const text = await readCadEditorFile(file); pendingFilename.current = file.name; session.prepareOpen(text,options); }
+    if (!file || hostBlocked()) return;
+    const before = session.getSnapshot();
+    hostFileBusy.current = true; hostRoot.current?.setAttribute('data-feature-host-busy', 'true'); setFileBusy(true);
+    try { setError(null); const text = await readCadEditorFile(file); const current = session.getSnapshot();
+      if (current.disposed || current.candidate || hostCaptured() || current.generation !== before.generation
+        || current.displayGeneration !== before.displayGeneration || current.selectedFeatureId !== before.selectedFeatureId)
+        throw new CadEditorError('STALE', 'The graph changed while the file was read.', {field:'open'});
+      pendingFilename.current = file.name; session.prepareOpen(text,options); }
     catch (cause) { pendingFilename.current = null; setReadRequest(n => n + 1); setError(cause instanceof CadEditorError ? cause : new CadEditorError('FILE', 'Cannot open this graph.', {field:'open'}, cause)); }
+    finally { hostFileBusy.current = false; hostRoot.current?.removeAttribute('data-feature-host-busy'); setFileBusy(false); }
   }
   const dependencies = snapshot.accepted.report.featureDependencies;
   const extrusionFeatures = snapshot.accepted.document.features.filter(feature => feature.kind === 'normal-extrusion');
@@ -354,19 +393,19 @@ export function FeatureApp() {
     if(busy)return;
     cornerToken.current=null;cornerExpectedGeneration.current=null;setCornerDialog(null);setError(null);
   }
-  return <div className="cad-app">
+  return <div className="cad-app" ref={hostRoot} data-feature-host-busy={fileBusy ? 'true' : undefined}>
     <header className="app-header">
-      <a className="app-brand" href="#/features/cad_boolean_extrusion"><Box size={20}/><span>barocss<span className="brand-sub">CAD</span></span></a>
-      <Menubar className="app-menubar"><MenubarMenu><MenubarTrigger>File</MenubarTrigger><MenubarContent>
+      <a className="app-brand" href="#/features/cad_boolean_extrusion" onClick={event => { if (hostBlocked()) event.preventDefault(); }}><Box size={20}/><span>barocss<span className="brand-sub">CAD</span></span></a>
+      <Menubar className="app-menubar"><MenubarMenu><MenubarTrigger disabled={busy}>File</MenubarTrigger><MenubarContent>
         <MenubarItem disabled={busy || draft} onSelect={() => run(() => { pendingFilename.current = 'Boolean extrusion'; session.prepareOpen(fixture,options); })}>New Boolean extrusion</MenubarItem>
         <MenubarItem disabled={busy || draft} onSelect={() => run(() => { pendingFilename.current = "Shared extrusions"; session.prepareOpen(sharedFixture,options); })}>New shared extrusions</MenubarItem>
-        <MenubarItem disabled={busy} onSelect={() => fileInput.current?.click()}>Open native graph…</MenubarItem>
-        <MenubarItem onSelect={() => run(() => downloadAccepted(session))}>Download accepted graph</MenubarItem>
-        <MenubarSeparator/><MenubarItem disabled={busy} onSelect={() => { location.hash = '/documents/cad_editor_fixture'; }}>Surface document</MenubarItem>
+        <MenubarItem disabled={busy} onSelect={() => run(() => fileInput.current?.click())}>Open native graph…</MenubarItem>
+        <MenubarItem disabled={busy} onSelect={() => run(() => downloadAccepted(session))}>Download accepted graph</MenubarItem>
+        <MenubarSeparator/><MenubarItem disabled={busy} onSelect={() => run(() => { location.hash = '/documents/cad_editor_fixture'; })}>Surface document</MenubarItem>
       </MenubarContent></MenubarMenu></Menubar>
       <span className="document-title">{filename}<span className="dirty-dot" aria-label={snapshot.dirty ? 'Changed since open or download' : 'Accepted content unchanged'}>{snapshot.dirty ? ' •' : ''}</span></span>
-      <Button variant="outline" size="sm" disabled={busy} onClick={() => fileInput.current?.click()}><FolderOpen/>Open</Button>
-      <Button size="sm" onClick={() => run(() => downloadAccepted(session))}><Download/>Download</Button>
+      <Button variant="outline" size="sm" disabled={busy} onClick={() => run(() => fileInput.current?.click())}><FolderOpen/>Open</Button>
+      <Button size="sm" disabled={busy} onClick={() => run(() => downloadAccepted(session))}><Download/>Download</Button>
       <input ref={fileInput} type="file" accept=".json" aria-label="Open native feature graph file" className="file-input" onChange={event => { void openFile(event.target.files?.[0]); event.target.value = ''; }}/>
     </header>
     <div className="app-toolbar feature-toolbar"><span className="breadcrumb">{filename}</span><div className="toolbar-actions">
@@ -376,8 +415,8 @@ export function FeatureApp() {
       <Button variant="ghost" size="sm" data-testid="add-extrusion" ref={addExtrusionButton} disabled={busy || draft} onClick={event => openExtrusion('add',event.currentTarget)}>Add extrusion</Button>
       <Button variant="ghost" size="sm" data-testid="edit-extrusion" disabled={busy || draft || !extrusionFeatures.some(feature => feature.id === snapshot.selectedFeatureId)} onClick={event => openExtrusion('edit',event.currentTarget)}>Edit extrusion</Button>
       <Button variant="ghost" size="sm" data-testid="remove-extrusion" disabled={busy || draft || !extrusionFeatures.some(feature => feature.id === snapshot.selectedFeatureId)} onClick={event => openExtrusion('remove',event.currentTarget)}>Remove</Button>
-      <span className="toolbar-divider"/><Button variant="ghost" size="sm" onClick={() => setFitRequest(n => n + 1)}><Maximize/>Fit</Button>
-      <Button variant="ghost" size="sm" data-testid="fit-selected-output" disabled={!snapshot.selectedFeatureId} onClick={() => setFitSelectedRequest(n => n + 1)}>Fit selected</Button>
+      <span className="toolbar-divider"/><Button variant="ghost" size="sm" disabled={busy} onClick={() => run(() => setFitRequest(n => n + 1))}><Maximize/>Fit</Button>
+      <Button variant="ghost" size="sm" data-testid="fit-selected-output" disabled={busy || !snapshot.selectedFeatureId} onClick={() => run(() => setFitSelectedRequest(n => n + 1))}>Fit selected</Button>
       <Button variant="ghost" size="sm" data-testid="show-all-outputs" disabled={busy} onClick={() => run(() => session.prepareDisplayOutputs(extrusionFeatures.map(feature => output(feature.id))))}>Show all</Button>
       <Button variant="ghost" size="sm" data-testid="solo-selected-output" disabled={busy || !extrusionFeatures.some(feature => feature.id === snapshot.selectedFeatureId)} onClick={() => run(() => session.prepareDisplayOutputs([output(snapshot.selectedFeatureId!)]))}>Show only selected</Button>
     </div></div>
@@ -385,7 +424,7 @@ export function FeatureApp() {
     <div className="app-workspace">
       <aside className="document-tree"><h2><Layers3 size={15}/>Features</h2><div className="tree-document"><Box size={16}/><span>{filename}</span></div>
         {snapshot.accepted.document.features.map(feature => <div key={feature.id} className="tree-body-row">
-          <button data-testid={'feature-select-' + feature.id} className={'tree-body' + (snapshot.selectedFeatureId === feature.id ? ' selected' : '')} aria-pressed={snapshot.selectedFeatureId === feature.id} onClick={() => run(() => session.selectFeature(feature.id))}>
+          <button data-testid={'feature-select-' + feature.id} disabled={busy} className={'tree-body' + (snapshot.selectedFeatureId === feature.id ? ' selected' : '')} aria-pressed={snapshot.selectedFeatureId === feature.id} onClick={() => run(() => session.selectFeature(feature.id))}>
             <span className="body-symbol surface">{feature.kind === 'normal-extrusion' ? '▣' : '▱'}</span><span>{name(feature.id)}<small>{(dependencies.find(item => item.featureId === feature.id)?.dependencyIds ?? []).map(name).join(' + ') || 'Original face'}</small></span>
           </button>
           {feature.kind === 'normal-extrusion' && <input type="checkbox" data-testid={'output-visible-' + feature.id} aria-label={(visible.includes(feature.id) ? 'Hide ' : 'Show ') + name(feature.id)} checked={visible.includes(feature.id)} disabled={busy} onChange={() => run(() => session.prepareDisplayOutputs((visible.includes(feature.id) ? visible.filter(id => id !== feature.id) : [...visible,feature.id]).map(id => output(id))))} />}
@@ -399,7 +438,7 @@ export function FeatureApp() {
           <Button ref={addLengthButton} variant="ghost" size="xs" data-testid="add-length" disabled={busy || draft || lifecycle !== null || lengthDialog !== null || replaceDialog !== null || cornerDialog !== null}
             onClick={event => openLength('add',null,event.currentTarget)}>Add length</Button></div>
         {snapshot.accepted.parameters.map(parameter => <div key={parameter.id} className="length-sidebar-row">
-          <div className="feature-parameter-summary" data-testid={'parameter-summary-' + parameter.id}><span>{name(parameter.id)}{parameter.dependencyIds.length > 0 && <small>{parameter.dependencyIds.map(name).join(' + ')}</small>}</span><strong>{Object.is(parameter.valueMM,-0) ? '-0' : parameter.valueMM} mm</strong></div>
+          <div className="feature-parameter-summary" data-testid={'parameter-summary-' + parameter.id}><span title={name(parameter.id)}>{name(parameter.id)}{parameter.dependencyIds.length > 0 && <small>{parameter.dependencyIds.map(name).join(' + ')}</small>}</span><strong title={(Object.is(parameter.valueMM,-0) ? '-0' : String(parameter.valueMM))+' mm'}>{summaryNumber(parameter.valueMM)} mm</strong></div>
           <div className="length-row-actions"><Button variant="ghost" size="xs" data-testid={'edit-length-' + parameter.id}
             disabled={busy || draft || lifecycle !== null || lengthDialog !== null || replaceDialog !== null || cornerDialog !== null} onClick={event => openLength('edit',parameter.id,event.currentTarget)}>Edit</Button>
             <Button variant="ghost" size="xs" data-testid={'remove-length-' + parameter.id}
