@@ -706,7 +706,7 @@ Viewer background applies to this mode. `getState().qualifiedFaceScene`
 returns a copy of the complete accepted scene and all original assets. The
 old primitive inventory is empty. Legacy unqualified native queries refuse
 this mode because local model and geometry IDs can repeat across assets.
-Fit, primitive picking, selection, visibility, motion and simulation or
+Individual geometry fit, primitive picking, selection, visibility, motion and simulation or
 material layers also refuse. Callers can inspect each copied asset with
 public CAD APIs under its explicit `sourceId`.
 
@@ -810,3 +810,9 @@ Complete source/mesh reconstruction is not a latency certificate. Retained CPU
 source data after loss/unavailability remains available to native queries, but
 this screen observation refuses, including after sticky context restoration.
 The caller owns current row/epoch invalidation and any approximate labels.
+
+### Qualified Face whole display fit (#1189)
+
+`fit()` frames every current qualified Face display triangle, including offscreen assets. It rebuilds validated original Face Surfaces through public tessellation/mesh conversion and unions the actual Float32 Scene positions. Native mm scale and Scene translation apply once. Unshown Curves and original control hulls do not determine these bounds. This is sampled display framing, not a native Surface extremum or CAD bounds certificate.
+
+The existing camera convention uses a bounds-centred target, direction `[1,1,1]`, FOV45°, radius floor0.01, padding1.3 and current backing aspect. The complete camera/Scene update commits only after presentation succeeds. An admitted Scene may produce an illegal fit camera; refusal preserves accepted authority. Failed presentation recovery follows sticky `unavailable` with CPU authority retained and no pixel rollback promise. Camera-only fit does not advance content requests or abort held URL loads. Individual `fitGeometry`, selection, visibility and motion remain unsupported in this mode. Loss/sticky restore/unavailable/disposal refuse framing.

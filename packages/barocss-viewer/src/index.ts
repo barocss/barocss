@@ -41,6 +41,7 @@ import { prepareViewerMixedDepth } from './mixed-depth.js';
 import type { ViewerMixedDepthInputV0, ViewerMixedDepthState } from './mixed-depth.js';
 export type { ViewerMixedDepthInputV0, ViewerMixedDepthState } from './mixed-depth.js';
 import { prepareViewerQualifiedFaces } from './qualified-faces.js';
+import { qualifiedFaceDisplayBounds } from './qualified-face-fit.js';
 import type { ViewerQualifiedFaceInputV0 } from './qualified-faces.js';
 export type { ViewerQualifiedFaceInputV0 } from './qualified-faces.js';
 import { measureViewerQualifiedFacePoints } from './qualified-face-measurement.js';
@@ -1786,7 +1787,10 @@ export class Viewer {
   }
   fit(): void {
     this.gpuLive();
-    check(!this.qualifiedFaceScene, 'Qualified Face display fit is unavailable; supply an explicit camera');
+    if (this.qualifiedFaceScene) {
+      const bounds = qualifiedFaceDisplayBounds(this.qualifiedFaceScene);
+      this.setView(cameraForBounds(bounds.min, bounds.max, this.canvas.width, this.canvas.height)); return;
+    }
     check(!this.mixedDepth, 'Combined Sphere/native fit is unavailable in mixed depth mode');
     if (this.shell) {
       const bounds = this.shell.boundsScene;
