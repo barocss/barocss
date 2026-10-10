@@ -2,9 +2,9 @@
 
 Read the [complete public signature reference](./reference) for exact exported functions, types and public class members. This task page explains their support, ownership, errors and lifecycle.
 
-## Separate qualified Body profile1301
+## Body and topology
 
-The [versioned Body guide](./body-1301) documents `buildQualifiedTranslatedStripBody` and `validateQualifiedTranslatedStripBody` at explicit provider `ded1ef68`. Those APIs are absent from the `5f5ad866` baseline below. Its portable CLI selects a verified compiled public entry in an isolated app cache; it does not change this page's source baseline, generated reference or live examples.
+The [Body and topology guide](./body-1301) explains `buildQualifiedTranslatedStripBody` and `validateQualifiedTranslatedStripBody`: complete qualified inputs, shared topology, material boundaries and copied result ownership. These newer APIs have their own availability note; the reference below describes the earlier CAD API version.
 
 
 All operations below are root exports from `@barocss/cad`. The root entry selects TypeScript source in this workspace. The publication map selects emitted `dist/index.js` and declarations for the separate build checkpoint. A declaration in an internal module is not a public API unless the root re-exports it.

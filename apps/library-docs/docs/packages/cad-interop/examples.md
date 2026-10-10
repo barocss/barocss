@@ -1,18 +1,15 @@
-# Loader: complete native input and caller-owned display
+# CAD Interop: retain native source and own target display objects
 
-## Task 1 — parse one complete Surface and keep the last valid result
+Use the neutral loader to preserve complete native data and derive bounded previews. Use a target adapter when the application already owns a Three, Babylon or Pixi3D scene. The adapter owns its loaded objects/resources; the application keeps its renderer, camera, scene and unrelated objects.
 
-Run from the repository root with Node 22+ and the existing app-local esbuild runtime. The runner reads ordinary public source export maps and transforms TypeScript; it does not install or publish packages.
+## Parse complete source and derive a preview
 
-```sh
-node apps/library-docs/scripts/run-example.mjs apps/library-docs/scripts/snippets/interop-example.ts
-```
-
-The complete runnable file is shown below. Its expected values come from the fixed API and inputs. This CPU command succeeded on Node22.22.0 at the fixed source pin in #1270. Its native receipt records the actual output and zero own dist inputs. A successful CPU task does not prove browser pixels.
-
+Use a TypeScript-capable bundler with the workspace `@barocss/cad-interop` and CAD dependencies. This complete Source0 input contains a Surface and a Curve with a nonunit knot domain.
 
 ```ts
 import { parseBaroCadSource, BaroCadSourceError } from '@barocss/cad-interop/native';
+import type { BaroCadParseOptions } from '@barocss/cad-interop/native';
+
 const source = `@model panel_demo {
   version: 0; length-unit: mm;
   @surface #panel {
@@ -21,63 +18,78 @@ const source = `@model panel_demo {
     control-points: [[[0,0,0],[0,0,40]],[[100,0,0],[100,0,40]]];
     weights: [[1,1],[1,1]];
   }
+  @curve #edge {
+    type: nurbs; degree: 1; knots: [-3,-3,7,7];
+    control-points: [[0,0,0],[100,0,0]]; weights: [1,1];
+  }
 }`;
-const options = { sourceVersion: 0 as const, countU: 3, countV: 3, unitsPerMillimeter: 0.001 };
-const result = parseBaroCadSource(source, options);
-let refused = '';
-try { parseBaroCadSource('not a model', options); }
-catch (error) { if (!(error instanceof BaroCadSourceError)) throw error; refused = error.name; }
-if (result.model.name !== 'panel_demo' || result.surfaces.length !== 1 || !refused) throw new Error('Unexpected loader result');
-console.log(JSON.stringify({ task: 'native-loader', sourceExact: result.source === source,
-  model: result.model.name, surfaceIds: result.surfaces.map(surface => surface.surfaceId),
-  nativeObjects: result.model.objects.length, curves: result.curves.length,
-  positions: result.surfaces[0].mesh.positions.length,
-  indices: result.surfaces[0].mesh.indices.length, refused, rendered: false }, null, 2));
+const options: BaroCadParseOptions = {
+  sourceVersion: 0, countU: 3, countV: 3, unitsPerMillimeter: 0.001,
+  nativeCapacity: { version: 1, maximumObjects: 16 },
+  curveDisplay: { version: 1, chordToleranceMM: 0.1, maxSegments: 64, maxDepth: 8 },
+};
+let accepted = parseBaroCadSource(source, options);
+console.log(accepted.model.name); // panel_demo.
+console.log(accepted.surfaces.map(surface => surface.surfaceId)); // ['panel'].
+console.log(accepted.curves.map(curve => curve.curveId)); // ['edge'].
+function applySource(text: string) {
+  try { accepted = parseBaroCadSource(text, options); }
+  catch (error) {
+    if (error instanceof BaroCadSourceError) console.error(error.diagnostics);
+    else throw error;
+  }
+}
 ```
 
-| Expected result | Meaning |
-| --- | --- |
-| `sourceExact:true` | The complete original source string is retained. |
-| `model:'panel_demo'`, `surfaceIds:['panel']` | Original identity, not generated display labels. |
-| `nativeObjects:1`, `curves:0` | Complete admitted native inventory. |
-| `positions:27`, `indices:24` | A 3×3 sampled Surface grid: 9 XYZ vertices and 8 triangles. |
-| `refused:'BaroCadSourceError'` | Invalid text is refused; the host keeps its prior result. |
-| `rendered:false` | Parsing creates no target renderer or image. |
+`source` retains complete original text and `model` retains original coefficients/IDs. The 3×3 Surface preview contains9 XYZ vertices and 8 triangles. Native width 100 mm becomes 0.1 display unit at the declared scale. Curve samples retain original parameters in `[-3,7]`; they are not normalized texture coordinates. Without explicit Curve display options, the native Curve stays in the Model but has no derived display line.
 
-Display positions use scene units/mm0.001, so native width100mm becomes0.1 scene units. Original weights/knots/coordinates remain native millimetres and dimensionless parameters. The sampled packet/mesh is a derived approximation. This native result has no target-renderer resource to dispose.
+Assignment happens only after successful parsing. A refused candidate leaves the host's accepted result intact. Neutral results are copied CPU data and have no target renderer to dispose. Preview buffers are derived approximations, not replacement native authoring.
 
-## Task 2 — load five original Curves into an actual Three host {#run-the-existing-three-host}
+## Add a loaded Group to a caller-owned Three scene {#run-the-existing-three-host}
 
-Use Node22+ and the existing configured SDK host dependencies. This source host uses ordinary public package imports, without a CAD/interop prebuild or source alias:
+The `/three` entry requires the compatible Three peer (`^0.186.1` in this package profile). The application supplies the Scene, camera and renderer through its ordinary browser bundler. Use the full `source` and `options` above:
 
-```sh
-pnpm exec vite --config packages/barocss-cad-interop/examples/sdk-quickstart-vite.config.mjs --host 127.0.0.1 --port 5191 --strictPort
+```ts
+import { Scene, PerspectiveCamera, WebGLRenderer } from 'three';
+import { BaroCADLoader } from '@barocss/cad-interop/three';
+
+const scene = new Scene();
+const camera = new PerspectiveCamera(45, 640 / 360, 0.001, 10);
+camera.position.set(0.2, 0.15, 0.2);
+camera.lookAt(0.05, 0, 0.02);
+const renderer = new WebGLRenderer();
+renderer.setSize(640, 360);
+document.body.append(renderer.domElement);
+const loader = new BaroCADLoader(options);
+const loaded = loader.parse(source);
+scene.add(loaded.group);
+renderer.render(scene, camera);
+// When this model closes: loaded.dispose().
+// When the application closes: renderer.dispose() and remove its canvas.
 ```
 
-Open `http://127.0.0.1:5191/packages/barocss-cad-interop/examples/sdk-quickstart-three.html`. If the strict port is occupied, keep the other process and choose a free authorized host setup.
+The Group contains the original Surface Mesh and the requested Curve Line, with names `panel` and `edge`. The native Model still contains both objects. Surface `_CAD_UV` data contains native parameters rather than texture UVs. Target picking on a sampled line/triangle is a display query, not an exact native intersection.
 
-Input is the complete `packages/barocss-cad-interop/examples/native-capacity-data/linear-quarter-five.barocad`:819bytes, SHA256 `f40feb68dab3f96e30922c82ab4e872d585154fad33f559bb561bdc223a5b8e2`. Model is `quarter_pattern`; native IDs are `quarter_seed`, `quarter_copy_1` through `quarter_copy_4`. The original Curve domain is `[-3,7]`. Host options explicitly admit native16 and adaptive Curvev1, tolerance0.1mm, maxSegments512, maxDepth16, and scene scale0.001/mm.
+For replacement, parse the candidate before removing the accepted Group. Keep the old result if parsing/admission fails. On success, attach the candidate and dispose the previous result at your host's presentation boundary. `loaded.dispose()` removes its Group and releases owned geometry/materials; it does not destroy your Scene, camera, renderer or unrelated objects.
 
-Expect five original Curve objects and five corresponding display Lines. The host retains a separate unrelated marker. Choose its invalid-load action: accepted old geometry stays visible. Dispose the loaded result: adapter-owned Group, geometries and materials are released; the caller's Scene, camera, renderer and unrelated marker remain. Parsing/transport does not transfer host ownership.
+## Load a URL with caller-owned cancellation
 
-The exact target contract is `packages/barocss-cad-interop/examples/sdk-quickstart-contract.ts`; the runnable module is `packages/barocss-cad-interop/examples/sdk-quickstart-three.mjs`. A Three Curve line pick is a sampled chord result, not a native exact intersection.
-
-## Related actual image
-
-![Original CAD Surface rendered through the playground's GPU mesh path](/examples/cad-surface.png)
-
-The [playground](/playground) connects original CAD input to a derived GPU mesh image. This image explains Task 1's model/mesh/image distinction. It does not show the Three SDK host, its five-Curve fixture, a GLB export, Babylon or Pixi3D. Each target requires its own actual host test.
-
-## Source and emitted checkpoints
-
-`#988` and `#1017` preserve the earlier SDK/source-browser/emitted receipts. This manual's source runner does not verify packed installation or publication. An explicit emitted checkpoint uses actual compiled publication maps and is a separate command:
-
-```sh
-pnpm --filter @barocss/cad build:library
-pnpm --filter @barocss/cad-interop build:library
-node packages/barocss-cad-interop/examples/sdk-entry-checkpoint-verify.mjs --output /tmp/barocss-sdk-entry-checkpoint
+```ts
+import { loadBaroCadSource, BaroCadLoadAbortError } from '@barocss/cad-interop/native';
+const controller = new AbortController();
+try {
+  const loaded = await loadBaroCadSource('/part.barocad', options, { signal: controller.signal });
+  console.log(loaded.model.name);
+} catch (error) {
+  if (!(error instanceof BaroCadLoadAbortError)) throw error;
+}
+// On cancellation or document close: controller.abort().
 ```
 
-Use a fresh output directory. Do not infer complete public-entry runtime coverage from file existence or an older 27/28-entry count. Preserve actual first failures and consumed type-check scope.
+The host serves complete Source0 text at its URL and owns selection, cancellation and stale-response decisions. Transport success is not native admission; both must succeed before replacing accepted content. Choosing a different target requires that target's public adapter and supported peer/basis, not a cast of the Three result.
 
-Source pin: `5f5ad866205a21510ac69552e704cc162fa253b5`. Public declarations: [API](./api) · [Exact public reference](./reference). Read [limits and errors](./limits) before changing the input profile.
+![Original CAD Surface displayed through a derived GPU mesh](/examples/cad-surface.png)
+
+The [CAD Surface example](/playground#cad-surface) shows original source beside a derived GPU mesh. This picture illustrates model/mesh/image roles; it uses a different Surface and render path from the Three example above. It is not a Three, Babylon, Pixi3D or exported-file result.
+
+[API](./api) · [Public signatures](./reference) · [Limits and errors](./limits)

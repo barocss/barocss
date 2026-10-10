@@ -2,13 +2,13 @@
 
 Choose an independent sample to inspect its full source and change its host input. All eleven supported source functions have one target sample. Each material computes an opaque mesh color from the scalar `amount`; it does not create geometry, read texture/UV data or start a clock.
 
-The examples use public `compileMeshMaterial`, `validateMeshMaterialIR` and `lowerMeshMaterial` at source pin `5f5ad866205a21510ac69552e704cc162fa253b5`, profile `mesh-opaque-fragment-v0`. The sample data is `apps/library-docs/scripts/snippets/presets/materials.json`. Several source functions expand to arithmetic or the smaller sin/cos/mix/clamp IR; counting IR call names would miss accepted source functions.
+The examples use public `compileMeshMaterial`, `validateMeshMaterialIR` and `lowerMeshMaterial` for local experimental `@barocss/gpu` version0.0.0 at source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`, profile `mesh-opaque-fragment-v0`. Several source functions expand to arithmetic or the smaller sin/cos/mix/clamp IR. The source function and its lowered form can therefore have different names.
 
 ## Run and interpret a sample
 
-Start the local portal with the existing Node 22+ runtime and [example execution steps](/concepts/run-examples), then use the Open sample links below. Each standalone program declares `amount:float(0,1,0)`. The shared host control has step .05 and initial value 0. Choose .5 and 1 to compare the midpoint and endpoint. Changes are explicit input adoption; there is no timer or per-frame performance promise.
+Use the Open sample links below to run a program in the browser. See [Use the interactive examples](/concepts/run-examples) for input selection, browser requirements and result interpretation. Each standalone program declares `amount:float(0,1,0)`. The shared host control has step .05 and initial value 0. Choose .5 and 1 to compare the midpoint and endpoint. Changes are explicit input adoption; there is no timer or per-frame performance promise.
 
-The tables below contain source-backed expected scalar values, not a new CPU evaluator or measured pixel values. The adjacent figures belong to the gallery's actual browser capture; use the recorded native receipt to establish which input was captured. A source/compiler pass alone draws nothing. Lighting, linear-color conversion and framebuffer output mean a ratio .5 pixel is not an arithmetic average of the two hex colors.
+The tables give the scalar ratio computed by each expression. The images show the rendered mesh at the displayed amount. Lighting and linear-color conversion affect its appearance: a ratio.5 pixel is not an arithmetic average of the two hex colors. Compilation computes material data; the mesh renderer draws its result.
 
 The cold literal is `#2060D0` (rgb(32,96,208)) and the warm literal is `#F09030` (rgb(240,144,48)). Color literals convert each byte to a linear channel using `(byte/255)^2.2`. A ratio 0 chooses cold; ratio 1 chooses warm. Other values interpolate linear channels.
 
@@ -28,7 +28,7 @@ The cold literal is `#2060D0` (rgb(32,96,208)) and the warm literal is `#F09030`
 | `smoothstep` | [Open material-smoothstep](/playground#material-smoothstep) | 0 / 0.5 / 1 |
 | `mix` | [Open material-mix](/playground#material-mix) | 0.2 / 0.5 / 0.8 |
 
-`mix` is also the common color helper for the other function samples. The dedicated mix sample additionally demonstrates the float overload. `rgb` is a literal color constructor; its sample's scalar ratio is the `amount` passed to the common color mix. This coverage map describes original source calls, not unique runtime instructions.
+`mix` is also the common color helper for the other function samples. The dedicated mix sample additionally demonstrates the float overload. `rgb` is a literal color constructor; its sample's scalar ratio is the `amount` passed to the common color mix. The table describes the source functions and their color ratios.
 
 ## rgb — RGB bytes to linear color {#material-rgb}
 
@@ -51,7 +51,7 @@ Admitted ratio envelope: `0..1`. Scalar ratios describe the authored function; s
 
 ![Actual browser capture for the rgb material sample](/examples/material-rgb.png)
 
-The image uses the gallery's admitted CAD mesh and public GPU material path. It is not a texture, rendered geometry edit or CPU-only result. Compare the captured amount shown beside source/result with the table; do not infer an unrecorded animation or every-device result.
+The material changes the color of the same CAD-derived mesh. Compare the displayed amount with the table, then change the amount in the playground. Geometry stays unchanged.
 
 ### Refused input
 
@@ -88,7 +88,7 @@ Admitted ratio envelope: `0..1`. Trigonometric entries are approximate mathemati
 
 ![Actual browser capture for the sin material sample](/examples/material-sin.png)
 
-The image uses the gallery's admitted CAD mesh and public GPU material path. It is not a texture, rendered geometry edit or CPU-only result. Compare the captured amount shown beside source/result with the table; do not infer an unrecorded animation or every-device result.
+The material changes the color of the same CAD-derived mesh. Compare the displayed amount with the table, then change the amount in the playground. Geometry stays unchanged.
 
 ### Refused input
 
@@ -125,7 +125,7 @@ Admitted ratio envelope: `0..1`. Trigonometric entries are approximate mathemati
 
 ![Actual browser capture for the cos material sample](/examples/material-cos.png)
 
-The image uses the gallery's admitted CAD mesh and public GPU material path. It is not a texture, rendered geometry edit or CPU-only result. Compare the captured amount shown beside source/result with the table; do not infer an unrecorded animation or every-device result.
+The material changes the color of the same CAD-derived mesh. Compare the displayed amount with the table, then change the amount in the playground. Geometry stays unchanged.
 
 ### Refused input
 
@@ -160,7 +160,7 @@ Admitted ratio envelope: `0..1`. Trigonometric entries are approximate mathemati
 
 ![Actual browser capture for the radians material sample](/examples/material-radians.png)
 
-The image uses the gallery's admitted CAD mesh and public GPU material path. It is not a texture, rendered geometry edit or CPU-only result. Compare the captured amount shown beside source/result with the table; do not infer an unrecorded animation or every-device result.
+The material changes the color of the same CAD-derived mesh. Compare the displayed amount with the table, then change the amount in the playground. Geometry stays unchanged.
 
 ### Refused input
 
@@ -195,7 +195,7 @@ Admitted ratio envelope: `0..1`. Scalar ratios describe the authored function; s
 
 ![Actual browser capture for the pow material sample](/examples/material-pow.png)
 
-The image uses the gallery's admitted CAD mesh and public GPU material path. It is not a texture, rendered geometry edit or CPU-only result. Compare the captured amount shown beside source/result with the table; do not infer an unrecorded animation or every-device result.
+The material changes the color of the same CAD-derived mesh. Compare the displayed amount with the table, then change the amount in the playground. Geometry stays unchanged.
 
 ### Refused input
 
@@ -230,7 +230,7 @@ Admitted ratio envelope: `0..1`. Scalar ratios describe the authored function; s
 
 ![Actual browser capture for the abs material sample](/examples/material-abs.png)
 
-The image uses the gallery's admitted CAD mesh and public GPU material path. It is not a texture, rendered geometry edit or CPU-only result. Compare the captured amount shown beside source/result with the table; do not infer an unrecorded animation or every-device result.
+The material changes the color of the same CAD-derived mesh. Compare the displayed amount with the table, then change the amount in the playground. Geometry stays unchanged.
 
 ### Refused input
 
@@ -265,7 +265,7 @@ Admitted ratio envelope: `0..0.6`. Scalar ratios describe the authored function;
 
 ![Actual browser capture for the min material sample](/examples/material-min.png)
 
-The image uses the gallery's admitted CAD mesh and public GPU material path. It is not a texture, rendered geometry edit or CPU-only result. Compare the captured amount shown beside source/result with the table; do not infer an unrecorded animation or every-device result.
+The material changes the color of the same CAD-derived mesh. Compare the displayed amount with the table, then change the amount in the playground. Geometry stays unchanged.
 
 ### Refused input
 
@@ -300,7 +300,7 @@ Admitted ratio envelope: `0.4..1`. Scalar ratios describe the authored function;
 
 ![Actual browser capture for the max material sample](/examples/material-max.png)
 
-The image uses the gallery's admitted CAD mesh and public GPU material path. It is not a texture, rendered geometry edit or CPU-only result. Compare the captured amount shown beside source/result with the table; do not infer an unrecorded animation or every-device result.
+The material changes the color of the same CAD-derived mesh. Compare the displayed amount with the table, then change the amount in the playground. Geometry stays unchanged.
 
 ### Refused input
 
@@ -335,7 +335,7 @@ Admitted ratio envelope: `0.25..0.75`. Scalar ratios describe the authored funct
 
 ![Actual browser capture for the clamp material sample](/examples/material-clamp.png)
 
-The image uses the gallery's admitted CAD mesh and public GPU material path. It is not a texture, rendered geometry edit or CPU-only result. Compare the captured amount shown beside source/result with the table; do not infer an unrecorded animation or every-device result.
+The material changes the color of the same CAD-derived mesh. Compare the displayed amount with the table, then change the amount in the playground. Geometry stays unchanged.
 
 ### Refused input
 
@@ -372,7 +372,7 @@ Admitted ratio envelope: `0..1`. Scalar ratios describe the authored function; s
 
 ![Actual browser capture for the smoothstep material sample](/examples/material-smoothstep.png)
 
-The image uses the gallery's admitted CAD mesh and public GPU material path. It is not a texture, rendered geometry edit or CPU-only result. Compare the captured amount shown beside source/result with the table; do not infer an unrecorded animation or every-device result.
+The material changes the color of the same CAD-derived mesh. Compare the displayed amount with the table, then change the amount in the playground. Geometry stays unchanged.
 
 ### Refused input
 
@@ -407,7 +407,7 @@ Admitted ratio envelope: `0.2..0.8`. Scalar ratios describe the authored functio
 
 ![Actual browser capture for the mix material sample](/examples/material-mix.png)
 
-The image uses the gallery's admitted CAD mesh and public GPU material path. It is not a texture, rendered geometry edit or CPU-only result. Compare the captured amount shown beside source/result with the table; do not infer an unrecorded animation or every-device result.
+The material changes the color of the same CAD-derived mesh. Compare the displayed amount with the table, then change the amount in the playground. Geometry stays unchanged.
 
 ### Refused input
 

@@ -2,19 +2,13 @@
 
 Start the [visual playground](/playground). It runs the real source APIs in your browser. Choose **GPU scene** to edit shapes, or **GPU material** to change the color of a CAD-derived mesh. Each example shows its input, accepted result and diagnostics.
 
-These examples use local source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`. The screenshots record the portal's actual browser output. They establish the recorded SDF/mesh paths. They do not establish a general Engine renderer, currentRoot integration, emitted-package or npm acceptance.
+These examples describe the local experimental `@barocss/gpu` version0.0.0 at source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`. The scene samples use source1; the material samples use `mesh-opaque-fragment-v0`. The images show the browser-rendered samples.
 
 ## Run the portal
 
-Use Node22+ and the existing repository dependencies:
+Open the [playground](/playground) and select a sample. Edit its complete source, then select **Run input**. Use **Reset example** to restore the original input. See [Use the interactive examples](/concepts/run-examples) for input selection, browser requirements and result interpretation.
 
-```sh
-pnpm --filter @barocss/library-docs dev --host 127.0.0.1
-```
-
-Open the printed URL and select **Run examples**. The host owns the canvas, source editor and report. `apps/library-docs/scripts/snippets/visual.mjs` contains the exact inputs and public API calls. The app bundles its own package TypeScript source, with zero own package dist inputs.
-
-WebGL2 is required for the scene, surface and material examples. If context creation fails, the host reports that failure; it does not replace the renderer with a simulated image.
+The API code below belongs in a browser host with a TypeScript-capable bundler. WebGL2 is required for the scene, surface and material views. The host owns the canvas, controls and source editing. It displays compilation or rendering errors when an input cannot be adopted.
 
 ## Rotated box and sphere
 
@@ -73,7 +67,7 @@ Expected accepted data:
 3. Change its radius to0. Run the input. The renderer refuses the candidate and retains the previously accepted scene while the context is live.
 4. Select **Reset example** to restore the exact original source.
 
-The actual browser flow also changed an accepted scene and observed changed pixels. It then submitted `20rad` as a rotation, observed refusal, and checked that the accepted frame remained. A `version: 1` header alone does not change a source0 parser. Read the [complete scene language](./language) for all six shapes, defaults, cascade and errors.
+A `version: 1` header alone does not change a source0 parser. Pass the explicit source1 option when mounting. A rotation such as `20rad` is refused because this grammar requires degrees. Read the [complete scene language](./language) for all six shapes, defaults, cascade and errors.
 
 ## Compare all six source1 primitives
 
@@ -120,7 +114,7 @@ The host uses the same public call as the first scene example: `mountScene(canva
 3. Set the ring's minor radius to`.55`. Run. Equal major/minor radii are refused, because no positive ring hole remains. The live view retains its accepted scene while the context is usable.
 4. Reset the example to restore the exact six-shape source.
 
-The saved preset is `apps/library-docs/scripts/snippets/presets/scene.json`, key `gpu-six-shapes`. It preserves complete source and expected object/refusal metadata. The [scene grammar](./language#source1-shapes-in-one-complete-input) explains each shape's Float32 boundary checks.
+The [scene grammar](./language#source1-shapes-in-one-complete-input) explains each shape's Float32 boundary checks and the required source1 option.
 
 ## Host-controlled material blend
 
@@ -164,7 +158,7 @@ setAmount(1);
 
 This function assumes the mesh renderer from the next section. A material source creates no geometry and no timer. The host owns the uniform values and scheduling. Read the [material grammar and complete function table](./material-language).
 
-For separate complete inputs for all11functions, read [GPU function examples](./function-examples). The cosine preset reverses the endpoint direction as amount increases. The explicit clamp preset keeps the blue endpoint below its lower threshold and the orange endpoint above its upper threshold. Both use the same admitted mesh and host-controlled amount contract.
+For separate complete inputs for all11functions, read [GPU function examples](./function-examples). The cosine sample uses a complete cycle: amounts0, .5 and1 produce ratios1, 0 and1. The clamp sample limits its mix ratio to.25 through.75, so those amounts produce ratios.25, .5 and.75. Both use the same admitted mesh and host-controlled amount contract.
 
 ### Exercise errors without guessing the result
 
@@ -178,7 +172,7 @@ For separate complete inputs for all11functions, read [GPU function examples](./
 | Use declared range-1..1 directly as the `mix` ratio | Compile failure with `RANGE` code |
 | Change output to `color: amount;` | Compile failure with `TYPE` code |
 
-The actual browser flow changed amount0 to1 and observed changed pixels. It then submitted `unknown()` and observed refusal with the accepted frame retained. `setMaterial(null)` clears the material. Clear overlays and face/object selections before adopting an opaque material.
+Changing amount0 to1 changes the color endpoint. A candidate containing `unknown()` is refused by the compiler and supplies no replacement material. Keep the accepted binding after a refused edit. `setMaterial(null)` clears the material. Clear overlays and face/object selections before adopting an opaque material.
 
 ## CAD surface to a rendered mesh
 
@@ -252,7 +246,7 @@ Change one weight and run the surface input. The native point and packet change.
 
 ## Compile and inspect without a browser
 
-The portal also has an executed CPU-only material example. It compiles the fragment language, validates owned IR, lowers the uniform layout and refuses an unsupported function:
+Compile material text before drawing it. Compilation returns typed material data, called intermediate representation (IR). Validation checks that the data still matches its source. Lowering converts that validated data into a fragment expression and a uniform layout:
 
 ```ts
 import {
@@ -271,61 +265,15 @@ const result = compileMeshMaterial(`
 if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
 const material = validateMeshMaterialIR(result.material);
 const lowered = lowerMeshMaterial(material);
-if (lowered.uniformLayout.length !== 1 ||
-    lowered.uniformLayout[0].name !== 'timeSeconds') {
-  throw new Error('Uniform layout mismatch');
-}
-const refused = compileMeshMaterial('@shader #bad { @fragment { color: unknown(); } }');
-if (refused.ok) throw new Error('Unsupported function was accepted');
-console.log(material.shaderId, lowered.uniformLayout[0], refused.diagnostics);
+console.log(material.shaderId); // 'wave'
+console.log(lowered.uniformLayout[0]); // Declared timeSeconds and generated mat_u_0.
+
+const candidate = compileMeshMaterial('@shader #bad { @fragment { color: unknown(); } }');
+if (!candidate.ok) console.log(candidate.diagnostics); // SYNTAX: unsupported function.
 ```
 
-Run the saved app-local consumer:
+The `timeSeconds` uniform has min0, max2 and default0. It lowers to the generated name `mat_u_0`; renderer bindings use the declared name `timeSeconds`. The compiler and lowerer create no timer, canvas or frame. The host supplies the time value and adopts the result through `setMaterial`. Read [caller time and cleanup](./material-language#supply-caller-time-on-demand) for that lifecycle.
 
-```sh
-node apps/library-docs/scripts/run-snippet.mjs
-```
-
-The saved module is `apps/library-docs/scripts/snippets/material.mjs`. Its receipt is `apps/library-docs/evidence/material-snippet.json`: shader ID `wave`, uniform `timeSeconds` min0/max2/default0, generated name `mat_u_0`, refused code `SYNTAX`,222own source inputs and0own dist inputs. This CPU flow draws nothing.
-
-The detailed language examples were also executed through a bounded source bundle: the cascade produced radii`.5` and2; the six-shape scene compiled; the blend, pulse, easing, power/min/max and radians/abs programs compiled and lowered. The wrong box property and out-of-range declared mix ratio were refused. This check covers those exact CPU inputs. It does not establish drawing every shape or every material expression.
-
-Run the saved exact language inputs with the portal's source runner:
-
-```sh
-node apps/library-docs/scripts/run-example.mjs apps/library-docs/scripts/snippets/gpu-language-example.ts
-```
-
-The command checks its assertions and prints the accepted values and refusal codes. Its recorded receipt is `apps/library-docs/evidence/examples-gpu-language.md`.
-
-## Existing repository hosts and focused fixtures
-
-For the existing GPU source host, run from the repository root:
-
-```sh
-pnpm dev:gpu
-```
-
-This host transforms explicit original source entries in memory. Its default port is5180; use its printed URL. The ordinary-public-import consumer is described in `examples/workspace-source/README.md`. These hosts have different entry-selection evidence.
-
-| Task | Repository file | What to inspect |
-| --- | --- | --- |
-| Source parser/compiler | `packages/barocss-gpu/src/scene-front.ts` | Original ranges, versions and cascade |
-| Rotated source scene | `examples/gpu-scene/rotation-smoke.mjs` | Source1, camera, invalid-update retention |
-| CAD Surface conversion | `examples/cad-nurbs/preview-flat.css` | Original mm coordinates and packet parameters |
-| Coordinate refusal | `examples/gpu-scene/surface-coordinate-admission-flow.mjs` | CPU conversion and intentional null-context boundary |
-| General CPU Engine | [Public Engine declarations](./reference#declarations-6908f7b659fc) | Original hierarchy versus derived bounds/draws |
-
-Historical receipts describe their actual executed scope. A fixture's presence does not prove it passed on your machine. Select a task-specific fixture when you need more evidence.
-
-## Separate compiled checkpoint
-
-```sh
-pnpm --filter @barocss/gpu build:library
-```
-
-This emits built JS and declarations. A compiled consumer needs complete publication maps of every transitive workspace package; a direct GPU dist import can still mix source dependencies. The portal source examples are separate from an emitted consumer test.
-
-At this snapshot, use the admitted SDF or mesh renderer. Prepared #1183/#1184 fixtures do not establish an available general Engine renderer.
+The SDF scene renderer and indexed mesh renderer have separate inputs. A CPU Engine scene prepares hierarchy and query data; it does not supply a general Engine renderer in this API profile. Read [public Engine declarations](./reference#declarations-6908f7b659fc) when using that separate format.
 
 [Scene language](./language) · [Material language](./material-language) · [Quickstart](./quickstart) · [API](./api) · [Limits](./limits)

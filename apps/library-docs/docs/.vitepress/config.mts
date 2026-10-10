@@ -2,7 +2,7 @@ import { defineConfig } from 'vitepress'
 const packages = ['kit', 'browser', 'server', 'render', 'gpu', 'cad', 'cad-interop', 'canvas2d', 'viewer', 'physics', 'cad-editor', 'render-editor']
 const names = { 'cad-interop': 'CAD Interop (Loader)', 'cad-editor': 'CAD Editor', 'render-editor': 'Render Editor', canvas2d: 'Canvas2D', gpu: 'GPU', cad: 'CAD' }
 const common = [
-  { text: 'Run the examples', link: '/concepts/run-examples' },
+  { text: 'Use the examples', link: '/concepts/run-examples' },
   { text: 'Run visual examples', link: '/playground' },
   { text: 'Library catalog', link: '/packages/' },
   { text: 'Coordinates and units', link: '/concepts/coordinates' },
@@ -13,7 +13,7 @@ const catalog = { text: 'Packages', items: packages.map(p => ({ text: names[p] |
 const sidebar = Object.fromEntries(packages.map(p => [`/packages/${p}/`, [
   { text: names[p] || p[0].toUpperCase() + p.slice(1), items: [
     { text: 'Overview', link: `/packages/${p}/` },
-    ...(packages.indexOf(p) < 3 ? [] : ['quickstart', 'guides', ...(p === 'cad' || p === 'gpu' ? ['language'] : []), ...(p === 'cad' ? ['body-1301'] : []), ...(p === 'gpu' ? ['material-language', 'function-examples'] : []), 'api', 'reference', 'examples', 'limits'].map(page => ({ text: { language: 'Language reference', 'body-1301': 'Qualified Body profile1301', 'material-language': 'Material language', 'function-examples': 'Material function examples', quickstart: 'Quickstart', guides: 'Guides', api: 'API reference', reference: 'Public signatures', examples: 'Examples', limits: 'Limits and lifecycle' }[page], link: `/packages/${p}/${page}` })))
+    ...(packages.indexOf(p) < 3 ? [] : ['quickstart', 'guides', ...(p === 'cad' || p === 'gpu' ? ['language'] : []), ...(p === 'cad' ? ['body-1301'] : []), ...(p === 'gpu' ? ['material-language', 'function-examples'] : []), 'api', 'reference', 'examples', 'limits'].map(page => ({ text: { language: 'Language reference', 'body-1301': 'Body and topology', 'material-language': 'Material language', 'function-examples': 'Material function examples', quickstart: 'Quickstart', guides: 'Guides', api: 'API reference', reference: 'Public signatures', examples: 'Examples', limits: 'Limits and lifecycle' }[page], link: `/packages/${p}/${page}` })))
   ] }, { text: 'Shared concepts', items: common }, catalog
 ]]))
 export default defineConfig({

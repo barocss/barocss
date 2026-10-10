@@ -281,8 +281,8 @@ There is one synchronous frame per accepted update. The renderer creates no anim
 
 The scene renderer chooses the nearest primitive distance. It is not a CAD Boolean solver or a triangle exporter. It has fixed SDF shading and opaque colors. Material expressions, texture coordinates, alpha, arbitrary meshes and scene hierarchy are outside this grammar. Use a mesh API or a CPU Engine API for its own stated contract.
 
-## Source authority
+## API profile
 
-The rules above come from `packages/barocss-gpu/src/scene-front.ts`, `scene-types.ts`, `scene.ts`, `compiler.ts`, `rotation.ts`, `torus.ts`, `rounded-box.ts`, `capsule.ts` and `renderer.ts` at the stated local commit. [Public scene declarations](./reference#declarations-21b9b53efbc1) and [compiler declarations](./reference#declarations-26111c43dbbc) are available in this portal. The native source commit is local-only. The examples establish their recorded source/browser scope; they do not establish currentRoot, emitted or published-package acceptance.
+This page describes source0 and source1 for local experimental `@barocss/gpu` version0.0.0 at the source snapshot stated above. Read the [public scene declarations](./reference#declarations-21b9b53efbc1) and [compiler declarations](./reference#declarations-26111c43dbbc) for exact signatures. A browser host needs WebGL2 and a TypeScript-capable bundler for the local source package.
 
 [Examples](./examples) · [Material language](./material-language) · [API](./api) · [Limits](./limits)

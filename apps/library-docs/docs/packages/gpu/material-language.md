@@ -2,7 +2,7 @@
 
 The material language computes the opaque fragment color of an admitted mesh. It accepts a small typed expression language and bounded scalar uniforms. Use the [live material example](/playground#gpu-material) to change the host-controlled blend and see the mesh color change.
 
-This page describes `mesh-opaque-fragment-v0` at local source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`. It is implemented by `packages/barocss-gpu/src/mesh-material.ts`. It runs a CPU compiler before any renderer adopts the result.
+This page describes `mesh-opaque-fragment-v0` for local experimental `@barocss/gpu` version0.0.0 at source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`. The CPU compiler runs before the mesh renderer adopts the result. The browser host needs WebGL2 and a TypeScript-capable bundler for this local source package.
 
 ## Complete blend material
 
@@ -320,7 +320,7 @@ function mountPulsePreview(
 
 For an elapsed time of5.25seconds, the supplied value is1.25. The host's modulo policy repeats a two-second interval; it does not extend the declared range. Passing5.25directly would be refused. This example schedules no automatic callback and makes no per-frame performance claim.
 
-The returned cleanup removes the host listener before disposing GPU resources. A later failed time sample does not replace the accepted material binding. If the context is lost, call cleanup and remount. The new host snippets on this page are source-backed recipes; they have not been executed as separate browser fixtures. The existing [browser example evidence](./examples#host-controlled-material-blend) covers its recorded amount changes and refusal flow.
+The returned cleanup removes the host listener before disposing GPU resources. A later failed time sample does not replace the accepted material binding. If the context is lost, call cleanup and remount. Compare the [interactive material example](./examples#host-controlled-material-blend) when adding controls to your own host.
 
 ## Diagnostics and budgets
 
@@ -353,4 +353,4 @@ Function expansion and local reuse consume these same node/depth budgets. A shor
 
 This profile changes opaque fragment color. It has no arbitrary GLSL, texture sampling, UVs, alpha, discard, lighting-language blocks or vertex displacement. It does not apply to `mountScene` SDF objects. The CPU Engine material/texture binding types are a separate API and do not establish a general Engine renderer in this source snapshot.
 
-Read the [public material signatures](./reference#declarations-0b26a7625574), [scene language](./language) and [examples](./examples). Source and browser evidence is tied to the stated local snapshot. It does not prove currentRoot, emitted or published-package acceptance.
+Read the [public material signatures](./reference#declarations-0b26a7625574), [scene language](./language) and [examples](./examples) for this API profile.

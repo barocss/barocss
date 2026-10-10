@@ -1,72 +1,90 @@
-# Render Editor: source edits, saved authority and displayed frames
+# Render Editor: original scene source and accepted presentation
 
-## Task 1 — edit an original Sphere radius and roundtrip its source
+A source document stores original GPU Scene text and camera. The session holds drafts/history. The controller presents prepared changes before committing authoring. Rendered pixels and compiler buffers are derived output, not saved scene authority.
 
-Run from the repository root with Node 22+ and the existing app-local esbuild runtime. The runner reads ordinary public source export maps and transforms TypeScript; it does not install or publish packages.
+Use the workspace package with a TypeScript-capable host. `/react` requires a compatible React 19.2.3 peer and a browser. This package is separate from the React screen-spec renderer in [Render](/packages/render/).
 
-```sh
-node apps/library-docs/scripts/run-example.mjs apps/library-docs/scripts/snippets/render-editor-example.ts
-```
-
-The complete runnable file is shown below. Its expected values come from the fixed API and inputs. This CPU command succeeded on Node22.22.0 at the fixed source pin in #1270. Its native receipt records the actual output and zero own dist inputs. A successful CPU task does not prove browser pixels.
-
+## Create a complete source document
 
 ```ts
-import { createRenderEditorSession, serializeRenderEditorDocument,
-  parseRenderEditorDocument, inspectRenderSceneObjects, editRenderSceneObjectSource,
-  RenderEditorError } from '@barocss/render-editor';
+import { createRenderEditorSession, editRenderSceneObjectSource } from '@barocss/render-editor';
 import type { RenderSceneDocumentV0 } from '@barocss/render-editor';
-const source = `@scene sphere_demo { version: 1; background: #161c22; sphere #orb; }
-#orb { radius: .75; translate: 0 0 0; color: #72c8bb; }`;
-const document: RenderSceneDocumentV0 = { format: 'barocss-render-editor', version: 0,
-  kind: 'gpu-scene', documentId: 'sphere_document', title: 'Sphere example',
-  revision: 0, sourceVersion: 1, sceneSource: source,
+
+const sceneDocument: RenderSceneDocumentV0 = {
+  format: 'barocss-render-editor', version: 0, kind: 'gpu-scene',
+  documentId: 'sphere_document', title: 'Sphere', revision: 0, sourceVersion: 1,
+  sceneSource: `@scene sphere_demo {
+    version: 1; background: #161c22; sphere #orb;
+  }
+  #orb { radius: .75; translate: 0 0 0; color: #72c8bb; }`,
   camera: { eye: [0, 1.3, 8], target: [0, 0, 0], up: [0, 1, 0],
-    fovYDegrees: 45, near: 0.01, far: 100 } };
-const session = createRenderEditorSession(document);
-try {
-  const nextSource = editRenderSceneObjectSource(source, 'orb', { radius: 1 });
-  session.setDraftSource(nextSource);
-  const candidate = session.prepareDraft('source');
-  session.commitPrepared(candidate); // Explicit CPU-only acceptance.
-  const accepted = session.getSnapshot().accepted;
-  const reopened = parseRenderEditorDocument(serializeRenderEditorDocument(accepted));
-  session.setDraftSource('not a scene');
-  let refused = '';
-  try { session.prepareDraft('source'); }
-  catch (error) { if (!(error instanceof RenderEditorError)) throw error; refused = error.code; }
-  if (accepted.revision !== 1 || inspectRenderSceneObjects(reopened.sceneSource)[0].radius !== 1 || refused !== 'SOURCE_REFUSED') throw new Error('Unexpected source edit');
-  console.log(JSON.stringify({ task: 'render-editor-source-edit', acceptedRevision: accepted.revision,
-    radius: inspectRenderSceneObjects(reopened.sceneSource)[0].radius,
-    byteExactRoundtrip: reopened.sceneSource === accepted.sceneSource, refused,
-    retainedRevision: session.getSnapshot().accepted.revision, rendered: false }, null, 2));
-} finally { session.dispose(); }
+    fovYDegrees: 45, near: 0.01, far: 100 },
+};
+const session = createRenderEditorSession(sceneDocument);
+const nextSource = editRenderSceneObjectSource(sceneDocument.sceneSource, 'orb', { radius: 1 });
+session.setDraftSource(nextSource);
 ```
 
-The complete input is version0 `gpu-scene`, original Source1 text and an explicit camera. Sphere `orb` initially has radius0.75 scene units and no translation. The public AST editor changes its effective radius to1. The session stages that returned source; headless preparation and acceptance advances authoring to revision1.
+The public source editor uses the actual compiler AST/effective properties. `orb` remains the original object ID. The change stages radius 1 scene unit without accepting it yet. No-op effective edits preserve original bytes. This is original source editing, not a mesh or transform-gizmo operation.
 
-Expect `acceptedRevision:1`, `radius:1`, `byteExactRoundtrip:true` and `rendered:false`. Serializing/parsing preserves the exact accepted original source string. Proposing `not a scene` gives `SOURCE_REFUSED` and `retainedRevision:1`. The invalid source remains draft data for correction; it does not replace accepted authoring/history.
+## Mount and apply through the controller
 
-## Task 2 — present a supported source edit and reopen a real file
+The host supplies a container with a defined workspace size and its ordinary TSX entry:
 
-Start the existing source-capable React app with its declared workspace dependencies:
-
-```sh
-pnpm --filter @barocss/render-editor-app dev
+```html
+<div id="root" style="height:760px"></div>
+<script type="module" src="./main.tsx"></script>
 ```
 
-Open the printed source-mode URL. Its default Primitive study comes from `apps/render-editor/src/fixtures.ts`: `orb` radius0.75, `block` size1.25×1.5×1.25 and `post` radius0.48/height1.8. Select Sphere `orb`, enter radius1, then Apply. Resolve temporary camera navigation with Use view or Cancel view before file/history actions.
+Use the session from the complete document above:
 
-Expect the complete accepted source to contain the changed effective Sphere radius and a successful current presented revision. Both other objects remain source-authoritative. Undo restores the preceding authored radius; Redo reapplies it. Save a real version0 file, Open it in a fresh app, and inspect radius1 and the preserved camera. Do not save GPU IR/GLSL/buffers or treat a screenshot as editable scene authority.
+```tsx
+import { createRoot } from 'react-dom/client';
+import { createRenderEditorController } from '@barocss/render-editor';
+import { RenderEditor } from '@barocss/render-editor/react';
+import '@barocss/render-editor/style.css';
 
-Controller Apply returns an ok/error result. A refused source/camera presentation keeps accepted authoring/history. Failed compensation or context loss marks the display unavailable; explicit recovery reconstructs the accepted scene. The host owns files/routes/session disposal and download status.
+const controller = createRenderEditorController(session);
+const root = createRoot(document.getElementById('root')!);
+root.render(<RenderEditor controller={controller} onError={console.error}
+  onAction={action => console.log('Host file request:', action)} />);
+window.addEventListener('pagehide', () => {
+  root.unmount(); controller.dispose(); session.dispose();
+}, { once: true });
+```
 
-## Related actual image
+The viewport attaches the public GPU presenter. A host control can request Apply after that viewport has mounted:
 
-![Actual playground GPU scene rendering](/examples/gpu-scene.png)
+```ts
+const outcome = controller.apply('both');
+if (!outcome.ok) console.error(outcome.error);
+```
 
-This [playground image](/playground) shows the public GPU Scene render path that Render Editor orchestrates. It was captured from the playground, not from this React workbench or its saved-file/history protocol. The playground sample can differ from Primitive study; read its adjacent original input. No CAD editing, picking or editor recovery result follows from that image.
+Apply compiles/prepares the complete draft, presents it, then commits the session. A successful radius edit advances accepted revision to1. The controller's `presentedRevision` is separate from accepted revision; inspect both when diagnosing a failed display.
 
-For the separate version1 one-Sphere/one-native-Surface task, use `apps/render-editor/src/mixed-fixtures.ts` and `apps/render-editor/README.md`. Native Surface scene-unit placement is display authoring; Sphere fields rewrite original scene source.
+Invalid source or camera does not overwrite accepted authoring/history. A later presentation failure can require compensation or explicit recovery. Context loss can make presentation unavailable while CPU authoring remains retained. Check the controller action's ok/error result instead of treating preparation as acceptance. Mounting this component in a new host remains a host integration task; the GPU image below does not certify its file/history/recovery behavior.
 
-Source pin: `5f5ad866205a21510ac69552e704cc162fa253b5`. Public declarations: [API](./api) · [Exact public reference](./reference). Read [limits and errors](./limits) before changing the input profile.
+## Serialize source, not rendered output
+
+```ts
+import { serializeRenderEditorDocument, parseRenderEditorDocument,
+  inspectRenderSceneObjects } from '@barocss/render-editor';
+const accepted = session.getSnapshot().accepted;
+const saved = serializeRenderEditorDocument(accepted);
+const reopened = parseRenderEditorDocument(saved);
+console.log(inspectRenderSceneObjects(reopened.sceneSource));
+```
+
+After successful Apply, the reopened effective `orb` radius is1. The file retains original source and camera; it does not contain IR, GLSL, GPU buffers or screenshots. The host owns download, file reading, cancellation and saved-status policy. Resolve drafts before replacement and preserve accepted data on a refused Open.
+
+Temporary camera previews also remain separate from authoring. Use view stages the chosen camera and runs complete Apply; Cancel view restores accepted presentation and retains drafts. Hidden invalid fields can block Use view. Dispose controller/presenter resources and caller-owned sessions when closing the document.
+
+## Interpret a scene image and a mixed document
+
+![GPU Scene output from the interactive example](/examples/gpu-scene.png)
+
+The [GPU Scene example](/playground#gpu-scene) renders original Source1 input through the GPU package. This image shows the render path the editor orchestrates; it is not an editor Save/Open or recovery result.
+
+A version 1 mixed document is a separate profile with one original Sphere scene and one selected native CAD Surface. Sphere fields rewrite scene source; Surface placement transforms display geometry after the explicit mm-to-scene conversion. Complete original native source/weights/knots/IDs remain separate. A native Surface point query uses original U/V and returns mm, not a screen pick. See the [mixed editing guide](./guides#prepare-a-mixed-document) for the complete boundary.
+
+[API](./api) · [Public signatures](./reference) · [Limits and errors](./limits)

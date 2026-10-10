@@ -4,41 +4,19 @@ Compile original geometry, query it, then prepare a separate display mesh. These
 
 [Open the CAD playground](/playground#cad-surface) · [Compiler signature](./reference#compilecadmodel) · [Surface sampling signature](./reference#tessellatesurface)
 
-## Run the versioned qualified Body CLI
+## Compile and evaluate geometry {#run-the-complete-cpu-examples}
 
-The [Body1301 guide](./body-1301) adds a separate compiled-public API sample at provider `ded1ef68`; it is not part of the `5f` source runner or the live Curve/Surface gallery. Run from the repository root with Node22+:
+Use `compileCadModel` to turn complete language input into native geometry. Query original parameters with `evaluateCurve` or `evaluateSurface`. For display, create a separate sampled packet with `tessellateSurface` and convert its millimetres to scene units once.
 
-```sh
-node apps/library-docs/scripts/run-cad-body-1301.mjs
-```
-
-The bundled complete677219-byte input yields8Vertices/12Edges/6Faces/24Uses, two Models with16and2objects, volume92.5mm³ and exact185/2. The CLI also verifies an actual OWNED refusal while preserving the accepted result and input bytes. This is a CPU Body/material proof for a restricted translated-strip profile, not a renderer, public CAD file codec, general Boolean/membership or manufacturing qualification. Read the guide's input schema, source/native profile and supported boundary before adapting another complete request.
-
-## Run the complete CPU examples
-
-The saved module contains all four selected language/native flows and the Surface→GPU buffer preparation below. From the repository root with Node22+ and existing dependencies:
-
-```sh
-node apps/library-docs/scripts/run-example.mjs apps/library-docs/scripts/snippets/cad-example.ts
-```
-
-`apps/library-docs/scripts/snippets/cad-example.ts` is the complete runnable input. The shared runner checks the pinned package source, uses ordinary public imports and transforms TypeScript with the existing esbuild dependency. It evaluates the bundle in Node without a WebGL context or network call. See [Run saved examples](/concepts/run-examples) for setup and running a standalone code block.
-
-The actual selected run passed on its first execution with 222 own source inputs and 0 own dist inputs. Its source pin was `5f5ad866205a21510ac69552e704cc162fa253b5`.
-
-| Case | Actual result |
+| Geometry task | Result to inspect |
 | --- | --- |
-| Original Curve | Domain `[2,7]`; point at4.5=`[10,0,0]` mm |
-| Weighted Surface | Point at(.5,.5)=`[7.7,5.2,1]` mm |
-| Surface grid17×17 | 289 vertices,512 triangles,867 position components,1536 indices |
-| Surface preview report | maxSampledDeviationMM `0.02878837032366707`; certified `false` |
-| Selected IGES Surface export | Entity128; solid `false` |
-| Source1 extrusion | Point at(.5,.5)=`[10,0,15]` mm; native Model version 0 |
-| Source2 parameters | width100mm,height50mm,scale2; wall midpoint `[50,0,50]` mm |
-| Source2 edit10cm→12 cm | Wall midpoint `[60,0,60]` mm |
-| Refused candidates | KIND,VERSION,UNIT,DIVISION_ZERO as described below |
+| Curve with domain `[2,7]` | Point at 4.5: `[10,0,0]` mm |
+| Weighted Surface | Point at U=V=0.5: `[7.7,5.2,1]` mm |
+| Weighted Surface, 17×17 grid | 289 vertices and 512 triangles |
+| Open source1 extrusion | Point at U=V=0.5: `[10,0,15]` mm |
+| Source2 Parameter edit, 10 cm→12 cm | Wall midpoint changes from `[50,0,50]` to `[60,0,60]` mm |
 
-These are a bounded CPU example receipt. They do not establish a graphics draw, emitted declaration coverage, a packed installation or global geometry certification.
+The [qualified translated-strip Body](./body-1301) uses a separate, newer Body API. It joins qualified Faces into shared topology and verifies the whole material boundary. The Curve/Surface examples below create geometry and display packets; they do not create that Body.
 
 ## View the weighted Surface
 
@@ -46,13 +24,7 @@ These are a bounded CPU example receipt. They do not establish a graphics draw, 
 
 This display comes from four authored poles and four weights. The rendered triangles are sampled output. Pale U/V lines show the sampled grid, not the control net or topological edges. The original poles/weights below remain the editable native definition. The native midpoint follows the rational Surface evaluation, not an average of the four corner coordinates.
 
-Start the documentation app:
-
-```sh
-pnpm --filter @barocss/library-docs dev --host 127.0.0.1
-```
-
-Open `/playground` on the URL printed by the host. Select **CAD surface**, replace its source with the text below and select **Run input**. Inspect the native midpoint, mesh counts and report beside the canvas. Edit a pole or weight, then run the candidate again. Preserve accepted native/display state when a candidate refuses.
+Open [CAD surface](/playground#cad-surface), replace its source with the text below and select **Run input**. Inspect the native midpoint, mesh counts and report beside the canvas. Edit a pole or weight, then run the candidate again. Preserve accepted native/display state when a candidate refuses.
 
 ### Full source0 input
 
@@ -108,9 +80,9 @@ console.log(buffers.positions.length, buffers.indices.length);
 console.log(exchange.report.objects[0].entity, exchange.report.solid);
 ```
 
-Use a TypeScript-capable workspace host or save this module under the app's `scripts/snippets` directory and pass its path to `run-example.mjs`. A plain browser cannot run the raw TypeScript entry; plain Node alone does not resolve internal `.js` imports to `.ts`.
+Use a TypeScript-capable bundler when consuming development source entries. A built ESM package uses its compiled JavaScript entry. The complete module above uses public CAD and GPU imports.
 
-Here scale 0.1 converts each native mm to 0.1 scene units once. The packet retains native mm/Y-up declaration and original U/V parameters. GPU owns the derived Float32 positions/normals and Uint16 indices. This CPU code mounts no renderer. The playground host uses its own explicit display scale and placement; its current scale is 0.12 scene units/mm. It owns the canvas, camera, view updates and resource disposal.
+Here scale 0.1 converts each native mm to 0.1 scene units once. The packet retains native mm/Y-up declaration and original U/V parameters. GPU owns the derived Float32 positions/normals and Uint16 indices. These calls prepare CPU geometry and buffers. Your application supplies the canvas, camera, display placement and renderer lifecycle. The playground shows the same native geometry with its own view settings.
 
 The observed deviation samples five points per cell. It is not a global error bound. Native Source, Model, packet, display pose and image must remain separate records.
 
@@ -132,7 +104,7 @@ Open [the live Curve input](/playground#cad-curve). The cyan line is the actual 
 }
 ```
 
-The original domain is `[0,1]`. The host evaluates101 uniformly spaced parameters. At `u=.5`, the actual point is approximately `[14.142135623730951,14.142135623730951,0]` mm. The middle rational weight produces the quarter circle of radius20; replacing it with1 changes the shape. This is CAD evaluation followed by host Canvas2D drawing, not a BaroCSS Canvas2D renderer receipt.
+The original domain is `[0,1]`. The host evaluates101 uniformly spaced parameters. At `u=.5`, the actual point is approximately `[14.142135623730951,14.142135623730951,0]` mm. The middle rational weight produces the quarter circle of radius20; replacing it with1 changes the shape. The image uses CAD evaluation followed by a host Canvas2D drawing.
 
 ## Query a Curve with an original domain
 
@@ -164,7 +136,7 @@ Source1 admits a Curve and its extrusion. It excludes literal Surface blocks. Op
 
 ![Source1 Curve extrusion displayed as a sampled open Surface](/examples/cad-extrude.png)
 
-Pale lines show the sampled U/V grid. The retained profile Curve and extrusion vector define the native Surface. For a CPU-only result, use the [source1 command above](#run-the-complete-cpu-examples).
+Pale lines show the sampled U/V grid. The retained profile Curve and extrusion vector define the native Surface. The public API example below compiles the same source and evaluates the native Surface.
 
 ```ts
 import { compileCadModel, evaluateSurface } from '@barocss/cad';
@@ -195,7 +167,7 @@ Source2 quantities distinguish length and scalar. Open [CAD parameters](/playgro
 
 ![Source2 Parameter-driven Surface with native millimetre result data](/examples/cad-parameters.png)
 
-The host fits sampled bounds for display. When both native dimensions grow by the same factor, the fitted image can retain the same aspect; inspect the result panel for the actual millimetre values. To change the shape independently, edit the scalar `scale` while leaving `width` unchanged. The complete module below also runs through the [source2 CPU command above](#run-the-complete-cpu-examples).
+The host fits sampled bounds for display. When both native dimensions grow by the same factor, the fitted image can retain the same aspect; inspect the result panel for the actual millimetre values. To change the shape independently, edit the scalar `scale` while leaving `width` unchanged. The complete public API example below recompiles both versions and reads their native values.
 
 ```ts
 import { compileCadModel, evaluateSurface } from '@barocss/cad';
@@ -228,9 +200,9 @@ Recompile the complete candidate. The previous native result does not change. So
 
 The direct Loader source path accepts source0 only. A compiler source2 result does not establish that every Loader, editor file envelope or Save/Open host accepts that dialect.
 
-## Inspect a real refusal
+## Understand a refused edit
 
-The saved CPU module checks four candidates against their actual diagnostics:
+The following edits violate the selected language or quantity rules:
 
 | Change | Result |
 | --- | --- |
@@ -243,7 +215,7 @@ Compilation failure returns diagnostics only. It has no partial Model to adopt. 
 
 ## Sample a plane and prepare GPU buffers
 
-This smaller complete control retains the existing plane→GPU task:
+This complete example samples a native plane and prepares its display buffers:
 
 ```ts
 import { compileCadModel, tessellateSurface, evaluateSurface } from '@barocss/cad';
@@ -275,25 +247,12 @@ console.log(buffers.positions[6], buffers.positions[7]);
 // [0,0.01] approximately as Float32: a native [0,10,0] vertex.
 ```
 
-Increasing U follows+X and V follows+Y, so this plane preview's normal follows+Z. This path applies no axis rotation. Scale0.001 means metres per mm. The selected current CPU receipt at the top exercises the weighted Surface; this separate plane control is documented code, not an additional current execution claim.
+Increasing U follows +X and V follows +Y, so this plane preview's normal follows +Z. This path applies no axis rotation. Scale 0.001 means metres per mm.
 
-## Existing native files and further tasks
+## Retain editable geometry
 
-| Task | Repository input/example |
-| --- | --- |
-| Exact underlying weighted-patch fixture | `examples/cad-nurbs/preview-weighted.css`; same poles/weights, historical ID `weighted_patch` |
-| Parameter-driven line and wall | `examples/cad-nurbs/parameter-line-v2.css` |
-| Rational parameter-driven quarter and wall | `examples/cad-nurbs/parameter-curved-v2.css` |
-| Original derivative query | `examples/cad-nurbs/derivative-demo.mjs` |
-| Bounded native rectangle construction | `examples/cad-nurbs/axis-rectangle-extrusion-demo.mjs` |
-| Native mass calculation | `examples/cad-nurbs/axis-box-solid-mass-demo.mjs` |
+Keep the complete source, Model name, native IDs, conversion options and approximation report with your application state. Recompile after source edits. A sampled mesh or rendered image does not replace the Curve poles, knots, weights or Surface control net.
 
-Read each existing demo's import and flags. Artifact demos can require a separate emitted package build; source-mode examples retain their own documented flags. A historical exchange-reader receipt proves its selected historical files, not every new model.
-
-Keep source bytes, Model name, complete native IDs, options and actual reports with stored artifacts. IGES contains selected geometry and a separate identity report; it excludes editable native source and closed Solid serialization. Native source, sampled mesh, pose and image serve different tasks.
-
----
-
-Source snapshot:`5f5ad866205a21510ac69552e704cc162fa253b5`. Docs task parent:`83d3ceede9b97df1ec6bbd4da7feab9757f0f75d`. The current selected CPU runner checks pinned source and ordinary public imports. Graphics/image evidence belongs to the separate actual playground run. [Public declarations](./reference) are readable in this portal.
+IGES exports selected geometry and a separate identity report. Keep native source for later editing; the export does not serialize a closed Solid or a universal CAD document.
 
 [Overview](./) · [Quickstart](./quickstart) · [Language](./language) · [Guides](./guides) · [API](./api) · [Limits](./limits)

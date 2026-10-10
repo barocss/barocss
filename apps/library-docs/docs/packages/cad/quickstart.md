@@ -1,6 +1,6 @@
 # Compile and evaluate a native Curve
 
-Use Node 22+ and a TypeScript-capable workspace transformer. Ordinary `@barocss/cad` imports select source; plain Node alone cannot resolve the internal `.js` imports to `.ts`. This example uses the actual root exports and source dialect0.
+Describe geometry in millimetres, select its language version, then evaluate it in the original parameter domain. This complete example uses public `@barocss/cad` APIs and source0. For development source entries, use a TypeScript-capable bundler; built ESM entries provide compiled JavaScript.
 
 ```ts
 import { compileCadModel, evaluateCurve, curveDomain, exportIGES } from '@barocss/cad';
@@ -32,28 +32,18 @@ console.log(artifact.report.objects[0].entity); // 126
 
 Success includes `ast`, `ir`, `model`, `constructions` and an empty diagnostics array. Failure includes diagnostics and no partial model. Keep the original source and owning IDs with any output. The compiler owns each nested output occurrence independently; modifying AST or IR data does not edit the model or source.
 
-A source0 model requires `version:0`, `length-unit:mm` and 1..16 unique Curve/Surface declarations. Arrays use commas without trailing commas. Each declaration ends in `;`. Finite decimal literals are accepted. Arbitrary functions, exponent spelling in authored numeric literals, file imports and scripts are outside this dialect.
+A source0 model requires `version:0`, `length-unit:mm` and 1..16 unique Curve/Surface declarations. Arrays use commas without trailing commas. Each field ends in `;`; a geometry block ends in `}`. Finite decimal literals are accepted. Arbitrary functions, exponent spelling in authored numeric literals, file imports and scripts are outside this dialect.
 
 ## Export geometry explicitly
 
-`exportIGES(model, ids)` takes selected native IDs in caller order and returns bytes as a string plus a report. The host chooses a path, hashes bytes and writes the file. It performs no filesystem call. Curves use entity126; Surfaces use entity128. This geometry export excludes editable source and a closed Solid serialization. Retain the source and full-ID report for later edits.
+`exportIGES(model, ids)` takes selected native IDs in caller order and returns bytes as a string plus a report. Your application chooses where to save the returned geometry text. It performs no filesystem call. Curves use entity126; Surfaces use entity128. This geometry export excludes editable source and a closed Solid serialization. Retain the source and full-ID report for later edits.
 
-## Start a repository source consumer
+## Edit and display geometry
 
-```sh
-pnpm dev:cad
-```
+Open [the CAD Curve example](/playground#cad-curve) to change native poles or weights and inspect the evaluated shape. Use [the Surface example](./examples#sample-a-plane-and-prepare-gpu-buffers) to sample a control net into a display packet.
 
-Run from the repository root with its existing dependencies. This starts the existing private CAD preview/editor example through Vite. Use the URL printed by that host. `examples/cad-preview/package.json` (Its manifest; local source) declares the actual dependencies and command. For a separate emitted JS/type checkpoint:
+Native geometry, sampled mesh and image have separate roles. Keep the original source and Model for edits. Select explicit display units and dispose display resources when the view closes. Failed compilation provides diagnostics without a partial Model; retain the last accepted application state.
 
-```sh
-pnpm --filter @barocss/cad build:library
-```
+The compiler examples use experimental CAD source0/1/2. The [qualified translated-strip Body](./body-1301) requires its separate newer Body API; compiling a Curve or Surface alone does not certify a Body.
 
-This build is not a source-host prerequisite and does not publish a package. Continue with [native task guides](./guides), [API signatures](./api), or the [complete Surface example](./examples#sample-a-plane-and-prepare-gpu-buffers).
-
----
-
-Source snapshot: local Git `5f5ad866205a21510ac69552e704cc162fa253b5`. `packages/barocss-cad/package.json` (Manifest; local source), [public root](/packages/cad/reference#declarations-f921e035f2c3), `packages/barocss-cad/README.md` (package README; local source). Source references identify that fixed snapshot. This native source commit is local-only; public declaration references open in this portal. Local source is the authority for this manual.
-
-[Overview](./) · [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits](./limits)
+[Overview](./) · [Language](./language) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits](./limits)

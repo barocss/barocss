@@ -2,7 +2,7 @@
 
 The CAD language describes native rational B-spline geometry and bounded construction intent. It is data for `compileCadModel`, not browser CSS. Use the selected source dialect explicitly. All dialects produce native `Model` version 0 in millimetres.
 
-[Run saved source0/1/2 examples](./examples#run-the-complete-cpu-examples) · [Open the CAD playground](/playground#cad-surface) · [Public compiler signature](./reference#compilecadmodel)
+[Compile and evaluate examples](./examples#run-the-complete-cpu-examples) · [Open the CAD playground](/playground#cad-surface) · [Public compiler signature](./reference#compilecadmodel)
 
 ## Choose a source dialect
 
@@ -12,15 +12,15 @@ The CAD language describes native rational B-spline geometry and bounded constru
 | 1 | `@curve`, `@extrude` | Finite signed decimal literals | schemaVersion 1,sourceVersion 1 |
 | 2 | `@curve`, `@surface`, `@extrude`, `@parameter` | Bounded typed expressions | schemaVersion 2,sourceVersion 2 |
 
-### Choose an execution target
+### Choose an editable example
 
-| Input | Existing run target |
+| Input | Editable example |
 | --- | --- |
 | Source0 Curve or literal Surface | [CAD curve](/playground#cad-curve) or [CAD surface](/playground#cad-surface) |
-| Source1 Curve and Extrude | [CAD extrude](/playground#cad-extrude) or [saved CPU examples](./examples#run-the-complete-cpu-examples) |
-| Source2 Parameters, expressions and geometry | [CAD parameters](/playground#cad-parameters) or [saved CPU examples](./examples#run-the-complete-cpu-examples) |
+| Source1 Curve and Extrude | [CAD extrude](/playground#cad-extrude) |
+| Source2 Parameters, expressions and geometry | [CAD parameters](/playground#cad-parameters) |
 
-Each playground preset selects its compiler version explicitly: Curve and Surface use source0, Extrude uses source1, and Parameters uses source2. Choose the matching preset before editing its header or declarations. Changing a header alone does not change the selected compiler option. To run a standalone module copied from this page, follow [Run saved examples](/concepts/run-examples).
+Each playground preset selects its compiler version explicitly: Curve and Surface use source0, Extrude uses source1, and Parameters uses source2. Choose the matching preset before editing its header or declarations. Changing a header alone does not change the selected compiler option. In your application, pass the matching version to `compileCadModel` explicitly.
 
 **Source1 is not a superset of source0.** A literal `@surface` block is refused in source1. Use source0 for literal Surfaces or source2 for literal/expression-driven Surfaces. Source1 produces Surfaces through `@extrude`.
 
@@ -257,7 +257,7 @@ For coordinate/vector fields only, a single bare decimal with unary signs or par
 
 All Parameter references resolve before quantity evaluation. Missing Parameters, references to geometry and cycles refuse, including unused cyclic Parameters. Source2 accepts at most 64 Parameters and 16 geometry declarations.
 
-IR schema2 retains authored-order `parameters` and field/index-order `bindings`. A binding records owning object ID, field, array indices, original expression/range, resolved value/kind and Parameter references. Repeated references remain separate dependency occurrences. The native Model contains resolved numbers; its geometry version remains 0. Compile again after editing. No public API adopts this IR as an executable cache or accepts a Parameter override without recompilation.
+IR schema2 retains authored-order `parameters` and field/index-order `bindings`. A binding records owning object ID, field, array indices, original expression/range, resolved value/kind and Parameter references. Repeated references remain separate dependency occurrences. The native Model contains resolved numbers; its geometry version remains 0. Recompile the complete edited source to apply new Parameter values.
 
 ## Refusal examples and diagnostics
 
@@ -319,12 +319,8 @@ The expected code is `UNIT`, and the highlighted text is `cm`. Root units must b
 
 Parsing checks bounds before further growth. Native validation still applies after expression evaluation. Acceptance does not certify regularity, general topology, Solid validity or display quality. Tessellation can refuse geometry that compiles as a native model. Keep source, native geometry, sampled mesh and image as separate records.
 
-## Source evidence
+## API reference
 
-This language reference follows local source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`. Its CAD parser/compiler/test blobs remain unchanged at docs parent `83d3ceede9b97df1ec6bbd4da7feab9757f0f75d`.
-
-Implementation evidence: `packages/barocss-cad/src/source-ast.ts`, `expression-parser.ts`, `parameter-semantics.ts`, `semantic-model.ts`, `model-compiler.ts`, `math.ts` and `extrusion-validation.ts`. These are implementation provenance, not additional public parser APIs.
-
-Test source evidence: `packages/barocss-cad/test/model-compiler.test.mjs`, `parameters.test.mjs`, `expression-ast.test.mjs`, `source-ast.test.mjs` and `compiler-regressions.test.mjs`. The manual author inspected these files; that inspection does not claim execution of their suites. [Public compiler/types](./reference#declarations-f70a5b13ba9d), [native math signatures](./reference#declarations-96418e2ec250) and [expression data types](./reference#declarations-d66dfcde533b) are available in this portal.
+These source0/1/2 language forms belong to the experimental CAD compiler (`0.0.0-experimental`). [Compiler and result types](./reference#declarations-f70a5b13ba9d), [native math](./reference#declarations-96418e2ec250) and [expression data types](./reference#declarations-d66dfcde533b) describe the public API used above. The newer [qualified Body API](./body-1301) is a separate construction family; it adds no language declaration to these grammars.
 
 [Overview](./) · [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits](./limits)
