@@ -329,3 +329,6 @@ export type { AxisBoxSolidFeatureDocumentV0, AxisBoxSolidFeatureDocumentOperand,
 
 export { buildXYAngleArc, validateXYAngleArc, XYAngleArcError, XYAngleArcDiagnosticCode } from './xy-angle-arc.js';
 export type { XYAngleArcRequest, XYAngleArcReport, XYAngleArcResult } from './xy-angle-arc.js';
+
+export { evaluateMixedWorkplaneSketchDocument, updateMixedWorkplaneSketchDocument, validateMixedWorkplaneSketchDocument, serializeMixedWorkplaneSketchDocument, parseMixedWorkplaneSketchDocument, MixedWorkplaneSketchDocumentError, MixedWorkplaneSketchDocumentDiagnosticCode } from './mixed-workplane-sketch-document.js';
+export type { MixedWorkplaneSketchProfileIntent, MixedWorkplaneSketchDocumentV0, MixedWorkplaneSketchDocumentEdit, MixedWorkplaneSketchDocumentReport, MixedWorkplaneSketchDocumentResult } from './mixed-workplane-sketch-document.js';

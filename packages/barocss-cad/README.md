@@ -8661,3 +8661,74 @@ node examples/cad-nurbs/xy-angle-arc-demo.mjs --source EVIDENCE_DIR
 Arbitrary workplane arc intent, interactive tools, driving constraints, region,
 Face/Solid, persistent topology naming, consumer rendering and release remain
 separate requirements. This native builder does not change the old XY documents.
+
+
+## Mixed linear and directed-arc workplane Sketch — #1161
+
+`evaluateMixedWorkplaneSketchDocument(document)` authors Line, Polyline,
+Rectangle and directed rational Arc profiles together on one proper workplane.
+The distinct `barocss-mixed-workplane-sketch` version0 format contains
+id/lengthUnit:mm/angleUnit:rad/plane/profiles/worldBindings/fixed limits.
+Old XY and workplane documents retain their original contracts.
+
+Linear profiles keep their original authored fields. A directed Arc uses:
+
+```js
+const arcIntent = {
+  id: 'directed_arc', kind: 'arc',
+  centerId: 'arc_center', centerMM: [3, -2],
+  radius: { id: 'arc_radius', valueMM: 2 },
+  startAngleRad: Math.PI / 6, sweepAngleRad: -Math.PI / 3,
+  endpointIds: ['arc_start', 'arc_end'],
+};
+const result = cad.evaluateMixedWorkplaneSketchDocument(authored);
+const edited = cad.updateMixedWorkplaneSketchDocument(result.document, {
+  plane: null,
+  profiles: [{ kind: 'upsert', profile: { ...arcIntent,
+    radius: { ...arcIntent.radius, valueMM: 3 } } }],
+  worldBindings: null,
+});
+const report = cad.validateMixedWorkplaneSketchDocument(edited);
+const text = cad.serializeMixedWorkplaneSketchDocument(edited.document);
+const cold = cad.parseMixedWorkplaneSketchDocument(text);
+```
+
+Actual XY linear subset construction, directed rational Arc construction and
+native affine world transforms retain complete child sources and proofs.
+Mixed authored profile order is preserved. Every local Curve has an explicit
+unique different world ID. Existing world IDs and original logical point IDs
+stay stable; added/removed profiles need complete explicit binding repair.
+Existing kinds stay fixed. Linear point count/order follows the actual XY
+updater. Arc centre/radius/endpoint IDs stay fixed while radius/angles and
+closure change. No-op still regenerates all target world children.
+
+Arc endpoints bind original native poles0/2n and parameters0/n. Fullturn keeps
+two distinct endpoint IDs and separate seam-start/seam-end records with equal
+endpoint coefficient bits. Centre is a construction point with actual guarded
+affine coordinate/axes proof. Radius is construction intent; neither receives
+a fabricated Curve pole/parameter/D0/tangent. Native parameter is not angle.
+Actual evaluated tangents and matching native C0 refusals remain in children.
+
+Limits are8mixed profiles and128 TOTAL authored points: Arc counts centre plus
+two endpoints; radius is a dimension. Rectangle closing occurrence adds a
+binding but no point. Original Curve/world IDs fit48, logical IDs64, native
+coordinates/knots10000. Providers retain64polyline points,9Arc poles,
+17localArc observations and127affine observations. Separate aggregate caps
+are136Arc/1016affine observations,136world point bindings,4MiB local+world
+source and262144UTF-16/UTF-8 authored JSON. Narrow child limits still apply.
+
+Owned validation reconstructs the original document/edit and every native
+child/source/binding/frame/count bit. The authored-only codec preserves -0 and
+rejects duplicate decoded keys before parsing. Caller data and previous accepted
+results remain intact after atomic failure; these APIs do not write files.
+Copied occurrences are independent. Direct orchestration counts exclude
+inherited base/child work; no hidden cache/revision/history store is implied.
+
+```sh
+node examples/cad-nurbs/mixed-workplane-sketch-document-demo.mjs --source EVIDENCE_DIR
+```
+
+Numerically accepted proper frames, sampled plane gaps and rational Arc proofs
+are separate from exact global rigidity/circularity or manufacturing quality.
+Region/Face/Solid, constraints, feature graph, persistent topology naming,
+source-language Sketch/Part grammar, editor/renderer and release remain open.
