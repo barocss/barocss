@@ -38,3 +38,5 @@ export * from './parametric-scene-session.js';
 export * from './parametric-scene-document-v1.js';
 export * from './parametric-scene-session-v1.js';
 export type {RenderParametricGeometrySourceV1, RenderPreparedParametricGeometryV1} from './parametric-scene-source-v1.js';
+export * from './native-scene-appearance.js';
+export {commitRenderNativeSceneAppearanceCandidate} from './native-scene-appearance-commit.js';
