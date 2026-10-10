@@ -37,7 +37,7 @@ try {
     }
   }
   const passed=reports.every(r=>r.numericalGO);
-  const summary = { base:'38cab806709d99568ec2b64e70b39ffbe1900ff6', measuredHead:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),node:process.version,graphAudits,controls:controlRows,sourceCompiledDependencyParity:true,fullModelGO:passed,results:reports.map(({graph,scene,acceptedSnapshots,rawBytes,rawSha256,failure,numericalGO})=>({graph,scene,acceptedSnapshots,rawBytes,rawSha256,failure,numericalGO})),refinementExecuted:false,costMeasured:false,browserExecuted:false,referenceStderr:stderr };
+  const summary = { base:'38cab806709d99568ec2b64e70b39ffbe1900ff6', measuredHead:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),node:process.version,graphAudits,controls:controlRows,sourceCompiledDependencyParity:true,baseNumericalGO:passed,fullModelGO:false,results:reports.map(({graph,scene,acceptedSnapshots,rawBytes,rawSha256,failure,numericalGO})=>({graph,scene,acceptedSnapshots,rawBytes,rawSha256,failure,numericalGO})),refinementExecuted:false,costMeasured:false,browserExecuted:false,referenceStderr:stderr };
   await writeFile(resolve(out,'summary.json'),JSON.stringify(summary,null,2)+'\n');
   if(passed) throw new Error('Base quality GO: refinement/cost/browser still required by contract; no full GO');
 } finally { ref.stdin.end(); }

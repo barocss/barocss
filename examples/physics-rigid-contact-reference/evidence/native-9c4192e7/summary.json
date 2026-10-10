@@ -1,0 +1,3308 @@
+{
+  "base": "38cab806709d99568ec2b64e70b39ffbe1900ff6",
+  "measuredHead": "9c4192e7ae6ae8795181f55055aadd98155f47b1",
+  "node": "v22.22.0",
+  "graphAudits": [
+    {
+      "graph": "source",
+      "originalSourceCount": 39,
+      "originalDistCount": 0,
+      "privateCandidateIsSource": true,
+      "compiledPublicCandidate": false,
+      "inputs": [
+        "packages/barocss-physics/src/limits.ts",
+        "packages/barocss-physics/src/types.ts",
+        "packages/barocss-physics/src/validation.ts",
+        "packages/barocss-physics/src/math.ts",
+        "packages/barocss-physics/src/dynamic-anchor-pair.ts",
+        "packages/barocss-physics/src/dynamic-fixed-joint.ts",
+        "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+        "packages/barocss-physics/src/joints.ts",
+        "packages/barocss-physics/src/joint-motor.ts",
+        "packages/barocss-physics/src/capsule-contact.ts",
+        "packages/barocss-physics/src/collision.ts",
+        "packages/barocss-physics/src/contact-manifold.ts",
+        "packages/barocss-physics/src/persistent-box-contact.ts",
+        "packages/barocss-physics/src/ccd-slab.ts",
+        "packages/barocss-physics/src/ccd-box.ts",
+        "packages/barocss-physics/src/ccd.ts",
+        "packages/barocss-physics/src/ccd-pair.ts",
+        "packages/barocss-physics/src/broadphase.ts",
+        "packages/barocss-physics/src/scene-profile.ts",
+        "packages/barocss-physics/src/sleep.ts",
+        "examples/physics-rigid-contact-reference/reference-world.ts",
+        "packages/barocss-physics/src/world.ts",
+        "packages/barocss-physics/src/capsule-query-error.ts",
+        "packages/barocss-physics/src/capsule-query/profile.ts",
+        "packages/barocss-physics/src/capsule-query/admission.ts",
+        "packages/barocss-physics/src/capsule-query/geometry.ts",
+        "packages/barocss-physics/src/capsule-query/sweep.ts",
+        "packages/barocss-physics/src/capsule-query/snapshot.ts",
+        "packages/barocss-physics/src/capsule-query.ts",
+        "packages/barocss-physics/src/character/profile.ts",
+        "packages/barocss-physics/src/character/admission.ts",
+        "packages/barocss-physics/src/character/math.ts",
+        "packages/barocss-physics/src/character/state.ts",
+        "packages/barocss-physics/src/character/query.ts",
+        "packages/barocss-physics/src/character/step-assist.ts",
+        "packages/barocss-physics/src/character/slide.ts",
+        "packages/barocss-physics/src/character/ground.ts",
+        "packages/barocss-physics/src/character/core.ts",
+        "packages/barocss-physics/src/character-controller.ts",
+        "packages/barocss-physics/src/index.ts",
+        "examples/physics-rigid-contact-reference/consumer-entry.mjs"
+      ]
+    },
+    {
+      "graph": "source",
+      "originalSourceCount": 39,
+      "originalDistCount": 0,
+      "privateCandidateIsSource": true,
+      "compiledPublicCandidate": false,
+      "inputs": [
+        "packages/barocss-physics/src/limits.ts",
+        "packages/barocss-physics/src/types.ts",
+        "packages/barocss-physics/src/validation.ts",
+        "packages/barocss-physics/src/math.ts",
+        "packages/barocss-physics/src/dynamic-anchor-pair.ts",
+        "packages/barocss-physics/src/dynamic-fixed-joint.ts",
+        "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+        "packages/barocss-physics/src/joints.ts",
+        "packages/barocss-physics/src/joint-motor.ts",
+        "packages/barocss-physics/src/capsule-contact.ts",
+        "packages/barocss-physics/src/collision.ts",
+        "packages/barocss-physics/src/contact-manifold.ts",
+        "packages/barocss-physics/src/persistent-box-contact.ts",
+        "packages/barocss-physics/src/ccd-slab.ts",
+        "packages/barocss-physics/src/ccd-box.ts",
+        "packages/barocss-physics/src/ccd.ts",
+        "packages/barocss-physics/src/ccd-pair.ts",
+        "packages/barocss-physics/src/broadphase.ts",
+        "packages/barocss-physics/src/scene-profile.ts",
+        "packages/barocss-physics/src/sleep.ts",
+        "examples/physics-rigid-contact-reference/reference-world.ts",
+        "packages/barocss-physics/src/world.ts",
+        "packages/barocss-physics/src/capsule-query-error.ts",
+        "packages/barocss-physics/src/capsule-query/profile.ts",
+        "packages/barocss-physics/src/capsule-query/admission.ts",
+        "packages/barocss-physics/src/capsule-query/geometry.ts",
+        "packages/barocss-physics/src/capsule-query/sweep.ts",
+        "packages/barocss-physics/src/capsule-query/snapshot.ts",
+        "packages/barocss-physics/src/capsule-query.ts",
+        "packages/barocss-physics/src/character/profile.ts",
+        "packages/barocss-physics/src/character/admission.ts",
+        "packages/barocss-physics/src/character/math.ts",
+        "packages/barocss-physics/src/character/state.ts",
+        "packages/barocss-physics/src/character/query.ts",
+        "packages/barocss-physics/src/character/step-assist.ts",
+        "packages/barocss-physics/src/character/slide.ts",
+        "packages/barocss-physics/src/character/ground.ts",
+        "packages/barocss-physics/src/character/core.ts",
+        "packages/barocss-physics/src/character-controller.ts",
+        "packages/barocss-physics/src/index.ts",
+        "examples/physics-rigid-contact-reference/consumer-entry.mjs"
+      ]
+    },
+    {
+      "graph": "compiled-dependencies",
+      "originalSourceCount": 0,
+      "originalDistCount": 21,
+      "privateCandidateIsSource": true,
+      "compiledPublicCandidate": false,
+      "inputs": [
+        "packages/barocss-physics/dist/limits.js",
+        "packages/barocss-physics/dist/types.js",
+        "packages/barocss-physics/dist/validation.js",
+        "packages/barocss-physics/dist/math.js",
+        "packages/barocss-physics/dist/dynamic-anchor-pair.js",
+        "packages/barocss-physics/dist/dynamic-fixed-joint.js",
+        "packages/barocss-physics/dist/dynamic-hinge-joint.js",
+        "packages/barocss-physics/dist/joints.js",
+        "packages/barocss-physics/dist/joint-motor.js",
+        "packages/barocss-physics/dist/capsule-contact.js",
+        "packages/barocss-physics/dist/collision.js",
+        "packages/barocss-physics/dist/contact-manifold.js",
+        "packages/barocss-physics/dist/persistent-box-contact.js",
+        "packages/barocss-physics/dist/ccd-slab.js",
+        "packages/barocss-physics/dist/ccd-box.js",
+        "packages/barocss-physics/dist/ccd.js",
+        "packages/barocss-physics/dist/ccd-pair.js",
+        "packages/barocss-physics/dist/broadphase.js",
+        "packages/barocss-physics/dist/scene-profile.js",
+        "packages/barocss-physics/dist/sleep.js",
+        "examples/physics-rigid-contact-reference/reference-world.ts",
+        "packages/barocss-physics/dist/index.js",
+        "examples/physics-rigid-contact-reference/consumer-entry.mjs"
+      ]
+    }
+  ],
+  "controls": [
+    {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "originalRefusal": true,
+      "candidateNineBodies": true,
+      "inputCopy": true,
+      "snapshotCopy": true,
+      "badTimeRetained": true,
+      "tenBodyRefused": true,
+      "doubleDisposed": true,
+      "untouchedFixture": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          -9.81,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b2",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b3",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b4",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b5",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b6",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b7",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ],
+        "contactMode": "persistent-box-v1"
+      }
+    },
+    {
+      "graph": "source",
+      "scene": "OFFSET",
+      "originalRefusal": true,
+      "candidateNineBodies": true,
+      "inputCopy": true,
+      "snapshotCopy": true,
+      "badTimeRetained": true,
+      "tenBodyRefused": true,
+      "doubleDisposed": true,
+      "untouchedFixture": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          -9.81,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              0.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b2",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b3",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              1.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b4",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b5",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              2.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b6",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b7",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              3.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ],
+        "contactMode": "persistent-box-v1"
+      }
+    },
+    {
+      "graph": "source",
+      "scene": "YAW",
+      "originalRefusal": true,
+      "candidateNineBodies": true,
+      "inputCopy": true,
+      "snapshotCopy": true,
+      "badTimeRetained": true,
+      "tenBodyRefused": true,
+      "doubleDisposed": true,
+      "untouchedFixture": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          -9.81,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              0.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              -0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b2",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b3",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              1.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              -0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b4",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b5",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              2.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              -0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b6",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b7",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              3.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              -0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ],
+        "contactMode": "persistent-box-v1"
+      }
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "ALIGNED",
+      "originalRefusal": true,
+      "candidateNineBodies": true,
+      "inputCopy": true,
+      "snapshotCopy": true,
+      "badTimeRetained": true,
+      "tenBodyRefused": true,
+      "doubleDisposed": true,
+      "untouchedFixture": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          -9.81,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b2",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b3",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b4",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b5",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b6",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b7",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ],
+        "contactMode": "persistent-box-v1"
+      }
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "OFFSET",
+      "originalRefusal": true,
+      "candidateNineBodies": true,
+      "inputCopy": true,
+      "snapshotCopy": true,
+      "badTimeRetained": true,
+      "tenBodyRefused": true,
+      "doubleDisposed": true,
+      "untouchedFixture": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          -9.81,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              0.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b2",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b3",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              1.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b4",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b5",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              2.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b6",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b7",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              3.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ],
+        "contactMode": "persistent-box-v1"
+      }
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "YAW",
+      "originalRefusal": true,
+      "candidateNineBodies": true,
+      "inputCopy": true,
+      "snapshotCopy": true,
+      "badTimeRetained": true,
+      "tenBodyRefused": true,
+      "doubleDisposed": true,
+      "untouchedFixture": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          -9.81,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              0.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              -0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b2",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b3",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              1.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              -0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b4",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b5",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              2.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              -0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b6",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b7",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              3.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              -0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ],
+        "contactMode": "persistent-box-v1"
+      }
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "ALIGNED",
+      "originalRefusal": true,
+      "candidateNineBodies": true,
+      "inputCopy": true,
+      "snapshotCopy": true,
+      "badTimeRetained": true,
+      "tenBodyRefused": true,
+      "doubleDisposed": true,
+      "untouchedFixture": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          -9.81,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b2",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b3",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b4",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b5",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b6",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b7",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ],
+        "contactMode": "persistent-box-v1"
+      }
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "OFFSET",
+      "originalRefusal": true,
+      "candidateNineBodies": true,
+      "inputCopy": true,
+      "snapshotCopy": true,
+      "badTimeRetained": true,
+      "tenBodyRefused": true,
+      "doubleDisposed": true,
+      "untouchedFixture": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          -9.81,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              0.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b2",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b3",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              1.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b4",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b5",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              2.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b6",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "b7",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              3.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ],
+        "contactMode": "persistent-box-v1"
+      }
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "YAW",
+      "originalRefusal": true,
+      "candidateNineBodies": true,
+      "inputCopy": true,
+      "snapshotCopy": true,
+      "badTimeRetained": true,
+      "tenBodyRefused": true,
+      "doubleDisposed": true,
+      "untouchedFixture": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          -9.81,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              0.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              -0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b2",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b3",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              1.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              -0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b4",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b5",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              2.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              -0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b6",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b7",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              3.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              -0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ],
+        "contactMode": "persistent-box-v1"
+      }
+    }
+  ],
+  "sourceCompiledDependencyParity": true,
+  "fullModelGO": false,
+  "results": [
+    {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "acceptedSnapshots": 7,
+      "rawBytes": 6552,
+      "rawSha256": "02800999321708e9c679f119d61a6a3865c191dfcb67f0e7c94b4f80f3041320",
+      "failure": {
+        "kind": "independent-quality",
+        "step": 6,
+        "timeSeconds": 0.05,
+        "reference": {
+          "ok": true,
+          "metrics": {
+            "maxPairPenetrationM": 0.0021109628721657815,
+            "maxFloorPenetrationM": 0,
+            "maxHalfspaceIntrusionM": 0,
+            "maxQuaternionNormError": 2.479233886798826e-16,
+            "maxHorizontalDriftM": 0.000007178208474607708,
+            "maxVerticalDriftM": null,
+            "maxLinearSpeedMps": 0.21974138910191368,
+            "maxAngularSpeedRadps": 0.0015163773923010328,
+            "footprintContained": true,
+            "escapedBelowFloor": false,
+            "nearParallelAxisCount": 0,
+            "overlapWithoutContactCount": 0,
+            "maxTiltRad": 0.000005549477319960969,
+            "referencePrecisionResolved": true
+          },
+          "violations": [
+            "maxPairPenetrationM exceeds 0.002 m"
+          ]
+        }
+      },
+      "numericalGO": false
+    },
+    {
+      "graph": "source",
+      "scene": "OFFSET",
+      "acceptedSnapshots": 7,
+      "rawBytes": 6552,
+      "rawSha256": "369808568723e855add8dd251ba5fe43297b0e83ca0b5dc9efb30f80162654b2",
+      "failure": {
+        "kind": "independent-quality",
+        "step": 6,
+        "timeSeconds": 0.05,
+        "reference": {
+          "ok": true,
+          "metrics": {
+            "maxPairPenetrationM": 0.0022407802740673733,
+            "maxFloorPenetrationM": 0,
+            "maxHalfspaceIntrusionM": 0,
+            "maxQuaternionNormError": 1.7816111729714246e-16,
+            "maxHorizontalDriftM": 0.00030439582652007813,
+            "maxVerticalDriftM": null,
+            "maxLinearSpeedMps": 0.22249821478462764,
+            "maxAngularSpeedRadps": 0.014839190083047122,
+            "footprintContained": true,
+            "escapedBelowFloor": false,
+            "nearParallelAxisCount": 0,
+            "overlapWithoutContactCount": 0,
+            "maxTiltRad": 0.00043132929685170456,
+            "referencePrecisionResolved": true
+          },
+          "violations": [
+            "maxPairPenetrationM exceeds 0.002 m"
+          ]
+        }
+      },
+      "numericalGO": false
+    },
+    {
+      "graph": "source",
+      "scene": "YAW",
+      "acceptedSnapshots": 7,
+      "rawBytes": 6552,
+      "rawSha256": "7926aa66c506cc77787081cf643c54359ef9e2a06a48769150fe94625cc5e010",
+      "failure": {
+        "kind": "independent-quality",
+        "step": 6,
+        "timeSeconds": 0.05,
+        "reference": {
+          "ok": true,
+          "metrics": {
+            "maxPairPenetrationM": 0.0022465567358652414,
+            "maxFloorPenetrationM": 0,
+            "maxHalfspaceIntrusionM": 0,
+            "maxQuaternionNormError": 1.292264250268559e-16,
+            "maxHorizontalDriftM": 0.00030641162777748736,
+            "maxVerticalDriftM": null,
+            "maxLinearSpeedMps": 0.22263886738991817,
+            "maxAngularSpeedRadps": 0.01494482245128027,
+            "footprintContained": true,
+            "escapedBelowFloor": false,
+            "nearParallelAxisCount": 0,
+            "overlapWithoutContactCount": 0,
+            "maxTiltRad": 0.0004290278987371673,
+            "referencePrecisionResolved": true
+          },
+          "violations": [
+            "maxPairPenetrationM exceeds 0.002 m"
+          ]
+        }
+      },
+      "numericalGO": false
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "ALIGNED",
+      "acceptedSnapshots": 7,
+      "rawBytes": 6552,
+      "rawSha256": "02800999321708e9c679f119d61a6a3865c191dfcb67f0e7c94b4f80f3041320",
+      "failure": {
+        "kind": "independent-quality",
+        "step": 6,
+        "timeSeconds": 0.05,
+        "reference": {
+          "ok": true,
+          "metrics": {
+            "maxPairPenetrationM": 0.0021109628721657815,
+            "maxFloorPenetrationM": 0,
+            "maxHalfspaceIntrusionM": 0,
+            "maxQuaternionNormError": 2.479233886798826e-16,
+            "maxHorizontalDriftM": 0.000007178208474607708,
+            "maxVerticalDriftM": null,
+            "maxLinearSpeedMps": 0.21974138910191368,
+            "maxAngularSpeedRadps": 0.0015163773923010328,
+            "footprintContained": true,
+            "escapedBelowFloor": false,
+            "nearParallelAxisCount": 0,
+            "overlapWithoutContactCount": 0,
+            "maxTiltRad": 0.000005549477319960969,
+            "referencePrecisionResolved": true
+          },
+          "violations": [
+            "maxPairPenetrationM exceeds 0.002 m"
+          ]
+        }
+      },
+      "numericalGO": false
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "OFFSET",
+      "acceptedSnapshots": 7,
+      "rawBytes": 6552,
+      "rawSha256": "369808568723e855add8dd251ba5fe43297b0e83ca0b5dc9efb30f80162654b2",
+      "failure": {
+        "kind": "independent-quality",
+        "step": 6,
+        "timeSeconds": 0.05,
+        "reference": {
+          "ok": true,
+          "metrics": {
+            "maxPairPenetrationM": 0.0022407802740673733,
+            "maxFloorPenetrationM": 0,
+            "maxHalfspaceIntrusionM": 0,
+            "maxQuaternionNormError": 1.7816111729714246e-16,
+            "maxHorizontalDriftM": 0.00030439582652007813,
+            "maxVerticalDriftM": null,
+            "maxLinearSpeedMps": 0.22249821478462764,
+            "maxAngularSpeedRadps": 0.014839190083047122,
+            "footprintContained": true,
+            "escapedBelowFloor": false,
+            "nearParallelAxisCount": 0,
+            "overlapWithoutContactCount": 0,
+            "maxTiltRad": 0.00043132929685170456,
+            "referencePrecisionResolved": true
+          },
+          "violations": [
+            "maxPairPenetrationM exceeds 0.002 m"
+          ]
+        }
+      },
+      "numericalGO": false
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "YAW",
+      "acceptedSnapshots": 7,
+      "rawBytes": 6552,
+      "rawSha256": "7926aa66c506cc77787081cf643c54359ef9e2a06a48769150fe94625cc5e010",
+      "failure": {
+        "kind": "independent-quality",
+        "step": 6,
+        "timeSeconds": 0.05,
+        "reference": {
+          "ok": true,
+          "metrics": {
+            "maxPairPenetrationM": 0.0022465567358652414,
+            "maxFloorPenetrationM": 0,
+            "maxHalfspaceIntrusionM": 0,
+            "maxQuaternionNormError": 1.292264250268559e-16,
+            "maxHorizontalDriftM": 0.00030641162777748736,
+            "maxVerticalDriftM": null,
+            "maxLinearSpeedMps": 0.22263886738991817,
+            "maxAngularSpeedRadps": 0.01494482245128027,
+            "footprintContained": true,
+            "escapedBelowFloor": false,
+            "nearParallelAxisCount": 0,
+            "overlapWithoutContactCount": 0,
+            "maxTiltRad": 0.0004290278987371673,
+            "referencePrecisionResolved": true
+          },
+          "violations": [
+            "maxPairPenetrationM exceeds 0.002 m"
+          ]
+        }
+      },
+      "numericalGO": false
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "ALIGNED",
+      "acceptedSnapshots": 7,
+      "rawBytes": 6552,
+      "rawSha256": "02800999321708e9c679f119d61a6a3865c191dfcb67f0e7c94b4f80f3041320",
+      "failure": {
+        "kind": "independent-quality",
+        "step": 6,
+        "timeSeconds": 0.05,
+        "reference": {
+          "ok": true,
+          "metrics": {
+            "maxPairPenetrationM": 0.0021109628721657815,
+            "maxFloorPenetrationM": 0,
+            "maxHalfspaceIntrusionM": 0,
+            "maxQuaternionNormError": 2.479233886798826e-16,
+            "maxHorizontalDriftM": 0.000007178208474607708,
+            "maxVerticalDriftM": null,
+            "maxLinearSpeedMps": 0.21974138910191368,
+            "maxAngularSpeedRadps": 0.0015163773923010328,
+            "footprintContained": true,
+            "escapedBelowFloor": false,
+            "nearParallelAxisCount": 0,
+            "overlapWithoutContactCount": 0,
+            "maxTiltRad": 0.000005549477319960969,
+            "referencePrecisionResolved": true
+          },
+          "violations": [
+            "maxPairPenetrationM exceeds 0.002 m"
+          ]
+        }
+      },
+      "numericalGO": false
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "OFFSET",
+      "acceptedSnapshots": 7,
+      "rawBytes": 6552,
+      "rawSha256": "369808568723e855add8dd251ba5fe43297b0e83ca0b5dc9efb30f80162654b2",
+      "failure": {
+        "kind": "independent-quality",
+        "step": 6,
+        "timeSeconds": 0.05,
+        "reference": {
+          "ok": true,
+          "metrics": {
+            "maxPairPenetrationM": 0.0022407802740673733,
+            "maxFloorPenetrationM": 0,
+            "maxHalfspaceIntrusionM": 0,
+            "maxQuaternionNormError": 1.7816111729714246e-16,
+            "maxHorizontalDriftM": 0.00030439582652007813,
+            "maxVerticalDriftM": null,
+            "maxLinearSpeedMps": 0.22249821478462764,
+            "maxAngularSpeedRadps": 0.014839190083047122,
+            "footprintContained": true,
+            "escapedBelowFloor": false,
+            "nearParallelAxisCount": 0,
+            "overlapWithoutContactCount": 0,
+            "maxTiltRad": 0.00043132929685170456,
+            "referencePrecisionResolved": true
+          },
+          "violations": [
+            "maxPairPenetrationM exceeds 0.002 m"
+          ]
+        }
+      },
+      "numericalGO": false
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "YAW",
+      "acceptedSnapshots": 7,
+      "rawBytes": 6552,
+      "rawSha256": "7926aa66c506cc77787081cf643c54359ef9e2a06a48769150fe94625cc5e010",
+      "failure": {
+        "kind": "independent-quality",
+        "step": 6,
+        "timeSeconds": 0.05,
+        "reference": {
+          "ok": true,
+          "metrics": {
+            "maxPairPenetrationM": 0.0022465567358652414,
+            "maxFloorPenetrationM": 0,
+            "maxHalfspaceIntrusionM": 0,
+            "maxQuaternionNormError": 1.292264250268559e-16,
+            "maxHorizontalDriftM": 0.00030641162777748736,
+            "maxVerticalDriftM": null,
+            "maxLinearSpeedMps": 0.22263886738991817,
+            "maxAngularSpeedRadps": 0.01494482245128027,
+            "footprintContained": true,
+            "escapedBelowFloor": false,
+            "nearParallelAxisCount": 0,
+            "overlapWithoutContactCount": 0,
+            "maxTiltRad": 0.0004290278987371673,
+            "referencePrecisionResolved": true
+          },
+          "violations": [
+            "maxPairPenetrationM exceeds 0.002 m"
+          ]
+        }
+      },
+      "numericalGO": false
+    }
+  ],
+  "refinementExecuted": false,
+  "costMeasured": false,
+  "browserExecuted": false,
+  "referenceStderr": ""
+}
