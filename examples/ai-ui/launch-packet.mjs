@@ -14,14 +14,15 @@ export const DISABLED_FEATURES = Object.freeze(['apps', 'plugins', 'remote_plugi
   'worktrees', 'hooks', 'skill_search', 'view_image', 'image_generation', 'standalone_web_search', 'tool_suggest',
   'goals', 'sleep_tool', 'deferred_executor']);
 
-export function preparePacket({ candidateSha, cliPath, nodeBin, root }) {
+export function preparePacket({ candidateSha, cliPath, nodeBin, root, modelCatalogDigest }) {
   if (!/^[0-9a-f]{40}$/.test(candidateSha)) throw new Error('Candidate commit required');
   for (const value of [cliPath, nodeBin, root]) if (!path.isAbsolute(value ?? '')) throw new Error('Absolute host preparation paths required');
-  return { version: 'request-ui-packet-v1', status: 'prepared-not-approved', candidateSha,
+  if (modelCatalogDigest !== undefined && !/^[0-9a-f]{64}$/.test(modelCatalogDigest)) throw new Error('Model catalog digest required');
+  return { version: modelCatalogDigest === undefined ? 'request-ui-packet-v1' : 'request-ui-packet-v2', status: 'prepared-not-approved', candidateSha,
     cli: { version: '0.156.1', model: 'gpt-6.1-sol', effort: 'high', cliPath, nodeBin },
     environment: { node: '22.19.0', pnpm: '9.15.4', react: '19.2.3', playwright: '1.60.0', chromium: '148.0.7778.96',
       auth: 'existing ChatGPT CLI auth in isolated Codex home; no API key route' },
-    root, declarationsDigest: DECLARATION_DIGEST, schemaDigest: digest(OUTER_SCHEMA),
+    root, ...(modelCatalogDigest === undefined ? {} : { modelCatalogDigest }), declarationsDigest: DECLARATION_DIGEST, schemaDigest: digest(OUTER_SCHEMA),
     maxReservations: 5, perTurnTimeoutMs: 180_000, totalTimeoutMs: 900_000,
     maxEventBytes: 2_000_000, maxFinalBytes: 32_768, retries: 0,
     tools: 'none; stop any tool item', network: 'agent network disabled; only approved model service transport',
@@ -32,7 +33,7 @@ export function preparePacket({ candidateSha, cliPath, nodeBin, root }) {
 
 export function validatePacket(packet) {
   if (!packet || JSON.stringify(packet) !== JSON.stringify(preparePacket({ candidateSha: packet.candidateSha,
-    cliPath: packet.cli?.cliPath, nodeBin: packet.cli?.nodeBin, root: packet.root }))) throw new Error('Packet differs from the fixed preparation');
+    cliPath: packet.cli?.cliPath, nodeBin: packet.cli?.nodeBin, root: packet.root, modelCatalogDigest: packet.modelCatalogDigest }))) throw new Error('Packet differs from the fixed preparation');
   return digest(packet);
 }
 
@@ -48,6 +49,7 @@ export function buildArgv(packet, { codexId, finalPath }) {
     '-c', `permissions.${profile}.network.enabled=false`, '--enable', 'skip_host_skill_discovery'];
   for (const feature of DISABLED_FEATURES) common.push('--disable', feature);
   const output = ['--json', '--output-schema', path.join(packet.root, 'schema.json'), '--output-last-message', finalPath];
+  if (packet.modelCatalogDigest) common.push('-c', `model_catalog_json=${JSON.stringify(path.join(packet.root, 'model-catalog.json'))}`);
   return codexId ? ['exec', 'resume', ...common, ...output, codexId, '-']
     : ['exec', ...common, '--cd', path.join(packet.root, 'scratch'), ...output, '-'];
 }

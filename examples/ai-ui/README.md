@@ -81,7 +81,7 @@ artifacts, identity mapping, timing boundaries and the exact future owner reques
 runner provides these commands:
 
 ```sh
-node examples/ai-ui/run-packet.mjs --prepare ABS_PRIVATE_ROOT
+node examples/ai-ui/run-packet.mjs --prepare ABS_PRIVATE_ROOT --catalog ABS_EXISTING_MODEL_SOURCE_JSON
 node examples/ai-ui/run-packet.mjs --run ABS_PRIVATE_ROOT/experiment.json --approval ABS_PRIVATE_APPROVAL_FILE
 ```
 
@@ -91,6 +91,11 @@ only. Preparation and tests start zero model processes. The execution command re
 owner's new decision and a private record binding candidate, packet/declaration/experiment digests
 and run UUID.
 The CLI has no fake-process override; tests inject a process programmatically.
+
+Catalog-bound preparation snapshots one existing selected model entry, verifies local decoding with
+the installed CLI under an OS network deny, and binds its private bytes into initial/resume argv.
+The current offline verifier supports macOS. Missing or changed metadata stops before another process;
+this prepares no model authority and does not retry the spent #495 packet. See `CODEX-PACKET.md`.
 
 The runner drives five displays and two topic edits through spec-derived field/action selectors. It
 keeps private host/browser snapshots, screenshots, spec differences and terminal success or partial

@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { buildArgv, validatePacket, DECLARATION_DIGEST, OUTER_SCHEMA } from './launch-packet.mjs';
 import { REQUEST_CONTRACT, SCREEN_DECLARATIONS, requestScreen, checkRequestScreen } from './scenario.mjs';
 import { completionUsage } from './usage.mjs';
+import { inspectCatalog } from './model-catalog.mjs';
 
 const manifestRoot = new URL('../../packages/barocss-render/', import.meta.url);
 const manifest = JSON.parse(fs.readFileSync(new URL('package.json', manifestRoot), 'utf8'));
@@ -44,6 +45,7 @@ export function createCodexTransport({ packet, approval, spawnProcess = spawn, c
   packet = structuredClone(packet); approval = structuredClone(approval);
   for (const value of [packet.cli, packet.environment, packet.stop, packet.scenario, packet]) Object.freeze(value);
   if (!fake) {
+    if (!packet.modelCatalogDigest) throw new Error('Prepare a catalog-bound native packet');
     if (process.version !== `v${packet.environment.node}`) throw new Error('Approved Node version changed');
     const repo = fileURLToPath(new URL('../../', import.meta.url));
     if (execFileSync('git', ['-C', repo, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim() !== packet.candidateSha)
@@ -55,6 +57,10 @@ export function createCodexTransport({ packet, approval, spawnProcess = spawn, c
   }
   fs.mkdirSync(packet.root, { recursive: true, mode: 0o700 });
   if (fs.lstatSync(packet.root).isSymbolicLink() || (fs.statSync(packet.root).mode & 0o077)) throw new Error('Private root permissions required');
+  const checkCatalog = () => {
+    if (packet.modelCatalogDigest) inspectCatalog(path.join(packet.root, 'model-catalog.json'), packet.modelCatalogDigest, packet.cli.model, packet.cli.effort);
+  };
+  checkCatalog();
   const write = (name, data) => fs.writeFileSync(path.join(packet.root, name), typeof data === 'string' || Buffer.isBuffer(data)
     ? data : JSON.stringify(data, null, 2)+'\n', { flag: 'wx', mode: 0o600 });
   write('run-lock.json', { packetDigest, approval, mode: fake ? 'codex-cli-fake' : 'codex-cli' });
@@ -73,6 +79,7 @@ export function createCodexTransport({ packet, approval, spawnProcess = spawn, c
   };
   const generate = async (request) => {
     if (halted || active || reservations >= packet.maxReservations) throw new Error('Packet stopped or exhausted');
+    try { checkCatalog(); } catch { invalidate('model-catalog-drift'); throw new Error('Model catalog changed before dispatch'); }
     const prompt = buildPrompt(request);
     if (request.signal?.aborted || used.has(request.requestId) || request.action !== actions[reservations]
       || request.target !== targets[reservations] || (reservations === 0 ? request.kind !== 'initial'
@@ -182,7 +189,7 @@ export function createCodexTransport({ packet, approval, spawnProcess = spawn, c
       if (reason && child?.pid) { try { process.kill(-child.pid, 'SIGKILL'); } catch { /* owned group already gone */ } }
       write(`${prefix}-stdout.jsonl`, Buffer.concat(raw)); write(`${prefix}-stderr.txt`, Buffer.concat(stderr));
       write(`${prefix}-result.json`, { reservations, attempted, completed, accepted, reason: reason ?? (halted ? 'turn-failed' : null), observation,
-        candidateSha: packet.candidateSha, packetDigest, declarationsDigest: DECLARATION_DIGEST,
+        candidateSha: packet.candidateSha, packetDigest, modelCatalogDigest: packet.modelCatalogDigest ?? null, declarationsDigest: DECLARATION_DIGEST,
         usage: { reservation: number, runId: approval.runId, hostSessionId: request.sessionId, revision: request.revision,
           requestId: request.requestId, codexThreadId: modelId, source: fake ? 'injected-process' : 'native-cli',
           ...completionUsage(completionEvents, firstUsage) } });

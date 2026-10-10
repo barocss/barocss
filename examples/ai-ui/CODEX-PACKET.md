@@ -1,16 +1,27 @@
 # Prepared Codex request UI packet
 
-Status: **prepared-not-approved**. Issues #491 and #494 prepare the adapter, executable browser host and injected-process evidence. They do not authorize a real model call. The spent #458 and #460 approvals cannot be reused. Ordinary `serve.mjs` startup remains `authored-fixtures`.
+Status: **catalog readiness correction; no new live approval**. #495's once-only authorized packet stopped at a missing-model-metadata diagnostic before an observed turn start: attempted1/completed0/accepted0/useful0. Its original bytes remain preserved and spent. #1202 prepares an explicit catalog for a future packet. The spent #458/#460/#495 decisions cannot be reused. Ordinary `serve.mjs` startup remains `authored-fixtures`.
 
 ## Prepare and approve
 
 After committing and locally integrating the candidate, use its clean checkout and a fresh absolute private directory:
 
 ```sh
-node examples/ai-ui/run-packet.mjs --prepare ABS_PRIVATE_ROOT
+node examples/ai-ui/run-packet.mjs --prepare ABS_PRIVATE_ROOT --catalog ABS_EXISTING_MODEL_SOURCE_JSON
 ```
 
-The same committed runner creates `packet.json`, `experiment.json` and `request.txt`. It freezes the candidate SHA, packet/declaration/experiment digests, run UUID, installed environment, bounded request, initial input, both topic edits and future command. CLI help/version checks make zero model calls. Preparation cannot enter the live branch. Repeat preparation if any bound value or the committed runner changes.
+The same committed runner freezes candidate, packet/declaration/model-catalog/experiment digests,
+run UUID, installed environment, bounded request/input edits and future command. Supply an existing
+local model cache/catalog explicitly. Preparation extracts one selected model entry, excluding cache
+identity/etag/auth and other models, and creates private `model-catalog.json`. It invents no metadata.
+Source cache version is provenance, not compatibility or entitlement. Repeat preparation when a bound
+value changes; an already attempted packet remains spent.
+
+The installed CLI decodes the snapshot with `debug models` under a macOS OS network deny, isolated
+empty homes and no auth. It checks the model/high effort and absence of a refreshed cache/auth file.
+Unsupported verifier hosts and decoder failures stop preparation. Private `catalog-check` output/result
+and `catalog-provenance.json` accompany packet/experiment/request. These commands invoke no inference.
+`--bundled` inspects built-ins and cannot prove a custom catalog is honored.
 
 After the owner directly approves that exact request, the future command is:
 
@@ -20,7 +31,15 @@ node examples/ai-ui/run-packet.mjs --run ABS_PRIVATE_ROOT/experiment.json --appr
 
 The approval is trusted private host input. It binds `kind: owner-approved`, `candidateSha`, `packetDigest`, `declarationsDigest`, `experimentDigest`, `runId` and `ownerDecisionId`. A file alone does not substitute for the owner's decision. Missing or mismatched authority fails before process dispatch. Browser requests and model output cannot grant approval. Preparation creates neither approval nor authentication files.
 
-The runner reuses `preparePacket`, `validatePacket` and `createPacketApp`; it does not add a second generation protocol. The real adapter checks the candidate HEAD, clean worktree and CLI version before dispatch. Existing ChatGPT CLI authentication in the isolated private Codex home is a prerequisite. This Issue does not provision or copy it. There is no API-key fallback.
+The runner reuses `preparePacket`, `validatePacket` and `createPacketApp`. The real adapter checks
+candidate HEAD, clean worktree and CLI version. Native dispatch now requires a catalog-bound v2
+packet: initial/resume argv use its private `model_catalog_json` path. Missing, altered, symlinked or
+nonprivate catalog bytes stop before another process. Digest drift halts the packet. Historical v1
+construction remains usable for authored fixtures only. Existing ChatGPT auth in the isolated Codex
+home remains a separately authorized prerequisite; preparation does not copy it or use an API key.
+
+The generated owner request includes the catalog digest, already bound inside the packet digest.
+An offline catalog match proves local decoding only; actual account/model access remains unverified.
 
 Tests inject a fake child process through a programmatic test boundary. The CLI has no fake-process override. `fake-test` is test data and cannot launch the native Codex process. The browser labels real mode `codex-cli` as “actual Codex CLI” and injected mode `codex-cli-fake` as “fake process; no model”. Neither label alone proves approval or a completed model run.
 
@@ -94,6 +113,17 @@ Transport observations leave unobserved host/browser boundaries null. Session an
 Never subtract browser timestamps from server timestamps. The runner derives browser action-to-useful-screen duration only from matching `userActionSent` and `firstUsefulPresentation` points in the same navigation, with request/session/revision correlation. Missing points remain null. Compare other durations only inside the same clock domain and process/navigation. State generation/validation timing scope, sample count and spread. Preparation and fake-process timing cannot establish real model latency; there is no live result yet.
 
 ## No-model verification
+
+For #1202, build the affected renderer dependency and run
+`node examples/ai-ui/model-catalog-flow.mjs`: one authored browser packet, OS-network-denied
+metadata decoding, source/snapshot rejection and catalog drift before resume. No inference or #495
+retry occurs. The [official configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference)
+documents `model_catalog_json` loaded at startup.
+
+Zero useful timing samples must not be reported as live model evidence. #495's original
+`latency.liveModelEvidence=true` reflected owner-approved mode with n=0 and is preserved as a
+historical reporting defect. New reports set that field true only for matched useful timing samples
+from native CLI mode; n=0 is false. Native mode remains a separate source label.
 
 Use already installed dependencies and Chromium. Do not download a browser for this preparation:
 
