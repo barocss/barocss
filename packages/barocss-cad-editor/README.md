@@ -210,6 +210,23 @@ and copied displayed IDs. Hidden bodies stay in the full native document and can
 be selected; their missing display selection is cleared without losing native
 selection. Display set data is absent from native downloads.
 
+The document-view Canvas toolbar offers `Isolate` and `Restore`. Isolate requires
+a selected displayed body and at least two displayed bodies. Both actions use
+`prepareDisplayBodies` and the existing actual Viewer admission path. They change
+only the displayed body set and `displayGeneration`; native source, revisions,
+generation, history, dirty state, camera and body/pole selection stay unchanged.
+No automatic Fit or new geometry profile is added.
+
+Restore uses one private ordered bookmark, saved only after the owned isolation
+candidate is accepted and its current Viewer frame is observed. Native edits,
+Undo/Redo, Open, session replacement, Curve focus, unavailable display or any
+unrelated display change invalidate it, including a return to the same body set.
+Curve focus hides these document actions. Drafts, selection decisions, candidates,
+dialogs, composition, pointer captures and host busy state block live dispatch;
+drafts and decisions keep a current bookmark. Refused admission keeps the prior
+accepted frame. Restore can be retried while its bookmark remains current. This
+bookmark is absent from native files, recovery, history and public snapshots.
+
 React uses the session display set for every load and ignores host `bodyIds`.
 Use native `nativeCapacity:{version:1,maximumObjects:16}` for multi-object assets
 and explicit Curve display options. The bridge previews whole selected assets;

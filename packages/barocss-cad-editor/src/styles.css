@@ -182,6 +182,12 @@
 .cad-editor-native-tools button:disabled {opacity:.45;cursor:default;}
 .cad-editor-native-tools button:focus-visible {outline:2px solid #b8d599;outline-offset:1px;}
 
+/* Display actions sit below the native tools without taking Canvas layout space. */
+.cad-editor-visibility-tools {position:absolute;top:52px;left:8px;z-index:3;display:flex;gap:3px;width:max-content;white-space:nowrap;pointer-events:none;}
+.cad-editor-visibility-button {display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;height:28px;min-height:28px;padding:3px 8px;border:1px solid #46535c;border-radius:3px;background:#22272bed;color:#c2cdd4;font:inherit;font-size:10px;line-height:1.4;white-space:nowrap;pointer-events:auto;cursor:pointer;}
+.cad-editor-visibility-button:hover:not(:disabled) {background:#343c41;color:#dce5e9;}
+.cad-editor-visibility-button:focus-visible {outline:2px solid #b8d599;outline-offset:1px;}
+.cad-editor-visibility-button:disabled {opacity:.45;cursor:default;}
 /* Seven perspective sides retain the compact two-row navigator without resizing Canvas. */
 .cad-editor-view-tools {grid-template-columns:repeat(4,minmax(0,1fr));min-width:188px;}
 .cad-editor-view-tools>button {white-space:nowrap;}

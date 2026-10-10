@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createViewer } from '@barocss/viewer';
 import type { Viewer, ViewerKeyboardControls, ViewerPointerControls, ViewerState } from '@barocss/viewer';
 import { CadEditorError } from '../types.js';
-import type { CadEditorView } from '../types.js';
+import type { CadEditorSession, CadEditorView } from '../types.js';
 import type { CadDocumentResult } from '@barocss/cad';
 import { cn } from '../lib/utils.js';
 import { useCadEditorSnapshot } from './use-session.js';
@@ -15,8 +15,10 @@ import { CurvePoleHandles } from './curve-pole-handles.js';
 import { SurfacePoleHandles } from './surface-pole-handles.js';
 import { PoleAxisGizmo } from './pole-axis-gizmo.js';
 import { CadEditorViewNavigator, VIEW_SIDES, type NativeViewSide } from './view-navigator.js';
+import { SelectionIsolation } from './selection-isolation.js';
 
 interface MountedViewer {
+  session: CadEditorSession;
   viewer: Viewer;
   options: CadEditorDisplayOptions;
   generation: number;
@@ -152,6 +154,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
   const hasViewportCapture = () => [...viewportPointersRef.current].some(([id, target]) =>
     target.isConnected && target.hasPointerCapture(id));
   const [documentReceipt, setDocumentReceipt] = useState<CadEditorDisplayReceipt | null>(null);
+  const documentReceiptRef = useRef<CadEditorDisplayReceipt | null>(null);
 
   useEffect(() => {
     let listening = true;
@@ -189,6 +192,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     const unavailable = status === 'context-lost' || status === 'unavailable' || detail === 'Restoring the accepted frame failed' || error.context.field === 'restore-frame';
     if (mounted && unavailable) {
       mounted.unavailable = true; setReady(false); setFocusedReceipt(null); setDocumentReceipt(null);
+      documentReceiptRef.current = null;
       invalidate(); try { propsRef.current.onCurvePresentation?.(null); } catch {}
     }
     setErrorMessage(unavailable
@@ -227,7 +231,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
         const metadata: CadEditorCurvePresentationReceipt = structuredClone({ state: receipt.state, ...focus,
           generation: mounted.generation, displayGeneration: mounted.displayGeneration,
           width: receipt.width, height: receipt.height, lifecycle: receipt.lifecycle });
-        setDocumentReceipt(null); setFocusedReceipt(metadata);
+        documentReceiptRef.current = null; setDocumentReceipt(null); setFocusedReceipt(metadata);
         if (propsRef.current.curvePresentationPolicy === 'native-state' || !('pixelHash' in receipt)) invalidate();
         propsRef.current.onCurvePresentation?.(structuredClone(metadata));
         if ('pixelHash' in receipt) {
@@ -236,7 +240,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
         }
       } else {
         if (!('pixelHash' in receipt)) throw new CadEditorError('DISPLAY', 'Canonical presentation requires its existing measured receipt.');
-        setDocumentReceipt(structuredClone(receipt)); setFocusedReceipt(null);
+        documentReceiptRef.current = structuredClone(receipt); setDocumentReceipt(structuredClone(receipt)); setFocusedReceipt(null);
         propsRef.current.onCurvePresentation?.(null); propsRef.current.onCurveDisplay?.(null);
         if (mounted) mounted.documentCamera = structuredClone(receipt.state.camera);
         propsRef.current.onDisplay?.(structuredClone(receipt));
@@ -443,7 +447,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
       const initial = session.getSnapshot();
       viewer = createViewer(canvas, options.viewer);
       lifecycleRef.current.mounts++;
-      mountedRef.current = { viewer, options, generation: initial.generation,
+      mountedRef.current = { session, viewer, options, generation: initial.generation,
         displayGeneration: initial.displayGeneration, admitting: false, optionsRefused: false,
         view: structuredClone(initial.view), focus: null, documentCamera: null, unavailable: false };
       resize();
@@ -744,6 +748,40 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     return state.status === 'ready' && sameOptions(state.selectedUniformCurve, receipt.preview) && sameOptions(state.camera, receipt.state.camera)
       && canvas.width === receipt.width && canvas.height === receipt.height && state.document === null && state.documentBodies.length === 0;
   }
+  function isCurrentDocument() {
+    try {
+      const mounted = mountedRef.current, canvas = canvasRef.current, receipt = documentReceiptRef.current;
+      if (!mounted || mounted.session !== session || propsRef.current.session !== session || !canvas || !receipt
+        || !ready || mounted.focus || mounted.admitting || mounted.unavailable || mounted.optionsRefused
+        || !canvas.isConnected || !canvas.getClientRects().length || canvas.width <= 0 || canvas.height <= 0
+        || viewportRef.current?.dataset.viewerReady !== 'true') return false;
+      const rect = canvas.getBoundingClientRect(), visibility = getComputedStyle(canvas).visibility;
+      if (rect.width <= 0 || rect.height <= 0 || visibility === 'hidden' || visibility === 'collapse'
+        || canvas.width !== receipt.width || canvas.height !== receipt.height) return false;
+      const current = session.getSnapshot();
+      if (current.disposed || mounted.view.kind !== 'document' || current.view.kind !== 'document'
+        || mounted.generation !== current.generation || mounted.displayGeneration !== current.displayGeneration
+        || !sameOptions(propsRef.current.displayOptions.viewer, mounted.options.viewer)
+        || !sameOptions(documentOptions(propsRef.current.displayOptions.document, []), documentOptions(mounted.options.document, []))) return false;
+      const state = mounted.viewer.getState();
+      if (state.status !== 'ready' || !sameOptions(state, receipt.state)
+        || !Object.is(state.mmToSceneUnit, mounted.options.viewer.mmToSceneUnit)) return false;
+      checkDocumentFrame({ state }, current.accepted, current.displayBodyIds);
+      return sameOptions(state.documentBodies.map(body => body.binding.bodyId), current.displayBodyIds)
+        && state.documentBodies.every(body => {
+          const binding = current.accepted.bodyBindings.find(value => value.bodyId === body.binding.bodyId);
+          const asset = current.accepted.document.assets.find(value => value.id === binding?.assetId);
+          const compiled = current.accepted.compiledAssets.find(value => value.assetId === binding?.assetId);
+          return !!binding && !!asset && !!compiled && sameOptions(body.binding, {
+            ...binding, documentId: current.accepted.document.documentId, documentRevision: current.accepted.document.revision,
+            nativeFrame: current.accepted.document.nativeFrame, assetRevision: asset.revision,
+            sourceFrame: asset.sourceFrame, modelId: compiled.model.name,
+          });
+        })
+        && state.visibleGeometry.length === state.documentBodies.length
+        && state.documentBodies.every(body => state.visibleGeometry.some(ref => sameOptions(ref, body.ref)));
+    } catch { return false; }
+  }
   if (interval?.session === session) interval.viewport.current = { canvas: canvasRef.current, presentation: focusedReceipt, isCurrent: currentPresentation };
   const camera = focusedReceipt?.state.camera ?? documentReceipt?.state.camera;
   const viewBusy=!ready||viewportCaptured||axisGestureActive||snapshot.disposed||snapshot.candidate!==null||snapshot.selectionTransition!==null||Object.keys(snapshot.pending).length>0;
@@ -769,6 +807,9 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
       }}
       data-testid="cad-editor-canvas" aria-label="CAD viewport. Drag to orbit. Shift drag to pan. Scroll to zoom. Press F to fit." />
     <CadEditorViewNavigator camera={ready ? camera : null} disabled={viewBusy} onChoose={changeView} />
+    {snapshot.view.kind === 'document' && <SelectionIsolation session={session} canvas={canvasRef.current}
+      receipt={ready ? documentReceipt : null} isCurrentDocument={isCurrentDocument} busy={viewBusy}
+      onError={error => report(error, 'Changing document visibility failed')} />}
     {!interval?.active && <SurfacePoleHandles session={session} receipt={ready?documentReceipt:null} canvas={canvasRef.current} onError={error=>report(error,'Surface point gesture failed')} />}
     {!interval?.active && <PoleAxisGizmo session={session} documentReceipt={ready?documentReceipt:null} curveReceipt={ready?focusedReceipt:null} canvas={canvasRef.current}
       onGestureChange={active=>{axisGestureRef.current=active;setAxisGestureActive(active);}}
