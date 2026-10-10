@@ -83,3 +83,5 @@ export { padImageAsset } from './image-pad.js';
 export type { ImagePadding } from './image-pad.js';
 
 export { applyImageRGBMatrix } from './image-color.js';
+
+export { applyImageAlphaMask } from './image-alpha-mask.js';
