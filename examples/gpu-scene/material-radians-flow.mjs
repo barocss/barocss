@@ -32,8 +32,9 @@ const fixtures=[
 ];
 function evaluate(e,values){switch(e.kind){case'float':return e.value;case'color':return e.linear;case'uniform':return values[e.name];case'unary':return(e.operator==='-'?-1:1)*evaluate(e.value,values);case'binary':{const a=evaluate(e.left,values),b=evaluate(e.right,values);return e.operator==='+'?a+b:e.operator==='-'?a-b:a*b;}case'call':{assert(['sin','cos','mix','clamp'].includes(e.name),'No new runtime call');const a=e.args.map(x=>evaluate(x,values));if(e.name==='clamp')return Math.max(a[1],Math.min(a[2],a[0]));if(e.name==='mix')return a[0].map((v,i)=>v*(1-a[2])+a[1][i]*a[2]);return Math[e.name](a[0]);}}throw Error('Unsupported IR');}
 const colors=t=>[17,34,51].map((n,i)=>Math.pow(n/255,2.2)*(1-t)+Math.pow([170,187,204][i]/255,2.2)*t);
-const balanced=xs=>xs.length===1?xs[0]:'('+balanced(xs.slice(0,xs.length>>1))+'+'+balanced(xs.slice(xs.length>>1))+')';
-const budget=n=>shader(ratio(balanced(Array(n).fill('radians(angleDegrees)'))));
+// Fourteen definitions charge 238 nodes; the last definition and fragment
+// reach exactly 256 without hitting the independent parse-nesting limit.
+const budget=n=>{let decl=header;for(let i=0;i<14;i++)decl+=`@let a${i}:float(radians(${Array(8).fill('1').join('+')}));`;decl+=`@let a14:float(radians(${Array(n).fill('1').join('+')}));`;return shader('clamp(radians(angleDegrees),0,1)',decl);};
 const depth=n=>{let decl=header+'@let p0:float(angleDegrees);';for(let i=1;i<=n;i++)decl+=`@let p${i}:float(+p${i-1});`;return shader(`clamp(radians(p${n}),0,1)`,decl);};
 const invalid=[
  {source:shader(ratio('radians()')),code:'TYPE'},
@@ -43,7 +44,7 @@ const invalid=[
  {source:shader(ratio('radians(angleDegrees*3)')),code:'RANGE'},
  {source:shader(ratio('radians(1001)')),code:'RANGE',token:'1001'},
  {source:shader(ratio('radians(unknown)')),code:'TYPE',token:'unknown'},
- {source:budget(62),code:'BUDGET',token:null},
+ {source:budget(5),code:'BUDGET',token:null},
  {source:depth(13),code:'BUDGET',token:null}
 ];
 const results=[],providers=[['ordinary',await import(pathToFileURL(ordinary))],['emitted',await import(pathToFileURL(resolve(pkg,published.import)))]];
@@ -65,7 +66,7 @@ for(const [provider,gpu]of providers){
   previous={material:a.material,path,ir,source,bytes:await readFile(ir)};accepted++;
   results.push({provider,name:fixture.name,source:await receipt(path),ir:await receipt(ir)});
  }
- for(const source of[budget(61),depth(12),shader('clamp((cos(radians(angleDegrees))+1)*.5,0,1)'),shader(ratio('angleDegrees'))]){const result=gpu.compileMeshMaterial(source);assert(result.ok,JSON.stringify(result));if(source.includes('cos'))evaluate(result.material.expression,{angleDegrees:90}).forEach((c,i)=>assert(Math.abs(c-colors(.5)[i])<1e-12));if(source===shader(ratio('angleDegrees')))assert.notDeepEqual(result.material.expression,gpu.compileMeshMaterial(shader(ratio('radians(angleDegrees)'))).material.expression);accepted++;}
+ for(const source of[budget(4),depth(12),shader('clamp((cos(radians(angleDegrees))+1)*.5,0,1)'),shader(ratio('angleDegrees'))]){const result=gpu.compileMeshMaterial(source);assert(result.ok,JSON.stringify(result));if(source.includes('cos'))evaluate(result.material.expression,{angleDegrees:90}).forEach((c,i)=>assert(Math.abs(c-colors(.5)[i])<1e-12));if(source===shader(ratio('angleDegrees')))assert.notDeepEqual(result.material.expression,gpu.compileMeshMaterial(shader(ratio('radians(angleDegrees)'))).material.expression);accepted++;}
  for(const fixture of invalid){const result=gpu.compileMeshMaterial(fixture.source);assert(!result.ok,'Expected refusal');assert.equal(result.diagnostics[0].code,fixture.code);const d=result.diagnostics[0];if(fixture.token!==null)assert.equal(fixture.source.slice(d.start,d.end),fixture.token??'radians');assert.equal(await readFile(previous.path,'utf8'),previous.source);assert.deepEqual(await readFile(previous.ir),previous.bytes);refused++;results.push({provider,refusal:fixture.code,diagnostic:d});}
  const forged=JSON.parse(JSON.stringify(previous.material));forged.expression={kind:'float',type:'float',value:.5};assert.throws(()=>gpu.validateMeshMaterialIR(forged),e=>e.code==='IR');refused++;
  const accessor={...previous.material};Object.defineProperty(accessor,'source',{enumerable:true,get(){getters++;return previous.source;}});assert.throws(()=>gpu.validateMeshMaterialIR(accessor),e=>e.code==='INPUT');assert.equal(getters,0);refused++;
