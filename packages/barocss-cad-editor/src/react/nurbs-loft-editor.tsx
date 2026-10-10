@@ -10,6 +10,7 @@ import { Input } from './ui/input.js';
 import { Label } from './ui/label.js';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog.js';
 import { LoftSectionHandles, sameLoftData as same } from './loft-section-handles.js';
+import { CadEditorViewNavigator, VIEW_SIDES, type NativeViewSide } from './view-navigator.js';
 
 type NativeOptions = NonNullable<Parameters<Viewer['loadNative']>[1]>;
 type NodeBinding = NurbsSourceLoftFeatureGraphResult['bindings']['nodes'][number];
@@ -127,7 +128,8 @@ export function CadEditorNurbsLoftEditor(props: CadEditorNurbsLoftProps) {
   const [ready, setReady] = useState(false), [captured, setCaptured] = useState(false);
   const [gestureActive, setGestureActive] = useState(false), [receipt, setReceipt] = useState<CadEditorLoftDisplayReceipt | null>(null);
   const [error, setError] = useState<CadEditorError | null>(null);
-  function hasCapture() { return [...pointers.current].some(pointerId => [document.documentElement, ...document.querySelectorAll('*')].some(element => element.hasPointerCapture(pointerId))); }
+  function captureFor(pointerId: number) { return [document.documentElement, ...document.querySelectorAll('*')].some(element => element.hasPointerCapture(pointerId)); }
+  function hasCapture() { return [...pointers.current].some(captureFor); }
   function hostBlocked() { return gestureRef.current || hasCapture() || !!canvasRef.current?.closest('[data-loft-host-busy="true"]'); }
   function unsafeViewCommand() {
     const mounted = mountedRef.current, current = session.getSnapshot(), canvas = canvasRef.current, rect = canvas?.getBoundingClientRect();
@@ -136,10 +138,19 @@ export function CadEditorNurbsLoftEditor(props: CadEditorNurbsLoftProps) {
       || viewportRef.current?.getAttribute('data-loft-ready') !== 'true'
       || document.querySelector('[role="dialog"][data-state="open"],[role="menu"]') !== null;
   }
+  function navigationBlocked() {
+    if (unsafeViewCommand()) return true;
+    const mounted = mountedRef.current!, current = session.getSnapshot();
+    return mounted.viewer.getState().status !== 'ready' || mounted.generation !== current.generation
+      || mounted.displayGeneration !== current.displayGeneration || !same(mounted.loaded.view, current.view);
+  }
   useEffect(() => {
     let listening = true;
     const down = (event: PointerEvent) => { pointers.current.add(event.pointerId); setTimeout(() => { if (listening) setCaptured(hasCapture()); }, 0); };
-    const release = (event: PointerEvent) => { if (event.type !== 'lostpointercapture') pointers.current.delete(event.pointerId); setTimeout(() => { if (listening) setCaptured(hasCapture()); }, 0); };
+    const release = (event: PointerEvent) => {
+      if (!captureFor(event.pointerId)) pointers.current.delete(event.pointerId);
+      setTimeout(() => { if (listening) { if (!captureFor(event.pointerId)) pointers.current.delete(event.pointerId); setCaptured(hasCapture()); } }, 0);
+    };
     window.addEventListener('pointerdown', down, true); window.addEventListener('pointerup', release, true);
     window.addEventListener('pointercancel', release, true); window.addEventListener('lostpointercapture', release, true);
     return () => { listening = false; pointers.current.clear(); window.removeEventListener('pointerdown', down, true);
@@ -292,8 +303,32 @@ export function CadEditorNurbsLoftEditor(props: CadEditorNurbsLoftProps) {
     catch (cause) { try { mounted.viewer.setView(before); publish(read(mounted)); }
       catch (restoreCause) { report(new CadEditorError('DISPLAY', 'Restoring the loft camera failed.', { field: 'restore-frame' }, restoreCause), false); return; } report(cause); }
   }, [props.fitRequest, session, ready]);
+  function changeView(view: NativeViewSide) {
+    if (navigationBlocked()) return;
+    const mounted = mountedRef.current!, before = mounted.viewer.getState().camera;
+    const generation = mounted.generation, displayGeneration = mounted.displayGeneration, controlledView = structuredClone(mounted.loaded.view);
+    const savedLoftCamera = mounted.loftCamera === null ? null : structuredClone(mounted.loftCamera);
+    const side = VIEW_SIDES.find(value => value.side === view); if (!side) return;
+    const distance = Math.hypot(...before.eye.map((value, index) => value - before.target[index])), length = Math.hypot(...side.direction);
+    try {
+      mounted.viewer.setView({ ...before, eye: before.target.map((value, index) => value + side.direction[index] * distance / length) as [number, number, number], up: [...side.up] });
+      const value = read(mounted), current = session.getSnapshot();
+      if (navigationBlocked() || current.generation !== generation || current.displayGeneration !== displayGeneration || !same(current.view, controlledView))
+        throw new CadEditorError('STALE', 'The loft or view changed before the camera frame was published.', { field: 'loft-camera' });
+      setError(null); publish(value);
+    } catch (cause) {
+      try { mounted.viewer.setView(before); publish(read(mounted)); }
+      catch (restoreCause) { mounted.loftCamera = savedLoftCamera;
+        report(new CadEditorError('DISPLAY', 'Restoring the loft camera failed.', { field: 'restore-frame' }, restoreCause), false); return; }
+      report(cause);
+    }
+  }
   const selection = snapshot.selection, hasPending = Object.keys(snapshot.pending.fields).length > 0;
   const busy = snapshot.disposed || !!snapshot.candidate || captured || gestureActive || !ready;
+  const mounted = mountedRef.current;
+  const navigationBusy = busy || hasPending || !receipt || receipt.state.status !== 'ready' || !mounted
+    || mounted.unavailable || mounted.optionsRefused || mounted.admitting || mounted.viewer.getState().status !== 'ready'
+    || mounted.generation !== snapshot.generation || mounted.displayGeneration !== snapshot.displayGeneration || !same(mounted.loaded.view, snapshot.view);
   const sectionIndex = selection ? snapshot.accepted.bindings.loft.sections.findIndex(value => value.nodeId === selection.nodeId) : -1;
   return <div className={cn('cad-editor cad-editor-loft')} onClickCapture={event => { if (hostBlocked()) { event.preventDefault(); event.stopPropagation(); } }}
     onKeyDownCapture={event => { if (gestureRef.current && event.key !== 'Escape') { event.preventDefault(); event.stopPropagation(); } }}>
@@ -303,6 +338,7 @@ export function CadEditorNurbsLoftEditor(props: CadEditorNurbsLoftProps) {
         onPointerDownCapture={event => { if (unsafeViewCommand()) { event.preventDefault(); event.stopPropagation(); } }}
         onWheelCapture={event => { if (unsafeViewCommand()) { event.preventDefault(); event.stopPropagation(); } }}
         onKeyDownCapture={event => { if (event.key === 'Escape' || unsafeViewCommand()) { event.preventDefault(); event.stopPropagation(); } }} />
+      <CadEditorViewNavigator camera={ready ? receipt?.state.camera ?? null : null} disabled={navigationBusy} onChoose={changeView} />
       <LoftSectionHandles session={session} canvas={canvasRef.current} receipt={receipt} isCurrentFrame={currentHandleFrame} onError={report}
         onGestureChange={active => { gestureRef.current = active; setGestureActive(active); }} />
       {error && <p className="cad-editor-viewport-error" role="alert">{actionable(error)}</p>}
@@ -320,6 +356,7 @@ export function CadEditorNurbsLoftEditor(props: CadEditorNurbsLoftProps) {
               <p>The output is an independent generated Model containing three construction Curves and one piecewise rational Surface. It is not the original mixed source. Original complete source files and unrelated objects remain accepted authority. The loft is C0 between its explicit stations; smoothness, G1, G2, topology, Solid and manufacturing are not certified.</p>
               <p>Section focus admits the complete current edited source, never an extracted Curve. The current preview supports at most four original Model objects and 65536 UTF-8 bytes and code units, with 65 uniform observations. A broader original source remains native data but can refuse display. Generated output display has its own actual native and GPU admission.</p>
               <p>Return to Loft restores its saved camera and current exact generated source. Suppress returns to Loft and clears the actual Viewer; it does not display an old Surface as suppressed. Resume rebuilds the native output. A supported original section can remain available for focus while the Loft is suppressed. Fit uses the existing display recipe and can change orientation.</p>
+              <p>The view buttons keep perspective, camera target, distance, field of view and clipping planes. Front looks from +Z, Back from -Z, Right from +X, Left from -X, Top from +Y, Bottom from -Y and Iso from +XYZ. The status follows the actual camera; orbit can show Custom. Empty suppressed output disables these controls; a displayed original section remains available. A side can hide geometry or points edge-on. Camera choices do not change sources, selection, native history or display generation.</p>
               <p>Downloads contain accepted authored sources and complete recipes, not generated-only meshes, pending text, camera or gestures. Undo and Redo rebuild saved authored states at fresh native revisions and rebind the original section selection. View changes use a separate display generation and do not add native history.</p>
               <details className="cad-editor-source"><summary className="cad-editor-source-title">Source and native details</summary>
                 <pre>{JSON.stringify({ binding: receipt?.binding, view: snapshot.view, pending: snapshot.pending,
