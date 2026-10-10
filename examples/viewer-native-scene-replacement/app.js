@@ -7,6 +7,7 @@ import {compileCadModel,evaluateCurve,evaluateSurface,curveDomain,parseBooleanEx
   createCadGeometryReference,queryCadDocumentPoint} from '@barocss/cad';
 import {prepareUniformCurvePreview,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer} from '@barocss/gpu';
 import {createClothWorld} from '@barocss/physics/cloth';
+import {readNativeFile,createNativeFileOpen} from './native-file-open.js';
 
 const check=(condition,message)=>{if(!condition)throw Error(message);},clone=value=>structuredClone(value);
 const same=(a,b)=>Object.is(a,b)||!!a&&!!b&&typeof a==='object'&&typeof b==='object'&&Object.keys(a).length===Object.keys(b).length
@@ -15,6 +16,8 @@ const near=(a,b,tolerance=1e-7)=>a.length===b.length&&a.every((n,i)=>Math.abs(n-
 const hash=bytes=>bytes.reduce((n,byte)=>Math.imul(n^byte,16777619)>>>0,2166136261);
 const sha=async bytes=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');
 const canvas=document.querySelector('canvas'),status=document.querySelector('#status'),inspection=document.querySelector('#inspection'),list=document.querySelector('#bodies');
+const nativeFileChoice=document.querySelector('#native-file-choice'),openNativeFileButton=document.querySelector('#open-native-file'),discardNativeFileButton=document.querySelector('#discard-native-file');
+const stagedNativeFile=document.querySelector('#staged-native-file'),acceptedNativeFile=document.querySelector('#accepted-native-file');
 const buttons=Object.fromEntries(['replacement','fit-replacement','document','native','native-replacement','show-all','hide-all','fit','saved-view','query','clear','run-proof','lose-context','dispose']
   .map(id=>[id,document.querySelector('button#'+id)]));
 const contexts=new Set(),resources={},peaks={},uploads=[],draws=[],errors=[],warnings=[];
@@ -39,7 +42,7 @@ const nativeOptions={sourceVersion:0,countU:5,countV:5,curveDisplay:{version:1,c
 const bodyIds=['body_0_curve','body_0_surface','body_1_curve','body_1_surface'];
 const documentOptions={native:{...clone(nativeOptions),unitsPerMillimeter:1},basis:'authored-xyz-matches-rhyup',bodyIds};
 const mmToSceneUnit=.13,fixedCamera={eye:[4,3,7],target:[.35,.2,.3],up:[0,1,0],fovYDegrees:45,near:.01,far:30};
-let documentResult=null,originalBytes=null,originalText='',projection=[],manifest=[],viewer=null,running=false,disposed=false,result=null;
+let documentResult=null,originalBytes=null,originalText='',projection=[],manifest=[],viewer=null,running=false,disposed=false,result=null,nativeFileOpen=null;
 const sources={};
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
 const glErrors=()=>[...contexts].map(gl=>gl.getError());
@@ -62,7 +65,23 @@ function nativeEntries(){const parsed=parseBaroCadSource(sources['asset-a'],{...
     ...parsed.curves.map(curve=>({kind:'curve',sample:curve.sample,ref:{kind:'curve',modelId:parsed.model.name,curveId:curve.curveId}}))];}
 function buildNativeCandidate(camera=fixedCamera){return {version:0,source:{kind:'native',source:sources['asset-a'],options:clone(nativeOptions),basis:'authored-xyz-matches-rhyup'},
   display:initialDisplay(nativeEntries().map(entry=>entry.ref),camera,[])};}
-function replace(candidate=buildCandidate()){uploads.length=0;draws.length=0;viewer.replaceNativeScene(candidate);render();return viewer.getState();}
+function nativeFileSnapshot(){const snapshot=nativeFileOpen?.snapshot()??{version:0,intent:0,staged:null,accepted:null,pending:false,disposed,error:null};
+  const live=!!viewer&&!disposed&&!snapshot.disposed&&!running,state=live?viewer.getState():null;
+  return{...clone(snapshot),openEnabled:live&&!!snapshot.staged&&!['context-lost','unavailable','disposed'].includes(state.status),
+    choiceEnabled:live,discardEnabled:live&&(!!snapshot.staged||snapshot.pending)};}
+function renderNativeFileControls(snapshot=nativeFileOpen?.snapshot()){const controls=nativeFileSnapshot(),value=snapshot??controls;
+  nativeFileChoice.disabled=!controls.choiceEnabled;openNativeFileButton.disabled=!controls.openEnabled;discardNativeFileButton.disabled=!controls.discardEnabled;
+  stagedNativeFile.textContent=value.staged?'Choice: '+value.staged.name+' · '+value.staged.bytes+' bytes'+(value.pending?' · Opening…':''):'No file choice.';
+  if(value.error)stagedNativeFile.textContent+=' · '+value.error.message;
+  acceptedNativeFile.textContent=value.accepted?'Opened: '+value.accepted.name+' · '+value.accepted.bytes+' bytes · Model '+value.accepted.modelId
+    +' · '+value.accepted.refs.length+' original objects · SHA-256 '+value.accepted.sha256:'No local file is accepted.';}
+function stageNativeFile(file){check(nativeFileOpen&&!disposed&&!running,'File choice needs a live host.');try{nativeFileOpen.stage(file);display('Original source file staged. Select Open to apply it.');}finally{nativeFileChoice.value='';}return nativeFileSnapshot();}
+async function openNativeFile(){check(nativeFileOpen&&!disposed&&!running,'File opening needs a live host.');return await nativeFileOpen.open();}
+function discardNativeFile(){check(nativeFileOpen&&!disposed&&!running,'File choice needs a live host.');nativeFileOpen.discard();nativeFileChoice.value='';display('File choice discarded. Accepted original geometry is unchanged.');return nativeFileSnapshot();}
+function invalidateNativeFile(){if(!disposed)nativeFileOpen?.invalidate();return nativeFileSnapshot();}
+function sourceAction(callback){invalidateNativeFile();try{const value=callback();nativeFileOpen?.clearAccepted();inspection.textContent='';render();return value;}catch(error){render();throw error;}}
+function commitReplacement(candidate){uploads.length=0;draws.length=0;viewer.replaceNativeScene(candidate);return viewer.getState();}
+function replace(candidate){return sourceAction(()=>commitReplacement(candidate===undefined?buildCandidate():candidate));}
 function inventory(){const state=viewer.getState();return state.documentBodies.length?state.documentBodies.map(body=>({ref:body.ref,label:body.binding.bodyId,pin:body.binding}))
   :[...state.surfaces.map(ref=>({ref:{kind:'surface',...ref},label:ref.surfaceId})),...state.curves.map(ref=>({ref:{kind:'curve',...ref},label:ref.curveId}))];}
 function render(){const state=viewer.getState(),live=!disposed&&state.status!=='context-lost',ready=live&&state.status==='ready';
@@ -75,6 +94,7 @@ function render(){const state=viewer.getState(),live=!disposed&&state.status!=='
     checkbox.addEventListener('change',()=>action(()=>{if(!item.isConnected)throw Error('This body list is stale.');
       const accepted=viewer.getState(),refs=inventory().map(body=>body.ref).filter(ref=>sameRef(ref,body.ref)?checkbox.checked:accepted.visibleGeometry.some(value=>sameRef(value,ref)));
       viewer.setVisibleGeometry(refs);}));item.append(label,identity);return item;}));
+  nativeFileOpen?.sync();renderNativeFileControls();
 }
 function action(callback){if(disposed)return;try{callback();render();}catch(error){display(error.message);}}
 function transformedPoint(point,pose){if(!pose)return point.map(n=>n*mmToSceneUnit);const[x,y,z,w]=pose.rotation,
@@ -99,11 +119,17 @@ function uploadWitness(candidate){const entries=candidate.source.kind==='documen
     check(upload&&upload.exactReadback,'Independent posed original/one-scale upload differs for '+JSON.stringify(ref));
     witness.push({ref,values:upload.values,bytes:upload.bytes});}
   check(uploads.every(value=>value.exactReadback),'Actual GL buffer readback differs');return witness;}
-function query(){const state=viewer.getState(),ref=state.curves[0];check(ref,'A native Curve is required');
-  const measured=viewer.measureNativeCurvePoints({...ref,t:2},{...ref,t:-3});
-  const curve=(state.document?.compiledAssets[0]?.model??state.native?.model).objects.find(geometry=>geometry.kind==='curve'&&geometry.id===ref.curveId);
-  const expected=evaluateCurve(curve,2);check(near(measured.first.pointMM,expected,1e-12),'Native local point changed under display pose');
-  const value={ref,pointMM:measured.first.pointMM,expected,certification:measured.certification};inspection.textContent=JSON.stringify(value,null,2);return value;}
+function query(){const state=viewer.getState(),ref=state.curves[0];check(ref,'A native Curve is required');let model=null;
+  if(state.document){const body=state.documentBodies.find(body=>sameRef(body.ref,{kind:'curve',...ref})),binding=body?.binding;
+    check(binding&&binding.geometryKind==='curve'&&binding.geometryId===ref.curveId&&binding.documentId===state.document.document.documentId
+      &&binding.documentRevision===state.document.document.revision,'Current document Curve binding is missing.');
+    const asset=state.document.compiledAssets.find(asset=>asset.assetId===binding.assetId);check(asset&&asset.model.name===binding.modelId,'Original document Curve Model is missing.');model=asset.model;
+  }else if(state.native?.model.name===ref.modelId)model=state.native.model;
+  const curve=model?.objects.find(geometry=>geometry.kind==='curve'&&geometry.id===ref.curveId);check(curve,'Current original Curve is missing.');
+  const domain=curveDomain(curve),lower=domain[0],midpoint=lower/2+domain[1]/2;check(Number.isFinite(midpoint)&&midpoint>=lower&&midpoint<=domain[1],'Original Curve midpoint is outside its domain.');
+  const measured=viewer.measureNativeCurvePoints({...ref,t:midpoint},{...ref,t:lower}),expected=evaluateCurve(curve,midpoint);
+  check(near(measured.first.pointMM,expected,1e-12),'Native local point changed under display pose');
+  const value={ref,domain,parameters:{midpoint,lower},pointMM:measured.first.pointMM,expected,certification:measured.certification};inspection.textContent=JSON.stringify(value,null,2);return value;}
 function retained(label,callback){const before=viewer.getState(),pixels=pixelInfo(),counts=resourceCounts();let error;
   try{callback();}catch(value){error=value;}check(error instanceof Error,label+' did not refuse');check(same(before,viewer.getState())&&same(pixels,pixelInfo())&&same(counts,resourceCounts()),label+' changed accepted state/pixels/resources');
   result?.refusals.push({label,error:error.message,type:error.name,code:error.code??null});return error;}
@@ -112,7 +138,7 @@ function capture(label){const state=viewer.getState(),row={label,status:state.st
   check(row.glErrors.every(n=>n===0),label+' GL error');result.cases.push(row);return row;}
 function failAllocation(type='Texture',at=1){faultType=type;faultAt=at;faultAttempts=0;faultConsumed=false;}
 function clearAllocationFault(){const value={type:faultType,attempts:faultAttempts,consumed:faultConsumed};faultType=null;return value;}
-async function runProof(){if(running||disposed||viewer.getState().status==='context-lost')throw Error('Proof needs a live Viewer');running=true;render();
+async function runProof(){invalidateNativeFile();if(running||disposed||viewer.getState().status==='context-lost')throw Error('Proof needs a live Viewer');running=true;render();
   result={ok:false,schema:'barocss-viewer-native-replacement-1061-basic',cases:[],refusals:[],failures:[],scope:'One native/document provider candidate; independent root script adds complete old-mode/race/loss acceptance'};window.__viewerReplacementResult=result;
   try{result.fixture=manifest[0];result.inputAudit=await(await fetch('/input-audit.json')).json();
     const candidate=buildCandidate();replace(candidate);result.uploads=uploadWitness(candidate);const accepted=viewer.getState();
@@ -157,14 +183,17 @@ async function runProof(){if(running||disposed||viewer.getState().status==='cont
     documentBytes:manifest[0]?.bytes,contextCount:contexts.size,resources:resourceCounts(),limits:result.scope});
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}
   return result;}
-function dispose(){if(disposed)return;viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
+function dispose(){if(disposed)return;nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
   contextCount:contexts.size,errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display(receipt);return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=await(await fetch('/document.cad-document.json')).arrayBuffer();
   check(bytes.byteLength===manifest[0].bytes&&await sha(bytes)===manifest[0].sha256,'Unchanged original document bytes/hash differ');originalBytes=new Uint8Array(bytes);originalText=new TextDecoder().decode(bytes);
   documentResult=await loadBaroCadDocument(new URL('/document.cad-document.json',location.href).href);
   projection=prepareBaroCadDocumentPrimitiveNativeRefsV2(documentResult,documentOptions);for(const asset of documentResult.document.assets)sources[asset.id]=asset.source;
-  viewer=createViewer(canvas,{mmToSceneUnit,background:[.035,.065,.105]});replace(buildCandidate());lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
-  window.__viewerReplacementProof={viewer,createViewer,documentResult,originalBytes,originalText,manifest,sources,projection,bodyIds,nativeOptions,documentOptions,fixedCamera,mmToSceneUnit,canvas,
+  viewer=createViewer(canvas,{mmToSceneUnit,background:[.035,.065,.105]});nativeFileOpen=createNativeFileOpen(viewer,{
+    onChange:snapshot=>renderNativeFileControls(snapshot),onAccepted:accepted=>{inspection.textContent='';render();display('Opened original source '+accepted.name+'.');},
+    onError:error=>{render();display(error instanceof Error?error.message:String(error));}});
+  replace();lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
+  window.__viewerReplacementProof={viewer,createViewer,readNativeFile,createNativeFileOpen,stageNativeFile,openNativeFile,discardNativeFile,invalidateNativeFile,nativeFileSnapshot,documentResult,originalBytes,originalText,manifest,sources,projection,bodyIds,nativeOptions,documentOptions,fixedCamera,mmToSceneUnit,canvas,
     buildCandidate,makeCandidate:buildCandidate,buildNativeCandidate,initialDisplay,refFor,refs:projection.map(refFor),refsFor:()=>projection.map(refFor),replace,nativeEntries,candidatePoints,transformedPoint,expectedFit,uploadWitness,query,inventory,render,
     loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2,parseBaroCadSource,compileCadModel,evaluateCurve,evaluateSurface,curveDomain,
     createCadGeometryReference,queryCadDocumentPoint,parseBooleanExtrusionFeatureGraph,prepareUniformCurvePreview,parseBaroCadAssembly,loadBaroCadAssembly,loadBaroCadModelSet,
@@ -174,10 +203,12 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=awa
   window.__viewerReplacementProof.nativeSourcePanel=await(await fetch('/original-panel.barocad')).text();
   display('Ready: revision5 original two-asset document, four posed bodies, three visible, exact saved camera.');
 }catch(error){display({ok:false,stage:'startup',error:error.stack||error.message});}
-buttons.replacement.addEventListener('click',()=>action(()=>replace(buildCandidate())));buttons['fit-replacement'].addEventListener('click',()=>action(()=>replace(buildCandidate(null))));
-buttons.document.addEventListener('click',()=>action(()=>viewer.loadDocument(documentResult,documentOptions)));buttons.native.addEventListener('click',()=>action(()=>viewer.loadNative(sources['asset-a'],nativeOptions)));
-buttons['native-replacement'].addEventListener('click',()=>action(()=>replace(buildNativeCandidate())));buttons['show-all'].addEventListener('click',()=>action(()=>viewer.setVisibleGeometry(inventory().map(body=>body.ref))));
+nativeFileChoice.addEventListener('change',()=>{const file=nativeFileChoice.files?.[0];if(file)try{stageNativeFile(file);}catch{}});
+openNativeFileButton.addEventListener('click',()=>{openNativeFile().catch(()=>{});});discardNativeFileButton.addEventListener('click',()=>{if(disposed)return;try{discardNativeFile();}catch(error){display(error.message);}});
+buttons.replacement.addEventListener('click',()=>action(()=>replace()));buttons['fit-replacement'].addEventListener('click',()=>action(()=>sourceAction(()=>commitReplacement(buildCandidate(null)))));
+buttons.document.addEventListener('click',()=>action(()=>sourceAction(()=>viewer.loadDocument(documentResult,documentOptions))));buttons.native.addEventListener('click',()=>action(()=>sourceAction(()=>viewer.loadNative(sources['asset-a'],nativeOptions))));
+buttons['native-replacement'].addEventListener('click',()=>action(()=>sourceAction(()=>commitReplacement(buildNativeCandidate()))));buttons['show-all'].addEventListener('click',()=>action(()=>viewer.setVisibleGeometry(inventory().map(body=>body.ref))));
 buttons['hide-all'].addEventListener('click',()=>action(()=>viewer.setVisibleGeometry([])));buttons.fit.addEventListener('click',()=>action(()=>viewer.fit()));buttons['saved-view'].addEventListener('click',()=>action(()=>viewer.setView(fixedCamera)));
-buttons.query.addEventListener('click',()=>action(query));buttons.clear.addEventListener('click',()=>action(()=>viewer.clear()));buttons['run-proof'].addEventListener('click',runProof);buttons.dispose.addEventListener('click',dispose);
+buttons.query.addEventListener('click',()=>action(query));buttons.clear.addEventListener('click',()=>action(()=>sourceAction(()=>viewer.clear())));buttons['run-proof'].addEventListener('click',runProof);buttons.dispose.addEventListener('click',dispose);
 buttons['lose-context'].addEventListener('click',()=>lossExtension?.loseContext());canvas.addEventListener('webglcontextlost',()=>{render();display('Context lost; copied native source and initial display settings remain on CPU.');});
 window.addEventListener('beforeunload',()=>{if(viewer)dispose();});
