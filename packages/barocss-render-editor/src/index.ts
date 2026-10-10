@@ -35,3 +35,6 @@ export * from './native-scene-session.js';
 export type {RenderNativeSceneDisplay, RenderNativeScenePose} from './native-scene-display.js';
 export * from './parametric-scene-document.js';
 export * from './parametric-scene-session.js';
+export * from './parametric-scene-document-v1.js';
+export * from './parametric-scene-session-v1.js';
+export type {RenderParametricGeometrySourceV1, RenderPreparedParametricGeometryV1} from './parametric-scene-source-v1.js';

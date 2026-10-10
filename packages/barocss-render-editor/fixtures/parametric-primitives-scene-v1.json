@@ -1,0 +1,227 @@
+{
+  "format": "barocss-render-editor-parametric-scene",
+  "version": 1,
+  "profile": "primitive-unlit-engine-v1",
+  "documentId": "primitive-parameter-study",
+  "title": "Original primitive study",
+  "revision": 0,
+  "sceneId": "mixed_primitive_scene",
+  "coordinateSystem": "right-handed-y-up",
+  "positionUnit": "scene",
+  "geometrySources": [
+    {
+      "format": "barocss-gpu-box-geometry",
+      "id": "box_authored",
+      "sizeXYZ": [
+        1.3,
+        0.7,
+        1.9
+      ],
+      "coordinateSystem": "right-handed-y-up",
+      "positionUnit": "scene",
+      "version": 0
+    },
+    {
+      "format": "barocss-gpu-plane-geometry",
+      "id": "ground_plane",
+      "sizeXY": [
+        4.2,
+        2.6
+      ],
+      "segmentsXY": [
+        3,
+        2
+      ],
+      "coordinateSystem": "right-handed-y-up",
+      "positionUnit": "scene",
+      "version": 0
+    },
+    {
+      "format": "barocss-gpu-sphere-geometry",
+      "id": "orb_mesh",
+      "radius": 0.65,
+      "longitudeSegments": 12,
+      "latitudeSegments": 6,
+      "coordinateSystem": "right-handed-y-up",
+      "positionUnit": "scene",
+      "version": 0
+    }
+  ],
+  "camera": {
+    "eye": [
+      12,
+      9,
+      15
+    ],
+    "target": [
+      0,
+      0,
+      0
+    ],
+    "up": [
+      -0.0,
+      1,
+      0
+    ],
+    "fovYDegrees": 45,
+    "near": 0.01,
+    "far": 100
+  },
+  "background": [
+    0.02,
+    -0.0,
+    0.04
+  ],
+  "materials": [
+    {
+      "id": "box_material",
+      "type": "unlit",
+      "colorSpace": "linear",
+      "color": [
+        0.6,
+        0.25,
+        0.1
+      ]
+    },
+    {
+      "id": "ground_material",
+      "type": "unlit",
+      "colorSpace": "linear",
+      "color": [
+        0.2,
+        0.25,
+        0.3
+      ]
+    },
+    {
+      "id": "orb_material",
+      "type": "unlit",
+      "colorSpace": "linear",
+      "color": [
+        0.3,
+        0.5,
+        0.8
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "primitive_group",
+      "type": "group",
+      "parentId": null,
+      "translation": [
+        -0.0,
+        0,
+        0
+      ],
+      "rotationXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "visible": true
+    },
+    {
+      "id": "box_node",
+      "geometryId": "box_authored",
+      "materialId": "box_material",
+      "translation": [
+        -1.4,
+        -0.0,
+        0.2
+      ],
+      "type": "mesh",
+      "parentId": "primitive_group",
+      "rotationXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "visible": true
+    },
+    {
+      "type": "mesh",
+      "parentId": "primitive_group",
+      "rotationXYZW": [
+        -0.7071067811865476,
+        0,
+        0,
+        0.7071067811865476
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "visible": true,
+      "id": "plane_node",
+      "geometryId": "ground_plane",
+      "materialId": "ground_material",
+      "translation": [
+        0,
+        -0.8,
+        0
+      ]
+    },
+    {
+      "id": "sphere_one",
+      "geometryId": "orb_mesh",
+      "materialId": "orb_material",
+      "translation": [
+        1.2,
+        0.4,
+        -0.3
+      ],
+      "type": "mesh",
+      "parentId": "primitive_group",
+      "rotationXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "visible": true
+    },
+    {
+      "type": "mesh",
+      "parentId": "primitive_group",
+      "rotationXYZW": [
+        -0.0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        0.8,
+        1.2,
+        0.7
+      ],
+      "visible": true,
+      "id": "sphere_two",
+      "geometryId": "orb_mesh",
+      "materialId": "orb_material",
+      "translation": [
+        2.4,
+        0.4,
+        -0.3
+      ]
+    }
+  ]
+}
