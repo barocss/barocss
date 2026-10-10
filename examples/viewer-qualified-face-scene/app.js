@@ -18,6 +18,8 @@ const canvas=document.querySelector('#view'),status=document.querySelector('#sta
 const assetCount=document.querySelector('#asset-count'),countU=document.querySelector('#count-u'),countV=document.querySelector('#count-v');
 const colorAsset=document.querySelector('#color-asset'),colorInput=document.querySelector('#color');
 const measureButton=document.querySelector('#measure-points'),measurementOutput=document.querySelector('#measurement-output');
+const pointLabels=[1,2].map(index=>document.querySelector('#measurement-point-'+index)),distanceLabel=document.querySelector('#measurement-distance');
+const distanceFormat=new Intl.NumberFormat('en',{maximumFractionDigits:4});
 const measurementControls=['first','second'].map(side=>({side,
   source:document.querySelector('#measure-'+side+'-source'),geometry:document.querySelector('#measure-'+side+'-geometry'),
   u:document.querySelector('#measure-'+side+'-u'),v:document.querySelector('#measure-'+side+'-v'),t:document.querySelector('#measure-'+side+'-t')}));
@@ -42,6 +44,7 @@ WebGL2RenderingContext.prototype.drawElements=function(mode,count,...args){draws
 window.addEventListener('error',event=>errors.push(event.message));window.addEventListener('unhandledrejection',event=>errors.push(String(event.reason)));
 const warn=console.warn;console.warn=(...args)=>{warnings.push(args.map(String).join(' '));warn.apply(console,args);};
 const fixtures={},originalRequests={},originalSources={};let manifest=[],viewer=null,disposed=false,running=false,result=null,inspectionReport=null,measurementReport=null;
+let labelPins=null,currentProjections=[null,null],labelResizeObserver=null;
 const colors=[[.9,.3,.2],[.25,.8,.4],[.25,.45,.95],[.95,.7,.2],[.3,.8,.9],[.85,.35,.75]];
 const camera={eye:[2,1.5,3.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:10},mmToSceneUnit=.12,background=[.02,.03,.04],translateScene=[-.6,-.6,-.7];
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
@@ -49,7 +52,26 @@ const glErrors=()=>[...contexts].map(gl=>gl.getError());
 const pixelInfo=()=>({hash:hash(viewer.readPixels())});
 const display=value=>status.textContent=typeof value==='string'?value:JSON.stringify(value,null,2);
 function clearInspection(){inspectionReport=null;inspection.textContent='';}
-function clearMeasurement(){measurementReport=null;measurementOutput.textContent='';}
+function measurementScopeChanged(scene){return measurementReport&&[measurementReport.first,measurementReport.second].some(point=>{
+  const asset=scene?.assets.find(value=>value.sourceId===point.sourceId);
+  return !asset||asset.source!==point.expectedSource||asset.face.topology.face.id!==point.faceId||asset.face.geometry.name!==point.modelId;});}
+function hideLabels(){currentProjections=[null,null];for(const label of[...pointLabels,distanceLabel])label.hidden=true;}
+function clearMeasurement(){measurementReport=null;measurementOutput.textContent='';labelPins=null;hideLabels();}
+function updateLabels(){if(!viewer||disposed||!labelPins||!measurementReport){hideLabels();return;}
+  const state=viewer.getState();if(measurementScopeChanged(state.qualifiedFaceScene)){clearMeasurement();return;}
+  if(state.status!=='ready'||!state.qualifiedFaceScene){hideLabels();return;}
+  currentProjections=labelPins.map(pin=>{try{return viewer.projectQualifiedFacePoint(pin);}catch{return null;}});
+  currentProjections.forEach((projection,index)=>{const label=pointLabels[index];label.hidden=!projection;if(!projection)return;
+    label.textContent=(index+1)+' · '+labelPins[index].sourceId+'/'+labelPins[index].geometryId;
+    label.style.left=projection.xCss+'px';label.style.top=projection.yCss+'px';});
+  distanceLabel.hidden=!currentProjections.every(Boolean);
+  if(!distanceLabel.hidden){const [first,second]=currentProjections;
+    distanceLabel.textContent=distanceFormat.format(measurementReport.distanceMM)+' mm';
+    distanceLabel.style.left=(first.xCss+second.xCss)/2+'px';distanceLabel.style.top=(first.yCss+second.yCss)/2+'px';}
+}
+function labelSnapshot(){const snapshot=label=>({id:label.id,visible:!label.hidden,text:label.hidden?null:label.textContent,
+  xCss:label.hidden?null:Number.parseFloat(label.style.left),yCss:label.hidden?null:Number.parseFloat(label.style.top)});
+  return{points:pointLabels.map(snapshot),distance:snapshot(distanceLabel),projections:clone(currentProjections)};}
 function renderMeasurementControls(scene){const enabled=!disposed&&!running&&!!scene;measureButton.disabled=!enabled;
   for(const control of measurementControls){const previousSource=control.source.value,previousGeometry=control.geometry.value;
     control.source.replaceChildren(...(scene?.assets??[]).map(asset=>{const option=document.createElement('option');option.value=asset.sourceId;option.textContent=asset.sourceId;return option;}));
@@ -80,12 +102,12 @@ function controlMeasurementInput(control){const decimal=/^[+-]?(?:\d+(?:\.\d*)?|
   return measurementInput(control.source.value,control.geometry.value,curve?{t:value('t')}:{u:value('u'),v:value('v')});
 }
 function measure(first=controlMeasurementInput(measurementControls[0]),second=controlMeasurementInput(measurementControls[1])){
-  const report=viewer.measureQualifiedFacePoints(first,second);measurementReport=clone(report);
+  const report=viewer.measureQualifiedFacePoints(first,second);measurementReport=clone(report);labelPins=[clone(first),clone(second)];
   const point=value=>({kind:value.kind,sourceId:value.sourceId,faceId:value.faceId,modelId:value.modelId,geometryId:value.geometryId,
     parameters:value.kind==='surface'?{u:value.u,v:value.v}:{t:value.t},pointMM:value.pointMM,pointScene:value.pointScene});
   measurementOutput.textContent=JSON.stringify({first:point(report.first),second:point(report.second),
     distanceMM:report.distanceMM,distanceScene:report.distanceScene,units:{pointMM:'mm',pointScene:'scene units',distanceMM:'mm',distanceScene:'scene units'},
-    metric:report.metric,basis:report.basis,certification:report.certification},null,2);return report;
+    metric:report.metric,basis:report.basis,certification:report.certification},null,2);updateLabels();return report;
 }
 function candidate(overrides={}){const variant=overrides.variant??'warped',amount=overrides.assetCount??6,sourceAssets=originalRequests[variant].assets;
   const {variant:unusedVariant,assetCount:unusedAmount,...changes}=overrides;
@@ -94,8 +116,7 @@ function candidate(overrides={}){const variant=overrides.variant??'warped',amoun
     countU:17,countV:17,camera:clone(camera),translateScene:[...translateScene],...changes};
 }
 function render(){const state=viewer.getState(),scene=state.qualifiedFaceScene,available=!disposed&&!['context-lost','unavailable'].includes(state.status);
-  if(measurementReport&&[measurementReport.first,measurementReport.second].some(point=>{const asset=scene?.assets.find(value=>value.sourceId===point.sourceId);
-    return !asset||asset.source!==point.expectedSource||asset.face.topology.face.id!==point.faceId||asset.face.geometry.name!==point.modelId;}))clearMeasurement();
+  if(measurementScopeChanged(scene))clearMeasurement();
   for(const[id,button]of Object.entries(buttons))button.disabled=id==='dispose'?disposed:!available||running;
   for(const control of[assetCount,countU,countV,colorAsset,colorInput])control.disabled=!available||running;
   if(scene){assetCount.value=String(scene.assets.length);countU.value=String(scene.countU);countV.value=String(scene.countV);}
@@ -107,6 +128,7 @@ function render(){const state=viewer.getState(),scene=state.qualifiedFaceScene,a
     button.textContent='Inspect '+asset.sourceId;button.setAttribute('aria-label','Inspect original Face '+asset.sourceId);button.disabled=disposed||running;
     button.addEventListener('click',()=>{try{inspect(asset.sourceId);}catch(error){display(error.message);}});item.append(title,detail,button);return item;}));
   renderMeasurementControls(scene);
+  updateLabels();
 }
 function load(input=candidate()){uploads.length=0;draws.length=0;viewer.loadQualifiedFaceScene(input);clearInspection();clearMeasurement();render();return viewer.getState();}
 function action(callback){if(disposed)return;try{callback();render();}catch(error){render();display(error.message);}}
@@ -191,7 +213,7 @@ async function runProof(){if(running||disposed||['context-lost','unavailable'].i
   }catch(error){result.error=error.stack||error.message;result.failures.push({error:result.error,completed:result.cases.length});result.resources=resourceCounts();result.errors=[...errors];}
   finally{running=false;render();window.__viewerQualifiedFaceResult=result;display(result.ok?'Original Face checks completed.':('Face checks stopped: '+(result.error??'Unknown error')));
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}return result;}
-function dispose(){if(disposed)return;viewer.dispose();viewer.dispose();disposed=true;clearInspection();clearMeasurement();render();const receipt={status:viewer.getState().status,resources:resourceCounts(),contextCount:contexts.size,
+function dispose(){if(disposed)return;viewer.dispose();viewer.dispose();disposed=true;labelResizeObserver?.disconnect();clearInspection();clearMeasurement();render();const receipt={status:viewer.getState().status,resources:resourceCounts(),contextCount:contexts.size,
   glErrors:glErrors(),errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display('Viewer disposed.');return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item of manifest){const bytes=await(await fetch(item.url)).arrayBuffer();
     check(bytes.byteLength===item.bytes&&await sha(bytes)===item.sha256,'Original Face fixture bytes/hash changed');fixtures[item.name]={...item,bytes:new Uint8Array(bytes),text:new TextDecoder().decode(bytes)};}
@@ -199,14 +221,15 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
   for(const id of'ABCDEF'){const source=fixtures['warped_'+id+'.source0.css'].text;check(source===originalRequests.warped.assets.find(asset=>asset.sourceId===id).source,'Original source file/Face association differs');originalSources[id]=source;}
   check(fixtures['interior_edit_F.source0.css'].text===originalRequests.interior_edit.assets[5].source,'Original interior-edit Source0 association differs');
   viewer=createViewer(canvas,{mmToSceneUnit,background});load(candidate());lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
-  window.__viewerQualifiedFaceProof={viewer,createViewer,candidate,load,render,inspect,measurementInput,measure,mismatchCandidate,dispose,resourceCounts,uploads,draws,glErrors,errors,warnings,lossExtension,failAllocation,
+  labelResizeObserver=new ResizeObserver(()=>updateLabels());labelResizeObserver.observe(canvas);
+  window.__viewerQualifiedFaceProof={viewer,createViewer,candidate,load,render,inspect,measurementInput,measure,updateLabels,labelSnapshot,mismatchCandidate,dispose,resourceCounts,uploads,draws,glErrors,errors,warnings,lossExtension,failAllocation,
     failNextBuffer(at=16){failAllocation('Buffer',at);},clearAllocationFault,originalRequests,originalSources,fixtures,manifest,colors,camera,translateScene,mmToSceneUnit,background,pixelInfo,witness,retained,capture,runProof,
     prepareQualifiedFaceScene,QualifiedFaceSceneRenderer,MixedDepthRenderer,prepareMixedDepthFrame,compileGpu,prepareCamera,prepareUniformCurvePreview,prepareSelectedUniformCurvePreview,
     compileCadModel,validateFaceBundle,tessellateSurface,evaluateSurface,evaluateCurve,curveDomain,parseBooleanExtrusionFeatureGraph,parseBaroCadSource,
     loadBaroCadModelSet,loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2,parseBaroCadAssembly,loadBaroCadAssembly,
     createClothWorld,createPhysicsClothWorld:createClothWorld,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer,canvas,
     get gl(){return[...contexts][0];},get state(){return viewer.getState();},get currentScene(){return viewer.getState().qualifiedFaceScene;},get inspectionReport(){return clone(inspectionReport);},
-    get measurementReport(){return clone(measurementReport);},get result(){return result;}};
+    get measurementReport(){return clone(measurementReport);},get currentProjections(){return clone(currentProjections);},get result(){return result;}};
   display('Original Faces ready. Inspect a current source from its row.');
 }catch(error){display('Original Faces could not load: '+error.message);}
 buttons.load.addEventListener('click',()=>action(()=>load(candidate({assetCount:Number(assetCount.value),countU:Number(countU.value),countV:Number(countV.value)}))));

@@ -739,3 +739,28 @@ original source rejects an old content pin. Camera, color and sampling changes
 keep unchanged source pins valid. Retained CPU authority remains queryable
 after context loss or presentation failure; GPU operations stay blocked.
 Clear, a successful mode replacement and Dispose remove this query scope.
+
+### Project qualified points for caller-owned labels
+
+`projectQualifiedFacePoint(input)` uses the same exact original source pin as
+`measureQualifiedFacePoints`. It returns a version0 copied point with `xCss`,
+`yCss` and positive `depthScene`, or `null` outside the accepted camera clip
+interval or view rectangle. Source and parameter validation runs first.
+
+Coordinates start at the canvas bounding-box top-left and use logical CSS
+pixels with y down. Projection uses the backing width/height aspect ratio,
+then maps to the current CSS bounding-box size. Right and bottom boundaries
+are inclusive. Use a borderless, padding-free, axis-aligned canvas and overlay
+for content alignment. Empty CSS size and sizes above4096 pixels refuse.
+
+This analytic camera projection is approximate. It does not read GPU depth or
+test occlusion. A projected label can lie behind another Face. The result says
+`approximate: true` and `occlusion: 'not-tested'`; it does not certify a native
+screen hit. The SDK writes no label, measurement or GPU state. Projection
+refuses context loss or unavailable presentation, including after caller
+restoration. CPU native measurement remains available under retained authority.
+
+The example owns numbered point labels and a native-mm chord label. Labels
+follow accepted camera/CSS changes and disappear for offscreen or stale points,
+Clear, mode changes, unavailable display and Dispose. Its Help explains the
+projection limit separately from concise visible label text.
