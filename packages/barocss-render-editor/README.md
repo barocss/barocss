@@ -2,6 +2,8 @@
 
 An experimental source-authoritative GPU scene document, pure session/controller, and reusable React workbench. The full shadcn application is `apps/render-editor`. This module uses the public BaroCSS GPU compiler and renderer.
 
+The mixed workbench uses one Scene/Projects dock, a central viewport and an Object/Camera inspector. Its optional `projectBrowser` React node is a host-owned navigation slot. Source starts collapsed and opens through Source or Edit source; the real textarea stays mounted. Apply and Discard remain visible without source editing. Problems opens existing diagnostics and correction actions. Panel tabs and bounded pointer/keyboard separators retain field text, complete Apply guards, camera preview and the same canvas/presenter. Local layout state is not authoring and is never serialized. The read-only view orientation uses the actual GPU camera basis; it adds no picking, camera object or geometry gizmo.
+
 ```tsx
 import {createRenderEditorSession, createRenderEditorController} from '@barocss/render-editor';
 import {RenderEditor} from '@barocss/render-editor/react';

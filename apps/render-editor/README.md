@@ -2,6 +2,10 @@
 
 A private React and shadcn host for `@barocss/render-editor`. The app owns menus, native files, downloads, workspace navigation, and example documents. The module owns source, camera, inventory, diagnostics, and the GPU viewport.
 
+The mixed app uses compact document/file chrome and a viewport-first workbench. Scene and Projects share one left dock; Object and Camera share the right inspector. Source and Problems open on request below the viewport. Apply and Discard stay visible when Source is closed. Drag the panel separators or focus them and use the arrow keys, Home and End to resize within their bounds. The existing New/Open/Save, workspace and pending/unsaved decisions remain. Help → Editor layout explains the controls. Layout changes do not edit source or create history and are not saved.
+
+`workbench-layout-flow.mjs --layout-file <real unchanged download> --edited-file <real re-edited download> --output <new-directory>` qualifies actual browser files against the prior original native document. CUA separately checks the real viewport, panels, keyboard/pointer resizing, hidden raw guards, camera preview and file picker. The cold script does not drive a browser or prove GL behavior. Source-only editor styles and native geometry/rendering contracts remain separate.
+
 ## Run
 
 Use the repository's installed Node 22 toolchain and dependencies. This app requires no custom source condition or source alias.
