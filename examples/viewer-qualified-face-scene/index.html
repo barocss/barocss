@@ -22,7 +22,9 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <span id="picked-chord-distance" class="measurement-label" hidden></span>
 <span id="picked-angle-first" class="measurement-label" hidden></span><span id="picked-angle-vertex" class="measurement-label" hidden></span>
 <span id="picked-angle-third" class="measurement-label" hidden></span><span id="picked-angle-value" class="measurement-label" hidden></span>
-<span id="picked-surface-curvature-label" class="measurement-label" hidden></span></div></div>
+<span id="picked-surface-curvature-label" class="measurement-label" hidden></span>
+<span id="picked-normal-angle-first" class="measurement-label" hidden></span><span id="picked-normal-angle-second" class="measurement-label" hidden></span>
+<span id="picked-normal-angle-value" class="measurement-label" hidden></span></div></div>
 <label>Assets <select id="asset-count" disabled><option>6</option><option>2</option></select></label>
 <label>Grid U <select id="count-u" disabled><option>17</option><option>9</option><option>2</option></select></label>
 <label>Grid V <select id="count-v" disabled><option>17</option><option>9</option><option>2</option></select></label>
@@ -68,6 +70,14 @@ Endpoint labels use approximate CSS projection without occlusion testing. The di
 A zero leg or failed query keeps the accepted points. A miss does not advance the sequence. After a complete angle, the next valid click starts a new first point.
 View changes retain original points. Source or Face content changes can invalidate the set. Reset clears it; changing the mode checkbox retains it.
 Labels use approximate CSS projection without occlusion testing. The angle label appears at the vertex. This is not a tangent, dihedral or certified native ray-hit angle.</p></details>
+<label><input id="picked-normal-angle-mode" type="checkbox" disabled>Picked normal angle mode</label>
+<button id="reset-picked-normal-angle" disabled>Reset picked normal angle</button><p id="picked-normal-angle-output" role="status" aria-live="polite">Select the first original normal point.</p>
+<details id="picked-normal-angle-help"><summary>About the picked normal angle</summary>
+<p>Click two displayed Faces to compare original Surface parameter normals at approximately selected u/v. The first point must have a valid original normal before it is stored.
+The same regular point can form a zero angle. A miss or failed query keeps accepted points; the next valid click after a complete pair starts a new pair.
+View changes retain original points. Referenced source or Face content changes invalidate the pair. Reset clears it; changing the mode checkbox retains it.
+Normals follow native U/V orientation, rather than outward Face or Solid orientation. This is not an acute plane angle, Curve tangent or topology dihedral.
+Labels use approximate CSS projection without occlusion testing. The angle label is anchored at the first point; no normal arrows or global angular accuracy certificate are provided.</p></details>
 <pre id="inspection" aria-label="Read-only original source and Face inspection">Inspect an admitted source from its row.</pre>
 <section aria-label="Original native Surface normal angle">
 <h2>Measure original native normal angle</h2>
