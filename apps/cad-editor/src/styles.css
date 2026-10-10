@@ -57,51 +57,51 @@
   --border:#3b4146;
   background:#191c1f;
 }
-.cad-direct-app .app-header { height:50px; padding:0 16px; background:#222629; border-color:#353b3f; }
-.cad-direct-app .app-brand { font-size:15px; margin-right:16px; letter-spacing:-.35px; }
+.cad-direct-app .app-header { height:36px; padding:0 12px; background:#222629; border-color:#353b3f; }
+.cad-direct-app .app-brand { font-size:14px; margin-right:10px; letter-spacing:-.35px; }
 .cad-direct-app .brand-sub { color:#959fa5; font-size:9px; letter-spacing:.8px; }
 .cad-direct-app .document-title { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#d3d8db; padding:0 20px; }
 .cad-direct-app .prototype-label { color:#9ba3a8; letter-spacing:.7px; }
 .cad-direct-app .dirty-dot { color:#e4b66c; }
-.cad-direct-app .modeling-toolbar { height:60px; gap:20px; padding:0 18px; background:#1e2225; border-color:#353b3f; }
-.cad-direct-app .workspace-context { display:flex; flex-direction:column; gap:5px; min-width:0; }
+.cad-direct-app .modeling-toolbar { height:40px; gap:14px; padding:0 12px; background:#1e2225; border-color:#353b3f; }
+.cad-direct-app .workspace-context { display:flex; flex-direction:column; gap:2px; min-width:0; }
 .cad-direct-app .workspace-mode { display:flex; align-items:center; gap:7px; font-size:11px; font-weight:550; color:#dce1e3; white-space:nowrap; }
 .cad-direct-app .workspace-mode svg { color:#b8d599; }
 .cad-direct-app .workspace-mode>span { font-size:10px; font-weight:400; color:#9da6ac; padding-left:7px; border-left:1px solid #41484d; }
 .cad-direct-app .workspace-selection { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; color:#aab3b9; }
 .cad-direct-app .workspace-selection small { font-size:10px; color:#848f97; margin-left:8px; }
-.cad-direct-app .modeling-toolbar .toolbar-actions { gap:14px; flex-shrink:0; }
-.cad-direct-app .command-group { display:flex; flex-direction:column; gap:3px; padding-left:14px; border-left:1px solid #383e43; }
+.cad-direct-app .modeling-toolbar .toolbar-actions { gap:10px; flex-shrink:0; }
+.cad-direct-app .command-group { display:flex; flex-direction:column; gap:1px; padding-left:10px; border-left:1px solid #383e43; }
 .cad-direct-app .command-group-label { font-size:9px; line-height:1; color:#9ba5ac; }
 .cad-direct-app .command-group-actions { display:flex; align-items:center; gap:2px; }
-.cad-direct-app .command-group-actions button { min-height:28px; height:28px; padding:4px 8px; font-size:11px; }
+.cad-direct-app .command-group-actions button { min-height:24px; height:24px; padding:3px 7px; font-size:11px; }
 .cad-direct-app .command-group-actions svg { width:13px; height:13px; }
-.cad-direct-app .document-tree { width:220px; padding:19px 12px 14px; background:#222629; border-color:#353b3f; }
-.cad-direct-app .document-tree h2 { font-size:12px; font-weight:600; color:#e0e5e7; margin:0 7px 17px; }
+.cad-direct-app .document-tree { width:176px; padding:10px 8px; background:#222629; border-color:#353b3f; }
+.cad-direct-app .document-tree h2 { font-size:12px; font-weight:600; color:#e0e5e7; margin:0 5px 10px; }
 .cad-direct-app .document-tree h2 svg { width:14px; height:14px; color:#a9b3ba; }
-.cad-direct-app .tree-document { margin:0 7px 23px; color:#b6c0c6; gap:8px; }
+.cad-direct-app .tree-document { margin:0 5px 12px; color:#b6c0c6; gap:8px; }
 .cad-direct-app .tree-document>svg { flex-shrink:0; width:13px; height:13px; color:#8f9ba3; }
-.cad-direct-app .tree-section { margin:0 7px 9px; color:#939fa7; font-size:9px; letter-spacing:.8px; }
+.cad-direct-app .tree-section { margin:0 5px 6px; color:#939fa7; font-size:9px; letter-spacing:.8px; }
 .cad-direct-app .tree-section>span:last-child { font-variant-numeric:tabular-nums; letter-spacing:0; }
-.cad-direct-app .tree-body-row { gap:0; border:1px solid transparent; border-radius:4px; margin:0 0 4px; }
+.cad-direct-app .tree-body-row { gap:0; border:1px solid transparent; border-radius:3px; margin:0 0 2px; }
 .cad-direct-app .tree-body-row.selected { border-color:#485542; background:#30382e; box-shadow:inset 2px 0 #b8d599; }
-.cad-direct-app .tree-body { margin:0; padding:10px 9px; gap:9px; border-radius:3px; background:transparent; color:#d7dde0; }
+.cad-direct-app .tree-body { margin:0; padding:7px 6px; gap:7px; border-radius:3px; background:transparent; color:#d7dde0; }
 .cad-direct-app .tree-body:hover { background:#2c3236; }
 .cad-direct-app .tree-body.selected { color:#e2ebdc; background:transparent; }
 .cad-direct-app .tree-body-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:500; }
-.cad-direct-app .tree-body small { color:#919da5; font-weight:400; font-size:10px; margin-top:4px; }
+.cad-direct-app .tree-body small { color:#919da5; font-weight:400; font-size:10px; margin-top:2px; }
 .cad-direct-app .tree-body.selected small { color:#b2bea9; }
 .cad-direct-app .body-symbol,.cad-direct-app .body-symbol.curve { display:flex; flex-shrink:0; color:#9aa8b1; font-size:inherit; }
 .cad-direct-app .tree-body.selected .body-symbol { color:#b8d599; }
 .cad-direct-app .tree-body-row>input { flex-shrink:0; width:12px; height:12px; margin:0 9px 0 5px; accent-color:#b8d599; }
-.cad-direct-app .tree-foot { border-color:#353c41; color:#949fa7; padding:14px 7px 0; }
+.cad-direct-app .tree-foot { border-color:#353c41; color:#949fa7; padding:9px 5px 0; }
 .cad-direct-app .tree-foot p { font-size:10px; line-height:1.65; }
-.cad-direct-app .app-status { background:#222629; color:#a1adb5; border-color:#383f44; gap:9px; height:30px; padding:0 14px; }
+.cad-direct-app .app-status { background:#222629; color:#a1adb5; border-color:#383f44; gap:8px; height:24px; min-height:24px; padding:0 10px; }
 .cad-direct-app .status-led { background:#b8d599; }
 .cad-direct-app .status-divider { background:#414a50; }
 .cad-direct-app .status-pending { color:#e4b66c; }
 .cad-direct-app [data-testid="app-unsaved-state"] { color:#c1c9ce; }
-.cad-direct-app .app-error { left:232px; background:#39292b; border-color:#735156; }
+.cad-direct-app .app-error { left:184px; background:#39292b; border-color:#735156; }
 @media(min-width:1000px) and (max-width:1050px) {
   .cad-direct-app .app-header { padding:0 12px; }
   .cad-direct-app .app-brand { margin-right:3px; }
@@ -110,9 +110,25 @@
   .cad-direct-app .modeling-toolbar .toolbar-actions { gap:9px; }
   .cad-direct-app .command-group { padding-left:9px; }
   .cad-direct-app .command-group-actions button { padding:4px 6px; }
-  .cad-direct-app .document-tree { width:180px; padding:17px 8px 12px; }
-  .cad-direct-app .tree-body { gap:7px; padding:9px 7px; }
+  .cad-direct-app .document-tree { width:152px; padding:10px 6px; }
+  .cad-direct-app .tree-body { gap:6px; padding:6px 5px; }
   .cad-direct-app .tree-body-row>input { margin-right:7px; }
-  .cad-direct-app .app-status { gap:7px; padding:0 12px; font-size:10px; }
-  .cad-direct-app .app-error { left:192px; }
+  .cad-direct-app .app-status { gap:6px; padding:0 10px; font-size:10px; }
+  .cad-direct-app .app-error { left:160px; }
 }
+
+/* Shared desktop chrome density; dialogs retain their task-specific spacing. */
+.cad-app .app-header [data-slot="button"] {height:26px;min-height:26px;padding:3px 9px;font-size:11px;gap:5px;}
+.cad-app .app-header [data-slot="button"] svg {width:14px;height:14px;}
+.cad-app .app-header [data-slot="menubar-trigger"] {min-height:24px;padding:3px 8px;font-size:11px;}
+.cad-app .app-brand svg {width:17px;height:17px;}
+.cad-app .tree-details {margin:14px 5px;padding-top:10px;row-gap:7px;}
+.cad-app:not(.cad-direct-app) .app-header {height:36px;padding:0 12px;}
+.cad-app:not(.cad-direct-app) .app-toolbar {height:40px;padding:0 12px;}
+.cad-app:not(.cad-direct-app) .document-tree {width:176px;padding:10px 8px;}
+.cad-app:not(.cad-direct-app) .app-status {height:24px;min-height:24px;padding:0 10px;}
+.cad-app:not(.cad-direct-app) .document-tree h2 {margin-bottom:12px;}
+.cad-app:not(.cad-direct-app) .tree-body {padding:7px 6px;margin-bottom:2px;}
+@media(min-width:1000px) and (max-width:1050px) {.cad-app:not(.cad-direct-app) .document-tree {width:152px;padding:10px 6px;}}
+
+.cad-direct-app .tree-count {margin-left:auto;font-size:10px;font-weight:400;font-variant-numeric:tabular-nums;color:#96a1a9;}
