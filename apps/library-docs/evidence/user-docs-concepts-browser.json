@@ -1,0 +1,12 @@
+{
+  "bodyConcepts": true,
+  "publicApis": true,
+  "testToolingAbsent": true,
+  "cadImages": 4,
+  "cadToExamples": true,
+  "interactiveGuide": true,
+  "gpuConcepts": true,
+  "errors": [],
+  "warnings": [],
+  "url": "http://127.0.0.1:52948/packages/gpu/examples"
+}

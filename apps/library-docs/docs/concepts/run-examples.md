@@ -1,82 +1,49 @@
-# Run the examples
+# Use the interactive examples
 
-Choose a browser example when you want to see geometry or pixels. Choose a saved CPU example when you want to inspect a compiler, data, file bytes or a refused input. Both use the fixed local source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`.
+Open an example, change its input, and compare the displayed result with its data. Each example includes a complete starting input and a description of the public API it uses.
 
-## Prepare the repository
+## Change one input at a time
 
-Run commands from the BaroCSS repository root. Use Node 22 or later and the repository's existing dependency setup. The documentation runner needs the existing esbuild and TypeScript dependencies. It does not install packages or publish them.
+1. Open the [interactive examples](/playground) and choose a sample.
+2. Read its source language or input format above the editor.
+3. Change a dimension, color or parameter, then select **Run input**.
+4. Compare the picture with **Actual result data**.
+5. Select **Reset example** to restore the starting input.
 
-```sh
-node --version
-pnpm --filter @barocss/library-docs dev --host 127.0.0.1
-```
+A rejected input does not replace the accepted result. Read its error code and message, correct the candidate, then apply it again. Changing the text alone does not change geometry or draw a new frame.
 
-Open the URL printed by VitePress, then select **Run examples**. The dev command builds the app's source bundle before starting the site. A build and static preview use:
+## Choose a sample
 
-```sh
-pnpm --filter @barocss/library-docs build
-pnpm --filter @barocss/library-docs preview --host 127.0.0.1
-```
-
-These commands require the actual local Git source pin. They are workspace commands, not npm installation instructions. If the pin or a required dependency is missing, resolve that setup condition before running the example.
-
-## Edit an input and inspect its result
-
-Open the [visual playground](/playground). Choose a tab, edit the input and select **Run input**. Read the numeric report next to the output. Select **Reset example** to restore its original input.
-
-| Tab | Executed operation | Input version |
+| Sample | What to inspect | Input format |
 | --- | --- | --- |
-| GPU scene | Compile a scene and draw with SceneRenderer | GPU source1 |
-| CAD curve | Evaluate native geometry and plot it with host Canvas2D | CAD source0 |
-| CAD surface | Tessellate native geometry and draw with MeshRenderer | CAD source0 |
-| GPU material | Compile a mesh material and change its scalar uniform | CAD source0 geometry; mesh-material grammar |
-| CAD extrusion | Compile a Curve and Extrude, then sample and draw its Surface | CAD source1 |
-| CAD parameters | Compile lengths/scalars, edit a parameter, then resample the Surface | CAD source2 |
-| GPU six shapes | Compare sphere, box, cylinder, capsule, rounded-box and torus | GPU source1 |
-| Eleven material function samples | Select an independent complete program for each source function | Mesh-material grammar |
-| Canvas2D rectangle | Construct a display tree, submit/render and inspect a hit | Host JSON passed to public APIs |
-| Viewer panel | Load native CAD, fit, clear and reload with pointer/keyboard controls | CAD source0 |
-| Physics steps | Manually advance copied world state and draw a host diagram | PhysicsWorldConfig JSON; fixed1/120s |
+| GPU scene and six shapes | Dimensions, colors, transforms and primitive differences | GPU source1 |
+| CAD curve | Evaluated curve, control polygon and original parameter domain | CAD source0 |
+| CAD surface | Weighted geometry, sampling grid and triangle mesh | CAD source0 |
+| CAD extrusion | Curve plus extrusion vector forming an open Surface | CAD source1 |
+| CAD parameters | Typed lengths/scalars and geometry after an edit | CAD source2 |
+| Material function samples | Color response to an explicit scalar uniform | Mesh material language |
+| Canvas2D rectangle | Logical dimensions and the current scene hit | Host JSON passed to Canvas2D APIs |
+| Viewer panel | Native source, display camera, clear and reload | CAD source0 |
+| Physics steps | Position and velocity after explicit fixed steps | PhysicsWorldConfig JSON |
 
-WebGL2 is required for GPU scene, surface and material drawing. The curve plot requires a browser Canvas2D context. The curve tab does not execute the BaroCSS Canvas2D package. The original Curve/Surface tabs select CAD source0; the two added CAD presets explicitly select source1 or source2. A source header does not change a selected tab's compiler version. Use the matching preset or the CPU examples below.
+The selected CAD sample determines its compiler version. Changing a source header does not change that selection. Use [CAD language](../packages/cad/language) to choose the correct declarations and units.
 
-The [material function gallery](/packages/gpu/function-examples) gives complete input and result images for all eleven source functions. Each preset supplies `amount` from0 to1. The host owns that control; the source creates no timer. The new CAD presets fit their sampled bounds to the viewport. A uniform size change can keep the same screen size; read the native millimetre values in **Actual result data**.
+The [material function gallery](../packages/gpu/function-examples) explains all eleven source functions with complete inputs and result images. The slider supplies `amount` explicitly. A material creates no timer.
 
-The [Canvas2D sample](/playground#canvas2d-rectangle) uses the real BaroCSS Canvas2D renderer and a fixed320×200 logical area. Edit the rectangle width or select **Set width to 100**; read the hit at110,30. The [Viewer sample](/playground#viewer-panel) creates a real Viewer from native source; its actions clear, reload or fit the accepted view. The [Physics sample](/playground#physics-step) advances only when a button is selected. Its world uses metre values and fixed1/120s; a host Canvas2D diagram displays actual state. It is not a GPU physics renderer or a collision/stability demonstration. Canvas2D and Physics JSON are host recipes, not additional source-language parsers.
+## Read coordinates and units
 
-For GPU scenes, a refused edit retains the accepted frame. For materials, a refused compilation or binding retains the accepted material. Read the error before changing the input again. A refusal is not a successful adoption of the new input.
+CAD geometry uses millimetres and original U/V domains. A display mesh is a sampled view of that geometry. The examples fit some meshes to the viewport, so changing all dimensions by the same factor can preserve screen size. Read native coordinates as well as the picture.
 
-## Execute a saved CPU example
+Canvas2D uses a logical pixel area and an explicit device-pixel ratio. Its hit query returns the identity of geometry in the current accepted scene. The example's probe is a query point; it does not dispatch a pointer event.
 
-Run this complete command from the repository root:
+Viewer camera operations change the display. They do not edit native CAD source. The [Viewer example](../packages/viewer/examples) explains how to load, fit, clear, reload and release the view.
 
-```sh
-node apps/library-docs/scripts/run-example.mjs apps/library-docs/scripts/snippets/cad-example.ts
-```
+Physics uses metres and seconds. **Advance 20 steps** adds twenty fixed steps to the current state. Reset first when comparing a result at absolute step20. The diagram projects copied world state onto host Canvas2D; its Y=0 line is a reference, not a collider.
 
-The CAD task prints JSON for a Curve, weighted Surface, Extrude and parameter edit. The original Curve midpoint is `[10,0,0]` mm. The source1 wall midpoint is `[10,0,15]` mm. The source2 midpoint changes from `[50,0,50]` to `[60,0,60]` mm after the width changes from `10 cm` to `12 cm`. It also asserts expected `KIND`, `VERSION`, `UNIT` and `DIVISION_ZERO` refusals. This command performs no drawing.
+## Use the APIs in your application
 
-The last JSON record gives the source pin, source mode and consumed source/dist counts. `matching-workspace` uses the matching local source. `pinned-git-snapshot` uses an app-local snapshot extracted from that exact local Git commit when package source or manifests have changed. The runner checks the pinned Git blobs; it does not silently use a newer API. In snapshot mode, a consumer must use literal bare package imports. Relative or computed consumer imports are refused.
+Each package's examples show the complete input and public imports needed for its operation. Use a browser host for APIs that mount a canvas, attach controls or access the DOM. GPU, Canvas2D and Viewer drawing require WebGL2. The curve plot and Physics diagram use a browser Canvas2D context.
 
-To run another saved task, replace only the last filename in the command:
+Source entries require a TypeScript-capable application build. Use the entry and dependency requirements described by the package's [API and availability pages](./versions). Numeric compilation, geometry evaluation and world stepping can run without a display; drawing and browser controls require their own host.
 
-| Filename in `apps/library-docs/scripts/snippets/` | Expected result and execution boundary |
-| --- | --- |
-| `cad-example.ts` | Native geometry, source0/1/2, parameter edits and compiler refusals |
-| `gpu-language-example.ts` | Scene/material compilation and refusals; no renderer |
-| `canvas2d-example.ts` | Accepted tree width100 and invalid-tree refusal; no drawing |
-| `interop-example.ts` | Native Surface buffers and input refusal; no external reader |
-| `viewer-example.ts` | CAD/Loader input preparation and Viewer factory import; no Viewer instance |
-| `physics-example.ts` | Rigid and cloth state steps, fixed-step refusal and reset; no simulation display |
-| `cad-editor-example.ts` | CPU candidate acceptance, serialized file and reopen; no visible editor |
-| `render-editor-example.ts` | CPU candidate acceptance and retained source after refusal; no visible editor |
-
-Each saved task has assertions. A failed assertion or setup error stops the command. A successful exit establishes that selected CPU task. It does not establish browser pixels, every public export, emitted packages or a registry release. Render uses a dist-default package entry; this source runner does not substitute a Render source entry.
-
-To try a standalone CPU code block, save its complete module as `apps/library-docs/scripts/snippets/local-example.ts`, then replace `cad-example.ts` with `local-example.ts` in the command above. Include its public imports and full input. A fragment with variables supplied by another section is not a complete module. Keep browser-only calls in a browser host. Use literal bare public imports so the module can also run against the pinned snapshot.
-
-## Use a browser host for browser APIs
-
-The CPU runner executes with a Node target. Do not put `document`, a canvas mount or a Viewer instance into that command and expect browser behavior. The [Canvas2D examples](/packages/canvas2d/examples) and [Viewer examples](/packages/viewer/examples) describe standalone browser-host files and their setup. Their saved CPU tasks and browser recipes have separate execution status.
-
-Continue with [CAD language](/packages/cad/language), [GPU scene language](/packages/gpu/language), [GPU material language](/packages/gpu/material-language), or [versions and availability](./versions).
+Continue with [CAD examples](../packages/cad/examples), [GPU examples](../packages/gpu/examples), [Canvas2D examples](../packages/canvas2d/examples), [Physics examples](../packages/physics/examples), or [coordinates and units](./coordinates).
