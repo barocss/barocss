@@ -30,3 +30,6 @@ export {RENDER_MATERIAL_LIMITS, prepareRenderMaterialDocument, validateRenderMat
 export type {RenderMaterialDocument, RenderMaterialPreparation} from './material-document.js';
 export * from './material-session.js';
 export * from './material-controller.js';
+export * from './native-scene-document.js';
+export * from './native-scene-session.js';
+export type {RenderNativeSceneDisplay, RenderNativeScenePose} from './native-scene-display.js';
