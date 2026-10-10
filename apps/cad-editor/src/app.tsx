@@ -312,7 +312,7 @@ function DirectApp() {
     {error && <div className="app-error" role="alert">{actionError(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
     <div className="app-workspace">
       <aside className="document-tree"><h2><Layers3 size={15}/>Document</h2><div className="tree-document"><Box size={16}/><span>{filename}</span></div>
-        <div className="tree-section">BODIES <span>{snapshot.accepted.document.bodies.length}</span></div>
+        <div className="tree-section">{snapshot.view.kind==='curve-focus'?'DOCUMENT VIEW':'BODIES'} <span>{snapshot.accepted.document.bodies.length}</span></div>
         {snapshot.accepted.document.bodies.map(body => {
           const binding = snapshot.accepted.bodyBindings.find(item => item.bodyId === body.id)!;
           const selected = snapshot.selectedBodyId === body.id;
@@ -322,7 +322,7 @@ function DirectApp() {
           return <div key={body.id} className="tree-body-row">
             <button className={'tree-body' + (selected ? ' selected' : '')} data-testid={'body-select-' + body.id}
               onClick={() => run(() => session.requestSelection(binding.geometryKind === 'surface' ? { bodyId: body.id, uIndex: 1, vIndex: 1 } : { bodyId: body.id }))} aria-pressed={selected}>
-              <span className={'body-symbol ' + binding.geometryKind}>{binding.geometryKind === 'surface' ? '▱' : '╱'}</span><span>{body.name}<small>{editable ? 'Editable surface' : binding.geometryKind === 'surface' ? 'Read-only surface' : editableCurve?'Editable Curve':'Read-only Curve'}</small></span>
+              <span className={'body-symbol ' + binding.geometryKind}>{binding.geometryKind === 'surface' ? '▱' : '╱'}</span><span>{body.name}<small>{editable ? 'Editable surface' : binding.geometryKind === 'surface' ? 'Read-only surface' : snapshot.view.kind==='curve-focus'&&snapshot.view.bodyId===body.id?'Focused Curve':editableCurve?'Editable Curve':'Read-only Curve'}</small></span>
             </button>
             <input type="checkbox" data-testid={'body-visible-' + body.id} aria-label={(shown?'Hide ':'Show ')+body.name+(snapshot.view.kind==='curve-focus'?' in document view':'')}
               checked={shown} disabled={busy} onChange={() => run(() => session.prepareDisplayBodies(shown ? snapshot.displayBodyIds.filter(id => id !== body.id) : [...snapshot.displayBodyIds, body.id]))} />

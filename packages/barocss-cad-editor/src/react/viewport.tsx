@@ -508,6 +508,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
         catch (cause) { report(cause, 'Reading the displayed frame failed'); }
       }}
       data-testid="cad-editor-canvas" aria-label="CAD viewport. Drag to orbit. Shift drag to pan. Scroll to zoom. Press F to fit." />
+    {focusedReceipt&&<p className="cad-editor-curve-view-label" data-testid="curve-view-label">Curve focus · {focusedReceipt.bodyName}<span>Other objects remain in document view.</span></p>}
     <CurvePoleHandles session={session} receipt={focusedReceipt} canvas={canvasRef.current} onError={error => report(error, 'Curve point gesture failed')} />
     {errorMessage && <p className="cad-editor-error" role="alert">{errorMessage}</p>}
   </div>;
