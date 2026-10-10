@@ -2702,3 +2702,30 @@ Optional `@barocss/cad-interop/native-selected-uniform-curve` exports `parseBaro
 The selected profile is one source0/mm Model with 1..16 objects, selected degree1..5/2..64 poles/at most70 knots, coordinates within1e6mm and weights1e-6..1e6. Actual CAD compilation owns Source0 UTF16/UTF8 limits. Uniform count2..129 and original domain include both endpoints. Numerical and Float32 loss/collapse checks can refuse a display. Quality remains approximate, without adaptive error, geometry, topology or Solid certification. Only the selected Curve is drawn; siblings retain native CPU data.
 
 `examples/source-curve-control-polygon-three.html` uses24 unchanged actual CAD source-edit originals: quartic, quintic, no-op, signed-zero, cold re-edit and maximum64poles/256changed fields. Genuine source editor and whole owned-result validators retain all original source spans/Model objects, native observations and signed-zero bits. It replaces the selected Line only after complete candidate checks, cold reopens the whole candidate file and applies its saved re-edit request. Edited geometry does not inherit a section/UV proof or update a live document/parametric recipe. Refusal keeps accepted data/resources/frame; disposal captures only owned geometry/material, preserving caller replacements. Native, local integration and npm publication are separate states.
+
+## Selected complete Source0 Curve in Babylon
+
+The optional entry @barocss/cad-interop/babylon-selected-uniform-curve exports
+BaroCADSelectedUniformCurveBabylonLoader. Pass explicit sourceVersion:0,
+unitsPerMillimeter:0.001, uniformCurveDisplay:{version:1,count:129}, and the
+original curveId. parse(source, scene) and loadAsync(url, scene, transport)
+require a live Babylon Scene with useRightHandedSystem:true.
+
+The result retains the complete source and Model, selected original object
+ordinal and copied Curve, unrendered sibling IDs, native domain, parameters,
+millimeter samples, intervals and display quality. Its one identity LinesMesh
+is registered in the caller Scene and initially disabled. Validate the complete
+candidate before enabling its line and replacing the previous result. The
+target position buffer is a distinct Float32 copy, scaled once. Uniform native
+parameter intervals are approximate display samples.
+
+dispose() releases the original captured LinesMesh, Geometry and explicit
+ShaderMaterial once. Caller geometry/material replacements, children, Scene,
+Engine and camera remain caller owned. Native CPU data remain readable.
+
+examples/source-curve-control-polygon-babylon.html demonstrates whole original
+mixed-file selection, genuine source edits, both cold reopen checkpoints and
+refused-candidate retention using the unchanged CAD-produced files. The source
+and emitted public consumers use source-curve-control-polygon-babylon-verify.mjs.
+Source edits retain full source/proof authority; they do not preserve obsolete
+section UV associations or certify topology, a Solid or global display error.
