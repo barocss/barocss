@@ -8830,3 +8830,38 @@ This does not certify an exact ideal circle, global floating-point evaluator err
 Errors are `StoredPlateHoleSolidError` with INPUT/NATIVE/GEOMETRY/TOPOLOGY/BUDGET/OWNED/CODEC/VERSION codes. Native/owned/syntax refusals retain their actual cause. Getter-bearing, sparse, hidden, foreign or non-finite data refuse. Own-data limits:131072 occurrences/depth32/1024 array entries/64 record fields; aggregate strings1048576 units/bytes. Exact request-local arithmetic uses the unchanged200000 operation/200000 GCD-step/8192-bit bounds. The proof makes no direct D0/D1 calls; its parent validation remains a separate real operation. Failure leaves caller data and previous results unchanged.
 
 Run `node examples/cad-nurbs/stored-plate-hole-solid-demo.mjs --source <output-directory>` after the affected CAD library build for the actual native/source/file/cold/public-compiled flow. Rendering, STEP Solid exchange, general Boolean and commercial engine parity remain separate requirements.
+
+
+### Portable original XY angle-arc artifact verification
+
+`verifyXYAngleArcArtifact(original)` verifies a complete saved `XYAngleArcResult` and returns owned `{artifact,report}`. The entire original request, Source0 text, Model, Curve and original report remain unchanged. The source is actually compiled and bound bit-for-bit to the complete saved Model and Curve, including IDs, knots, poles, weights and signed zero. The new report describes bounded numerical association and actual original-Curve queries; it does not replace the original report.
+
+```ts
+const checked = verifyXYAngleArcArtifact(savedOriginal);
+validateXYAngleArcArtifactVerification(checked);
+const fullFile = serializeXYAngleArcArtifact(savedOriginal);
+const reopened = parseXYAngleArcArtifact(fullFile);
+// reopened.artifact retains the complete saved original.
+```
+
+The existing `buildXYAngleArc` and `validateXYAngleArc` are unchanged. The old validator requires exact same-runtime request reconstruction, which can fail on a genuine saved Node artifact in a browser because native trigonometric operations produce different bits. This separate API declares the following NEW absolute association limits, with no relative tolerance or caller override:
+
+| Original field family | Absolute association limit |
+|---|---|
+| XY poles, native/analytic XY points, point/radial residuals |2e-10mm |
+| Odd middle weights |2e-13, dimensionless |
+| Analytic observation angles |2e-12rad |
+| Native XY derivatives and derivative residual fields |2e-9mm per native parameter unit |
+| Normalized tangent residuals |2e-12, dimensionless |
+
+All other fields are exact, including request, structure, IDs, degree, knots, parameter grid, span angles, policy/quality flags, counters, D1 status/refusal text and nulls. Z components remain canonical0, even weights remain1, odd weights remain[.7,1], and original poles stay within10000mm. If both compared numbers are zero, their sign bits must match. Full-turn first/last endpoint bits must match exactly.
+
+Every original/reference leaf is classified in deterministic `report.fieldRules`. The report contains rules and stable counters, without runtime-dependent gap values. Original Source0/Model/Curve binding is exact; numerical association is not producer authentication or same-runtime bit replay. A source-consistent change within the declared numerical association limits can be accepted. No global exact-circle, global binary64 error, manufacturing, periodic, region/Solid or other provider portability is certified.
+
+Saved span weights bind the actual odd Curve weights exactly. Saved maxima equal the original saved residual arrays exactly. Residuals retain the old1e-7 sampled guard, separately from the new association rules. Point/radial/tangent residual formulas are checked against the saved vectors. The derivative-residual field is associated to the replayed authored witness under its explicit2e-9 limit; it is not an exact reconstructed norm identity. Actual D0/D1 queries use the ORIGINAL saved Curve at every saved parameter and retain genuine C0 derivative refusals. Counts distinguish direct request replay/source compilation from original-Curve queries and inherited work.
+
+`validateXYAngleArcArtifactVerification` fully verifies the retained artifact again and compares the entire result, including all field rules and counters. The full-file format is `barocss-xy-angle-arc-artifact` version0, containing the whole six-field artifact. Serialize/parse retain signed zero and reject duplicate decoded JSON keys, malformed data and over-budget files. Errors have INPUT/REQUEST/SOURCE/BINDING/STRUCTURE/ASSOCIATION/OBSERVATION/BUDGET/OWNED/CODEC/VERSION codes; native/syntax/owned failures retain actual causes and original source compiler failures retain diagnostics.
+
+Limits:131072 copied occurrences/depth32/2048 array entries/64 record fields; aggregate strings1048576UTF16/UTF8; source and wrapped files262144UTF16/UTF8;2048 whole-field checks; one direct request replay and original source compilation; at most17direct originalD0 and17D1 attempts. No getters, symbols, sparse arrays, hidden fields, foreign prototypes, partial result or caller alias. Failure preserves prior data/files.
+
+The dedicated original-file flow is `node examples/cad-nurbs/xy-angle-arc-artifact-demo.mjs --source <output-directory> --original <fixed-original-directory>`, with installed `NODE22_BINARY` for genuine separate Node22 execution. It prepares source/emitted browser entrypoints for the same unchanged original files. Browser verification and Loader/Three rendering are separate outcomes.
