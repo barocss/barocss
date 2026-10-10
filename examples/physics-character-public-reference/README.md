@@ -54,3 +54,46 @@ No 3D Viewer, GPU, FPS, arbitrary-terrain, moving-platform, dynamic-pushing,
 scientific, Integration file-flow or publication acceptance follows from these
 bounded results. Real capsule rendering and caller clock belong to existing
 #1065. No product push, PR, package publication or release was performed.
+
+## Executed native evidence
+
+Actual parent `716e84428bd0f5145b6c6aac9c0a63254b14a5fa` → clean measured source
+`f255b3734fe37d5ae8e224bc34b67b6ff2f2c234`. Canonical reports record a clean
+source tree. Original build and both typed consumers passed. Node22.22.0 and
+Chrome155.0.8059.39 each passed all eight fixed scenes, 39 public boundary
+controls and 12 original direct-core controls. Source resolves 39 own source
+files and zero compiled files; full compiled resolves zero source and 18
+compiled files. Both runtime graphs preserve canonical root error identity.
+
+Independent saved-artifact replay passed 1,687 states, 2,489 hit witnesses and
+852,432 LE trace/input bytes; copied public states add 236,752 raw bytes.
+All four graphs have identical input, trace and public-state bits, including
+two complete repeat records and full Node/browser control parity. The selected
+input and output SHA256 remain, respectively:
+
+- `feda47adb6facf25db155ea6ae7d25451d3bc6f2c214b21b94e71c8fc6c1b1ad`
+- `e22a39b24738f0b5e58b026082150566c8951f3cbbd7b6a16fc63c567988c11c`
+
+All 21 public combined step p95 values per graph meet 8.33ms. Worst values:
+Node source0.034458ms, compiled0.037334ms; both Chrome graphs0.100000009ms.
+Chrome's minimum positive clock increment is about0.1ms; retain that quantization
+limit. Full samples, query counts and independently recomputed percentiles are
+saved. Numeric/control/raw gates ran before any cost campaign. Public timing
+uses recording OFF; actual queries and returned state copies are included.
+
+Both actual eight-row browser tables were visually inspected; errors/warnings0,
+owned browser/server closed. These are numerical tables, not actual3D Viewer
+pixels. The first verifier syntax failure and earlier working runs remain in
+`evidence/first` and `evidence/working-*`. No product-code failure or target
+relaxation was required. A static helper checked admission precedence, canonical
+identity, full rollback and instrumentation neutrality; it ran no numerical or
+cost work. Unresolved-lookahead, public computed numeric and genuine scalar64
+limit guards remain unobserved; labelled private small-cap/fault proofs are not
+claims of those public triggers.
+
+`evidence/canonical/receipt.json` links exact source and saved proof. The final
+native child adds only saved canonical evidence and this README. Public API
+code has not been adopted into Integration or published. #1065 remains the
+next actual Viewer consumer after code availability and its own frozen host
+contract. Current integrated screen/file/recovery follow-ups remain separate
+under #674.
