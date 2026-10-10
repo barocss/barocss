@@ -343,6 +343,15 @@ importers:
 
   apps/render-editor:
     dependencies:
+      '@barocss/viewer':
+        specifier: 'workspace:*'
+        version: 'link:../../packages/barocss-viewer'
+      '@barocss/cad-interop':
+        specifier: 'workspace:*'
+        version: 'link:../../packages/barocss-cad-interop'
+      '@barocss/gpu':
+        specifier: 'workspace:*'
+        version: 'link:../../packages/barocss-gpu'
       '@barocss/render-editor':
         specifier: workspace:*
         version: link:../../packages/barocss-render-editor
