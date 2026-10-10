@@ -2760,3 +2760,30 @@ refused-candidate retention using the unchanged CAD-produced files. The source
 and emitted public consumers use source-curve-control-polygon-babylon-verify.mjs.
 Source edits retain full source/proof authority; they do not preserve obsolete
 section UV associations or certify topology, a Solid or global display error.
+
+## Selected complete Source0 Curve in Pixi3D
+
+The optional pixi3d-selected-uniform-curve entry exports
+BaroCADSelectedUniformCurvePixi3DLoader. Use explicit sourceVersion:0,
+unitsPerMillimeter:0.001, uniformCurveDisplay:{version:1,count:129}, and the
+original curveId. parse(source) and loadAsync(url, transport) retain complete
+Source0 and Model, selected original ordinal/Curve, unrendered sibling IDs,
+original domain, parameters, millimeter points, intervals and display quality.
+
+The actual Pixi3D2.5/PixiJS7 browser target is one detached identity Container3D
+with one Mesh3D. Positions are copied Float32 values, scaled once. Sequential
+indices use LINE_STRIP; unlit +Z normals are shader inputs and are not native
+Curve normals. Assign caller camera/lighting and validate the complete candidate
+before attaching it and replacing the previous captured result.
+
+dispose() releases original captured root, mesh, geometry and material once.
+Caller children and geometry/material replacements remain caller owned. Native
+CPU data remain readable. Genuine Pixi peer initialization requires its browser
+image environment; neutral data/type/composition checks in Node are separate
+from actual target construction and resource lifetime checks.
+
+examples/source-curve-control-polygon-pixi3d.html demonstrates unchanged complete
+CAD-produced files, source edits and two cold reopen checkpoints. Its verifier
+keeps actual Node native-data checks and genuine browser SDK checks distinct.
+Source edits retain whole original native authority and do not preserve obsolete
+section UV associations or certify topology, a Solid or global display error.
