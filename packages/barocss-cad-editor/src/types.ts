@@ -86,6 +86,7 @@ export interface CadEditorSelectionTarget {
 export interface CadEditorSelectionTransition {
   token: string; baseGeneration: number; target: CadEditorSelectionTarget;
 }
+export interface CadEditorDuplicateBodyOptions { name?: string }
 export interface CadEditorSelectedPole extends CadEditorSurfaceSelection {
   reference: CadGeometryReferenceV0;
   accepted: Record<CadEditorPoleField, number>;
@@ -93,7 +94,9 @@ export interface CadEditorSelectedPole extends CadEditorSurfaceSelection {
 }
 export interface CadEditorCandidate {
   token: string; baseGeneration: number; baseDisplayGeneration: number;
-  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'rename';
+  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'rename' | 'duplicate';
+  selectionTarget?: CadEditorSelectionTarget | null;
+  presentation?: 'structural';
   displayBodyIds: string[];
   view: CadEditorView;
   result: CadDocumentResult;
@@ -164,6 +167,7 @@ export interface CadEditorSession {
   prepareCurveFocus(bodyId: string, count: number): CadEditorCandidate;
   prepareDocumentView(): CadEditorCandidate;
   prepareRenameBody(bodyId: string, name: string): CadEditorCandidate | null;
+  prepareDuplicateBody(bodyId: string, options?: CadEditorDuplicateBodyOptions): CadEditorCandidate;
   prepareUndo(): CadEditorCandidate;
   prepareRedo(): CadEditorCandidate;
   acceptCandidate(token: string): CadEditorSnapshot;

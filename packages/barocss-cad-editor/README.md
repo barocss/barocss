@@ -625,3 +625,13 @@ Native files/recovery retain complete authored data and canonical display subset
 focus/selection/raw/history/camera are not new file authority. Exact accepted
 Open token drives host filename/recovered-unsaved provenance. Native completion,
 sole Integration adoption and integrated/current commercial acceptance are separate.
+
+### Independent original-body copy
+
+`session.prepareDuplicateBody(bodyId, {name?})` prepares one `duplicate` candidate for the currently selected canonical Curve or Surface. The selected complete Source0 asset is copied byte for byte into a generated independent asset ID and body ID. Local native Model/geometry IDs, sibling objects, numeric spelling, signed zeros, knots, weights and units stay unchanged. Other accepted assets and bodies are untouched. The new asset starts at revision0; the document revision advances once on actual acceptance. Without an explicit name, the original accepted name is retained. IDs use bounded `_copy` suffixes within48 ASCII characters and avoid current and retained-history identities; names retain the native128-UTF8-byte limit without trimming.
+
+A candidate is a proposal. The existing Viewer must load the real new qualified geometry, select the candidate target, read a fresh frame and then accept it. Only acceptance commits source, dirty state, selection and one history entry. Refusal, cancellation and stale tokens retain the old accepted data. The copy initially overlaps its source; existing Move can separate it. This copies native authored geometry, not a linked instance, feature graph, general Solid/B-Rep or extracted display mesh.
+
+Document view appends the copy only below the existing four-body display limit. Hide a body before copying when that set is full; no body is silently evicted. Matching Curve focus retargets the new copy with the same sample count and latent document-view set. Return to document view before copying a different body. Existing4-asset/16-body/source/file/revision/history limits remain; full assets or unsupported actual display profiles can refuse a copy.
+
+`selectionTarget` and `presentation: 'structural'` identify a duplication or its structural Undo/Redo candidate. Duplicate history stores a bounded before/after presentation. Traversing that known boundary restores asset/body inventory, display, selection and local tool/axis settings through actual native admission; surviving unchanged sources keep their revisions, while a reintroduced copy receives a fresh accepted high-water revision. Ordinary Apply/Rename history keeps its prior same-inventory behavior. Copied source can be saved, reopened and independently edited; duplicate IDs and local UI settings are not additional file or recovery fields.

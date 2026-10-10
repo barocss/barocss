@@ -434,12 +434,17 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     try {
       if (mounted.unavailable) throw new CadEditorError('DISPLAY', 'The viewport is unavailable. Reopen it before applying.', { field: 'restore-frame' });
       if (mounted.optionsRefused) throw new CadEditorError('DISPLAY', 'The display options were refused. The pending values remain available.');
+      const structural = candidate.kind === 'duplicate' || candidate.presentation === 'structural';
       const priorDocumentCamera = mounted.view.kind === 'document' ? structuredClone(before.camera) : mounted.documentCamera;
       const camera = candidate.kind === 'open' ? null
+        : structural && candidate.view.kind === mounted.view.kind ? before.camera
         : candidate.view.kind === 'curve-focus' ? mounted.view.kind === 'curve-focus' && mounted.view.bodyId === candidate.view.bodyId ? before.camera : null
           : mounted.view.kind === 'curve-focus' ? priorDocumentCamera : before.camera;
       const focus = loadView(mounted.viewer, candidate.result, candidate.view, mounted.options, candidate.displayBodyIds, camera, () => { displayed = true; });
-      selectView(mounted.viewer, candidate.kind === 'open' ? null : current.selectionTransition?.target.bodyId ?? current.selectedBodyId, focus);
+      const selectedBodyId = structural && candidate.selectionTarget !== undefined
+        ? candidate.selectionTarget?.bodyId ?? null
+        : candidate.kind === 'open' ? null : current.selectionTransition?.target.bodyId ?? current.selectedBodyId;
+      selectView(mounted.viewer, selectedBodyId, focus);
       const receipt = displayReceipt(mounted.viewer, canvas, mounted.options.viewer.background, lifecycleRef.current, readIndexRef);
       checkFocusFrame(receipt, focus);
       if (!focus) checkDocumentFrame(receipt, candidate.result, candidate.displayBodyIds);

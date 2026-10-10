@@ -4,6 +4,7 @@ export { CadEditorError } from './types.js';
 export type { CadEditorEditTarget, CadEditorBodyTranslationField, CadEditorBodyTranslation } from './types.js';
 export type { CadEditorDraftField, CadEditorRotationAxis, CadEditorBodyRotation } from './types.js';
 export type { CadEditorScaleAxis, CadEditorBodyScale } from './types.js';
+export type { CadEditorDuplicateBodyOptions } from './types.js';
 export type { CadEditorView, CadEditorCurveSelection, CadEditorSelectedCurvePole } from './types.js';
 export type { CadEditorCurveLength, CadEditorCurveLengthOptions } from './types.js';
 export type { CadEditorCurveD2, CadEditorSurfaceD2, CadEditorCurveCurvature, CadEditorSurfaceCurvature, CadEditorGeometryAnalysisResult } from './types.js';

@@ -221,7 +221,12 @@ const analysisProps:CadEditorGeometryAnalysisProps={session,onLength:result=>{if
 const analysisElement=<CadEditorGeometryAnalysis {...analysisProps}/>;
 const lengthHostProps:CadEditorProps={...props,onLength:result=>{if(result){const error:number=result.errorEstimateMM;}}};
 const renameCandidate:CadEditorCandidate|null=session.prepareRenameBody('curve_body','Inspection curve');
-const renameKind:'apply'|'open'|'undo'|'redo'|'display'|'rename'|undefined=renameCandidate?.kind;
+const renameKind:CadEditorCandidate['kind']|undefined=renameCandidate?.kind;
+const duplicateOptions:import('@barocss/cad-editor').CadEditorDuplicateBodyOptions={name:'Independent copy'};
+const duplicateCandidate:CadEditorCandidate=session.prepareDuplicateBody('curve_body',duplicateOptions);
+const duplicateKind:CadEditorCandidate['kind']=duplicateCandidate.kind;
+const duplicateSelection:import('@barocss/cad-editor').CadEditorSelectionTarget|null|undefined=duplicateCandidate.selectionTarget;
+const duplicatePresentation:'structural'|undefined=duplicateCandidate.presentation;
 const renameProps:CadEditorBodyRenameProps={session,onError:error=>{const field:string|undefined=error.context.field;}};
 const renameElement=<CadEditorBodyRename {...renameProps}/>;
 const propsWithAnalysis:CadEditorProps={...props,onAnalysis:analysisProps.onAnalysis};

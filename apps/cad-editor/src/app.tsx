@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Box, ChevronRight, Crosshair, Download, Expand, FolderOpen, Layers3, Maximize, MousePointer2, PanelLeftClose, PanelRightClose, Redo2, Shrink, Spline, Undo2 } from 'lucide-react';
+import { Box, ChevronRight, Copy, Crosshair, Download, Expand, FolderOpen, Layers3, Maximize, MousePointer2, PanelLeftClose, PanelRightClose, Redo2, Shrink, Spline, Undo2 } from 'lucide-react';
 import { parseCadDocument, resolveCadGeometryReference } from '@barocss/cad';
 import { CadEditorError, createCadEditorSession, type CadEditorExportResult, type CadEditorGeometryAnalysisResult, type CadEditorCurveLength, type CadEditorView, type CadEditorSnapshot, type CadEditorEditTarget } from '@barocss/cad-editor';
 import { CadEditor, CadEditorExportReview, useCadEditorSnapshot, type CadEditorDisplayOptions, type CadEditorDisplayReceipt, type CadEditorCurveFocusReceipt } from '@barocss/cad-editor/react';
@@ -280,6 +280,61 @@ function DirectApp() {
   const projectView = route === '#/projects';
   const selectedBody = snapshot.accepted.document.bodies.find(body => body.id === snapshot.selectedBodyId);
   const selectedKind = snapshot.accepted.bodyBindings.find(binding => binding.bodyId === snapshot.selectedBodyId)?.geometryKind;
+  const duplicatePointers=useRef(new Set<number>());
+  const duplicateJob=useRef<number|null>(null);
+  const [,duplicateRefresh]=useState(0);
+  function duplicateCaptured(){
+    const root=appRoot.current;if(!root)return false;
+    return [...duplicatePointers.current].some(id=>[root,...root.querySelectorAll('*')].some(node=>node.hasPointerCapture(id)));
+  }
+  function duplicateReady(ignoreMenu=false){
+    const current=session.getSnapshot();
+    if(current.disposed||current.candidate||current.selectionTransition||Object.keys(current.pending).length||!current.selectedBodyId
+      ||projectView||!mount||replacement!==null||openChoice!==null||recoveryOpen||replacementAttempt.current||replacementBusy
+      ||recoveryChecking||recoveryMutation.current||recoveryCommitRef.current!==null||duplicateCaptured()
+      ||!appRoot.current?.getClientRects().length||appRoot.current.querySelector('.cad-editor-viewport')?.getAttribute('data-viewer-ready')!=='true'
+      ||document.querySelector('[role="dialog"][data-state="open"]')||(!ignoreMenu&&document.querySelector('[role="menu"]')))return false;
+    if(current.accepted.document.assets.length>=4||current.accepted.document.bodies.length>=16||current.accepted.document.revision>=2147483647)return false;
+    return current.view.kind==='curve-focus'?current.view.bodyId===current.selectedBodyId&&curveDisplay?.state.status==='ready'
+      &&curveDisplay.generation===current.generation&&curveDisplay.displayGeneration===current.displayGeneration
+      :current.displayBodyIds.length<4&&receipt?.state.status==='ready'&&JSON.stringify(receipt.state.document)===JSON.stringify(current.accepted);
+  }
+  function duplicateAnchor(){
+    const current=session.getSnapshot();
+    return JSON.stringify([current.generation,current.displayGeneration,current.selectedBodyId,current.selection,current.curveSelection,
+      current.view,current.displayBodyIds,current.editTarget,current.rotationAxis,current.scaleAxis]);
+  }
+  function duplicateSelected(fromMenu=false){
+    if(duplicateJob.current!==null||!duplicateReady(fromMenu))return;
+    const anchor=duplicateAnchor(),bodyId=session.getSnapshot().selectedBodyId!;
+    const menu=fromMenu?document.activeElement?.closest('[role="menu"]'):null;
+    let frames=0;
+    const dispatch=()=>{
+      duplicateJob.current=null;
+      if(anchor!==duplicateAnchor())return;
+      if(menu?.isConnected||document.querySelector('[role="menu"]')){
+        if(++frames<40)duplicateJob.current=requestAnimationFrame(dispatch);
+        return;
+      }
+      if(!duplicateReady())return;
+      const body=session.getSnapshot().accepted.document.bodies.find(value=>value.id===bodyId);if(!body)return;
+      const copyName=body.name+' copy';
+      const name=new TextEncoder().encode(copyName).byteLength<=128?copyName:body.name;
+      run(()=>session.prepareDuplicateBody(bodyId,{name}));
+    };
+    duplicateJob.current=requestAnimationFrame(dispatch);
+  }
+  useEffect(()=>{
+    let listening=true;
+    const down=(event:PointerEvent)=>{if(!(event.target instanceof Element)||!appRoot.current?.contains(event.target))return;
+      duplicatePointers.current.add(event.pointerId);setTimeout(()=>{if(listening)duplicateRefresh(value=>value+1);},0);};
+    const release=(event:PointerEvent)=>{if(event.type!=='lostpointercapture'||!duplicateCaptured())duplicatePointers.current.delete(event.pointerId);duplicateRefresh(value=>value+1);};
+    const observer=new MutationObserver(()=>{if(listening)duplicateRefresh(value=>value+1);});
+    observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['role','data-state','data-viewer-ready']});
+    window.addEventListener('pointerdown',down,true);window.addEventListener('pointerup',release,true);window.addEventListener('pointercancel',release,true);window.addEventListener('lostpointercapture',release,true);
+    return()=>{listening=false;observer.disconnect();if(duplicateJob.current!==null)cancelAnimationFrame(duplicateJob.current);duplicateJob.current=null;duplicatePointers.current.clear();
+      window.removeEventListener('pointerdown',down,true);window.removeEventListener('pointerup',release,true);window.removeEventListener('pointercancel',release,true);window.removeEventListener('lostpointercapture',release,true);};
+  },[session]);
   const layout=useWorkspaceLayout(appRoot,session,()=>busy||snapshot.selectionTransition!==null||snapshot.disposed||projectView||!mount
     ||replacement!==null||openChoice!==null||recoveryOpen||replacementAttempt.current||replacementBusy||recoveryChecking
     ||recoveryMutation.current||recoveryCommitRef.current!==null,
@@ -363,6 +418,8 @@ function DirectApp() {
           <MenubarSeparator/><MenubarItem disabled={layout.resizing} onSelect={() => { location.hash = '/projects'; }}>Projects</MenubarItem>
         </MenubarContent></MenubarMenu>
         <MenubarMenu><MenubarTrigger>Edit</MenubarTrigger><MenubarContent>
+          <MenubarItem data-testid="duplicate-body-menu" disabled={!duplicateReady(true)} onSelect={()=>duplicateSelected(true)}>Duplicate body</MenubarItem>
+          <MenubarSeparator/>
           <MenubarItem disabled={!snapshot.history.canUndo || modelBusy || hasDraft} onSelect={() => run(() => session.prepareUndo())}>Undo</MenubarItem>
           <MenubarItem disabled={!snapshot.history.canRedo || modelBusy || hasDraft} onSelect={() => run(() => session.prepareRedo())}>Redo</MenubarItem>
           <MenubarSeparator/><MenubarItem disabled={layout.resizing} onSelect={() => run(() => session.discardPending())}>Discard pending fields</MenubarItem>
@@ -404,7 +461,9 @@ function DirectApp() {
     </div></div>
     {error && <div className="app-error" role="alert">{actionError(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
     <div className="app-workspace">
-      <aside className="document-tree" inert={layout.resizing} hidden={!layout.objectsVisible} aria-label="Object browser"><h2><Layers3 size={15}/>Objects<span className="tree-count">{snapshot.accepted.document.bodies.length}</span></h2>
+      <aside className="document-tree" inert={layout.resizing} hidden={!layout.objectsVisible} aria-label="Object browser"><h2><Layers3 size={15}/>Objects<span className="tree-count">{snapshot.accepted.document.bodies.length}</span>
+        <Button type="button" variant="ghost" size="icon-sm" data-testid="duplicate-body" aria-label="Duplicate selected body" title="Duplicate selected body" disabled={!duplicateReady()} onClick={()=>duplicateSelected()}><Copy size={13}/></Button>
+      </h2>
         {snapshot.accepted.document.bodies.map(body => {
           const binding = snapshot.accepted.bodyBindings.find(item => item.bodyId === body.id)!;
           const selected = snapshot.selectedBodyId === body.id;

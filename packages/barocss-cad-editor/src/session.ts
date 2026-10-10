@@ -11,6 +11,7 @@ import { CadEditorError } from './types.js';
 import { translateBodySource, withinTranslationProfile } from './body-translation.js';
 import { rotateBodySource } from './body-rotation.js';
 import { scaleBodySource } from './body-scale.js';
+import { duplicateBodySourceDocument } from './body-duplicate.js';
 import type {
   CadEditorCandidate, CadEditorDiagnosticCode, CadEditorPoleField, CadEditorSelectedPole, CadEditorSelectedCurvePole, CadEditorView,
   CadEditorEditTarget, CadEditorBodyTranslationField, CadEditorRotationAxis, CadEditorScaleAxis,
@@ -183,10 +184,16 @@ function nextRevision(revision: number, context: CadEditorError['context'] = {})
   return revision + 1;
 }
 
-interface HistoryState { document: CadDocumentV1; bytes: number }
+interface Presentation {
+  displayBodyIds: string[]; view: CadEditorView; selectionTarget: CadEditorSelectionTarget | null;
+  editTarget: CadEditorEditTarget; rotationAxis: CadEditorRotationAxis; scaleAxis: CadEditorScaleAxis;
+}
+interface DuplicateBoundary { before: Presentation; after: Presentation }
+interface HistoryState { document: CadDocumentV1; bytes: number; duplicateBoundary?: DuplicateBoundary }
 interface Prepared {
   candidate: CadEditorCandidate; historyIndex?: number;
-  selectionTarget?: CadEditorSelectionTarget; transitionToken?: string;
+  selectionTarget?: CadEditorSelectionTarget | null; transitionToken?: string;
+  structuralPresentation?: Presentation; duplicateBoundary?: DuplicateBoundary;
 }
 
 /** Create an owned source-authoritative editor. No renderer or browser resources are created. */
@@ -212,6 +219,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   let prepared: Prepared | null = null;
   let history: HistoryState[] = [{ document: copy(accepted.document), bytes: fileBudget(serialize(accepted)) }];
   let historyIndex = 0;
+  const assetRevisionHighWater = new Map(accepted.document.assets.map(asset => [asset.id, asset.revision]));
   let dirty = true;
   let downloadStatus: CadEditorSnapshot['downloadStatus'] = 'Not downloaded';
   let download: { token: string; generation: number } | null = null;
@@ -285,6 +293,18 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     const pole = select({ bodyId, uIndex, vIndex }, document);
     return { target: { bodyId, uIndex, vIndex, reference } satisfies CadEditorSelectionTarget, pole, curvePole: null };
   };
+  const logicalTarget = (target: CadEditorSelectionTarget): CadEditorSelectionTarget => {
+    if (target.index !== undefined) return { bodyId: target.bodyId, index: target.index };
+    if (target.uIndex !== undefined && target.vIndex !== undefined)
+      return { bodyId: target.bodyId, uIndex: target.uIndex, vIndex: target.vIndex };
+    return { bodyId: target.bodyId };
+  };
+  const currentPresentation = (): Presentation => ({
+    displayBodyIds: copy(displayBodyIds), view: copy(view), editTarget, rotationAxis, scaleAxis,
+    selectionTarget: selectedBodyId === null ? null : selection !== null
+      ? { bodyId: selectedBodyId, uIndex: selection.uIndex, vIndex: selection.vIndex }
+      : curveSelection !== null ? { bodyId: selectedBodyId, index: curveSelection.index } : { bodyId: selectedBodyId },
+  });
   const switchTarget = (input: CadEditorSelectionTarget) => {
     const resolved = resolveTarget(input);
     selectedBodyId = resolved.target.bodyId; selection = resolved.pole; curveSelection = resolved.curvePole;
@@ -334,12 +354,23 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     curveProvenance: CadEditorCandidate['curveProvenance'] = [],
     bodyTranslation: CadEditorCandidate['bodyTranslation'] = null,
     bodyRotation: CadEditorCandidate['bodyRotation'] = null,
-    bodyScale: CadEditorCandidate['bodyScale'] = null): CadEditorCandidate => {
+    bodyScale: CadEditorCandidate['bodyScale'] = null,
+    structural?: { presentation: Presentation; duplicateBoundary?: DuplicateBoundary }): CadEditorCandidate => {
+    const proposed = structural === undefined ? undefined : {
+      ...copy(structural.presentation),
+      displayBodyIds: displayIds(result, structural.presentation.displayBodyIds),
+      view: viewFor(result, structural.presentation.view),
+      selectionTarget: structural.presentation.selectionTarget === null ? null
+        : logicalTarget(resolveTarget(structural.presentation.selectionTarget, result).target),
+    };
     prepared = { candidate: { kind, result, provenance, curveProvenance, bodyTranslation, bodyRotation, bodyScale, token: newToken(), baseGeneration: generation,
-      baseDisplayGeneration: displayGeneration, displayBodyIds: copy(candidateDisplayIds), view: copy(candidateView) }, historyIndex: targetIndex,
-      selectionTarget: postSelection === undefined ? undefined : {
+      baseDisplayGeneration: displayGeneration, displayBodyIds: copy(proposed?.displayBodyIds ?? candidateDisplayIds), view: copy(proposed?.view ?? candidateView),
+      ...(proposed === undefined ? {} : { selectionTarget: copy(proposed.selectionTarget), presentation: 'structural' as const }),
+    }, historyIndex: targetIndex,
+      selectionTarget: proposed !== undefined ? copy(proposed.selectionTarget) : postSelection === undefined ? undefined : {
         bodyId: postSelection.target.bodyId, uIndex: postSelection.target.uIndex, vIndex: postSelection.target.vIndex, index: postSelection.target.index,
-      }, transitionToken: postSelection?.token };
+      }, transitionToken: postSelection?.token,
+      structuralPresentation: proposed, duplicateBoundary: copy(structural?.duplicateBoundary) };
     const returned = copy(prepared.candidate);
     emit();
     return returned;
@@ -351,6 +382,35 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     const targetIndex = historyIndex + direction;
     requireEditor(targetIndex >= 0 && targetIndex < history.length, 'INPUT', 'This history direction is unavailable.');
     const target = history[targetIndex].document;
+    const boundary = direction < 0 ? history[historyIndex].duplicateBoundary : history[targetIndex].duplicateBoundary;
+    if (boundary !== undefined) {
+      const context = { documentId: accepted.document.documentId, field: 'body-duplicate' };
+      const document = copy(target);
+      document.revision = nextRevision(accepted.document.revision, context);
+      for (const body of accepted.document.bodies) {
+        const prior = target.bodies.find(value => value.id === body.id);
+        if (prior !== undefined) requireEditor(prior.kind === body.kind && prior.assetId === body.assetId
+          && prior.geometryId === body.geometryId, 'STALE', 'Structural history body binding does not match.',
+        { ...context, bodyId: body.id });
+      }
+      document.assets = target.assets.map(prior => {
+        const current = accepted.document.assets.find(asset => asset.id === prior.id);
+        if (current === undefined) {
+          const highWater = assetRevisionHighWater.get(prior.id);
+          requireEditor(highWater !== undefined, 'STALE', 'The structural history asset revision is missing.', context);
+          return { ...prior, revision: nextRevision(highWater, context) };
+        }
+        requireEditor(current.role === prior.role && current.sourceVersion === prior.sourceVersion
+          && current.sourceFrame === prior.sourceFrame, 'STALE', 'Structural history asset metadata does not match.', context);
+        return prior.source === current.source ? copy(current)
+          : { ...current, source: prior.source, revision: nextRevision(current.revision, context) };
+      });
+      const result = admit(native(() => createCadDocument(document), 'Native structural history reconstruction failed.',
+        document.documentId, context), context);
+      const presentation = copy(direction < 0 ? boundary.before : boundary.after);
+      return prepare(direction < 0 ? 'undo' : 'redo', result, [], targetIndex, undefined,
+        presentation.displayBodyIds, presentation.view, [], null, null, null, { presentation });
+    }
     const document = copy(accepted.document);
     document.revision = nextRevision(document.revision);
     const context = { documentId: document.documentId, field: 'body-name' };
@@ -770,6 +830,38 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
         { ...context, bodyId }), { ...context, bodyId });
       return prepare('rename', result);
     },
+    prepareDuplicateBody(bodyId, options) {
+      live();
+      const context = { documentId: accepted.document.documentId, field: 'body-duplicate' };
+      requireEditor(typeof bodyId === 'string', 'INPUT', 'Choose an existing body to duplicate.', context);
+      const bodyContext = { ...context, bodyId };
+      const data: Record<string, unknown> = options === undefined ? {} : ownFields(options, ['name'], [], bodyContext);
+      requireEditor(data.name === undefined || typeof data.name === 'string', 'INPUT', 'The copied body name must be text.', bodyContext);
+      const body = accepted.document.bodies.find(value => value.id === bodyId);
+      requireEditor(body !== undefined && selectedBodyId === bodyId, 'INPUT', 'Select the body to duplicate first.', bodyContext);
+      requireEditor(Object.keys(pending).length === 0 && selectionTransition === null && prepared === null,
+        'INPUT', 'Resolve the draft, selection decision or candidate before duplicating.', bodyContext);
+      if (view.kind === 'document')
+        requireEditor(displayBodyIds.length < 4, 'BUDGET', 'Hide a body before duplicating.', bodyContext);
+      else requireEditor(view.bodyId === bodyId
+        && accepted.bodyBindings.some(binding => binding.bodyId === bodyId && binding.geometryKind === 'curve'),
+      'DISPLAY', 'Return to document view before duplicating this body.', bodyContext);
+      const before = currentPresentation();
+      const document = copy(accepted.document);
+      document.revision = nextRevision(document.revision, bodyContext);
+      const duplicated = duplicateBodySourceDocument(document, bodyId, data.name as string | undefined,
+        history.map(state => state.document));
+      const result = admit(native(() => createCadDocument(duplicated.document), 'Native body duplication refused.',
+        document.documentId, bodyContext), bodyContext);
+      const after: Presentation = {
+        ...copy(before),
+        selectionTarget: { ...before.selectionTarget!, bodyId: duplicated.bodyId },
+        displayBodyIds: view.kind === 'document' ? [...displayBodyIds, duplicated.bodyId] : copy(displayBodyIds),
+        view: view.kind === 'curve-focus' ? { ...view, bodyId: duplicated.bodyId } : copy(view),
+      };
+      return prepare('duplicate', result, [], undefined, undefined, after.displayBodyIds, after.view,
+        [], null, null, null, { presentation: after, duplicateBoundary: { before, after } });
+    },
     prepareUndo() { return restore(-1); },
     prepareRedo() { return restore(1); },
     acceptCandidate(token) {
@@ -787,13 +879,15 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       requireEditor(current.transitionToken === undefined || selectionTransition !== null
         && selectionTransition.token === current.transitionToken && selectionTransition.baseGeneration === generation,
         'STALE', 'The selection decision is no longer current.', { field: 'selection-transition' });
-      const target = current.candidate.kind === 'open' || selectedBodyId === null ? null
-        : current.selectionTarget ?? { bodyId: selectedBodyId, uIndex: selection?.uIndex, vIndex: selection?.vIndex, index: curveSelection?.index };
+      const target = current.structuralPresentation !== undefined ? current.selectionTarget ?? null
+        : current.candidate.kind === 'open' || selectedBodyId === null ? null
+          : current.selectionTarget ?? { bodyId: selectedBodyId, uIndex: selection?.uIndex, vIndex: selection?.vIndex, index: curveSelection?.index };
       const nextTarget = target === null ? null : resolveTarget(target, result);
       const nextCapabilities = capabilities(result);
       const state: HistoryState = { document: copy(result.document), bytes: fileBudget(serialize(result)) };
+      if (current.candidate.kind === 'duplicate') state.duplicateBoundary = copy(current.duplicateBoundary);
       if (current.candidate.kind === 'open') { history = [state]; historyIndex = 0; }
-      else if (current.candidate.kind === 'apply' || current.candidate.kind === 'rename') {
+      else if (current.candidate.kind === 'apply' || current.candidate.kind === 'rename' || current.candidate.kind === 'duplicate') {
         history = [...history.slice(0, historyIndex + 1), state];
         while (history.length > HISTORY_LIMIT || historyBytes() > HISTORY_BYTES) history.shift();
         historyIndex = history.length - 1;
@@ -802,6 +896,22 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       curveSelection = nextTarget?.curvePole ?? null;
       bodyCapabilities = nextCapabilities;
       if (current.candidate.kind === 'open') { displayBodyIds = copy(current.candidate.displayBodyIds); view = copy(current.candidate.view); editTarget = 'pole'; rotationAxis = 'z'; scaleAxis = 'uniform'; displayGeneration++; }
+      else if (current.structuralPresentation !== undefined) {
+        const presentation = current.structuralPresentation;
+        const changed = displayBodyIds.length !== presentation.displayBodyIds.length
+          || displayBodyIds.some((bodyId, index) => bodyId !== presentation.displayBodyIds[index])
+          || view.kind !== presentation.view.kind
+          || view.kind === 'curve-focus' && presentation.view.kind === 'curve-focus'
+            && (view.bodyId !== presentation.view.bodyId || view.count !== presentation.view.count);
+        displayBodyIds = copy(presentation.displayBodyIds); view = copy(presentation.view);
+        editTarget = presentation.editTarget; rotationAxis = presentation.rotationAxis; scaleAxis = presentation.scaleAxis;
+        if (changed) displayGeneration++;
+      }
+      if (current.candidate.kind === 'open') assetRevisionHighWater.clear();
+      for (const asset of accepted.document.assets)
+        assetRevisionHighWater.set(asset.id, Math.max(assetRevisionHighWater.get(asset.id) ?? 0, asset.revision));
+      const retainedAssetIds = new Set(history.flatMap(state => state.document.assets.map(asset => asset.id)));
+      for (const id of assetRevisionHighWater.keys()) if (!retainedAssetIds.has(id)) assetRevisionHighWater.delete(id);
       generation++; pending = {}; prepared = null; selectionTransition = null;
       lastProvenance = copy(current.candidate.provenance);
       lastCurveProvenance = copy(current.candidate.curveProvenance);
