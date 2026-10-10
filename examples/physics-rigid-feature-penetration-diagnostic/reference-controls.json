@@ -1,0 +1,84 @@
+[
+  {
+    "id": "aligned-overlap",
+    "a": {"id":"a","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0,0,0],"orientation":[0,0,0,1],"velocityMps":[0,0,0]},
+    "b": {"id":"b","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0,0.49,0],"orientation":[0,0,0,1],"velocityMps":[0,0,0]},
+    "expectedDepthM": 0.01
+  },
+  {
+    "id": "aligned-gap",
+    "a": {"id":"a","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0,0,0],"orientation":[0,0,0,1],"velocityMps":[0,0,0]},
+    "b": {"id":"b","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0,0.51,0],"orientation":[0,0,0,1],"velocityMps":[0,0,0]},
+    "expectedDepthM": 0,
+    "expectedMarginM": -0.01,
+    "expectedSeparated": true
+  },
+  {
+    "id": "aligned-exact-touch",
+    "a": {"id":"a","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0,0,0],"orientation":[0,0,0,1],"velocityMps":[0,0,0]},
+    "b": {"id":"b","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0,0.5,0],"orientation":[0,0,0,1],"velocityMps":[0,0,0]},
+    "expectedDepthM": 0,
+    "expectedMarginM": 0,
+    "expectedTouching": true
+  },
+  {
+    "id": "independent-gap-inside-producer-tolerance",
+    "a": {"id":"a","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0,0,0],"orientation":[0,0,0,1],"velocityMps":[0,0,0]},
+    "b": {"id":"b","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0,0.5000000000005,0],"orientation":[0,0,0,1],"velocityMps":[0,0,0]},
+    "expectedDepthM": 0,
+    "expectedSeparated": true,
+    "note": "Independent signed margin is negative; unchanged original detector may return zero-depth hit because its separation allowance is 1e-12 m."
+  },
+  {
+    "id": "containment-escape-depth",
+    "a": {"id":"a","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0,0,0],"orientation":[0,0,0,1],"velocityMps":[0,0,0]},
+    "b": {"id":"b","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.1,0.1,0.1]},"positionM":[0,0,0],"orientation":[0,0,0,1],"velocityMps":[0,0,0]},
+    "expectedDepthM": 0.35,
+    "note": "Escape depth is the sum of half extents; interval intersection width 0.2 m is not penetration depth."
+  },
+  {
+    "id": "symmetric-rotated-yaw-face",
+    "a": {"id":"a","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0,0,0],"orientation":[0,0.6,0,0.8],"velocityMps":[0,0,0]},
+    "b": {"id":"b","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0,0.49,0],"orientation":[0,-0.6,0,0.8],"velocityMps":[0,0,0]},
+    "expectedDepthM": 0.01,
+    "note": "Yaw preserves each Y half extent at 0.25 m; all other candidate projections have positive larger margins."
+  },
+  {
+    "id": "nonzero-near-parallel-cross-retained",
+    "a": {"id":"a","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0,0,0],"orientation":[0,0,0,1],"velocityMps":[0,0,0]},
+    "b": {"id":"b","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0,0.49,0],"orientation":[0,5e-14,0,1],"velocityMps":[0,0,0]},
+    "expectedDepthM": 0.01,
+    "expectedNearParallel": true
+  },
+  {
+    "id": "raw-quaternion-normalization-difference",
+    "a": {"id":"a","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0,0,0],"orientation":[0,0,0,1],"velocityMps":[0,0,0]},
+    "b": {"id":"b","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0.55,0,0],"orientation":[0,0.60000000006,0,0.80000000008],"velocityMps":[0,0,0]},
+    "expectedNormalizationDifference": true,
+    "note": "The raw X-axis margin is 0.25+0.25*((1-2*q_y^2)+2*q_y*q_w)-0.55. The normalized yaw margin is approximately 0.01 m. Restoring the original quaternion after parseBody is required for an original-detector raw comparison."
+  },
+  {
+    "id": "invalid-boolean-position",
+    "a": {"id":"a","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[true,0,0],"orientation":[0,0,0,1],"velocityMps":[0,0,0]},
+    "b": {"id":"b","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0,0.49,0],"orientation":[0,0,0,1],"velocityMps":[0,0,0]},
+    "invalid": true,
+    "expectedErrorCode": "REFERENCE_INPUT",
+    "expectedErrorMessage": "reference number must be a finite Float64; bool is invalid"
+  },
+  {
+    "id": "invalid-quaternion-zero",
+    "a": {"id":"a","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0,0,0],"orientation":[0,0,0,0],"velocityMps":[0,0,0]},
+    "b": {"id":"b","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0,0.49,0],"orientation":[0,0,0,1],"velocityMps":[0,0,0]},
+    "invalid": true,
+    "expectedErrorCode": "REFERENCE_INPUT",
+    "expectedErrorMessage": "reference quaternion must have norm within 1e-9 of one"
+  },
+  {
+    "id": "invalid-half-extent-length",
+    "a": {"id":"a","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25]},"positionM":[0,0,0],"orientation":[0,0,0,1],"velocityMps":[0,0,0]},
+    "b": {"id":"b","kind":"dynamic","shape":{"kind":"box","halfExtentsM":[0.25,0.25,0.25]},"positionM":[0,0.49,0],"orientation":[0,0,0,1],"velocityMps":[0,0,0]},
+    "invalid": true,
+    "expectedErrorCode": "REFERENCE_INPUT",
+    "expectedErrorMessage": "reference halfExtentsM must contain three numbers"
+  }
+]
