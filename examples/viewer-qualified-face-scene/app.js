@@ -6,6 +6,7 @@ import {compileCadModel,validateFaceBundle,tessellateSurface,evaluateSurface,eva
   queryCadDocumentCurveArcLength,validateCadDocumentCurveArcLength} from '@barocss/cad';
 import {AREA_OPTIONS,areaPin,queryQualifiedFaceSurfaceArea} from './surface-area.js';
 import {LENGTH_OPTIONS,lengthPin,queryQualifiedFaceCurveLength} from './curve-length.js';
+import {queryQualifiedFaceAngle} from './native-angle.js';
 import {parseBaroCadSource} from '@barocss/cad-interop/native';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2} from '@barocss/cad-interop/document';
@@ -27,6 +28,10 @@ const areaSource=document.querySelector('#area-source'),inspectAreaButton=docume
 const areaLabel=document.querySelector('#surface-area-label'),areaFormat=new Intl.NumberFormat('en',{maximumFractionDigits:6});
 const lengthSource=document.querySelector('#length-source'),lengthCurve=document.querySelector('#length-curve'),inspectLengthButton=document.querySelector('#inspect-length');
 const lengthOutput=document.querySelector('#length-output'),lengthLabel=document.querySelector('#curve-length-label');
+const angleButton=document.querySelector('#measure-angle'),angleOutput=document.querySelector('#angle-output'),angleLabel=document.querySelector('#native-angle-label');
+const angleControls=['first','vertex','third'].map(point=>({side:'angle-'+point,
+  source:document.querySelector('#angle-'+point+'-source'),geometry:document.querySelector('#angle-'+point+'-geometry'),
+  u:document.querySelector('#angle-'+point+'-u'),v:document.querySelector('#angle-'+point+'-v'),t:document.querySelector('#angle-'+point+'-t')}));
 const distanceFormat=new Intl.NumberFormat('en',{maximumFractionDigits:4});
 const measurementControls=['first','second'].map(side=>({side,
   source:document.querySelector('#measure-'+side+'-source'),geometry:document.querySelector('#measure-'+side+'-geometry'),
@@ -55,6 +60,7 @@ const fixtures={},originalRequests={},originalSources={};let manifest=[],viewer=
 let labelPins=null,currentProjections=[null,null],labelResizeObserver=null;
 let areaReport=null,areaProjection=null;
 let lengthReport=null,lengthProjection=null;
+let angleReport=null,angleProjection=null;
 const colors=[[.9,.3,.2],[.25,.8,.4],[.25,.45,.95],[.95,.7,.2],[.3,.8,.9],[.85,.35,.75]];
 const camera={eye:[2,1.5,3.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:10},mmToSceneUnit=.12,background=[.02,.03,.04],translateScene=[-.6,-.6,-.7];
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
@@ -62,6 +68,42 @@ const glErrors=()=>[...contexts].map(gl=>gl.getError());
 const pixelInfo=()=>({hash:hash(viewer.readPixels())});
 const display=value=>status.textContent=typeof value==='string'?value:JSON.stringify(value,null,2);
 function clearInspection(){inspectionReport=null;inspection.textContent='';}
+function clearAngle(){angleReport=null;angleProjection=null;angleOutput.textContent='';angleLabel.hidden=true;}
+function angleScopeChanged(scene){return angleReport&&[angleReport.first,angleReport.vertex,angleReport.third].some(point=>{
+  const asset=scene?.assets.find(value=>value.sourceId===point.sourceId);
+  return !asset||asset.source!==point.expectedSource||asset.face.topology.face.id!==point.faceId||asset.face.geometry.name!==point.modelId
+    ||!asset.face.geometry.objects.some(object=>object.id===point.geometryId&&object.kind===point.kind)
+    ||point.kind==='surface'&&asset.face.topology.face.surfaceId!==point.geometryId;});}
+function updateAngleLabel(){if(!viewer||disposed||!angleReport){angleProjection=null;angleLabel.hidden=true;return;}
+  const state=viewer.getState();if(angleScopeChanged(state.qualifiedFaceScene)){clearAngle();return;}
+  if(state.status!=='ready'){angleProjection=null;angleLabel.hidden=true;return;}
+  try{angleProjection=viewer.projectQualifiedFacePoint(angleReport.anchor);}catch{angleProjection=null;}
+  angleLabel.hidden=!angleProjection;if(!angleProjection)return;
+  angleLabel.textContent=angleReport.vertex.sourceId+'/'+angleReport.vertex.geometryId+' · '+distanceFormat.format(angleReport.angleDegrees)+'°';
+  angleLabel.style.left=angleProjection.xCss+'px';angleLabel.style.top=angleProjection.yCss+'px';
+}
+function renderAngleControls(scene){const enabled=!disposed&&!running&&!!scene;angleButton.disabled=!enabled;
+  for(const control of angleControls){const previousSource=control.source.value,previousGeometry=control.geometry.value;
+    control.source.replaceChildren(...(scene?.assets??[]).map(asset=>{const option=document.createElement('option');option.value=asset.sourceId;option.textContent=asset.sourceId;return option;}));
+    if(scene?.assets.some(asset=>asset.sourceId===previousSource))control.source.value=previousSource;
+    else if(scene?.assets.some(asset=>asset.sourceId==='A'))control.source.value='A';
+    const asset=scene?.assets.find(value=>value.sourceId===control.source.value);
+    control.geometry.replaceChildren(...(asset?.face.geometry.objects??[]).filter(object=>object.kind==='curve'
+      ||object.kind==='surface'&&object.id===asset.face.topology.face.surfaceId).map(object=>{const option=document.createElement('option');
+      option.value=object.id;option.dataset.kind=object.kind;option.textContent=object.kind+' · '+object.id;return option;}));
+    if([...control.geometry.options].some(option=>option.value===previousGeometry))control.geometry.value=previousGeometry;
+    const curve=control.geometry.selectedOptions[0]?.dataset.kind==='curve';control.source.disabled=!enabled;control.geometry.disabled=!enabled;
+    for(const parameter of['u','v','t']){const active=parameter==='t'?curve:!curve;control[parameter].disabled=!enabled||!active;
+      document.querySelector('#'+control.side+'-'+parameter+'-label').hidden=!active;}
+  }
+}
+function measureAngle(first=controlMeasurementInput(angleControls[0]),vertex=controlMeasurementInput(angleControls[1]),third=controlMeasurementInput(angleControls[2])){
+  const next=queryQualifiedFaceAngle(viewer,first,vertex,third);angleReport=clone(next);
+  angleOutput.textContent=[next.first,next.vertex,next.third].map(point=>point.sourceId+'/'+point.geometryId).join(' → ')
+    +' · '+areaNumber(next.angleDegrees)+'°';updateAngleLabel();display('Original native angle ready.');return clone(next);
+}
+function angleSnapshot(){return{enabled:!angleButton.disabled,output:angleOutput.textContent,report:clone(angleReport),projection:clone(angleProjection),
+  label:{visible:!angleLabel.hidden,text:angleLabel.hidden?null:angleLabel.textContent,xCss:angleLabel.hidden?null:Number.parseFloat(angleLabel.style.left),yCss:angleLabel.hidden?null:Number.parseFloat(angleLabel.style.top)}};}
 function clearLength(){lengthReport=null;lengthProjection=null;lengthOutput.textContent='';lengthLabel.hidden=true;}
 function lengthScopeChanged(scene){if(!lengthReport)return false;const pin=lengthReport.pin,asset=scene?.assets.find(value=>value.sourceId===pin.sourceId);
   return !asset||asset.source!==pin.expectedSource||asset.face.topology.face.id!==pin.faceId||asset.face.geometry.name!==pin.modelId
@@ -187,6 +229,7 @@ function render(){const state=viewer.getState(),scene=state.qualifiedFaceScene,a
   if(measurementScopeChanged(scene))clearMeasurement();
   if(areaScopeChanged(scene))clearArea();
   if(lengthScopeChanged(scene))clearLength();
+  if(angleScopeChanged(scene))clearAngle();
   for(const[id,button]of Object.entries(buttons))button.disabled=id==='dispose'?disposed:!available||running;
   for(const control of[assetCount,countU,countV,colorAsset,colorInput])control.disabled=!available||running;
   if(scene){assetCount.value=String(scene.assets.length);countU.value=String(scene.countU);countV.value=String(scene.countV);}
@@ -201,6 +244,7 @@ function render(){const state=viewer.getState(),scene=state.qualifiedFaceScene,a
   updateLabels();
   renderAreaControls(scene);updateAreaLabel();
   renderLengthControls(scene);updateLengthLabel();
+  renderAngleControls(scene);updateAngleLabel();
 }
 function load(input=candidate()){uploads.length=0;draws.length=0;viewer.loadQualifiedFaceScene(input);clearInspection();clearMeasurement();render();return viewer.getState();}
 function action(callback){if(disposed)return;try{callback();render();}catch(error){render();display(error.message);}}
@@ -279,13 +323,13 @@ async function runProof(){if(running||disposed||['context-lost','unavailable'].i
     inspect('F');const report=inspection.textContent;viewer.orbit(.03,.02);viewer.pan(.01,0);viewer.zoom(1.02);viewer.resize(480,360);viewer.resize(640,480);viewer.setView(camera);
     check(inspection.textContent===report,'Camera/resize changed source inspection');capture('camera-retains-current-original-Faces');
     load(candidate({assetCount:2}));capture('two-original-Faces');check(viewer.getState().qualifiedFaceScene.assets.length===2,'Two-asset admission failed');
-    viewer.clear();clearInspection();clearMeasurement();clearArea();clearLength();check(viewer.getState().qualifiedFaceScene===null,'Clear retained qualified Face authority');load(original);
+    viewer.clear();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();check(viewer.getState().qualifiedFaceScene===null,'Clear retained qualified Face authority');load(original);
     result.contextCount=contexts.size;result.resources=resourceCounts();result.glErrors=glErrors();result.errors=[...errors];result.warnings=[...warnings];result.getterCalls=getterCalls;
     check(contexts.size===1&&result.glErrors.every(n=>n===0)&&!errors.length&&!warnings.length,'Context/GL/browser gate failed');result.ok=true;
   }catch(error){result.error=error.stack||error.message;result.failures.push({error:result.error,completed:result.cases.length});result.resources=resourceCounts();result.errors=[...errors];}
   finally{running=false;render();window.__viewerQualifiedFaceResult=result;display(result.ok?'Original Face checks completed.':('Face checks stopped: '+(result.error??'Unknown error')));
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}return result;}
-function dispose(){if(disposed)return;viewer.dispose();viewer.dispose();disposed=true;labelResizeObserver?.disconnect();clearInspection();clearMeasurement();clearArea();clearLength();render();const receipt={status:viewer.getState().status,resources:resourceCounts(),contextCount:contexts.size,
+function dispose(){if(disposed)return;viewer.dispose();viewer.dispose();disposed=true;labelResizeObserver?.disconnect();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();render();const receipt={status:viewer.getState().status,resources:resourceCounts(),contextCount:contexts.size,
   glErrors:glErrors(),errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display('Viewer disposed.');return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item of manifest){const bytes=await(await fetch(item.url)).arrayBuffer();
     check(bytes.byteLength===item.bytes&&await sha(bytes)===item.sha256,'Original Face fixture bytes/hash changed');fixtures[item.name]={...item,bytes:new Uint8Array(bytes),text:new TextDecoder().decode(bytes)};}
@@ -293,10 +337,11 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
   for(const id of'ABCDEF'){const source=fixtures['warped_'+id+'.source0.css'].text;check(source===originalRequests.warped.assets.find(asset=>asset.sourceId===id).source,'Original source file/Face association differs');originalSources[id]=source;}
   check(fixtures['interior_edit_F.source0.css'].text===originalRequests.interior_edit.assets[5].source,'Original interior-edit Source0 association differs');
   viewer=createViewer(canvas,{mmToSceneUnit,background});load(candidate());lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
-  labelResizeObserver=new ResizeObserver(()=>{updateLabels();updateAreaLabel();updateLengthLabel();});labelResizeObserver.observe(canvas);
+  labelResizeObserver=new ResizeObserver(()=>{updateLabels();updateAreaLabel();updateLengthLabel();updateAngleLabel();});labelResizeObserver.observe(canvas);
   window.__viewerQualifiedFaceProof={viewer,createViewer,candidate,load,render,inspect,measurementInput,measure,updateLabels,labelSnapshot,
     AREA_OPTIONS,areaPin,queryQualifiedFaceSurfaceArea,inspectArea,updateAreaLabel,areaSnapshot,mismatchCandidate,dispose,resourceCounts,uploads,draws,glErrors,errors,warnings,lossExtension,failAllocation,
     LENGTH_OPTIONS,lengthPin,queryQualifiedFaceCurveLength,inspectLength,updateLengthLabel,lengthSnapshot,
+    queryQualifiedFaceAngle,measureAngle,updateAngleLabel,angleSnapshot,
     failNextBuffer(at=16){failAllocation('Buffer',at);},clearAllocationFault,originalRequests,originalSources,fixtures,manifest,colors,camera,translateScene,mmToSceneUnit,background,pixelInfo,witness,retained,capture,runProof,
     prepareQualifiedFaceScene,QualifiedFaceSceneRenderer,MixedDepthRenderer,prepareMixedDepthFrame,compileGpu,prepareCamera,prepareUniformCurvePreview,prepareSelectedUniformCurvePreview,
     compileCadModel,validateFaceBundle,tessellateSurface,evaluateSurface,evaluateCurve,curveDomain,parseBooleanExtrusionFeatureGraph,parseBaroCadSource,
@@ -305,7 +350,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
     createClothWorld,createPhysicsClothWorld:createClothWorld,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer,canvas,
     get gl(){return[...contexts][0];},get state(){return viewer.getState();},get currentScene(){return viewer.getState().qualifiedFaceScene;},get inspectionReport(){return clone(inspectionReport);},
     get measurementReport(){return clone(measurementReport);},get currentProjections(){return clone(currentProjections);},get areaReport(){return clone(areaReport);},
-    get lengthReport(){return clone(lengthReport);},get result(){return result;}};
+    get lengthReport(){return clone(lengthReport);},get angleReport(){return clone(angleReport);},get result(){return result;}};
   display('Original Faces ready. Inspect a current source from its row.');
 }catch(error){display('Original Faces could not load: '+error.message);}
 buttons.load.addEventListener('click',()=>action(()=>load(candidate({assetCount:Number(assetCount.value),countU:Number(countU.value),countV:Number(countV.value)}))));
@@ -315,11 +360,13 @@ buttons['apply-color'].addEventListener('click',()=>action(()=>{const scene=view
   check(asset,'Choose a current source');asset.color=[1,3,5].map(index=>parseInt(colorInput.value.slice(index,index+2),16)/255);
   load({version:0,basis:scene.basis,assets,countU:scene.countU,countV:scene.countV,camera:clone(scene.camera),translateScene:[...scene.translate]});}));
 buttons['saved-view'].addEventListener('click',()=>action(()=>viewer.setView(camera)));buttons.orbit.addEventListener('click',()=>action(()=>viewer.orbit(.05,.02)));buttons.pan.addEventListener('click',()=>action(()=>viewer.pan(.01,0)));
-buttons.resize.addEventListener('click',()=>action(()=>viewer.resize(canvas.width===640?480:640,canvas.height===480?360:480)));buttons.clear.addEventListener('click',()=>action(()=>{viewer.clear();clearInspection();clearMeasurement();clearArea();clearLength();}));
+buttons.resize.addEventListener('click',()=>action(()=>viewer.resize(canvas.width===640?480:640,canvas.height===480?360:480)));buttons.clear.addEventListener('click',()=>action(()=>{viewer.clear();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();}));
 for(const control of measurementControls)for(const field of['source','geometry'])control[field].addEventListener('change',()=>renderMeasurementControls(viewer.getState().qualifiedFaceScene));
 measureButton.addEventListener('click',()=>action(()=>measure()));
 inspectAreaButton.addEventListener('click',()=>action(()=>inspectArea()));
 lengthSource.addEventListener('change',()=>renderLengthControls(viewer.getState().qualifiedFaceScene));
 inspectLengthButton.addEventListener('click',()=>action(()=>inspectLength()));
+for(const control of angleControls)for(const field of['source','geometry'])control[field].addEventListener('change',()=>renderAngleControls(viewer.getState().qualifiedFaceScene));
+angleButton.addEventListener('click',()=>action(()=>measureAngle()));
 buttons['run-proof'].addEventListener('click',runProof);buttons.dispose.addEventListener('click',dispose);buttons['lose-context'].addEventListener('click',()=>lossExtension?.loseContext());
 canvas.addEventListener('webglcontextlost',()=>{render();display('Context lost. Original source inspection remains available.');});window.addEventListener('beforeunload',()=>{if(viewer)dispose();});
