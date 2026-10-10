@@ -134,6 +134,10 @@
       "./babylon-uniform-curve": {
         "types": "./dist/babylon-uniform-curve.d.ts",
         "import": "./dist/babylon-uniform-curve.js"
+      },
+      "./pixi3d-uniform-curve": {
+        "types": "./dist/pixi3d-uniform-curve.d.ts",
+        "import": "./dist/pixi3d-uniform-curve.js"
       }
     }
   },
@@ -270,6 +274,10 @@
     "./babylon-uniform-curve": {
       "types": "./src/babylon-uniform-curve.ts",
       "import": "./src/babylon-uniform-curve.ts"
+    },
+    "./pixi3d-uniform-curve": {
+      "types": "./src/pixi3d-uniform-curve.ts",
+      "import": "./src/pixi3d-uniform-curve.ts"
     }
   },
   "files": [
