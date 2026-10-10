@@ -3,6 +3,14 @@ import { createRoot } from 'react-dom/client';
 import { Renderer, classesFor } from '@barocss/render';
 
 let mounted = null;
+// One page-local draft; the host snapshot remains authoritative for its lineage.
+let retainedDraft = null;
+const editable = (state) => state?.spec && state.stage === 'form' && ['ready', 'failed', 'cancelled'].includes(state.phase);
+const matchesDraft = (state) => retainedDraft && editable(state)
+  && retainedDraft.sessionId === state.sessionId && retainedDraft.revision === state.revision
+  && retainedDraft.requestId === state.observation?.requestId && retainedDraft.screenRequest === state.screenRequest
+  && retainedDraft.baseline.draft.name === state.input.draft.name
+  && retainedDraft.baseline.draft.topic === state.input.draft.topic;
 const diagnostics = { polls: 0, displays: [], stopped: true, runtimeDestroyed: true };
 function mount() {
   if (mounted) return;
@@ -48,11 +56,14 @@ function Application({ resources }) {
     };
     const accept = (next, ticket) => {
       if (disposed || ticket !== epoch || next.revision < lastRevision) return;
+      const restore = matchesDraft(next);
+      const invalidated = retainedDraft && !restore;
+      if (invalidated) retainedDraft = null;
       if (next.revision > lastRevision) {
         lastRevision = next.revision;
-        if (next.spec) { setDraft(next.input); setScreenRequest(next.screenRequest); }
+        if (next.spec) { setDraft(restore ? structuredClone(retainedDraft.draft) : next.input); setScreenRequest(next.screenRequest); }
         if (next.phase === 'idle') { setDraft({ draft: { name: '민지', topic: '커피' } }); setScreenRequest('Create a request form'); }
-      }
+      } else if (invalidated && editable(next)) setDraft(next.input);
       setState(next);
     };
     const poll = async () => {
@@ -136,17 +147,27 @@ function Application({ resources }) {
     api.current?.('/api/action', { sessionId: current.state.sessionId, revision: current.state.revision, action }, current.state.stage === 'form');
   };
   const pendingRef = useRef(pending); pendingRef.current = pending;
+  const changeDraft = (field, value) => {
+    const current = latest.current;
+    const next = { draft: { ...current.draft.draft, [field]: value } };
+    latest.current = { ...current, draft: next };
+    if (mounted === resources && editable(current.state)) retainedDraft = {
+      sessionId: current.state.sessionId, revision: current.state.revision, requestId: current.state.observation?.requestId,
+      screenRequest: current.state.screenRequest, baseline: structuredClone(current.state.input), draft: structuredClone(next),
+    };
+    setDraft(next);
+  };
   // Components read the pending flag through this host ref; their identity stays stable.
   const registry = useRef(null);
   if (!registry.current) registry.current = {
     Layout: ({ node, children }) => <section data-node-id={node.props.id} className={classesFor(node)}>{children}</section>,
     Card: ({ node, children }) => <article data-node-id={node.props.id} className={classesFor(node)}>{children}</article>,
     Text: ({ node }) => <p data-node-id={node.props.id}>{node.props.text}</p>,
-    Input: ({ node, state: values, setState: setValues }) => {
+    Input: ({ node, state: values }) => {
       const field = node.props.value.$bindState === '/draft/name' ? 'name' : 'topic';
       return <label>{node.props.label}<input aria-label={`Request ${field}`} data-node-id={node.props.id}
         maxLength={80} disabled={pendingRef.current} value={values.draft[field]} onChange={(event) => {
-          const value = event.target.value; setValues((old) => ({ draft: { ...old.draft, [field]: value } }));
+          changeDraft(field, event.target.value);
         }} /></label>;
     },
     Button: ({ node, onAction }) => <button data-node-id={node.props.id} disabled={pendingRef.current} onClick={onAction}>{node.props.label}</button>,
