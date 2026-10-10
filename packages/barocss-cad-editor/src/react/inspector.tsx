@@ -378,6 +378,9 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
     </> : <p role="status" data-testid={snapshot.selectedBodyId === null ? undefined : 'cad-editor-readonly-curve'}>{snapshot.selectedBodyId === null
       ? 'Select a Surface or Curve to inspect its control points.' : 'Control point inspection is unavailable for this object.'}</p>}
     {errorMessage && <p className="cad-editor-error" role="alert">{errorMessage}</p>}
-    <div className="cad-editor-secondary-analysis"><CadEditorGeometryAnalysis session={session} onAnalysis={onAnalysis} onLength={onLength} onError={onError} /></div>
+    <details className="cad-editor-secondary-analysis cad-editor-source" data-testid="inspector-analysis-disclosure">
+      <summary className="cad-editor-source-title" data-testid="inspector-analysis-toggle">Analysis</summary>
+      <CadEditorGeometryAnalysis session={session} onAnalysis={onAnalysis} onLength={onLength} onError={onError} />
+    </details>
   </aside>;
 }
