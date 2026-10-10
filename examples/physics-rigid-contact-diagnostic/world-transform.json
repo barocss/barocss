@@ -1,0 +1,12 @@
+{
+  "original1185WorldSha256": "96ed50f8e5f84853ddbe3e45fecbccb453fcb9a62f05968d8717e01a68310341",
+  "instrumentedWorldSha256": "643ba6a82aa7823d4b5cadf16f642c9662a4e3705405f2e7969b73f5efb5babe",
+  "frozenIssueComment": "6094968071",
+  "observationalChangesOnly": [
+    "DiagnosticRecorder import and private argument",
+    "public-shaped intermediate copy after integration / outer pass",
+    "step6/pass7 pair copy before detect and in finally after unchanged pair work"
+  ],
+  "unchangedResponseModules": "original21dependency ledger from1185",
+  "producerMeasuredHead": "866f7edf2b4038521f3f8a8fe80937c99f6b8f05"
+}
