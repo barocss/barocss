@@ -1750,3 +1750,59 @@ alpha support is implied.
 
 ONE source/API/file flow: `node examples/gpu-scene/engine-opacity-bindings-flow.mjs
 --output <fresh-directory>`.
+
+
+### Original ambient/directional light bindings (CPU source service)
+
+`prepareEngineLightingBindings(scene, lightingBindings)` admits the complete
+original scene0 and an independent dimensionless world-light companion0:
+
+```js
+const prepared = prepareEngineLightingBindings(originalScene, {
+  format: 'barocss-gpu-engine-lighting-bindings', version: 0,
+  sceneId: originalScene.id,
+  lighting: { ambientStrength: 0.25, directionalStrength: 0.75,
+    direction: [0, 0, 1] },
+  bindings: [{ materialId: 'paint', response: 'lambert' }],
+});
+```
+
+The companion has exactly `format`, `version`, `sceneId`, `lighting` and
+`bindings`. Lighting has exactly the existing `MeshLighting` fields shown
+above. Strengths are finite Numbers in 0..1 with sum at most 1. Direction
+is an original nonzero finite XYZ array with components within -1000..1000;
+it points from the surface toward the light in right-handed Y-up world
+coordinates. Original coefficients and negative-zero signs are retained.
+Up to 32 dense own bindings have exactly `materialId` and `response`;
+response must be `lambert`, with unique existing material IDs. Hidden and
+unused materials are validated. Unbound materials remain original unlit
+source, and original scene material types are unchanged.
+
+The frozen result is exactly `{scene, lightingBindings, lightDirection,
+litMaterialIds}`. `scene` is one complete prepared scene, with frozen original
+`scene.scene` separate from independently owned mutable typed execution
+buffers. Original companion/lighting/binding records, original and derived
+Number directions, and material ID list are frozen independent copies.
+`litMaterialIds` retains binding order. Scale-then-hypot normalization gives
+a separately derived Number unit direction, including subnormal original
+components. No source coefficient is replaced with this derived direction.
+
+All own data/counts/lighting/binding values admit before scene preparation;
+all references admit before normalization. The unchanged actual mesh lighting
+validator supplies numeric/range/nonzero checks. There is one bounded scene
+preparation, at most 32 binding references and one three-component
+normalization. Existing scene/geometry work and source limits remain.
+`EngineLightingBindingsError` codes are `INPUT`, `VERSION`, `BUDGET`,
+`REFERENCE`, `LIGHTING`, `SCENE` and `NUMERICAL`; actual validator, scene and
+reflection causes are retained. Oversized arrays refuse before key enumeration.
+Refusal returns no partial source and preserves caller and accepted originals.
+
+Save the full original scene and companion; retain an explicit sign sidecar
+when ordinary JSON would discard negative-zero. Reopening recomputes only
+the derived unit direction and execution data. This service prepares original
+light bindings; existing opaque renderers do not consume them. It does not
+render Lambert pixels, alter native gamma2.2 lighting, add PBR/shadows or
+qualify GPU resources. Generic linearRGB/sRGB rendering is a separate stage.
+
+ONE source/API/ray/file flow:
+`node examples/gpu-scene/engine-lighting-bindings-flow.mjs --output <fresh-directory>`.
