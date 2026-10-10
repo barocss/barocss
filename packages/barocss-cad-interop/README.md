@@ -7,6 +7,51 @@ The `native` entry uses `@barocss/cad`; the `three` entry uses Three.js as an
 optional peer dependency. The preview packet is shared by `@barocss/cad` and
 `@barocss/gpu`.
 
+## Public Pixi3D SDK host
+
+The [Pixi3D host](./examples/sdk-pixi3d-host.html) uses the declared
+`@barocss/cad-interop/pixi3d` entry with Pixi3D `2.5.0` and PixiJS `7.2.4`.
+It loads two unchanged complete source0 files: five native Curves and five
+native Surfaces. The explicit native capacity profile is fixed at sixteen
+objects per Model. Curve display uses v1; the Surface grid is 8×8, and
+`unitsPerMillimeter: 0.001` scales derived buffers once. Original sources,
+Models, geometry IDs and native parameters remain authoritative. Surface
+native U/V is retained in the neutral packet, separate from Pixi texture UV.
+Camera fitting or separating display roots changes only host display state.
+
+The caller owns its Application, Stage, renderer, canvas, camera, lights and
+unrelated objects. Loaded results own their roots, meshes, geometry and
+materials. Attach `result.root` to the Stage; call `result.dispose()` to release
+only that result. Disposal is idempotent. The example has explicit refusal and
+disposal controls and retains accepted sources and frames on rejected input.
+The [typed consumer](./examples/sdk-pixi3d-host-contract.ts) shows the actual
+public options/result types and caller Stage shape. PixiJS 8 is outside this
+pinned profile. Document selection, model-set, assembly and GLB retain their
+independent limits.
+
+From the workspace root, after the CAD and interop library builds:
+
+```sh
+pnpm --filter @barocss/cad build:library
+pnpm --filter @barocss/cad-interop build:library
+pnpm exec vite --config packages/barocss-cad-interop/examples/sdk-pixi3d-host-vite.config.mjs --host 127.0.0.1 --port 5193 --strictPort
+```
+
+Open `http://127.0.0.1:5193/packages/barocss-cad-interop/examples/sdk-pixi3d-host.html`.
+The saved config scans only this host and optimizes its pinned browser peers;
+it adds no package entry aliases or dependencies. Current workspace public
+exports resolve to `src/*.ts`, so the saved host and NodeNext type command
+consume source. Library builds do not switch bare imports to compiled maps.
+Separate `publishConfig` JS/type maps and #1017 track explicit published-map
+verification without a new code-start gate. [#1008](https://github.com/barocss/barocss/issues/1008)
+records historical compiled JS/type/browser results at its fixed native commit
+and the later Integration stage. Those results do not prove current workspace
+source execution, independent tarball installation
+or npm publication. [#801](https://github.com/barocss/barocss/issues/801) stays
+deferred. The current [manual](https://github.com/barocss/barocss/wiki/Loader-Manual)
+and [roadmap](https://github.com/barocss/barocss/wiki/Loader-Product-Roadmap)
+record ready and completed work.
+
 ## Public Babylon SDK host
 
 The [Babylon host](./examples/sdk-babylon-host.html) imports
