@@ -1,0 +1,1 @@
+{"coordinateSystem":"native-surface-uv","lengthUnit":"dimensionless","curve":{"kind":"curve","id":"high_bound_uv","degree":2,"knots":[0,0,0,1,1,2,2,3,3,4,4,4],"controlPoints":[[0,0.25,0],[0.5,0.2890625,0],[1,0.328125,0],[1.5,0.3671875,0],[2,0.40625,0],[2.5,0.4453125,0],[3,0.484375,0],[3.5,0.5234375,0],[4,0.5625,0]],"weights":[1,1,1,1,1,1,1,1,1]}}

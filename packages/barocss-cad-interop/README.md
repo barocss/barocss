@@ -3342,3 +3342,27 @@ For emitted verification, build CAD and interop, then use `--mode compiled`.
 Serve its generated browser bundle with `LOADER1313_COMPILED_BUNDLE`.
 This is a selected original-data consumer, not an all-peer or manufacturing certificate.
 Source/emitted proof and exact local adoption remain separate from npm publication.
+
+## Original exact lower-strip Face in Pixi3D (#1314)
+
+This independent host reads 22 unchanged CAD originals for the low and high Face.
+It checks the saved and fresh complete native certificates and 80 observations.
+The Model keeps one Support and four unrendered Curve siblings.
+The preview shows the complete, untrimmed Support; native UV remains CAD metadata.
+Face orientation does not change display triangles or certify a general Solid.
+
+Use Node 22. Run source verification before building this checkout's libraries:
+
+```sh
+node packages/barocss-cad-interop/examples/exact-lower-strip-face-pixi3d-verify.mjs --mode source --output /tmp/loader1314-source
+pnpm exec vite --config packages/barocss-cad-interop/examples/exact-lower-strip-face-pixi3d.config.mjs
+```
+
+Open the printed host URL. Follow refusals, transport, high Face, cold reload and cleanup.
+The host checks all native data, copied buffers, its fixed camera and full frame.
+Node verification covers CAD and neutral data; actual Pixi resources need a browser.
+It releases each owned root, Mesh, Geometry and material once and retains caller resources.
+For emitted verification, build CAD and interop, then use `--mode compiled`.
+Serve its generated browser bundle with `LOADER1314_COMPILED_BUNDLE`.
+This is a selected original-data consumer, not an all-peer or manufacturing certificate.
+Source/emitted proof and exact local adoption remain separate from npm publication.
