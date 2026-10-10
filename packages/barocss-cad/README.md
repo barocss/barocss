@@ -8901,3 +8901,17 @@ A request-local memo reuses identical reduced-rational nearest/exactFloat/upward
 `validateMultiSpanVLinearSurfacePlaneSection` reconstructs the complete original operation and compares all source, Model, curves, sidecars, span proofs, assembly indices, bounds, actual native unions and counters. Full request/result JSON in the dedicated demo preserves sign bits and can be reopened. Original source strings remain independently compiled; only the World Curve is adopted as a World Source0 Model. UV sidecars remain dimensionless JSON.
 
 Run `node examples/cad-nurbs/multispan-vlinear-plane-section-demo.mjs --source <output-directory>` after the affected CAD build for the actual source/native/polynomial/whole-proof/file/cold/public-compiled flow. Curve degree4 consumer support remains separate. This is a curved intersection provider toward original UV trimming and material Boolean, not general Surface–Surface intersection or Plasticity parity.
+
+### Original multi-span V-linear trim Face candidates (#1212)
+
+`buildMultiSpanVLinearSurfacePlaneTrimCandidates(section, options)` retains a complete validated multi-span section and constructs two original-Support stored-UV Face candidates. Options are `evaluationId`, `resultIdPrefix` (1..12 ASCII characters), and exact work budgets `maximumBoundaries:4`, `maximumIntervals:4`, `maximumObservations:63`. The result retains four natural boundaries, four actual V1 restrictions, six logical vertices, seven native edges, two oriented loops with opposite uses of the unchanged shared cut, and an actual Source0 model with the original Support plus seven Curves. UV sidecars are dimensionless.
+
+Each original UV span has an exact positive U-derivative numerator proof; all cut V poles are strictly interior. Actual reflected natural boundary knots must equal the exact affine reflection, or the operation refuses `REPRESENTABILITY`. Whole edge coefficient-model gaps combine actual V1 restriction errors, nominal UV mapping residuals and inherited section bounds. Native D1 evaluated/refused states use each provider's actual coordinate; chains unavailable at C0 joins remain null. Parent arithmetic work remains separate from root counters. No geometry welding, physical embedding, regularity, manifold/Solid, material Boolean, global floating evaluator, manufacturing or degree4 consumer support is certified.
+
+Use `validateMultiSpanVLinearSurfacePlaneTrimCandidates` to reconstruct all sources, children, proofs and observations after saving the complete result with signed-zero-preserving JSON. The dedicated source/file/public-emitted flow is:
+
+```sh
+node examples/cad-nurbs/multispan-vlinear-plane-trim-demo.mjs --source <new-output-directory>
+```
+
+Native completion, Integration adoption, current-root validation and publication have separate receipts.
