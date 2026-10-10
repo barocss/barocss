@@ -2,6 +2,7 @@ import type {
   CadDocumentExportCapability, CadDocumentExportOptions, CadDocumentExportReport,
   CadDocumentExportResult, CadDocumentExportSelection,
   CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, SurfacePoleEditProvenance,
+  CurveCurvatureResult, CurveD2Result, SurfaceCurvatureResult, SurfaceD2Result,
 } from '@barocss/cad';
 
 export type CadEditorExportCapability = CadDocumentExportCapability;
@@ -9,6 +10,25 @@ export type CadEditorExportSelection = CadDocumentExportSelection;
 export type CadEditorExportOptions = CadDocumentExportOptions;
 export type CadEditorExportReport = CadDocumentExportReport;
 export type CadEditorExportResult = CadDocumentExportResult;
+
+export interface CadEditorCurveD2 {
+  kind: 'curve'; query: 'derivatives'; reference: CadGeometryReferenceV0;
+  parameter: number; result: CurveD2Result;
+}
+export interface CadEditorSurfaceD2 {
+  kind: 'surface'; query: 'derivatives'; reference: CadGeometryReferenceV0;
+  u: number; v: number; result: SurfaceD2Result;
+}
+export interface CadEditorCurveCurvature {
+  kind: 'curve'; query: 'curvature'; reference: CadGeometryReferenceV0;
+  parameter: number; result: CurveCurvatureResult;
+}
+export interface CadEditorSurfaceCurvature {
+  kind: 'surface'; query: 'curvature'; reference: CadGeometryReferenceV0;
+  u: number; v: number; result: SurfaceCurvatureResult;
+}
+export type CadEditorGeometryAnalysisResult = CadEditorCurveD2 | CadEditorSurfaceD2
+  | CadEditorCurveCurvature | CadEditorSurfaceCurvature;
 
 export type CadEditorDiagnosticCode = 'INPUT' | 'UNSUPPORTED' | 'BUDGET' | 'STALE' | 'NATIVE' | 'DISPLAY' | 'FILE' | 'REVISION' | 'LIFECYCLE';
 export class CadEditorError extends Error {
@@ -63,6 +83,10 @@ export interface CadEditorSession {
   getExportCapabilities(): CadEditorExportCapability[];
   inspectExport(options: CadEditorExportOptions): CadEditorExportReport;
   exportAccepted(options: CadEditorExportOptions): CadEditorExportResult;
+  inspectCurveD2(reference: CadGeometryReferenceV0, parameter: number): CadEditorCurveD2;
+  inspectSurfaceD2(reference: CadGeometryReferenceV0, u: number, v: number): CadEditorSurfaceD2;
+  inspectCurveCurvature(reference: CadGeometryReferenceV0, parameter: number): CadEditorCurveCurvature;
+  inspectSurfaceCurvature(reference: CadGeometryReferenceV0, u: number, v: number): CadEditorSurfaceCurvature;
   subscribe(listener: () => void): () => void;
   requestSelection(target: CadEditorSelectionTarget): CadEditorSelectionTransition | null;
   resolveSelectionTransition(token: string, choice: 'apply' | 'discard' | 'cancel'): CadEditorCandidate | null;

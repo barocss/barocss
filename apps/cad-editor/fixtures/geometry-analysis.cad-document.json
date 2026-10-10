@@ -1,0 +1,102 @@
+{
+  "schema": "barocss-cad-document",
+  "version": 1,
+  "profile": "direct-geometry",
+  "documentId": "cad_geometry_analysis",
+  "revision": 7,
+  "units": {
+    "length": "mm",
+    "angle": "rad"
+  },
+  "nativeFrame": "authored-xyz-no-axis-conversion",
+  "assets": [
+    {
+      "id": "circle_asset",
+      "revision": 2,
+      "role": "authored-native-source",
+      "sourceVersion": 0,
+      "sourceFrame": "authored-xyz-no-axis-conversion",
+      "source": "@model curvature_circle {\n  version: 0;\n  length-unit: mm;\n  @curve #original_circle {\n    type: nurbs;\n    degree: 2;\n    knots: [2,2,2,6,6,6];\n    control-points: [[2,-0,0],[2,2,0],[0,2,0]];\n    weights: [1,0.7071067811865476,1];\n  }\n  /* 이 원본 형제 객체와 signed zero를 유지합니다. */\n  @curve #straight_line { type:nurbs; degree:1; knots:[-0,-0,1,1]; control-points:[[3,-0,0],[4,1,0]]; weights:[1,1]; }\n}\n"
+    },
+    {
+      "id": "saddle_asset",
+      "revision": 3,
+      "role": "authored-native-source",
+      "sourceVersion": 0,
+      "sourceFrame": "authored-xyz-no-axis-conversion",
+      "source": "@model original_saddle_model {\n  version:0; length-unit:mm;\n  /* Direct authored coefficients; retain spelling/comments and siblings. */\n  @surface #original_saddle {\n    type:nurbs; degree-u:1; degree-v:1;\n    knots-u:[-2,-2,2,2]; knots-v:[10,10,14,14];\n    control-points:[[[0.00,-0,0.000],[0,2,0]],[[2,0,0],[2,2,2]]]; weights:[[1,1],[1,1]];\n  }\n  @surface #reference_plane { type:nurbs; degree-u:1; degree-v:1; knots-u:[0,0,1,1]; knots-v:[0,0,1,1]; control-points:[[[3,-0,0],[3,2,0]],[[5,0,0],[5,2,0]]]; weights:[[1,1],[1,1]]; }\n}\n"
+    },
+    {
+      "id": "continuity_asset",
+      "revision": 4,
+      "role": "authored-native-source",
+      "sourceVersion": 0,
+      "sourceFrame": "authored-xyz-no-axis-conversion",
+      "source": "@model original_c1_model { version:0; length-unit:mm;\n  @curve #c1_curve { type:nurbs; degree:2; knots:[0,0,0,1,2,2,2]; control-points:[[-1,-0,0],[0,1,0],[1,1,0],[2,0,0]]; weights:[1,1,1,1]; }\n  @curve #constant_curve { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[5,-0,1],[5,-0,1]]; weights:[1,1]; }\n}\n"
+    },
+    {
+      "id": "hidden_asset",
+      "revision": 5,
+      "role": "authored-native-source",
+      "sourceVersion": 0,
+      "sourceFrame": "authored-xyz-no-axis-conversion",
+      "source": "@model hidden_original_model { version:0; length-unit:mm;\n  @curve #original_circle { type:nurbs; degree:5; knots:[-1,-1,-1,-1,-1,-1,1,1,1,1,1,1]; control-points:[[10,-0,0],[11,0,0],[12,0,0],[13,0,0],[14,0,0],[15,0,0]]; weights:[1,1,1,1,1,1]; }\n}\n"
+    }
+  ],
+  "bodies": [
+    {
+      "id": "circle_body",
+      "name": "Quarter circle",
+      "kind": "direct-geometry-object",
+      "assetId": "circle_asset",
+      "geometryId": "original_circle"
+    },
+    {
+      "id": "straight_body",
+      "name": "Straight reference",
+      "kind": "direct-geometry-object",
+      "assetId": "circle_asset",
+      "geometryId": "straight_line"
+    },
+    {
+      "id": "constant_body",
+      "name": "Stationary reference",
+      "kind": "direct-geometry-object",
+      "assetId": "continuity_asset",
+      "geometryId": "constant_curve"
+    },
+    {
+      "id": "saddle_body",
+      "name": "Saddle surface",
+      "kind": "direct-geometry-object",
+      "assetId": "saddle_asset",
+      "geometryId": "original_saddle"
+    },
+    {
+      "id": "plane_body",
+      "name": "Reference plane",
+      "kind": "direct-geometry-object",
+      "assetId": "saddle_asset",
+      "geometryId": "reference_plane"
+    },
+    {
+      "id": "c1_body",
+      "name": "Joined curve",
+      "kind": "direct-geometry-object",
+      "assetId": "continuity_asset",
+      "geometryId": "c1_curve"
+    },
+    {
+      "id": "hidden_body",
+      "name": "Hidden degree-five reference",
+      "kind": "direct-geometry-object",
+      "assetId": "hidden_asset",
+      "geometryId": "original_circle"
+    }
+  ],
+  "features": [],
+  "parameters": [],
+  "constraints": [],
+  "placements": [],
+  "derivedCaches": []
+}

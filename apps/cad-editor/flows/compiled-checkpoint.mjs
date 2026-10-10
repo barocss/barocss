@@ -196,9 +196,9 @@ export async function prepareCompiledCheckpoint({ repo, evidence }) {
 
     const consumerPath = resolve(checkpoint, 'published-consumer.tsx');
     await writeFile(consumerPath, `import { editSourceSurfaceControlNet, validateSourceSurfaceControlNetEdit, type SourceSurfaceControlNetResult } from '@barocss/cad';
-import { createCadEditorSession, createCadEditorFeatureSession, type CadEditorCandidate, type CadEditorFeatureSessionOptions, type CadEditorFeatureOutput, type CadEditorFaceCornerBinding, type CadEditorFaceCorner, type CadEditorFeatureProperties, type CadEditorFeaturePropertiesOptions, type CadEditorExportCapability, type CadEditorExportOptions, type CadEditorExportReport, type CadEditorExportResult, type CadEditorExportSelection } from '@barocss/cad-editor';
-import { CadEditor, CadEditorFeature, CadEditorExportReview, type CadEditorExportReviewProps, type CadEditorProps, type CadEditorFeatureProps } from '@barocss/cad-editor/react';
-import { parseCadDocument, parseBooleanExtrusionFeatureGraph } from '@barocss/cad';
+import { createCadEditorSession, createCadEditorFeatureSession, type CadEditorCandidate, type CadEditorFeatureSessionOptions, type CadEditorFeatureOutput, type CadEditorFaceCornerBinding, type CadEditorFaceCorner, type CadEditorFeatureProperties, type CadEditorFeaturePropertiesOptions, type CadEditorExportCapability, type CadEditorExportOptions, type CadEditorExportReport, type CadEditorExportResult, type CadEditorExportSelection, type CadEditorCurveD2, type CadEditorSurfaceD2, type CadEditorCurveCurvature, type CadEditorSurfaceCurvature, type CadEditorGeometryAnalysisResult } from '@barocss/cad-editor';
+import { CadEditor, CadEditorFeature, CadEditorExportReview, CadEditorGeometryAnalysis, type CadEditorGeometryAnalysisProps, type CadEditorExportReviewProps, type CadEditorProps, type CadEditorFeatureProps } from '@barocss/cad-editor/react';
+import { parseCadDocument, parseBooleanExtrusionFeatureGraph, type CadGeometryReferenceV0 } from '@barocss/cad';
 const session = createCadEditorSession(parseCadDocument('{}').document);
 const props: CadEditorProps = { session, displayOptions: { viewer: {mmToSceneUnit:0.01,background:[0.07,0.08,0.10]}, document: {basis:'authored-xyz-matches-rhyup',native:{sourceVersion:0,countU:17,countV:17,unitsPerMillimeter:1,curveDisplay:{chordToleranceMM:0.1,maxSegments:64,maxDepth:8}},bodyIds:['surface_body','curve_body']} }, onDisplay: receipt => {const index:number = receipt.readIndex; const hash:string = receipt.pixelHash;}, onAccepted: accepted => {const generation:number=accepted.generation;} };
 const element = <CadEditor {...props}/>;
@@ -209,6 +209,14 @@ const exportReport:CadEditorExportReport=session.inspectExport(exportOptions);
 const exportResult:CadEditorExportResult=session.exportAccepted(exportOptions);
 const exportProps:CadEditorExportReviewProps={session,onReview:result=>{if(result){const text:string=result.iges;const revision:number=result.report.documentRevision;}},onError:error=>{const field:string|undefined=error.context.field;},onDownload:(result,kind)=>{const action:'iges'|'report'=kind;const output:string=result.iges;}};
 const exportElement=<CadEditorExportReview {...exportProps}/>;
+declare const analysisReference:CadGeometryReferenceV0;
+const curveD2:CadEditorCurveD2=session.inspectCurveD2(analysisReference,4);
+const surfaceD2:CadEditorSurfaceD2=session.inspectSurfaceD2(analysisReference,0,12);
+const curveCurvature:CadEditorCurveCurvature=session.inspectCurveCurvature(analysisReference,4);
+const surfaceCurvature:CadEditorSurfaceCurvature=session.inspectSurfaceCurvature(analysisReference,0,12);
+const analysisProps:CadEditorGeometryAnalysisProps={session,onAnalysis:result=>{if(result){const value:CadEditorGeometryAnalysisResult=result;const revision:number=result.reference.documentRevision;}},onError:error=>{const field:string|undefined=error.context.field;}};
+const analysisElement=<CadEditorGeometryAnalysis {...analysisProps}/>;
+const propsWithAnalysis:CadEditorProps={...props,onAnalysis:analysisProps.onAnalysis};
 const candidate: CadEditorCandidate | null = session.prepareApply();
 const decision = session.requestSelection({bodyId:'surface_body',uIndex:1,vIndex:1});
 if (decision) session.resolveSelectionTransition(decision.token, 'cancel');

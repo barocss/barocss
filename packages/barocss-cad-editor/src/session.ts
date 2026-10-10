@@ -1,11 +1,12 @@
 import {
   CadReferenceDiagnosticCode, CadReferenceError,
   createCadDocument, createCadGeometryReference, editSourceSurfaceControlNet,
+  evaluateCurveD2, evaluateSurfaceD2, evaluateCurveCurvature, evaluateSurfaceCurvature,
   exportCadDocument, getCadDocumentExportCapabilities, inspectCadDocumentExport,
   parseCadDocument, resolveCadGeometryReference, serializeCadDocument,
   validateCadDocumentResult, validateSourceSurfaceControlNetEdit,
 } from '@barocss/cad';
-import type { CadDocumentResult, CadDocumentV1, SurfacePoleEdit } from '@barocss/cad';
+import type { CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, SurfacePoleEdit } from '@barocss/cad';
 import { CadEditorError } from './types.js';
 import type {
   CadEditorCandidate, CadEditorDiagnosticCode, CadEditorPoleField, CadEditorSelectedPole,
@@ -315,6 +316,24 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     return prepare('apply', result, edited.edit.provenance, undefined, transition ?? undefined);
   };
 
+  const resolveAnalysis = (reference: CadGeometryReferenceV0) => {
+    live();
+    return native(() => resolveCadGeometryReference(accepted, reference), 'Native geometry analysis reference refused.',
+      accepted.document.documentId, { field: 'geometry-analysis' });
+  };
+  const resolveCurveAnalysis = (reference: CadGeometryReferenceV0) => {
+    const resolved = resolveAnalysis(reference);
+    requireEditor(resolved.geometry.kind === 'curve', 'UNSUPPORTED', 'Select an original Curve for this query.',
+      { documentId: accepted.document.documentId, bodyId: resolved.reference.bodyId, field: 'geometry-analysis' });
+    return { reference: resolved.reference, geometry: resolved.geometry };
+  };
+  const resolveSurfaceAnalysis = (reference: CadGeometryReferenceV0) => {
+    const resolved = resolveAnalysis(reference);
+    requireEditor(resolved.geometry.kind === 'surface', 'UNSUPPORTED', 'Select an original Surface for this query.',
+      { documentId: accepted.document.documentId, bodyId: resolved.reference.bodyId, field: 'geometry-analysis' });
+    return { reference: resolved.reference, geometry: resolved.geometry };
+  };
+
   return {
     getSnapshot: snapshot,
     getExportCapabilities() {
@@ -331,6 +350,30 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       live();
       return copy(native(() => exportCadDocument(accepted, exportOptions), 'Native accepted document export failed.',
         accepted.document.documentId, { field: 'document-export' }));
+    },
+    inspectCurveD2(reference, parameter) {
+      const resolved = resolveCurveAnalysis(reference);
+      const result = native(() => evaluateCurveD2(resolved.geometry, parameter), 'Native Curve derivatives refused.',
+        accepted.document.documentId, { bodyId: resolved.reference.bodyId, field: 'geometry-analysis' });
+      return copy({ kind: 'curve' as const, query: 'derivatives' as const, reference: resolved.reference, parameter, result });
+    },
+    inspectSurfaceD2(reference, u, v) {
+      const resolved = resolveSurfaceAnalysis(reference);
+      const result = native(() => evaluateSurfaceD2(resolved.geometry, u, v), 'Native Surface derivatives refused.',
+        accepted.document.documentId, { bodyId: resolved.reference.bodyId, field: 'geometry-analysis' });
+      return copy({ kind: 'surface' as const, query: 'derivatives' as const, reference: resolved.reference, u, v, result });
+    },
+    inspectCurveCurvature(reference, parameter) {
+      const resolved = resolveCurveAnalysis(reference);
+      const result = native(() => evaluateCurveCurvature(resolved.geometry, parameter), 'Native Curve curvature refused.',
+        accepted.document.documentId, { bodyId: resolved.reference.bodyId, field: 'geometry-analysis' });
+      return copy({ kind: 'curve' as const, query: 'curvature' as const, reference: resolved.reference, parameter, result });
+    },
+    inspectSurfaceCurvature(reference, u, v) {
+      const resolved = resolveSurfaceAnalysis(reference);
+      const result = native(() => evaluateSurfaceCurvature(resolved.geometry, u, v), 'Native Surface curvature refused.',
+        accepted.document.documentId, { bodyId: resolved.reference.bodyId, field: 'geometry-analysis' });
+      return copy({ kind: 'surface' as const, query: 'curvature' as const, reference: resolved.reference, u, v, result });
     },
     subscribe(listener) {
       live(); requireEditor(typeof listener === 'function', 'INPUT', 'A subscription listener is required.');
