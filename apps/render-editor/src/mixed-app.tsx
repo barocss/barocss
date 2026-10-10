@@ -83,8 +83,15 @@ function errorCode(error: Error): string | null {
   return 'code' in error && typeof error.code === 'string' ? error.code : null;
 }
 
+function sphereCameraConstraint(error: Error): boolean {
+  if (errorCode(error) !== 'GPU' || !(error.cause instanceof Error) || error.cause.name !== 'MixedDepthError') return false;
+  const code = Object.getOwnPropertyDescriptor(error.cause, 'code');
+  return Boolean(code && 'value' in code && code.value === 'CAMERA');
+}
+
 function errorCopy(error: Error, operation: ErrorOperation, presentedRevision: number | null, previewFailure: boolean): string {
   const code = errorCode(error);
+  if (operation === 'edit' && !previewFailure && sphereCameraConstraint(error)) return 'The Sphere does not fit this camera view. Reduce its radius, move it, or adjust the camera, then Apply.';
   if (operation === 'duplicate') {
     if (previewFailure && presentedRevision === null) return 'The scene could not be duplicated. Your original scene is kept. Cancel, restore the preview, then try Duplicate again.';
     if (previewFailure) return 'The scene could not be duplicated. The previous scene is still shown. Try Duplicate again.';
@@ -163,7 +170,7 @@ function CameraControlsHelp() {
 }
 
 function SpherePropertiesHelp() {
-  return <div className="space-y-3 text-sm text-muted-foreground"><p>Select Sphere to edit Radius, Position X/Y/Z in scene units, and an opaque hexadecimal Color. Fields come from the current Scene source, including its effective defaults and style rules. Use #rgb or #rrggbb for Color.</p><p>Radius must be positive and no greater than 1000. Each position must be finite and from -1000 to 1000. Fields accept up to 256 text characters. Incomplete or refused input stays as typed. Correct it before Apply.</p><p>Properties remain drafts until the complete Apply succeeds. A hidden invalid Sphere field still blocks Apply, file transitions, and camera Use view. Use Edit Sphere properties in Diagnostics to reveal and focus the field needing correction.</p><p>Editing Scene source explicitly replaces the Sphere field drafts. Invalid source disables these controls; Edit source remains the correction path. Discard and applied document changes refresh properties from the source. Unrelated camera, title, and native drafts do not replace field text.</p><p>Sphere Position edits original scene-source placement. Native Surface Position changes its display only. The existing object ID, native model, weights, camera, and display settings stay unchanged by Sphere edits. This profile still contains one Sphere and one Surface.</p><p>Help and selection keep drafts and the preview unchanged. Save keeps accepted source text; fresh Open reads effective properties again. An equivalent valid numeric spelling may stay after Discard if it made no authored change.</p></div>;
+  return <div className="space-y-3 text-sm text-muted-foreground"><p>Select Sphere to edit Radius, Position X/Y/Z in scene units, and an opaque hexadecimal Color. Fields come from the current Scene source, including its effective defaults and style rules. Use #rgb or #rrggbb for Color.</p><p>Radius must be positive and no greater than 1000. Each position must be finite and from -1000 to 1000. Fields accept up to 256 text characters. Incomplete or refused input stays as typed. Correct it before Apply.</p><p>Values within the field limits can still be refused by the camera view. Reduce the Sphere radius, change its Position, or adjust the camera if the Sphere enters or clips the view.</p><p>Properties remain drafts until the complete Apply succeeds. A hidden invalid Sphere field still blocks Apply, file transitions, and camera Use view. Use Edit Sphere properties in Diagnostics to reveal and focus the field needing correction.</p><p>Editing Scene source explicitly replaces the Sphere field drafts. Invalid source disables these controls; Edit source remains the correction path. Discard and applied document changes refresh properties from the source. Unrelated camera, title, and native drafts do not replace field text.</p><p>Sphere Position edits original scene-source placement. Native Surface Position changes its display only. The existing object ID, native model, weights, camera, and display settings stay unchanged by Sphere edits. This profile still contains one Sphere and one Surface.</p><p>Help and selection keep drafts and the preview unchanged. Save keeps accepted source text; fresh Open reads effective properties again. An equivalent valid numeric spelling may stay after Discard if it made no authored change.</p></div>;
 }
 
 function createAppState() {
