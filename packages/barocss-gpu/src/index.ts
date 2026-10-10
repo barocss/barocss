@@ -131,3 +131,6 @@ export type { BoxGeometrySourceV0, PreparedBoxGeometry } from './box-geometry.js
 
 export { preparePlaneGeometry } from './plane-geometry.js';
 export type { PlaneGeometrySourceV0, PreparedPlaneGeometry } from './plane-geometry.js';
+
+export { prepareSphereGeometry } from './sphere-geometry.js';
+export type { SphereGeometrySourceV0, PreparedSphereGeometry } from './sphere-geometry.js';

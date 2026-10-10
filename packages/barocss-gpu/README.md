@@ -2280,3 +2280,37 @@ publication retain their separate contracts.
 `examples/gpu-scene/plane-geometry-flow.mjs --output <fresh-directory>` covers
 source/emitted APIs, original parameters/files, shared scene instances,
 source-coordinate ray queries, bounded refusals and cold reconstruction.
+
+## Original indexed Sphere geometry
+
+`prepareSphereGeometry(input)` accepts exact original parameters:
+`{format:'barocss-gpu-sphere-geometry',version:0,id,coordinateSystem:'right-handed-y-up',positionUnit:'scene',radius,longitudeSegments,latitudeSegments}`.
+The finite radius satisfies `0 < radius <= 1000` in scene units. Longitude
+segments are integers from 3 to 128; latitude segments from 2 to 128.
+The sphere is centred at the origin, with its poles on the Y axis.
+
+Frozen `{source,prepared}` keeps original parameters and independently generated
+Number geometry. One existing `prepareTriangleGeometry` call creates mutable
+Float32 attributes and Uint16 execution indices. Interior rings use
+`theta=PI*(j/H)`, `phi=(2*PI)*(i/W)`, radial normal
+`[sin(theta)*cos(phi),cos(theta),sin(theta)*sin(phi)]`, position `radius*normal`
+and UV `[i/W,1-j/H]`. The final longitude copies the first position and normal
+exactly with U=1. Each sector has independent exact pole position/normal and
+UV `[(i+.5)/W,1 or 0]`. Radial normals remain distinct from facet normals.
+
+Vertex order is all interior rings, then north poles, then south poles.
+Outward CCW top fans precede middle cells and bottom fans; no degenerate pole
+quads are emitted. Counts are `(H-1)*(W+1)+2*W` vertices and `2*W*(H-1)`
+triangles, capped at 16,639 vertices, 32,512 triangles and 727,520 typed bytes.
+Parameters are admitted before generation. Existing `TriangleGeometryError`
+codes and original/F32 range, area, normal and collapse checks remain; tiny
+positive radii can refuse. Calls and input records share no mutable arrays.
+
+Original trig and Float32 values are executed approximations. Bounds describe
+sampled vertices, not an exact analytic sphere enclosure. This generic mesh
+does not replace SDF Sphere or native CAD identity, certify tessellation error
+or establish renderer, pixel, resource, performance or publication support.
+
+`examples/gpu-scene/sphere-geometry-flow.mjs --output <fresh-directory>` checks
+source/emitted APIs, seam/pole ownership, shared scene instances, copied buffers,
+refusals and original files with cold reconstruction.
