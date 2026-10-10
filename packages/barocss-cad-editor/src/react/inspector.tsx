@@ -68,6 +68,8 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
   const transition = snapshot.selectionTransition;
   const busy = candidate !== null || snapshot.disposed;
   const capability = snapshot.bodyCapabilities.find(body => body.bodyId === snapshot.selectedBodyId);
+  const selectedBody = accepted.document.bodies.find(body => body.id === snapshot.selectedBodyId);
+  const selectedKind = accepted.bodyBindings.find(body => body.bodyId === snapshot.selectedBodyId)?.geometryKind;
   const canEdit = selection !== null ? capability?.canEditSurfacePole === true && snapshot.view.kind === 'document'
     : curveSelection !== null && capability?.canEditCurvePole === true && snapshot.view.kind === 'curve-focus' && snapshot.view.bodyId === curveSelection.bodyId;
   useEffect(() => {
@@ -127,7 +129,8 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
               <p>Focus Curve and Return to document view are explicit display-only changes. They retain source, history, native draft and download state. Return loads the current accepted document with its retained canonical display subset and camera; a refused return keeps the focused view.</p>
               <p>Focused display has no Viewer document or document-body bindings. Its copied receipt separately qualifies the actual canonical body, asset, complete source Model and original Curve. Uniform samples are derived observations, not certified adaptive tessellation or geometric accuracy.</p>
               <p>Drag an original point handle in the current camera-facing plane. The pending handle and control polygon are a distinct ghost; the accepted Curve stays unchanged until pointer release prepares one actual Apply. Escape or pointer cancellation restores only the gesture-owned draft and previous point. A refused change keeps corrective raw values.</p>
-              <p>Control handles can be offscreen or visually overlap. Use the Point selector and exact XYZ/weight fields in that case. Handles are approximate overlays, not certified topology picks. Axis gizmos, snapping, live whole-shape preview and Surface control-net dragging are not included.</p>
+              <p>In document view, an editable, displayed Surface has handles for its original controlPoints[u][v] and U/V grid edges. Drag a point in the current camera-facing plane. The pending net is a distinct ghost; the accepted Surface and frame stay unchanged until release prepares one actual native Apply. A successful change adds one history step. Weight stays unchanged. Escape or pointer cancellation restores only the gesture-owned draft and previous U/V selection. A refused change keeps corrective raw values.</p>
+              <p>Control handles can be offscreen or visually overlap. Use the exact U/V selectors for a Surface or the Point selector for a Curve, then use the XYZ/weight fields. Surface and Curve handles represent original native coefficients, not mesh samples. They are approximate overlays, not certified topology picks. Axis gizmos, snapping and live whole-shape preview are not included.</p>
             </section>
             <section><h3>Complete source preservation</h3>
               <p>Apply uses the native source-preserving edit provider's complete result.source and result.model. The source keeps untouched spelling, whitespace and comments. The Model keeps its name, object order, native IDs and sibling objects. Only the requested coordinate or weight literals change.</p>
@@ -152,6 +155,7 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
               <p>Outside text fields, Cmd/Ctrl+Z undoes a change. Shift+Cmd/Ctrl+Z and Ctrl+Y redo it. Apply or discard pending values before using these shortcuts. Text fields keep the browser text undo.</p>
               <p>Escape in the selection decision cancels the selection change. Escape in the viewport keeps the selected object and camera.</p>
               <p>Click a displayed object to select it. Drag to orbit or Shift-drag to pan without changing selection. Fit Document uses the native bounds of the displayed set; Fit Selected uses the displayed selected body's native bounds.</p>
+              <p>Front looks from +Z, Right from +X, Top from +Y and Isometric from +XYZ in the actual right-handed, Y-up display basis. These are perspective views. They preserve the current camera target and distance. View buttons are disabled while a draft, candidate or selection decision is active.</p>
             </section>
             {selection && <details className="cad-editor-source">
               <summary className="cad-editor-source-title">Original native coefficients and binding</summary>
@@ -222,7 +226,12 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
         </div>
       </DialogContent>
     </Dialog>
-    <div className="cad-editor-field">
+    <div className="cad-editor-object-context">
+      <span className="cad-editor-context-label">Selected object</span>
+      <h3 title={selectedBody?.name}>{selectedBody?.name ?? 'No object selected'}</h3>
+      {selectedKind && <p>{selectedKind === 'surface' ? 'Surface' : 'Curve'} · XYZ / mm{selection && <span>U {selection.uIndex} · V {selection.vIndex}</span>}{curveSelection && <span>Point {curveSelection.index + 1}</span>}</p>}
+    </div>
+    <div className="cad-editor-field cad-editor-object-field">
       <Label htmlFor={`${id}-body`}>Object</Label>
       <select id={`${id}-body`} value={snapshot.selectedBodyId ?? ''} disabled={busy || accepted.document.bodies.length === 0}
         data-testid="cad-editor-body" onChange={event => action(() => session.requestSelection({ bodyId: event.target.value }))}>
@@ -272,6 +281,7 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
       {FIELDS.map(({ field, label }) => <div className="cad-editor-field" key={field}>
         <Label htmlFor={`${id}-${field}`}>{label}</Label>
         <Input id={`${id}-${field}`} type="text" inputMode="decimal" disabled={busy || !canEdit}
+          className={Object.hasOwn(pending, field) ? 'cad-editor-pending-input' : undefined}
           value={pending[field] ?? numberText(pole.accepted[field])} data-testid={`cad-editor-${field}`}
           onFocus={event => { lastFieldRef.current = event.currentTarget; }}
           onCompositionStart={() => { composingFieldsRef.current.add(field); }}
@@ -302,6 +312,6 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
     </> : <p role="status" data-testid={snapshot.selectedBodyId === null ? undefined : 'cad-editor-readonly-curve'}>{snapshot.selectedBodyId === null
       ? 'Select a Surface or Curve to inspect its control points.' : 'Control point inspection is unavailable for this object.'}</p>}
     {errorMessage && <p className="cad-editor-error" role="alert">{errorMessage}</p>}
-    <CadEditorGeometryAnalysis session={session} onAnalysis={onAnalysis} onLength={onLength} onError={onError} />
+    <div className="cad-editor-secondary-analysis"><CadEditorGeometryAnalysis session={session} onAnalysis={onAnalysis} onLength={onLength} onError={onError} /></div>
   </aside>;
 }

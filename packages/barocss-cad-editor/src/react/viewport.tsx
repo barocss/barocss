@@ -10,6 +10,7 @@ import type { CadEditorDisplayOptions, CadEditorDisplayReceipt, CadEditorCurveFo
 import { prepareFocusedCurve } from './curve-focus.js';
 import type { FocusedCurveBinding } from './curve-focus.js';
 import { CurvePoleHandles } from './curve-pole-handles.js';
+import { SurfacePoleHandles } from './surface-pole-handles.js';
 
 interface MountedViewer {
   viewer: Viewer;
@@ -137,6 +138,8 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
   const [ready, setReady] = useState(false);
   const [focusedReceipt, setFocusedReceipt] = useState<CadEditorCurveFocusReceipt | null>(null);
 
+  const [documentReceipt, setDocumentReceipt] = useState<CadEditorDisplayReceipt | null>(null);
+
   function report(cause: unknown, detail: string) {
     const error = cause instanceof CadEditorError ? cause
       : new CadEditorError('DISPLAY', `${detail}: ${cause instanceof Error ? cause.message : 'operation refused'}`, {}, cause);
@@ -144,7 +147,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     const status = mounted?.viewer.getState().status;
     const unavailable = status === 'context-lost' || status === 'unavailable' || detail === 'Restoring the accepted frame failed' || error.context.field === 'restore-frame';
     if (mounted && unavailable) {
-      mounted.unavailable = true; setReady(false); setFocusedReceipt(null);
+      mounted.unavailable = true; setReady(false); setFocusedReceipt(null); setDocumentReceipt(null);
       try { propsRef.current.onCurveDisplay?.(null); } catch { /* No stale focused frame is published. */ }
     }
     setErrorMessage(unavailable
@@ -155,6 +158,8 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
           ? 'Select the object from the list. This display point cannot be selected.'
           : detail === 'Fitting the selected body failed'
             ? 'Select a displayed object before fitting it.'
+        : detail === 'Surface point gesture failed' || detail === 'Curve point gesture failed'
+          ? error.message
         : 'Cannot display this change. The current view is retained.');
     try { propsRef.current.onError?.(error); } catch { /* Host callbacks do not change admission. */ }
   }
@@ -167,9 +172,9 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
         checkFocusFrame(receipt, focus);
         const copied: CadEditorCurveFocusReceipt = structuredClone({ ...receipt, ...focus,
           generation: mounted.generation, displayGeneration: mounted.displayGeneration });
-        setFocusedReceipt(copied); propsRef.current.onCurveDisplay?.(structuredClone(copied));
+        setDocumentReceipt(null); setFocusedReceipt(copied); propsRef.current.onCurveDisplay?.(structuredClone(copied));
       } else {
-        setFocusedReceipt(null); propsRef.current.onCurveDisplay?.(null);
+        setDocumentReceipt(structuredClone(receipt)); setFocusedReceipt(null); propsRef.current.onCurveDisplay?.(null);
         if (mounted) mounted.documentCamera = structuredClone(receipt.state.camera);
         propsRef.current.onDisplay?.(structuredClone(receipt));
       }
@@ -489,6 +494,35 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     }
   }, [props.readRequest, session, ready]);
 
+  function changeView(view: 'front'|'right'|'top'|'isometric') {
+    const state = session.getSnapshot(), mounted = mountedRef.current, canvas = canvasRef.current;
+    if (!mounted || !canvas || mounted.unavailable || mounted.admitting || state.candidate
+      || state.selectionTransition || Object.keys(state.pending).length) return;
+    const before = mounted.viewer.getState().camera;
+    const distance = Math.hypot(...before.eye.map((value,index)=>value-before.target[index]));
+    const direction: [number,number,number] = view==='front'?[0,0,1]:view==='right'?[1,0,0]:view==='top'?[0,1,0]:[1,1,1];
+    const length = Math.hypot(...direction);
+    try {
+      mounted.viewer.setView({...before,eye:before.target.map((value,index)=>value+direction[index]*distance/length) as [number,number,number],up:view==='top'?[0,0,-1]:[0,1,0]});
+      notify(displayReceipt(mounted.viewer,canvas,mounted.options.viewer.background,lifecycleRef.current,readIndexRef));
+      setErrorMessage(null);
+    } catch (cause) {
+      try { mounted.viewer.setView(before); notify(displayReceipt(mounted.viewer,canvas,mounted.options.viewer.background,lifecycleRef.current,readIndexRef)); }
+      catch (restoreCause) { report(new CadEditorError('DISPLAY','Restoring the accepted frame failed.',{field:'restore-frame'},restoreCause),'Restoring the accepted frame failed'); return; }
+      report(cause,'Changing the view failed');
+    }
+  }
+  const camera = focusedReceipt?.state.camera ?? documentReceipt?.state.camera;
+  let orientation = 'Custom';
+  if (camera) {
+    const delta = camera.eye.map((value,index)=>value-camera.target[index]);
+    const length = Math.hypot(...delta), d=delta.map(value=>value/length),eps=1e-6;
+    if(Math.abs(d[0])<eps&&Math.abs(d[1])<eps&&d[2]>1-eps)orientation='Front';
+    else if(d[0]>1-eps&&Math.abs(d[1])<eps&&Math.abs(d[2])<eps)orientation='Right';
+    else if(Math.abs(d[0])<eps&&d[1]>1-eps&&Math.abs(d[2])<eps)orientation='Top';
+    else if(d.every(value=>Math.abs(value-1/Math.sqrt(3))<eps))orientation='Isometric';
+  }
+  const viewBusy=!ready||snapshot.candidate!==null||snapshot.selectionTransition!==null||Object.keys(snapshot.pending).length>0;
   return <div className={cn('cad-editor-viewport', className)} data-viewer-ready={ready}>
     <canvas ref={canvasRef} width={640} height={480} tabIndex={0} className="cad-editor-canvas"
       onKeyDownCapture={event => {
@@ -508,6 +542,11 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
         catch (cause) { report(cause, 'Reading the displayed frame failed'); }
       }}
       data-testid="cad-editor-canvas" aria-label="CAD viewport. Drag to orbit. Shift drag to pan. Scroll to zoom. Press F to fit." />
+    <div className="cad-editor-view-tools" role="group" aria-label="Viewport orientation">
+      <span data-testid="viewport-view-status">{orientation} · Perspective</span>
+      {(['front','right','top','isometric'] as const).map(view=><button key={view} type="button" data-view={view} data-testid={'view-'+view} aria-label={view[0].toUpperCase()+view.slice(1)+' view'} aria-pressed={orientation.toLowerCase()===view} disabled={viewBusy} onClick={()=>changeView(view)}>{view==='isometric'?'Iso':view[0].toUpperCase()+view.slice(1)}</button>)}
+    </div>
+    <SurfacePoleHandles session={session} receipt={ready?documentReceipt:null} canvas={canvasRef.current} onError={error=>report(error,'Surface point gesture failed')} />
     {focusedReceipt&&<p className="cad-editor-curve-view-label" data-testid="curve-view-label">Curve focus · {focusedReceipt.bodyName}<span>Other objects remain in document view.</span></p>}
     <CurvePoleHandles session={session} receipt={focusedReceipt} canvas={canvasRef.current} onError={error => report(error, 'Curve point gesture failed')} />
     {errorMessage && <p className="cad-editor-error" role="alert">{errorMessage}</p>}
