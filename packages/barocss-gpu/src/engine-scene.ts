@@ -209,7 +209,7 @@ function numberVector(matrix: ArrayLike<number>, stride: 3 | 4, value: Vec3, tra
 function f32Scalar(value: number): number {
   const result = Math.fround(value);
   check(Number.isFinite(result) && (value === 0 || result !== 0), CODE.REPRESENTATION,
-    'A transformed normal loses nonzero finite Float32 representation'); return result;
+    'A transformed component loses nonzero finite Float32 representation'); return result;
 }
 function f32Vector(matrix: Float32Array, stride: 3 | 4, value: Vec3, translation: boolean): Vec3 {
   return [0, 1, 2].map(row => {
@@ -236,12 +236,14 @@ function transformedBounds(geometry: PreparedTriangleGeometry, world: Matrix4, n
     const originalNormal = geometry.geometry.normals.slice(i, i + 3) as Vec3;
     const point = numberVector(world, 4, originalPoint, true), direction = normalize(numberVector(normal, 3, originalNormal, false), CODE.GEOMETRY);
     check(point.every(n => Number.isFinite(n) && Math.abs(n) <= 1000), CODE.GEOMETRY, 'Original transformed points exceed finite1000 scene bounds');
+    // Encoding underflow differs from rounded arithmetic cancellation. A nominal
+    // zero can leave a tiny Number residual but cancel exactly in the F32 path.
+    point.forEach(f32Scalar); direction.forEach(f32Scalar);
     const pointF32 = f32Vector(worldF32, 4, Array.from(geometry.positions.slice(i, i + 3)) as Vec3, true);
     const rawNormalF32 = f32Vector(normalF32, 3, Array.from(geometry.normals.slice(i, i + 3)) as Vec3, false);
     const directionF32 = normalize(rawNormalF32, CODE.REPRESENTATION).map(f32Scalar) as Vec3;
-    check(pointF32.every((n, axis) => Number.isFinite(n) && Math.abs(n) <= 1000 && (point[axis] === 0 || n !== 0)), CODE.REPRESENTATION,
-      'Float32 transformed points lose nonzero data or exceed scene bounds');
-    check(directionF32.every((n, axis) => direction[axis] === 0 || n !== 0), CODE.REPRESENTATION, 'Float32 transformed normals lose nonzero data');
+    check(pointF32.every(n => Number.isFinite(n) && Math.abs(n) <= 1000), CODE.REPRESENTATION,
+      'Float32 transformed points exceed finite scene bounds');
     positions.push(...point); normals.push(...direction);
     for (let axis = 0; axis < 3; axis++) {
       min[axis] = Math.min(min[axis], point[axis]); max[axis] = Math.max(max[axis], point[axis]);
