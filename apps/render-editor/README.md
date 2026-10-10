@@ -39,7 +39,7 @@ The mixed app owns the same shadcn File/Edit/Workspace/Help shell, project route
 
 Native file size is checked against 524288 bytes before `File.text()`. A late read is refused when the session snapshot or project changes. Open adds a project only after the real controller accepts and presents it. Save downloads `.render-mixed.json`; fresh Open reconstructs the complete mixed frame from authored data. Version 0 scene files use the source editor and are refused here.
 
-Projects stay in this tab. Save a file before closing. Notices and optional Details overlay the workbench without resizing the preview. The module owns preview and draft diagnostic notices. Restore preview is offered only when the display is unavailable and the controller is live. No precise picking, materials, Physics, per-asset placement, or broader mixed shape support is claimed.
+Projects stay in this tab. Save a file before closing. Notices and optional Details overlay the workbench without resizing the preview. The module owns preview and draft diagnostic notices. Restore preview is offered only when the display is unavailable and the controller is live. No precise picking, materials, Physics, independent poses for multiple assets, or broader mixed shape support is claimed.
 
 The mixed app keeps the file/guard/error/revision selectors described above and adds `render-mixed-editor-app`, `project-surface_study`, and `project-rational_panel`. Accepted and displayed numeric revisions remain in `data-revision`. Use an isolated strict port override for the mixed native flow; the existing 52047 source-editor preview remains unchanged.
 
@@ -50,3 +50,12 @@ Use File→Import CAD source or the Import CAD source button in the mixed app. C
 Use the Native asset Surface selector to change the displayed Surface from the original source; the complete model remains stored. Save stores all original text/objects and the selected reference. Fresh Open rebuilds the selected preview. Only one Sphere and one Surface are shown in this profile; native coordinates use mm with one scene conversion. CAD geometry editing and other CAD file formats are separate workflows.
 
 Contextual Help is Help→Native source import or Help in the import dialog. It preserves drafts and selection. Closing menu Help returns focus to Help; closing import returns focus to Import CAD source. Import file/guard errors show a short next step and optional Details. The focused driver uses isolated52051, preserving existing source/mixed author previews.
+
+
+## Surface position
+
+Use Help→Surface position for the native Position X/Y/Z fields in the mixed app. Position uses scene units. Each displayed native point is `original coordinate in mm × current conversion ratio + Position`. Original source coordinates, control points, rational weights, knots, and IDs stay unchanged. This is display placement of the selected Surface.
+
+Each axis requires a complete finite number in `[-1000, 1000]`. Raw minus signs, empty text, invalid numbers, and out-of-range values remain in the fields so the user can correct them. Apply is unavailable while an axis is invalid. The actual transformed Surface must also remain within the admitted bounds; a finite input inside the field range can still be refused by complete scene preparation or display admission. A refusal keeps the applied document and preview under the existing controller rules.
+
+Position remains a draft until Apply succeeds. Closing Help returns focus to the persistent Help menu trigger and keeps the raw X/Y/Z text. Native source import keeps unrelated position drafts. Save/Open/New/project navigation use the existing Apply/Discard/Cancel guard: Apply and continue refuses invalid position data, Cancel keeps the raw fields, and Discard restores the applied position. Save serializes applied authored X/Y/Z only; fresh Open restores those values.
