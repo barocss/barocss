@@ -88,13 +88,17 @@ function submit(message) {
 }
 /** @param {'nearest' | 'linear'} sampling */
 function setSampling(sampling) { active(); sprite.setSampling(sampling); submit(`Sampling ${sampling}`); }
+function stableObservation() {
+  const { contexts: diagnostics, ...stable } = observe();
+  return JSON.stringify(stable);
+}
 function invalid() {
   active();
-  const before = JSON.stringify(observe());
+  const before = stableObservation();
   let code = 'ACCEPTED';
   try { sprite.setSampling(/** @type {'nearest'} */ (/** @type {unknown} */ ('cubic'))); }
   catch (error) { code = /** @type {import('@barocss/canvas2d').Canvas2DError} */ (error).code; }
-  show(`Rejected ${code}; retained ${JSON.stringify(observe()) === before}`);
+  show(`Rejected ${code}; retained ${stableObservation() === before}`);
   return code;
 }
 async function documentText(){return serializeCanvasDocument(accepted,id=>hostAssets.get(id)??null);}
