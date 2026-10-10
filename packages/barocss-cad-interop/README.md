@@ -2953,3 +2953,53 @@ The host demonstrates replacement, genuine refusals, cold source URL loading
 and repeated cleanup while preserving caller resources. The source CPU flow uses
 real Babylon NullEngine objects; actual renderer/frame checks require the headed
 browser. Native completion, local integration and registry publication are separate.
+
+## Inspect original Surface curvature in a Babylon host
+
+`examples/native-surface-curvature-babylon.html` reads six original source,
+query and result files. It loads the complete rational cylinder through the
+public Babylon adapter into a caller-owned right-handed Scene. Original
+Surface coefficients, U/V domains and native data remain available.
+
+Public `evaluateSurfaceCurvature` and `evaluateSurfaceD2` query the accepted
+original Surface. The readout shows original U/V, D2, point in millimetres,
+unit normal, mean and principal curvature in 1/mm, Gaussian curvature in
+1/mm² and the actual numeric policy. Negative zero stays visible. This API
+has no separate whole-result validator. These are local native observations;
+global regularity, Face/Solid orientation and certification have separate
+contracts.
+
+The source0 preview uses grid8 and 0.001 scene units/mm. Its 64 vertices and
+98 triangles retain native U/V data. The example displays a point marker at
+native point × 0.001 and a normal line of declared length0.0008 scene units
+(0.8mm). Marker radius is 0.00008. Magenta point and yellow normal use an
+explicit overlay: rendering group1, depth function ALWAYS and depth writes
+disabled. The source preview and fixed camera keep their original placement.
+
+Four original cylinder queries replace only the two owned annotations.
+Native validation and complete candidate preparation occur before the query
+readout changes. Babylon creates meshes in the caller Scene; candidates are
+disabled during synchronous preparation. Real mesh/material disposal events
+and geometry instance calls track each owned resource. Double cleanup
+releases the preview and annotations once. Independent original source,
+Model and native query data remain readable. Caller Engine, Scene, camera,
+canvas and green marker stay live.
+
+The original sphere has four valid local native queries. Its complete grid8
+preview raises the actual collapsed-triangle refusal. The example retains
+the accepted cylinder and query after this refusal. Invalid U/V, malformed
+native Surface and forged object identity also preserve the accepted state.
+
+Run from a source workspace with Node22 and installed dependencies:
+
+```sh
+node packages/barocss-cad-interop/examples/native-surface-curvature-babylon-verify.mjs --output /tmp/baro-babylon-surface-curvature
+pnpm exec vite --config packages/barocss-cad-interop/examples/native-surface-curvature-babylon.config.mjs --host 127.0.0.1 --port 5202 --strictPort
+```
+
+Open `/packages/barocss-cad-interop/examples/native-surface-curvature-babylon.html`.
+The fixture declares exact hashes for all six copied producer files. Only
+two CAD text data routes serve original disk bytes; public module imports
+use ordinary source resolution. NullEngine verifies native data and resource
+behavior. Actual headed HTTP/WebGL2 pixels, published JavaScript/types,
+packed installation and registry publication each need separate evidence.

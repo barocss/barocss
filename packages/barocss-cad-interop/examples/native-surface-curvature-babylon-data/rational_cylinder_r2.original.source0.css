@@ -1,0 +1,1 @@
+@model cylinder_r2_input { version:0; length-unit:mm; @surface #cylinder_r2 { type:nurbs; degree-u:2; degree-v:1; knots-u:[-3,-3,-3,7,7,7]; knots-v:[2,2,5,5]; control-points:[[[2,0,0],[2,0,3]],[[2,2,0],[2,2,3]],[[0,2,0],[0,2,3]]]; weights:[[1,1],[0.7071067811865476,0.7071067811865476],[1,1]]; } }
