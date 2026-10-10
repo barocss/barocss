@@ -411,6 +411,41 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
 
+  packages/barocss-render-stream:
+    dependencies:
+      '@barocss/render':
+        specifier: 'workspace:*'
+        version: 'link:../barocss-render'
+      '@barocss/server':
+        specifier: 'workspace:*'
+        version: 'link:../barocss-server'
+      'react':
+        specifier: '19.2.3'
+        version: '19.2.3'
+
+  packages/barocss-ui-compiler:
+    dependencies:
+      '@barocss/render':
+        specifier: 'workspace:*'
+        version: 'link:../barocss-render'
+      '@barocss/server':
+        specifier: 'workspace:*'
+        version: 'link:../barocss-server'
+      'esbuild':
+        specifier: '0.25.12'
+        version: '0.25.12'
+      'typescript':
+        specifier: '5.9.3'
+        version: '5.9.3'
+      'react':
+        specifier: '19.2.3'
+        version: '19.2.3'
+      'react-dom':
+        specifier: '19.2.3'
+        version: '19.2.3(react@19.2.3)'
+
+  packages/barocss-ui-runtime: {}
+
 packages:
 
   '@algolia/abtesting@1.2.0':
