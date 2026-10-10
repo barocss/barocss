@@ -1,0 +1,23 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,"><title>BaroCSS independent original Face assets</title>
+<style>:root{font:15px/1.5 system-ui,sans-serif;color-scheme:dark}body{max-width:1100px;margin:24px auto;padding:0 16px;background:#102032;color:#e7f0fa}
+.layout{display:grid;grid-template-columns:minmax(0,640px) minmax(260px,1fr);gap:16px}canvas{display:block;max-width:100%;height:auto;border:1px solid #718da7}
+button,select,input{margin:4px;padding:6px 10px;background:#244462;color:white;border:1px solid #7198bc;border-radius:4px}button:disabled{opacity:.5}
+li{padding:8px;margin-bottom:8px;border:1px solid #56748f;overflow-wrap:anywhere}ul{list-style:none;padding:0}small{display:block}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}}</style></head><body>
+<h1>Independent original Face assets</h1><p>Each source keeps its whole native model, forward Face and UV boundary data.
+Faces share the view depth; this scene does not create a global Shell or Solid.</p>
+<div class="layout"><div><canvas id="view" width="640" height="480" aria-label="Independent source-qualified native Faces"></canvas>
+<label>Assets <select id="asset-count" disabled><option>6</option><option>2</option></select></label>
+<label>Grid U <select id="count-u" disabled><option>17</option><option>9</option><option>2</option></select></label>
+<label>Grid V <select id="count-v" disabled><option>17</option><option>9</option><option>2</option></select></label>
+<button id="load" disabled>Load original Faces</button><button id="interior-edit" disabled>Load original F interior edit</button>
+<button id="mismatch" disabled>Try edit with previous Face</button><button id="reverse" disabled>Reverse asset order</button>
+<label>Color asset <select id="color-asset" disabled></select></label><input id="color" type="color" value="#d959bf" disabled><button id="apply-color" disabled>Apply color</button>
+<button id="saved-view" disabled>Original view</button><button id="orbit" disabled>Turn view</button><button id="pan" disabled>Pan view</button>
+<button id="resize" disabled>Resize view</button><button id="clear" disabled>Clear viewer</button><button id="run-proof" disabled>Run proof</button>
+<button id="lose-context" disabled>Lose context</button><button id="dispose" disabled>Dispose viewer</button>
+<pre id="inspection" aria-label="Read-only original source and Face inspection">Inspect an admitted source from its row.</pre>
+</div><aside><h2>Current source-qualified Faces</h2><ul id="assets"></ul></aside></div>
+<p>Row inspection is read-only source data. Combined fit, picking, selection and extra layers are unavailable.</p>
+<pre id="status" role="status" aria-live="polite">Loading original Face assets…</pre><script type="module" src="/bundle.js"></script></body></html>
