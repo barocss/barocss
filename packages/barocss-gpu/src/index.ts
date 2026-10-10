@@ -134,3 +134,6 @@ export type { PlaneGeometrySourceV0, PreparedPlaneGeometry } from './plane-geome
 
 export { prepareSphereGeometry } from './sphere-geometry.js';
 export type { SphereGeometrySourceV0, PreparedSphereGeometry } from './sphere-geometry.js';
+
+export { preparePrimitiveSceneFrame } from './primitive-frame-preflight.js';
+export type { PrimitiveSceneFrameProfile, PrimitiveSceneCpuFrameV0, PreparedPrimitiveSceneFrameEntry, PreparedPrimitiveSceneFrame } from './primitive-frame-preflight.js';
