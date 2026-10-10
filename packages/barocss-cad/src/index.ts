@@ -58,6 +58,9 @@ export { queryXYPolygonPrismShellWithHoleRay } from './xy-polygon-prism-shell-ho
 export type { XYPolygonPrismHoleShellRayQueryOptions, XYPolygonPrismHoleShellRayFaceRole, XYPolygonPrismHoleShellRayEdgeReference, XYPolygonPrismHoleShellRayHit, XYPolygonPrismHoleShellCoplanarFace, XYPolygonPrismHoleShellRayQueryReport, XYPolygonPrismHoleShellRayQueryResult } from './xy-polygon-prism-shell-hole-ray-query.js';
 export { evaluateXYSketchDocument, updateXYSketchDocument, serializeXYSketchDocument, parseXYSketchDocument } from './xy-sketch-document.js';
 export type { XYSketchAuthoredPoint, XYSketchProfileIntent, XYSketchDocumentV0, XYSketchDocumentEdit, XYSketchPointBinding, XYSketchEvaluatedProfile, XYSketchDocumentReport, XYSketchDocumentResult } from './xy-sketch-document.js';
+
+export { evaluateWorkplaneSketchDocument, updateWorkplaneSketchDocument, validateWorkplaneSketchDocument, serializeWorkplaneSketchDocument, parseWorkplaneSketchDocument, WorkplaneSketchDocumentError, WorkplaneSketchDocumentDiagnosticCode } from './workplane-sketch-document.js';
+export type { WorkplaneSketchFrame, WorkplaneSketchDocumentV0, WorkplaneSketchDocumentEdit, WorkplaneSketchDocumentReport, WorkplaneSketchDocumentResult } from './workplane-sketch-document.js';
 export { evaluateXYArcSketchDocument, updateXYArcSketchDocument, serializeXYArcSketchDocument, parseXYArcSketchDocument } from './xy-arc-sketch-document.js';
 export type { XYArcSketchRadius, XYArcSketchProfileIntent, XYArcSketchDocumentV0, XYArcSketchDocumentEdit, XYArcSketchCurvePointBinding, XYArcSketchBindings, XYArcSketchEvaluatedProfile, XYArcSketchDocumentReport, XYArcSketchDocumentResult } from './xy-arc-sketch-document.js';
 export { buildXYCirclePlanarFace, validateXYCirclePlanarFaceBundle, classifyXYCirclePlanarFacePoint } from './xy-circle-planar-face.js';

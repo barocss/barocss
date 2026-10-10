@@ -8537,3 +8537,72 @@ keep the old owned loft recipe valid or rebind topology/consumer references.
 Live revision handling, geometry/Solid/regularity/global error/manufacturing,
 GPU/Loader/editor adoption, rendering and integrated file recovery remain
 separate requirements. Source0 expressions retain actual compiler refusal.
+
+
+## Authored arbitrary proper workplane Sketch — #1148
+
+`evaluateWorkplaneSketchDocument(document)` retains an actual local XY Sketch
+and regenerates native World-XYZ Curves on a named plane. The distinct version0
+format `barocss-workplane-sketch` contains id/lengthUnit/plane/localSketch/
+worldBindings/limits. Plane id/originMM/uAxis/vAxis/normalAxis are explicit;
+origin is within±10000mm and basis vectors are dimensionless. Original arbitrary
+proper orientations use fixed1e-9 finite norm/dot/positive determinant residual
+admission. Axes are never normalized. This numerical gate is not exact rigidity.
+
+Local intent uses the existing line/polyline/rectangle XY document unchanged.
+Every local profile has an explicit different worldCurveId; targets are unique
+and disjoint from original profile Curve IDs. Old document/point IDs allow64
+characters, but actual local/world Curve IDs must fit48. Providers retain their
+coordinate/parameter10000 and polyline64/127observation bounds. No truncation,
+renaming or old-format reinterpretation is performed.
+
+```js
+const result = cad.evaluateWorkplaneSketchDocument(authored);
+const moved = cad.updateWorkplaneSketchDocument(result.document, {
+  plane: newProperFrame,
+  localEdits: [],
+  worldBindings: null,
+});
+const report = cad.validateWorkplaneSketchDocument(moved);
+const text = cad.serializeWorkplaneSketchDocument(moved.document);
+const cold = cad.parseWorkplaneSketchDocument(text);
+```
+
+Updates validate the whole original wrapper once, call the actual XY updater
+for nonempty edits, then rebuild all world children. Existing world IDs remain
+stable; added/removed profiles require complete explicit binding repair. An
+empty Sketch yields actual empty geometry. No-op preserves authored bits but
+still rebuilds children; no hidden geometry cache or revision store is implied.
+
+The matrix is row-major3x4 with column vectors, using U/V/normal as columns and
+origin as translation. Actual native affine transform and its owned validator
+run for each original local Curve. All degree/knots/weights/domain/pole order,
+original/target coefficients, child source and observation proofs remain.
+Every actual local point binding maps to the same pole/original parameter,
+including the rectangle's closing pole4/parameter4 for its first corner ID.
+Successful tangents and matching native C0 refusals stay in the actual child;
+no tangent is fabricated. Observed plane residual is a sample, not a global bound.
+
+Result fields request/document/local/planeReport/matrix/profiles/
+worldPointBindings/report are independent copies. Owned validation reconstructs
+all original intent/frame/children/source/bindings/refusals/count bits. The
+codec writes authored intent only with literal-0 preservation; bounded JSON
+admission rejects duplicate object keys before the builtin parser. Source output
+belongs to real child transforms and does not replace unseen mixed caller files.
+
+Limits are8profiles/128authored points/8local edits/64polyline points,127child
+observations/1016aggregate observations/136point bindings,4MiBaggregate local
+and child source,262144UTF-16 and UTF-8 authored JSON, copied1Mvalues/depth64.
+Actual local admission remains narrower than the wrapper copy bound. Direct
+orchestration counts exclude inherited local/native child validation work.
+Late child/frame/binding/source/budget failure publishes no partial world data
+and preserves caller inputs; the API does not write files.
+
+```sh
+node examples/cad-nurbs/workplane-sketch-document-demo.mjs --source EVIDENCE_DIR
+```
+
+This implements plane-based native Sketch intent and World Curve regeneration.
+Arc/constraint solving, region/Face/Solid, persistent topology naming, plane-
+attached feature recipes, assembly, live UI/consumer rendering, manufacturing,
+global binary64 bounds and integrated recovery/release remain separate.
