@@ -368,3 +368,6 @@ export type { TranslatedSurfaceBaseFaceOptions, TranslatedSurfaceBaseFaceEdge, T
 
 export { measureTranslatedSurfaceStripVolume, validateTranslatedSurfaceStripVolume, TranslatedSurfaceStripVolumeError, TranslatedSurfaceStripVolumeDiagnosticCode } from './translated-surface-strip-volume.js';
 export type { TranslatedSurfaceStripVolumeOptions, TranslatedSurfaceStripVolumeSpan, TranslatedSurfaceStripVolumeReport, TranslatedSurfaceStripVolumeResult } from './translated-surface-strip-volume.js';
+
+export { buildTranslatedSurfaceEndFaces, validateTranslatedSurfaceEndFaces, TranslatedSurfaceEndFacesError, TranslatedSurfaceEndFacesDiagnosticCode } from './translated-surface-end-faces.js';
+export type { TranslatedSurfaceEndFacesOptions, TranslatedSurfaceEndFace, TranslatedSurfaceEndFacesReport, TranslatedSurfaceEndFacesResult } from './translated-surface-end-faces.js';

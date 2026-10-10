@@ -9024,3 +9024,20 @@ range from 0 to 10 gives 92.5 mm3. A real upper-source Y edit to h5 gives
 650 mm3. Full owned validation rebuilds parents, coefficients, integrals, final
 conversion and native observations. Atomic refusals preserve caller data and
 accepted files. Base and end Face construction remains independent.
+
+### Exact translated Surface end Faces
+
+`buildTranslatedSurfaceEndFaces(lowerWall, upperWall, cap, options)` constructs two real affine U-end Supports and eight oriented boundary Uses from qualified exact walls and their original Plane cap. Validate the copied result with `validateTranslatedSurfaceEndFaces`. The lower wall must be forward, the upper wall reverse and the cap forward; complete source-qualified cap sections must equal the wall sections. Original Surface coefficients must differ by exactly `[0,h,0]`, with `h > 0`, matching native bases/weight bits/new UV geometry and an original Plane normal with `NY = 0`, `NZ > 0`.
+
+Options are exactly `{evaluationId,resultIdPrefix,baseLeftCurveId,baseRightCurveId,maximumParents:3,maximumObservations:24}`. IDs use ASCII1–48, the prefix1–12. The explicit base-Line IDs allow independent closure providers to expose identical lower-to-upper `[0,1]` Curve geometry; this does not share a sewn B-Rep Edge. Main examples use `closure_base_left` and `closure_base_right`.
+
+Each end Support uses original native V from `Vmin` to its actual cut endpoint as its first parameter, and extrusion `[0,1]` as its second. Borrowed World Lines retain their `[0,1]` parameters and directions. New dimensionless UV Lines perform the exact domain map. Umin is forward with Uses R/R/F/R; Umax reverses its complete canonical F/F/R/R loop. Six borrowed Curve relationships have opposite parent Uses, while generated Face Edge IDs remain distinct.
+
+The Model10 source contains two Supports and eight World Curves. Exact original corner/translation, zero mixed bilinear and zero endpoint coefficient proofs certify these two individual embedded Faces. Full parent files and flags remain unchanged. Native D0/D1 comparisons at 24 slots are local observations, with a `1e-7` comparison limit. Arithmetic/copy/native/file limits can still refuse an input atomically. No normalization, rounding, clamping or healing is performed.
+
+This provider does not construct a base Face, shared Body topology, manifold/Solid, occupied volume, outward Solid orientation, general Boolean or manufacturing certificate. A later six-Face Body has 18 geometry objects and needs qualified separate Models under the unchanged 16-object compiler limit. Source/public compiled availability, Integration acceptance and publication are separate.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/translated-surface-end-faces-demo.mjs --source <output-directory>
+```
