@@ -356,3 +356,6 @@ export type { MultiSpanVLinearSurfacePlaneTrimUVQuery, MultiSpanVLinearSurfacePl
 
 export { buildPairedSectionPlaneCap, validatePairedSectionPlaneCap, PairedSectionPlaneCapError, PairedSectionPlaneCapDiagnosticCode } from './paired-section-plane-cap.js';
 export type { PairedSectionPlaneCapOptions, PairedSectionPlaneCapEdge, PairedSectionPlaneCapReport, PairedSectionPlaneCapResult } from './paired-section-plane-cap.js';
+
+export { buildSectionExactSurfaceBinding, validateSectionExactSurfaceBinding, SectionExactSurfaceBindingError, SectionExactSurfaceBindingDiagnosticCode } from './section-exact-surface-binding.js';
+export type { SectionExactSurfaceBindingOptions, SectionExactSurfaceBindingSpanProof, SectionExactSurfaceBindingReport, SectionExactSurfaceBindingResult } from './section-exact-surface-binding.js';
