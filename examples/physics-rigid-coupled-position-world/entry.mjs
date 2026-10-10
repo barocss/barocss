@@ -1,0 +1,12 @@
+export { createPhysicsWorld as createCandidateWorld } from './reference-world.ts';
+export { createPhysicsWorld as createOriginalWorld } from '../../packages/barocss-physics/src/index.js';
+export { PhysicsError } from '../../packages/barocss-physics/src/types.js';
+export { parseBody, copyBody } from '../../packages/barocss-physics/src/validation.js';
+export { FrozenContactIsland, GLOBAL_PHASE_MESSAGE } from './global-island.ts';
+export { runCoupledPositionPhase, solveCoupledProblem, checkedPositionSolution, COUPLED_ERRORS } from './coupled-phase.ts';
+export { freshPositionProblem } from './rows.ts';
+export { zeroCoupledStats } from './phase-types.ts';
+export { solvePosition, PositionReferenceError } from './linear-adapter.mjs';
+export { compatiblePatch } from '../physics-rigid-feature-contact-reference/warm-cache.ts';
+export { featureContact } from '../physics-rigid-feature-geometry/geometry.ts';
+export { adaptContactGeometry } from '../physics-rigid-feature-contact-reference/geometry-adapter.ts';

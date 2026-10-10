@@ -1,0 +1,225 @@
+{
+  "issue": 1264,
+  "base": "201681689d398f8b2a9e3472579076c8f4fa43af",
+  "measuredSource": "ecc4dccc7a50a5753c236647be3b491a4fafd3fa",
+  "sourceFreezeSha256": "155012f4859791f3cdca7ab451ea165cf15e8395df7c5ed007e2aa62a53d43a8",
+  "sourcePins": 356,
+  "emittedPreConsumerSha256": "c92ada2406c62fe6129162c5ad530c0cb4991add32037fee9f0f0e8c26df6441",
+  "emittedFiles": 504,
+  "node": "v22.22.0",
+  "execution": {
+    "originalCADPhysicsBuildExit": 0,
+    "strictTypesExit": 0,
+    "consumerExit": 0,
+    "numericalCampaignCount": 1,
+    "runtimeCorrectionOrTuning": false,
+    "sourceModifiedAfterFreeze": false
+  },
+  "verdict": "NUMERICAL_NO_GO",
+  "baseNumericalGO": false,
+  "fullModelGO": false,
+  "sourceRepeatCompiledParity": true,
+  "refinementExecuted": false,
+  "costMeasured": false,
+  "browserExecuted": false,
+  "publicationPerformed": false,
+  "graphs": [
+    {
+      "graph": "source",
+      "originalSourceCount": 39,
+      "originalDistCount": 0,
+      "privateCandidateIsSource": true,
+      "adoptedLinearSolverIsSource": true,
+      "legacySequentialPositionAbsent": true
+    },
+    {
+      "graph": "source-repeat",
+      "originalSourceCount": 39,
+      "originalDistCount": 0,
+      "privateCandidateIsSource": true,
+      "adoptedLinearSolverIsSource": true,
+      "legacySequentialPositionAbsent": true
+    },
+    {
+      "graph": "compiled-dependencies",
+      "originalSourceCount": 0,
+      "originalDistCount": 19,
+      "privateCandidateIsSource": true,
+      "adoptedLinearSolverIsSource": true,
+      "legacySequentialPositionAbsent": true
+    }
+  ],
+  "scenes": {
+    "ALIGNED": {
+      "firstFailure": {
+        "kind": "independent-quality",
+        "step": 5,
+        "timeSeconds": 0.041666666666666664,
+        "reference": {
+          "ok": true,
+          "metrics": {
+            "maxPairPenetrationM": 0.0034315556403973985,
+            "maxFloorPenetrationM": 0,
+            "maxHalfspaceIntrusionM": 0,
+            "maxQuaternionNormError": 8.565083189563274e-17,
+            "maxHorizontalDriftM": 0.0009575446309856175,
+            "maxVerticalDriftM": null,
+            "maxLinearSpeedMps": 0.24547784441213577,
+            "maxAngularSpeedRadps": 0.16770704564332742,
+            "footprintContained": true,
+            "escapedBelowFloor": false,
+            "nearParallelAxisCount": 0,
+            "overlapWithoutContactCount": 2,
+            "maxTiltRad": 0.0016773356567560814,
+            "referencePrecisionResolved": true
+          },
+          "violations": [
+            "maxPairPenetrationM exceeds 0.002 m"
+          ]
+        }
+      },
+      "acceptedSnapshots": 6,
+      "attemptedSteps": 5,
+      "rowsByAttempt": [
+        8,
+        8,
+        8,
+        8,
+        6
+      ],
+      "acceptedRawBytes": 5616,
+      "acceptedRawSha256": "5a46d2315ccad03bb0463d4c64d7beefb52f0ad5713f2db0b93c33a981ac855f",
+      "workingRawBytes": 4680,
+      "workingRawSha256": "639e7defd200fbabc514e8fba81dbfc1f3f7b14fb4862c7f336bca646b1f7f69",
+      "attemptedAcceptedRawBytes": 4680,
+      "attemptedAcceptedRawSha256": "e88592395ffc7c9131b4275658b84004ad780d889f3abed8ac6aee55c9db8fb8",
+      "coupledIndependentComparisonsPass": true,
+      "maxTranslationM": 0.0034431547814298873
+    },
+    "OFFSET": {
+      "firstFailure": {
+        "kind": "independent-quality",
+        "step": 3,
+        "timeSeconds": 0.025,
+        "reference": {
+          "ok": true,
+          "metrics": {
+            "maxPairPenetrationM": 0.0021964824677117244,
+            "maxFloorPenetrationM": 1.1688503696184642e-17,
+            "maxHalfspaceIntrusionM": 1.1688503696184642e-17,
+            "maxQuaternionNormError": 1.4775152642255367e-16,
+            "maxHorizontalDriftM": 0.00035832510789454594,
+            "maxVerticalDriftM": null,
+            "maxLinearSpeedMps": 0.17213891663876693,
+            "maxAngularSpeedRadps": 0.06024658646402844,
+            "footprintContained": true,
+            "escapedBelowFloor": false,
+            "nearParallelAxisCount": 0,
+            "overlapWithoutContactCount": 2,
+            "maxTiltRad": 0.0009346889944236946,
+            "referencePrecisionResolved": true
+          },
+          "violations": [
+            "maxPairPenetrationM exceeds 0.002 m"
+          ]
+        }
+      },
+      "acceptedSnapshots": 4,
+      "attemptedSteps": 3,
+      "rowsByAttempt": [
+        8,
+        8,
+        6
+      ],
+      "acceptedRawBytes": 3744,
+      "acceptedRawSha256": "3008af351bb9c32e3a79de6369c395692a255dbf584fbfefcd2084ac81aaedc3",
+      "workingRawBytes": 2808,
+      "workingRawSha256": "ba916879c472331859187bf06cb22d1bb8d76aba9ec89f9dbd8e08a9494bedb6",
+      "attemptedAcceptedRawBytes": 2808,
+      "attemptedAcceptedRawSha256": "85e3c04939a8d24d7ba972c950df97a28366157b73fef31d124d2a3359e77a5c",
+      "coupledIndependentComparisonsPass": true,
+      "maxTranslationM": 0.0011917752203861305
+    },
+    "YAW": {
+      "firstFailure": {
+        "kind": "independent-quality",
+        "step": 4,
+        "timeSeconds": 0.03333333333333333,
+        "reference": {
+          "ok": true,
+          "metrics": {
+            "maxPairPenetrationM": 0.0021317300099907652,
+            "maxFloorPenetrationM": 0,
+            "maxHalfspaceIntrusionM": 0,
+            "maxQuaternionNormError": 2.01481493368931e-16,
+            "maxHorizontalDriftM": 0.00028684876364878676,
+            "maxVerticalDriftM": null,
+            "maxLinearSpeedMps": 0.22636563955389633,
+            "maxAngularSpeedRadps": 0.14352073661310455,
+            "footprintContained": true,
+            "escapedBelowFloor": false,
+            "nearParallelAxisCount": 0,
+            "overlapWithoutContactCount": 1,
+            "maxTiltRad": 0.0015142646284356128,
+            "referencePrecisionResolved": true
+          },
+          "violations": [
+            "maxPairPenetrationM exceeds 0.002 m"
+          ]
+        }
+      },
+      "acceptedSnapshots": 5,
+      "attemptedSteps": 4,
+      "rowsByAttempt": [
+        8,
+        8,
+        8,
+        7
+      ],
+      "acceptedRawBytes": 4680,
+      "acceptedRawSha256": "a76f36c1e6f33edce0bd6ea37de04a8f5b15dc6c45b7c9466deba871dc88078b",
+      "workingRawBytes": 3744,
+      "workingRawSha256": "af302cf33057b7e097c0fe183f57d823533425dbac18069f67ef95558be1bf5f",
+      "attemptedAcceptedRawBytes": 3744,
+      "attemptedAcceptedRawSha256": "975e9ca7757ce9caab80540ca58f8c2852e21ab0b9f81551df86d89929551b8b",
+      "coupledIndependentComparisonsPass": true,
+      "maxTranslationM": 0.0025712965766999728
+    }
+  },
+  "excludedReconstructibleBundles": [
+    {
+      "name": "compiled-dependencies.mjs",
+      "bytes": 188746,
+      "sha256": "d8c03405e1d0a9642f7fb1f865312c594089a86cac85cc3f31865b9d231bb61c",
+      "retained": false,
+      "reason": "Reconstructible generated Node bundle; graph metadata/source/emitted hashes retained."
+    },
+    {
+      "name": "source-repeat.mjs",
+      "bytes": 136910,
+      "sha256": "211ffb60a10f36718b47a7692bc6880e8a2f96e74bd83143a678567e6a8df4bc",
+      "retained": false,
+      "reason": "Reconstructible generated Node bundle; graph metadata/source/emitted hashes retained."
+    },
+    {
+      "name": "source.mjs",
+      "bytes": 136910,
+      "sha256": "211ffb60a10f36718b47a7692bc6880e8a2f96e74bd83143a678567e6a8df4bc",
+      "retained": false,
+      "reason": "Reconstructible generated Node bundle; graph metadata/source/emitted hashes retained."
+    }
+  ],
+  "exactCodeAdoptionPending": true,
+  "scopedPhysicalFailurePreserved": true,
+  "coupledReferenceMaximumErrors": {
+    "translationM": 4.7704895589362195e-18,
+    "objectiveKgM2": 2.371692252312041e-20,
+    "allExactCertificatesZero": true,
+    "candidateCertificateResidualMaxima": {
+      "primalViolationM": 4.445228907190568e-18,
+      "negativeMultiplierKgM": 0,
+      "complementarityKgM2": 4.5237434734631297e-20,
+      "stationarityKgM": 0
+    }
+  }
+}
