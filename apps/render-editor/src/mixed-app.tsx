@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { Box, ChevronRight, FilePlus2, FolderOpen, Grid2X2, RotateCcw, Save, Undo2, Redo2, Copy, Pencil } from 'lucide-react';
+import { Box, ChevronRight, FilePlus2, FolderOpen, Grid2X2, RotateCcw, Save, Undo2, Redo2, Copy, FileCode2, Pencil } from 'lucide-react';
 import {
   createRenderMixedController, createRenderMixedSession, parseRenderMixedDocument,
   serializeRenderMixedDocument,
