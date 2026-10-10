@@ -1,0 +1,281 @@
+# GPU scene language
+
+The scene language declares simple 3D objects and assigns their properties. The compiler resolves the declarations on the CPU. `mountScene` draws the accepted scene with a WebGL2 signed-distance-field (SDF) renderer. Start with the [live scene example](/playground#gpu-scene), then change one property at a time.
+
+This page describes source0 and source1 at local source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`. The language is a bounded scene format. CSS selectors, JavaScript expressions and arbitrary GLSL are separate formats and are not accepted here.
+
+## Choose the correct language
+
+| Input | Purpose | CPU entry | Drawing entry |
+| --- | --- | --- | --- |
+| `@scene` text | Declare SDF primitives and their style | `parseScene`, `compileGpu` | `mountScene` |
+| `@shader` text | Set an opaque mesh fragment color | `compileMeshMaterial` | `MeshRenderer.setMaterial` |
+| `EngineSceneV0` data | Prepare CPU hierarchy, transforms, bounds and draws | `prepareEngineScene` | No general Engine renderer in this source snapshot |
+| CAD `@model` text | Define CAD geometry in model units | `compileCadModel` from CAD | Tessellate, convert, then mount an admitted mesh |
+
+The scene format does not embed a material block. The [material language](./material-language) changes a mesh color. It does not create scene objects. The CPU Engine data format does not parse `@scene` text.
+
+## First complete source1 scene
+
+```css
+@scene shapes {
+  version: 1;
+  background: #101820;
+  sphere #ball;
+  box #block;
+}
+sphere { radius: .65; color: #F1AA55; }
+#ball { translate: -1.1 0 0; }
+#block {
+  size: 1 1.5 .8;
+  translate: 1 0 0;
+  rotate-x: 20deg;
+  rotate-y: 35deg;
+  rotate-z: -10deg;
+  color: #57B4D9;
+}
+```
+
+The orange sphere is on the left. The blue box is on the right. The box has full extents `1 × 1.5 × .8`. Its local rotation is `[20,35,-10]` degrees. The sphere has radius `.65`, so its diameter is `1.3` scene units.
+
+The source does not specify a camera. With the default camera, the renderer looks from `[0,0,6]` toward negative Z. The background is dark blue. See the [rendered image and exact input](./examples#rotated-box-and-sphere).
+
+Use explicit source1 options for this input:
+
+```ts
+import { compileGpu, mountScene } from '@barocss/gpu';
+
+// source is the complete text above. canvas is an HTMLCanvasElement.
+const compiled = compileGpu({ kind: 'scene', source, sourceVersion: 1 });
+if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
+console.log(compiled.ir.pipeline);       // 'sdf'
+console.log(compiled.ir.schemaVersion);  // 2
+console.log(compiled.ir.draws.length);    // 2
+
+canvas.width = 800;
+canvas.height = 500;
+const renderer = mountScene(canvas, source, undefined, { sourceVersion: 1 });
+// Call renderer.dispose() when the host removes this view.
+```
+
+Compilation needs no canvas or WebGL context. Mounting needs an available WebGL2 context.
+
+## Source versions
+
+| Feature | Source0 | Source1 |
+| --- | --- | --- |
+| Required header | `version: 0;` | `version: 1;` |
+| Shapes | `sphere`, `box` | `sphere`, `box`, `cylinder`, `capsule`, `rounded-box`, `torus` |
+| Object rotation | No rotation properties | `rotate-x`, `rotate-y`, `rotate-z` |
+| Host option | Omit source options | Pass `{sourceVersion: 1}` |
+| Render IR | SDF schema version1 | SDF schema version2 |
+
+`parseScene(source)` and `mountScene(canvas, source)` use source0. A `version: 1;` declaration does not change the host parser mode. Pass the explicit option as well. `sourceVersion: 0` is not an accepted explicit option; omit the option for source0.
+
+```ts
+import { parseScene } from '@barocss/gpu';
+
+const source0 = '@scene simple { version: 0; sphere #ball; }';
+const scene0 = parseScene(source0);
+console.log(scene0.version); // 0
+
+const source1 = '@scene simple { version: 1; sphere #ball; }';
+const scene1 = parseScene(source1, { sourceVersion: 1 });
+console.log(scene1.objects[0].rotateDegrees); // [0, 0, 0]
+```
+
+## Grammar and identifiers
+
+The following grammar is an explanatory summary of the parser. The property tables below define each value.
+
+```text
+document      = "@scene" identifier "{" scene-item* "}" style-rule*
+scene-item    = "version" ":" selected-version ";"
+              | "background" ":" hex-color ";"
+              | shape "#" identifier ";"
+style-rule    = selector "{" property-declaration* "}"
+selector      = shape | "#" identifier
+property-declaration = property ":" value ";"
+identifier    = ASCII letter or "_", followed by letters, digits, "_" or "-"
+hex-color     = #RGB | #RRGGBB
+```
+
+There is exactly one scene block. Style rules follow that block. Declare objects inside `@scene`; place property blocks after its closing brace. Each declaration requires a semicolon. Empty style blocks are allowed.
+
+Identifiers and keywords are case sensitive. `#ball` and `#Ball` refer to different IDs. Scene names and object IDs use ASCII identifiers. An ID cannot start with a digit. IDs must be unique within the scene. A `#id` style selector must refer to a declared object.
+
+Whitespace and both comment forms are accepted:
+
+```css
+// This line is an annotation.
+@scene notes {
+  version: 0;
+  /* Comments do not change diagnostic offsets. */
+  sphere #ball;
+}
+```
+
+The parser discards comment text but retains offsets into the original source. An unclosed `/*` comment is an error.
+
+## Declarations create objects; styles change them
+
+```css
+@scene cascade {
+  version: 0;
+  sphere #small;
+  sphere #large;
+}
+sphere { radius: 1; color: #406080; }
+#small { radius: .5; }
+sphere { radius: 2; }
+```
+
+The declarations create two objects in order: `small`, then `large`. The final radii are `.5` and `2`. The later type rule changes `large`. It does not override the more specific `#small` value.
+
+The cascade is per property:
+
+1. A shape selector has specificity0.
+2. An ID selector has specificity1.
+3. A higher specificity wins, regardless of source order.
+4. At the same specificity, the later declaration wins.
+5. An omitted property retains its default.
+
+Rules do not create objects. A valid shape rule can match no objects. An unknown ID selector is refused even if another rule would override it. Each declaration is validated before the cascade; a bad dimension in a losing rule is still an error.
+
+There are no classes, lists of selectors, descendant selectors, pseudo selectors, `!important`, inheritance, variables or CSS units. `translate: 1px 0 0;` is invalid.
+
+## Default values
+
+| Value | Default |
+| --- | --- |
+| Scene background | `#101820` |
+| Object color | `#E08040` |
+| Object translation | `[0,0,0]` |
+| Sphere radius | `1` |
+| Box full size | `[2,2,2]` |
+| Source1 rotation | `[0,0,0]` degrees |
+| Cylinder radius / full Y height | `1` / `2` |
+| Capsule radius / local start / local end | `1` / `[0,-1,0]` / `[0,1,0]` |
+| Rounded-box full size / rounding radius | `[2,2,2]` / `.25` |
+| Torus major radius / minor radius | `1` / `.25` |
+
+Colors become normalized RGB arrays. For example, `#57B4D9` becomes `[87/255,180/255,217/255]`. Color alpha and named colors are unavailable.
+
+## Property reference
+
+| Property | Applies to | Value | Meaning |
+| --- | --- | --- | --- |
+| `color` | All shapes | One `#RGB` or `#RRGGBB` | Opaque object color |
+| `translate` | All shapes | Three numbers | XYZ scene position |
+| `radius` | Sphere, cylinder, capsule, rounded-box | One positive number | Shape radius or box rounding radius |
+| `size` | Box, rounded-box | Three positive numbers | Full outer XYZ extents |
+| `rotate-x/y/z` | All source1 shapes | One number with `deg` | Local axis rotation |
+| `height` | Cylinder | One positive number | Full local Y height |
+| `start`, `end` | Capsule | Three numbers each | Local center segment endpoints |
+| `major-radius` | Torus | One positive number | Radius of the XZ centerline circle |
+| `minor-radius` | Torus | One positive number | Radius of the tube |
+
+Numbers can use signs, decimals and exponent notation. Positive dimensions must be at most1000 and remain positive in Float32. Coordinates must be finite and lie within `[-1000,1000]`. Values use scene units; the language does not define a millimeter unit. CAD mesh conversion has a separate `mmToSceneUnit` option.
+
+### Rotation and coordinate order
+
+The coordinate system is right handed with Y up. Source1 applies local X rotation, then Y, then Z. Rotation uses explicit degrees in `[-360,360]`. Translation places the rotated object in the scene. The compiler uses the inverse rotation when evaluating the object's SDF.
+
+`rotate-y: 35deg;` is valid. `rotate-y: 35;` and `rotate-y: .6rad;` are invalid. Rotating a sphere does not change its silhouette. Box, cylinder, capsule and torus rotation changes their orientation.
+
+### Source1 shapes in one complete input
+
+```css
+@scene sixShapes {
+  version: 1;
+  sphere #ball;
+  box #block;
+  cylinder #post;
+  capsule #pill;
+  rounded-box #case;
+  torus #ring;
+}
+#ball { radius: .4; translate: -2 1 0; }
+#block { size: .7 .9 .6; translate: 0 1 0; rotate-y: 25deg; }
+#post { radius: .35; height: 1; translate: 2 1 0; }
+#pill { radius: .25; start: 0 -.4 0; end: 0 .4 0; translate: -2 -1 0; }
+#case { size: 1 .8 .6; radius: .1; translate: 0 -1 0; }
+#ring { major-radius: .55; minor-radius: .15; translate: 2 -1 0; rotate-x: 90deg; }
+```
+
+The cylinder is aligned to local Y before rotation. Its height includes the complete straight cylinder, not a half height. The capsule adds hemispherical ends around its center segment; its overall extent is greater than the segment length by two radii.
+
+The rounded box's `size` is its outer size. The rounding radius must be positive and at most half the smallest outer extent. These checks also run in Float32. A radius equal to the smallest half extent is accepted; a larger radius is refused.
+
+The torus axis is local Y, and its centerline is in local XZ. It requires `0 < minor-radius < major-radius` and `major-radius + minor-radius <= 1000`. Float32 radii must retain a positive hole. Capsule endpoints must retain a usable nonzero separation after Float32 conversion.
+
+## Compile and inspect errors before drawing
+
+```ts
+import { compileGpu } from '@barocss/gpu';
+
+const result = compileGpu({
+  kind: 'scene',
+  sourceVersion: 1,
+  source: '@scene broken { version: 1; box #block; } #block { radius: 1; }'
+});
+if (!result.ok) {
+  for (const d of result.diagnostics) {
+    console.log(d.code, d.message, d.range);
+  }
+}
+```
+
+This input returns an error because `radius` is not a box property. The diagnostic message identifies that mismatch. The range refers to the original text, with character offsets `start/end` and 1-based `line/column`. The compiler returns its first diagnostic; it does not perform recovery to find every error.
+
+`parseScene` throws `SceneError` instead of returning `ok:false`. The compiler groups scene errors under `SYNTAX`, `VERSION`, `DUPLICATE`, `REFERENCE`, `VALIDATION` or `LIMIT`; lowering failures use `LOWERING`. Prefer the returned code and range over matching an entire message string.
+
+| Edit | Result |
+| --- | --- |
+| Omit `version` | Refused: the selected version is required |
+| Use source1 text with no host opt-in | Refused: source0 expects `version: 0` |
+| Declare the same `#ball` twice | Refused: duplicate ID |
+| Style `#missing` | Refused: unknown object ID |
+| Set `radius: 0` | Refused: dimension must be positive |
+| Set `translate: 1 2` | Refused: three values required |
+| Set `rotate-y: 361deg` | Refused: out of rotation range |
+| Give capsule equal endpoints | Refused: unusable center segment |
+| Set torus minor radius equal to major radius | Refused: no positive ring hole |
+
+## Update an existing renderer
+
+```ts
+const before = renderer.scene;
+const update = renderer.update(source.replace('radius: .65;', 'radius: 0;'));
+if (!update.ok) {
+  console.log(update.error.message);
+  console.assert(renderer.scene === before);
+}
+```
+
+The renderer prepares and draws a candidate before adopting it. A refused source update retains the previously accepted scene. If a candidate draw fails, it attempts to restore the previous frame. A lost WebGL context requires a new mount; frame restoration is not guaranteed after context loss.
+
+There is one synchronous frame per accepted update. The renderer creates no animation timer. The host controls edits, scheduling, resizing and disposal. `setCamera` is a separate transaction; camera data does not belong in the scene text.
+
+## Budgets and supported rendering
+
+| Boundary | Limit at this source snapshot |
+| --- | --- |
+| Source | 64KiB UTF-8 |
+| Token count | 65,536 |
+| Objects | 32 |
+| Style rules | 128 |
+| Total style declarations | 512 |
+| AST nodes | 4,096 |
+| Generated fragment source | 64KiB |
+| SDF steps per ray | 128 |
+| Ray travel / hit epsilon | 100 / .001 scene units |
+| Canvas dimension / area | 4,096 per side / 4,194,304 pixels |
+
+The scene renderer chooses the nearest primitive distance. It is not a CAD Boolean solver or a triangle exporter. It has fixed SDF shading and opaque colors. Material expressions, texture coordinates, alpha, arbitrary meshes and scene hierarchy are outside this grammar. Use a mesh API or a CPU Engine API for its own stated contract.
+
+## Source authority
+
+The rules above come from `packages/barocss-gpu/src/scene-front.ts`, `scene-types.ts`, `scene.ts`, `compiler.ts`, `rotation.ts`, `torus.ts`, `rounded-box.ts`, `capsule.ts` and `renderer.ts` at the stated local commit. [Public scene declarations](./reference#declarations-21b9b53efbc1) and [compiler declarations](./reference#declarations-26111c43dbbc) are available in this portal. The native source commit is local-only. The examples establish their recorded source/browser scope; they do not establish currentRoot, emitted or published-package acceptance.
+
+[Examples](./examples) · [Material language](./material-language) · [API](./api) · [Limits](./limits)

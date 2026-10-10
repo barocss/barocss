@@ -1,5 +1,7 @@
 # GPU
 
+[Run and edit an actual example](/playground#gpu-scene). Read the [language reference](./language) and [material language](./material-language). Compare the input with [captured result images](./examples).
+
 `@barocss/gpu` compiles a bounded scene language, prepares display geometry, and provides original WebGL2 renderers for its admitted preview profiles. Its manifest version is `0.0.0`.
 
 Use the SDF path for a small scene of spheres, boxes and the explicit source1 primitives. Use the mesh path for a CAD PreviewPacket. Use the general Engine APIs for CPU geometry, hierarchy, rays, clips and binding preparation. These paths have different inputs and limits.

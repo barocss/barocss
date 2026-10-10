@@ -27,7 +27,7 @@ for (const p of inventory.packages) {
     if (!text.replace(/^---[\s\S]*?---\s*/, '').startsWith('# ') || text.length < 350) throw new Error(`Missing substantive page: ${p.slug}/${name}`);
   }
 }
-let links = 0;
+let links = 0, assets = 0;
 const builtAnchors = new Map();
 for (const page of pages) {
   const text = (await readFile(page, 'utf8')).replace(/```[\s\S]*?```/g, '');
@@ -39,6 +39,12 @@ for (const page of pages) {
     }
     if (/^(https?:|mailto:)/.test(href)) continue;
     const [path, anchor] = href.split('#');
+    if (path && /\.(png|jpg|svg|webp)$/.test(path)) {
+      const asset = path.startsWith('/') ? resolve(docs, 'public', `.${path}`) : resolve(dirname(page), path);
+      await access(asset).catch(() => { throw new Error(`Missing image ${href} in ${page}`); });
+      if (path.startsWith('/')) await access(resolve(docs, '.vitepress/dist', `.${path}`));
+      assets++; continue;
+    }
     let target = path ? (path.startsWith('/') ? resolve(docs, `.${path}`) : resolve(dirname(page), path)) : page;
     if (!target.endsWith('.md')) {
       try { await access(target + '.md'); target += '.md'; }
@@ -57,4 +63,4 @@ for (const page of pages) {
   }
 }
 await repairSourceLinks(JSON.parse(await readFile(resolve(app, 'evidence/public-api.json'), 'utf8')), { check: true });
-console.log(JSON.stringify({ pages: pages.length, packages: 12, checkedInternalLinks: links, manifestHashes: 'matched', sourceCommit: inventory.commit }));
+console.log(JSON.stringify({ pages: pages.length, packages: 12, checkedInternalLinks: links, checkedImageAssets: assets, manifestHashes: 'matched', sourceCommit: inventory.commit }));
