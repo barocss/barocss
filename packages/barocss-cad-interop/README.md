@@ -2824,3 +2824,36 @@ Use `xy-angle-arc-three-verify.mjs` for the bounded source and emitted public
 consumers. This example adds no loader entry, workplane editor, constraints,
 region or Solid support. Native completion, local integration checks and npm
 publication are recorded separately.
+
+## Original XY angle-arc artifacts in Pixi3D
+
+The example loads ten unchanged original CAD signed-sweep XY angle-arc artifacts.
+It uses the existing `@barocss/cad-interop/pixi3d-uniform-curve` entry.
+The saved construction artifact and its separate portable verification report
+stay visible beside the original source, native Curve context and display line.
+
+```sh
+pnpm exec vite --config packages/barocss-cad-interop/examples/xy-angle-arc-pixi3d.config.mjs --host 127.0.0.1
+```
+
+Open `http://127.0.0.1:5282/packages/barocss-cad-interop/examples/xy-angle-arc-pixi3d.html`.
+The caller owns the PixiJS application, stage, renderer, camera and lighting.
+The host validates each detached result, attaches it, releases the previous
+captured root/mesh/geometry/material, and then reports the accepted change.
+Refused candidates preserve the accepted source, native data and display.
+The controls exercise the original files, shared transport refusals, cold
+reopen and double cleanup while the caller's green marker remains visible.
+
+Native rational parameters are not authored radian angles. Uniform native
+samples provide an approximate display line; they are not uniform angle or
+arc-length samples. Derived shader normals are not CAD Curve normals.
+Copied full-turn endpoints remain nonperiodic, and native C0 derivative
+refusals remain visible. Portable numerical association is separate from
+producer authentication and a same-runtime bit replay.
+
+```sh
+node packages/barocss-cad-interop/examples/xy-angle-arc-pixi3d-verify.mjs --mode source --output /tmp/loader1200-source
+```
+
+The Node probe checks public CAD and neutral CPU data. Run the example in an
+actual PixiJS7/Pixi3D2.5 browser to check rendering and target lifetime.

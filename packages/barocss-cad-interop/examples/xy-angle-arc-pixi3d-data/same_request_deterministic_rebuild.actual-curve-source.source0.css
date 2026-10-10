@@ -1,0 +1,1 @@
+@model profile { version:0; length-unit:mm; @curve #angle_arc { type:nurbs; degree:2; knots:[0,0,0,1,1,1]; control-points:[[4.732050807568878,-1,0],[3.964723819589917,0.3290493291983525,0],[2.4823619097949585,-0.06814834742186338,0]]; weights:[1,0.793353340291235,1]; } }
