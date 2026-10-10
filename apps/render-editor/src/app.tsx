@@ -76,7 +76,7 @@ export function App() {
   const activeKeyRef = useRef(activeKey);
   const [pending, setPending] = useState<PendingAction | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [helpTopic, setHelpTopic] = useState<'scene'|'objects'>('scene');
+  const [helpTopic, setHelpTopic] = useState<'scene'|'objects'|'camera'>('scene');
   const helpTrigger = useRef<HTMLButtonElement>(null);
   const helpReturnFocus = useRef<HTMLElement | null>(null);
   const [notice, setNotice] = useState('Select an object or edit the source. Apply changes to render.');
@@ -85,6 +85,7 @@ export function App() {
   const [busy, setBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const fileReadToken = useRef(0);
+  const hasCameraPreview = () => Boolean(controller.getSnapshot().cameraPreview);
 
   function updateProjects(next: WorkspaceProject[]) {
     projectsRef.current = next;
@@ -103,13 +104,14 @@ export function App() {
   }
 
   function runGuarded(action: PendingAction) {
-    if (busy || pending) return;
+    if (hasCameraPreview() || busy || pending) return;
     const current = session.getSnapshot();
     if (current.sourceDirty || current.cameraDirty) { setError(null); setPending(action); }
     else action.execute();
   }
 
   function activate(key: string) {
+    if (hasCameraPreview()) return;
     const project = projectsRef.current.find((item) => item.key === key);
     if (!project || key === activeKeyRef.current) return;
     const result = controller.open(serializeRenderEditorDocument(project.document));
@@ -127,6 +129,7 @@ export function App() {
   }
 
   function adopt(document: RenderSceneDocumentV0, origin: WorkspaceProject['origin']) {
+    if (hasCameraPreview()) return;
     const result = controller.open(serializeRenderEditorDocument(document));
     if (!result.ok) { report(result.error, origin === 'file' ? 'open' : 'project'); return; }
     const key = `${document.documentId}-${crypto.randomUUID().slice(0, 8)}`;
@@ -150,6 +153,7 @@ export function App() {
   }
 
   async function acceptFile(file: File) {
+    if (hasCameraPreview()) return;
     const token = ++fileReadToken.current;
     const readSnapshot = session.getSnapshot();
     const readProjectKey = activeKeyRef.current;
@@ -157,7 +161,7 @@ export function App() {
     try {
       const text = await readSceneFile(file);
       if (token !== fileReadToken.current) return;
-      if (session.getSnapshot() !== readSnapshot || activeKeyRef.current !== readProjectKey) {
+      if (hasCameraPreview() || session.getSnapshot() !== readSnapshot || activeKeyRef.current !== readProjectKey) {
         report(new Error('The scene changed while the file was being read. Open the file again. The current scene and draft are retained.'), 'open', 'The scene changed while the file was read. The current scene and draft are unchanged. Open the file again.');
         return;
       }
@@ -169,6 +173,7 @@ export function App() {
   }
 
   function saveAccepted() {
+    if (hasCameraPreview()) return;
     try {
       const accepted = session.getSnapshot().accepted;
       downloadSceneFile(accepted);
@@ -182,12 +187,14 @@ export function App() {
   function saveFile() { runGuarded({ label: 'save the file', execute: saveAccepted }); }
 
   function history(direction: 'undo' | 'redo') {
+    if (hasCameraPreview()) return;
     const result = controller[direction]();
     if (!result.ok) report(result.error, 'history');
     else { setError(null); setNotice(direction === 'undo' ? 'Undo applied to the viewport.' : 'Redo applied to the viewport.'); }
   }
 
   function applyPending() {
+    if (hasCameraPreview()) return;
     if (!pending) return;
     const result = controller.apply('both');
     if (!result.ok) { report(result.error, 'edit'); return; }
@@ -197,6 +204,7 @@ export function App() {
   }
 
   function discardPending() {
+    if (hasCameraPreview()) return;
     if (!pending) return;
     session.discardDraft();
     const action = pending;
@@ -233,11 +241,14 @@ export function App() {
       setBusy(false);
       const key = readProjectRoute();
       replaceProjectRoute(activeKeyRef.current);
+      if (hasCameraPreview()) { setError(null); setNotice('Finish View preview with Use view or Cancel view before changing projects.'); return; }
       if (key && projectsRef.current.some((project) => project.key === key)) switchProject(key);
       else report(new Error('Project route is unavailable. The current scene is retained.'), 'project');
     };
     const keyPressed = (event: KeyboardEvent) => {
       const target = event.target;
+      const editable = target instanceof HTMLElement && Boolean(target.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]'));
+      if (hasCameraPreview() && !editable && !event.isComposing && (event.metaKey || event.ctrlKey) && ['n','o','s','z'].includes(event.key.toLowerCase())) {event.preventDefault();return;}
       if (event.isComposing || event.defaultPrevented || pending || busy || !(event.metaKey || event.ctrlKey)) return;
       if (target instanceof HTMLElement && (target.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]'))) return;
       const key = event.key.toLowerCase();
@@ -266,11 +277,12 @@ export function App() {
   const activeProject = projects.find((project) => project.key === activeKey);
   const dirty = snapshot.sourceDirty || snapshot.cameraDirty;
   const downloaded = activeProject?.savedRevision === snapshot.accepted.revision;
-  const actionDisabled = busy || pending !== null;
+  const cameraPending = Boolean(presentation.cameraPreview);
+  const actionDisabled = cameraPending || busy || pending !== null;
   const previewUnavailable = presentation.presentedRevision === null;
   const previewRefused = presentation.presentationError !== null;
   const canRestorePreview = previewUnavailable && previewRefused && !presentation.disposed;
-  const previewStatus = presentation.disposed ? 'Preview closed' : previewUnavailable ? previewRefused ? 'Preview unavailable' : 'Opening preview…' : previewRefused ? 'Preview unchanged' : 'Preview ready';
+  const previewStatus = presentation.disposed ? 'Preview closed' : cameraPending ? 'View preview' : previewUnavailable ? previewRefused ? 'Preview unavailable' : 'Opening preview…' : previewRefused ? 'Preview unchanged' : 'Preview ready';
 
   const projectBrowser = (
         <aside className="app-projects app-projects--embedded" aria-label="Workspace projects">
@@ -303,7 +315,7 @@ export function App() {
           <MenubarMenu><MenubarTrigger>Workspace</MenubarTrigger><MenubarContent>
             {projects.map((project) => <MenubarItem key={project.key} disabled={actionDisabled} onSelect={() => switchProject(project.key)}>{project.document.title}</MenubarItem>)}
           </MenubarContent></MenubarMenu>
-          <MenubarMenu><MenubarTrigger ref={helpTrigger}>Help</MenubarTrigger><MenubarContent><MenubarItem onSelect={() => {helpReturnFocus.current=helpTrigger.current;setHelpTopic('scene');setHelpOpen(true);}}>Scene editing</MenubarItem><MenubarItem onSelect={() => {helpReturnFocus.current=helpTrigger.current;setHelpTopic('objects');setHelpOpen(true);}}>Object properties</MenubarItem></MenubarContent></MenubarMenu>
+          <MenubarMenu><MenubarTrigger ref={helpTrigger}>Help</MenubarTrigger><MenubarContent><MenubarItem onSelect={() => {helpReturnFocus.current=helpTrigger.current;setHelpTopic('scene');setHelpOpen(true);}}>Scene editing</MenubarItem><MenubarItem onSelect={() => {helpReturnFocus.current=helpTrigger.current;setHelpTopic('objects');setHelpOpen(true);}}>Object properties</MenubarItem><MenubarItem onSelect={() => {helpReturnFocus.current=helpTrigger.current;setHelpTopic('camera');setHelpOpen(true);}}>Camera controls</MenubarItem></MenubarContent></MenubarMenu>
         </Menubar>
         <div className="app-topbar-spacer" />
         <Button size="sm" variant="ghost" disabled={actionDisabled} onClick={openFile} data-testid="open-file"><FolderOpen />Open</Button>
@@ -316,18 +328,18 @@ export function App() {
             <div className="app-history"><Button variant="ghost" size="icon-sm" aria-label="Undo" disabled={!snapshot.canUndo || actionDisabled} onClick={() => history('undo')}><Undo2 /></Button><Button variant="ghost" size="icon-sm" aria-label="Redo" disabled={!snapshot.canRedo || actionDisabled} onClick={() => history('redo')}><Redo2 /></Button></div>
           </div>
           {error && !pending ? <div className="app-error" role="alert" data-testid="app-error"><div><p>{error.copy}</p><AppErrorDetails key={error.error.message} notice={error} /></div><button aria-label="Dismiss error" onClick={() => setError(null)}>×</button></div> : null}
-          <RenderEditor controller={controller} projectBrowser={projectBrowser} onObjectHelp={() => {helpReturnFocus.current=document.activeElement instanceof HTMLElement?document.activeElement:helpTrigger.current;setHelpTopic('objects');setHelpOpen(true);}} onError={(error: RenderEditorError) => {
+          <RenderEditor controller={controller} projectBrowser={projectBrowser} navigationDisabled={busy || pending !== null || helpOpen} onCameraHelp={() => {helpReturnFocus.current=document.activeElement instanceof HTMLElement?document.activeElement:helpTrigger.current;setHelpTopic('camera');setHelpOpen(true);}} onObjectHelp={() => {helpReturnFocus.current=document.activeElement instanceof HTMLElement?document.activeElement:helpTrigger.current;setHelpTopic('objects');setHelpOpen(true);}} onError={(error: RenderEditorError) => {
             if (error.code === 'PRESENTATION_REFUSED' || (error.code === 'SOURCE_REFUSED' && error.diagnostics.length > 0)) { setError(notice => notice && ['edit', 'history', 'restore'].includes(notice.operation) ? null : notice); return; }
-            report(error, 'edit');
+            report(error, 'edit', error.message === 'The camera move could not be previewed.' ? 'The camera move could not be previewed. Try a smaller move. Your scene and drafts are kept.' : undefined);
           }} />
         </section>
       </div>
 
       <footer className="app-status" aria-live="polite">
         <span className={`app-status-dot ${previewRefused ? previewUnavailable ? 'has-error' : 'has-warning' : ''}`} />
-        <span data-testid="app-status">{busy ? 'Reading file…' : previewRefused || previewUnavailable || presentation.disposed ? previewStatus : notice}</span>
+        <span data-testid="app-status">{busy ? 'Reading file…' : cameraPending || previewRefused || previewUnavailable || presentation.disposed ? previewStatus : notice}</span>
         <span className="app-status-spacer" />
-        {canRestorePreview ? <Button variant="ghost" size="xs" onClick={() => { const result = controller.recover(); if (!result.ok) report(result.error, 'restore'); }}><RotateCcw />Restore preview</Button> : null}
+        {canRestorePreview ? <Button variant="ghost" size="xs" onClick={() => { if (hasCameraPreview() || pending || busy) return; const result = controller.recover(); if (!result.ok) report(result.error, 'restore'); }}><RotateCcw />Restore preview</Button> : null}
         <span data-testid="accepted-revision" data-revision={snapshot.accepted.revision}>{dirty ? 'Draft changes' : 'Applied'}</span>
         <span data-testid="presented-revision" data-revision={presentation.presentedRevision ?? 'none'}>{previewStatus}</span>
         <span>{snapshot.metadata.objects.length} objects</span>
@@ -349,7 +361,7 @@ export function App() {
           <Button onClick={applyPending} data-testid="draft-apply">Apply and continue</Button>
         </DialogFooter></DialogContent>
       </Dialog>
-      <Dialog open={helpOpen} onOpenChange={setHelpOpen}><DialogContent className="max-h-[85svh] overflow-y-auto" onCloseAutoFocus={event=>{event.preventDefault();const target=helpReturnFocus.current?.isConnected?helpReturnFocus.current:helpTrigger.current;target?.focus();}}><DialogHeader><DialogTitle>{helpTopic==='objects'?'Object properties':'Scene editing'}</DialogTitle><DialogDescription>Edit the source or camera, then Apply to update the preview. A refused change keeps the applied scene.</DialogDescription></DialogHeader><div className="space-y-3 text-sm text-muted-foreground"><p>Select an applied object to edit Position, local Rotation, type-specific dimensions, and opaque #rgb or #rrggbb Color. Position and dimensions use scene units. Rotation is from -360 to 360 degrees, X then Y then Z.</p><p>Add chooses a real primitive type and a unique ASCII name, then Add to draft stages source only. Remove selected also stays a draft. Apply updates the complete scene and camera before accepting history; the applied object list stays unchanged until then. New creates a valid empty scene.</p><p>Sphere uses Radius; Box uses Size; Cylinder uses Radius and Height; Capsule uses Radius and local segment endpoints; Rounded Box uses Size and Radius; Torus uses Major and Minor radius. Dimensions must be positive and up to 1000, positions/endpoints from -1000 to 1000. Actual primitive constraints can still refuse a combination.</p><p>Incomplete text stays on its original object when hidden or when you select another object. Correct that object before editing other structured fields, Add, Remove, Apply, or File transitions. Problems can reveal and focus the field. Explicit Source editing replaces field drafts; Discard restores applied data. Help and selection keep drafts.</p><p>Scene/Projects and Object/Camera share docks. Source and Problems drawers start closed. Persistent Apply and Discard do not require opening source. Pane sizes and selection are local and are not saved.</p><p>This is the version 0 GPU Scene document host with source version 1 and up to 32 primitives. The independent version 1 mixed host admits one Sphere and one native Surface. These controls add no picking, gizmo, universal Scale, material, timeline, or native CAD geometry editor.</p><p>Select an object to locate its source declaration. Positions and dimensions use scene units. Camera field of view uses degrees.</p><p>Supported objects: sphere, box, cylinder, capsule, rounded box, and torus. Each scene can contain up to 32 objects. Source can contain up to 64 KiB.</p><p>Save downloads the applied scene source and camera. Open accepts Render Editor version 0 JSON files with scene source version 1, up to 256 KiB. CAD files and material files need their own authoring tools.</p><p>Projects remain in this tab. Save a file to keep your work after closing. Downloads depend on browser settings; check the downloaded file.</p><p>Use File for New, Open, and Save. Use Edit for Undo, Redo, and Discard draft. Keyboard commands do not replace normal text editing.</p></div></DialogContent></Dialog>
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}><DialogContent className="max-h-[85svh] overflow-y-auto" onCloseAutoFocus={event=>{event.preventDefault();const target=helpReturnFocus.current?.isConnected?helpReturnFocus.current:helpTrigger.current;target?.focus();}}><DialogHeader><DialogTitle>{helpTopic==='camera'?'Camera controls':helpTopic==='objects'?'Object properties':'Scene editing'}</DialogTitle><DialogDescription>Edit the source or camera, then Apply to update the preview. A refused change keeps the applied scene.</DialogDescription></DialogHeader><div className="space-y-3 text-sm text-muted-foreground">{helpTopic==='camera'&&<><p>Left-drag the scene or use focused canvas arrows to Orbit. Choose Pan, Shift-drag, or Shift-arrows to move the view. The wheel and +/− zoom. Click the scene to focus keyboard navigation.</p><p>View preview shows only the applied scene from a temporary camera. Numeric camera fields show that view and are disabled. Existing Source, object properties, and manual camera drafts stay intact. Use view restores the applied frame, replaces a manual camera draft, and applies the complete draft once. Invalid hidden object or source fields still refuse the operation and remain editable afterward.</p><p>Cancel view or Escape on the focused scene restores the applied view before clearing the preview, keeping every existing draft. File, history, Add/Remove, Source, and object edits stay blocked until Use view or Cancel view. Tabs, drawers, local resizing, and Help remain available. Help closes back to its actual trigger and keeps the preview and raw text.</p><p>Invalid camera poses or lens values and renderer refusals keep the previous good view when it is retained. No geometry is moved and no picking, grid, camera object, or new projection model is added. Save after Use view stores the applied camera.</p></>}<p>Select an applied object to edit Position, local Rotation, type-specific dimensions, and opaque #rgb or #rrggbb Color. Position and dimensions use scene units. Rotation is from -360 to 360 degrees, X then Y then Z.</p><p>Add chooses a real primitive type and a unique ASCII name, then Add to draft stages source only. Remove selected also stays a draft. Apply updates the complete scene and camera before accepting history; the applied object list stays unchanged until then. New creates a valid empty scene.</p><p>Sphere uses Radius; Box uses Size; Cylinder uses Radius and Height; Capsule uses Radius and local segment endpoints; Rounded Box uses Size and Radius; Torus uses Major and Minor radius. Dimensions must be positive and up to 1000, positions/endpoints from -1000 to 1000. Actual primitive constraints can still refuse a combination.</p><p>Incomplete text stays on its original object when hidden or when you select another object. Correct that object before editing other structured fields, Add, Remove, Apply, or File transitions. Problems can reveal and focus the field. Explicit Source editing replaces field drafts; Discard restores applied data. Help and selection keep drafts.</p><p>Scene/Projects and Object/Camera share docks. Source and Problems drawers start closed. Persistent Apply and Discard do not require opening source. Pane sizes and selection are local and are not saved.</p><p>This is the version 0 GPU Scene document host with source version 1 and up to 32 primitives. The independent version 1 mixed host admits one Sphere and one native Surface. These controls add no picking, gizmo, universal Scale, material, timeline, or native CAD geometry editor.</p><p>Select an object to locate its source declaration. Positions and dimensions use scene units. Camera field of view uses degrees.</p><p>Supported objects: sphere, box, cylinder, capsule, rounded box, and torus. Each scene can contain up to 32 objects. Source can contain up to 64 KiB.</p><p>Save downloads the applied scene source and camera. Open accepts Render Editor version 0 JSON files with scene source version 1, up to 256 KiB. CAD files and material files need their own authoring tools.</p><p>Projects remain in this tab. Save a file to keep your work after closing. Downloads depend on browser settings; check the downloaded file.</p><p>Use File for New, Open, and Save. Use Edit for Undo, Redo, and Discard draft. Keyboard commands do not replace normal text editing.</p></div></DialogContent></Dialog>
     </main>
   );
 }

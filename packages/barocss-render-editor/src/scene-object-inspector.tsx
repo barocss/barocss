@@ -60,12 +60,13 @@ function parse(binding: Binding): {patch: RenderSceneObjectPatch; errors: Record
 
 interface SceneObjectInspectorProps {
   controller: RenderEditorController; manualEdit: number; onEditSource: () => void;
+  disabled?: boolean;
   onHelp?: () => void; onError?: (error: RenderEditorError) => void;
   onInvalidObject: (id: string | null, sourceCorrection?: boolean) => void;
 }
 
 /** Accepted-ID forms stay mounted. One incomplete object's text owns the global guard. */
-export function SceneObjectInspector({controller, manualEdit, onEditSource, onHelp, onError, onInvalidObject}: SceneObjectInspectorProps) {
+export function SceneObjectInspector({controller, manualEdit, onEditSource, onHelp, onError, onInvalidObject, disabled = false}: SceneObjectInspectorProps) {
   const snapshot = useSyncExternalStore(controller.session.subscribe, controller.session.getSnapshot, controller.session.getSnapshot);
   const [stored, setStored] = useState(() => readStore(snapshot, manualEdit));
   const store = useRef(stored);
@@ -74,7 +75,7 @@ export function SceneObjectInspector({controller, manualEdit, onEditSource, onHe
   if (changed) { store.current = current; setStored(current); }
   const change = (id: string, field: string, text: string, axis?: number) => {
     const state = controller.session.getSnapshot(), previous = store.current, old = previous.entries.get(id);
-    if (state.disposed || !old || old.removed || previous.sourceError || (previous.invalidId && previous.invalidId !== id) || text.length > 256) return;
+    if (disabled || controller.getSnapshot().cameraPreview || state.disposed || !old || old.removed || previous.sourceError || (previous.invalidId && previous.invalidId !== id) || text.length > 256) return;
     const raw = {...old.raw};
     if (axis === undefined) raw[field] = text;
     else { const vector = [...raw[field]] as [string, string, string]; vector[axis] = text; raw[field] = vector; }
@@ -106,7 +107,7 @@ export function SceneObjectInspector({controller, manualEdit, onEditSource, onHe
     {snapshot.metadata.objects.map(object => {
       const binding = current.entries.get(object.id), active = selected === object.id;
       const errors = binding ? parse(binding).errors : {};
-      const locked = snapshot.disposed || !binding || binding.removed || current.sourceError !== null || (current.invalidId !== null && current.invalidId !== object.id);
+      const locked = disabled || snapshot.disposed || !binding || binding.removed || current.sourceError !== null || (current.invalidId !== null && current.invalidId !== object.id);
       return <div key={object.id} hidden={!active} data-testid={active ? 'scene-object-fields' : undefined} data-object-id={object.id}>
         <dl className="re-object-summary"><dt>Name</dt><dd>{object.id}</dd><dt>Type</dt><dd>{LABELS[binding?.properties.type ?? object.type]}</dd></dl>
         {binding?.removed ? <p className="re-caption">Removed in draft. Apply or Discard to resolve it.</p> : null}
@@ -127,7 +128,7 @@ export function SceneObjectInspector({controller, manualEdit, onEditSource, onHe
         {binding?.error ? <div className="re-scene-source-error"><p>{binding.error.code === 'DOCUMENT_BYTES' ? 'The source has no room for this change. Edit source or correct the fields.' : 'This object change was refused. Correct its dimensions or edit source.'}</p><details><summary>Details</summary><pre>{binding.error.message}</pre></details></div> : null}
       </div>;
     })}
-    <div className="re-sphere-actions"><button type="button" disabled={snapshot.disposed} onClick={onEditSource}>Edit source</button>{onHelp && <button type="button" onClick={onHelp}>Object properties Help</button>}</div>
+    <div className="re-sphere-actions"><button type="button" disabled={disabled || snapshot.disposed} onClick={onEditSource}>Edit source</button>{onHelp && <button type="button" onClick={onHelp}>Object properties Help</button>}</div>
     {!onHelp && <details className="re-mixed-help"><summary>Help: Object properties</summary><p>Position and dimensions use scene units. Rotation uses local degrees, X then Y then Z. Edits stay drafts until complete Apply. Hidden incomplete fields block Apply and file actions. Editing Source replaces those field drafts.</p></details>}
   </section>;
 }
