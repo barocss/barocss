@@ -18,8 +18,8 @@ ref.on('exit', code => { if(pending) { pending.reject(new Error(`reference exite
 const observer = { ask(data) { assert.equal(pending ?? null, null); return new Promise((resolve, reject) => { pending = { resolve, reject }; ref.stdin.write(JSON.stringify(data) + '\n'); }); } };
 const reports = [], graphAudits = [], controlRows = [];
 try {
-  for (const graph of ['source', 'compiled-dependencies']) {
-    const built = await bundle(graph, out); graphAudits.push(built.audit);
+  for (const graph of ['source', 'source-repeat', 'compiled-dependencies']) {
+    const built = await bundle(graph === 'source-repeat' ? 'source' : graph, out); graphAudits.push(built.audit);
     const module = await import(pathToFileURL(built.modulePath));
     for (const scene of ['ALIGNED', 'OFFSET', 'YAW']) {
       controlRows.push({graph,...controls(module,scene)});
@@ -30,9 +30,11 @@ try {
   }
   for (const scene of ['ALIGNED','OFFSET','YAW']) {
     const pair=reports.filter(r=>r.scene===scene);
-    assert.deepEqual(pair[0].states,pair[1].states,'source/compiled dependency fields differ');
-    assert.equal(pair[0].rawSha256,pair[1].rawSha256,'raw Float64 bits differ');
-    assert.deepEqual(pair[0].failure,pair[1].failure,'source/compiled quality decisions differ');
+    for(const other of pair.slice(1)) {
+      assert.deepEqual(pair[0].states,other.states,'unchanged repeat/compiled dependency fields differ');
+      assert.equal(pair[0].rawSha256,other.rawSha256,'raw Float64 bits differ');
+      assert.deepEqual(pair[0].failure,other.failure,'repeat/compiled quality decisions differ');
+    }
   }
   const passed=reports.every(r=>r.numericalGO);
   const summary = { base:'38cab806709d99568ec2b64e70b39ffbe1900ff6', measuredHead:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),node:process.version,graphAudits,controls:controlRows,sourceCompiledDependencyParity:true,fullModelGO:passed,results:reports.map(({graph,scene,acceptedSnapshots,rawBytes,rawSha256,failure,numericalGO})=>({graph,scene,acceptedSnapshots,rawBytes,rawSha256,failure,numericalGO})),refinementExecuted:false,costMeasured:false,browserExecuted:false,referenceStderr:stderr };

@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { gzipSync } from 'node:zlib';
 import { writeFile } from 'node:fs/promises';
@@ -27,7 +28,7 @@ export async function runScene(module, observer, graph, scene, directory) {
         catch(e) {
           if (!(e instanceof module.PhysicsError)) throw e;
           const retained = world.getState();
-          if (JSON.stringify(retained) !== JSON.stringify(prior)) throw new Error('producer refusal changed accepted state');
+          assert.deepEqual(retained, prior, 'producer refusal changed accepted state');
           failure = { kind: 'producer-refusal', attemptedStep: step, code: e.code, message: e.message, acceptedStep: retained.stepIndex, retained: true };
           break;
         }
