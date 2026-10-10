@@ -3728,3 +3728,13 @@ Each result owns six initially disabled Scene-registered Mesh objects, separate 
 The caller owns shader preparation, staging and rendering. Real WebGL2 with unsigned-int index support is the bounded display profile. NullEngine CPU arrays do not certify GPU buffers or draws. `dispose()` releases the captured original resources once, preserves foreign geometry/material replacements, and does not dispose the caller Scene, Engine, Camera, canvas or child resources. CPU data remains readable after disposal.
 
 See `examples/qualified-body-boundary-mesh-babylon.html` and its config, observer and verifier for the original MAIN, edited, single-span and fresh-file flow. The entry adds no source editing, resampling, welding, axis conversion, global error, new Solid, manufacturing or publication guarantee.
+
+## Complete source knot-aligned Loft results
+
+The optional `@barocss/cad-interop/source-knot-aligned-loft` entry reads complete saved `SourceKnotAlignedLoftResult` values. `parseBaroCadSourceKnotAlignedLoft(text)` accepts JSON text. `readBaroCadSourceKnotAlignedLoft(input)` accepts an owned record. Each eligible admission calls the native whole-result validator once.
+
+The exact four-field result contains `native`, `validationReport`, `profile`, and `sourceText`. Native and validation report data are independent mutable copies. The profile is deeply frozen. `sourceText` preserves the exact admitted text or is `null` for an owned record. Original and aligned Sources, full Models, child insertion receipts, ordered bindings, Loft coefficients, and native C0 refusals remain intact. Numeric negative zero is preserved.
+
+This family uses a dedicated 16 MiB UTF-8/UTF-16 and 4,194,304-value-per-pass codec. Its limits, error codes, and messages are fixed. Native refusal is reported as `NATIVE` with the original CAD error as its cause. The module provides CPU data; it does not render or edit a Loft.
+
+The runnable `examples/source-knot-aligned-loft-native-verify.mjs` checks public source or emitted code with `--mode source|emitted --output ABS_FRESH`. It retains three authentic complete results and reopens their saved native files in a separate process. The paired requests and editor receipts are provenance data.

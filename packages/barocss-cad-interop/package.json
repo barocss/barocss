@@ -182,6 +182,10 @@
       "./qualified-body-boundary-mesh-babylon": {
         "types": "./dist/qualified-body-boundary-mesh-babylon.d.ts",
         "import": "./dist/qualified-body-boundary-mesh-babylon.js"
+      },
+      "./source-knot-aligned-loft": {
+        "types": "./dist/source-knot-aligned-loft.d.ts",
+        "import": "./dist/source-knot-aligned-loft.js"
       }
     }
   },
@@ -366,6 +370,10 @@
     "./qualified-body-boundary-mesh-babylon": {
       "types": "./src/qualified-body-boundary-mesh-babylon.ts",
       "import": "./src/qualified-body-boundary-mesh-babylon.ts"
+    },
+    "./source-knot-aligned-loft": {
+      "types": "./src/source-knot-aligned-loft.ts",
+      "import": "./src/source-knot-aligned-loft.ts"
     }
   },
   "files": [
