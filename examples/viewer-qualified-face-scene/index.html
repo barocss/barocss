@@ -223,6 +223,10 @@ Screen mapping is approximate and does not test occlusion.</p></details>
 </div><aside><h2>Current source-qualified Faces</h2><ul id="assets"></ul>
 <section aria-label="Original source-qualified geometry tree"><h2>Original geometry tree</h2>
 <label><input id="sync-face-tree" type="checkbox" disabled>Sync Face screen to tree</label>
+<label>Label filter <input id="tree-filter-query" aria-label="Tree label filter" type="text" maxlength="256" disabled></label>
+<label>Source <select id="tree-filter-source" aria-label="Tree source filter" disabled><option value="">All sources</option><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option></select></label>
+<label>Geometry <select id="tree-filter-kind" aria-label="Tree geometry filter" disabled><option value="all">All geometry</option><option value="surface">Surfaces</option><option value="curve">Curves</option></select></label>
+<button id="clear-tree-filters" disabled>Clear tree filters</button><p id="tree-filter-status" role="status" aria-live="polite"></p>
 <div id="qualified-face-tree"></div><pre id="tree-properties" aria-label="Selected original geometry properties"></pre>
 <label id="tree-u-label" hidden>Native u <input id="tree-u" aria-label="Tree native u" type="text" inputmode="decimal" disabled></label>
 <label id="tree-v-label" hidden>Native v <input id="tree-v" aria-label="Tree native v" type="text" inputmode="decimal" disabled></label>
@@ -234,6 +238,7 @@ Screen mapping is approximate and does not test occlusion.</p></details>
 Parameters use the original numeric domain; defaults are its checked midpoint. Control points use mm, while weights and UV parameter data are dimensionless.
 The point query evaluates the original geometry at explicit parameters. Frame parent Face uses sampled filled Surface display bounds, including when an original Curve is selected.
 The optional screen sync identifies only the current Face Surface and does not infer Curve identity or native parameters from the display triangle.
+Filters select list rows by source, geometry kind and literal label text. Hidden current selections keep their properties and native reports; their point labels are hidden until the row matches again.
 Tree styling is DOM only. The point label uses approximate CSS projection without occlusion testing; original native results remain available after presentation loss.</p></details>
 </section></aside></div>
 <p>Row inspection is read-only source data. Frame actions use the current sampled filled display bounds.

@@ -16,6 +16,7 @@ import {measurePickedFaceAngle} from './picked-angle.js';
 import {queryPickedFaceSurfaceCurvature} from './picked-curvature.js';
 import {measurePickedFaceNormalAngle} from './picked-normal-angle.js';
 import {buildQualifiedFaceTree,queryQualifiedFaceTreeNode,inspectQualifiedFaceTreeNode} from './qualified-face-tree.js';
+import {filterQualifiedFaceTree} from './qualified-face-tree-filter.js';
 import {parseBaroCadSource} from '@barocss/cad-interop/native';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2} from '@barocss/cad-interop/document';
@@ -43,6 +44,8 @@ const qualifiedTreeElement=document.querySelector('#qualified-face-tree'),treePr
 const treeU=document.querySelector('#tree-u'),treeV=document.querySelector('#tree-v'),treeT=document.querySelector('#tree-t'),treePointLabel=document.querySelector('#tree-point-label');
 const inspectTreePointButton=document.querySelector('#inspect-tree-point'),frameTreeFaceButton=document.querySelector('#frame-tree-face'),clearTreeSelectionButton=document.querySelector('#clear-tree-selection'),syncFaceTree=document.querySelector('#sync-face-tree');
 const treeButtonRefs=new WeakMap();
+const treeFilterQuery=document.querySelector('#tree-filter-query'),treeFilterSource=document.querySelector('#tree-filter-source'),treeFilterKind=document.querySelector('#tree-filter-kind');
+const clearTreeFiltersButton=document.querySelector('#clear-tree-filters'),treeFilterStatus=document.querySelector('#tree-filter-status');
 const assetCount=document.querySelector('#asset-count'),countU=document.querySelector('#count-u'),countV=document.querySelector('#count-v');
 const colorAsset=document.querySelector('#color-asset'),colorInput=document.querySelector('#color');
 const measureButton=document.querySelector('#measure-points'),measurementOutput=document.querySelector('#measurement-output');
@@ -106,6 +109,7 @@ let pickedAngleFirst=null,pickedAngleVertex=null,pickedAngleReport=null,pickedAn
 let pickedSurfaceCurvatureReport=null,pickedSurfaceCurvatureProjection=null;
 let pickedNormalAngleFirst=null,pickedNormalAngleReport=null,pickedNormalAngleProjections=[null,null];
 let qualifiedTreeContent=null,qualifiedTreeData=null,qualifiedTreeSelected=null,qualifiedTreeReport=null,treePointProjection=null,treeGeneration=0,treeNodeButtons=[];
+let qualifiedTreeFilter={query:'',sourceId:null,kind:'all'},qualifiedTreeFiltered=null,qualifiedTreeSelectedHidden=false;
 const colors=[[.9,.3,.2],[.25,.8,.4],[.25,.45,.95],[.95,.7,.2],[.3,.8,.9],[.85,.35,.75]];
 const camera={eye:[2,1.5,3.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:10},mmToSceneUnit=.12,background=[.02,.03,.04],translateScene=[-.6,-.6,-.7];
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
@@ -297,16 +301,28 @@ function remeasurePickedNormalAngle(){check(pickedNormalAngleReport,'Select two 
   pickedNormalAngleFirst=first;pickedNormalAngleReport=report;renderPickedNormalAngleOutput();refreshPickedNormalAngle();display('Original picked normal angle measured again.');return clone(next);}
 function resetPickedNormalAngle(){clearPickedNormalAngle();refreshPickedNormalAngle();display('Picked normal angle reset.');}
 function clearTreeSelection(){qualifiedTreeSelected=null;qualifiedTreeReport=null;treePointProjection=null;treeProperties.textContent='';treePointOutput.textContent='';
+  qualifiedTreeSelectedHidden=false;
   treeU.value='';treeV.value='';treeT.value='';treePointLabel.hidden=true;
   for(const input of[treeU,treeV,treeT,inspectTreePointButton,frameTreeFaceButton,clearTreeSelectionButton])input.disabled=true;
   for(const id of['tree-u-label','tree-v-label','tree-t-label'])document.querySelector('#'+id).hidden=true;markQualifiedTreeSelection();}
 function markQualifiedTreeSelection(){for(const node of treeNodeButtons){const selected=!!qualifiedTreeSelected&&same(node.ref,qualifiedTreeSelected.ref);
   node.button.dataset.treeSelected=String(selected);node.button.setAttribute('aria-pressed',String(selected));}}
 function qualifiedTreeSnapshot(){return{tree:clone(qualifiedTreeData),selected:clone(qualifiedTreeSelected),report:clone(qualifiedTreeReport),
+  filter:clone(qualifiedTreeFilter),filtered:clone(qualifiedTreeFiltered),selectedHidden:qualifiedTreeSelectedHidden,
   parameters:{u:treeU.value,v:treeV.value,t:treeT.value},output:treePointOutput.textContent,projection:clone(treePointProjection),label:pickedChordLabelSnapshot(treePointLabel),
   enabled:!inspectTreePointButton.disabled,frameEnabled:!frameTreeFaceButton.disabled};}
 function clearQualifiedTree(){if(qualifiedTreeData||qualifiedTreeContent)treeGeneration++;qualifiedTreeContent=null;qualifiedTreeData=null;treeNodeButtons=[];
+  qualifiedTreeFilter={query:'',sourceId:null,kind:'all'};qualifiedTreeFiltered=null;treeFilterStatus.textContent='';restoreQualifiedTreeFilterControls();
   qualifiedTreeElement.replaceChildren();clearTreeSelection();}
+function restoreQualifiedTreeFilterControls(){for(const[input,value]of[[treeFilterQuery,qualifiedTreeFilter.query],[treeFilterSource,qualifiedTreeFilter.sourceId??''],[treeFilterKind,qualifiedTreeFilter.kind]])if(input.value!==value)input.value=value;}
+function qualifiedTreeNodeVisible(ref){return !!qualifiedTreeFiltered?.sources.some(source=>source.geometries.some(geometry=>same(geometry.ref,ref)));}
+function setQualifiedTreeFilter(input){let next;try{next=filterQualifiedFaceTree(viewer,input);}catch(error){restoreQualifiedTreeFilterControls();throw error;}
+  if(!next){clearQualifiedTree();refreshQualifiedTree();return qualifiedTreeSnapshot();}
+  const generation=treeGeneration;qualifiedTreeFilter=clone(next.filter);qualifiedTreeFiltered=clone(next);refreshQualifiedTree();
+  if(generation===treeGeneration){treeGeneration++;buildQualifiedTreeDom(qualifiedTreeFiltered);}
+  const selected=treeNodeButtons.find(node=>qualifiedTreeSelected&&same(node.ref,qualifiedTreeSelected.ref));if(selected){selected.sourceGroup.open=true;selected.faceGroup.open=true;}
+  refreshQualifiedTree();display('Original tree filters applied.');return qualifiedTreeSnapshot();}
+function clearQualifiedTreeFilter(){return setQualifiedTreeFilter({query:'',sourceId:null,kind:'all'});}
 function buildQualifiedTreeDom(tree){const openGroups=new Set([...qualifiedTreeElement.querySelectorAll('details[open]')].map(group=>group.dataset.treeGroup+':'+group.dataset.sourceId));
   const focusedRef=treeButtonRefs.get(document.activeElement),focusedGroup=document.activeElement?.tagName==='SUMMARY'?document.activeElement.parentElement:null,
     focusedGroupKey=focusedGroup?.dataset.treeGroup?focusedGroup.dataset.treeGroup+':'+focusedGroup.dataset.sourceId:null,generation=treeGeneration;treeNodeButtons=[];
@@ -318,6 +334,7 @@ function buildQualifiedTreeDom(tree){const openGroups=new Set([...qualifiedTreeE
       button.textContent=ref.sourceId+' · '+ref.kind+' · '+ref.geometryId;button.setAttribute('aria-label','Inspect original tree geometry '+ref.sourceId+' '+ref.kind+' '+ref.geometryId);
       button.dataset.sourceId=ref.sourceId;button.dataset.kind=ref.kind;button.dataset.geometryId=ref.geometryId;treeButtonRefs.set(button,clone(ref));
       button.addEventListener('click',()=>action(()=>{refreshQualifiedTree();check(button.isConnected&&generation===treeGeneration,'This original geometry tree node is stale.');
+        check(qualifiedTreeNodeVisible(ref),'This original geometry tree node is outside the current filter.');
         queryQualifiedFaceTreeNode(viewer,ref);selectQualifiedTreeNode(ref);}));
       treeNodeButtons.push({button,ref,sourceGroup,faceGroup});geometryGroup.append(button);
     }
@@ -329,20 +346,25 @@ function buildQualifiedTreeDom(tree){const openGroups=new Set([...qualifiedTreeE
 function treePointInput(){const ref=qualifiedTreeReport.node.ref,parameters=qualifiedTreeReport.parameters;
   return{kind:ref.kind,sourceId:ref.sourceId,expectedSource:ref.expectedSource,faceId:ref.faceId,modelId:ref.modelId,geometryId:ref.geometryId,
     ...(ref.kind==='surface'?{u:parameters.u,v:parameters.v}:{t:parameters.t})};}
-function updateTreePointLabel(){treePointProjection=null;treePointLabel.hidden=true;if(disposed||!qualifiedTreeReport||viewer.getState().status!=='ready')return;
+function updateTreePointLabel(){treePointProjection=null;treePointLabel.hidden=true;if(disposed||qualifiedTreeSelectedHidden||!qualifiedTreeReport||viewer.getState().status!=='ready')return;
   try{treePointProjection=viewer.projectQualifiedFacePoint(treePointInput());}catch{}
   if(treePointProjection){const ref=qualifiedTreeReport.node.ref;treePointLabel.textContent=ref.sourceId+'/'+ref.geometryId+' · original point';
     treePointLabel.style.left=treePointProjection.xCss+'px';treePointLabel.style.top=treePointProjection.yCss+'px';treePointLabel.hidden=false;}}
-function refreshQualifiedTree(){if(disposed){clearQualifiedTree();for(const input of[treeU,treeV,treeT,inspectTreePointButton,frameTreeFaceButton,clearTreeSelectionButton,syncFaceTree])input.disabled=true;return qualifiedTreeSnapshot();}
+function refreshQualifiedTree(){if(disposed){clearQualifiedTree();for(const input of[treeU,treeV,treeT,inspectTreePointButton,frameTreeFaceButton,clearTreeSelectionButton,syncFaceTree,treeFilterQuery,treeFilterSource,treeFilterKind,clearTreeFiltersButton])input.disabled=true;return qualifiedTreeSnapshot();}
   const state=viewer.getState(),scene=state.qualifiedFaceScene,content=scene?scene.assets.map(asset=>({sourceId:asset.sourceId,source:asset.source,face:asset.face}))
     .sort((a,b)=>a.sourceId<b.sourceId?-1:a.sourceId>b.sourceId?1:0):null;
-  if(!same(content,qualifiedTreeContent)){const next=buildQualifiedFaceTree(viewer);let retained=null;
+  if(!scene)clearQualifiedTree();
+  if(!same(content,qualifiedTreeContent)){const next=buildQualifiedFaceTree(viewer),filtered=filterQualifiedFaceTree(viewer,qualifiedTreeFilter);let retained=null;
     if(qualifiedTreeSelected)try{retained=queryQualifiedFaceTreeNode(viewer,qualifiedTreeSelected.ref);}catch{}
     if(qualifiedTreeSelected&&!retained)clearTreeSelection();else if(retained)qualifiedTreeSelected=clone(retained);
-    qualifiedTreeContent=clone(content);qualifiedTreeData=clone(next);treeGeneration++;buildQualifiedTreeDom(qualifiedTreeData);
+    qualifiedTreeContent=clone(content);qualifiedTreeData=clone(next);qualifiedTreeFiltered=clone(filtered);treeGeneration++;buildQualifiedTreeDom(qualifiedTreeFiltered);
   }
   const enabled=!running&&!!scene,selected=enabled&&!!qualifiedTreeSelected,surface=qualifiedTreeSelected?.ref.kind==='surface';
   for(const node of treeNodeButtons)node.button.disabled=!enabled;syncFaceTree.disabled=!enabled;
+  for(const input of[treeFilterQuery,treeFilterSource,treeFilterKind,clearTreeFiltersButton])input.disabled=!enabled;restoreQualifiedTreeFilterControls();
+  qualifiedTreeSelectedHidden=!!qualifiedTreeSelected&&!qualifiedTreeNodeVisible(qualifiedTreeSelected.ref);
+  const counts=qualifiedTreeFiltered?.counts;treeFilterStatus.textContent=counts?(counts.visibleGeometries?'Showing '+counts.visibleGeometries+' of '+counts.totalGeometries+' original geometries across '+counts.visibleSources+' of '+counts.totalSources+' sources.':'No matching original geometry.')
+    +(qualifiedTreeSelectedHidden?' Selected '+qualifiedTreeSelected.ref.sourceId+'/'+qualifiedTreeSelected.ref.geometryId+' is outside the filter.':''):'';
   inspectTreePointButton.disabled=!selected;frameTreeFaceButton.disabled=!selected||state.status!=='ready';clearTreeSelectionButton.disabled=!selected;
   treeU.disabled=!selected||!surface;treeV.disabled=!selected||!surface;treeT.disabled=!selected||surface;
   document.querySelector('#tree-u-label').hidden=!surface;document.querySelector('#tree-v-label').hidden=!surface;document.querySelector('#tree-t-label').hidden=!qualifiedTreeSelected||surface;
@@ -815,6 +837,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
     queryPickedFaceSurfaceCurvature,inspectPickedSurfaceCurvature,refreshPickedSurfaceCurvature,remeasurePickedSurfaceCurvature,resetPickedSurfaceCurvature,pickedSurfaceCurvatureSnapshot,
     measurePickedFaceNormalAngle,pickNormalAngleAt,refreshPickedNormalAngle,remeasurePickedNormalAngle,resetPickedNormalAngle,pickedNormalAngleSnapshot,
     buildQualifiedFaceTree,queryQualifiedFaceTreeNode,inspectQualifiedFaceTreeNode,selectQualifiedTreeNode,refreshQualifiedTree,inspectTreePoint,frameTreeFace,clearTreeSelection,qualifiedTreeSnapshot,
+    filterQualifiedFaceTree,setQualifiedTreeFilter,clearQualifiedTreeFilter,
     AREA_OPTIONS,areaPin,queryQualifiedFaceSurfaceArea,inspectArea,updateAreaLabel,areaSnapshot,mismatchCandidate,dispose,resourceCounts,uploads,draws,glErrors,errors,warnings,lossExtension,failAllocation,
     LENGTH_OPTIONS,lengthPin,queryQualifiedFaceCurveLength,inspectLength,updateLengthLabel,lengthSnapshot,
     queryQualifiedFaceAngle,measureAngle,updateAngleLabel,angleSnapshot,
@@ -866,6 +889,9 @@ pickedAngleMode.addEventListener('change',render);resetPickedAngleButton.addEven
 pickedNormalAngleMode.addEventListener('change',render);resetPickedNormalAngleButton.addEventListener('click',()=>action(resetPickedNormalAngle));
 inspectPickedSurfaceCurvatureButton.addEventListener('click',()=>action(inspectPickedSurfaceCurvature));resetPickedSurfaceCurvatureButton.addEventListener('click',()=>action(resetPickedSurfaceCurvature));
 inspectTreePointButton.addEventListener('click',()=>action(()=>inspectTreePoint()));frameTreeFaceButton.addEventListener('click',()=>action(frameTreeFace));clearTreeSelectionButton.addEventListener('click',()=>action(()=>{clearTreeSelection();refreshQualifiedTree();display('Original tree selection cleared.');}));
+function applyTreeFilterControls(){try{setQualifiedTreeFilter({query:treeFilterQuery.value,sourceId:treeFilterSource.value||null,kind:treeFilterKind.value});}catch(error){display(error.message);}}
+treeFilterQuery.addEventListener('input',applyTreeFilterControls);treeFilterSource.addEventListener('change',applyTreeFilterControls);treeFilterKind.addEventListener('change',applyTreeFilterControls);
+clearTreeFiltersButton.addEventListener('click',()=>action(clearQualifiedTreeFilter));
 canvas.addEventListener('click',event=>{const inspectEnabled=faceInspectMode.checked&&!faceInspectMode.disabled,sampleEnabled=nativeSampleMode.checked&&!nativeSampleMode.disabled,
   chordEnabled=pickedChordMode.checked&&!pickedChordMode.disabled,angleEnabled=pickedAngleMode.checked&&!pickedAngleMode.disabled,normalAngleEnabled=pickedNormalAngleMode.checked&&!pickedNormalAngleMode.disabled;
   if(!inspectEnabled&&!sampleEnabled&&!chordEnabled&&!angleEnabled&&!normalAngleEnabled)return;const rect=canvas.getBoundingClientRect(),point={xCss:event.clientX-rect.left,yCss:event.clientY-rect.top};
