@@ -75,6 +75,53 @@ Expected accepted data:
 
 The actual browser flow also changed an accepted scene and observed changed pixels. It then submitted `20rad` as a rotation, observed refusal, and checked that the accepted frame remained. A `version: 1` header alone does not change a source0 parser. Read the [complete scene language](./language) for all six shapes, defaults, cascade and errors.
 
+## Compare all six source1 primitives
+
+Open [GPU six shapes](/playground#gpu-six-shapes). This source1 scene compares all six admitted SDF shapes with the default camera:
+
+![Actual source1 SDF scene showing six distinct primitives in two rows](/examples/gpu-six-shapes.png)
+
+| Position | ID / shape | Color | Dimensions before rotation |
+| --- | --- | --- | --- |
+| Top left | `ball` / sphere | Orange | Radius`.4`, diameter`.8` |
+| Top center | `block` / box | Blue | Full size`.7 × .9 × .6` |
+| Top right | `post` / cylinder | Green | Radius`.35`, full height1 |
+| Bottom left | `pill` / capsule | Purple | Radius`.25`, center segment length`.8`, overall Y extent1.3 |
+| Bottom center | `case` / rounded-box | Pink | Full outer size`1 × .8 × .6`, rounding radius`.1` |
+| Bottom right | `ring` / torus | Yellow | Major radius`.55`, minor radius`.15`, outside diameter1.4 |
+
+The box has Y rotation25deg. The torus has X rotation90deg, which turns its ring toward the camera. These rotations change orientation, not authored dimensions. This is an SDF rendering example, not a native CAD geometry or Boolean certificate.
+
+The complete input is:
+
+```css
+@scene sixShapes {
+  version: 1;
+  background: #101820;
+  sphere #ball;
+  box #block;
+  cylinder #post;
+  capsule #pill;
+  rounded-box #case;
+  torus #ring;
+}
+#ball { radius: .4; translate: -2 1 0; color: #F1AA55; }
+#block { size: .7 .9 .6; translate: 0 1 0; rotate-y: 25deg; color: #57B4D9; }
+#post { radius: .35; height: 1; translate: 2 1 0; color: #95D88B; }
+#pill { radius: .25; start: 0 -.4 0; end: 0 .4 0; translate: -2 -1 0; color: #CA97E5; }
+#case { size: 1 .8 .6; radius: .1; translate: 0 -1 0; color: #ED8090; }
+#ring { major-radius: .55; minor-radius: .15; translate: 2 -1 0; rotate-x: 90deg; color: #F0D670; }
+```
+
+The host uses the same public call as the first scene example: `mountScene(canvas, source, undefined, {sourceVersion: 1})`. The result contains six objects in declaration order. Each reports its ID, type, translation and rotation. The source name is `sixShapes`.
+
+1. Set the ring's `rotate-x` to0deg and run. Its plane returns to local XZ, making the camera view more edge-on.
+2. Set the capsule's `end` to`0 .8 0` and run. Its center segment grows from`.8` to1.2; the two hemispherical ends retain radius`.25`.
+3. Set the ring's minor radius to`.55`. Run. Equal major/minor radii are refused, because no positive ring hole remains. The live view retains its accepted scene while the context is usable.
+4. Reset the example to restore the exact six-shape source.
+
+The saved preset is `apps/library-docs/scripts/snippets/presets/scene.json`, key `gpu-six-shapes`. It preserves complete source and expected object/refusal metadata. The [scene grammar](./language#source1-shapes-in-one-complete-input) explains each shape's Float32 boundary checks.
+
 ## Host-controlled material blend
 
 The two images show the same CAD-derived mesh with two admitted uniform values:
@@ -116,6 +163,8 @@ setAmount(1);
 ```
 
 This function assumes the mesh renderer from the next section. A material source creates no geometry and no timer. The host owns the uniform values and scheduling. Read the [material grammar and complete function table](./material-language).
+
+For separate complete inputs for all11functions, read [GPU function examples](./function-examples). The cosine preset reverses the endpoint direction as amount increases. The explicit clamp preset keeps the blue endpoint below its lower threshold and the orange endpoint above its upper threshold. Both use the same admitted mesh and host-controlled amount contract.
 
 ### Exercise errors without guessing the result
 

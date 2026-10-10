@@ -30,8 +30,14 @@ Open the [visual playground](/playground). Choose a tab, edit the input and sele
 | CAD curve | Evaluate native geometry and plot it with host Canvas2D | CAD source0 |
 | CAD surface | Tessellate native geometry and draw with MeshRenderer | CAD source0 |
 | GPU material | Compile a mesh material and change its scalar uniform | CAD source0 geometry; mesh-material grammar |
+| CAD extrusion | Compile a Curve and Extrude, then sample and draw its Surface | CAD source1 |
+| CAD parameters | Compile lengths/scalars, edit a parameter, then resample the Surface | CAD source2 |
+| GPU six shapes | Compare sphere, box, cylinder, capsule, rounded-box and torus | GPU source1 |
+| Eleven material function samples | Select an independent complete program for each source function | Mesh-material grammar |
 
-WebGL2 is required for GPU scene, surface and material drawing. The curve plot requires a browser Canvas2D context. The curve tab does not execute the BaroCSS Canvas2D package. CAD source1 Extrude and source2 parameters use the CPU examples below; those inputs are not admitted by the two CAD playground tabs.
+WebGL2 is required for GPU scene, surface and material drawing. The curve plot requires a browser Canvas2D context. The curve tab does not execute the BaroCSS Canvas2D package. The original Curve/Surface tabs select CAD source0; the two added CAD presets explicitly select source1 or source2. A source header does not change a selected tab's compiler version. Use the matching preset or the CPU examples below.
+
+The [material function gallery](/packages/gpu/function-examples) gives complete input and result images for all eleven source functions. Each preset supplies `amount` from0 to1. The host owns that control; the source creates no timer. The new CAD presets fit their sampled bounds to the viewport. A uniform size change can keep the same screen size; read the native millimetre values in **Actual result data**.
 
 For GPU scenes, a refused edit retains the accepted frame. For materials, a refused compilation or binding retains the accepted material. Read the error before changing the input again. A refusal is not a successful adoption of the new input.
 

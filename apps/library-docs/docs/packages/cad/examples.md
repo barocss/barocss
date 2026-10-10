@@ -2,7 +2,7 @@
 
 Compile original geometry, query it, then prepare a separate display mesh. These examples use actual `@barocss/cad` public exports at version `0.0.0-experimental`. Use [the language reference](./language) to edit source0/1/2 correctly.
 
-[Open the source0 playground](/playground) · [Compiler signature](./reference#compilecadmodel) · [Surface sampling signature](./reference#tessellatesurface)
+[Open the CAD playground](/playground#cad-surface) · [Compiler signature](./reference#compilecadmodel) · [Surface sampling signature](./reference#tessellatesurface)
 
 ## Run the complete CPU examples
 
@@ -150,7 +150,11 @@ The public evaluator takes an original native parameter. Do not normalize4.5 to 
 
 ## Construct an open Surface in source1
 
-Source1 admits a Curve and its extrusion. It excludes literal Surface blocks. Use the [source1 CPU command above](#run-the-complete-cpu-examples) for this example; the CAD playground tabs select source0.
+Source1 admits a Curve and its extrusion. It excludes literal Surface blocks. Open [CAD extrude](/playground#cad-extrude) for the same complete source shown below. Its compiler option is `sourceVersion:1`. Select **Run input** after changing the vector. The initial native midpoint is `[10,0,15]` mm.
+
+![Source1 Curve extrusion displayed as a sampled open Surface](/examples/cad-extrude.png)
+
+Pale lines show the sampled U/V grid. The retained profile Curve and extrusion vector define the native Surface. For a CPU-only result, use the [source1 command above](#run-the-complete-cpu-examples).
 
 ```ts
 import { compileCadModel, evaluateSurface } from '@barocss/cad';
@@ -177,7 +181,11 @@ The Surface is `C(u)+v[0,0,30]`, with V domain 0..1. This is an open Surface wit
 
 ## Recompile a parameter edit in source2
 
-Source2 quantities distinguish length and scalar. Use the [source2 CPU command above](#run-the-complete-cpu-examples) to run the original and edited model below.
+Source2 quantities distinguish length and scalar. Open [CAD parameters](/playground#cad-parameters). Its compiler option is `sourceVersion:2`. Change `10 cm` to `12 cm`, then select **Run input**. Native width changes from 100 to 120 mm, height from 50 to 60 mm, and the wall midpoint from `[50,0,50]` to `[60,0,60]` mm. The scalar remains 2 and native IDs remain `profile` and `wall`.
+
+![Source2 Parameter-driven Surface with native millimetre result data](/examples/cad-parameters.png)
+
+The host fits sampled bounds for display. When both native dimensions grow by the same factor, the fitted image can retain the same aspect; inspect the result panel for the actual millimetre values. To change the shape independently, edit the scalar `scale` while leaving `width` unchanged. The complete module below also runs through the [source2 CPU command above](#run-the-complete-cpu-examples).
 
 ```ts
 import { compileCadModel, evaluateSurface } from '@barocss/cad';

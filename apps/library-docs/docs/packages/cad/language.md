@@ -2,7 +2,7 @@
 
 The CAD language describes native rational B-spline geometry and bounded construction intent. It is data for `compileCadModel`, not browser CSS. Use the selected source dialect explicitly. All dialects produce native `Model` version 0 in millimetres.
 
-[Run saved source0/1/2 examples](./examples#run-the-complete-cpu-examples) · [Open the source0 playground](/playground) · [Public compiler signature](./reference#compilecadmodel)
+[Run saved source0/1/2 examples](./examples#run-the-complete-cpu-examples) · [Open the CAD playground](/playground#cad-surface) · [Public compiler signature](./reference#compilecadmodel)
 
 ## Choose a source dialect
 
@@ -16,11 +16,11 @@ The CAD language describes native rational B-spline geometry and bounded constru
 
 | Input | Existing run target |
 | --- | --- |
-| Source0 Curve or literal Surface | [CAD playground](/playground), in the matching Curve or Surface tab |
-| Source1 Curve and Extrude | [Saved CPU examples](./examples#run-the-complete-cpu-examples) |
-| Source2 Parameters, expressions and geometry | [Saved CPU examples](./examples#run-the-complete-cpu-examples) |
+| Source0 Curve or literal Surface | [CAD curve](/playground#cad-curve) or [CAD surface](/playground#cad-surface) |
+| Source1 Curve and Extrude | [CAD extrude](/playground#cad-extrude) or [saved CPU examples](./examples#run-the-complete-cpu-examples) |
+| Source2 Parameters, expressions and geometry | [CAD parameters](/playground#cad-parameters) or [saved CPU examples](./examples#run-the-complete-cpu-examples) |
 
-The CAD playground tabs compile with `sourceVersion:0`. Changing their source header does not enable source1 or source2. The saved consumer explicitly selects each dialect. To run a standalone module copied from this page, follow [Run saved examples](/concepts/run-examples).
+Each playground preset selects its compiler version explicitly: Curve and Surface use source0, Extrude uses source1, and Parameters uses source2. Choose the matching preset before editing its header or declarations. Changing a header alone does not change the selected compiler option. To run a standalone module copied from this page, follow [Run saved examples](/concepts/run-examples).
 
 **Source1 is not a superset of source0.** A literal `@surface` block is refused in source1. Use source0 for literal Surfaces or source2 for literal/expression-driven Surfaces. Source1 produces Surfaces through `@extrude`.
 
@@ -169,7 +169,7 @@ Fields for trims, periodic flags, textures or materials are not accepted by this
 }
 ```
 
-Compile with `{sourceVersion:1}`. Output objects are `profile` Curve and `wall` Surface. The resulting Surface satisfies `S(u,v)=C(u)+vD`, with original U domain and V domain 0..1. `evaluateSurface(wall,0.5,0.5)` gives `[10,0,15]` mm.
+Open [the source1 extrusion preset](/playground#cad-extrude) to edit this complete input. It compiles with `{sourceVersion:1}`. Output objects are `profile` Curve and `wall` Surface. The resulting Surface satisfies `S(u,v)=C(u)+vD`, with original U domain and V domain 0..1. `evaluateSurface(wall,0.5,0.5)` gives `[10,0,15]` mm.
 
 Each Curve pole becomes two Surface poles, `[Pi,Pi+D]`; each weight becomes `[wi,wi]`. U degree/knots are copied; V degree is1 and knots are `[0,0,1,1]`. At most16 Curve poles fit the Surface envelope. The finite vector must be nonzero, translated poles must remain within ±1e6 mm, and displacement must change at least one represented pole.
 
@@ -197,7 +197,7 @@ References to another extrusion or a literal Surface refuse. A Curve whose poles
 }
 ```
 
-Compile with `{sourceVersion:2}`. Parameter values are width100mm,height50mm and scale2. The native profile endpoint is `[100,0,0]`; the wall reaches z100mm. Change `10 cm` to `12 cm` and recompile: width120mm,height60mm and wall height120mm. Geometry IDs and declaration order remain stable. A previously returned model/report does not change when source text is edited.
+Open [the source2 Parameter preset](/playground#cad-parameters) to edit this complete input. It compiles with `{sourceVersion:2}`. Parameter values are width100mm,height50mm and scale2. The native profile endpoint is `[100,0,0]`; the wall reaches z100mm. Change `10 cm` to `12 cm` and recompile: width120mm,height60mm and wall height120mm. Geometry IDs and declaration order remain stable. A previously returned model/report does not change when source text is edited.
 
 ### Expression grammar and precedence
 
