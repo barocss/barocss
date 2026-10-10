@@ -1,8 +1,8 @@
 import { ownRecord, freezeGpuData } from './gpu-data.js';
 import { prepareEngineScene } from './engine-scene.js';
 import type { PreparedEngineScene } from './engine-scene.js';
-import { validateMeshMaterialBinding, lowerMeshMaterial, validateEngineUVMaterialBinding, lowerEngineUVMaterial } from './mesh-material.js';
-import type { MeshMaterialIR, MeshMaterialBinding, LoweredMeshMaterial, EngineUVMaterialIR, EngineUVMaterialBinding, LoweredEngineUVMaterial } from './mesh-material.js';
+import { validateMeshMaterialBinding, lowerMeshMaterial, validateEngineUVMaterialBinding, lowerEngineUVMaterial, validateEngineUVRepeatingMaterialBinding, lowerEngineUVRepeatingMaterial } from './mesh-material.js';
+import type { MeshMaterialIR, MeshMaterialBinding, LoweredMeshMaterial, EngineUVMaterialIR, EngineUVMaterialBinding, LoweredEngineUVMaterial, EngineUVRepeatingMaterialIR, EngineUVRepeatingMaterialBinding } from './mesh-material.js';
 
 export const EngineMaterialBindingsDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', BUDGET: 'BUDGET', REFERENCE: 'REFERENCE',
@@ -45,9 +45,23 @@ export interface PreparedEngineUVMaterialBindings {
   readonly loweredBindings: { materialId: string; lowered: LoweredEngineUVMaterial }[];
 }
 
+export interface EngineUVRepeatingMaterialBindingV0 {
+  materialId: string; material: EngineUVRepeatingMaterialIR; uniforms: Record<string, number>;
+}
+export interface EngineUVRepeatingMaterialBindingsV0 {
+  format: 'barocss-gpu-engine-uv-repeating-material-bindings'; version: 0; sceneId: string;
+  bindings: EngineUVRepeatingMaterialBindingV0[];
+}
+export interface PreparedEngineUVRepeatingMaterialBindings {
+  readonly scene: PreparedEngineScene;
+  readonly materialBindings: EngineUVRepeatingMaterialBindingsV0;
+  readonly resolvedBindings: { materialId: string; binding: EngineUVRepeatingMaterialBinding }[];
+  readonly loweredBindings: { materialId: string; lowered: LoweredEngineUVMaterial }[];
+}
+
 // Trusted profiles reuse the catalog guards. Callers cannot supply a profile or providers.
-type MaterialIR = MeshMaterialIR | EngineUVMaterialIR;
-type MaterialBinding = MeshMaterialBinding | EngineUVMaterialBinding;
+type MaterialIR = MeshMaterialIR | EngineUVMaterialIR | EngineUVRepeatingMaterialIR;
+type MaterialBinding = MeshMaterialBinding | EngineUVMaterialBinding | EngineUVRepeatingMaterialBinding;
 type LoweredMaterial = LoweredMeshMaterial | LoweredEngineUVMaterial;
 type CatalogEntry<M extends MaterialIR> = { materialId: string; material: M; uniforms: Record<string, number> };
 interface PreparedCatalog<M extends MaterialIR, F extends string, B extends MaterialBinding, L extends LoweredMaterial> {
@@ -66,6 +80,10 @@ const legacyProfile: CatalogProfile<MeshMaterialIR, 'barocss-gpu-engine-material
 };
 const uvProfile: CatalogProfile<EngineUVMaterialIR, 'barocss-gpu-engine-uv-material-bindings', EngineUVMaterialBinding, LoweredEngineUVMaterial> = {
   format: 'barocss-gpu-engine-uv-material-bindings', bind: validateEngineUVMaterialBinding, lower: lowerEngineUVMaterial,
+};
+
+const repeatingUVProfile: CatalogProfile<EngineUVRepeatingMaterialIR, 'barocss-gpu-engine-uv-repeating-material-bindings', EngineUVRepeatingMaterialBinding, LoweredEngineUVMaterial> = {
+  format: 'barocss-gpu-engine-uv-repeating-material-bindings', bind: validateEngineUVRepeatingMaterialBinding, lower: lowerEngineUVRepeatingMaterial,
 };
 
 const CODE = EngineMaterialBindingsDiagnosticCode;
@@ -155,6 +173,10 @@ export function prepareEngineMaterialBindings(sceneInput: unknown, materialInput
 /** Explicit UV source companion; the legacy profile is not upgraded or mixed. */
 export function prepareEngineUVMaterialBindings(sceneInput: unknown, materialInput: unknown): PreparedEngineUVMaterialBindings {
   return prepareBindings(sceneInput, materialInput, uvProfile);
+}
+/** Explicit repeating UV companion; existing profiles and source catalogs stay separate. */
+export function prepareEngineUVRepeatingMaterialBindings(sceneInput: unknown, materialInput: unknown): PreparedEngineUVRepeatingMaterialBindings {
+  return prepareBindings(sceneInput, materialInput, repeatingUVProfile);
 }
 function prepareBindings<M extends MaterialIR, F extends string, B extends MaterialBinding, L extends LoweredMaterial>(
   sceneInput: unknown, materialInput: unknown, profile: CatalogProfile<M, F, B, L>,

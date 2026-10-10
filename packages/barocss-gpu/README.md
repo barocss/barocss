@@ -2017,3 +2017,42 @@ profile upgrade, renderer/cache/resource/consumer or publication support.
 
 ONE source/IR/API/file/cold flow:
 `node examples/gpu-scene/engine-uv-repeating-material-flow.mjs --output <fresh-directory>`.
+
+### Repeating UV material-ID source binding (CPU companion0)
+
+`prepareEngineUVRepeatingMaterialBindings(sceneInput, materialInput)` admits
+only the distinct `barocss-gpu-engine-uv-repeating-material-bindings` version0
+companion. Exact root fields are `format`, `version`, `sceneId`, `bindings`;
+entries are `materialId`, full `EngineUVRepeatingMaterialIR`, `uniforms`.
+The complete original source/IR/profile is validated. Original scene ID must
+match; bindings require unique existing material IDs, including unused/hidden
+materials. Empty catalogs are permitted. Existing legacy/UV0 companion formats
+and IR admission remain unchanged; each explicit companion rejects other profiles.
+
+The exact four-field result is `scene`, `materialBindings`, `resolvedBindings`,
+`loweredBindings`. Original full source/comments/IR, supplied omissions/values
+and negative zero remain independently frozen. Resolved bindings reconstruct
+actual repeating source, fill declared defaults and normalize numeric zero.
+Trusted lowering retains four frozen fields and the fixed UV input declaration.
+Original scene/UV/IDs remain separate from mutable derived typed buffers.
+No same-ID shader cache or caller-supplied UV values are implied.
+
+This uses the same private catalog guards and a shared private UV binding helper.
+All headers/counts/source guards and sign-preserving snapshots run before actual
+material providers. Bounds remain eight bindings, 16 declared/supplied uniforms
+per binding and128 of each aggregate, 64KiB aggregate UTF8 with a code-unit
+preflight, 8192 own values/depth24 per entry, 16 record keys and256 dense array
+values. Array counts precede enumeration. No getters/hidden/symbol/cycle/foreign/
+nonfinite data. The service refuses `__proto__` declarations/values with `INPUT`.
+At most16 actual source reconstructions, then one scene admission before identity
+checks. Compiler/source/profile/argument/node and original scene limits remain.
+
+Errors reuse `EngineMaterialBindingsError` and the actual `INPUT`, `VERSION`,
+`BUDGET`, `REFERENCE`, `MATERIAL`, `SCENE` codes. Real material errors retain their
+source diagnostic/UTF16 offsets; scene/reflection errors retain actual causes.
+No partial result or mutation of accepted data/files. This is source/catalog
+admission, without shader execution, wrapping precision, interpolation/pixels,
+resource/cache/lifetime, consumer document or publication support.
+
+ONE source/API/file/cold flow:
+`node examples/gpu-scene/engine-uv-repeating-material-bindings-flow.mjs --output <fresh-directory>`.

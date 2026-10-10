@@ -23,6 +23,7 @@ export interface LoweredMeshMaterial {expression:string;uniformDeclarations:stri
 export interface EngineUVMaterialIR {format:'barocss-gpu-engine-uv-material';version:0;profile:'engine-opaque-uv-fragment-v0';source:string;shaderId:string;uniforms:MeshMaterialUniform[];expression:EngineUVMaterialExpression}
 export interface EngineUVRepeatingMaterialIR {format:'barocss-gpu-engine-uv-repeating-material';version:0;profile:'engine-opaque-uv-repeating-fragment-v0';source:string;shaderId:string;uniforms:MeshMaterialUniform[];expression:EngineUVRepeatingMaterialExpression}
 export interface EngineUVMaterialBinding {material:EngineUVMaterialIR;uniforms:Record<string,number>}
+export interface EngineUVRepeatingMaterialBinding {material:EngineUVRepeatingMaterialIR;uniforms:Record<string,number>}
 export interface LoweredEngineUVMaterial extends LoweredMeshMaterial {inputDeclarations:'in vec2 v_engine_uv;'}
 type Token={text:string;start:number;end:number};
 type ParsedMaterial={source:string;shaderId:string;uniforms:MeshMaterialUniform[];expression:EngineUVRepeatingMaterialExpression};
@@ -248,12 +249,14 @@ export function lowerEngineUVRepeatingMaterial(input:unknown):LoweredEngineUVMat
  return freeze(result);
 }
 /** Internal catalog provider: distinct UV profile; no caller-supplied input values. */
-export function validateEngineUVMaterialBinding(input:unknown):EngineUVMaterialBinding{
+export function validateEngineUVMaterialBinding(input:unknown):EngineUVMaterialBinding{return bindUVMaterial(input,validateEngineUVMaterialIR);}
+export function validateEngineUVRepeatingMaterialBinding(input:unknown):EngineUVRepeatingMaterialBinding{return bindUVMaterial(input,validateEngineUVRepeatingMaterialIR);}
+function bindUVMaterial<M extends EngineUVMaterialIR|EngineUVRepeatingMaterialIR>(input:unknown,validate:(input:unknown)=>M):{material:M;uniforms:Record<string,number>}{
  let data:Record<string,unknown>;
  try{data=ownSnapshot(input) as Record<string,unknown>;}
  catch(cause){if(cause instanceof MeshMaterialError)throw cause;throw uvError('INPUT','UV material binding own-data reflection refused',0,0,cause);}
  if(!data||typeof data!=='object'||Array.isArray(data)||Object.keys(data).length!==2||!Object.hasOwn(data,'material')||!Object.hasOwn(data,'uniforms'))throw uvError('INPUT','UV material binding requires material/uniforms');
- const material=validateEngineUVMaterialIR(data.material),values=data.uniforms;
+ const material=validate(data.material),values=data.uniforms;
  if(!values||typeof values!=='object'||Array.isArray(values))throw uvError('UNIFORM','Uniform values require own record');
  const entries=Object.entries(values);
  if(entries.length>16||entries.some(([name])=>!material.uniforms.some(u=>u.name===name)))throw uvError('UNIFORM','Unknown/excess uniform value');
