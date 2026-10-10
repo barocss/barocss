@@ -317,7 +317,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
       mounted.displayGeneration = accepted.displayGeneration;
       setErrorMessage(null);
       notify(receipt);
-      try { propsRef.current.onAccepted?.(accepted); }
+      try { propsRef.current.onAccepted?.(accepted, structuredClone(candidate)); }
       catch (cause) { report(cause, 'Accepted callback failed'); }
     } catch (cause) {
       let restoreFailure: { cause: unknown } | null = null;

@@ -41,6 +41,10 @@ const displayOptions = {
 The example tuple values must be typed as the exported `CadEditorDisplayOptions`
 in TypeScript. React callbacks contain copied CPU snapshots, errors or display
 diagnostics. They do not expose a renderer. `fitRequest` triggers Viewer fit.
+`onAccepted(snapshot,candidate)` supplies the copied actual candidate after the
+session accepts its token. Existing one-argument callbacks remain compatible.
+Hosts can bind a pending filename to that exact accepted Open token; preparation
+or a rendered candidate alone does not authorize an accepted filename change.
 `readRequest` requests fresh pixels without changing camera or display input.
 `onDisplay` includes actual RGBA hash/count, read index, native Viewer inventory,
 camera and component mount/disposal counts.
@@ -62,6 +66,14 @@ restoration failure is reported explicitly.
 
 `prepareOpen(text)`, `prepareUndo()` and `prepareRedo()` use the same admission
 path. Open preserves incoming file revisions and starts a new history baseline.
+Embedding hosts own Open/New replacement decisions for accepted unsaved data.
+They must retain the current session while reading and admitting a proposed file,
+resolve existing drafts separately, and recheck session/state identity before
+replacement. A Download copy can initiate a native file download while retaining
+the proposed target; it does not automatically authorize Open/New. Only a separate
+explicit continuation can prepare the frozen target. Cancel, stale state or a
+failed download clears host authorization and leaves native accepted data intact.
+The root does not add replacement confirmation, persistence or a storage manager.
 Effective Apply advances document and edited asset revisions by one. Undo/Redo
 restore authored source with fresh revisions; unaffected assets remain exact.
 Bitwise native no-ops clear pending fields without adding a history state.

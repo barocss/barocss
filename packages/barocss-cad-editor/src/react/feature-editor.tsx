@@ -526,6 +526,7 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
             <DialogContent className="cad-editor-help-dialog" data-testid="feature-properties-help-dialog">
               <DialogHeader><DialogTitle>Native extrusion properties</DialogTitle><DialogDescription>Accepted construction estimates for one selected output.</DialogDescription></DialogHeader>
               <p>Inspect reads the accepted native graph revision, even while scalar fields have pending values. It does not use a draft, mesh, camera, display scale or scene pose.</p>
+              <p data-testid="feature-properties-revision">Accepted revision {currentProperties?.binding.revision ?? accepted.document.revision}</p>
               <p>Area is in mm2, construction volume estimate in mm3, and geometric centroid in authored XYZ/mm. Display values are rounded to six decimal places. The typed properties callback retains the complete native result.</p>
               <p>ConstructionEstimateOnly is true. These values are not certified topology, Solid, manifold, sewing, manufacturing, density, mass or inertia properties. A centroid can lie in a hole or outside the material; it is not an interior witness.</p>
               <p>The query measures one selected output. It does not union or total overlapping leaves. Empty geometry returns 0 area, 0 volume, no components and centroid unavailable.</p>
@@ -534,13 +535,14 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
               <p>Manual topics: Native extrusion properties in the package README; Inspect native extrusion properties in the app README.</p>
               {propertiesError && <details><summary>Technical details</summary><pre>{diagnosticText(propertiesError)}</pre></details>}
               {currentProperties && <details><summary>Native quality and work report</summary><pre>{JSON.stringify(currentProperties.nativeProperties.report,null,2)}</pre></details>}
-              <DialogClose asChild><Button type="button" variant="outline" data-testid="feature-properties-help-close">Close help</Button></DialogClose>
+              {currentProperties && <details><summary>Current output binding</summary><pre>{JSON.stringify(currentProperties.binding,null,2)}</pre></details>}
+              <DialogClose asChild><Button type="button" variant="outline" className="cad-editor-export-close" data-testid="feature-properties-help-close">Close help</Button></DialogClose>
             </DialogContent>
           </Dialog>
         </div>
         <Button type="button" variant="outline" disabled={busy} data-testid="feature-properties-query" onClick={queryProperties}>Inspect native properties</Button>
         {currentProperties ? <div data-testid="feature-properties-summary">
-          <p data-testid="feature-properties-revision">Accepted revision {currentProperties.binding.revision}</p>
+          <p>Current properties</p>
           {currentProperties.nativeProperties.report.empty && <p role="status" data-testid="feature-properties-empty">Empty extrusion. Geometric centroid unavailable.</p>}
           <dl className="cad-editor-properties-values">
             <dt>Section area (mm²)</dt><dd><span data-testid="feature-properties-area">{propertyNumberText(currentProperties.nativeProperties.report.areaMM2)}</span></dd>
@@ -549,7 +551,7 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
               {currentProperties.nativeProperties.report.centroidMM===null?'Unavailable':propertyNumberText(currentProperties.nativeProperties.report.centroidMM[index])}
             </span></dd></div>)}
           </dl>
-        </div> : <p className="cad-editor-properties-note">Accepted revision {accepted.document.revision}. Inspect to read current values.</p>}
+        </div> : <p className="cad-editor-properties-note">Inspect to read or refresh values.</p>}
         {propertiesError && <p className="cad-editor-error" role="alert">Cannot inspect these properties. Check the selected extrusion and try again.</p>}
       </section>}
       <h3 className="cad-editor-heading">Shared lengths</h3>

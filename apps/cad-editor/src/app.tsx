@@ -9,6 +9,8 @@ import { Button } from './components/ui/button';
 import { Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger } from './components/ui/menubar';
 import { downloadAccepted, downloadReviewedExport, readCadEditorFile } from './file-actions';
 import { FeatureApp } from './feature-app';
+import { ReplacementDialog } from './replacement-dialog';
+import { captureReplacementAnchor, assertReplacementCurrent, copyReplacementTarget, type ReplacementAnchor, type ReplacementTarget } from './document-replacement';
 
 function nativeCauses(error: Error): {message:string;code:string|null}[] {
   const causes: {message:string;code:string|null}[]=[];
@@ -20,6 +22,8 @@ function nativeCauses(error: Error): {message:string;code:string|null}[] {
   return causes;
 }
 function actionError(error: CadEditorError): string {
+  if(error.context.field==='document-replacement-download')return 'Download could not start. The current document is retained.';
+  if(error.context.field==='document-replacement')return error.code==='STALE'?'The document changed. Open the file or choose New again.':error.code==='INPUT'?'Apply or discard your draft before replacing this document.':'The current document is retained. Try Open or New again.';
   if(error.context.field==='body-name')return 'Cannot rename this object. Check the name and try again.';
   if(error.context.field==='geometry-analysis')return 'Cannot inspect this geometry here. Check the original parameters or try Derivatives.';
   if(error.context.field==='document-export' || error.context.field==='export-download')return 'Cannot complete this export. Check the captured review, selected bodies and output IDs.';
@@ -47,6 +51,9 @@ const defaultDisplay: CadEditorDisplayOptions = {
   document: { basis: 'authored-xyz-matches-rhyup', native: { sourceVersion: 0, countU: 17, countV: 17, unitsPerMillimeter: 1, curveDisplay: { version: 1, chordToleranceMM: 0.1, maxSegments: 64, maxDepth: 8 }, nativeCapacity: { version: 1, maximumObjects: 16 } } },
 };
 
+interface ReplacementRequest { id:number;anchor:ReplacementAnchor;target:ReplacementTarget;focus:HTMLElement|null;downloadStarted:boolean }
+interface OpenChoice { id:number;anchor:ReplacementAnchor;focus:HTMLElement|null;text:string;filename:string;bodies:{id:string;name:string}[];selected:string[] }
+
 function DirectApp() {
   const [session] = useState(() => createCadEditorSession(parseCadDocument(fixtureText).document));
   const snapshot = useCadEditorSnapshot(session);
@@ -57,18 +64,22 @@ function DirectApp() {
   const [geometryAnalysis,setGeometryAnalysis]=useState<CadEditorGeometryAnalysisResult|null>(null);
   const [displayOptions, setDisplayOptions] = useState(defaultDisplay);
   const [fitSelectedRequest, setFitSelectedRequest] = useState(0);
-  const [openChoice, setOpenChoice] = useState<{text:string;filename:string;bodies:{id:string;name:string}[];selected:string[]} | null>(null);
+  const [openChoice, setOpenChoice] = useState<OpenChoice | null>(null);
+  const [replacement,setReplacement]=useState<ReplacementRequest|null>(null);
+  const replacementRef=useRef<ReplacementRequest|null>(null),requestSerial=useRef(0);
+  const replacementAttempt=useRef(false),copyNotification=useRef(false);
+  const openButton=useRef<HTMLButtonElement>(null),fileMenu=useRef<HTMLButtonElement>(null);
   const [fitRequest, setFitRequest] = useState(0);
   const [mount, setMount] = useState(true);
   const [mountKey, setMountKey] = useState(0);
   const [readRequest, setReadRequest] = useState(0);
   const [route, setRoute] = useState(location.hash);
   const fileInput = useRef<HTMLInputElement>(null);
-  const pendingFilename = useRef<string | null>(null);
+  const pendingOpen=useRef<{token:string;filename:string}|null>(null);
   const flowMode = new URLSearchParams(location.search).has('flow');
   const run = (action: () => unknown) => { try { setError(null); action(); } catch (cause) { setReadRequest(value => value + 1); setError(cause instanceof CadEditorError ? cause : new CadEditorError('FILE', String(cause), {}, cause)); } };
   useEffect(() => {
-    const updateRoute = () => setRoute(location.hash);
+    const updateRoute = () => { clearReplacement();setRoute(location.hash); };
     window.addEventListener('hashchange', updateRoute);
     if (!location.hash) location.hash = '/documents/' + snapshot.accepted.document.documentId;
     return () => window.removeEventListener('hashchange', updateRoute);
@@ -88,19 +99,67 @@ function DirectApp() {
     Object.assign(window, { __cadEditorFlow: api });
     return () => { delete (window as Window & { __cadEditorFlow?: unknown }).__cadEditorFlow; };
   }, [flowMode, session, receipt, exportReview, geometryAnalysis, error]);
-  const openFile = async (file: File | undefined) => {
-    if (!file) return;
+  function clearReplacement() {
+    requestSerial.current++;replacementAttempt.current=false;replacementRef.current=null;setReplacement(null);setOpenChoice(null);
+  }
+  function replacementError(cause:unknown) {
+    clearReplacement();if(pendingOpen.current&&session.getSnapshot().candidate?.token!==pendingOpen.current.token)pendingOpen.current=null;setReadRequest(value=>value+1);
+    setError(cause instanceof CadEditorError?cause:new CadEditorError('FILE','Cannot replace this document.',{field:'document-replacement'},cause));
+  }
+  function currentRequest(request:ReplacementRequest) {
+    if(request.id!==requestSerial.current||replacementRef.current!==request)throw new CadEditorError('STALE','The replacement request is no longer current.',{field:'document-replacement'});
+    assertReplacementCurrent(session,request.anchor);
+  }
+  function commitReplacement(request:ReplacementRequest) {
+    currentRequest(request);
+    const target=copyReplacementTarget(request.target);
+    clearReplacement();setError(null);
+    const candidate=session.prepareOpen(target.text,target.displayBodyIds?{displayBodyIds:target.displayBodyIds}:undefined);
+    pendingOpen.current={token:candidate.token,filename:target.filename};
+    if(location.hash==='#/projects')location.hash='/documents/'+session.getSnapshot().accepted.document.documentId;
+  }
+  function receiveTarget(id:number,anchor:ReplacementAnchor,target:ReplacementTarget,focus:HTMLElement|null) {
+    if(id!==requestSerial.current)return;
+    assertReplacementCurrent(session,anchor);
+    const request={id,anchor,target:copyReplacementTarget(target),focus,downloadStarted:false};
+    replacementRef.current=request;
+    if(session.getSnapshot().dirty)setReplacement(request);else commitReplacement(request);
+  }
+  function chooseOpenFile(){clearReplacement();fileInput.current?.click();}
+  const openFile = async (file:File|undefined) => {
+    if(!file)return;
+    let id=requestSerial.current;
     try {
-      setError(null);
-      const text = await readCadEditorFile(file);
+      clearReplacement();id=requestSerial.current;setError(null);
+      const anchor=captureReplacementAnchor(session),focus=openButton.current;replacementAttempt.current=true;
+      const text=await readCadEditorFile(file);
+      if(id!==requestSerial.current)return;
+      assertReplacementCurrent(session,anchor);
       let document;
-      try { document = parseCadDocument(text).document; } catch (cause) { throw new CadEditorError('NATIVE','Native document Open failed.',{},cause); }
-      if (document.bodies.length > 4) { setOpenChoice({text,filename:file.name,bodies:document.bodies,selected:[]}); return; }
-      pendingFilename.current = file.name;
-      session.prepareOpen(text);
-    } catch (cause) { pendingFilename.current = null; setReadRequest(value => value + 1); setError(cause instanceof CadEditorError ? cause : new CadEditorError('FILE', 'Cannot open this file.', {}, cause)); }
+      try{document=parseCadDocument(text).document;}catch(cause){throw new CadEditorError('NATIVE','Native document Open failed.',{},cause);}
+      if(document.bodies.length>4){setOpenChoice({id,anchor,focus,text,filename:file.name,bodies:document.bodies,selected:[]});return;}
+      receiveTarget(id,anchor,{kind:'open',text,filename:file.name},focus);
+    }catch(cause){if(id===requestSerial.current)replacementError(cause);}
   };
-  const newSample = () => run(() => { pendingFilename.current = 'Weighted surface'; session.prepareOpen(fixtureText); });
+  const newSample = () => {
+    try{clearReplacement();setError(null);const anchor=captureReplacementAnchor(session);replacementAttempt.current=true;receiveTarget(requestSerial.current,anchor,{kind:'sample',text:fixtureText,filename:'Weighted surface'},fileMenu.current);}
+    catch(cause){replacementError(cause);}
+  };
+  function downloadReplacementCopy() {
+    const request=replacementRef.current;if(!request)return;
+    try{
+      currentRequest(request);copyNotification.current=true;downloadAccepted(session);
+      const next={...request,anchor:captureReplacementAnchor(session),downloadStarted:true};
+      replacementRef.current=next;setReplacement(next);setError(null);
+    }catch(cause){replacementError(new CadEditorError('FILE','Download copy failed.',{field:'document-replacement-download'},cause));}finally{copyNotification.current=false;}
+  }
+  useEffect(()=>session.subscribe(()=>{if(replacementAttempt.current&&!copyNotification.current)replacementError(new CadEditorError('STALE','The document changed during replacement.',{field:'document-replacement'}));}),[session]);
+  useEffect(()=>{
+    const request=replacementRef.current;
+    try{if(request)currentRequest(request);if(openChoice){if(openChoice.id!==requestSerial.current)throw new CadEditorError('STALE','The Open request is no longer current.',{field:'document-replacement'});assertReplacementCurrent(session,openChoice.anchor);}}
+    catch(cause){replacementError(cause);}
+    if(pendingOpen.current&&snapshot.candidate?.token!==pendingOpen.current.token)pendingOpen.current=null;
+  },[snapshot.generation,snapshot.displayGeneration,snapshot.selectedBodyId,snapshot.selection,snapshot.pending,snapshot.selectionTransition,snapshot.candidate,snapshot.dirty,snapshot.downloadStatus,snapshot.disposed]);
   const busy = snapshot.candidate !== null;
   const hasDraft = Object.keys(snapshot.pending).length > 0 || snapshot.selectionTransition !== null;
   const projectView = route === '#/projects';
@@ -109,11 +168,11 @@ function DirectApp() {
     <header className="app-header">
       <a className="app-brand" href="#/projects"><Box size={20} strokeWidth={1.6} /><span>barocss<span className="brand-sub">CAD</span></span></a>
       <Menubar className="app-menubar">
-        <MenubarMenu><MenubarTrigger>File</MenubarTrigger><MenubarContent>
+        <MenubarMenu><MenubarTrigger ref={fileMenu}>File</MenubarTrigger><MenubarContent>
           <MenubarItem onSelect={newSample} disabled={busy}>New sample<MenubarShortcut>01</MenubarShortcut></MenubarItem>
-          <MenubarItem onSelect={() => fileInput.current?.click()} disabled={busy}>Open native document…</MenubarItem>
+          <MenubarItem onSelect={chooseOpenFile} disabled={busy}>Open native document…</MenubarItem>
           <MenubarItem disabled={busy} onSelect={() => { location.hash = "/features/cad_boolean_extrusion"; }}>New Boolean extrusion</MenubarItem>
-          <MenubarSeparator/><MenubarItem onSelect={() => run(() => downloadAccepted(session))}>Download accepted document</MenubarItem>
+          <MenubarSeparator/><MenubarItem onSelect={() => run(() => {clearReplacement();downloadAccepted(session);})}>Download accepted document</MenubarItem>
           <MenubarSeparator/><MenubarItem onSelect={() => { location.hash = '/projects'; }}>Projects</MenubarItem>
         </MenubarContent></MenubarMenu>
         <MenubarMenu><MenubarTrigger>Edit</MenubarTrigger><MenubarContent>
@@ -125,8 +184,8 @@ function DirectApp() {
       </Menubar>
       <span className="document-title">{filename}<span className="dirty-dot" aria-label={snapshot.dirty ? 'Changed since open or download' : 'Accepted content unchanged'}>{snapshot.dirty ? ' •' : ''}</span></span>
 
-      <Button variant="outline" size="sm" onClick={() => fileInput.current?.click()} disabled={busy}><FolderOpen/>Open</Button>
-      <Button size="sm" onClick={() => run(() => downloadAccepted(session))}><Download/>Download</Button>
+      <Button ref={openButton} data-testid="document-open" variant="outline" size="sm" onClick={chooseOpenFile} disabled={busy}><FolderOpen/>Open</Button>
+      <Button size="sm" onClick={() => run(() => {clearReplacement();downloadAccepted(session);})}><Download/>Download</Button>
       <input ref={fileInput} type="file" accept=".json,.cad-document.json" aria-label="Open native document file" className="file-input" onChange={event => { void openFile(event.target.files?.[0]); event.target.value = ''; }}/>
     </header>
     <div className="app-toolbar"><span className="breadcrumb"><a href="#/projects">Projects</a><ChevronRight size={12}/><span>{filename}</span></span><div className="toolbar-actions">
@@ -160,29 +219,28 @@ function DirectApp() {
         <div className="tree-foot"><CircleHelp size={14}/><p>Select a surface to edit its control points. Use the checkboxes to show or hide objects.</p></div>
       </aside>
       <main className="main-workspace">
-        {projectView ? <section className="projects-view"><span className="eyebrow">LOCAL DOCUMENTS</span><h1>Projects</h1><p>Start with the weighted surface, or open a native document.</p><button className="sample-project" onClick={() => { newSample(); location.hash = '/documents/cad_editor_fixture'; }}><span className="sample-symbol">▱</span><span><strong>Weighted surface</strong><small>Quadratic 3 × 3 surface · Reference line</small></span><ChevronRight size={20}/></button><Button variant="outline" onClick={() => fileInput.current?.click()}><FolderOpen/>Open document</Button></section> : mount && <CadEditor key={mountKey} session={session} displayOptions={displayOptions} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest}
+        {projectView ? <section className="projects-view"><span className="eyebrow">LOCAL DOCUMENTS</span><h1>Projects</h1><p>Start with the weighted surface, or open a native document.</p><button className="sample-project" data-testid="project-new-sample" onClick={newSample}><span className="sample-symbol">▱</span><span><strong>Weighted surface</strong><small>Quadratic 3 × 3 surface · Reference line</small></span><ChevronRight size={20}/></button><Button variant="outline" onClick={chooseOpenFile}><FolderOpen/>Open document</Button></section> : mount && <CadEditor key={mountKey} session={session} displayOptions={displayOptions} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest}
           onAnalysis={result=>{setGeometryAnalysis(result);if(result!==null)setError(current=>current?.context.field==='geometry-analysis'?null:current);}}
-          onError={failure => { pendingFilename.current = null; setError(failure); }} onAccepted={accepted => { setError(null); if (pendingFilename.current) { setFilename(pendingFilename.current); pendingFilename.current = null; } location.hash = '/documents/' + accepted.accepted.document.documentId; }} onDisplay={setReceipt}/>}
+          onError={failure => { pendingOpen.current=null;setError(failure); }} onAccepted={(accepted,candidate) => { setError(null);if(candidate.kind==='open'&&pendingOpen.current?.token===candidate.token)setFilename(pendingOpen.current.filename);pendingOpen.current=null;location.hash='/documents/'+accepted.accepted.document.documentId; }} onDisplay={setReceipt}/>}
       </main>
     </div>
-    <Dialog open={openChoice !== null} onOpenChange={open => { if (!open) setOpenChoice(null); }}>
-      <DialogContent className="cad-editor-help-dialog" data-testid="open-display-choice">
+    <ReplacementDialog open={replacement!==null} currentName={filename} action={replacement?.target.kind??'open'} targetName={replacement?.target.filename??''} downloadStarted={replacement?.downloadStarted??false} returnFocus={replacement?.focus??null} onCancel={clearReplacement} onDownload={downloadReplacementCopy} onContinue={()=>{const request=replacementRef.current;if(request)try{commitReplacement(request);}catch(cause){replacementError(cause);}}}/>
+    <Dialog open={openChoice !== null} onOpenChange={open => { if (!open) clearReplacement(); }}>
+      <DialogContent className="cad-editor-help-dialog" data-testid="open-display-choice" onCloseAutoFocus={event=>{event.preventDefault();if(!replacementRef.current)openButton.current?.focus({preventScroll:true});}}>
         <DialogHeader><DialogTitle>Choose visible objects</DialogTitle><DialogDescription>Select one to four objects to display. The complete document will be opened.</DialogDescription></DialogHeader>
         <div className="open-body-list">{openChoice?.bodies.map(body => <label key={body.id}>
           <input type="checkbox" data-testid={'open-body-' + body.id} checked={openChoice.selected.includes(body.id)}
             onChange={event => setOpenChoice(current => current && {...current,selected:event.target.checked ? [...current.selected,body.id] : current.selected.filter(id => id !== body.id)})} />{body.name}
         </label>)}</div>
         <p>{openChoice?.selected.length ?? 0} selected</p>
-        <div className="cad-editor-transition-actions"><Button variant="outline" onClick={() => setOpenChoice(null)}>Cancel</Button>
+        <div className="cad-editor-transition-actions"><Button variant="outline" onClick={clearReplacement}>Cancel</Button>
           <Button data-testid="open-display-confirm" disabled={!openChoice || openChoice.selected.length < 1 || openChoice.selected.length > 4} onClick={() => run(() => {
             if (!openChoice) return;
-            pendingFilename.current = openChoice.filename;
-            session.prepareOpen(openChoice.text,{displayBodyIds:openChoice.selected});
-            setOpenChoice(null);
+            const choice=openChoice;setOpenChoice(null);try{receiveTarget(choice.id,choice.anchor,{kind:'open',text:choice.text,filename:choice.filename,displayBodyIds:choice.selected},choice.focus);}catch(cause){replacementError(cause);}
           })}>Open</Button></div>
       </DialogContent>
     </Dialog>
-    <footer className="app-status"><span className="status-led"/><span>{busy ? 'Preparing display' : Object.keys(snapshot.pending).length ? 'Pending fields' : 'Accepted document'}</span><span className="status-divider"/><span>{snapshot.downloadStatus}</span><span className="status-spacer"/><span>History {snapshot.history.index + 1} / {snapshot.history.count}</span><span className="status-divider"/><span>XYZ · mm</span></footer>
+    <footer className="app-status"><span className="status-led"/><span>{busy ? 'Preparing display' : Object.keys(snapshot.pending).length ? 'Pending fields' : 'Accepted document'}</span><span className="status-divider"/><span>{snapshot.downloadStatus}</span><span className="status-divider"/><span data-testid="app-unsaved-state" aria-live="polite">{snapshot.dirty?'Unsaved changes':'No new changes'}</span><span data-testid="app-draft-state">{hasDraft?'Draft pending':'No draft'}</span><span className="status-spacer"/><span>History {snapshot.history.index + 1} / {snapshot.history.count}</span><span className="status-divider"/><span>XYZ · mm</span></footer>
   </div>;
 }
 
