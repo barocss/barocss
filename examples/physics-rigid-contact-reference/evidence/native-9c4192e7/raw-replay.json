@@ -1,0 +1,87 @@
+{
+  "result": "PASS",
+  "engineRerun": false,
+  "rows": [
+    {
+      "graph": "source",
+      "scene": "ALIGNED",
+      "rawSha256": "02800999321708e9c679f119d61a6a3865c191dfcb67f0e7c94b4f80f3041320",
+      "snapshotsReplayed": 7,
+      "contactsChecked": 48,
+      "negativeZeroCount": 0,
+      "minimumNormalCenterDotM": 0.35
+    },
+    {
+      "graph": "source",
+      "scene": "OFFSET",
+      "rawSha256": "369808568723e855add8dd251ba5fe43297b0e83ca0b5dc9efb30f80162654b2",
+      "snapshotsReplayed": 7,
+      "contactsChecked": 48,
+      "negativeZeroCount": 0,
+      "minimumNormalCenterDotM": 0.35
+    },
+    {
+      "graph": "source",
+      "scene": "YAW",
+      "rawSha256": "7926aa66c506cc77787081cf643c54359ef9e2a06a48769150fe94625cc5e010",
+      "snapshotsReplayed": 7,
+      "contactsChecked": 48,
+      "negativeZeroCount": 0,
+      "minimumNormalCenterDotM": 0.35
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "ALIGNED",
+      "rawSha256": "02800999321708e9c679f119d61a6a3865c191dfcb67f0e7c94b4f80f3041320",
+      "snapshotsReplayed": 7,
+      "contactsChecked": 48,
+      "negativeZeroCount": 0,
+      "minimumNormalCenterDotM": 0.35
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "OFFSET",
+      "rawSha256": "369808568723e855add8dd251ba5fe43297b0e83ca0b5dc9efb30f80162654b2",
+      "snapshotsReplayed": 7,
+      "contactsChecked": 48,
+      "negativeZeroCount": 0,
+      "minimumNormalCenterDotM": 0.35
+    },
+    {
+      "graph": "source-repeat",
+      "scene": "YAW",
+      "rawSha256": "7926aa66c506cc77787081cf643c54359ef9e2a06a48769150fe94625cc5e010",
+      "snapshotsReplayed": 7,
+      "contactsChecked": 48,
+      "negativeZeroCount": 0,
+      "minimumNormalCenterDotM": 0.35
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "ALIGNED",
+      "rawSha256": "02800999321708e9c679f119d61a6a3865c191dfcb67f0e7c94b4f80f3041320",
+      "snapshotsReplayed": 7,
+      "contactsChecked": 48,
+      "negativeZeroCount": 0,
+      "minimumNormalCenterDotM": 0.35
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "OFFSET",
+      "rawSha256": "369808568723e855add8dd251ba5fe43297b0e83ca0b5dc9efb30f80162654b2",
+      "snapshotsReplayed": 7,
+      "contactsChecked": 48,
+      "negativeZeroCount": 0,
+      "minimumNormalCenterDotM": 0.35
+    },
+    {
+      "graph": "compiled-dependencies",
+      "scene": "YAW",
+      "rawSha256": "7926aa66c506cc77787081cf643c54359ef9e2a06a48769150fe94625cc5e010",
+      "snapshotsReplayed": 7,
+      "contactsChecked": 48,
+      "negativeZeroCount": 0,
+      "minimumNormalCenterDotM": 0.35
+    }
+  ]
+}

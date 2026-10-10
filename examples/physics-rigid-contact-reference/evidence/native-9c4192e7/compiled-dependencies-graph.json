@@ -1,0 +1,32 @@
+{
+  "graph": "compiled-dependencies",
+  "originalSourceCount": 0,
+  "originalDistCount": 21,
+  "privateCandidateIsSource": true,
+  "compiledPublicCandidate": false,
+  "inputs": [
+    "packages/barocss-physics/dist/limits.js",
+    "packages/barocss-physics/dist/types.js",
+    "packages/barocss-physics/dist/validation.js",
+    "packages/barocss-physics/dist/math.js",
+    "packages/barocss-physics/dist/dynamic-anchor-pair.js",
+    "packages/barocss-physics/dist/dynamic-fixed-joint.js",
+    "packages/barocss-physics/dist/dynamic-hinge-joint.js",
+    "packages/barocss-physics/dist/joints.js",
+    "packages/barocss-physics/dist/joint-motor.js",
+    "packages/barocss-physics/dist/capsule-contact.js",
+    "packages/barocss-physics/dist/collision.js",
+    "packages/barocss-physics/dist/contact-manifold.js",
+    "packages/barocss-physics/dist/persistent-box-contact.js",
+    "packages/barocss-physics/dist/ccd-slab.js",
+    "packages/barocss-physics/dist/ccd-box.js",
+    "packages/barocss-physics/dist/ccd.js",
+    "packages/barocss-physics/dist/ccd-pair.js",
+    "packages/barocss-physics/dist/broadphase.js",
+    "packages/barocss-physics/dist/scene-profile.js",
+    "packages/barocss-physics/dist/sleep.js",
+    "examples/physics-rigid-contact-reference/reference-world.ts",
+    "packages/barocss-physics/dist/index.js",
+    "examples/physics-rigid-contact-reference/consumer-entry.mjs"
+  ]
+}
