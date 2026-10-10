@@ -8,6 +8,7 @@ import { preparePacket, validatePacket, digest, DECLARATION_DIGEST, buildArgv } 
 import { createPacketApp } from './codex-transport.mjs';
 import { requestScreen } from './scenario.mjs';
 import { packetUsage } from './usage.mjs';
+import { snapshotCatalog, verifyCatalogOffline } from './model-catalog.mjs';
 
 const repo = fileURLToPath(new URL('../../', import.meta.url));
 const ownFile = fileURLToPath(import.meta.url);
@@ -37,25 +38,31 @@ function checkExperiment(experiment) {
     throw new Error('Prepared experiment changed');
   return digest(experiment);
 }
-export function prepareExperiment(root) {
+export function prepareExperiment(root, catalogSource) {
   if (!path.isAbsolute(root)) throw new Error('Absolute private root required');
   const candidateSha = execFileSync('git', ['-C', repo, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   if (execFileSync('git', ['-C', repo, 'status', '--porcelain'], { encoding: 'utf8' }).trim()) throw new Error('Commit the clean candidate before preparation');
   const cliPath = execFileSync('which', ['codex'], { encoding: 'utf8' }).trim();
   if (execFileSync(cliPath, ['--version'], { encoding: 'utf8' }).trim() !== 'codex-cli 0.156.1') throw new Error('Installed CLI changed');
   if (process.version !== 'v22.19.0') throw new Error('Installed Node changed');
-  const packet = preparePacket({ candidateSha, cliPath, nodeBin: path.dirname(process.execPath), root });
+  if (!path.isAbsolute(catalogSource ?? '')) throw new Error('Explicit existing model catalog source required');
+  const catalog = snapshotCatalog(catalogSource, 'gpt-6.1-sol', 'high');
+  const packet = preparePacket({ candidateSha, cliPath, nodeBin: path.dirname(process.execPath), root, modelCatalogDigest: catalog.digest });
   checkDependencies(packet);
   for (const codexId of [undefined, 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee'])
     execFileSync(cliPath, [...buildArgv(packet, { codexId, finalPath: path.join(root, 'final.txt') }), '--help'], { stdio: 'pipe', timeout: 5000 });
   fs.mkdirSync(root, { recursive: true, mode: 0o700 });
   if (!fs.lstatSync(root).isDirectory() || (fs.statSync(root).mode & 0o077) || fs.readdirSync(root).length) throw new Error('Empty private directory required');
+  const catalogFile = path.join(root, 'model-catalog.json');
+  write(catalogFile, catalog.text);
+  verifyCatalogOffline(catalogFile, { root, cliPath, nodeBin: packet.cli.nodeBin, model: packet.cli.model, effort: packet.cli.effort, digest: catalog.digest });
+  write(path.join(root, 'catalog-provenance.json'), { sourceVersion: catalog.sourceVersion, modelCatalogDigest: catalog.digest });
   const experiment = { version: 'browser-packet-v1', candidateSha, packet, packetDigest: validatePacket(packet),
     declarationsDigest: DECLARATION_DIGEST, runId: randomUUID(), runnerDigest: digest(fs.readFileSync(ownFile, 'utf8')), command: executionCommand(root), scenario };
   const experimentDigest = checkExperiment(experiment);
   write(path.join(root, 'packet.json'), packet); write(path.join(root, 'experiment.json'), experiment);
   const command = experiment.command;
-  write(path.join(root, 'request.txt'), `PREPARED ONLY. Request fresh direct owner authority for candidate ${candidateSha}, packet ${experiment.packetDigest}, declarations ${DECLARATION_DIGEST}, experiment ${experimentDigest}, run UUID ${experiment.runId}.\nUse Codex CLI 0.156.1, gpt-6.1-sol/high, five reservations including failed/uncertain starts, 180 s per turn, 900 s total, zero retries, one explicitly mapped Codex session. Stop on the first error/cancellation/tool/identity or model drift/timeout/invalid screen. No tools or agent network, existing private ChatGPT auth without API keys, no downloads or release/publication.\nRequest: ${scenario.request}\nInitial data: ${JSON.stringify(scenario.input)}\nTopic edits: ${JSON.stringify(scenario.edits)}\nCommand: ${command}\nAuthority must bind these exact digests/run/candidate with kind owner-approved and a fresh ownerDecisionId. Preparation creates no authority or authentication. Private prerequisite: owner provisions existing ChatGPT CLI auth in isolated codex-home; this runner never copies it.\n`);
+  write(path.join(root, 'request.txt'), `PREPARED ONLY. Request fresh direct owner authority for candidate ${candidateSha}, packet ${experiment.packetDigest}, declarations ${DECLARATION_DIGEST}, model catalog ${catalog.digest}, experiment ${experimentDigest}, run UUID ${experiment.runId}.\nUse Codex CLI 0.156.1, gpt-6.1-sol/high, five reservations including failed/uncertain starts, 180 s per turn, 900 s total, zero retries, one explicitly mapped Codex session. Stop on the first error/cancellation/tool/identity or model/catalog drift/timeout/invalid screen. No tools or agent network, existing private ChatGPT auth without API keys, no downloads or release/publication.\nRequest: ${scenario.request}\nInitial data: ${JSON.stringify(scenario.input)}\nTopic edits: ${JSON.stringify(scenario.edits)}\nCommand: ${command}\nAuthority must bind these exact digests/run/candidate with kind owner-approved and a fresh ownerDecisionId. Preparation creates no authority or authentication. Private prerequisite: owner provisions existing ChatGPT CLI auth in isolated codex-home; this runner never copies it.\n`);
   return { status: 'prepared-not-approved', candidateSha, packetDigest: experiment.packetDigest, experimentDigest, modelCalls: 0 };
 }
 function authorize(experiment, approval, spawnProcess) {
@@ -66,6 +73,7 @@ function authorize(experiment, approval, spawnProcess) {
     || (approval.kind === 'owner-approved' && (spawnProcess !== spawn || typeof approval.ownerDecisionId !== 'string' || !approval.ownerDecisionId.trim())))
     throw new Error('Exact fresh private owner authority required');
 }
+export const hasLiveTimingEvidence = (mode, n) => mode === 'codex-cli' && Number.isSafeInteger(n) && n > 0;
 export function variation(spec, stage, input) {
   const fixture = requestScreen(stage, input);
   const walk = (screen, id = screen.root) => {
@@ -205,9 +213,9 @@ export async function runExperiment(experiment, { approval, spawnProcess = spawn
   const samples = displays.map((record) => record.actionToUsefulMs).filter((value) => value !== null).sort((a, b) => a - b);
   const latency = { clock: 'browser-navigation-monotonic-ms', boundary: 'userActionSent to firstUsefulPresentation proxy', n: samples.length,
     median: samples.length ? (samples[Math.floor((samples.length - 1) / 2)] + samples[Math.floor(samples.length / 2)]) / 2 : null,
-    min: samples[0] ?? null, max: samples.at(-1) ?? null, liveModelEvidence: approval.kind === 'owner-approved' };
+    min: samples[0] ?? null, max: samples.at(-1) ?? null, liveModelEvidence: hasLiveTimingEvidence(app.mode, samples.length) };
   const report = { status: failure ? 'partial-failure' : 'completed', failure, mode: app.mode, candidateSha: experiment.candidateSha,
-    packetDigest: experiment.packetDigest, declarationsDigest: DECLARATION_DIGEST, runId: experiment.runId,
+    packetDigest: experiment.packetDigest, modelCatalogDigest: experiment.packet.modelCatalogDigest ?? null, declarationsDigest: DECLARATION_DIGEST, runId: experiment.runId,
     experimentDigest: checkExperiment(experiment), counts, displays, latency, usage: packetUsage(turnResults), errors, csp, external,
     terminalHostState, limits: 'No retries; five reservations; 180s per turn/900s total. No real-time suitability claim.' };
   write(path.join(root, 'report.json'), report);
@@ -216,7 +224,7 @@ export async function runExperiment(experiment, { approval, spawnProcess = spawn
 if (process.argv[1] === ownFile) {
   try {
     const args = process.argv.slice(2); let result;
-    if (args.length === 2 && args[0] === '--prepare') result = prepareExperiment(args[1]);
+    if (args.length === 4 && args[0] === '--prepare' && args[2] === '--catalog') result = prepareExperiment(args[1], args[3]);
     else if (args.length === 4 && args[0] === '--run' && args[2] === '--approval') {
       const experiment = privateFile(args[1]), approval = privateFile(args[3]);
       if (approval.kind !== 'owner-approved') throw new Error('CLI requires direct owner authority');
@@ -224,7 +232,7 @@ if (process.argv[1] === ownFile) {
       process.once('SIGINT', stop); process.once('SIGTERM', stop);
       try { result = await runExperiment(experiment, { approval, signal: abort.signal }); }
       finally { process.removeListener('SIGINT', stop); process.removeListener('SIGTERM', stop); }
-    } else throw new Error('Use --prepare PRIVATE_ROOT or --run PRIVATE_EXPERIMENT --approval PRIVATE_AUTHORITY');
+    } else throw new Error('Use --prepare PRIVATE_ROOT --catalog EXISTING_LOCAL_SOURCE or --run PRIVATE_EXPERIMENT --approval PRIVATE_AUTHORITY');
     console.log(JSON.stringify(result)); if (result.status === 'partial-failure') process.exitCode = 1;
   } catch { console.error('Packet command rejected; inspect private prerequisites and exact authority.'); process.exitCode = 1; }
 }
