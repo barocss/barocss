@@ -1,0 +1,2 @@
+examples/physics-rigid-capsule-ccd-reference/admission.ts(13,135): error TS18048: 'd' is possibly 'undefined'.
+examples/physics-rigid-capsule-ccd-reference/admission.ts(19,209): error TS18048: 'd' is possibly 'undefined'.

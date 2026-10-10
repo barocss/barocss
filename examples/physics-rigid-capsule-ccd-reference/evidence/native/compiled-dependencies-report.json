@@ -1,0 +1,3860 @@
+{
+  "flow": {
+    "candidates": [
+      {
+        "name": "original-head-on",
+        "input": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.4,
+            0,
+            0
+          ],
+          "velocityMps": [
+            100,
+            0,
+            0
+          ],
+          "stepSeconds": 0.008333333333333333,
+          "evaluateCandidate": false
+        },
+        "hit": {
+          "bodyId": "floor",
+          "toiFraction": 0.35880000000000006,
+          "normalFixtureToCapsule": [
+            -1,
+            0,
+            0
+          ],
+          "pointM": [
+            -0.001,
+            0,
+            0
+          ],
+          "segmentPointM": [
+            -0.10099999999999998,
+            0,
+            0
+          ]
+        },
+        "result": {
+          "centerM": [
+            -0.10099999999999998,
+            0,
+            0
+          ],
+          "velocityMps": [
+            0,
+            0,
+            0
+          ],
+          "hitTimeSeconds": 0.0029900000000000005,
+          "remainingTimeSeconds": 0.005343333333333333,
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "name": "initial-touch",
+        "input": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.101,
+            0,
+            0
+          ],
+          "velocityMps": [
+            100,
+            0,
+            0
+          ],
+          "stepSeconds": 0.008333333333333333,
+          "evaluateCandidate": false
+        },
+        "hit": {
+          "bodyId": "floor",
+          "toiFraction": 0,
+          "normalFixtureToCapsule": [
+            -1,
+            0,
+            0
+          ],
+          "pointM": [
+            -0.001,
+            0,
+            0
+          ],
+          "segmentPointM": [
+            -0.101,
+            0,
+            0
+          ]
+        },
+        "result": {
+          "centerM": [
+            -0.101,
+            0,
+            0
+          ],
+          "velocityMps": [
+            0,
+            0,
+            0
+          ],
+          "hitTimeSeconds": 0,
+          "remainingTimeSeconds": 0.008333333333333333,
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "name": "resting-at-touch",
+        "input": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.101,
+            0,
+            0
+          ],
+          "velocityMps": [
+            0,
+            0,
+            0
+          ],
+          "stepSeconds": 0.008333333333333333,
+          "evaluateCandidate": false
+        },
+        "hit": {
+          "bodyId": "floor",
+          "toiFraction": 0,
+          "normalFixtureToCapsule": [
+            -1,
+            0,
+            0
+          ],
+          "pointM": [
+            -0.001,
+            0,
+            0
+          ],
+          "segmentPointM": [
+            -0.101,
+            0,
+            0
+          ]
+        },
+        "result": {
+          "centerM": [
+            -0.101,
+            0,
+            0
+          ],
+          "velocityMps": [
+            0,
+            0,
+            0
+          ],
+          "hitTimeSeconds": 0,
+          "remainingTimeSeconds": 0.008333333333333333,
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "name": "contact-beyond-step",
+        "input": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.4,
+            0,
+            0
+          ],
+          "velocityMps": [
+            10,
+            0,
+            0
+          ],
+          "stepSeconds": 0.008333333333333333,
+          "evaluateCandidate": false
+        },
+        "hit": null,
+        "result": {
+          "centerM": [
+            -0.3166666666666667,
+            0,
+            0
+          ],
+          "velocityMps": [
+            10,
+            0,
+            0
+          ],
+          "hitTimeSeconds": 0,
+          "remainingTimeSeconds": 0.008333333333333333,
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "name": "zero-motion",
+        "input": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.4,
+            0,
+            0
+          ],
+          "velocityMps": [
+            0,
+            0,
+            0
+          ],
+          "stepSeconds": 0.008333333333333333,
+          "evaluateCandidate": false
+        },
+        "hit": null,
+        "result": {
+          "centerM": [
+            -0.4,
+            0,
+            0
+          ],
+          "velocityMps": [
+            0,
+            0,
+            0
+          ],
+          "hitTimeSeconds": 0,
+          "remainingTimeSeconds": 0.008333333333333333,
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "name": "departing",
+        "input": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.4,
+            0,
+            0
+          ],
+          "velocityMps": [
+            -100,
+            0,
+            0
+          ],
+          "stepSeconds": 0.008333333333333333,
+          "evaluateCandidate": false
+        },
+        "hit": null,
+        "result": {
+          "centerM": [
+            -1.2333333333333334,
+            0,
+            0
+          ],
+          "velocityMps": [
+            -100,
+            0,
+            0
+          ],
+          "hitTimeSeconds": 0,
+          "remainingTimeSeconds": 0.008333333333333333,
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "name": "departing-at-touch",
+        "input": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.101,
+            0,
+            0
+          ],
+          "velocityMps": [
+            -100,
+            0,
+            0
+          ],
+          "stepSeconds": 0.008333333333333333,
+          "evaluateCandidate": false
+        },
+        "hit": {
+          "bodyId": "floor",
+          "toiFraction": 0,
+          "normalFixtureToCapsule": [
+            -1,
+            0,
+            0
+          ],
+          "pointM": [
+            -0.001,
+            0,
+            0
+          ],
+          "segmentPointM": [
+            -0.101,
+            0,
+            0
+          ]
+        },
+        "result": {
+          "centerM": [
+            -0.9343333333333333,
+            0,
+            0
+          ],
+          "velocityMps": [
+            -100,
+            0,
+            0
+          ],
+          "hitTimeSeconds": 0,
+          "remainingTimeSeconds": 0.008333333333333333,
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "name": "yaw-head-on",
+        "input": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0.09983341664682815,
+              0,
+              0.9950041652780257
+            ]
+          },
+          "centerM": [
+            -0.39202663113649666,
+            0,
+            0.0794677323180245
+          ],
+          "velocityMps": [
+            98.00665778412416,
+            0,
+            -19.866933079506122
+          ],
+          "stepSeconds": 0.008333333333333333,
+          "evaluateCandidate": false
+        },
+        "hit": {
+          "bodyId": "floor",
+          "toiFraction": 0.35879999999999995,
+          "normalFixtureToCapsule": [
+            -0.9800665778412416,
+            0,
+            0.19866933079506127
+          ],
+          "pointM": [
+            -0.0009800665778412429,
+            0,
+            0.00019866933079505447
+          ],
+          "segmentPointM": [
+            -0.09898672436196548,
+            0,
+            0.020065602410301198
+          ]
+        },
+        "result": {
+          "centerM": [
+            -0.09898672436196541,
+            0,
+            0.020065602410301215
+          ],
+          "velocityMps": [
+            1.4210854715202004e-14,
+            0,
+            3.552713678800501e-15
+          ],
+          "hitTimeSeconds": 0.0029899999999999996,
+          "remainingTimeSeconds": 0.005343333333333334,
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0.09983341664682815,
+              0,
+              0.9950041652780257
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "name": "first-half",
+        "input": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.4,
+            0,
+            0
+          ],
+          "velocityMps": [
+            100,
+            0,
+            0
+          ],
+          "stepSeconds": 0.004166666666666667,
+          "evaluateCandidate": false
+        },
+        "hit": {
+          "bodyId": "floor",
+          "toiFraction": 0.7176000000000001,
+          "normalFixtureToCapsule": [
+            -1,
+            0,
+            0
+          ],
+          "pointM": [
+            -0.001,
+            0,
+            0
+          ],
+          "segmentPointM": [
+            -0.10099999999999998,
+            0,
+            0
+          ]
+        },
+        "result": {
+          "centerM": [
+            -0.10099999999999998,
+            0,
+            0
+          ],
+          "velocityMps": [
+            0,
+            0,
+            0
+          ],
+          "hitTimeSeconds": 0.0029900000000000005,
+          "remainingTimeSeconds": 0.0011766666666666661,
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      {
+        "name": "second-half",
+        "input": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.10099999999999998,
+            0,
+            0
+          ],
+          "velocityMps": [
+            0,
+            0,
+            0
+          ],
+          "stepSeconds": 0.004166666666666667,
+          "evaluateCandidate": false
+        },
+        "hit": {
+          "bodyId": "floor",
+          "toiFraction": 0,
+          "normalFixtureToCapsule": [
+            -1,
+            0,
+            0
+          ],
+          "pointM": [
+            -0.001,
+            0,
+            0
+          ],
+          "segmentPointM": [
+            -0.10099999999999998,
+            0,
+            0
+          ]
+        },
+        "result": {
+          "centerM": [
+            -0.10099999999999998,
+            0,
+            0
+          ],
+          "velocityMps": [
+            0,
+            0,
+            0
+          ],
+          "hitTimeSeconds": 0,
+          "remainingTimeSeconds": 0.004166666666666667,
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      }
+    ],
+    "receipts": [
+      {
+        "name": "original-ccd-admission",
+        "code": "INVALID_CONFIG",
+        "message": "ccd is supported for dynamic spheres or boxes only and must be true",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "original-head-on-stale",
+        "code": "STALE_SNAPSHOT",
+        "message": "Revision mismatch",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "original-head-on-disposed-query",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "original-head-on-disposed-snapshot",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "initial-touch-stale",
+        "code": "STALE_SNAPSHOT",
+        "message": "Revision mismatch",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "initial-touch-disposed-query",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "initial-touch-disposed-snapshot",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "resting-at-touch-stale",
+        "code": "STALE_SNAPSHOT",
+        "message": "Revision mismatch",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "resting-at-touch-disposed-query",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "resting-at-touch-disposed-snapshot",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "contact-beyond-step-stale",
+        "code": "STALE_SNAPSHOT",
+        "message": "Revision mismatch",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "contact-beyond-step-disposed-query",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "contact-beyond-step-disposed-snapshot",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "zero-motion-stale",
+        "code": "STALE_SNAPSHOT",
+        "message": "Revision mismatch",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "zero-motion-disposed-query",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "zero-motion-disposed-snapshot",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "departing-stale",
+        "code": "STALE_SNAPSHOT",
+        "message": "Revision mismatch",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "departing-disposed-query",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "departing-disposed-snapshot",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "departing-at-touch-stale",
+        "code": "STALE_SNAPSHOT",
+        "message": "Revision mismatch",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "departing-at-touch-disposed-query",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "departing-at-touch-disposed-snapshot",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "yaw-head-on-stale",
+        "code": "STALE_SNAPSHOT",
+        "message": "Revision mismatch",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "yaw-head-on-disposed-query",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "yaw-head-on-disposed-snapshot",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "first-half-stale",
+        "code": "STALE_SNAPSHOT",
+        "message": "Revision mismatch",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "first-half-disposed-query",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "first-half-disposed-snapshot",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "second-half-stale",
+        "code": "STALE_SNAPSHOT",
+        "message": "Revision mismatch",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "second-half-disposed-query",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "second-half-disposed-snapshot",
+        "code": "DISPOSED",
+        "message": "Private capsule face reference is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "overlap",
+        "code": "INITIAL_OVERLAP",
+        "message": "Initial capsule overlaps a box",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "tangent",
+        "code": "INVALID_QUERY",
+        "message": "Private capsule face movement is unsupported",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "opposite-side",
+        "code": "INVALID_QUERY",
+        "message": "Private capsule face movement is unsupported",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "edge-corner",
+        "code": "INVALID_QUERY",
+        "message": "Private capsule face movement is unsupported",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "nonfinite",
+        "code": "INVALID_QUERY",
+        "message": "Private capsule face movement is unsupported",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "zero-time",
+        "code": "INVALID_QUERY",
+        "message": "Private capsule face movement is unsupported",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "negative-time",
+        "code": "INVALID_QUERY",
+        "message": "Private capsule face movement is unsupported",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "nonfinite-time",
+        "code": "INVALID_QUERY",
+        "message": "Private capsule face movement is unsupported",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "extra-field",
+        "code": "INVALID_QUERY",
+        "message": "Private capsule face movement is unsupported",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "angular",
+        "code": "INVALID_CONFIG",
+        "message": "Private capsule face profile is unsupported",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "orientation",
+        "code": "INVALID_CONFIG",
+        "message": "Private capsule face profile is unsupported",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "moving-box",
+        "code": "INVALID_CONFIG",
+        "message": "Private capsule face profile is unsupported",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "box-spin",
+        "code": "INVALID_CONFIG",
+        "message": "Private capsule face profile is unsupported",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "wrong-radius",
+        "code": "INVALID_CONFIG",
+        "message": "Private capsule face profile is unsupported",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "unknown-profile",
+        "code": "INVALID_CONFIG",
+        "message": "Private capsule face profile is unsupported",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "numeric-fraction",
+        "code": "NUMERIC_LIMIT",
+        "message": "Private capsule face result is invalid",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "response-null-hit",
+        "code": "NUMERIC_LIMIT",
+        "message": "Private capsule face result is invalid",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "response-wrong-witness",
+        "code": "NUMERIC_LIMIT",
+        "message": "Private capsule face result is invalid",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "response-wrong-normal",
+        "code": "NUMERIC_LIMIT",
+        "message": "Private capsule face result is invalid",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "response-tangent",
+        "code": "INVALID_QUERY",
+        "message": "Private capsule face movement is unsupported",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "response-footprint",
+        "code": "INVALID_QUERY",
+        "message": "Private capsule face movement is unsupported",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "response-overlap",
+        "code": "INITIAL_OVERLAP",
+        "message": "Initial capsule overlaps a box",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "response-opposite",
+        "code": "INVALID_QUERY",
+        "message": "Private capsule face movement is unsupported",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "unexpected-error-propagates",
+        "ok": true
+      },
+      {
+        "name": "public-refuses-private-profile",
+        "code": "INVALID_CONFIG",
+        "message": "Unsupported capsule query profile",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "public-disposed",
+        "code": "DISPOSED",
+        "message": "Capsule query is disposed",
+        "originalPhysicsError": true
+      },
+      {
+        "name": "original-discrete-detect",
+        "startContact": null,
+        "contact": {
+          "normal": [
+            1,
+            0,
+            0
+          ],
+          "penetration": 2.7755575615628914e-17,
+          "pointM": [
+            -0.001,
+            0,
+            0
+          ]
+        },
+        "discreteOnly": true,
+        "ccdRemovedOnlyFromDetachedGeometryCopy": true
+      }
+    ],
+    "fixture": {
+      "fixedStepSeconds": 0.008333333333333333,
+      "gravityMps2": [
+        0,
+        0,
+        0
+      ],
+      "bodies": [
+        {
+          "id": "b0",
+          "kind": "dynamic",
+          "shape": {
+            "kind": "capsule",
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "positionM": [
+            -0.4,
+            0,
+            0
+          ],
+          "velocityMps": [
+            100,
+            0,
+            0
+          ],
+          "massKg": 1,
+          "restitution": 0,
+          "friction": {
+            "static": 1,
+            "dynamic": 0.7
+          },
+          "ccd": true
+        },
+        {
+          "id": "floor",
+          "kind": "static",
+          "shape": {
+            "kind": "box",
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ]
+          },
+          "positionM": [
+            0,
+            0,
+            0
+          ],
+          "restitution": 0,
+          "friction": {
+            "static": 1,
+            "dynamic": 0.7
+          }
+        }
+      ]
+    },
+    "publicHit": {
+      "bodyId": "floor",
+      "toiFraction": 0.2988,
+      "normalFixtureToCapsule": [
+        -1,
+        0,
+        0
+      ],
+      "pointM": [
+        -0.001,
+        -0.35,
+        0
+      ],
+      "segmentPointM": [
+        -0.151,
+        -0.35,
+        0
+      ],
+      "iterations": 2
+    },
+    "fullWorldCCDGO": false,
+    "rigidAngularResponseMeasured": false,
+    "contactFrictionMeasured": false,
+    "physicsWorldCreated": false,
+    "physicsWorldStepped": false
+  },
+  "rawHex": "9a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf00000000000000000000000000000000000000000000594000000000000000000000000000000000111111111111813fd981734694f6d63f000000000000f0bf00000000000000800000000000000080fca9f1d24d6250bf000000000000000000000000000000004060e5d022dbb9bf000000000000000000000000000000004060e5d022dbb9bf00000000000000000000000000000000000000000000000000000000000000000000000000000000929be1067c7e683f5954b11ee4e2753f000000000000000000000000000000000000000000000000000000000000f03f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f4260e5d022dbb9bf00000000000000000000000000000000000000000000594000000000000000000000000000000000111111111111813f0000000000000000000000000000f0bf00000000000000800000000000000080fca9f1d24d6250bf000000000000000000000000000000004260e5d022dbb9bf000000000000000000000000000000004260e5d022dbb9bf000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000111111111111813f000000000000000000000000000000000000000000000000000000000000f03f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f4260e5d022dbb9bf00000000000000000000000000000000000000000000000000000000000000000000000000000000111111111111813f0000000000000000000000000000f0bf00000000000000800000000000000080fca9f1d24d6250bf000000000000000000000000000000004260e5d022dbb9bf000000000000000000000000000000004260e5d022dbb9bf000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000111111111111813f000000000000000000000000000000000000000000000000000000000000f03f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf00000000000000000000000000000000000000000000244000000000000000000000000000000000111111111111813f454444444444d4bf000000000000000000000000000000000000000000002440000000000000000000000000000000000000000000000000111111111111813f000000000000000000000000000000000000000000000000000000000000f03f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf00000000000000000000000000000000000000000000000000000000000000000000000000000000111111111111813f9a9999999999d9bf000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000111111111111813f000000000000000000000000000000000000000000000000000000000000f03f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf0000000000000000000000000000000000000000000059c000000000000000000000000000000000111111111111813fbcbbbbbbbbbbf3bf0000000000000000000000000000000000000000000059c0000000000000000000000000000000000000000000000000111111111111813f000000000000000000000000000000000000000000000000000000000000f03f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f4260e5d022dbb9bf0000000000000000000000000000000000000000000059c000000000000000000000000000000000111111111111813f0000000000000000000000000000f0bf00000000000000800000000000000080fca9f1d24d6250bf000000000000000000000000000000004260e5d022dbb9bf00000000000000000000000000000000b356c7040fe6edbf0000000000000000000000000000000000000000000059c0000000000000000000000000000000000000000000000000111111111111813f000000000000000000000000000000000000000000000000000000000000f03f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f00000000000000002ccb8bcbae8eb93f0000000000000000c017a8f912d7ef3f951bf9ddf616d9bf000000000000000097a8644fff57b43fef44c5146d8058400000000000000000a34c8853efdd33c0111111111111813fd781734694f6d63f7a627795b45cefbf0000000000000080bed23d23ff6dc93f65309579b20e50bf0000000000000000b351958e3c0a2a3f5c70dfa73157b9bf000000000000000040d381c8138c943f5770dfa73157b9bf000000000000000045d381c8138c943f000000000000103d0000000000000000000000000000f03c909be1067c7e683f5a54b11ee4e2753f000000000000000000000000000000000000000000000000000000000000f03f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f00000000000000002ccb8bcbae8eb93f0000000000000000c017a8f912d7ef3f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf00000000000000000000000000000000000000000000594000000000000000000000000000000000111111111111713fd981734694f6e63f000000000000f0bf00000000000000800000000000000080fca9f1d24d6250bf000000000000000000000000000000004060e5d022dbb9bf000000000000000000000000000000004060e5d022dbb9bf00000000000000000000000000000000000000000000000000000000000000000000000000000000929be1067c7e683f200d81364c47533f000000000000000000000000000000000000000000000000000000000000f03f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000009a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f4060e5d022dbb9bf00000000000000000000000000000000000000000000000000000000000000000000000000000000111111111111713f0000000000000000000000000000f0bf00000000000000800000000000000080fca9f1d24d6250bf000000000000000000000000000000004060e5d022dbb9bf000000000000000000000000000000004060e5d022dbb9bf000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000111111111111713f000000000000000000000000000000000000000000000000000000000000f03f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f03f00000000000000000000000000000000000000000000803cfca9f1d24d6250bf00000000000000000000000000000000111111111111813f0000000000000000000000000000000000000000000000009a9999999999b93f9a9999999999c93f9a9999999999d9bf00000000000000000000000000000000000000000000594000000000000000000000000000000000000000000000f03f0000000000000000000000000000f03f666666666666e63ffca9f1d24d62503f000000000000f03f000000000000f03f0000000000000000000000000000000000000000000000000000000000000000000000000000f03f666666666666e63f01de02098a1fd33f000000000000f0bf00000000000000000000000000000000fca9f1d24d6250bf666666666666d6bf00000000000000008716d9cef753c3bf666666666666d6bf00000000000000000000000000000040",
+  "rawSha256": "fa99ecd2d5bdc456a03b9b8b4d61cb88aab020bbf0a694f9fa679ea2970b8baa",
+  "oracle": [
+    {
+      "name": "original-head-on",
+      "reply": {
+        "ok": true,
+        "resolved": true,
+        "metrics": {
+          "distanceM": 0.399,
+          "signedGapM": 0.29900000000000004,
+          "faceGapM": 0.29900000000000004,
+          "footprintContained": true,
+          "expectedHit": true,
+          "initialOverlap": false,
+          "expectedToiSeconds": 0.00299,
+          "expectedToiFraction": 0.3588,
+          "expectedRemainingSeconds": 0.005343333333333333,
+          "contactGapM": 0,
+          "finalGapM": 0,
+          "closingSpeedMps": 0,
+          "quaternionNormError": 0,
+          "toiErrorSeconds": 3.1990613861646956e-19,
+          "fractionError": 3.838873663397635e-17,
+          "contactCenterErrorM": 3.199061386164696e-17,
+          "candidateContactGapM": -3.199061386164696e-17,
+          "witnessSegmentMembershipErrorM": 5.1023999840064475e-18,
+          "witnessBoxMembershipErrorM": 0,
+          "witnessFaceMembershipErrorM": 0,
+          "witnessDistanceErrorM": 2.688821387764051e-17,
+          "normalError": 0,
+          "normalUnitError": 0,
+          "timeAccountingErrorSeconds": 0,
+          "remainingErrorSeconds": 3.035766082959412e-19,
+          "resultHitTimeErrorSeconds": 3.035766082959412e-19,
+          "finalCenterErrorM": 2.688821387764051e-17,
+          "candidateFinalGapM": -2.688821387764051e-17,
+          "finalVelocityErrorMps": 0,
+          "candidateClosingSpeedMps": 0,
+          "precisionMaxDifference": "1E-80"
+        },
+        "violations": [],
+        "reference": {
+          "status": "hit",
+          "distance": "0.399000000000000022183643810791409123339690268039703369140625",
+          "signedGap": "0.299000000000000016632528687665626421221531927585601806640625",
+          "faceGap": "0.299000000000000016632528687665626421221531927585601806640625",
+          "toiSeconds": "0.00299000000000000016632528687665626421221531927585601806640625",
+          "toiFraction": "0.358800000000000024938384690642579135355437350876338866648670318187081910275425508481421530907272527974615368529972103320",
+          "remainingSeconds": "0.00534333333333333305135981472488992949365638196468353271484375",
+          "centerHit": [
+            "-0.10100000000000000557193180483750438725110143423080444335937500",
+            "0E-62",
+            "0E-62"
+          ],
+          "centerFinal": [
+            "-0.10100000000000000557193180483750438725110143423080444335937500",
+            "0E-62",
+            "0E-62"
+          ],
+          "velocityFinal": [
+            "0",
+            "0",
+            "0"
+          ],
+          "normal": [
+            "-1",
+            "0",
+            "0"
+          ],
+          "initialWitness": {
+            "distanceM": "0.399000000000000022183643810791409123339690268039703369140625",
+            "distanceSquaredM2": "0.159201000000000017702547761011544972539125557959675589504640234337710041502404224866840110053090029396116733551025390625",
+            "segmentPointM": [
+              "-0.400000000000000022204460492503130808472633361816406250",
+              "0E-54",
+              "0E-54"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          },
+          "contactWitness": {
+            "distanceM": "0.1000000000000000055511151231257827021181583404541015625000000",
+            "distanceSquaredM2": "0.0100000000000000011102230246251565712385107782865939613956470813588370966096263714462111238390207290649414062500000000000",
+            "segmentPointM": [
+              "-0.10100000000000000557193180483750438725110143423080444335937500",
+              "0E-62",
+              "0E-62"
+            ],
+            "pointM": [
+              "-0.00100000000000000002081668171172168513294309377670288085937500",
+              "0E-62",
+              "0E-62"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          },
+          "finalWitness": {
+            "distanceM": "0.1000000000000000055511151231257827021181583404541015625000000",
+            "distanceSquaredM2": "0.0100000000000000011102230246251565712385107782865939613956470813588370966096263714462111238390207290649414062500000000000",
+            "segmentPointM": [
+              "-0.10100000000000000557193180483750438725110143423080444335937500",
+              "0E-62",
+              "0E-62"
+            ],
+            "pointM": [
+              "-0.00100000000000000002081668171172168513294309377670288085937500",
+              "0E-62",
+              "0E-62"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          }
+        },
+        "status": "hit",
+        "distance": "0.399000000000000022183643810791409123339690268039703369140625",
+        "signedGap": "0.299000000000000016632528687665626421221531927585601806640625",
+        "faceGap": "0.299000000000000016632528687665626421221531927585601806640625",
+        "toiSeconds": "0.00299000000000000016632528687665626421221531927585601806640625",
+        "toiFraction": "0.358800000000000024938384690642579135355437350876338866648670318187081910275425508481421530907272527974615368529972103320",
+        "remainingSeconds": "0.00534333333333333305135981472488992949365638196468353271484375",
+        "centerHit": [
+          "-0.10100000000000000557193180483750438725110143423080444335937500",
+          "0E-62",
+          "0E-62"
+        ],
+        "centerFinal": [
+          "-0.10100000000000000557193180483750438725110143423080444335937500",
+          "0E-62",
+          "0E-62"
+        ],
+        "velocityFinal": [
+          "0",
+          "0",
+          "0"
+        ],
+        "normal": [
+          "-1",
+          "0",
+          "0"
+        ],
+        "initialWitness": {
+          "distanceM": "0.399000000000000022183643810791409123339690268039703369140625",
+          "distanceSquaredM2": "0.159201000000000017702547761011544972539125557959675589504640234337710041502404224866840110053090029396116733551025390625",
+          "segmentPointM": [
+            "-0.400000000000000022204460492503130808472633361816406250",
+            "0E-54",
+            "0E-54"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        },
+        "contactWitness": {
+          "distanceM": "0.1000000000000000055511151231257827021181583404541015625000000",
+          "distanceSquaredM2": "0.0100000000000000011102230246251565712385107782865939613956470813588370966096263714462111238390207290649414062500000000000",
+          "segmentPointM": [
+            "-0.10100000000000000557193180483750438725110143423080444335937500",
+            "0E-62",
+            "0E-62"
+          ],
+          "pointM": [
+            "-0.00100000000000000002081668171172168513294309377670288085937500",
+            "0E-62",
+            "0E-62"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        },
+        "finalWitness": {
+          "distanceM": "0.1000000000000000055511151231257827021181583404541015625000000",
+          "distanceSquaredM2": "0.0100000000000000011102230246251565712385107782865939613956470813588370966096263714462111238390207290649414062500000000000",
+          "segmentPointM": [
+            "-0.10100000000000000557193180483750438725110143423080444335937500",
+            "0E-62",
+            "0E-62"
+          ],
+          "pointM": [
+            "-0.00100000000000000002081668171172168513294309377670288085937500",
+            "0E-62",
+            "0E-62"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        }
+      }
+    },
+    {
+      "name": "initial-touch",
+      "reply": {
+        "ok": true,
+        "resolved": true,
+        "metrics": {
+          "distanceM": 0.1,
+          "signedGapM": 8.673617379884035e-19,
+          "faceGapM": 8.673617379884035e-19,
+          "footprintContained": true,
+          "expectedHit": true,
+          "initialOverlap": false,
+          "expectedToiSeconds": 0,
+          "expectedToiFraction": 0,
+          "expectedRemainingSeconds": 0.008333333333333333,
+          "contactGapM": 8.673617379884035e-19,
+          "finalGapM": 8.673617379884035e-19,
+          "closingSpeedMps": 0,
+          "quaternionNormError": 0,
+          "toiErrorSeconds": 0,
+          "fractionError": 0,
+          "contactCenterErrorM": 0,
+          "candidateContactGapM": 8.673617379884035e-19,
+          "witnessSegmentMembershipErrorM": 0,
+          "witnessBoxMembershipErrorM": 0,
+          "witnessFaceMembershipErrorM": 0,
+          "witnessDistanceErrorM": 8.673617379884035e-19,
+          "normalError": 0,
+          "normalUnitError": 0,
+          "timeAccountingErrorSeconds": 0,
+          "remainingErrorSeconds": 0,
+          "resultHitTimeErrorSeconds": 0,
+          "finalCenterErrorM": 0,
+          "candidateFinalGapM": 8.673617379884035e-19,
+          "finalVelocityErrorMps": 0,
+          "candidateClosingSpeedMps": 0,
+          "precisionMaxDifference": "1.42711886195684201084077358245849609375E-82"
+        },
+        "violations": [],
+        "reference": {
+          "status": "hit",
+          "distance": "0.100000000000000006418476861114186249324120581150054931640625",
+          "signedGap": "8.67361737988403547205962240695953369140625E-19",
+          "faceGap": "8.67361737988403547205962240695953369140625E-19",
+          "toiSeconds": "0",
+          "toiFraction": "0E+59",
+          "remainingSeconds": "0.00833333333333333321768510160154619370587170124053955078125",
+          "centerHit": [
+            "-0.1010000000000000064392935428259079344570636749267578125",
+            "0",
+            "0"
+          ],
+          "centerFinal": [
+            "-0.10100000000000000643929354282590793445706367492675781250000",
+            "0E-59",
+            "0E-59"
+          ],
+          "velocityFinal": [
+            "0",
+            "0",
+            "0"
+          ],
+          "normal": [
+            "-1",
+            "0",
+            "0"
+          ],
+          "initialWitness": {
+            "distanceM": "0.100000000000000006418476861114186249324120581150054931640625",
+            "distanceSquaredM2": "0.010000000000000001283695372222837291061669332888227905603653178105710923104080568857288113804315798915922641754150390625",
+            "segmentPointM": [
+              "-0.1010000000000000064392935428259079344570636749267578125",
+              "0E-55",
+              "0E-55"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          },
+          "contactWitness": {
+            "distanceM": "0.100000000000000006418476861114186249324120581150054931640625",
+            "distanceSquaredM2": "0.010000000000000001283695372222837291061669332888227905603653178105710923104080568857288113804315798915922641754150390625",
+            "segmentPointM": [
+              "-0.1010000000000000064392935428259079344570636749267578125",
+              "0E-55",
+              "0E-55"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          },
+          "finalWitness": {
+            "distanceM": "0.100000000000000006418476861114186249324120581150054931640625",
+            "distanceSquaredM2": "0.010000000000000001283695372222837291061669332888227905603653178105710923104080568857288113804315798915922641754150390625",
+            "segmentPointM": [
+              "-0.10100000000000000643929354282590793445706367492675781250000",
+              "0E-59",
+              "0E-59"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          }
+        },
+        "status": "hit",
+        "distance": "0.100000000000000006418476861114186249324120581150054931640625",
+        "signedGap": "8.67361737988403547205962240695953369140625E-19",
+        "faceGap": "8.67361737988403547205962240695953369140625E-19",
+        "toiSeconds": "0",
+        "toiFraction": "0E+59",
+        "remainingSeconds": "0.00833333333333333321768510160154619370587170124053955078125",
+        "centerHit": [
+          "-0.1010000000000000064392935428259079344570636749267578125",
+          "0",
+          "0"
+        ],
+        "centerFinal": [
+          "-0.10100000000000000643929354282590793445706367492675781250000",
+          "0E-59",
+          "0E-59"
+        ],
+        "velocityFinal": [
+          "0",
+          "0",
+          "0"
+        ],
+        "normal": [
+          "-1",
+          "0",
+          "0"
+        ],
+        "initialWitness": {
+          "distanceM": "0.100000000000000006418476861114186249324120581150054931640625",
+          "distanceSquaredM2": "0.010000000000000001283695372222837291061669332888227905603653178105710923104080568857288113804315798915922641754150390625",
+          "segmentPointM": [
+            "-0.1010000000000000064392935428259079344570636749267578125",
+            "0E-55",
+            "0E-55"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        },
+        "contactWitness": {
+          "distanceM": "0.100000000000000006418476861114186249324120581150054931640625",
+          "distanceSquaredM2": "0.010000000000000001283695372222837291061669332888227905603653178105710923104080568857288113804315798915922641754150390625",
+          "segmentPointM": [
+            "-0.1010000000000000064392935428259079344570636749267578125",
+            "0E-55",
+            "0E-55"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        },
+        "finalWitness": {
+          "distanceM": "0.100000000000000006418476861114186249324120581150054931640625",
+          "distanceSquaredM2": "0.010000000000000001283695372222837291061669332888227905603653178105710923104080568857288113804315798915922641754150390625",
+          "segmentPointM": [
+            "-0.10100000000000000643929354282590793445706367492675781250000",
+            "0E-59",
+            "0E-59"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        }
+      }
+    },
+    {
+      "name": "resting-at-touch",
+      "reply": {
+        "ok": true,
+        "resolved": true,
+        "metrics": {
+          "distanceM": 0.1,
+          "signedGapM": 8.673617379884035e-19,
+          "faceGapM": 8.673617379884035e-19,
+          "footprintContained": true,
+          "expectedHit": true,
+          "initialOverlap": false,
+          "expectedToiSeconds": 0,
+          "expectedToiFraction": 0,
+          "expectedRemainingSeconds": 0.008333333333333333,
+          "contactGapM": 8.673617379884035e-19,
+          "finalGapM": 8.673617379884035e-19,
+          "closingSpeedMps": 0,
+          "quaternionNormError": 0,
+          "toiErrorSeconds": 0,
+          "fractionError": 0,
+          "contactCenterErrorM": 0,
+          "candidateContactGapM": 8.673617379884035e-19,
+          "witnessSegmentMembershipErrorM": 0,
+          "witnessBoxMembershipErrorM": 0,
+          "witnessFaceMembershipErrorM": 0,
+          "witnessDistanceErrorM": 8.673617379884035e-19,
+          "normalError": 0,
+          "normalUnitError": 0,
+          "timeAccountingErrorSeconds": 0,
+          "remainingErrorSeconds": 0,
+          "resultHitTimeErrorSeconds": 0,
+          "finalCenterErrorM": 0,
+          "candidateFinalGapM": 8.673617379884035e-19,
+          "finalVelocityErrorMps": 0,
+          "candidateClosingSpeedMps": 0,
+          "precisionMaxDifference": "1.42711886195684201084077358245849609375E-82"
+        },
+        "violations": [],
+        "reference": {
+          "status": "hit",
+          "distance": "0.100000000000000006418476861114186249324120581150054931640625",
+          "signedGap": "8.67361737988403547205962240695953369140625E-19",
+          "faceGap": "8.67361737988403547205962240695953369140625E-19",
+          "toiSeconds": "0",
+          "toiFraction": "0E+59",
+          "remainingSeconds": "0.00833333333333333321768510160154619370587170124053955078125",
+          "centerHit": [
+            "-0.1010000000000000064392935428259079344570636749267578125",
+            "0",
+            "0"
+          ],
+          "centerFinal": [
+            "-0.10100000000000000643929354282590793445706367492675781250000",
+            "0E-59",
+            "0E-59"
+          ],
+          "velocityFinal": [
+            "0",
+            "0",
+            "0"
+          ],
+          "normal": [
+            "-1",
+            "0",
+            "0"
+          ],
+          "initialWitness": {
+            "distanceM": "0.100000000000000006418476861114186249324120581150054931640625",
+            "distanceSquaredM2": "0.010000000000000001283695372222837291061669332888227905603653178105710923104080568857288113804315798915922641754150390625",
+            "segmentPointM": [
+              "-0.1010000000000000064392935428259079344570636749267578125",
+              "0E-55",
+              "0E-55"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          },
+          "contactWitness": {
+            "distanceM": "0.100000000000000006418476861114186249324120581150054931640625",
+            "distanceSquaredM2": "0.010000000000000001283695372222837291061669332888227905603653178105710923104080568857288113804315798915922641754150390625",
+            "segmentPointM": [
+              "-0.1010000000000000064392935428259079344570636749267578125",
+              "0E-55",
+              "0E-55"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          },
+          "finalWitness": {
+            "distanceM": "0.100000000000000006418476861114186249324120581150054931640625",
+            "distanceSquaredM2": "0.010000000000000001283695372222837291061669332888227905603653178105710923104080568857288113804315798915922641754150390625",
+            "segmentPointM": [
+              "-0.10100000000000000643929354282590793445706367492675781250000",
+              "0E-59",
+              "0E-59"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          }
+        },
+        "status": "hit",
+        "distance": "0.100000000000000006418476861114186249324120581150054931640625",
+        "signedGap": "8.67361737988403547205962240695953369140625E-19",
+        "faceGap": "8.67361737988403547205962240695953369140625E-19",
+        "toiSeconds": "0",
+        "toiFraction": "0E+59",
+        "remainingSeconds": "0.00833333333333333321768510160154619370587170124053955078125",
+        "centerHit": [
+          "-0.1010000000000000064392935428259079344570636749267578125",
+          "0",
+          "0"
+        ],
+        "centerFinal": [
+          "-0.10100000000000000643929354282590793445706367492675781250000",
+          "0E-59",
+          "0E-59"
+        ],
+        "velocityFinal": [
+          "0",
+          "0",
+          "0"
+        ],
+        "normal": [
+          "-1",
+          "0",
+          "0"
+        ],
+        "initialWitness": {
+          "distanceM": "0.100000000000000006418476861114186249324120581150054931640625",
+          "distanceSquaredM2": "0.010000000000000001283695372222837291061669332888227905603653178105710923104080568857288113804315798915922641754150390625",
+          "segmentPointM": [
+            "-0.1010000000000000064392935428259079344570636749267578125",
+            "0E-55",
+            "0E-55"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        },
+        "contactWitness": {
+          "distanceM": "0.100000000000000006418476861114186249324120581150054931640625",
+          "distanceSquaredM2": "0.010000000000000001283695372222837291061669332888227905603653178105710923104080568857288113804315798915922641754150390625",
+          "segmentPointM": [
+            "-0.1010000000000000064392935428259079344570636749267578125",
+            "0E-55",
+            "0E-55"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        },
+        "finalWitness": {
+          "distanceM": "0.100000000000000006418476861114186249324120581150054931640625",
+          "distanceSquaredM2": "0.010000000000000001283695372222837291061669332888227905603653178105710923104080568857288113804315798915922641754150390625",
+          "segmentPointM": [
+            "-0.10100000000000000643929354282590793445706367492675781250000",
+            "0E-59",
+            "0E-59"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        }
+      }
+    },
+    {
+      "name": "contact-beyond-step",
+      "reply": {
+        "ok": true,
+        "resolved": true,
+        "metrics": {
+          "distanceM": 0.399,
+          "signedGapM": 0.29900000000000004,
+          "faceGapM": 0.29900000000000004,
+          "footprintContained": true,
+          "expectedHit": false,
+          "initialOverlap": false,
+          "expectedToiSeconds": null,
+          "expectedToiFraction": null,
+          "expectedRemainingSeconds": 0.008333333333333333,
+          "contactGapM": null,
+          "finalGapM": 0.21566666666666667,
+          "closingSpeedMps": 10,
+          "quaternionNormError": 0,
+          "timeAccountingErrorSeconds": 0,
+          "remainingErrorSeconds": 0,
+          "resultHitTimeErrorSeconds": 0,
+          "finalCenterErrorM": 1.734723475976807e-17,
+          "candidateFinalGapM": 0.2156666666666667,
+          "finalVelocityErrorMps": 0,
+          "candidateClosingSpeedMps": 10,
+          "precisionMaxDifference": "1E-80"
+        },
+        "violations": [],
+        "reference": {
+          "status": "clear",
+          "distance": "0.399000000000000022183643810791409123339690268039703369140625",
+          "signedGap": "0.299000000000000016632528687665626421221531927585601806640625",
+          "faceGap": "0.299000000000000016632528687665626421221531927585601806640625",
+          "toiSeconds": null,
+          "toiFraction": null,
+          "remainingSeconds": "0.00833333333333333321768510160154619370587170124053955078125",
+          "centerHit": null,
+          "centerFinal": [
+            "-0.31666666666666669002760947648766887141391634941101074218750",
+            "0E-59",
+            "0E-59"
+          ],
+          "velocityFinal": [
+            "10",
+            "0",
+            "0"
+          ],
+          "normal": [
+            "-1",
+            "0",
+            "0"
+          ],
+          "initialWitness": {
+            "distanceM": "0.399000000000000022183643810791409123339690268039703369140625",
+            "distanceSquaredM2": "0.159201000000000017702547761011544972539125557959675589504640234337710041502404224866840110053090029396116733551025390625",
+            "segmentPointM": [
+              "-0.400000000000000022204460492503130808472633361816406250",
+              "0E-54",
+              "0E-54"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          },
+          "contactWitness": null,
+          "finalWitness": {
+            "distanceM": "0.315666666666666690006792794775947186280973255634307861328125",
+            "distanceSquaredM2": "0.099645444444444459179844073324104090589097680328863191615241437055125990762010669554715747153750271536409854888916015625",
+            "segmentPointM": [
+              "-0.31666666666666669002760947648766887141391634941101074218750",
+              "0E-59",
+              "0E-59"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          }
+        },
+        "status": "clear",
+        "distance": "0.399000000000000022183643810791409123339690268039703369140625",
+        "signedGap": "0.299000000000000016632528687665626421221531927585601806640625",
+        "faceGap": "0.299000000000000016632528687665626421221531927585601806640625",
+        "toiSeconds": null,
+        "toiFraction": null,
+        "remainingSeconds": "0.00833333333333333321768510160154619370587170124053955078125",
+        "centerHit": null,
+        "centerFinal": [
+          "-0.31666666666666669002760947648766887141391634941101074218750",
+          "0E-59",
+          "0E-59"
+        ],
+        "velocityFinal": [
+          "10",
+          "0",
+          "0"
+        ],
+        "normal": [
+          "-1",
+          "0",
+          "0"
+        ],
+        "initialWitness": {
+          "distanceM": "0.399000000000000022183643810791409123339690268039703369140625",
+          "distanceSquaredM2": "0.159201000000000017702547761011544972539125557959675589504640234337710041502404224866840110053090029396116733551025390625",
+          "segmentPointM": [
+            "-0.400000000000000022204460492503130808472633361816406250",
+            "0E-54",
+            "0E-54"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        },
+        "contactWitness": null,
+        "finalWitness": {
+          "distanceM": "0.315666666666666690006792794775947186280973255634307861328125",
+          "distanceSquaredM2": "0.099645444444444459179844073324104090589097680328863191615241437055125990762010669554715747153750271536409854888916015625",
+          "segmentPointM": [
+            "-0.31666666666666669002760947648766887141391634941101074218750",
+            "0E-59",
+            "0E-59"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        }
+      }
+    },
+    {
+      "name": "zero-motion",
+      "reply": {
+        "ok": true,
+        "resolved": true,
+        "metrics": {
+          "distanceM": 0.399,
+          "signedGapM": 0.29900000000000004,
+          "faceGapM": 0.29900000000000004,
+          "footprintContained": true,
+          "expectedHit": false,
+          "initialOverlap": false,
+          "expectedToiSeconds": null,
+          "expectedToiFraction": null,
+          "expectedRemainingSeconds": 0.008333333333333333,
+          "contactGapM": null,
+          "finalGapM": 0.29900000000000004,
+          "closingSpeedMps": 0,
+          "quaternionNormError": 0,
+          "timeAccountingErrorSeconds": 0,
+          "remainingErrorSeconds": 0,
+          "resultHitTimeErrorSeconds": 0,
+          "finalCenterErrorM": 0,
+          "candidateFinalGapM": 0.29900000000000004,
+          "finalVelocityErrorMps": 0,
+          "candidateClosingSpeedMps": 0,
+          "precisionMaxDifference": "1E-80"
+        },
+        "violations": [],
+        "reference": {
+          "status": "clear",
+          "distance": "0.399000000000000022183643810791409123339690268039703369140625",
+          "signedGap": "0.299000000000000016632528687665626421221531927585601806640625",
+          "faceGap": "0.299000000000000016632528687665626421221531927585601806640625",
+          "toiSeconds": null,
+          "toiFraction": null,
+          "remainingSeconds": "0.00833333333333333321768510160154619370587170124053955078125",
+          "centerHit": null,
+          "centerFinal": [
+            "-0.40000000000000002220446049250313080847263336181640625000000",
+            "0E-59",
+            "0E-59"
+          ],
+          "velocityFinal": [
+            "0",
+            "0",
+            "0"
+          ],
+          "normal": [
+            "-1",
+            "0",
+            "0"
+          ],
+          "initialWitness": {
+            "distanceM": "0.399000000000000022183643810791409123339690268039703369140625",
+            "distanceSquaredM2": "0.159201000000000017702547761011544972539125557959675589504640234337710041502404224866840110053090029396116733551025390625",
+            "segmentPointM": [
+              "-0.400000000000000022204460492503130808472633361816406250",
+              "0E-54",
+              "0E-54"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          },
+          "contactWitness": null,
+          "finalWitness": {
+            "distanceM": "0.399000000000000022183643810791409123339690268039703369140625",
+            "distanceSquaredM2": "0.159201000000000017702547761011544972539125557959675589504640234337710041502404224866840110053090029396116733551025390625",
+            "segmentPointM": [
+              "-0.40000000000000002220446049250313080847263336181640625000000",
+              "0E-59",
+              "0E-59"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          }
+        },
+        "status": "clear",
+        "distance": "0.399000000000000022183643810791409123339690268039703369140625",
+        "signedGap": "0.299000000000000016632528687665626421221531927585601806640625",
+        "faceGap": "0.299000000000000016632528687665626421221531927585601806640625",
+        "toiSeconds": null,
+        "toiFraction": null,
+        "remainingSeconds": "0.00833333333333333321768510160154619370587170124053955078125",
+        "centerHit": null,
+        "centerFinal": [
+          "-0.40000000000000002220446049250313080847263336181640625000000",
+          "0E-59",
+          "0E-59"
+        ],
+        "velocityFinal": [
+          "0",
+          "0",
+          "0"
+        ],
+        "normal": [
+          "-1",
+          "0",
+          "0"
+        ],
+        "initialWitness": {
+          "distanceM": "0.399000000000000022183643810791409123339690268039703369140625",
+          "distanceSquaredM2": "0.159201000000000017702547761011544972539125557959675589504640234337710041502404224866840110053090029396116733551025390625",
+          "segmentPointM": [
+            "-0.400000000000000022204460492503130808472633361816406250",
+            "0E-54",
+            "0E-54"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        },
+        "contactWitness": null,
+        "finalWitness": {
+          "distanceM": "0.399000000000000022183643810791409123339690268039703369140625",
+          "distanceSquaredM2": "0.159201000000000017702547761011544972539125557959675589504640234337710041502404224866840110053090029396116733551025390625",
+          "segmentPointM": [
+            "-0.40000000000000002220446049250313080847263336181640625000000",
+            "0E-59",
+            "0E-59"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        }
+      }
+    },
+    {
+      "name": "departing",
+      "reply": {
+        "ok": true,
+        "resolved": true,
+        "metrics": {
+          "distanceM": 0.399,
+          "signedGapM": 0.29900000000000004,
+          "faceGapM": 0.29900000000000004,
+          "footprintContained": true,
+          "expectedHit": false,
+          "initialOverlap": false,
+          "expectedToiSeconds": null,
+          "expectedToiFraction": null,
+          "expectedRemainingSeconds": 0.008333333333333333,
+          "contactGapM": null,
+          "finalGapM": 1.1323333333333334,
+          "closingSpeedMps": 0,
+          "quaternionNormError": 0,
+          "timeAccountingErrorSeconds": 0,
+          "remainingErrorSeconds": 0,
+          "resultHitTimeErrorSeconds": 0,
+          "finalCenterErrorM": 4.85722573273506e-17,
+          "candidateFinalGapM": 1.1323333333333334,
+          "finalVelocityErrorMps": 0,
+          "candidateClosingSpeedMps": 0,
+          "precisionMaxDifference": "1E-80"
+        },
+        "violations": [],
+        "reference": {
+          "status": "clear",
+          "distance": "0.399000000000000022183643810791409123339690268039703369140625",
+          "signedGap": "0.299000000000000016632528687665626421221531927585601806640625",
+          "faceGap": "0.299000000000000016632528687665626421221531927585601806640625",
+          "toiSeconds": null,
+          "toiFraction": null,
+          "remainingSeconds": "0.00833333333333333321768510160154619370587170124053955078125",
+          "centerHit": null,
+          "centerFinal": [
+            "-1.23333333333333334397297065265775017905980348587036132812500",
+            "0E-59",
+            "0E-59"
+          ],
+          "velocityFinal": [
+            "-100",
+            "0",
+            "0"
+          ],
+          "normal": [
+            "-1",
+            "0",
+            "0"
+          ],
+          "initialWitness": {
+            "distanceM": "0.399000000000000022183643810791409123339690268039703369140625",
+            "distanceSquaredM2": "0.159201000000000017702547761011544972539125557959675589504640234337710041502404224866840110053090029396116733551025390625",
+            "segmentPointM": [
+              "-0.400000000000000022204460492503130808472633361816406250",
+              "0E-54",
+              "0E-54"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          },
+          "contactWitness": null,
+          "finalWitness": {
+            "distanceM": "1.23233333333333334395215397094602849392686039209365844726562500000000000000000000000000000000000000000000000000000000000",
+            "distanceSquaredM2": "1.51864544444444447061629770928053389634664253572501154229277659906772071501132679444134865320847893599420785903930664062",
+            "segmentPointM": [
+              "-1.23333333333333334397297065265775017905980348587036132812500",
+              "0E-59",
+              "0E-59"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          }
+        },
+        "status": "clear",
+        "distance": "0.399000000000000022183643810791409123339690268039703369140625",
+        "signedGap": "0.299000000000000016632528687665626421221531927585601806640625",
+        "faceGap": "0.299000000000000016632528687665626421221531927585601806640625",
+        "toiSeconds": null,
+        "toiFraction": null,
+        "remainingSeconds": "0.00833333333333333321768510160154619370587170124053955078125",
+        "centerHit": null,
+        "centerFinal": [
+          "-1.23333333333333334397297065265775017905980348587036132812500",
+          "0E-59",
+          "0E-59"
+        ],
+        "velocityFinal": [
+          "-100",
+          "0",
+          "0"
+        ],
+        "normal": [
+          "-1",
+          "0",
+          "0"
+        ],
+        "initialWitness": {
+          "distanceM": "0.399000000000000022183643810791409123339690268039703369140625",
+          "distanceSquaredM2": "0.159201000000000017702547761011544972539125557959675589504640234337710041502404224866840110053090029396116733551025390625",
+          "segmentPointM": [
+            "-0.400000000000000022204460492503130808472633361816406250",
+            "0E-54",
+            "0E-54"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        },
+        "contactWitness": null,
+        "finalWitness": {
+          "distanceM": "1.23233333333333334395215397094602849392686039209365844726562500000000000000000000000000000000000000000000000000000000000",
+          "distanceSquaredM2": "1.51864544444444447061629770928053389634664253572501154229277659906772071501132679444134865320847893599420785903930664062",
+          "segmentPointM": [
+            "-1.23333333333333334397297065265775017905980348587036132812500",
+            "0E-59",
+            "0E-59"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        }
+      }
+    },
+    {
+      "name": "departing-at-touch",
+      "reply": {
+        "ok": true,
+        "resolved": true,
+        "metrics": {
+          "distanceM": 0.1,
+          "signedGapM": 8.673617379884035e-19,
+          "faceGapM": 8.673617379884035e-19,
+          "footprintContained": true,
+          "expectedHit": true,
+          "initialOverlap": false,
+          "expectedToiSeconds": 0,
+          "expectedToiFraction": 0,
+          "expectedRemainingSeconds": 0.008333333333333333,
+          "contactGapM": 8.673617379884035e-19,
+          "finalGapM": 0.8333333333333334,
+          "closingSpeedMps": 0,
+          "quaternionNormError": 0,
+          "toiErrorSeconds": 0,
+          "fractionError": 0,
+          "contactCenterErrorM": 0,
+          "candidateContactGapM": 8.673617379884035e-19,
+          "witnessSegmentMembershipErrorM": 0,
+          "witnessBoxMembershipErrorM": 0,
+          "witnessFaceMembershipErrorM": 0,
+          "witnessDistanceErrorM": 8.673617379884035e-19,
+          "normalError": 0,
+          "normalUnitError": 0,
+          "timeAccountingErrorSeconds": 0,
+          "remainingErrorSeconds": 0,
+          "resultHitTimeErrorSeconds": 0,
+          "finalCenterErrorM": 2.0816681711721685e-17,
+          "candidateFinalGapM": 0.8333333333333334,
+          "finalVelocityErrorMps": 0,
+          "candidateClosingSpeedMps": 0,
+          "precisionMaxDifference": "2.788038377611883333884179592132568359375E-81"
+        },
+        "violations": [],
+        "reference": {
+          "status": "hit",
+          "distance": "0.100000000000000006418476861114186249324120581150054931640625",
+          "signedGap": "8.67361737988403547205962240695953369140625E-19",
+          "faceGap": "8.67361737988403547205962240695953369140625E-19",
+          "toiSeconds": "0",
+          "toiFraction": "0E+59",
+          "remainingSeconds": "0.00833333333333333321768510160154619370587170124053955078125",
+          "centerHit": [
+            "-0.1010000000000000064392935428259079344570636749267578125",
+            "0",
+            "0"
+          ],
+          "centerFinal": [
+            "-0.93433333333333332820780370298052730504423379898071289062500",
+            "0E-59",
+            "0E-59"
+          ],
+          "velocityFinal": [
+            "-100",
+            "0",
+            "0"
+          ],
+          "normal": [
+            "-1",
+            "0",
+            "0"
+          ],
+          "initialWitness": {
+            "distanceM": "0.100000000000000006418476861114186249324120581150054931640625",
+            "distanceSquaredM2": "0.010000000000000001283695372222837291061669332888227905603653178105710923104080568857288113804315798915922641754150390625",
+            "segmentPointM": [
+              "-0.1010000000000000064392935428259079344570636749267578125",
+              "0E-55",
+              "0E-55"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          },
+          "contactWitness": {
+            "distanceM": "0.100000000000000006418476861114186249324120581150054931640625",
+            "distanceSquaredM2": "0.010000000000000001283695372222837291061669332888227905603653178105710923104080568857288113804315798915922641754150390625",
+            "segmentPointM": [
+              "-0.1010000000000000064392935428259079344570636749267578125",
+              "0E-55",
+              "0E-55"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          },
+          "finalWitness": {
+            "distanceM": "0.933333333333333328186987021268805619911290705204010009765625",
+            "distanceSquaredM2": "0.871111111111111101504597995257326072541511902303206171104863338915293906493581867211961622388116666115820407867431640625",
+            "segmentPointM": [
+              "-0.93433333333333332820780370298052730504423379898071289062500",
+              "0E-59",
+              "0E-59"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          }
+        },
+        "status": "hit",
+        "distance": "0.100000000000000006418476861114186249324120581150054931640625",
+        "signedGap": "8.67361737988403547205962240695953369140625E-19",
+        "faceGap": "8.67361737988403547205962240695953369140625E-19",
+        "toiSeconds": "0",
+        "toiFraction": "0E+59",
+        "remainingSeconds": "0.00833333333333333321768510160154619370587170124053955078125",
+        "centerHit": [
+          "-0.1010000000000000064392935428259079344570636749267578125",
+          "0",
+          "0"
+        ],
+        "centerFinal": [
+          "-0.93433333333333332820780370298052730504423379898071289062500",
+          "0E-59",
+          "0E-59"
+        ],
+        "velocityFinal": [
+          "-100",
+          "0",
+          "0"
+        ],
+        "normal": [
+          "-1",
+          "0",
+          "0"
+        ],
+        "initialWitness": {
+          "distanceM": "0.100000000000000006418476861114186249324120581150054931640625",
+          "distanceSquaredM2": "0.010000000000000001283695372222837291061669332888227905603653178105710923104080568857288113804315798915922641754150390625",
+          "segmentPointM": [
+            "-0.1010000000000000064392935428259079344570636749267578125",
+            "0E-55",
+            "0E-55"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        },
+        "contactWitness": {
+          "distanceM": "0.100000000000000006418476861114186249324120581150054931640625",
+          "distanceSquaredM2": "0.010000000000000001283695372222837291061669332888227905603653178105710923104080568857288113804315798915922641754150390625",
+          "segmentPointM": [
+            "-0.1010000000000000064392935428259079344570636749267578125",
+            "0E-55",
+            "0E-55"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        },
+        "finalWitness": {
+          "distanceM": "0.933333333333333328186987021268805619911290705204010009765625",
+          "distanceSquaredM2": "0.871111111111111101504597995257326072541511902303206171104863338915293906493581867211961622388116666115820407867431640625",
+          "segmentPointM": [
+            "-0.93433333333333332820780370298052730504423379898071289062500",
+            "0E-59",
+            "0E-59"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        }
+      }
+    },
+    {
+      "name": "yaw-head-on",
+      "reply": {
+        "ok": true,
+        "resolved": true,
+        "metrics": {
+          "distanceM": 0.399,
+          "signedGapM": 0.299,
+          "faceGapM": 0.299,
+          "footprintContained": true,
+          "expectedHit": true,
+          "initialOverlap": false,
+          "expectedToiSeconds": 0.00299,
+          "expectedToiFraction": 0.3588,
+          "expectedRemainingSeconds": 0.005343333333333333,
+          "contactGapM": 0,
+          "finalGapM": -1e-120,
+          "closingSpeedMps": 8.918817251468611e-119,
+          "quaternionNormError": 5.60290020314352e-17,
+          "toiErrorSeconds": 6.314441035056315e-19,
+          "fractionError": 7.577329242067578e-17,
+          "contactCenterErrorM": 6.314441035056314e-17,
+          "candidateContactGapM": 6.314441035056314e-17,
+          "witnessSegmentMembershipErrorM": 1.1907212904719191e-17,
+          "witnessBoxMembershipErrorM": 0,
+          "witnessFaceMembershipErrorM": 1.4063035091204935e-19,
+          "witnessDistanceErrorM": 7.47279786838765e-17,
+          "normalError": 4.0652699819383584e-17,
+          "normalUnitError": 6.4336346465315944e-18,
+          "timeAccountingErrorSeconds": 0,
+          "remainingErrorSeconds": 5.899495179602663e-19,
+          "resultHitTimeErrorSeconds": 5.899495179602663e-19,
+          "finalCenterErrorM": 2.8719935613211054e-17,
+          "candidateFinalGapM": 1.0027931829774285e-17,
+          "finalVelocityErrorMps": 1.4601662185926434e-14,
+          "candidateClosingSpeedMps": 1.3221768499853344e-14,
+          "precisionMaxDifference": "5.864233397798823307578854531813418565675E-79"
+        },
+        "violations": [],
+        "reference": {
+          "status": "hit",
+          "distance": "0.399000000000000010676471164055854845182349595086086218747741602598576370413911795716912476970128369802367087097467041551",
+          "signedGap": "0.299000000000000005125356040930072143064191254631984656247741602598576370413911795716912476970128369802367087097467041551",
+          "faceGap": "0.299000000000000005125356040930072143064191254631984656247741602598576370413911795716912476970128369802367087097467041551",
+          "toiSeconds": "0.00299000000000000019248967514446021750403668106490322553036208781986401903621265752181117969061907822203906384867554673394",
+          "toiFraction": "0.358800000000000028078111282779053573946460185784402338915181511927896707344139341181084105568703831030564422652157051712",
+          "remainingSeconds": "0.00534333333333333302519542645708597620183502017563632525088791218013598096378734247818882030938092177796093615132445326606",
+          "centerHit": [
+            "-0.098986724361965409766023943104831200400143911959064781164856678689236194341289407617612948973316358312072137856737337375",
+            "0E-122",
+            "0.0200656024103011860309890075721323724483146415358017436282115804712365119582510120938580650315621835219171342291986496411"
+          ],
+          "centerFinal": [
+            "-0.0989867243619654096504012860512481470609639647730059671891951372846057547571751468268729364308786438666666797888681141870",
+            "0E-413",
+            "0.0200656024103011866013734819443269049951667263145898736160181627442978735077028637232804086658573554084237989181103569876"
+          ],
+          "velocityFinal": [
+            "2.16386756806456132264896155322810689950254641161463028880120792118000507948671182574082461033315289704E-17",
+            "0E-291",
+            "1.067469384352204426898871353066602634903256625769712834044345985864233397798823307578854531813418565675E-16"
+          ],
+          "normal": [
+            "-0.980066577841241627914778096865362274806079623573031544734775083483337789039849128403287967433873992355291997494184135776",
+            "0E-173",
+            "0.198669330795061231291970752961640728280401045203554986144181904734869069532503585221790484058672137132230525789770962179"
+          ],
+          "initialWitness": {
+            "distanceM": "0.399000000000000010676471164055854845182349595086086218747741602598576370413911795716912476970128369802367087097467041551",
+            "distanceSquaredM2": "0.159201000000000008519823988916572280442551493794876986481897110011359409518364023153434330855251676559988444077589503576",
+            "segmentPointM": [
+              "-0.392026631136496661600432389604975469410419464111328125000000000000000000000000000000000000000000000000000000000000000000",
+              "0E-348",
+              "0.0794677323180244948863659715243557002395391464233398437500000000000000000000000000000000000000000000000000000000000000000"
+            ],
+            "pointM": [
+              "-0.000980066577841241598783371778776844400530164302365206505670022778632839855745890774908046729950649882135371097878314645361",
+              "0E-348",
+              "0.000198669330795061479782259676915975438559776794971259518021348885147965541335447846727329368055807638069091959720974710319"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          },
+          "contactWitness": {
+            "distanceM": "0.1000000000000000055511151231257827021181583404541015625000000",
+            "distanceSquaredM2": "0.0100000000000000011102230246251565712385107782865939613956470813588370966096263714462111238390207290649414062500000000000",
+            "segmentPointM": [
+              "-0.0989867243619654097660239431048312004001439119590647811648566786892361943412894076176129489733163583120721378567373373753",
+              "0E-413",
+              "0.0200656024103011860309890075721323724483146415358017436282115804712365119582510120938580650315621835219171342291986496412"
+            ],
+            "pointM": [
+              "-0.000980066577841241534083731493646456688104561537039134742482140878409730906837151474156931953206792210941425810228596549040",
+              "0E-413",
+              "0.000198669330795061798955605598225119629005813423162958328553698395576886194463938260929185746730368366020316083116764945576"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          },
+          "finalWitness": {
+            "distanceM": "0.100000000000000005551115123125782702118158340454101562499999999999999999999999999999999999999999999999999999999999999999",
+            "distanceSquaredM2": "0.0100000000000000011102230246251565712385107782865939613956470813588370966096263714462111238390207290649414062499999999998",
+            "segmentPointM": [
+              "-0.0989867243619654096504012860512481470609639647730059671891951372846057547571751468268729364308786438666666797888681141868",
+              "0E-651",
+              "0.0200656024103011866013734819443269049951667263145898736160181627442978735077028637232804086658573554084237989181103569876"
+            ],
+            "pointM": [
+              "-0.000980066577841241418461074440063403348924614350980320766820599473779291322722890683416919410769077765535967742359373361547",
+              "0E-651",
+              "0.000198669330795062369340079970419652175857898201951088316360280668638247743915789890351529381025540252526980772028472292148"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          }
+        },
+        "status": "hit",
+        "distance": "0.399000000000000010676471164055854845182349595086086218747741602598576370413911795716912476970128369802367087097467041551",
+        "signedGap": "0.299000000000000005125356040930072143064191254631984656247741602598576370413911795716912476970128369802367087097467041551",
+        "faceGap": "0.299000000000000005125356040930072143064191254631984656247741602598576370413911795716912476970128369802367087097467041551",
+        "toiSeconds": "0.00299000000000000019248967514446021750403668106490322553036208781986401903621265752181117969061907822203906384867554673394",
+        "toiFraction": "0.358800000000000028078111282779053573946460185784402338915181511927896707344139341181084105568703831030564422652157051712",
+        "remainingSeconds": "0.00534333333333333302519542645708597620183502017563632525088791218013598096378734247818882030938092177796093615132445326606",
+        "centerHit": [
+          "-0.098986724361965409766023943104831200400143911959064781164856678689236194341289407617612948973316358312072137856737337375",
+          "0E-122",
+          "0.0200656024103011860309890075721323724483146415358017436282115804712365119582510120938580650315621835219171342291986496411"
+        ],
+        "centerFinal": [
+          "-0.0989867243619654096504012860512481470609639647730059671891951372846057547571751468268729364308786438666666797888681141870",
+          "0E-413",
+          "0.0200656024103011866013734819443269049951667263145898736160181627442978735077028637232804086658573554084237989181103569876"
+        ],
+        "velocityFinal": [
+          "2.16386756806456132264896155322810689950254641161463028880120792118000507948671182574082461033315289704E-17",
+          "0E-291",
+          "1.067469384352204426898871353066602634903256625769712834044345985864233397798823307578854531813418565675E-16"
+        ],
+        "normal": [
+          "-0.980066577841241627914778096865362274806079623573031544734775083483337789039849128403287967433873992355291997494184135776",
+          "0E-173",
+          "0.198669330795061231291970752961640728280401045203554986144181904734869069532503585221790484058672137132230525789770962179"
+        ],
+        "initialWitness": {
+          "distanceM": "0.399000000000000010676471164055854845182349595086086218747741602598576370413911795716912476970128369802367087097467041551",
+          "distanceSquaredM2": "0.159201000000000008519823988916572280442551493794876986481897110011359409518364023153434330855251676559988444077589503576",
+          "segmentPointM": [
+            "-0.392026631136496661600432389604975469410419464111328125000000000000000000000000000000000000000000000000000000000000000000",
+            "0E-348",
+            "0.0794677323180244948863659715243557002395391464233398437500000000000000000000000000000000000000000000000000000000000000000"
+          ],
+          "pointM": [
+            "-0.000980066577841241598783371778776844400530164302365206505670022778632839855745890774908046729950649882135371097878314645361",
+            "0E-348",
+            "0.000198669330795061479782259676915975438559776794971259518021348885147965541335447846727329368055807638069091959720974710319"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        },
+        "contactWitness": {
+          "distanceM": "0.1000000000000000055511151231257827021181583404541015625000000",
+          "distanceSquaredM2": "0.0100000000000000011102230246251565712385107782865939613956470813588370966096263714462111238390207290649414062500000000000",
+          "segmentPointM": [
+            "-0.0989867243619654097660239431048312004001439119590647811648566786892361943412894076176129489733163583120721378567373373753",
+            "0E-413",
+            "0.0200656024103011860309890075721323724483146415358017436282115804712365119582510120938580650315621835219171342291986496412"
+          ],
+          "pointM": [
+            "-0.000980066577841241534083731493646456688104561537039134742482140878409730906837151474156931953206792210941425810228596549040",
+            "0E-413",
+            "0.000198669330795061798955605598225119629005813423162958328553698395576886194463938260929185746730368366020316083116764945576"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        },
+        "finalWitness": {
+          "distanceM": "0.100000000000000005551115123125782702118158340454101562499999999999999999999999999999999999999999999999999999999999999999",
+          "distanceSquaredM2": "0.0100000000000000011102230246251565712385107782865939613956470813588370966096263714462111238390207290649414062499999999998",
+          "segmentPointM": [
+            "-0.0989867243619654096504012860512481470609639647730059671891951372846057547571751468268729364308786438666666797888681141868",
+            "0E-651",
+            "0.0200656024103011866013734819443269049951667263145898736160181627442978735077028637232804086658573554084237989181103569876"
+          ],
+          "pointM": [
+            "-0.000980066577841241418461074440063403348924614350980320766820599473779291322722890683416919410769077765535967742359373361547",
+            "0E-651",
+            "0.000198669330795062369340079970419652175857898201951088316360280668638247743915789890351529381025540252526980772028472292148"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        }
+      }
+    },
+    {
+      "name": "first-half",
+      "reply": {
+        "ok": true,
+        "resolved": true,
+        "metrics": {
+          "distanceM": 0.399,
+          "signedGapM": 0.29900000000000004,
+          "faceGapM": 0.29900000000000004,
+          "footprintContained": true,
+          "expectedHit": true,
+          "initialOverlap": false,
+          "expectedToiSeconds": 0.00299,
+          "expectedToiFraction": 0.7176,
+          "expectedRemainingSeconds": 0.0011766666666666664,
+          "contactGapM": 0,
+          "finalGapM": 0,
+          "closingSpeedMps": 0,
+          "quaternionNormError": 0,
+          "toiErrorSeconds": 3.1990613861646956e-19,
+          "fractionError": 7.67774732679527e-17,
+          "contactCenterErrorM": 3.199061386164696e-17,
+          "candidateContactGapM": -3.199061386164696e-17,
+          "witnessSegmentMembershipErrorM": 5.1023999840064475e-18,
+          "witnessBoxMembershipErrorM": 0,
+          "witnessFaceMembershipErrorM": 0,
+          "witnessDistanceErrorM": 2.688821387764051e-17,
+          "normalError": 0,
+          "normalUnitError": 0,
+          "timeAccountingErrorSeconds": 0,
+          "remainingErrorSeconds": 3.035766082959412e-19,
+          "resultHitTimeErrorSeconds": 3.035766082959412e-19,
+          "finalCenterErrorM": 2.688821387764051e-17,
+          "candidateFinalGapM": -2.688821387764051e-17,
+          "finalVelocityErrorMps": 0,
+          "candidateClosingSpeedMps": 0,
+          "precisionMaxDifference": "1E-80"
+        },
+        "violations": [],
+        "reference": {
+          "status": "hit",
+          "distance": "0.399000000000000022183643810791409123339690268039703369140625",
+          "signedGap": "0.299000000000000016632528687665626421221531927585601806640625",
+          "faceGap": "0.299000000000000016632528687665626421221531927585601806640625",
+          "toiSeconds": "0.00299000000000000016632528687665626421221531927585601806640625",
+          "toiFraction": "0.717600000000000049876769381285158270710874701752677733297340636374163820550851016962843061814545055949230737059944206641",
+          "remainingSeconds": "0.00117666666666666644251726392411683264072053134441375732421875",
+          "centerHit": [
+            "-0.10100000000000000557193180483750438725110143423080444335937500",
+            "0E-62",
+            "0E-62"
+          ],
+          "centerFinal": [
+            "-0.10100000000000000557193180483750438725110143423080444335937500",
+            "0E-62",
+            "0E-62"
+          ],
+          "velocityFinal": [
+            "0",
+            "0",
+            "0"
+          ],
+          "normal": [
+            "-1",
+            "0",
+            "0"
+          ],
+          "initialWitness": {
+            "distanceM": "0.399000000000000022183643810791409123339690268039703369140625",
+            "distanceSquaredM2": "0.159201000000000017702547761011544972539125557959675589504640234337710041502404224866840110053090029396116733551025390625",
+            "segmentPointM": [
+              "-0.400000000000000022204460492503130808472633361816406250",
+              "0E-54",
+              "0E-54"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          },
+          "contactWitness": {
+            "distanceM": "0.1000000000000000055511151231257827021181583404541015625000000",
+            "distanceSquaredM2": "0.0100000000000000011102230246251565712385107782865939613956470813588370966096263714462111238390207290649414062500000000000",
+            "segmentPointM": [
+              "-0.10100000000000000557193180483750438725110143423080444335937500",
+              "0E-62",
+              "0E-62"
+            ],
+            "pointM": [
+              "-0.00100000000000000002081668171172168513294309377670288085937500",
+              "0E-62",
+              "0E-62"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          },
+          "finalWitness": {
+            "distanceM": "0.1000000000000000055511151231257827021181583404541015625000000",
+            "distanceSquaredM2": "0.0100000000000000011102230246251565712385107782865939613956470813588370966096263714462111238390207290649414062500000000000",
+            "segmentPointM": [
+              "-0.10100000000000000557193180483750438725110143423080444335937500",
+              "0E-62",
+              "0E-62"
+            ],
+            "pointM": [
+              "-0.00100000000000000002081668171172168513294309377670288085937500",
+              "0E-62",
+              "0E-62"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          }
+        },
+        "status": "hit",
+        "distance": "0.399000000000000022183643810791409123339690268039703369140625",
+        "signedGap": "0.299000000000000016632528687665626421221531927585601806640625",
+        "faceGap": "0.299000000000000016632528687665626421221531927585601806640625",
+        "toiSeconds": "0.00299000000000000016632528687665626421221531927585601806640625",
+        "toiFraction": "0.717600000000000049876769381285158270710874701752677733297340636374163820550851016962843061814545055949230737059944206641",
+        "remainingSeconds": "0.00117666666666666644251726392411683264072053134441375732421875",
+        "centerHit": [
+          "-0.10100000000000000557193180483750438725110143423080444335937500",
+          "0E-62",
+          "0E-62"
+        ],
+        "centerFinal": [
+          "-0.10100000000000000557193180483750438725110143423080444335937500",
+          "0E-62",
+          "0E-62"
+        ],
+        "velocityFinal": [
+          "0",
+          "0",
+          "0"
+        ],
+        "normal": [
+          "-1",
+          "0",
+          "0"
+        ],
+        "initialWitness": {
+          "distanceM": "0.399000000000000022183643810791409123339690268039703369140625",
+          "distanceSquaredM2": "0.159201000000000017702547761011544972539125557959675589504640234337710041502404224866840110053090029396116733551025390625",
+          "segmentPointM": [
+            "-0.400000000000000022204460492503130808472633361816406250",
+            "0E-54",
+            "0E-54"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        },
+        "contactWitness": {
+          "distanceM": "0.1000000000000000055511151231257827021181583404541015625000000",
+          "distanceSquaredM2": "0.0100000000000000011102230246251565712385107782865939613956470813588370966096263714462111238390207290649414062500000000000",
+          "segmentPointM": [
+            "-0.10100000000000000557193180483750438725110143423080444335937500",
+            "0E-62",
+            "0E-62"
+          ],
+          "pointM": [
+            "-0.00100000000000000002081668171172168513294309377670288085937500",
+            "0E-62",
+            "0E-62"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        },
+        "finalWitness": {
+          "distanceM": "0.1000000000000000055511151231257827021181583404541015625000000",
+          "distanceSquaredM2": "0.0100000000000000011102230246251565712385107782865939613956470813588370966096263714462111238390207290649414062500000000000",
+          "segmentPointM": [
+            "-0.10100000000000000557193180483750438725110143423080444335937500",
+            "0E-62",
+            "0E-62"
+          ],
+          "pointM": [
+            "-0.00100000000000000002081668171172168513294309377670288085937500",
+            "0E-62",
+            "0E-62"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        }
+      }
+    },
+    {
+      "name": "second-half",
+      "reply": {
+        "ok": true,
+        "resolved": true,
+        "metrics": {
+          "distanceM": 0.09999999999999998,
+          "signedGapM": -2.688821387764051e-17,
+          "faceGapM": -2.688821387764051e-17,
+          "footprintContained": true,
+          "expectedHit": true,
+          "initialOverlap": false,
+          "expectedToiSeconds": 0,
+          "expectedToiFraction": 0,
+          "expectedRemainingSeconds": 0.004166666666666667,
+          "contactGapM": -2.688821387764051e-17,
+          "finalGapM": -2.688821387764051e-17,
+          "closingSpeedMps": 0,
+          "quaternionNormError": 0,
+          "toiErrorSeconds": 0,
+          "fractionError": 0,
+          "contactCenterErrorM": 0,
+          "candidateContactGapM": -2.688821387764051e-17,
+          "witnessSegmentMembershipErrorM": 0,
+          "witnessBoxMembershipErrorM": 0,
+          "witnessFaceMembershipErrorM": 0,
+          "witnessDistanceErrorM": 2.688821387764051e-17,
+          "normalError": 0,
+          "normalUnitError": 0,
+          "timeAccountingErrorSeconds": 0,
+          "remainingErrorSeconds": 0,
+          "resultHitTimeErrorSeconds": 0,
+          "finalCenterErrorM": 0,
+          "candidateFinalGapM": -2.688821387764051e-17,
+          "finalVelocityErrorMps": 0,
+          "candidateClosingSpeedMps": 0,
+          "precisionMaxDifference": "3.4249909608843154273927211761474609375E-83"
+        },
+        "violations": [],
+        "reference": {
+          "status": "hit",
+          "distance": "0.099999999999999978662901245485272738733328878879547119140625",
+          "signedGap": "-2.6888213877640509963384829461574554443359375E-17",
+          "faceGap": "-2.6888213877640509963384829461574554443359375E-17",
+          "toiSeconds": "0",
+          "toiFraction": "0E+60",
+          "remainingSeconds": "0.004166666666666666608842550800773096852935850620269775390625",
+          "centerHit": [
+            "-0.10099999999999997868371792719699442386627197265625",
+            "0",
+            "0"
+          ],
+          "centerFinal": [
+            "-0.100999999999999978683717927196994423866271972656250000000000",
+            "0E-60",
+            "0E-60"
+          ],
+          "velocityFinal": [
+            "0",
+            "0",
+            "0"
+          ],
+          "normal": [
+            "-1",
+            "0",
+            "0"
+          ],
+          "initialWitness": {
+            "distanceM": "0.099999999999999978662901245485272738733328878879547119140625",
+            "distanceSquaredM2": "0.009999999999999995732580249097055003018449035689834750138910833865084408795934935165750090391156845726072788238525390625",
+            "segmentPointM": [
+              "-0.100999999999999978683717927196994423866271972656250000",
+              "0E-54",
+              "0E-54"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          },
+          "contactWitness": {
+            "distanceM": "0.099999999999999978662901245485272738733328878879547119140625",
+            "distanceSquaredM2": "0.009999999999999995732580249097055003018449035689834750138910833865084408795934935165750090391156845726072788238525390625",
+            "segmentPointM": [
+              "-0.100999999999999978683717927196994423866271972656250000",
+              "0E-54",
+              "0E-54"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          },
+          "finalWitness": {
+            "distanceM": "0.099999999999999978662901245485272738733328878879547119140625",
+            "distanceSquaredM2": "0.009999999999999995732580249097055003018449035689834750138910833865084408795934935165750090391156845726072788238525390625",
+            "segmentPointM": [
+              "-0.100999999999999978683717927196994423866271972656250000000000",
+              "0E-60",
+              "0E-60"
+            ],
+            "pointM": [
+              "-0.001000000000000000020816681711721685132943093776702880859375",
+              "0E-60",
+              "0E-60"
+            ],
+            "segmentParameterM": "0E-54",
+            "minimizerParametersM": [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0E-54",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ],
+            "flatIntervalsM": [
+              [
+                "-0.200000000000000011102230246251565404236316680908203125",
+                "0.200000000000000011102230246251565404236316680908203125"
+              ]
+            ],
+            "witnessAmbiguity": "flat-interval"
+          }
+        },
+        "status": "hit",
+        "distance": "0.099999999999999978662901245485272738733328878879547119140625",
+        "signedGap": "-2.6888213877640509963384829461574554443359375E-17",
+        "faceGap": "-2.6888213877640509963384829461574554443359375E-17",
+        "toiSeconds": "0",
+        "toiFraction": "0E+60",
+        "remainingSeconds": "0.004166666666666666608842550800773096852935850620269775390625",
+        "centerHit": [
+          "-0.10099999999999997868371792719699442386627197265625",
+          "0",
+          "0"
+        ],
+        "centerFinal": [
+          "-0.100999999999999978683717927196994423866271972656250000000000",
+          "0E-60",
+          "0E-60"
+        ],
+        "velocityFinal": [
+          "0",
+          "0",
+          "0"
+        ],
+        "normal": [
+          "-1",
+          "0",
+          "0"
+        ],
+        "initialWitness": {
+          "distanceM": "0.099999999999999978662901245485272738733328878879547119140625",
+          "distanceSquaredM2": "0.009999999999999995732580249097055003018449035689834750138910833865084408795934935165750090391156845726072788238525390625",
+          "segmentPointM": [
+            "-0.100999999999999978683717927196994423866271972656250000",
+            "0E-54",
+            "0E-54"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        },
+        "contactWitness": {
+          "distanceM": "0.099999999999999978662901245485272738733328878879547119140625",
+          "distanceSquaredM2": "0.009999999999999995732580249097055003018449035689834750138910833865084408795934935165750090391156845726072788238525390625",
+          "segmentPointM": [
+            "-0.100999999999999978683717927196994423866271972656250000",
+            "0E-54",
+            "0E-54"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        },
+        "finalWitness": {
+          "distanceM": "0.099999999999999978662901245485272738733328878879547119140625",
+          "distanceSquaredM2": "0.009999999999999995732580249097055003018449035689834750138910833865084408795934935165750090391156845726072788238525390625",
+          "segmentPointM": [
+            "-0.100999999999999978683717927196994423866271972656250000000000",
+            "0E-60",
+            "0E-60"
+          ],
+          "pointM": [
+            "-0.001000000000000000020816681711721685132943093776702880859375",
+            "0E-60",
+            "0E-60"
+          ],
+          "segmentParameterM": "0E-54",
+          "minimizerParametersM": [
+            "-0.200000000000000011102230246251565404236316680908203125",
+            "0E-54",
+            "0.200000000000000011102230246251565404236316680908203125"
+          ],
+          "flatIntervalsM": [
+            [
+              "-0.200000000000000011102230246251565404236316680908203125",
+              "0.200000000000000011102230246251565404236316680908203125"
+            ]
+          ],
+          "witnessAmbiguity": "flat-interval"
+        }
+      }
+    }
+  ]
+}

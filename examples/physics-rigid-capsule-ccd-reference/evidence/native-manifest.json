@@ -1,0 +1,330 @@
+{
+  "issue": 1280,
+  "base": "6bd3376d6943a8d84b83ca62b0031a9ec8927bea",
+  "sourceCommit": "19b30fce5b333a41e2cae1102fe8e0c4c23ebee4",
+  "sourceFreezeSha256": "501eee4f9f61fddf4b499bd2d5974742b0e723df2c13c1c4e1f95799e03d9e57",
+  "initialSourceFreezeSha256": "556ba18d882948b0615b77b148f6bf5551e781221b46172650661f1329c34cb2",
+  "originalBuild": "PASS",
+  "strictPrivateAdapterTypes": "PASS after preserved compiler-only repair",
+  "initialTypecheckFailurePreserved": true,
+  "numericalCampaignCount": 1,
+  "trialGraphs": [
+    "source",
+    "source-repeat",
+    "compiled-dependencies"
+  ],
+  "casesPerGraph": 10,
+  "typedErrorCopyReceiptsPerGraph": 58,
+  "oracleControls": 24,
+  "rawBytesPerGraph": 4664,
+  "rawSha256": "fa99ecd2d5bdc456a03b9b8b4d61cb88aab020bbf0a694f9fa679ea2970b8baa",
+  "sourceRepeatCompiledParity": true,
+  "verdict": "GO",
+  "privateSelectedFaceGO": true,
+  "fullWorldCCDGO": false,
+  "rigidAngularResponseMeasured": false,
+  "contactFrictionMeasured": false,
+  "physicsWorldCreated": false,
+  "physicsWorldStepped": false,
+  "measuredOriginal": {
+    "name": "original-head-on",
+    "input": {
+      "capsule": {
+        "radiusM": 0.1,
+        "halfLengthM": 0.2
+      },
+      "box": {
+        "id": "floor",
+        "centerM": [
+          0,
+          0,
+          0
+        ],
+        "halfExtentsM": [
+          0.001,
+          1,
+          1
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "centerM": [
+        -0.4,
+        0,
+        0
+      ],
+      "velocityMps": [
+        100,
+        0,
+        0
+      ],
+      "stepSeconds": 0.008333333333333333,
+      "evaluateCandidate": false
+    },
+    "hit": {
+      "bodyId": "floor",
+      "toiFraction": 0.35880000000000006,
+      "normalFixtureToCapsule": [
+        -1,
+        0,
+        0
+      ],
+      "pointM": [
+        -0.001,
+        0,
+        0
+      ],
+      "segmentPointM": [
+        -0.10099999999999998,
+        0,
+        0
+      ]
+    },
+    "result": {
+      "centerM": [
+        -0.10099999999999998,
+        0,
+        0
+      ],
+      "velocityMps": [
+        0,
+        0,
+        0
+      ],
+      "hitTimeSeconds": 0.0029900000000000005,
+      "remainingTimeSeconds": 0.005343333333333333,
+      "orientationXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "box": {
+        "id": "floor",
+        "centerM": [
+          0,
+          0,
+          0
+        ],
+        "halfExtentsM": [
+          0.001,
+          1,
+          1
+        ],
+        "orientationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "velocityMps": [
+          0,
+          0,
+          0
+        ],
+        "angularVelocityRadps": [
+          0,
+          0,
+          0
+        ]
+      }
+    }
+  },
+  "publicOwnProfileHit": {
+    "bodyId": "floor",
+    "toiFraction": 0.2988,
+    "normalFixtureToCapsule": [
+      -1,
+      0,
+      0
+    ],
+    "pointM": [
+      -0.001,
+      -0.35,
+      0
+    ],
+    "segmentPointM": [
+      -0.151,
+      -0.35,
+      0
+    ],
+    "iterations": 2
+  },
+  "maximumAbsoluteNumericalMetrics": {
+    "distanceM": 0.399,
+    "signedGapM": 0.29900000000000004,
+    "faceGapM": 0.29900000000000004,
+    "expectedToiSeconds": 0.00299,
+    "expectedToiFraction": 0.7176,
+    "expectedRemainingSeconds": 0.008333333333333333,
+    "contactGapM": 2.688821387764051e-17,
+    "finalGapM": 1.1323333333333334,
+    "closingSpeedMps": 10,
+    "quaternionNormError": 5.60290020314352e-17,
+    "toiErrorSeconds": 6.314441035056315e-19,
+    "fractionError": 7.67774732679527e-17,
+    "contactCenterErrorM": 6.314441035056314e-17,
+    "candidateContactGapM": 6.314441035056314e-17,
+    "witnessSegmentMembershipErrorM": 1.1907212904719191e-17,
+    "witnessBoxMembershipErrorM": 0,
+    "witnessFaceMembershipErrorM": 1.4063035091204935e-19,
+    "witnessDistanceErrorM": 7.47279786838765e-17,
+    "normalError": 4.0652699819383584e-17,
+    "normalUnitError": 6.4336346465315944e-18,
+    "timeAccountingErrorSeconds": 0,
+    "remainingErrorSeconds": 5.899495179602663e-19,
+    "resultHitTimeErrorSeconds": 5.899495179602663e-19,
+    "finalCenterErrorM": 4.85722573273506e-17,
+    "candidateFinalGapM": 1.1323333333333334,
+    "finalVelocityErrorMps": 1.4601662185926434e-14,
+    "candidateClosingSpeedMps": 10
+  },
+  "numericalFailure": null,
+  "numericalTuning": false,
+  "artifacts": [
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/build.log",
+      "bytes": 470,
+      "sha256": "e72bd5a503d550178799b67d6aa712185c71c98ae101808f1b520ac792024ffd"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/consumer.log",
+      "bytes": 4503,
+      "sha256": "7a89ff25c555dad04162677273c778d1c652892c6b9eba725b197f09a6ec390e"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/freeze-comment.md",
+      "bytes": 2550,
+      "sha256": "46c3e773b7d90fb88fd2d211786131d003b47bb677d38350fb19ee6bc906f1cf"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/initial-emitted-freeze.json",
+      "bytes": 83178,
+      "sha256": "b591afd071b6200dcbb87275c4779241e8b9826dc4df0c4b151442d5e2a4ac83"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/initial-source-freeze.json",
+      "bytes": 45342,
+      "sha256": "556ba18d882948b0615b77b148f6bf5551e781221b46172650661f1329c34cb2"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/initial-verification-failure.json",
+      "bytes": 1121,
+      "sha256": "08a883e11ea954867bca5f594b0c436bf8529d4bfda7caa63bfe6e36d36df4c7"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/native/compiled-dependencies-graph.json",
+      "bytes": 15958,
+      "sha256": "07014c6ed9977e2967ac891da62731ab340194b2b1df3191a68d3df66d87b2f5"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/native/compiled-dependencies-report.json",
+      "bytes": 141902,
+      "sha256": "47e2c0b369cf4a30dceeee42cf627ee5969a8e485dba8254a58983c8fd34b3b2"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/native/compiled-dependencies-stdout.json",
+      "bytes": 25040,
+      "sha256": "67fca4c858f6441a747d3558bede331f1321af00eff19799359d541e385ddaaa"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/native/compiled-dependencies.f64.bin",
+      "bytes": 4664,
+      "sha256": "fa99ecd2d5bdc456a03b9b8b4d61cb88aab020bbf0a694f9fa679ea2970b8baa"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/native/compiled-dependencies.mjs",
+      "bytes": 62593,
+      "sha256": "6e6979a81aefe086bb03fb876d02615152ab7ab3f48c81a5eac85ccdd34ffeb2"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/native/emitted-freeze.json",
+      "bytes": 83200,
+      "sha256": "8920fc387cdee1a66432bd70b8aaad474be5e2834a10167cab139c72d4643bf8"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/native/oracle-controls.json",
+      "bytes": 56431,
+      "sha256": "5767f0787861cd27ab91c97a7e27bc3fa5e6549d26a71b0535ab72bc0b644c3f"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/native/source-graph.json",
+      "bytes": 15864,
+      "sha256": "7495dd8fc07cb95250ce98bdc9817d69d63dcb6bea22a2e2e3eca9a073ef404c"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/native/source-repeat-graph.json",
+      "bytes": 15878,
+      "sha256": "9583421c4449f7a025355c1283f9d773359fdc5acfe562271eb630c53df1c3f6"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/native/source-repeat-report.json",
+      "bytes": 141902,
+      "sha256": "47e2c0b369cf4a30dceeee42cf627ee5969a8e485dba8254a58983c8fd34b3b2"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/native/source-repeat-stdout.json",
+      "bytes": 25040,
+      "sha256": "67fca4c858f6441a747d3558bede331f1321af00eff19799359d541e385ddaaa"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/native/source-repeat.f64.bin",
+      "bytes": 4664,
+      "sha256": "fa99ecd2d5bdc456a03b9b8b4d61cb88aab020bbf0a694f9fa679ea2970b8baa"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/native/source-repeat.mjs",
+      "bytes": 62252,
+      "sha256": "5e877e27207e5675ab6a065fa604bfc1684e6ea0d9426223f52129ba5ac2f7dc"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/native/source-report.json",
+      "bytes": 141902,
+      "sha256": "47e2c0b369cf4a30dceeee42cf627ee5969a8e485dba8254a58983c8fd34b3b2"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/native/source-stdout.json",
+      "bytes": 25040,
+      "sha256": "67fca4c858f6441a747d3558bede331f1321af00eff19799359d541e385ddaaa"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/native/source.f64.bin",
+      "bytes": 4664,
+      "sha256": "fa99ecd2d5bdc456a03b9b8b4d61cb88aab020bbf0a694f9fa679ea2970b8baa"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/native/source.mjs",
+      "bytes": 62252,
+      "sha256": "5e877e27207e5675ab6a065fa604bfc1684e6ea0d9426223f52129ba5ac2f7dc"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/native/summary.json",
+      "bytes": 5363,
+      "sha256": "b70b321aaa23d2d4bb2a7f41b09722230c29a0f8cd8c46e354f2c5990257143b"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/repaired-typecheck.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/typecheck.log",
+      "bytes": 222,
+      "sha256": "c91b225ce67bafb9aace3a58a90a758ecc8f74f3a568b369ce251c30f3bcf4e5"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/verification-repair-freeze-comment.md",
+      "bytes": 1555,
+      "sha256": "6b256a278d514f90c4da50f9b2e93e2468c49b1d49537b385b811f771ae16a85"
+    },
+    {
+      "path": "examples/physics-rigid-capsule-ccd-reference/evidence/NATIVE.md",
+      "bytes": 2596,
+      "sha256": "205fe5ea3e78d185667b088e9357db2e98ebae5dc680f766d5f5647ba70a1e8a"
+    }
+  ]
+}

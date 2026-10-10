@@ -1,0 +1,1491 @@
+{
+  "fixture": {
+    "fixedStepSeconds": 0.008333333333333333,
+    "gravityMps2": [
+      0,
+      0,
+      0
+    ],
+    "bodies": [
+      {
+        "id": "b0",
+        "kind": "dynamic",
+        "shape": {
+          "kind": "capsule",
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "positionM": [
+          -0.4,
+          0,
+          0
+        ],
+        "velocityMps": [
+          100,
+          0,
+          0
+        ],
+        "massKg": 1,
+        "restitution": 0,
+        "friction": {
+          "static": 1,
+          "dynamic": 0.7
+        },
+        "ccd": true
+      },
+      {
+        "id": "floor",
+        "kind": "static",
+        "shape": {
+          "kind": "box",
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ]
+        },
+        "positionM": [
+          0,
+          0,
+          0
+        ],
+        "restitution": 0,
+        "friction": {
+          "static": 1,
+          "dynamic": 0.7
+        }
+      }
+    ]
+  },
+  "originalReferenceInput": {
+    "capsule": {
+      "radiusM": 0.1,
+      "halfLengthM": 0.2
+    },
+    "box": {
+      "id": "floor",
+      "centerM": [
+        0,
+        0,
+        0
+      ],
+      "halfExtentsM": [
+        0.001,
+        1,
+        1
+      ],
+      "orientationXYZW": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    "centerM": [
+      -0.4,
+      0,
+      0
+    ],
+    "velocityMps": [
+      100,
+      0,
+      0
+    ],
+    "stepSeconds": 0.008333333333333333,
+    "evaluateCandidate": false
+  },
+  "yawReferenceInput": {
+    "capsule": {
+      "radiusM": 0.1,
+      "halfLengthM": 0.2
+    },
+    "box": {
+      "id": "floor",
+      "centerM": [
+        0,
+        0,
+        0
+      ],
+      "halfExtentsM": [
+        0.001,
+        1,
+        1
+      ],
+      "orientationXYZW": [
+        0,
+        0.09983341664682815,
+        0,
+        0.9950041652780257
+      ]
+    },
+    "centerM": [
+      -0.39202663113649666,
+      0,
+      0.0794677323180245
+    ],
+    "velocityMps": [
+      98.00665778412416,
+      0,
+      -19.866933079506122
+    ],
+    "stepSeconds": 0.008333333333333333,
+    "evaluateCandidate": false
+  },
+  "snapshot": {
+    "version": 1,
+    "profile": "rigid-capsule-linear-face-v1",
+    "selectedFace": "negative-x",
+    "revision": "fixture-1280",
+    "capsule": {
+      "radiusM": 0.1,
+      "halfLengthM": 0.2,
+      "orientationXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "angularVelocityRadps": [
+        0,
+        0,
+        0
+      ]
+    },
+    "box": {
+      "id": "floor",
+      "centerM": [
+        0,
+        0,
+        0
+      ],
+      "halfExtentsM": [
+        0.001,
+        1,
+        1
+      ],
+      "orientationXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "velocityMps": [
+        0,
+        0,
+        0
+      ],
+      "angularVelocityRadps": [
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "gates": {
+    "decimalPrecisionDifference": "1e-25",
+    "distanceM": 1e-12,
+    "timeSeconds": 1e-12,
+    "fraction": 1e-12,
+    "centerM": 1e-12,
+    "witnessM": 1e-12,
+    "membershipM": 1e-12,
+    "normal": 1e-12,
+    "signedGapM": 1e-12,
+    "closingSpeedMps": 1e-12,
+    "fixedOrientation": "exact",
+    "staticBox": "exact"
+  },
+  "errors": {
+    "initialOverlap": {
+      "code": "INITIAL_OVERLAP",
+      "message": "Initial capsule overlaps a box"
+    },
+    "profile": {
+      "code": "INVALID_CONFIG",
+      "message": "Private capsule face profile is unsupported"
+    },
+    "movement": {
+      "code": "INVALID_QUERY",
+      "message": "Private capsule face movement is unsupported"
+    },
+    "numeric": {
+      "code": "NUMERIC_LIMIT",
+      "message": "Private capsule face result is invalid"
+    },
+    "referenceFinite": {
+      "code": "REF_INPUT",
+      "message": "Reference input must contain finite binary numbers"
+    },
+    "referenceTime": {
+      "code": "REF_INPUT",
+      "message": "Reference stepSeconds must be positive"
+    },
+    "referenceQuaternion": {
+      "code": "REF_INPUT",
+      "message": "Reference quaternion has zero norm"
+    },
+    "referenceProfile": {
+      "code": "REF_PROFILE",
+      "message": "Reference capsule dimensions are unsupported"
+    },
+    "referenceMovement": {
+      "code": "REF_MOVEMENT",
+      "message": "Reference face movement is unsupported"
+    },
+    "referenceFootprint": {
+      "code": "REF_PROFILE",
+      "message": "Reference face footprint is unsupported"
+    },
+    "referenceAngular": {
+      "code": "REF_PROFILE",
+      "message": "Reference angular motion is unsupported"
+    },
+    "referenceMovingBox": {
+      "code": "REF_PROFILE",
+      "message": "Reference moving box is unsupported"
+    },
+    "referenceHit": {
+      "code": "REF_INPUT",
+      "message": "Reference hit must be an object or null"
+    },
+    "referenceResult": {
+      "code": "REF_INPUT",
+      "message": "Reference result must be an object"
+    },
+    "referenceNumeric": {
+      "code": "REF_NUMERIC",
+      "message": "Reference result is outside finite binary range"
+    },
+    "stale": {
+      "code": "STALE_SNAPSHOT",
+      "message": "Revision mismatch"
+    },
+    "disposed": {
+      "code": "DISPOSED",
+      "message": "Private capsule face reference is disposed"
+    },
+    "publicDisposed": {
+      "code": "DISPOSED",
+      "message": "Capsule query is disposed"
+    },
+    "publicProfile": {
+      "code": "INVALID_CONFIG",
+      "message": "Unsupported capsule query profile"
+    },
+    "originalCCD": {
+      "code": "INVALID_CONFIG",
+      "message": "ccd is supported for dynamic spheres or boxes only and must be true"
+    }
+  },
+  "literalReferenceControls": [
+    {
+      "name": "original-head-on",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          -0.4,
+          0,
+          0
+        ],
+        "velocityMps": [
+          100,
+          0,
+          0
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": false
+      },
+      "expected": {
+        "status": "hit",
+        "distanceM": 0.399,
+        "signedGapM": 0.299,
+        "timeSeconds": 0.00299,
+        "fraction": 0.3588,
+        "remainingSeconds": 0.005343333333333333,
+        "centerHit": [
+          -0.101,
+          0,
+          0
+        ],
+        "centerFinal": [
+          -0.101,
+          0,
+          0
+        ],
+        "velocityFinal": [
+          0,
+          0,
+          0
+        ],
+        "normal": [
+          -1,
+          0,
+          0
+        ],
+        "ambiguity": "flat-interval"
+      }
+    },
+    {
+      "name": "yaw-0.2-head-on",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0.09983341664682815,
+            0,
+            0.9950041652780257
+          ]
+        },
+        "centerM": [
+          -0.39202663113649666,
+          0,
+          0.0794677323180245
+        ],
+        "velocityMps": [
+          98.00665778412416,
+          0,
+          -19.866933079506122
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": false
+      },
+      "expected": {
+        "status": "hit",
+        "distanceM": 0.399,
+        "signedGapM": 0.299,
+        "timeSeconds": 0.00299,
+        "fraction": 0.3588,
+        "remainingSeconds": 0.005343333333333333,
+        "normal": [
+          -0.9800665778412416,
+          0,
+          0.19866933079506122
+        ],
+        "ambiguity": "flat-interval"
+      }
+    },
+    {
+      "name": "resting-with-clearance",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          -0.4,
+          0,
+          0
+        ],
+        "velocityMps": [
+          0,
+          0,
+          0
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": false
+      },
+      "expected": {
+        "status": "clear",
+        "distanceM": 0.399,
+        "signedGapM": 0.299,
+        "centerFinal": [
+          -0.4,
+          0,
+          0
+        ],
+        "velocityFinal": [
+          0,
+          0,
+          0
+        ],
+        "ambiguity": "flat-interval"
+      }
+    },
+    {
+      "name": "initial-touch",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          -0.101,
+          0,
+          0
+        ],
+        "velocityMps": [
+          100,
+          0,
+          0
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": false
+      },
+      "expected": {
+        "status": "hit",
+        "distanceM": 0.1,
+        "signedGapM": 0,
+        "timeSeconds": 0,
+        "fraction": 0,
+        "remainingSeconds": 0.008333333333333333,
+        "centerFinal": [
+          -0.101,
+          0,
+          0
+        ],
+        "velocityFinal": [
+          0,
+          0,
+          0
+        ],
+        "ambiguity": "flat-interval"
+      }
+    },
+    {
+      "name": "resting-at-touch",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          -0.101,
+          0,
+          0
+        ],
+        "velocityMps": [
+          0,
+          0,
+          0
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": false
+      },
+      "expected": {
+        "status": "hit",
+        "timeSeconds": 0,
+        "fraction": 0,
+        "centerFinal": [
+          -0.101,
+          0,
+          0
+        ],
+        "velocityFinal": [
+          0,
+          0,
+          0
+        ],
+        "ambiguity": "flat-interval"
+      }
+    },
+    {
+      "name": "initial-overlap",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          -0.1009,
+          0,
+          0
+        ],
+        "velocityMps": [
+          100,
+          0,
+          0
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": false,
+        "expectedError": {
+          "code": "INITIAL_OVERLAP",
+          "message": "Initial capsule overlaps a box"
+        }
+      },
+      "expected": {
+        "status": "initial-overlap",
+        "signedGapM": -0.0001,
+        "error": {
+          "code": "INITIAL_OVERLAP",
+          "message": "Initial capsule overlaps a box"
+        }
+      }
+    },
+    {
+      "name": "contact-beyond-step",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          -0.4,
+          0,
+          0
+        ],
+        "velocityMps": [
+          10,
+          0,
+          0
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": false
+      },
+      "expected": {
+        "status": "clear",
+        "distanceM": 0.399,
+        "signedGapM": 0.299,
+        "centerFinal": [
+          -0.3166666666666667,
+          0,
+          0
+        ],
+        "velocityFinal": [
+          10,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "departing-with-clearance",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          -0.4,
+          0,
+          0
+        ],
+        "velocityMps": [
+          -100,
+          0,
+          0
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": false
+      },
+      "expected": {
+        "status": "clear",
+        "distanceM": 0.399,
+        "signedGapM": 0.299,
+        "centerFinal": [
+          -1.2333333333333334,
+          0,
+          0
+        ],
+        "velocityFinal": [
+          -100,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "departing-at-touch",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          -0.101,
+          0,
+          0
+        ],
+        "velocityMps": [
+          -100,
+          0,
+          0
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": false
+      },
+      "expected": {
+        "status": "hit",
+        "timeSeconds": 0,
+        "fraction": 0,
+        "centerFinal": [
+          -0.9343333333333333,
+          0,
+          0
+        ],
+        "velocityFinal": [
+          -100,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "name": "nonfinite-center-null-codec",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          null,
+          0,
+          0
+        ],
+        "velocityMps": [
+          100,
+          0,
+          0
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": false,
+        "expectedError": {
+          "code": "REF_INPUT",
+          "message": "Reference input must contain finite binary numbers"
+        }
+      },
+      "expected": {
+        "status": "input-error",
+        "error": {
+          "code": "REF_INPUT",
+          "message": "Reference input must contain finite binary numbers"
+        }
+      }
+    },
+    {
+      "name": "zero-step",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          -0.4,
+          0,
+          0
+        ],
+        "velocityMps": [
+          100,
+          0,
+          0
+        ],
+        "stepSeconds": 0,
+        "evaluateCandidate": false,
+        "expectedError": {
+          "code": "REF_INPUT",
+          "message": "Reference stepSeconds must be positive"
+        }
+      },
+      "expected": {
+        "status": "input-error",
+        "error": {
+          "code": "REF_INPUT",
+          "message": "Reference stepSeconds must be positive"
+        }
+      }
+    },
+    {
+      "name": "negative-step",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          -0.4,
+          0,
+          0
+        ],
+        "velocityMps": [
+          100,
+          0,
+          0
+        ],
+        "stepSeconds": -0.008333333333333333,
+        "evaluateCandidate": false,
+        "expectedError": {
+          "code": "REF_INPUT",
+          "message": "Reference stepSeconds must be positive"
+        }
+      },
+      "expected": {
+        "status": "input-error",
+        "error": {
+          "code": "REF_INPUT",
+          "message": "Reference stepSeconds must be positive"
+        }
+      }
+    },
+    {
+      "name": "zero-quaternion",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "centerM": [
+          -0.4,
+          0,
+          0
+        ],
+        "velocityMps": [
+          100,
+          0,
+          0
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": false,
+        "expectedError": {
+          "code": "REF_INPUT",
+          "message": "Reference quaternion has zero norm"
+        }
+      },
+      "expected": {
+        "status": "input-error",
+        "error": {
+          "code": "REF_INPUT",
+          "message": "Reference quaternion has zero norm"
+        }
+      }
+    },
+    {
+      "name": "wrong-original-radius",
+      "input": {
+        "capsule": {
+          "radiusM": 0.15,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          -0.4,
+          0,
+          0
+        ],
+        "velocityMps": [
+          100,
+          0,
+          0
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": false,
+        "expectedError": {
+          "code": "REF_PROFILE",
+          "message": "Reference capsule dimensions are unsupported"
+        }
+      },
+      "expected": {
+        "status": "input-error",
+        "error": {
+          "code": "REF_PROFILE",
+          "message": "Reference capsule dimensions are unsupported"
+        }
+      }
+    },
+    {
+      "name": "tangent-movement",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          -0.4,
+          0,
+          0
+        ],
+        "velocityMps": [
+          100,
+          1,
+          0
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": false,
+        "expectedError": {
+          "code": "REF_MOVEMENT",
+          "message": "Reference face movement is unsupported"
+        }
+      },
+      "expected": {
+        "status": "input-error",
+        "error": {
+          "code": "REF_MOVEMENT",
+          "message": "Reference face movement is unsupported"
+        }
+      }
+    },
+    {
+      "name": "edge-corner-footprint",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          -0.4,
+          0.8,
+          0
+        ],
+        "velocityMps": [
+          100,
+          0,
+          0
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": false,
+        "expectedError": {
+          "code": "REF_PROFILE",
+          "message": "Reference face footprint is unsupported"
+        }
+      },
+      "expected": {
+        "status": "input-error",
+        "error": {
+          "code": "REF_PROFILE",
+          "message": "Reference face footprint is unsupported"
+        }
+      }
+    },
+    {
+      "name": "angular-motion",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2,
+          "angularVelocityRadps": [
+            0,
+            1,
+            0
+          ]
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          -0.4,
+          0,
+          0
+        ],
+        "velocityMps": [
+          100,
+          0,
+          0
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": false,
+        "expectedError": {
+          "code": "REF_PROFILE",
+          "message": "Reference angular motion is unsupported"
+        }
+      },
+      "expected": {
+        "status": "input-error",
+        "error": {
+          "code": "REF_PROFILE",
+          "message": "Reference angular motion is unsupported"
+        }
+      }
+    },
+    {
+      "name": "moving-box",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "velocityMps": [
+            1,
+            0,
+            0
+          ]
+        },
+        "centerM": [
+          -0.4,
+          0,
+          0
+        ],
+        "velocityMps": [
+          100,
+          0,
+          0
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": false,
+        "expectedError": {
+          "code": "REF_PROFILE",
+          "message": "Reference moving box is unsupported"
+        }
+      },
+      "expected": {
+        "status": "input-error",
+        "error": {
+          "code": "REF_PROFILE",
+          "message": "Reference moving box is unsupported"
+        }
+      }
+    },
+    {
+      "name": "malformed-hit",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          -0.4,
+          0,
+          0
+        ],
+        "velocityMps": [
+          100,
+          0,
+          0
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": true,
+        "hit": [],
+        "expectedError": {
+          "code": "REF_INPUT",
+          "message": "Reference hit must be an object or null"
+        }
+      },
+      "expected": {
+        "status": "input-error",
+        "error": {
+          "code": "REF_INPUT",
+          "message": "Reference hit must be an object or null"
+        }
+      }
+    },
+    {
+      "name": "malformed-result",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          -0.4,
+          0,
+          0
+        ],
+        "velocityMps": [
+          100,
+          0,
+          0
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": false,
+        "result": null,
+        "expectedError": {
+          "code": "REF_INPUT",
+          "message": "Reference result must be an object"
+        }
+      },
+      "expected": {
+        "status": "input-error",
+        "error": {
+          "code": "REF_INPUT",
+          "message": "Reference result must be an object"
+        }
+      }
+    },
+    {
+      "name": "nonfinite-result-null-codec",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          -0.4,
+          0,
+          0
+        ],
+        "velocityMps": [
+          100,
+          0,
+          0
+        ],
+        "stepSeconds": 0.008333333333333333,
+        "evaluateCandidate": false,
+        "result": {
+          "centerM": [
+            null,
+            0,
+            0
+          ],
+          "velocityMps": [
+            0,
+            0,
+            0
+          ],
+          "hitTimeSeconds": 0.00299,
+          "remainingTimeSeconds": 0.005343333333333333
+        },
+        "expectedError": {
+          "code": "REF_INPUT",
+          "message": "Reference input must contain finite binary numbers"
+        }
+      },
+      "expected": {
+        "status": "input-error",
+        "error": {
+          "code": "REF_INPUT",
+          "message": "Reference input must contain finite binary numbers"
+        }
+      }
+    },
+    {
+      "name": "finite-input-overflowing-binary-output",
+      "input": {
+        "capsule": {
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "box": {
+          "id": "floor",
+          "centerM": [
+            0,
+            0,
+            0
+          ],
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ],
+          "orientationXYZW": [
+            0,
+            0,
+            0,
+            1
+          ]
+        },
+        "centerM": [
+          -0.4,
+          0,
+          0
+        ],
+        "velocityMps": [
+          -1e+308,
+          0,
+          0
+        ],
+        "stepSeconds": 1e+308,
+        "evaluateCandidate": false,
+        "expectedError": {
+          "code": "REF_NUMERIC",
+          "message": "Reference result is outside finite binary range"
+        }
+      },
+      "expected": {
+        "status": "input-error",
+        "error": {
+          "code": "REF_NUMERIC",
+          "message": "Reference result is outside finite binary range"
+        }
+      }
+    }
+  ],
+  "privateControls": "controls.mjs",
+  "publicOwnRadiusM": 0.15,
+  "publicOwnHalfLengthM": 0.35,
+  "publicNominalFraction": 0.2988,
+  "privateNominalFraction": 0.3588,
+  "selectedFace": "negative-x",
+  "firstFailurePolicy": "Persist NO-GO; do not tune or rerun after first failure",
+  "float64Hex": "111111111111813f0000000000000000000000000000000000000000000000009a9999999999b93f9a9999999999c93f9a9999999999d9bf00000000000000000000000000000000000000000000594000000000000000000000000000000000000000000000f03f0000000000000000000000000000f03f666666666666e63ffca9f1d24d62503f000000000000f03f000000000000f03f0000000000000000000000000000000000000000000000000000000000000000000000000000f03f666666666666e63f9a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf00000000000000000000000000000000000000000000594000000000000000000000000000000000111111111111813f9a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f00000000000000002ccb8bcbae8eb93f0000000000000000c017a8f912d7ef3f951bf9ddf616d9bf000000000000000097a8644fff57b43fef44c5146d8058400000000000000000a34c8853efdd33c0111111111111813f000000000000f03f9a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000000000000000f03f000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011ea2d819997713d11ea2d819997713d11ea2d819997713d11ea2d819997713d11ea2d819997713d11ea2d819997713d11ea2d819997713d11ea2d819997713d11ea2d819997713d9a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf00000000000000000000000000000000000000000000594000000000000000000000000000000000111111111111813ff0a7c64b3789d93f894160e5d022d33f919be1067c7e683fd881734694f6d63f5954b11ee4e2753f4260e5d022dbb9bf000000000000000000000000000000004260e5d022dbb9bf00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f0bf000000000000000000000000000000009a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f00000000000000002ccb8bcbae8eb93f0000000000000000c017a8f912d7ef3f951bf9ddf616d9bf000000000000000097a8644fff57b43fef44c5146d8058400000000000000000a34c8853efdd33c0111111111111813ff0a7c64b3789d93f894160e5d022d33f919be1067c7e683fd881734694f6d63f5954b11ee4e2753f7a627795b45cefbf0000000000000000bcd23d23ff6dc93f9a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf00000000000000000000000000000000000000000000000000000000000000000000000000000000111111111111813ff0a7c64b3789d93f894160e5d022d33f9a9999999999d9bf000000000000000000000000000000000000000000000000000000000000000000000000000000009a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f4260e5d022dbb9bf00000000000000000000000000000000000000000000594000000000000000000000000000000000111111111111813f9a9999999999b93f000000000000000000000000000000000000000000000000111111111111813f4260e5d022dbb9bf000000000000000000000000000000000000000000000000000000000000000000000000000000009a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f4260e5d022dbb9bf00000000000000000000000000000000000000000000000000000000000000000000000000000000111111111111813f000000000000000000000000000000004260e5d022dbb9bf000000000000000000000000000000000000000000000000000000000000000000000000000000009a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f31992a1895d4b9bf00000000000000000000000000000000000000000000594000000000000000000000000000000000111111111111813f2d431cebe2361abf9a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf00000000000000000000000000000000000000000000244000000000000000000000000000000000111111111111813ff0a7c64b3789d93f894160e5d022d33f454444444444d4bf000000000000000000000000000000000000000000002440000000000000000000000000000000009a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf0000000000000000000000000000000000000000000059c000000000000000000000000000000000111111111111813ff0a7c64b3789d93f894160e5d022d33fbcbbbbbbbbbbf3bf0000000000000000000000000000000000000000000059c0000000000000000000000000000000009a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f4260e5d022dbb9bf0000000000000000000000000000000000000000000059c000000000000000000000000000000000111111111111813f00000000000000000000000000000000b356c7040fe6edbf0000000000000000000000000000000000000000000059c0000000000000000000000000000000009a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f00000000000000000000000000000000000000000000594000000000000000000000000000000000111111111111813f9a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf0000000000000000000000000000000000000000000059400000000000000000000000000000000000000000000000009a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf0000000000000000000000000000000000000000000059400000000000000000000000000000000011111111111181bf9a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f00000000000000000000000000000000000000000000000000000000000000009a9999999999d9bf00000000000000000000000000000000000000000000594000000000000000000000000000000000111111111111813f333333333333c33f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf00000000000000000000000000000000000000000000594000000000000000000000000000000000111111111111813f9a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf000000000000000000000000000000000000000000005940000000000000f03f0000000000000000111111111111813f9a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf9a9999999999e93f0000000000000000000000000000594000000000000000000000000000000000111111111111813f9a9999999999b93f9a9999999999c93f0000000000000000000000000000f03f0000000000000000000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf00000000000000000000000000000000000000000000594000000000000000000000000000000000111111111111813f9a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f000000000000f03f000000000000000000000000000000009a9999999999d9bf00000000000000000000000000000000000000000000594000000000000000000000000000000000111111111111813f9a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf00000000000000000000000000000000000000000000594000000000000000000000000000000000111111111111813f9a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf00000000000000000000000000000000000000000000594000000000000000000000000000000000111111111111813f9a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf00000000000000000000000000000000000000000000594000000000000000000000000000000000111111111111813f00000000000000000000000000000000000000000000000000000000000000000000000000000000919be1067c7e683f5954b11ee4e2753f9a9999999999b93f9a9999999999c93f000000000000000000000000000000000000000000000000fca9f1d24d62503f000000000000f03f000000000000f03f000000000000000000000000000000000000000000000000000000000000f03f9a9999999999d9bf00000000000000000000000000000000a0c8eb85f3cce1ff00000000000000000000000000000000a0c8eb85f3cce17f333333333333c33f666666666666d63f01de02098a1fd33fd881734694f6d63f",
+  "float64Sha256": "cbbfb10b9599da9185c0b4b71493f141a3d9b8cbd17f8ddc46a98b7737e4857c"
+}

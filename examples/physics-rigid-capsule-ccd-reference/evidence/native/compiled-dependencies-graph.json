@@ -1,0 +1,461 @@
+{
+  "audit": {
+    "graph": "compiled-dependencies",
+    "inputs": [
+      "packages/barocss-physics/dist/types.js",
+      "packages/barocss-physics/dist/capsule-query-error.js",
+      "examples/physics-rigid-capsule-ccd-reference/profile.ts",
+      "examples/physics-rigid-capsule-ccd-reference/admission.ts",
+      "packages/barocss-physics/dist/capsule-query/profile.js",
+      "packages/barocss-physics/dist/capsule-query/geometry.js",
+      "packages/barocss-physics/dist/math.js",
+      "examples/physics-rigid-capsule-ccd-reference/face-sweep.ts",
+      "examples/physics-rigid-capsule-ccd-reference/response.ts",
+      "packages/barocss-physics/dist/capsule-query/admission.js",
+      "packages/barocss-physics/dist/capsule-query/sweep.js",
+      "packages/barocss-physics/dist/capsule-query/snapshot.js",
+      "packages/barocss-physics/dist/capsule-query.js",
+      "packages/barocss-physics/dist/limits.js",
+      "packages/barocss-physics/dist/validation.js",
+      "packages/barocss-physics/dist/capsule-contact.js",
+      "packages/barocss-physics/dist/collision.js",
+      "examples/physics-rigid-capsule-ccd-reference/entry.ts",
+      "examples/physics-rigid-engine-reference/fixtures.mjs",
+      "examples/physics-rigid-capsule-ccd-reference/reference-controls.mjs",
+      "examples/physics-rigid-capsule-ccd-reference/controls.mjs",
+      "examples/physics-rigid-capsule-ccd-reference/consumer-entry.mjs"
+    ],
+    "sourceCount": 0,
+    "distCount": 13,
+    "privateAdapterIsSource": true,
+    "publicConfigurableCapsule": false,
+    "sourceAliases": false
+  },
+  "metafile": {
+    "inputs": {
+      "packages/barocss-physics/dist/types.js": {
+        "bytes": 179,
+        "imports": [],
+        "format": "esm"
+      },
+      "packages/barocss-physics/dist/capsule-query-error.js": {
+        "bytes": 137,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/dist/types.js",
+            "kind": "import-statement",
+            "original": "./types.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-capsule-ccd-reference/profile.ts": {
+        "bytes": 1504,
+        "imports": [],
+        "format": "esm"
+      },
+      "examples/physics-rigid-capsule-ccd-reference/admission.ts": {
+        "bytes": 5051,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/dist/capsule-query-error.js",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/capsule-query-error.js"
+          },
+          {
+            "path": "examples/physics-rigid-capsule-ccd-reference/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/dist/capsule-query/profile.js": {
+        "bytes": 294,
+        "imports": [],
+        "format": "esm"
+      },
+      "packages/barocss-physics/dist/capsule-query/geometry.js": {
+        "bytes": 2319,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/dist/capsule-query/profile.js",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/dist/math.js": {
+        "bytes": 2114,
+        "imports": [],
+        "format": "esm"
+      },
+      "examples/physics-rigid-capsule-ccd-reference/face-sweep.ts": {
+        "bytes": 2686,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/dist/capsule-query-error.js",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/capsule-query-error.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/capsule-query/geometry.js",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/capsule-query/geometry.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/math.js",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/math.js"
+          },
+          {
+            "path": "examples/physics-rigid-capsule-ccd-reference/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-capsule-ccd-reference/response.ts": {
+        "bytes": 2906,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/dist/capsule-query-error.js",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/capsule-query-error.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/math.js",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/math.js"
+          },
+          {
+            "path": "examples/physics-rigid-capsule-ccd-reference/admission.ts",
+            "kind": "import-statement",
+            "original": "./admission.js"
+          },
+          {
+            "path": "examples/physics-rigid-capsule-ccd-reference/face-sweep.ts",
+            "kind": "import-statement",
+            "original": "./face-sweep.js"
+          },
+          {
+            "path": "examples/physics-rigid-capsule-ccd-reference/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/dist/capsule-query/admission.js": {
+        "bytes": 4875,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/dist/capsule-query-error.js",
+            "kind": "import-statement",
+            "original": "../capsule-query-error.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/capsule-query/profile.js",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/dist/capsule-query/sweep.js": {
+        "bytes": 1833,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/dist/capsule-query-error.js",
+            "kind": "import-statement",
+            "original": "../capsule-query-error.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/capsule-query/geometry.js",
+            "kind": "import-statement",
+            "original": "./geometry.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/dist/capsule-query/snapshot.js": {
+        "bytes": 2468,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/dist/capsule-query-error.js",
+            "kind": "import-statement",
+            "original": "../capsule-query-error.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/capsule-query/admission.js",
+            "kind": "import-statement",
+            "original": "./admission.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/capsule-query/profile.js",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/capsule-query/sweep.js",
+            "kind": "import-statement",
+            "original": "./sweep.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/dist/capsule-query.js": {
+        "bytes": 73,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/dist/capsule-query/snapshot.js",
+            "kind": "import-statement",
+            "original": "./capsule-query/snapshot.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/dist/limits.js": {
+        "bytes": 416,
+        "imports": [],
+        "format": "esm"
+      },
+      "packages/barocss-physics/dist/validation.js": {
+        "bytes": 13787,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/dist/types.js",
+            "kind": "import-statement",
+            "original": "./types.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/limits.js",
+            "kind": "import-statement",
+            "original": "./limits.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/dist/capsule-contact.js": {
+        "bytes": 5708,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/dist/math.js",
+            "kind": "import-statement",
+            "original": "./math.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "packages/barocss-physics/dist/collision.js": {
+        "bytes": 13712,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/dist/validation.js",
+            "kind": "import-statement",
+            "original": "./validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/math.js",
+            "kind": "import-statement",
+            "original": "./math.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/capsule-contact.js",
+            "kind": "import-statement",
+            "original": "./capsule-contact.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-capsule-ccd-reference/entry.ts": {
+        "bytes": 1108,
+        "imports": [
+          {
+            "path": "packages/barocss-physics/dist/capsule-query-error.js",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/capsule-query-error.js"
+          },
+          {
+            "path": "examples/physics-rigid-capsule-ccd-reference/admission.ts",
+            "kind": "import-statement",
+            "original": "./admission.js"
+          },
+          {
+            "path": "examples/physics-rigid-capsule-ccd-reference/face-sweep.ts",
+            "kind": "import-statement",
+            "original": "./face-sweep.js"
+          },
+          {
+            "path": "examples/physics-rigid-capsule-ccd-reference/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          },
+          {
+            "path": "examples/physics-rigid-capsule-ccd-reference/response.ts",
+            "kind": "import-statement",
+            "original": "./response.js"
+          },
+          {
+            "path": "examples/physics-rigid-capsule-ccd-reference/profile.ts",
+            "kind": "import-statement",
+            "original": "./profile.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/capsule-query.js",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/capsule-query.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/validation.js",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/validation.js"
+          },
+          {
+            "path": "packages/barocss-physics/dist/collision.js",
+            "kind": "import-statement",
+            "original": "../../packages/barocss-physics/src/collision.js"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-engine-reference/fixtures.mjs": {
+        "bytes": 2784,
+        "imports": [],
+        "format": "esm"
+      },
+      "examples/physics-rigid-capsule-ccd-reference/reference-controls.mjs": {
+        "bytes": 13365,
+        "imports": [
+          {
+            "path": "node:assert/strict",
+            "kind": "import-statement",
+            "external": true
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-capsule-ccd-reference/controls.mjs": {
+        "bytes": 8767,
+        "imports": [
+          {
+            "path": "node:assert/strict",
+            "kind": "import-statement",
+            "external": true
+          },
+          {
+            "path": "examples/physics-rigid-engine-reference/fixtures.mjs",
+            "kind": "import-statement",
+            "original": "../physics-rigid-engine-reference/fixtures.mjs"
+          },
+          {
+            "path": "examples/physics-rigid-capsule-ccd-reference/reference-controls.mjs",
+            "kind": "import-statement",
+            "original": "./reference-controls.mjs"
+          }
+        ],
+        "format": "esm"
+      },
+      "examples/physics-rigid-capsule-ccd-reference/consumer-entry.mjs": {
+        "bytes": 460,
+        "imports": [
+          {
+            "path": "examples/physics-rigid-capsule-ccd-reference/entry.ts",
+            "kind": "import-statement",
+            "original": "./entry.ts"
+          },
+          {
+            "path": "examples/physics-rigid-capsule-ccd-reference/controls.mjs",
+            "kind": "import-statement",
+            "original": "./controls.mjs"
+          }
+        ],
+        "format": "esm"
+      }
+    },
+    "outputs": {
+      "examples/physics-rigid-capsule-ccd-reference/evidence/native/compiled-dependencies.mjs": {
+        "imports": [
+          {
+            "path": "node:assert/strict",
+            "kind": "import-statement",
+            "external": true
+          }
+        ],
+        "exports": [],
+        "entryPoint": "examples/physics-rigid-capsule-ccd-reference/consumer-entry.mjs",
+        "inputs": {
+          "examples/physics-rigid-capsule-ccd-reference/entry.ts": {
+            "bytesInOutput": 820
+          },
+          "packages/barocss-physics/dist/types.js": {
+            "bytesInOutput": 161
+          },
+          "packages/barocss-physics/dist/capsule-query-error.js": {
+            "bytesInOutput": 0
+          },
+          "examples/physics-rigid-capsule-ccd-reference/profile.ts": {
+            "bytesInOutput": 507
+          },
+          "examples/physics-rigid-capsule-ccd-reference/admission.ts": {
+            "bytesInOutput": 4242
+          },
+          "packages/barocss-physics/dist/capsule-query/profile.js": {
+            "bytesInOutput": 138
+          },
+          "packages/barocss-physics/dist/capsule-query/geometry.js": {
+            "bytesInOutput": 1990
+          },
+          "packages/barocss-physics/dist/math.js": {
+            "bytesInOutput": 773
+          },
+          "examples/physics-rigid-capsule-ccd-reference/face-sweep.ts": {
+            "bytesInOutput": 2109
+          },
+          "examples/physics-rigid-capsule-ccd-reference/response.ts": {
+            "bytesInOutput": 2325
+          },
+          "packages/barocss-physics/dist/capsule-query/admission.js": {
+            "bytesInOutput": 4541
+          },
+          "packages/barocss-physics/dist/capsule-query/sweep.js": {
+            "bytesInOutput": 1545
+          },
+          "packages/barocss-physics/dist/capsule-query/snapshot.js": {
+            "bytesInOutput": 2118
+          },
+          "packages/barocss-physics/dist/capsule-query.js": {
+            "bytesInOutput": 0
+          },
+          "packages/barocss-physics/dist/limits.js": {
+            "bytesInOutput": 44
+          },
+          "packages/barocss-physics/dist/validation.js": {
+            "bytesInOutput": 7491
+          },
+          "packages/barocss-physics/dist/capsule-contact.js": {
+            "bytesInOutput": 5238
+          },
+          "packages/barocss-physics/dist/collision.js": {
+            "bytesInOutput": 5444
+          },
+          "examples/physics-rigid-capsule-ccd-reference/controls.mjs": {
+            "bytesInOutput": 9093
+          },
+          "examples/physics-rigid-engine-reference/fixtures.mjs": {
+            "bytesInOutput": 2797
+          },
+          "examples/physics-rigid-capsule-ccd-reference/reference-controls.mjs": {
+            "bytesInOutput": 9379
+          },
+          "examples/physics-rigid-capsule-ccd-reference/consumer-entry.mjs": {
+            "bytesInOutput": 414
+          }
+        },
+        "bytes": 62593
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "classification": "EXECUTION_FAILURE",
+  "stage": "strict-private-adapter-types",
+  "sourceCommit": "feb43c66d247f5d7bffcb8f8d6190ca68dcf0509",
+  "buildMeasuredHead": "6bd3376d6943a8d84b83ca62b0031a9ec8927bea",
+  "sourceFreezeSha256": "556ba18d882948b0615b77b148f6bf5551e781221b46172650661f1329c34cb2",
+  "node": "v22.22.0",
+  "originalBuild": {
+    "exitCode": 0,
+    "cad": "PASS",
+    "physics": "PASS",
+    "log": "build.log"
+  },
+  "privateTypecheck": {
+    "exitCode": 2,
+    "errors": "examples/physics-rigid-capsule-ccd-reference/admission.ts(13,135): error TS18048: 'd' is possibly 'undefined'.\nexamples/physics-rigid-capsule-ccd-reference/admission.ts(19,209): error TS18048: 'd' is possibly 'undefined'.\n",
+    "log": "typecheck.log"
+  },
+  "numericalTrialsExecuted": false,
+  "oracleControlsExecuted": false,
+  "graphsExecuted": [],
+  "physicalNoGoClaimed": false,
+  "physicsWorldCreated": false,
+  "physicsWorldStepped": false,
+  "next": "Compiler-only narrowing repair and independent nonnull verification guard; freeze changes before further execution; no math, input, coefficient or gate change."
+}
