@@ -1439,3 +1439,39 @@ intersection accuracy. Screen-to-ray conversion, BVH, textures and editor
 selection are separate consumers/stages. Run the single
 `examples/gpu-scene/engine-raycast-flow.mjs --output <fresh-directory>` flow after
 the GPU library build for source/emitted/file acceptance.
+
+### Engine texture source preparation
+
+`prepareEngineTextureBindings(originalScene, originalBindings)` admits a complete
+scene0 and its separate texture-binding companion0. This CPU operation validates
+opaque RGBA8/sRGB bytes, bottom-left rows, nearest/clamp metadata and original
+material/texture references. It does not render or decode images.
+
+The companion has exact fields `format`, `version`, `sceneId`, `textures`,
+`bindings`; format is `barocss-gpu-engine-texture-bindings`, version0. Textures
+have exact `id,width,height,format,colorSpace,rowOrigin,filter,wrapS,wrapT,pixels`.
+Dimensions are integers1..1024; bytes are integers0..255 with alpha255.
+Bindings have only `materialId,textureId`, one binding per existing material.
+Every catalog entry is validated, including unused textures. Catalog maximum8,
+bindings maximum32, total maximum1048576 texels/4194304 pixel slots, admitted
+before numerical copies. Empty catalogs and scenes remain genuinely empty.
+
+Result `{scene,textureBindings,textures,pixelBytes}` retains an independent frozen
+original companion with Number signed zero and a prepared scene from its original
+source. Each prepared texture `{texture,pixels}` owns a separate mutable Uint8Array;
+changing it cannot change original source or a subsequent preparation. Source
+pixel storage is logically at most33554432 bytes; upload data4194304 bytes, separate
+from scene budgets. These are logical ceilings, not measured memory. There is no
+cache, image URL, GPU handle or trusted mutable prepared-input shortcut.
+
+`EngineTextureBindingsError` has INPUT/VERSION/BUDGET/REFERENCE/TEXTURE/SCENE
+codes; SCENE retains the actual provider error as cause. Getters, sparse arrays,
+extra/hidden/symbol fields and foreign prototypes refuse without invocation.
+Before any source pixel copy/upload allocation, admit collection sizes/dimensions,
+the complete scene, all texture values and all references. Reprepare both originals
+for a same-ID change. Existing scene/native/material-language contracts stay valid.
+
+Texture shader sampling, tint colour conversion, atomic renderer resources and
+actual pixels remain a later #1184 graphics stage. This API makes no rendered
+texture support claim. After the GPU build, run the one CPU source/emitted/file
+flow `node examples/gpu-scene/engine-texture-bindings-flow.mjs --output <fresh-directory>`.
