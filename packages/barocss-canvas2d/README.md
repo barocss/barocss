@@ -646,3 +646,8 @@ The existing `examples/canvas2d-scene/path-control-editing/index.html?split=1` p
 Open `consumer/diagram.html?labels=1` to edit a separate Unicode label on each existing draggable diagram node. This consumer uses the adopted public single-line browser text provider,16px system-ui/DPR2 and1..32 original UTF16 units per label. Node sizes, connector and clipping remain fixed. A label whose complete padded quad exceeds66x26 logical pixels is refused before display candidate admission. Corrective drafts remain editable.
 
 Each node owns a separate copied atlas. A successful selected-node edit preserves the other label bytes, IDs, positions and connector data. Font readiness is bounded to5s; drag start invalidates a waiting Apply, and late/superseded work cannot be adopted. Cold JSON Open restores bounded saved bytes/layout through fresh public handles without fonts, rasterization or saved-profile inference. Restored edits use the current profile. The fixed H/I default and its original evidence are preserved. Focused proof is separate in `consumer/evidence/diagram-browser-labels/`; native acceptance, exact adoption and broader Root1254 qualification remain distinct.
+
+
+### Diagram document edit controls
+
+In `diagram.html?labels=1`, a successful document Open selects node A and loads both edit drafts from the restored labels. Refused or stale Open keeps the previous edit controls. Stored pixels reopen without font preparation. The fixed H/I default remains a separate example route. Focused correction evidence is in `consumer/evidence/diagram-label-open-reset/`; original browser-label evidence retains its first reset failure.

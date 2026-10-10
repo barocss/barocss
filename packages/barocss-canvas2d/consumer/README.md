@@ -404,3 +404,8 @@ The browser-text consumer adds Paragraph and restored Reflow controls. Its fixed
 Open `consumer/diagram.html?labels=1` to edit a separate Unicode label on each existing draggable diagram node. This consumer uses the adopted public single-line browser text provider,16px system-ui/DPR2 and1..32 original UTF16 units per label. Node sizes, connector and clipping remain fixed. A label whose complete padded quad exceeds66x26 logical pixels is refused before display candidate admission. Corrective drafts remain editable.
 
 Each node owns a separate copied atlas. A successful selected-node edit preserves the other label bytes, IDs, positions and connector data. Font readiness is bounded to5s; drag start invalidates a waiting Apply, and late/superseded work cannot be adopted. Cold JSON Open restores bounded saved bytes/layout through fresh public handles without fonts, rasterization or saved-profile inference. Restored edits use the current profile. The fixed H/I default and its original evidence are preserved. Focused proof is separate in `consumer/evidence/diagram-browser-labels/`; native acceptance, exact adoption and broader Root1254 qualification remain distinct.
+
+
+### Browser diagram Open reset
+
+The `diagram.html?labels=1` route resets the edit target to A and both separate text drafts only after a saved document is admitted. It displays the restored A text in the input. Its descriptions identify independent labels and saved pixels. Cold Open retains unknown preparation metadata and calls no font helper. See `evidence/diagram-label-open-reset/` for the focused correction; the original `diagram-browser-labels/` receipt keeps the missing-reset failure and its separate file/edit flow.
