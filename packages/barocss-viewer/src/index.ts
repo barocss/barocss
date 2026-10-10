@@ -40,6 +40,10 @@ export type { ViewerMixedDepthInputV0, ViewerMixedDepthState } from './mixed-dep
 import { prepareViewerQualifiedFaces } from './qualified-faces.js';
 import type { ViewerQualifiedFaceInputV0 } from './qualified-faces.js';
 export type { ViewerQualifiedFaceInputV0 } from './qualified-faces.js';
+import { measureViewerQualifiedFacePoints } from './qualified-face-measurement.js';
+import type { ViewerQualifiedFacePointInput, ViewerQualifiedFacePointDistance } from './qualified-face-measurement.js';
+export type { ViewerQualifiedFacePointInput, ViewerQualifiedFacePoint, ViewerQualifiedFacePointDistance }
+  from './qualified-face-measurement.js';
 
 type Vec3 = [number, number, number];
 type Quat = [number, number, number, number];
@@ -984,6 +988,11 @@ export class Viewer {
     this.measurement = null; this.curveMeasurement = null; this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
     this.surfaceMaterials = []; this.fluidFrame = null; this.particleLayer = null; this.clothFrame = null; this.clothLayer = null;
     this.sceneRequest++;
+  }
+  measureQualifiedFacePoints(first: ViewerQualifiedFacePointInput,
+    second: ViewerQualifiedFacePointInput): ViewerQualifiedFacePointDistance {
+    this.live(); check(this.qualifiedFaceScene, 'Viewer has no current qualified Face scene');
+    return measureViewerQualifiedFacePoints(this.qualifiedFaceScene, first, second);
   }
   replaceNativeScene(input: ViewerNativeSceneReplacementV0): void {
     this.gpuLive(); check(!this.contextLost, 'Cannot replace native scene after WebGL2 context loss');

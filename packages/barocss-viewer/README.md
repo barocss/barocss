@@ -718,3 +718,24 @@ context loss retires the owned backend while the context is lost, retains
 CPU copies and keeps GPU operations blocked after caller restoration.
 Dispose clears the Face scene. The bounded original-file consumer is
 `examples/viewer-qualified-face-scene`.
+
+### Pinned native point distances across Face assets
+
+`measureQualifiedFacePoints(first, second)` reads two original native points
+from the current qualified Face scene. Each input pins `sourceId`, the exact
+`expectedSource` text, `faceId`, original `modelId` and `geometryId`. A Surface
+input uses `kind: 'surface', u, v`; a Curve input uses `kind: 'curve', t`.
+Only plain own data fields are accepted. Original parameter domains apply.
+
+The result copies both inputs and adds `pointMM` and `pointScene` to each.
+`distanceMM` is the original authored XYZ straight chord. `distanceScene` is
+that distance multiplied by the accepted scene scale. Point coordinates apply
+scale and then scene translation once. The result reports the explicit basis
+and `certification: 'not-certified'`. It does not measure arc length or geodesic
+length. Same-source pairs are supported.
+
+This query writes no measurement, selection, camera or GPU state. A changed
+original source rejects an old content pin. Camera, color and sampling changes
+keep unchanged source pins valid. Retained CPU authority remains queryable
+after context loss or presentation failure; GPU operations stay blocked.
+Clear, a successful mode replacement and Dispose remove this query scope.
