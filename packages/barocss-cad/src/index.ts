@@ -362,3 +362,6 @@ export type { SectionExactSurfaceBindingOptions, SectionExactSurfaceBindingSpanP
 
 export { buildExactSurfaceLowerTrim, validateExactSurfaceLowerTrim, ExactSurfaceLowerTrimError, ExactSurfaceLowerTrimDiagnosticCode } from './exact-surface-lower-trim.js';
 export type { ExactSurfaceLowerTrimOptions, ExactSurfaceLowerTrimEdge, ExactSurfaceLowerTrimReport, ExactSurfaceLowerTrimResult } from './exact-surface-lower-trim.js';
+
+export { buildTranslatedSurfaceBaseFace, validateTranslatedSurfaceBaseFace, TranslatedSurfaceBaseFaceError, TranslatedSurfaceBaseFaceDiagnosticCode } from './translated-surface-base-face.js';
+export type { TranslatedSurfaceBaseFaceOptions, TranslatedSurfaceBaseFaceEdge, TranslatedSurfaceBaseFaceReport, TranslatedSurfaceBaseFaceResult } from './translated-surface-base-face.js';
