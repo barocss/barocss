@@ -284,6 +284,56 @@ principal directions, torsion, manufacturing tolerance or global accuracy.
 Source-backed reference reconstruction and native internal validation can repeat
 work; no single cheap reconstruction or metadata-only performance claim is made.
 
+## Accepted original Curve length estimate
+
+`inspectCurveLength(reference,options)` reads the private accepted whole document
+through the actual `queryCadDocumentCurveArcLength` once. The provider resolves
+the exact original Source0 Curve and admits caller reference/options as bounded,
+descriptor-safe own data. The editor does not pre-resolve, read caller getters,
+invent options or apply D2/curvature defaults. `CadEditorCurveLengthOptions` and
+`CadEditorCurveLength` alias the actual native options and complete result.
+The existing four-variant geometry-analysis union remains unchanged.
+
+The copied result retains original reference, geometry, source text, options,
+estimatedLengthMM, errorEstimateMM, final panels and the full native report with
+guards, subdivisions, work counts and signed zero. Pending edits and active
+candidates do not change which accepted document is measured. The read emits no
+notification and changes no source, history, generation, display, selection,
+draft, candidate, serialization, dirty state or native download capture.
+Disposal refuses further reads. Actual `CadCurveArcLengthError` and nested native
+causes remain under `CadEditorError.cause`, with document ID and context field
+`curve-length`. A wrapped native STALE maps to editor STALE; other native failures,
+including a selected Surface's actual REFERENCE refusal, map to NATIVE.
+
+The actual length profile supports Curve degrees1–3,2–64 poles, at most70 knots,
+XYZ coordinates within10000mm and positive native weights1e-6..1e6. Native knot
+and domain validation remains authoritative. `interval:null` uses the full
+original domain; an explicit finite strictly increasing interval must lie within
+it. Parameters are not sorted, clamped or normalized. D2's separate knot/parameter
+magnitude limit and C2-continuity requirement do not govern length.
+Native options require absoluteToleranceMM1e-9..1, relativeTolerance0..1e-2,
+maximumEvaluations7..16384, maximumSubdivisions0..512 and maximumDepth0..16.
+Interval, input, work-budget or representability refusal returns no partial result.
+
+Length is the five-point Gauss estimate of the actual native D1 speed in mm.
+Original knot spans split integration panels. Each measured panel uses seven
+distinct strict-interior native D1 nodes and two endpoint D0 calls. Exact included
+C0 knots receive separate genuine native D1 refusal guards; no knot tangent is
+invented and the full length can remain valid. Zero speed is supported, including
+constant Curves with zero estimated length/error. The estimator is the maximum
+of Gauss-rule difference,64-epsilon floor and native chord shortfall. The chord
+chain is a sanity check and never replaces the derivative integral estimate.
+
+The aggregate estimator must meet max(absolute tolerance,relative tolerance times
+estimated length). This criterion is not a certified global error upper bound,
+binary64 containment, manufacturing tolerance, G1/G2, topology or Solid guarantee.
+The full result preserves discarded-parent work and trace; reported quadrature
+D1, endpoint D0 and guard counts are separate. maximumEvaluations limits only
+quadrature D1 calls, not all native work. Source-backed resolution, validation and
+owned-result validation can repeat reconstruction or quadrature. No cheap single
+query or total computational budget is claimed. Consumer rendering and numerical
+formatting remain separate from full native values and authoring authority.
+
 ## Accepted native geometry export
 
 `getExportCapabilities()`, `inspectExport(options)` and `exportAccepted(options)`

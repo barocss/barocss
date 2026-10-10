@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Box, ChevronRight, CircleHelp, Download, FolderOpen, Layers3, Maximize, Redo2, Undo2 } from 'lucide-react';
 import { parseCadDocument } from '@barocss/cad';
-import { CadEditorError, createCadEditorSession, type CadEditorExportResult, type CadEditorGeometryAnalysisResult } from '@barocss/cad-editor';
+import { CadEditorError, createCadEditorSession, type CadEditorExportResult, type CadEditorGeometryAnalysisResult, type CadEditorCurveLength } from '@barocss/cad-editor';
 import { CadEditor, CadEditorExportReview, useCadEditorSnapshot, type CadEditorDisplayOptions, type CadEditorDisplayReceipt } from '@barocss/cad-editor/react';
 import fixtureText from '../fixtures/canonical-surface-and-curve.cad-document.json?raw';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './components/ui/dialog';
@@ -22,6 +22,7 @@ function nativeCauses(error: Error): {message:string;code:string|null}[] {
   return causes;
 }
 function actionError(error: CadEditorError): string {
+  if(error.context.field==='curve-length')return 'Cannot estimate this Curve length. Check the original interval or open Help.';
   if(error.context.field==='document-replacement-download')return 'Download could not start. The current document is retained.';
   if(error.context.field==='document-replacement')return error.code==='STALE'?'The document changed. Open the file or choose New again.':error.code==='INPUT'?'Apply or discard your draft before replacing this document.':'The current document is retained. Try Open or New again.';
   if(error.context.field==='body-name')return 'Cannot rename this object. Check the name and try again.';
@@ -62,6 +63,7 @@ function DirectApp() {
   const [receipt, setReceipt] = useState<CadEditorDisplayReceipt | null>(null);
   const [exportReview,setExportReview]=useState<CadEditorExportResult|null>(null);
   const [geometryAnalysis,setGeometryAnalysis]=useState<CadEditorGeometryAnalysisResult|null>(null);
+  const [curveLength,setCurveLength]=useState<CadEditorCurveLength|null>(null);
   const [displayOptions, setDisplayOptions] = useState(defaultDisplay);
   const [fitSelectedRequest, setFitSelectedRequest] = useState(0);
   const [openChoice, setOpenChoice] = useState<OpenChoice | null>(null);
@@ -91,14 +93,14 @@ function DirectApp() {
     // This focused flow seam exposes copied data and declared host actions only.
     const api = {
       snapshot: () => session.getSnapshot(), display: () => structuredClone(receipt), error: () => error ? {code:error.code,message:error.message,context:{...error.context},cause:error.cause instanceof Error ? error.cause.message : null,causeChain:nativeCauses(error)} : null,
-      exportReview:()=>structuredClone(exportReview),geometryAnalysis:()=>structuredClone(geometryAnalysis),readFrame:()=>setReadRequest(value=>value+1),
+      exportReview:()=>structuredClone(exportReview),geometryAnalysis:()=>structuredClone(geometryAnalysis),curveLength:()=>structuredClone(curveLength),readFrame:()=>setReadRequest(value=>value+1),
       setDisplayRefusal: (refuse: boolean) => setDisplayOptions(refuse ? { ...defaultDisplay, document: { ...defaultDisplay.document, native: { ...defaultDisplay.document.native, countU: 1 } } } : defaultDisplay),
       setMounted: (mounted: boolean) => { setMount(mounted); if (mounted) setMountKey(key => key + 1); },
       session,
     };
     Object.assign(window, { __cadEditorFlow: api });
     return () => { delete (window as Window & { __cadEditorFlow?: unknown }).__cadEditorFlow; };
-  }, [flowMode, session, receipt, exportReview, geometryAnalysis, error]);
+  }, [flowMode, session, receipt, exportReview, geometryAnalysis, curveLength, error]);
   function clearReplacement() {
     requestSerial.current++;replacementAttempt.current=false;replacementRef.current=null;setReplacement(null);setOpenChoice(null);
   }
@@ -220,6 +222,7 @@ function DirectApp() {
       </aside>
       <main className="main-workspace">
         {projectView ? <section className="projects-view"><span className="eyebrow">LOCAL DOCUMENTS</span><h1>Projects</h1><p>Start with the weighted surface, or open a native document.</p><button className="sample-project" data-testid="project-new-sample" onClick={newSample}><span className="sample-symbol">▱</span><span><strong>Weighted surface</strong><small>Quadratic 3 × 3 surface · Reference line</small></span><ChevronRight size={20}/></button><Button variant="outline" onClick={chooseOpenFile}><FolderOpen/>Open document</Button></section> : mount && <CadEditor key={mountKey} session={session} displayOptions={displayOptions} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest}
+          onLength={result=>{setCurveLength(result);if(result!==null)setError(current=>current?.context.field==='curve-length'?null:current);}}
           onAnalysis={result=>{setGeometryAnalysis(result);if(result!==null)setError(current=>current?.context.field==='geometry-analysis'?null:current);}}
           onError={failure => { pendingOpen.current=null;setError(failure); }} onAccepted={(accepted,candidate) => { setError(null);if(candidate.kind==='open'&&pendingOpen.current?.token===candidate.token)setFilename(pendingOpen.current.filename);pendingOpen.current=null;location.hash='/documents/'+accepted.accepted.document.documentId; }} onDisplay={setReceipt}/>}
       </main>

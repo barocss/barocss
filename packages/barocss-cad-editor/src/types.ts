@@ -2,6 +2,7 @@ import type {
   CadDocumentExportCapability, CadDocumentExportOptions, CadDocumentExportReport,
   CadDocumentExportResult, CadDocumentExportSelection,
   CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, SurfacePoleEditProvenance,
+  CadCurveArcLengthOptions, CadCurveArcLengthResult,
   CurveCurvatureResult, CurveD2Result, SurfaceCurvatureResult, SurfaceD2Result,
 } from '@barocss/cad';
 
@@ -10,6 +11,8 @@ export type CadEditorExportSelection = CadDocumentExportSelection;
 export type CadEditorExportOptions = CadDocumentExportOptions;
 export type CadEditorExportReport = CadDocumentExportReport;
 export type CadEditorExportResult = CadDocumentExportResult;
+export type CadEditorCurveLengthOptions = CadCurveArcLengthOptions;
+export type CadEditorCurveLength = CadCurveArcLengthResult;
 
 export interface CadEditorCurveD2 {
   kind: 'curve'; query: 'derivatives'; reference: CadGeometryReferenceV0;
@@ -83,6 +86,7 @@ export interface CadEditorSession {
   getExportCapabilities(): CadEditorExportCapability[];
   inspectExport(options: CadEditorExportOptions): CadEditorExportReport;
   exportAccepted(options: CadEditorExportOptions): CadEditorExportResult;
+  inspectCurveLength(reference: CadGeometryReferenceV0, options: CadEditorCurveLengthOptions): CadEditorCurveLength;
   inspectCurveD2(reference: CadGeometryReferenceV0, parameter: number): CadEditorCurveD2;
   inspectSurfaceD2(reference: CadGeometryReferenceV0, u: number, v: number): CadEditorSurfaceD2;
   inspectCurveCurvature(reference: CadGeometryReferenceV0, parameter: number): CadEditorCurveCurvature;

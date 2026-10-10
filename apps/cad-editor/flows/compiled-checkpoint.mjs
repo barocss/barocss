@@ -196,7 +196,7 @@ export async function prepareCompiledCheckpoint({ repo, evidence }) {
 
     const consumerPath = resolve(checkpoint, 'published-consumer.tsx');
     await writeFile(consumerPath, `import { editSourceSurfaceControlNet, validateSourceSurfaceControlNetEdit, type SourceSurfaceControlNetResult } from '@barocss/cad';
-import { createCadEditorSession, createCadEditorFeatureSession, type CadEditorCandidate, type CadEditorFeatureSessionOptions, type CadEditorFeatureOutput, type CadEditorFaceCornerBinding, type CadEditorFaceCorner, type CadEditorFeatureProperties, type CadEditorFeaturePropertiesOptions, type CadEditorExportCapability, type CadEditorExportOptions, type CadEditorExportReport, type CadEditorExportResult, type CadEditorExportSelection, type CadEditorCurveD2, type CadEditorSurfaceD2, type CadEditorCurveCurvature, type CadEditorSurfaceCurvature, type CadEditorGeometryAnalysisResult } from '@barocss/cad-editor';
+import { createCadEditorSession, createCadEditorFeatureSession, type CadEditorCandidate, type CadEditorFeatureSessionOptions, type CadEditorFeatureOutput, type CadEditorFaceCornerBinding, type CadEditorFaceCorner, type CadEditorFeatureProperties, type CadEditorFeaturePropertiesOptions, type CadEditorExportCapability, type CadEditorExportOptions, type CadEditorExportReport, type CadEditorExportResult, type CadEditorExportSelection, type CadEditorCurveLength, type CadEditorCurveLengthOptions, type CadEditorCurveD2, type CadEditorSurfaceD2, type CadEditorCurveCurvature, type CadEditorSurfaceCurvature, type CadEditorGeometryAnalysisResult } from '@barocss/cad-editor';
 import { CadEditor, CadEditorFeature, CadEditorExportReview, CadEditorGeometryAnalysis, CadEditorBodyRename, type CadEditorBodyRenameProps, type CadEditorGeometryAnalysisProps, type CadEditorExportReviewProps, type CadEditorProps, type CadEditorFeatureProps } from '@barocss/cad-editor/react';
 import { parseCadDocument, parseBooleanExtrusionFeatureGraph, type CadGeometryReferenceV0 } from '@barocss/cad';
 const session = createCadEditorSession(parseCadDocument('{}').document);
@@ -214,8 +214,12 @@ const curveD2:CadEditorCurveD2=session.inspectCurveD2(analysisReference,4);
 const surfaceD2:CadEditorSurfaceD2=session.inspectSurfaceD2(analysisReference,0,12);
 const curveCurvature:CadEditorCurveCurvature=session.inspectCurveCurvature(analysisReference,4);
 const surfaceCurvature:CadEditorSurfaceCurvature=session.inspectSurfaceCurvature(analysisReference,0,12);
-const analysisProps:CadEditorGeometryAnalysisProps={session,onAnalysis:result=>{if(result){const value:CadEditorGeometryAnalysisResult=result;const revision:number=result.reference.documentRevision;}},onError:error=>{const field:string|undefined=error.context.field;}};
+const lengthOptions:CadEditorCurveLengthOptions={interval:null,absoluteToleranceMM:1e-6,relativeTolerance:1e-8,maximumEvaluations:4096,maximumSubdivisions:128,maximumDepth:12};
+const curveLength:CadEditorCurveLength=session.inspectCurveLength(analysisReference,lengthOptions);
+const lengthMM:number=curveLength.estimatedLengthMM;
+const analysisProps:CadEditorGeometryAnalysisProps={session,onLength:result=>{if(result){const value:CadEditorCurveLength=result;const length:number=result.estimatedLengthMM;}},onAnalysis:result=>{if(result){const value:CadEditorGeometryAnalysisResult=result;const revision:number=result.reference.documentRevision;}},onError:error=>{const field:string|undefined=error.context.field;}};
 const analysisElement=<CadEditorGeometryAnalysis {...analysisProps}/>;
+const lengthHostProps:CadEditorProps={...props,onLength:result=>{if(result){const error:number=result.errorEstimateMM;}}};
 const renameCandidate:CadEditorCandidate|null=session.prepareRenameBody('curve_body','Inspection curve');
 const renameKind:'apply'|'open'|'undo'|'redo'|'display'|'rename'|undefined=renameCandidate?.kind;
 const renameProps:CadEditorBodyRenameProps={session,onError:error=>{const field:string|undefined=error.context.field;}};
