@@ -2,7 +2,7 @@ import { Canvas2DError, validateImageAssetId } from './schema.js';
 import type { ImageAssetInput } from './schema.js';
 import type { GlyphRunLayout } from './display-tree.js';
 
-export type BrowserTextPolicy = 'alphanumeric' | 'printable-ascii';
+export type BrowserTextPolicy = 'alphanumeric' | 'printable-ascii' | 'unicode-single-line';
 
 export type BrowserTextOptions = {
   text: string;
@@ -76,20 +76,37 @@ function optionsOf(value: unknown): Required<BrowserTextOptions> {
   const font: unknown = fields.font.value;
   const dpr: unknown = Object.hasOwn(fields, 'dpr') ? fields.dpr.value : 1;
   const textPolicy: unknown = Object.hasOwn(fields, 'textPolicy') ? fields.textPolicy.value : 'alphanumeric';
-  if (textPolicy !== 'alphanumeric' && textPolicy !== 'printable-ascii') {
+  if (textPolicy !== 'alphanumeric' && textPolicy !== 'printable-ascii' && textPolicy !== 'unicode-single-line') {
     invalid('browser text policy is unsupported');
   }
   if (typeof text !== 'string' || text.length < 1 || text.length > 128) {
     invalid(textPolicy === 'alphanumeric'
       ? 'browser text requires 1..128 ASCII letters, digits or spaces with ink'
-      : 'browser text requires 1..128 printable ASCII characters');
+      : textPolicy === 'printable-ascii' ? 'browser text requires 1..128 printable ASCII characters'
+      : 'browser text requires 1..128 well-formed Unicode code units');
   }
   if (textPolicy === 'alphanumeric') {
     if (!/^[A-Za-z0-9 ]+$/.test(text) || !/[A-Za-z0-9]/.test(text)) {
       invalid('browser text requires 1..128 ASCII letters, digits or spaces with ink');
     }
-  } else if (!/^[\x20-\x7E]+$/.test(text) || !/[^ ]/.test(text)) {
-    invalid('browser text requires printable ASCII with a nonspace character');
+  } else if (textPolicy === 'printable-ascii') {
+    if (!/^[\x20-\x7E]+$/.test(text) || !/[^ ]/.test(text)) {
+      invalid('browser text requires printable ASCII with a nonspace character');
+    }
+  } else {
+    if (/[\u0000-\u001F\u007F-\u009F\u2028\u2029]/u.test(text) || !/\S/u.test(text)) {
+      invalid('browser Unicode text must be one line with a non-whitespace scalar');
+    }
+    for (let index = 0; index < text.length; index++) {
+      const unit = text.charCodeAt(index);
+      if (unit >= 0xD800 && unit <= 0xDBFF) {
+        const next = text.charCodeAt(index + 1);
+        if (!(next >= 0xDC00 && next <= 0xDFFF)) invalid('browser Unicode text has an unpaired surrogate');
+        index++;
+      } else if (unit >= 0xDC00 && unit <= 0xDFFF) {
+        invalid('browser Unicode text has an unpaired surrogate');
+      }
+    }
   }
   if (typeof font !== 'string' || font.trim().length === 0 || font.length > 256 || /[\r\n\0]/.test(font)) {
     invalid('browser text font must be a nonempty CSS declaration of at most 256 characters');

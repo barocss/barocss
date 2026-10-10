@@ -552,3 +552,20 @@ Complete ordinary asset and gutter validation precede budgets and copies. Malfor
 `applyImageAlphaMatte(source, matte)` returns an independent same-size RGBA8 asset. It copies source RGB bytes exactly, including hidden RGB under original or newly zero alpha, and sets alpha to the nearest integer of `sourceAlpha * matteAlpha / 255`. Matte RGB is ignored. Alpha0 is never revealed. Both inputs are required and must have equal width/height; there is no automatic resampling, offset, registration or Scene effect. This lets a separately prepared matte clip image bytes before atlas, filter or file processing.
 
 Complete ordinary asset shapes and equal dimensions are validated before budgets or typed copies. Dimensions are integers1..4096 with negative zero refused. Each input must be exact nonshared ordinary Uint8Array RGBA8 and fit1MiB. Four own typed metadata overrides are refused without enumerating indexed pixel keys or reading unrelated getters. Malformed input or mismatched extents throws `INVALID_ASSET`; a valid equal oversized pair throws `ASSET_LIMIT`. Two copied inputs plus output use at most3MiB typed payload, with no pixel scratch, DOM/GPU or retained global state. Aliased inputs are allowed; returned storage remains independent.
+
+
+## Unicode single-line browser labels
+
+`rasterizeBrowserText({ text, font, atlasId, dpr, textPolicy: 'unicode-single-line' })`
+prepares one copied whole-label atlas and retains the original semantic text.
+It admits 1..128 well-formed UTF-16 code units with non-whitespace content,
+excluding C0, DEL/C1 controls and U+2028/U+2029. It does not normalize text.
+The host prepares a local font; browser shaping and font fallback determine
+actual glyphs. Font readiness is not a glyph-coverage certificate. Existing
+ASCII defaults, printable ASCII, multiline and wrapping keep their contracts.
+Save/Open stores the complete text, layout and pixels, not the font, policy or
+raster DPR. A later edit explicitly chooses the current font and policy.
+The existing browser-text consumer adds an editable Unicode draft using
+24px system-ui at DPR2, with accepted-state retention on refusal and disposal.
+No downloaded font, shaping kernel, global coverage or cross-device parity is
+provided. Existing raster size, byte limits and scratch cleanup remain.

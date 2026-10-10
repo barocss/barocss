@@ -6,9 +6,11 @@ import { serializeCanvasDocument, parseCanvasDocument, exportCanvasDocumentPNG }
 /** @typedef {{canvas:HTMLCanvasElement,renderer:import('@barocss/canvas2d').Canvas2DRenderer,
  * tree:import('@barocss/canvas2d').DisplayTree,glyph:import('@barocss/canvas2d').GlyphRunHandle,
  * scene:import('@barocss/canvas2d').Scene,asset:import('@barocss/canvas2d').ImageAssetInput,
- * maxWidth:number|null,lineAlign:import('@barocss/canvas2d').BrowserMultilineTextAlignment|null,lineAdvance:number|null,lines:import('@barocss/canvas2d').BrowserMultilineTextLine[]|null, font:string|null,rasterDPR:number|null,advance:number|null,generation:number,source:'helper'|'document',unbind:()=>void}} Session */
+ * maxWidth:number|null,lineAlign:import('@barocss/canvas2d').BrowserMultilineTextAlignment|null,lineAdvance:number|null,lines:import('@barocss/canvas2d').BrowserMultilineTextLine[]|null, font:string|null,textPolicy:import('@barocss/canvas2d').BrowserTextPolicy|null,rasterDPR:number|null,advance:number|null,generation:number,source:'helper'|'document',unbind:()=>void}} Session */
 const options = { logicalSize: { width: 320, height: 144 }, dpr: 2 };
-const atlasId = 'BrowserTextAtlas', font = '24px monospace';
+const atlasId = 'BrowserTextAtlas', font = '24px monospace', unicodeFont = '24px system-ui';
+const unicodeInput = /** @type {HTMLTextAreaElement} */ (document.querySelector('#unicodeText'));
+let unicodeDraft = unicodeInput.value;
 const pose = (/** @type {number} */ x = 0, /** @type {number} */ y = 0) => ({ x, y, scaleX: 1, scaleY: 1, rotation: 0 });
 let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
 const status = /** @type {HTMLElement} */ (document.querySelector('#status'));
@@ -89,7 +91,7 @@ function sample(s, point) {
 function sessionObservation(s) {
   const points = pointsFor(s), actual = s.renderer.getImageAsset(atlasId);
   return { generation: s.generation, source: s.source, text: s.glyph.data.text, version: s.scene.version,
-    maxWidth: s.maxWidth, lineAlign: s.lineAlign, lineAdvance: s.lineAdvance, lines: s.lines, font: s.font, rasterDPR: s.rasterDPR, advance: s.advance, layout: layoutOf(s), transform: s.glyph.data.transform,
+    maxWidth: s.maxWidth, lineAlign: s.lineAlign, lineAdvance: s.lineAdvance, lines: s.lines, font: s.font, textPolicy: s.textPolicy, rasterDPR: s.rasterDPR, advance: s.advance, layout: layoutOf(s), transform: s.glyph.data.transform,
     bounds: { left: s.glyph.data.glyphs[0].x, top: s.glyph.data.glyphs[0].y,
       width: s.glyph.data.glyphs[0].width, height: s.glyph.data.glyphs[0].height },
     atlas: { width: s.asset.width, height: s.asset.height, byteLength: s.asset.pixels.length }, allBytes: [...s.asset.pixels],
@@ -99,10 +101,10 @@ function sessionObservation(s) {
     contextId: s.scene.contextId, ids: s.tree.stage.children.map(c => c.id), sceneMatchesTree: stringifySceneJSON(s.scene) === stringifySceneJSON(s.tree.snapshot()),
     backing: { width: s.canvas.width, height: s.canvas.height } };
 }
-function observe() { return { disposed, preparing, generation, counts: { ...counts }, failure, saved, opened, png,
+function observe() { return { disposed, preparing, generation, unicodeDraft, unicodeDraftValue: unicodeInput.value, counts: { ...counts }, failure, saved, opened, png,
   pointerLog: [...pointerLog], accepted: session ? sessionObservation(session) : terminal }; }
 function show(/** @type {string} */ message) { status.textContent = message; output.textContent = JSON.stringify(observe(), (key, value) => key === 'allBytes' ? undefined : value, 2);
-  for (const button of Array.from(document.querySelectorAll('button'))) button.disabled = disposed; input.disabled = disposed; }
+  for (const button of Array.from(document.querySelectorAll('button'))) button.disabled = disposed; input.disabled = disposed; unicodeInput.disabled = disposed; }
 function fingerprint() { return session ? JSON.stringify({ scene: stringifySceneJSON(session.scene), view: sessionObservation(session) }) : 'empty'; }
 function current(/** @type {number} */ token) { return !disposed && generation === token; }
 function release(/** @type {import('@barocss/canvas2d').Canvas2DRenderer} */ renderer) { renderer.dispose(); counts.rendererDisposed++; counts.liveRenderers--; }
@@ -119,14 +121,14 @@ function bind(/** @type {Session} */ s) {
   return () => { if (done) return; done = true; counts.unbinds++; s.canvas.removeEventListener('pointerdown', onPointer); for (const stop of subscriptions) stop(); };
 }
 /** @param {import('@barocss/canvas2d').DisplayTree} tree @param {import('@barocss/canvas2d').ImageAssetInput} asset
- * @param {number} token @param {'helper'|'document'} source @param {Prepared|null} prepared @param {import('@barocss/canvas2d').BrowserMultilineTextAlignment|null} lineAlign @returns {Session} */
-function fresh(tree, asset, token, source, prepared, lineAlign = null) {
+ * @param {number} token @param {'helper'|'document'} source @param {Prepared|null} prepared @param {import('@barocss/canvas2d').BrowserMultilineTextAlignment|null} lineAlign @param {import('@barocss/canvas2d').BrowserTextPolicy|null} textPolicy @returns {Session} */
+function fresh(tree, asset, token, source, prepared, lineAlign = null, textPolicy = null) {
   const glyph = tree.get('Label'); if (glyph?.kind !== 'glyphRun') throw new Error('Label missing');
   const nextCanvas = document.createElement('canvas'); nextCanvas.id = 'scene'; counts.candidates++;
   const renderer = createCanvas2D(nextCanvas, options); counts.rendererCreated++; counts.liveRenderers++;
   try { renderer.setImageAsset(atlasId, asset); const scene = tree.snapshot(); renderer.updateScene(scene); renderer.render();
     return { canvas: nextCanvas, renderer, tree, glyph, scene, asset, maxWidth: prepared && 'maxWidth' in prepared ? /** @type {import('@barocss/canvas2d').BrowserWrappedTextRaster} */ (prepared).maxWidth : null, lineAlign, lineAdvance: prepared && 'lineAdvance' in prepared ? /** @type {import('@barocss/canvas2d').BrowserMultilineTextRaster} */ (prepared).lineAdvance : null,
-      lines: prepared && 'lines' in prepared ? /** @type {import('@barocss/canvas2d').BrowserMultilineTextRaster} */ (prepared).lines : null, font: prepared?.font ?? null,
+      lines: prepared && 'lines' in prepared ? /** @type {import('@barocss/canvas2d').BrowserMultilineTextRaster} */ (prepared).lines : null, font: prepared?.font ?? null, textPolicy: prepared ? textPolicy : null,
       rasterDPR: prepared?.dpr ?? null, advance: prepared?.advance ?? null, generation: token, source, unbind: () => {} };
   } catch (error) { release(renderer); throw error; }
 }
@@ -139,15 +141,41 @@ function refuse(error, before, candidates) { counts.errors++; preparing = false;
 /** Host owns font readiness. The public helper stays synchronous. @param {string} text @param {number} dpr @param {import('@barocss/canvas2d').BrowserTextPolicy} textPolicy @param {number|null} lineAdvance @param {import('@barocss/canvas2d').BrowserMultilineTextAlignment} lineAlign @param {number|null} maxWidth */
 async function edit(text, dpr = 2, textPolicy = 'alphanumeric', lineAdvance = null, lineAlign = 'left', maxWidth = null) {
   if (disposed) return; const token = ++generation, before = fingerprint(), candidates = counts.candidates;
+  const chosenFont = textPolicy === 'unicode-single-line' ? unicodeFont : font;
   preparing = true; show('Preparing font');
-  try { counts.fontPreparations++; await document.fonts.ready; await document.fonts.load(font, text);
+  try { counts.fontPreparations++; await document.fonts.ready; await document.fonts.load(chosenFont, text);
     if (!current(token)) { counts.ignored++; return; }
-    if (!document.fonts.check(font, text)) throw new Error('Host font unavailable');
-    counts.helperCalls++; const prepared = maxWidth !== null ? rasterizeBrowserWrappedText({ text, font, atlasId, dpr, lineAdvance: lineAdvance ?? 30, lineAlign, maxWidth }) : lineAdvance === null ? rasterizeBrowserText({ text, font, atlasId, dpr, textPolicy }) : rasterizeBrowserMultilineText({ text, font, atlasId, dpr, lineAdvance, lineAlign });
+    if (!document.fonts.check(chosenFont, text)) throw new Error('Host font unavailable');
+    counts.helperCalls++; const prepared = maxWidth !== null ? rasterizeBrowserWrappedText({ text, font: chosenFont, atlasId, dpr, lineAdvance: lineAdvance ?? 30, lineAlign, maxWidth }) : lineAdvance === null ? rasterizeBrowserText({ text, font: chosenFont, atlasId, dpr, textPolicy }) : rasterizeBrowserMultilineText({ text, font: chosenFont, atlasId, dpr, lineAdvance, lineAlign });
     const tree = createDisplayTree('BrowserTextConsumer');
     tree.stage.addChild(tree.createRect({ id: 'Back', layer: 0, transform: pose(), width: 320, height: 144, fill: [0.125, 0.15625, 0.21875, 1] }));
     tree.stage.addChild(tree.createGlyphRun({ id: 'Label', layer: 1, transform: pose(24, lineAdvance === null ? 72 : 40), ...prepared.layout }));
-    adopt(fresh(tree, prepared.asset, token, 'helper', prepared, lineAdvance === null ? null : lineAlign)); opened = null; show(`Accepted ${text} at raster DPR ${dpr}`);
+    adopt(fresh(tree, prepared.asset, token, 'helper', prepared, lineAdvance === null ? null : lineAlign, textPolicy)); opened = null; show(`Accepted ${text} at raster DPR ${dpr}`);
+  } catch (error) { if (current(token)) refuse(error, before, candidates); else counts.ignored++; }
+}
+/** Apply the explicit current Unicode profile; the draft survives a refusal. @param {string} [text] */
+function editUnicode(text = unicodeInput.value) {
+  if (disposed) return Promise.resolve();
+  unicodeDraft = text; unicodeInput.value = text;
+  return edit(text, 2, 'unicode-single-line');
+}
+/** Edit the restored public GlyphRun using a newly selected font and policy. @param {string} [text] */
+async function restoredUnicodeEdit(text = unicodeInput.value) {
+  const prior = session; if (!prior || disposed) return;
+  unicodeDraft = text; unicodeInput.value = text;
+  const token = ++generation, before = fingerprint(), candidates = counts.candidates;
+  preparing = true; show('Preparing the current Unicode font');
+  try {
+    counts.fontPreparations++; await document.fonts.ready; await document.fonts.load(unicodeFont, text);
+    if (!current(token) || session !== prior) { counts.ignored++; return; }
+    if (!document.fonts.check(unicodeFont, text)) throw new Error('Host font unavailable');
+    counts.helperCalls++;
+    const prepared = rasterizeBrowserText({ text, font: unicodeFont, atlasId, dpr: 2, textPolicy: 'unicode-single-line' });
+    const tree = createDisplayTreeFromScene(prior.scene), glyph = tree.get('Label');
+    if (glyph?.kind !== 'glyphRun') throw new Error('Label missing');
+    glyph.setLayout(prepared.layout);
+    adopt(fresh(tree, prepared.asset, token, 'helper', prepared, null, 'unicode-single-line'));
+    show('Edited the restored Unicode label');
   } catch (error) { if (current(token)) refuse(error, before, candidates); else counts.ignored++; }
 }
 /** @param {string} badFont @param {string} text */
@@ -224,7 +252,7 @@ async function exportPNG() { const s = session; if (!s || disposed) return; cons
 }
 function dispose() { if (disposed) return; if (session) { terminal = sessionObservation(session); session.unbind(); release(session.renderer); }
   session = null; disposed = true; preparing = false; generation++; for (const remove of hostUnbind.splice(0)) remove(); show('Disposed renderer and listeners'); }
-const actions = { wrapped: () => { void editWrapped('Canvas2D labels fit this panel'); }, restoredWrapped: () => { void restoredEdit(null, 220); }, alignLeft: () => { void editMultiline('Balance\n-$20', 40, 2, 'left'); }, alignCenter: () => { void editMultiline('Balance\n-$20', 40, 2, 'center'); }, alignRight: () => { void editMultiline('Balance\n-$20', 40, 2, 'right'); }, restoredCenter: () => { void restoredEdit('center'); }, multiline: () => { void editMultiline('Balance\n-$20'); }, numeric: () => { void edit('12.5', 2, 'printable-ascii'); }, currency: () => { void edit('-$20', 2, 'printable-ascii'); }, statusLabel: () => { void edit('FPS:60', 1.5, 'printable-ascii'); }, hi: () => { void edit('HI', 2); }, space: () => { void edit('H I', 1.5); },
+const actions = { unicode: () => { void editUnicode(); }, restoredUnicode: () => { void restoredUnicodeEdit(); }, wrapped: () => { void editWrapped('Canvas2D labels fit this panel'); }, restoredWrapped: () => { void restoredEdit(null, 220); }, alignLeft: () => { void editMultiline('Balance\n-$20', 40, 2, 'left'); }, alignCenter: () => { void editMultiline('Balance\n-$20', 40, 2, 'center'); }, alignRight: () => { void editMultiline('Balance\n-$20', 40, 2, 'right'); }, restoredCenter: () => { void restoredEdit('center'); }, multiline: () => { void editMultiline('Balance\n-$20'); }, numeric: () => { void edit('12.5', 2, 'printable-ascii'); }, currency: () => { void edit('-$20', 2, 'printable-ascii'); }, statusLabel: () => { void edit('FPS:60', 1.5, 'printable-ascii'); }, hi: () => { void edit('HI', 2); }, space: () => { void edit('H I', 1.5); },
   invalid: () => { rejectFont('not a font'); }, oversize: () => { rejectFont('1000px monospace', 'M'.repeat(128)); },
   restored: () => { void restoredEdit(); }, save: () => { void save().catch(error => show(`Save failed: ${codeOf(error)}`)); },
   png: () => { void exportPNG(); }, dispose };
@@ -234,8 +262,8 @@ const onOpen = () => { const file = input.files?.[0]; if (!file || disposed) ret
   void file.text().then(text => { if (!current(token)) { counts.ignored++; return; } return openText(text, token); })
     .catch(error => { if (current(token)) refuse(error, before, candidates); }); input.value = ''; };
 input.addEventListener('change', onOpen); hostUnbind.push(() => input.removeEventListener('change', onOpen));
-Object.defineProperty(window, 'browserTextConsumer', { value: Object.freeze({ observe, edit, editMultiline, editWrapped, rejectWrapped, rejectMultiline, rejectFont, openText, restoredEdit, save, exportPNG, dispose,
-  get canvas() { return canvas; }, points() { return session ? pointsFor(session) : null; },
+Object.defineProperty(window, 'browserTextConsumer', { value: Object.freeze({ observe, edit, editUnicode, restoredUnicodeEdit, editMultiline, editWrapped, rejectWrapped, rejectMultiline, rejectFont, openText, restoredEdit, save, exportPNG, dispose,
+  get canvas() { return canvas; }, get tree() { return session?.tree ?? null; }, get renderer() { return session?.renderer ?? null; }, points() { return session ? pointsFor(session) : null; },
   /** @param {Point} point */ pixel(point) { return session ? sample(session, point) : null; },
   documentText() { return session ? serialize(session) : Promise.resolve(null); } }), writable: false, configurable: false });
 void edit('Canvas2D', 1);

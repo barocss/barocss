@@ -327,3 +327,20 @@ Save/Open stores prepared pixels and full crop without calling extrusion again. 
 ### Prepared independent alpha matte
 
 The existing `alpha.html` host retains inherited-alpha controls and the original Atlas. **Apply alpha matte** prepares a fixed2×2 source and independent2×2 matte, preserves all source RGB, and displays copied Matted bytes under the existing blue Frame and green Vector. A copied tree, candidate renderer and separate CPU snapshots are admitted before replacement. Current public document staging reopens the prepared bytes without rerunning the helper. A restored Sprite position edit remains local to the Frame; PNG export uses the accepted document. Dispose removes the exact host canvas callback and releases all owned GL resources; CPU preparation has an independent lifetime.
+
+
+## Unicode single-line browser labels
+
+`rasterizeBrowserText({ text, font, atlasId, dpr, textPolicy: 'unicode-single-line' })`
+prepares one copied whole-label atlas and retains the original semantic text.
+It admits 1..128 well-formed UTF-16 code units with non-whitespace content,
+excluding C0, DEL/C1 controls and U+2028/U+2029. It does not normalize text.
+The host prepares a local font; browser shaping and font fallback determine
+actual glyphs. Font readiness is not a glyph-coverage certificate. Existing
+ASCII defaults, printable ASCII, multiline and wrapping keep their contracts.
+Save/Open stores the complete text, layout and pixels, not the font, policy or
+raster DPR. A later edit explicitly chooses the current font and policy.
+The existing browser-text consumer adds an editable Unicode draft using
+24px system-ui at DPR2, with accepted-state retention on refusal and disposal.
+No downloaded font, shaping kernel, global coverage or cross-device parity is
+provided. Existing raster size, byte limits and scratch cleanup remain.
