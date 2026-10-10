@@ -13,3 +13,5 @@ export * from './mixed-surface-point.js';
 export {duplicateRenderMixedDocument} from './mixed-duplicate.js';
 export {deriveRenderCameraInteraction} from './mixed-camera-navigation.js';
 export type {RenderCameraInteraction} from './mixed-camera-navigation.js';
+export {inspectRenderMixedSphereSource, editRenderMixedSphereSource} from './mixed-sphere-source.js';
+export type {RenderMixedSphereProperties, RenderMixedSpherePatch} from './mixed-sphere-source.js';

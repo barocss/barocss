@@ -5,6 +5,7 @@ import type { RenderMixedDocumentV1, RenderMixedDocumentDisplayV1 } from './mixe
 import { prepareRenderMixedDocument } from './mixed-frame.js';
 import type { PreparedRenderMixedDocument } from './mixed-frame.js';
 import { prepareRenderNativeSourceImport } from './native-source-import.js';
+import { inspectRenderMixedSphereSource } from './mixed-sphere-source.js';
 
 export const RENDER_MIXED_SESSION_LIMITS = Object.freeze({ historyEntries: 32, historyBytes: 4 * 1024 * 1024 });
 export type RenderMixedSessionPurpose = 'apply' | 'open' | 'undo' | 'redo';
@@ -20,6 +21,7 @@ export interface RenderMixedSessionSnapshot {
   /** Owned draft data. Numeric camera/display values can await validation. */
   readonly draft: RenderMixedDocumentV1;
   readonly dirty: boolean;
+  readonly sphereInputInvalid: boolean;
   readonly diagnostics: RenderMixedDocumentError | null;
   readonly canUndo: boolean;
   readonly canRedo: boolean;
@@ -31,6 +33,7 @@ export interface RenderMixedSession {
   getSnapshot(): RenderMixedSessionSnapshot;
   subscribe(listener: () => void): () => void;
   setDraftTitle(title: string): void;
+  setDraftSphereSource(source: string | null): void;
   setDraftSource(kind: 'scene' | 'asset', text: string): void;
   setDraftCamera(camera: MeshCamera): void;
   setDraftDisplay(display: RenderMixedDocumentDisplayV1): void;
@@ -107,11 +110,11 @@ function copyDraftDisplay(input: unknown): RenderMixedDocumentDisplayV1 {
 export function createRenderMixedSession(initial: RenderMixedDocumentV1): RenderMixedSession {
   let prepared = prepareRenderMixedDocument(initial), accepted = prepared.document, draft = accepted;
   let diagnostics: RenderMixedDocumentError | null = null, savedRevision: number | null = null;
-  let disposed = false, locked = false, generation = 0, historyIndex = 0;
+  let disposed = false, locked = false, sphereInputInvalid = false, generation = 0, historyIndex = 0;
   let history: readonly HistoryEntry[] = Object.freeze([Object.freeze({ document: accepted, bytes: measure(accepted) })]);
   const candidates = new WeakMap<object, CandidateState>(), listeners = new Set<() => void>();
   const makeSnapshot = (): RenderMixedSessionSnapshot => Object.freeze({ accepted, prepared, draft,
-    dirty: !ownedEqual(draft, accepted), diagnostics, canUndo: !disposed && historyIndex > 0,
+    dirty: sphereInputInvalid || !ownedEqual(draft, accepted), sphereInputInvalid, diagnostics, canUndo: !disposed && historyIndex > 0,
     canRedo: !disposed && historyIndex < history.length - 1, savedRevision, disposed });
   let snapshot = makeSnapshot();
   const assertMutable = (): void => {
@@ -128,7 +131,8 @@ export function createRenderMixedSession(initial: RenderMixedDocumentV1): Render
   };
   const setDraft = (next: RenderMixedDocumentV1): void => {
     let nextDiagnostics: RenderMixedDocumentError | null = null;
-    try { prepareRenderMixedDocument(next); } catch (cause) { nextDiagnostics = Object.freeze(diagnostic(cause)); }
+    if (sphereInputInvalid) nextDiagnostics = Object.freeze(error('Check the Sphere properties before Apply.'));
+    else try { prepareRenderMixedDocument(next); } catch (cause) { nextDiagnostics = Object.freeze(diagnostic(cause)); }
     draft = Object.freeze(next); diagnostics = nextDiagnostics; changed();
   };
   const nextRevision = (): number => {
@@ -175,6 +179,18 @@ export function createRenderMixedSession(initial: RenderMixedDocumentV1): Render
       }
       setDraft({ ...draft, title });
     },
+    setDraftSphereSource(source) {
+      assertMutable();
+      if (source === null) {
+        sphereInputInvalid = true;
+        diagnostics = Object.freeze(error('Check the Sphere properties before Apply.'));
+        changed();
+        return;
+      }
+      inspectRenderMixedSphereSource(source);
+      sphereInputInvalid = false;
+      setDraft({ ...draft, sceneSource: source });
+    },
     setDraftSource(kind, text) {
       assertMutable();
       if (kind !== 'scene' && kind !== 'asset') throw error('Source draft kind must be scene or asset.');
@@ -183,7 +199,7 @@ export function createRenderMixedSession(initial: RenderMixedDocumentV1): Render
         || new TextEncoder().encode(text).length > RENDER_MIXED_DOCUMENT_LIMITS.sourceBytes) {
         throw new RenderMixedDocumentError('BYTES', 'Source draft exceeds 65536 UTF-8 bytes or code units.');
       }
-      if (kind === 'scene') setDraft({ ...draft, sceneSource: text });
+      if (kind === 'scene') { sphereInputInvalid = false; setDraft({ ...draft, sceneSource: text }); }
       else {
         const changedSource = text !== accepted.asset.source;
         if (changedSource && accepted.asset.revision === 2147483647) throw error('Accepted asset revision is at its maximum.');
@@ -226,8 +242,12 @@ export function createRenderMixedSession(initial: RenderMixedDocumentV1): Render
       setDraft({ ...draft, asset: Object.freeze({ ...draft.asset, source: imported.source, modelId, surfaceId,
         revision: changedSource ? accepted.asset.revision + 1 : accepted.asset.revision }) });
     },
-    discardDraft() { assertMutable(); draft = accepted; diagnostics = null; changed(); },
-    prepareDraft() { assertMutable(); return prepare({ ...draft, revision: nextRevision() }, 'apply'); },
+    discardDraft() { assertMutable(); draft = accepted; sphereInputInvalid = false; diagnostics = null; changed(); },
+    prepareDraft() {
+      assertMutable();
+      if (sphereInputInvalid) throw error('Check the Sphere properties before Apply.');
+      return prepare({ ...draft, revision: nextRevision() }, 'apply');
+    },
     prepareOpen(text) { assertMutable(); return prepare(parseRenderMixedDocument(text), 'open'); },
     prepareUndo() {
       assertMutable();
@@ -249,7 +269,7 @@ export function createRenderMixedSession(initial: RenderMixedDocumentV1): Render
           throw error('Presentation callback must be synchronous.');
         }
         // All native/frame construction, bytes and eviction were prepared first.
-        prepared = candidate.prepared; accepted = prepared.document; draft = accepted; diagnostics = null;
+        prepared = candidate.prepared; accepted = prepared.document; draft = accepted; sphereInputInvalid = false; diagnostics = null;
         history = state.plan.entries; historyIndex = state.plan.index; state.used = true;
         if (candidate.purpose === 'open') savedRevision = accepted.revision;
       } finally { locked = false; }
