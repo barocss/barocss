@@ -180,6 +180,29 @@ function prepare(input:unknown,optionsInput:unknown,sceneVersion:0|1|2=0):{primi
 function prepareV1(input:unknown,options:unknown):ReturnType<typeof prepare>{const envelope=record(input,['version','entries']);check(envelope.version===1,'Only explicit primitive scene version1 is supported');return prepare(envelope.entries,options,1);}
 function prepareV2(input:unknown,options:unknown):ReturnType<typeof prepare>{const envelope=record(input,['version','entries']);check(envelope.version===2,'Only explicit qualified primitive scene version2 is supported');return prepare(envelope.entries,options,2);}
 
+/** Shared pure frame admission. Internal module export; no canvas or backend access. */
+export function prepareCompletePrimitiveFrameData(input:unknown,allowEmpty=false):{prepared:ReturnType<typeof prepare>;materials:PrimitiveSceneMaterial[];particles:unknown}{
+   const frame=record(input,['version','scene','options','particles','materials']);check(frame.version===0,'Only complete frame version0 is supported');
+   const scene=record(frame.scene,['version','entries']);check(scene.version===2,'Complete frame requires qualified scene version2');
+   const empty=allowEmpty&&Array.isArray(scene.entries)&&Object.getPrototypeOf(scene.entries)===Array.prototype&&scene.entries.length===0&&Reflect.ownKeys(scene.entries).length===1;
+   const prepared=empty?{primitives:[] as Primitive[],options:prepareOptions(frame.options)}:prepareV2(frame.scene,frame.options);
+   const list=frame.materials;check(Array.isArray(list)&&Object.getPrototypeOf(list)===Array.prototype,'Materials require plain dense array');
+   const descriptors=Object.getOwnPropertyDescriptors(list as object),length=descriptors.length.value;
+   check(Number.isInteger(length)&&length>=0&&length<=4&&Reflect.ownKeys(list).length===length+1,'Complete frame admits0..4 dense materials');
+   const seen=new Set<string>(),materials:PrimitiveSceneMaterial[]=[];
+   for(let i=0;i<length;i++){
+    const descriptor=descriptors[String(i)];check(descriptor&&'value'in descriptor&&descriptor.enumerable,'Material entries must be own data');
+    const item=record(descriptor.value,['ref','binding']),ref=record(item.ref,['modelId','geometryId']);
+    check(typeof ref.modelId==='string'&&/^[A-Za-z_][A-Za-z0-9_.:-]{0,127}$/.test(ref.modelId)&&typeof ref.geometryId==='string','Exact qualified material ref required');
+    const key=JSON.stringify([ref.modelId,ref.geometryId]);check(!seen.has(key),'Duplicate complete-frame material ref');seen.add(key);
+    const primitive=prepared.primitives.find(p=>{const r=(p.entry as PrimitiveSceneEntryV2).ref;return r.modelId===ref.modelId&&r.geometryId===ref.geometryId;});
+    check(primitive&&primitive.entry.kind==='surface','Material must reference a candidate-scene Surface');
+    primitive.material=validateMeshMaterialBinding(item.binding);
+    materials.push({ref:{modelId:ref.modelId,geometryId:ref.geometryId},binding:primitive.material});
+   }
+   return{prepared,materials,particles:frame.particles};
+ }
+
 /** Genuine sampled native Curves and Surface packets share one candidate frame/depth. */
 class PrimitiveSceneBackend {
  private readonly gl:WebGL2RenderingContext;private accepted:Frame|null=null;private disposed=false;private lost=false;private presentationUnavailable=false;
@@ -270,25 +293,9 @@ class PrimitiveSceneBackend {
   return this.updatePrepared(()=>this.prepareCompleteFrame(input,allowEmpty));
  }
  private prepareCompleteFrame(input:unknown,allowEmpty=false):PreparedScene{
-   const frame=record(input,['version','scene','options','particles','materials']);check(frame.version===0,'Only complete frame version0 is supported');
-   const scene=record(frame.scene,['version','entries']);check(scene.version===2,'Complete frame requires qualified scene version2');
-   const empty=allowEmpty&&Array.isArray(scene.entries)&&Object.getPrototypeOf(scene.entries)===Array.prototype&&scene.entries.length===0&&Reflect.ownKeys(scene.entries).length===1;
-   const prepared=empty?{primitives:[] as Primitive[],options:prepareOptions(frame.options)}:prepareV2(frame.scene,frame.options);
-   const list=frame.materials;check(Array.isArray(list)&&Object.getPrototypeOf(list)===Array.prototype,'Materials require plain dense array');
-   const descriptors=Object.getOwnPropertyDescriptors(list as object),length=descriptors.length.value;
-   check(Number.isInteger(length)&&length>=0&&length<=4&&Reflect.ownKeys(list).length===length+1,'Complete frame admits0..4 dense materials');
-   const seen=new Set<string>();
-   for(let i=0;i<length;i++){
-    const descriptor=descriptors[String(i)];check(descriptor&&'value'in descriptor&&descriptor.enumerable,'Material entries must be own data');
-    const item=record(descriptor.value,['ref','binding']),ref=record(item.ref,['modelId','geometryId']);
-    check(typeof ref.modelId==='string'&&/^[A-Za-z_][A-Za-z0-9_.:-]{0,127}$/.test(ref.modelId)&&typeof ref.geometryId==='string','Exact qualified material ref required');
-    const key=JSON.stringify([ref.modelId,ref.geometryId]);check(!seen.has(key),'Duplicate complete-frame material ref');seen.add(key);
-    const primitive=prepared.primitives.find(p=>{const r=(p.entry as PrimitiveSceneEntryV2).ref;return r.modelId===ref.modelId&&r.geometryId===ref.geometryId;});
-    check(primitive&&primitive.entry.kind==='surface','Material must reference a candidate-scene Surface');
-    primitive.material=validateMeshMaterialBinding(item.binding);
-   }
-   const particles=this.prepareSceneParticles(frame.particles);check(!particles||prepared.primitives.length>0,'Particles require candidate native geometry');
-   return{...prepared,particles};
+  const {prepared,particles:inputParticles}=prepareCompletePrimitiveFrameData(input,allowEmpty);
+  const particles=this.prepareSceneParticles(inputParticles);check(!particles||prepared.primitives.length>0,'Particles require candidate native geometry');
+  return{...prepared,particles};
  }
  protected copyCompleteFrameV1():PrimitiveSceneFrameV1{return{...this.copyCompleteFrame(),version:1,cloth:this.copyClothLayer()};}
  protected updateCompleteFrameV1(input:PrimitiveSceneFrameV1,allowEmpty=false):UpdateResult{

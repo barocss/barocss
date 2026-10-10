@@ -1230,3 +1230,39 @@ Viewer must consume the published fatal error to retain native CPU/provenance
 while fencing Open/Fit/presentation. There is no public private-state getter,
 new renderer/profile or resize-recovery promise. Code/build/public-error checks
 are separate from actual single/double-fault WebGL2/Viewer/resource proof.
+
+## Complete native frame CPU preflight
+
+`preparePrimitiveSceneFrame(input, profile='qualified-v2')` admits a complete
+existing frame0: `{version:0,scene:{version:2,entries},options,particles:null,materials}`.
+It validates native geometry, display poses, camera, lighting and candidate
+qualified opaque Surface material bindings together. No canvas, context,
+listener, GPU handle or presentation is created. The qualified profile requires
+1..4 primitives. Explicit `'viewport-v2'` additionally admits an empty scene
+with no materials. Particles and cloth are excluded from this CPU profile.
+
+The frozen result has `format:'barocss-gpu-primitive-frame-preflight'`, version0,
+profile, canonical copied `frame`, prepared `primitives`, derived `bounds` and
+`bufferBytes`. Original native packets/samples/UV/IDs and admitted poses remain
+separate from independently mutable Float32 display views and Uint16 indices.
+Bounds describe those display views; they are null for empty. Byte totals count
+the owned execution views, excluding original data and driver storage.
+
+Materials retain input order and reference candidate Surfaces. Existing source
+validation, uniform defaults, declared ranges and canonical numerical zero
+apply. Records and original arrays are frozen; execution views belong to the
+caller. Mutating those views does not change `.frame`. Re-admit `.frame` through
+the supported API before a later mount or update; the prepared DTO is inspectable
+CPU data and is not a trusted backend token. Existing constructors and updates
+keep their own signatures and validation.
+
+Existing native/sample/material caps and errors remain. Actual Error identities
+propagate; a thrown non-Error is wrapped in GPUError with its original cause.
+Preflight success does not establish shader compilation, device capacity,
+complete first presentation, rollback, lifecycle or rendered Open. Those remain
+separate requirements of #1375. A failed first mount has no accepted frame to
+roll back. Existing #1334 update recovery retains its own semantics.
+
+`examples/gpu-scene/primitive-frame-preflight-flow.mjs --output <fresh-directory>`
+uses genuine authored native Surface assets, two materials, explicit poses and
+camera/light, source/emitted APIs, copied files and cold CPU reconstruction.

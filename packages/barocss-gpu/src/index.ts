@@ -62,3 +62,6 @@ export type {QualifiedFaceSceneV0,QualifiedFaceAssetV0,QualifiedFaceSceneDiagnos
 export {mountQualifiedFaceScene,QualifiedFaceSceneRenderer} from './qualified-face-scene-renderer.js';
 
 export { PrimitiveSceneRecoveryError } from './primitive-scene-renderer.js';
+
+export { preparePrimitiveSceneFrame } from './primitive-frame-preflight.js';
+export type { PrimitiveSceneFrameProfile, PrimitiveSceneCpuFrameV0, PreparedPrimitiveSceneFrameEntry, PreparedPrimitiveSceneFrame } from './primitive-frame-preflight.js';
