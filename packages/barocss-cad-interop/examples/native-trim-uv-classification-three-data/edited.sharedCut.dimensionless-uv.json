@@ -1,0 +1,1 @@
+{"coordinateSystem":"native-surface-uv","lengthUnit":"dimensionless","curve":{"kind":"curve","id":"edited_cut_surface_uv","degree":3,"knots":[0,0,0,0,1,1,1,1],"controlPoints":[[0,0.2,0],[0.3333333333333333,0.26666666666666666,0],[0.6666666666666666,0.3333333333333333,0],[1,0.4,0]],"weights":[6000,6000,6000,6000]}}

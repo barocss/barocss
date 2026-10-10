@@ -1,0 +1,1 @@
+{"coordinateSystem":"native-surface-uv","lengthUnit":"dimensionless","curve":{"kind":"curve","id":"dyadic_uv1","degree":1,"knots":[0,0,0.75,0.75],"controlPoints":[[1,0,0],[1,0.75,0]],"weights":[1,1]}}

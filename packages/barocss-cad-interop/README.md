@@ -3096,3 +3096,70 @@ This is source0 native editing and a Three.js display consumer. It does not cert
 geometric validity, topology, Solid status, manufacturing tolerance or editor
 display. Build/source/browser evidence is separate from compiled public entries,
 packed consumption, other engines and npm publication.
+
+### Inspect stored trim UV beside the original Support Surface
+
+The `native-trim-uv-classification-three.html` example retains a complete
+eight-object Source0 Model: one Support Surface and seven native Curves.
+It shows the whole untrimmed Support Surface and reads the stored trim graph
+through the existing public CAD classifier. The dimensionless UV graph is
+native data. It does not become a world-space line, filled Face or trimmed mesh.
+
+```ts
+import {
+  classifyVLinearSurfacePlaneTrimUV,
+  validateVLinearSurfacePlaneTrimUVClassification,
+} from '@barocss/cad';
+import { BaroCADLoader } from '@barocss/cad-interop/three';
+
+const classification = classifyVLinearSurfacePlaneTrimUV(
+  originalRequest.trim, originalRequest.queries, originalRequest.options,
+);
+validateVLinearSurfacePlaneTrimUVClassification(classification);
+
+const display = new BaroCADLoader({
+  sourceVersion: 0, countU: 8, countV: 8, unitsPerMillimeter: 0.001,
+  nativeCapacity: { version: 1, maximumObjects: 16 },
+}).parse(originalRequest.trim.world.source);
+// curveDisplay is omitted: all seven Curves remain in display.model.
+// display.unrenderedCurveIds includes the original degree-four cut.
+scene.add(display.group);
+```
+
+Classification validates the complete owned parent proof. The Three result
+retains the original source and Model while deriving one 64-vertex,
+98-triangle display at the chosen scale. Native source, qualified Face IDs,
+UV sidecars and classification remain the query authority. The display does
+not certify ideal Plane side, topology, Solid or manufacturing tolerance.
+
+Three genuine groups supply 36 byte-pinned original files and nine queries.
+The primary query at `u=0.5`, `v=0.30000000000000004` reaches its explicit
+subdivision cap and returns `uncertain` for both Faces. This is a successful
+result. Finite UV outside the chart and a zero subdivision budget are also
+supported success states; do not turn them into binary material guesses.
+
+The host prepares each candidate detached, checks whole source/bindings and
+native/neutral data, then replaces the accepted display and readout. It
+releases the previous geometry/material before rendering. Refused native
+queries, forged proofs, invalid source/options and explicit host binding
+errors retain the accepted asset. The two host binding errors belong to this
+example; they are not public CAD diagnostic codes. Cold reopening retains the
+whole edited source and native graph. Double cleanup releases each owned pair
+once and preserves the caller Scene, camera, renderer, canvas and marker.
+
+Use Node 22 with the existing workspace dependencies, before library builds:
+
+```sh
+node packages/barocss-cad-interop/examples/native-trim-uv-classification-three-verify.mjs --output /tmp/barocss-trim-uv-proof
+pnpm exec vite --config packages/barocss-cad-interop/examples/native-trim-uv-classification-three.config.mjs --host 127.0.0.1 --port 5206 --strictPort
+```
+
+Open `http://127.0.0.1:5206/packages/barocss-cad-interop/examples/native-trim-uv-classification-three.html`.
+After the initial dyadic case, run refusals, load the primary case, load the
+edited case, cold reopen it, then clean up twice. The fixed original-coordinate
+camera shows the Support Surface; the readout preserves each UV query and its
+qualified classifications. Original CSS files are served as exact plain-text
+bytes. The verifier records actual source resolution and Three CPU resource
+events; the browser separately observes HTTP bytes, real pixels and lifetime.
+This workspace source example does not establish published JS/types, editor
+Save/Open recovery, other targets, packed consumer #801 or npm release.

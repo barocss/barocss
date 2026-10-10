@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native trim UV classification in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 940px; margin: 24px auto; padding: 0 16px; }
+  canvas { display: block; width: 900px; height: 640px; border: 1px solid #44617d; }
+  button { margin: 8px 8px 8px 0; padding: 7px 10px; }
+  pre { white-space: pre-wrap; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; } th, td { padding: 6px; text-align: left; border-bottom: 1px solid #44617d; }
+</style>
+<main>
+  <h1>Native trim UV classification in Three.js</h1>
+  <p>The Mesh is the complete original untrimmed support Surface. The table reports native dimensionless UV classification.
+    No cut lines, fill or trimmed mesh is drawn. An uncertain classification is a successful bounded result.</p>
+  <div id="view"></div>
+  <div>
+    <button id="run-refusals" disabled>Run 12 actual refusals</button>
+    <button id="load-primary" disabled>Load primary cap16 case</button>
+    <button id="load-edited" disabled>Load edited-source rebuild</button>
+    <button id="cold-reopen" disabled>Cold reopen complete edited source</button>
+    <button id="dispose" disabled>Dispose twice</button>
+  </div>
+  <pre id="status">Loading 36 unchanged original files…</pre>
+  <pre id="readout">Native trim and support Model pending.</pre>
+  <table><thead><tr><th>Query / UV</th><th>Chart / cut relation</th><th>Qualified Face / classification</th><th>Method / subdivisions</th></tr></thead><tbody id="query-rows"></tbody></table>
+  <pre id="controls">Additional successful native controls pending.</pre>
+  <pre id="quality">This display is not a trimmed mesh or a Solid.</pre>
+  <details><summary>Full actual classification and trim proof</summary><pre id="full-proof"></pre></details>
+  <details><summary>Actual rejection receipts</summary><pre id="refusal-readout"></pre></details>
+</main>
+<script type="module" src="./native-trim-uv-classification-three.mjs"></script>
+</html>
