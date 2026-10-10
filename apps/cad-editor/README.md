@@ -477,3 +477,43 @@ Download/fresh Open/re-edit and minimum1000x700 task focus/layout. Controlled ab
 does not prove physical quota exhaustion, security denial or crash durability.
 Native author completion, sole Integration merge and later integrated checks are
 reported separately. Feature-graph recovery and automatic recovery remain gaps.
+
+
+## Canvas Curve pole authoring
+
+Open a native file and explicitly choose Curve focus when its complete original
+Curve needs the degree1..5 route. Retain one to four document-view choices.
+Select a named Curve, choose Point, and use XYZ(mm)/Weight or drag a visible
+control point. Focus Curve shows one original Curve with its complete source
+retained; Return to document view restores the current accepted document subset.
+Surface editing continues in document view.
+
+A point drag uses the camera-facing plane through that original coefficient.
+Move shows a pending handle/control-polygon ghost; native Curve waits for
+PointerUp's actual engine/view admission. One accepted drag creates one Undo
+step. Escape/pointercancel restores only the gesture's draft/previous selection;
+existing raw edits must be applied/discarded before dragging. Typed numeric
+fields remain useful for exact coordinates and weight. Typing/Tab/composition
+does not apply. Invalid native or view input retains original/native/history/raw.
+
+Focused whole source1..4objects/65536bytes+codeunits, count65, IDsASCII1..64 and
+actual scaled samples<=1000 sceneunits are supported here. Larger native
+16object/262144 sources and simultaneous mixed focus are tracked gaps; source
+is never extracted/clamped to manufacture support. Focused receipts truthfully
+have documentnull/bodyreceipts[] and separate actual native qualification.
+
+Native Download/fresh picker Open/re-edit and manual recovery retain full
+original sources/siblings/-0/IDs/names. Recovery version1 excludes focus; the
+host can explicitly choose incoming focus without changing stored raw.
+
+```sh
+node apps/cad-editor/flows/curve-pole-flow.mjs --headed --port 52034
+node apps/cad-editor/flows/curve-pole-flow.mjs --compiled --port 52035
+```
+
+The flow uses original quartic/quintic mixed assets, actual point mouse drag,
+real focused GPU/Viewer/native/file/refusal/return/recovery and minimum1000x700
+controls/Help/footer. Canvas Surface dragging, axis Gizmo, snapping/live shape
+preview and full Autodesk/Plasticity-level modeling remain planned required
+product work. No broader profile/device/numerical/durability/commercial parity
+is certified by this bounded native workflow.

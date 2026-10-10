@@ -3,7 +3,7 @@ import type {
   CadDocumentExportResult, CadDocumentExportSelection,
   CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, SurfacePoleEditProvenance,
   CadCurveArcLengthOptions, CadCurveArcLengthResult,
-  CurveCurvatureResult, CurveD2Result, SurfaceCurvatureResult, SurfaceD2Result,
+  CurveCurvatureResult, CurveD2Result, CurvePoleEditProvenance, SurfaceCurvatureResult, SurfaceD2Result,
 } from '@barocss/cad';
 
 export type CadEditorExportCapability = CadDocumentExportCapability;
@@ -43,10 +43,17 @@ export class CadEditorError extends Error {
   }
 }
 export type CadEditorPoleField = 'xMM' | 'yMM' | 'zMM' | 'weight';
-export interface CadEditorSessionOptions { displayBodyIds?: string[] }
+export type CadEditorView = { kind: 'document' } | { kind: 'curve-focus'; bodyId: string; count: number };
+export interface CadEditorSessionOptions { displayBodyIds?: string[]; view?: CadEditorView }
 export interface CadEditorSurfaceSelection { bodyId: string; uIndex: number; vIndex: number }
+export interface CadEditorCurveSelection { bodyId: string; index: number }
+export interface CadEditorSelectedCurvePole extends CadEditorCurveSelection {
+  reference: CadGeometryReferenceV0;
+  count: number;
+  accepted: Record<CadEditorPoleField, number>;
+}
 export interface CadEditorSelectionTarget {
-  bodyId: string; uIndex?: number; vIndex?: number; reference?: CadGeometryReferenceV0;
+  bodyId: string; uIndex?: number; vIndex?: number; index?: number; reference?: CadGeometryReferenceV0;
 }
 export interface CadEditorSelectionTransition {
   token: string; baseGeneration: number; target: CadEditorSelectionTarget;
@@ -60,17 +67,22 @@ export interface CadEditorCandidate {
   token: string; baseGeneration: number; baseDisplayGeneration: number;
   kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'rename';
   displayBodyIds: string[];
+  view: CadEditorView;
   result: CadDocumentResult;
   provenance: SurfacePoleEditProvenance[];
+  curveProvenance: CurvePoleEditProvenance[];
 }
 export interface CadEditorSnapshot {
   accepted: CadDocumentResult;
   generation: number;
   displayGeneration: number;
   displayBodyIds: string[];
-  bodyCapabilities: { bodyId: string; canEditSurfacePole: boolean; reason: null | 'curve' | 'surface-profile' | 'asset-has-siblings' }[];
+  view: CadEditorView;
+  bodyCapabilities: { bodyId: string; canEditSurfacePole: boolean; canEditCurvePole: boolean;
+    reason: null | 'curve' | 'curve-profile' | 'surface-profile' | 'asset-has-siblings' }[];
   selectedBodyId: string | null;
   selection: CadEditorSelectedPole | null;
+  curveSelection: CadEditorSelectedCurvePole | null;
   selectionTransition: CadEditorSelectionTransition | null;
   pending: Partial<Record<CadEditorPoleField, string>>;
   candidate: CadEditorCandidate | null;
@@ -79,6 +91,7 @@ export interface CadEditorSnapshot {
   downloadStatus: 'Not downloaded' | 'Download started';
   disposed: boolean;
   lastProvenance: SurfacePoleEditProvenance[];
+  lastCurveProvenance: CurvePoleEditProvenance[];
 }
 export interface CadEditorDownload { token: string; text: string; suggestedFilename: string }
 export interface CadEditorSession {
@@ -95,11 +108,15 @@ export interface CadEditorSession {
   requestSelection(target: CadEditorSelectionTarget): CadEditorSelectionTransition | null;
   resolveSelectionTransition(token: string, choice: 'apply' | 'discard' | 'cancel'): CadEditorCandidate | null;
   selectSurfacePole(selection: CadEditorSurfaceSelection): void;
+  selectCurvePole(selection: CadEditorCurveSelection): void;
   stageSurfacePoleField(field: CadEditorPoleField, rawText: string): void;
+  stageCurvePoleField(field: CadEditorPoleField, rawText: string): void;
   discardPending(): void;
   prepareApply(): CadEditorCandidate | null;
   prepareOpen(text: string, options?: CadEditorSessionOptions): CadEditorCandidate;
   prepareDisplayBodies(bodyIds: string[]): CadEditorCandidate;
+  prepareCurveFocus(bodyId: string, count: number): CadEditorCandidate;
+  prepareDocumentView(): CadEditorCandidate;
   prepareRenameBody(bodyId: string, name: string): CadEditorCandidate | null;
   prepareUndo(): CadEditorCandidate;
   prepareRedo(): CadEditorCandidate;

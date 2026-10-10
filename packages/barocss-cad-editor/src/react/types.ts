@@ -1,5 +1,7 @@
 import type { BaroCadDocumentPrimitiveOptionsV2 } from '@barocss/cad-interop/document';
 import type { ViewerOptions, ViewerState } from '@barocss/viewer';
+import type { CadGeometryReferenceV0 } from '@barocss/cad';
+import type { SelectedUniformCurvePreview } from '@barocss/gpu';
 import type { CadEditorCandidate, CadEditorError, CadEditorSession, CadEditorSnapshot, CadEditorGeometryAnalysisResult, CadEditorCurveLength } from '../types.js';
 
 export interface CadEditorDisplayOptions {
@@ -21,6 +23,17 @@ export interface CadEditorDisplayReceipt {
   lifecycle: { mounts: number; disposals: number };
 }
 
+/** Actual focused Viewer data; its document and documentBodies remain empty. */
+export interface CadEditorCurveFocusReceipt extends CadEditorDisplayReceipt {
+  reference: CadGeometryReferenceV0;
+  bodyName: string;
+  sourceModelName: string;
+  curveId: string;
+  preview: SelectedUniformCurvePreview;
+  generation: number;
+  displayGeneration: number;
+}
+
 export interface CadEditorViewportProps {
   session: CadEditorSession;
   displayOptions: CadEditorDisplayOptions;
@@ -32,6 +45,7 @@ export interface CadEditorViewportProps {
   onError?: (error: CadEditorError) => void;
   onAccepted?: (snapshot: CadEditorSnapshot, candidate: CadEditorCandidate) => void;
   onDisplay?: (receipt: CadEditorDisplayReceipt) => void;
+  onCurveDisplay?: (receipt: CadEditorCurveFocusReceipt | null) => void;
   className?: string;
 }
 

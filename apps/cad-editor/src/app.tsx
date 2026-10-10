@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Box, ChevronRight, CircleHelp, Download, FolderOpen, Layers3, Maximize, Redo2, Undo2 } from 'lucide-react';
 import { parseCadDocument } from '@barocss/cad';
-import { CadEditorError, createCadEditorSession, type CadEditorExportResult, type CadEditorGeometryAnalysisResult, type CadEditorCurveLength } from '@barocss/cad-editor';
-import { CadEditor, CadEditorExportReview, useCadEditorSnapshot, type CadEditorDisplayOptions, type CadEditorDisplayReceipt } from '@barocss/cad-editor/react';
+import { CadEditorError, createCadEditorSession, type CadEditorExportResult, type CadEditorGeometryAnalysisResult, type CadEditorCurveLength, type CadEditorView } from '@barocss/cad-editor';
+import { CadEditor, CadEditorExportReview, useCadEditorSnapshot, type CadEditorDisplayOptions, type CadEditorDisplayReceipt, type CadEditorCurveFocusReceipt } from '@barocss/cad-editor/react';
 import fixtureText from '../fixtures/canonical-surface-and-curve.cad-document.json?raw';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './components/ui/dialog';
 import { Button } from './components/ui/button';
@@ -24,6 +24,9 @@ function nativeCauses(error: Error): {message:string;code:string|null}[] {
   return causes;
 }
 function actionError(error: CadEditorError): string {
+  if(error.context.field==='curve-pole-drag')return error.code==='STALE'?'The point or view changed. Review the pending values before dragging again.':'Cannot move this point. Apply or discard the draft, then try again.';
+  if(error.context.field==='curve-focus')return 'Cannot show this Curve view. Keep the current view, or choose another object. Open Help for the supported limits.';
+  if(error.context.field==='curve-pole')return 'Cannot apply this Curve point. Check its coordinates and weight, then use Focus Curve.';
   if(error.context.field==='document-recovery')return 'Cannot open this recovery copy. The current document is retained. Open Recovery copies to retry.';
   if(error.context.field==='curve-length')return 'Cannot estimate this Curve length. Check the original interval or open Help.';
   if(error.context.field==='document-replacement-download')return 'Download could not start. The current document is retained.';
@@ -57,13 +60,15 @@ const defaultDisplay: CadEditorDisplayOptions = {
 
 interface RecoveryOrigin { raw:string;wasDirty:boolean;hadPending:boolean }
 interface ReplacementRequest { id:number;anchor:ReplacementAnchor;target:ReplacementTarget;focus:HTMLElement|null;downloadStarted:boolean;hostWasDirty:boolean;recovery?:RecoveryOrigin }
-interface OpenChoice { id:number;anchor:ReplacementAnchor;focus:HTMLElement|null;text:string;filename:string;bodies:{id:string;name:string}[];selected:string[] }
+interface OpenChoice { id:number;anchor:ReplacementAnchor;focus:HTMLElement|null;text:string;filename:string;bodies:{id:string;name:string}[];curveBodies:{id:string;name:string}[];selected:string[];view:CadEditorView;recovery?:RecoveryOrigin }
 
 function DirectApp() {
   const [session] = useState(() => createCadEditorSession(parseCadDocument(fixtureText).document));
   const snapshot = useCadEditorSnapshot(session);
   const [error, setError] = useState<CadEditorError | null>(null);
   const [filename, setFilename] = useState('Weighted surface');
+  const [curveDisplay,setCurveDisplay]=useState<CadEditorCurveFocusReceipt|null>(null);
+  const openChoiceFocusRef=useRef<HTMLElement|null>(null);
   const [receipt, setReceipt] = useState<CadEditorDisplayReceipt | null>(null);
   const [exportReview,setExportReview]=useState<CadEditorExportResult|null>(null);
   const [geometryAnalysis,setGeometryAnalysis]=useState<CadEditorGeometryAnalysisResult|null>(null);
@@ -81,6 +86,7 @@ function DirectApp() {
   const [readRequest, setReadRequest] = useState(0);
   const [route, setRoute] = useState(location.hash);
   const fileInput = useRef<HTMLInputElement>(null);
+  if(openChoice)openChoiceFocusRef.current=openChoice.focus;
   const pendingOpen=useRef<{token:string;filename:string;recovery?:RecoveryOrigin}|null>(null);
   const recoveredUnsavedRef=useRef(false);
   const [recoveredUnsaved,setRecoveredUnsaved]=useState(false);
@@ -153,7 +159,12 @@ function DirectApp() {
       if(slot.raw!==observed.raw||!slot.record||slot.error)throw new Error('The recovery copy changed or cannot be read.');
       const record=slot.record;
       setRecoveryHandover(true);setRecoveryOpen(false);cancelRecoveryConfirmation();
-      receiveTarget(id,anchor,{kind:'open',text:record.text,filename:record.filename,displayBodyIds:record.displayBodyIds},fileMenu.current,{raw:slot.raw,wasDirty:record.wasDirty,hadPending:record.hadPending});
+      const parsed=parseCadDocument(record.text),origin:RecoveryOrigin={raw:slot.raw,wasDirty:record.wasDirty,hadPending:record.hadPending};
+      const curveBodies=parsed.document.bodies.filter(body=>parsed.bodyBindings.some(binding=>binding.bodyId===body.id&&binding.geometryKind==='curve'));
+      if(parsed.compiledAssets.some(asset=>asset.model.objects.some(geometry=>geometry.kind==='curve'&&geometry.degree>3))){
+        setOpenChoice({id,anchor,focus:fileMenu.current,text:record.text,filename:record.filename,bodies:parsed.document.bodies,curveBodies,selected:[...record.displayBodyIds],view:{kind:'document'},recovery:origin});return;
+      }
+      receiveTarget(id,anchor,{kind:'open',text:record.text,filename:record.filename,displayBodyIds:record.displayBodyIds},fileMenu.current,origin);
     }catch(cause){if(id!==requestSerial.current)return;replacementError(new CadEditorError('FILE','Cannot open this recovery copy.',{field:'document-recovery'},cause));setRecoveryMessage('Cannot open this copy. Resolve drafts or review the current recovery copy.');void refreshRecovery();}
     finally{if(id===requestSerial.current)setRecoveryChecking(false);}
   }
@@ -173,14 +184,14 @@ function DirectApp() {
     // This focused flow seam exposes copied data and declared host actions only.
     const api = {
       snapshot: () => session.getSnapshot(), display: () => structuredClone(receipt), error: () => error ? {code:error.code,message:error.message,context:{...error.context},cause:error.cause instanceof Error ? error.cause.message : null,causeChain:nativeCauses(error)} : null,
-      exportReview:()=>structuredClone(exportReview),geometryAnalysis:()=>structuredClone(geometryAnalysis),curveLength:()=>structuredClone(curveLength),recovery:()=>({status:recoveryStatus,slot:structuredClone(recoverySlot),unsaved:recoveredUnsavedRef.current}),readFrame:()=>setReadRequest(value=>value+1),
+      exportReview:()=>structuredClone(exportReview),geometryAnalysis:()=>structuredClone(geometryAnalysis),curveLength:()=>structuredClone(curveLength),curveDisplay:()=>structuredClone(curveDisplay),recovery:()=>({status:recoveryStatus,slot:structuredClone(recoverySlot),unsaved:recoveredUnsavedRef.current}),readFrame:()=>setReadRequest(value=>value+1),
       setDisplayRefusal: (refuse: boolean) => setDisplayOptions(refuse ? { ...defaultDisplay, document: { ...defaultDisplay.document, native: { ...defaultDisplay.document.native, countU: 1 } } } : defaultDisplay),
       setMounted: (mounted: boolean) => { setMount(mounted); if (mounted) setMountKey(key => key + 1); },
       session,
     };
     Object.assign(window, { __cadEditorFlow: api });
     return () => { delete (window as Window & { __cadEditorFlow?: unknown }).__cadEditorFlow; };
-  }, [flowMode, session, receipt, exportReview, geometryAnalysis, curveLength, error,recoveryStatus,recoverySlot]);
+  }, [flowMode, session, receipt, exportReview, geometryAnalysis, curveLength,curveDisplay, error,recoveryStatus,recoverySlot]);
   function clearReplacement() {
     requestSerial.current++;setReplacementBusy(false);setRecoveryChecking(false);recoveryCommitRef.current=null;replacementAttempt.current=false;replacementRef.current=null;setReplacement(null);setOpenChoice(null);
   }
@@ -197,7 +208,7 @@ function DirectApp() {
     currentRequest(request);
     const target=copyReplacementTarget(request.target);
     clearReplacement();setError(null);
-    const candidate=session.prepareOpen(target.text,target.displayBodyIds?{displayBodyIds:target.displayBodyIds}:undefined);
+    const candidate=session.prepareOpen(target.text,target.displayBodyIds||target.view?{...(target.displayBodyIds?{displayBodyIds:target.displayBodyIds}:{}),...(target.view?{view:target.view}:{})}:undefined);
     pendingOpen.current={token:candidate.token,filename:target.filename,recovery:request.recovery};
     if(location.hash==='#/projects')location.hash='/documents/'+session.getSnapshot().accepted.document.documentId;
   }
@@ -231,9 +242,12 @@ function DirectApp() {
       const text=await readCadEditorFile(file);
       if(id!==requestSerial.current)return;
       assertReplacementCurrent(session,anchor);
-      let document;
-      try{document=parseCadDocument(text).document;}catch(cause){throw new CadEditorError('NATIVE','Native document Open failed.',{},cause);}
-      if(document.bodies.length>4){setOpenChoice({id,anchor,focus,text,filename:file.name,bodies:document.bodies,selected:[]});return;}
+      let parsed;
+      try{parsed=parseCadDocument(text);}catch(cause){throw new CadEditorError('NATIVE','Native document Open failed.',{},cause);}
+      const document=parsed.document;
+      const curveBodies=document.bodies.filter(body=>parsed.bodyBindings.some(binding=>binding.bodyId===body.id&&binding.geometryKind==='curve'));
+      const wide=parsed.compiledAssets.some(asset=>asset.model.objects.some(geometry=>geometry.kind==='curve'&&geometry.degree>3));
+      if(document.bodies.length>4||wide){setOpenChoice({id,anchor,focus,text,filename:file.name,bodies:document.bodies,curveBodies,selected:document.bodies.length<=4?document.bodies.map(body=>body.id):[],view:{kind:'document'}});return;}
       receiveTarget(id,anchor,{kind:'open',text,filename:file.name},focus);
     }catch(cause){if(id===requestSerial.current)replacementError(cause);}
   };
@@ -298,18 +312,19 @@ function DirectApp() {
     {error && <div className="app-error" role="alert">{actionError(error)}<Button variant="ghost" size="xs" onClick={() => setError(null)}>Dismiss</Button></div>}
     <div className="app-workspace">
       <aside className="document-tree"><h2><Layers3 size={15}/>Document</h2><div className="tree-document"><Box size={16}/><span>{filename}</span></div>
-        <div className="tree-section">BODIES <span>{snapshot.accepted.document.bodies.length}</span></div>
+        <div className="tree-section">{snapshot.view.kind==='curve-focus'?'DOCUMENT VIEW':'BODIES'} <span>{snapshot.accepted.document.bodies.length}</span></div>
         {snapshot.accepted.document.bodies.map(body => {
           const binding = snapshot.accepted.bodyBindings.find(item => item.bodyId === body.id)!;
           const selected = snapshot.selectedBodyId === body.id;
           const shown = snapshot.displayBodyIds.includes(body.id);
-          const editable = snapshot.bodyCapabilities.find(item => item.bodyId === body.id)?.canEditSurfacePole;
+          const capability=snapshot.bodyCapabilities.find(item=>item.bodyId===body.id);
+          const editable=capability?.canEditSurfacePole,editableCurve=capability?.canEditCurvePole;
           return <div key={body.id} className="tree-body-row">
             <button className={'tree-body' + (selected ? ' selected' : '')} data-testid={'body-select-' + body.id}
               onClick={() => run(() => session.requestSelection(binding.geometryKind === 'surface' ? { bodyId: body.id, uIndex: 1, vIndex: 1 } : { bodyId: body.id }))} aria-pressed={selected}>
-              <span className={'body-symbol ' + binding.geometryKind}>{binding.geometryKind === 'surface' ? '▱' : '╱'}</span><span>{body.name}<small>{editable ? 'Editable surface' : binding.geometryKind === 'surface' ? 'Read-only surface' : 'Read-only curve'}</small></span>
+              <span className={'body-symbol ' + binding.geometryKind}>{binding.geometryKind === 'surface' ? '▱' : '╱'}</span><span>{body.name}<small>{editable ? 'Editable surface' : binding.geometryKind === 'surface' ? 'Read-only surface' : snapshot.view.kind==='curve-focus'&&snapshot.view.bodyId===body.id?'Focused Curve':editableCurve?'Editable Curve':'Read-only Curve'}</small></span>
             </button>
-            <input type="checkbox" data-testid={'body-visible-' + body.id} aria-label={(shown ? 'Hide ' : 'Show ') + body.name}
+            <input type="checkbox" data-testid={'body-visible-' + body.id} aria-label={(shown?'Hide ':'Show ')+body.name+(snapshot.view.kind==='curve-focus'?' in document view':'')}
               checked={shown} disabled={busy} onChange={() => run(() => session.prepareDisplayBodies(shown ? snapshot.displayBodyIds.filter(id => id !== body.id) : [...snapshot.displayBodyIds, body.id]))} />
           </div>;
         })}
@@ -320,7 +335,7 @@ function DirectApp() {
         {projectView ? <section className="projects-view"><span className="eyebrow">LOCAL DOCUMENTS</span><h1>Projects</h1><p>Start with the weighted surface, or open a native document.</p><button className="sample-project" data-testid="project-new-sample" onClick={newSample}><span className="sample-symbol">▱</span><span><strong>Weighted surface</strong><small>Quadratic 3 × 3 surface · Reference line</small></span><ChevronRight size={20}/></button><Button variant="outline" onClick={chooseOpenFile}><FolderOpen/>Open document</Button></section> : mount && <CadEditor key={mountKey} session={session} displayOptions={displayOptions} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest}
           onLength={result=>{setCurveLength(result);if(result!==null)setError(current=>current?.context.field==='curve-length'?null:current);}}
           onAnalysis={result=>{setGeometryAnalysis(result);if(result!==null)setError(current=>current?.context.field==='geometry-analysis'?null:current);}}
-          onError={failure => { pendingOpen.current=null;setError(failure); }} onAccepted={(accepted,candidate) => { setError(null);if(candidate.kind==='open'&&pendingOpen.current?.token===candidate.token){setFilename(pendingOpen.current.filename);provenance(pendingOpen.current.recovery?.wasDirty??false);if(pendingOpen.current.recovery)setRecoveryMessage(pendingOpen.current.recovery.hadPending?'Recovery copy opened. Draft fields were not restored.':'Recovery copy opened.');}pendingOpen.current=null;location.hash='/documents/'+accepted.accepted.document.documentId; }} onDisplay={setReceipt}/>}
+          onCurveDisplay={setCurveDisplay} onError={failure => { pendingOpen.current=null;setError(failure); }} onAccepted={(accepted,candidate) => { setError(null);if(candidate.kind==='open'&&pendingOpen.current?.token===candidate.token){setFilename(pendingOpen.current.filename);provenance(pendingOpen.current.recovery?.wasDirty??false);if(pendingOpen.current.recovery)setRecoveryMessage(pendingOpen.current.recovery.hadPending?'Recovery copy opened. Draft fields were not restored.':'Recovery copy opened.');}pendingOpen.current=null;location.hash='/documents/'+accepted.accepted.document.documentId; }} onDisplay={setReceipt}/>}
       </main>
     </div>
     <ReplacementDialog open={replacement!==null} currentName={filename} action={replacement?.target.kind??'open'} targetName={replacement?.target.filename??''} downloadStarted={replacement?.downloadStarted??false} returnFocus={replacement?.focus??null} busy={replacementBusy} onCancel={clearReplacement} onDownload={downloadReplacementCopy} onContinue={continueReplacement}/>
@@ -328,8 +343,13 @@ function DirectApp() {
       status={recoveryStatus} busy={recoveryBusy} canSave={recoverySlot!==null&&!busy&&!snapshot.disposed&&!recoveryChecking} canOpen={!!recoverySlot?.record&&!busy&&!hasDraft&&!recoveryChecking} canDelete={recoverySlot?.raw!==undefined&&recoverySlot!==null&&!recoveryChecking}
       confirmation={recoveryConfirmation} message={recoveryMessage} onSave={saveRecovery} onOpen={()=>{void openRecovery();}} onDelete={removeRecovery} onConfirm={confirmRecovery} onCancelConfirmation={cancelRecoveryConfirmation} onCancel={closeRecovery} returnFocus={fileMenu.current} suppressReturnFocus={recoveryHandover}/>
     <Dialog open={openChoice !== null} onOpenChange={open => { if (!open) clearReplacement(); }}>
-      <DialogContent className="cad-editor-help-dialog" data-testid="open-display-choice" onCloseAutoFocus={event=>{event.preventDefault();if(!replacementRef.current)openButton.current?.focus({preventScroll:true});}}>
-        <DialogHeader><DialogTitle>Choose visible objects</DialogTitle><DialogDescription>Select one to four objects to display. The complete document will be opened.</DialogDescription></DialogHeader>
+      <DialogContent className="cad-editor-help-dialog" data-testid="open-display-choice" onCloseAutoFocus={event=>{event.preventDefault();if(!replacementRef.current)openChoiceFocusRef.current?.focus({preventScroll:true});}}>
+        <DialogHeader><DialogTitle>Choose visible objects</DialogTitle><DialogDescription>Choose one to four objects for document view. You can open one Curve in focus view. The complete original document is retained.</DialogDescription></DialogHeader>
+        {openChoice&&openChoice.curveBodies.length>0&&<div className="open-view-fields">
+          <label>Open view<select data-testid="open-view-mode" value={openChoice.view.kind} onChange={event=>setOpenChoice(current=>current&&{...current,view:event.target.value==='curve-focus'?{kind:'curve-focus',bodyId:current.curveBodies[0].id,count:65}:{kind:'document'}})}><option value="document">Document view</option><option value="curve-focus">Curve focus</option></select></label>
+          {openChoice.view.kind==='curve-focus'&&<label>Curve<select data-testid="open-focus-curve" value={openChoice.view.bodyId} onChange={event=>setOpenChoice(current=>current&&{...current,view:{kind:'curve-focus',bodyId:event.target.value,count:65}})}>{openChoice.curveBodies.map(body=><option key={body.id} value={body.id}>{body.name}</option>)}</select></label>}
+          <p>Curve focus shows one Curve. The checkboxes retain your document-view choice.</p>
+        </div>}
         <div className="open-body-list">{openChoice?.bodies.map(body => <label key={body.id}>
           <input type="checkbox" data-testid={'open-body-' + body.id} checked={openChoice.selected.includes(body.id)}
             onChange={event => setOpenChoice(current => current && {...current,selected:event.target.checked ? [...current.selected,body.id] : current.selected.filter(id => id !== body.id)})} />{body.name}
@@ -338,11 +358,11 @@ function DirectApp() {
         <div className="cad-editor-transition-actions"><Button variant="outline" onClick={clearReplacement}>Cancel</Button>
           <Button data-testid="open-display-confirm" disabled={!openChoice || openChoice.selected.length < 1 || openChoice.selected.length > 4} onClick={() => run(() => {
             if (!openChoice) return;
-            const choice=openChoice;setOpenChoice(null);try{receiveTarget(choice.id,choice.anchor,{kind:'open',text:choice.text,filename:choice.filename,displayBodyIds:choice.selected},choice.focus);}catch(cause){replacementError(cause);}
+            const choice=openChoice;setOpenChoice(null);try{receiveTarget(choice.id,choice.anchor,{kind:'open',text:choice.text,filename:choice.filename,displayBodyIds:choice.selected,view:choice.view},choice.focus,choice.recovery);}catch(cause){replacementError(cause);}
           })}>Open</Button></div>
       </DialogContent>
     </Dialog>
-    <footer className="app-status"><span className="status-led"/><span>{busy ? 'Preparing display' : Object.keys(snapshot.pending).length ? 'Pending fields' : 'Accepted document'}</span><span className="status-divider"/><span>{snapshot.downloadStatus}</span><span className="status-divider"/><span data-testid="app-unsaved-state" aria-live="polite">{effectiveUnsaved?'Unsaved changes':'No new changes'}</span><span data-testid="app-draft-state">{hasDraft?'Draft pending':'No draft'}</span><span data-testid="app-recovery-state">{recoveryStatus==='ready'?'Recovery copy ready':recoveryStatus==='failed'?'Recovery unavailable':recoveryStatus==='loading'?'Checking recovery':'No recovery copy'}</span><span className="status-spacer"/><span>History {snapshot.history.index + 1} / {snapshot.history.count}</span><span className="status-divider"/><span>XYZ · mm</span></footer>
+    <footer className="app-status"><span className="status-led"/><span>{busy ? 'Preparing display' : Object.keys(snapshot.pending).length ? 'Pending fields' : snapshot.view.kind==='curve-focus'?'Curve focus':'Accepted document'}</span><span className="status-divider"/><span>{snapshot.downloadStatus}</span><span className="status-divider"/><span data-testid="app-unsaved-state" aria-live="polite">{effectiveUnsaved?'Unsaved changes':'No new changes'}</span><span data-testid="app-draft-state">{hasDraft?'Draft pending':'No draft'}</span><span data-testid="app-recovery-state">{recoveryStatus==='ready'?'Recovery copy ready':recoveryStatus==='failed'?'Recovery unavailable':recoveryStatus==='loading'?'Checking recovery':'No recovery copy'}</span><span className="status-spacer"/><span>History {snapshot.history.index + 1} / {snapshot.history.count}</span><span className="status-divider"/><span>XYZ · mm</span></footer>
   </div>;
 }
 

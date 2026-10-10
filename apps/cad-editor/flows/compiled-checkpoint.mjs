@@ -196,8 +196,8 @@ export async function prepareCompiledCheckpoint({ repo, evidence }) {
 
     const consumerPath = resolve(checkpoint, 'published-consumer.tsx');
     await writeFile(consumerPath, `import { editSourceSurfaceControlNet, validateSourceSurfaceControlNetEdit, type SourceSurfaceControlNetResult } from '@barocss/cad';
-import { createCadEditorSession, createCadEditorFeatureSession, type CadEditorCandidate, type CadEditorFeatureSessionOptions, type CadEditorFeatureOutput, type CadEditorFaceCornerBinding, type CadEditorFaceCorner, type CadEditorFeatureProperties, type CadEditorFeaturePropertiesOptions, type CadEditorExportCapability, type CadEditorExportOptions, type CadEditorExportReport, type CadEditorExportResult, type CadEditorExportSelection, type CadEditorCurveLength, type CadEditorCurveLengthOptions, type CadEditorCurveD2, type CadEditorSurfaceD2, type CadEditorCurveCurvature, type CadEditorSurfaceCurvature, type CadEditorGeometryAnalysisResult } from '@barocss/cad-editor';
-import { CadEditor, CadEditorFeature, CadEditorExportReview, CadEditorGeometryAnalysis, CadEditorBodyRename, type CadEditorBodyRenameProps, type CadEditorGeometryAnalysisProps, type CadEditorExportReviewProps, type CadEditorProps, type CadEditorFeatureProps } from '@barocss/cad-editor/react';
+import { createCadEditorSession, createCadEditorFeatureSession, type CadEditorCandidate, type CadEditorFeatureSessionOptions, type CadEditorFeatureOutput, type CadEditorFaceCornerBinding, type CadEditorFaceCorner, type CadEditorFeatureProperties, type CadEditorFeaturePropertiesOptions, type CadEditorExportCapability, type CadEditorExportOptions, type CadEditorExportReport, type CadEditorExportResult, type CadEditorExportSelection, type CadEditorCurveLength, type CadEditorCurveLengthOptions, type CadEditorView, type CadEditorCurveSelection, type CadEditorSelectedCurvePole, type CadEditorCurveD2, type CadEditorSurfaceD2, type CadEditorCurveCurvature, type CadEditorSurfaceCurvature, type CadEditorGeometryAnalysisResult } from '@barocss/cad-editor';
+import { CadEditor, CadEditorFeature, CadEditorExportReview, CadEditorGeometryAnalysis, CadEditorBodyRename, type CadEditorBodyRenameProps, type CadEditorGeometryAnalysisProps, type CadEditorExportReviewProps, type CadEditorProps, type CadEditorCurveFocusReceipt, type CadEditorFeatureProps } from '@barocss/cad-editor/react';
 import { parseCadDocument, parseBooleanExtrusionFeatureGraph, type CadGeometryReferenceV0 } from '@barocss/cad';
 const session = createCadEditorSession(parseCadDocument('{}').document);
 const props: CadEditorProps = { session, displayOptions: { viewer: {mmToSceneUnit:0.01,background:[0.07,0.08,0.10]}, document: {basis:'authored-xyz-matches-rhyup',native:{sourceVersion:0,countU:17,countV:17,unitsPerMillimeter:1,curveDisplay:{chordToleranceMM:0.1,maxSegments:64,maxDepth:8}},bodyIds:['surface_body','curve_body']} }, onDisplay: receipt => {const index:number = receipt.readIndex; const hash:string = receipt.pixelHash;}, onAccepted: (accepted,candidate) => {const generation:number=accepted.generation;const acceptedToken:string=candidate.token;const acceptedKind:CadEditorCandidate['kind']=candidate.kind;} };
@@ -225,6 +225,16 @@ const renameKind:'apply'|'open'|'undo'|'redo'|'display'|'rename'|undefined=renam
 const renameProps:CadEditorBodyRenameProps={session,onError:error=>{const field:string|undefined=error.context.field;}};
 const renameElement=<CadEditorBodyRename {...renameProps}/>;
 const propsWithAnalysis:CadEditorProps={...props,onAnalysis:analysisProps.onAnalysis};
+const curveView:CadEditorView={kind:'curve-focus',bodyId:'curve_body',count:65};
+const curveIndex:CadEditorCurveSelection={bodyId:'curve_body',index:1};
+session.selectCurvePole(curveIndex);
+session.requestSelection({...curveIndex,reference:analysisReference});
+session.stageCurvePoleField('zMM','2.5');
+const focusedCandidate:CadEditorCandidate=session.prepareCurveFocus('curve_body',65);
+const returnedCandidate:CadEditorCandidate=session.prepareDocumentView();
+const curvePole:CadEditorSelectedCurvePole|null=session.getSnapshot().curveSelection;
+const focusedHost:CadEditorProps={...props,onCurveDisplay:result=>{if(result){const copied:CadEditorCurveFocusReceipt=result;const body:string=result.reference.bodyId;const source:string=result.preview.source;const index:number=result.readIndex;const generation:number=result.generation;}}};
+session.prepareOpen('{}',{displayBodyIds:['surface_body'],view:curveView});
 const candidate: CadEditorCandidate | null = session.prepareApply();
 const decision = session.requestSelection({bodyId:'surface_body',uIndex:1,vIndex:1});
 if (decision) session.resolveSelectionTransition(decision.token, 'cancel');
