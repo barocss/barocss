@@ -822,3 +822,13 @@ The existing camera convention uses a bounds-centred target, direction `[1,1,1]`
 `fitQualifiedFace({sourceId,expectedSource,faceId,modelId,surfaceId})` frames one current asset's sampled Float32 display vertices. All five pin fields must exactly match a current complete source-owned Face. The input is plain own data; accessors, extra fields, Proxy, missing and stale pins refuse. The whole2..6 scene is revalidated before computing the target bounds. Other assets stay drawn and retained; they may be outside the new view. There is no selection/highlight/visibility change.
 
 The camera and checked complete-scene update follow `fit()`. Native source/Models/IDs and measurements stay unchanged. Camera-only framing does not supersede held URL loads. Recoverable failures preserve accepted authority; unavailable recovery and actual context loss follow existing GPU refusal rules. Dispose invalidates authority. Bounds are sampled display bounds, not native Surface extrema/control hull/BRep/Solid bounds.
+
+### Original Surface evaluation at approximate screen parameters (#1203)
+
+`sampleQualifiedFace({xCss,yCss})` returns a copied version0 sample or null. It keeps the current qualified display pick and uses its accepted triangle barycentrics with original tessellation parameter samples. U/V stay in the original native domain. It then evaluates the original Surface once. `parameters.approximate` is true; `nativePoint.pointMM` is original evaluation at that approximate chosen U/V.
+
+The display-triangle intersection and evaluated native point are separate. `displayToNativeDistanceScene` is their local Scene difference, not a global error bound. This is not a certified native ray hit or pixel identity. Exact represented vertex weights copy original parameters; other samples use checked interpolation with no UV normalization or domain clamp. Unsafe math/native-domain refusals remain errors.
+
+The query changes no Viewer/GPU/measurement/request state. It uses the existing screen input, nearest/tie, clipping and lifecycle rules. Loss, unavailable presentation, sticky restoration, wrong mode and disposal refuse a screen sample. Manual native parameter queries retain their separate CPU authority.
+
+Approximate screen-selected U/V may vary with Float32 scaling and camera rounding. Native evaluation at a fixed original U/V remains original geometry; inferred parameters are not an invariant accuracy certificate.

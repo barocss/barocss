@@ -370,3 +370,11 @@ Bounds use sampled Float32 display vertices after native mm conversion and Scene
 ## Frame this Face (#1195)
 
 Each current source row has “Frame this Face”. Its full sourceId/exact Source0/Face/Model/Surface pin is checked before the view action. Successful framing clears the screen inspection row and reprojects native labels. Eight CPU reports stay independent of the camera. Old detached callbacks and stale sources refuse. Other assets remain drawn; framing one asset does not promise to include them in view. The button is disabled when no ready Face presentation exists. Whole “Frame all Faces” remains available.
+
+## Native sample mode (#1203)
+
+Enable “Native sample mode” and click a filled Face. The current source, approximate original U/V, fresh native point in mm and display-to-native Scene discrepancy are shown. Help explains that the parameter comes from a displayed triangle and that the native evaluation is not a certified ray hit. The original eight CPU panels remain independent.
+
+Accepted source/view/backing/CSS changes clear the screen sample. Failed queries or recoverable failed loads retain accepted output. Loss/unavailable/Clear/mode/Dispose clear the report and disable sampling. The old Face inspect mode can run independently or at the same time.
+
+Approximate screen-selected U/V may vary with Float32 scaling and camera rounding. Native evaluation at a fixed original U/V remains original geometry; inferred parameters are not an invariant accuracy certificate.

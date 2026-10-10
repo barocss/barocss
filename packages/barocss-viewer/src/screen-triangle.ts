@@ -2,6 +2,7 @@ import { prepareCamera } from '@barocss/gpu';
 import type { MeshCamera } from '@barocss/gpu';
 
 type Vec3 = [number, number, number];
+interface ScreenTriangleIntersection { fraction: number; barycentric: Vec3 }
 
 /** Shared1063 arithmetic; callers retain their own input and candidate policies. */
 export function prepareScreenTriangleRay(query: { xCss: number; yCss: number }, camera: MeshCamera,
@@ -9,6 +10,7 @@ export function prepareScreenTriangleRay(query: { xCss: number; yCss: number }, 
   errorPrefix: string): {
     finite(value: number): number;
     intersection(a: Vec3, b: Vec3, c: Vec3): number | null;
+    intersectionDetail(a: Vec3, b: Vec3, c: Vec3): ScreenTriangleIntersection | null;
     observation(fraction: number): { displayPositionScene: Vec3; depthScene: number };
   } {
   function check(value: unknown, message: string): asserts value {
@@ -80,8 +82,8 @@ export function prepareScreenTriangleRay(query: { xCss: number; yCss: number }, 
     check(scale > 0 && Math.abs(homogeneous[3]) > finite(1e-12 * scale), 'unprojection homogeneous divisor is unsafe');
     return homogeneous.slice(0, 3).map(value => finite(value / homogeneous[3])) as Vec3;
   }
-  function intersection(origin: Vec3, direction: Vec3, directionNorm: number,
-    a: Vec3, b: Vec3, c: Vec3): number | null {
+  function intersectionDetail(origin: Vec3, direction: Vec3, directionNorm: number,
+    a: Vec3, b: Vec3, c: Vec3): ScreenTriangleIntersection | null {
     const edge1 = subtract(b, a), edge2 = subtract(c, a), firstNorm = norm(edge1), secondNorm = norm(edge2);
     if (firstNorm === 0 || secondNorm === 0) return null;
     const p = cross(direction, edge2), determinant = dot(edge1, p);
@@ -92,7 +94,8 @@ export function prepareScreenTriangleRay(query: { xCss: number; yCss: number }, 
     const q = cross(offset, edge1), v = finite(dot(direction, q) / determinant);
     if (v < 0 || finite(u + v) > 1) return null;
     const fraction = finite(dot(edge2, q) / determinant);
-    return fraction >= 0 && fraction <= 1 ? fraction : null;
+    if (fraction < 0 || fraction > 1) return null;
+    return { fraction, barycentric: [finite(1 - finite(u + v)), u, v] };
   }
   const prepared = prepareCamera(camera, finite(backingWidth / backingHeight));
   const inverted = inverse(multiply(prepared.projection, prepared.view));
@@ -102,7 +105,8 @@ export function prepareScreenTriangleRay(query: { xCss: number; yCss: number }, 
   check(directionNorm > 0, 'near/far segment has represented zero norm');
   return {
     finite,
-    intersection: (a, b, c) => intersection(near, direction, directionNorm, a, b, c),
+    intersection: (a, b, c) => intersectionDetail(near, direction, directionNorm, a, b, c)?.fraction ?? null,
+    intersectionDetail: (a, b, c) => intersectionDetail(near, direction, directionNorm, a, b, c),
     observation: fraction => {
       const displayPositionScene = near.map((value, axis) => finite(value + finite(fraction * direction[axis]))) as Vec3;
       const view = prepared.view;
