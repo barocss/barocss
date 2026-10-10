@@ -275,6 +275,15 @@ verification; they are not a prerequisite for the source host above.
 Three browser flow and compiled JS/declaration checks as separate evidence. It
 does not run a new Babylon/Pixi source host or establish a tarball installation.
 
+The checkpoint requires the original public entries and the optional
+`native-uniform-curve` entry, matching development/publication key sets and exact
+source-to-emitted JS/type paths. It checks every current mapped file and records
+the actual entry count, allowing further legitimate additive entries. File
+existence is not all-entry runtime or declaration parity; the runtime/type
+consumer remains scoped to native/Three with transitive CAD.
+Own-file evidence covers CAD/interop `src` and `dist`; peer declarations under
+`node_modules` are counted separately and are not own source fallback.
+
 [Capacity #982](https://github.com/barocss/barocss/issues/982#issuecomment-6079670371)
 passed native Three/Babylon/Pixi direct complete-file flows;
 [its integrated receipt](https://github.com/barocss/barocss/issues/982#issuecomment-6080581477)

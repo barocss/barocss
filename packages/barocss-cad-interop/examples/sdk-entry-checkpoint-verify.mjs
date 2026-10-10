@@ -16,7 +16,9 @@ const packages = new Map(await Promise.all(packageNames.map(async name => {
   const manifest = JSON.parse(await readFile(resolve(directory, 'package.json'), 'utf8'));
   return [name, { directory, manifest }];
 })));
-const own = filename => [...packages.values()].some(item => resolve(filename).startsWith(item.directory + '/'));
+const own = filename => [...packages.values()].some(item =>
+  resolve(filename).startsWith(item.directory + '/src/') ||
+  resolve(filename).startsWith(item.directory + '/dist/'));
 const cpuConsumer = String.raw`
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -135,7 +137,22 @@ export async function attachURL(url: string, scene: Scene, signal: AbortSignal):
 async function inspectMaps() {
   const { directory, manifest } = packages.get('@barocss/cad-interop');
   const development = manifest.exports, published = manifest.publishConfig?.exports;
-  assert.equal(Object.keys(development).length, 27);
+  const requiredEntries = [
+    '.', './native', './native-uniform-curve', './document',
+    './boolean-extrusion-feature-graph', './boolean-extrusion-feature-mesh',
+    './boolean-extrusion-feature-properties', './assembly', './document-glb',
+    './boolean-mesh-glb', './boolean-extrusion-glb', './three-document',
+    './three-assembly', './three-boolean-contours', './three-boolean-mesh',
+    './three-boolean-extrusion-mesh', './three', './babylon',
+    './babylon-document', './babylon-assembly', './babylon-boolean-mesh',
+    './babylon-boolean-extrusion-mesh', './pixi3d', './pixi3d-document',
+    './pixi3d-assembly', './pixi3d-boolean-mesh',
+    './pixi3d-boolean-extrusion-mesh', './model-set',
+  ];
+  for (const key of requiredEntries) {
+    assert.ok(Object.hasOwn(development, key), `Missing development entry ${key}`);
+    assert.ok(Object.hasOwn(published, key), `Missing published entry ${key}`);
+  }
   assert.deepEqual(Object.keys(published).sort(), Object.keys(development).sort());
   assert.equal(manifest.main, './src/index.ts');
   assert.equal(manifest.types, './src/index.ts');
@@ -145,12 +162,21 @@ async function inspectMaps() {
   for (const key of Object.keys(published)) {
     const dev = development[key], pub = published[key];
     assert.ok(dev.types.startsWith('./src/') && dev.import.startsWith('./src/'));
+    assert.equal(dev.types, dev.import);
     assert.ok(pub.types.startsWith('./dist/') && pub.types.endsWith('.d.ts'));
     assert.ok(pub.import.startsWith('./dist/') && pub.import.endsWith('.js'));
+    assert.equal(pub.import, dev.import.replace('./src/', './dist/').replace(/\.ts$/, '.js'));
+    assert.equal(pub.types, dev.types.replace('./src/', './dist/').replace(/\.ts$/, '.d.ts'));
     await access(resolve(directory, pub.types));
     await access(resolve(directory, pub.import));
     entries.push({ key, development: dev, published: pub, publishedFilesExist: true });
   }
+  assert.deepEqual(development['./native-uniform-curve'], {
+    types: './src/native-uniform-curve.ts', import: './src/native-uniform-curve.ts',
+  });
+  assert.deepEqual(published['./native-uniform-curve'], {
+    types: './dist/native-uniform-curve.d.ts', import: './dist/native-uniform-curve.js',
+  });
   return { interopEntries: entries, entryCount: entries.length,
     exercisedRuntimeEntries: ['./native', './three'], transitiveRuntimeEntry: '@barocss/cad',
     existenceCheckIsNotAllEntryRuntimeAcceptance: true };
@@ -193,11 +219,14 @@ function checkPublishedTypes() {
   const ownFiles = program.getSourceFiles().filter(file => own(file.fileName) && resolve(file.fileName) !== virtualFile).map(file => relative(root, file.fileName));
   const sourceFallbacks = ownFiles.filter(path => path.includes('/src/'));
   const declarationFiles = ownFiles.filter(path => path.includes('/dist/') && path.endsWith('.d.ts'));
+  const peerDeclarationCount = program.getSourceFiles().filter(file =>
+    file.fileName.includes('/node_modules/') && file.fileName.endsWith('.d.ts')).length;
   const evidence = { compiler: ts.version, noEmit: true, virtualConsumer: relative(root, virtualFile),
     consumer: typeConsumer, strict: true, skipLibCheck: true, lib: ['ES2022', 'DOM'], ambientTypes: [],
     peerResolution: 'normal TypeScript resolution for all non-own package imports',
     ownResolution: 'actual publishConfig.exports.types; standard resolution for relative declaration imports',
     diagnostics, ownSourceFallbacks: sourceFallbacks, ownDeclarationCount: declarationFiles.length,
+    peerDeclarationCount, ownPackageFiles: 'CAD/interop src and dist only; peer declarations remain separate',
     ownDeclarationFiles: declarationFiles, resolutions,
     scope: 'published native/Three signatures with transitive CAD types; no emitted runtime or all-entry type parity claim' };
   assert.ok(declarationFiles.length > 0, 'Published own declarations were not checked');
