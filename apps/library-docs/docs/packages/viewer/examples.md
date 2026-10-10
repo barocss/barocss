@@ -42,7 +42,40 @@ Expect model `panel_demo`, Surface `panel`, one sampled Surface and `midpointMM:
 
 ## Task 2 — display, clear and reload the same complete source
 
-Use a genuine WebGL2 canvas in a configured browser source host. Supply `<canvas id="canvas" width="640" height="360" style="width:640px;height:360px"></canvas>` in the host HTML. Set the module's `source` to the exact complete model string in Task 1; do not replace it with sampled buffers.
+This standalone browser recipe has not been executed for #1295. The Task 1 CPU receipt remains separate. Use a shell with Node22+ and the existing app-local esbuild/TypeScript runtime. No dependency installation or package prebuild is part of this recipe. Start from the repository root.
+
+### Save the host and entry
+
+Create the ignored local directory:
+
+```sh
+mkdir -p apps/library-docs/docs/.vitepress/cache/manual-viewer
+```
+
+Save this complete HTML as `apps/library-docs/docs/.vitepress/cache/manual-viewer/index.html`:
+
+```html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Viewer native panel</title>
+  <style>
+    body { font: 16px system-ui; margin: 20px; }
+    canvas { display: block; width: 640px; height: 360px; }
+  </style>
+</head>
+<body>
+  <h1>Viewer native panel</h1>
+  <p>Open the browser developer console to inspect the task results.</p>
+  <canvas id="canvas" width="640" height="360" aria-label="Viewer native panel"></canvas>
+  <script type="module" src="./bundle.js"></script>
+</body>
+</html>
+```
+
+Save the following complete module as `apps/library-docs/docs/.vitepress/cache/manual-viewer/entry.ts`. Keep it standalone with ordinary bare public package imports. The snapshot fallback refuses relative consumer imports; do not add imports from another local entry or an internal package helper.
 
 ```ts
 import { createViewer } from '@barocss/viewer';
@@ -77,7 +110,36 @@ window.addEventListener('pagehide', () => {
 }, { once: true });
 ```
 
-Expect `ready` with reference `{modelId:'panel_demo',surfaceId:'panel'}`, then `empty` after Clear, then the panel again after reload. Drag to orbit, Shift-drag to pan, and focus the canvas for F/Escape. A pick uses canvas-local CSS pixels and a sampled triangle; it cannot certify an exact native ray hit. A successful native midpoint evaluation from Task 1 cannot certify this screen flow.
+### Bundle and serve
+
+Run this one-off command from the repository root in the same Node22+ shell:
+
+```sh
+node --input-type=module <<'JS'
+import { writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { bundleExample } from './apps/library-docs/scripts/example-runtime.mjs';
+if (Number(process.versions.node.split('.')[0]) < 22) throw new Error('Use Node22 or later');
+const directory = resolve('apps/library-docs/docs/.vitepress/cache/manual-viewer');
+const { result, provenance } = await bundleExample(resolve(directory, 'entry.ts'), 'browser');
+await writeFile(resolve(directory, 'bundle.js'), result.outputFiles[0].contents);
+console.log(JSON.stringify(provenance, null, 2));
+JS
+```
+
+This command transforms the entry and writes browser ESM; it does not execute a canvas API in Node. The helper resolves actual public source export maps and verifies consumed source against pin `5f5ad866205a21510ac69552e704cc162fa253b5`. If current package trees differ, it materializes that exact Git snapshot in its ignored cache. It uses no moving branch, source alias or custom source condition. A missing pinned Git object or changed cache is a setup refusal; do not substitute current source silently.
+
+Start the existing Python static server from the repository root:
+
+```sh
+python3 -m http.server 52939 --bind 127.0.0.1 --directory apps/library-docs/docs/.vitepress/cache/manual-viewer
+```
+
+Open [http://127.0.0.1:52939/](http://127.0.0.1:52939/). Python serves `index.html` and `bundle.js`; the browser executes the module on a genuine WebGL2 canvas. If the port is occupied, preserve the other process and choose a free port in both the command and URL. Close the page for its owned cleanup, then press Ctrl+C in the server terminal. This server runs only until stopped; it is not a documentation deployment.
+
+
+
+Expect the console to report `ready` with reference `{modelId:'panel_demo',surfaceId:'panel'}`, then `empty` after Clear. After the module completes, expect the reloaded panel. Clear and reload submit frames synchronously, so the browser need not show the intermediate blank image. Drag to orbit, Shift-drag to pan, and focus the canvas for F/Escape. A pick uses canvas-local CSS pixels and a sampled triangle; it cannot certify an exact native ray hit. A successful native midpoint evaluation from Task 1 cannot certify this screen flow.
 
 An existing complete host is `examples/viewer-scene/README.md`; its source and compiled resolution, camera and file setup are recorded there. Do not run legacy compiled hosts before supplying their compiled dependencies.
 

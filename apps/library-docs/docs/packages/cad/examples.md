@@ -2,7 +2,7 @@
 
 Compile original geometry, query it, then prepare a separate display mesh. These examples use actual `@barocss/cad` public exports at version `0.0.0-experimental`. Use [the language reference](./language) to edit source0/1/2 correctly.
 
-[Open the live playground](/playground) · [Compiler signature](./reference#compilecadmodel) · [Surface sampling signature](./reference#tessellatesurface)
+[Open the source0 playground](/playground) · [Compiler signature](./reference#compilecadmodel) · [Surface sampling signature](./reference#tessellatesurface)
 
 ## Run the complete CPU examples
 
@@ -12,7 +12,7 @@ The saved module contains all four selected language/native flows and the Surfac
 node apps/library-docs/scripts/run-example.mjs apps/library-docs/scripts/snippets/cad-example.ts
 ```
 
-`apps/library-docs/scripts/snippets/cad-example.ts` is the complete runnable input. The shared runner checks the pinned package source, uses ordinary public imports and transforms TypeScript with the existing esbuild dependency. It evaluates the bundle in Node without a WebGL context or network call.
+`apps/library-docs/scripts/snippets/cad-example.ts` is the complete runnable input. The shared runner checks the pinned package source, uses ordinary public imports and transforms TypeScript with the existing esbuild dependency. It evaluates the bundle in Node without a WebGL context or network call. See [Run saved examples](/concepts/run-examples) for setup and running a standalone code block.
 
 The actual selected run passed on its first execution with 222 own source inputs and 0 own dist inputs. Its source pin was `5f5ad866205a21510ac69552e704cc162fa253b5`.
 
@@ -150,7 +150,7 @@ The public evaluator takes an original native parameter. Do not normalize4.5 to 
 
 ## Construct an open Surface in source1
 
-Source1 admits a Curve and its extrusion. It excludes literal Surface blocks:
+Source1 admits a Curve and its extrusion. It excludes literal Surface blocks. Use the [source1 CPU command above](#run-the-complete-cpu-examples) for this example; the CAD playground tabs select source0.
 
 ```ts
 import { compileCadModel, evaluateSurface } from '@barocss/cad';
@@ -177,7 +177,7 @@ The Surface is `C(u)+v[0,0,30]`, with V domain 0..1. This is an open Surface wit
 
 ## Recompile a parameter edit in source2
 
-Source2 quantities distinguish length and scalar:
+Source2 quantities distinguish length and scalar. Use the [source2 CPU command above](#run-the-complete-cpu-examples) to run the original and edited model below.
 
 ```ts
 import { compileCadModel, evaluateSurface } from '@barocss/cad';

@@ -2,7 +2,7 @@
 
 The CAD language describes native rational B-spline geometry and bounded construction intent. It is data for `compileCadModel`, not browser CSS. Use the selected source dialect explicitly. All dialects produce native `Model` version 0 in millimetres.
 
-[Run the examples](./examples) · [Open the live playground](/playground) · [Public compiler signature](./reference#compilecadmodel)
+[Run saved source0/1/2 examples](./examples#run-the-complete-cpu-examples) · [Open the source0 playground](/playground) · [Public compiler signature](./reference#compilecadmodel)
 
 ## Choose a source dialect
 
@@ -11,6 +11,16 @@ The CAD language describes native rational B-spline geometry and bounded constru
 | 0 | `@curve`, `@surface` | Finite signed decimal literals | schemaVersion 1,sourceVersion 0 |
 | 1 | `@curve`, `@extrude` | Finite signed decimal literals | schemaVersion 1,sourceVersion 1 |
 | 2 | `@curve`, `@surface`, `@extrude`, `@parameter` | Bounded typed expressions | schemaVersion 2,sourceVersion 2 |
+
+### Choose an execution target
+
+| Input | Existing run target |
+| --- | --- |
+| Source0 Curve or literal Surface | [CAD playground](/playground), in the matching Curve or Surface tab |
+| Source1 Curve and Extrude | [Saved CPU examples](./examples#run-the-complete-cpu-examples) |
+| Source2 Parameters, expressions and geometry | [Saved CPU examples](./examples#run-the-complete-cpu-examples) |
+
+The CAD playground tabs compile with `sourceVersion:0`. Changing their source header does not enable source1 or source2. The saved consumer explicitly selects each dialect. To run a standalone module copied from this page, follow [Run saved examples](/concepts/run-examples).
 
 **Source1 is not a superset of source0.** A literal `@surface` block is refused in source1. Use source0 for literal Surfaces or source2 for literal/expression-driven Surfaces. Source1 produces Surfaces through `@extrude`.
 
@@ -270,18 +280,24 @@ IR schema2 retains authored-order `parameters` and field/index-order `bindings`.
 
 The first reported boundary depends on the actual candidate and compiler stage. Inspect its real code/message/range rather than assuming every invalid string reaches semantic validation.
 
+This standalone module reports the location from the same string that it compiles:
+
 ```ts
-const rejected = compileCadModel(
-  '@model bad { version: 0; length-unit: cm; }',
-  { sourceVersion: 0 },
-);
-if (!rejected.ok) {
-  const diagnostic = rejected.diagnostics[0];
-  console.log(diagnostic.code, diagnostic.range, diagnostic.message);
-}
+import { compileCadModel } from '@barocss/cad';
+
+const candidateSource = '@model bad { version: 0; length-unit: cm; }';
+const rejected = compileCadModel(candidateSource, { sourceVersion: 0 });
+if (rejected.ok) throw new Error('Expected a unit refusal');
+const { code, message, range } = rejected.diagnostics[0];
+console.log({
+  code,
+  message,
+  location: `${range.line}:${range.column}`,
+  text: candidateSource.slice(range.start, range.end),
+});
 ```
 
-This candidate has an unsupported root unit. Failure returns diagnostics and no partial AST, IR or Model. Source ranges use half-open UTF-16 offsets and one-based line/column coordinates, including endLine/endColumn. Get the highlighted text with `source.slice(range.start,range.end)`.
+The expected code is `UNIT`, and the highlighted text is `cm`. Root units must be `mm`. Failure returns diagnostics and no partial AST, IR or Model. Source ranges use half-open UTF-16 offsets and one-based line/column coordinates, including endLine/endColumn. Keep the exact candidate string with its diagnostics. Apply each range to the candidate that produced it.
 
 ## Allocation and geometry bounds
 

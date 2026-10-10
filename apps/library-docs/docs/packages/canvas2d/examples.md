@@ -43,7 +43,40 @@ console.log(JSON.stringify({ task: 'canvas2d-tree', sceneVersion: scene.version,
 
 ## Task 2 — paint the edited tree and inspect a current hit
 
-In a browser source-capable host, supply `<canvas id="canvas" width="320" height="200"></canvas>` with CSS width 320px and height 200px. Bundle the following TypeScript module as that page's entry. The host must link its `@barocss/canvas2d` workspace dependency; use the existing `examples/workspace-source` setup or your configured workspace host. Raw browser TypeScript imports are unsupported.
+This standalone browser recipe has not been executed for #1295. The Task 1 CPU receipt remains separate. Use a shell with Node22+ and the existing app-local esbuild/TypeScript runtime. No dependency installation or package prebuild is part of this recipe. Start from the repository root.
+
+### Save the host and entry
+
+Create the ignored local directory:
+
+```sh
+mkdir -p apps/library-docs/docs/.vitepress/cache/manual-canvas2d
+```
+
+Save this complete HTML as `apps/library-docs/docs/.vitepress/cache/manual-canvas2d/index.html`:
+
+```html
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Canvas2D rectangle</title>
+  <style>
+    body { font: 16px system-ui; margin: 20px; }
+    canvas { display: block; width: 320px; height: 200px; }
+  </style>
+</head>
+<body>
+  <h1>Canvas2D rectangle</h1>
+  <p>Open the browser developer console to inspect the task results.</p>
+  <canvas id="canvas" width="320" height="200" aria-label="Canvas2D rectangle"></canvas>
+  <script type="module" src="./bundle.js"></script>
+</body>
+</html>
+```
+
+Save the following complete module as `apps/library-docs/docs/.vitepress/cache/manual-canvas2d/entry.ts`. Keep it standalone with ordinary bare public package imports. The snapshot fallback refuses relative consumer imports; do not add imports from another local entry or an internal package helper.
 
 ```ts
 import { createCanvas2D, createDisplayTree } from '@barocss/canvas2d';
@@ -64,7 +97,36 @@ console.log(renderer.hitTest({ x: 110, y: 30 })); // {id:'Rectangle',kind:'rect'
 window.addEventListener('pagehide', () => renderer.dispose(), { once: true });
 ```
 
-Expect a red rectangle at logical `(20,20)`, initially 80×50 and then 100×50. The second hit is inside its new width. Tree mutation alone paints nothing; both submission and `render()` are necessary. The hit contains semantic identity, not a DOM event or selected object.
+### Bundle and serve
+
+Run this one-off command from the repository root in the same Node22+ shell:
+
+```sh
+node --input-type=module <<'JS'
+import { writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { bundleExample } from './apps/library-docs/scripts/example-runtime.mjs';
+if (Number(process.versions.node.split('.')[0]) < 22) throw new Error('Use Node22 or later');
+const directory = resolve('apps/library-docs/docs/.vitepress/cache/manual-canvas2d');
+const { result, provenance } = await bundleExample(resolve(directory, 'entry.ts'), 'browser');
+await writeFile(resolve(directory, 'bundle.js'), result.outputFiles[0].contents);
+console.log(JSON.stringify(provenance, null, 2));
+JS
+```
+
+This command transforms the entry and writes browser ESM; it does not execute a canvas API in Node. The helper resolves actual public source export maps and verifies consumed source against pin `5f5ad866205a21510ac69552e704cc162fa253b5`. If current package trees differ, it materializes that exact Git snapshot in its ignored cache. It uses no moving branch, source alias or custom source condition. A missing pinned Git object or changed cache is a setup refusal; do not substitute current source silently.
+
+Start the existing Python static server from the repository root:
+
+```sh
+python3 -m http.server 52938 --bind 127.0.0.1 --directory apps/library-docs/docs/.vitepress/cache/manual-canvas2d
+```
+
+Open [http://127.0.0.1:52938/](http://127.0.0.1:52938/). Python serves `index.html` and `bundle.js`; the browser executes the module on a genuine WebGL2 canvas. If the port is occupied, preserve the other process and choose a free port in both the command and URL. Close the page for its owned cleanup, then press Ctrl+C in the server terminal. This server runs only until stopped; it is not a documentation deployment.
+
+
+
+After the module completes, expect the final red rectangle at logical `(20,20)`, sized 100×50. The console first reports `null` for the 80px width, then `{id:"Rectangle",kind:"rect"}` for the 100px width. Both frame submissions run synchronously, so the browser may show only the final size. The second hit is inside the new width. Tree mutation alone paints nothing; both submission and `render()` are necessary. The hit contains semantic identity, not a DOM event or selected object.
 
 For an already authored browser/file host, read `packages/barocss-canvas2d/consumer/rect.html` and `examples/canvas2d-scene/document-v1.html`. Those hosts have their own compiled/source setup; use their recorded commands instead of treating the CPU runner as a browser server. Missing WebGL2 or context loss is a renderer refusal. Preserve CPU data and dispose the owned renderer on close.
 

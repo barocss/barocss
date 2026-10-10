@@ -18,32 +18,56 @@ This page describes `mesh-opaque-fragment-v0` at local source snapshot `5f5ad866
 
 `amount` is a host-supplied scalar from0 to1 with default0. `ratio` is a float local. The output interpolates between blue and orange in linear color. At amount0, the shader uses the blue endpoint. At amount1, it uses the orange endpoint. At amount.5, `smoothstep(0,1,.5)` is .5. See the [image, mesh input and execution flow](./examples#host-controlled-material-blend).
 
-This source creates no mesh. The host first calls `mountMesh` with an admitted packet. Then it compiles the material and calls `setMaterial`:
+This source creates no mesh. Compile the material before mounting the admitted mesh. A refused compilation then allocates no renderer. The host needs a range input such as `<input id="amount" type="range" min="0" max="1" step=".01" value="0">`:
 
 ```ts
 import { compileMeshMaterial, mountMesh } from '@barocss/gpu';
 
-// canvas, packet and options are the accepted mesh setup.
-const renderer = mountMesh(canvas, packet, options);
+// source is the complete blend text above.
+// canvas, packet and options come from the CAD-to-mesh example.
 const compiled = compileMeshMaterial(source);
 if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
+const amountInput = document.querySelector<HTMLInputElement>('#amount');
+if (!amountInput) throw new Error('Material amount input is missing');
+
+const renderer = mountMesh(canvas, packet, options);
 
 const adopted = renderer.setMaterial({
   material: compiled.material,
   uniforms: { amount: 0 }
 });
-if (!adopted.ok) throw adopted.error;
+if (!adopted.ok) {
+  renderer.dispose(); // Initial setup did not complete.
+  throw adopted.error;
+}
 
-// Host event, such as a slider input:
-const changed = renderer.setMaterial({
-  material: compiled.material,
-  uniforms: { amount: .5 }
-});
-if (!changed.ok) throw changed.error;
-// renderer.dispose() releases the view when the host removes it.
+let acceptedAmount = 0;
+amountInput.value = String(acceptedAmount);
+function onAmountInput() {
+  const amount = Number(amountInput!.value);
+  const changed = renderer.setMaterial({
+    material: compiled.material,
+    uniforms: { amount }
+  });
+  if (changed.ok) {
+    acceptedAmount = amount;
+  } else {
+    console.error(changed.error.message);
+    amountInput!.value = String(acceptedAmount);
+  }
+}
+amountInput.addEventListener('input', onAmountInput);
+
+function disposePreview() {
+  amountInput!.removeEventListener('input', onAmountInput);
+  renderer.dispose();
+}
+// Call disposePreview() when the host removes this view.
 ```
 
-The same compiled material can be used with different in-range uniform values. `setMaterial` restages a renderer candidate; this source snapshot does not expose a separate fast uniform-only setter.
+The same compiled material can be used with different in-range uniform values. A later refusal retains the accepted binding; the host restores its input value rather than treating the candidate as accepted. The handler reports errors, including context loss. After context loss, stop input handling and remount from retained data.
+
+`setMaterial` restages a renderer candidate; this source snapshot does not expose a separate fast uniform-only setter. Remove the named listener before disposing the renderer. Renderer disposal does not remove caller-owned event listeners.
 
 ## Program structure
 
@@ -236,6 +260,65 @@ The renderer validates a binding, creates a candidate shader/resources, presents
 The material getter returns a clone of accepted binding data. Mutating that clone does not change the live material. An accepted mesh update retains the current material. Clear the material with `setMaterial(null)` before adding an overlay or selection.
 
 There is no implicit timer, time uniform or animation loop. The host owns time and must bind it explicitly. Repeated material adoption should be scheduled according to the actual renderer contract; do not infer a zero-cost per-frame uniform path.
+
+### Supply caller time on demand
+
+This host recipe creates a pulse preview and draws a new time sample only when the user selects a button. Pass a host-owned `<button type="button">Sample elapsed time</button>`, canvas and admitted mesh packet/options. The packet/options can come from the [complete CAD-to-mesh example](./examples#cad-surface-to-a-rendered-mesh).
+
+```ts
+import { compileMeshMaterial, mountMesh } from '@barocss/gpu';
+import type { MeshOptions, PreviewPacket } from '@barocss/gpu';
+
+function mountPulsePreview(
+  canvas: HTMLCanvasElement,
+  packet: PreviewPacket,
+  options: MeshOptions,
+  sampleButton: HTMLButtonElement
+): () => void {
+  const compiled = compileMeshMaterial(`
+@shader #pulse {
+  @uniform timeSeconds: float(0,2,0);
+  @let ratio: float(sin(timeSeconds * 1.5707963267948966) * .5 + .5);
+  @fragment { color: mix(#204080,#E08020,ratio); }
+}`);
+  if (!compiled.ok) throw new Error(JSON.stringify(compiled.diagnostics));
+  const renderer = mountMesh(canvas, packet, options);
+  const initial = renderer.setMaterial({
+    material: compiled.material, uniforms: { timeSeconds: 0 }
+  });
+  if (!initial.ok) {
+    renderer.dispose();
+    throw initial.error;
+  }
+
+  const startedAt = performance.now();
+  let stopped = false;
+  function onSampleTime() {
+    if (stopped) return;
+    const elapsedSeconds = (performance.now() - startedAt) / 1000;
+    // Wrap elapsed time into [0,2), inside the declared inclusive [0,2].
+    const timeSeconds = elapsedSeconds % 2;
+    const changed = renderer.setMaterial({
+      material: compiled.material, uniforms: { timeSeconds }
+    });
+    if (!changed.ok) console.error(changed.error.message);
+  }
+  sampleButton.addEventListener('click', onSampleTime);
+  return function disposePulsePreview() {
+    if (stopped) return;
+    stopped = true;
+    sampleButton.removeEventListener('click', onSampleTime);
+    renderer.dispose();
+  };
+}
+// Use a separate renderer lifecycle for this preview.
+// const disposePulse = mountPulsePreview(canvas, packet, options, sampleButton);
+// On host teardown: disposePulse();
+```
+
+For an elapsed time of5.25seconds, the supplied value is1.25. The host's modulo policy repeats a two-second interval; it does not extend the declared range. Passing5.25directly would be refused. This example schedules no automatic callback and makes no per-frame performance claim.
+
+The returned cleanup removes the host listener before disposing GPU resources. A later failed time sample does not replace the accepted material binding. If the context is lost, call cleanup and remount. The new host snippets on this page are source-backed recipes; they have not been executed as separate browser fixtures. The existing [browser example evidence](./examples#host-controlled-material-blend) covers its recorded amount changes and refusal flow.
 
 ## Diagnostics and budgets
 
