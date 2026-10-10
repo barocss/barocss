@@ -1,4 +1,4 @@
-import { CadEditorError, type CadEditorSession, type CadEditorFeatureSession } from '@barocss/cad-editor';
+import { CadEditorError, type CadEditorSession, type CadEditorFeatureSession, type CadEditorExportResult } from '@barocss/cad-editor';
 
 export const MAXIMUM_FILE_BYTES = 2097152;
 export async function readCadEditorFile(file: File): Promise<string> {
@@ -20,4 +20,15 @@ export function downloadAccepted(session: CadEditorSession | CadEditorFeatureSes
   document.body.append(anchor);
   try { anchor.click(); session.markDownloaded(captured.token); }
   finally { anchor.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+}
+/** Download already reviewed exchange data without changing native save/capture state. */
+export function downloadReviewedExport(result:CadEditorExportResult,kind:'iges'|'report'):void {
+  try {
+    const captured=structuredClone(result);
+    const text=kind==='iges'?captured.iges:JSON.stringify(captured.report,null,2)+'\n';
+    const filename=captured.options.exportModelId+(kind==='iges'?'.igs':'.iges-loss-report.json');
+    const url=URL.createObjectURL(new Blob([text],{type:kind==='iges'?'model/iges':'application/json'}));
+    const anchor=document.createElement('a');anchor.href=url;anchor.download=filename;document.body.append(anchor);
+    try{anchor.click();}finally{anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  } catch(cause){throw cause instanceof CadEditorError?cause:new CadEditorError('FILE','Reviewed export download failed.',{field:'export-download'},cause);}
 }

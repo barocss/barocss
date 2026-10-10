@@ -1,4 +1,14 @@
-import type { CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, SurfacePoleEditProvenance } from '@barocss/cad';
+import type {
+  CadDocumentExportCapability, CadDocumentExportOptions, CadDocumentExportReport,
+  CadDocumentExportResult, CadDocumentExportSelection,
+  CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, SurfacePoleEditProvenance,
+} from '@barocss/cad';
+
+export type CadEditorExportCapability = CadDocumentExportCapability;
+export type CadEditorExportSelection = CadDocumentExportSelection;
+export type CadEditorExportOptions = CadDocumentExportOptions;
+export type CadEditorExportReport = CadDocumentExportReport;
+export type CadEditorExportResult = CadDocumentExportResult;
 
 export type CadEditorDiagnosticCode = 'INPUT' | 'UNSUPPORTED' | 'BUDGET' | 'STALE' | 'NATIVE' | 'DISPLAY' | 'FILE' | 'REVISION' | 'LIFECYCLE';
 export class CadEditorError extends Error {
@@ -50,6 +60,9 @@ export interface CadEditorSnapshot {
 export interface CadEditorDownload { token: string; text: string; suggestedFilename: string }
 export interface CadEditorSession {
   getSnapshot(): CadEditorSnapshot;
+  getExportCapabilities(): CadEditorExportCapability[];
+  inspectExport(options: CadEditorExportOptions): CadEditorExportReport;
+  exportAccepted(options: CadEditorExportOptions): CadEditorExportResult;
   subscribe(listener: () => void): () => void;
   requestSelection(target: CadEditorSelectionTarget): CadEditorSelectionTransition | null;
   resolveSelectionTransition(token: string, choice: 'apply' | 'discard' | 'cancel'): CadEditorCandidate | null;

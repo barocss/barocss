@@ -1,6 +1,7 @@
 import {
   CadReferenceDiagnosticCode, CadReferenceError,
   createCadDocument, createCadGeometryReference, editSourceSurfaceControlNet,
+  exportCadDocument, getCadDocumentExportCapabilities, inspectCadDocumentExport,
   parseCadDocument, resolveCadGeometryReference, serializeCadDocument,
   validateCadDocumentResult, validateSourceSurfaceControlNetEdit,
 } from '@barocss/cad';
@@ -316,6 +317,21 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
 
   return {
     getSnapshot: snapshot,
+    getExportCapabilities() {
+      live();
+      return copy(native(() => getCadDocumentExportCapabilities(), 'Native export capabilities failed.',
+        accepted.document.documentId, { field: 'document-export' }));
+    },
+    inspectExport(exportOptions) {
+      live();
+      return copy(native(() => inspectCadDocumentExport(accepted, exportOptions), 'Native export inspection failed.',
+        accepted.document.documentId, { field: 'document-export' }));
+    },
+    exportAccepted(exportOptions) {
+      live();
+      return copy(native(() => exportCadDocument(accepted, exportOptions), 'Native accepted document export failed.',
+        accepted.document.documentId, { field: 'document-export' }));
+    },
     subscribe(listener) {
       live(); requireEditor(typeof listener === 'function', 'INPUT', 'A subscription listener is required.');
       listeners.add(listener); return () => { listeners.delete(listener); };

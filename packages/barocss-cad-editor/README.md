@@ -182,6 +182,61 @@ See [#1043](https://github.com/barocss/barocss/issues/1043) and the
 [CAD Editor roadmap](https://github.com/barocss/barocss/wiki/CAD-Editor-Product-Roadmap)
 for exact receipts, current integration status and later stages.
 
+## Accepted native geometry export
+
+`getExportCapabilities()`, `inspectExport(options)` and `exportAccepted(options)`
+read the private accepted canonical document. The public `CadEditorExportCapability`,
+`CadEditorExportSelection`, `CadEditorExportOptions`, `CadEditorExportReport` and
+`CadEditorExportResult` types alias the actual CAD types. Each call requires a live
+session and returns copied native CPU data, preserving original signed-zero bits.
+Pending fields and active candidates do not change which document is exported.
+These reads emit no update and change no source, history, generation, display,
+selection, draft, candidate, dirty state or native download capture.
+
+The actual supported canonical writer is IGES5.3 ASCII Curve126/Surface128.
+GLB is an external derived display bridge with its own inputs and frame contract;
+this session does not write canonical documents to GLB. STEP and feature-graph
+export are unsupported. The original Source0 geometry is export authority,
+independent of the one-to-four-body display set. Native degrees1–5 can be exported
+without claiming that the Viewer can display them.
+
+Options are exactly `{target:'iges-5.3-ascii',exportModelId,selections}`, with each
+selection `{reference,outputId}`. Choose one to sixteen unique original bodies
+through current document/asset revision-qualified native references. The derived
+model and geometry IDs must all be distinct ASCII identifiers, one to forty-eight
+characters. No original ID is rewritten. The provider admits descriptor-safe own
+data and enforces its budgets; the editor does not read caller getters first.
+Actual `CadDocumentExportError` codes and nested native causes remain available
+through `CadEditorError.cause`, with context field `document-export`.
+
+Output uses authored XYZ in mm, with no axis or unit conversion, meshing or
+approximation. The writer preserves selected nonzero native coefficients, knot
+and pole order, grid indices and parameter domains. It normalizes exported numeric
+negative zero to positive zero while retaining the original native bits. Output
+is at most2097152 bytes, with eighty ASCII columns followed by LF per record.
+The complete actual limits remain in `report.limits`.
+
+Review the actual report before downloading: selected/unselected bodies, output
+bytes, qualified-reference/output-ID mappings, Curve126/Surface128 domains,
+signed-zero counts and eight-character directory labels. Truncation and label
+collisions are reported; IDs are not silently repaired. Retain the full-ID/loss
+sidecar. IGES omits original document/body/asset identities and revisions, names,
+native source/dialect, authored frame labels and angle declarations, unselected
+geometry and authoring history. Feature graphs, parameters, constraints,
+placements, derived caches, topology and solid models are unsupported. The writer's
+`geometryLoss:'none'` does not mean that authored document data is preserved.
+Geometric validity is not certified; topology and solid certification are false.
+
+Inspection stages the actual writer output internally, including source-backed
+reconstruction. Export and owned-result validation can repeat this work; inspection
+is not a metadata-only query or a single-reconstruction guarantee. The pure root
+creates no renderer resources and writes no files. Hosts download captured IGES
+and the loss report separately, and bind review to the accepted native revision
+and exact export options. Exchange download must not call `markDownloaded` or
+clear native dirty state. Native JSON Download/Open remains the authoring-file
+route for complete source preservation and re-editing. No IGES import or external
+reader equivalence is claimed.
+
 ## Native Boolean extrusion mode
 
 `createCadEditorFeatureSession` is a separate pure session for the actual native Boolean extrusion graph V0. It does not add feature data to canonical document1. Native evaluation requires two coplanar original Face inputs, one Boolean, one to four normal-extrusion leaves and at most eight typed length parameters. Native suppression is unavailable in this profile.
