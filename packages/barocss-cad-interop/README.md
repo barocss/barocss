@@ -3366,3 +3366,56 @@ For emitted verification, build CAD and interop, then use `--mode compiled`.
 Serve its generated browser bundle with `LOADER1314_COMPILED_BUNDLE`.
 This is a selected original-data consumer, not an all-peer or manufacturing certificate.
 Source/emitted proof and exact local adoption remain separate from npm publication.
+
+
+## Qualified translated-strip Body: native CPU ingestion
+
+Use the optional `@barocss/cad-interop/qualified-body` entry for the complete
+qualified translated-strip Body result. It reconstructs the original native
+Body through the public CAD validator. It does not create renderer resources.
+
+```js
+import {
+  parseBaroCadQualifiedTranslatedStripBody,
+  readBaroCadQualifiedTranslatedStripBody,
+} from '@barocss/cad-interop/qualified-body';
+
+const accepted = parseBaroCadQualifiedTranslatedStripBody(completeJsonText);
+const independent = readBaroCadQualifiedTranslatedStripBody(accepted.native);
+```
+
+The result keeps the complete thirteen-field native Body, an independent
+validation report, explicit ingestion profile and original text (or `null`
+for owned-data input). The native report identifies the actual version 0
+qualified translated-strip family. There is no new envelope inside the native
+artifact. Both Models (16 and 2 objects), all complete parents, six Faces,
+twelve Edges, eight Vertices, twenty-four Uses and the entire material proof
+remain. Authored XYZ, mm, mm3 and dimensionless UV are unchanged.
+
+Accepted native values are independent mutable CPU copies with garbage
+collection ownership. A caller mutation or a failed admission cannot change
+another accepted result. Acyclic aliases are copied and charged per occurrence;
+cycles are refused. Keep the original text for exact file bytes. Ordinary
+`JSON.stringify` loses numeric negative zero and is not the original codec.
+
+Text must be strict JSON with valid scalar Unicode, finite represented numbers,
+unique decoded keys and no trailing data. Own data must have plain records or
+dense arrays, enumerable data descriptors and no getters, symbols or hidden
+properties. Raw text UTF8 and UTF16 limits are each 2 MiB. Own canonical signed
+JSON including its final newline is bounded separately. Admission limits are
+1,048,576 value occurrences, depth 64, 64 record fields, 8,192 array elements,
+262,144 string units and 128 key units. Existing Source0, document and feature
+transport limits remain unchanged. Refused getters are not invoked; arbitrary
+Proxy reflection is not covered by that promise.
+
+`BaroCadQualifiedBodyReadError` distinguishes INPUT, JSON, OWNED, BUDGET,
+SCHEMA and NATIVE. Authoritative NATIVE failures retain the actual CAD error
+as `cause`. Native direct-work counters exclude parent and internal rebuild
+work; they are not total reader CPU work or a time guarantee.
+
+The native restricted Solid/material certificate retains its actual authority.
+Generic Solid, Boolean, WorldXYZ query, filled boundary display, manufacturing,
+exchange, URL/cancellation and byte overloads are unsupported by this entry.
+The executable `qualified-body-native-verify.mjs` uses three complete original
+files and checks source/emitted admission, copy independence and real refusals.
+Package configuration and local adoption do not imply npm publication.
