@@ -2,6 +2,10 @@
 
 Read the [complete public signature reference](./reference) for exact exported functions, types and public class members. This task page explains their support, ownership, errors and lifecycle.
 
+## Original section edits and a dependent Loft
+
+The [NURBS Loft graph guide](./nurbs-loft-graph) covers the newer public `evaluateNurbsSourceLoftFeatureGraph`, `updateNurbsSourceLoftFeatureGraph`, both whole-result validators, and authored `serializeNurbsSourceLoftFeatureGraph` / `parseNurbsSourceLoftFeatureGraph`. It includes complete input, selective updates and a numeric before/after view. These version 0 APIs are available in the newer CAD provider identified in that guide; the general signatures below retain their earlier reference snapshot.
+
 ## Body and topology
 
 The [Body and topology guide](./body-1301) explains `buildQualifiedTranslatedStripBody` and `validateQualifiedTranslatedStripBody`: complete qualified inputs, shared topology, material boundaries and copied result ownership. These newer APIs have their own availability note; the reference below describes the earlier CAD API version.

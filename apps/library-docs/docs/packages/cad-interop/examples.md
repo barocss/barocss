@@ -2,6 +2,10 @@
 
 Use the neutral loader to preserve complete native data and derive bounded previews. Use a target adapter when the application already owns a Three, Babylon or Pixi3D scene. The adapter owns its loaded objects/resources; the application keeps its renderer, camera, scene and unrelated objects.
 
+## Read a complete evaluated Loft result
+
+Use [Loft graph ingestion](./loft-graph-ingestion) for a complete evaluated Graph or a complete next Graph with its update transaction. These CPU readers preserve native data and return independent reports. The [section edit example](../cad/nurbs-loft-graph) supplies the complete original authoring input. A source preview and an evaluated graph have different input roles.
+
 ## Parse complete source and derive a preview
 
 Use a TypeScript-capable bundler with the workspace `@barocss/cad-interop` and CAD dependencies. This complete Source0 input contains a Surface and a Curve with a nonunit knot domain.

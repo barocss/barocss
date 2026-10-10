@@ -5,6 +5,10 @@ Read the [complete public signature reference](./reference) for exact exported f
 
 Choose an actual declared entry from the manifest. The root is neutral; optional renderer entries require their corresponding peer. Workspace import/types select source. The complete publication map provides the corresponding built JS/type targets; a source-browser result does not verify emitted types.
 
+## Complete NURBS Loft graphs and updates
+
+The optional `@barocss/cad-interop/nurbs-source-loft-feature-graph` entry provides `parseBaroCadNurbsSourceLoftFeatureGraph`, `readBaroCadNurbsSourceLoftFeatureGraph`, and their `Update` counterparts. The [complete ingestion guide](./loft-graph-ingestion) explains each packet role, independent validation reports, copied ownership and limits. This newer entry has a separate availability note; the inventory below retains the earlier reference snapshot.
+
 ## Native and Three signatures
 
 ```ts
@@ -27,7 +31,7 @@ This is a signature summary, not executable source. `BaroCadParseOptions` requir
 
 ## Public entry inventory
 
-The complete current map has 35 entries, including its root. Names below come from the actual source entry's exports and re-exports. Private transport, curve-pick and native parser helpers that are not exported through a public entry are excluded. Root values do not require target-peer imports; entry file existence is distinct from all-entry runtime coverage.
+At the reference snapshot, the map has 35 entries, including its root. Names below come from the actual source entry's exports and re-exports. Private transport, curve-pick and native parser helpers that are not exported through a public entry are excluded. Root values do not require target-peer imports; entry file existence is distinct from all-entry runtime coverage.
 
 | Import suffix | Public names and declaration source |
 | --- | --- |
