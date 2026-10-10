@@ -1360,3 +1360,31 @@ dynamic exponent, new runtime intrinsic, angle unit or IR/profile is added.
 For a cubic fade, use `mix(#000,#FFF,pow(strength,3))` with strength bounded0..1.
 Run `node examples/gpu-scene/material-integer-power-demo.mjs --source <fresh-dir>`
 for one source/emitted/cold-file CPU flow. This does not establish rendered pixels.
+
+
+## General engine geometry
+
+`prepareTriangleGeometry()` prepares independently authored indexed triangles.
+Use the explicit `barocss-gpu-triangle-geometry` version0 record with an ID,
+right-handed Y-up coordinates, scene units and CCW winding. Supply dense plain
+arrays for positions, unit normals, UVs and indices. This contract is separate
+from native CAD preview packets and keeps their existing APIs unchanged.
+
+The returned `geometry` is an independent frozen copy of the original Number
+values. Positions, normals and UVs are separately owned Float32 arrays. The
+largest referenced index selects Uint16 (up to65535) or Uint32 (from65536).
+Unused vertices remain in the original geometry and its bounds. No welding,
+normal generation, unit conversion or native identity is inferred.
+
+The first profile admits3..131072 vertices and1..131072 triangles. Position and
+UV values have magnitude at most1000; normals have unit-length tolerance1e-6.
+Original and converted triangles must have safe nonzero area and normals that
+agree with their winding. Nonzero attributes that become zero in Float32 are
+refused. Source arrays cannot contain accessors, sparse values or foreign data.
+The source stays immutable; returned typed buffer contents are caller-owned
+and mutable. Preparation allocates no WebGL resources.
+
+Run `node examples/gpu-scene/triangle-geometry-flow.mjs --output <fresh-directory>`
+after the GPU library build for one source/API/emitted/cold-file flow.
+Scene hierarchy, general rendering, textures and other engine services are
+separate roadmap stages. This CPU preparation is not rendered-engine parity.
