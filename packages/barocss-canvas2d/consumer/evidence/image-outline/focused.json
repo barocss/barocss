@@ -1,0 +1,112 @@
+{
+  "status": "PASS",
+  "assertions": 1490,
+  "entries": [
+    {
+      "entry": "source",
+      "fullByteCases": 108,
+      "refusals": 103,
+      "getterReads": 0,
+      "indexedPixelKeyScans": 0,
+      "allRefusalTypedAllocations": 0,
+      "maximumInputBytes": 1048576,
+      "maximumTypedAllocations": [
+        1048576,
+        262144,
+        1048576
+      ],
+      "maximumTypedPayload": 2359296,
+      "oracle": "brute 2D neighborhood plus independent BigInt dyadic round; literal binary64 non-dyadic channels"
+    },
+    {
+      "entry": "compiled",
+      "fullByteCases": 108,
+      "refusals": 103,
+      "getterReads": 0,
+      "indexedPixelKeyScans": 0,
+      "allRefusalTypedAllocations": 0,
+      "maximumInputBytes": 1048576,
+      "maximumTypedAllocations": [
+        1048576,
+        262144,
+        1048576
+      ],
+      "maximumTypedPayload": 2359296,
+      "oracle": "brute 2D neighborhood plus independent BigInt dyadic round; literal binary64 non-dyadic channels"
+    }
+  ],
+  "parent": "a3f00b98f703892f2fd271c59367cbba17f5e79e",
+  "actualCPU": true,
+  "browserAcceptance": "Separate browser-observations.json; this receipt covers CPU/type checks only",
+  "checks": {
+    "build": {
+      "exit": 0,
+      "firstPass": true,
+      "KiB": 302.4,
+      "log": "/tmp/c2d1372-build.txt"
+    },
+    "sourceBundle": {
+      "exit": 0,
+      "output": "/tmp/c2d1372-source.mjs",
+      "log": "/tmp/c2d1372-source-bundle.txt"
+    },
+    "pairedProbe": {
+      "exit": 0,
+      "firstPass": false,
+      "attempts": 2,
+      "successfulReruns": 0,
+      "log": "/tmp/c2d1372-focused-ready-probe.txt"
+    },
+    "commonTypes": {
+      "exit": 0,
+      "firstPass": false,
+      "log": "/tmp/c2d1372-common-ready-types.txt"
+    },
+    "scopedSourceCompiledTypes": {
+      "exit": 0,
+      "firstPass": false,
+      "log": "/tmp/c2d1372-scoped-ready-types.txt"
+    }
+  },
+  "firstRecords": [
+    {
+      "kind": "host preparation locator failure",
+      "error": "FileNotFoundError: prior archived matte worktree alpha.mjs no longer exists",
+      "consequence": "prefix replacement did not run; following append left duplicate old/new host bodies",
+      "repair": "replacement used adopted alpha instrumentation already present in current WT"
+    },
+    {
+      "kind": "first syntax/common/scoped host checks",
+      "errors": "duplicate declarations and missing prefix imports/instrumentation",
+      "logs": [
+        "/tmp/c2d1372-host-syntax.txt",
+        "/tmp/c2d1372-common-types.txt",
+        "/tmp/c2d1372-scoped-types.txt"
+      ],
+      "repair": "single complete new host replacement before browser; final all exit0"
+    },
+    {
+      "kind": "first numerical fixture failure",
+      "error": "missingAll expected INVALID_ASSET, actual undefined",
+      "log": "/tmp/c2d1372-focused-probe.txt",
+      "cause": "fixture add() defaults replaced intended undefined arguments with valid inputs",
+      "repair": "three missing-argument tuples push literal undefined fields; no helper/build change"
+    }
+  ],
+  "sourceHashes": {
+    "packages/barocss-canvas2d/src/image-outline.ts": "a4cc4f4753e44c1617425ce838d552590faa45785f66caf912836021c292dd85",
+    "packages/barocss-canvas2d/src/index.ts": "932a87a977bf1e78b0b3f309c4d377f3a7e56aab1a892b5781fa6cc81eb48987",
+    "packages/barocss-canvas2d/consumer/nine-slice.mjs": "2f5530e7e4c97c3bbee26b531e24f8fe6ff431e4ff8b4762ecd50f882ee22cfe",
+    "packages/barocss-canvas2d/consumer/image-outline-types.ts": "456166e9d7f98f38a47194e3c363ffb9bad980d9b873b1cf535a6c0d54183759",
+    "packages/barocss-canvas2d/consumer/tsconfig.image-outline.json": "2fa2389608d9b9a7b0b2b8cc5a3e3037f4266e634b003a81ac0d3d9dd704c7a3"
+  },
+  "claims": {
+    "sameExtentClipsBorders": true,
+    "sourceRGBIgnoredSourceUnchanged": true,
+    "outputAlpha0RGBZero": true,
+    "independentOracle": "brute 2D neighborhood versus helper separable passes",
+    "typedScratchBytesPerPixel": 1,
+    "DOMGPU": false,
+    "performanceClaim": false
+  }
+}
