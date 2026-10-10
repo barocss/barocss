@@ -6,7 +6,7 @@ import { serializeCanvasDocument, parseCanvasDocument, exportCanvasDocumentPNG }
 /** @typedef {{canvas:HTMLCanvasElement,renderer:import('@barocss/canvas2d').Canvas2DRenderer,
  * tree:import('@barocss/canvas2d').DisplayTree,glyph:import('@barocss/canvas2d').GlyphRunHandle,
  * scene:import('@barocss/canvas2d').Scene,asset:import('@barocss/canvas2d').ImageAssetInput,
- * lineAdvance:number|null,lines:import('@barocss/canvas2d').BrowserMultilineTextLine[]|null, font:string|null,rasterDPR:number|null,advance:number|null,generation:number,source:'helper'|'document',unbind:()=>void}} Session */
+ * lineAlign:import('@barocss/canvas2d').BrowserMultilineTextAlignment|null,lineAdvance:number|null,lines:import('@barocss/canvas2d').BrowserMultilineTextLine[]|null, font:string|null,rasterDPR:number|null,advance:number|null,generation:number,source:'helper'|'document',unbind:()=>void}} Session */
 const options = { logicalSize: { width: 320, height: 144 }, dpr: 2 };
 const atlasId = 'BrowserTextAtlas', font = '24px monospace';
 const pose = (/** @type {number} */ x = 0, /** @type {number} */ y = 0) => ({ x, y, scaleX: 1, scaleY: 1, rotation: 0 });
@@ -83,7 +83,7 @@ function sample(s, point) {
 function sessionObservation(s) {
   const points = pointsFor(s), actual = s.renderer.getImageAsset(atlasId);
   return { generation: s.generation, source: s.source, text: s.glyph.data.text, version: s.scene.version,
-    lineAdvance: s.lineAdvance, lines: s.lines, font: s.font, rasterDPR: s.rasterDPR, advance: s.advance, layout: layoutOf(s), transform: s.glyph.data.transform,
+    lineAlign: s.lineAlign, lineAdvance: s.lineAdvance, lines: s.lines, font: s.font, rasterDPR: s.rasterDPR, advance: s.advance, layout: layoutOf(s), transform: s.glyph.data.transform,
     bounds: { left: s.glyph.data.glyphs[0].x, top: s.glyph.data.glyphs[0].y,
       width: s.glyph.data.glyphs[0].width, height: s.glyph.data.glyphs[0].height },
     atlas: { width: s.asset.width, height: s.asset.height, byteLength: s.asset.pixels.length }, allBytes: [...s.asset.pixels],
@@ -113,13 +113,13 @@ function bind(/** @type {Session} */ s) {
   return () => { if (done) return; done = true; counts.unbinds++; s.canvas.removeEventListener('pointerdown', onPointer); for (const stop of subscriptions) stop(); };
 }
 /** @param {import('@barocss/canvas2d').DisplayTree} tree @param {import('@barocss/canvas2d').ImageAssetInput} asset
- * @param {number} token @param {'helper'|'document'} source @param {Prepared|null} prepared @returns {Session} */
-function fresh(tree, asset, token, source, prepared) {
+ * @param {number} token @param {'helper'|'document'} source @param {Prepared|null} prepared @param {import('@barocss/canvas2d').BrowserMultilineTextAlignment|null} lineAlign @returns {Session} */
+function fresh(tree, asset, token, source, prepared, lineAlign = null) {
   const glyph = tree.get('Label'); if (glyph?.kind !== 'glyphRun') throw new Error('Label missing');
   const nextCanvas = document.createElement('canvas'); nextCanvas.id = 'scene'; counts.candidates++;
   const renderer = createCanvas2D(nextCanvas, options); counts.rendererCreated++; counts.liveRenderers++;
   try { renderer.setImageAsset(atlasId, asset); const scene = tree.snapshot(); renderer.updateScene(scene); renderer.render();
-    return { canvas: nextCanvas, renderer, tree, glyph, scene, asset, lineAdvance: prepared && 'lineAdvance' in prepared ? /** @type {import('@barocss/canvas2d').BrowserMultilineTextRaster} */ (prepared).lineAdvance : null,
+    return { canvas: nextCanvas, renderer, tree, glyph, scene, asset, lineAlign, lineAdvance: prepared && 'lineAdvance' in prepared ? /** @type {import('@barocss/canvas2d').BrowserMultilineTextRaster} */ (prepared).lineAdvance : null,
       lines: prepared && 'lines' in prepared ? /** @type {import('@barocss/canvas2d').BrowserMultilineTextRaster} */ (prepared).lines : null, font: prepared?.font ?? null,
       rasterDPR: prepared?.dpr ?? null, advance: prepared?.advance ?? null, generation: token, source, unbind: () => {} };
   } catch (error) { release(renderer); throw error; }
@@ -130,18 +130,18 @@ function adopt(/** @type {Session} */ next) { next.unbind = bind(next); const ol
 /** @param {unknown} error @param {string} before @param {number} candidates */
 function refuse(error, before, candidates) { counts.errors++; preparing = false;
   failure = { code: codeOf(error), retained: fingerprint() === before, candidatesUnchanged: candidates === counts.candidates }; show(`Refused ${failure.code}`); return failure; }
-/** Host owns font readiness. The public helper stays synchronous. @param {string} text @param {number} dpr @param {import('@barocss/canvas2d').BrowserTextPolicy} textPolicy @param {number|null} lineAdvance */
-async function edit(text, dpr = 2, textPolicy = 'alphanumeric', lineAdvance = null) {
+/** Host owns font readiness. The public helper stays synchronous. @param {string} text @param {number} dpr @param {import('@barocss/canvas2d').BrowserTextPolicy} textPolicy @param {number|null} lineAdvance @param {import('@barocss/canvas2d').BrowserMultilineTextAlignment} lineAlign */
+async function edit(text, dpr = 2, textPolicy = 'alphanumeric', lineAdvance = null, lineAlign = 'left') {
   if (disposed) return; const token = ++generation, before = fingerprint(), candidates = counts.candidates;
   preparing = true; show('Preparing font');
   try { counts.fontPreparations++; await document.fonts.ready; await document.fonts.load(font, text);
     if (!current(token)) { counts.ignored++; return; }
     if (!document.fonts.check(font, text)) throw new Error('Host font unavailable');
-    counts.helperCalls++; const prepared = lineAdvance === null ? rasterizeBrowserText({ text, font, atlasId, dpr, textPolicy }) : rasterizeBrowserMultilineText({ text, font, atlasId, dpr, lineAdvance });
+    counts.helperCalls++; const prepared = lineAdvance === null ? rasterizeBrowserText({ text, font, atlasId, dpr, textPolicy }) : rasterizeBrowserMultilineText({ text, font, atlasId, dpr, lineAdvance, lineAlign });
     const tree = createDisplayTree('BrowserTextConsumer');
     tree.stage.addChild(tree.createRect({ id: 'Back', layer: 0, transform: pose(), width: 320, height: 144, fill: [0.125, 0.15625, 0.21875, 1] }));
     tree.stage.addChild(tree.createGlyphRun({ id: 'Label', layer: 1, transform: pose(24, lineAdvance === null ? 72 : 40), ...prepared.layout }));
-    adopt(fresh(tree, prepared.asset, token, 'helper', prepared)); opened = null; show(`Accepted ${text} at raster DPR ${dpr}`);
+    adopt(fresh(tree, prepared.asset, token, 'helper', prepared, lineAdvance === null ? null : lineAlign)); opened = null; show(`Accepted ${text} at raster DPR ${dpr}`);
   } catch (error) { if (current(token)) refuse(error, before, candidates); else counts.ignored++; }
 }
 /** @param {string} badFont @param {string} text */
@@ -171,18 +171,19 @@ async function openText(text, reserved = null) {
     adopt(next); show('Opened saved bytes on a fresh canvas and editable tree');
   } catch (error) { if (next && session !== next) release(next.renderer); if (current(token)) refuse(error, before, candidates); else counts.ignored++; }
 }
-async function restoredEdit() {
+/** @param {import('@barocss/canvas2d').BrowserMultilineTextAlignment|null} alignment */
+async function restoredEdit(alignment = null) {
   const s = session; if (!s || disposed) return; const token = ++generation, before = fingerprint(), candidates = counts.candidates;
-  const multiline = s.glyph.data.text.includes('\n'), text = multiline ? s.glyph.data.text.split('\n')[0] + '\n-$25' : '-$20';
+  const multiline = s.glyph.data.text.includes('\n'), text = alignment !== null ? s.glyph.data.text : multiline ? s.glyph.data.text.split('\n')[0] + '\n-$25' : '-$20';
   preparing = true; show('Preparing the current font for restored label');
   try { counts.fontPreparations++; await document.fonts.ready; await document.fonts.load(font, text);
     if (!current(token) || session !== s) { counts.ignored++; return; }
     if (!document.fonts.check(font, text)) throw new Error('Host font unavailable');
-    counts.helperCalls++; const prepared = multiline ? rasterizeBrowserMultilineText({ text, font, atlasId, dpr: 2, lineAdvance: 40 }) : rasterizeBrowserText({ text, font, atlasId, dpr: 2, textPolicy: 'printable-ascii' });
+    counts.helperCalls++; const prepared = multiline ? rasterizeBrowserMultilineText({ text, font, atlasId, dpr: 2, lineAdvance: 40, lineAlign: alignment ?? 'left' }) : rasterizeBrowserText({ text, font, atlasId, dpr: 2, textPolicy: 'printable-ascii' });
     const tree = createDisplayTreeFromScene(s.scene), glyph = tree.get('Label');
     if (glyph?.kind !== 'glyphRun') throw new Error('Label missing');
     glyph.setLayout(prepared.layout);
-    adopt(fresh(tree, prepared.asset, token, 'helper', prepared)); show('Edited the restored public glyph handle');
+    adopt(fresh(tree, prepared.asset, token, 'helper', prepared, multiline ? alignment ?? 'left' : null)); show('Edited the restored public glyph handle');
   } catch (error) { if (current(token)) refuse(error, before, candidates); else counts.ignored++; }
 }
 /** @param {import('@barocss/canvas2d').BrowserMultilineTextOptions} options */
@@ -192,8 +193,8 @@ function rejectMultiline(options) {
     throw new Error('Unexpected multiline acceptance');
   } catch (error) { return refuse(error, before, candidates); }
 }
-/** @param {string} text @param {number} lineAdvance @param {number} dpr */
-function editMultiline(text, lineAdvance = 40, dpr = 2) { return edit(text, dpr, 'printable-ascii', lineAdvance); }
+/** @param {string} text @param {number} lineAdvance @param {number} dpr @param {import('@barocss/canvas2d').BrowserMultilineTextAlignment} lineAlign */
+function editMultiline(text, lineAdvance = 40, dpr = 2, lineAlign = 'left') { return edit(text, dpr, 'printable-ascii', lineAdvance, lineAlign); }
 function serialize(/** @type {Session} */ s) { return serializeCanvasDocument(s.scene, id => s.renderer.getImageAsset(id)); }
 function download(/** @type {Blob} */ blob, /** @type {string} */ name) { const url = URL.createObjectURL(blob), link = document.createElement('a');
   link.href = url; link.download = name; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
@@ -209,7 +210,7 @@ async function exportPNG() { const s = session; if (!s || disposed) return; cons
 }
 function dispose() { if (disposed) return; if (session) { terminal = sessionObservation(session); session.unbind(); release(session.renderer); }
   session = null; disposed = true; preparing = false; generation++; for (const remove of hostUnbind.splice(0)) remove(); show('Disposed renderer and listeners'); }
-const actions = { multiline: () => { void editMultiline('Balance\n-$20'); }, numeric: () => { void edit('12.5', 2, 'printable-ascii'); }, currency: () => { void edit('-$20', 2, 'printable-ascii'); }, statusLabel: () => { void edit('FPS:60', 1.5, 'printable-ascii'); }, hi: () => { void edit('HI', 2); }, space: () => { void edit('H I', 1.5); },
+const actions = { alignLeft: () => { void editMultiline('Balance\n-$20', 40, 2, 'left'); }, alignCenter: () => { void editMultiline('Balance\n-$20', 40, 2, 'center'); }, alignRight: () => { void editMultiline('Balance\n-$20', 40, 2, 'right'); }, restoredCenter: () => { void restoredEdit('center'); }, multiline: () => { void editMultiline('Balance\n-$20'); }, numeric: () => { void edit('12.5', 2, 'printable-ascii'); }, currency: () => { void edit('-$20', 2, 'printable-ascii'); }, statusLabel: () => { void edit('FPS:60', 1.5, 'printable-ascii'); }, hi: () => { void edit('HI', 2); }, space: () => { void edit('H I', 1.5); },
   invalid: () => { rejectFont('not a font'); }, oversize: () => { rejectFont('1000px monospace', 'M'.repeat(128)); },
   restored: () => { void restoredEdit(); }, save: () => { void save().catch(error => show(`Save failed: ${codeOf(error)}`)); },
   png: () => { void exportPNG(); }, dispose };

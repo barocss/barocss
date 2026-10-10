@@ -31,3 +31,19 @@ export function multilineRootType() {
   rasterizeBrowserMultilineText({text:'A',font:'24px monospace',atlasId:'Label'});
   return { result, line };
 }
+
+export function alignedMultilineRootType() {
+  const alignments: import('../dist/index.js').BrowserMultilineTextAlignment[] = ['left', 'center', 'right'];
+  const options: import('../dist/index.js').BrowserMultilineTextOptions = {
+    text: 'Balance\n-$20', font: '24px monospace', atlasId: 'AlignedLabel', lineAdvance: 40,
+    lineAlign: alignments[1], dpr: 1.5 };
+  const result: import('../dist/index.js').BrowserMultilineTextRaster = rasterizeBrowserMultilineText(options);
+  // @ts-expect-error Only the three public alignment values are supported.
+  const invalid: import('../dist/index.js').BrowserMultilineTextAlignment = 'justify';
+  // @ts-expect-error Alignment is only an input; result line records keep their prior shape.
+  result.lines[0].x;
+  // @ts-expect-error The single-line helper does not accept multiline alignment.
+  rasterizeBrowserText({ text: 'A', font: options.font, atlasId: options.atlasId, lineAlign: 'center' });
+  void invalid;
+  return { result, alignments };
+}
