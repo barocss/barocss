@@ -16,7 +16,7 @@
       "role": "authored-native-source",
       "sourceVersion": 0,
       "sourceFrame": "authored-xyz-no-axis-conversion",
-      "source": "@model curvature_circle {\n  version: 0;\n  length-unit: mm;\n  @curve #original_circle {\n    type: nurbs;\n    degree: 2;\n    knots: [2,2,2,6,6,6];\n    control-points: [[2,-0,0],[2,2,0],[0,2,0]];\n    weights: [1,0.7071067811865476,1];\n  }\n  /* 이 원본 형제 객체와 signed zero를 유지합니다. */\n  @curve #straight_line { type:nurbs; degree:1; knots:[-0,-0,1,1]; control-points:[[3,-0,0],[4,1,0]]; weights:[1,1]; }\n  @curve #constant_curve { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[5,-0,1],[5,-0,1]]; weights:[1,1]; }\n}\n"
+      "source": "@model curvature_circle {\n  version: 0;\n  length-unit: mm;\n  @curve #original_circle {\n    type: nurbs;\n    degree: 2;\n    knots: [2,2,2,6,6,6];\n    control-points: [[2,-0,0],[2,2,0],[0,2,0]];\n    weights: [1,0.7071067811865476,1];\n  }\n  /* 이 원본 형제 객체와 signed zero를 유지합니다. */\n  @curve #straight_line { type:nurbs; degree:1; knots:[-0,-0,1,1]; control-points:[[3,-0,0],[4,1,0]]; weights:[1,1]; }\n}\n"
     },
     {
       "id": "saddle_asset",
@@ -32,7 +32,7 @@
       "role": "authored-native-source",
       "sourceVersion": 0,
       "sourceFrame": "authored-xyz-no-axis-conversion",
-      "source": "@model original_c1_model { version:0; length-unit:mm;\n  @curve #c1_curve { type:nurbs; degree:2; knots:[0,0,0,1,2,2,2]; control-points:[[-1,-0,0],[0,1,0],[1,1,0],[2,0,0]]; weights:[1,1,1,1]; }\n}\n"
+      "source": "@model original_c1_model { version:0; length-unit:mm;\n  @curve #c1_curve { type:nurbs; degree:2; knots:[0,0,0,1,2,2,2]; control-points:[[-1,-0,0],[0,1,0],[1,1,0],[2,0,0]]; weights:[1,1,1,1]; }\n  @curve #constant_curve { type:nurbs; degree:1; knots:[0,0,1,1]; control-points:[[5,-0,1],[5,-0,1]]; weights:[1,1]; }\n}\n"
     },
     {
       "id": "hidden_asset",
@@ -62,7 +62,7 @@
       "id": "constant_body",
       "name": "Stationary reference",
       "kind": "direct-geometry-object",
-      "assetId": "circle_asset",
+      "assetId": "continuity_asset",
       "geometryId": "constant_curve"
     },
     {
