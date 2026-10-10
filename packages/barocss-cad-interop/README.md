@@ -3292,3 +3292,29 @@ The host checks original files, native/input refusals, transport refusal, replac
 fresh whole-source reload and double cleanup. It retains complete native CPU authority.
 Only the owned Three resources are disposed. Caller objects and the camera remain available.
 This is a local runnable host; package publication and current composed acceptance are separate.
+
+## Replace complete native CAD files in a Babylon host
+
+[Issue #1300](https://github.com/barocss/barocss/issues/1300) defines this external host.
+Open `examples/host-replacement-babylon.html` through its real local HTTP server.
+Two unchanged complete native files contain the same five rational Curve IDs.
+The authored copy spacing changes from 2 mm to 3 mm; the whole native Model stays authoritative.
+The caller chooses the current request generation and controls the render boundary.
+Each candidate is disabled before qualification; a late older success is disposed.
+
+Use Node22 and the repository's installed optional Babylon peer. From the repository root:
+
+```sh
+node packages/barocss-cad-interop/examples/host-replacement-babylon-verify.mjs --mode source --output /tmp/loader1300-source
+node packages/barocss-cad-interop/examples/host-replacement-babylon-server.mjs
+```
+
+Run the source verifier before building the CAD and interop libraries. The emitted verifier
+uses `--mode compiled` and a fresh output directory. Set `LOADER1300_COMPILED_BUNDLE`
+to that directory's `browser.bundle.mjs` for the same host from actual emitted public entries.
+Real chunked HTTP demonstrates progress cancellation, current-file replacement, an older
+success after the newer response, HTTP404 retention and double cleanup.
+Only owned Lines, geometries and automatic materials are disposed. Caller resources survive.
+Native curve parameters and source units remain separate from scaled display coordinates.
+This is a caller workflow; it adds no Loader manager or general transaction guarantee.
+Package publication and current composed acceptance remain separate.

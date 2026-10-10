@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>Complete native source replacement · Babylon</title>
+  <script>performance.setResourceTimingBufferSize(4096)</script>
+  <style>
+    :root{color-scheme:dark;background:#101b2c;color:#e6eef7;font:15px/1.5 system-ui,sans-serif}body{margin:0;padding:24px;max-width:1300px}h1{font-size:26px;margin:0 0 8px}p{max-width:1000px}nav{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}button{padding:9px 12px;border:1px solid #66829f;border-radius:4px;background:#203a54;color:inherit;cursor:pointer}button:disabled{opacity:.4;cursor:default}canvas{display:block;width:900px;height:640px;max-width:100%;border:1px solid #43576d}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;padding:8px;border-bottom:1px solid #43576d;vertical-align:top}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:400px;overflow:auto;background:#18273a;padding:12px}summary{padding:8px 0;cursor:pointer}.note{color:#afc7df}#status{min-height:24px}
+  </style>
+</head>
+<body>
+  <h1>Complete native source replacement in Babylon</h1>
+  <p>Keep the accepted CAD file visible while another file loads. A current successful request replaces it. An older result that finishes late releases its own resources.</p>
+  <p class="note">Both original files contain five rational Curves. Their native parameters are preserved. The preview uses explicit bounded Curve sampling; it is not a manufacturing certificate.</p>
+  <nav aria-label="Complete source flow">
+    <button id="cancel" disabled>Cancel B after real progress</button>
+    <button id="replace" disabled>Replace A with original B</button>
+    <button id="late" disabled>Keep newest B after late A</button>
+    <button id="http404" disabled>Retain B after HTTP 404</button>
+    <button id="cleanup" disabled>Dispose owned results twice</button>
+  </nav>
+  <p id="status" role="status">Loading complete original A…</p>
+  <canvas id="view" width="900" height="640" aria-label="Complete original Curves and caller Sphere"></canvas>
+  <h2>Accepted original file</h2>
+  <p id="source-summary"></p>
+  <table><thead><tr><th>Native Curve ID</th><th>Original domain / sample parameters</th><th>Original XYZ bounds (mm)</th><th>Isolated visible pixels</th></tr></thead><tbody id="curves"></tbody></table>
+  <details><summary>Complete original source, Model and native sampling evidence</summary><pre id="native"></pre></details>
+  <details><summary>Actual request, staging and resource receipts</summary><pre id="receipts"></pre></details>
+  <script type="module" src="./host-replacement-babylon.mjs"></script>
+</body>
+</html>
