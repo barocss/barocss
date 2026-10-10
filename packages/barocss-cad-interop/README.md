@@ -2635,3 +2635,9 @@ memory and records the actual CAD/interop source inputs with zero own dist
 inputs. Source development requires no package prebuild, aliases or custom
 conditions. This example is a workspace source consumer; explicit published
 JS/types checks and the held independent packed consumer #801 remain separate.
+
+### Original section world Curve in Three
+
+The optional `@barocss/cad-interop/three-uniform-curve` entry provides a plain `BaroCADUniformCurveLoader`. Its constructor accepts `{sourceVersion:0,unitsPerMillimeter:0.001,uniformCurveDisplay:{version:1,count:129}}`. `parse(source)` retains the complete uniform native result and owns one Three Group/Line; `loadAsync(url,transport={})` uses the existing bounded source reader and accepts an AbortSignal/progress callback. Repeated `result.dispose()` releases only its owned geometry/material. The public `validateBaroCadUniformCurveSourceOptions(input)` returns an independent validated options snapshot. Existing adaptive Three loaders keep their contracts.
+
+The `section-uniform-curve-three` example validates and cold reconstructs the complete original V-linear section, both parent Models and the two dimensionless UV charts. It draws only the original world Curve, sampled at129 native parameters, with one mm conversion. Run the source checkpoint before library builds: `node packages/barocss-cad-interop/examples/section-uniform-curve-three-verify.mjs --mode source --output EVIDENCE_DIR`. After the affected CAD/interop library builds, use `--mode compiled` for the new published JS/declaration checkpoint. Start its own host with `pnpm exec vite --config packages/barocss-cad-interop/examples/section-uniform-curve-three.config.mjs` and open `/packages/barocss-cad-interop/examples/section-uniform-curve-three.html` on5239. Executed native/browser evidence, integrated verification and npm publication are tracked separately in Issue1089 and the Loader Wiki.

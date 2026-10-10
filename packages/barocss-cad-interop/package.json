@@ -19,6 +19,10 @@
         "types": "./dist/native-uniform-curve.d.ts",
         "import": "./dist/native-uniform-curve.js"
       },
+      "./three-uniform-curve": {
+        "types": "./dist/three-uniform-curve.d.ts",
+        "import": "./dist/three-uniform-curve.js"
+      },
       "./document": {
         "types": "./dist/document.d.ts",
         "import": "./dist/document.js"
@@ -138,6 +142,10 @@
     "./native-uniform-curve": {
       "types": "./src/native-uniform-curve.ts",
       "import": "./src/native-uniform-curve.ts"
+    },
+    "./three-uniform-curve": {
+      "types": "./src/three-uniform-curve.ts",
+      "import": "./src/three-uniform-curve.ts"
     },
     "./document": {
       "types": "./src/document.ts",

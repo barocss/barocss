@@ -76,7 +76,8 @@ function readOptionData(input: unknown, keys: string[], label: string): Record<s
   return values;
 }
 
-function snapshotOptions(input: unknown): BaroCadUniformCurveSourceOptions {
+/** Validate and snapshot original uniform options without compiling source or reading accessors. */
+export function validateBaroCadUniformCurveSourceOptions(input: unknown): BaroCadUniformCurveSourceOptions {
   try {
     const values = readOptionData(input, ['sourceVersion', 'unitsPerMillimeter', 'uniformCurveDisplay'], 'Uniform Curve options');
     const display = readOptionData(values.uniformCurveDisplay, ['version', 'count'], 'Uniform Curve display');
@@ -100,7 +101,7 @@ function snapshotOptions(input: unknown): BaroCadUniformCurveSourceOptions {
 /** Original CAD uniform parameter samples, with an explicit bounded CPU display profile. */
 export function parseBaroCadUniformCurveSource(source: string,
   options: BaroCadUniformCurveSourceOptions): BaroCadUniformCurveSourceResult {
-  const snapshot = snapshotOptions(options);
+  const snapshot = validateBaroCadUniformCurveSourceOptions(options);
   let compiled: CadCompileResult;
   try {
     compiled = compileCadModel(source, { sourceVersion: snapshot.sourceVersion });
