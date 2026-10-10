@@ -45,11 +45,21 @@ export class CadEditorError extends Error {
 }
 export type CadEditorPoleField = 'xMM' | 'yMM' | 'zMM' | 'weight';
 export type CadEditorBodyTranslationField = Exclude<CadEditorPoleField, 'weight'>;
-export type CadEditorEditTarget = 'pole' | 'object';
+export type CadEditorDraftField = CadEditorPoleField | 'angleDegrees';
+export type CadEditorEditTarget = 'pole' | 'object' | 'rotation';
+export type CadEditorRotationAxis = 'x' | 'y' | 'z';
 export interface CadEditorBodyTranslation {
   reference: CadGeometryReferenceV0;
   resultReference: CadGeometryReferenceV0;
   offsetMM: [number, number, number];
+  report: AffineGeometryTransformReport;
+}
+export interface CadEditorBodyRotation {
+  reference: CadGeometryReferenceV0;
+  resultReference: CadGeometryReferenceV0;
+  axis: CadEditorRotationAxis;
+  angleDegrees: number;
+  pivotMM: [number, number, number];
   report: AffineGeometryTransformReport;
 }
 export type CadEditorView = { kind: 'document' } | { kind: 'curve-focus'; bodyId: string; count: number };
@@ -81,6 +91,7 @@ export interface CadEditorCandidate {
   provenance: SurfacePoleEditProvenance[];
   curveProvenance: CurvePoleEditProvenance[];
   bodyTranslation: CadEditorBodyTranslation | null;
+  bodyRotation: CadEditorBodyRotation | null;
 }
 export interface CadEditorSnapshot {
   accepted: CadDocumentResult;
@@ -89,14 +100,16 @@ export interface CadEditorSnapshot {
   displayBodyIds: string[];
   view: CadEditorView;
   editTarget: CadEditorEditTarget;
+  rotationAxis: CadEditorRotationAxis;
   bodyCapabilities: { bodyId: string; canEditSurfacePole: boolean; canEditCurvePole: boolean;
     canTranslateBody: boolean; translationReason: null | 'translation-profile';
+    canRotateBody: boolean; rotationReason: null | 'rotation-profile';
     reason: null | 'curve' | 'curve-profile' | 'surface-profile' | 'asset-has-siblings' }[];
   selectedBodyId: string | null;
   selection: CadEditorSelectedPole | null;
   curveSelection: CadEditorSelectedCurvePole | null;
   selectionTransition: CadEditorSelectionTransition | null;
-  pending: Partial<Record<CadEditorPoleField, string>>;
+  pending: Partial<Record<CadEditorDraftField, string>>;
   candidate: CadEditorCandidate | null;
   history: { index: number; count: number; bytes: number; canUndo: boolean; canRedo: boolean };
   dirty: boolean;
@@ -105,6 +118,7 @@ export interface CadEditorSnapshot {
   lastProvenance: SurfacePoleEditProvenance[];
   lastCurveProvenance: CurvePoleEditProvenance[];
   lastBodyTranslation: CadEditorBodyTranslation | null;
+  lastBodyRotation: CadEditorBodyRotation | null;
 }
 export interface CadEditorDownload { token: string; text: string; suggestedFilename: string }
 export interface CadEditorSession {
@@ -123,6 +137,8 @@ export interface CadEditorSession {
   selectSurfacePole(selection: CadEditorSurfaceSelection): void;
   selectCurvePole(selection: CadEditorCurveSelection): void;
   setEditTarget(target: CadEditorEditTarget): void;
+  setRotationAxis(axis: CadEditorRotationAxis): void;
+  stageBodyRotation(rawAngleDegrees: string): void;
   stageBodyTranslationField(field: CadEditorBodyTranslationField, rawText: string): void;
   stageSurfacePoleField(field: CadEditorPoleField, rawText: string): void;
   stageCurvePoleField(field: CadEditorPoleField, rawText: string): void;

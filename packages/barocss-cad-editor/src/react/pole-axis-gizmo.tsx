@@ -1,9 +1,11 @@
 import {useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEvent, type KeyboardEvent as ReactKeyboardEvent} from 'react';
 import {resolveCadGeometryReference, type CadGeometryReferenceV0} from '@barocss/cad';
-import {CadEditorError, type CadEditorSession, type CadEditorSnapshot, type CadEditorPoleField, type CadEditorEditTarget} from '../types.js';
+import {CadEditorError, type CadEditorSession, type CadEditorSnapshot, type CadEditorPoleField, type CadEditorEditTarget, type CadEditorDraftField} from '../types.js';
 import type {CadEditorDisplayReceipt, CadEditorCurveFocusReceipt} from './types.js';
 import {useCadEditorSnapshot} from './use-session.js';
 import type {PolePoint} from './curve-pole-projection.js';
+import {ObjectRotationGizmo} from './object-rotation-gizmo.js';
+import {parseAngularStep} from './rotation-projection.js';
 import {projectPoleAxis, movePoleOnAxis, axisPointerDisplacement, parseMovementSnapStep, type PoleAxis, type PoleAxisProjection} from './pole-axis-projection.js';
 
 interface Props {
@@ -14,7 +16,7 @@ interface Props {
   onError: (error: CadEditorError) => void;
   onGestureChange: (active: boolean) => void;
 }
-interface Control {
+export interface Control {
   point: PolePoint;
   key: string;
   reference: CadGeometryReferenceV0;
@@ -50,7 +52,7 @@ function currentControl(snapshot:CadEditorSnapshot, documentReceipt:CadEditorDis
   if (snapshot.disposed) return null;
   const surface = snapshot.selection, curve = snapshot.curveSelection;
   const capability = snapshot.bodyCapabilities.find(body => body.bodyId === snapshot.selectedBodyId);
-  if (snapshot.view.kind === 'document' && surface && (snapshot.editTarget === 'object' ? capability?.canTranslateBody : capability?.canEditSurfacePole)
+  if (snapshot.view.kind === 'document' && surface && (snapshot.editTarget === 'rotation' ? capability?.canRotateBody : snapshot.editTarget === 'object' ? capability?.canTranslateBody : capability?.canEditSurfacePole)
     && documentReceipt?.state.status === 'ready' && snapshot.displayBodyIds.includes(surface.bodyId)
     && documentReceipt.state.documentBodies.some(body => body.binding.bodyId === surface.bodyId && body.ref.kind === 'surface')
     && same(documentReceipt.state.document,snapshot.accepted)) {
@@ -58,7 +60,7 @@ function currentControl(snapshot:CadEditorSnapshot, documentReceipt:CadEditorDis
     if (resolved.geometry.kind === 'surface') return {point:[...resolved.geometry.controlPoints[surface.uIndex][surface.vIndex]],
       key:`surface:${surface.bodyId}:${surface.uIndex}:${surface.vIndex}`,reference:surface.reference,kind:'surface',receipt:documentReceipt};
   }
-  if (snapshot.view.kind === 'curve-focus' && curve && (snapshot.editTarget === 'object' ? capability?.canTranslateBody : capability?.canEditCurvePole)
+  if (snapshot.view.kind === 'curve-focus' && curve && (snapshot.editTarget === 'rotation' ? capability?.canRotateBody : snapshot.editTarget === 'object' ? capability?.canTranslateBody : capability?.canEditCurvePole)
     && snapshot.view.bodyId === curve.bodyId && curveReceipt?.state.status === 'ready'
     && curveReceipt.generation === snapshot.generation && curveReceipt.displayGeneration === snapshot.displayGeneration
     && same(curveReceipt.reference,curve.reference)) {
@@ -80,6 +82,12 @@ export function PoleAxisGizmo(props:Props) {
   const [movingAxis,setMovingAxis] = useState<PoleAxis|null>(null);
   const [snapEnabled,setSnapEnabled] = useState(false);
   const [stepRaw,setStepRaw] = useState('1');
+  const [rotationMoving,setRotationMoving]=useState(false);
+  const [angularSnap,setAngularSnap]=useState(false);
+  const [angularStepRaw,setAngularStepRaw]=useState('15');
+  const rotationMode=snapshot.editTarget==='rotation';
+  let angularStep:number|null=null,angularError:string|null=null;
+  if(angularSnap){try{angularStep=parseAngularStep(angularStepRaw);}catch{angularError='Enter an angle step from 0.001 to 180 degrees.';}}
   let step:number|null = null, stepError:string|null = null;
   if (snapEnabled) {
     try {step = parseMovementSnapStep(stepRaw);}
@@ -91,9 +99,9 @@ export function PoleAxisGizmo(props:Props) {
   const capability = snapshot.bodyCapabilities.find(body=>body.bodyId===snapshot.selectedBodyId);
   const canvas = props.canvas, rect = canvas?.getBoundingClientRect();
   const pending = Object.keys(snapshot.pending).length > 0;
-  const busy = snapshot.candidate !== null || snapshot.selectionTransition !== null || snapshot.disposed || pending || movingAxis !== null;
+  const busy = snapshot.candidate !== null || snapshot.selectionTransition !== null || snapshot.disposed || pending || movingAxis !== null || rotationMoving;
   const projections:(PoleAxisProjection|null)[] = [];
-  if (control && rect && rect.width > 0 && rect.height > 0 && control.receipt.width > 0 && control.receipt.height > 0) {
+  if (!rotationMode && control && rect && rect.width > 0 && rect.height > 0 && control.receipt.width > 0 && control.receipt.height > 0) {
     const ghost = control.point.map((value,index) => {
       const raw = snapshot.pending[fields[index]];
       if (raw === undefined) return value;
@@ -237,22 +245,35 @@ export function PoleAxisGizmo(props:Props) {
         </g>;
       })}
     </svg>
+    {rotationMode&&<ObjectRotationGizmo session={session} control={control} canvas={canvas} snapStep={angularSnap?angularStep:null}
+      disabled={(busy&&!rotationMoving)||angularError!==null} onError={failure}
+      onGestureChange={active=>{setRotationMoving(active);latest.current.onGestureChange(active);}}/>}
     <div className="cad-editor-axis-palette" aria-label="Control point movement">
-      <div className="pole-move-title">{objectMode?'Move object':'Move control point'} <span>XYZ · mm</span></div>
+      <div className="pole-move-title">{rotationMode?'Rotate object':objectMode?'Move object':'Move control point'} <span>{rotationMode?'XYZ · deg':'XYZ · mm'}</span></div>
       <label className="pole-move-target">Target<select data-testid="gizmo-edit-target" value={snapshot.editTarget} disabled={busy}
         onChange={event=>{try{session.setEditTarget(event.target.value as CadEditorEditTarget);}catch(cause){failure(cause);}}}>
-        <option value="pole">Control point</option><option value="object" disabled={!capability?.canTranslateBody}>Object</option>
+        <option value="pole">Control point</option><option value="object" disabled={!capability?.canTranslateBody}>Object</option><option value="rotation" disabled={!capability?.canRotateBody}>Rotate object</option>
       </select></label>
-      <label className="pole-snap-toggle"><input type="checkbox" data-testid="pole-snap-enabled" checked={snapEnabled} disabled={busy}
-        onChange={event=>setSnapEnabled(event.target.checked)}/>Snap movement</label>
-      <label className="pole-snap-distance">Step (mm)<input type="text" inputMode="decimal" maxLength={128} value={stepRaw}
-        data-testid="pole-snap-step" disabled={!snapEnabled || busy} aria-invalid={stepError !== null} aria-describedby={stepError?snapErrorId:undefined}
-        onChange={event=>setStepRaw(event.target.value)}/></label>
-      {stepError && <p id={snapErrorId} data-testid="pole-snap-error" role="alert">{stepError}</p>}
-      <p role="status" data-testid="pole-axis-status">{movingAxis !== null ? `Moving ${objectMode?'object ':''}${names[movingAxis]} · Release to apply. Escape cancels.`
-        : pending ? 'Values pending. Apply or discard to continue.'
-        : visible === 0 ? 'Fit the selected point or edit its coordinates.'
-        : visible < 3 ? 'Drag an axis. Use Isometric to reach other axes.' : 'Drag an axis. Arrow keys move one step.'}</p>
+      {rotationMode?<>
+        <label className="pole-move-target">Axis<select data-testid="rotation-axis" value={snapshot.rotationAxis} disabled={busy}
+          onChange={event=>{try{session.setRotationAxis(event.target.value as 'x'|'y'|'z');}catch(cause){failure(cause);}}}><option value="x">X</option><option value="y">Y</option><option value="z">Z</option></select></label>
+        <label className="pole-snap-toggle"><input type="checkbox" data-testid="rotation-snap-enabled" checked={angularSnap} disabled={busy} onChange={event=>setAngularSnap(event.target.checked)}/>Snap angle</label>
+        <label className="pole-snap-distance">Step (deg)<input type="text" inputMode="decimal" maxLength={128} data-testid="rotation-snap-step" value={angularStepRaw} disabled={!angularSnap||busy}
+          aria-invalid={angularError!==null} onChange={event=>setAngularStepRaw(event.target.value)}/></label>
+        {angularError&&<p data-testid="rotation-snap-error" role="alert">{angularError}</p>}
+        <p>{rotationMoving?'Release to apply. Escape cancels.':pending?'Angle pending. Apply or discard.':'Rotate around the selected grip.'}</p>
+      </>:<>
+        <label className="pole-snap-toggle"><input type="checkbox" data-testid="pole-snap-enabled" checked={snapEnabled} disabled={busy}
+          onChange={event=>setSnapEnabled(event.target.checked)}/>Snap movement</label>
+        <label className="pole-snap-distance">Step (mm)<input type="text" inputMode="decimal" maxLength={128} value={stepRaw}
+          data-testid="pole-snap-step" disabled={!snapEnabled || busy} aria-invalid={stepError !== null} aria-describedby={stepError?snapErrorId:undefined}
+          onChange={event=>setStepRaw(event.target.value)}/></label>
+        {stepError && <p id={snapErrorId} data-testid="pole-snap-error" role="alert">{stepError}</p>}
+        <p role="status" data-testid="pole-axis-status">{movingAxis !== null ? `Moving ${objectMode?'object ':''}${names[movingAxis]} · Release to apply. Escape cancels.`
+          : pending ? 'Values pending. Apply or discard to continue.'
+          : visible === 0 ? 'Fit the selected point or edit its coordinates.'
+          : visible < 3 ? 'Drag an axis. Use Isometric to reach other axes.' : 'Drag an axis. Arrow keys move one step.'}</p>
+      </>}
     </div>
   </div>;
 }

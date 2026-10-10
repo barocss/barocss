@@ -80,7 +80,7 @@ export function CurvePoleHandles({session,receipt,canvas,onError}:Props){
     return()=>{window.removeEventListener('keydown',key,true);const g=gesture.current;if(g){gesture.current=null;release(g);const s=session.getSnapshot();if(!s.disposed&&!s.candidate&&!s.selectionTransition&&s.generation===g.generation&&s.displayGeneration===g.displayGeneration&&sameRaw(s.pending,g.raw)){try{session.discardPending();}catch{}}}};
   },[session]);
   function begin(event:ReactPointerEvent<SVGCircleElement>,index:number){
-    if(snapshot.editTarget==='object'){
+    if(snapshot.editTarget!=='pole'){
       const currentState=session.getSnapshot();if(currentState.candidate||currentState.selectionTransition||currentState.disposed)return;
       if(!event.isPrimary||event.button!==0||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey||!active)return;
       event.preventDefault();event.stopPropagation();
@@ -128,6 +128,6 @@ export function CurvePoleHandles({session,receipt,canvas,onError}:Props){
         onPointerDown={event=>begin(event,index)} onPointerMove={move} onPointerUp={end} onPointerCancel={()=>cancel(true)} onLostPointerCapture={()=>{if(gesture.current)cancel(true);}}
         onKeyDown={event=>{if((event.key==='Enter'||event.key===' ')&&!event.nativeEvent.isComposing){event.preventDefault();const state=session.getSnapshot();if(state.candidate||state.selectionTransition||state.disposed)return;try{session.requestSelection({bodyId:receipt.reference.bodyId,index});}catch(cause){failure(cause);}}}}/>:null)}
     </svg>
-    <p className="cad-editor-curve-drag-hint" role="status" data-testid="curve-drag-status">{moving?'Release to apply. Escape cancels.':pending?'Point values pending. Apply or discard to continue.':snapshot.editTarget==='object'?'Select a grip, then drag an object axis.':'Drag a point to move it in the view plane.'}</p>
+    {snapshot.editTarget!=='rotation'&&<p className="cad-editor-curve-drag-hint" role="status" data-testid="curve-drag-status">{moving?'Release to apply. Escape cancels.':pending?'Point values pending. Apply or discard to continue.':snapshot.editTarget!=='pole'?'Select a grip, then use the object handle.':'Drag a point to move it in the view plane.'}</p>}
   </div>;
 }

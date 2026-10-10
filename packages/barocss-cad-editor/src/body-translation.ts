@@ -4,7 +4,7 @@ import {
   validateSourceCurveControlPolygonEdit, validateSourceSurfaceControlNetEdit,
 } from '@barocss/cad';
 import type {
-  AffineGeometryTransformReport, Curve, CurvePoleEdit, CurvePoleEditProvenance,
+  AffineGeometryTransformReport, CadAffineMatrix3x4, Curve, CurvePoleEdit, CurvePoleEditProvenance,
   Model, Surface, SurfacePoleEdit, SurfacePoleEditProvenance,
 } from '@barocss/cad';
 import type { CadEditorBodyTranslationField } from './types.js';
@@ -19,7 +19,7 @@ export function withinTranslationProfile(geometry: Curve | Surface, canEdit: boo
     && knots.every(value => Number.isFinite(value) && Math.abs(value) <= 10000);
 }
 
-interface TranslatedSource {
+export interface TransformedBodySource {
   source: string;
   noOp: boolean;
   report: AffineGeometryTransformReport;
@@ -27,9 +27,8 @@ interface TranslatedSource {
   curveProvenance: CurvePoleEditProvenance[];
 }
 
-function temporaryGeometryId(model: Model): string {
+function temporaryGeometryId(model: Model, base: string): string {
   const reserved = new Set([model.name, ...model.objects.map(object => object.id)]);
-  const base = 'cad_editor_translation';
   for (let index = 0; index <= model.objects.length + 1; index++) {
     const candidate = index === 0 ? base : `${base}_${index}`;
     if (!reserved.has(candidate)) return candidate;
@@ -50,10 +49,16 @@ function sameBits(a: unknown, b: unknown): boolean {
 
 /** Adopt only native transformed coefficients into the original complete source and geometry ID. */
 export function translateBodySource(source: string, model: Model, original: Curve | Surface,
-  offsetMM: [number, number, number], requested: CadEditorBodyTranslationField[]): TranslatedSource {
-  const transformed = transformNativeGeometryAffine(original,
-    [1, 0, 0, offsetMM[0], 0, 1, 0, offsetMM[1], 0, 0, 1, offsetMM[2]],
-    { geometryId: temporaryGeometryId(model), maximumObservations: 961 });
+  offsetMM: [number, number, number], requested: CadEditorBodyTranslationField[]): TransformedBodySource {
+  return transformBodySource(source, model, original,
+    [1, 0, 0, offsetMM[0], 0, 1, 0, offsetMM[1], 0, 0, 1, offsetMM[2]], requested, 'cad_editor_translation');
+}
+
+/** Shared private affine-to-complete-source path; temporary generated source/model are never adopted. */
+export function transformBodySource(source: string, model: Model, original: Curve | Surface,
+  matrix: CadAffineMatrix3x4, requested: CadEditorBodyTranslationField[], temporaryBase: string): TransformedBodySource {
+  const transformed = transformNativeGeometryAffine(original, matrix,
+    { geometryId: temporaryGeometryId(model, temporaryBase), maximumObservations: 961 });
   validateAffineGeometryTransform(transformed);
   let currentSource = source;
   let selected: Curve | Surface = original;
