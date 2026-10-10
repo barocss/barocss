@@ -56,7 +56,14 @@ camera and component mount/disposal counts.
 binding. `stageSurfacePoleField(field,rawText)` holds raw `xMM`, `yMM`, `zMM` or
 `weight` text separately from accepted coefficients.
 
-`prepareApply()` performs a real native control-net edit and recreates the
+`selectCurvePole({bodyId,index})` selects an original zero-based Curve pole.
+`stageCurvePoleField(field,rawText)` holds its raw XYZ/weight fields in the
+default Control point mode (`editTarget: 'pole'`). Curve Apply
+requires the selected body's explicit matching Curve focus. The complete-source
+writer and its validator preserve the original asset, including sibling objects.
+
+`prepareApply()` performs the selected native coefficient edit or object transform
+and recreates the
 complete document. A copied candidate enters the snapshot. The mounted React
 bridge presents that candidate with `Viewer.loadDocument`, reads its frame and
 then calls `acceptCandidate(token)`. Preparation changes no accepted document or
@@ -123,14 +130,19 @@ kinds and asset/geometry bindings. It uses a fresh document revision and retains
 the existing rule that asset revisions advance only when their source changes.
 Mixed name and Surface edits therefore restore both authored names and source
 at current revisions. Native Download/Open retains names in the complete
-canonical file. Rename does not add duplicate/remove/asset replacement or a
-complete-source Curve editing API; existing isolated Curve edit output is not
-authority for replacing an original multi-object asset.
+canonical file. Rename changes body metadata only; it does not duplicate/remove
+bodies, replace assets or edit coefficients. Original Curve coefficient edits use
+the separate complete-source authoring path described below. An isolated Curve
+edit result is not authority for replacing an original multi-object asset.
 
 ## Draft selection and keys
 
-`requestSelection({bodyId,uIndex?,vIndex?,reference?})` validates a native target.
-Surface targets use original pole indices. Curve targets select the read-only body.
+`requestSelection({bodyId,uIndex?,vIndex?,index?,reference?})` validates a native target.
+Surface targets use original U/V pole indices. Curve targets use an original
+zero-based `index`. A body-only target keeps the current index when that same
+Curve is already selected; otherwise it starts at zero. Selection alone does not
+authorize an edit outside the supported profile
+or implicitly enter Curve focus.
 An optional native reference must resolve at the current document/asset revisions.
 The snapshot reports `selectedBodyId` and `selectionTransition`. With pending
 fields, a different target creates a copied `{token,baseGeneration,target}` decision.
@@ -141,7 +153,8 @@ Apply validates the real native edit and switches to the requested selection onl
 after the candidate displays and commits. Failure retains the decision, draft,
 accepted selection, history and frame. Discard explicitly clears the draft and
 switches. Cancel retains the draft and selection. Stale decisions refuse.
-`selectSurfacePole` delegates to this path. Same targets do not clear drafts.
+`selectSurfacePole` and `selectCurvePole` delegate to this path. Same targets do
+not clear drafts.
 Valid Open and Undo/Redo refuse unresolved drafts; apply or discard them first.
 
 Enter in a coefficient input applies after composition ends. Enter during
@@ -174,7 +187,11 @@ literal spelling. `result.edit` is the selected Surface child proof; it never
 replaces the full asset. Its provenance remains the pole edit receipt. The owned
 native validator reconstructs the provider proof; internal validation work is
 separate from the direct editor operation. Native no-op preserves exact spelling
-and revisions. Curve coefficients and unsupported selected Surface profiles remain
+and revisions. Original Curve XYZ/weight editing supports degree1–5, 2–64 poles,
+at most70 knots, coordinates within ±1000000mm, weights1e-6..1e6 and native IDs
+within the ASCII1–48 profile. It uses the actual complete-source Curve writer and
+requires matching explicit Curve focus for Apply; the narrower focused display
+limits below still apply. Unsupported selected Curve/Surface profiles remain
 read-only. Actual source binding/size/native/display failures retain prior state.
 
 `createCadEditorSession(document,{displayBodyIds})` and `prepareOpen(text,options)`
@@ -555,6 +572,10 @@ The ordinary export review shows object names, format/mm, selection and real geo
 
 ## Original Curve coefficients and canvas handles
 
+This section records the original Curve-authoring checkpoint
+[#1173](https://github.com/barocss/barocss/issues/1173). Its source and profile
+contracts remain current; its pending-tool list describes that checkpoint.
+
 CadEditorSession adds curveSelection beside the unchanged Surface selection.
 requestSelection accepts Curve index; selectCurvePole is its wrapper.
 stageCurvePoleField uses raw xMM/yMM/zMM/weight and the real complete-source
@@ -593,8 +614,12 @@ accepted. PointerUp performs one actual Apply/history step; Escape/pointercancel
 cancels owned raw/selection. Existing drafts must be resolved before dragging.
 The host uses public prepareCamera matrices; no sampling vertex is native
 authoring authority. Offscreen/occluded handles are approximate overlays; weight
-remains an exact field. Axis Gizmo/snapping/live whole-shape preview and Surface
-control-net drag remain separate product work.
+remains an exact field. At this checkpoint, axis Gizmo/snapping and Surface
+control-net drag were separate work. They were later added in
+[#1198](https://github.com/barocss/barocss/issues/1198) and
+[#1194](https://github.com/barocss/barocss/issues/1194), respectively. Full native
+whole-shape live preview remains outside the implemented profile. These receipts
+record their exact native runs; later integrated acceptance remains separate.
 
 Native files/recovery retain complete authored data and canonical display subset;
 focus/selection/raw/history/camera are not new file authority. Exact accepted
