@@ -696,3 +696,30 @@ secondU, secondV)` requires all four explicit finite primitive parameters.
 The host reads both U/V controls only when `captureTreeNormal()` has no
 arguments. Supplied partial, undefined or null values refuse. Results are
 copied and do not write Viewer, GPU, request, selection or measurement state.
+
+
+## Navigate the qualified Face view with the pointer
+
+Enable **Navigate view** to use primary-button drag for orbit, Shift-drag
+for pan, and the wheel for zoom. The option starts off. Ordinary clicks
+remain available to enabled Face inspectors. A drag beyond the existing
+three CSS pixel threshold does not capture a sample or picked measurement.
+The example uses the public pointer adapter and its existing camera math.
+It adds no native source edit, geometry motion, selection or new solver.
+
+After accepted camera motion, the host refreshes its current view scope.
+Ephemeral screen inspection and samples clear. Current native reports, tree
+selection and both captured tree pairs retain their original content authority;
+labels reproject. A refused camera candidate keeps its accepted context and
+reports the error. Recovery failure has no pixel rollback promise.
+
+Accepted non-camera scene changes or canvas backing/CSS geometry changes end
+the old gesture. Camera-only motion keeps the active gesture. Switching the
+option off releases capture and restores the caller's previous touch-action.
+Loss, unavailable presentation, Clear, mode change and Dispose detach controls.
+Dispose removes the local listeners before disposing the Viewer. Retained
+CPU inspection remains separate from unavailable camera navigation.
+
+This is a single-primary-pointer and wheel workflow. Multitouch, inertia,
+keyboard camera maps, pixel-exact native hits and global accuracy are outside
+this example. It does not claim detection of an unobserved identical reload.

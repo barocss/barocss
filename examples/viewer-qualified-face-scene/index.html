@@ -13,7 +13,7 @@ li[data-screen-inspected=true]{border-color:#ffd479;background:#29445d}
 <h1>Independent original Face assets</h1><p>Each source keeps its whole native model, forward Face and UV boundary data.
 Faces share the view depth; this scene does not create a global Shell or Solid.</p>
 <div class="layout"><div><div id="qualified-face-view" class="face-view">
-<canvas id="view" width="640" height="480" aria-label="Independent source-qualified native Faces"></canvas>
+<canvas id="view" width="640" height="480" tabindex="0" aria-label="Independent source-qualified native Faces"></canvas>
 <div id="measurement-labels" class="measurement-labels" aria-hidden="true">
 <span id="measurement-point-1" class="measurement-label" hidden></span><span id="measurement-point-2" class="measurement-label" hidden></span>
 <span id="measurement-distance" class="measurement-label" hidden></span><span id="surface-area-label" class="measurement-label" hidden></span>
@@ -44,6 +44,11 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <button id="saved-view" disabled>Original view</button><button id="frame-all-faces" disabled>Frame all Faces</button><button id="orbit" disabled>Turn view</button><button id="pan" disabled>Pan view</button>
 <button id="resize" disabled>Resize view</button><button id="clear" disabled>Clear viewer</button><button id="run-proof" disabled>Run proof</button>
 <button id="lose-context" disabled>Lose context</button><button id="dispose" disabled>Dispose viewer</button>
+<label><input id="navigate-face-view" type="checkbox" disabled>Navigate view</label>
+<details id="face-navigation-help"><summary>About view navigation</summary>
+<p>Enable navigation to turn the view with a primary-button drag, pan with Shift held when the drag starts, and zoom with the wheel.
+A click without a drag still reaches the enabled inspection tools. Turning or panning does not edit original geometry or captured native parameters.
+Navigation stops when the view is unavailable or cleared. Native inspection can remain available. This control supports one primary pointer, without multitouch or inertia.</p></details>
 <label><input id="face-inspect-mode" type="checkbox" disabled>Face inspect mode</label>
 <p id="face-screen-inspection" role="status" aria-live="polite"></p>
 <details id="face-screen-inspection-help"><summary>About Face screen inspection</summary>
