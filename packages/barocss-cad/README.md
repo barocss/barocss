@@ -8732,3 +8732,74 @@ Numerically accepted proper frames, sampled plane gaps and rational Arc proofs
 are separate from exact global rigidity/circularity or manufacturing quality.
 Region/Face/Solid, constraints, feature graph, persistent topology naming,
 source-language Sketch/Part grammar, editor/renderer and release remain open.
+
+
+## Driving selected Line/Polyline intent — #1168
+
+`evaluateDrivenMixedSketchLines(document)` applies the actual bounded V1
+linear solver to complete selected Line/Polyline profiles in a mixed workplane
+Sketch, then regenerates original native profiles and World Curves.
+The new `barocss-driven-mixed-sketch-lines` version0 authored envelope contains
+id/lengthUnit:mm/seed/selectedProfileIds/segmentBindings/constraints/fixed limits.
+The ORIGINAL seed and ordered constraints remain authority. Solved coordinates
+and source/native geometry remain derived outputs.
+
+Every actual consecutive segment needs an explicit
+`{ profileId, segmentIndex, solverSegmentId }` binding. Selection and bindings
+follow original profile/point order and cover each selected profile completely.
+Solver segment IDs are distinct from original whole-profile and world IDs.
+Solver Source0 uses separate Line Curves with domain0..1; original Polyline
+Curves keep their IDs, complete domains and native interior C0 refusal states.
+Arc/Rectangle/centre/radius roles remain outside this selected solver scope.
+
+```js
+const result = cad.evaluateDrivenMixedSketchLines(authored);
+const edited = cad.updateDrivenMixedSketchLines(result.document, {
+  seedEdit: null,
+  constraints: authored.constraints.map(constraint =>
+    constraint.id === 'line_dx'
+      ? { ...constraint, distanceMM: -6 }
+      : constraint),
+});
+const report = cad.validateDrivenMixedSketchLines(edited);
+const text = cad.serializeDrivenMixedSketchLines(edited.document);
+const cold = cad.parseDrivenMixedSketchLines(text);
+```
+
+Horizontal/vertical/coincident/fixed constraints and signed INTEGER local X/Y
+distances use the existing solver unchanged. Each distance-bearing scalar
+component needs a fixed INTEGER target on that same axis. An orthogonal axis
+without distance may retain a fractional target. Every selected point belongs
+to a real segment; disconnected segment graphs are allowed. Actual limits are
+16points/8segments/32constraints,512solver input values/depth4 and minimum
+solver segment length0.001mm. Whole64-point Polylines cannot fit this operation.
+
+Actual solver rank/DOF/fullyConstrained describe selected scalar coordinates.
+They do not certify the whole mixed Sketch. Failure diagnostics are copied
+from the actual returned provider data in `error.solverDiagnostics`; no Error
+cause is manufactured for an ordinary `{ ok: false, diagnostics }` refusal.
+Actual native parent failures retain their real cause. Failed operations return
+no partial solution and preserve caller data; APIs do not write files.
+
+All selected profiles are reified through the actual mixed update, with original
+point/profile/world IDs unchanged. Unselected authored intent stays intact.
+Updates operate on the authored seed, never the previous derived target.
+Null fields retain authority; an empty constraints array clears constraints.
+No-op still solves/rebuilds. A changed authored seed uses the actual mixed seed
+updater; selection/segment definitions remain fixed through this update API.
+
+Results retain original request/final authored document, actual seed evaluation,
+solver Source0/IR/report, exact reification/segment mappings and full target
+native children. Copied occurrences are independent; owned validation rebuilds
+every retained field. The authored-only signed-zero codec rejects duplicate
+decoded JSON keys. Source aggregate limits are4MiB and authored JSON262144
+UTF-16/UTF-8; old solver/mixed budgets remain operative. Direct counts exclude
+inherited base and native child work.
+
+```sh
+node examples/cad-nurbs/driven-mixed-sketch-lines-demo.mjs --source EVIDENCE_DIR
+```
+
+Nonlinear length/radius/angle/tangent constraints, construction geometry,
+whole-Sketch constraint certification, general feature graphs, region/Face/Solid,
+source-language Sketch/Part grammar, editor/renderer and release remain open.

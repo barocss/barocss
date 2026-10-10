@@ -332,3 +332,6 @@ export type { XYAngleArcRequest, XYAngleArcReport, XYAngleArcResult } from './xy
 
 export { evaluateMixedWorkplaneSketchDocument, updateMixedWorkplaneSketchDocument, validateMixedWorkplaneSketchDocument, serializeMixedWorkplaneSketchDocument, parseMixedWorkplaneSketchDocument, MixedWorkplaneSketchDocumentError, MixedWorkplaneSketchDocumentDiagnosticCode } from './mixed-workplane-sketch-document.js';
 export type { MixedWorkplaneSketchProfileIntent, MixedWorkplaneSketchDocumentV0, MixedWorkplaneSketchDocumentEdit, MixedWorkplaneSketchDocumentReport, MixedWorkplaneSketchDocumentResult } from './mixed-workplane-sketch-document.js';
+
+export { evaluateDrivenMixedSketchLines, updateDrivenMixedSketchLines, validateDrivenMixedSketchLines, serializeDrivenMixedSketchLines, parseDrivenMixedSketchLines, DrivenMixedSketchLinesError, DrivenMixedSketchLinesDiagnosticCode } from './driven-mixed-sketch-lines.js';
+export type { DrivenMixedSketchLinesSegmentBinding, DrivenMixedSketchLinesDocumentV0, DrivenMixedSketchLinesDocumentEdit, DrivenMixedSketchLinesReport, DrivenMixedSketchLinesResult } from './driven-mixed-sketch-lines.js';
