@@ -378,3 +378,9 @@ Enable “Native sample mode” and click a filled Face. The current source, app
 Accepted source/view/backing/CSS changes clear the screen sample. Failed queries or recoverable failed loads retain accepted output. Loss/unavailable/Clear/mode/Dispose clear the report and disable sampling. The old Face inspect mode can run independently or at the same time.
 
 Approximate screen-selected U/V may vary with Float32 scaling and camera rounding. Native evaluation at a fixed original U/V remains original geometry; inferred parameters are not an invariant accuracy certificate.
+
+## Picked chord mode (#1211)
+
+Enable “Picked chord mode”. The first valid click stores a source-pinned original parameter point. The second completes a straight chord with the existing original-mm CPU API. A third valid click starts a new pair. “Reset picked chord” clears the pair. Misses and failed queries keep accepted data. The two parameters were selected approximately from display triangles; this is not a certified native ray dimension.
+
+Camera, backing size and CSS changes retain the pinned CPU points and reproject the caller labels. Source/Face content changes, wrong mode, Clear and Dispose invalidate them. Loss or unavailable presentation disables new sampling and hides labels while valid retained CPU reports can be revalidated. Labels are approximate and do not test occlusion. Color/grid/reversal/Scene translation do not change original-mm authority when source/Face content stays the same.
