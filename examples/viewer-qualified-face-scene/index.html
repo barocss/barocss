@@ -13,7 +13,8 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <canvas id="view" width="640" height="480" aria-label="Independent source-qualified native Faces"></canvas>
 <div id="measurement-labels" class="measurement-labels" aria-hidden="true">
 <span id="measurement-point-1" class="measurement-label" hidden></span><span id="measurement-point-2" class="measurement-label" hidden></span>
-<span id="measurement-distance" class="measurement-label" hidden></span><span id="surface-area-label" class="measurement-label" hidden></span></div></div>
+<span id="measurement-distance" class="measurement-label" hidden></span><span id="surface-area-label" class="measurement-label" hidden></span>
+<span id="curve-length-label" class="measurement-label" hidden></span></div></div>
 <label>Assets <select id="asset-count" disabled><option>6</option><option>2</option></select></label>
 <label>Grid U <select id="count-u" disabled><option>17</option><option>9</option><option>2</option></select></label>
 <label>Grid V <select id="count-v" disabled><option>17</option><option>9</option><option>2</option></select></label>
@@ -46,6 +47,18 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <details id="measurement-label-help"><summary>About screen labels</summary>
 <p>Labels map original native points through the current camera to canvas CSS coordinates. The mapping is approximate and does not test depth or occlusion;
 a covered point can still have a label. The canvas has no border or padding. Distance is the native mm straight chord, not a certified measurement.</p></details>
+</section>
+<section aria-label="Original Curve length inspection">
+<h2>Inspect original Curve length</h2>
+<label>Source <select id="length-source" aria-label="Length source" disabled></select></label>
+<label>Curve <select id="length-curve" aria-label="Length Curve" disabled></select></label>
+<button id="inspect-length" disabled>Inspect Curve length</button>
+<p id="length-output" role="status" aria-live="polite"></p>
+<details id="curve-length-help"><summary>About this length estimate</summary>
+<p>This estimates the full original native Curve in mm using native derivatives. Endpoint chord is a separate straight-line distance and does not replace Curve length.
+The error estimator is heuristic, not a certified upper bound. A temporary one-source document retains the complete original file;
+its wrapper identity is only an inspection context. The label uses the original parameter-interval midpoint, not an arc-length midpoint or a visible Curve hit.
+The retained Curve need not be separately drawn. Screen mapping is approximate and does not test occlusion.</p></details>
 </section>
 <section aria-label="Original Surface area inspection">
 <h2>Inspect original Surface area</h2>

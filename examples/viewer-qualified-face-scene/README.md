@@ -81,6 +81,28 @@ Failure preserves the accepted area context. Retained Face CPU inspection stays
 enabled after loss/unavailability while the area label is hidden. Clear/Dispose
 clears area state, and the shared observer disconnects on Dispose.
 
+Original Curve length inspection is independent from area and point reports.
+`#length-source` defaults to F and `#length-curve` lists only current retained
+native Curves, defaulting to c2 when present. `#inspect-length` uses the example
+`curve-length.js` helper and frozen `LENGTH_OPTIONS` to construct a real ephemeral
+one-source document, create a native reference and complete public arc query/
+validation. `#length-output` shows the source/Curve, length estimate in original
+mm and separately the endpoint chord in mm. The chord never substitutes the
+derivative-based arc estimate. Native length does not depend on scene scale,
+translation, camera or rendering grid.
+
+`#curve-length-label` projects the midpoint of the measured original parameter
+interval. This is not an arc-length midpoint, centroid or rendered Curve hit;
+the Curve can remain CPU-only in the Face scene. Help explains the heuristic
+error estimator, uncertified bounds and ephemeral wrapper. Camera/grid/color/
+order/resize retain this report and refresh its label. Original source/Face/
+Model/Curve kind or presence changes invalidate it. Failed query keeps accepted
+context. Retained CPU inspection stays enabled after loss/unavailability while
+the label is hidden; Clear/mode/Dispose clears state and the shared observer
+disconnects on Dispose. The authentic F Surface interior edit changes the whole
+source pin but leaves boundary Curve coefficients unchanged; it is not a Curve
+edit or evidence that its length changed.
+
 With Node22, ordinary development uses public package names through normal
 source-default exports without aliases or custom conditions:
 
@@ -135,6 +157,11 @@ Area hook members are `AREA_OPTIONS`, `areaPin`, `queryQualifiedFaceSurfaceArea`
 `inspectArea(pin?,options?)`, `updateAreaLabel`, `areaSnapshot`, and a copied
 `areaReport` getter. Public CAD document/reference/area query/validation exports
 are available in the same hook for the main runner's independent checks.
+Length hook members are `LENGTH_OPTIONS`, `lengthPin`,
+`queryQualifiedFaceCurveLength`, `inspectLength(pin?,options?)`,
+`updateLengthLabel`, `lengthSnapshot` with nested label fields, and a copied
+`lengthReport` getter. Public CAD arc query/validation are exposed for the main
+runner's independent checks. All query reports remain caller-owned copies.
 Public CAD `tessellateSurface`, `validateFaceBundle`, original evaluation, GPU
 `prepareCamera`/qualified scene and renderer APIs, mixed/uniform/Shell providers,
 Assembly/Model-set/document Loader and Physics cloth creation are available for
