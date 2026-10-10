@@ -1,0 +1,15 @@
+{
+  "archive.mjs": "ab1cb806cbb607a7e9c9fa5a85158375a1224cc3d01b89f9b6248cabdad51c57",
+  "bundle.mjs": "deadd116867812a6fc2d8808a583a5d9bbaf7fb5ac4e58e1051cbd950d80500c",
+  "contact-types.ts": "17fc4211862bd1ab665b26c11b3e1caed17e0b702e44964e03da3841c149bac9",
+  "controls.mjs": "f5eb67e17181f2f023e95043eb8baa9c3e188c08cb0ebbfff7e4a8dafbe33d72",
+  "edge-contact.ts": "09d60f75a3c699cfb9cf587e40d4b809fe42cc63221292bc5693deb25950220b",
+  "entry.ts": "f88771548c12e18ed9aaff902796a1934f20816bb35ea80998cbeeec69c5a562",
+  "face-contact.ts": "23524d0bc5ea149fb243d8991a753884e77d2898e49da9dc9836c8f57c245251",
+  "frozen-inputs.json": "ff6f4dd871d9a4ee5106224140e48fe59a8db5e2764e0faa0dd0fe2de93d458b",
+  "geometry.ts": "c581fd7eef4d615eb2c9fbee4fea7f13918548261fe404fde6b7e4432865d694",
+  "runner.mjs": "d16ac480b408f34cf398af5dccc638eda44add1072a1a8219f71fd5db10afaa7",
+  "sat-feature.ts": "5c84e0327d621a0bdcf1ca85d73244147fd2b05ae29fa6dfc25ded7d3af460af",
+  "witness-reference.py": "4b61cf8acf7bf8eba8210ddff21f15b03f7113366513b5aff93492bf96125f03",
+  "witness.ts": "d1a9e4356f250cfe5203320da3d05b094fe294342ed05bed1de9daab5d09073e"
+}

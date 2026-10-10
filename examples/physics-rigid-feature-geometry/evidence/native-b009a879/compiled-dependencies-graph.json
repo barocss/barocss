@@ -1,0 +1,57 @@
+{
+  "graph": "compiled-dependencies",
+  "originalSourceCount": 0,
+  "originalDistCount": 6,
+  "privateGeometrySource": true,
+  "worldStepped": false,
+  "inputs": [
+    {
+      "path": "packages/barocss-physics/dist/types.js",
+      "sha256": "932dad524c2e342e7335203e1e47aafb4025b3da32339385d79847c51283be1e"
+    },
+    {
+      "path": "packages/barocss-physics/dist/limits.js",
+      "sha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219"
+    },
+    {
+      "path": "packages/barocss-physics/dist/validation.js",
+      "sha256": "d7bb0ca0e1ac7f0485b60e46d72d4a49a2856473276cf28e56967895f06fe919"
+    },
+    {
+      "path": "packages/barocss-physics/dist/math.js",
+      "sha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-contact.js",
+      "sha256": "7519483aec208b282ae23bb6985868af199b19d00d3d00564b3a5438d2113ad1"
+    },
+    {
+      "path": "packages/barocss-physics/dist/collision.js",
+      "sha256": "404bbb24c4552828f8bd943481a15b11af7d93333c5651c4c8f8cae88e3dd28a"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/sat-feature.ts",
+      "sha256": "5c84e0327d621a0bdcf1ca85d73244147fd2b05ae29fa6dfc25ded7d3af460af"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/witness.ts",
+      "sha256": "d1a9e4356f250cfe5203320da3d05b094fe294342ed05bed1de9daab5d09073e"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/face-contact.ts",
+      "sha256": "23524d0bc5ea149fb243d8991a753884e77d2898e49da9dc9836c8f57c245251"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/edge-contact.ts",
+      "sha256": "09d60f75a3c699cfb9cf587e40d4b809fe42cc63221292bc5693deb25950220b"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/geometry.ts",
+      "sha256": "c581fd7eef4d615eb2c9fbee4fea7f13918548261fe404fde6b7e4432865d694"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/entry.ts",
+      "sha256": "f88771548c12e18ed9aaff902796a1934f20816bb35ea80998cbeeec69c5a562"
+    }
+  ]
+}

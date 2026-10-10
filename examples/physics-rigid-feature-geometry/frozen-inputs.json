@@ -1,0 +1,110 @@
+{
+  "archiveManifestSha256": "43d4a40b8c168e79047aa8d7d7805771aae15a361955228454afca474ee83967",
+  "archiveMeasuredHead": "cadfee1a46f2e70c7ce12f1ee9b5d1561419461e",
+  "parentNative": "e35c9d76cf0e77df867c8ce205abdd358c97b520",
+  "acceptedInputStates": 72,
+  "expectedFailures": {
+    "ALIGNED": 5,
+    "OFFSET": 16,
+    "YAW": 3
+  },
+  "originalSourceLedger": [
+    {
+      "path": "packages/barocss-physics/src/world.ts",
+      "sha256": "f34f79ee743dff7302b5c87c56407767b7dabb61c2715c90a60826c07637dc69"
+    },
+    {
+      "path": "packages/barocss-physics/src/types.ts",
+      "sha256": "e8befc80c94e1b109f5024581f056639acff2c19ed445f2875e20eaf2d3bf240"
+    },
+    {
+      "path": "packages/barocss-physics/src/limits.ts",
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    {
+      "path": "packages/barocss-physics/src/validation.ts",
+      "sha256": "5b0a3016c32ef19076984e6b7f529253af581c29eb9dd1adb19cc8dba185479f"
+    },
+    {
+      "path": "packages/barocss-physics/src/math.ts",
+      "sha256": "6605633830fa7fdf39f9531fbf988b52e306a6835655a318c961eb44c6b05ff8"
+    },
+    {
+      "path": "packages/barocss-physics/src/joints.ts",
+      "sha256": "733db740db6cdfb079faab141ac876909cf57bdb372c8c018b6336d07b48528c"
+    },
+    {
+      "path": "packages/barocss-physics/src/dynamic-fixed-joint.ts",
+      "sha256": "5e7c857c8b53536879c38ceb8728aaf43f2d840a9a1ceff8d5eb0d28690b021b"
+    },
+    {
+      "path": "packages/barocss-physics/src/dynamic-anchor-pair.ts",
+      "sha256": "66db021e35e76fa8a785e4468b7ccde59cd330f15bcc322ec6bd945de7efe046"
+    },
+    {
+      "path": "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+      "sha256": "f41e935efcc92d931277c3d7ccc42921cc98049f2febcf5eee26cc7ba82aa171"
+    },
+    {
+      "path": "packages/barocss-physics/src/joint-motor.ts",
+      "sha256": "392b23cf5aab021b5af32fd56e3615e78bc64f8484f98f1281f0e709b99add2a"
+    },
+    {
+      "path": "packages/barocss-physics/src/collision.ts",
+      "sha256": "2ba769697e5f9c5174f30a7a9ae8dceb61c1ba03c6fb507c24b6b6f7d4240388"
+    },
+    {
+      "path": "packages/barocss-physics/src/capsule-contact.ts",
+      "sha256": "a9df21430e4e2a37b1055143a5954a6a3f997b758c46432daebc11998630f3cd"
+    },
+    {
+      "path": "packages/barocss-physics/src/contact-manifold.ts",
+      "sha256": "4fc473bba47d820b040324d6cf6d0837001796ab34b63be444214030b8f504c4"
+    },
+    {
+      "path": "packages/barocss-physics/src/persistent-box-contact.ts",
+      "sha256": "4a176334c5cef1590505b53f81c8beed1658b0c00255e471ba88c438746a9c48"
+    },
+    {
+      "path": "packages/barocss-physics/src/ccd.ts",
+      "sha256": "f989fa7d68a86eb3a311e402a1992822bcd4f51cb5efc8d2c5766b0f40256eaa"
+    },
+    {
+      "path": "packages/barocss-physics/src/ccd-slab.ts",
+      "sha256": "b82c219f0b4fd15bdc0f701a7b8b3b0779df7a128b4a57b152412f8bd7087cc9"
+    },
+    {
+      "path": "packages/barocss-physics/src/ccd-box.ts",
+      "sha256": "b53a44c39fe127cd1e9b1962e2f51847709b40ecafb9a21b74a153af7513a46d"
+    },
+    {
+      "path": "packages/barocss-physics/src/ccd-pair.ts",
+      "sha256": "b193e9e6d18130989550566e0d478e510e2ca8f0fb48b303e2bb351bf20cece9"
+    },
+    {
+      "path": "packages/barocss-physics/src/broadphase.ts",
+      "sha256": "b0cf2d8f2095a47707ac5dd5ac556b69db9084f774f9a97e41bb28180aac4cba"
+    },
+    {
+      "path": "packages/barocss-physics/src/scene-profile.ts",
+      "sha256": "6db4a7e3a5e4485d2b4b1d2b8870ebbdb425a0c336f2d8ce1286352d539de39f"
+    },
+    {
+      "path": "packages/barocss-physics/src/sleep.ts",
+      "sha256": "bea9308d3f8dcff5d9bebf20ea3de47251bd9c86c7e245430e5919356534b104"
+    }
+  ],
+  "parentSourceHashes": {
+    "examples/physics-rigid-manifold-refusal/archive.mjs": "9c460ab324f8a6241bd88814c696e40dc373bf2e949db21189ff839a06b79180",
+    "examples/physics-rigid-manifold-refusal/frozen-inputs.json": "36b6470e9903f8035b9a0f07b521a77505303e292856c7e5fdccbef67b811c27",
+    "examples/physics-rigid-manifold-refusal/reconstruct.mjs": "1c1a750a4d524f4ad6ecc9e04fc6be9d40a2e2285888ed7a0d83e204e7ff4f5f"
+  },
+  "reusedConsumerHashes": {
+    "examples/physics-rigid-contact-reference/fixtures.mjs": "ca760b2945d246de1e2f32cb4763ef58bf95e87422b6d4545682c20abb3a1ac0",
+    "examples/physics-rigid-contact-reference/geometry-reference.py": "2c8bc7f6cd809e865c986a859b8614c963c4862296920555eb31c9487411af26",
+    "examples/physics-rigid-contact-diagnostic/observer.mjs": "85b3e216b28ec12511f8fc7262f96c3e050eeccd32b588d154797083ed795a98"
+  },
+  "satHitInstances": 66,
+  "successfulManifoldInstances": 57,
+  "firstRefusalInstances": 9
+}
