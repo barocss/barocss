@@ -2056,3 +2056,26 @@ resource/cache/lifetime, consumer document or publication support.
 
 ONE source/API/file/cold flow:
 `node examples/gpu-scene/engine-uv-repeating-material-bindings-flow.mjs --output <fresh-directory>`.
+
+
+### Original indexed triangle normal generation
+
+`prepareTriangleGeometryWithNormals(source)` admits an explicit
+`barocss-gpu-triangle-normal-source` version 0 source with positions, UVs and
+indices. Positions use scene units in right-handed Y-up coordinates; UVs are
+dimensionless. Each source vertex must be referenced. Normals use incident
+CCW triangle area vectors from original Number positions, accumulated by vertex
+index and normalized once. Duplicate positions with different indices remain
+independent. Degenerate triangles, unused vertices, cancelling sums and invalid
+incident winding are refused. Split sharp edges explicitly when needed.
+
+The result contains frozen original `source`, the method
+`area-weighted-original-triangle`, and an actual `prepared` triangle geometry.
+Original signed data, generated Number normals and mutable execution buffers are
+independent. Existing geometry0 still requires explicit normals. Limits are
+131072 vertices and triangles, 1048576 original numeric values, plus the existing
+geometry and Float32 representation limits. This API performs one existing
+geometry admission; it does not allocate WebGL resources.
+
+The source, emitted API and cold-file example is
+`examples/gpu-scene/triangle-normal-generation-flow.mjs`.

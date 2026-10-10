@@ -108,3 +108,6 @@ export type {EngineUVRepeatingMaterialExpression,EngineUVRepeatingMaterialIR} fr
 export {prepareEngineUVRepeatingMaterialBindings} from './engine-material-bindings.js';
 export type {EngineUVRepeatingMaterialBindingV0,EngineUVRepeatingMaterialBindingsV0,PreparedEngineUVRepeatingMaterialBindings} from './engine-material-bindings.js';
 export type {EngineUVRepeatingMaterialBinding} from './mesh-material.js';
+
+export { prepareTriangleGeometryWithNormals } from './triangle-normal-generation.js';
+export type { TriangleNormalSourceV0, PreparedTriangleGeometryWithNormals } from './triangle-normal-generation.js';
