@@ -3419,3 +3419,53 @@ exchange, URL/cancellation and byte overloads are unsupported by this entry.
 The executable `qualified-body-native-verify.mjs` uses three complete original
 files and checks source/emitted admission, copy independence and real refusals.
 Package configuration and local adoption do not imply npm publication.
+
+### Complete source NURBS Loft Graph and update receipts
+
+The optional `@barocss/cad-interop/nurbs-source-loft-feature-graph` entry reads
+complete saved CAD Graph results and complete selective update wrappers.
+It calls the matching public CAD whole validator for every eligible read.
+The native authored-document parser is a separate existing CAD API.
+
+```ts
+import {
+  parseBaroCadNurbsSourceLoftFeatureGraph,
+  readBaroCadNurbsSourceLoftFeatureGraph,
+  parseBaroCadNurbsSourceLoftFeatureGraphUpdate,
+  readBaroCadNurbsSourceLoftFeatureGraphUpdate,
+} from '@barocss/cad-interop/nurbs-source-loft-feature-graph';
+const graph = parseBaroCadNurbsSourceLoftFeatureGraph(savedGraphText);
+const graphCopy = readBaroCadNurbsSourceLoftFeatureGraph(graph.native);
+const update = parseBaroCadNurbsSourceLoftFeatureGraphUpdate(savedUpdateText);
+const updateCopy = readBaroCadNurbsSourceLoftFeatureGraphUpdate(update.native);
+```
+
+Each result has `native`, `validationReport`, `profile`, and `sourceText`.
+Native data and the actual validator report are independent mutable CPU copies.
+They share no mutable objects with the input, each other, or another read.
+The profile is deeply frozen. Text reads retain exact admitted text;
+own-data reads return `sourceText: null`.
+
+The Graph retains complete Sources, Models, source-edit receipts, selected
+Curves, stations, weights, qualified bindings, and native reports.
+The update also retains the previous authored document, options, edits,
+complete next Graph, and the actual selective transaction report.
+Graph receipt counts describe retained receipts; transaction direct counts
+have their own native work scope. Neither is Loader runtime telemetry.
+Suppressed Loft evaluation can be null. A semantic no-op remains a no-op.
+Authored XYZ/mm and represented finite numbers, including `-0`, are retained.
+V degree 1 and piecewise C0 do not establish smooth G1 or G2.
+
+Raw complete-result text and canonical native copies each use the explicit
+2 MiB UTF-8 and UTF-16 caps. Native authored 1 MiB and aggregate Source
+262144 limits stay separate. Work quotas apply to each parse or copy pass.
+The strict codec rejects malformed JSON, decoded duplicate keys, invalid
+Unicode scalars, nonfinite numbers, getters, cycles, hidden fields, and
+foreign data. Acyclic aliases are copied separately per occurrence.
+The reader preserves actual CAD errors as native failure causes.
+
+There is no renderer, URL or byte entry, public serializer, topology or
+Solid authority, Boolean operation, manufacturing or publication API here.
+The file example uses unchanged native originals and a private signed-zero
+writer. Source and emitted checks cover complete file reopen, independent
+copies, the real suppressed/no-op receipts, and genuine refusals.

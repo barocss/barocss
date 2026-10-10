@@ -150,6 +150,10 @@
       "./qualified-body": {
         "types": "./dist/qualified-body.d.ts",
         "import": "./dist/qualified-body.js"
+      },
+      "./nurbs-source-loft-feature-graph": {
+        "types": "./dist/nurbs-source-loft-feature-graph.d.ts",
+        "import": "./dist/nurbs-source-loft-feature-graph.js"
       }
     }
   },
@@ -302,6 +306,10 @@
     "./qualified-body": {
       "types": "./src/qualified-body.ts",
       "import": "./src/qualified-body.ts"
+    },
+    "./nurbs-source-loft-feature-graph": {
+      "types": "./src/nurbs-source-loft-feature-graph.ts",
+      "import": "./src/nurbs-source-loft-feature-graph.ts"
     }
   },
   "files": [
