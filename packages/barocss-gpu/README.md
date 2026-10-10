@@ -1308,3 +1308,11 @@ work and depth limits. No new IR variant or runtime shader function is added.
 Existing bare uniforms and locals named `abs` remain valid. Source text stays
 unchanged; canonical scalar zero follows the existing positive-zero policy.
 This is CPU authoring support; actual renderer and consumer adoption are separate.
+
+`min(float,float)` and `max(float,float)` accept two expressions whose intervals
+are each within `[-1000,1000]`. They expand to `clamp(a,-1000,b)` and
+`clamp(a,b,1000)`, respectively. The compiler charges all three or two generated
+nodes and derives the scalar result interval from the argument endpoints.
+A result bounded in `[0,1]` can serve directly as a color-mix ratio. Existing
+bare uniform/local names `min` and `max` remain valid. Canonical IR, trusted
+lowering, original source and the existing work/depth limits are preserved.

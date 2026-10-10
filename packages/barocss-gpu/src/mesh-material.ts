@@ -64,7 +64,15 @@ class Parser {
   }
   this.take(')');return this.color('#'+channels.map(value=>value.toString(16).padStart(2,'0')).join('').toUpperCase(),token);
  }
- if(!['sin','cos','mix','clamp','abs'].includes(name))fail('SYNTAX','Unsupported material function',token);this.take('(');const args:Term[]=[];if(this.current().text!==')'){for(;;){args.push(this.expression(0,nesting+1));if(this.current().text!==',')break;this.take(',');}}this.take(')');let type:'float'|'color'='float',range:[number,number];
+ if(!['sin','cos','mix','clamp','abs','min','max'].includes(name))fail('SYNTAX','Unsupported material function',token);this.take('(');const args:Term[]=[];if(this.current().text!==')'){for(;;){args.push(this.expression(0,nesting+1));if(this.current().text!==',')break;this.take(',');}}this.take(')');let type:'float'|'color'='float',range:[number,number];
+ if(name==='min'||name==='max'){
+  if(args.length!==2)fail('TYPE','min/max requires two floats',token);args.forEach(a=>this.float(a,token));
+  if(args.some(a=>a.range.some(n=>Math.abs(n)>1000)))fail('RANGE','min/max argument exceeds±1000',token);
+  const[a,b]=args,cap=this.term({kind:'float',type:'float',value:1000},'float',[1000,1000],[],token);
+  const lower=name==='min'?this.term({kind:'unary',type:'float',operator:'-',value:cap.expression},'float',[-1000,-1000],[cap],token):b;
+  const expanded=name==='min'?[a,lower,b]:[a,b,cap],extreme=name==='min'?Math.min:Math.max;
+  return this.term({kind:'call',type:'float',name:'clamp',args:expanded.map(a=>a.expression)},'float',[extreme(a.range[0],b.range[0]),extreme(a.range[1],b.range[1])],expanded,token);
+ }
  if(name==='abs'){
   if(args.length!==1)fail('TYPE','abs requires one float',token);this.float(args[0],token);
   const value=args[0],maximum=Math.max(...value.range.map(Math.abs));
