@@ -166,6 +166,10 @@
       "./source-curve-knot-insertion": {
         "types": "./dist/source-curve-knot-insertion.d.ts",
         "import": "./dist/source-curve-knot-insertion.js"
+      },
+      "./translated-strip-interval-boolean": {
+        "types": "./dist/translated-strip-interval-boolean.d.ts",
+        "import": "./dist/translated-strip-interval-boolean.js"
       }
     }
   },
@@ -334,6 +338,10 @@
     "./source-curve-knot-insertion": {
       "types": "./src/source-curve-knot-insertion.ts",
       "import": "./src/source-curve-knot-insertion.ts"
+    },
+    "./translated-strip-interval-boolean": {
+      "types": "./src/translated-strip-interval-boolean.ts",
+      "import": "./src/translated-strip-interval-boolean.ts"
     }
   },
   "files": [

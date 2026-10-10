@@ -3627,3 +3627,35 @@ Twelve successful admissions and sixteen bounded refusals preserve whole data, -
 Source/emitted public JS, selected declarations, exact file SHA and actual first failures are checked separately.
 This entry has no renderer, URL, byte input, serializer, dispose or direct insertion API.
 Current composed validation, packed consumer #801 and npm/release acceptance remain separate.
+
+### Restricted interval Boolean receipt reader
+
+The optional `@barocss/cad-interop/translated-strip-interval-boolean` entry reads complete native interval Boolean receipts.
+
+```ts
+import { parseBaroCadTranslatedStripIntervalBoolean, readBaroCadTranslatedStripIntervalBoolean } from '@barocss/cad-interop/translated-strip-interval-boolean';
+const fromText = parseBaroCadTranslatedStripIntervalBoolean(savedNativeJson);
+const fromOwned = readBaroCadTranslatedStripIntervalBoolean(fromText.native);
+```
+
+Each result contains `native`, `validationReport`, `profile`, and `sourceText`.
+Text reads retain the exact admitted text. Owned reads use `sourceText: null`.
+The complete seven-field native result and actual report are independent CPU copies.
+The reader calls the matching native whole validator once per eligible read.
+An empty difference is a successful result; both complete operands and proof remain.
+
+This fixed family accepts at most 12MiB of raw or canonical JSON plus one newline.
+Each traversal permits at most 4,194,304 values; nested Body and source limits remain native limits.
+The older qualified Body reader keeps its 2MiB and 1M-value limits.
+Finite binary64 values, numeric `-0`, Unicode, IDs, source and rational strings are retained.
+Accessors, cycles, duplicate decoded keys and over-budget data are refused.
+
+`BaroCadTranslatedStripIntervalBooleanReadError` uses INPUT, JSON, OWNED, BUDGET, SCHEMA or NATIVE.
+Native refusal keeps the actual native error as its cause.
+The profile is frozen. Native and report copies remain readable without a renderer.
+
+This entry provides no URL loading, public serialization, engine objects or disposal API.
+It provides no general Boolean, global continuity, manufacturing or release certificate.
+The example verifier checks original union, intersection and empty difference receipts.
+The typed example uses the optional public entry and the published declarations.
+Examples require Node.js 22.
