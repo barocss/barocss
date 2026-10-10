@@ -140,6 +140,17 @@ for your chosen renderer: Three.js `0.186.1` (declared `^0.186.1`), Babylon.js
 `9.29.0`, or Pixi3D `2.5.0` with PixiJS `7.2.4`. The `native` and higher-level CAD
 entries use `@barocss/cad`.
 
+In this workspace, ordinary public imports and package `types` select `src/*.ts`,
+including transitive CAD imports. Vite or a standard TypeScript-capable transformer
+resolves the source files and their internal `.js` specifiers. Development needs
+no CAD/interop prebuild, source condition, or package alias. Plain Node cannot
+resolve those internal `.js` imports to `.ts` by itself.
+
+The API links below refer to emitted `dist/*.d.ts` declarations for the published
+package layout. Those files are produced by the separate library build. Workspace
+source types and the `publishConfig` JS/type export maps are separate entry choices;
+a source browser run does not check the emitted declaration files.
+
 | Input and result | Public entry and API |
 |---|---|
 | PreviewPacket v0 → owned buffers or display GLB | `@barocss/cad-interop`: [prepareCadPreviewMesh](./dist/packet.d.ts), [encodeCadPreviewGlb](./dist/glb.d.ts); native face mesh uses [prepareOwnNativeFaceMesh](./dist/native-face.d.ts) / [encodeOwnNativeFaceMeshGlb](./dist/glb.d.ts) |
@@ -227,19 +238,12 @@ after fetching; do not mutate pending renderer options. Use `loadAbortable` for
 the explicit bounded transport; existing Three/Babylon `loadAsync` paths retain
 their existing transport behavior.
 
-Current workspace public exports resolve to `src/*.ts`. The saved Vite host and
-NodeNext type command therefore consume workspace source. Library builds create
-published artifacts and declaration links; they do not change bare public import
-resolution. Packaged exports use the separate `publishConfig` JS/type maps.
-Explicit published-map consumer validation is tracked in #1017 and is not a
-code-start gate for this example.
-
-Run the public-entry Three host from the workspace root. It reads the already
-committed full source, shows all five IDs, and has refusal and disposal controls:
+Run the public-export Three source host from the workspace root with the existing
+workspace dependencies. No CAD or interop prebuild is required. It reads the
+already committed full source, shows all five IDs, and has refusal and disposal
+controls:
 
 ```sh
-pnpm --filter @barocss/cad build:library
-pnpm --filter @barocss/cad-interop build:library
 pnpm exec vite --config packages/barocss-cad-interop/examples/sdk-quickstart-vite.config.mjs --host 127.0.0.1 --port 5191 --strictPort
 ```
 
@@ -249,14 +253,39 @@ Its source is [sdk-quickstart-three.mjs](./examples/sdk-quickstart-three.mjs).
 [product roadmap](https://github.com/barocss/barocss/wiki/Loader-Product-Roadmap)
 record current scope and next work.
 
+For the separate compiled SDK checkpoint, use Node 22 and build CAD then interop
+once to produce this checkout's published JS and declarations:
+
+```sh
+pnpm --filter @barocss/cad build:library
+pnpm --filter @barocss/cad-interop build:library
+node packages/barocss-cad-interop/examples/sdk-entry-checkpoint-verify.mjs --output /tmp/barocss-sdk-entry-checkpoint
+```
+
+The [checkpoint verifier](./examples/sdk-entry-checkpoint-verify.mjs) selects actual
+`publishConfig` export maps transitively, including CAD, through the existing
+[workspace published resolver](../../examples/workspace-source/probe.mjs).
+It checks neutral/Three compiled JS on the original five-member source and uses
+TypeScript's compiler API to check the actual emitted public declarations and
+normal peer typings. Its saved evidence records public resolutions, CAD/interop
+`dist` inputs with no own source fallback, declaration paths, diagnostics, and
+actual native/buffer/refusal/disposal observations. These builds serve this explicit
+verification; they are not a prerequisite for the source host above.
+[Checkpoint #1017](https://github.com/barocss/barocss/issues/1017) keeps the source
+Three browser flow and compiled JS/declaration checks as separate evidence. It
+does not run a new Babylon/Pixi source host or establish a tarball installation.
+
 [Capacity #982](https://github.com/barocss/barocss/issues/982#issuecomment-6079670371)
 passed native Three/Babylon/Pixi direct complete-file flows;
 [its integrated receipt](https://github.com/barocss/barocss/issues/982#issuecomment-6080581477)
 reran the Three flow. [Quickstart #988](https://github.com/barocss/barocss/issues/988)
-records a compiled-workspace consumer at its fixed native commit; the current
-workspace command follows source-default resolution above. Babylon/Pixi public host Issues
-[#1007](https://github.com/barocss/barocss/issues/1007) and
-[#1008](https://github.com/barocss/barocss/issues/1008) are planned evidence.
+recorded an earlier compiled workspace/type/Three host handoff. The Babylon/Pixi
+public host Issues [#1007](https://github.com/barocss/barocss/issues/1007) and
+[#1008](https://github.com/barocss/barocss/issues/1008) also have native compiled
+host handoffs. Those historical results do not establish their local integration
+or current source host verification. This quickstart's current source browser
+checkpoint is scoped to Three. Local code adoption is recorded separately;
+current integrated execution remains pending.
 The independent packed consumer [#801](https://github.com/barocss/barocss/issues/801)
 remains deferred. These examples do not establish npm registry publication.
 The API details and earlier operation receipts below retain their original
