@@ -1,0 +1,30 @@
+# Live Canvas2D, Viewer and Physics samples — #1310
+
+Frozen Issue: https://github.com/barocss/barocss/issues/1310. Native parent `ee4ef610e990f80defcc268b004a344d02105d84`. Source/API remains `5f5ad866205a21510ac69552e704cc162fa253b5`. Actual #1305 local adoption ee87676c7b08e675dcbe426e9fc9ca9b72ff0939 independently checked by Manual: all38native final blobs match. Planner separately closed that bounded leaf and recorded its scope; no new runtime execution is inferred from its audit.
+
+## Implementation and ownership
+
+Primary plus three transient helpers used four slots: primary composition/UI/validation, Viewer host/preset/docs, Canvas2D host/preset/docs and Physics host/preset/docs. Three new samples bring the total to21. The composer keeps each host's helpers in its own closure and leaves namespace imports as literal bare public imports in the standalone source consumer. Existing eighteen presets/anchors remain. The UI supplies named action buttons, displays stable error codes with messages, synchronizes accepted source for resize/reload actions and guards stale asynchronous selections.
+
+Canvas2D builds a real public display tree/SceneV29, submits and renders with logical320×200/DPR1. Host JSON is not a new package language. Viewer creates the actual native-source Viewer, retains authority through public loadNative, and exposes separate fit/clear/reload plus actual pointer/keyboard controls. Physics executes public fixed1/120s steps and projects copied metre state with HOST Canvas2D; no GPU/BaroCSSCanvas2D physics renderer or implicit clock. Reset constructs a new admitted world from accepted config; no invented rigid reset API. All factories clean up initial failure and owned resources on removal.
+
+## Actual native verification
+
+- Existing Node22.22.0/VitePress1.6.4/esbuild0.25.12/TypeScript5.9.3, no installation/upgrade.
+- Selected public-source Physics CPU consumer passed first execution. Step1: time0.008333333333333333s,Y1.99931875m,Vy-0.08175m/s. Step20: time0.16666666666666666s,Y1.8569375m,Vy-1.635m/s. Actual INVALID_STEP after1/60 call retained the complete serialized accepted state.39own source inputs/0dist. World disposed. Receipt host-samples-physics-cpu.json; reproduce with scripts/check-host-physics.mjs from repository root. No CPU drawing claim.
+- Normal composed browser bundle1270293bytes,308own source inputs/0dist. Forced local pinned snapshot composition1270284bytes checked all452manifest/src blobs and consumed inputs; normal restored. No new relative-import relocation or newerRoot API acceptance.
+- Affected build passed23.89s with normal reference chunk-size warning retained. Docs checks passed77pages/12manifest hashes/5178built page+anchor links/26image references. Syntax and diff checks passed.
+- Three actual1152px PNGs captured in native browser localhost52949 and inspected; all public hashes equal built assets. Canvas screenshot uses accepted width100/hitRectangle, Viewer ready native panel, Physics step20 with copied initial ghost and metre labels. Existing nineteen PNGs unchanged. Receipt host-samples-images.json.
+- Final production flow localhost52948: Canvas width80/hitnull→100/hitRectangle with changed pixels; real INVALID_SCENE width0 retains exact report/frame. Viewer ready/native midpoint[50,0,20]mm/9vertices8triangles; real pointer orbit changes pixels, focused F restores prior fit pixels; Clear presents empty/native:null, Reload+Fit restores ready; bad root unit retains exact accepted report/frame. Physics real step1/reset/20 matches CPU values, invalid1/60 retains exact report/frame. Selected original scene/curve and prior cos sample still run.390px viewport scrollWidth390. Page/console errors[],warnings[]. Receipts host-samples-browser.json and host-samples-production.json.
+
+## First failures and repairs
+
+No package API or renderer failure occurred in the selected three-host CPU/native-browser/build flow. Initial dev browser requested favicon.ico404 before the attached flow; this is retained, not counted as a successful resource. One docs lookup used a repository-relative path from app CWD and found no file; no file was modified. First production flow reached the final regression stage and timed out looking for button#scene: the preserved original anchor is gpu-scene. A first repair command used an incorrect app-prefixed path from app CWD, so it did not change the driver and the following attempt repeated the same timeout. The repair was then saved with an absolute path and original-anchor mapping; a fresh owned browser session ran the entire final production flow successfully. Product code/targets were not retuned to make that selector pass.
+
+Visual inspection prompted report field ordering only: Canvas probe/hit and Viewer midpoint/counts moved above long optional fields; source/action values and public calls are unchanged. Images were recaptured. Error display preserves public code/message; CPU/world/Viewer authority is not inferred from a host status string.
+
+## Scope and handoff
+
+New portal factories are actual instantiated/drawn source-host samples. Older standalone #1295 HTML/entry scripts remain separately unexecuted; new portal execution does not retroactively validate those files. Existing #1270 Viewer input-only and other earlier CPU receipts retain their historical scope. No Viewer pick/file/SaveOpen protocol, collision/stability/long-run/device/performance certificate, native Solid certification, currentRoot later API/emitted/packed/registry/publication acceptance. Physics Y=0 is a drawn reference, not a collider; XY projection does not display Z depth. Multi-step action is sequential, not atomic20-step rollback.
+
+Only apps/library-docs changed. No package source/manifests, root/lock/workflow/policy/oldCSS, dependency/sourcepin/APIregeneration, product push/PR/npm/deploy/Pages/domain, permanentWork/automation/model change. Native completion is ready for sole Integration's serial incremental adoption. Local adoption/currentRoot validation/publication remain distinct.

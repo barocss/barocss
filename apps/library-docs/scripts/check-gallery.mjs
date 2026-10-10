@@ -13,6 +13,7 @@ import { compileGpu, compileMeshMaterial, lowerMeshMaterial, prepareMesh } from 
 const gallery=${JSON.stringify(gallery)};
 const results=[];
 for(const [key,preset] of Object.entries(gallery)){
+ if(!['surface','scene','material'].includes(preset.kind))continue;
  if(preset.kind==='surface'){
   const result=compileCadModel(preset.source,{sourceVersion:preset.sourceVersion});
   if(!result.ok)throw Error(key+JSON.stringify(result.diagnostics));

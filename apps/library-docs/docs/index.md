@@ -31,7 +31,7 @@ features:
 
 ## See an actual result
 
-[Run eighteen editable examples](/playground): CAD curves, Surfaces, source1 Extrude and source2 parameters; GPU scenes and six primitives; eleven independent material function samples. Read the [CAD language](/packages/cad/language), [GPU scene language](/packages/gpu/language), [GPU material language](/packages/gpu/material-language) and [function gallery](/packages/gpu/function-examples) beside their inputs.
+[Run twenty-one editable examples](/playground): CAD geometry and parameters; GPU scenes and eleven material functions; native Viewer load/clear/reload, Canvas2D rectangle/hit testing and manual Physics steps. Read the [CAD language](/packages/cad/language), [GPU scene language](/packages/gpu/language), [GPU material language](/packages/gpu/material-language) and [function gallery](/packages/gpu/function-examples) beside their inputs.
 
 ## Pick your first task
 

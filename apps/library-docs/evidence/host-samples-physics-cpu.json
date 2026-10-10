@@ -1,0 +1,91 @@
+{
+  "result": {
+    "results": {
+      "first": {
+        "stepIndex": 1,
+        "timeSeconds": 0.008333333333333333,
+        "body": {
+          "id": "part:ball",
+          "kind": "dynamic",
+          "shape": {
+            "kind": "sphere",
+            "radiusM": 0.15
+          },
+          "positionM": [
+            0,
+            1.99931875,
+            0
+          ],
+          "velocityMps": [
+            0,
+            -0.08175,
+            0
+          ],
+          "orientation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "angularVelocityRadps": [
+            0,
+            0,
+            0
+          ],
+          "inertiaKgM2": 0.009
+        }
+      },
+      "twentieth": {
+        "stepIndex": 20,
+        "timeSeconds": 0.16666666666666666,
+        "body": {
+          "id": "part:ball",
+          "kind": "dynamic",
+          "shape": {
+            "kind": "sphere",
+            "radiusM": 0.15
+          },
+          "positionM": [
+            0,
+            1.8569375,
+            0
+          ],
+          "velocityMps": [
+            0,
+            -1.635,
+            0
+          ],
+          "orientation": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "angularVelocityRadps": [
+            0,
+            0,
+            0
+          ],
+          "inertiaKgM2": 0.009
+        }
+      },
+      "invalidStep": {
+        "code": "INVALID_STEP",
+        "stateRetained": true
+      }
+    },
+    "drawing": "not executed by CPU consumer"
+  },
+  "provenance": {
+    "sourcePin": "5f5ad866205a21510ac69552e704cc162fa253b5",
+    "sourceMode": "matching-workspace",
+    "forcedSnapshot": false,
+    "sourceRoot": ".",
+    "consumerOriginal": "apps/library-docs/docs/.vitepress/cache/host-physics-check.mjs",
+    "manifestCount": 8,
+    "pinnedFiles": 452,
+    "ownSourceInputs": 39,
+    "ownDistInputs": 0,
+    "validation": "matching manifest/src Git diff and consumed Git blobs matched"
+  }
+}

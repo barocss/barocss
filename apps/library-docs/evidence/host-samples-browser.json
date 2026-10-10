@@ -1,0 +1,352 @@
+{
+  "canvas": {
+    "initial": {
+      "backend": "Canvas2D WebGL2",
+      "sceneVersion": 29,
+      "probe": {
+        "x": 110,
+        "y": 30
+      },
+      "hit": null,
+      "rectangle": {
+        "id": "Rectangle",
+        "x": 20,
+        "y": 20,
+        "width": 80,
+        "height": 50,
+        "fill": [
+          1,
+          0,
+          0,
+          1
+        ]
+      },
+      "logicalSize": {
+        "width": 320,
+        "height": 200
+      },
+      "dpr": 1,
+      "backingSize": {
+        "width": 320,
+        "height": 200
+      },
+      "inputFormat": "Host JSON, not a package DSL",
+      "acceptedSource": "{\n  \"rectangle\": {\n    \"id\": \"Rectangle\",\n    \"layer\": 0,\n    \"transform\": {\n      \"x\": 20,\n      \"y\": 20,\n      \"scaleX\": 1,\n      \"scaleY\": 1,\n      \"rotation\": 0\n    },\n    \"width\": 80,\n    \"height\": 50,\n    \"fill\": [\n      1,\n      0,\n      0,\n      1\n    ]\n  },\n  \"probe\": {\n    \"x\": 110,\n    \"y\": 30\n  }\n}"
+    },
+    "edited": {
+      "backend": "Canvas2D WebGL2",
+      "sceneVersion": 29,
+      "probe": {
+        "x": 110,
+        "y": 30
+      },
+      "hit": {
+        "id": "Rectangle",
+        "kind": "rect"
+      },
+      "rectangle": {
+        "id": "Rectangle",
+        "x": 20,
+        "y": 20,
+        "width": 100,
+        "height": 50,
+        "fill": [
+          1,
+          0,
+          0,
+          1
+        ]
+      },
+      "logicalSize": {
+        "width": 320,
+        "height": 200
+      },
+      "dpr": 1,
+      "backingSize": {
+        "width": 320,
+        "height": 200
+      },
+      "inputFormat": "Host JSON, not a package DSL",
+      "acceptedSource": "{\n  \"rectangle\": {\n    \"id\": \"Rectangle\",\n    \"layer\": 0,\n    \"transform\": {\n      \"x\": 20,\n      \"y\": 20,\n      \"scaleX\": 1,\n      \"scaleY\": 1,\n      \"rotation\": 0\n    },\n    \"width\": 100,\n    \"height\": 50,\n    \"fill\": [\n      1,\n      0,\n      0,\n      1\n    ]\n  },\n  \"probe\": {\n    \"x\": 110,\n    \"y\": 30\n  }\n}"
+    },
+    "refusal": "Input refused: INVALID_SCENE: scene.nodes[0].width is outside its finite range. The last accepted output stays visible while the sample remains live.",
+    "retained": true
+  },
+  "viewer": {
+    "initial": {
+      "backend": "@barocss/viewer using its WebGL2 backend",
+      "status": "ready",
+      "surfaces": [
+        {
+          "modelId": "panel_demo",
+          "surfaceId": "panel"
+        }
+      ],
+      "midpointMM": [
+        50,
+        0,
+        20
+      ],
+      "vertices": 9,
+      "triangles": 8,
+      "sourceUnit": "mm",
+      "mmToSceneUnit": 0.001,
+      "frame": "right-handed-y-up",
+      "curves": [],
+      "camera": {
+        "eye": [
+          0.1556190029277893,
+          0.1056190029277893,
+          0.1256190029277893
+        ],
+        "target": [
+          0.05,
+          0,
+          0.02
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fovYDegrees": 45,
+        "near": 0.07523418317300695,
+        "far": 0.2906407754583871
+      },
+      "selected": null,
+      "selectedGeometry": null,
+      "native": {
+        "source": "@model panel_demo {\n  version: 0; length-unit: mm;\n  @surface #panel {\n    type: nurbs; degree-u: 1; degree-v: 1;\n    knots-u: [0,0,1,1]; knots-v: [0,0,1,1];\n    control-points: [[[0,0,0],[0,0,40]],[[100,0,0],[100,0,40]]];\n    weights: [[1,1],[1,1]];\n  }\n}",
+        "modelId": "panel_demo",
+        "modelVersion": 0,
+        "lengthUnit": "mm",
+        "objectIds": [
+          "panel"
+        ]
+      },
+      "grid": {
+        "countU": 3,
+        "countV": 3
+      },
+      "midpointParameters": [
+        0.5,
+        0.5
+      ],
+      "controlError": null
+    },
+    "empty": {
+      "backend": "@barocss/viewer using its WebGL2 backend",
+      "status": "empty",
+      "surfaces": [],
+      "midpointMM": null,
+      "vertices": 0,
+      "triangles": 0,
+      "sourceUnit": "mm",
+      "mmToSceneUnit": 0.001,
+      "frame": "right-handed-y-up",
+      "curves": [],
+      "camera": {
+        "eye": [
+          0.1556190029277893,
+          0.1056190029277893,
+          0.1256190029277893
+        ],
+        "target": [
+          0.05,
+          0,
+          0.02
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fovYDegrees": 45,
+        "near": 0.07523418317300695,
+        "far": 0.2906407754583871
+      },
+      "selected": null,
+      "selectedGeometry": null,
+      "native": null,
+      "grid": null,
+      "midpointParameters": null,
+      "controlError": null
+    },
+    "reloaded": {
+      "backend": "@barocss/viewer using its WebGL2 backend",
+      "status": "ready",
+      "surfaces": [
+        {
+          "modelId": "panel_demo",
+          "surfaceId": "panel"
+        }
+      ],
+      "midpointMM": [
+        50,
+        0,
+        20
+      ],
+      "vertices": 9,
+      "triangles": 8,
+      "sourceUnit": "mm",
+      "mmToSceneUnit": 0.001,
+      "frame": "right-handed-y-up",
+      "curves": [],
+      "camera": {
+        "eye": [
+          0.1556190029277893,
+          0.1056190029277893,
+          0.1256190029277893
+        ],
+        "target": [
+          0.05,
+          0,
+          0.02
+        ],
+        "up": [
+          0,
+          1,
+          0
+        ],
+        "fovYDegrees": 45,
+        "near": 0.07523418317300695,
+        "far": 0.2906407754583871
+      },
+      "selected": null,
+      "selectedGeometry": null,
+      "native": {
+        "source": "@model panel_demo {\n  version: 0; length-unit: mm;\n  @surface #panel {\n    type: nurbs; degree-u: 1; degree-v: 1;\n    knots-u: [0,0,1,1]; knots-v: [0,0,1,1];\n    control-points: [[[0,0,0],[0,0,40]],[[100,0,0],[100,0,40]]];\n    weights: [[1,1],[1,1]];\n  }\n}",
+        "modelId": "panel_demo",
+        "modelVersion": 0,
+        "lengthUnit": "mm",
+        "objectIds": [
+          "panel"
+        ]
+      },
+      "grid": {
+        "countU": 3,
+        "countV": 3
+      },
+      "midpointParameters": [
+        0.5,
+        0.5
+      ],
+      "controlError": null
+    },
+    "refusal": "Input refused: UNIT at 2:28: length-unit: mm is required. The last accepted output stays visible while the sample remains live.",
+    "retained": true
+  },
+  "physics": {
+    "initial": {
+      "backend": "Physics CPU steps \u2192 host Canvas2D projection",
+      "sourceType": "PhysicsWorldConfig",
+      "fixedStepSeconds": 0.008333333333333333,
+      "stepIndex": 0,
+      "timeSeconds": 0,
+      "bodyId": "part:ball",
+      "radiusM": 0.15,
+      "positionM": [
+        0,
+        2,
+        0
+      ],
+      "velocityMps": [
+        0,
+        0,
+        0
+      ],
+      "yM": 2,
+      "velocityYMps": 0,
+      "baselinePositionM": [
+        0,
+        2,
+        0
+      ],
+      "contactCount": 0,
+      "lastAction": "initial",
+      "disposed": false,
+      "projection": "Host XY in metres; Y=0 is a reference line, not a collider.",
+      "canvasSize": {
+        "width": 640,
+        "height": 420
+      }
+    },
+    "first": {
+      "backend": "Physics CPU steps \u2192 host Canvas2D projection",
+      "sourceType": "PhysicsWorldConfig",
+      "fixedStepSeconds": 0.008333333333333333,
+      "stepIndex": 1,
+      "timeSeconds": 0.008333333333333333,
+      "bodyId": "part:ball",
+      "radiusM": 0.15,
+      "positionM": [
+        0,
+        1.99931875,
+        0
+      ],
+      "velocityMps": [
+        0,
+        -0.08175,
+        0
+      ],
+      "yM": 1.99931875,
+      "velocityYMps": -0.08175,
+      "baselinePositionM": [
+        0,
+        2,
+        0
+      ],
+      "contactCount": 0,
+      "lastAction": "step-1",
+      "disposed": false,
+      "projection": "Host XY in metres; Y=0 is a reference line, not a collider.",
+      "canvasSize": {
+        "width": 640,
+        "height": 420
+      }
+    },
+    "twentieth": {
+      "backend": "Physics CPU steps \u2192 host Canvas2D projection",
+      "sourceType": "PhysicsWorldConfig",
+      "fixedStepSeconds": 0.008333333333333333,
+      "stepIndex": 20,
+      "timeSeconds": 0.16666666666666666,
+      "bodyId": "part:ball",
+      "radiusM": 0.15,
+      "positionM": [
+        0,
+        1.8569375,
+        0
+      ],
+      "velocityMps": [
+        0,
+        -1.635,
+        0
+      ],
+      "yM": 1.8569375,
+      "velocityYMps": -1.635,
+      "baselinePositionM": [
+        0,
+        2,
+        0
+      ],
+      "contactCount": 0,
+      "lastAction": "step-20",
+      "disposed": false,
+      "projection": "Host XY in metres; Y=0 is a reference line, not a collider.",
+      "canvasSize": {
+        "width": 640,
+        "height": 420
+      }
+    },
+    "refusal": "Input refused: INVALID_STEP: step must equal configured fixedStepSeconds. The last accepted output stays visible while the sample remains live.",
+    "retained": true
+  },
+  "captures": [
+    "canvas2d-rectangle",
+    "viewer-panel",
+    "physics-step"
+  ],
+  "errors": [],
+  "warnings": []
+}

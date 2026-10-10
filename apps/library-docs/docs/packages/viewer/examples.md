@@ -1,5 +1,42 @@
 # Viewer: prepare native input and display it
 
+## Live Viewer — load, fit, clear and reload
+
+Open [Viewer panel in the playground](/playground#viewer-panel). This sample creates the actual public Viewer on a real canvas. Its editable input is the complete source0 `panel_demo` model shown in Task 1 below.
+
+![Native CAD panel displayed by the public Viewer](/examples/viewer-panel.png)
+
+The host calls `createViewer(canvas,{mmToSceneUnit:0.001,background:[0.04,0.06,0.1]})`, then `loadNative(source,{sourceVersion:0,countU:3,countV:3})`. Native admission fits and presents before adopting the result. The initial result panel should show:
+
+| Public state / sampled native field | Expected value |
+| --- | --- |
+| `status` | `ready` |
+| `surfaces` | `[{modelId:'panel_demo',surfaceId:'panel'}]` |
+| Native Model version / length unit | `0` / `mm` |
+| Sample grid / vertices / triangles | 3×3 / 9 / 8 |
+| Sample center U/V | `[0.5,0.5]` |
+| Sample center XYZ | `[50,0,20]` mm |
+| Display conversion | `0.001` scene units per native mm |
+
+These midpoint values are read from the accepted native Surface packet, not calculated from screen coordinates. The report selects small fields from the copied public `getState()` result. Its `native.source` is the exact accepted text. Camera data uses scene units; native points retain millimetres. Pointer/keyboard callback errors, when present, are shown separately as host `controlError`.
+
+### Run an edit and a refusal
+
+Change both `100` X coordinates to `120` and select **Run input**. The accepted native panel then spans 120×40 mm and its center is `[60,0,20]` mm. Changing both endpoints preserves the rectangular control net. The host commits its reload source only after `loadNative` succeeds.
+
+To inspect a real input refusal, set `degree-u:0` and select **Run input**. The native compiler rejects that degree before Viewer adoption. With a live context, the previously accepted native source, references and presentation remain available. The refused textarea text is a candidate; it does not become the reload source. GPU/context loss or failed presentation recovery has a different boundary and can require a fresh Viewer.
+
+### Use the Viewer controls
+
+- **Fit view** calls the separate public `fit()` operation for visible geometry. It does not edit the native model. It is not one atomic transaction with a prior load.
+- **Clear view** calls `clear()`. A successful clear presents the empty background, reports `status:'empty'`, clears references and exposes `native:null`. The host retains the last accepted source.
+- **Reload accepted source** loads that retained text. It restores `ready`, its native model/reference and its fitted display. It does not load a refused candidate from the textarea.
+- Drag to orbit, Shift-drag to pan, and use the wheel to zoom. Focus the canvas and press F to fit. Escape clears selection; this sample adds no click-picking workflow.
+
+Fit requires visible geometry. After Clear, use Reload before Fit. The host attaches actual public pointer/keyboard controls, makes the canvas focusable and sets `touch-action:none`. On teardown it removes those controls before disposing Viewer and restores the prior canvas properties. Initial load/control setup failure also disposes the partially created Viewer.
+
+The app-local factory is `apps/library-docs/scripts/snippets/hosts/viewer.mjs`; its data-only preset is `scripts/snippets/presets/viewer.json`. This live portal factory has its own browser/image acceptance. The older standalone Task 2 recipe below remains unexecuted for #1295; a portal result does not relabel that recipe as executed.
+
 ## Task 1 — inspect the original midpoint before creating a Viewer
 
 Run from the repository root with Node 22+ and the existing app-local esbuild runtime. The runner reads ordinary public source export maps and transforms TypeScript; it does not install or publish packages.

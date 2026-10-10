@@ -27,6 +27,8 @@ The CAD curve uses real CAD evaluation followed by a small host Canvas2D drawing
 
 The added CAD extrusion and parameter examples explicitly compile source1 and source2. They fit sampled bounds to the view; inspect native values for size changes. The six-shape scene compares the source1 primitive kinds. Each material function has a separate complete program and the same host-controlled amount slider. All examples retain their explicit input language and source pin.
 
+Canvas2D uses its own public renderer/display tree and logical hit testing. Viewer instantiates its native-source view and owns its camera controls. Physics exposes explicit manual steps and projects actual CPU metre state with host Canvas2D. These presets provide action buttons and lifecycle/refusal data; they run no shared clock or automatic simulation loop.
+
 Run locally with Node22+ and the repository dependencies:
 
 ```sh

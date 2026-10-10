@@ -1,0 +1,35 @@
+[
+  {
+    "sample": "canvas2d-rectangle",
+    "bytes": 96176,
+    "dimensions": [
+      1152,
+      1193
+    ],
+    "sha256": "edb2d63f4a0dd40b0aa6dabf96f0001d924fc7ae50e807d0525410e5e194e78e",
+    "builtMatches": true,
+    "captureContext": "actual native browser localhost52949"
+  },
+  {
+    "sample": "viewer-panel",
+    "bytes": 107287,
+    "dimensions": [
+      1152,
+      1193
+    ],
+    "sha256": "f6f028ce737059c7953b88def1533ffd4cf86609842309c91c618a423eecb4a0",
+    "builtMatches": true,
+    "captureContext": "actual native browser localhost52949"
+  },
+  {
+    "sample": "physics-step",
+    "bytes": 168591,
+    "dimensions": [
+      1152,
+      1193
+    ],
+    "sha256": "cf9f607ba09b76d98c509b474a965d671db510ec13a151b06aa9648c40f8551b",
+    "builtMatches": true,
+    "captureContext": "actual native browser localhost52949"
+  }
+]

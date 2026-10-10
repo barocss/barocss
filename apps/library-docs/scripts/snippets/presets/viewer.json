@@ -1,0 +1,24 @@
+{
+  "viewer-panel": {
+    "kind": "viewer",
+    "title": "Viewer \u00b7 load, fit, clear and reload a native panel",
+    "label": "Viewer panel",
+    "language": "CAD source0 \u2192 Viewer",
+    "source": "@model panel_demo {\n  version: 0; length-unit: mm;\n  @surface #panel {\n    type: nurbs; degree-u: 1; degree-v: 1;\n    knots-u: [0,0,1,1]; knots-v: [0,0,1,1];\n    control-points: [[[0,0,0],[0,0,40]],[[100,0,0],[100,0,40]]];\n    weights: [[1,1],[1,1]];\n  }\n}",
+    "description": "Load the complete native panel, then orbit, pan or zoom the view. Clear removes the loaded Viewer state. Reload restores the last successfully accepted source. Camera movement does not edit native millimetre geometry.",
+    "actions": [
+      {
+        "id": "fit",
+        "label": "Fit view"
+      },
+      {
+        "id": "clear",
+        "label": "Clear view"
+      },
+      {
+        "id": "reload",
+        "label": "Reload accepted source"
+      }
+    ]
+  }
+}

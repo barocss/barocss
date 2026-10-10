@@ -34,10 +34,15 @@ Open the [visual playground](/playground). Choose a tab, edit the input and sele
 | CAD parameters | Compile lengths/scalars, edit a parameter, then resample the Surface | CAD source2 |
 | GPU six shapes | Compare sphere, box, cylinder, capsule, rounded-box and torus | GPU source1 |
 | Eleven material function samples | Select an independent complete program for each source function | Mesh-material grammar |
+| Canvas2D rectangle | Construct a display tree, submit/render and inspect a hit | Host JSON passed to public APIs |
+| Viewer panel | Load native CAD, fit, clear and reload with pointer/keyboard controls | CAD source0 |
+| Physics steps | Manually advance copied world state and draw a host diagram | PhysicsWorldConfig JSON; fixed1/120s |
 
 WebGL2 is required for GPU scene, surface and material drawing. The curve plot requires a browser Canvas2D context. The curve tab does not execute the BaroCSS Canvas2D package. The original Curve/Surface tabs select CAD source0; the two added CAD presets explicitly select source1 or source2. A source header does not change a selected tab's compiler version. Use the matching preset or the CPU examples below.
 
 The [material function gallery](/packages/gpu/function-examples) gives complete input and result images for all eleven source functions. Each preset supplies `amount` from0 to1. The host owns that control; the source creates no timer. The new CAD presets fit their sampled bounds to the viewport. A uniform size change can keep the same screen size; read the native millimetre values in **Actual result data**.
+
+The [Canvas2D sample](/playground#canvas2d-rectangle) uses the real BaroCSS Canvas2D renderer and a fixed320×200 logical area. Edit the rectangle width or select **Set width to 100**; read the hit at110,30. The [Viewer sample](/playground#viewer-panel) creates a real Viewer from native source; its actions clear, reload or fit the accepted view. The [Physics sample](/playground#physics-step) advances only when a button is selected. Its world uses metre values and fixed1/120s; a host Canvas2D diagram displays actual state. It is not a GPU physics renderer or a collision/stability demonstration. Canvas2D and Physics JSON are host recipes, not additional source-language parsers.
 
 For GPU scenes, a refused edit retains the accepted frame. For materials, a refused compilation or binding retains the accepted material. Read the error before changing the input again. A refusal is not a successful adoption of the new input.
 
