@@ -383,3 +383,6 @@ export type { NurbsSourceLoftFeatureGraphV0, NurbsSourceLoftFeatureGraphOptions,
 
 export { buildExactSurfaceBandTrim, validateExactSurfaceBandTrim, ExactSurfaceBandTrimError, ExactSurfaceBandTrimDiagnosticCode } from './exact-surface-band-trim.js';
 export type { ExactSurfaceBandTrimOptions, ExactSurfaceBandTrimEdge, ExactSurfaceBandTrimReport, ExactSurfaceBandTrimResult } from './exact-surface-band-trim.js';
+
+export { buildTranslatedStripIntervalBoolean, validateTranslatedStripIntervalBoolean, TranslatedStripIntervalBooleanError, TranslatedStripIntervalBooleanDiagnosticCode } from './translated-strip-interval-boolean.js';
+export type { TranslatedStripIntervalBooleanOptions, TranslatedStripIntervalBooleanOutput, TranslatedStripIntervalBooleanReport, TranslatedStripIntervalBooleanResult } from './translated-strip-interval-boolean.js';

@@ -9175,3 +9175,45 @@ node examples/cad-nurbs/exact-surface-band-trim-demo.mjs --source EVIDENCE_DIR
 This API creates an individual trimmed Surface Face. Body splitting, shared
 Solid topology, arbitrary trimming, general Boolean and manufacturing require
 separate admission.
+
+### Regularized Boolean operations on common-map translated-strip Bodies
+
+`buildTranslatedStripIntervalBoolean(a, b, options)` accepts two complete
+qualified translated-strip Bodies. Options select `union`, `intersection` or
+`difference` (A minus B), with `evaluationId`, `resultIdPrefix` of at most four
+characters, and fixed budgets `maximumOperands: 2`, `maximumOutputBodies: 2`
+and `maximumSlabs: 3`.
+
+Both Bodies must share exact original X(U), Z(V), native bases, uniform weights,
+the complete original Plane and stored roof. Their Y coefficients can differ
+only by a constant translation. Exact interval arithmetic selects occupied
+material. Results use the closure of its interior: wall-only intersection is
+empty, and wall-contact union builds one Body. A gap can produce two Bodies;
+strict containment can make difference produce two Bodies.
+
+Each positive-width result selects unchanged original endpoint Surface assets
+and invokes the real section, binding, wall, cap, base, end, volume and Body
+providers. Every returned Body has its full source, graph and material proof.
+The root generates no rounded poles or replacement original IDs. A selected
+endpoint pair with duplicate Source or Surface IDs refuses. Fixed `profile`
+Model names remain qualified namespaces; fresh IDs are reserved against both
+operands. Stored parent orientation is applied once by the new constructors.
+
+`validateTranslatedStripIntervalBoolean` reconstructs both full operands,
+the common map, interval plan, output Bodies, provenance, exact total volume
+and every report field. Empty output has no degenerate Body. The root returns
+an exact total volume fraction and makes no new float conversion or native
+sampler call. Existing delegated provider work remains in its full receipts.
+
+New wrapper request and result limits are 6 MiB and 12 MiB, in both UTF16 and
+UTF8 with the final newline and negative zero. All full operands and output
+Bodies must fit. Each Body retains its own 2 MiB limit and Models 16 plus 2.
+Existing source, Model, numeric and parent ownership limits remain unchanged.
+
+```sh
+node examples/cad-nurbs/translated-strip-interval-boolean-demo.mjs --source EVIDENCE_DIR
+```
+
+This is a restricted material Boolean for the stated common map. Different
+roof or X/Z maps, arbitrary curved Solid operations, ID repair, tolerance
+welding and manufacturing have separate admission requirements.
