@@ -65,6 +65,59 @@ export function validateOutputRecord(record, identity, expectedSeq) {
 }
 export function encodeRecord(record) { assertJsonData(record); return encoder.encode(`${JSON.stringify(record)}\n`); }
 
+// JSON.parse keeps only one value for duplicate names. Check the original line
+// before any parsed record reaches the host, including names written with escapes.
+function assertUniqueMembers(text) {
+  let index = 0;
+  const skipSpace = () => { while (/[\t\n\r ]/.test(text[index] ?? '')) index++; };
+  const readString = (key) => {
+    const start = index++;
+    while (text[index] !== '"') {
+      if (text[index] === '\\') index += 2;
+      else index++;
+    }
+    index++;
+    return key ? JSON.parse(text.slice(start, index)) : undefined;
+  };
+  const walk = (depth) => {
+    if (depth > 16) fail('Record nesting limit');
+    skipSpace();
+    if (text[index] === '{') {
+      index++;
+      const names = new Set();
+      skipSpace();
+      if (text[index] === '}') { index++; return; }
+      while (true) {
+        const name = readString(true);
+        if (names.has(name)) fail('Duplicate JSON member');
+        names.add(name);
+        skipSpace(); index++; // colon; JSON.parse already checked the grammar
+        walk(depth + 1);
+        skipSpace();
+        if (text[index] === '}') { index++; return; }
+        index++; // comma
+        skipSpace();
+      }
+    }
+    if (text[index] === '[') {
+      index++;
+      skipSpace();
+      if (text[index] === ']') { index++; return; }
+      while (true) {
+        walk(depth + 1);
+        skipSpace();
+        if (text[index] === ']') { index++; return; }
+        index++; // comma
+      }
+    }
+    if (text[index] === '"') { readString(false); return; }
+    while (index < text.length && !/[\t\n\r ,}\]]/.test(text[index])) index++;
+  };
+  walk(0);
+  skipSpace();
+  if (index !== text.length) fail('Invalid JSON member scan');
+}
+
 export function createJsonlDecoder({ identity, kind = 'input', onRecord }) {
   validateIdentity(identity); identity = structuredClone(identity);
   if (!['input', 'output'].includes(kind) || typeof onRecord !== 'function') fail('Invalid decoder options');
@@ -89,7 +142,9 @@ export function createJsonlDecoder({ identity, kind = 'input', onRecord }) {
         if (terminal) fail('Record after terminal');
         if (index - start > maxLine) fail('Stream line limit');
         if (records >= maxRecords) fail('Stream record limit');
-        const record = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(joined.subarray(start, index)));
+        const line = new TextDecoder('utf-8', { fatal: true }).decode(joined.subarray(start, index));
+        const record = JSON.parse(line);
+        assertUniqueMembers(line);
         validate(record, identity, records + 1);
         if (kind === 'output' && record.sourceSeq <= lastSourceSeq) fail('Source sequence changed');
         lastSourceSeq = record.sourceSeq ?? lastSourceSeq; records++;

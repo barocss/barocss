@@ -18,6 +18,14 @@ PLAYWRIGHT_CORE_DIR=/path/to/installed/playwright-core node examples/render-stre
 
 `stage.mjs` copies actual `dist` files and public published export maps into ignored `.build/node_modules`. The browser and host resolve the package names from that staged tree. `output/` holds the report and two browser screenshots.
 
+The focused duplicate-member protocol flow uses the same staged public exports:
+
+```sh
+node examples/render-stream-package/duplicate-member-flow.mjs
+```
+
+It checks raw conflicting and escape-equivalent JSON object names in input and output records, valid sibling names, a split UTF-8 line, and valid/refused Fetch final admission. The result is written to `output/duplicate-member-report.json`. It uses authored bytes and no model provider.
+
 ## Native result on 2026-10-11
 
 - Exact local Integration parent: `be10f2ecca04800b0d344dc93a855e74d04fc305`.

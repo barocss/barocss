@@ -19,5 +19,6 @@ The v1 input envelope has exact fields `version`, `streamId`, `revision`, `seq`,
 The response is newline-delimited JSON with `application/x-ndjson`, `x-stream-id`, and `x-revision` headers. A browser must decode and validate the entire response through normal EOF before it enables actions. It must validate each received `spec` with `@barocss/render` and apply CSS only from the trusted server compiler. Preview actions stay disabled. The host retains authentication, authorization, action dispatch, persistence and retry policy.
 
 Limits are exported as `STREAM_LIMITS`: 256 KiB input, 32 KiB input line, 256 input records, 32 nodes, 8 snapshots, 128 KiB CSS, 256 KiB output line and 2 MiB total output. Invalid UTF-8, wrong identity or sequence, unknown fields, incomplete lines, missing terminal records, and any bytes after a terminal record stop decoding.
+The JSONL decoder also refuses duplicate object member names at every depth, including names that match after JSON escape decoding. A duplicate stops that decoder before it delivers the affected record. Equal names in separate objects are valid.
 
 Run the independent authored Fetch host in `examples/render-stream-package/` to see preview, final admission, cancellation and invalid-tail handling. This is a local package build and consumer proof, not npm publication or a model-performance claim.
