@@ -311,3 +311,6 @@ export type { AxisBoxSolidPrincipalInertiaSelection, AxisBoxSolidPrincipalInerti
 
 export { transformAxisBoxSolidMassFrame, validateAxisBoxSolidMassFrame, AxisBoxSolidMassFrameError, AxisBoxSolidMassFrameDiagnosticCode } from './axis-box-mass-frame.js';
 export type { AxisBoxSolidMassFramePose, AxisBoxSolidMassFrameOptions, AxisBoxSolidMassFrameReport, AxisBoxSolidMassFrameResult } from './axis-box-mass-frame.js';
+
+export { buildAxisBoxSolidFeatureDocument, editAxisBoxSolidFeatureDocument, validateAxisBoxSolidFeatureDocument, serializeAxisBoxSolidFeatureDocument, parseAxisBoxSolidFeatureDocument, AxisBoxSolidFeatureDocumentError, AxisBoxSolidFeatureDocumentDiagnosticCode } from './axis-box-solid-feature-document.js';
+export type { AxisBoxSolidFeatureDocumentV0, AxisBoxSolidFeatureDocumentOperand, AxisBoxSolidFeatureDocumentEdit, AxisBoxSolidFeatureDocumentReport, AxisBoxSolidFeatureDocumentResult } from './axis-box-solid-feature-document.js';

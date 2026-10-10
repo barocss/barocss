@@ -8284,3 +8284,69 @@ geometry pose or bind the whole multi-source Solid to an assembly instance.
 Arbitrary-angle conversion, general rotated/curved Solid Boolean, physical
 simulation, material certification, rendering and integrated file/recovery
 acceptance remain separate requirements.
+
+
+## Authored integer-box Boolean feature document — #1129
+
+`buildAxisBoxSolidFeatureDocument(document)` evaluates two actual original
+Source0 box-support assets. This additive version0 document retains authored
+origin/side dimensions, six explicit support IDs per operand, local Face IDs,
+Shell IDs, one union/intersection/difference feature and revision0..1000000.
+It does not accept an evaluated Shell or display mesh as authored authority.
+Six selected degree1/1,2x2unit-weight Surfaces must match declared integer box
+corners in the established outward face order. Unrelated original geometry
+remains source/compiler authority, including degree5Curves.
+
+`editAxisBoxSolidFeatureDocument(document, edit)` accepts exact fields:
+
+```js
+const result = cad.editAxisBoxSolidFeatureDocument(document, {
+  expectedRevision: document.revision,
+  operandEdits: [{sourceId: document.operands[0].sourceId,
+    originMM: null, sidesMM: [20, 30, 40]}],
+  operation: null, // or 'union', 'intersection', 'difference'
+});
+const report = cad.validateAxisBoxSolidFeatureDocument(result);
+const text = cad.serializeAxisBoxSolidFeatureDocument(result.document);
+const reopened = cad.parseAxisBoxSolidFeatureDocument(text);
+```
+
+The complete authored parent is evaluated once before edits. Changed
+coefficients use actual `editSourceSurfaceControlNet` operations in the full
+original file. Each changed support keeps its complete source-edit child and
+literal patch proof. Unchanged scalar spans, comments, whitespace, Model
+metadata, object order, IDs, unused geometry and signed-zero bits remain.
+No single-Curve generated source replaces a complete original asset.
+
+Every dimension-changed operand rebuilds all six FaceBundles and their24
+DERIVED boundary Curves, then its Shell and Solid validation. Changed material
+uses the actual existing 3D Boolean provider. Unchanged operands retain their
+validated base assets. Operation-only edits reevaluate Boolean; a genuine
+no-op retains exact source/document/revision and the validated base Boolean.
+Real authored changes increment revision once. Stale revision, source mismatch,
+invalid bounds or native CONTACT failure return no partial source/document or
+geometry. Inputs remain unchanged and the API performs no filesystem writes.
+
+The request, output authored document, source-edit proofs, actual operands,
+Boolean and report are retained as independent copies. Owned validation
+reconstructs the original request and compares every source/proof/child bit.
+The serializer validates the authored document and emits bit-faithful JSON,
+including literal -0; the parser cold-evaluates its complete authored sources.
+Evaluated children and edit history remain in separately saved owned results.
+
+Limits are two operands, twelve source-edit calls,144changed coordinate scalar
+patches,27cells and72panels. Sides remain integer1..10000mm and all corners
+within±10000mm. Complete source files remain within262144UTF-16 units and UTF-8
+bytes with1..16original objects. Authored file text remains within1048576units
+and bytes. Direct orchestration counts exclude inherited parent/child work;
+all existing provider reports remain available. IDs are qualified by source;
+stable authored IDs do not certify persistent generated topology naming.
+
+```sh
+node examples/cad-nurbs/axis-box-solid-feature-document-demo.mjs --source EVIDENCE_DIR
+```
+
+This provides authored edits for the restricted integer-axis box family.
+General rotated/cylindrical/curved Solid Boolean, arbitrary authored boundary
+Curve rebinding, persistent topology naming, whole-Solid assemblies, rendering,
+live document sessions and integrated file/recovery acceptance remain separate.
