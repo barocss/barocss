@@ -1,0 +1,317 @@
+{
+  "format": "barocss-render-editor-parametric-scene",
+  "version": 2,
+  "profile": "primitive-unlit-engine-v2",
+  "documentId": "closed-primitive-parameter-study",
+  "title": "Original closed primitive study",
+  "revision": 0,
+  "sceneId": "closed_primitive_scene",
+  "coordinateSystem": "right-handed-y-up",
+  "positionUnit": "scene",
+  "geometrySources": [
+    {
+      "format": "barocss-gpu-torus-geometry",
+      "version": 0,
+      "id": "torus_authored",
+      "coordinateSystem": "right-handed-y-up",
+      "positionUnit": "scene",
+      "majorRadius": 1.5,
+      "minorRadius": 0.4,
+      "majorSegments": 12,
+      "minorSegments": 8
+    },
+    {
+      "format": "barocss-gpu-cylinder-geometry",
+      "version": 0,
+      "id": "cylinder_authored",
+      "coordinateSystem": "right-handed-y-up",
+      "positionUnit": "scene",
+      "radius": 0.65,
+      "height": 1.8,
+      "radialSegments": 12,
+      "heightSegments": 3
+    },
+    {
+      "format": "barocss-gpu-cone-geometry",
+      "version": 0,
+      "id": "cone_authored",
+      "coordinateSystem": "right-handed-y-up",
+      "positionUnit": "scene",
+      "radius": 0.7,
+      "height": 2.1,
+      "radialSegments": 12,
+      "heightSegments": 3
+    },
+    {
+      "format": "barocss-gpu-box-geometry",
+      "version": 0,
+      "id": "box_authored",
+      "coordinateSystem": "right-handed-y-up",
+      "positionUnit": "scene",
+      "sizeXYZ": [
+        1.3,
+        0.7,
+        1.9
+      ]
+    }
+  ],
+  "camera": {
+    "eye": [
+      12,
+      9,
+      15
+    ],
+    "target": [
+      0,
+      0,
+      0
+    ],
+    "up": [
+      -0.0,
+      1,
+      0
+    ],
+    "fovYDegrees": 45,
+    "near": 0.01,
+    "far": 100
+  },
+  "background": [
+    0.02,
+    -0.0,
+    0.04
+  ],
+  "materials": [
+    {
+      "id": "torus_material",
+      "type": "unlit",
+      "colorSpace": "linear",
+      "color": [
+        0.3,
+        0.5,
+        0.8
+      ]
+    },
+    {
+      "id": "cylinder_material",
+      "type": "unlit",
+      "colorSpace": "linear",
+      "color": [
+        0.2,
+        0.6,
+        0.3
+      ]
+    },
+    {
+      "id": "cone_material",
+      "type": "unlit",
+      "colorSpace": "linear",
+      "color": [
+        0.8,
+        0.45,
+        0.15
+      ]
+    },
+    {
+      "id": "box_material",
+      "type": "unlit",
+      "colorSpace": "linear",
+      "color": [
+        0.6,
+        0.25,
+        0.1
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "primitive_group",
+      "type": "group",
+      "parentId": null,
+      "translation": [
+        -0.0,
+        0,
+        0
+      ],
+      "rotationXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "visible": true
+    },
+    {
+      "id": "torus_one",
+      "type": "mesh",
+      "parentId": "primitive_group",
+      "geometryId": "torus_authored",
+      "materialId": "torus_material",
+      "translation": [
+        -3,
+        -0.0,
+        0
+      ],
+      "rotationXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "visible": true
+    },
+    {
+      "id": "torus_two",
+      "type": "mesh",
+      "parentId": "primitive_group",
+      "geometryId": "torus_authored",
+      "materialId": "torus_material",
+      "translation": [
+        -3,
+        2.3,
+        0
+      ],
+      "rotationXYZW": [
+        -0.0,
+        0,
+        0.3826834323650898,
+        0.9238795325112867
+      ],
+      "scale": [
+        0.8,
+        1.2,
+        0.7
+      ],
+      "visible": true
+    },
+    {
+      "id": "cylinder_one",
+      "type": "mesh",
+      "parentId": "primitive_group",
+      "geometryId": "cylinder_authored",
+      "materialId": "cylinder_material",
+      "translation": [
+        0,
+        -0.0,
+        0
+      ],
+      "rotationXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "visible": true
+    },
+    {
+      "id": "cylinder_two",
+      "type": "mesh",
+      "parentId": "primitive_group",
+      "geometryId": "cylinder_authored",
+      "materialId": "cylinder_material",
+      "translation": [
+        0,
+        2.4,
+        -0.5
+      ],
+      "rotationXYZW": [
+        -0.0,
+        0,
+        0.3826834323650898,
+        0.9238795325112867
+      ],
+      "scale": [
+        0.8,
+        1.2,
+        0.7
+      ],
+      "visible": true
+    },
+    {
+      "id": "cone_one",
+      "type": "mesh",
+      "parentId": "primitive_group",
+      "geometryId": "cone_authored",
+      "materialId": "cone_material",
+      "translation": [
+        3,
+        -0.0,
+        0
+      ],
+      "rotationXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "visible": true
+    },
+    {
+      "id": "cone_two",
+      "type": "mesh",
+      "parentId": "primitive_group",
+      "geometryId": "cone_authored",
+      "materialId": "cone_material",
+      "translation": [
+        3,
+        2.7,
+        0
+      ],
+      "rotationXYZW": [
+        -0.0,
+        0,
+        0.3826834323650898,
+        0.9238795325112867
+      ],
+      "scale": [
+        0.8,
+        1.2,
+        0.7
+      ],
+      "visible": true
+    },
+    {
+      "id": "box_node",
+      "type": "mesh",
+      "parentId": "primitive_group",
+      "geometryId": "box_authored",
+      "materialId": "box_material",
+      "translation": [
+        0.3,
+        -1.7,
+        1.4
+      ],
+      "rotationXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "visible": true
+    }
+  ]
+}
