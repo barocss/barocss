@@ -317,3 +317,9 @@ The existing sprite-tint host retains tint controls and its original WHITE opaqu
 ### Prepared alpha-mask bytes
 
 The existing `sprite-blend.html` host keeps its normal/add controls and original partial-red Atlas. **Mask image alpha** prepares the main Sprite with `[0,0,0,0.5]`, creating an independent Faded asset `[255,0,0,64]`; Follower retains Atlas `[255,0,0,128]`. Both use normal blending and no display alpha mask. The copied tree and fresh renderer are admitted before canvas replacement. Save/Open retain the prepared bytes through current public document validation; moving the restored Sprite and exporting PNG use those bytes without another preparation. Dispose releases the host renderer and its exact canvas callback. CPU preparation remains independent of the renderer lifetime.
+
+### Edge extrusion in the sampling host
+
+`sprite-sampling.html` preserves Nearest/Linear controls and adds **Extrude edge gutter**. The original2×1 red/blue asset with gutter1 becomes4×3; every row contains red,red,blue,blue. The Sprite stays40×30 at20,20 with anchor zero and the full4×3 crop. Copied tree, fresh renderer and independent CPU asset snapshots admit before the live swap.
+
+Save/Open stores prepared pixels and full crop without calling extrusion again. Public staging validates the current Scene rather than the former narrow version list. Open restores only a missing default Atlas and preserves file assets. Restored public edit sets position8,0; PNG uses the public document exporter. Dispose removes the exact pointer callback and closes the renderer, while CPU assets remain available. Entry and post-stage checks protect terminal lifetime; no general competing-Open policy or sampling-parity promise.
