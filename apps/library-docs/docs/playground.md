@@ -15,6 +15,8 @@ For input selection, units and result interpretation, read [Use the interactive 
 
 [Open the procedural UV shader](/playground#advanced-shader) or read the [full shader and its layers](/packages/gpu/advanced-shader). The example uses a separate material API version and a small WebGL2 host.
 
+[Open the Unicode label](/playground#unicode-label) to prepare a local-font label and preserve its semantic text and copied pixels. Read [Unicode labels](./packages/canvas2d/unicode-labels) for the public API and saved-data behavior.
+
 <VisualExamples />
 
 ## Follow the language and the data

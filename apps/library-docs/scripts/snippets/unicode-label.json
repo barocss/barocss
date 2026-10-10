@@ -1,0 +1,19 @@
+{
+  "kind": "unicode",
+  "anchor": "unicode-label",
+  "title": "Unicode label · local browser raster",
+  "label": "Unicode label",
+  "language": "Unicode single-line JSON → Canvas2D GlyphRun",
+  "description": "Edit the complete JSON text input. The browser measures and rasterizes a local font, then the public Canvas2D renderer displays copied RGBA through one GlyphRun. Save and restore the accepted scene and atlas in memory; restore keeps the current input draft.",
+  "source": "{\n  \"text\": \"설계 圖面 A1\",\n  \"font\": \"24px system-ui\",\n  \"dpr\": 2,\n  \"textPolicy\": \"unicode-single-line\"\n}",
+  "actions": [
+    {
+      "id": "save-label",
+      "label": "Save label in memory"
+    },
+    {
+      "id": "restore-label",
+      "label": "Restore saved label"
+    }
+  ]
+}

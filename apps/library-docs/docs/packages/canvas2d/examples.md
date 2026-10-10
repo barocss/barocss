@@ -6,6 +6,8 @@ Open [the rectangle example](/playground#canvas2d-rectangle) to resize a retaine
 
 The red rectangle starts at `(20,20)` with size 80×50 logical pixels. Its right edge is X=100, so the probe `(110,30)` initially returns no hit. Set width to100: the edge moves to X=120 and the same probe returns `{id:"Rectangle",kind:"rect"}`. Width 0 is invalid and leaves the last accepted rectangle available. The interactive input combines rectangle data and a host probe; it is not the package's Scene JSON format.
 
+Use [Unicode labels](./unicode-labels) for the newer browser-text profile and [try the label](/playground#unicode-label). That example prepares `설계 圖面 A1` with explicit font/DPR/policy and saves or restores text, layout and copied RGBA bytes in page memory. The rectangle recipe below retains its earlier `5f5ad866` source contract.
+
 ## Create and submit a retained object
 
 Use a browser host with a TypeScript-capable bundler and the workspace package dependency. Put this HTML in the host page and use the following module as its `main.ts` entry. The bundler resolves public imports and transforms TypeScript; the browser receives JavaScript.
