@@ -23,6 +23,7 @@ export async function decodeImageBlob(blob: Blob): Promise<ImageAssetInput> {
   let bitmap: ImageBitmap;
   try { bitmap = await createImageBitmap(blob); }
   catch { throw new Canvas2DError('INVALID_ASSET', 'browser could not decode image'); }
+  let canvas: HTMLCanvasElement | undefined;
   try {
     const { width, height } = bitmap;
     if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1) {
@@ -31,7 +32,7 @@ export async function decodeImageBlob(blob: Blob): Promise<ImageAssetInput> {
     if (width > 4096 || height > 4096 || width * height * 4 > maxDecodedBytes) {
       throw new Canvas2DError('ASSET_LIMIT', 'decoded image exceeds asset limits');
     }
-    const canvas = document.createElement('canvas');
+    canvas = document.createElement('canvas');
     canvas.width = width; canvas.height = height;
     const context = canvas.getContext('2d', { willReadFrequently: true });
     if (!context) throw new Canvas2DError('UNSUPPORTED_FEATURE', '2D canvas is unavailable');
@@ -42,5 +43,12 @@ export async function decodeImageBlob(blob: Blob): Promise<ImageAssetInput> {
     } catch {
       throw new Canvas2DError('INVALID_ASSET', 'browser could not read decoded image pixels');
     }
-  } finally { bitmap.close(); }
+  } finally {
+    try {
+      if (canvas) {
+        try { canvas.width = 0; }
+        finally { canvas.height = 0; }
+      }
+    } finally { bitmap.close(); }
+  }
 }
