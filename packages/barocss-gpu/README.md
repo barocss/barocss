@@ -1388,3 +1388,30 @@ Run `node examples/gpu-scene/triangle-geometry-flow.mjs --output <fresh-director
 after the GPU library build for one source/API/emitted/cold-file flow.
 Scene hierarchy, general rendering, textures and other engine services are
 separate roadmap stages. This CPU preparation is not rendered-engine parity.
+
+## General engine scene preparation
+
+`prepareEngineScene()` admits the explicit `barocss-gpu-engine-scene` version0
+source. It contains a camera, linear RGB background, identified geometry and
+opaque unlit material catalogs, and group/mesh nodes. A parent is a group ID or
+explicit `null`. Each node supplies scene-unit translation, unit XYZW quaternion,
+positive scale and visibility. Local transforms use T*R*S; world transforms use
+parent*local, column-major. Effective visibility includes all ancestors.
+
+The result retains a frozen independent source and derives world/normal matrices,
+mesh bounds and an ordered visible draw plan. Mesh instances share their one
+prepared catalog geometry and material. Original local poses, coordinates, UVs
+and IDs remain unchanged. Float32 matrices and geometry buffers are independently
+owned mutable execution data. The CPU admission model checks transformed original
+and Float32 triangles. It does not allocate GL handles or prove shader pixels.
+
+Scene0 admits16 geometries,32 materials,64 nodes,32 total mesh instances and16
+levels. Aggregate geometry limits are262144 vertices/triangles and11534336 buffer
+bytes; instance work is at most524288 vertices including hidden meshes. Scale is
+0.01..100 per local axis; transformed positions remain within1000 scene units.
+Missing/cyclic references, unsafe transforms and Float32 triangle collapse refuse
+the entire candidate. Empty scenes are valid with an explicit camera/background.
+Texture, alpha, mesh parents, lights, raycasting and animation are later profiles.
+
+Run `node examples/gpu-scene/engine-scene-flow.mjs --output <fresh-directory>`
+after the GPU library build for one source/emitted/cold-file acceptance flow.
