@@ -1,0 +1,111 @@
+{
+  "cases": [
+    {
+      "label": "GPU scene",
+      "report": {
+        "sourceVersion": 1,
+        "objects": [
+          {
+            "id": "ball",
+            "type": "sphere",
+            "translate": [
+              -1.1,
+              0,
+              0
+            ],
+            "rotateDegrees": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": "block",
+            "type": "box",
+            "translate": [
+              1,
+              0,
+              0
+            ],
+            "rotateDegrees": [
+              20,
+              35,
+              -10
+            ]
+          }
+        ],
+        "backend": "WebGL2 SDF"
+      },
+      "pixelDataBytes": 27330,
+      "validEditChangedPixels": true
+    },
+    {
+      "label": "CAD curve",
+      "report": {
+        "backend": "CAD evaluation \u2192 host Canvas2D drawing",
+        "domain": [
+          0,
+          1
+        ],
+        "sampleCount": 101,
+        "midpointMM": [
+          14.142135623730951,
+          14.142135623730951,
+          0
+        ]
+      },
+      "pixelDataBytes": 30286,
+      "validEditChangedPixels": false
+    },
+    {
+      "label": "CAD surface",
+      "report": {
+        "backend": "CAD sampling \u2192 WebGL2 mesh",
+        "centerMM": [
+          7.7,
+          5.2,
+          1
+        ],
+        "vertices": 289,
+        "triangles": 512,
+        "maxSampledDeviationMM": 0.02878837032366707,
+        "certified": false,
+        "mmToSceneUnit": 0.12
+      },
+      "pixelDataBytes": 33626,
+      "validEditChangedPixels": false
+    },
+    {
+      "label": "GPU material",
+      "report": {
+        "backend": "CAD sampling \u2192 WebGL2 mesh",
+        "centerMM": [
+          7.7,
+          5.2,
+          1
+        ],
+        "vertices": 289,
+        "triangles": 512,
+        "maxSampledDeviationMM": 0.02878837032366707,
+        "certified": false,
+        "mmToSceneUnit": 0.12,
+        "shaderId": "blend",
+        "uniforms": {
+          "amount": 0
+        }
+      },
+      "pixelDataBytes": 24266,
+      "validEditChangedPixels": true
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "sceneInvalid": {
+    "message": "Input refused: 12:13: Rotation requires explicit deg within -360 to 360. The last accepted output remains available if the renderer is live.",
+    "retained": true
+  },
+  "materialInvalid": {
+    "message": "Input refused: [{\"code\":\"SYNTAX\",\"message\":\"Unsupported material function\",\"start\":120,\"end\":127}]. The last accepted output remains available if the renderer is live.",
+    "retained": true
+  }
+}

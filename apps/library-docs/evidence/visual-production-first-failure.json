@@ -1,0 +1,28 @@
+{
+  "captures": [
+    "gpu-scene",
+    "cad-curve",
+    "cad-surface",
+    "gpu-material",
+    "gpu-material-amount1"
+  ],
+  "images": [
+    {
+      "src": "/examples/cad-surface.png",
+      "loaded": true
+    },
+    {
+      "src": "/examples/cad-curve.png",
+      "loaded": true
+    }
+  ],
+  "mobile": {
+    "width": 390,
+    "scrollWidth": 390
+  },
+  "errors": [
+    "Cannot read properties of null (reading 'style')"
+  ],
+  "warnings": [],
+  "url": "http://127.0.0.1:52948/playground"
+}

@@ -1,5 +1,7 @@
 # CAD
 
+[Run and edit an actual example](/playground#cad-surface). Read the [language reference](./language). Compare the input with [captured result images](./examples).
+
 `@barocss/cad` provides an original bounded model compiler, rational B-spline evaluation, native construction/query operations and an ASCII IGES writer. Its manifest version is `0.0.0-experimental`.
 
 Use CAD for authoritative geometry. Retain the original source, native IDs, units and operation reports. Use [CAD interop](../cad-interop/) for loading or renderer adapters, and [GPU](../gpu/) for admitted display profiles.

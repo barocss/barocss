@@ -9,8 +9,8 @@ hero:
       text: Choose a library
       link: /packages/
     - theme: alt
-      text: Start with GPU
-      link: /packages/gpu/quickstart
+      text: Run visual examples
+      link: /playground
     - theme: alt
       text: Read shared concepts
       link: /concepts/coordinates
@@ -28,6 +28,10 @@ features:
     details: Render converts a supported UI document to React. CSS tools retain their existing guides.
     link: /packages/render/
 ---
+
+## See an actual result
+
+[Run four editable examples](/playground): GPU scene, CAD curve, CAD surface and GPU material. Read the [CAD language](/packages/cad/language), [GPU scene language](/packages/gpu/language) and [GPU material language](/packages/gpu/material-language) beside their inputs.
 
 ## Pick your first task
 

@@ -2,6 +2,7 @@ import { defineConfig } from 'vitepress'
 const packages = ['kit', 'browser', 'server', 'render', 'gpu', 'cad', 'cad-interop', 'canvas2d', 'viewer', 'physics', 'cad-editor', 'render-editor']
 const names = { 'cad-interop': 'CAD Interop (Loader)', 'cad-editor': 'CAD Editor', 'render-editor': 'Render Editor', canvas2d: 'Canvas2D', gpu: 'GPU', cad: 'CAD' }
 const common = [
+  { text: 'Run visual examples', link: '/playground' },
   { text: 'Library catalog', link: '/packages/' },
   { text: 'Coordinates and units', link: '/concepts/coordinates' },
   { text: 'IDs and ownership', link: '/concepts/ownership' },
@@ -11,7 +12,7 @@ const catalog = { text: 'Packages', items: packages.map(p => ({ text: names[p] |
 const sidebar = Object.fromEntries(packages.map(p => [`/packages/${p}/`, [
   { text: names[p] || p[0].toUpperCase() + p.slice(1), items: [
     { text: 'Overview', link: `/packages/${p}/` },
-    ...(packages.indexOf(p) < 3 ? [] : ['quickstart', 'guides', 'api', 'reference', 'examples', 'limits'].map(page => ({ text: { quickstart: 'Quickstart', guides: 'Guides', api: 'API reference', reference: 'Public signatures', examples: 'Examples', limits: 'Limits and lifecycle' }[page], link: `/packages/${p}/${page}` })))
+    ...(packages.indexOf(p) < 3 ? [] : ['quickstart', 'guides', ...(p === 'cad' || p === 'gpu' ? ['language'] : []), ...(p === 'gpu' ? ['material-language'] : []), 'api', 'reference', 'examples', 'limits'].map(page => ({ text: { language: 'Language reference', 'material-language': 'Material language', quickstart: 'Quickstart', guides: 'Guides', api: 'API reference', reference: 'Public signatures', examples: 'Examples', limits: 'Limits and lifecycle' }[page], link: `/packages/${p}/${page}` })))
   ] }, { text: 'Shared concepts', items: common }, catalog
 ]]))
 export default defineConfig({
@@ -23,7 +24,7 @@ export default defineConfig({
   lastUpdated: false,
   themeConfig: {
     siteTitle: 'BaroCSS Libraries',
-    nav: [ { text: 'Libraries', link: '/packages/' }, { text: 'Concepts', link: '/concepts/coordinates' }, { text: 'Package', items: catalog.items }, { text: 'CSS docs', link: 'https://barocss.com/guide/' } ],
+    nav: [ { text: 'Run examples', link: '/playground' }, { text: 'Libraries', link: '/packages/' }, { text: 'Concepts', link: '/concepts/coordinates' }, { text: 'Package', items: catalog.items }, { text: 'CSS docs', link: 'https://barocss.com/guide/' } ],
     sidebar: { ...sidebar, '/packages/': [catalog, { text: 'Shared concepts', items: common }], '/concepts/': [{ text: 'Shared concepts', items: common }, catalog] },
     search: { provider: 'local' },
     outline: { level: [2, 3] },
