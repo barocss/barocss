@@ -186,3 +186,8 @@ In browser-text.html use Left lines, Center lines or Right lines. Each action pr
 ### Wrapped paragraph
 
 Use Wrap paragraph in browser-text.html to fit Canvas2D labels fit this panel at maxWidth160/lineAdvance30/DPR2. Three visual lines retain one original30-character paragraph. Save/Open is bytes-only. Refit restored paragraph supplies currentwidth220 through publicwrappedhelper and glyph.setLayout, retaining text while producing two lines. width is preparation metadata and is not inferred from saved bytes. Existing explicit-LF alignment and singleline controls remain. Run tsconfig.wrapped-text.json and evidence/wrapped-text/probe.mjs after the affected build. Native and integrated evidence remain separate.
+
+
+### Owned renderer capture
+
+`renderer.captureImageAsset()` renders accepted state once and returns independent top-left straight RGBA8 `ImageAssetInput` at backing size. Register it with another renderer's `setImageAsset` and display it as a Sprite. Capture is bounded to 1MiB and adds no GPU object. Disposed/lost/mismatched backing and oversize refuse before drawing/readback. Use `renderer.resize` for dimensions. Pixels are unpremultiplied from quantized framebuffer bytes; alpha zero has RGB zero, low-alpha color loses precision, and additive RGB above alpha clamps. The derived Sprite has its own sampled-alpha hit behavior; original IDs/geometry remain in the editable source document. Captures are snapshots, not live render textures. Raw host GL mutation is outside renderer ownership. See consumer/capture-image.html for cross-renderer capture, file restoration and PNG export.

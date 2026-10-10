@@ -845,6 +845,45 @@ export class Canvas2DRenderer {
     gl.useProgram(null);
   }
 
+  /** Render accepted state and copy a bounded, top-left, straight RGBA8 image. */
+  captureImageAsset(): ImageAssetInput {
+    this.active();
+    const gl = this.gl;
+    if (this.lost || !this.gpu || gl.isContextLost()) {
+      throw new Canvas2DError('CONTEXT_LOST', 'WebGL context is unavailable');
+    }
+    const width = Math.ceil(this.size.width * this.dpr);
+    const height = Math.ceil(this.size.height * this.dpr);
+    if (this.canvas.width !== width || this.canvas.height !== height) {
+      throw new Canvas2DError('INVALID_SIZE', 'canvas backing size differs from renderer size');
+    }
+    if (width * height * 4 > 1024 * 1024) {
+      throw new Canvas2DError('ASSET_LIMIT', 'captured image exceeds 1MiB');
+    }
+    this.render();
+    const pixels = new Uint8Array(width * height * 4);
+    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    if (gl.isContextLost()) throw new Canvas2DError('CONTEXT_LOST', 'context lost during image capture');
+    if (gl.getError() !== gl.NO_ERROR) {
+      throw new Canvas2DError('INVALID_ASSET', 'WebGL image readback failed');
+    }
+    const stride = width * 4;
+    const row = new Uint8Array(stride);
+    for (let top = 0, bottom = height - 1; top < bottom; top++, bottom--) {
+      row.set(pixels.subarray(top * stride, (top + 1) * stride));
+      pixels.copyWithin(top * stride, bottom * stride, (bottom + 1) * stride);
+      pixels.set(row, bottom * stride);
+    }
+    for (let offset = 0; offset < pixels.length; offset += 4) {
+      const alpha = pixels[offset + 3];
+      for (let channel = 0; channel < 3; channel++) {
+        pixels[offset + channel] = alpha === 0 ? 0 :
+          Math.min(255, Math.round(pixels[offset + channel] * 255 / alpha));
+      }
+    }
+    return { width, height, pixels };
+  }
+
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
