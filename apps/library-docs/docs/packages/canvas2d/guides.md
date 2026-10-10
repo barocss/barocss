@@ -4,6 +4,8 @@
 
 Mutate public handles → take `tree.snapshot()` → call `renderer.updateScene(snapshot)` → call `renderer.render()`. Each handle mutation validates its candidate tree before accepting it. The renderer has a separate accepted scene. If asset or GPU admission refuses, correct or roll back the host's tree before resubmission.
 
+For a browser-shaped Hangul/CJK label, see [Unicode labels](./unicode-labels). This newer source profile adds explicit `unicode-single-line` admission, copied whole-label pixels and document restoration; the earlier rectangle example keeps its existing source contract.
+
 ## Build a path
 
 ```ts

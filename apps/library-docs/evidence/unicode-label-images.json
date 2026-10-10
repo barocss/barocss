@@ -1,0 +1,37 @@
+{
+  "sourceProfile": "028c9e509b35de56e61db3b92a034b5277fbb291",
+  "source": "Actual Codex in-app browser screenshot, JPEG; not generated/rerasterized by the docs builder",
+  "path": "docs/public/examples/unicode-label.jpg",
+  "width": 240,
+  "height": 72,
+  "bytes": 3348,
+  "sha256": "cdce237b79d477c32f0d84c7a6558dbad62db73b06ba8afe5898ae7a89e06065",
+  "capture": {
+    "url": "http://127.0.0.1:52949/playground#unicode-label",
+    "clipDocumentCSSPixels": {
+      "x": 656,
+      "y": 927,
+      "width": 240,
+      "height": 72
+    },
+    "semanticText": "설계 圖面 A1",
+    "fontDeclaration": "24px system-ui",
+    "rasterDPR": 2,
+    "logicalDisplay": {
+      "width": 320,
+      "height": 200
+    },
+    "nativeBacking": {
+      "width": 640,
+      "height": 400
+    },
+    "actualAtlas": {
+      "width": 242,
+      "height": 52,
+      "byteCount": 50336,
+      "rgbaChecksum": "fnv1a32:f62ae581"
+    },
+    "visualObservation": "Readable Korean and CJK characters with A1; plain white ink on dark background"
+  },
+  "limits": "JPEG is a cropped screen illustration, not native RGBA readback or cross-browser/font/device equality. Native author fixture metrics differ; no matched-face/coverage guarantee."
+}
