@@ -224,3 +224,17 @@
 .cad-app .feature-parameter-summary { gap:8px; }
 .cad-app .feature-parameter-summary>span { flex:1; min-width:0; overflow:hidden; }
 .cad-app .feature-parameter-summary>strong { flex:0 0 auto; max-width:55%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-variant-numeric:tabular-nums; }
+
+.cad-editor-loft { min-width:0; min-height:0; }
+.cad-editor-loft .cad-editor-inspector { padding:10px 12px; }
+.cad-editor-loft .cad-editor-field { margin:6px 0; grid-template-columns:58px minmax(0,1fr); }
+.cad-editor-loft .cad-editor-field input,.cad-editor-loft .cad-editor-field select { height:28px; font-size:11px; padding:4px 7px; }
+.cad-editor-loft .cad-editor-actions { display:flex; gap:7px; margin:10px 0; }
+.cad-editor-loft .cad-editor-actions button { height:28px; min-height:28px; padding:4px 9px; font-size:11px; }
+.cad-editor-loft .cad-editor-heading { font-size:11px; margin-bottom:8px; }
+.cad-editor-loft-controls { position:absolute; inset:0; z-index:2; pointer-events:none; }
+.cad-editor-loft-controls svg { overflow:hidden; pointer-events:none; }
+.cad-editor-loft-controls .curve-control-point { pointer-events:all; touch-action:none; cursor:grab; }
+.cad-editor-loft-controls .curve-control-point:active { cursor:grabbing; }
+.cad-editor-loft-controls .curve-control-point[aria-disabled="true"] { opacity:.45; cursor:default; }
+.cad-editor-loft-drag-hint { position:absolute; left:8px; bottom:8px; max-width:calc(100% - 16px); padding:4px 6px; margin:0; background:#22272be8; color:#b9c7cf; border:1px solid #39444a; border-radius:3px; font-size:10px; line-height:1.4; pointer-events:none; }

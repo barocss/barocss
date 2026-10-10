@@ -1,5 +1,9 @@
 export { createCadEditorSession } from './session.js';
 export { createCadEditorFeatureSession } from './feature-session.js';
+export { createCadEditorLoftSession } from './loft-session.js';
+export type { CadEditorLoftSessionOptions, CadEditorLoftView, CadEditorLoftPoleField, CadEditorLoftNodeBinding,
+  CadEditorLoftPoleSelection, CadEditorLoftSelectedPole, CadEditorLoftPending, CadEditorLoftCandidate,
+  CadEditorLoftSnapshot, CadEditorLoftSession } from './loft-types.js';
 export { CadEditorError } from './types.js';
 export type { CadEditorEditTarget, CadEditorBodyTranslationField, CadEditorBodyTranslation } from './types.js';
 export type { CadEditorDraftField, CadEditorRotationAxis, CadEditorBodyRotation } from './types.js';

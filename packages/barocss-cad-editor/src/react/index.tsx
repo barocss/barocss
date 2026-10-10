@@ -72,6 +72,8 @@ export { useCadEditorSnapshot } from './use-session.js';
 export type { CadEditorDisplayOptions, CadEditorDisplayReceipt, CadEditorCurveFocusReceipt, CadEditorViewportProps,
   CadEditorInspectorProps, CadEditorProps } from './types.js';
 export { CadEditorFeature } from './feature-editor.js';
+export { CadEditorNurbsLoftEditor } from './nurbs-loft-editor.js';
+export type { CadEditorNurbsLoftProps, CadEditorLoftDisplayReceipt } from './nurbs-loft-editor.js';
 export type { CadEditorFeatureProps, CadEditorFeatureDisplayReceipt } from './feature-editor.js';
 export { useCadEditorFeatureSnapshot } from './use-feature-session.js';
 export { CadEditorExportReview } from './export-review.js';

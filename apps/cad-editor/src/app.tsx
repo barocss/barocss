@@ -12,6 +12,7 @@ import {WorkspacePanelDivider} from './panel-divider';
 import {CadCommandPalette,type CommandId,type PaletteCommand} from './command-palette';
 import { downloadAccepted, downloadReviewedExport, readCadEditorFile } from './file-actions';
 import { FeatureApp } from './feature-app';
+import { LoftApp } from './loft-app';
 import { ReplacementDialog } from './replacement-dialog';
 import { RecoveryDialog } from './recovery-dialog';
 import { buildRecoveryRecord, readRecoverySlot, writeRecoveryCopy, deleteRecoveryCopy, RECOVERY_CHANGE_CHANNEL, type RecoveryRecord, type RecoverySlot } from './recovery-storage';
@@ -413,6 +414,7 @@ function DirectApp() {
           <MenubarItem onSelect={newSample} disabled={modelBusy}>New sample<MenubarShortcut>01</MenubarShortcut></MenubarItem>
           <MenubarItem onSelect={chooseOpenFile} disabled={modelBusy}>Open native document…</MenubarItem>
           <MenubarItem disabled={modelBusy} onSelect={() => { location.hash = "/features/cad_boolean_extrusion"; }}>New Boolean extrusion</MenubarItem>
+          <MenubarItem disabled={modelBusy} onSelect={() => { if (!commandBlocked() && !duplicateCaptured()) location.hash = '/lofts/loft_supported_graph'; }}>New NURBS loft</MenubarItem>
           <MenubarSeparator/><MenubarItem onSelect={showRecovery} disabled={modelBusy}>Recovery copies…</MenubarItem>
           <MenubarItem disabled={layout.resizing} onSelect={() => run(downloadCurrent)}>Download accepted document</MenubarItem>
           <MenubarSeparator/><MenubarItem disabled={layout.resizing} onSelect={() => { location.hash = '/projects'; }}>Projects</MenubarItem>
@@ -516,18 +518,20 @@ function DirectApp() {
 }
 
 export function App() {
-  const [featureMode, setFeatureMode] = useState(() => location.hash.startsWith('#/features/'));
-  const [visited, setVisited] = useState(() => ({direct:!location.hash.startsWith('#/features/'),feature:location.hash.startsWith('#/features/')}));
+  const routeMode = () => location.hash.startsWith('#/lofts/') ? 'loft' : location.hash.startsWith('#/features/') ? 'feature' : 'direct';
+  const [mode, setMode] = useState(routeMode);
+  const [visited, setVisited] = useState(() => ({direct:routeMode()==='direct',feature:routeMode()==='feature',loft:routeMode()==='loft'}));
   useEffect(() => {
     const update = () => {
-      const feature = location.hash.startsWith('#/features/');
-      setFeatureMode(feature);
-      setVisited(prior => ({direct:prior.direct || !feature,feature:prior.feature || feature}));
+      const next = routeMode();
+      setMode(next);
+      setVisited(prior => ({direct:prior.direct || next==='direct',feature:prior.feature || next==='feature',loft:prior.loft || next==='loft'}));
     };
     window.addEventListener('hashchange', update);
     return () => window.removeEventListener('hashchange', update);
   }, []);
   // Mode navigation keeps each host-owned native session and its pending fields.
-  return <>{visited.direct && <div className="cad-mode" hidden={featureMode}><DirectApp /></div>}
-    {visited.feature && <div className="cad-mode" hidden={!featureMode}><FeatureApp /></div>}</>;
+  return <>{visited.direct && <div className="cad-mode" hidden={mode!=='direct'}><DirectApp /></div>}
+    {visited.feature && <div className="cad-mode" hidden={mode!=='feature'}><FeatureApp /></div>}
+    {visited.loft && <div className="cad-mode" hidden={mode!=='loft'}><LoftApp /></div>}</>;
 }
