@@ -4,6 +4,7 @@ import { compileRenderEditorSource, copyRenderEditorDraftCamera, parseRenderEdit
   validateRenderEditorDocument, validateRenderEditorSourceInput } from './document.js';
 import type { RenderEditorMetadata, RenderSceneDocumentV0 } from './document.js';
 import { RenderEditorError } from './errors.js';
+import { inspectRenderSceneObjects } from './scene-object-source.js';
 
 export type RenderEditorApplyMode = 'source' | 'camera' | 'both';
 export type RenderEditorPurpose = 'apply' | 'open' | 'undo' | 'redo';
@@ -19,6 +20,7 @@ export interface RenderEditorSessionSnapshot {
   readonly draftSource: string;
   readonly draftCamera: MeshCamera;
   readonly sourceDirty: boolean;
+  readonly objectInputInvalid: boolean;
   readonly cameraDirty: boolean;
   readonly activeObjectId: string | null;
   readonly diagnostics: readonly GpuDiagnostic[];
@@ -31,6 +33,7 @@ export interface RenderEditorSession {
   getSnapshot(): RenderEditorSessionSnapshot;
   subscribe(listener: () => void): () => void;
   setDraftSource(source: string): void;
+  setDraftObjectSource(source: string | null): void;
   setDraftCamera(camera: MeshCamera): void;
   setActiveObject(id: string | null): void;
   prepareDraft(mode?: RenderEditorApplyMode): RenderEditorPreparedCandidate;
@@ -45,6 +48,8 @@ export interface RenderEditorSession {
 interface HistoryEntry { readonly document: RenderSceneDocumentV0; readonly bytes: number }
 interface CandidateState { readonly generation: number; readonly historyIndex: number | null; readonly bytes: number; used: boolean }
 const EMPTY_DIAGNOSTICS: readonly GpuDiagnostic[] = Object.freeze([]);
+const OBJECT_DIAGNOSTICS: readonly GpuDiagnostic[] = Object.freeze([Object.freeze({ code: 'SOURCE', severity: 'error' as const,
+  message: 'Check the object properties before Apply.', range: null })]);
 
 function camerasEqual(a: MeshCamera, b: MeshCamera): boolean {
   return ['eye', 'target', 'up'].every((key) => {
@@ -57,11 +62,11 @@ export function createRenderEditorSession(initial: RenderSceneDocumentV0): Rende
   let accepted = validateRenderEditorDocument(initial), metadata = compileRenderEditorSource(accepted.sceneSource);
   let draftSource = accepted.sceneSource, draftCamera = accepted.camera;
   let diagnostics = EMPTY_DIAGNOSTICS, activeObjectId: string | null = null, savedRevision: number | null = null;
-  let disposed = false, locked = false, generation = 0, historyIndex = 0;
+  let disposed = false, locked = false, objectInputInvalid = false, generation = 0, historyIndex = 0;
   let history: HistoryEntry[] = [{ document: accepted, bytes: renderEditorUtf8Bytes(serializeRenderEditorDocument(accepted)) }];
   const candidates = new WeakMap<object, CandidateState>(), listeners = new Set<() => void>();
   const makeSnapshot = (): RenderEditorSessionSnapshot => Object.freeze({ accepted, metadata, draftSource, draftCamera,
-    sourceDirty: draftSource !== accepted.sceneSource, cameraDirty: !camerasEqual(draftCamera, accepted.camera),
+    sourceDirty: objectInputInvalid || draftSource !== accepted.sceneSource, objectInputInvalid, cameraDirty: !camerasEqual(draftCamera, accepted.camera),
     activeObjectId, diagnostics, canUndo: !disposed && historyIndex > 0, canRedo: !disposed && historyIndex < history.length - 1,
     savedRevision, disposed });
   let snapshot = makeSnapshot();
@@ -115,8 +120,15 @@ export function createRenderEditorSession(initial: RenderSceneDocumentV0): Rende
         nextDiagnostics = error.diagnostics;
       }
       draftSource = source;
+      objectInputInvalid = false;
       diagnostics = nextDiagnostics;
       changed();
+    },
+    setDraftObjectSource(source) {
+      assertMutable();
+      if (source === null) { objectInputInvalid = true; diagnostics = OBJECT_DIAGNOSTICS; changed(); return; }
+      inspectRenderSceneObjects(source);
+      draftSource = source; objectInputInvalid = false; diagnostics = EMPTY_DIAGNOSTICS; changed();
     },
     setDraftCamera(camera) {
       assertMutable();
@@ -134,6 +146,7 @@ export function createRenderEditorSession(initial: RenderSceneDocumentV0): Rende
     prepareDraft(mode = 'both') {
       assertMutable();
       if (mode !== 'source' && mode !== 'camera' && mode !== 'both') throw new RenderEditorError('DOCUMENT_INPUT', 'Unknown Apply mode');
+      if (objectInputInvalid) throw new RenderEditorError('SOURCE_REFUSED', 'Check the object properties before Apply.', OBJECT_DIAGNOSTICS);
       return prepare({ ...accepted, revision: nextRevision(),
         sceneSource: mode === 'camera' ? accepted.sceneSource : draftSource,
         camera: mode === 'source' ? accepted.camera : draftCamera }, mode, 'apply');
@@ -174,7 +187,7 @@ export function createRenderEditorSession(initial: RenderSceneDocumentV0): Rende
         // A callback cannot reenter setters, commit, preparation, save, or disposal.
         accepted = candidate.document; metadata = candidate.metadata;
         history = nextHistory; historyIndex = nextIndex; state.used = true;
-        if (candidate.purpose !== 'apply' || candidate.mode !== 'camera') { draftSource = accepted.sceneSource; diagnostics = EMPTY_DIAGNOSTICS; }
+        if (candidate.purpose !== 'apply' || candidate.mode !== 'camera') { draftSource = accepted.sceneSource; objectInputInvalid = false; diagnostics = EMPTY_DIAGNOSTICS; }
         if (candidate.purpose !== 'apply' || candidate.mode !== 'source') draftCamera = accepted.camera;
         if (activeObjectId !== null && !metadata.objects.some((object) => object.id === activeObjectId)) activeObjectId = null;
         if (candidate.purpose === 'open') savedRevision = accepted.revision;
@@ -182,7 +195,7 @@ export function createRenderEditorSession(initial: RenderSceneDocumentV0): Rende
       changed();
     },
     discardDraft() {
-      assertMutable(); draftSource = accepted.sceneSource; draftCamera = accepted.camera; diagnostics = EMPTY_DIAGNOSTICS; changed();
+      assertMutable(); draftSource = accepted.sceneSource; draftCamera = accepted.camera; objectInputInvalid = false; diagnostics = EMPTY_DIAGNOSTICS; changed();
     },
     markSaved(revision) {
       assertMutable();

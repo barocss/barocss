@@ -76,8 +76,12 @@ export function App() {
   const activeKeyRef = useRef(activeKey);
   const [pending, setPending] = useState<PendingAction | null>(null);
   const [helpOpen, setHelpOpen] = useState(false);
+  const [helpTopic, setHelpTopic] = useState<'scene'|'objects'>('scene');
+  const helpTrigger = useRef<HTMLButtonElement>(null);
+  const helpReturnFocus = useRef<HTMLElement | null>(null);
   const [notice, setNotice] = useState('Select an object or edit the source. Apply changes to render.');
   const [error, setError] = useState<AppErrorNotice | null>(null);
+  const previousDirty = useRef(snapshot.sourceDirty || snapshot.cameraDirty);
   const [busy, setBusy] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const fileReadToken = useRef(0);
@@ -95,7 +99,7 @@ export function App() {
   function report(input: unknown, operation: ErrorOperation, copy?: string) {
     const cause = input instanceof Error ? input : new Error(typeof input === 'string' ? input : 'The action failed.');
     if (errorCode(cause) === 'PRESENTATION_REFUSED' && !pending && ['edit', 'history', 'restore'].includes(operation)) return;
-    setError({ error: cause, operation, copy: copy ?? errorCopy(cause, operation, controller.getSnapshot().presentedRevision) });
+    setError({ error: cause, operation, copy: copy ?? (operation === 'edit' && session.getSnapshot().objectInputInvalid ? 'Object properties need correction. Return to the incomplete object and correct its fields before Apply. Your drafts are kept.' : errorCopy(cause, operation, controller.getSnapshot().presentedRevision)) });
   }
 
   function runGuarded(action: PendingAction) {
@@ -201,6 +205,11 @@ export function App() {
   }
 
   useEffect(() => {
+    const dirty=snapshot.sourceDirty||snapshot.cameraDirty,wasDirty=previousDirty.current;previousDirty.current=dirty;
+    if(wasDirty&&!dirty)setError(notice=>notice?.operation==='edit'?null:notice);
+  },[snapshot.sourceDirty,snapshot.cameraDirty]);
+
+  useEffect(() => {
     if (presentation.presentationError === null) {
       setError((notice) => notice && errorCode(notice.error) === 'PRESENTATION_REFUSED' ? null : notice);
     }
@@ -263,8 +272,20 @@ export function App() {
   const canRestorePreview = previewUnavailable && previewRefused && !presentation.disposed;
   const previewStatus = presentation.disposed ? 'Preview closed' : previewUnavailable ? previewRefused ? 'Preview unavailable' : 'Opening preview…' : previewRefused ? 'Preview unchanged' : 'Preview ready';
 
+  const projectBrowser = (
+        <aside className="app-projects app-projects--embedded" aria-label="Workspace projects">
+          <div className="app-sidebar-heading"><Grid2X2 size={14} /><span>Workspace</span><Button variant="ghost" size="icon-xs" aria-label="New scene" disabled={actionDisabled} onClick={newDocument}><FilePlus2 /></Button></div>
+          <nav aria-label="Projects">
+            {projects.map((project) => <button className={`app-project ${project.key === activeKey ? 'is-active' : ''}`} key={project.key} data-testid={`project-${project.document.documentId}`} disabled={actionDisabled} aria-current={project.key === activeKey ? 'page' : undefined} onClick={() => switchProject(project.key)}>
+              <Box size={15} /><span>{project.document.title}</span><ChevronRight size={12} />
+            </button>)}
+          </nav>
+          <div className="app-sidebar-note"><span>Local workspace</span><p>Projects stay in this tab. Save files to keep them after closing.</p></div>
+        </aside>
+  );
+
   return (
-    <main className="app-shell" data-testid="render-editor-app">
+    <main className="app-shell app-shell--scene" data-testid="render-editor-app">
       <header className="app-topbar">
         <div className="app-brand"><Box size={20} strokeWidth={1.5} /><strong>BaroCSS</strong><span>Render Editor</span></div>
         <Menubar className="app-menubar" aria-label="Application menu">
@@ -282,30 +303,20 @@ export function App() {
           <MenubarMenu><MenubarTrigger>Workspace</MenubarTrigger><MenubarContent>
             {projects.map((project) => <MenubarItem key={project.key} disabled={actionDisabled} onSelect={() => switchProject(project.key)}>{project.document.title}</MenubarItem>)}
           </MenubarContent></MenubarMenu>
-          <MenubarMenu><MenubarTrigger>Help</MenubarTrigger><MenubarContent><MenubarItem onSelect={() => setHelpOpen(true)}>Scene editing</MenubarItem></MenubarContent></MenubarMenu>
+          <MenubarMenu><MenubarTrigger ref={helpTrigger}>Help</MenubarTrigger><MenubarContent><MenubarItem onSelect={() => {helpReturnFocus.current=helpTrigger.current;setHelpTopic('scene');setHelpOpen(true);}}>Scene editing</MenubarItem><MenubarItem onSelect={() => {helpReturnFocus.current=helpTrigger.current;setHelpTopic('objects');setHelpOpen(true);}}>Object properties</MenubarItem></MenubarContent></MenubarMenu>
         </Menubar>
         <div className="app-topbar-spacer" />
         <Button size="sm" variant="ghost" disabled={actionDisabled} onClick={openFile} data-testid="open-file"><FolderOpen />Open</Button>
-        <Button size="sm" variant="secondary" disabled={actionDisabled} onClick={saveFile} data-testid="save-file"><Save />Save</Button>
+        <Button size="sm" variant="default" disabled={actionDisabled} onClick={saveFile} data-testid="save-file"><Save />Save</Button>
       </header>
 
       <div className="app-body">
-        <aside className="app-projects" aria-label="Workspace projects">
-          <div className="app-sidebar-heading"><Grid2X2 size={14} /><span>Workspace</span><Button variant="ghost" size="icon-xs" aria-label="New scene" disabled={actionDisabled} onClick={newDocument}><FilePlus2 /></Button></div>
-          <nav aria-label="Projects">
-            {projects.map((project) => <button className={`app-project ${project.key === activeKey ? 'is-active' : ''}`} key={project.key} data-testid={`project-${project.document.documentId}`} disabled={actionDisabled} aria-current={project.key === activeKey ? 'page' : undefined} onClick={() => switchProject(project.key)}>
-              <Box size={15} /><span>{project.document.title}</span><ChevronRight size={12} />
-            </button>)}
-          </nav>
-          <div className="app-sidebar-note"><span>Local workspace</span><p>Projects stay in this tab. Save files to keep them after closing.</p></div>
-        </aside>
-
         <section className="app-workspace" aria-label="Scene editor" aria-busy={busy}>
-          <div className="app-document-bar"><div><span className="app-eyebrow">Scene</span><h1 data-testid="document-title">{snapshot.accepted.title}</h1></div><span className="app-document-state">{dirty ? 'Draft changes' : activeProject?.origin === 'example' && downloaded ? 'Example' : downloaded ? 'File opened / downloaded' : 'Not downloaded'}</span>
+          <div className="app-document-bar"><div><h1 data-testid="document-title">{snapshot.accepted.title}</h1></div><span className="app-document-state">{dirty ? 'Draft changes' : activeProject?.origin === 'example' && downloaded ? 'Example' : downloaded ? 'File opened / downloaded' : 'Not downloaded'}</span>
             <div className="app-history"><Button variant="ghost" size="icon-sm" aria-label="Undo" disabled={!snapshot.canUndo || actionDisabled} onClick={() => history('undo')}><Undo2 /></Button><Button variant="ghost" size="icon-sm" aria-label="Redo" disabled={!snapshot.canRedo || actionDisabled} onClick={() => history('redo')}><Redo2 /></Button></div>
           </div>
           {error && !pending ? <div className="app-error" role="alert" data-testid="app-error"><div><p>{error.copy}</p><AppErrorDetails key={error.error.message} notice={error} /></div><button aria-label="Dismiss error" onClick={() => setError(null)}>×</button></div> : null}
-          <RenderEditor controller={controller} onError={(error: RenderEditorError) => {
+          <RenderEditor controller={controller} projectBrowser={projectBrowser} onObjectHelp={() => {helpReturnFocus.current=document.activeElement instanceof HTMLElement?document.activeElement:helpTrigger.current;setHelpTopic('objects');setHelpOpen(true);}} onError={(error: RenderEditorError) => {
             if (error.code === 'PRESENTATION_REFUSED' || (error.code === 'SOURCE_REFUSED' && error.diagnostics.length > 0)) { setError(notice => notice && ['edit', 'history', 'restore'].includes(notice.operation) ? null : notice); return; }
             report(error, 'edit');
           }} />
@@ -338,7 +349,7 @@ export function App() {
           <Button onClick={applyPending} data-testid="draft-apply">Apply and continue</Button>
         </DialogFooter></DialogContent>
       </Dialog>
-      <Dialog open={helpOpen} onOpenChange={setHelpOpen}><DialogContent><DialogHeader><DialogTitle>Scene editing</DialogTitle><DialogDescription>Edit the source or camera, then Apply to update the preview. A refused change keeps the applied scene.</DialogDescription></DialogHeader><div className="space-y-3 text-sm text-muted-foreground"><p>Select an object to locate its source declaration. Positions and dimensions use scene units. Camera field of view uses degrees.</p><p>Supported objects: sphere, box, cylinder, capsule, rounded box, and torus. Each scene can contain up to 32 objects. Source can contain up to 64 KiB.</p><p>Save downloads the applied scene source and camera. Open accepts Render Editor version 0 JSON files with scene source version 1, up to 256 KiB. CAD files and material files need their own authoring tools.</p><p>Projects remain in this tab. Save a file to keep your work after closing. Downloads depend on browser settings; check the downloaded file.</p><p>Use File for New, Open, and Save. Use Edit for Undo, Redo, and Discard draft. Keyboard commands do not replace normal text editing.</p></div></DialogContent></Dialog>
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}><DialogContent className="max-h-[85svh] overflow-y-auto" onCloseAutoFocus={event=>{event.preventDefault();const target=helpReturnFocus.current?.isConnected?helpReturnFocus.current:helpTrigger.current;target?.focus();}}><DialogHeader><DialogTitle>{helpTopic==='objects'?'Object properties':'Scene editing'}</DialogTitle><DialogDescription>Edit the source or camera, then Apply to update the preview. A refused change keeps the applied scene.</DialogDescription></DialogHeader><div className="space-y-3 text-sm text-muted-foreground"><p>Select an applied object to edit Position, local Rotation, type-specific dimensions, and opaque #rgb or #rrggbb Color. Position and dimensions use scene units. Rotation is from -360 to 360 degrees, X then Y then Z.</p><p>Add chooses a real primitive type and a unique ASCII name, then Add to draft stages source only. Remove selected also stays a draft. Apply updates the complete scene and camera before accepting history; the applied object list stays unchanged until then. New creates a valid empty scene.</p><p>Sphere uses Radius; Box uses Size; Cylinder uses Radius and Height; Capsule uses Radius and local segment endpoints; Rounded Box uses Size and Radius; Torus uses Major and Minor radius. Dimensions must be positive and up to 1000, positions/endpoints from -1000 to 1000. Actual primitive constraints can still refuse a combination.</p><p>Incomplete text stays on its original object when hidden or when you select another object. Correct that object before editing other structured fields, Add, Remove, Apply, or File transitions. Problems can reveal and focus the field. Explicit Source editing replaces field drafts; Discard restores applied data. Help and selection keep drafts.</p><p>Scene/Projects and Object/Camera share docks. Source and Problems drawers start closed. Persistent Apply and Discard do not require opening source. Pane sizes and selection are local and are not saved.</p><p>This is the version 0 GPU Scene document host with source version 1 and up to 32 primitives. The independent version 1 mixed host admits one Sphere and one native Surface. These controls add no picking, gizmo, universal Scale, material, timeline, or native CAD geometry editor.</p><p>Select an object to locate its source declaration. Positions and dimensions use scene units. Camera field of view uses degrees.</p><p>Supported objects: sphere, box, cylinder, capsule, rounded box, and torus. Each scene can contain up to 32 objects. Source can contain up to 64 KiB.</p><p>Save downloads the applied scene source and camera. Open accepts Render Editor version 0 JSON files with scene source version 1, up to 256 KiB. CAD files and material files need their own authoring tools.</p><p>Projects remain in this tab. Save a file to keep your work after closing. Downloads depend on browser settings; check the downloaded file.</p><p>Use File for New, Open, and Save. Use Edit for Undo, Redo, and Discard draft. Keyboard commands do not replace normal text editing.</p></div></DialogContent></Dialog>
     </main>
   );
 }
