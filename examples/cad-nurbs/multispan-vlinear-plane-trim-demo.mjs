@@ -226,10 +226,10 @@ const v6GuardTopDomain = [v6GuardTop.knots[v6GuardTop.degree], v6GuardTop.knots[
 const v6GuardTopUV = {kind: 'curve', id: 'v6_guard_top_uv', degree: 1, knots: [v6GuardTopDomain[0], v6GuardTopDomain[0], v6GuardTopDomain[1], v6GuardTopDomain[1]], controlPoints: [[v6GuardDomains.u[1], v6GuardDomains.v[1], 0], [v6GuardDomains.u[0], v6GuardDomains.v[1], 0]], weights: [1, 1]};
 const v6GuardParameter = -1, v6GuardUV = evaluateCurve(v6GuardTopUV, v6GuardParameter);
 assert.ok(v6GuardUV[1] > v6GuardDomains.v[1]); let v6NativeCause;
-assert.throws(() => evaluateSurface(v6GuardSurface, v6GuardUV[0], v6GuardUV[1]), error => { assert.ok(error instanceof Error); assert.match(error.message, /Parameter is outside knot domain/); v6NativeCause = {name: error.name, message: error.message}; return true; });
+assert.throws(() => evaluateSurface(v6GuardSurface, v6GuardUV[0], v6GuardUV[1]), error => { assert.ok(error instanceof Error); assert.match(error.message, /Parameter is outside the knot domain/); v6NativeCause = {name: error.name, message: error.message}; return true; });
 jsonFile('nonuniform_v6_guard.actual-uv-domain-refusal', {firstFailureHead: '8da2d687786aefdaa93e9a11342a6f817269e832', edge: 'top', parameter: v6GuardParameter, nominalUVSidecar: v6GuardTopUV, actualUV: v6GuardUV, originalDomains: v6GuardDomains, nativeCause: v6NativeCause, clampingPerformed: false, parentEvaluatorUnchanged: true});
 reject('nonuniform_v6_guard', () => build(v6GuardSection, settings('v6guard')), 'NATIVE', Error);
-assert.match(failures.at(-1).causeMessage, /Parameter is outside knot domain/);
+assert.match(failures.at(-1).causeMessage, /Parameter is outside the knot domain/);
 for (const [field, value] of [['maximumBoundaries', 3], ['maximumIntervals', 3], ['maximumObservations', 62], ['maximumObservations', 64]]) reject('complete_fixed_budget_' + field + '_' + value, () => build(originalSection, {...settings('budget'), [field]: value}), 'BUDGET');
 reject('existing_model_identity', () => build(originalSection, {...settings('identity'), evaluationId: originalSection.world.model.name}), 'IDENTITY');
 reject('section_cut_identity', () => build(originalSection, {...settings('identity'), evaluationId: originalSection.world.curve.id}), 'IDENTITY');
