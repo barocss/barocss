@@ -400,6 +400,9 @@ importers:
         version: 8.3.1(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.91.0)(sass@1.91.0)(terser@5.43.1)
   packages/barocss-render-editor:
     dependencies:
+      '@barocss/cad-interop':
+        specifier: workspace:*
+        version: link:../barocss-cad-interop
       '@barocss/cad':
         specifier: workspace:*
         version: link:../barocss-cad
