@@ -1,0 +1,254 @@
+{
+  "GO": true,
+  "physicalCalls": 93,
+  "archived": 24,
+  "emitted": 524,
+  "sourcePins": 486,
+  "reports": [
+    {
+      "graph": "source",
+      "cases": 31,
+      "first": {
+        "beforeL": [
+          0,
+          0,
+          0.2
+        ],
+        "afterL": [
+          0,
+          0,
+          0.2
+        ],
+        "beforeVelocity": [
+          [
+            0,
+            -1,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ]
+        ],
+        "afterVelocity": [
+          [
+            0,
+            -0.7378207384588817,
+            0
+          ],
+          [
+            0,
+            0.7378207384588817,
+            0
+          ]
+        ],
+        "afterOmega": [
+          [
+            0,
+            0,
+            8.010552430977992
+          ],
+          [
+            0,
+            0,
+            8.010552430977992
+          ]
+        ],
+        "anchorSpeed": [
+          0,
+          -2.220446049250313e-16,
+          0
+        ],
+        "energyBefore": 1,
+        "energyAfter": 0.8010552430977992,
+        "objectiveJ": 0.3254137661800358,
+        "stopKind": "none"
+      },
+      "identity": 14,
+      "activeStop": 6,
+      "beforeRaw": {
+        "bytes": 6448,
+        "sha256": "efce08bd62ca1033d058f0e42fd8b1c090c5dc7dd85999d32b062ebcc827fcb9",
+        "negativeZeroCount": 4
+      },
+      "afterRaw": {
+        "bytes": 6448,
+        "sha256": "ccb678632bb8b39f49a63fc23d4182fb0f627871b242f141c58e64e47873fd99",
+        "negativeZeroCount": 4
+      }
+    },
+    {
+      "graph": "source-repeat",
+      "cases": 31,
+      "first": {
+        "beforeL": [
+          0,
+          0,
+          0.2
+        ],
+        "afterL": [
+          0,
+          0,
+          0.2
+        ],
+        "beforeVelocity": [
+          [
+            0,
+            -1,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ]
+        ],
+        "afterVelocity": [
+          [
+            0,
+            -0.7378207384588817,
+            0
+          ],
+          [
+            0,
+            0.7378207384588817,
+            0
+          ]
+        ],
+        "afterOmega": [
+          [
+            0,
+            0,
+            8.010552430977992
+          ],
+          [
+            0,
+            0,
+            8.010552430977992
+          ]
+        ],
+        "anchorSpeed": [
+          0,
+          -2.220446049250313e-16,
+          0
+        ],
+        "energyBefore": 1,
+        "energyAfter": 0.8010552430977992,
+        "objectiveJ": 0.3254137661800358,
+        "stopKind": "none"
+      },
+      "identity": 14,
+      "activeStop": 6,
+      "beforeRaw": {
+        "bytes": 6448,
+        "sha256": "efce08bd62ca1033d058f0e42fd8b1c090c5dc7dd85999d32b062ebcc827fcb9",
+        "negativeZeroCount": 4
+      },
+      "afterRaw": {
+        "bytes": 6448,
+        "sha256": "ccb678632bb8b39f49a63fc23d4182fb0f627871b242f141c58e64e47873fd99",
+        "negativeZeroCount": 4
+      }
+    },
+    {
+      "graph": "compiled-dependencies",
+      "cases": 31,
+      "first": {
+        "beforeL": [
+          0,
+          0,
+          0.2
+        ],
+        "afterL": [
+          0,
+          0,
+          0.2
+        ],
+        "beforeVelocity": [
+          [
+            0,
+            -1,
+            0
+          ],
+          [
+            0,
+            1,
+            0
+          ]
+        ],
+        "afterVelocity": [
+          [
+            0,
+            -0.7378207384588817,
+            0
+          ],
+          [
+            0,
+            0.7378207384588817,
+            0
+          ]
+        ],
+        "afterOmega": [
+          [
+            0,
+            0,
+            8.010552430977992
+          ],
+          [
+            0,
+            0,
+            8.010552430977992
+          ]
+        ],
+        "anchorSpeed": [
+          0,
+          -2.220446049250313e-16,
+          0
+        ],
+        "energyBefore": 1,
+        "energyAfter": 0.8010552430977992,
+        "objectiveJ": 0.3254137661800358,
+        "stopKind": "none"
+      },
+      "identity": 14,
+      "activeStop": 6,
+      "beforeRaw": {
+        "bytes": 6448,
+        "sha256": "efce08bd62ca1033d058f0e42fd8b1c090c5dc7dd85999d32b062ebcc827fcb9",
+        "negativeZeroCount": 4
+      },
+      "afterRaw": {
+        "bytes": 6448,
+        "sha256": "ccb678632bb8b39f49a63fc23d4182fb0f627871b242f141c58e64e47873fd99",
+        "negativeZeroCount": 4
+      }
+    }
+  ],
+  "maxMetrics": {
+    "actualFrameVelocityError": 1.887379141862766e-15,
+    "actualFrameLinearVelocityErrorMps": 5.551115123125783e-17,
+    "actualFrameAngularVelocityErrorRadps": 1.887379141862766e-15,
+    "diagnosticMeasurementError": 2.220446049250313e-16,
+    "diagnosticCorrectionError": 8.326672684688674e-17,
+    "objectiveErrorJ": 1.1102230246251565e-16,
+    "expectedTargetErrorRad": 0,
+    "objectiveMeasurementErrorJ": 1.9697962082316244e-17,
+    "expectedFinalAngleErrorRad": 1.1102230246251565e-16,
+    "expectedPositionErrorM": 8.326672684688674e-17,
+    "expectedQuaternionError": 1.1952526291842278e-16,
+    "expectedLinearVelocityErrorMps": 5.031404768029638e-18,
+    "expectedAngularVelocityErrorRadps": 2.6645352591003757e-15,
+    "rawNormalizedGeometryDifference": 1.1102230246251565e-16,
+    "rawComChangeM": 0,
+    "rawLinearMomentumChangeKgMps": 0,
+    "rawAngularMomentumChangeKgM2ps": 4.6906922790412905e-18,
+    "rawGeometricAngularMomentumChangeKgM2ps": 1.1926967350258826e-17,
+    "normalizedComChangeM": 0,
+    "normalizedLinearMomentumChangeKgMps": 0,
+    "normalizedAngularMomentumChangeKgM2ps": 4.6906922790412905e-18,
+    "normalizedGeometricAngularMomentumChangeKgM2ps": 1.1926967350258826e-17,
+    "precisionMaxDifference": 6.272967966034932e-80,
+    "scalarRepeatMaxDifferenceRad": 0
+  }
+}

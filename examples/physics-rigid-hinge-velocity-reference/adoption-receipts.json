@@ -1,0 +1,26 @@
+[
+  {
+    "issue": 1309,
+    "base": "63d20195a9d980a31930c682ed56e8be87d5a11f",
+    "native": "1381164c5752671c7f1197f27d8a8894537b01d9",
+    "adopt": "0836f3e78fcc98021b6204ba3d16cbae3f309213",
+    "adoptParent": "4bcbc9493b15e3374339a26cce49349c2441a2fe",
+    "paths": 59,
+    "exact_modes_blobs": true,
+    "nativeClean": true,
+    "manifestSha256": "b7f8ed96b71c2a14e976ff37423e01dee18027b94485e2fabeee74a3d977cbe0",
+    "proofFormat": "dict_keys(['issue', 'base', 'measuredSource', 'verdict', 'sourceUnchanged', 'artifacts'])"
+  },
+  {
+    "issue": 1298,
+    "base": "b8d4fb1f74e977fe25fa3a7093fa807943f207e6",
+    "native": "2d0c4a2f612e8582865ff1a74a0ee03f2eeced38",
+    "adopt": "b69ea25d574f7af638b0456f01409fb94014eddd",
+    "adoptParent": "0836f3e78fcc98021b6204ba3d16cbae3f309213",
+    "paths": 57,
+    "exact_modes_blobs": true,
+    "nativeClean": true,
+    "manifestSha256": "e500a7ef6309bc21eb35a0799e3341af1c42fda9be4ed191bd61713c6cf9baba",
+    "proofFormat": "dict_keys(['issue', 'base', 'measuredSource', 'verdict', 'sourceUnchanged', 'sourceFreezeSha256', 'emittedLedgerSha256', 'artifacts', 'constructorCopySupplementWorldSteps'])"
+  }
+]

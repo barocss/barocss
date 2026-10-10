@@ -1,0 +1,12 @@
+{
+  "context": {
+    "graph": "source",
+    "phase": "guards"
+  },
+  "name": "AssertionError",
+  "code": "ERR_ASSERTION",
+  "message": "genuine-admitted-parent-orbital-loss-FIRST\n\nfalse !== true\n",
+  "physicalCalls": 0,
+  "classification": "EXECUTION_FAILURE",
+  "physicalGONotEstablished": true
+}

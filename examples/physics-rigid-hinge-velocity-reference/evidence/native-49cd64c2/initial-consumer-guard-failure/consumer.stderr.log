@@ -1,0 +1,23 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: genuine-admitted-parent-orbital-loss-FIRST
+
+false !== true
+
+    at qualified (file:///Users/user/.codex/worktrees/physics-hinge-velocity-1349/barocss/examples/physics-rigid-hinge-velocity-reference/reference-controls.mjs:112:10)
+    at physicalReceipt (file:///Users/user/.codex/worktrees/physics-hinge-velocity-1349/barocss/examples/physics-rigid-hinge-velocity-reference/reference-controls.mjs:120:3)
+    at runReferenceControls (file:///Users/user/.codex/worktrees/physics-hinge-velocity-1349/barocss/examples/physics-rigid-hinge-velocity-reference/reference-controls.mjs:136:48)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async controls (file:///Users/user/.codex/worktrees/physics-hinge-velocity-1349/barocss/examples/physics-rigid-hinge-velocity-reference/controls.mjs:77:18)
+    at async file:///Users/user/.codex/worktrees/physics-hinge-velocity-1349/barocss/examples/physics-rigid-hinge-velocity-reference/runner.mjs:69:48 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.0

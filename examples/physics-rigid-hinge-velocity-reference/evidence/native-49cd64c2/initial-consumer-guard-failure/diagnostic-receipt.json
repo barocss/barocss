@@ -1,0 +1,8 @@
+{
+  "classification": "one diagnostic repeat of failed pure reference prediction; no candidate law call",
+  "candidateCalls": 0,
+  "source": "5110f376e128d9c000e1fc8ff3f052be83d536ae",
+  "exitCode": 0,
+  "requestSha256": "8d53e72423bcd7cec140b639615f16d02485ec56723fe481c9ff62b0b898ef6f",
+  "responseSha256": "2f44ff6fcf31e2dd8ff2c6f8ec7c6d03d376e08b34674915c9949baf7c53eef8"
+}

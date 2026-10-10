@@ -1,0 +1,95 @@
+{
+  "graph": "compiled-dependencies",
+  "sourcePath": "/tmp/physics-1349-canonical/compiled-dependencies.mjs",
+  "bundleBytes": 55403,
+  "bundleSha256": "af6c9fc2ef6da9e396e041eee7256b51b2d2a7fddc72facd92e8b6ce2a9f6a0c",
+  "originalSourceCount": 0,
+  "originalDistCount": 10,
+  "worldCreated": false,
+  "worldStepped": false,
+  "motorDriven": false,
+  "oldProjectionCalled": false,
+  "adoptedPoseLawPresent": true,
+  "inputs": [
+    {
+      "path": "packages/barocss-physics/dist/types.js",
+      "sha256": "932dad524c2e342e7335203e1e47aafb4025b3da32339385d79847c51283be1e"
+    },
+    {
+      "path": "packages/barocss-physics/dist/limits.js",
+      "sha256": "15e4c3baf2645fa8aa040fcd4de7c5d14685e7a6ce1b6c45cffda01c47e08219"
+    },
+    {
+      "path": "packages/barocss-physics/dist/validation.js",
+      "sha256": "d7bb0ca0e1ac7f0485b60e46d72d4a49a2856473276cf28e56967895f06fe919"
+    },
+    {
+      "path": "packages/barocss-physics/dist/math.js",
+      "sha256": "d82024b2458cf6ffdacef3ce57e0e1b802888bc39168ee032202536d4bdaa028"
+    },
+    {
+      "path": "packages/barocss-physics/dist/capsule-contact.js",
+      "sha256": "7519483aec208b282ae23bb6985868af199b19d00d3d00564b3a5438d2113ad1"
+    },
+    {
+      "path": "packages/barocss-physics/dist/collision.js",
+      "sha256": "404bbb24c4552828f8bd943481a15b11af7d93333c5651c4c8f8cae88e3dd28a"
+    },
+    {
+      "path": "packages/barocss-physics/dist/dynamic-anchor-pair.js",
+      "sha256": "8e20e96a9a3c803f65d78dfa21aaf530744b2c37e4f3507fd87e828190c800be"
+    },
+    {
+      "path": "packages/barocss-physics/dist/dynamic-fixed-joint.js",
+      "sha256": "c637c4b13cdf432103202f895e50fae7e05c88920cf0889a67f2c16e565bfb5a"
+    },
+    {
+      "path": "packages/barocss-physics/dist/dynamic-hinge-joint.js",
+      "sha256": "8780a6887f0c7cbec6ec2f059b2ada64d0e28d0224279d7ada42e4b79e84baac"
+    },
+    {
+      "path": "packages/barocss-physics/dist/joints.js",
+      "sha256": "f2893b2f8684f338a8d4832b9fa91c356fd360bf70ebf423062e21911d433ce0"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-limit-diagnostic/adapter.ts",
+      "sha256": "8919ab174525316f2b7697cfb003c7e3e4103a999ef67408ddbe99ca7b19da22"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/profile.ts",
+      "sha256": "3d7fc873d3e5ff9d6f68482e184568eca73fcb7c57f87a1e1e17b3090af79dcd"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/admission.ts",
+      "sha256": "cafa33eb8438f182b27bbfd2ba4ab91e34470ac76b4b0e2520214f9dc4c5204f"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/candidate.ts",
+      "sha256": "ea9c7bf81d281053a4576a66fe0944d1fe3a329485b41c02cc987e0333796532"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/profile.ts",
+      "sha256": "9911fb4cf26384f248d5c83144491cae099a8703a621bd653c33bb72d9f2cc0d"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/diagnostics.ts",
+      "sha256": "c432f6f2eb4e48dbac260490489badf6be25d0711fdf866f4b096b4baee68257"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/rows.ts",
+      "sha256": "3b9d0401497d6f32bc701aa887e8020171ccd0d4747ee7faa9a04940ecfb73ae"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/linear-solver.ts",
+      "sha256": "27a9ff150621e6a648648441e0d862fccc9814e649fb1cccd4086d35bee79663"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/candidate.ts",
+      "sha256": "6580bb3dd049c70076e3d32225749c2b7b3e811e65a83fe43f0cf4393086105c"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/entry.ts",
+      "sha256": "7a254ad353d1fdb9402b4607728a6c0c86bd6017249b8c49f789a0223755df34"
+    }
+  ]
+}

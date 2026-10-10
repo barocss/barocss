@@ -1,0 +1,24 @@
+{
+  "phase": "types",
+  "command": [
+    "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+    "node_modules/typescript/bin/tsc",
+    "-p",
+    "examples/physics-rigid-hinge-velocity-reference/tsconfig.json"
+  ],
+  "cwd": "/Users/user/.codex/worktrees/physics-hinge-velocity-1349/barocss",
+  "source": "7b45fda430ef404eb4bb504af2ad7327a514d1ea",
+  "startedUtc": "2026-10-10T16:06:36.785130+00:00",
+  "durationSeconds": 2.757009332999587,
+  "exitCode": 2,
+  "node": "v22.22.0",
+  "REPO_DEPS_ROOT": "/Users/user/.barocss-ai/v3/integration",
+  "stdout": {
+    "bytes": 164,
+    "sha256": "e29794046f19d1012d5cd6a560ebdc04b660100e11a4b5fdb93c22f5617d70c1"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

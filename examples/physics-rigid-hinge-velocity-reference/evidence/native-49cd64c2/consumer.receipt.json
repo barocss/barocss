@@ -1,0 +1,24 @@
+{
+  "phase": "consumer",
+  "command": [
+    "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+    "examples/physics-rigid-hinge-velocity-reference/runner.mjs",
+    "/Users/user/.codex/worktrees/physics-multi-hinge/barocss",
+    "/tmp/physics-1349-canonical"
+  ],
+  "cwd": "/Users/user/.codex/worktrees/physics-hinge-velocity-1349/barocss",
+  "source": "49cd64c24059d51b562854427ce3b4c24562507a",
+  "startedUtc": "2026-10-10T16:19:55.487820+00:00",
+  "durationSeconds": 14.082506333012134,
+  "exitCode": 0,
+  "node": "v22.22.0",
+  "REPO_DEPS_ROOT": "/Users/user/.barocss-ai/v3/integration",
+  "stdout": {
+    "bytes": 399,
+    "sha256": "294bef9b36548e5f6fb2fc0d5659aba8dc509fc5ed58b44fbb606589675acffa"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

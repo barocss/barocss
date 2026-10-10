@@ -1,0 +1,1152 @@
+{
+  "issue": 1349,
+  "audit": "independent read-only existing receipts, no module/model/oracle/solver/control/build/type/AST execution",
+  "measuredSource": "49cd64c24059d51b562854427ce3b4c24562507a",
+  "base": "d6b552f98f4a509611ffce42a65080db063fdda0",
+  "sourcePins": {
+    "count": 486,
+    "sha256": "6c9fdad5dd46b460b35f59f6fc130ac4ba6373df4690a361ce9afa6f83989f00",
+    "mismatches": []
+  },
+  "emitted": {
+    "count": 524,
+    "sha256": "a7dbdaa5d10ef66b5b8edc0471cd49b321af17652aa086cbe7975893c069077e",
+    "actualBuildSource": "7b45fda430ef404eb4bb504af2ad7327a514d1ea",
+    "mismatches": []
+  },
+  "bundles": [
+    {
+      "graph": "source",
+      "path": "/tmp/physics-1349-canonical/source.mjs",
+      "bytes": 55329,
+      "sha256": "d21839e96b9ca47acffc96e5d3fb7a04cae8414405df8a6218ae7e5276b05189"
+    },
+    {
+      "graph": "source-repeat",
+      "path": "/tmp/physics-1349-canonical/source-repeat.mjs",
+      "bytes": 55329,
+      "sha256": "d21839e96b9ca47acffc96e5d3fb7a04cae8414405df8a6218ae7e5276b05189"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "path": "/tmp/physics-1349-canonical/compiled-dependencies.mjs",
+      "bytes": 55403,
+      "sha256": "af6c9fc2ef6da9e396e041eee7256b51b2d2a7fddc72facd92e8b6ce2a9f6a0c"
+    }
+  ],
+  "graphClosureCounts": [
+    {
+      "graph": "source",
+      "src": 10,
+      "dist": 0,
+      "inputs": 20
+    },
+    {
+      "graph": "source-repeat",
+      "src": 10,
+      "dist": 0,
+      "inputs": 20
+    },
+    {
+      "graph": "compiled-dependencies",
+      "src": 0,
+      "dist": 10,
+      "inputs": 20
+    }
+  ],
+  "physicalOutputs": 93,
+  "archivedInputs": [
+    {
+      "graph": "source",
+      "archiveGraph": "source",
+      "step": 196,
+      "group": 0,
+      "origin": "private",
+      "sha256": "0fbbc55a65e3326d5745b7b348d26b83e2f4f7aa27516c5e93cf1ff963f71704"
+    },
+    {
+      "graph": "source",
+      "archiveGraph": "source",
+      "step": 196,
+      "group": 0,
+      "origin": "public-canonical",
+      "sha256": "0fbbc55a65e3326d5745b7b348d26b83e2f4f7aa27516c5e93cf1ff963f71704"
+    },
+    {
+      "graph": "source",
+      "archiveGraph": "source",
+      "step": 196,
+      "group": 1,
+      "origin": "private",
+      "sha256": "ce5bce08f96a3629842e821457a74d5b771e4672bc8b4e9256b39e91171af3d5"
+    },
+    {
+      "graph": "source",
+      "archiveGraph": "source",
+      "step": 196,
+      "group": 1,
+      "origin": "public-canonical",
+      "sha256": "0fbbc55a65e3326d5745b7b348d26b83e2f4f7aa27516c5e93cf1ff963f71704"
+    },
+    {
+      "graph": "source",
+      "archiveGraph": "source",
+      "step": 197,
+      "group": 0,
+      "origin": "private",
+      "sha256": "b6bacbf6286d93a1a624c3c11b7dcd06d5d83aa1c2340a04a352518ea4c53b41"
+    },
+    {
+      "graph": "source",
+      "archiveGraph": "source",
+      "step": 197,
+      "group": 0,
+      "origin": "public-canonical",
+      "sha256": "b6bacbf6286d93a1a624c3c11b7dcd06d5d83aa1c2340a04a352518ea4c53b41"
+    },
+    {
+      "graph": "source",
+      "archiveGraph": "source",
+      "step": 197,
+      "group": 1,
+      "origin": "private",
+      "sha256": "3dae62d8f524e5dbacc9d3343fb0ea7e9aa8e9487a0c0eefe78b587e36ef6a7d"
+    },
+    {
+      "graph": "source",
+      "archiveGraph": "source",
+      "step": 197,
+      "group": 1,
+      "origin": "public-canonical",
+      "sha256": "b6bacbf6286d93a1a624c3c11b7dcd06d5d83aa1c2340a04a352518ea4c53b41"
+    },
+    {
+      "graph": "source-repeat",
+      "archiveGraph": "source-repeat",
+      "step": 196,
+      "group": 0,
+      "origin": "private",
+      "sha256": "0fbbc55a65e3326d5745b7b348d26b83e2f4f7aa27516c5e93cf1ff963f71704"
+    },
+    {
+      "graph": "source-repeat",
+      "archiveGraph": "source-repeat",
+      "step": 196,
+      "group": 0,
+      "origin": "public-canonical",
+      "sha256": "0fbbc55a65e3326d5745b7b348d26b83e2f4f7aa27516c5e93cf1ff963f71704"
+    },
+    {
+      "graph": "source-repeat",
+      "archiveGraph": "source-repeat",
+      "step": 196,
+      "group": 1,
+      "origin": "private",
+      "sha256": "ce5bce08f96a3629842e821457a74d5b771e4672bc8b4e9256b39e91171af3d5"
+    },
+    {
+      "graph": "source-repeat",
+      "archiveGraph": "source-repeat",
+      "step": 196,
+      "group": 1,
+      "origin": "public-canonical",
+      "sha256": "0fbbc55a65e3326d5745b7b348d26b83e2f4f7aa27516c5e93cf1ff963f71704"
+    },
+    {
+      "graph": "source-repeat",
+      "archiveGraph": "source-repeat",
+      "step": 197,
+      "group": 0,
+      "origin": "private",
+      "sha256": "b6bacbf6286d93a1a624c3c11b7dcd06d5d83aa1c2340a04a352518ea4c53b41"
+    },
+    {
+      "graph": "source-repeat",
+      "archiveGraph": "source-repeat",
+      "step": 197,
+      "group": 0,
+      "origin": "public-canonical",
+      "sha256": "b6bacbf6286d93a1a624c3c11b7dcd06d5d83aa1c2340a04a352518ea4c53b41"
+    },
+    {
+      "graph": "source-repeat",
+      "archiveGraph": "source-repeat",
+      "step": 197,
+      "group": 1,
+      "origin": "private",
+      "sha256": "3dae62d8f524e5dbacc9d3343fb0ea7e9aa8e9487a0c0eefe78b587e36ef6a7d"
+    },
+    {
+      "graph": "source-repeat",
+      "archiveGraph": "source-repeat",
+      "step": 197,
+      "group": 1,
+      "origin": "public-canonical",
+      "sha256": "b6bacbf6286d93a1a624c3c11b7dcd06d5d83aa1c2340a04a352518ea4c53b41"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "archiveGraph": "compiled-dependencies",
+      "step": 196,
+      "group": 0,
+      "origin": "private",
+      "sha256": "0fbbc55a65e3326d5745b7b348d26b83e2f4f7aa27516c5e93cf1ff963f71704"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "archiveGraph": "compiled-dependencies",
+      "step": 196,
+      "group": 0,
+      "origin": "public-canonical",
+      "sha256": "0fbbc55a65e3326d5745b7b348d26b83e2f4f7aa27516c5e93cf1ff963f71704"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "archiveGraph": "compiled-dependencies",
+      "step": 196,
+      "group": 1,
+      "origin": "private",
+      "sha256": "ce5bce08f96a3629842e821457a74d5b771e4672bc8b4e9256b39e91171af3d5"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "archiveGraph": "compiled-dependencies",
+      "step": 196,
+      "group": 1,
+      "origin": "public-canonical",
+      "sha256": "0fbbc55a65e3326d5745b7b348d26b83e2f4f7aa27516c5e93cf1ff963f71704"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "archiveGraph": "compiled-dependencies",
+      "step": 197,
+      "group": 0,
+      "origin": "private",
+      "sha256": "b6bacbf6286d93a1a624c3c11b7dcd06d5d83aa1c2340a04a352518ea4c53b41"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "archiveGraph": "compiled-dependencies",
+      "step": 197,
+      "group": 0,
+      "origin": "public-canonical",
+      "sha256": "b6bacbf6286d93a1a624c3c11b7dcd06d5d83aa1c2340a04a352518ea4c53b41"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "archiveGraph": "compiled-dependencies",
+      "step": 197,
+      "group": 1,
+      "origin": "private",
+      "sha256": "3dae62d8f524e5dbacc9d3343fb0ea7e9aa8e9487a0c0eefe78b587e36ef6a7d"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "archiveGraph": "compiled-dependencies",
+      "step": 197,
+      "group": 1,
+      "origin": "public-canonical",
+      "sha256": "b6bacbf6286d93a1a624c3c11b7dcd06d5d83aa1c2340a04a352518ea4c53b41"
+    }
+  ],
+  "rawStreams": [
+    {
+      "graph": "source",
+      "field": "before",
+      "bytes": 6448,
+      "frames": 31,
+      "frameBytes": 208,
+      "sha256": "efce08bd62ca1033d058f0e42fd8b1c090c5dc7dd85999d32b062ebcc827fcb9"
+    },
+    {
+      "graph": "source",
+      "field": "after",
+      "bytes": 6448,
+      "frames": 31,
+      "frameBytes": 208,
+      "sha256": "ccb678632bb8b39f49a63fc23d4182fb0f627871b242f141c58e64e47873fd99"
+    },
+    {
+      "graph": "source-repeat",
+      "field": "before",
+      "bytes": 6448,
+      "frames": 31,
+      "frameBytes": 208,
+      "sha256": "efce08bd62ca1033d058f0e42fd8b1c090c5dc7dd85999d32b062ebcc827fcb9"
+    },
+    {
+      "graph": "source-repeat",
+      "field": "after",
+      "bytes": 6448,
+      "frames": 31,
+      "frameBytes": 208,
+      "sha256": "ccb678632bb8b39f49a63fc23d4182fb0f627871b242f141c58e64e47873fd99"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "field": "before",
+      "bytes": 6448,
+      "frames": 31,
+      "frameBytes": 208,
+      "sha256": "efce08bd62ca1033d058f0e42fd8b1c090c5dc7dd85999d32b062ebcc827fcb9"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "field": "after",
+      "bytes": 6448,
+      "frames": 31,
+      "frameBytes": 208,
+      "sha256": "ccb678632bb8b39f49a63fc23d4182fb0f627871b242f141c58e64e47873fd99"
+    }
+  ],
+  "exactReportAndControlParity": true,
+  "identityCases": [
+    {
+      "graph": "source",
+      "index": 9,
+      "name": "resting-coincident-anchors"
+    },
+    {
+      "graph": "source",
+      "index": 10,
+      "name": "resting-signed-zero-velocity-and-spin"
+    },
+    {
+      "graph": "source",
+      "index": 11,
+      "name": "inside-limit-coherent-anchors"
+    },
+    {
+      "graph": "source",
+      "index": 12,
+      "name": "exact-upper-limit"
+    },
+    {
+      "graph": "source",
+      "index": 13,
+      "name": "exact-lower-limit"
+    },
+    {
+      "graph": "source",
+      "index": 14,
+      "name": "slight-upper-excess"
+    },
+    {
+      "graph": "source",
+      "index": 15,
+      "name": "slight-lower-excess"
+    },
+    {
+      "graph": "source",
+      "index": 16,
+      "name": "quaternion-sign-equivalence"
+    },
+    {
+      "graph": "source",
+      "index": 17,
+      "name": "Z1-pair-origin"
+    },
+    {
+      "graph": "source",
+      "index": 18,
+      "name": "canonical-pair1-Z0"
+    },
+    {
+      "graph": "source",
+      "index": 19,
+      "name": "common-COM-and-common-velocity"
+    },
+    {
+      "graph": "source",
+      "index": 21,
+      "name": "equal-opposite-spin"
+    },
+    {
+      "graph": "source",
+      "index": 28,
+      "name": "interior-positive-rate"
+    },
+    {
+      "graph": "source",
+      "index": 29,
+      "name": "interior-negative-rate"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 9,
+      "name": "resting-coincident-anchors"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 10,
+      "name": "resting-signed-zero-velocity-and-spin"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 11,
+      "name": "inside-limit-coherent-anchors"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 12,
+      "name": "exact-upper-limit"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 13,
+      "name": "exact-lower-limit"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 14,
+      "name": "slight-upper-excess"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 15,
+      "name": "slight-lower-excess"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 16,
+      "name": "quaternion-sign-equivalence"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 17,
+      "name": "Z1-pair-origin"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 18,
+      "name": "canonical-pair1-Z0"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 19,
+      "name": "common-COM-and-common-velocity"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 21,
+      "name": "equal-opposite-spin"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 28,
+      "name": "interior-positive-rate"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 29,
+      "name": "interior-negative-rate"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 9,
+      "name": "resting-coincident-anchors"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 10,
+      "name": "resting-signed-zero-velocity-and-spin"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 11,
+      "name": "inside-limit-coherent-anchors"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 12,
+      "name": "exact-upper-limit"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 13,
+      "name": "exact-lower-limit"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 14,
+      "name": "slight-upper-excess"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 15,
+      "name": "slight-lower-excess"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 16,
+      "name": "quaternion-sign-equivalence"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 17,
+      "name": "Z1-pair-origin"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 18,
+      "name": "canonical-pair1-Z0"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 19,
+      "name": "common-COM-and-common-velocity"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 21,
+      "name": "equal-opposite-spin"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 28,
+      "name": "interior-positive-rate"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 29,
+      "name": "interior-negative-rate"
+    }
+  ],
+  "activeStops": [
+    {
+      "graph": "source",
+      "index": 5,
+      "name": "197/0/private",
+      "stopKind": "upper"
+    },
+    {
+      "graph": "source",
+      "index": 6,
+      "name": "197/0/public-canonical",
+      "stopKind": "upper"
+    },
+    {
+      "graph": "source",
+      "index": 7,
+      "name": "197/1/private",
+      "stopKind": "upper"
+    },
+    {
+      "graph": "source",
+      "index": 8,
+      "name": "197/1/public-canonical",
+      "stopKind": "upper"
+    },
+    {
+      "graph": "source",
+      "index": 24,
+      "name": "upper-outward",
+      "stopKind": "upper"
+    },
+    {
+      "graph": "source",
+      "index": 26,
+      "name": "lower-outward",
+      "stopKind": "lower"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 5,
+      "name": "197/0/private",
+      "stopKind": "upper"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 6,
+      "name": "197/0/public-canonical",
+      "stopKind": "upper"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 7,
+      "name": "197/1/private",
+      "stopKind": "upper"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 8,
+      "name": "197/1/public-canonical",
+      "stopKind": "upper"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 24,
+      "name": "upper-outward",
+      "stopKind": "upper"
+    },
+    {
+      "graph": "source-repeat",
+      "index": 26,
+      "name": "lower-outward",
+      "stopKind": "lower"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 5,
+      "name": "197/0/private",
+      "stopKind": "upper"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 6,
+      "name": "197/0/public-canonical",
+      "stopKind": "upper"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 7,
+      "name": "197/1/private",
+      "stopKind": "upper"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 8,
+      "name": "197/1/public-canonical",
+      "stopKind": "upper"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 24,
+      "name": "upper-outward",
+      "stopKind": "upper"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "index": 26,
+      "name": "lower-outward",
+      "stopKind": "lower"
+    }
+  ],
+  "signedZeroIdentity": [
+    {
+      "scalarIndex": 4,
+      "beforeHexLE": "0000000000000080",
+      "afterHexLE": "0000000000000080"
+    },
+    {
+      "scalarIndex": 23,
+      "beforeHexLE": "0000000000000080",
+      "afterHexLE": "0000000000000080"
+    }
+  ],
+  "firstGenuineMeasured": {
+    "beforeL": [
+      0,
+      0,
+      0.2
+    ],
+    "afterL": [
+      0,
+      0,
+      0.2
+    ],
+    "poseStageAfterL": [
+      0,
+      0,
+      0.18421219880057702
+    ],
+    "beforeP": [
+      0,
+      0,
+      0
+    ],
+    "afterP": [
+      0,
+      0,
+      0
+    ],
+    "velocityMps": [
+      [
+        0,
+        -0.7378207384588817,
+        0
+      ],
+      [
+        0,
+        0.7378207384588817,
+        0
+      ]
+    ],
+    "angularVelocityRadps": [
+      [
+        0,
+        0,
+        8.010552430977992
+      ],
+      [
+        0,
+        0,
+        8.010552430977992
+      ]
+    ],
+    "stopKind": "none",
+    "objectiveJ": 0.3254137661800358,
+    "metrics": {
+      "coefficientAgreementFailed": false,
+      "inertiaBitsAgree": true,
+      "branchAgreement": true,
+      "actualFrameVelocityError": 7.421103731211588e-16,
+      "actualFrameLinearVelocityErrorMps": 1.0193575792030825e-17,
+      "actualFrameAngularVelocityErrorRadps": 7.421103731211588e-16,
+      "actualFrameCertificatePassed": true,
+      "changedComponentsAgree": true,
+      "identityBitsPreserved": true,
+      "diagnosticMeasurementError": 1.1359951132114712e-16,
+      "diagnosticCorrectionError": 5.812042372361605e-18,
+      "objectiveErrorJ": 2.6989511462879878e-17,
+      "actualNativeCertificatePassed": true,
+      "expectedTargetErrorRad": 0,
+      "objectiveMeasurementErrorJ": 1.47817508693833e-17,
+      "expectedFinalAngleErrorRad": 0,
+      "sourceCursorRetained": true,
+      "expectedPositionErrorM": 5.812042372361605e-18,
+      "expectedQuaternionError": 0,
+      "expectedLinearVelocityErrorMps": 0,
+      "expectedAngularVelocityErrorRadps": 0,
+      "rawNormalizedGeometryDifference": 1.1102230246251565e-16,
+      "rawComChangeM": 0,
+      "rawLinearMomentumChangeKgMps": 0,
+      "rawAngularMomentumChangeKgM2ps": 9.492997117359133e-20,
+      "rawGeometricAngularMomentumChangeKgM2ps": 8.210248491988983e-18,
+      "normalizedComChangeM": 0,
+      "normalizedLinearMomentumChangeKgMps": 0,
+      "normalizedAngularMomentumChangeKgM2ps": 9.492997117359133e-20,
+      "normalizedGeometricAngularMomentumChangeKgM2ps": 8.210248491988983e-18,
+      "precisionMaxDifference": 2.490229889773484e-80,
+      "scalarRepeatMaxDifferenceRad": 0
+    },
+    "rawAfterRates": {
+      "anchorRelativeVelocityMps": [
+        0,
+        -1.0844509360388419e-16,
+        0
+      ],
+      "relativeAngularVelocityRadps": [
+        0,
+        0,
+        0
+      ]
+    },
+    "normalizedAfterRates": {
+      "anchorRelativeVelocityMps": [
+        0,
+        -1.096072751568902e-16,
+        0
+      ],
+      "relativeAngularVelocityRadps": [
+        0,
+        0,
+        0
+      ]
+    }
+  },
+  "maximumRecordedReferenceMetrics": {
+    "actualFrameVelocityError": 1.887379141862766e-15,
+    "actualFrameLinearVelocityErrorMps": 5.551115123125783e-17,
+    "actualFrameAngularVelocityErrorRadps": 1.887379141862766e-15,
+    "diagnosticMeasurementError": 2.220446049250313e-16,
+    "diagnosticCorrectionError": 8.326672684688674e-17,
+    "objectiveErrorJ": 1.1102230246251565e-16,
+    "expectedTargetErrorRad": 0,
+    "objectiveMeasurementErrorJ": 1.9697962082316244e-17,
+    "expectedFinalAngleErrorRad": 1.1102230246251565e-16,
+    "expectedPositionErrorM": 8.326672684688674e-17,
+    "expectedQuaternionError": 1.1952526291842278e-16,
+    "expectedLinearVelocityErrorMps": 5.031404768029638e-18,
+    "expectedAngularVelocityErrorRadps": 2.6645352591003757e-15,
+    "rawNormalizedGeometryDifference": 1.1102230246251565e-16,
+    "rawComChangeM": 0,
+    "rawLinearMomentumChangeKgMps": 0,
+    "rawAngularMomentumChangeKgM2ps": 4.6906922790412905e-18,
+    "rawGeometricAngularMomentumChangeKgM2ps": 1.1926967350258826e-17,
+    "normalizedComChangeM": 0,
+    "normalizedLinearMomentumChangeKgMps": 0,
+    "normalizedAngularMomentumChangeKgM2ps": 4.6906922790412905e-18,
+    "normalizedGeometricAngularMomentumChangeKgM2ps": 1.1926967350258826e-17,
+    "precisionMaxDifference": 6.272967966034932e-80,
+    "scalarRepeatMaxDifferenceRad": 0
+  },
+  "maximumRecordedPhaseResiduals": {
+    "linear": 2.7755575615628914e-17,
+    "inverse": 1.6653345369377348e-16
+  },
+  "controlCountsPerGraph": {
+    "typed": 25,
+    "linear": 20,
+    "algebra": 7,
+    "certificates": 11,
+    "archive": 10,
+    "referencePhysical": 23,
+    "referenceLinear": 5,
+    "referenceRefusals": 24,
+    "referenceCertificateGuards": 10,
+    "successfulPhysicalCalls": 0,
+    "physicalRefusalCalls": 21,
+    "originalBoundsRefusalCalls": 1,
+    "unknownGetterCalls": 3,
+    "pureSolverCalls": 28
+  },
+  "logs": [
+    {
+      "phase": "build",
+      "prefix": "",
+      "source": "7b45fda430ef404eb4bb504af2ad7327a514d1ea",
+      "exitCode": 0,
+      "stdout": {
+        "bytes": 443,
+        "sha256": "529252f64cf078cee80765c66f7447ccee8603ff353ad774a0703ad94f936aa2"
+      },
+      "stderr": {
+        "bytes": 43,
+        "sha256": "92c17c669f9faa5b67a63d30bf09d70a0c18299759568e7686957e83d94ce962"
+      }
+    },
+    {
+      "phase": "types",
+      "prefix": "initial-types/",
+      "source": "7b45fda430ef404eb4bb504af2ad7327a514d1ea",
+      "exitCode": 2,
+      "stdout": {
+        "bytes": 164,
+        "sha256": "e29794046f19d1012d5cd6a560ebdc04b660100e11a4b5fdb93c22f5617d70c1"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "phase": "types",
+      "prefix": "",
+      "source": "5110f376e128d9c000e1fc8ff3f052be83d536ae",
+      "exitCode": 0,
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    {
+      "phase": "consumer",
+      "prefix": "initial-consumer-guard-failure/",
+      "source": "5110f376e128d9c000e1fc8ff3f052be83d536ae",
+      "exitCode": 1,
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "bytes": 1236,
+        "sha256": "ab8e1a27adcce2f4f29bc44c3c1ae2dec6879c1d7fae97269f264a54641498d9"
+      }
+    },
+    {
+      "phase": "consumer",
+      "prefix": "",
+      "source": "49cd64c24059d51b562854427ce3b4c24562507a",
+      "exitCode": 0,
+      "stdout": {
+        "bytes": 399,
+        "sha256": "294bef9b36548e5f6fb2fc0d5659aba8dc509fc5ed58b44fbb606589675acffa"
+      },
+      "stderr": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    }
+  ],
+  "preservedFirstGuardFailure": {
+    "context": {
+      "graph": "source",
+      "phase": "guards"
+    },
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "message": "genuine-admitted-parent-orbital-loss-FIRST\n\nfalse !== true\n",
+    "physicalCalls": 0,
+    "classification": "EXECUTION_FAILURE",
+    "physicalGONotEstablished": true
+  },
+  "preservedPureDiagnostic": {
+    "classification": "one diagnostic repeat of failed pure reference prediction; no candidate law call",
+    "candidateCalls": 0,
+    "source": "5110f376e128d9c000e1fc8ff3f052be83d536ae",
+    "exitCode": 0,
+    "requestSha256": "8d53e72423bcd7cec140b639615f16d02485ec56723fe481c9ff62b0b898ef6f",
+    "responseSha256": "2f44ff6fcf31e2dd8ff2c6f8ec7c6d03d376e08b34674915c9949baf7c53eef8"
+  },
+  "retainedCanonicalExecutionFailureIsInitial": true,
+  "scope": {
+    "detachedPoseVelocityMomentumGO": true,
+    "worldCreated": false,
+    "worldStepped": false,
+    "motorDriven": false,
+    "oldProjectionCalled": false,
+    "worldVelocityMotorLawQualified": false,
+    "publicEngineGO": false,
+    "viewerGO": false,
+    "costGO": false,
+    "releaseGO": false
+  },
+  "issues": [],
+  "historicalParents": [
+    {
+      "native": "1381164c5752671c7f1197f27d8a8894537b01d9",
+      "sourcePinCount": 417,
+      "sourceFreezeSha256": "4126dab207f24bb0b61b1fc3247a9f980ae7a38ec3338fd61d6acae40c4effc1",
+      "pinMismatch": [],
+      "artifactCount": 40,
+      "manifestSha256": "b7f8ed96b71c2a14e976ff37423e01dee18027b94485e2fabeee74a3d977cbe0",
+      "artifactMismatch": []
+    },
+    {
+      "native": "4e4f307097eb54b9173552edad68a704457a7f76",
+      "sourcePinCount": 286,
+      "sourceFreezeSha256": "eb679d523ad0815bd36425191d94b429262c8f364d235bd16e5b9e65f3b3a333",
+      "pinMismatch": [],
+      "artifactCount": 27,
+      "manifestSha256": "4053c025ac041b468f6b68fafd676b4fce382ede58f11b9d9f82edf2c8075fe0",
+      "artifactMismatch": []
+    },
+    {
+      "native": "0de27c51574e2da6b09966c7ef0c28435d9c9592",
+      "sourcePinCount": 275,
+      "sourceFreezeSha256": "cbcc8649e9b73fe28a80d0ed794b2cad69d772f2b7bac0aab6a23b8cda803a66",
+      "pinMismatch": [],
+      "artifactCount": 26,
+      "manifestSha256": "45175603c18bd1417f2bcd58a6af49b201c4c2da02dc8b9cedf19e0ab9bf9e2f",
+      "artifactMismatch": []
+    }
+  ],
+  "external1279Head": "0de27c51574e2da6b09966c7ef0c28435d9c9592",
+  "repairDifferences": {
+    "compiler": "only erased as unknown[] in Object.hasOwn already-validated phase dense array",
+    "reference": "one final internal Decimal bound conversion finite(public(x)); external finite unchanged",
+    "runtimeModelAndInputsChanged": false
+  },
+  "preservedFrozenSnapshots": [
+    {
+      "path": "/tmp/physics-1349-canonical/initial-types/frozen-source.json",
+      "count": 486,
+      "sha256": "c4c880f9dcfb93e77bd89bb85bdcfaa073a52d238526c6291c8df6f7e87a782d"
+    },
+    {
+      "path": "/tmp/physics-1349-canonical/initial-consumer-guard-failure/frozen-source.json",
+      "count": 486,
+      "sha256": "839bceac4879c59ddc7a49514c06e60d497aca9656a498b0ac220aa1cab4bbea"
+    },
+    {
+      "path": "/tmp/physics-1349-canonical/frozen-source.json",
+      "count": 486,
+      "sha256": "6c9fdad5dd46b460b35f59f6fc130ac4ba6373df4690a361ce9afa6f83989f00"
+    }
+  ],
+  "maximumRecordedNativeCertificate": {
+    "primal": 4.440892098500626e-16,
+    "stationarity": 1.734723475976807e-18,
+    "negativeMu": 0,
+    "complementarity": 1.110223024625157e-18,
+    "objective": 0
+  },
+  "beforeAfterStreamOffsetsVerified": [
+    {
+      "index": 0,
+      "startByte": 0,
+      "endByteExclusive": 208,
+      "name": "admitted-incoherent-anchors-orbital-loss"
+    },
+    {
+      "index": 1,
+      "startByte": 208,
+      "endByteExclusive": 416,
+      "name": "196/0/private"
+    },
+    {
+      "index": 2,
+      "startByte": 416,
+      "endByteExclusive": 624,
+      "name": "196/0/public-canonical"
+    },
+    {
+      "index": 3,
+      "startByte": 624,
+      "endByteExclusive": 832,
+      "name": "196/1/private"
+    },
+    {
+      "index": 4,
+      "startByte": 832,
+      "endByteExclusive": 1040,
+      "name": "196/1/public-canonical"
+    },
+    {
+      "index": 5,
+      "startByte": 1040,
+      "endByteExclusive": 1248,
+      "name": "197/0/private"
+    },
+    {
+      "index": 6,
+      "startByte": 1248,
+      "endByteExclusive": 1456,
+      "name": "197/0/public-canonical"
+    },
+    {
+      "index": 7,
+      "startByte": 1456,
+      "endByteExclusive": 1664,
+      "name": "197/1/private"
+    },
+    {
+      "index": 8,
+      "startByte": 1664,
+      "endByteExclusive": 1872,
+      "name": "197/1/public-canonical"
+    },
+    {
+      "index": 9,
+      "startByte": 1872,
+      "endByteExclusive": 2080,
+      "name": "resting-coincident-anchors"
+    },
+    {
+      "index": 10,
+      "startByte": 2080,
+      "endByteExclusive": 2288,
+      "name": "resting-signed-zero-velocity-and-spin"
+    },
+    {
+      "index": 11,
+      "startByte": 2288,
+      "endByteExclusive": 2496,
+      "name": "inside-limit-coherent-anchors"
+    },
+    {
+      "index": 12,
+      "startByte": 2496,
+      "endByteExclusive": 2704,
+      "name": "exact-upper-limit"
+    },
+    {
+      "index": 13,
+      "startByte": 2704,
+      "endByteExclusive": 2912,
+      "name": "exact-lower-limit"
+    },
+    {
+      "index": 14,
+      "startByte": 2912,
+      "endByteExclusive": 3120,
+      "name": "slight-upper-excess"
+    },
+    {
+      "index": 15,
+      "startByte": 3120,
+      "endByteExclusive": 3328,
+      "name": "slight-lower-excess"
+    },
+    {
+      "index": 16,
+      "startByte": 3328,
+      "endByteExclusive": 3536,
+      "name": "quaternion-sign-equivalence"
+    },
+    {
+      "index": 17,
+      "startByte": 3536,
+      "endByteExclusive": 3744,
+      "name": "Z1-pair-origin"
+    },
+    {
+      "index": 18,
+      "startByte": 3744,
+      "endByteExclusive": 3952,
+      "name": "canonical-pair1-Z0"
+    },
+    {
+      "index": 19,
+      "startByte": 3952,
+      "endByteExclusive": 4160,
+      "name": "common-COM-and-common-velocity"
+    },
+    {
+      "index": 20,
+      "startByte": 4160,
+      "endByteExclusive": 4368,
+      "name": "nonzero-linear-momentum"
+    },
+    {
+      "index": 21,
+      "startByte": 4368,
+      "endByteExclusive": 4576,
+      "name": "equal-opposite-spin"
+    },
+    {
+      "index": 22,
+      "startByte": 4576,
+      "endByteExclusive": 4784,
+      "name": "known-orbital-momentum"
+    },
+    {
+      "index": 23,
+      "startByte": 4784,
+      "endByteExclusive": 4992,
+      "name": "known-orbital-plus-spin"
+    },
+    {
+      "index": 24,
+      "startByte": 4992,
+      "endByteExclusive": 5200,
+      "name": "upper-outward"
+    },
+    {
+      "index": 25,
+      "startByte": 5200,
+      "endByteExclusive": 5408,
+      "name": "upper-inward"
+    },
+    {
+      "index": 26,
+      "startByte": 5408,
+      "endByteExclusive": 5616,
+      "name": "lower-outward"
+    },
+    {
+      "index": 27,
+      "startByte": 5616,
+      "endByteExclusive": 5824,
+      "name": "lower-inward"
+    },
+    {
+      "index": 28,
+      "startByte": 5824,
+      "endByteExclusive": 6032,
+      "name": "interior-positive-rate"
+    },
+    {
+      "index": 29,
+      "startByte": 6032,
+      "endByteExclusive": 6240,
+      "name": "interior-negative-rate"
+    },
+    {
+      "index": 30,
+      "startByte": 6240,
+      "endByteExclusive": 6448,
+      "name": "transverse-rate"
+    }
+  ],
+  "acceptedCopyProof": {
+    "successfulConsumerAssertions": "complete config/state carrier and raw13 retained; returned body/report/diagnostic/matrix/result/certificate mutations isolated without second law",
+    "typedRefusalAssertions": "physical/linear/certificate refusal inputs retained; validator returned detached certificate",
+    "readOnlyAudit": "existing source assertions and successful receipts were checked, not rerun"
+  }
+}

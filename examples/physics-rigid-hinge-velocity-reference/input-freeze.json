@@ -1,0 +1,6169 @@
+{
+  "issue": 1349,
+  "base": "d6b552f98f4a509611ffce42a65080db063fdda0",
+  "poseNative": "1381164c5752671c7f1197f27d8a8894537b01d9",
+  "poseInputSourceSha256": "4239a040da0d907dc5e8e979be304c179001e80afffef14b8c6b90fa8fba6006",
+  "firstPhysicalCase": {
+    "name": "admitted-incoherent-anchors-orbital-loss",
+    "input": {
+      "config": {
+        "bodies": [
+          {
+            "id": "pairA0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "sphere",
+              "radiusM": 0.1
+            },
+            "positionM": [
+              -0.1,
+              0,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "pairB0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "sphere",
+              "radiusM": 0.1
+            },
+            "positionM": [
+              0.1,
+              0,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ],
+        "joints": [
+          {
+            "id": "hinge0",
+            "kind": "hinge",
+            "aId": "pairA0",
+            "bId": "pairB0",
+            "anchorALocalM": [
+              0.1,
+              0,
+              0
+            ],
+            "anchorBLocalM": [
+              -0.1,
+              0,
+              0
+            ],
+            "axisWorld": [
+              0,
+              0,
+              1
+            ],
+            "limitRad": [
+              -0.8,
+              0.8
+            ],
+            "motor": {
+              "targetSpeedRadps": 0.5,
+              "maxImpulseNms": 0.0001,
+              "maxReactionNms": 0.01
+            }
+          }
+        ],
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          0,
+          0
+        ]
+      },
+      "state": {
+        "stepIndex": 0,
+        "timeSeconds": 0,
+        "bodies": [
+          {
+            "id": "pairA0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "sphere",
+              "radiusM": 0.1
+            },
+            "positionM": [
+              -0.1,
+              0,
+              0
+            ],
+            "velocityMps": [
+              0,
+              -1,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              -0.19866933079506122,
+              0.9800665778412416
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": "pairB0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "sphere",
+              "radiusM": 0.1
+            },
+            "positionM": [
+              0.1,
+              0,
+              0
+            ],
+            "velocityMps": [
+              0,
+              1,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0.19866933079506122,
+              0.9800665778412416
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "joints": [
+          {
+            "id": "hinge0",
+            "kind": "hinge",
+            "aId": "pairA0",
+            "bId": "pairB0",
+            "angleRad": 0.8,
+            "linearImpulseNs": [
+              0,
+              0,
+              0
+            ],
+            "angularImpulseNms": [
+              0,
+              0,
+              0
+            ],
+            "motorImpulseNms": 0
+          }
+        ],
+        "contacts": [],
+        "events": [],
+        "ccdHits": [],
+        "pairStats": {
+          "eligiblePairs": 0,
+          "candidatePairs": 0,
+          "aabbTests": 0
+        }
+      },
+      "dt": 0.008333333333333333
+    },
+    "expectedBranch": {
+      "stopKind": "none",
+      "activeStop": false
+    }
+  },
+  "literalCases": [
+    {
+      "name": "resting-coincident-anchors",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": 0,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "none",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "resting-signed-zero-velocity-and-spin",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": 0,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "none",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "inside-limit-coherent-anchors",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.0955336489125606,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                -0.14943813247359922,
+                0.9887710779360422
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.0955336489125606,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0.14943813247359922,
+                0.9887710779360422
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": 0.6,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "none",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "exact-upper-limit",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.09210609940028851,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                -0.19866933079506122,
+                0.9800665778412416
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.09210609940028851,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0.19866933079506122,
+                0.9800665778412416
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": 0.8,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "none",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "exact-lower-limit",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.09210609940028851,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0.19866933079506122,
+                0.9800665778412416
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.09210609940028851,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                -0.19866933079506122,
+                0.9800665778412416
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": -0.8,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "none",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "slight-upper-excess",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.09210609920557934,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                -0.19866933324522765,
+                0.9800665773445683
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.09210609920557934,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0.19866933324522765,
+                0.9800665773445683
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": 0.8,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "upper",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "slight-lower-excess",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.09210609920557934,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0.19866933324522765,
+                0.9800665773445683
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.09210609920557934,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                -0.19866933324522765,
+                0.9800665773445683
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": -0.8,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "lower",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "quaternion-sign-equivalence",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.09210609940028851,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0.19866933079506122,
+                -0.9800665778412416
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.09210609940028851,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0.19866933079506122,
+                0.9800665778412416
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": 0.8,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "none",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "Z1-pair-origin",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA1",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                1
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB1",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                1
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge1",
+              "kind": "hinge",
+              "aId": "pairA1",
+              "bId": "pairB1",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA1",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                1
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "id": "pairB1",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                1
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge1",
+              "kind": "hinge",
+              "aId": "pairA1",
+              "bId": "pairB1",
+              "angleRad": 0,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "none",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "canonical-pair1-Z0",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA1",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB1",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge1",
+              "kind": "hinge",
+              "aId": "pairA1",
+              "bId": "pairB1",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA1",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "id": "pairB1",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge1",
+              "kind": "hinge",
+              "aId": "pairA1",
+              "bId": "pairB1",
+              "angleRad": 0,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "none",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "common-COM-and-common-velocity",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                1.9,
+                3,
+                0
+              ],
+              "velocityMps": [
+                1,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                2.1,
+                3,
+                0
+              ],
+              "velocityMps": [
+                1,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": 0,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "none",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "nonzero-linear-momentum",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                1,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": 0,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "none",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "equal-opposite-spin",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                -1
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                1
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": 0,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "none",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "known-orbital-momentum",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                -1,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                1,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": 0,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "none",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "known-orbital-plus-spin",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                -1,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                1
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                1,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                1
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": 0,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "none",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "upper-outward",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.09210609920557934,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                -0.19866933324522765,
+                0.9800665773445683
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                -1
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.09210609920557934,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0.19866933324522765,
+                0.9800665773445683
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                1
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": 0.8,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "upper",
+        "activeStop": true
+      }
+    },
+    {
+      "name": "upper-inward",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.09210609920557934,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                -0.19866933324522765,
+                0.9800665773445683
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                1
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.09210609920557934,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0.19866933324522765,
+                0.9800665773445683
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                -1
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": 0.8,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "upper",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "lower-outward",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.09210609920557934,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0.19866933324522765,
+                0.9800665773445683
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                1
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.09210609920557934,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                -0.19866933324522765,
+                0.9800665773445683
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                -1
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": -0.8,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "lower",
+        "activeStop": true
+      }
+    },
+    {
+      "name": "lower-inward",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.09210609920557934,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0.19866933324522765,
+                0.9800665773445683
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                -1
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.09210609920557934,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                -0.19866933324522765,
+                0.9800665773445683
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                1
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": -0.8,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "lower",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "interior-positive-rate",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                -1
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                1
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": 0,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "none",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "interior-negative-rate",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                1
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                -1
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": 0,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "none",
+        "activeStop": false
+      }
+    },
+    {
+      "name": "transverse-rate",
+      "input": {
+        "config": {
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "massKg": 1,
+              "restitution": 0,
+              "friction": {
+                "static": 1,
+                "dynamic": 0.7
+              }
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "anchorALocalM": [
+                0.1,
+                0,
+                0
+              ],
+              "anchorBLocalM": [
+                -0.1,
+                0,
+                0
+              ],
+              "axisWorld": [
+                0,
+                0,
+                1
+              ],
+              "limitRad": [
+                -0.8,
+                0.8
+              ],
+              "motor": {
+                "targetSpeedRadps": 0.5,
+                "maxImpulseNms": 0.0001,
+                "maxReactionNms": 0.01
+              }
+            }
+          ],
+          "fixedStepSeconds": 0.008333333333333333,
+          "gravityMps2": [
+            0,
+            0,
+            0
+          ]
+        },
+        "state": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "pairA0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                -0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                1,
+                0,
+                0
+              ]
+            },
+            {
+              "id": "pairB0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "sphere",
+                "radiusM": 0.1
+              },
+              "positionM": [
+                0.1,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                1,
+                0
+              ]
+            }
+          ],
+          "joints": [
+            {
+              "id": "hinge0",
+              "kind": "hinge",
+              "aId": "pairA0",
+              "bId": "pairB0",
+              "angleRad": 0,
+              "linearImpulseNs": [
+                0,
+                0,
+                0
+              ],
+              "angularImpulseNms": [
+                0,
+                0,
+                0
+              ],
+              "motorImpulseNms": 0
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "dt": 0.008333333333333333
+      },
+      "expectedBranch": {
+        "stopKind": "none",
+        "activeStop": false
+      }
+    }
+  ],
+  "signedZeroPaths": [
+    "literalCases[1].input.state.bodies[0].velocityMps[1]",
+    "literalCases[1].input.state.bodies[1].angularVelocityRadps[0]"
+  ],
+  "signedZeroNote": "JSON numeric zero is not bit evidence. The unchanged authored module retains -0 at the named paths; raw Float64LE and Object.is are mandatory.",
+  "archiveOrder": "matching archiveGraph; step196 then197; group0 then1; private then public-canonical",
+  "casesPerGraph": 31,
+  "archiveCasesPerGraph": 8,
+  "literalCasesPerGraph": 22,
+  "physicalCasesAllGraphsIfPass": 93,
+  "archiveCasesAllGraphsIfPass": 24,
+  "firstFailure": "persist then stop; same frozen prefix source/source-repeat/compiled; no tuning or retry",
+  "errors": {
+    "dt": "private hinge velocity step must equal 1/120",
+    "profile": "private hinge velocity profile is unsupported",
+    "pose": "private hinge velocity archived pose is invalid",
+    "result": "private hinge velocity result is invalid",
+    "linear": "private hinge velocity linear data is invalid",
+    "system": "private hinge velocity system is singular or unsafe",
+    "certificate": "private hinge velocity certificate is invalid"
+  },
+  "algebraCases": [
+    {
+      "name": "basis-identity",
+      "problem": {
+        "a": [
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ]
+        ],
+        "b": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "h": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "y0": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "stopKind": "none",
+        "stopRow": []
+      },
+      "expected": {
+        "activeStop": false,
+        "identity": true,
+        "solveAttempts": 0
+      }
+    },
+    {
+      "name": "basis-corrected",
+      "problem": {
+        "a": [
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ]
+        ],
+        "b": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "h": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "y0": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "stopKind": "none",
+        "stopRow": []
+      },
+      "expected": {
+        "activeStop": false,
+        "identity": false,
+        "solveAttempts": 1
+      }
+    },
+    {
+      "name": "upper-active",
+      "problem": {
+        "a": [
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ]
+        ],
+        "b": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "h": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "y0": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "stopKind": "upper",
+        "stopRow": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "expected": {
+        "activeStop": true,
+        "identity": false,
+        "solveAttempts": 2
+      }
+    },
+    {
+      "name": "upper-inactive",
+      "problem": {
+        "a": [
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ]
+        ],
+        "b": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "h": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "y0": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          -1
+        ],
+        "stopKind": "upper",
+        "stopRow": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "expected": {
+        "activeStop": false,
+        "identity": true,
+        "solveAttempts": 0
+      }
+    },
+    {
+      "name": "upper-zero",
+      "problem": {
+        "a": [
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ]
+        ],
+        "b": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "h": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "y0": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "stopKind": "upper",
+        "stopRow": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ]
+      },
+      "expected": {
+        "activeStop": false,
+        "identity": true,
+        "solveAttempts": 0
+      }
+    },
+    {
+      "name": "lower-active",
+      "problem": {
+        "a": [
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ]
+        ],
+        "b": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "h": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "y0": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          -1
+        ],
+        "stopKind": "lower",
+        "stopRow": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          -1
+        ]
+      },
+      "expected": {
+        "activeStop": true,
+        "identity": false,
+        "solveAttempts": 2
+      }
+    },
+    {
+      "name": "lower-inactive",
+      "problem": {
+        "a": [
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ]
+        ],
+        "b": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "h": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "y0": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "stopKind": "lower",
+        "stopRow": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          -1
+        ]
+      },
+      "expected": {
+        "activeStop": false,
+        "identity": true,
+        "solveAttempts": 0
+      }
+    }
+  ],
+  "linearRefusalEdits": [
+    {
+      "name": "compatible-dependent",
+      "edits": [
+        "b[0]=1",
+        "a[10]=copy(a[9])"
+      ],
+      "error": "system"
+    },
+    {
+      "name": "incompatible-dependent",
+      "edits": [
+        "b[0]=1",
+        "a[10]=copy(a[9])",
+        "b[10]=1"
+      ],
+      "error": "system"
+    },
+    {
+      "name": "near-dependent",
+      "edits": [
+        "b[0]=1",
+        "a[10]=a[9]+1e-7*e10"
+      ],
+      "error": "system"
+    },
+    {
+      "name": "zero-H",
+      "edits": [
+        "h[0]=0"
+      ],
+      "error": "linear"
+    },
+    {
+      "name": "negative-H",
+      "edits": [
+        "h[0]=-1"
+      ],
+      "error": "linear"
+    },
+    {
+      "name": "null-H",
+      "edits": [
+        "h[0]=null"
+      ],
+      "error": "linear"
+    },
+    {
+      "name": "NaN-H",
+      "edits": [
+        "h[0]=NaN"
+      ],
+      "error": "linear"
+    },
+    {
+      "name": "unsafe-reciprocal",
+      "edits": [
+        "b[0]=1",
+        "h[0]=Number.MIN_VALUE"
+      ],
+      "error": "system"
+    },
+    {
+      "name": "unsafe-reciprocal-identity",
+      "edits": [
+        "h[0]=Number.MIN_VALUE",
+        "b all0 unchanged"
+      ],
+      "error": "system"
+    },
+    {
+      "name": "null-coefficient",
+      "edits": [
+        "a[0][0]=null"
+      ],
+      "error": "linear"
+    },
+    {
+      "name": "sparse-coefficient",
+      "edits": [
+        "delete a[0][0]"
+      ],
+      "error": "linear"
+    },
+    {
+      "name": "sparse-row",
+      "edits": [
+        "delete a[0]"
+      ],
+      "error": "linear"
+    },
+    {
+      "name": "short-row",
+      "edits": [
+        "a[0].pop()"
+      ],
+      "error": "linear"
+    },
+    {
+      "name": "null-b",
+      "edits": [
+        "b=null"
+      ],
+      "error": "linear"
+    },
+    {
+      "name": "boolean-y0",
+      "edits": [
+        "y0[0]=false"
+      ],
+      "error": "linear"
+    },
+    {
+      "name": "nonfinite-y0",
+      "edits": [
+        "y0[0]=Infinity"
+      ],
+      "error": "linear"
+    },
+    {
+      "name": "extra-key",
+      "edits": [
+        "extra=0"
+      ],
+      "error": "linear"
+    },
+    {
+      "name": "extra-array-key",
+      "edits": [
+        "b.extra=0"
+      ],
+      "error": "linear"
+    },
+    {
+      "name": "none-with-stop-row",
+      "edits": [
+        "stopRow=12zeros"
+      ],
+      "error": "linear"
+    },
+    {
+      "name": "unknown-stop",
+      "edits": [
+        "stopKind='both'"
+      ],
+      "error": "linear"
+    }
+  ],
+  "certificateEdits": [
+    "y[0]+=1",
+    "y[0]=null",
+    "y[0]=NaN",
+    "delete y[0]",
+    "lambda[last]=1",
+    "objectiveDimensionless+=1",
+    "objectiveDimensionless=-1",
+    "activeStop=false",
+    "extra=0",
+    "phases[0].inverse[0][0]+=1",
+    "certificate.primal=null"
+  ],
+  "physicalRefusalCount": 22,
+  "unknownGetterMarkers": [
+    "Error",
+    "object",
+    "null"
+  ],
+  "guardNote": "Pure matrix/certificate guards are not physical scene evidence. Invalid JSON-only values have source-frozen mutation descriptions; no JSON null substitutes for NaN or sparse holes.",
+  "gates": {
+    "positionM": 1e-12,
+    "quaternion": 1e-12,
+    "coefficients": "1e-12*max(1,abs(reference))",
+    "linearVelocityMps": 1e-10,
+    "angularVelocityRadps": 1e-09,
+    "objectiveJ": 1e-10,
+    "dimensionlessCertificate": 1e-10,
+    "relativePivot": 1e-12,
+    "conditionInf": 1000000000000.0,
+    "decimalAlgebra": "1e-25",
+    "rawNormalizedGeometry": 1e-12,
+    "comM": 1e-12,
+    "linearMomentumKgMps": 1e-07,
+    "angularMomentumKgM2ps": 1e-07,
+    "anchorVelocityMps": 1e-09,
+    "transverseAngularRateRadps": 1e-09,
+    "eligibleOutwardRateRadps": 1e-09
+  },
+  "worldCreated": false,
+  "worldStepped": false,
+  "candidateCalled": false,
+  "solverCalled": false,
+  "oracleCalled": false,
+  "sourceOnlyCollection": true,
+  "collectionMethod": "Source-only Python JSON read of adopted1309 input-freeze; deepcopy15 authored cases and orbital input;7 declared spin-field edits;literal pure arrays/edit descriptions. No JS imports or model/reference/control execution."
+}

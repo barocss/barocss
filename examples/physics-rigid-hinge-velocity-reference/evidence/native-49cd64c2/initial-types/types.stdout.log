@@ -1,0 +1,1 @@
+examples/physics-rigid-hinge-velocity-reference/linear-solver.ts(92,707): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'object'.

@@ -1,0 +1,22 @@
+{
+  "phase": "build",
+  "command": [
+    "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+    "examples/physics-rigid-engine-reference/build-local.mjs"
+  ],
+  "cwd": "/Users/user/.codex/worktrees/physics-hinge-velocity-1349/barocss",
+  "source": "7b45fda430ef404eb4bb504af2ad7327a514d1ea",
+  "startedUtc": "2026-10-10T16:04:49.855714+00:00",
+  "durationSeconds": 6.270903374999762,
+  "exitCode": 0,
+  "node": "v22.22.0",
+  "REPO_DEPS_ROOT": "/Users/user/.barocss-ai/v3/integration",
+  "stdout": {
+    "bytes": 443,
+    "sha256": "529252f64cf078cee80765c66f7447ccee8603ff353ad774a0703ad94f936aa2"
+  },
+  "stderr": {
+    "bytes": 43,
+    "sha256": "92c17c669f9faa5b67a63d30bf09d70a0c18299759568e7686957e83d94ce962"
+  }
+}
