@@ -250,6 +250,11 @@ Screen mapping is approximate and does not test occlusion.</p></details>
 <label id="tree-v-label" hidden>Native v <input id="tree-v" aria-label="Tree native v" type="text" inputmode="decimal" disabled></label>
 <label id="tree-t-label" hidden>Native t <input id="tree-t" aria-label="Tree native t" type="text" inputmode="decimal" disabled></label>
 <button id="inspect-tree-point" disabled>Inspect original tree point</button><button id="frame-tree-face" disabled>Frame parent Face</button>
+<button id="apply-tree-color" disabled>Apply tree parent color</button><p id="tree-color-target" role="status">Select an original Surface or Curve for its parent Face color.</p>
+<details id="tree-color-help"><summary>About parent Face color</summary>
+<p>Use the shared color draft above. Apply color targets the separate Color asset choice. Apply tree parent color targets the current original tree node's whole parent Face, including a Curve node or a row outside the filter.
+This changes display RGB, not original geometry, CAD material or editing history. Native reports and parameters stay current; screen inspection must be repeated after a changed color.
+An identical accepted RGB leaves the view unchanged. These appearance actions require an available Face view.</p></details>
 <button id="clear-tree-selection" disabled>Clear tree selection</button><p id="tree-point-output" role="status" aria-live="polite"></p>
 <button id="measure-tree-length" disabled>Measure selected Curve length</button><button id="reset-tree-length" disabled>Reset tree length</button>
 <p id="tree-length-output" role="status" aria-live="polite"></p>
