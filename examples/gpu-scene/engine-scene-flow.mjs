@@ -13,7 +13,7 @@ const ordinary=resolve(output,'ordinary-source.mjs');
 const bundle=await build({entryPoints:[resolve(pkg,manifest.exports['.'].import)],bundle:true,platform:'node',format:'esm',target:'node22',outfile:ordinary,metafile:true});
 const graph=Object.keys(bundle.metafile.inputs);assert(graph.some(p=>p.endsWith('/src/engine-scene.ts')));assert(!graph.some(p=>/barocss-(gpu|cad)\/dist\//.test(p)));
 const hash=x=>createHash('sha256').update(x).digest('hex');async function receipt(path){const b=await readFile(path);return{path,bytes:b.length,sha256:hash(b)};}
-function json(v){if(typeof v==='number'){assert(Number.isFinite(v));return Object.is(v,-0)?'-0':JSON.stringify(v);}if(v===null||typeof v!=='object')return JSON.stringify(v);if(Array.isArray(v))return'['+v.map(json).join(',')+']';return'{'+Object.entries(v).map(([k,x])=>JSON.stringify(k)+':'+json(x)).join(',')+'}';}
+function json(v){if(typeof v==='number'){assert(Number.isFinite(v));return Object.is(v,-0)?'-0':JSON.stringify(v);}if(v===null||typeof v!=='object')return JSON.stringify(v);if(Array.isArray(v))return'['+v.map(json).join(',')+']';return'{'+Object.entries(v).sort(([a],[b])=>a<b?-1:a>b?1:0).map(([k,x])=>JSON.stringify(k)+':'+json(x)).join(',')+'}';}
 const clone=v=>JSON.parse(json(v)), near=(a,b,tol=1e-10)=>assert(Math.abs(a-b)<=tol,`actual ${a}, expected ${b}`);
 const nearArray=(a,b,tol=1e-10)=>{assert.equal(a.length,b.length);a.forEach((v,i)=>near(v,b[i],tol));};
 const camera=()=>({eye:[0,0,12],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:100});
