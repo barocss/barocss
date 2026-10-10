@@ -601,7 +601,7 @@ export function MixedApp() {
           <DialogTitle>Rename scene</DialogTitle>
           <DialogDescription>Use title stages the new label. Apply updates the scene.</DialogDescription>
         </DialogHeader>
-        <label className="flex flex-col gap-2 text-sm"><span>Title</span><input type="text" aria-label="Title" className="rounded-md border border-input bg-background p-2" value={rawTitle} aria-invalid={titleError !== null} aria-describedby={titleError ? 'rename-error' : undefined} onChange={event => { setRawTitle(event.currentTarget.value); setRenameError(null); }} /></label>
+        <label className="flex flex-col gap-2 text-sm"><span>Title</span><input type="text" aria-label="Title" className="rounded-md border border-input bg-background p-2" value={rawTitle} aria-invalid={titleError !== null} aria-describedby={titleError ? 'rename-error' : undefined} onChange={event => { setRawTitle(event.currentTarget.value); if (!renameRef.current?.invalidated) setRenameError(null); }} /></label>
         {titleError ? <p id="rename-error" role="alert" data-testid="rename-error" className="app-dialog-error">{titleError}</p> : null}
         <details><summary className="cursor-pointer text-sm">Help</summary><div className="mt-3"><RenameSceneHelp /></div></details>
         <DialogFooter><Button variant="ghost" onClick={cancelRename} data-testid="rename-cancel">Cancel</Button><Button disabled={titleValidationError !== null || renameRef.current?.invalidated === true} onClick={useTitle} data-testid="rename-use">Use title</Button></DialogFooter>
