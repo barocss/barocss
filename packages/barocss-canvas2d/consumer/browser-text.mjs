@@ -109,14 +109,14 @@ function adopt(/** @type {Session} */ next) { next.unbind = bind(next); const ol
 /** @param {unknown} error @param {string} before @param {number} candidates */
 function refuse(error, before, candidates) { counts.errors++; preparing = false;
   failure = { code: codeOf(error), retained: fingerprint() === before, candidatesUnchanged: candidates === counts.candidates }; show(`Refused ${failure.code}`); return failure; }
-/** Host owns font readiness. The public helper stays synchronous. @param {string} text @param {number} dpr */
-async function edit(text, dpr = 2) {
+/** Host owns font readiness. The public helper stays synchronous. @param {string} text @param {number} dpr @param {import('@barocss/canvas2d').BrowserTextPolicy} textPolicy */
+async function edit(text, dpr = 2, textPolicy = 'alphanumeric') {
   if (disposed) return; const token = ++generation, before = fingerprint(), candidates = counts.candidates;
   preparing = true; show('Preparing font');
   try { counts.fontPreparations++; await document.fonts.ready; await document.fonts.load(font, text);
     if (!current(token)) { counts.ignored++; return; }
     if (!document.fonts.check(font, text)) throw new Error('Host font unavailable');
-    counts.helperCalls++; const prepared = rasterizeBrowserText({ text, font, atlasId, dpr });
+    counts.helperCalls++; const prepared = rasterizeBrowserText({ text, font, atlasId, dpr, textPolicy });
     const tree = createDisplayTree('BrowserTextConsumer');
     tree.stage.addChild(tree.createRect({ id: 'Back', layer: 0, transform: pose(), width: 320, height: 144, fill: [0.125, 0.15625, 0.21875, 1] }));
     tree.stage.addChild(tree.createGlyphRun({ id: 'Label', layer: 1, transform: pose(24, 72), ...prepared.layout }));
@@ -152,15 +152,15 @@ async function openText(text, reserved = null) {
 }
 async function restoredEdit() {
   const s = session; if (!s || disposed) return; const token = ++generation, before = fingerprint(), candidates = counts.candidates;
-  preparing = true; show('Preparing the current font for restored HI');
-  try { counts.fontPreparations++; await document.fonts.ready; await document.fonts.load(font, 'HI');
+  preparing = true; show('Preparing the current font for restored -$20');
+  try { counts.fontPreparations++; await document.fonts.ready; await document.fonts.load(font, '-$20');
     if (!current(token) || session !== s) { counts.ignored++; return; }
-    if (!document.fonts.check(font, 'HI')) throw new Error('Host font unavailable');
-    counts.helperCalls++; const prepared = rasterizeBrowserText({ text: 'HI', font, atlasId, dpr: 2 });
+    if (!document.fonts.check(font, '-$20')) throw new Error('Host font unavailable');
+    counts.helperCalls++; const prepared = rasterizeBrowserText({ text: '-$20', font, atlasId, dpr: 2, textPolicy: 'printable-ascii' });
     const tree = createDisplayTreeFromScene(s.scene), glyph = tree.get('Label');
     if (glyph?.kind !== 'glyphRun') throw new Error('Label missing');
     glyph.setLayout(prepared.layout);
-    adopt(fresh(tree, prepared.asset, token, 'helper', prepared)); show('Rerasterized HI and edited its restored public glyph handle');
+    adopt(fresh(tree, prepared.asset, token, 'helper', prepared)); show('Rerasterized -$20 and edited its restored public glyph handle');
   } catch (error) { if (current(token)) refuse(error, before, candidates); else counts.ignored++; }
 }
 function serialize(/** @type {Session} */ s) { return serializeCanvasDocument(s.scene, id => s.renderer.getImageAsset(id)); }
@@ -178,7 +178,7 @@ async function exportPNG() { const s = session; if (!s || disposed) return; cons
 }
 function dispose() { if (disposed) return; if (session) { terminal = sessionObservation(session); session.unbind(); release(session.renderer); }
   session = null; disposed = true; preparing = false; generation++; for (const remove of hostUnbind.splice(0)) remove(); show('Disposed renderer and listeners'); }
-const actions = { hi: () => { void edit('HI', 2); }, space: () => { void edit('H I', 1.5); },
+const actions = { numeric: () => { void edit('12.5', 2, 'printable-ascii'); }, currency: () => { void edit('-$20', 2, 'printable-ascii'); }, statusLabel: () => { void edit('FPS:60', 1.5, 'printable-ascii'); }, hi: () => { void edit('HI', 2); }, space: () => { void edit('H I', 1.5); },
   invalid: () => { rejectFont('not a font'); }, oversize: () => { rejectFont('1000px monospace', 'M'.repeat(128)); },
   restored: () => { void restoredEdit(); }, save: () => { void save().catch(error => show(`Save failed: ${codeOf(error)}`)); },
   png: () => { void exportPNG(); }, dispose };

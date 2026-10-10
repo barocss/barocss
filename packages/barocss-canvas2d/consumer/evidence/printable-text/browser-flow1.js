@@ -1,0 +1,16 @@
+async page=>{
+await page.waitForFunction(()=>window.browserTextConsumer?.observe().accepted?.text==='Canvas2D');
+await page.evaluate(()=>{window.__stages=[];window.__record=name=>{const o=browserTextConsumer.observe();if(o.accepted)o.accepted={...o.accepted,allBytes:undefined};__stages.push({name,observation:o});return o};__record('defaultAlphanumeric');});
+await page.evaluate(async()=>{const {rasterizeBrowserText}=await import('@barocss/canvas2d');const before=__gpuProof.scratch2D,prior=browserTextConsumer.observe().accepted;const refusals=[];
+for(const [text,textPolicy]of [['12.5',undefined],['-$20',undefined],['FPS:60','alphanumeric'],['A\nB','printable-ascii'],['한글','printable-ascii'],['   ','printable-ascii']]){
+let error;try{rasterizeBrowserText({text,font:'24px monospace',atlasId:'BrowserTextAtlas',...(textPolicy===undefined?{}:{textPolicy})})}catch(e){error=e}if(error?.code!=='INVALID_SCENE')throw Error('policy refusal');refusals.push({text,textPolicy:textPolicy??'absent',code:error.code});}
+if(__gpuProof.scratch2D!==before||JSON.stringify(prior)!==JSON.stringify(browserTextConsumer.observe().accepted))throw Error('before scratch retention');window.__policyRefusals={refusals,scratchDelta:0,retained:true};__record('actualPolicyRefusalsBeforeScratch');
+const text=Array.from({length:95},(_,i)=>String.fromCharCode(32+i)).join('');await document.fonts.ready;const r=rasterizeBrowserText({text,font:'12px monospace',atlasId:'Printable',dpr:1,textPolicy:'printable-ascii'});if(r.layout.text!==text||r.layout.glyphs[0].textEnd!==95||r.asset.width>1024||r.asset.height>256||r.asset.pixels.byteLength>1048576)throw Error('ASCII95');window.__allPrintable={length:95,width:r.asset.width,height:r.asset.height,byteLength:r.asset.pixels.byteLength,font:r.font,layoutTextEqual:true};__record('actualAll95PrintablePreparation');
+});
+for(const[text,dpr]of [['12.5',2],['FPS:60',1.5],['-$20',2]]){
+ await page.getByRole('button',{name:text,exact:true}).click();await page.waitForFunction(expected=>browserTextConsumer.observe().accepted?.text===expected,text);
+ const o=await page.evaluate(()=>browserTextConsumer.observe());if(o.accepted.rasterDPR!==dpr||o.accepted.samples.ink.hit!=='Label'||JSON.stringify(o.accepted.samples.ink.rgba)!==JSON.stringify([255,255,255,255])||o.accepted.samples.space.hit!=='Back')throw Error('label pixels/hits');await page.evaluate(name=>__record(name),'label '+text);
+ const box=await page.locator('#scene').boundingBox();for(const part of ['ink','space']){const p=o.accepted.points[part];await page.mouse.click(box.x+p.x,box.y+p.y)}
+}
+const wait=page.waitForEvent('download');await page.getByRole('button',{name:'Save document',exact:true}).click();const d=await wait;await d.saveAs('/tmp/c2d1170-saved.json');await page.evaluate(()=>{window.__beforeOpen=browserTextConsumer.observe();window.__beforeOpenCanvas=browserTextConsumer.canvas;window.__beforeFont={helper:__beforeOpen.counts.helperCalls,font:__beforeOpen.counts.fontPreparations,scratch:__gpuProof.scratch2D};__record('actualSavedPunctuation');});
+}
