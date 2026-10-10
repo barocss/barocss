@@ -410,3 +410,7 @@ export type { SourceCurveDegreeElevationRequest, SourceCurveDegreeElevationPatch
 
 export { evaluateSourceKnotRecipeLoftGraph, updateSourceKnotRecipeLoftGraph, validateSourceKnotRecipeLoftGraph, validateSourceKnotRecipeLoftGraphUpdate, serializeSourceKnotRecipeLoftGraph, parseSourceKnotRecipeLoftGraph, SourceKnotRecipeLoftGraphError, SourceKnotRecipeLoftGraphDiagnosticCode } from './source-knot-recipe-loft-graph.js';
 export type { SourceKnotRecipeLoftGraphV0, SourceKnotRecipeLoftGraphOptions, SourceKnotRecipeLoftGraphEdits, SourceKnotRecipeLoftGraphResult, SourceKnotRecipeLoftGraphReport, SourceKnotRecipeLoftGraphTransaction, SourceKnotRecipeLoftGraphTransactionReport, SourceKnotRecipeLoftGraphUpdateResult } from './source-knot-recipe-loft-graph.js';
+
+
+export { elevateSourceSurfaceAxisDegree, validateSourceSurfaceAxisDegreeElevation, SourceSurfaceDegreeElevationError, SourceSurfaceDegreeElevationDiagnosticCode } from './source-surface-degree-elevation.js';
+export type { SourceSurfaceDegreeElevationRequest, SourceSurfaceDegreeElevationPatch, SourceSurfaceDegreeElevationReport, SourceSurfaceDegreeElevationResult } from './source-surface-degree-elevation.js';
