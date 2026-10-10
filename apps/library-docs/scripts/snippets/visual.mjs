@@ -64,6 +64,15 @@ function samplingGrid(packet){
  const point=(u,v)=>packet.positions.slice((u*17+v)*3,(u*17+v)*3+3);
  return {version:0,packet,color:[.65,.85,.95],paths:[...Array.from({length:17},(_,u)=>({id:'row_'+u,points:Array.from({length:17},(_,v)=>point(u,v))})),...Array.from({length:17},(_,v)=>({id:'column_'+v,points:Array.from({length:17},(_,u)=>point(u,v))}))]};
 }
+function describeSceneObject(object) {
+ const value={id:object.id,type:object.type,color:[...object.color],translate:[...object.translate],rotateDegrees:[...object.rotateDegrees]};
+ if(['sphere','cylinder','capsule','rounded-box'].includes(object.type))value.radius=object.radius;
+ if(['box','rounded-box'].includes(object.type))value.size=[...object.size];
+ if(object.type==='cylinder')value.height=object.height;
+ if(object.type==='capsule'){value.start=[...object.start];value.end=[...object.end];}
+ if(object.type==='torus'){value.majorRadius=object.majorRadius;value.minorRadius=object.minorRadius;}
+ return value;
+}
 export function createExample(canvas,key,source){
  const preset=presets[key];if(!preset)throw Error('Unknown example');
  const kind=preset.kind;
@@ -72,7 +81,7 @@ export function createExample(canvas,key,source){
  if(kind==='physics')return createPhysicsExample(canvas,source);
  if(kind==='scene'){
   const renderer=mountScene(canvas,source,undefined,{sourceVersion:1});
-  return{dispose:()=>renderer.dispose(),update(text){const result=renderer.update(text);if(!result.ok)throw result.error;return this.report();},report:()=>({sourceVersion:1,objects:renderer.scene.objects.map(o=>({id:o.id,type:o.type,translate:o.translate,rotateDegrees:o.rotateDegrees})),backend:'WebGL2 SDF'})};
+  return{dispose:()=>renderer.dispose(),update(text){const result=renderer.update(text);if(!result.ok)throw result.error;return this.report();},report:()=>({sourceVersion:1,objects:renderer.scene.objects.map(describeSceneObject),backend:'WebGL2 SDF'})};
  }
  if(kind==='curve'){
   const context=canvas.getContext('2d');if(!context)throw Error('Canvas2D unavailable');

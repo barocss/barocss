@@ -3,7 +3,14 @@ import { resolve } from 'node:path';
 import { app, bundleExample } from './example-runtime.mjs';
 import { readGallery } from './gallery-input.mjs';
 
-const gallery = await readGallery();
+// Preserve the original selected 14-input gallery checkpoint. New practice
+// programs have their own bounded consumer and must not retarget this proof.
+const catalog = await readGallery();
+const baselineKeys = ["cad-extrude", "cad-parameters", "gpu-six-shapes", "material-rgb", "material-sin", "material-cos", "material-radians", "material-pow", "material-abs", "material-min", "material-max", "material-clamp", "material-smoothstep", "material-mix"];
+const gallery = Object.fromEntries(baselineKeys.map(key => {
+  if (!catalog[key]) throw Error(`Original gallery input missing: ${key}`);
+  return [key, catalog[key]];
+}));
 const directory = resolve(app, 'docs/.vitepress/cache');
 await mkdir(directory, { recursive: true });
 const entry = resolve(directory, 'gallery-check.mjs');

@@ -1,0 +1,768 @@
+{
+  "capture": {
+    "assets": [
+      {
+        "key": "cad-weighted-parameters",
+        "sourceMatched": true,
+        "width": "640",
+        "height": "420",
+        "amount": null
+      },
+      {
+        "key": "cad-curved-extrude",
+        "sourceMatched": true,
+        "width": "640",
+        "height": "420",
+        "amount": null
+      },
+      {
+        "key": "cad-nonunit-curve",
+        "sourceMatched": true,
+        "width": "640",
+        "height": "420",
+        "amount": null
+      },
+      {
+        "key": "gpu-rounded-stack",
+        "sourceMatched": true,
+        "width": "640",
+        "height": "420",
+        "amount": null
+      },
+      {
+        "key": "gpu-crossed-capsules",
+        "sourceMatched": true,
+        "width": "640",
+        "height": "420",
+        "amount": null
+      },
+      {
+        "key": "material-transition-window",
+        "sourceMatched": true,
+        "width": "640",
+        "height": "420",
+        "amount": 0.5
+      }
+    ],
+    "initial": [
+      {
+        "key": "cad-weighted-parameters",
+        "report": {
+          "backend": "CAD sampling \u2192 WebGL2 mesh",
+          "sourceVersion": 2,
+          "centerMM": [
+            26.666666666666668,
+            13.333333333333334,
+            5
+          ],
+          "parameters": [
+            {
+              "id": "width",
+              "value": 40,
+              "unit": "mm"
+            },
+            {
+              "id": "height",
+              "value": 20,
+              "unit": "mm"
+            },
+            {
+              "id": "lift",
+              "value": 10,
+              "unit": "mm"
+            },
+            {
+              "id": "cornerWeight",
+              "value": 3,
+              "unit": "1"
+            }
+          ],
+          "vertices": 289,
+          "triangles": 512,
+          "maxSampledDeviationMM": 0.023455577767889133,
+          "certified": false,
+          "mmToSceneUnit": 0.045
+        }
+      },
+      {
+        "key": "cad-curved-extrude",
+        "report": {
+          "backend": "CAD sampling \u2192 WebGL2 mesh",
+          "sourceVersion": 2,
+          "centerMM": [
+            20,
+            10,
+            15
+          ],
+          "parameters": [
+            {
+              "id": "span",
+              "value": 40,
+              "unit": "mm"
+            },
+            {
+              "id": "bow",
+              "value": 20,
+              "unit": "mm"
+            },
+            {
+              "id": "height",
+              "value": 30,
+              "unit": "mm"
+            }
+          ],
+          "vertices": 289,
+          "triangles": 512,
+          "maxSampledDeviationMM": 0.03898642884698784,
+          "certified": false,
+          "mmToSceneUnit": 0.045
+        }
+      },
+      {
+        "key": "cad-nonunit-curve",
+        "report": {
+          "backend": "CAD evaluation \u2192 host Canvas2D drawing",
+          "domain": [
+            2,
+            7
+          ],
+          "sampleCount": 101,
+          "midpointMM": [
+            14.142135623730951,
+            14.142135623730951,
+            0
+          ]
+        }
+      },
+      {
+        "key": "gpu-rounded-stack",
+        "report": {
+          "sourceVersion": 1,
+          "objects": [
+            {
+              "id": "base",
+              "type": "box",
+              "color": [
+                0.25882352941176473,
+                0.3215686274509804,
+                0.403921568627451
+              ],
+              "translate": [
+                0,
+                -1.1,
+                0
+              ],
+              "rotateDegrees": [
+                0,
+                0,
+                0
+              ],
+              "size": [
+                3.8,
+                0.2,
+                1.5
+              ]
+            },
+            {
+              "id": "left",
+              "type": "rounded-box",
+              "color": [
+                0.3411764705882353,
+                0.7058823529411765,
+                0.8509803921568627
+              ],
+              "translate": [
+                -1.2,
+                -0.6,
+                0
+              ],
+              "rotateDegrees": [
+                0,
+                -20,
+                0
+              ],
+              "radius": 0.2,
+              "size": [
+                0.9,
+                0.8,
+                0.7
+              ]
+            },
+            {
+              "id": "center",
+              "type": "rounded-box",
+              "color": [
+                0.9450980392156862,
+                0.6666666666666666,
+                0.3333333333333333
+              ],
+              "translate": [
+                0,
+                0,
+                0
+              ],
+              "rotateDegrees": [
+                0,
+                20,
+                0
+              ],
+              "radius": 0.06,
+              "size": [
+                0.9,
+                0.8,
+                0.7
+              ]
+            },
+            {
+              "id": "right",
+              "type": "rounded-box",
+              "color": [
+                0.5843137254901961,
+                0.8470588235294118,
+                0.5450980392156862
+              ],
+              "translate": [
+                1.2,
+                0.6,
+                0
+              ],
+              "rotateDegrees": [
+                0,
+                -20,
+                15
+              ],
+              "radius": 0.2,
+              "size": [
+                0.9,
+                0.8,
+                0.7
+              ]
+            }
+          ],
+          "backend": "WebGL2 SDF"
+        }
+      },
+      {
+        "key": "gpu-crossed-capsules",
+        "report": {
+          "sourceVersion": 1,
+          "objects": [
+            {
+              "id": "frame",
+              "type": "torus",
+              "color": [
+                0.9411764705882353,
+                0.8392156862745098,
+                0.4392156862745098
+              ],
+              "translate": [
+                0,
+                0.2,
+                -0.2
+              ],
+              "rotateDegrees": [
+                90,
+                0,
+                0
+              ],
+              "majorRadius": 1.05,
+              "minorRadius": 0.12
+            },
+            {
+              "id": "left",
+              "type": "capsule",
+              "color": [
+                0.3411764705882353,
+                0.7058823529411765,
+                0.8509803921568627
+              ],
+              "translate": [
+                0,
+                0.2,
+                0
+              ],
+              "rotateDegrees": [
+                0,
+                0,
+                40
+              ],
+              "radius": 0.12,
+              "start": [
+                0,
+                -0.65,
+                0
+              ],
+              "end": [
+                0,
+                0.65,
+                0
+              ]
+            },
+            {
+              "id": "right",
+              "type": "capsule",
+              "color": [
+                0.792156862745098,
+                0.592156862745098,
+                0.8980392156862745
+              ],
+              "translate": [
+                0,
+                0.2,
+                0
+              ],
+              "rotateDegrees": [
+                0,
+                0,
+                -40
+              ],
+              "radius": 0.12,
+              "start": [
+                0,
+                -0.65,
+                0
+              ],
+              "end": [
+                0,
+                0.65,
+                0
+              ]
+            },
+            {
+              "id": "center",
+              "type": "sphere",
+              "color": [
+                0.9450980392156862,
+                0.6666666666666666,
+                0.3333333333333333
+              ],
+              "translate": [
+                0,
+                0.2,
+                0.15
+              ],
+              "rotateDegrees": [
+                0,
+                0,
+                0
+              ],
+              "radius": 0.22
+            }
+          ],
+          "backend": "WebGL2 SDF"
+        }
+      },
+      {
+        "key": "material-transition-window",
+        "report": {
+          "backend": "CAD sampling \u2192 WebGL2 mesh",
+          "sourceVersion": 0,
+          "centerMM": [
+            7.7,
+            5.2,
+            1
+          ],
+          "parameters": [],
+          "vertices": 289,
+          "triangles": 512,
+          "maxSampledDeviationMM": 0.02878837032366707,
+          "certified": false,
+          "mmToSceneUnit": 0.12,
+          "shaderId": "transition_window",
+          "uniforms": {
+            "amount": 0.5
+          }
+        }
+      }
+    ],
+    "totalTabs": 27,
+    "weightedEditAndRefusalRetained": true,
+    "roundedEditAndRefusalRetained": true,
+    "resetRestoredSource": true,
+    "materialAmountsAndPaletteChangedPixels": true,
+    "mobile": {
+      "width": 390,
+      "scrollWidth": 390
+    },
+    "errors": [],
+    "warnings": []
+  },
+  "production": {
+    "results": [
+      {
+        "key": "cad-weighted-parameters",
+        "ready": true,
+        "sourceMatched": true,
+        "actualFrameMatchesBuiltImage": true,
+        "report": {
+          "backend": "CAD sampling \u2192 WebGL2 mesh",
+          "sourceVersion": 2,
+          "centerMM": [
+            26.666666666666668,
+            13.333333333333334,
+            5
+          ],
+          "parameters": [
+            {
+              "id": "width",
+              "value": 40,
+              "unit": "mm"
+            },
+            {
+              "id": "height",
+              "value": 20,
+              "unit": "mm"
+            },
+            {
+              "id": "lift",
+              "value": 10,
+              "unit": "mm"
+            },
+            {
+              "id": "cornerWeight",
+              "value": 3,
+              "unit": "1"
+            }
+          ],
+          "vertices": 289,
+          "triangles": 512,
+          "maxSampledDeviationMM": 0.023455577767889133,
+          "certified": false,
+          "mmToSceneUnit": 0.045
+        }
+      },
+      {
+        "key": "cad-curved-extrude",
+        "ready": true,
+        "sourceMatched": true,
+        "actualFrameMatchesBuiltImage": true,
+        "report": {
+          "backend": "CAD sampling \u2192 WebGL2 mesh",
+          "sourceVersion": 2,
+          "centerMM": [
+            20,
+            10,
+            15
+          ],
+          "parameters": [
+            {
+              "id": "span",
+              "value": 40,
+              "unit": "mm"
+            },
+            {
+              "id": "bow",
+              "value": 20,
+              "unit": "mm"
+            },
+            {
+              "id": "height",
+              "value": 30,
+              "unit": "mm"
+            }
+          ],
+          "vertices": 289,
+          "triangles": 512,
+          "maxSampledDeviationMM": 0.03898642884698784,
+          "certified": false,
+          "mmToSceneUnit": 0.045
+        }
+      },
+      {
+        "key": "cad-nonunit-curve",
+        "ready": true,
+        "sourceMatched": true,
+        "actualFrameMatchesBuiltImage": true,
+        "report": {
+          "backend": "CAD evaluation \u2192 host Canvas2D drawing",
+          "domain": [
+            2,
+            7
+          ],
+          "sampleCount": 101,
+          "midpointMM": [
+            14.142135623730951,
+            14.142135623730951,
+            0
+          ]
+        }
+      },
+      {
+        "key": "gpu-rounded-stack",
+        "ready": true,
+        "sourceMatched": true,
+        "actualFrameMatchesBuiltImage": true,
+        "report": {
+          "sourceVersion": 1,
+          "objects": [
+            {
+              "id": "base",
+              "type": "box",
+              "color": [
+                0.25882352941176473,
+                0.3215686274509804,
+                0.403921568627451
+              ],
+              "translate": [
+                0,
+                -1.1,
+                0
+              ],
+              "rotateDegrees": [
+                0,
+                0,
+                0
+              ],
+              "size": [
+                3.8,
+                0.2,
+                1.5
+              ]
+            },
+            {
+              "id": "left",
+              "type": "rounded-box",
+              "color": [
+                0.3411764705882353,
+                0.7058823529411765,
+                0.8509803921568627
+              ],
+              "translate": [
+                -1.2,
+                -0.6,
+                0
+              ],
+              "rotateDegrees": [
+                0,
+                -20,
+                0
+              ],
+              "radius": 0.2,
+              "size": [
+                0.9,
+                0.8,
+                0.7
+              ]
+            },
+            {
+              "id": "center",
+              "type": "rounded-box",
+              "color": [
+                0.9450980392156862,
+                0.6666666666666666,
+                0.3333333333333333
+              ],
+              "translate": [
+                0,
+                0,
+                0
+              ],
+              "rotateDegrees": [
+                0,
+                20,
+                0
+              ],
+              "radius": 0.06,
+              "size": [
+                0.9,
+                0.8,
+                0.7
+              ]
+            },
+            {
+              "id": "right",
+              "type": "rounded-box",
+              "color": [
+                0.5843137254901961,
+                0.8470588235294118,
+                0.5450980392156862
+              ],
+              "translate": [
+                1.2,
+                0.6,
+                0
+              ],
+              "rotateDegrees": [
+                0,
+                -20,
+                15
+              ],
+              "radius": 0.2,
+              "size": [
+                0.9,
+                0.8,
+                0.7
+              ]
+            }
+          ],
+          "backend": "WebGL2 SDF"
+        }
+      },
+      {
+        "key": "gpu-crossed-capsules",
+        "ready": true,
+        "sourceMatched": true,
+        "actualFrameMatchesBuiltImage": true,
+        "report": {
+          "sourceVersion": 1,
+          "objects": [
+            {
+              "id": "frame",
+              "type": "torus",
+              "color": [
+                0.9411764705882353,
+                0.8392156862745098,
+                0.4392156862745098
+              ],
+              "translate": [
+                0,
+                0.2,
+                -0.2
+              ],
+              "rotateDegrees": [
+                90,
+                0,
+                0
+              ],
+              "majorRadius": 1.05,
+              "minorRadius": 0.12
+            },
+            {
+              "id": "left",
+              "type": "capsule",
+              "color": [
+                0.3411764705882353,
+                0.7058823529411765,
+                0.8509803921568627
+              ],
+              "translate": [
+                0,
+                0.2,
+                0
+              ],
+              "rotateDegrees": [
+                0,
+                0,
+                40
+              ],
+              "radius": 0.12,
+              "start": [
+                0,
+                -0.65,
+                0
+              ],
+              "end": [
+                0,
+                0.65,
+                0
+              ]
+            },
+            {
+              "id": "right",
+              "type": "capsule",
+              "color": [
+                0.792156862745098,
+                0.592156862745098,
+                0.8980392156862745
+              ],
+              "translate": [
+                0,
+                0.2,
+                0
+              ],
+              "rotateDegrees": [
+                0,
+                0,
+                -40
+              ],
+              "radius": 0.12,
+              "start": [
+                0,
+                -0.65,
+                0
+              ],
+              "end": [
+                0,
+                0.65,
+                0
+              ]
+            },
+            {
+              "id": "center",
+              "type": "sphere",
+              "color": [
+                0.9450980392156862,
+                0.6666666666666666,
+                0.3333333333333333
+              ],
+              "translate": [
+                0,
+                0.2,
+                0.15
+              ],
+              "rotateDegrees": [
+                0,
+                0,
+                0
+              ],
+              "radius": 0.22
+            }
+          ],
+          "backend": "WebGL2 SDF"
+        }
+      },
+      {
+        "key": "material-transition-window",
+        "ready": true,
+        "sourceMatched": true,
+        "actualFrameMatchesBuiltImage": true,
+        "report": {
+          "backend": "CAD sampling \u2192 WebGL2 mesh",
+          "sourceVersion": 0,
+          "centerMM": [
+            7.7,
+            5.2,
+            1
+          ],
+          "parameters": [],
+          "vertices": 289,
+          "triangles": 512,
+          "maxSampledDeviationMM": 0.02878837032366707,
+          "certified": false,
+          "mmToSceneUnit": 0.12,
+          "shaderId": "transition_window",
+          "uniforms": {
+            "amount": 0.5
+          }
+        }
+      }
+    ],
+    "cadGuideImages": 3,
+    "gpuGuideImages": 3,
+    "nativeImagesMatched": 6,
+    "mobile": {
+      "width": 390,
+      "scrollWidth": 390
+    },
+    "errors": [],
+    "warnings": [],
+    "url": "http://127.0.0.1:52948/packages/gpu/composition-examples"
+  },
+  "firstFailures": [
+    {
+      "phase": "Initial dev browser open",
+      "error": "Unreferenced /favicon.ico returned404 before hydration; actual /favicon.svg remains configured.",
+      "repair": "Recorded separately; final capture and production errors/warnings are empty."
+    },
+    {
+      "phase": "Capture driver",
+      "error": "ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING for node:fs dynamic import before sample iteration",
+      "repair": "Retrieve native Canvas PNG data through browser API and write unchanged bytes in the host orchestration."
+    },
+    {
+      "phase": "First docs check",
+      "error": "Unavailable pinned GitHub source link in new CAD example footer",
+      "repair": "Remove local-only SHA footer and use existing internal language/API links; final affected build and docs check repeated."
+    }
+  ]
+}

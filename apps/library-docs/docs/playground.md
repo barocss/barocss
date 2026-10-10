@@ -17,6 +17,8 @@ For input selection, units and result interpretation, read [Use the interactive 
 
 ## Follow the language and the data
 
+- [CAD language practice](/packages/cad/language-examples): weighted parameters, a curved extrusion and original nonunit Curve domains.
+- [GPU compositions](/packages/gpu/composition-examples): style precedence, local rotations and a material transition window.
 - [CAD language](/packages/cad/language): native millimetre geometry, parameters, original domains and source versions.
 - [GPU scene language](/packages/gpu/language): SDF objects, styles, units, rotation and version selection.
 - [GPU material language](/packages/gpu/material-language): bounded expressions, scalar uniforms, color output and host updates.

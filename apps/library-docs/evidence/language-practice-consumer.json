@@ -1,0 +1,524 @@
+{
+  "status": "passed",
+  "nodeVersion": "v22.22.0",
+  "selectedKeys": [
+    "cad-weighted-parameters",
+    "cad-curved-extrude",
+    "cad-nonunit-curve",
+    "gpu-rounded-stack",
+    "gpu-crossed-capsules",
+    "material-transition-window"
+  ],
+  "inputs": [
+    {
+      "key": "cad-weighted-parameters",
+      "sourceSHA256": "2455174858926f8c778d9dd3fe8b05bee76765258987d3e412fe73aac2730195"
+    },
+    {
+      "key": "cad-curved-extrude",
+      "sourceSHA256": "e408978109cff6aebea62b7fed7554ebb8fa0156b9c97416b1211462c5eb327d"
+    },
+    {
+      "key": "cad-nonunit-curve",
+      "sourceSHA256": "e9d534b836470244aded7d1d8fc653b02c11f9b48ec079cf8e4665e8d2431bff"
+    },
+    {
+      "key": "gpu-rounded-stack",
+      "sourceSHA256": "6047efc408a38395c2a9753d2b4d7870a97a33aa569d82dc3e672ef95042ffe4"
+    },
+    {
+      "key": "gpu-crossed-capsules",
+      "sourceSHA256": "4c11dca94281db4b6041f0639e816b0d9e94b5e6aaf61d03113839d8fdb972e5"
+    },
+    {
+      "key": "material-transition-window",
+      "sourceSHA256": "f9295d351e5d6e1453961091911b2ef22a2b4700e42c9096902f717739c87cb8"
+    }
+  ],
+  "provenance": {
+    "sourcePin": "5f5ad866205a21510ac69552e704cc162fa253b5",
+    "sourceMode": "matching-workspace",
+    "forcedSnapshot": false,
+    "sourceRoot": ".",
+    "consumerOriginal": "apps/library-docs/docs/.vitepress/cache/language-practice-consumer.mjs",
+    "manifestCount": 8,
+    "pinnedFiles": 452,
+    "ownSourceInputs": 222,
+    "ownDistInputs": 0,
+    "validation": "matching manifest/src Git diff and consumed Git blobs matched"
+  },
+  "results": [
+    {
+      "key": "cad-weighted-parameters",
+      "sourceVersion": 2,
+      "parameters": {
+        "width": {
+          "value": 40,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 20,
+          "unit": "mm"
+        },
+        "lift": {
+          "value": 10,
+          "unit": "mm"
+        },
+        "cornerWeight": {
+          "value": 3,
+          "unit": "1"
+        }
+      },
+      "centerMM": [
+        26.666666666666668,
+        13.333333333333334,
+        5
+      ],
+      "editedCenterMM": [
+        20,
+        10,
+        2.5
+      ],
+      "initialPreview": {
+        "domain": {
+          "u": [
+            0,
+            1
+          ],
+          "v": [
+            0,
+            1
+          ]
+        },
+        "vertices": 289,
+        "triangles": 512,
+        "certified": false,
+        "positionComponents": 867,
+        "indexComponents": 1536,
+        "mmToSceneUnit": 0.01,
+        "displayCenter": [
+          0.2666666805744171,
+          0.13333334028720856,
+          0.05000000074505806
+        ]
+      },
+      "editedPreview": {
+        "domain": {
+          "u": [
+            0,
+            1
+          ],
+          "v": [
+            0,
+            1
+          ]
+        },
+        "vertices": 289,
+        "triangles": 512,
+        "certified": false,
+        "positionComponents": 867,
+        "indexComponents": 1536,
+        "mmToSceneUnit": 0.01,
+        "displayCenter": [
+          0.20000000298023224,
+          0.10000000149011612,
+          0.02500000037252903
+        ]
+      },
+      "refused": "WEIGHTS",
+      "acceptedCPUValueRetained": true
+    },
+    {
+      "key": "cad-curved-extrude",
+      "sourceVersion": 2,
+      "parameters": {
+        "span": {
+          "value": 40,
+          "unit": "mm"
+        },
+        "bow": {
+          "value": 20,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 30,
+          "unit": "mm"
+        }
+      },
+      "centerMM": [
+        20,
+        10,
+        15
+      ],
+      "editedCenterMM": [
+        20,
+        20,
+        15
+      ],
+      "initialPreview": {
+        "domain": {
+          "u": [
+            0,
+            1
+          ],
+          "v": [
+            0,
+            1
+          ]
+        },
+        "vertices": 289,
+        "triangles": 512,
+        "certified": false,
+        "positionComponents": 867,
+        "indexComponents": 1536,
+        "mmToSceneUnit": 0.01,
+        "displayCenter": [
+          0.20000000298023224,
+          0.10000000149011612,
+          0.15000000596046448
+        ]
+      },
+      "editedPreview": {
+        "domain": {
+          "u": [
+            0,
+            1
+          ],
+          "v": [
+            0,
+            1
+          ]
+        },
+        "vertices": 289,
+        "triangles": 512,
+        "certified": false,
+        "positionComponents": 867,
+        "indexComponents": 1536,
+        "mmToSceneUnit": 0.01,
+        "displayCenter": [
+          0.20000000298023224,
+          0.20000000298023224,
+          0.15000000596046448
+        ]
+      }
+    },
+    {
+      "key": "cad-nonunit-curve",
+      "sourceVersion": 0,
+      "domain": [
+        2,
+        7
+      ],
+      "midpointParameter": 4.5,
+      "midpointMM": [
+        14.142135623730951,
+        14.142135623730951,
+        0
+      ],
+      "editedMidpointMM": [
+        15,
+        15,
+        0
+      ],
+      "sampleCount": 101,
+      "endpointParameters": [
+        2,
+        7
+      ]
+    },
+    {
+      "key": "gpu-rounded-stack",
+      "sourceVersion": 1,
+      "objects": [
+        {
+          "id": "base",
+          "color": [
+            0.25882352941176473,
+            0.3215686274509804,
+            0.403921568627451
+          ],
+          "translate": [
+            0,
+            -1.1,
+            0
+          ],
+          "radius": 1,
+          "size": [
+            3.8,
+            0.2,
+            1.5
+          ],
+          "type": "box",
+          "rotateDegrees": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "left",
+          "color": [
+            0.3411764705882353,
+            0.7058823529411765,
+            0.8509803921568627
+          ],
+          "translate": [
+            -1.2,
+            -0.6,
+            0
+          ],
+          "radius": 0.2,
+          "size": [
+            0.9,
+            0.8,
+            0.7
+          ],
+          "type": "rounded-box",
+          "rotateDegrees": [
+            0,
+            -20,
+            0
+          ]
+        },
+        {
+          "id": "center",
+          "color": [
+            0.9450980392156862,
+            0.6666666666666666,
+            0.3333333333333333
+          ],
+          "translate": [
+            0,
+            0,
+            0
+          ],
+          "radius": 0.06,
+          "size": [
+            0.9,
+            0.8,
+            0.7
+          ],
+          "type": "rounded-box",
+          "rotateDegrees": [
+            0,
+            20,
+            0
+          ]
+        },
+        {
+          "id": "right",
+          "color": [
+            0.5843137254901961,
+            0.8470588235294118,
+            0.5450980392156862
+          ],
+          "translate": [
+            1.2,
+            0.6,
+            0
+          ],
+          "radius": 0.2,
+          "size": [
+            0.9,
+            0.8,
+            0.7
+          ],
+          "type": "rounded-box",
+          "rotateDegrees": [
+            0,
+            -20,
+            15
+          ]
+        }
+      ],
+      "editedRadii": [
+        {
+          "id": "left",
+          "radius": 0.3
+        },
+        {
+          "id": "center",
+          "radius": 0.06
+        },
+        {
+          "id": "right",
+          "radius": 0.3
+        }
+      ],
+      "refused": "VALIDATION",
+      "acceptedCPUValueRetained": true
+    },
+    {
+      "key": "gpu-crossed-capsules",
+      "sourceVersion": 1,
+      "objects": [
+        {
+          "id": "frame",
+          "color": [
+            0.9411764705882353,
+            0.8392156862745098,
+            0.4392156862745098
+          ],
+          "translate": [
+            0,
+            0.2,
+            -0.2
+          ],
+          "radius": 1,
+          "size": [
+            2,
+            2,
+            2
+          ],
+          "type": "torus",
+          "majorRadius": 1.05,
+          "minorRadius": 0.12,
+          "rotateDegrees": [
+            90,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "left",
+          "color": [
+            0.3411764705882353,
+            0.7058823529411765,
+            0.8509803921568627
+          ],
+          "translate": [
+            0,
+            0.2,
+            0
+          ],
+          "radius": 0.12,
+          "size": [
+            2,
+            2,
+            2
+          ],
+          "type": "capsule",
+          "start": [
+            0,
+            -0.65,
+            0
+          ],
+          "end": [
+            0,
+            0.65,
+            0
+          ],
+          "rotateDegrees": [
+            0,
+            0,
+            40
+          ]
+        },
+        {
+          "id": "right",
+          "color": [
+            0.792156862745098,
+            0.592156862745098,
+            0.8980392156862745
+          ],
+          "translate": [
+            0,
+            0.2,
+            0
+          ],
+          "radius": 0.12,
+          "size": [
+            2,
+            2,
+            2
+          ],
+          "type": "capsule",
+          "start": [
+            0,
+            -0.65,
+            0
+          ],
+          "end": [
+            0,
+            0.65,
+            0
+          ],
+          "rotateDegrees": [
+            0,
+            0,
+            -40
+          ]
+        },
+        {
+          "id": "center",
+          "color": [
+            0.9450980392156862,
+            0.6666666666666666,
+            0.3333333333333333
+          ],
+          "translate": [
+            0,
+            0.2,
+            0.15
+          ],
+          "radius": 0.22,
+          "size": [
+            2,
+            2,
+            2
+          ],
+          "type": "sphere",
+          "rotateDegrees": [
+            0,
+            0,
+            0
+          ]
+        }
+      ],
+      "capsuleDimensions": [
+        {
+          "id": "left",
+          "centerSegmentLength": 1.3,
+          "localOverallYExtent": 1.54
+        },
+        {
+          "id": "right",
+          "centerSegmentLength": 1.3,
+          "localOverallYExtent": 1.54
+        }
+      ],
+      "editedFrameRotationDegrees": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "key": "material-transition-window",
+      "profile": "mesh-opaque-fragment-v0",
+      "shaderId": "transition_window",
+      "uniformLayout": [
+        {
+          "name": "amount",
+          "type": "float",
+          "min": 0,
+          "max": 1,
+          "default": 0,
+          "glslName": "mat_u_0"
+        }
+      ],
+      "paletteHex": [
+        "#1860B4",
+        "#F0D060"
+      ],
+      "expandedRatioClampNodes": 7,
+      "expandedAmountReferences": 3,
+      "loweredExpression": "clamp(mix(vec3(0.0055217448502396585,0.11657577617857154,0.46474113497388958),vec3(0.87513758236520489,0.63877945565081684,0.11657577617857154),clamp(clamp(((clamp(((clamp(((mat_u_0*1.5000000000000000)-0.25000000000000000),0.0000000000000000,1.0000000000000000)-0.25000000000000000)*2.0000000000000000),0.0000000000000000,1.0000000000000000)*clamp(((clamp(((mat_u_0*1.5000000000000000)-0.25000000000000000),0.0000000000000000,1.0000000000000000)-0.25000000000000000)*2.0000000000000000),0.0000000000000000,1.0000000000000000))*(3.0000000000000000-(2.0000000000000000*clamp(((clamp(((mat_u_0*1.5000000000000000)-0.25000000000000000),0.0000000000000000,1.0000000000000000)-0.25000000000000000)*2.0000000000000000),0.0000000000000000,1.0000000000000000)))),0.0000000000000000,1.0000000000000000),0.0,1.0)),vec3(0.0),vec3(1.0))",
+      "numericShaderEvaluation": "not executed; only source shape, public compile and lowering checked"
+    }
+  ],
+  "scope": "Selected six-input CPU public consumer only",
+  "drawing": "not executed",
+  "rendererRetention": "not checked; retention refers to accepted CPU values only",
+  "sourceProfile": "Original source5f; no newer CPU material evaluator"
+}

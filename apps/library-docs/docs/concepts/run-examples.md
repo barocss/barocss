@@ -30,6 +30,8 @@ The selected CAD sample determines its compiler version. Changing a source heade
 
 The [material function gallery](../packages/gpu/function-examples) explains all eleven source functions with complete inputs and result images. The slider supplies `amount` explicitly. A material creates no timer.
 
+The [CAD language practice](../packages/cad/language-examples) and [GPU compositions](../packages/gpu/composition-examples) add six complete editable programs. Use their native result values and actual images to compare one change at a time.
+
 ## Read coordinates and units
 
 CAD geometry uses millimetres and original U/V domains. A display mesh is a sampled view of that geometry. The examples fit some meshes to the viewport, so changing all dimensions by the same factor can preserve screen size. Read native coordinates as well as the picture.
