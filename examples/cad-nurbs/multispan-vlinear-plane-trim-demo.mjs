@@ -190,7 +190,7 @@ const reversedPlane = reverseSurfaceAxis(originalPlane, {axis: 'u', surfaceId: '
 jsonFile('actual-original-plane-reversal', reversedPlane); sourceFile('actual-original-plane-reversal', reversedPlane.source, reversedPlane.model);
 const reversedSection = section('reversed_plane', originalAsset, asset('reversed_source', reversedPlane.model, reversedPlane.surface));
 const reversed = check('reversed_plane', reversedSection, settings('reversed')); assert.equal(reversed.section.report.polarity, -originalSection.report.polarity); polynomialWitness('reversed_plane', reversed, [0, 1, 2, 3, 4]);
-const nonuniformBreaks = [-3, -1, 2, 5, 9], shiftedSurface = warpedSurface('shifted_support', nonuniformBreaks, [-2, 6]), shiftedPlane = inclinedPlane('shifted_plane', [-5, 5], [2, 6]);
+const nonuniformBreaks = [-3, -1, 2, 5, 9], shiftedSurface = warpedSurface('shifted_support', nonuniformBreaks, [-2, 2]), shiftedPlane = inclinedPlane('shifted_plane', [-5, 5], [2, 6]);
 const shiftedSection = section('nonuniform_u', asset('shifted_source', {name: 'shifted_model', version: 0, lengthUnit: 'mm', objects: [siblingCurve('shifted_unused'), shiftedSurface]}, shiftedSurface), asset('shifted_plane_source', {name: 'shifted_plane_model', version: 0, lengthUnit: 'mm', objects: [shiftedPlane]}, shiftedPlane));
 const shifted = check('nonuniform_u', shiftedSection, settings('shifted')); polynomialWitness('nonuniform_u', shifted, nonuniformBreaks);
 function linearSurface(id, breaks) { return {kind: 'surface', id, degreeU: 1, degreeV: 1, knotsU: [breaks[0], ...breaks, breaks.at(-1)], knotsV: [0, 0, 1, 1], controlPoints: breaks.map((_, i) => [[2 * i, 0, 1 + i], [2 * i, 4, 2 + i]]), weights: breaks.map(() => [1, 1])}; }
@@ -216,6 +216,20 @@ function reject(name, action, code, causeClass = null, causeCode = null) {
   assert.throws(action, error => { assert.ok(error instanceof TrimError); assert.equal(error.code, code); assert.ok(error.message.length <= 1024); if (causeClass) assert.ok(error.cause instanceof causeClass); if (causeCode) assert.equal(error.cause.code, causeCode);
     failures.push({name, code: error.code, message: error.message, causeCode: error.cause?.code ?? null, causeMessage: error.cause?.message ?? null, nestedCauseCode: error.cause?.cause?.code ?? null}); intact(); return true; });
 }
+// Preserve the first failed V[-2,6] family as an actual unchanged native-domain refusal.
+const v6GuardSurface = warpedSurface('shifted_support', nonuniformBreaks, [-2, 6]);
+const v6GuardAsset = asset('shifted_source', {name: 'shifted_model', version: 0, lengthUnit: 'mm', objects: [siblingCurve('shifted_unused'), v6GuardSurface]}, v6GuardSurface, 'nonuniform_v6_guard_surface');
+const v6GuardSection = section('nonuniform_v6_guard', v6GuardAsset, shiftedSection.planeAsset);
+const v6GuardTop = extractSurfaceBoundary(v6GuardSurface, {boundary: 'v-max', id: 'v6_guard_top'}), v6GuardDomains = v6GuardSection.report.surfaceDomains;
+const v6GuardTopDomain = [v6GuardTop.knots[v6GuardTop.degree], v6GuardTop.knots[v6GuardTop.controlPoints.length]];
+// Reconstruct the builder's nominal degree1 UV sidecar from the actual natural edge domain and ORIGINAL chart vertices.
+const v6GuardTopUV = {kind: 'curve', id: 'v6_guard_top_uv', degree: 1, knots: [v6GuardTopDomain[0], v6GuardTopDomain[0], v6GuardTopDomain[1], v6GuardTopDomain[1]], controlPoints: [[v6GuardDomains.u[1], v6GuardDomains.v[1], 0], [v6GuardDomains.u[0], v6GuardDomains.v[1], 0]], weights: [1, 1]};
+const v6GuardParameter = -1, v6GuardUV = evaluateCurve(v6GuardTopUV, v6GuardParameter);
+assert.ok(v6GuardUV[1] > v6GuardDomains.v[1]); let v6NativeCause;
+assert.throws(() => evaluateSurface(v6GuardSurface, v6GuardUV[0], v6GuardUV[1]), error => { assert.ok(error instanceof Error); assert.match(error.message, /Parameter is outside knot domain/); v6NativeCause = {name: error.name, message: error.message}; return true; });
+jsonFile('nonuniform_v6_guard.actual-uv-domain-refusal', {firstFailureHead: '8da2d687786aefdaa93e9a11342a6f817269e832', edge: 'top', parameter: v6GuardParameter, nominalUVSidecar: v6GuardTopUV, actualUV: v6GuardUV, originalDomains: v6GuardDomains, nativeCause: v6NativeCause, clampingPerformed: false, parentEvaluatorUnchanged: true});
+reject('nonuniform_v6_guard', () => build(v6GuardSection, settings('v6guard')), 'NATIVE', Error);
+assert.match(failures.at(-1).causeMessage, /Parameter is outside knot domain/);
 for (const [field, value] of [['maximumBoundaries', 3], ['maximumIntervals', 3], ['maximumObservations', 62], ['maximumObservations', 64]]) reject('complete_fixed_budget_' + field + '_' + value, () => build(originalSection, {...settings('budget'), [field]: value}), 'BUDGET');
 reject('existing_model_identity', () => build(originalSection, {...settings('identity'), evaluationId: originalSection.world.model.name}), 'IDENTITY');
 reject('section_cut_identity', () => build(originalSection, {...settings('identity'), evaluationId: originalSection.world.curve.id}), 'IDENTITY');

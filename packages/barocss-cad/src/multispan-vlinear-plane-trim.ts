@@ -239,7 +239,7 @@ export function buildMultiSpanVLinearSurfacePlaneTrimCandidates(sectionInput: Mu
     return parameters.map((parameter, index) => {
       const world = { d0: child(() => evaluateCurve(edge.curve, parameter), CODE.NATIVE, 'World edge D0 refused'), d1: d1state('world', () => evaluateCurveD1(edge.curve, parameter)) };
       const pcurve = { d0: child(() => evaluateCurve(edge.pcurve.curve, parameter), CODE.NATIVE, 'UV edge D0 refused'), d1: d1state('pcurve', () => evaluateCurveD1(edge.pcurve.curve, parameter)) };
-      const original = { d0: child(() => evaluateSurface(support, pcurve.d0[0], pcurve.d0[1]), CODE.NATIVE, 'Original Support D0 refused'), d1: d1state('support', () => evaluateSurfaceD1(support, pcurve.d0[0], pcurve.d0[1])) };
+      const original = { d0: child(() => evaluateSurface(support, pcurve.d0[0], pcurve.d0[1]), CODE.NATIVE, 'Original Support D0 refused at edge ' + edge.id + ', parameter ' + parameter + ', UV [' + pcurve.d0[0] + ',' + pcurve.d0[1] + ']'), d1: d1state('support', () => evaluateSurfaceD1(support, pcurve.d0[0], pcurve.d0[1])) };
       let chain: Point | null = null;
       if (original.d1.status === 'evaluated' && pcurve.d1.status === 'evaluated') {
         const surfaceD1 = original.d1.value, uvD1 = pcurve.d1.value;
