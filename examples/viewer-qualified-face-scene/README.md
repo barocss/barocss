@@ -419,3 +419,40 @@ Set explicit native u/v or t and use **Inspect original tree point**. Defaults u
 Camera, CSS, backing, color, grid, asset order and Scene translation retain current native selection and point output. Source/full Face changes invalidate affected selection; detached callbacks refuse. Current CPU properties and original point queries remain available after loss/unavailable, while framing/projection refuses and the approximate, occlusion-untested label hides. Clear and Dispose invalidate authority. Screen synchronization is opt-in and selects only the current original Surface node from FaceInspect; inspector parameters stay explicit domain defaults. The eight manual and four picked workflows remain independent.
 
 Example-only helpers buildQualifiedFaceTree/queryQualifiedFaceTreeNode/inspectQualifiedFaceTreeNode validate complete current Source0/five-object Model/full Face content, use strict bounded copied data and reuse public native domains/paired point queries. They write no Viewer/GPU/cache/selection/request state. Retained providers and original fixtures are unchanged; no current Root numeric, publication or global-accuracy acceptance is implied.
+
+
+## Filter the original geometry tree
+
+Tree label filter, Source and Geometry kind intersect as caller display filters.
+Matching uses one literal substring of the displayed Source/Face/Model/kind/ID
+labels, with ASCII case folding and surrounding ASCII space/tab/CR/LF removed.
+It uses no regex, wildcard or Unicode normalization. Original source bytes, IDs,
+all five Model objects, Face refs and the complete GPU scene stay unchanged.
+The query accepts at most256 UTF16 code units and256 UTF8 bytes.
+
+`filterQualifiedFaceTree(viewer,{query,sourceId,kind})` requires exactly three
+plain own data fields. sourceId is null or A..F; kind is all/surface/curve.
+It validates the full current tree before returning copied matching source
+groups and total/visible counts. Empty groups are omitted; no current scene
+returns null. An absent current source produces an empty list. This result is
+display data, not a native Model or a filtered Scene.
+
+A current selected node, properties, parameter drafts and original point report
+remain pinned when outside the filter. The status states that the selection is
+hidden; its caller label hides. CPU inspection remains available. Clear tree
+filters restores the row and available projection. Parent Face framing still
+uses the full current source-qualified Face and requires an available view.
+Screen Face sync may select a hidden Surface and keeps the filters.
+
+Filter changes retain control focus; visible native groups/buttons support
+normal keyboard activation. Obsolete filtered-row callbacks refuse. View/CSS,
+color, grid, order and Scene translation retain filters and current native pins.
+Source/full Face changes invalidate affected selection. CPU filtering and point
+queries remain available after loss/unavailability; framing and projection
+refuse. Clear, mode change and Dispose reset the filter and tree authority.
+
+Hooks add `filterQualifiedFaceTree`, `setQualifiedTreeFilter(input)` and
+`clearQualifiedTreeFilter()`. `qualifiedTreeSnapshot()` adds `filter`,
+`filtered` and `selectedHidden`. The eight manual reports and four picked
+reports remain independent. No Viewer selection, GPU highlight, hide/delete,
+Curve hit inference or native history certificate is added.
