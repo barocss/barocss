@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:,"><title>Scene29 SVG file round trip</title>
+<style>
+body{margin:24px;font:15px system-ui;color:#172238;background:#f4f6fa}button{margin:0 8px 12px 0;padding:8px}section{display:flex;gap:24px;flex-wrap:wrap}canvas{display:block;background:white;border:1px solid #adb7c5;width:320px;height:220px}pre{white-space:pre-wrap;max-width:1000px}input[type=file]{display:none}
+</style>
+<script type="importmap">{"imports":{"@barocss/canvas2d":"../dist/index.js"}}</script>
+</head>
+<body>
+<h1>Scene29 SVG file round trip</h1>
+<p>Download the supported solid paths. Open the SVG in a separate retained tree.</p>
+<button id="save">Download SVG</button><button id="open-button">Open SVG</button><input id="open" type="file" accept="image/svg+xml,.svg">
+<button id="edit">Edit original paint</button><button id="refuse">Refuse unsupported export</button><button id="dispose">Dispose</button>
+<p id="status" role="status">Preparing</p>
+<section><div><h2>Original Scene29</h2><canvas id="original"></canvas></div><div><h2>Opened SVG</h2><canvas id="opened"></canvas></div></section>
+<pre id="observation"></pre><script type="module">
+window.__currentSVGStartup = { phase: 'loading', error: null };
+try {
+  await import('./current-v29-svg.mjs');
+  window.__currentSVGStartup.phase = 'loaded';
+} catch (error) {
+  window.__currentSVGStartup.phase = 'failed';
+  window.__currentSVGStartup.error = { message: String(error?.message ?? error), stack: String(error?.stack ?? '') };
+  document.documentElement.dataset.svgReady = 'failed';
+  document.querySelector('#status').textContent = 'Startup failed: ' + window.__currentSVGStartup.error.message;
+  console.error('Scene29 SVG startup failed:', window.__currentSVGStartup.error.message);
+}
+</script>
+</body></html>
