@@ -384,3 +384,9 @@ Approximate screen-selected U/V may vary with Float32 scaling and camera roundin
 Enable “Picked chord mode”. The first valid click stores a source-pinned original parameter point. The second completes a straight chord with the existing original-mm CPU API. A third valid click starts a new pair. “Reset picked chord” clears the pair. Misses and failed queries keep accepted data. The two parameters were selected approximately from display triangles; this is not a certified native ray dimension.
 
 Camera, backing size and CSS changes retain the pinned CPU points and reproject the caller labels. Source/Face content changes, wrong mode, Clear and Dispose invalidate them. Loss or unavailable presentation disables new sampling and hides labels while valid retained CPU reports can be revalidated. Labels are approximate and do not test occlusion. Color/grid/reversal/Scene translation do not change original-mm authority when source/Face content stays the same.
+
+## Picked angle mode (#1218)
+
+Enable “Picked angle mode”. Click the first endpoint, the vertex, then the third endpoint. The original-mm vectors are evaluated with the existing native angle helper. Parameters were selected approximately from display triangles; this is not a certified native-ray angle. A zero first or third leg refuses without advancing the accepted selection. A new valid click after completion starts a new angle; Reset clears it.
+
+Camera/backing/CSS changes retain pinned native points and move caller-owned labels. Source/Face content changes, wrong mode, Clear and Dispose invalidate the affected set. Loss/unavailable disables new sampling and hides labels while retained CPU angles may be revalidated. Labels are approximate with no occlusion test; the angle label is at the vertex. Native sample, picked chord and picked angle modes share one SDK sample per click.
