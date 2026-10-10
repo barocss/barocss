@@ -1,0 +1,13 @@
+{
+  "name": "@barocss/library-docs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev docs",
+    "build": "vitepress build docs",
+    "preview": "vitepress preview docs",
+    "check:docs": "node scripts/check-docs.mjs"
+  },
+  "devDependencies": { "vitepress": "^1.6.4" }
+}
