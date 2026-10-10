@@ -9253,3 +9253,16 @@ Triangles and faceted normals are approximations. Indexed manifold checks
 remain separate from the parent's exact material certificate. Mesh geometric
 embedding, global error, manufacturing, renderer and Loader acceptance require
 separate verification.
+
+
+## Insert a knot in a complete original Curve source
+
+`insertSourceCurveKnot({ source, sourceVersion: 0, curveId, knot, maximumObservations: 128 })` inserts one interior knot into the selected original degree1..5 rational Curve. It uses the existing native homogeneous insertion kernel and compiles the complete candidate Source0. The original and candidate sources, full Models, selected Curves, coefficient mappings, three actual AST array patches and native D0/D1 observations remain in the result. `validateSourceCurveKnotInsertion(result)` rebuilds the operation from its complete original request and compares every retained bit.
+
+The selected Curve has at most63 original poles and64 output poles, at most70 output knots, coordinates within±10000mm and native positive weights. Complete source each remains within262144 UTF16 units/UTF8 bytes and Model16 objects. The new complete request/result envelope is2MiB. Existing degree1..3 insertion/refinement APIs and compiler/native limits are unchanged.
+
+Only the selected knots/control-points/weights array values are canonicalized. Those arrays must be comment-free literal numeric arrays. All text outside their three actual ranges stays exact, including comments, Unicode, CRLF, Model headers and unrelated Curve/Surface declarations. Original array spellings are retained in patches. Unsafe arithmetic, capacity, multiplicity, comments inside selected arrays or changed owned data refuse atomically.
+
+Native point and derivative comparisons are local observations. Actual exact-C0 derivative refusals remain explicit null states. Ideal shape-preserving insertion and rounded stored coefficients are separate; this API does not certify global shape error, G1/G2, topology, Solid, manufacturing, display or publication.
+
+The bounded source/API/file/cold/owned/public example is `node examples/cad-nurbs/source-curve-knot-insertion-demo.mjs --source <output-directory>`. Native completion and Integration/consumer acceptance are recorded separately in Issue1353.

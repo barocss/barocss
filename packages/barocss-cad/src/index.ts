@@ -389,3 +389,6 @@ export type { TranslatedStripIntervalBooleanOptions, TranslatedStripIntervalBool
 
 export { tessellateQualifiedTranslatedStripBody, validateQualifiedTranslatedStripBodyMesh, QualifiedTranslatedStripBodyMeshError, QualifiedTranslatedStripBodyMeshDiagnosticCode } from './qualified-translated-strip-body-mesh.js';
 export type { QualifiedTranslatedStripBodyMeshOptions, QualifiedTranslatedStripBodyMeshPacket, QualifiedTranslatedStripBodyMeshReport, QualifiedTranslatedStripBodyMeshResult } from './qualified-translated-strip-body-mesh.js';
+
+export { insertSourceCurveKnot, validateSourceCurveKnotInsertion, SourceCurveKnotInsertionError, SourceCurveKnotInsertionDiagnosticCode } from './source-curve-knot-insertion.js';
+export type { SourceCurveKnotInsertionRequest, SourceCurveKnotInsertionPatch, SourceCurveKnotInsertionReport, SourceCurveKnotInsertionResult } from './source-curve-knot-insertion.js';
