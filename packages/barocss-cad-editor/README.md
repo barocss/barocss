@@ -551,3 +551,52 @@ certification remain unavailable. The native helpers can reconstruct the parent
 multiple times; the new-support evaluation budget is not total rebuild cost.
 
 The ordinary export review shows object names, format/mm, selection and real geometry-only/history/name-loss decisions. Export naming is secondary; full native mappings, signed-zero counts and certification details remain in expandable Export details and Help. No generic No loss claim follows from the writer geometry-loss field.
+
+
+## Original Curve coefficients and canvas handles
+
+CadEditorSession adds curveSelection beside the unchanged Surface selection.
+requestSelection accepts Curve index; selectCurvePole is its wrapper.
+stageCurvePoleField uses raw xMM/yMM/zMM/weight and the real complete-source
+Curve writer/validator. Native degree1..5/2..64poles/70knots/XYZ1e6mm/weights
+1e-6..1e6 stay independent of current display. A changed edit updates only the
+selected complete asset source and its/document revisions. Bitwise no-op does
+not add history. Curve provenance has separate candidate.curveProvenance and
+snapshot.lastCurveProvenance; Surface types are not recast.
+
+Explicit view is document or curve-focus(bodyId,count). prepareCurveFocus and
+prepareDocumentView use view-only candidates: native generation/history/source/
+dirty/raw/download capture remain; successful view admission increments only
+displayGeneration. prepareDisplayBodies proposes actual document view. Curve
+Apply requires its matching focus; Surface Apply requires document view.
+create/Open may take an explicit incoming view; Open clears selections/history
+and does not silently choose a Curve or change source into sampled buffers.
+
+React keeps canonical onDisplay and adds onCurveDisplay with real focused
+Viewer state/SelectedUniformCurvePreview/RGBA plus a qualified native association.
+Focused state.document is null and documentBodies is empty. Source Model name
+can differ from asset ID. Full original source and actual geometry/ref/sample
+equality bind that association; it is not a fabricated Viewer document receipt.
+The actual active renderer and fresh pixel read precede native acceptance.
+Return loads current accepted data with the retained document subset/camera.
+Refusal retains native/raw/history; failed restoration marks view unavailable.
+
+Curve focus supports complete Model1..4/source65536bytes+codeunits and65UI
+samples (public2..129); Viewer IDsASCII1..64/scaledsamplepositions<=1000 remain
+real independent limits. Native16object/262144source support does not imply
+wider focus or simultaneous mixed rendering. Canonical Curve display1..3 and
+Surface workflows stay separate and unchanged.
+
+Visible original coefficient handles permit camera-plane drag. Move stages XYZ
+and shows a pending control-polygon/handle ghost while native Curve remains
+accepted. PointerUp performs one actual Apply/history step; Escape/pointercancel
+cancels owned raw/selection. Existing drafts must be resolved before dragging.
+The host uses public prepareCamera matrices; no sampling vertex is native
+authoring authority. Offscreen/occluded handles are approximate overlays; weight
+remains an exact field. Axis Gizmo/snapping/live whole-shape preview and Surface
+control-net drag remain separate product work.
+
+Native files/recovery retain complete authored data and canonical display subset;
+focus/selection/raw/history/camera are not new file authority. Exact accepted
+Open token drives host filename/recovered-unsaved provenance. Native completion,
+sole Integration adoption and integrated/current commercial acceptance are separate.

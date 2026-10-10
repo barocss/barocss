@@ -1,7 +1,7 @@
-import { CadEditorError, type CadEditorSession, type CadEditorSnapshot } from '@barocss/cad-editor';
+import { CadEditorError, type CadEditorSession, type CadEditorSnapshot, type CadEditorView } from '@barocss/cad-editor';
 
 const STATE_FIELDS = ['generation', 'displayGeneration', 'selectedBodyId', 'selection', 'pending',
-  'selectionTransition', 'candidate', 'dirty', 'downloadStatus', 'disposed'] as const;
+  'curveSelection','view','selectionTransition', 'candidate', 'dirty', 'downloadStatus', 'disposed'] as const;
 type ReplacementState = Pick<CadEditorSnapshot, typeof STATE_FIELDS[number]>;
 export type ReplacementAnchor = ReplacementState & { session: CadEditorSession };
 export interface ReplacementTarget {
@@ -9,6 +9,7 @@ export interface ReplacementTarget {
   text: string;
   filename: string;
   displayBodyIds?: string[];
+  view?: CadEditorView;
 }
 
 function requireReplacement(condition: boolean, code: 'INPUT' | 'STALE' | 'LIFECYCLE', message: string): asserts condition {
@@ -52,30 +53,37 @@ export function assertReplacementCurrent(session: CadEditorSession, anchor: Repl
   'STALE', 'The document changed. Start Open or New again.');
 }
 
-export function copyReplacementTarget(target: ReplacementTarget): ReplacementTarget {
-  requireReplacement(target !== null && typeof target === 'object' && !Array.isArray(target)
-    && [Object.prototype, null].includes(Object.getPrototypeOf(target)), 'INPUT', 'A plain replacement target is required.');
-  const fields = Object.getOwnPropertyDescriptors(target), keys = Reflect.ownKeys(target);
-  requireReplacement(keys.length >= 3 && keys.length <= 4
-    && ['kind', 'text', 'filename'].every(key => Object.hasOwn(fields, key))
-    && keys.every(key => typeof key === 'string' && ['kind', 'text', 'filename', 'displayBodyIds'].includes(key)
-      && 'value' in fields[key] && fields[key].enumerable === true), 'INPUT', 'Replacement fields must be plain own data.');
-  const kind = fields.kind.value, text = fields.text.value, filename = fields.filename.value;
-  requireReplacement((kind === 'open' || kind === 'sample') && typeof text === 'string' && typeof filename === 'string',
-    'INPUT', 'An Open or sample target with text and filename is required.');
-  if (!Object.hasOwn(fields, 'displayBodyIds')) return { kind, text, filename };
-  const ids: unknown = fields.displayBodyIds!.value;
-  if (ids === undefined) return { kind, text, filename, displayBodyIds: undefined };
-  requireReplacement(Array.isArray(ids) && Object.getPrototypeOf(ids) === Array.prototype,
-    'INPUT', 'Display body IDs must be a plain array.');
-  const entries = Object.getOwnPropertyDescriptors(ids), entryKeys = Reflect.ownKeys(ids);
-  requireReplacement(entryKeys.length === ids.length + 1 && entryKeys.every(key => typeof key === 'string'),
-    'INPUT', 'Display body IDs must be dense own data.');
-  const displayBodyIds = Array.from({ length: ids.length }, (_, index) => {
-    const entry = entries[String(index)];
-    requireReplacement(entry !== undefined && entry.enumerable === true && 'value' in entry
-      && typeof entry.value === 'string', 'INPUT', 'Display body IDs must be own strings.');
-    return entry.value as string;
-  });
-  return { kind, text, filename, displayBodyIds };
+export function copyReplacementTarget(target:ReplacementTarget):ReplacementTarget {
+  requireReplacement(target!==null&&typeof target==='object'&&!Array.isArray(target)
+    &&[Object.prototype,null].includes(Object.getPrototypeOf(target)),'INPUT','A plain replacement target is required.');
+  const fields=Object.getOwnPropertyDescriptors(target),keys=Reflect.ownKeys(target);
+  requireReplacement(keys.length>=3&&keys.length<=5&&['kind','text','filename'].every(key=>Object.hasOwn(fields,key))
+    &&keys.every(key=>typeof key==='string'&&['kind','text','filename','displayBodyIds','view'].includes(key)
+      &&'value' in fields[key]&&fields[key].enumerable),'INPUT','Replacement fields must be plain own data.');
+  const kind=fields.kind.value,text=fields.text.value,filename=fields.filename.value;
+  requireReplacement((kind==='open'||kind==='sample')&&typeof text==='string'&&typeof filename==='string','INPUT','An Open or sample target is required.');
+  const result:ReplacementTarget={kind,text,filename};
+  if(Object.hasOwn(fields,'displayBodyIds')&&fields.displayBodyIds!.value!==undefined){
+    const ids:unknown=fields.displayBodyIds!.value;
+    requireReplacement(Array.isArray(ids)&&Object.getPrototypeOf(ids)===Array.prototype,'INPUT','Display body IDs must be a plain array.');
+    const entries=Object.getOwnPropertyDescriptors(ids);
+    requireReplacement(Reflect.ownKeys(ids).length===ids.length+1,'INPUT','Display body IDs must be dense own data.');
+    result.displayBodyIds=Array.from({length:ids.length},(_,index)=>{const entry=entries[String(index)];
+      requireReplacement(entry!==undefined&&entry.enumerable===true&&'value' in entry&&typeof entry.value==='string','INPUT','Display IDs must be own strings.');return entry.value;});
+  }
+  if(Object.hasOwn(fields,'view')&&fields.view!.value!==undefined){
+    const view:unknown=fields.view!.value;
+    requireReplacement(view!==null&&typeof view==='object'&&!Array.isArray(view)&&[Object.prototype,null].includes(Object.getPrototypeOf(view)),'INPUT','A plain incoming view is required.');
+    const values=Object.getOwnPropertyDescriptors(view),viewKeys=Reflect.ownKeys(view);
+    requireReplacement(viewKeys.every(key=>typeof key==='string'&&'value' in values[key]&&values[key].enumerable),'INPUT','View fields must be own data.');
+    if(values.kind?.value==='document'){
+      requireReplacement(viewKeys.length===1,'INPUT','Document view has only its kind.');result.view={kind:'document'};
+    }else{
+      requireReplacement(viewKeys.length===3&&['kind','bodyId','count'].every(key=>Object.hasOwn(values,key))
+        &&values.kind.value==='curve-focus'&&typeof values.bodyId.value==='string'
+        &&Number.isInteger(values.count.value)&&values.count.value>=2&&values.count.value<=129,'INPUT','A bounded explicit Curve focus is required.');
+      result.view={kind:'curve-focus',bodyId:values.bodyId.value,count:values.count.value};
+    }
+  }
+  return result;
 }

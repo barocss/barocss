@@ -39,13 +39,15 @@ function actionableMessage(error: CadEditorError): string {
     }
     cause = cause.cause;
   }
-  if (/Weights must be in/i.test(details)) return 'Enter a weight from 0.000001 to 1000000.';
+  if (/Weights must be in/i.test(details) || /weight/i.test(details) && /positive|weight.*range|weights.*within/i.test(details)) return 'Enter a weight from 0.000001 to 1000000.';
+  if (/1000000|1e6/i.test(details) && /coordinate|XYZ/i.test(details)) return 'Enter coordinates from -1000000 to 1000000 mm.';
   if (/XYZ coordinates within|Coordinates must be finite and within/i.test(details)) return 'Enter coordinates from -10000 to 10000 mm.';
   const field = FIELDS.find(item => item.field === error.context.field);
   if (error.code === 'INPUT' && field) return `Enter a finite number for ${field.label}.`;
   if (error.code === 'BUDGET') return 'Use a shorter value and try again.';
-  if (error.context.field === 'edit-capability') return 'Choose an editable Surface to change control points.';
-  if (error.code === 'UNSUPPORTED') return 'Choose an editable Surface. Curves are read-only.';
+  if (error.context.field === 'view' || /curve-focus|document view|focused Curve/i.test(details)) return 'Focus the selected Curve, or return to document view for a Surface.';
+  if (error.context.field === 'edit-capability') return 'Choose a supported object to change control points.';
+  if (error.code === 'UNSUPPORTED') return 'These points are outside the editing limits. Choose another object or open Help.';
   if (error.code === 'STALE') return 'Select the control pole again, then apply the change.';
   if (error.code === 'LIFECYCLE') return 'Reopen the document to continue editing.';
   return 'The change was not applied. Check the values and try again.';
@@ -61,11 +63,13 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
   const composingFieldsRef = useRef(new Set<CadEditorPoleField>());
   const restoreFieldFocusRef = useRef(false);
   const attemptedTransitionRef = useRef<string | null>(null);
-  const { selection, accepted, pending, candidate } = snapshot;
+  const { selection, curveSelection, accepted, pending, candidate } = snapshot;
+  const pole = selection ?? curveSelection;
   const transition = snapshot.selectionTransition;
   const busy = candidate !== null || snapshot.disposed;
   const capability = snapshot.bodyCapabilities.find(body => body.bodyId === snapshot.selectedBodyId);
-  const canEdit = selection !== null && capability?.canEditSurfacePole === true;
+  const canEdit = selection !== null ? capability?.canEditSurfacePole === true && snapshot.view.kind === 'document'
+    : curveSelection !== null && capability?.canEditCurvePole === true && snapshot.view.kind === 'curve-focus' && snapshot.view.bodyId === curveSelection.bodyId;
   useEffect(() => {
     if (!transition) {
       attemptedTransitionRef.current = null;
@@ -97,26 +101,33 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
       if (prepared) attemptedTransitionRef.current = current.token;
     }, true);
   }
-  return <aside className={cn('cad-editor-inspector', className)} aria-label="Surface control pole inspector">
+  return <aside className={cn('cad-editor-inspector', className)} aria-label="Native control point inspector">
     <div className="cad-editor-inspector-title">
-      <h2 className="cad-editor-heading">{selection ? 'Control point' : 'Object'}</h2>
+      <h2 className="cad-editor-heading">{curveSelection ? 'Curve point' : selection ? 'Control point' : 'Object'}</h2>
       <Dialog>
         <DialogTrigger asChild><Button type="button" variant="ghost" size="xs" data-testid="cad-editor-help"
-          aria-label="Surface editing help">Help</Button></DialogTrigger>
+          aria-label="Control point editing help">Help</Button></DialogTrigger>
         <DialogContent className="cad-editor-help-dialog">
-          <DialogHeader><DialogTitle>Surface editing help</DialogTitle>
+          <DialogHeader><DialogTitle>Control point editing help</DialogTitle>
             <DialogDescription>Editing limits and document details.</DialogDescription></DialogHeader>
           <div className="cad-editor-help-body">
             <section><h3>Editing limits</h3>
               <p>The native document can contain 1–4 source assets and up to 16 bodies. The viewport displays 1–4 chosen bodies at a time.</p>
               <p>Choose the displayed bodies in the object list. You can select and inspect a hidden body. Show it before using Fit Selected.</p>
-              <p>Curves are read-only. A supported Surface can be edited even when its source contains other objects or its Model name differs from its Surface ID.</p>
+              <p>A supported Surface can be edited in document view even when its source contains other objects or its Model name differs from its Surface ID. Select Focus Curve to edit a supported Curve in its separate focused view.</p>
               <p>The selected Surface must have degree 1–3, 2–16 control poles on each grid axis and at most 256 poles. Coordinates must stay within ±10000 mm, weights within 0.000001–1000000 and the native Surface ID within 48 characters.</p>
               <p>Source0 assets support 1–16 objects and at most 262144 UTF-16 code units and UTF-8 bytes. Pole edits require directly authored numeric coefficient bindings. The native provider can refuse unsupported bindings or source budgets during Apply.</p>
               <p>Display parsing reads the whole source asset, including hidden sibling objects. Hiding bodies does not remove those siblings from the source or bypass parsing limits.</p>
               <p>A native source edit does not prove display support. A degree 5 Curve in the displayed Surface's asset still reaches the actual Viewer sampling refusal. A degree 5 Curve in a separate hidden asset is preserved without a sampling or display claim.</p>
               <p>Coordinates use authored X, Y and Z in mm. They map directly to the display axes. The editor does not silently swap or convert axes.</p>
               <p>U and V select an original Surface control pole. Coordinates and weight edit its native coefficients. Display samples are separate from these coefficients.</p>
+              <p>Curve points use one original pole index, displayed as Point 1, Point 2 and so on. Curve editing supports native degree 1–5, 2–64 poles and at most 70 knots, coordinates within ±1000000 mm, weights 0.000001–1000000 and native Curve IDs within 48 characters. The native full-source writer and validator own profile and coefficient-binding refusal.</p>
+              <p>The separate focused display compiles the complete selected asset, keeps 1–4 original objects and at most 65536 UTF-8 bytes and code units, and samples the selected Curve uniformly at 65 original parameters. It does not extract a smaller source or replace native coefficients with samples. The canonical document route retains its existing degree 1–3 display limits.</p>
+              <p>The focused Viewer additionally requires source Model and selected Curve IDs within its ASCII 1–64 profile, and sampled coordinates after positive display scaling within ±1000 scene units. These display limits are narrower than native source editing; a native candidate can still be refused for display.</p>
+              <p>Focus Curve and Return to document view are explicit display-only changes. They retain source, history, native draft and download state. Return loads the current accepted document with its retained canonical display subset and camera; a refused return keeps the focused view.</p>
+              <p>Focused display has no Viewer document or document-body bindings. Its copied receipt separately qualifies the actual canonical body, asset, complete source Model and original Curve. Uniform samples are derived observations, not certified adaptive tessellation or geometric accuracy.</p>
+              <p>Drag an original point handle in the current camera-facing plane. The pending handle and control polygon are a distinct ghost; the accepted Curve stays unchanged until pointer release prepares one actual Apply. Escape or pointer cancellation restores only the gesture-owned draft and previous point. A refused change keeps corrective raw values.</p>
+              <p>Control handles can be offscreen or visually overlap. Use the Point selector and exact XYZ/weight fields in that case. Handles are approximate overlays, not certified topology picks. Axis gizmos, snapping, live whole-shape preview and Surface control-net dragging are not included.</p>
             </section>
             <section><h3>Complete source preservation</h3>
               <p>Apply uses the native source-preserving edit provider's complete result.source and result.model. The source keeps untouched spelling, whitespace and comments. The Model keeps its name, object order, native IDs and sibling objects. Only the requested coordinate or weight literals change.</p>
@@ -152,6 +163,12 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
                 {FIELDS.map(({ field, label }) => <div key={field}><dt>Current {label}</dt><dd>{numberText(selection.accepted[field])}</dd></div>)}
               </dl>
             </details>}
+            {curveSelection && <details className="cad-editor-source"><summary className="cad-editor-source-title">Original Curve coefficients and binding</summary>
+              <dl className="cad-editor-reference"><dt>Body</dt><dd>{curveSelection.bodyId}</dd><dt>Asset</dt><dd>{curveSelection.reference.assetId} · revision {curveSelection.reference.assetRevision}</dd>
+                <dt>Curve</dt><dd>{curveSelection.reference.geometryId}</dd><dt>Document</dt><dd>{curveSelection.reference.documentId} · revision {curveSelection.reference.documentRevision}</dd>
+                <dt>Point</dt><dd>{curveSelection.index + 1} of {curveSelection.count}</dd>
+                {FIELDS.map(({ field, label }) => <div key={field}><dt>Current {label}</dt><dd>{numberText(curveSelection.accepted[field])}</dd></div>)}
+              </dl></details>}
             <details className="cad-editor-source">
               <summary className="cad-editor-source-title">Accepted native source</summary>
               {accepted.document.assets.map(asset => <section key={asset.id}>
@@ -211,18 +228,28 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
         data-testid="cad-editor-body" onChange={event => action(() => session.requestSelection({ bodyId: event.target.value }))}>
         {snapshot.selectedBodyId === null && <option value="">Select an object</option>}
         {accepted.document.bodies.map(body => <option key={body.id} value={body.id}>
-          {body.name}{snapshot.bodyCapabilities.find(capability => capability.bodyId === body.id)?.canEditSurfacePole === false ? ' · read-only' : ''}
+          {body.name}{snapshot.bodyCapabilities.find(capability => capability.bodyId === body.id)?.canEditSurfacePole === false
+            && snapshot.bodyCapabilities.find(capability => capability.bodyId === body.id)?.canEditCurvePole === false ? ' · read-only' : ''}
         </option>)}
       </select>
     </div>
     <CadEditorBodyRename session={session} onError={onError} />
-    {selection ? <>
-      {!canEdit && <p className="cad-editor-readonly" role="status" data-testid="cad-editor-readonly-surface">
+    <div className="cad-editor-curve-view-actions">
+      {curveSelection && <Button type="button" variant="outline" size="sm" data-testid="curve-focus" disabled={busy || transition !== null}
+        onClick={() => action(() => { session.prepareCurveFocus(curveSelection.bodyId, 65); })}>Focus Curve</Button>}
+      {snapshot.view.kind === 'curve-focus' && <Button type="button" variant="outline" size="sm" data-testid="curve-return-document" disabled={busy || transition !== null}
+        onClick={() => action(() => { session.prepareDocumentView(); })}>Return to document view</Button>}
+    </div>
+    {pole ? <>
+      {selection && capability?.canEditSurfacePole === false && <p className="cad-editor-readonly" role="status" data-testid="cad-editor-readonly-surface">
         These control points are read-only. Choose an editable Surface to change them.
       </p>}
-      {snapshot.selectedBodyId !== null && !snapshot.displayBodyIds.includes(snapshot.selectedBodyId)
+      {selection && snapshot.view.kind !== 'document' && <p role="status" className="cad-editor-readonly">Return to document view to edit Surface points.</p>}
+      {curveSelection && capability?.canEditCurvePole === false && <p role="status" className="cad-editor-readonly" data-testid="cad-editor-readonly-curve">These Curve points are outside the editing limits. Open Help or choose another Curve.</p>}
+      {curveSelection && capability?.canEditCurvePole && !canEdit && <p role="status" className="cad-editor-readonly">Focus this Curve to edit its points.</p>}
+      {snapshot.view.kind === 'document' && snapshot.selectedBodyId !== null && !snapshot.displayBodyIds.includes(snapshot.selectedBodyId)
         && <p className="cad-editor-hidden-body" role="status">This object is not displayed. Show it to fit or select it in the viewport.</p>}
-      <div className="cad-editor-selection">
+      {selection ? <div className="cad-editor-selection">
         <div className="cad-editor-field"><Label htmlFor={`${id}-u`}>U index</Label>
           <select id={`${id}-u`} value={selection.uIndex} disabled={busy} data-testid="cad-editor-u"
             onChange={event => select(Number(event.target.value), selection.vIndex)}>
@@ -235,13 +262,17 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
             {Array.from({ length: selection.countV }, (_, index) => <option key={index} value={index}>{index}</option>)}
           </select>
         </div>
-      </div>
+      </div> : curveSelection && <div className="cad-editor-field"><Label htmlFor={`${id}-curve-index`}>Point</Label>
+        <select id={`${id}-curve-index`} data-testid="cad-editor-curve-index" value={curveSelection.index} disabled={busy || transition !== null}
+          onChange={event => action(() => session.requestSelection({ bodyId: curveSelection.bodyId, index: Number(event.target.value) }))}>
+          {Array.from({ length: curveSelection.count }, (_, index) => <option key={index} value={index}>Point {index + 1}</option>)}
+        </select></div>}
       <h3 className="cad-editor-heading">Coordinates and weight</h3>
       {Object.keys(pending).length > 0 && <p className="cad-editor-draft-status">Unapplied changes</p>}
       {FIELDS.map(({ field, label }) => <div className="cad-editor-field" key={field}>
         <Label htmlFor={`${id}-${field}`}>{label}</Label>
         <Input id={`${id}-${field}`} type="text" inputMode="decimal" disabled={busy || !canEdit}
-          value={pending[field] ?? numberText(selection.accepted[field])} data-testid={`cad-editor-${field}`}
+          value={pending[field] ?? numberText(pole.accepted[field])} data-testid={`cad-editor-${field}`}
           onFocus={event => { lastFieldRef.current = event.currentTarget; }}
           onCompositionStart={() => { composingFieldsRef.current.add(field); }}
           onCompositionEnd={() => { composingFieldsRef.current.delete(field); }}
@@ -258,18 +289,18 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
             event.stopPropagation();
             action(() => { session.prepareApply(); });
           }}
-          onChange={event => action(() => session.stageSurfacePoleField(field, event.target.value))}
+          onChange={event => action(() => { if (curveSelection) session.stageCurvePoleField(field, event.target.value); else session.stageSurfacePoleField(field, event.target.value); })}
           aria-describedby={Object.hasOwn(pending, field) ? `${id}-${field}-accepted` : undefined} />
-        {Object.hasOwn(pending, field) && <span id={`${id}-${field}-accepted`} className="cad-editor-accepted">Current: {numberText(selection.accepted[field])}</span>}
+        {Object.hasOwn(pending, field) && <span id={`${id}-${field}-accepted`} className="cad-editor-accepted">Current: {numberText(pole.accepted[field])}</span>}
       </div>)}
-      {canEdit && <div className="cad-editor-actions">
-        <Button type="button" disabled={busy || Object.keys(pending).length === 0} data-testid="cad-editor-apply"
+      {(canEdit || Object.keys(pending).length > 0) && <div className="cad-editor-actions">
+        <Button type="button" disabled={busy || !canEdit || Object.keys(pending).length === 0} data-testid="cad-editor-apply"
           onClick={() => action(() => { session.prepareApply(); })}>{candidate ? 'Applying…' : 'Apply'}</Button>
         <Button type="button" variant="outline" disabled={busy || Object.keys(pending).length === 0}
           data-testid="cad-editor-discard" onClick={() => action(() => session.discardPending())}>Discard</Button>
       </div>}
     </> : <p role="status" data-testid={snapshot.selectedBodyId === null ? undefined : 'cad-editor-readonly-curve'}>{snapshot.selectedBodyId === null
-      ? 'Select a Surface to edit its control points.' : 'This Curve is read-only.'}</p>}
+      ? 'Select a Surface or Curve to inspect its control points.' : 'Control point inspection is unavailable for this object.'}</p>}
     {errorMessage && <p className="cad-editor-error" role="alert">{errorMessage}</p>}
     <CadEditorGeometryAnalysis session={session} onAnalysis={onAnalysis} onLength={onLength} onError={onError} />
   </aside>;

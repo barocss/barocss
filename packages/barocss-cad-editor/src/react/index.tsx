@@ -69,7 +69,7 @@ export function CadEditor({ className, ...props }: CadEditorProps) {
 export { CadEditorViewport } from './viewport.js';
 export { CadEditorInspector } from './inspector.js';
 export { useCadEditorSnapshot } from './use-session.js';
-export type { CadEditorDisplayOptions, CadEditorDisplayReceipt, CadEditorViewportProps,
+export type { CadEditorDisplayOptions, CadEditorDisplayReceipt, CadEditorCurveFocusReceipt, CadEditorViewportProps,
   CadEditorInspectorProps, CadEditorProps } from './types.js';
 export { CadEditorFeature } from './feature-editor.js';
 export type { CadEditorFeatureProps, CadEditorFeatureDisplayReceipt } from './feature-editor.js';
