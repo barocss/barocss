@@ -477,3 +477,40 @@ Dispose removes the keyboard listener before pointer controls and Viewer.
 No focus is taken during render. Existing pointer navigation remains separate.
 These keys provide sampled display framing; they do not add primitive
 selection, native bounds, gesture cancellation or an editor shortcut map.
+
+
+## Measure the selected original Curve
+
+Measure selected Curve length uses the current full source-qualified tree ref.
+It validates the complete Source0, all five Model objects and the current Face
+before calling the existing document-bound native arc query and validator.
+A Surface selection disables this action; no boundary Curve is inferred.
+The default UI measures the whole original parameter interval with unchanged
+LENGTH_OPTIONS. Output shows the original mm length estimate and a separate
+endpoint chord in mm. The heuristic error estimate is not a certified bound.
+The chord never substitutes the arc estimate or a rendered edge length.
+
+The independent tree length report keeps its original pin during filter/view/
+CSS/color/grid/order/translation changes. A hidden selected Curve can still
+measure; disclosure remains and its label hides. A different selected node or
+a changed referenced Source/full Face clears the report. An unrelated edit
+retains it. Failed load/ref/options/budget/query retains the accepted result.
+Reset tree length clears only this report and label. Tree point inspection,
+the eight manual panels and four picked reports remain independent.
+
+The caller label projects the measured parameter interval midpoint. It is
+approximate, with occlusion not tested; it is not an arc midpoint, centroid or
+a visible Curve hit. Loss/unavailability hides the label while retained CPU
+Curve length remains queryable. Clear/mode/Dispose clears its authority.
+The shared CSS observer updates the label without GPU writes.
+
+`queryQualifiedTreeCurveLength(viewer,ref,options=LENGTH_OPTIONS)` returns
+copied `{version:0,node,measurement}`. The measurement includes the complete
+existing helper result, original reference/document, native arc report,
+endpoint chord and parameter anchor. Optional proof/helper options forward to
+the existing six-field public profile, including partial intervals and budgets;
+the default physical UI exposes the whole interval only.
+Hooks add `measureTreeCurveLength(options?)`, `resetTreeCurveLength()`,
+`treeCurveLengthSnapshot()` and a copied `treeCurveLengthReport` getter.
+DOM IDs: measure-tree-length, reset-tree-length, tree-length-output,
+tree-length-label and tree-length-help.
