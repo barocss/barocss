@@ -17,7 +17,9 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <span id="measurement-distance" class="measurement-label" hidden></span><span id="surface-area-label" class="measurement-label" hidden></span>
 <span id="curve-length-label" class="measurement-label" hidden></span><span id="native-angle-label" class="measurement-label" hidden></span>
 <span id="curve-curvature-label" class="measurement-label" hidden></span><span id="surface-curvature-label" class="measurement-label" hidden></span>
-<span id="native-tangent-angle-label" class="measurement-label" hidden></span><span id="native-normal-angle-label" class="measurement-label" hidden></span></div></div>
+<span id="native-tangent-angle-label" class="measurement-label" hidden></span><span id="native-normal-angle-label" class="measurement-label" hidden></span>
+<span id="picked-chord-point-1" class="measurement-label" hidden></span><span id="picked-chord-point-2" class="measurement-label" hidden></span>
+<span id="picked-chord-distance" class="measurement-label" hidden></span></div></div>
 <label>Assets <select id="asset-count" disabled><option>6</option><option>2</option></select></label>
 <label>Grid U <select id="count-u" disabled><option>17</option><option>9</option><option>2</option></select></label>
 <label>Grid V <select id="count-v" disabled><option>17</option><option>9</option><option>2</option></select></label>
@@ -42,6 +44,13 @@ The point uses original mm. The display/native discrepancy uses scene units and 
 Parameters are approximate. This is not a certified native ray hit, UV reconstruction or rendered-pixel measurement.
 An ambiguous source tie is reported explicitly. Native sample mode can run alongside Face inspect mode.
 Sample again after the source or view changes.</p></details>
+<label><input id="picked-chord-mode" type="checkbox" disabled>Picked chord mode</label>
+<button id="reset-picked-chord" disabled>Reset picked chord</button><p id="picked-chord-output" role="status" aria-live="polite">Select the first original point.</p>
+<details id="picked-chord-help"><summary>About the picked chord</summary>
+<p>Click two displayed Faces to select approximate original parameters and measure their original native straight chord in mm.
+The selected parameters are not certified native ray hits. A miss or failed query keeps the accepted points; the next valid click after a complete pair starts a new pair.
+View changes retain original points. Source or Face content changes can invalidate them. Reset clears the pair; changing the mode checkbox retains it.
+Endpoint labels use approximate CSS projection without occlusion testing. The distance label appears between both visible projections.</p></details>
 <pre id="inspection" aria-label="Read-only original source and Face inspection">Inspect an admitted source from its row.</pre>
 <section aria-label="Original native Surface normal angle">
 <h2>Measure original native normal angle</h2>
