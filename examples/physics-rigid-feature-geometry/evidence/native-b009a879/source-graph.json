@@ -1,0 +1,57 @@
+{
+  "graph": "source",
+  "originalSourceCount": 6,
+  "originalDistCount": 0,
+  "privateGeometrySource": true,
+  "worldStepped": false,
+  "inputs": [
+    {
+      "path": "packages/barocss-physics/src/types.ts",
+      "sha256": "e8befc80c94e1b109f5024581f056639acff2c19ed445f2875e20eaf2d3bf240"
+    },
+    {
+      "path": "packages/barocss-physics/src/limits.ts",
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    {
+      "path": "packages/barocss-physics/src/validation.ts",
+      "sha256": "5b0a3016c32ef19076984e6b7f529253af581c29eb9dd1adb19cc8dba185479f"
+    },
+    {
+      "path": "packages/barocss-physics/src/math.ts",
+      "sha256": "6605633830fa7fdf39f9531fbf988b52e306a6835655a318c961eb44c6b05ff8"
+    },
+    {
+      "path": "packages/barocss-physics/src/capsule-contact.ts",
+      "sha256": "a9df21430e4e2a37b1055143a5954a6a3f997b758c46432daebc11998630f3cd"
+    },
+    {
+      "path": "packages/barocss-physics/src/collision.ts",
+      "sha256": "2ba769697e5f9c5174f30a7a9ae8dceb61c1ba03c6fb507c24b6b6f7d4240388"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/sat-feature.ts",
+      "sha256": "5c84e0327d621a0bdcf1ca85d73244147fd2b05ae29fa6dfc25ded7d3af460af"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/witness.ts",
+      "sha256": "d1a9e4356f250cfe5203320da3d05b094fe294342ed05bed1de9daab5d09073e"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/face-contact.ts",
+      "sha256": "23524d0bc5ea149fb243d8991a753884e77d2898e49da9dc9836c8f57c245251"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/edge-contact.ts",
+      "sha256": "09d60f75a3c699cfb9cf587e40d4b809fe42cc63221292bc5693deb25950220b"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/geometry.ts",
+      "sha256": "c581fd7eef4d615eb2c9fbee4fea7f13918548261fe404fde6b7e4432865d694"
+    },
+    {
+      "path": "examples/physics-rigid-feature-geometry/entry.ts",
+      "sha256": "f88771548c12e18ed9aaff902796a1934f20816bb35ea80998cbeeec69c5a562"
+    }
+  ]
+}

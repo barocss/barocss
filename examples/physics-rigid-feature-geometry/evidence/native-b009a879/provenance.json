@@ -1,0 +1,170 @@
+{
+  "base": "5a4d02f6fe0062473cbf1dccd1dc7f54420b66d0",
+  "measuredHead": "b009a87934532056cef4b4d6698619b627e4d9b8",
+  "node": "v22.22.0",
+  "originalBuildExit": 0,
+  "privateTypesExit": 0,
+  "qualifiedConsumerExit": 0,
+  "initialConsumerExit": 1,
+  "initialConsumerHead": "037e7a242886af613c4e276da4c683460fdfd911",
+  "aggregationConsumerExit": 1,
+  "aggregationConsumerHead": "44cb65a55fd55e5787e8051541b93e7de53b6b26",
+  "frozenSourceHashes": {
+    "archive.mjs": "ab1cb806cbb607a7e9c9fa5a85158375a1224cc3d01b89f9b6248cabdad51c57",
+    "bundle.mjs": "deadd116867812a6fc2d8808a583a5d9bbaf7fb5ac4e58e1051cbd950d80500c",
+    "contact-types.ts": "17fc4211862bd1ab665b26c11b3e1caed17e0b702e44964e03da3841c149bac9",
+    "controls.mjs": "f5eb67e17181f2f023e95043eb8baa9c3e188c08cb0ebbfff7e4a8dafbe33d72",
+    "edge-contact.ts": "09d60f75a3c699cfb9cf587e40d4b809fe42cc63221292bc5693deb25950220b",
+    "entry.ts": "f88771548c12e18ed9aaff902796a1934f20816bb35ea80998cbeeec69c5a562",
+    "face-contact.ts": "23524d0bc5ea149fb243d8991a753884e77d2898e49da9dc9836c8f57c245251",
+    "frozen-inputs.json": "ff6f4dd871d9a4ee5106224140e48fe59a8db5e2764e0faa0dd0fe2de93d458b",
+    "geometry.ts": "c581fd7eef4d615eb2c9fbee4fea7f13918548261fe404fde6b7e4432865d694",
+    "runner.mjs": "d16ac480b408f34cf398af5dccc638eda44add1072a1a8219f71fd5db10afaa7",
+    "sat-feature.ts": "5c84e0327d621a0bdcf1ca85d73244147fd2b05ae29fa6dfc25ded7d3af460af",
+    "witness-reference.py": "4b61cf8acf7bf8eba8210ddff21f15b03f7113366513b5aff93492bf96125f03",
+    "witness.ts": "d1a9e4356f250cfe5203320da3d05b094fe294342ed05bed1de9daab5d09073e"
+  },
+  "inputArchiveManifestSha256": "43d4a40b8c168e79047aa8d7d7805771aae15a361955228454afca474ee83967",
+  "validatedArchiveFiles": 26,
+  "validatedPreviousArchiveFiles": 27,
+  "validatedPreviousAcceptedStates": 72,
+  "satHitInstances": 66,
+  "successfulManifoldInstances": 57,
+  "originalFirstRefusals": 9,
+  "witnessInstances": 171,
+  "analyticalControlsPerGraph": [
+    37,
+    37,
+    37
+  ],
+  "graphAudits": [
+    {
+      "graph": "source",
+      "originalSourceCount": 6,
+      "originalDistCount": 0,
+      "privateGeometrySource": true
+    },
+    {
+      "graph": "source-repeat",
+      "originalSourceCount": 6,
+      "originalDistCount": 0,
+      "privateGeometrySource": true
+    },
+    {
+      "graph": "compiled-dependencies",
+      "originalSourceCount": 0,
+      "originalDistCount": 6,
+      "privateGeometrySource": true
+    }
+  ],
+  "maxIndependentMetrics": {
+    "precisionMaximumAbsoluteError": 3.062162493067214e-79,
+    "SATSelectedDepthErrorM": 1.581818148209853e-16,
+    "SATIndependentMinimumDepthErrorM": 1.581818148209853e-16,
+    "SATNormalParallelError": 2.221629246416479e-16,
+    "SATNormalOrientationViolationM": 0,
+    "planeNormalUnitError": 2.221629256054817e-16,
+    "declaredFaceNormalError": 2.221629246416479e-16,
+    "faceSelectedNormalError": 0,
+    "incidentAxisAlignmentDeficit": 0,
+    "incidentSideSupportViolation": 0,
+    "referenceFaceMembershipM": 3.265432361860334e-16,
+    "incidentFaceMembershipM": 5.143346112452214e-16,
+    "referenceProjectionErrorM": 3.265432895818038e-16,
+    "referencePlaneResidualM": 3.2654323346391726e-16,
+    "midpointIdentityM": 2.220446049250313e-16,
+    "normalGapIdentityM": 1.563579885095745e-20,
+    "pointPenetrationIdentityM": 1.563579885095745e-20,
+    "supportedEdgeAOrientationError": 0,
+    "supportedEdgeBOrientationError": 0,
+    "edgePlaneSelectedNormalError": 0,
+    "segmentAParameterMembershipM": 3.0737622601475124e-16,
+    "segmentBParameterMembershipM": 1.2236134463122196e-16,
+    "segmentAStationaryOrEndpointResidualM": 1.1762861508492371e-16,
+    "segmentBStationaryOrEndpointResidualM": 7.651561069360336e-17,
+    "globalNearestDistanceErrorM": 2.5671330274834557e-16,
+    "edgeTangentialWitnessResidualM": 1.1849091990643822e-16
+  },
+  "firstRefusalGeometry": [
+    {
+      "scene": "ALIGNED",
+      "pair": [
+        "b4",
+        "b5"
+      ],
+      "feature": {
+        "kind": "edge-cross",
+        "axisA": 2,
+        "axisB": 0
+      },
+      "points": 1,
+      "depthM": 2.1087686323029153e-05,
+      "pointGapsM": [
+        -2.1087686323087212e-05
+      ]
+    },
+    {
+      "scene": "OFFSET",
+      "pair": [
+        "b6",
+        "b7"
+      ],
+      "feature": {
+        "kind": "edge-cross",
+        "axisA": 2,
+        "axisB": 0
+      },
+      "points": 1,
+      "depthM": 0.00011221057318255845,
+      "pointGapsM": [
+        -0.00011221057318289912
+      ]
+    },
+    {
+      "scene": "YAW",
+      "pair": [
+        "b6",
+        "b7"
+      ],
+      "feature": {
+        "kind": "face-b",
+        "axisB": 1
+      },
+      "points": 1,
+      "depthM": 2.1488644974532178e-07,
+      "pointGapsM": [
+        -2.1488644997171953e-07
+      ]
+    }
+  ],
+  "sourceRepeatCompiledAndRawParity": true,
+  "geometryGO": true,
+  "worldCreatedOrStepped": false,
+  "physicalModelGO": false,
+  "uncompressedArtifactHashes": {
+    "compiled-dependencies-ALIGNED-report.json": "800f1bdea4620c24ea4d0010ae21c3240465c99d86ec6e8599b105016c91170b",
+    "compiled-dependencies-OFFSET-report.json": "6f988025afe9775ccd6c8881999349c504c2e92ff64ddbafebe9324a0e0bb01e",
+    "compiled-dependencies-YAW-report.json": "36911d4b6e61fb0bb4390bb2b4b0547ea6a03c76d40922b3656156ceeda3cbc1",
+    "compiled-dependencies-controls.json": "f2a43efded7a9d8dd6f71000693d242f13df3c433f83cc0c80d82a56f238b8b9",
+    "source-ALIGNED-report.json": "3e082b45ae25f94cb43ec87eb527ca035387e494628ffd7d7c5beb1fca51fc03",
+    "source-OFFSET-report.json": "32029690b58d3f46228d91eb11256cbc05c68c19a2fb5784656f80ccb2d2f63b",
+    "source-YAW-report.json": "77f6a2267d8bc3b8cabf3a927ffef256eaaae3fffb9af7d99a8bcb47ad386a9c",
+    "source-controls.json": "561f6feeddb2fbc9c6b425a04750b618245d7815124be547b06183e6f084c7c7",
+    "source-repeat-ALIGNED-report.json": "7e29188ba481f37cfa8fde5bc9d6351217485a94ebb33cf7715803f2ae3e6d0d",
+    "source-repeat-OFFSET-report.json": "6013a516b3282b8c904f5b6d2f34c583b0eed5767dfa577cf0cb99878eab7cc8",
+    "source-repeat-YAW-report.json": "2cb3f5db49545f7a17f1a3deb78aa8ca533892dbb7f27d96c2ae73f943b88a5a",
+    "source-repeat-controls.json": "4dc8ae593924777de23fdf4636ce4ffd7b1fa1da90b0248f7620a979f78373d1",
+    "summary.json": "9e4685103017ea649d347e40b59bdeca22853853c0b8d77651aaa6addfc14d54",
+    "original-build.log": "a83754aae406367a1fa366fd617329920c6abe34f38e61b578513cd53b8bdd69",
+    "private-types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "consumer.log": "4b515a75fb81d7e47c5b7229567f089891cf838f9eba5d6f7ae7fdb6f27a6a34"
+  },
+  "limitations": [
+    "Geometry GO is scoped to frozen controls and archived reconstructed unaccepted inputs; no world stability/forces/publicAPI/cap GO.",
+    "Archive JSON hits compare numeric values, fresh selector/detect comparisons and outputraw retain original zero signs.",
+    "66 SAT-hit reference calls include57previously successful manifolds and9first refusals; historical wording corrected.",
+    "Two first consumer failures are preserved and are harness-only corrections; geometry/reference/controls/tolerances unchanged.",
+    "Independent validator consumes typed private data and is not a general hostile-JSON admission API.",
+    "Exact sole adoption and current integrated674validation remain pending; no product publication."
+  ]
+}
