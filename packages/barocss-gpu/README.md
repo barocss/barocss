@@ -1555,3 +1555,41 @@ retain their original values. Save the full original scene, clip and request
 to reconstruct the frame after opening the file. This CPU source service owns
 no clock, playback loop, renderer, native CAD pose, simulation or browser.
 It provides no quaternion, scale, blend, easing, event or interval certificate.
+
+### Original camera frustum candidates for general engine scenes
+
+`prepareEngineSceneFrustum(originalScene, request)` classifies the admitted
+original Number world bounds of every mesh using the scene's complete camera:
+
+```js
+const candidates = prepareEngineSceneFrustum(originalScene, {
+  format: 'barocss-gpu-engine-scene-frustum-request', version: 0,
+  viewportWidth: 800, viewportHeight: 600,
+});
+console.log(candidates.candidateNodeIds);
+```
+
+The recursively frozen result is `{scene, request, entries, candidateNodeIds}`.
+It retains independent complete original scene/request copies. Entries follow
+original mesh-node order and contain `nodeId`, `geometryId`, `materialId`,
+`classification` and `outsidePlane`. Groups produce no entry. Effective hidden
+ancestry produces `hidden`; visible bounds produce `inside`, `intersecting` or
+`outside`. Inside and intersecting IDs form the candidate list. An outside
+entry names its first separating plane in near, far, left, right, bottom, top
+order. Other entries have `outsidePlane: null`.
+
+The six planes use the original Number camera basis and explicit integer
+viewport dimensions in `1..2048`. For each plane, a centre/radius AABB interval
+uses boundary band `1e-9 * (1 + abs(distance) + radius)`. Only a maximum below
+the negative band excludes the box. Touching and near-boundary intervals stay
+candidates. False positives are expected: a candidate is a box observation,
+and does not establish a triangle or rendered-pixel hit.
+
+Full source admission uses the actual `prepareEngineScene`, including hidden
+resources. `EngineSceneFrustumError` code `SCENE` retains its actual provider
+error as cause; other codes are `INPUT`, `VERSION`, `RANGE` and `NUMERICAL`.
+One existing scene preparation is followed by at most 192 plane intervals.
+No geometry/source edit or renderer draw replacement occurs. Save the full
+original scene and viewport request to reconstruct the classification.
+This CPU service provides no CSS/DPR mapping, Float32 raster agreement,
+occlusion, native CAD hit, exact floating certificate or performance claim.

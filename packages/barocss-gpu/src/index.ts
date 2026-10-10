@@ -78,5 +78,8 @@ export type {EngineCameraRayRequestV0,PreparedEngineCameraRay} from './engine-ca
 export {sampleEngineTranslationClip,EngineTranslationClipError,EngineTranslationClipDiagnosticCode} from './engine-translation-clip.js';
 export type {EngineTranslationClipV0,EngineTranslationTrackV0,EngineTranslationKeyV0,EngineTranslationClipRequestV0,SampledEngineTranslationClip} from './engine-translation-clip.js';
 
+export {prepareEngineSceneFrustum,EngineSceneFrustumError,EngineSceneFrustumDiagnosticCode} from './engine-scene-frustum.js';
+export type {EngineSceneFrustumRequestV0,EngineSceneFrustumEntryV0,PreparedEngineSceneFrustum} from './engine-scene-frustum.js';
+
 export {prepareEngineTextureBindings,EngineTextureBindingsError,EngineTextureBindingsDiagnosticCode} from './engine-texture-bindings.js';
 export type {EngineTextureV0,EngineTextureBindingV0,EngineTextureBindingsV0,PreparedEngineTexture,PreparedEngineTextureBindings} from './engine-texture-bindings.js';
