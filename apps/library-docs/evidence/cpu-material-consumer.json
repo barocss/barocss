@@ -1,0 +1,122 @@
+{
+  "format": "barocss-docs-cpu-material-consumer",
+  "status": "passed",
+  "package": "@barocss/gpu",
+  "packageVersion": "0.0.0",
+  "shaderId": "phase",
+  "sampleFormat": "barocss-gpu-authored-material-sample",
+  "sampleVersion": 0,
+  "sampleProfile": "binary64-linear-rgb-v0",
+  "colorSpace": "linear-rgb",
+  "uvUnit": "dimensionless",
+  "materialFormat": "barocss-gpu-engine-uv-repeating-material",
+  "materialProfile": "engine-opaque-uv-repeating-fragment-v0",
+  "sourceMatched": true,
+  "cases": {
+    "defaults": {
+      "uniforms": {
+        "phase": 0
+      },
+      "uv": [
+        -0.25,
+        0
+      ],
+      "linearRGB": [
+        0.75,
+        0.75,
+        0.75
+      ],
+      "uvNegativeZero": [
+        false,
+        false
+      ],
+      "uniformPhaseNegativeZero": false,
+      "rgbNegativeZero": [
+        false,
+        false,
+        false
+      ]
+    },
+    "phaseHalf": {
+      "uniforms": {
+        "phase": 0.5
+      },
+      "uv": [
+        -0.25,
+        0
+      ],
+      "linearRGB": [
+        0.25,
+        0.25,
+        0.25
+      ],
+      "uvNegativeZero": [
+        false,
+        false
+      ],
+      "uniformPhaseNegativeZero": false,
+      "rgbNegativeZero": [
+        false,
+        false,
+        false
+      ]
+    },
+    "negativeZero": {
+      "uniforms": {
+        "phase": 0
+      },
+      "uv": [
+        0,
+        0
+      ],
+      "linearRGB": [
+        0,
+        0,
+        0
+      ],
+      "uvNegativeZero": [
+        true,
+        true
+      ],
+      "uniformPhaseNegativeZero": false,
+      "rgbNegativeZero": [
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "negativeZeroRequest": {
+    "uv": [
+      true,
+      true
+    ],
+    "phase": true
+  },
+  "verification": {
+    "deeplyFrozen": true,
+    "freshIndependentSamples": true,
+    "noCallerObjectAliases": true,
+    "callerDataRetained": true
+  },
+  "refusal": {
+    "name": "AuthoredMaterialEvaluationError",
+    "code": "UNIFORM",
+    "message": "Uniform phase outside its finite declared range"
+  },
+  "acceptedSampleRetained": true,
+  "scope": "Binary64 authored linear RGB CPU evaluation; no renderer, lighting, gamma, texture, Float32 or pixels.",
+  "sourceProfile": {
+    "sourcePin": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+    "verifiedBlobs": 242,
+    "ownSourceInputs": 239,
+    "ownDistInputs": 0,
+    "packageVersions": {
+      "gpu": "0.0.0",
+      "cad": "0.0.0-experimental"
+    },
+    "publicImports": [
+      "@barocss/gpu"
+    ]
+  }
+}

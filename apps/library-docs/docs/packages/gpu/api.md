@@ -5,6 +5,10 @@ Read the [complete public signature reference](./reference) for exact exported f
 
 Import public values/types from `@barocss/gpu`. `/source` names the same root entry at this parent. Do not deep-import an internal source file merely because it has an `export` statement. Workspace entries select TypeScript source; complete publication maps select built JS/declarations.
 
+## Evaluate authored material color on the CPU
+
+The [CPU material guide](./cpu-material-evaluation) explains `evaluateAuthoredMaterial(input: unknown): AuthoredMaterialSample`, `AuthoredMaterialRequest`, `AuthoredMaterialEvaluationError` and its diagnostic codes. Supply a complete admitted material, uniform values and UV when required. It returns an independent, deeply frozen linear RGB sample. This newer API has a separate availability note; the general reference below retains the earlier snapshot.
+
 ## Scene compiler and live renderer
 
 | Call | Result / failure |

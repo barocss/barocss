@@ -1,0 +1,31 @@
+{
+  "publicCodeAndRequests": true,
+  "linearRgbImageDecoded": true,
+  "testPrerequisitesAbsent": true,
+  "apiExamplesGuideNavigation": true,
+  "errors": [],
+  "warnings": [],
+  "url": "http://127.0.0.1:52948/packages/gpu/cpu-material-evaluation",
+  "image": {
+    "asset": "/examples/cpu-material-evaluation.svg",
+    "sha256": "a84d259be32c8d63e33c849d801d0e955ebaaf6c809b184b714c301fd9cb450a",
+    "kind": "Numeric linear RGB bars from actual public CPU samples; no GPU pixels or color swatch.",
+    "actualValues": {
+      "defaults": [
+        0.75,
+        0.75,
+        0.75
+      ],
+      "phaseHalf": [
+        0.25,
+        0.25,
+        0.25
+      ],
+      "negativeZero": [
+        0,
+        0,
+        0
+      ]
+    }
+  }
+}
