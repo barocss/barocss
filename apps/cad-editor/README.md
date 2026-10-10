@@ -434,3 +434,46 @@ node apps/cad-editor/flows/curve-length-flow.mjs --compiled --port 52031
 
 Native author completion, sole Integration adoption, later integrated checks and
 publication remain separate. No new engine/dependency or broad suite follows.
+
+
+## Manual accepted recovery copy
+
+File → Recovery copies stores one applied native document in IndexedDB in this
+browser/profile/origin. Save current copy is manual. Pending fields are excluded
+without applying or discarding them, and later edits are newer than the captured
+copy. Replace/Delete require confirmation. Storage Save does not change native
+dirty/history/download status or the private native download capture.
+
+Open copy requires drafts to be resolved, uses the existing unsaved replacement
+decision and passes the complete candidate through the actual Viewer gate. Only
+the accepted Open token changes the filename or recovery provenance. A copy made
+with unsaved accepted changes remains visibly unsaved after reopening, although
+the native Open correctly reports dirty=false. A successful native Download or
+an ordinary accepted Open clears that host provenance. Failed Download/Viewer
+operations retain it. Stored camera/selection/history/raw drafts are not restored.
+
+The app-owned version1 envelope uses actual CAD serialize/parse and complete
+Source0; native text2MiB bytes/code units, envelope16MiB, filename1..512 and
+1..4 unique displayed body IDs. Same-transaction compare/get/put/delete protects
+a stale copy in another tab. Read/confirmation/Open rechecks use actual storage;
+BroadcastChannel messages are hints. Unknown/corrupt strings remain until an
+explicit replacement/deletion. Unsupported non-string slot values stay unreadable
+and cannot be overwritten or deleted by this version. No silent migration.
+
+A completed browser transaction and normal persistent-profile close/restart are
+separate from disk, power-loss/crash, eviction, private-browser or cloud guarantees.
+No autosave/unload worker/backend/dependency/root API is added. Cancel is blocked
+only while a storage mutation settles; asynchronous Open verification can be
+cancelled. Help preserves the task and returns focus to Help.
+
+```sh
+node apps/cad-editor/flows/recovery-flow.mjs --headed --port 52032
+node apps/cad-editor/flows/recovery-flow.mjs --compiled --port 52033
+```
+
+The focused flow uses real IndexedDB and dedicated persistent Chromium profiles,
+actual controlled transaction abort/stale mutation/Viewer refusal, genuine native
+Download/fresh Open/re-edit and minimum1000x700 task focus/layout. Controlled abort
+does not prove physical quota exhaustion, security denial or crash durability.
+Native author completion, sole Integration merge and later integrated checks are
+reported separately. Feature-graph recovery and automatic recovery remain gaps.

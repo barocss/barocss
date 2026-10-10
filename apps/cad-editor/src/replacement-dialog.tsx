@@ -4,6 +4,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 
 export interface ReplacementDialogProps {
   open: boolean;
+  busy?: boolean;
   currentName: string;
   action: 'open' | 'sample';
   targetName: string;
@@ -40,6 +41,7 @@ export function ReplacementDialog(props: ReplacementDialogProps) {
         </p>}
       </div>
       <DialogFooter>
+        {props.busy&&<span role="status">Checking recovery copy…</span>}
         <Dialog><DialogTrigger asChild><Button type="button" variant="ghost" className="replacement-help-trigger" data-testid="replacement-help">Help</Button></DialogTrigger>
           <DialogContent className="cad-editor-help-dialog" data-testid="replacement-help-dialog">
             <DialogHeader><DialogTitle>Keep your current changes</DialogTitle><DialogDescription>Download a copy before replacing a document.</DialogDescription></DialogHeader>
@@ -54,8 +56,8 @@ export function ReplacementDialog(props: ReplacementDialogProps) {
             <DialogClose asChild><Button type="button" variant="outline" className="cad-editor-export-close" data-testid="replacement-help-close">Close help</Button></DialogClose>
           </DialogContent>
         </Dialog>
-        <Button type="button" variant="outline" data-testid="replacement-download" onClick={props.onDownload}>Download copy</Button>
-        <Button type="button" variant="outline" data-testid="replacement-continue" onClick={props.onContinue}>Continue without downloading</Button>
+        <Button type="button" variant="outline" data-testid="replacement-download" disabled={props.busy} onClick={props.onDownload}>Download copy</Button>
+        <Button type="button" variant="outline" data-testid="replacement-continue" disabled={props.busy} onClick={props.onContinue}>Continue without downloading</Button>
         <Button ref={cancelRef} type="button" data-testid="replacement-cancel" onClick={props.onCancel}>Cancel</Button>
       </DialogFooter>
     </DialogContent>
