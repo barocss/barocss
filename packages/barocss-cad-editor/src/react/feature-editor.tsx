@@ -541,11 +541,11 @@ export function CadEditorFeature(props: CadEditorFeatureProps) {
         <Button type="button" variant="outline" disabled={busy} data-testid="feature-properties-query" onClick={queryProperties}>Inspect native properties</Button>
         {currentProperties ? <div data-testid="feature-properties-summary">
           <p data-testid="feature-properties-revision">Accepted revision {currentProperties.binding.revision}</p>
-          {currentProperties.nativeProperties.report.empty && <p role="status" data-testid="feature-properties-empty">Empty extrusion. Centroid unavailable.</p>}
+          {currentProperties.nativeProperties.report.empty && <p role="status" data-testid="feature-properties-empty">Empty extrusion. Geometric centroid unavailable.</p>}
           <dl className="cad-editor-properties-values">
             <dt>Section area (mm²)</dt><dd><span data-testid="feature-properties-area">{propertyNumberText(currentProperties.nativeProperties.report.areaMM2)}</span></dd>
             <dt>Construction volume estimate (mm³)</dt><dd><span data-testid="feature-properties-volume">{propertyNumberText(currentProperties.nativeProperties.report.volumeMM3)}</span></dd>
-            {(['X','Y','Z'] as const).map((axis,index)=><div key={axis}><dt>Centroid {axis} (mm)</dt><dd><span data-testid={'feature-properties-centroid-'+axis.toLowerCase()}>
+            {(['X','Y','Z'] as const).map((axis,index)=><div key={axis}><dt>Geometric centroid {axis} (mm)</dt><dd><span data-testid={'feature-properties-centroid-'+axis.toLowerCase()}>
               {currentProperties.nativeProperties.report.centroidMM===null?'Unavailable':propertyNumberText(currentProperties.nativeProperties.report.centroidMM[index])}
             </span></dd></div>)}
           </dl>

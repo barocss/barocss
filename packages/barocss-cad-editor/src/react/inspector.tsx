@@ -8,6 +8,7 @@ import { Label } from './ui/label.js';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog.js';
 import { useCadEditorSnapshot } from './use-session.js';
 import type { CadEditorInspectorProps } from './types.js';
+import { CadEditorGeometryAnalysis } from './geometry-analysis.js';
 
 const FIELDS: { field: CadEditorPoleField; label: string }[] = [
   { field: 'xMM', label: 'X (mm)' }, { field: 'yMM', label: 'Y (mm)' },
@@ -49,7 +50,7 @@ function actionableMessage(error: CadEditorError): string {
   return 'The change was not applied. Check the values and try again.';
 }
 
-export function CadEditorInspector({ session, onError, className }: CadEditorInspectorProps) {
+export function CadEditorInspector({ session, onError, onAnalysis, className }: CadEditorInspectorProps) {
   const snapshot = useCadEditorSnapshot(session);
   const id = useId();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -268,5 +269,6 @@ export function CadEditorInspector({ session, onError, className }: CadEditorIns
     </> : <p role="status" data-testid={snapshot.selectedBodyId === null ? undefined : 'cad-editor-readonly-curve'}>{snapshot.selectedBodyId === null
       ? 'Select a Surface to edit its control points.' : 'This Curve is read-only.'}</p>}
     {errorMessage && <p className="cad-editor-error" role="alert">{errorMessage}</p>}
+    <CadEditorGeometryAnalysis session={session} onAnalysis={onAnalysis} onError={onError} />
   </aside>;
 }

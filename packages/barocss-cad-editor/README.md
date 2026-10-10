@@ -182,6 +182,59 @@ See [#1043](https://github.com/barocss/barocss/issues/1043) and the
 [CAD Editor roadmap](https://github.com/barocss/barocss/wiki/CAD-Editor-Product-Roadmap)
 for exact receipts, current integration status and later stages.
 
+## Accepted original geometry analysis
+
+`inspectCurveD2(reference,parameter)`, `inspectSurfaceD2(reference,u,v)`,
+`inspectCurveCurvature(reference,parameter)` and
+`inspectSurfaceCurvature(reference,u,v)` read the private accepted original
+Source0 geometry. Each method live-checks, resolves one actual current qualified
+native reference, requires the matching geometry kind and calls its actual native
+evaluator once. The provider's reference validation rejects caller getters and
+stale or foreign document/asset bindings. Hidden and read-only native bodies can
+be queried independently of the display set and pole-edit profile.
+
+`CadEditorCurveD2`, `CadEditorSurfaceD2`, `CadEditorCurveCurvature` and
+`CadEditorSurfaceCurvature` retain the actual native result DTO, copied qualified
+reference and original parameters. Their `kind` and `query` literals discriminate
+`CadEditorGeometryAnalysisResult`. Curve records contain `parameter`; Surface
+records contain `u` and `v`. Complete native vectors, normal, metric and
+discriminant disclosure remain available, without losing signed zero. Returned
+data is independent of session and caller data. Pending fields and active
+candidates do not change the accepted geometry read. Reads emit no notification
+and change no source, history, generation, display, selection, draft, candidate,
+serialization, dirty state or native download capture.
+
+The actual D2 profile admits degrees1–5, Curve2–64 poles and Surface2–16 poles
+per axis with at most256 grid poles. Coordinates, knots and parameters must be
+finite with magnitude at most10000; weights retain native1e-6..1e6 bounds. Query
+the original closed knot domain. Endpoints use the interior one-sided span.
+An exact interior knot refuses D2 when degree minus multiplicity is below two,
+including cases where particular coefficients could cancel discontinuity. No
+parameter normalization, nudging, projection, finite differences or mesh-derived
+curvature is used.
+
+D2 point uses authored XYZ/mm. First derivative vectors and speed retain mm per
+original knot parameter unit; second vectors retain mm per squared or mixed U/V
+parameter units. Curve curvature and its vector use1/mm, radius usesmm; a regular
+straight Curve has zero curvature and null radius. Surface mean/principal
+curvatures use1/mm and Gaussian curvature uses1/mm2. Unit vectors and the
+normalized metric are dimensionless. The Surface normal follows native `du×dv`;
+mean/principal signs depend on that orientation. Zero derivatives are valid D2
+results, while zero Curve tangents or uncertain Surface metrics refuse curvature.
+Planar regular Surfaces have zero curvature. The complete native discriminant
+roundoff/clamp policy is retained; formatted UI values do not replace it.
+
+Errors retain actual `CadReferenceError`, `NativeSecondDerivativeError` and
+`NativeCurvatureError` objects and nested causes under `CadEditorError.cause`,
+with context field `geometry-analysis`. Native stale references map to `STALE`,
+wrong geometry kinds to `UNSUPPORTED`, and other native refusals to `NATIVE`.
+D2 can refuse input, continuity or arithmetic; curvature can wrap a D2 failure or
+refuse regularity/arithmetic. Disposal refuses further reads. This local analysis
+does not certify trim validity, Face/Solid normals, G2 patch continuity,
+principal directions, torsion, manufacturing tolerance or global accuracy.
+Source-backed reference reconstruction and native internal validation can repeat
+work; no single cheap reconstruction or metadata-only performance claim is made.
+
 ## Accepted native geometry export
 
 `getExportCapabilities()`, `inspectExport(options)` and `exportAccepted(options)`

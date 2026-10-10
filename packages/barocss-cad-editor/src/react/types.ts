@@ -1,6 +1,6 @@
 import type { BaroCadDocumentPrimitiveOptionsV2 } from '@barocss/cad-interop/document';
 import type { ViewerOptions, ViewerState } from '@barocss/viewer';
-import type { CadEditorError, CadEditorSession, CadEditorSnapshot } from '../types.js';
+import type { CadEditorError, CadEditorSession, CadEditorSnapshot, CadEditorGeometryAnalysisResult } from '../types.js';
 
 export interface CadEditorDisplayOptions {
   viewer: ViewerOptions;
@@ -38,7 +38,10 @@ export interface CadEditorViewportProps {
 export interface CadEditorInspectorProps {
   session: CadEditorSession;
   onError?: (error: CadEditorError) => void;
+  onAnalysis?: (result: CadEditorGeometryAnalysisResult | null) => void;
   className?: string;
 }
 
-export interface CadEditorProps extends CadEditorViewportProps {}
+export interface CadEditorProps extends CadEditorViewportProps {
+  onAnalysis?: (result: CadEditorGeometryAnalysisResult | null) => void;
+}

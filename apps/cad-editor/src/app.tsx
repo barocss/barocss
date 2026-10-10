@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Box, ChevronRight, CircleHelp, Download, FolderOpen, Layers3, Maximize, Redo2, Undo2 } from 'lucide-react';
 import { parseCadDocument } from '@barocss/cad';
-import { CadEditorError, createCadEditorSession, type CadEditorExportResult } from '@barocss/cad-editor';
+import { CadEditorError, createCadEditorSession, type CadEditorExportResult, type CadEditorGeometryAnalysisResult } from '@barocss/cad-editor';
 import { CadEditor, CadEditorExportReview, useCadEditorSnapshot, type CadEditorDisplayOptions, type CadEditorDisplayReceipt } from '@barocss/cad-editor/react';
 import fixtureText from '../fixtures/canonical-surface-and-curve.cad-document.json?raw';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './components/ui/dialog';
@@ -20,6 +20,7 @@ function nativeCauses(error: Error): {message:string;code:string|null}[] {
   return causes;
 }
 function actionError(error: CadEditorError): string {
+  if(error.context.field==='geometry-analysis')return 'Cannot inspect this geometry here. Check the original parameters or try Derivatives.';
   if(error.context.field==='document-export' || error.context.field==='export-download')return 'Cannot complete this export. Check the captured review, selected bodies and output IDs.';
   const chain=nativeCauses(error), cause=chain.map(item=>item.message).join('\n');
   if(chain.some(item=>item.code==='BINDING')) return 'Select a Surface with directly entered control-point values.';
@@ -52,6 +53,7 @@ function DirectApp() {
   const [filename, setFilename] = useState('Weighted surface');
   const [receipt, setReceipt] = useState<CadEditorDisplayReceipt | null>(null);
   const [exportReview,setExportReview]=useState<CadEditorExportResult|null>(null);
+  const [geometryAnalysis,setGeometryAnalysis]=useState<CadEditorGeometryAnalysisResult|null>(null);
   const [displayOptions, setDisplayOptions] = useState(defaultDisplay);
   const [fitSelectedRequest, setFitSelectedRequest] = useState(0);
   const [openChoice, setOpenChoice] = useState<{text:string;filename:string;bodies:{id:string;name:string}[];selected:string[]} | null>(null);
@@ -77,14 +79,14 @@ function DirectApp() {
     // This focused flow seam exposes copied data and declared host actions only.
     const api = {
       snapshot: () => session.getSnapshot(), display: () => structuredClone(receipt), error: () => error ? {code:error.code,message:error.message,context:{...error.context},cause:error.cause instanceof Error ? error.cause.message : null,causeChain:nativeCauses(error)} : null,
-      exportReview:()=>structuredClone(exportReview),readFrame:()=>setReadRequest(value=>value+1),
+      exportReview:()=>structuredClone(exportReview),geometryAnalysis:()=>structuredClone(geometryAnalysis),readFrame:()=>setReadRequest(value=>value+1),
       setDisplayRefusal: (refuse: boolean) => setDisplayOptions(refuse ? { ...defaultDisplay, document: { ...defaultDisplay.document, native: { ...defaultDisplay.document.native, countU: 1 } } } : defaultDisplay),
       setMounted: (mounted: boolean) => { setMount(mounted); if (mounted) setMountKey(key => key + 1); },
       session,
     };
     Object.assign(window, { __cadEditorFlow: api });
     return () => { delete (window as Window & { __cadEditorFlow?: unknown }).__cadEditorFlow; };
-  }, [flowMode, session, receipt, exportReview, error]);
+  }, [flowMode, session, receipt, exportReview, geometryAnalysis, error]);
   const openFile = async (file: File | undefined) => {
     if (!file) return;
     try {
@@ -157,7 +159,9 @@ function DirectApp() {
         <div className="tree-foot"><CircleHelp size={14}/><p>Select a surface to edit its control points. Use the checkboxes to show or hide objects.</p></div>
       </aside>
       <main className="main-workspace">
-        {projectView ? <section className="projects-view"><span className="eyebrow">LOCAL DOCUMENTS</span><h1>Projects</h1><p>Start with the weighted surface, or open a native document.</p><button className="sample-project" onClick={() => { newSample(); location.hash = '/documents/cad_editor_fixture'; }}><span className="sample-symbol">▱</span><span><strong>Weighted surface</strong><small>Quadratic 3 × 3 surface · Reference line</small></span><ChevronRight size={20}/></button><Button variant="outline" onClick={() => fileInput.current?.click()}><FolderOpen/>Open document</Button></section> : mount && <CadEditor key={mountKey} session={session} displayOptions={displayOptions} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest} onError={failure => { pendingFilename.current = null; setError(failure); }} onAccepted={accepted => { setError(null); if (pendingFilename.current) { setFilename(pendingFilename.current); pendingFilename.current = null; } location.hash = '/documents/' + accepted.accepted.document.documentId; }} onDisplay={setReceipt}/>}
+        {projectView ? <section className="projects-view"><span className="eyebrow">LOCAL DOCUMENTS</span><h1>Projects</h1><p>Start with the weighted surface, or open a native document.</p><button className="sample-project" onClick={() => { newSample(); location.hash = '/documents/cad_editor_fixture'; }}><span className="sample-symbol">▱</span><span><strong>Weighted surface</strong><small>Quadratic 3 × 3 surface · Reference line</small></span><ChevronRight size={20}/></button><Button variant="outline" onClick={() => fileInput.current?.click()}><FolderOpen/>Open document</Button></section> : mount && <CadEditor key={mountKey} session={session} displayOptions={displayOptions} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest}
+          onAnalysis={result=>{setGeometryAnalysis(result);if(result!==null)setError(current=>current?.context.field==='geometry-analysis'?null:current);}}
+          onError={failure => { pendingFilename.current = null; setError(failure); }} onAccepted={accepted => { setError(null); if (pendingFilename.current) { setFilename(pendingFilename.current); pendingFilename.current = null; } location.hash = '/documents/' + accepted.accepted.document.documentId; }} onDisplay={setReceipt}/>}
       </main>
     </div>
     <Dialog open={openChoice !== null} onOpenChange={open => { if (!open) setOpenChoice(null); }}>

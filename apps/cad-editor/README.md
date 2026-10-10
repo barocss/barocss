@@ -303,3 +303,36 @@ counts; disposal/status/lifecycle, fresh remount pixels and native state retenti
 are separate evidence.
 
 The ordinary export review shows object names, format/mm, selection and real geometry-only/history/name-loss decisions. Export naming is secondary; full native mappings, signed-zero counts and certification details remain in expandable Export details and Help. No generic No loss claim follows from the writer geometry-loss field.
+
+## Inspect original geometry
+
+Select a named Curve or Surface, including a hidden or read-only object, then
+use its Analysis section. Curvature is the default query. Enter Parameter t
+for a Curve or U/V for a Surface within the displayed original knot domains.
+These parameters are independent of Surface control-pole indices. Inspect
+reads the accepted native geometry; typing, Tab and Reset parameters do not
+evaluate geometry or apply pending coordinate/weight edits. Reset restores
+domain midpoints. Enter inspects from a parameter field outside text
+composition, and Space activates the focused button.
+
+Ordinary curvature values use six decimals and native units: Curve curvature
+1/mm and radius mm, Surface mean/principal curvature 1/mm and Gaussian
+curvature 1/mm². Details contains point XYZ/mm, first and second derivative
+vectors in original parameter units, the current qualified reference and the
+full native result. The typed callback retains full precision and signed zero.
+Help explains original-domain, continuity, regularity and arithmetic limits;
+closing Help returns focus without changing the inputs or result.
+
+Changing original native content, selected body, raw parameters or query mode
+invalidates the result. Selecting another control pole on the same unchanged
+Surface, camera movement and display-only changes keep it. A refused
+same-current query retains its last valid result, native source, history,
+pending edits and view. Invalid changed raw values stay visible and need a
+new successful Inspect. This local analysis does not certify G2, torsion,
+principal directions, trims, Faces, Solids or manufacturing quality and does
+not repair geometry.
+
+The flow-only host exposes a private `geometryAnalysis()` result or null and
+uses the existing `readFrame()` request for actual Viewer pixels. Unmount
+clears the analysis while the host-owned native session survives. Canonical
+Viewer lifecycle/status and remount pixels do not claim public GPU counters.

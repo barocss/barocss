@@ -61,7 +61,7 @@ export function CadEditor({ className, ...props }: CadEditorProps) {
     onCompositionStartCapture={() => { composingRef.current = true; }}
     onCompositionEndCapture={() => { composingRef.current = false; }}>
     <CadEditorViewport {...props} onError={onError} readRequest={displayReadRequest + (props.readRequest ?? 0)} />
-    <CadEditorInspector session={props.session} onError={onError} />
+    <CadEditorInspector session={props.session} onError={onError} onAnalysis={props.onAnalysis} />
     {keyboardError && <p className="cad-editor-history-error" role="alert">{keyboardError}</p>}
   </div>;
 }
@@ -76,3 +76,5 @@ export type { CadEditorFeatureProps, CadEditorFeatureDisplayReceipt } from './fe
 export { useCadEditorFeatureSnapshot } from './use-feature-session.js';
 export { CadEditorExportReview } from './export-review.js';
 export type { CadEditorExportReviewProps } from './export-review.js';
+export { CadEditorGeometryAnalysis } from './geometry-analysis.js';
+export type { CadEditorGeometryAnalysisProps } from './geometry-analysis.js';
