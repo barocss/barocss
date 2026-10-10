@@ -1,0 +1,16 @@
+/* Source0 notes: 곡면 🧭. Keep every UTF-16 span and comment. */
+@model complete_original_model {
+ version:0; length-unit:mm;
+ /* This earlier Curve contains a similar literal. It is not the selected Surface. */
+ @curve #context_curve { type:nurbs; degree:1; knots:[-0,-0,1,1]; control-points:[[+0.00,-0,0],[2,0,1]]; weights:[1,1]; }
+ @surface #weighted_patch {
+  type:nurbs; degree-u:2; degree-v:2;
+  knots-u:[-3,-3,-3,7,7,7]; knots-v:[-2,-2,-2,6,6,6];
+  control-points:[[[-0,-0,0],[0,5,1],[0,10,2]],[[5,0,1],[5,5,3],[5,10,4]],[[10,0,2],[10,5,4],[10,10,6]]];
+  weights:[[1.000,2,1],[.5,1.5,2],[1,1,1]];
+ }
+ /* Unselected native Surface and degree-five Curve remain in this complete file. */
+ @surface #context_plane { type:nurbs; degree-u:1; degree-v:1; knots-u:[-0,-0,1,1]; knots-v:[0,0,1,1]; control-points:[[[0,20,-0],[0,22,0]],[[2,20,0],[2,22,0]]]; weights:[[1,1],[1,1]]; }
+ @curve #degree_five_sibling { type:nurbs; degree:5; knots:[0,0,0,0,0,0,1,1,1,1,1,1]; control-points:[[0,30,0],[1,30,1],[2,30,0],[3,30,-1],[4,30,0],[5,30,0]]; weights:[1,1,1,1,1,1]; }
+}
+/* Trailing file notes: 보존. */

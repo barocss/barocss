@@ -3052,3 +3052,47 @@ ordinary source resolution. The Node flow checks native and neutral API
 behavior. Actual Pixi controller lifetime and HTTP/WebGL2 pixels are browser
 checks. Published JavaScript/types, packed installation and registry release
 require separate evidence.
+
+## Complete Source0 Surface editing in Three.js
+
+The [complete-source editing example](examples/source-surface-control-net-three.html)
+uses the public CAD `editSourceSurfaceControlNet` operation and its whole-result
+validator before replacing a Three.js preview. It preserves the complete original
+asset: Unicode text, comments, unchanged literal spans, model identity, object
+order, sibling geometry and the selected Surface's edit proof.
+
+Use the returned **whole `result.source` and `result.model`** as the edited asset.
+The nested `result.edit.source` and `result.edit.model` describe only the selected
+Surface. They are an independent native child proof and cannot replace the full
+asset. The example checks this boundary before allocating a candidate preview.
+
+Five unchanged original producer cases cover weighted numeric edits, signed zero,
+no-op literal spelling, the maximum 64 scalar patches, and a cold candidate
+re-edit. Both Surface previews use an 8x8 grid with one 0.001 mm-to-display scale.
+The degree 1 and degree 5 sibling Curves remain in the complete native Model and are
+listed as unrendered; this Surface-only example does not enable curveDisplay.
+
+An edit request must match the accepted full source. Native editing, whole-owned
+proof, independent cold compilation and neutral display validation finish before
+a detached Three Group is accepted. Refused input retains the accepted full
+source/model, readout, scene and owned resources. Replacement and final double
+cleanup release only the example's own geometry/materials. Caller scene, camera,
+renderer, canvas and marker remain usable.
+
+Run the focused source/Three CPU verifier with Node 22:
+
+```sh
+node packages/barocss-cad-interop/examples/source-surface-control-net-three-verify.mjs --output /absolute/evidence-directory
+pnpm exec vite --config packages/barocss-cad-interop/examples/source-surface-control-net-three.config.mjs --host 127.0.0.1 --port 5205 --strictPort
+```
+
+Open `/packages/barocss-cad-interop/examples/source-surface-control-net-three.html`.
+The served Source0 files are the actual complete originals and candidates. Apply
+the five edit cases, reopen the whole candidate, exercise the refusal controls,
+then dispose twice. The fixed camera permits direct original/candidate frame
+comparison; signed-zero and no-op edits preserve rendered geometry.
+
+This is source0 native editing and a Three.js display consumer. It does not certify
+geometric validity, topology, Solid status, manufacturing tolerance or editor
+display. Build/source/browser evidence is separate from compiled public entries,
+packed consumption, other engines and npm publication.

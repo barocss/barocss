@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Edit a complete native Surface source in Three.js</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 1040px; margin: 24px auto; padding: 0 16px; }
+  canvas { display: block; width: 1000px; height: 700px; border: 1px solid #44617d; }
+  button { margin: 8px 8px 8px 0; padding: 7px 10px; }
+  textarea { box-sizing: border-box; width: 100%; min-height: 280px; background: #15253a; color: #eaf4ff; font: 13px/1.5 monospace; }
+  pre { white-space: pre-wrap; }
+  table { border-collapse: collapse; width: 100%; } th, td { text-align: left; border-bottom: 1px solid #44617d; padding: 6px; }
+</style>
+<main>
+  <h1>Edit a complete native Surface source in Three.js</h1>
+  <p>The complete source retains its comments, Unicode, native siblings and degree-five Curve. Only Surface previews are displayed.
+    Native edits replace the selected Surface's original literals; the camera and all source poses stay fixed.</p>
+  <div id="view"></div>
+  <div>
+    <button id="run-refusals" disabled>Check 16 actual refusals</button>
+    <button id="apply-edit" disabled>Apply current native edit</button>
+    <button id="cold-reopen" disabled>Cold reopen the mixed candidate</button>
+  </div>
+  <div>
+    <button id="original-signed-zero" disabled>Load signed-zero original</button>
+    <button id="original-noop" disabled>Load no-op original</button>
+    <button id="original-maximum" disabled>Load maximum64 original</button>
+    <button id="original-cold-reedit" disabled>Load cold re-edit original</button>
+    <button id="dispose" disabled>Dispose twice</button>
+  </div>
+  <pre id="status">Loading all 25 unchanged producer files…</pre>
+  <pre id="readout">Complete source/native Model pending.</pre>
+  <table><thead><tr><th>Actual Surface</th><th>Independent pixels</th><th>RGBA hash</th></tr></thead><tbody id="surface-observations"></tbody></table>
+  <h2>Authoritative complete source</h2>
+  <textarea id="source-text" readonly spellcheck="false" aria-label="Authoritative complete original or candidate native source"></textarea>
+  <details><summary>Whole native edit and separate child proof</summary><pre id="full-proof"></pre></details>
+  <details><summary>Actual rejection receipts</summary><pre id="refusal-readout"></pre></details>
+</main>
+<script type="module" src="./source-surface-control-net-three.mjs"></script>
+</html>
