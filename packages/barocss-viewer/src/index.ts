@@ -12,7 +12,7 @@ import type { BaroCadModelSetLoadOptions, BaroCadModelSetManifest,
   BaroCadModelSetResult } from '@barocss/cad-interop/model-set';
 import { mountMeshScene, mountPrimitiveScene, mountPrimitiveSceneV1, mountPrimitiveSceneV2,
   mountPrimitiveViewport, PrimitiveSceneRenderer, PrimitiveSceneRendererV1,
-  PrimitiveSceneRendererV2, PrimitiveViewport, prepareMesh,
+  PrimitiveSceneRendererV2, PrimitiveViewport, PrimitiveSceneRecoveryError, prepareMesh,
   validateMeshCamera, validatePreviewPacket, mountBooleanShellScene, BooleanShellSceneRenderer,
   validateUniformCurvePreview, validateSelectedUniformCurvePreview, mountMixedDepthScene,
   MixedDepthRenderer, MixedDepthError, prepareMixedDepthFrame, mountQualifiedFaceScene,
@@ -673,6 +673,12 @@ export class Viewer {
   private primitiveScope(): void {
     this.nativeScope(); check(!this.mixedDepth, 'This primitive operation is unavailable in mixed depth mode');
   }
+  private primitiveResult(result: ReturnType<PrimitiveSceneRenderer['update']>): void {
+    if (result.ok) return;
+    if (!this.contextLost && result.error instanceof PrimitiveSceneRecoveryError && result.error.code === 'CONTEXT')
+      this.presentationUnavailable = true;
+    throw result.error;
+  }
   private mixedResult(result: ReturnType<MixedDepthRenderer['updateFrame']>): void {
     if (result.ok) return;
     if (!this.contextLost && result.error instanceof MixedDepthError && result.error.code === 'CONTEXT')
@@ -753,7 +759,7 @@ export class Viewer {
     if (packets.length + curves.length === 0) {
       if (this.renderer instanceof PrimitiveViewport) {
         const result = this.renderer.clear(options);
-        if (!result.ok) throw result.error;
+        this.primitiveResult(result);
       } else {
         const prior = this.renderer;
         try {
@@ -802,7 +808,7 @@ export class Viewer {
             ? this.renderer.updateFrame({ version: 0, scene: input, options,
               particles: particleLayer, materials } satisfies PrimitiveSceneFrameV0)
             : this.renderer.update(input, options, particleLayer);
-        if (!result.ok) throw result.error;
+        this.primitiveResult(result);
       } else {
         const prior = this.renderer;
         try {
@@ -840,7 +846,7 @@ export class Viewer {
         const input = { version: 1 as const, entries };
         if (this.renderer instanceof PrimitiveSceneRendererV1) {
           const result = this.renderer.update(input, options);
-          if (!result.ok) throw result.error;
+          this.primitiveResult(result);
         } else {
           const prior = this.renderer;
           try {
@@ -859,7 +865,7 @@ export class Viewer {
         ];
         if (this.renderer instanceof PrimitiveSceneRenderer) {
           const result = this.renderer.update(entries, options);
-          if (!result.ok) throw result.error;
+          this.primitiveResult(result);
         } else {
           const prior = this.renderer;
           try {
@@ -1414,7 +1420,7 @@ export class Viewer {
       check(this.renderer instanceof PrimitiveSceneRendererV2 || this.renderer instanceof PrimitiveViewport,
         'Cloth layer requires a qualified GPU scene');
       const result = this.renderer.setClothLayer(null);
-      if (!result.ok) throw result.error;
+      this.primitiveResult(result);
       this.clothFrame = null; this.clothLayer = null;
       return;
     }
@@ -1429,7 +1435,7 @@ export class Viewer {
     const candidate = prepareViewerClothFrame(input, this.options.mmToSceneUnit, this.clothFrame);
     if (candidate.unchanged) return;
     const result = this.renderer.setClothLayer(candidate.layer);
-    if (!result.ok) throw result.error;
+    this.primitiveResult(result);
     this.clothFrame = candidate.frame; this.clothLayer = candidate.layer;
   }
   setFluidFrame(input: ViewerFluidFrameV0 | null): void {
@@ -1444,7 +1450,7 @@ export class Viewer {
       check(this.renderer instanceof PrimitiveSceneRendererV2 || this.renderer instanceof PrimitiveViewport,
         'Fluid layer requires a qualified GPU scene');
       const result = this.renderer.setParticleLayer(null);
-      if (!result.ok) throw result.error;
+      this.primitiveResult(result);
       this.fluidFrame = null; this.particleLayer = null;
       return;
     }
@@ -1489,7 +1495,7 @@ export class Viewer {
       sceneRevision: data.sceneRevision, stepIndex: data.stepIndex,
       coordinateSystem: 'right-handed-y-up-scene-units', positions };
     const result = this.renderer.setParticleLayer(layer);
-    if (!result.ok) throw result.error;
+    this.primitiveResult(result);
     this.fluidFrame = { version: 0, contextId: data.contextId, sceneRevision: data.sceneRevision,
       stepIndex: data.stepIndex, particleCount: 256, positionsM };
     this.particleLayer = layer;
@@ -1509,7 +1515,7 @@ export class Viewer {
     check(this.renderer instanceof PrimitiveSceneRendererV2 || this.renderer instanceof PrimitiveViewport,
       'Surface material requires a qualified GPU scene');
     const result = this.renderer.setMaterial({ modelId: ref.modelId, geometryId: ref.surfaceId }, binding);
-    if (!result.ok) throw result.error;
+    this.primitiveResult(result);
     const accepted = this.renderer.materials;
     this.surfaceMaterials = this.packets.flatMap(entry => {
       const material = accepted.find(item => item.ref.modelId === entry.modelId
