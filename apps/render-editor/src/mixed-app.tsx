@@ -6,6 +6,7 @@ import {
   RENDER_MIXED_DOCUMENT_LIMITS,
   RenderMixedDocumentError,
   prepareRenderNativeSourceImport,
+  duplicateRenderMixedDocument,
 } from '@barocss/render-editor';
 import type { RenderMixedDocumentV1, RenderMixedSessionSnapshot } from '@barocss/render-editor';
 import { RenderMixedEditor } from '@barocss/render-editor/react';
@@ -18,7 +19,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { createNewMixedDocument, mixedFixtureDocuments } from './mixed-fixtures';
 
 type PendingAction = { label: string; execute: () => void; confirmUnsaved?: boolean; returnFocus?: () => HTMLElement | null };
-type ErrorOperation = 'open' | 'save' | 'edit' | 'history' | 'restore' | 'project' | 'importNative';
+type ErrorOperation = 'open' | 'save' | 'edit' | 'history' | 'restore' | 'project' | 'importNative' | 'duplicate';
 type AppErrorNotice = { error: Error; operation: ErrorOperation; copy: string; previewFailure: boolean };
 type NativeImportCandidate = ReturnType<typeof prepareRenderNativeSourceImport>;
 interface NativeImportState {
@@ -84,6 +85,11 @@ function errorCode(error: Error): string | null {
 
 function errorCopy(error: Error, operation: ErrorOperation, presentedRevision: number | null, previewFailure: boolean): string {
   const code = errorCode(error);
+  if (operation === 'duplicate') {
+    if (previewFailure && presentedRevision === null) return 'The scene could not be duplicated. Your original scene is kept. Cancel, restore the preview, then try Duplicate again.';
+    if (previewFailure) return 'The scene could not be duplicated. The previous scene is still shown. Try Duplicate again.';
+    return 'The scene could not be duplicated. Your original scene and drafts are kept. Try Duplicate again.';
+  }
   if (operation === 'importNative') {
     if (code === 'BYTES') return 'The CAD source file is too large. Choose a file of 64 KiB or less. Your scene and drafts are unchanged.';
     if (code === 'QUALIFICATION') return 'No usable Surface was selected. Choose a source file with a Surface and select it. Your scene and drafts are unchanged.';
@@ -144,6 +150,14 @@ function UnsavedSceneHelp() {
   return <div className="space-y-3 text-sm text-muted-foreground"><p>This scene has applied changes without a current opened or downloaded file copy. Before New, Open, a project change, or Source editor, resolve any drafts first.</p><p>Download copy starts a download of the applied scene and keeps this dialog open. Check the downloaded file. It does not continue the pending action. Choose Continue without downloading separately when you are ready.</p><p>Continue without downloading performs only the named action. It does not mark the old scene as downloaded. Cancel keeps the current scene, route, preview, and draft text and returns focus to the action you chose.</p><p>Projects stay in this tab. The browser leave warning still applies. This dialog does not provide recovery after a crash or an operating system failure.</p></div>;
 }
 
+function SourcePointHelp() {
+  return <div className="space-y-3 text-sm text-muted-foreground"><p>Choose the Surface row and open Source point. Enter U and V within the shown ranges, then Inspect. These are dimensionless knot parameters of the applied original Surface. They are not texture coordinates.</p><p>The result gives original X, Y, and Z in millimeters from the selected applied Surface. Pending native source, Surface selection, or display position is not queried. The displayed mesh is a sampled approximation. Inspect does not read pixels, pick geometry, project a point, or add a marker.</p><p>The query and its result stay local to this editor. An applied document change, including Apply, Undo, Redo, Open, or a project change, clears the previous result. Inspect does not change original source, references, history, camera, display, or saved file data.</p><p>Typing U and V does not create a scene draft or block Apply and File actions. Existing source, camera, and Surface position drafts still require their normal checks. Closing Help returns focus to Help and keeps all draft text.</p><p>Use a desktop workspace of at least 1000 × 760 CSS pixels. The right inspector has its own scroll area. Source Apply, File actions, and the Draft changes footer remain available at this size. Smaller layouts do not establish mobile support.</p></div>;
+}
+
+function DuplicateSceneHelp() {
+  return <div className="space-y-3 text-sm text-muted-foreground"><p>Duplicate scene creates a separate workspace scene from the applied document. Resolve drafts with Apply, Discard, or Cancel before choosing the copy title.</p><p>The copy has its own document ID, file name, and new history. It keeps both complete original sources, native model and Surface IDs, asset revision, camera, and display settings. Native identity is retained; it is not a new CAD model.</p><p>Enter a nonblank title of up to 128 characters. Unicode and whitespace stay as typed. Duplicate opens the copy only when its complete preview is accepted. The original stays in Workspace and can be edited separately.</p><p>Cancel keeps the current scene and returns focus to Duplicate scene. Save each scene to keep its own file. An invalid preview or a changed scene during the dialog refuses the copy. Cancel and reopen after a changed scene.</p></div>;
+}
+
 function createAppState() {
   const projects = createWorkspace();
   const initial = projects.find((project) => project.key === readProjectRoute()) ?? projects[0];
@@ -165,7 +179,7 @@ export function MixedApp() {
   const pendingRef = useRef<PendingAction | null>(null);
   const pendingReturnFocus = useRef<PendingAction['returnFocus']>(undefined);
   const [helpOpen, setHelpOpen] = useState(false);
-  const [helpTopic, setHelpTopic] = useState<'mixed' | 'native' | 'position' | 'inspector' | 'rename' | 'unsaved'>('mixed');
+  const [helpTopic, setHelpTopic] = useState<'mixed' | 'native' | 'position' | 'inspector' | 'rename' | 'unsaved' | 'point' | 'duplicate'>('mixed');
   const helpTrigger = useRef<HTMLButtonElement>(null);
   const [notice, setNotice] = useState('Select an object or edit the source. Apply changes to render.');
   const [error, setError] = useState<AppErrorNotice | null>(null);
@@ -254,6 +268,58 @@ export function MixedApp() {
     state.action.execute();
   }
 
+  const duplicateTrigger = useRef<HTMLButtonElement>(null);
+  const [duplicate, setDuplicate] = useState<RenameState | null>(null);
+  const duplicateRef = useRef<RenameState | null>(null);
+  const [rawDuplicateTitle, setRawDuplicateTitle] = useState('');
+  const [duplicateError, setDuplicateError] = useState<AppErrorNotice | null>(null);
+
+  function cancelDuplicate() {
+    duplicateRef.current = null;
+    setDuplicate(null);
+    setDuplicateError(null);
+  }
+
+  function startDuplicate() {
+    runGuarded({ label: 'duplicate the scene', confirmUnsaved: true, returnFocus: () => duplicateTrigger.current ?? fileTrigger.current, execute: () => {
+      const baseline = session.getSnapshot();
+      if (baseline.disposed || controller.getSnapshot().disposed) return;
+      const state = { baseline, projectKey: activeKeyRef.current, fileToken: fileReadToken.current, nativeToken: nativeReadToken.current, invalidated: false };
+      duplicateRef.current = state;
+      setDuplicate(state);
+      setRawDuplicateTitle(`${baseline.accepted.title} copy`);
+      setDuplicateError(null);
+    } });
+  }
+
+  function duplicateFailure(input: unknown, copy?: string) {
+    const cause = input instanceof Error ? input : new Error('The scene could not be duplicated.');
+    setDuplicateError({ error: cause, operation: 'duplicate', previewFailure: controller.getSnapshot().presentationError === cause,
+      copy: copy ?? errorCopy(cause, 'duplicate', controller.getSnapshot().presentedRevision, controller.getSnapshot().presentationError === cause) });
+  }
+
+  function confirmDuplicate() {
+    const state = duplicateRef.current;
+    if (!state) return;
+    if (state.invalidated || controller.getSnapshot().disposed || session.getSnapshot().disposed || session.getSnapshot() !== state.baseline || activeKeyRef.current !== state.projectKey || fileReadToken.current !== state.fileToken || nativeReadToken.current !== state.nativeToken) {
+      duplicateRef.current = { ...state, invalidated: true };
+      duplicateFailure(new Error('The duplicate snapshot or project is stale.'), 'The scene or draft changed. Cancel and reopen Duplicate scene. Your current scene and drafts are kept.');
+      return;
+    }
+    if (typeof rawDuplicateTitle !== 'string' || rawDuplicateTitle.trim().length === 0 || rawDuplicateTitle.length > 256 || [...rawDuplicateTitle].length > 128) return;
+    try {
+      const documentId = `scene_${crypto.randomUUID().replaceAll('-', '')}`;
+      if (projectsRef.current.some(project => project.document.documentId === documentId)) {
+        throw new RenderMixedDocumentError('INPUT', 'A workspace document already uses the new document ID.');
+      }
+      const copied = duplicateRenderMixedDocument(state.baseline.accepted, documentId, rawDuplicateTitle);
+      rememberAccepted();
+      if (!adopt(copied, 'local', cause => duplicateFailure(cause))) return;
+      cancelDuplicate();
+      setNotice('Scene duplicated. The original stays in Workspace. Save the copy to keep it.');
+    } catch (cause) { duplicateFailure(cause); }
+  }
+
   function cancelRename() {
     renameRef.current = null;
     setRename(null);
@@ -261,7 +327,7 @@ export function MixedApp() {
   }
 
   function startRename() {
-    if (busy || pending || nativeImportRef.current || renameRef.current || unsavedRef.current || controller.getSnapshot().disposed || session.getSnapshot().disposed) return;
+    if (busy || pendingRef.current || nativeImportRef.current || renameRef.current || unsavedRef.current || duplicateRef.current || controller.getSnapshot().disposed || session.getSnapshot().disposed) return;
     const baseline = session.getSnapshot();
     const state = { baseline, projectKey: activeKeyRef.current, fileToken: fileReadToken.current, nativeToken: nativeReadToken.current, invalidated: false };
     renameRef.current = state;
@@ -301,7 +367,7 @@ export function MixedApp() {
   }
 
   function startNativeImport() {
-    if (busy || pending || nativeImportRef.current || renameRef.current || unsavedRef.current) return;
+    if (busy || pendingRef.current || nativeImportRef.current || renameRef.current || unsavedRef.current || duplicateRef.current) return;
     const token = ++nativeReadToken.current;
     nativePickerBaseline.current = { token, baseline: session.getSnapshot(), projectKey: activeKeyRef.current };
     if (nativeInput.current) { nativeInput.current.value = ''; nativeInput.current.click(); }
@@ -317,7 +383,7 @@ export function MixedApp() {
   }
 
   async function acceptNativeFile(file: File) {
-    if (unsavedRef.current) return;
+    if (pendingRef.current || unsavedRef.current || duplicateRef.current) return;
     fileReadToken.current += 1;
     setBusy(false);
     const selected = nativePickerBaseline.current ?? { token: ++nativeReadToken.current, baseline: session.getSnapshot(), projectKey: activeKeyRef.current };
@@ -380,7 +446,7 @@ export function MixedApp() {
   }
 
   function runGuarded(action: PendingAction) {
-    if (busy || pendingRef.current || nativeImportRef.current || renameRef.current || unsavedRef.current) return;
+    if (busy || pendingRef.current || nativeImportRef.current || renameRef.current || unsavedRef.current || duplicateRef.current) return;
     const current = session.getSnapshot();
     if (current.dirty) { setError(null); setPendingAction(action); }
     else afterDrafts(action);
@@ -403,9 +469,9 @@ export function MixedApp() {
     runGuarded({ label: 'switch project', confirmUnsaved: true, returnFocus: () => projectTriggers.current.get(key) ?? fileTrigger.current, execute: () => { rememberAccepted(); activate(key); } });
   }
 
-  function adopt(document: RenderMixedDocumentV1, origin: WorkspaceProject['origin']) {
+  function adopt(document: RenderMixedDocumentV1, origin: WorkspaceProject['origin'], onRefusal?: (error: RenderMixedDocumentError) => void): boolean {
     const result = controller.open(serializeRenderMixedDocument(document));
-    if (!result.ok) { report(result.error, origin === 'file' ? 'open' : 'project'); return; }
+    if (!result.ok) { if (onRefusal) onRefusal(result.error); else report(result.error, origin === 'file' ? 'open' : 'project'); return false; }
     const key = `${document.documentId}-${crypto.randomUUID().slice(0, 8)}`;
     updateProjects([...projectsRef.current, { key, document, origin, savedRevision: origin === 'file' ? document.revision : null }]);
     activeKeyRef.current = key;
@@ -413,6 +479,7 @@ export function MixedApp() {
     replaceProjectRoute(key);
     setError(null);
     setNotice(origin === 'file' ? `Opened ${document.title} from file.` : 'Created a mixed scene from the Sphere and Surface profile.');
+    return true;
   }
 
   function newDocument() {
@@ -427,7 +494,7 @@ export function MixedApp() {
   }
 
   async function acceptFile(file: File) {
-    if (unsavedRef.current) return;
+    if (pendingRef.current || unsavedRef.current || duplicateRef.current) return;
     nativeReadToken.current += 1;
     if (nativeImportRef.current?.reading) {
       setImportState({ ...nativeImportRef.current, reading: false });
@@ -468,7 +535,7 @@ export function MixedApp() {
   function saveFile() { runGuarded({ label: 'save the file', returnFocus: () => fileTrigger.current, execute: saveAccepted }); }
 
   function history(direction: 'undo' | 'redo') {
-    if (unsavedRef.current) return;
+    if (pendingRef.current || unsavedRef.current || duplicateRef.current) return;
     const result = controller[direction]();
     if (!result.ok) report(result.error, 'history');
     else { setError(null); setNotice(direction === 'undo' ? 'Undo applied to the viewport.' : 'Redo applied to the viewport.'); }
@@ -528,6 +595,10 @@ export function MixedApp() {
         unsavedRef.current = { ...unsavedRef.current, invalidated: true };
         unsavedFailure(new Error('Project navigation invalidated the unsaved action.'), 'Project navigation changed. Cancel and choose the action again. Your current scene is kept.');
       }
+      if (duplicateRef.current) {
+        duplicateRef.current = { ...duplicateRef.current, invalidated: true };
+        duplicateFailure(new Error('Project navigation invalidated the duplicate dialog.'), 'Project navigation changed. Cancel and reopen Duplicate scene. Your current scene and drafts are kept.');
+      }
       if (renameRef.current) {
         renameRef.current = { ...renameRef.current, invalidated: true };
         setRenameError('Project navigation changed during rename. Cancel and try Rename scene again. Your current drafts are kept.');
@@ -545,7 +616,7 @@ export function MixedApp() {
     };
     const keyPressed = (event: KeyboardEvent) => {
       const target = event.target;
-      if (event.isComposing || event.defaultPrevented || pending || busy || nativeImportRef.current || renameRef.current || unsavedRef.current || !(event.metaKey || event.ctrlKey)) return;
+      if (event.isComposing || event.defaultPrevented || pendingRef.current || busy || nativeImportRef.current || renameRef.current || unsavedRef.current || duplicateRef.current || !(event.metaKey || event.ctrlKey)) return;
       if (target instanceof HTMLElement && (target.closest('input, textarea, select, [contenteditable="true"], [role="textbox"]'))) return;
       const key = event.key.toLowerCase();
       if (!['n', 'o', 's', 'z'].includes(key) || event.altKey) return;
@@ -573,7 +644,8 @@ export function MixedApp() {
   const activeProject = projects.find((project) => project.key === activeKey);
   const dirty = snapshot.dirty;
   const downloaded = activeProject?.savedRevision === snapshot.accepted.revision;
-  const actionDisabled = busy || pending !== null || nativeImport !== null || rename !== null || unsaved !== null;
+  const actionDisabled = busy || pending !== null || nativeImport !== null || rename !== null || unsaved !== null || duplicate !== null;
+  const duplicateTitleError = rawDuplicateTitle.trim().length === 0 ? 'Enter a nonblank title.' : rawDuplicateTitle.length > 256 || [...rawDuplicateTitle].length > 128 ? 'Use a title of 128 characters or fewer.' : null;
   const titleDirty = snapshot.draft.title !== snapshot.accepted.title;
   const titleValidationError = rawTitle.trim().length === 0 ? 'Enter a nonblank title.' : rawTitle.length > 256 || [...rawTitle].length > 128 ? 'Use a title of 128 characters or fewer.' : null;
   const titleError = renameError ?? titleValidationError;
@@ -594,6 +666,7 @@ export function MixedApp() {
         <Menubar className="app-menubar" aria-label="Application menu">
           <MenubarMenu><MenubarTrigger ref={fileTrigger}>File</MenubarTrigger><MenubarContent>
             <MenubarItem data-testid="menu-new" disabled={actionDisabled} onSelect={newDocument}><FilePlus2 />New mixed scene<MenubarShortcut>⌘N</MenubarShortcut></MenubarItem>
+            <MenubarItem disabled={actionDisabled} onSelect={startDuplicate}>Duplicate scene</MenubarItem>
             <MenubarItem data-testid="menu-open" disabled={actionDisabled} onSelect={openFile}><FolderOpen />Open file…<MenubarShortcut>⌘O</MenubarShortcut></MenubarItem>
             <MenubarItem disabled={actionDisabled} onSelect={startNativeImport}>Import CAD source</MenubarItem>
             <MenubarSeparator />
@@ -609,7 +682,7 @@ export function MixedApp() {
           <MenubarMenu><MenubarTrigger>Workspace</MenubarTrigger><MenubarContent>
             {projects.map((project) => <MenubarItem key={project.key} disabled={actionDisabled} onSelect={() => switchProject(project.key)}>{project.document.title}</MenubarItem>)}
           </MenubarContent></MenubarMenu>
-          <MenubarMenu><MenubarTrigger ref={helpTrigger}>Help</MenubarTrigger><MenubarContent><MenubarItem onSelect={() => { setHelpTopic('mixed'); setHelpOpen(true); }}>Mixed scene editing</MenubarItem><MenubarItem onSelect={() => { setHelpTopic('native'); setHelpOpen(true); }}>Native source import</MenubarItem><MenubarItem onSelect={() => { setHelpTopic('position'); setHelpOpen(true); }}>Surface position</MenubarItem><MenubarItem onSelect={() => { setHelpTopic('inspector'); setHelpOpen(true); }}>Object inspector</MenubarItem><MenubarItem onSelect={() => { setHelpTopic('rename'); setHelpOpen(true); }}>Rename scene</MenubarItem><MenubarItem onSelect={() => { setHelpTopic('unsaved'); setHelpOpen(true); }}>Unsaved scene</MenubarItem></MenubarContent></MenubarMenu>
+          <MenubarMenu><MenubarTrigger ref={helpTrigger}>Help</MenubarTrigger><MenubarContent><MenubarItem onSelect={() => { setHelpTopic('mixed'); setHelpOpen(true); }}>Mixed scene editing</MenubarItem><MenubarItem onSelect={() => { setHelpTopic('native'); setHelpOpen(true); }}>Native source import</MenubarItem><MenubarItem onSelect={() => { setHelpTopic('position'); setHelpOpen(true); }}>Surface position</MenubarItem><MenubarItem onSelect={() => { setHelpTopic('inspector'); setHelpOpen(true); }}>Object inspector</MenubarItem><MenubarItem onSelect={() => { setHelpTopic('rename'); setHelpOpen(true); }}>Rename scene</MenubarItem><MenubarItem onSelect={() => { setHelpTopic('unsaved'); setHelpOpen(true); }}>Unsaved scene</MenubarItem><MenubarItem onSelect={() => { setHelpTopic('point'); setHelpOpen(true); }}>Source point</MenubarItem><MenubarItem onSelect={() => { setHelpTopic('duplicate'); setHelpOpen(true); }}>Duplicate scene</MenubarItem></MenubarContent></MenubarMenu>
         </Menubar>
         <div className="app-topbar-spacer" />
         <Button size="sm" variant="ghost" asChild><a ref={sourceTrigger} href="/index.html" onClick={event => {
@@ -617,7 +690,8 @@ export function MixedApp() {
           event.preventDefault();
           runGuarded({ label: 'open Source editor', confirmUnsaved: true, returnFocus: () => sourceTrigger.current ?? fileTrigger.current, execute: () => window.location.assign('/index.html') });
         }}>Source editor</a></Button>
-        <Button ref={nativeImportTrigger} size="sm" variant="ghost" disabled={busy || pending !== null || rename !== null || unsaved !== null} onClick={startNativeImport} data-testid="import-native-source">Import CAD source</Button>
+        <Button ref={duplicateTrigger} size="sm" variant="ghost" disabled={duplicate === null && (busy || pending !== null || nativeImport !== null || rename !== null || unsaved !== null)} onClick={startDuplicate} data-testid="duplicate-scene">Duplicate scene</Button>
+        <Button ref={nativeImportTrigger} size="sm" variant="ghost" disabled={busy || pending !== null || rename !== null || unsaved !== null || duplicate !== null} onClick={startNativeImport} data-testid="import-native-source">Import CAD source</Button>
         <Button ref={openTrigger} size="sm" variant="ghost" disabled={actionDisabled} onClick={openFile} data-testid="open-file"><FolderOpen />Open</Button>
         <Button size="sm" variant="secondary" disabled={actionDisabled} onClick={saveFile} data-testid="save-file"><Save />Save</Button>
       </header>
@@ -635,10 +709,10 @@ export function MixedApp() {
 
         <section className="app-workspace" aria-label="Mixed scene editor" aria-busy={busy}>
           <div className="app-document-bar"><div><span className="app-eyebrow">Mixed scene</span><h1 data-testid="document-title">{snapshot.accepted.title}</h1></div><span className="app-document-state" data-testid={titleDirty ? 'draft-title' : undefined}>{titleDirty ? `Title draft: ${snapshot.draft.title}` : dirty ? 'Draft changes' : activeProject?.origin === 'example' && downloaded ? 'Example' : downloaded ? 'File opened / downloaded' : 'Not downloaded'}</span>
-            <Button ref={renameTrigger} size="sm" variant="ghost" disabled={rename === null && (busy || pending !== null || nativeImport !== null || unsaved !== null)} onClick={startRename} data-testid="rename-scene">Rename scene</Button>
+            <Button ref={renameTrigger} size="sm" variant="ghost" disabled={rename === null && (busy || pending !== null || nativeImport !== null || unsaved !== null || duplicate !== null)} onClick={startRename} data-testid="rename-scene">Rename scene</Button>
             <div className="app-history"><Button variant="ghost" size="icon-sm" aria-label="Undo" disabled={!snapshot.canUndo || actionDisabled} onClick={() => history('undo')}><Undo2 /></Button><Button variant="ghost" size="icon-sm" aria-label="Redo" disabled={!snapshot.canRedo || actionDisabled} onClick={() => history('redo')}><Redo2 /></Button></div>
           </div>
-          {error && !pending && !nativeImport && !rename && !unsaved ? <div className="app-error" role="alert" data-testid="app-error"><div><p>{error.copy}</p><AppErrorDetails key={error.error.message} notice={error} /></div><button aria-label="Dismiss error" onClick={() => setError(null)}>×</button></div> : null}
+          {error && !pending && !nativeImport && !rename && !unsaved && !duplicate ? <div className="app-error" role="alert" data-testid="app-error"><div><p>{error.copy}</p><AppErrorDetails key={error.error.message} notice={error} /></div><button aria-label="Dismiss error" onClick={() => setError(null)}>×</button></div> : null}
           <RenderMixedEditor controller={controller} onError={(error: RenderMixedDocumentError) => {
             if (controller.getSnapshot().presentationError === error || session.getSnapshot().diagnostics === error) { setError(notice => notice && ['edit', 'history', 'restore'].includes(notice.operation) ? null : notice); return; }
             report(error, 'edit');
@@ -650,7 +724,7 @@ export function MixedApp() {
         <span className={`app-status-dot ${previewRefused ? previewUnavailable ? 'has-error' : 'has-warning' : ''}`} />
         <span data-testid="app-status">{busy ? 'Reading file…' : previewRefused || previewUnavailable || presentation.disposed ? previewStatus : notice}</span>
         <span className="app-status-spacer" />
-        {canRestorePreview ? <Button variant="ghost" size="xs" onClick={() => { if (unsavedRef.current) return; const result = controller.recover(); if (!result.ok) report(result.error, 'restore'); }}><RotateCcw />Restore preview</Button> : null}
+        {canRestorePreview ? <Button variant="ghost" size="xs" onClick={() => { if (pendingRef.current || unsavedRef.current || duplicateRef.current) return; const result = controller.recover(); if (!result.ok) report(result.error, 'restore'); }}><RotateCcw />Restore preview</Button> : null}
         <span data-testid="accepted-revision" data-revision={snapshot.accepted.revision}>{dirty ? 'Draft changes' : 'Applied'}</span>
         <span data-testid="presented-revision" data-revision={presentation.presentedRevision ?? 'none'}>{previewStatus}</span>
         <span>{snapshot.prepared.metadata.nativeObjects.length} native objects</span>
@@ -697,6 +771,18 @@ export function MixedApp() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={duplicate !== null} onOpenChange={open => { if (!open) cancelDuplicate(); }}>
+        <DialogContent showCloseButton={false} data-testid="duplicate-dialog" onCloseAutoFocus={event => { event.preventDefault(); duplicateTrigger.current?.focus(); }}><DialogHeader>
+          <DialogTitle>Duplicate scene</DialogTitle>
+          <DialogDescription>Create a separate scene from the applied document. The original stays in Workspace.</DialogDescription>
+        </DialogHeader>
+        <label className="flex flex-col gap-2 text-sm"><span>Title</span><input type="text" aria-label="Title" data-testid="duplicate-title" className="rounded-md border border-input bg-background p-2" value={rawDuplicateTitle} aria-invalid={duplicateError !== null || duplicateTitleError !== null} aria-describedby={duplicateError || duplicateTitleError ? 'duplicate-error' : undefined} onChange={event => { setRawDuplicateTitle(event.currentTarget.value); if (!duplicateRef.current?.invalidated) setDuplicateError(null); }} /></label>
+        {duplicateError ? <div id="duplicate-error" role="alert" data-testid="duplicate-error" className="app-dialog-error"><p>{duplicateError.copy}</p><AppErrorDetails key={duplicateError.error.message} notice={duplicateError} /></div> : duplicateTitleError ? <p id="duplicate-error" role="alert" data-testid="duplicate-error" className="app-dialog-error">{duplicateTitleError}</p> : null}
+        <details><summary className="cursor-pointer text-sm">Help</summary><div className="mt-3"><DuplicateSceneHelp /></div></details>
+        <DialogFooter><Button variant="ghost" onClick={cancelDuplicate} data-testid="duplicate-cancel">Cancel</Button><Button disabled={duplicateTitleError !== null || duplicateRef.current?.invalidated === true} onClick={confirmDuplicate} data-testid="duplicate-confirm">Duplicate</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={unsaved !== null} onOpenChange={open => { if (!open) closeUnsaved(); }}>
         <DialogContent showCloseButton={false} data-testid="unsaved-dialog" onCloseAutoFocus={event => { event.preventDefault(); unsavedReturnFocus.current?.()?.focus(); }}><DialogHeader>
           <DialogTitle>Unsaved scene</DialogTitle>
@@ -710,7 +796,7 @@ export function MixedApp() {
       </Dialog>
 
       <Dialog open={pending !== null} onOpenChange={(open) => { if (!open) setPendingAction(null); }}>
-        <DialogContent showCloseButton={false} data-testid="draft-dialog" onCloseAutoFocus={event => { event.preventDefault(); if (!unsavedRef.current) pendingReturnFocus.current?.()?.focus(); }}><DialogHeader>
+        <DialogContent showCloseButton={false} data-testid="draft-dialog" onCloseAutoFocus={event => { event.preventDefault(); if (!unsavedRef.current && !duplicateRef.current) pendingReturnFocus.current?.()?.focus(); }}><DialogHeader>
           <DialogTitle>Resolve draft changes</DialogTitle>
           <DialogDescription>Apply or discard your title, source, camera, and display drafts before you {pending?.label}. Apply must succeed in the preview to continue. Cancel keeps the draft.</DialogDescription>
         </DialogHeader>{error ? <div role="alert" className="app-dialog-error" data-testid="app-error"><p>{error.copy}</p><AppErrorDetails key={error.error.message} notice={error} /></div> : null}<DialogFooter>
@@ -719,7 +805,7 @@ export function MixedApp() {
           <Button onClick={applyPending} data-testid="draft-apply">Apply and continue</Button>
         </DialogFooter></DialogContent>
       </Dialog>
-      <Dialog open={helpOpen} onOpenChange={setHelpOpen}><DialogContent onCloseAutoFocus={event => { event.preventDefault(); helpTrigger.current?.focus(); }}><DialogHeader><DialogTitle>{helpTopic === 'native' ? 'Native source import' : helpTopic === 'position' ? 'Surface position' : helpTopic === 'inspector' ? 'Object inspector' : helpTopic === 'rename' ? 'Rename scene' : helpTopic === 'unsaved' ? 'Unsaved scene' : 'Mixed scene editing'}</DialogTitle><DialogDescription>{helpTopic === 'native' ? 'Choose an original CAD source and a Surface, then stage it for Apply.' : helpTopic === 'position' ? 'Place the displayed Surface without changing the original CAD source.' : helpTopic === 'inspector' ? 'Choose an object row to show its editing controls.' : helpTopic === 'rename' ? 'Change the scene label, then Apply the complete draft.' : helpTopic === 'unsaved' ? 'Keep a file copy before you leave the applied scene.' : 'Edit either original source, the camera, or the display settings. Apply updates the complete preview together.'}</DialogDescription></DialogHeader>{helpTopic === 'native' ? <NativeImportHelp /> : helpTopic === 'position' ? <SurfacePositionHelp /> : helpTopic === 'inspector' ? <ObjectInspectorHelp /> : helpTopic === 'rename' ? <RenameSceneHelp /> : helpTopic === 'unsaved' ? <UnsavedSceneHelp /> : <div className="space-y-3 text-sm text-muted-foreground"><p>This profile displays one scene Sphere and one selected native Surface with shared depth. Other native objects stay in the original source and inventory. Curves are kept in the file and are not drawn in this preview.</p><p>The native source uses millimeters. Display conversion and translation place it in scene units. Camera field of view uses degrees. Native display settings do not change the original control points, weights, or UV definition.</p><p>New starts from a valid Sphere and Surface sample. Workspace contains two source pairs. Use Source editor for the broader scene object editor and its version 0 files.</p><p>Save downloads accepted version 1 mixed JSON, including both original sources, selected model and Surface, camera, and display values. Open accepts mixed scene files up to 512 KiB, with each source no larger than 64 KiB.</p><p>Projects stay in this tab. Save a file before closing. Downloads depend on browser settings; check the downloaded file. CAD materials, Physics, precise picking, and additional mixed shapes are outside this profile.</p></div>}</DialogContent></Dialog>
+      <Dialog open={helpOpen} onOpenChange={setHelpOpen}><DialogContent onCloseAutoFocus={event => { event.preventDefault(); helpTrigger.current?.focus(); }}><DialogHeader><DialogTitle>{helpTopic === 'native' ? 'Native source import' : helpTopic === 'position' ? 'Surface position' : helpTopic === 'inspector' ? 'Object inspector' : helpTopic === 'rename' ? 'Rename scene' : helpTopic === 'unsaved' ? 'Unsaved scene' : helpTopic === 'point' ? 'Source point' : helpTopic === 'duplicate' ? 'Duplicate scene' : 'Mixed scene editing'}</DialogTitle><DialogDescription>{helpTopic === 'native' ? 'Choose an original CAD source and a Surface, then stage it for Apply.' : helpTopic === 'position' ? 'Place the displayed Surface without changing the original CAD source.' : helpTopic === 'inspector' ? 'Choose an object row to show its editing controls.' : helpTopic === 'rename' ? 'Change the scene label, then Apply the complete draft.' : helpTopic === 'unsaved' ? 'Keep a file copy before you leave the applied scene.' : helpTopic === 'point' ? 'Inspect the applied Surface at its original U and V parameters.' : helpTopic === 'duplicate' ? 'Create an independent workspace scene from the applied document.' : 'Edit either original source, the camera, or the display settings. Apply updates the complete preview together.'}</DialogDescription></DialogHeader>{helpTopic === 'native' ? <NativeImportHelp /> : helpTopic === 'position' ? <SurfacePositionHelp /> : helpTopic === 'inspector' ? <ObjectInspectorHelp /> : helpTopic === 'rename' ? <RenameSceneHelp /> : helpTopic === 'unsaved' ? <UnsavedSceneHelp /> : helpTopic === 'point' ? <SourcePointHelp /> : helpTopic === 'duplicate' ? <DuplicateSceneHelp /> : <div className="space-y-3 text-sm text-muted-foreground"><p>This profile displays one scene Sphere and one selected native Surface with shared depth. Other native objects stay in the original source and inventory. Curves are kept in the file and are not drawn in this preview.</p><p>The native source uses millimeters. Display conversion and translation place it in scene units. Camera field of view uses degrees. Native display settings do not change the original control points, weights, or UV definition.</p><p>New starts from a valid Sphere and Surface sample. Workspace contains two source pairs. Use Source editor for the broader scene object editor and its version 0 files.</p><p>Save downloads accepted version 1 mixed JSON, including both original sources, selected model and Surface, camera, and display values. Open accepts mixed scene files up to 512 KiB, with each source no larger than 64 KiB.</p><p>Projects stay in this tab. Save a file before closing. Downloads depend on browser settings; check the downloaded file. CAD materials, Physics, precise picking, and additional mixed shapes are outside this profile.</p></div>}</DialogContent></Dialog>
     </main>
   );
 }
