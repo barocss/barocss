@@ -1,0 +1,13 @@
+{
+  "issue": 1065,
+  "actualParent": "b097ba52ab6c27e6698816c8949c86dd0a9f4540",
+  "mainCleanMeasuredHead": "b65b6c750ec90d5c4aa8f4df35664f9890c20712",
+  "rawReadbackCleanHead": "a07a6692dc0ca1a0933fd67305ddcaa04ea651f9",
+  "mainToRawDelta": "TEST-only transparent readback capture/driver/independent decoder; app/controller/frame/clock/geometry/camera/source unchanged",
+  "noOwnPackageChanges": true,
+  "nativeGO": true,
+  "integrationAdoption": "pending",
+  "scope": "examples/physics-character-viewer/** only",
+  "gpuCompletionOrFPS": false,
+  "currentIntegrationValidation": "pending under674"
+}

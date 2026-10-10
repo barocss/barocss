@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "independentStdlib": true,
+  "rows": [
+    {
+      "mode": "source",
+      "scenes": 8,
+      "states": 1687,
+      "pixelFiles": 106,
+      "costTrials": 21
+    },
+    {
+      "mode": "compiled",
+      "scenes": 8,
+      "states": 1687,
+      "pixelFiles": 106,
+      "costTrials": 21
+    }
+  ],
+  "exactCrossGraphPixels": true
+}

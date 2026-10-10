@@ -1,0 +1,3537 @@
+{
+  "passed": true,
+  "node": "v22.22.0",
+  "scenes": [
+    {
+      "name": "REST",
+      "states": 241,
+      "geometry": {
+        "passed": true,
+        "checks": [
+          {
+            "name": "object-cap",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "unique-refs",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "unique-surface-ids",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-unit-normals",
+            "passed": true,
+            "detail": 2.220446049250313e-16
+          },
+          {
+            "name": "packet-0-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-unit-normals",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "packet-1-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "aggregate-gpu-cap",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-F32-mm-error",
+            "passed": true,
+            "detail": 0.00001337858492433952
+          },
+          {
+            "name": "capsule-identity-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-exact-extents",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-analytic-surface",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-poles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-16-by-24-rings-closed-seam",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-closed-oriented-topology",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-complete-ledger",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-identity",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-native-model",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-six-roles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-0-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-1-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-2-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-3-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-4-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-5-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-analytic-normals",
+            "passed": true,
+            "detail": 0
+          }
+        ],
+        "metrics": {
+          "maxF32ComponentErrorMM": 0.00001337858492433952,
+          "maxCapsuleF32ComponentErrorMM": 0.00001337858492433952,
+          "maxNormalLengthError": 2.220446049250313e-16,
+          "maxCapsuleRadiusErrorMM": 5.684341886080802e-14,
+          "maxCapsuleAnalyticNormalError": 2.237726045655905e-16,
+          "maxTerrainCornerErrorMM": 0,
+          "maxTerrainNormalError": 0,
+          "capsuleEdgeCount": 1152,
+          "totalVertices": 410,
+          "totalIndices": 2340
+        }
+      }
+    },
+    {
+      "name": "FLAT",
+      "states": 241,
+      "geometry": {
+        "passed": true,
+        "checks": [
+          {
+            "name": "object-cap",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "unique-refs",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "unique-surface-ids",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-unit-normals",
+            "passed": true,
+            "detail": 2.220446049250313e-16
+          },
+          {
+            "name": "packet-0-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-unit-normals",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "packet-1-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "aggregate-gpu-cap",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-F32-mm-error",
+            "passed": true,
+            "detail": 0.00001337858492433952
+          },
+          {
+            "name": "capsule-identity-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-exact-extents",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-analytic-surface",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-poles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-16-by-24-rings-closed-seam",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-closed-oriented-topology",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-complete-ledger",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-identity",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-native-model",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-six-roles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-0-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-1-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-2-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-3-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-4-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-5-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-analytic-normals",
+            "passed": true,
+            "detail": 0
+          }
+        ],
+        "metrics": {
+          "maxF32ComponentErrorMM": 0.00001337858492433952,
+          "maxCapsuleF32ComponentErrorMM": 0.00001337858492433952,
+          "maxNormalLengthError": 2.220446049250313e-16,
+          "maxCapsuleRadiusErrorMM": 5.684341886080802e-14,
+          "maxCapsuleAnalyticNormalError": 2.237726045655905e-16,
+          "maxTerrainCornerErrorMM": 0,
+          "maxTerrainNormalError": 0,
+          "capsuleEdgeCount": 1152,
+          "totalVertices": 410,
+          "totalIndices": 2340
+        }
+      }
+    },
+    {
+      "name": "STEP10",
+      "states": 241,
+      "geometry": {
+        "passed": true,
+        "checks": [
+          {
+            "name": "object-cap",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "unique-refs",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "unique-surface-ids",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-unit-normals",
+            "passed": true,
+            "detail": 2.220446049250313e-16
+          },
+          {
+            "name": "packet-0-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-unit-normals",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "packet-1-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-unit-normals",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "packet-2-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "aggregate-gpu-cap",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-F32-mm-error",
+            "passed": true,
+            "detail": 0.00001337858492433952
+          },
+          {
+            "name": "capsule-identity-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-exact-extents",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-analytic-surface",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-poles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-16-by-24-rings-closed-seam",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-closed-oriented-topology",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-complete-ledger",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-identity",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-native-model",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-six-roles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-0-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-1-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-2-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-3-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-4-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-5-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-identity",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-native-model",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-six-roles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-0-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-0-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-0-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-0-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-0-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-1-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-1-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-1-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-1-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-1-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-2-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-2-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-2-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-2-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-2-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-3-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-3-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-3-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-3-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-3-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-4-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-4-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-4-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-4-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-4-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-5-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-5-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-5-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-5-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-5-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-analytic-normals",
+            "passed": true,
+            "detail": 0
+          }
+        ],
+        "metrics": {
+          "maxF32ComponentErrorMM": 0.00001337858492433952,
+          "maxCapsuleF32ComponentErrorMM": 0.00001337858492433952,
+          "maxNormalLengthError": 2.220446049250313e-16,
+          "maxCapsuleRadiusErrorMM": 5.684341886080802e-14,
+          "maxCapsuleAnalyticNormalError": 2.237726045655905e-16,
+          "maxTerrainCornerErrorMM": 0,
+          "maxTerrainNormalError": 0,
+          "capsuleEdgeCount": 1152,
+          "totalVertices": 434,
+          "totalIndices": 2376
+        }
+      }
+    },
+    {
+      "name": "SLOPE15",
+      "states": 241,
+      "geometry": {
+        "passed": true,
+        "checks": [
+          {
+            "name": "object-cap",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "unique-refs",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "unique-surface-ids",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-unit-normals",
+            "passed": true,
+            "detail": 2.220446049250313e-16
+          },
+          {
+            "name": "packet-0-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-unit-normals",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "packet-1-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "aggregate-gpu-cap",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-F32-mm-error",
+            "passed": true,
+            "detail": 0.00001337858492433952
+          },
+          {
+            "name": "capsule-identity-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-exact-extents",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-analytic-surface",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-poles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-16-by-24-rings-closed-seam",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-closed-oriented-topology",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-complete-ledger",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-identity",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-native-model",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-six-roles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-corners",
+            "passed": true,
+            "detail": 9.97597952322408e-13
+          },
+          {
+            "name": "terrain-0-face-0-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-corners",
+            "passed": true,
+            "detail": 4.099037227506403e-13
+          },
+          {
+            "name": "terrain-0-face-1-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-corners",
+            "passed": true,
+            "detail": 4.099037227506403e-13
+          },
+          {
+            "name": "terrain-0-face-2-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-corners",
+            "passed": true,
+            "detail": 9.97597952322408e-13
+          },
+          {
+            "name": "terrain-0-face-3-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-corners",
+            "passed": true,
+            "detail": 9.97597952322408e-13
+          },
+          {
+            "name": "terrain-0-face-4-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-corners",
+            "passed": true,
+            "detail": 9.97597952322408e-13
+          },
+          {
+            "name": "terrain-0-face-5-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-analytic-normals",
+            "passed": true,
+            "detail": 6.920217021535903e-15
+          }
+        ],
+        "metrics": {
+          "maxF32ComponentErrorMM": 0.00010902342000917997,
+          "maxCapsuleF32ComponentErrorMM": 0.00001337858492433952,
+          "maxNormalLengthError": 2.220446049250313e-16,
+          "maxCapsuleRadiusErrorMM": 5.684341886080802e-14,
+          "maxCapsuleAnalyticNormalError": 2.237726045655905e-16,
+          "maxTerrainCornerErrorMM": 9.97597952322408e-13,
+          "maxTerrainNormalError": 6.920217021535903e-15,
+          "capsuleEdgeCount": 1152,
+          "totalVertices": 410,
+          "totalIndices": 2340
+        }
+      }
+    },
+    {
+      "name": "HEADROOM",
+      "states": 241,
+      "geometry": {
+        "passed": true,
+        "checks": [
+          {
+            "name": "object-cap",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "unique-refs",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "unique-surface-ids",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-unit-normals",
+            "passed": true,
+            "detail": 2.220446049250313e-16
+          },
+          {
+            "name": "packet-0-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-unit-normals",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "packet-1-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-unit-normals",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "packet-2-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-3-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-3-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-3-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-3-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-3-unit-normals",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "packet-3-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "aggregate-gpu-cap",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-F32-mm-error",
+            "passed": true,
+            "detail": 0.00001337858492433952
+          },
+          {
+            "name": "capsule-identity-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-exact-extents",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-analytic-surface",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-poles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-16-by-24-rings-closed-seam",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-closed-oriented-topology",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-complete-ledger",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-identity",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-native-model",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-six-roles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-0-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-1-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-2-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-3-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-4-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-5-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-identity",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-native-model",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-six-roles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-0-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-0-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-0-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-0-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-0-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-1-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-1-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-1-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-1-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-1-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-2-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-2-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-2-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-2-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-2-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-3-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-3-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-3-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-3-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-3-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-4-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-4-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-4-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-4-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-4-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-5-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-5-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-5-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-5-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-5-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-identity",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-native-model",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-six-roles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-0-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-0-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-2-face-0-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-0-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-0-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-1-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-1-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-2-face-1-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-1-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-1-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-2-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-2-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-2-face-2-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-2-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-2-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-3-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-3-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-2-face-3-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-3-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-3-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-4-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-4-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-2-face-4-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-4-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-4-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-5-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-5-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-2-face-5-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-5-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-2-face-5-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-analytic-normals",
+            "passed": true,
+            "detail": 0
+          }
+        ],
+        "metrics": {
+          "maxF32ComponentErrorMM": 0.00001337858492433952,
+          "maxCapsuleF32ComponentErrorMM": 0.00001337858492433952,
+          "maxNormalLengthError": 2.220446049250313e-16,
+          "maxCapsuleRadiusErrorMM": 5.684341886080802e-14,
+          "maxCapsuleAnalyticNormalError": 2.237726045655905e-16,
+          "maxTerrainCornerErrorMM": 0,
+          "maxTerrainNormalError": 0,
+          "capsuleEdgeCount": 1152,
+          "totalVertices": 458,
+          "totalIndices": 2412
+        }
+      }
+    },
+    {
+      "name": "TOO_HIGH15",
+      "states": 241,
+      "geometry": {
+        "passed": true,
+        "checks": [
+          {
+            "name": "object-cap",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "unique-refs",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "unique-surface-ids",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-unit-normals",
+            "passed": true,
+            "detail": 2.220446049250313e-16
+          },
+          {
+            "name": "packet-0-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-unit-normals",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "packet-1-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-unit-normals",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "packet-2-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "aggregate-gpu-cap",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-F32-mm-error",
+            "passed": true,
+            "detail": 0.00001337858492433952
+          },
+          {
+            "name": "capsule-identity-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-exact-extents",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-analytic-surface",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-poles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-16-by-24-rings-closed-seam",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-closed-oriented-topology",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-complete-ledger",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-identity",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-native-model",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-six-roles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-0-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-1-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-2-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-3-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-4-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-5-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-identity",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-native-model",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-six-roles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-0-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-0-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-0-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-0-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-0-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-1-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-1-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-1-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-1-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-1-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-2-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-2-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-2-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-2-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-2-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-3-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-3-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-3-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-3-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-3-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-4-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-4-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-4-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-4-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-4-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-5-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-5-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-5-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-5-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-5-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-analytic-normals",
+            "passed": true,
+            "detail": 0
+          }
+        ],
+        "metrics": {
+          "maxF32ComponentErrorMM": 0.00001337858492433952,
+          "maxCapsuleF32ComponentErrorMM": 0.00001337858492433952,
+          "maxNormalLengthError": 2.220446049250313e-16,
+          "maxCapsuleRadiusErrorMM": 5.684341886080802e-14,
+          "maxCapsuleAnalyticNormalError": 2.237726045655905e-16,
+          "maxTerrainCornerErrorMM": 0,
+          "maxTerrainNormalError": 0,
+          "capsuleEdgeCount": 1152,
+          "totalVertices": 434,
+          "totalIndices": 2376
+        }
+      }
+    },
+    {
+      "name": "WALL_SLIDE",
+      "states": 241,
+      "geometry": {
+        "passed": true,
+        "checks": [
+          {
+            "name": "object-cap",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "unique-refs",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "unique-surface-ids",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-unit-normals",
+            "passed": true,
+            "detail": 2.220446049250313e-16
+          },
+          {
+            "name": "packet-0-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-unit-normals",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "packet-1-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-2-unit-normals",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "packet-2-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "aggregate-gpu-cap",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-F32-mm-error",
+            "passed": true,
+            "detail": 0.00001337858492433952
+          },
+          {
+            "name": "capsule-identity-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-exact-extents",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-analytic-surface",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-poles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-16-by-24-rings-closed-seam",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-closed-oriented-topology",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-complete-ledger",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-identity",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-native-model",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-six-roles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-0-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-1-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-2-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-3-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-4-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-5-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-identity",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-native-model",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-six-roles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-0-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-0-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-0-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-0-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-0-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-1-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-1-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-1-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-1-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-1-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-2-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-2-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-2-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-2-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-2-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-3-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-3-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-3-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-3-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-3-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-4-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-4-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-4-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-4-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-4-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-5-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-5-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-1-face-5-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-5-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-1-face-5-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-analytic-normals",
+            "passed": true,
+            "detail": 0
+          }
+        ],
+        "metrics": {
+          "maxF32ComponentErrorMM": 0.00001337858492433952,
+          "maxCapsuleF32ComponentErrorMM": 0.00001337858492433952,
+          "maxNormalLengthError": 2.220446049250313e-16,
+          "maxCapsuleRadiusErrorMM": 5.684341886080802e-14,
+          "maxCapsuleAnalyticNormalError": 2.237726045655905e-16,
+          "maxTerrainCornerErrorMM": 0,
+          "maxTerrainNormalError": 0,
+          "capsuleEdgeCount": 1152,
+          "totalVertices": 434,
+          "totalIndices": 2376
+        }
+      }
+    },
+    {
+      "name": "SPAWN_OVERLAP",
+      "states": 0,
+      "geometry": {
+        "passed": true,
+        "checks": [
+          {
+            "name": "object-cap",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "unique-refs",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "unique-surface-ids",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-0-unit-normals",
+            "passed": true,
+            "detail": 2.220446049250313e-16
+          },
+          {
+            "name": "packet-0-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-schema",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-arrays",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-indices",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-bounds",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "packet-1-unit-normals",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "packet-1-outward-nondegenerate",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "aggregate-gpu-cap",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-F32-mm-error",
+            "passed": true,
+            "detail": 0.00001337858492433952
+          },
+          {
+            "name": "capsule-identity-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-exact-extents",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-analytic-surface",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-poles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-16-by-24-rings-closed-seam",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "capsule-closed-oriented-topology",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-complete-ledger",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-identity",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-counts",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-native-model",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-six-roles",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-0-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-0-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-1-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-1-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-2-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-2-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-3-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-3-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-4-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-4-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-native",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-corners",
+            "passed": true,
+            "detail": 0
+          },
+          {
+            "name": "terrain-0-face-5-source-range",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-ranges",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-0-face-5-native-outward",
+            "passed": true,
+            "detail": null
+          },
+          {
+            "name": "terrain-analytic-normals",
+            "passed": true,
+            "detail": 0
+          }
+        ],
+        "metrics": {
+          "maxF32ComponentErrorMM": 0.00001337858492433952,
+          "maxCapsuleF32ComponentErrorMM": 0.00001337858492433952,
+          "maxNormalLengthError": 2.220446049250313e-16,
+          "maxCapsuleRadiusErrorMM": 5.684341886080802e-14,
+          "maxCapsuleAnalyticNormalError": 2.237726045655905e-16,
+          "maxTerrainCornerErrorMM": 0,
+          "maxTerrainNormalError": 0,
+          "capsuleEdgeCount": 1152,
+          "totalVertices": 410,
+          "totalIndices": 2340
+        }
+      }
+    }
+  ],
+  "exactReference": true,
+  "exactRepeats": true,
+  "sourceCompiledExact": true
+}
