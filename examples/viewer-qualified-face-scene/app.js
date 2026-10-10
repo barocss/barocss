@@ -17,6 +17,7 @@ import {queryPickedFaceSurfaceCurvature} from './picked-curvature.js';
 import {measurePickedFaceNormalAngle} from './picked-normal-angle.js';
 import {buildQualifiedFaceTree,queryQualifiedFaceTreeNode,inspectQualifiedFaceTreeNode} from './qualified-face-tree.js';
 import {filterQualifiedFaceTree} from './qualified-face-tree-filter.js';
+import {createQualifiedFaceKeyboardFraming} from './keyboard-framing.js';
 import {parseBaroCadSource} from '@barocss/cad-interop/native';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2} from '@barocss/cad-interop/document';
@@ -94,7 +95,7 @@ WebGL2RenderingContext.prototype.drawElements=function(mode,count,...args){draws
 window.addEventListener('error',event=>errors.push(event.message));window.addEventListener('unhandledrejection',event=>errors.push(String(event.reason)));
 const warn=console.warn;console.warn=(...args)=>{warnings.push(args.map(String).join(' '));warn.apply(console,args);};
 const fixtures={},originalRequests={},originalSources={};let manifest=[],viewer=null,disposed=false,running=false,result=null,inspectionReport=null,measurementReport=null;
-let labelPins=null,currentProjections=[null,null],labelResizeObserver=null;
+let labelPins=null,currentProjections=[null,null],labelResizeObserver=null,disposeFaceKeyboard=null;
 let areaReport=null,areaProjection=null;
 let lengthReport=null,lengthProjection=null;
 let angleReport=null,angleProjection=null;
@@ -822,16 +823,21 @@ async function runProof(){if(running||disposed||['context-lost','unavailable'].i
   }catch(error){result.error=error.stack||error.message;result.failures.push({error:result.error,completed:result.cases.length});result.resources=resourceCounts();result.errors=[...errors];}
   finally{running=false;render();window.__viewerQualifiedFaceResult=result;display(result.ok?'Original Face checks completed.':('Face checks stopped: '+(result.error??'Unknown error')));
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}return result;}
-function dispose(){if(disposed)return;viewer.dispose();viewer.dispose();disposed=true;labelResizeObserver?.disconnect();invalidateFaceInspection();clearPickedChord();clearPickedAngle();clearPickedNormalAngle();clearPickedSurfaceCurvature();clearQualifiedTree();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();clearSurfaceCurvature();clearTangentAngle();clearNormalAngle();render();const receipt={status:viewer.getState().status,resources:resourceCounts(),contextCount:contexts.size,
+function dispose(){if(disposed)return;disposeFaceKeyboard?.();viewer.dispose();viewer.dispose();disposed=true;labelResizeObserver?.disconnect();invalidateFaceInspection();clearPickedChord();clearPickedAngle();clearPickedNormalAngle();clearPickedSurfaceCurvature();clearQualifiedTree();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();clearSurfaceCurvature();clearTangentAngle();clearNormalAngle();render();const receipt={status:viewer.getState().status,resources:resourceCounts(),contextCount:contexts.size,
   glErrors:glErrors(),errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display('Viewer disposed.');return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item of manifest){const bytes=await(await fetch(item.url)).arrayBuffer();
     check(bytes.byteLength===item.bytes&&await sha(bytes)===item.sha256,'Original Face fixture bytes/hash changed');fixtures[item.name]={...item,bytes:new Uint8Array(bytes),text:new TextDecoder().decode(bytes)};}
   for(const name of['warped','interior_edit'])originalRequests[name]=JSON.parse(fixtures[name+'.authentic-request.json'].text);
   for(const id of'ABCDEF'){const source=fixtures['warped_'+id+'.source0.css'].text;check(source===originalRequests.warped.assets.find(asset=>asset.sourceId===id).source,'Original source file/Face association differs');originalSources[id]=source;}
   check(fixtures['interior_edit_F.source0.css'].text===originalRequests.interior_edit.assets[5].source,'Original interior-edit Source0 association differs');
-  viewer=createViewer(canvas,{mmToSceneUnit,background});load(candidate());lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
+  viewer=createViewer(canvas,{mmToSceneUnit,background});
+  disposeFaceKeyboard=createQualifiedFaceKeyboardFraming(viewer,canvas,{
+    frameAll:()=>{check(!disposed&&!running,'Keyboard framing needs an idle live host.');frameAllFaces();},
+    frameParent:()=>{check(!disposed&&!running,'Keyboard framing needs an idle live host.');frameTreeFace();},
+    onError:error=>{display(error instanceof Error?error.message:String(error));render();}});
+  load(candidate());lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
   labelResizeObserver=new ResizeObserver(()=>{refreshFaceInspection();refreshPickedChord();refreshPickedAngle();refreshPickedNormalAngle();refreshPickedSurfaceCurvature();refreshQualifiedTree();updateLabels();updateAreaLabel();updateLengthLabel();updateAngleLabel();updateCurvatureLabel();updateSurfaceCurvatureLabel();updateTangentAngleLabel();updateNormalAngleLabel();});labelResizeObserver.observe(canvas);
-  window.__viewerQualifiedFaceProof={viewer,createViewer,candidate,load,render,frameAllFaces,frameFace,inspect,inspectFaceAt,faceInspectionSnapshot,refreshFaceInspection,sampleFaceAt,nativeSampleSnapshot,measurementInput,measure,updateLabels,labelSnapshot,
+  window.__viewerQualifiedFaceProof={viewer,createViewer,createQualifiedFaceKeyboardFraming,candidate,load,render,frameAllFaces,frameFace,inspect,inspectFaceAt,faceInspectionSnapshot,refreshFaceInspection,sampleFaceAt,nativeSampleSnapshot,measurementInput,measure,updateLabels,labelSnapshot,
     createPickedFacePoint,measurePickedFaceChord,isPickedFacePointCurrent,pickedChordSnapshot,pickChordAt,refreshPickedChord,remeasurePickedChord,resetPickedChord,
     measurePickedFaceAngle,pickAngleAt,refreshPickedAngle,remeasurePickedAngle,resetPickedAngle,pickedAngleSnapshot,
     queryPickedFaceSurfaceCurvature,inspectPickedSurfaceCurvature,refreshPickedSurfaceCurvature,remeasurePickedSurfaceCurvature,resetPickedSurfaceCurvature,pickedSurfaceCurvatureSnapshot,
