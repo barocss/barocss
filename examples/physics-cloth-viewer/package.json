@@ -1,0 +1,11 @@
+{
+  "name": "physics-cloth-viewer",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@barocss/physics": "workspace:*",
+    "@barocss/viewer": "workspace:*",
+    "@barocss/cad-interop": "workspace:*",
+    "@barocss/gpu": "workspace:*"
+  }
+}

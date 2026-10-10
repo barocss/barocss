@@ -1,0 +1,67 @@
+{
+  "issue": 981,
+  "parent": "ec20329ce0184530b1e955dc9d0296c890e0fc5e",
+  "cleanMeasuredSource": "a8a4a61ffedd8bf7520cf218f7283738d82df0c7",
+  "branch": "codex/physics-cloth-viewer-981",
+  "nativeGO": true,
+  "allGraphsNumericRawExact": true,
+  "sourceCompiledPixelsExact": true,
+  "browser": {
+    "source": {
+      "savedFrames": 241,
+      "rawStateBitsExact": true,
+      "pixelCases": 16,
+      "rawPixelHashes": true,
+      "timingSamples": 720,
+      "normalTwinSteps": 1440,
+      "worstSolverP95Ms": 2.5,
+      "worstSubmitP95Ms": 5.5,
+      "minPlaybackRatio": 0.9888262632284652,
+      "resourceZero": true,
+      "restoredUIHealthy": true
+    },
+    "compiled": {
+      "savedFrames": 241,
+      "rawStateBitsExact": true,
+      "pixelCases": 16,
+      "rawPixelHashes": true,
+      "timingSamples": 720,
+      "normalTwinSteps": 1440,
+      "worstSolverP95Ms": 2.5,
+      "worstSubmitP95Ms": 6.200000002980232,
+      "minPlaybackRatio": 0.9894622272809325,
+      "resourceZero": true,
+      "restoredUIHealthy": true
+    }
+  },
+  "numericalPeaks": {
+    "structuralExtension": 0.05174255069177636,
+    "vertexEnvelopePenetrationM": 1.1102230246251565e-16,
+    "sampledTrianglePenetrationM": 0.0013840839157666096
+  },
+  "numericResolution": {
+    "source": [
+      9,
+      0
+    ],
+    "compiled": [
+      0,
+      9
+    ]
+  },
+  "browserResolution": {
+    "source": [
+      216,
+      0
+    ],
+    "compiled": [
+      0,
+      176
+    ]
+  },
+  "actualSphereDepthMesh": false,
+  "guide": "projected, no depth; no native sphere authority",
+  "continuousTriangleContact": false,
+  "publication": false,
+  "integration": "native ready; exact adoption pending"
+}
