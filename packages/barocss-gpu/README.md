@@ -2135,3 +2135,46 @@ qualified by this source compiler. Existing renderers do not accept Source2.
 
 A six-shape source is `examples/gpu-scene/affine-scene-authoring.css`. The source,
 emitted API and cold-file flow is `affine-scene-source-flow.mjs` in that folder.
+
+
+### Original Source1 / Source2 object bounds (CPU)
+
+`prepareSourceSceneBounds({sourceVersion:1|2,source,objectIds?})` reconstructs
+original source through the actual compiler. Omit `objectIds` for all objects,
+pass `[]` for no objects, or pass unique current IDs. Returned objects follow
+original scene order. Unknown IDs, unsupported source and malformed own data
+refuse with `SourceSceneBoundsError` and the declared diagnostic code.
+Diagnostic codes distinguish own-data INPUT, requested VERSION, source/selection
+BUDGET, actual compilation SOURCE, malformed/duplicate/unknown-ID SELECTION
+and defensive finite-arithmetic NUMERICAL. Compilation errors retain actual
+native diagnostics/errors as their cause.
+The request admits at most32 IDs and64KiB source; no getter is invoked.
+
+The frozen result preserves the complete original source and independent
+canonical Scene1/Scene2 copy, requested selection (null for omission), per-object
+`localBounds`/`worldBounds` and aggregate `bounds` (null for an empty selection).
+It declares version0/profile `original-number-box-corners-v0`, right-handed Y-up,
+scene units and `binary64-box-corners-no-padding`. Bounds have `min`/`max` XYZ
+arrays. No camera is inferred or changed.
+
+Local boxes use actual primitive conventions: sphere radius, Box/RoundedBox
+outer half-size, cylinder XZ radius/Y half-height, capsule endpoint ranges plus
+radius, and torus XZ major+minor/Y minor. Eight corners per selected object
+(at most256) apply Source2 positive XYZ scale, forward Rz*Ry*Rx and translation
+using the existing rotation coefficients. Source1 uses identity scale. Legal
+large Source2 bounds remain available even outside the camera's range.
+
+These Number computations describe primitive box enclosure in ideal arithmetic;
+rotated curved primitives can have loose boxes. Rounded outputs have no outward
+padding or rigorous rounding certificate. They do not certify Float32 shaders,
+raymarch/pixel containment, exact native extrema, safe culling or continuous
+animation bounds. Source spelling/signs remain original; canonical zero policy
+is the actual compiler's. CPU data is copied, frozen and GC-owned; no DOM, GL,
+resources, cache, file transport or renderer adoption occurs here. Render's
+Frame all/selected UI and camera acceptance remain separate.
+
+Run the bounded source/API/emitted/file flow after building, with a fresh output:
+
+```sh
+node examples/gpu-scene/source-scene-bounds-flow.mjs --output /absolute/fresh/output
+```

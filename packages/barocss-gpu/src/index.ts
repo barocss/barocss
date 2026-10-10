@@ -117,3 +117,6 @@ export type { EngineTransformKeyV0, EngineTransformTrackV0, EngineTransformClipV
 
 export { compileAffineSceneSource } from './affine-scene-source.js';
 export type { AffineSceneObject2, AffineScene2, CompiledAffineSceneSource } from './affine-scene-source.js';
+
+export {prepareSourceSceneBounds,SourceSceneBoundsError,SourceSceneBoundsDiagnosticCode} from './source-scene-bounds.js';
+export type {SourceSceneBoundsRequest,SourceSceneBoundsBox,SourceSceneObjectBounds,PreparedSourceSceneBounds} from './source-scene-bounds.js';
