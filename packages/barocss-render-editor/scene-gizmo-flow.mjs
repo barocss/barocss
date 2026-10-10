@@ -9,14 +9,14 @@ const here = dirname(fileURLToPath(import.meta.url)), root = resolve(here, '../.
 assert(process.argv.length === 4 && process.argv[2] === '--output', 'Use --output <new-evidence-directory>.');
 const output = resolve(process.argv[3]);
 await mkdir(dirname(output), {recursive: true}); await mkdir(output);
-const receipt = {issue: 1276, inheritedIssue: 1242, head: execFileSync('git', ['rev-parse', 'HEAD'], {cwd: root, encoding: 'utf8'}).trim(), node: process.version,
-  scope: 'Ordinary source CPU projection/pose/ray/source-writer/controller qualification. Injected presenter is a declared protocol model, not WebGL or browser evidence.',
+const receipt = {issue: 1306, inheritedIssues: [1242, 1276, 1290], head: execFileSync('git', ['rev-parse', 'HEAD'], {cwd: root, encoding: 'utf8'}).trim(), node: process.version,
+  scope: 'Ordinary source CPU projection/pose/source-writer/controller qualification. Injected presenter is a declared protocol model, not WebGL or browser evidence.',
   startedAt: new Date().toISOString(), ok: false, cases: []};
 let stage = 'ordinary source graph';
 try {
   assert.equal(Number(process.versions.node.split('.')[0]), 22);
   const compiled = await build({absWorkingDir: root, stdin: {resolveDir: here, sourcefile: 'gizmo-source-consumer.mjs',
-    contents: "import * as api from '@barocss/render-editor'; import {prepareCamera,prepareEngineCameraRay,prepareEngineScene} from '@barocss/gpu'; export {api,prepareCamera,prepareEngineCameraRay,prepareEngineScene};"},
+    contents: "import * as api from '@barocss/render-editor'; import {prepareCamera,prepareEngineScene} from '@barocss/gpu'; export {api,prepareCamera,prepareEngineScene};"},
     bundle: true, write: false, format: 'esm', platform: 'node', target: 'es2022', metafile: true});
   const inputs = Object.keys(compiled.metafile.inputs);
   assert(inputs.some(path => path.endsWith('barocss-render-editor/src/scene-gizmo-projection.ts')));
@@ -24,7 +24,7 @@ try {
   receipt.sourceInputs = inputs.filter(path => /packages\/barocss-[^/]+\/src\//.test(path)).length; receipt.ownDistInputs = 0;
   await writeFile(resolve(output, 'source-metafile.json'), JSON.stringify(compiled.metafile, null, 2) + '\n');
   await writeFile(resolve(output, 'ordinary-source.mjs'), compiled.outputFiles[0].text);
-  const {api, prepareCamera, prepareEngineCameraRay, prepareEngineScene} = await import(pathToFileURL(resolve(output, 'ordinary-source.mjs')).href);
+  const {api, prepareCamera, prepareEngineScene} = await import(pathToFileURL(resolve(output, 'ordinary-source.mjs')).href);
   const source = '/* Original scene bytes and unselected IDs stay. */\r\n@scene gizmo_scene { version: 1; background: #123; sphere #orb; box #block; cylinder #post; }\r\n'
     + '#orb { radius: .65; translate: -1.5 0 0; color: #e08040; }\r\n'
     + '#block { size: 1.1 .7 1.4; translate: .15 -.12 .1; rotate-x: 12deg; rotate-y: 18deg; rotate-z: 24deg; color: #69c; }\r\n'
@@ -63,35 +63,27 @@ try {
   for (const handle of move.handles) {assert(Object.isFrozen(handle)); assert(Object.isFrozen(handle.points)); assert(Object.isFrozen(handle.anchor));}
   receipt.cases.push('three world axes: independent public-matrix forward and rational inverse, exact no motion, copied immutable CSS geometry');
 
-  stage = 'independent Euler axes and actual pixel-center ring planes';
+  stage = 'independent Euler axes and grabbed projected tangents';
   const rotation = api.prepareRenderSceneGizmo(source, 'block', camera, viewport, 'rotate');
   assert.deepEqual(rotation.handles.map(handle => handle.key), axes);
   const radians = selected.rotateDegrees.map(value => value * Math.PI / 180), cy = Math.cos(radians[1]), sy = Math.sin(radians[1]), cz = Math.cos(radians[2]), sz = Math.sin(radians[2]);
   const normals = [[cz * cy, sz * cy, -sy], [-sz, cz, 0], [0, 0, 1]];
-  const rayVector = (point, normal) => {
-    const ray = prepareEngineCameraRay(camera, {format: 'barocss-gpu-engine-camera-ray-request', version: 0, pixelOrigin: 'bottom-left', sampling: 'pixel-center',
-      viewportWidth: viewport.backingWidth, viewportHeight: viewport.backingHeight,
-      pixelX: Math.floor(point[0] * viewport.backingWidth / viewport.width), pixelY: viewport.backingHeight - 1 - Math.floor(point[1] * viewport.backingHeight / viewport.height)}).ray;
-    const t = dot(selected.translate.map((value, index) => value - ray.origin[index]), normal) / dot(ray.direction, normal);
-    assert(t >= ray.near && t <= ray.far);
-    return unit(ray.origin.map((value, index) => value + ray.direction[index] * t - selected.translate[index]));
-  };
+  const bases = [{a: [-sz, cz, 0], b: [cz * sy, sz * sy, cy]}, {a: [0, 0, 1], b: [cz, sz, 0]}, {a: [1, 0, 0], b: [0, 1, 0]}];
+  const viewDepth = -(view[2] * selected.translate[0] + view[6] * selected.translate[1] + view[10] * selected.translate[2] + view[14]);
+  const widgetLength = 160 * viewDepth / (projection[5] * viewport.height);
   for (const [index, axis] of axes.entries()) {
-    const normal = normals[index], reference = Math.abs(normal[2]) < .8 ? [0, 0, 1] : [0, 1, 0];
-    const a = unit(cross(reference, normal)), b = unit(cross(normal, a)), angle = 25 * Math.PI / 180;
-    const from = forward(selected.translate.map((value, component) => value + a[component] * .6));
-    const to = forward(selected.translate.map((value, component) => value + .6 * (a[component] * Math.cos(angle) + b[component] * Math.sin(angle))));
-    const first = rayVector(from, normal), last = rayVector(to, normal);
-    const expected = Math.atan2(dot(normal, cross(first, last)), dot(first, last)) * 180 / Math.PI;
-    // The admitted sample is an actual backing-pixel centre, not the continuous
-    // projected CSS point. Its independent plane angle is the exact oracle.
-    assert(Number.isFinite(expected) && expected > 0 && expected < 45);
+    const basis = bases[index], phase = 8 * Math.PI / 32, h = 1e-5;
+    const pointAt = angle => forward(selected.translate.map((value, component) => value + widgetLength * (basis.a[component] * Math.cos(angle) + basis.b[component] * Math.sin(angle))));
+    const first = pointAt(phase - h), last = pointAt(phase + h), direction = unit([last[0] - first[0], last[1] - first[1]]);
+    const from = rotation.handles[index].points[8], to = [from[0] + direction[0] * 20, from[1] + direction[1] * 20];
+    pointAt(phase).forEach((value, component) => close(value, from[component], 1e-10));
+    const expected = 20 / 80 * 180 / Math.PI;
     const patch = api.deriveRenderSceneGizmoPatch(source, 'block', camera, viewport, 'rotate', axis, from, to);
-    patch.rotateDegrees.forEach((value, component) => close(value, selected.rotateDegrees[component] + (component === index ? expected : 0), 1e-10));
+    patch.rotateDegrees.forEach((value, component) => close(value, selected.rotateDegrees[component] + (component === index ? expected : 0), 1e-7));
     const zero = api.deriveRenderSceneGizmoPatch(source, 'block', camera, viewport, 'rotate', axis, from, from);
     assert.equal(api.editRenderSceneObjectSource(source, 'block', zero), source);
   }
-  receipt.cases.push('three effective Euler rings: RzRyX/RzY/worldZ independent axes plus public backing-pixel rays and signed plane angle');
+  receipt.cases.push('three Euler-gimbal rings: RzRyX/RzY/worldZ axes, independent public-camera finite-difference grabbed tangents, fixed80 CSS pixels per radian, exact no motion');
 
   stage = 'uniform scale on all primitive dimensions';
   const scale = api.prepareRenderSceneGizmo(source, 'block', camera, viewport, 'scale');
@@ -135,7 +127,7 @@ try {
   assert(Math.hypot(...localAxes[2].map((value, index) => value - normals[2][index])) > .1);
   const sceneLength = origin => {
     const depth = -(view[2] * origin[0] + view[6] * origin[1] + view[10] * origin[2] + view[14]);
-    return 112 * depth / (projection[5] * viewport.height);
+    return 160 * depth / (projection[5] * viewport.height);
   };
   const length = sceneLength(selected.translate);
   for (const [index, axis] of axes.entries()) {
@@ -177,7 +169,7 @@ try {
   assert(!api.prepareRenderSceneGizmo(unrotated, 'block', axialCamera, viewport, 'scale').handles.some(handle => handle.key === 'z'));
   assert.throws(() => api.deriveRenderSceneGizmoPatch(unrotated, 'block', axialCamera, viewport, 'scale', 'z', [450, 300], [450, 290]));
   const axialMatrices = prepareCamera(axialCamera, viewport.backingWidth / viewport.backingHeight), largeBox = api.editRenderSceneObjectSource(unrotated, 'block', {size: [999, 1, 1]});
-  const axisLength = 112 * 7 / (axialMatrices.projection[5] * viewport.height);
+  const axisLength = 160 * 7 / (axialMatrices.projection[5] * viewport.height);
   const screenAt = t => [450 + axialMatrices.projection[0] * t / 7 * viewport.width / 2, 300];
   assert.throws(() => api.deriveRenderSceneGizmoPatch(largeBox, 'block', axialCamera, viewport, 'scale', 'x', screenAt(0), screenAt(axisLength * .1)));
   receipt.cases.push('full RzRyRx local XYZ via independent Euler and public group worldMatrix; projected rational inverse positive factor; each Box size component only; RoundedBox radius unchanged; all-four unsupported axes refused; end-on and actual dimension limits; byte-exact zero');
@@ -211,7 +203,7 @@ try {
   const tooMany = countSource.replace(' }', ' sphere #extra; }');
   assert.throws(() => api.prepareRenderSceneGizmo(tooMany, 's0', camera, viewport, 'translate')); refusals++;
   receipt.refusals = refusals; receipt.getterCalls = getterCalls;
-  receipt.cases.push('getter0/data/count budgets, end-on and horizon refusal, actual2048 ray limit without changing4096 source projection policy, positive scale/dimension limits');
+  receipt.cases.push('getter0/data/count budgets, end-on and horizon refusal, retained2048 rotation-widget profile limit without changing4096 source projection policy, positive scale/dimension limits');
 
   stage = 'honest controller transform protocol';
   const document = {format: 'barocss-render-editor', version: 0, kind: 'gpu-scene', documentId: 'gizmo_scene', title: 'Gizmo scene', revision: 0, sourceVersion: 1, sceneSource: source, camera};

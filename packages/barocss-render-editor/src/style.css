@@ -117,19 +117,23 @@
 
 /* Source handles use actual canvas-local CSS coordinates. */
 .re-editor--workbench .re-gizmo-overlay {position:absolute;inset:0;z-index:3;overflow:visible;pointer-events:none;touch-action:none}
-.re-editor--workbench .re-gizmo-toolbar {position:absolute;left:6px;top:6px;z-index:4;display:flex;flex-wrap:wrap;max-width:calc(100% - 12px);gap:4px;align-items:center;padding:3px;background:#222428e8;border:1px solid #41454a;border-radius:4px}
-.re-editor--workbench .re-gizmo-toolbar button {min-height:24px;padding:2px 6px;font-size:11px}
+.re-editor--workbench .re-gizmo-toolbar {position:absolute;left:6px;top:6px;z-index:4;display:flex;flex-wrap:wrap;max-width:calc(100% - 12px);gap:3px;align-items:center;padding:2px;background:#222428d9;border:1px solid #41454a;border-radius:3px}
+.re-editor--workbench .re-gizmo-toolbar button {min-height:22px;padding:1px 5px;font-size:10px;line-height:18px}
 .re-editor--workbench .re-gizmo-toolbar button[aria-pressed="true"] {background:#354862;color:#d9eaff;border-color:#6195d0}
 .re-editor--workbench .re-gizmo-handle {pointer-events:none;cursor:grab;color:#e86666;outline:none}
 .re-editor--workbench .re-gizmo-axis-y {color:#81c86a}
 .re-editor--workbench .re-gizmo-axis-z {color:#6da5f5}
 .re-editor--workbench .re-gizmo-axis-uniform {color:#e8d48b}
-.re-editor--workbench .re-gizmo-line {pointer-events:none;fill:none;stroke:currentColor;stroke-width:2;filter:drop-shadow(0 1px 1px #000)}
+.re-editor--workbench .re-gizmo-line {pointer-events:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px .5px #0009)}
+.re-editor--workbench .re-gizmo-ring-back {pointer-events:none;fill:none;stroke:currentColor;stroke-width:1.25;stroke-linecap:round;stroke-linejoin:round;opacity:.24}
 .re-editor--workbench .re-gizmo-hit {fill:none;stroke:transparent;stroke-width:18;pointer-events:stroke}
 .re-editor--workbench .re-gizmo-hit-anchor {fill:transparent;stroke:none;pointer-events:all}
-.re-editor--workbench .re-gizmo-anchor {pointer-events:none;fill:currentColor;stroke:#202226;stroke-width:1.5}
+.re-editor--workbench .re-gizmo-anchor {pointer-events:none;fill:currentColor;stroke:#202226;stroke-width:1;stroke-linejoin:round}
 .re-editor--workbench .re-gizmo-handle text {fill:currentColor;font-size:11px;font-weight:700;paint-order:stroke;stroke:#202226;stroke-width:3;pointer-events:none}
-.re-editor--workbench .re-gizmo-handle:focus .re-gizmo-line {stroke-width:4}
+.re-editor--workbench .re-gizmo-handle[data-highlighted="true"],.re-editor--workbench .re-gizmo-handle:focus-visible {color:#ffd84a}
+.re-editor--workbench .re-gizmo-handle[data-highlighted="true"] .re-gizmo-line,.re-editor--workbench .re-gizmo-handle:focus-visible .re-gizmo-line {stroke-width:2.25}
+.re-editor--workbench .re-gizmo-handle[data-highlighted="true"] .re-gizmo-ring-back,.re-editor--workbench .re-gizmo-handle:focus-visible .re-gizmo-ring-back {stroke-width:1.5;opacity:.4}
+.re-editor--workbench .re-gizmo-handle:active {cursor:grabbing}
 .re-editor--workbench .re-gizmo-status {position:absolute;left:6px;bottom:6px;max-width:calc(100% - 100px);z-index:4;pointer-events:none;margin:0;padding:3px 5px;background:#222428dd;font-size:11px;color:#d7dbe2;border-radius:3px}
 .re-editor--workbench .re-gizmo-status:empty {display:none}
 .re-editor--workbench .re-gizmo-pivot {fill:#e4e8ee;stroke:#202226;stroke-width:1;pointer-events:none}
@@ -157,12 +161,3 @@
 .re-editor--workbench .re-animation-error{color:#e3b2a2}
 .re-editor--workbench .re-animation-error p,.re-editor--workbench .re-animation-help p{margin:3px 0}
 .re-editor--workbench .re-animation-error pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:10px}
-
-.re-editor--workbench .re-gizmo-axis-buttons{display:flex;gap:3px;padding-left:4px;border-left:1px solid #535962}
-.re-editor--workbench .re-gizmo-axis-buttons button{min-width:24px;padding:2px 5px}
-.re-editor--workbench .re-gizmo-axis-buttons [data-axis="x"]{color:#f18c8c}
-.re-editor--workbench .re-gizmo-axis-buttons [data-axis="y"]{color:#9cda87}
-.re-editor--workbench .re-gizmo-axis-buttons [data-axis="z"]{color:#8bb9fa}
-.re-editor--workbench .re-gizmo-handle[data-active-axis="true"] .re-gizmo-line{stroke-width:3.5}
-.re-editor--workbench .re-gizmo-rotation-grip{stroke:#e1e6ed;stroke-width:1.5}
-.re-editor--workbench .re-gizmo-handle[data-active-axis="true"] .re-gizmo-rotation-grip{stroke-width:2.5}
