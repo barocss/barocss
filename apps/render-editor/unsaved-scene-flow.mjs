@@ -75,9 +75,9 @@ try {
       await page.getByTestId('mixed-object-surface').click(); const nativeText = await page.getByTestId('mixed-native-source').inputValue();
       await x().fill('-.4'); await apply().click(); await waitRevision(16);
       check(await apply().isDisabled() && (await page.locator('.app-document-state').textContent()).includes('Not downloaded'), 'Applied-undownloaded state is not distinct from a pending draft.');
-      const initial = await pixels(), route = page.url(); await page.screenshot({ path: config.output + '/ordinary-applied-unsaved.png', fullPage: true });
+      const initial = await pixels(), route = page.url(); await page.screenshot({ animations: 'disabled', path: config.output + '/ordinary-applied-unsaved.png', fullPage: true });
       await open().click(); await dialog().waitFor(); check(await page.getByTestId('draft-dialog').count() === 0, 'Accepted-only change was treated as a pending field.');
-      await page.screenshot({ path: config.output + '/accepted-unsaved-decision.png', fullPage: true }); await cancel('[data-testid="open-file"]', true);
+      await page.screenshot({ animations: 'disabled', path: config.output + '/accepted-unsaved-decision.png', fullPage: true }); await cancel('[data-testid="open-file"]', true);
       await unchanged(16, initial.hash, route, nativeText); check(await page.getByRole('button', { name: 'Undo', exact: true }).isEnabled(), 'Cancel lost accepted history.');
       await newScene().click(); await dialog().waitFor(); await cancel('button[aria-label="New mixed scene"]'); await unchanged(16, initial.hash, route, nativeText);
       const project = page.getByTestId('project-rational_panel'); await project.click(); await dialog().waitFor(); await cancel('[data-testid="project-rational_panel"]');
@@ -99,7 +99,7 @@ try {
       await page.evaluate(() => { const original = URL.createObjectURL; URL.createObjectURL = function(...args) { URL.createObjectURL = original; throw Error('Controlled download preparation failure.'); }; });
       await page.getByTestId('unsaved-download').click(); await page.getByTestId('unsaved-error').waitFor();
       check(downloads === beforeDownloads && await dialog().isVisible() && (await page.locator('.app-document-state').textContent()).includes('Not downloaded'), 'Failed download continued or cleared unsaved status.');
-      await unchanged(16, initial.hash, route, nativeText); await page.screenshot({ path: config.output + '/download-refusal.png', fullPage: true });
+      await unchanged(16, initial.hash, route, nativeText); await page.screenshot({ animations: 'disabled', path: config.output + '/download-refusal.png', fullPage: true });
       await captureDownload('accepted16.render-mixed.json');
       check(await dialog().isVisible() && await revision() === '16' && page.url() === route, 'Download automatically replaced the current document.');
       await chooseAfterContinue('invalid.render-mixed.json'); await page.getByTestId('app-error').waitFor();
@@ -112,7 +112,7 @@ try {
         gl.createBuffer = function(...args) { if (++count === 3) { gl.createBuffer = original; return null; } return original.apply(this, args); }; });
       await chooseAfterContinue('original.render-mixed.json'); await page.getByTestId('app-error').waitFor();
       await unchanged(17, stable.hash, route, nativeText); check((await page.locator('.app-document-state').textContent()).includes('Not downloaded'), 'Continue without downloading cleared source unsaved status.');
-      await page.screenshot({ path: config.output + '/retained-open-refusal.png', fullPage: true }); await dismiss();
+      await page.screenshot({ animations: 'disabled', path: config.output + '/retained-open-refusal.png', fullPage: true }); await dismiss();
       await open().click(); await dialog().waitFor(); await chooseAfterContinue('original.render-mixed.json'); await waitRevision(15);
       await page.evaluate((originalRoute) => { window.location.hash = new URL(originalRoute).hash; }, route); await waitRevision(17);
       rows.push({ case: 'explicit-Continue-controlled-realGL-open-refusal-success-original-cache-unsaved', retainedRevision: 17 });
@@ -120,7 +120,7 @@ try {
       await x().fill('-'); await page.getByTestId('mixed-object-sphere').click(); await newScene().click(); await page.getByTestId('draft-dialog').waitFor();
       check(await dialog().count() === 0, 'Accepted decision bypassed invalid pending fields.'); await page.getByTestId('draft-apply').click(); await page.getByTestId('draft-dialog').getByTestId('app-error').waitFor();
       check(await revision() === '17' && await x().inputValue() === '-' && !await x().isVisible(), 'Pending invalid Position was applied or lost.');
-      await page.screenshot({ path: config.output + '/pending-position-refusal.png', fullPage: true }); await page.getByTestId('draft-cancel').click(); await page.getByTestId('draft-dialog').waitFor({ state: 'detached' }); await dismiss();
+      await page.screenshot({ animations: 'disabled', path: config.output + '/pending-position-refusal.png', fullPage: true }); await page.getByTestId('draft-cancel').click(); await page.getByTestId('draft-dialog').waitFor({ state: 'detached' }); await dismiss();
       await page.getByRole('button', { name: 'Edit Surface position', exact: true }).click(); await x().fill('-.3');
       await page.getByRole('tab', { name: 'Scene', exact: true }).click(); const scene = await page.getByTestId('mixed-scene-source').inputValue();
       await page.getByTestId('mixed-scene-source').fill(scene + config.comment); await newScene().click(); await page.getByTestId('draft-discard').click(); await dialog().waitFor();
@@ -128,7 +128,7 @@ try {
       await page.getByTestId('mixed-scene-source').fill(scene + config.comment); await newScene().click(); await page.getByTestId('draft-apply').click(); await dialog().waitFor(); await waitRevision(18);
       await captureDownload('guarded.render-mixed.json'); check(await dialog().isVisible() && await revision() === '18', 'Composed draft Apply/download automatically replaced accepted data.');
       await cancel('button[aria-label="New mixed scene"]');
-      await page.screenshot({ path: config.output + '/downloaded-applied-scene.png', fullPage: true });
+      await page.screenshot({ animations: 'disabled', path: config.output + '/downloaded-applied-scene.png', fullPage: true });
       for (const control of [open(), apply(), page.getByTestId('save-file'), page.getByTestId('accepted-revision')]) { const box = await control.boundingBox();
         check(box && box.x >= 0 && box.y >= 0 && box.x + box.width <= 1001 && box.y + box.height <= 761, 'Compact File/Apply/status control is outside supported viewport.'); }
       await newScene().click(); await waitRevision(0); check(await dialog().count() === 0, 'A downloaded accepted revision got a redundant prompt.');
@@ -138,7 +138,7 @@ try {
       return { ok: true, errors, rows, downloads, savedRevision: 18, viewport: { width: 1000, height: 760 } };
     } catch (error) {
       const failure = { message: error.message, stack: error.stack, url: page.url() };
-      try { await page.screenshot({ path: config.output + '/first-failure.png', fullPage: true }); failure.html = await page.content(); } catch (capture) { failure.captureError = String(capture); }
+      try { await page.screenshot({ animations: 'disabled', path: config.output + '/first-failure.png', fullPage: true }); failure.html = await page.content(); } catch (capture) { failure.captureError = String(capture); }
       return { ok: false, errors, rows, failure };
     } finally { await page.close(); }
   });
@@ -160,11 +160,11 @@ try {
       await x.fill('.1'); await page.getByRole('button', { name: 'Apply', exact: true }).click(); await page.locator('[data-testid="presented-revision"][data-revision="19"]').waitFor();
       const download = page.waitForEvent('download'); await page.getByTestId('save-file').click(); await (await download).saveAs(config.output + '/reedited.render-mixed.json');
       check(await page.getByTestId('unsaved-dialog').count() === 0, 'Save used a redundant replacement dialog.');
-      await page.screenshot({ path: config.output + '/fresh-reedited-protected-scene.png', fullPage: true }); check(errors.length === 0, 'Fresh page errors.');
+      await page.screenshot({ animations: 'disabled', path: config.output + '/fresh-reedited-protected-scene.png', fullPage: true }); check(errors.length === 0, 'Fresh page errors.');
       return { ok: true, errors, revision: 19, actualNativePicker: true, ordinarySaveNoReplacementPrompt: true };
     } catch (error) {
       const failure = { message: error.message, stack: error.stack };
-      try { await page.screenshot({ path: config.output + '/fresh-first-failure.png', fullPage: true }); failure.html = await page.content(); } catch (capture) { failure.captureError = String(capture); }
+      try { await page.screenshot({ animations: 'disabled', path: config.output + '/fresh-first-failure.png', fullPage: true }); failure.html = await page.content(); } catch (capture) { failure.captureError = String(capture); }
       return { ok: false, errors, failure };
     } finally { await page.close(); }
   });
@@ -182,7 +182,7 @@ try {
   receipt.firstFailure = { stage, message: error.message ?? String(error), stack: error.stack ?? String(error) }; process.exitCode = 1;
   if (opened && !receipt.browser?.failure && !receipt.fresh?.failure) {
     try { receipt.fallbackCapture = await run(async (base) => { const config = __CONFIG__, page = base.context().pages().filter((page) => page !== base && page.url().startsWith(config.url)).at(-1);
-      if (!page) return { captured: false, reason: 'No live owned flow page.' }; await page.screenshot({ path: config.output + '/first-failure.png', fullPage: true }); return { captured: true, html: await page.content() }; });
+      if (!page) return { captured: false, reason: 'No live owned flow page.' }; await page.screenshot({ animations: 'disabled', path: config.output + '/first-failure.png', fullPage: true }); return { captured: true, html: await page.content() }; });
       if (receipt.fallbackCapture.html) await writeFile(resolve(output, 'first-failure.html'), receipt.fallbackCapture.html); } catch (capture) { receipt.captureError = String(capture); }
   }
 } finally {
