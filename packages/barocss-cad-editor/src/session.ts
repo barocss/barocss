@@ -8,8 +8,10 @@ import {
 } from '@barocss/cad';
 import type { CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, CurvePoleEdit, SurfacePoleEdit } from '@barocss/cad';
 import { CadEditorError } from './types.js';
+import { translateBodySource, withinTranslationProfile } from './body-translation.js';
 import type {
   CadEditorCandidate, CadEditorDiagnosticCode, CadEditorPoleField, CadEditorSelectedPole, CadEditorSelectedCurvePole, CadEditorView,
+  CadEditorEditTarget, CadEditorBodyTranslationField,
   CadEditorSelectionTarget, CadEditorSelectionTransition, CadEditorSession, CadEditorSessionOptions, CadEditorSnapshot, CadEditorSurfaceSelection,
 } from './types.js';
 
@@ -111,8 +113,10 @@ function capabilities(result: CadDocumentResult): CadEditorSnapshot['bodyCapabil
         || !geometry.controlPoints.every(row => row.length === countV && row.every(point => point.every(value => Number.isFinite(value) && Math.abs(value) <= 10000)))
         || !geometry.weights.every(row => row.length === countV && row.every(value => Number.isFinite(value) && value >= 1e-6 && value <= 1e6))) reason = 'surface-profile';
     }
+    const canTranslateBody = withinTranslationProfile(geometry, reason === null);
     return { bodyId: body.id, canEditSurfacePole: geometry.kind === 'surface' && reason === null,
-      canEditCurvePole: geometry.kind === 'curve' && reason === null, reason };
+      canEditCurvePole: geometry.kind === 'curve' && reason === null, reason,
+      canTranslateBody, translationReason: canTranslateBody ? null : 'translation-profile' };
   });
 }
 
@@ -187,6 +191,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   const initialConfiguration = sessionConfiguration(accepted, options);
   let displayBodyIds = initialConfiguration.displayBodyIds;
   let view = initialConfiguration.view;
+  let editTarget: CadEditorEditTarget = 'pole';
   let bodyCapabilities = capabilities(accepted);
   const sessionId = ++sessionSequence;
   let tokenSequence = 0;
@@ -206,6 +211,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   let download: { token: string; generation: number } | null = null;
   let lastProvenance: CadEditorSnapshot['lastProvenance'] = [];
   let lastCurveProvenance: CadEditorSnapshot['lastCurveProvenance'] = [];
+  let lastBodyTranslation: CadEditorSnapshot['lastBodyTranslation'] = null;
   const listeners = new Set<() => void>();
 
   const live = () => requireEditor(!disposed, 'LIFECYCLE', 'The editor session is disposed.');
@@ -221,10 +227,10 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   const newToken = () => `cad-editor-${sessionId}-${++tokenSequence}`;
   const historyBytes = () => history.reduce((total, state) => total + state.bytes, 0);
   const snapshot = (): CadEditorSnapshot => copy({
-    accepted, generation, displayGeneration, displayBodyIds, view, bodyCapabilities,
+    accepted, generation, displayGeneration, displayBodyIds, view, editTarget, bodyCapabilities,
     selectedBodyId, selection, curveSelection, selectionTransition, pending, candidate: prepared?.candidate ?? null,
     history: { index: historyIndex, count: history.length, bytes: historyBytes(), canUndo: historyIndex > 0, canRedo: historyIndex < history.length - 1 },
-    dirty, downloadStatus, disposed, lastProvenance, lastCurveProvenance,
+    dirty, downloadStatus, disposed, lastProvenance, lastCurveProvenance, lastBodyTranslation,
   });
   const select = (input: CadEditorSurfaceSelection, document = accepted): CadEditorSelectedPole => {
     const context = { documentId: document.document.documentId, bodyId: input?.bodyId, field: 'selection-transition' };
@@ -304,11 +310,21 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     requireEditor(bodyCapabilities.find(body => body.bodyId === curveSelection!.bodyId)?.canEditCurvePole === true,
       'UNSUPPORTED', 'This Curve is outside the native pole edit profile.', context);
   };
+  const requireTranslationEditable = () => {
+    const context = { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: 'body-translation' };
+    const selected = selection ?? curveSelection;
+    requireEditor(selected !== null && selected.bodyId === selectedBodyId, 'INPUT', 'Select an original object first.', context);
+    requireEditor(bodyCapabilities.find(body => body.bodyId === selected.bodyId)?.canTranslateBody === true,
+      'UNSUPPORTED', 'This object is outside the native translation profile.', context);
+    return native(() => resolveCadGeometryReference(accepted, selected.reference),
+      'Native object translation reference resolution failed.', accepted.document.documentId, context);
+  };
   const prepare = (kind: CadEditorCandidate['kind'], result: CadDocumentResult,
     provenance: CadEditorCandidate['provenance'] = [], targetIndex?: number,
     postSelection?: CadEditorSelectionTransition, candidateDisplayIds = displayBodyIds, candidateView = view,
-    curveProvenance: CadEditorCandidate['curveProvenance'] = []): CadEditorCandidate => {
-    prepared = { candidate: { kind, result, provenance, curveProvenance, token: newToken(), baseGeneration: generation,
+    curveProvenance: CadEditorCandidate['curveProvenance'] = [],
+    bodyTranslation: CadEditorCandidate['bodyTranslation'] = null): CadEditorCandidate => {
+    prepared = { candidate: { kind, result, provenance, curveProvenance, bodyTranslation, token: newToken(), baseGeneration: generation,
       baseDisplayGeneration: displayGeneration, displayBodyIds: copy(candidateDisplayIds), view: copy(candidateView) }, historyIndex: targetIndex,
       selectionTarget: postSelection === undefined ? undefined : {
         bodyId: postSelection.target.bodyId, uIndex: postSelection.target.uIndex, vIndex: postSelection.target.vIndex, index: postSelection.target.index,
@@ -343,20 +359,54 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     const result = admit(native(() => createCadDocument(document), 'Native history reconstruction failed.', document.documentId));
     return prepare(direction < 0 ? 'undo' : 'redo', result, [], targetIndex);
   };
-  const pendingValues = (bodyId: string, curve = false): Partial<Record<CadEditorPoleField, number>> => {
+  const pendingValues = (bodyId: string, curve = false, translation = false): Partial<Record<CadEditorPoleField, number>> => {
     const values: Partial<Record<CadEditorPoleField, number>> = {};
     for (const field of FIELDS) if (Object.hasOwn(pending, field)) {
       const text = pending[field]!.trim();
-      const context = { documentId: accepted.document.documentId, bodyId, field: curve ? 'curve-pole' : field };
-      requireEditor(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text), 'INPUT', 'Pole input must be a decimal or exponent number.', context);
+      const context = { documentId: accepted.document.documentId, bodyId, field: translation ? 'body-translation' : curve ? 'curve-pole' : field };
+      requireEditor(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text), 'INPUT', translation ? 'Translation offset must be a decimal or exponent number.' : 'Pole input must be a decimal or exponent number.', context);
       const value = Number(text);
-      requireEditor(Number.isFinite(value), 'INPUT', 'Pole input must be finite.', context);
+      requireEditor(Number.isFinite(value), 'INPUT', translation ? 'Translation offset must be finite.' : 'Pole input must be finite.', context);
       values[field] = value;
     }
     return values;
   };
   const prepareApply = (): CadEditorCandidate | null => {
     live();
+    if (editTarget === 'object') {
+      const resolved = requireTranslationEditable();
+      const bodyId = resolved.reference.bodyId;
+      const context = { documentId: accepted.document.documentId, bodyId, field: 'body-translation' };
+      requireEditor(prepared === null, 'INPUT', 'Resolve the current candidate before moving the object.', context);
+      requireEditor(resolved.geometry.kind === 'curve'
+        ? view.kind === 'curve-focus' && view.bodyId === bodyId : view.kind === 'document',
+      'DISPLAY', resolved.geometry.kind === 'curve' ? 'Focus this Curve before moving it.' : 'Return to document view before moving this Surface.',
+      { ...context, field: 'curve-focus' });
+      const transition = selectionTransition;
+      if (Object.keys(pending).length === 0) { emit(); return null; }
+      requireEditor(!Object.hasOwn(pending, 'weight'), 'INPUT', 'Object translation accepts XYZ offsets only.', context);
+      const values = pendingValues(bodyId, false, true);
+      const offsetMM: [number, number, number] = [values.xMM ?? 0, values.yMM ?? 0, values.zMM ?? 0];
+      const requested = (['xMM', 'yMM', 'zMM'] as CadEditorBodyTranslationField[]).filter(field => Object.hasOwn(pending, field));
+      const compiled = accepted.compiledAssets.find(asset => asset.assetId === resolved.reference.assetId);
+      requireEditor(compiled !== undefined, 'NATIVE', 'The native translation asset binding is missing.', context);
+      const edited = native(() => translateBodySource(resolved.source, compiled.model, resolved.geometry, offsetMM, requested),
+        'Native complete-source object translation failed.', accepted.document.documentId, context);
+      if (edited.noOp) {
+        if (transition !== null) switchTarget(transition.target);
+        pending = {}; prepared = null; selectionTransition = null; emit(); return null;
+      }
+      const document = copy(accepted.document);
+      document.revision = nextRevision(document.revision, context);
+      document.assets = document.assets.map(asset => asset.id === resolved.reference.assetId
+        ? { ...asset, source: edited.source, revision: nextRevision(asset.revision, context) } : asset);
+      const result = admit(native(() => createCadDocument(document), 'Native translated document creation failed.',
+        document.documentId, context), context);
+      const resultReference = native(() => createCadGeometryReference(result, { bodyId }),
+        'Native translated body reference creation failed.', document.documentId, context).reference;
+      return prepare('apply', result, edited.provenance, undefined, transition ?? undefined, displayBodyIds, view,
+        edited.curveProvenance, { reference: resolved.reference, resultReference, offsetMM, report: edited.report });
+    }
     if (curveSelection !== null) {
       requireCurveEditable();
       const selected = curveSelection;
@@ -510,14 +560,34 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       ownFields(input, ['bodyId', 'index'], ['bodyId', 'index'], { field: 'selection-transition' });
       requestSelection(input);
     },
+    setEditTarget(target) {
+      live();
+      const context = { documentId: accepted.document.documentId, field: 'edit-target' };
+      requireEditor(target === 'pole' || target === 'object', 'INPUT', 'Choose Control point or Object.', context);
+      requireEditor(Object.keys(pending).length === 0 && prepared === null && selectionTransition === null,
+        'INPUT', 'Resolve the draft, candidate or selection decision before changing the edit target.', context);
+      if (editTarget === target) return;
+      editTarget = target; emit();
+    },
+    stageBodyTranslationField(field, rawText) {
+      live();
+      const context = { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: 'body-translation' };
+      requireEditor(editTarget === 'object', 'INPUT', 'Select Object before entering translation offsets.', context);
+      requireTranslationEditable();
+      requireEditor(field === 'xMM' || field === 'yMM' || field === 'zMM', 'INPUT', 'Object translation accepts XYZ offsets only.', context);
+      requireEditor(typeof rawText === 'string' && rawText.length <= 128, 'BUDGET', 'Translation input must have at most 128 characters.', context);
+      pending = { ...pending, [field]: rawText }; prepared = null; selectionTransition = null; emit();
+    },
     stageSurfacePoleField(field, rawText) {
-      live(); requireEditable(); requireEditor(selection !== null, 'INPUT', 'Select an original Surface pole first.');
+      live(); requireEditor(editTarget === 'pole', 'INPUT', 'Select Control point before editing a pole.', { field: 'edit-target' });
+      requireEditable(); requireEditor(selection !== null, 'INPUT', 'Select an original Surface pole first.');
       requireEditor(FIELDS.includes(field), 'INPUT', 'The pole field is unsupported.');
       requireEditor(typeof rawText === 'string' && rawText.length <= 128, 'BUDGET', 'Pole input must have at most 128 characters.');
       pending = { ...pending, [field]: rawText }; prepared = null; selectionTransition = null; emit();
     },
     stageCurvePoleField(field, rawText) {
-      live(); requireCurveEditable();
+      live(); requireEditor(editTarget === 'pole', 'INPUT', 'Select Control point before editing a pole.', { field: 'edit-target' });
+      requireCurveEditable();
       const context = { documentId: accepted.document.documentId, bodyId: curveSelection!.bodyId, field: 'curve-pole' };
       requireEditor(FIELDS.includes(field), 'INPUT', 'The Curve Point field is unsupported.', context);
       requireEditor(typeof rawText === 'string' && rawText.length <= 128, 'BUDGET', 'Point input must have at most 128 characters.', context);
@@ -600,10 +670,11 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       accepted = result; selectedBodyId = nextTarget?.target.bodyId ?? null; selection = nextTarget?.pole ?? null;
       curveSelection = nextTarget?.curvePole ?? null;
       bodyCapabilities = nextCapabilities;
-      if (current.candidate.kind === 'open') { displayBodyIds = copy(current.candidate.displayBodyIds); view = copy(current.candidate.view); displayGeneration++; }
+      if (current.candidate.kind === 'open') { displayBodyIds = copy(current.candidate.displayBodyIds); view = copy(current.candidate.view); editTarget = 'pole'; displayGeneration++; }
       generation++; pending = {}; prepared = null; selectionTransition = null;
       lastProvenance = copy(current.candidate.provenance);
       lastCurveProvenance = copy(current.candidate.curveProvenance);
+      lastBodyTranslation = copy(current.candidate.bodyTranslation);
       dirty = current.candidate.kind !== 'open'; downloadStatus = 'Not downloaded'; download = null;
       const returned = snapshot(); emit(); return returned;
     },

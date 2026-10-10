@@ -34,7 +34,11 @@ export function CurvePoleHandles({session,receipt,canvas,onError}:Props){
         points=resolved.geometry.controlPoints.map(point=>[...point] as PolePoint);
         const rect=canvas.getBoundingClientRect();width=rect.width;height=rect.height;
         const selected=snapshot.curveSelection!;
-        if(Object.keys(snapshot.pending).length&&selected.index<points.length){
+        if(snapshot.editTarget==='object'&&Object.keys(snapshot.pending).length){
+          const offset=fields.map(field=>{const raw=snapshot.pending[field];return raw===undefined?0:/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(raw.trim())?Number(raw):NaN;});
+          if(offset.every(Number.isFinite))points=points.map(point=>point.map((value,axis)=>offset[axis]===0?value:value+offset[axis]) as PolePoint);
+        }
+        if(snapshot.editTarget==='pole'&&Object.keys(snapshot.pending).length&&selected.index<points.length){
           const p=points[selected.index].map((value,index)=>{
             const raw=snapshot.pending[fields[index]];return raw===undefined?value:raw.trim()===''?NaN:Number(raw);
           }) as PolePoint;
@@ -76,7 +80,14 @@ export function CurvePoleHandles({session,receipt,canvas,onError}:Props){
     return()=>{window.removeEventListener('keydown',key,true);const g=gesture.current;if(g){gesture.current=null;release(g);const s=session.getSnapshot();if(!s.disposed&&!s.candidate&&!s.selectionTransition&&s.generation===g.generation&&s.displayGeneration===g.displayGeneration&&sameRaw(s.pending,g.raw)){try{session.discardPending();}catch{}}}};
   },[session]);
   function begin(event:ReactPointerEvent<SVGCircleElement>,index:number){
-    if(!event.isPrimary||event.button!==0||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey||!active||!receipt||!canvas)return;
+    if(snapshot.editTarget==='object'){
+      const currentState=session.getSnapshot();if(currentState.candidate||currentState.selectionTransition||currentState.disposed)return;
+      if(!event.isPrimary||event.button!==0||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey||!active)return;
+      event.preventDefault();event.stopPropagation();
+      try{session.requestSelection({bodyId:receipt!.reference.bodyId,index});event.currentTarget.focus({preventScroll:true});}catch(cause){failure(cause);}
+      return;
+    }
+    if(snapshot.editTarget!=='pole'||!event.isPrimary||event.button!==0||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey||!active||!receipt||!canvas)return;
     event.preventDefault();event.stopPropagation();
     try{
       const before=session.getSnapshot();
@@ -115,8 +126,8 @@ export function CurvePoleHandles({session,receipt,canvas,onError}:Props){
       {planes.map((p,index)=>index>0&&p&&planes[index-1]?<line key={'line'+index} x1={planes[index-1]!.xCss} y1={planes[index-1]!.yCss} x2={p.xCss} y2={p.yCss} className={pending?'curve-control-line pending':'curve-control-line'}/>:null)}
       {planes.map((p,index)=>p?<circle key={index} cx={p.xCss} cy={p.yCss} r={index===selected?7:5} role="button" tabIndex={0} aria-label={'Curve point '+(index+1)} aria-pressed={index===selected} data-testid={'curve-pole-handle-'+index} className={'curve-control-point'+(index===selected?' selected':'')+(pending&&index===selected?' pending':'')}
         onPointerDown={event=>begin(event,index)} onPointerMove={move} onPointerUp={end} onPointerCancel={()=>cancel(true)} onLostPointerCapture={()=>{if(gesture.current)cancel(true);}}
-        onKeyDown={event=>{if((event.key==='Enter'||event.key===' ')&&!event.nativeEvent.isComposing){event.preventDefault();try{session.requestSelection({bodyId:receipt.reference.bodyId,index});}catch(cause){failure(cause);}}}}/>:null)}
+        onKeyDown={event=>{if((event.key==='Enter'||event.key===' ')&&!event.nativeEvent.isComposing){event.preventDefault();const state=session.getSnapshot();if(state.candidate||state.selectionTransition||state.disposed)return;try{session.requestSelection({bodyId:receipt.reference.bodyId,index});}catch(cause){failure(cause);}}}}/>:null)}
     </svg>
-    <p className="cad-editor-curve-drag-hint" role="status" data-testid="curve-drag-status">{moving?'Release to apply. Escape cancels.':pending?'Point values pending. Apply or discard to continue.':'Drag a point to move it in the view plane.'}</p>
+    <p className="cad-editor-curve-drag-hint" role="status" data-testid="curve-drag-status">{moving?'Release to apply. Escape cancels.':pending?'Point values pending. Apply or discard to continue.':snapshot.editTarget==='object'?'Select a grip, then drag an object axis.':'Drag a point to move it in the view plane.'}</p>
   </div>;
 }
