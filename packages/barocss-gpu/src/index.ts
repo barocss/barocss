@@ -123,3 +123,5 @@ export type {SourceSceneBoundsRequest,SourceSceneBoundsBox,SourceSceneObjectBoun
 
 export { evaluateAuthoredMaterial, AuthoredMaterialEvaluationError, AuthoredMaterialEvaluationDiagnosticCode } from './material-evaluation.js';
 export type { AuthoredMaterialRequest, AuthoredMaterialSample } from './material-evaluation.js';
+
+export { PrimitiveSceneRecoveryError } from './primitive-scene-renderer.js';
