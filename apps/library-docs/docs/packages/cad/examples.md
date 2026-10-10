@@ -4,6 +4,10 @@ Compile original geometry, query it, then prepare a separate display mesh. These
 
 [Open the CAD playground](/playground#cad-surface) · [Compiler signature](./reference#compilecadmodel) · [Surface sampling signature](./reference#tessellatesurface)
 
+## Edit sections and rebuild a Loft
+
+Use the [complete NURBS Loft graph example](./nurbs-loft-graph) to change a middle section pole and weight, preserve unrelated original geometry, and inspect affected versus reused results. The guide uses a separate newer API version and explains authored Save/Open versus complete evaluated result ingestion.
+
 ## Compile and evaluate geometry {#run-the-complete-cpu-examples}
 
 Use `compileCadModel` to turn complete language input into native geometry. Query original parameters with `evaluateCurve` or `evaluateSurface`. For display, create a separate sampled packet with `tessellateSurface` and convert its millimetres to scene units once.

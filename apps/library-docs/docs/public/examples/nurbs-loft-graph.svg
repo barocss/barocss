@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 444" role="img" aria-labelledby="title desc">
+<title id="title">Middle section of the Loft before and after a pole and weight edit</title>
+<desc id="desc">Native X/Z projection at V=4. Dashed gray is revision 0; blue is revision 1. Both use U from 0 to 2 and millimetres. Evaluated points, not control polygon or a certified surface image.</desc>
+<rect width="820" height="444" rx="12" fill="#f8fafc"/>
+<g font-family="system-ui,sans-serif" fill="#172033">
+<text x="32" y="32" font-size="20" font-weight="600">Middle section of the Loft</text>
+<text x="32" y="56" font-size="13" fill="#536176">V = 4 · original U = 0…2 · native coordinates in mm</text>
+<path d="M 64.000 86 V 308" stroke="#dce4ed"/>
+<text x="64.000" y="330" text-anchor="middle" font-size="12">0</text>
+<path d="M 200.000 86 V 308" stroke="#dce4ed"/>
+<text x="200.000" y="330" text-anchor="middle" font-size="12">2</text>
+<path d="M 336.000 86 V 308" stroke="#dce4ed"/>
+<text x="336.000" y="330" text-anchor="middle" font-size="12">4</text>
+<path d="M 472.000 86 V 308" stroke="#dce4ed"/>
+<text x="472.000" y="330" text-anchor="middle" font-size="12">6</text>
+<path d="M 608.000 86 V 308" stroke="#dce4ed"/>
+<text x="608.000" y="330" text-anchor="middle" font-size="12">8</text>
+<path d="M 744.000 86 V 308" stroke="#dce4ed"/>
+<text x="744.000" y="330" text-anchor="middle" font-size="12">10</text>
+<path d="M 64 308.000 H 744" stroke="#dce4ed"/>
+<text x="50" y="312.000" text-anchor="end" font-size="12">0</text>
+<path d="M 64 252.500 H 744" stroke="#dce4ed"/>
+<text x="50" y="256.500" text-anchor="end" font-size="12">1</text>
+<path d="M 64 197.000 H 744" stroke="#dce4ed"/>
+<text x="50" y="201.000" text-anchor="end" font-size="12">2</text>
+<path d="M 64 141.500 H 744" stroke="#dce4ed"/>
+<text x="50" y="145.500" text-anchor="end" font-size="12">3</text>
+<path d="M 64 86.000 H 744" stroke="#dce4ed"/>
+<text x="50" y="90.000" text-anchor="end" font-size="12">4</text>
+<path d="M 64 86 V 308 H 744" fill="none" stroke="#566579"/>
+<text x="758" y="312" font-size="13">X</text>
+<text x="60" y="74" font-size="13">Z</text>
+<polyline points="64.000,252.500 75.477,251.814 92.263,249.839 113.023,246.806 136.204,243.021 160.353,238.803 184.324,234.425 207.344,230.088 228.983,225.923 249.082,222.001 267.660,218.346 284.847,214.953 300.830,211.799 315.816,208.851 330.013,206.070 343.615,203.421 356.797,200.867 369.715,198.374 382.500,195.912 395.264,193.456 408.096,190.982 421.067,188.472 434.225,185.911 447.602,183.289 461.211,180.600 475.050,177.843 489.100,175.022 503.331,172.145 517.707,169.224 532.185,166.277 546.728,163.326 561.315,160.396 575.948,157.516 590.678,154.716 605.628,152.033 621.040,149.503 637.356,147.171 655.368,145.090 676.547,143.339 703.841,142.049 744.000,141.500" fill="none" stroke="#778397" stroke-width="3" stroke-dasharray="7 5"/>
+<circle cx="408.096" cy="190.982" r="5" fill="#778397" stroke="#f8fafc" stroke-width="2"/>
+<polyline points="64.000,252.500 75.873,250.969 93.675,246.640 115.725,240.149 140.131,232.300 165.201,223.864 189.682,215.460 212.798,207.510 234.181,200.260 253.752,193.816 271.616,188.194 287.970,183.356 303.057,179.232 317.123,175.745 330.404,172.812 343.117,170.357 355.452,168.306 367.576,166.595 379.632,165.166 391.740,163.964 404.000,162.943 416.490,162.058 429.269,161.270 442.376,160.542 455.830,159.839 469.633,159.131 483.767,158.390 498.201,157.591 512.888,156.714 527.776,155.742 542.810,154.664 557.945,153.473 573.161,152.171 588.477,150.765 603.990,149.271 619.912,147.715 636.662,146.134 655.009,144.587 676.413,143.163 703.818,142.022 744.000,141.500" fill="none" stroke="#0a72bd" stroke-width="3"/>
+<circle cx="404.000" cy="162.943" r="5" fill="#0a72bd" stroke="#f8fafc" stroke-width="2"/>
+<path d="M 32 363 H 68" stroke="#778397" stroke-width="3" stroke-dasharray="7 5"/>
+<text x="78" y="367" font-size="13">Revision 0</text>
+<path d="M 200 363 H 236" stroke="#0a72bd" stroke-width="3"/>
+<text x="246" y="367" font-size="13">Revision 1: pole 2 Z = 3 mm, weight = 4.5</text>
+<text x="32" y="396" font-size="13" fill="#536176">U = 1, V = 4 · before: [5.060241, 4.240964, 2.108434] mm</text>
+<text x="32" y="418" font-size="13" fill="#536176">U = 1, V = 4 · after: [5.000000, 4.170455, 2.613636] mm</text>
+</g></svg>
