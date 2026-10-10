@@ -129,3 +129,7 @@ After the compiled package build, open `/packages/barocss-canvas2d/consumer/text
 ## Public clipped chart consumer (#995)
 
 After the compiled build, open `/packages/barocss-canvas2d/consumer/chart.html`. Two fixed eight-point series use public Path/Rect handles inside a rotated clipped Frame. Host controls pan/zoom, bounded hit-stack selection and one-point editing. CSS input becomes logical viewport input for renderer hits; public conversion supplies world/plot-local data for tree events. Changes stage a fresh tree/canvas before adoption. Save clears transient selection and stores accepted Scene; Open resets host view/selection, validates exact chart topology and derives data from admitted commands before restoring editable handles. No plotting framework, host dataset metadata or SVG export is provided.
+
+## Fixed glyph diagram consumer
+
+[`diagram.html`](diagram.html) composes nine public Scene v24 objects: two groups with a box and H/I glyph run, a connector, a transformed clipping frame, and a background. A fixed 16x12 host RGBA8 atlas supplies the glyph pixels. This host does not load a font or shape arbitrary text. Drag uses native canvas capture and public display-tree capture. Each valid edit stages a separate tree, updates the existing renderer, and replaces handles and listeners after admission. Open stages a fresh canvas and restores the saved atlas bytes. Save/Open, restored edits, bounded refusals, PNG decode and Dispose are recorded in [the diagram observation](evidence/diagram/observation.md).

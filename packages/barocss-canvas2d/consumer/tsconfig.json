@@ -76,6 +76,8 @@
     "text-raster-host.mjs",
     "initial-scene.mjs",
     "chart.mjs",
-    "chart-host.mjs"
+    "chart-host.mjs",
+    "diagram-host.mjs",
+    "diagram.mjs"
   ]
 }
