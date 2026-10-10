@@ -3,9 +3,9 @@
 <style>body{font:14px system-ui;margin:20px;max-width:1000px}button,input{margin:0 8px 12px 0}canvas{display:block;width:320px;height:128px;background:#202838;touch-action:none}pre{white-space:pre-wrap;overflow-wrap:anywhere}p{max-width:78ch}</style>
 <script type="importmap">{"imports":{"@barocss/canvas2d":"../dist/index.js","@barocss/canvas2d/document":"../dist/document.js"}}</script>
 </head><body><h1>Browser font to raster GlyphRun</h1>
-<p>This host prepares one label with 24px generic monospace. White ink uses the public GlyphRun renderer. Transparent space passes input to Back. The baseline is at (24, 64) logical pixels.</p>
+<p>This host prepares one label with 24px generic monospace. The public browser text helper supplies owned RGBA bytes and a complete glyph layout. Transparent space passes input to Back. The baseline is at (24, 64) logical pixels.</p>
 <button id="hi">HI</button><button id="space">H I</button><button id="slow">Slow HI</button>
-<button id="malformed">Reject malformed text</button><button id="oversize">Reject oversized metrics</button>
+<button id="malformed">Reject malformed text</button><button id="oversize">Reject oversized font</button>
 <button id="save">Save document</button><label>Open document <input id="open" type="file" accept=".json,application/json"></label>
 <button id="restored">Edit restored label to HI</button><button id="png">Export PNG</button><button id="dispose">Dispose</button>
 <canvas id="scene" width="640" height="256" aria-label="Raster text label"></canvas>

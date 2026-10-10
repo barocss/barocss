@@ -362,3 +362,18 @@ The [initial Scene consumer](consumer/initial-scene.html) composes saved Scene v
 After the compiled build, open `/packages/barocss-canvas2d/consumer/chart.html`. Two fixed eight-point series use public Path/Rect handles inside a rotated clipped Frame. Host controls pan/zoom, bounded hit-stack selection and one-point editing. CSS input becomes logical viewport input for renderer hits; public conversion supplies world/plot-local data for tree events. Changes stage a fresh tree/canvas before adoption. Save clears transient selection and stores accepted Scene; Open resets host view/selection, validates exact chart topology and derives data from admitted commands before restoring editable handles. No plotting framework, host dataset metadata or SVG export is provided.
 
 The [fixed glyph diagram consumer](consumer/diagram.html) combines public groups, rectangles, host-shaped H/I glyph runs, paths, transformed frame clipping, pointer capture, v1 document restoration and PNG export. It is an example host with nine objects and a copied 16x12 RGBA8 atlas; it does not add a core diagram or text API. See the [consumer guide](consumer/README.md) for the local build and server commands.
+
+### Existing font consumer uses the public helper (#1150)
+
+`consumer/text-raster.html` now uses `rasterizeBrowserText` for its asset and
+whole-label layout. The host keeps its 1..32 ASCII label policy, fixed 24px
+monospace font, font readiness and five-second timeout. It checks cancellation
+after readiness and before calling the synchronous helper, then checks again
+before display admission. Its narrower 1024x128 and 512 KiB example guard runs
+after helper preparation. This does not add a core raster limit.
+
+Cold Open restores document bytes without preparing a font or calling the
+helper. A later restored edit prepares the current font and calls the helper,
+then applies the result with `GlyphRunHandle.setLayout` on a copied candidate
+tree. The accepted renderer and tree remain live until candidate admission
+succeeds. Original native consumer observations remain historical evidence.

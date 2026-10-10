@@ -2,10 +2,10 @@
 import { createCanvas2D, createDisplayTree, createDisplayTreeFromScene,
   stringifySceneJSON } from '@barocss/canvas2d';
 import { serializeCanvasDocument, parseCanvasDocument, exportCanvasDocumentPNG } from '@barocss/canvas2d/document';
-import { prepareRaster, boundsFromMetrics, validateText } from './text-raster-host.mjs';
+import { prepareRaster, oversizeRaster, getHostCounts, validateText } from './text-raster-host.mjs';
 
 /** @typedef {import('@barocss/canvas2d').Point} Point */
-/** @typedef {Awaited<ReturnType<typeof prepareRaster>>} Prepared */
+/** @typedef {NonNullable<Awaited<ReturnType<typeof prepareRaster>>>} Prepared */
 /** @typedef {{ left: number, right: number, top: number, bottom: number, width: number, height: number,
  * backingWidth: number, backingHeight: number, advance: number | null }} Bounds */
 /** @typedef {{ canvas: HTMLCanvasElement, renderer: import('@barocss/canvas2d').Canvas2DRenderer,
@@ -32,14 +32,14 @@ let disposed = false;
 /** @type {{ code: string, retained: boolean, generation: number } | null} */ let failure = null;
 /** @type {{ generation: number, acceptedGeneration: number | null } | null} */ let ignored = null;
 /** @type {{ bytesEqualPrevious: boolean | null, samplesEqualPrevious: boolean | null,
- * ids: string[], fontPrepared: false } | null} */ let opened = null;
+ * ids: string[], fontPrepared: false, helperCallsUnchanged:boolean, layoutEqualPrevious:boolean|null, contextEqualPrevious:boolean|null, idsEqualPrevious:boolean|null } | null} */ let opened = null;
 /** @type {{ filename: string, byteLength: number } | null} */ let saved = null;
 /** @type {{ filename: string, byteLength: number, backingWidth: number, backingHeight: number } | null} */ let png = null;
 /** @type {ReturnType<typeof sessionObservation> | null} */ let terminal = null;
 const counts = { prepareCalls: 0, candidates: 0, accepted: 0, ignored: 0, errors: 0,
   rendererCreated: 0, rendererDisposed: 0, liveDisplayRenderers: 0, maxDisplayRenderers: 0,
   sceneSubmits: 0, renders: 0, pointerEvents: 0, openCalls: 0, pngCalls: 0,
-  pngTemporaryCanvases: 0, disposeCalls: 0 };
+  pngTemporaryCanvases: 0, disposeCalls: 0, bindings: 0, unbindings: 0, layoutEdits: 0 };
 
 /** @param {unknown} error */
 function codeOf(error) { return error instanceof Error && 'code' in error ? String(error.code)
@@ -104,7 +104,8 @@ function sample(s, point) {
 function sessionObservation(s) {
   const points = sourcePoints(s); const actual = s.renderer.getImageAsset(atlasId);
   return { generation: s.generation, source: s.source, text: s.glyph.data.text, sceneVersion: s.scene.version,
-    bounds: { ...s.bounds }, font: s.font && { ...s.font },
+    bounds: { ...s.bounds }, font: s.font && { ...s.font }, contextId: s.scene.contextId,
+    layout: layoutOf(s),
     atlas: { width: s.asset.width, height: s.asset.height, byteLength: s.asset.pixels.length, hash: byteHash(s.asset.pixels) },
     atlasMatchesRenderer: !!actual && sameBytes(s.asset, actual),
     quad: s.glyph.data.glyphs[0], baseline: { ...s.glyph.data.transform, value: s.glyph.data.baseline },
@@ -115,7 +116,7 @@ function sessionObservation(s) {
 }
 function observe() {
   return { state, disposed, requestedGeneration, acceptedGeneration: session?.generation ?? terminal?.generation ?? null,
-    staged, dpr: options.dpr, counts: { ...counts }, failure, ignored, opened, saved, png,
+    staged, dpr: options.dpr, counts: { ...counts, ...getHostCounts() }, failure, ignored, opened, saved, png,
     pointerLog: [...pointerLog], accepted: session ? sessionObservation(session) : terminal };
 }
 function points() { return session ? sourcePoints(session) : null; }
@@ -150,6 +151,7 @@ function recordRenderer() { counts.rendererCreated++; counts.liveDisplayRenderer
 function disposeRenderer(renderer) { renderer.dispose(); counts.rendererDisposed++; counts.liveDisplayRenderers--; }
 /** @param {Session} s */
 function bind(s) {
+  counts.bindings++;
   const unsubscribe = [s.glyph.onPointer('pointerdown', event => pointerLog.push(`g${s.generation}:Label:${event.target?.id}`)),
     s.tree.stage.onPointer('pointerdown', event => pointerLog.push(`g${s.generation}:stage:${event.target?.id ?? 'none'}`))];
   const back = s.tree.get('Back');
@@ -164,7 +166,9 @@ function bind(s) {
     if (pointerLog.length > 80) pointerLog.splice(0, pointerLog.length - 80); show('Dispatched real pointerdown');
   };
   s.canvas.addEventListener('pointerdown', onPointer);
-  return () => { s.canvas.removeEventListener('pointerdown', onPointer); for (const unbind of unsubscribe) unbind(); };
+  let done = false;
+  return () => { if (done) return; done = true; counts.unbindings++;
+    s.canvas.removeEventListener('pointerdown', onPointer); for (const unbind of unsubscribe) unbind(); };
 }
 /** @param {Session} next */
 function adopt(next) {
@@ -172,24 +176,29 @@ function adopt(next) {
   canvas.replaceWith(next.canvas); canvas = next.canvas; session = next; counts.accepted++; state = 'ready'; failure = null;
   if (old) { old.unbind(); disposeRenderer(old.renderer); }
 }
-/** @param {Prepared} prepared @param {number} token */
-function stagePrepared(prepared, token) {
-  const tree = createDisplayTree('TextRasterConsumer');
-  tree.stage.addChild(tree.createRect({ id: 'Back', layer: 0, transform: pose(),
-    width: 320, height: 128, fill: [32 / 255, 40 / 255, 56 / 255, 1] }));
-  const b = prepared.bounds;
-  const glyph = tree.createGlyphRun({ id: 'Label', layer: 1, transform: pose(24, 64),
-    atlasId, text: prepared.text, baseline: 0, opacity: 1, sampling: 'nearest', glyphs: [{
-      sourceRect: { x: 0, y: 0, width: prepared.asset.width, height: prepared.asset.height },
-      x: b.left, y: b.top, width: b.width, height: b.height, textStart: 0, textEnd: prepared.text.length }] });
-  tree.stage.addChild(glyph);
+/** @param {Session} s */
+function layoutOf(s) { const d = s.glyph.data; return { atlasId: d.atlasId, text: d.text, baseline: d.baseline,
+  opacity: d.opacity, sampling: d.sampling, glyphs: d.glyphs }; }
+/** @param {Prepared} prepared @param {number} token @param {Session|null} restored */
+function stagePrepared(prepared, token, restored = null) {
+  const tree = restored ? createDisplayTreeFromScene(restored.scene) : createDisplayTree('TextRasterConsumer');
+  /** @type {import('@barocss/canvas2d').GlyphRunHandle} */ let glyph;
+  if (restored) {
+    const label = tree.get('Label'); if (label?.kind !== 'glyphRun') throw new Error('Restored label missing');
+    glyph = label; glyph.setLayout(prepared.layout); counts.layoutEdits++;
+  } else {
+    tree.stage.addChild(tree.createRect({ id: 'Back', layer: 0, transform: pose(),
+      width: 320, height: 128, fill: [32 / 255, 40 / 255, 56 / 255, 1] }));
+    glyph = tree.createGlyphRun({ id: 'Label', layer: 1, transform: pose(24, 64), ...prepared.layout });
+    tree.stage.addChild(glyph);
+  }
   const fresh = document.createElement('canvas'); fresh.id = 'scene';
   const renderer = createCanvas2D(fresh, options); recordRenderer();
   try {
     renderer.setImageAsset(atlasId, prepared.asset); const scene = tree.snapshot(); renderer.updateScene(scene);
     counts.sceneSubmits++; renderer.render(); counts.renders++;
     return { canvas: fresh, renderer, tree, glyph, scene, asset: prepared.asset,
-      bounds: { ...b }, font: prepared.font, generation: token,
+      bounds: { ...prepared.bounds }, font: prepared.font, generation: token,
       source: /** @type {const} */ ('prepared'), unbind: () => {} };
   } catch (error) { disposeRenderer(renderer); throw error; }
 }
@@ -199,19 +208,19 @@ function reportFailure(error, before, token) {
   counts.errors++; failure = { code: codeOf(error), retained: fingerprint() === before, generation: token };
   state = session ? 'ready' : 'error'; show(`Candidate refused: ${failure.code}`);
 }
-/** @param {string} text @param {number} delayMS */
-async function edit(text, delayMS = 0) {
+/** @param {string} text @param {number} delayMS @param {boolean} restoredEdit */
+async function edit(text, delayMS = 0, restoredEdit = false) {
   if (disposed) return;
-  const token = ++requestedGeneration; const before = fingerprint(); counts.candidates++; counts.prepareCalls++;
+  const token = ++requestedGeneration; const before = fingerprint(); const restored = restoredEdit ? session : null; counts.candidates++; counts.prepareCalls++;
   state = 'preparing'; show(`Preparing ${JSON.stringify(text)}`);
   let acquired = false;
   /** @type {Session | null} */ let candidate = null;
   try {
-    const prepared = await prepareRaster(text, delayMS);
-    if (!current(token)) { markIgnored(token); return; }
+    const prepared = await prepareRaster(text, delayMS, () => current(token));
+    if (!prepared || !current(token)) { markIgnored(token); return; }
     acquired = await acquireStage(token, 'edit');
     if (!acquired || !current(token)) { markIgnored(token); return; }
-    candidate = stagePrepared(prepared, token); adopt(candidate); opened = null;
+    candidate = stagePrepared(prepared, token, restored); adopt(candidate); opened = null;
     releaseStage(); acquired = false; show(`Accepted ${JSON.stringify(text)}`);
   } catch (error) {
     if (candidate && session !== candidate) { candidate.unbind(); disposeRenderer(candidate.renderer); }
@@ -223,17 +232,16 @@ async function edit(text, delayMS = 0) {
 function oversize() {
   if (disposed) return;
   const token = ++requestedGeneration; const before = fingerprint(); let error = null;
-  try { boundsFromMetrics({ width: 600, actualBoundingBoxLeft: 0, actualBoundingBoxRight: 600,
-    actualBoundingBoxAscent: 24, actualBoundingBoxDescent: 0 }); }
+  try { oversizeRaster(); }
   catch (caught) { error = caught; }
   if (error) reportFailure(error, before, token);
-  else { failure = { code: 'ACCEPTED', retained: fingerprint() === before, generation: token }; show('Oversized metrics admitted'); }
+  else { failure = { code: 'ACCEPTED', retained: fingerprint() === before, generation: token }; show('Oversized public raster unexpectedly admitted'); }
   return failure;
 }
 /** @param {string} text */
 async function openText(text) {
   if (disposed) return;
-  const token = ++requestedGeneration; const before = fingerprint(); const previous = session;
+  const token = ++requestedGeneration; const before = fingerprint(); const previous = session; const helperCalls = getHostCounts().helperCalls;
   counts.openCalls++; state = 'preparing'; show('Validating saved scene and bytes'); let acquired = false;
   /** @type {Session | null} */ let candidate = null;
   try {
@@ -241,7 +249,7 @@ async function openText(text) {
     if (!current(token)) { markIgnored(token); return; }
     const tree = createDisplayTreeFromScene(parsed.scene);
     const back = tree.get('Back'), glyph = tree.get('Label'), asset = parsed.assets.get(atlasId);
-    if (tree.stage.children.length !== 2 || back?.kind !== 'rect' || glyph?.kind !== 'glyphRun' ||
+    if (parsed.scene.contextId !== 'TextRasterConsumer' || tree.stage.children.length !== 2 || back?.kind !== 'rect' || glyph?.kind !== 'glyphRun' ||
         !tree.stage.children.includes(back) || !tree.stage.children.includes(glyph) || parsed.assets.size !== 1 ||
         !asset || glyph.data.atlasId !== atlasId || glyph.data.glyphs.length !== 1 ||
         glyph.data.baseline !== 0 || glyph.data.transform.x !== 24 || glyph.data.transform.y !== 64 ||
@@ -272,7 +280,10 @@ async function openText(text) {
       opened = { bytesEqualPrevious: previous ? sameBytes(previous.asset, asset) : null,
         samplesEqualPrevious: previous ? JSON.stringify({ ink: sessionObservation(previous).ink, space: sessionObservation(previous).space }) ===
           JSON.stringify({ ink: sessionObservation(next).ink, space: sessionObservation(next).space }) : null,
-        ids: tree.stage.children.map(child => child.id), fontPrepared: false };
+        ids: tree.stage.children.map(child => child.id), fontPrepared: false, helperCallsUnchanged: getHostCounts().helperCalls === helperCalls,
+        layoutEqualPrevious: previous ? JSON.stringify(layoutOf(previous)) === JSON.stringify(layoutOf(next)) : null,
+        contextEqualPrevious: previous ? previous.scene.contextId === next.scene.contextId : null,
+        idsEqualPrevious: previous ? JSON.stringify(previous.tree.stage.children.map(child => child.id)) === JSON.stringify(tree.stage.children.map(child => child.id)) : null };
     } catch (error) { disposeRenderer(renderer); throw error; }
     candidate = next; adopt(next); releaseStage(); acquired = false;
     show('Opened saved bytes on a fresh editable tree; font was not prepared');
@@ -325,7 +336,7 @@ function dispose() {
 }
 const actions = { hi: () => { void edit('HI'); }, space: () => { void edit('H I'); },
   slow: () => { void edit('HI', 750); }, malformed: () => { void edit('HI\n'); }, oversize,
-  save: () => { void save(); }, restored: () => { void edit('HI'); }, png: () => { void exportPNG(); }, dispose };
+  save: () => { void save(); }, restored: () => { void edit('HI', 0, true); }, png: () => { void exportPNG(); }, dispose };
 for (const [id, action] of Object.entries(actions)) {
   const button = document.querySelector(`#${id}`); button?.addEventListener('click', action);
   hostUnbind.push(() => button?.removeEventListener('click', action));

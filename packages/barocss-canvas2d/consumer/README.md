@@ -133,3 +133,26 @@ After the compiled build, open `/packages/barocss-canvas2d/consumer/chart.html`.
 ## Fixed glyph diagram consumer
 
 [`diagram.html`](diagram.html) composes nine public Scene v24 objects: two groups with a box and H/I glyph run, a connector, a transformed clipping frame, and a background. A fixed 16x12 host RGBA8 atlas supplies the glyph pixels. This host does not load a font or shape arbitrary text. Drag uses native canvas capture and public display-tree capture. Each valid edit stages a separate tree, updates the existing renderer, and replaces handles and listeners after admission. Open stages a fresh canvas and restores the saved atlas bytes. Save/Open, restored edits, bounded refusals, PNG decode and Dispose are recorded in [the diagram observation](evidence/diagram/observation.md).
+
+## Existing font consumer helper adoption (#1150)
+
+`text-raster.html` reuses the public `rasterizeBrowserText` helper. The host keeps
+its 1..32 ASCII policy, 24px monospace font, DPR2, 0..1000ms readiness delay and
+five-second timeout. A superseded readiness result returns before helper
+scratch allocation. The host checks the current generation again before a
+fresh display candidate. Its 1024x128, 131072-pixel and 512 KiB guard runs after
+helper preparation. The oversize button uses an actual 1000px font and a string
+of 32 copies of the letter M; public errors keep their codes and objects.
+
+Save and cold Open keep the existing v1 document flow. Open uses saved layout
+and bytes, including the preserved native Scene23 fixture, without font or
+helper calls. Restored HI uses the helper and public `setLayout` on a copied
+candidate tree before swapping its fresh canvas and renderer. `textRaster`
+reports helper calls, layout edits, bindings and renderer lifetime. The original
+`evidence/text-raster` observations remain unchanged. This adoption adds no new
+example, core API, Scene version, Application facade or package campaign.
+
+Current adoption checks use `tsc --noEmit -p consumer/tsconfig.text-helper.json`
+and `node consumer/evidence/text-helper-adoption/probe.mjs` after the package
+build. Run the historical `evidence/text-raster/probe.mjs` from the preserved
+#1011 native checkout; it checks the former private host and Scene23.
