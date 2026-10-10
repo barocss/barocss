@@ -2,7 +2,7 @@
 <link rel="icon" href="data:,"><title>BaroCSS native scene replacement</title>
 <style>:root{font:15px/1.5 system-ui,sans-serif;color-scheme:dark}body{max-width:1100px;margin:24px auto;padding:0 16px;background:#102032;color:#e7f0fa}
 .layout{display:grid;grid-template-columns:minmax(0,640px) minmax(250px,1fr);gap:16px}canvas{display:block;max-width:100%;height:auto;border:1px solid #718da7}
-button,input{margin:4px;padding:6px 10px;background:#244462;color:white;border:1px solid #7198bc;border-radius:4px}button:disabled{opacity:.5}
+button,input,select{margin:4px;padding:6px 10px;background:#244462;color:white;border:1px solid #7198bc;border-radius:4px}button:disabled{opacity:.5}
 ul{list-style:none;padding:0}li{padding:8px;margin-bottom:8px;border:1px solid #56748f;overflow-wrap:anywhere}small{display:block}
 pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}@media(max-width:900px){.layout{grid-template-columns:1fr}}</style></head><body>
 <h1>Original source with an initial display scene</h1><p>Replace source, complete display poses, visible bodies and camera in one accepted action.
@@ -24,6 +24,18 @@ This is an original-source download, not project Save As. It can remain availabl
 Files must contain 1 to 65,536 UTF-8 bytes. The filename and extension do not determine the geometry. Unsupported or invalid files leave the accepted original scene in place when presentation recovery is available.
 This opens native geometry, without Face topology, a saved document, Shell, assembly or editing history. It does not upload or save your file.</p></details>
 </section>
+<fieldset><legend>Document scene and appearance</legend>
+<label>Material time seconds <input id="mounted-appearance-time" aria-label="Material time seconds" type="text" inputmode="decimal" value="0.5" disabled></label>
+<label>Material amount <input id="mounted-appearance-amount" aria-label="Material amount" type="text" inputmode="decimal" value="0.75" disabled></label>
+<label>Light preset <select id="mounted-appearance-light" aria-label="Appearance light preset" disabled><option value="primary">Primary light</option><option value="alternate">Alternate light</option></select></label>
+<button id="replace-mounted-appearance" disabled>Replace scene and appearance</button>
+<p id="mounted-appearance-output" role="status" aria-live="polite"></p>
+<details><summary>Accepted document appearance</summary><pre id="mounted-appearance-details"></pre></details>
+<details id="mounted-appearance-help"><summary>About mounted appearance replacement</summary>
+<p>This applies the complete original document with two Surface shaders, one Curve, display poses, visible bodies, a fixed camera and explicit light.
+It updates a supported native backend that has already accepted a scene. Unsupported or unavailable backends report an error; this does not create the first material frame or open an editor project.
+The time uniform uses 0 to 2 and the amount uses 0 to 1. Original sources, Models and revisions remain unchanged. A failed candidate keeps accepted data when presentation recovery succeeds.
+File choice remains separate. This source action cancels an older local Open intent before the attempt and clears accepted File metadata and inspection only after success. Original-source download does not become scene Save As.</p></details></fieldset>
 <button id="replacement" disabled>Load document with saved view</button><button id="fit-replacement" disabled>Load document with fitted view</button>
 <button id="document" disabled>Load original document</button><button id="native" disabled>Load original native asset</button>
 <button id="native-replacement" disabled>Replace native with display poses</button><button id="show-all" disabled>Show all bodies</button>

@@ -182,3 +182,42 @@ This CPU function creates no Viewer, canvas or GPU backend. It does not mount,
 render, replace an accepted scene or make file Open atomic. A future renderer
 must re-admit the prepared frame through a supported public mount API. The full
 appearance replacement operation and its first-frame mount remain separate.
+
+
+## Replace appearance on an accepted native backend
+
+Select **Replace scene and appearance** to replace the canonical document,
+three admitted bodies, poses, visibility, camera, two opaque Surface shaders
+and light through one public operation. The time uniform accepts0..2; the
+amount accepts0..1. The two light presets are explicit. Accepted details come
+from public Viewer state after success, including canonical material values
+and effective lighting. Original asset sources, three-object Models, six
+authored bodies and revisions are retained.
+
+The initial page uses the existing legacy document bootstrap. The new action
+updates only an already accepted qualified V2 or Viewport backend. It does not
+create a complete first material mount or certify fresh Render file Open.
+The SDK rejects unsupported, unmounted, lost, unavailable or disposed targets.
+An empty candidate is supported on Viewport only. The button's coarse public
+ready/empty status check does not certify the internal backend family.
+
+The action uses the existing File intent rule: cancel older local reads before
+the attempt; clear accepted File metadata and native inspection only after
+success. Drafts and original File/download controls remain separate. A failure
+retains accepted appearance under the SDK recovery policy. Live fatal failure
+has no pixel rollback promise. Later primitive views and operations retain
+the accepted light under the mounted operation contract; independent Face and
+MixedDepth modes reset to their constructor light policy on successful load.
+
+The exact shader literals come from mesh-material-cpu-probe.mjs and
+material-shorthand-flow.mjs. They are compiled and validated through public
+GPU APIs. The host builds fresh document TEN-field pins and candidate display
+Surface refs; repeated native IDs do not select a different asset's material.
+No prepared execution buffer is treated as native source or a trusted token.
+
+Proof hooks add buildMountedAppearanceInput, buildMountedAppearanceCandidate,
+replaceMountedAppearance and mountedAppearanceSnapshot. Explicit action
+arguments pass unchanged to the SDK; only zero arguments read physical drafts.
+Existing source/compiled server modes and fixture routes remain unchanged.
+New first-mount APIs, arbitrary backend switches, full authored Save/Open,
+editor history and release acceptance remain separate.

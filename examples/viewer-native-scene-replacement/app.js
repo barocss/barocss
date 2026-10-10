@@ -1,14 +1,15 @@
-import {createViewer} from '@barocss/viewer';
+import {createViewer,prepareViewerNativeSceneAppearance} from '@barocss/viewer';
 import {loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2} from '@barocss/cad-interop/document';
 import {parseBaroCadSource} from '@barocss/cad-interop/native';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {parseBaroCadAssembly,loadBaroCadAssembly} from '@barocss/cad-interop/assembly';
 import {compileCadModel,evaluateCurve,evaluateSurface,curveDomain,parseBooleanExtrusionFeatureGraph,
   createCadGeometryReference,queryCadDocumentPoint} from '@barocss/cad';
-import {prepareUniformCurvePreview,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer} from '@barocss/gpu';
+import {prepareUniformCurvePreview,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer,PrimitiveSceneRecoveryError,preparePrimitiveSceneFrame,compileMeshMaterial,validateMeshMaterialIR} from '@barocss/gpu';
 import {createClothWorld} from '@barocss/physics/cloth';
 import {readNativeFile,createNativeFileOpen} from './native-file-open.js';
 import {prepareNativeSourceDownload,createNativeSourceDownload} from './native-source-download.js';
+import {buildMountedAppearanceInput,MOUNTED_APPEARANCE_SHADER_SOURCES,MOUNTED_APPEARANCE_LIGHT_PRESETS} from './mounted-appearance.js';
 
 const check=(condition,message)=>{if(!condition)throw Error(message);},clone=value=>structuredClone(value);
 const same=(a,b)=>Object.is(a,b)||!!a&&!!b&&typeof a==='object'&&typeof b==='object'&&Object.keys(a).length===Object.keys(b).length
@@ -20,6 +21,8 @@ const canvas=document.querySelector('canvas'),status=document.querySelector('#st
 const nativeFileChoice=document.querySelector('#native-file-choice'),openNativeFileButton=document.querySelector('#open-native-file'),discardNativeFileButton=document.querySelector('#discard-native-file');
 const stagedNativeFile=document.querySelector('#staged-native-file'),acceptedNativeFile=document.querySelector('#accepted-native-file');
 const downloadNativeSourceButton=document.querySelector('#download-native-source'),nativeSourceDownloadOutput=document.querySelector('#native-source-download-output');
+const mountedAppearanceTime=document.querySelector('#mounted-appearance-time'),mountedAppearanceAmount=document.querySelector('#mounted-appearance-amount'),mountedAppearanceLight=document.querySelector('#mounted-appearance-light');
+const replaceMountedAppearanceButton=document.querySelector('#replace-mounted-appearance'),mountedAppearanceOutput=document.querySelector('#mounted-appearance-output'),mountedAppearanceDetails=document.querySelector('#mounted-appearance-details');
 const buttons=Object.fromEntries(['replacement','fit-replacement','document','native','native-replacement','show-all','hide-all','fit','saved-view','query','clear','run-proof','lose-context','dispose']
   .map(id=>[id,document.querySelector('button#'+id)]));
 const contexts=new Set(),resources={},peaks={},uploads=[],draws=[],errors=[],warnings=[];
@@ -92,6 +95,25 @@ function renderNativeSourceDownloadControls(snapshot=nativeSourceDownloadSnapsho
   if(snapshot.error)nativeSourceDownloadOutput.textContent+=(nativeSourceDownloadOutput.textContent?' · ':'')+snapshot.error.message;}
 async function downloadNativeSource(){check(nativeSourceDownload&&!disposed&&!running,'Source download needs a live host.');const report=await nativeSourceDownload.download();
   if(report&&!disposed)display('Original source download offered: '+report.name+'.');return report;}
+function mountedAppearanceAccepted(state){return state.document?clone({documentId:state.document.document.documentId,
+  revision:state.document.document.revision,documentBodies:state.documentBodies,visibleGeometry:state.visibleGeometry,
+  geometryMotion:state.geometryMotion,camera:state.camera,lighting:state.lighting,surfaceMaterials:state.surfaceMaterials}):null;}
+function renderMountedAppearanceControls(state){const enabled=!disposed&&!running&&['ready','empty'].includes(state.status),accepted=mountedAppearanceAccepted(state);
+  for(const input of[mountedAppearanceTime,mountedAppearanceAmount,mountedAppearanceLight,replaceMountedAppearanceButton])input.disabled=!enabled;
+  mountedAppearanceOutput.textContent=accepted?'Current accepted document '+accepted.documentId+' · revision '+accepted.revision+' · '+accepted.surfaceMaterials.length+' Surface materials'
+    +' · '+(accepted.lighting?'light ambient '+accepted.lighting.ambientStrength+' / directional '+accepted.lighting.directionalStrength:'constructor/default light'):'';
+  mountedAppearanceDetails.textContent=accepted?JSON.stringify(accepted,null,2):'';}
+function mountedAppearanceSnapshot(){return{enabled:!replaceMountedAppearanceButton.disabled,
+  drafts:{timeSeconds:mountedAppearanceTime.value,amount:mountedAppearanceAmount.value,lightPreset:mountedAppearanceLight.value},
+  accepted:disposed?null:mountedAppearanceAccepted(viewer.getState()),output:mountedAppearanceOutput.textContent,technical:mountedAppearanceDetails.textContent};}
+function mountedAppearanceDraft(input,label,min,max){const text=input.value.trim(),value=Number(text);
+  check(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text)&&Number.isFinite(value)&&value>=min&&value<=max,label+' must be a complete finite decimal in '+min+'..'+max+'.');return value;}
+function buildMountedAppearanceCandidate(overrides={}){return buildMountedAppearanceInput(documentResult,{camera:clone(fixedCamera),timeSeconds:.5,amount:.75,lightPreset:'primary',...overrides});}
+function replaceMountedAppearance(input){check(!disposed&&!running,'Mounted appearance needs an idle live host.');const physical=arguments.length===0;
+  const accepted=sourceAction(()=>{const candidate=physical?buildMountedAppearanceCandidate({timeSeconds:mountedAppearanceDraft(mountedAppearanceTime,'Material time',0,2),
+    amount:mountedAppearanceDraft(mountedAppearanceAmount,'Material amount',0,1),lightPreset:mountedAppearanceLight.value}):input;
+    viewer.replaceNativeSceneAppearance(candidate);return mountedAppearanceAccepted(viewer.getState());});
+  display('Document scene and appearance replaced.');return clone(accepted);}
 function inventory(){const state=viewer.getState();return state.documentBodies.length?state.documentBodies.map(body=>({ref:body.ref,label:body.binding.bodyId,pin:body.binding}))
   :[...state.surfaces.map(ref=>({ref:{kind:'surface',...ref},label:ref.surfaceId})),...state.curves.map(ref=>({ref:{kind:'curve',...ref},label:ref.curveId}))];}
 function render(){const state=viewer.getState(),live=!disposed&&state.status!=='context-lost',ready=live&&state.status==='ready';
@@ -104,7 +126,7 @@ function render(){const state=viewer.getState(),live=!disposed&&state.status!=='
     checkbox.addEventListener('change',()=>action(()=>{if(!item.isConnected)throw Error('This body list is stale.');
       const accepted=viewer.getState(),refs=inventory().map(body=>body.ref).filter(ref=>sameRef(ref,body.ref)?checkbox.checked:accepted.visibleGeometry.some(value=>sameRef(value,ref)));
       viewer.setVisibleGeometry(refs);}));item.append(label,identity);return item;}));
-  nativeFileOpen?.sync();renderNativeFileControls();nativeSourceDownload?.sync();renderNativeSourceDownloadControls();
+  nativeFileOpen?.sync();renderNativeFileControls();nativeSourceDownload?.sync();renderNativeSourceDownloadControls();renderMountedAppearanceControls(state);
 }
 function action(callback){if(disposed)return;try{callback();render();}catch(error){display(error.message);}}
 function transformedPoint(point,pose){if(!pose)return point.map(n=>n*mmToSceneUnit);const[x,y,z,w]=pose.rotation,
@@ -205,7 +227,8 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=awa
   nativeSourceDownload=createNativeSourceDownload(viewer,canvas,{getAcceptedFile:()=>nativeFileSnapshot().accepted,
     onChange:snapshot=>renderNativeSourceDownloadControls(snapshot),onError:error=>display(error instanceof Error?error.message:String(error))});
   replace();lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
-  window.__viewerReplacementProof={viewer,createViewer,prepareNativeSourceDownload,createNativeSourceDownload,downloadNativeSource,nativeSourceDownloadSnapshot,readNativeFile,createNativeFileOpen,stageNativeFile,openNativeFile,discardNativeFile,invalidateNativeFile,nativeFileSnapshot,documentResult,originalBytes,originalText,manifest,sources,projection,bodyIds,nativeOptions,documentOptions,fixedCamera,mmToSceneUnit,canvas,
+  window.__viewerReplacementProof={viewer,createViewer,prepareViewerNativeSceneAppearance,preparePrimitiveSceneFrame,compileMeshMaterial,validateMeshMaterialIR,PrimitiveSceneRecoveryError,
+    buildMountedAppearanceInput,buildMountedAppearanceCandidate,replaceMountedAppearance,mountedAppearanceSnapshot,MOUNTED_APPEARANCE_SHADER_SOURCES,MOUNTED_APPEARANCE_LIGHT_PRESETS,prepareNativeSourceDownload,createNativeSourceDownload,downloadNativeSource,nativeSourceDownloadSnapshot,readNativeFile,createNativeFileOpen,stageNativeFile,openNativeFile,discardNativeFile,invalidateNativeFile,nativeFileSnapshot,documentResult,originalBytes,originalText,manifest,sources,projection,bodyIds,nativeOptions,documentOptions,fixedCamera,mmToSceneUnit,canvas,
     buildCandidate,makeCandidate:buildCandidate,buildNativeCandidate,initialDisplay,refFor,refs:projection.map(refFor),refsFor:()=>projection.map(refFor),replace,nativeEntries,candidatePoints,transformedPoint,expectedFit,uploadWitness,query,inventory,render,
     loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2,parseBaroCadSource,compileCadModel,evaluateCurve,evaluateSurface,curveDomain,
     createCadGeometryReference,queryCadDocumentPoint,parseBooleanExtrusionFeatureGraph,prepareUniformCurvePreview,parseBaroCadAssembly,loadBaroCadAssembly,loadBaroCadModelSet,
@@ -215,6 +238,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=awa
   window.__viewerReplacementProof.nativeSourcePanel=await(await fetch('/original-panel.barocad')).text();
   display('Ready: revision5 original two-asset document, four posed bodies, three visible, exact saved camera.');
 }catch(error){display({ok:false,stage:'startup',error:error.stack||error.message});}
+replaceMountedAppearanceButton.addEventListener('click',()=>action(()=>replaceMountedAppearance()));
 downloadNativeSourceButton.addEventListener('click',()=>{downloadNativeSource().catch(()=>{});});
 nativeFileChoice.addEventListener('change',()=>{const file=nativeFileChoice.files?.[0];if(file)try{stageNativeFile(file);}catch{}});
 openNativeFileButton.addEventListener('click',()=>{openNativeFile().catch(()=>{});});discardNativeFileButton.addEventListener('click',()=>{if(disposed)return;try{discardNativeFile();}catch(error){display(error.message);}});

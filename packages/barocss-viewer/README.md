@@ -893,3 +893,51 @@ update operation. Bounds describe derived F32 display data.
 This function does not mount or present a frame, commit source or appearance,
 change Viewer lighting, cancel a pending request, or prove rendered file Open.
 The complete first-frame mount and full #1369 transaction remain separate.
+
+
+## Replace appearance on an accepted native backend
+
+`viewer.replaceNativeSceneAppearance(input)` accepts the existing doc-only
+`ViewerNativeSceneAppearanceInputV1`. It replaces complete original document
+authority, TEN body bindings, poses, visibility, explicit camera, Surface
+materials and lighting with one complete frame update. The Viewer supplies its
+existing construction scale/background to the pure preparation function.
+
+This method requires an already accepted `PrimitiveSceneRendererV2` or
+`PrimitiveViewport`. V2 requires a nonempty visible candidate; Viewport accepts
+empty or nonempty candidates. A fresh Viewer or another backend refuses before
+GPU work. The method does not mount, switch backends or bootstrap an empty
+scene. Existing `replaceNativeScene` version0 remains a separate operation.
+
+Preparation copies the complete original document and reconstructs all admitted
+Surface packets, Curve sample0/1 and native body bindings, including hidden
+geometry. Material targets must be visible candidate Surfaces. It re-admits the
+canonical frame through the actual public `updateFrame`; derived execution
+buffers are not a trusted backend token or original CAD authority.
+
+Accepted CPU state changes only after successful presentation. The operation
+clears selections, four SDK measurements and simulation layers, and supersedes
+a previously eligible URL only after acceptance. A refused or recoverable
+candidate retains prior CPU source, pins, camera, materials, light and URL
+eligibility. Existing recovery errors and causes pass through; fatal recovery
+reports unavailable presentation while retained CPU provenance remains. No
+pixel retention is promised after fatal recovery.
+
+`getState().lighting` reports a copied accepted explicit light after this
+operation. Later primitive view, fit, pose, selection, visibility, material,
+resize, native/document/model-set/assembly/uniform/Shell loads and Clear retain
+it. Dispose retains the last light as diagnostic metadata. A successful
+independent MixedDepth or qualified-Face load resets this override to its
+constructor diagnostic baseline; those providers retain their own frame/light
+contracts. Failed mode loads retain the prior override.
+
+This appearance mode assigns palette against the full Surface-first inventory
+before visibility filtering. Later view actions keep base colors when earlier
+geometry is hidden. Legacy source admission, Clear and Dispose reset this mode's
+palette bookkeeping. Existing bound Surface selection and hide restrictions
+still apply. Constructor option ownership and admission remain unchanged.
+
+The bounded example adds an explicit scene-and-appearance action on its
+previously accepted native backend. Host File intent has its own policy; this
+SDK URL rule does not redefine it. Complete first material mount, arbitrary
+backend transitions and authored Render file Open remain separate requirements.
