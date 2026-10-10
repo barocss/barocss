@@ -148,3 +148,37 @@ native recovery check passes. Download saves original geometry only; it does
 not save camera, display settings, Face topology, document history or a full
 editor project. An offered link and a verified saved download are separate
 results.
+
+
+## Prepare document appearance on the CPU
+
+`scene-appearance-preflight.mjs` checks the public
+`prepareViewerNativeSceneAppearance(input, context)` function. It uses the
+original canonical document, two authored shader sources, fresh document
+bindings, explicit poses, visibility, camera, lighting and constructor context.
+It compares the complete result with independent public Interop and GPU CPU
+preparation. It also checks uniform defaults, hidden and empty frames, stale
+pins, malformed data, ownership and a cold Node consumer.
+
+Build both consumers before their first run. Use Node 22 and an output directory
+outside the checkout. The commands below do not build a package. Run the Viewer
+package build first so that published imports contain the new CPU function.
+
+```sh
+node examples/viewer-native-scene-replacement/scene-appearance-preflight.mjs --build --root "$PWD" --evidence /tmp/viewer-appearance-proof
+node examples/viewer-native-scene-replacement/scene-appearance-preflight.mjs --build --compiled --root "$PWD" --evidence /tmp/viewer-appearance-proof
+node /tmp/viewer-appearance-proof/source-consumer.mjs --run --mode source --root "$PWD" --evidence /tmp/viewer-appearance-proof
+node /tmp/viewer-appearance-proof/compiled-consumer.mjs --run --mode compiled --root "$PWD" --evidence /tmp/viewer-appearance-proof
+```
+
+Source mode uses ordinary public workspace exports. Compiled mode resolves all
+transitive public BaroCSS names through their published import maps. Each build
+records source/dist inputs and hashes. Evidence files use exclusive creation;
+keep first failures and use a new output directory for an authorized remaining
+check. The private V8 parameter file keeps runtime signed-zero values. It is not
+an authored Render save format or an editor project file.
+
+This CPU function creates no Viewer, canvas or GPU backend. It does not mount,
+render, replace an accepted scene or make file Open atomic. A future renderer
+must re-admit the prepared frame through a supported public mount API. The full
+appearance replacement operation and its first-frame mount remain separate.

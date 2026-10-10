@@ -2410,3 +2410,7 @@ export class Viewer {
 export function createViewer(canvas: HTMLCanvasElement, options: ViewerOptions): Viewer {
   return new Viewer(canvas, parseViewerOptions(options));
 }
+
+export { prepareViewerNativeSceneAppearance } from './native-scene-appearance.js';
+export type { ViewerNativeSceneAppearanceInputV1, ViewerNativeSceneAppearanceContext,
+  PreparedViewerNativeSceneAppearance } from './native-scene-appearance.js';
