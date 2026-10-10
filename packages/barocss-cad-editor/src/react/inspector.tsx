@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useCadEditorSnapshot } from './use-session.js';
 import type { CadEditorInspectorProps } from './types.js';
 import { CadEditorGeometryAnalysis } from './geometry-analysis.js';
+import { CadEditorBodyRename } from './body-rename.js';
 
 const FIELDS: { field: CadEditorPoleField; label: string }[] = [
   { field: 'xMM', label: 'X (mm)' }, { field: 'yMM', label: 'Y (mm)' },
@@ -214,6 +215,7 @@ export function CadEditorInspector({ session, onError, onAnalysis, className }: 
         </option>)}
       </select>
     </div>
+    <CadEditorBodyRename session={session} onError={onError} />
     {selection ? <>
       {!canEdit && <p className="cad-editor-readonly" role="status" data-testid="cad-editor-readonly-surface">
         These control points are read-only. Choose an editable Surface to change them.

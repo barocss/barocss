@@ -78,6 +78,43 @@ native files. `subscribe(listener)` returns an unsubscribe function.
 `discardPending()` clears raw fields. `dispose()` is idempotent; later mutations
 refuse with `LIFECYCLE`.
 
+## Canonical body names
+
+`prepareRenameBody(bodyId,name)` prepares a private `rename` candidate for one
+existing original Curve or Surface body, including hidden and read-only bodies.
+The actual `createCadDocument` admission owns name validation: a nonempty string
+of at most128 UTF-8 bytes, without an unpaired Unicode surrogate. Names may be
+equal on different bodies. The editor does not trim, normalize, truncate or repair
+them. A name is body metadata; it does not rename a native geometry or Model ID.
+
+Resolve pending Surface fields, a selection decision and any active candidate
+before renaming. Refusal does not replace them. The same exact accepted name
+returns null without notification, revision/history changes or download capture
+invalidation, including at the maximum document revision. A changed name updates
+exactly that body's name and advances the document revision. All body IDs, order,
+kinds and asset/geometry bindings, asset revisions, complete Source0 bytes,
+comments, siblings, coefficients, signed zero, units and frame remain unchanged.
+Actual native errors and causes retain context field `body-name`.
+
+The existing Viewer candidate admission and fresh rendered frame precede native
+acceptance. The React bridge preserves the prior camera for a rename candidate.
+Acceptance adds one history state within the existing20-state/8MiB bound,
+advances native generation and marks dirty. The display subset and
+displayGeneration stay unchanged. Surviving body/pole selection receives a
+current qualified reference. Old document references become stale; unchanged
+geometry can still use the actual native explicit rebind operation. Cancel or
+display refusal leaves accepted names, sources, history and native file capture
+unchanged.
+
+Undo/Redo restores the target body names after checking exact body order, IDs,
+kinds and asset/geometry bindings. It uses a fresh document revision and retains
+the existing rule that asset revisions advance only when their source changes.
+Mixed name and Surface edits therefore restore both authored names and source
+at current revisions. Native Download/Open retains names in the complete
+canonical file. Rename does not add duplicate/remove/asset replacement or a
+complete-source Curve editing API; existing isolated Curve edit output is not
+authority for replacing an original multi-object asset.
+
 ## Draft selection and keys
 
 `requestSelection({bodyId,uIndex?,vIndex?,reference?})` validates a native target.

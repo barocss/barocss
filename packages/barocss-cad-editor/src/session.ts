@@ -60,24 +60,24 @@ function native<T>(action: () => T, message: string, documentId?: string,
   }
 }
 
-function fileBudget(text: string): number {
-  requireEditor(typeof text === 'string', 'INPUT', 'Native document text is required.');
-  requireEditor(text.length <= FILE_LIMIT, 'BUDGET', 'Document exceeds 2097152 code units.');
+function fileBudget(text: string, context: CadEditorError['context'] = {}): number {
+  requireEditor(typeof text === 'string', 'INPUT', 'Native document text is required.', context);
+  requireEditor(text.length <= FILE_LIMIT, 'BUDGET', 'Document exceeds 2097152 code units.', context);
   const bytes = utf8Bytes(text);
-  requireEditor(bytes <= FILE_LIMIT, 'BUDGET', 'Document exceeds 2097152 UTF-8 bytes.');
+  requireEditor(bytes <= FILE_LIMIT, 'BUDGET', 'Document exceeds 2097152 UTF-8 bytes.', context);
   return bytes;
 }
 
-function serialize(result: CadDocumentResult): string {
-  const text = native(() => serializeCadDocument(result.document), 'Native document serialization failed.', result.document.documentId);
-  fileBudget(text);
+function serialize(result: CadDocumentResult, context: CadEditorError['context'] = {}): string {
+  const text = native(() => serializeCadDocument(result.document), 'Native document serialization failed.', result.document.documentId, context);
+  fileBudget(text, context);
   return text;
 }
 
-function admit(result: CadDocumentResult): CadDocumentResult {
+function admit(result: CadDocumentResult, context: CadEditorError['context'] = {}): CadDocumentResult {
   const documentId = result.document.documentId;
-  native(() => validateCadDocumentResult(result), 'Native document validation failed.', documentId);
-  serialize(result);
+  native(() => validateCadDocumentResult(result), 'Native document validation failed.', documentId, context);
+  serialize(result, context);
   return result;
 }
 
@@ -141,8 +141,8 @@ function sessionDisplayIds(result: CadDocumentResult, options?: CadEditorSession
   return displayIds(result, input);
 }
 
-function nextRevision(revision: number): number {
-  requireEditor(revision < REVISION_LIMIT, 'REVISION', 'Native revision limit reached.');
+function nextRevision(revision: number, context: CadEditorError['context'] = {}): number {
+  requireEditor(revision < REVISION_LIMIT, 'REVISION', 'Native revision limit reached.', context);
   return revision + 1;
 }
 
@@ -275,6 +275,15 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     const target = history[targetIndex].document;
     const document = copy(accepted.document);
     document.revision = nextRevision(document.revision);
+    const context = { documentId: document.documentId, field: 'body-name' };
+    requireEditor(document.bodies.length === target.bodies.length, 'STALE', 'History body inventory does not match the accepted document.', context);
+    document.bodies = document.bodies.map((body, index) => {
+      const prior = target.bodies[index];
+      requireEditor(prior.id === body.id && prior.kind === body.kind && prior.assetId === body.assetId
+        && prior.geometryId === body.geometryId, 'STALE', 'History body binding does not match the accepted document.',
+        { ...context, bodyId: body.id });
+      return { ...body, name: prior.name };
+    });
     document.assets = document.assets.map(asset => {
       const prior = target.assets.find(value => value.id === asset.id);
       requireEditor(prior !== undefined, 'STALE', 'History asset identity does not match the accepted document.');
@@ -419,6 +428,22 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
         { documentId: accepted.document.documentId, field: 'display-body-set' });
       return prepare('display', accepted, [], undefined, undefined, ids);
     },
+    prepareRenameBody(bodyId, name) {
+      live();
+      const context = { documentId: accepted.document.documentId, field: 'body-name' };
+      requireEditor(typeof bodyId === 'string', 'INPUT', 'Choose an existing body to rename.', context);
+      const body = accepted.document.bodies.find(value => value.id === bodyId);
+      requireEditor(body !== undefined, 'INPUT', 'The body to rename is missing.', { ...context, bodyId });
+      requireEditor(Object.keys(pending).length === 0 && selectionTransition === null && prepared === null,
+        'INPUT', 'Resolve the draft, selection decision or candidate before renaming.', { ...context, bodyId });
+      if (name === body.name) return null;
+      const document = copy(accepted.document);
+      document.revision = nextRevision(document.revision, { ...context, bodyId });
+      document.bodies = document.bodies.map(value => value.id === bodyId ? { ...value, name } : value);
+      const result = admit(native(() => createCadDocument(document), 'Native body rename refused.', document.documentId,
+        { ...context, bodyId }), { ...context, bodyId });
+      return prepare('rename', result);
+    },
     prepareUndo() { return restore(-1); },
     prepareRedo() { return restore(1); },
     acceptCandidate(token) {
@@ -441,7 +466,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       const nextCapabilities = capabilities(result);
       const state: HistoryState = { document: copy(result.document), bytes: fileBudget(serialize(result)) };
       if (current.candidate.kind === 'open') { history = [state]; historyIndex = 0; }
-      else if (current.candidate.kind === 'apply') {
+      else if (current.candidate.kind === 'apply' || current.candidate.kind === 'rename') {
         history = [...history.slice(0, historyIndex + 1), state];
         while (history.length > HISTORY_LIMIT || historyBytes() > HISTORY_BYTES) history.shift();
         historyIndex = history.length - 1;
