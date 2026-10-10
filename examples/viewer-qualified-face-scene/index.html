@@ -28,7 +28,8 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <span id="picked-normal-angle-first" class="measurement-label" hidden></span><span id="picked-normal-angle-second" class="measurement-label" hidden></span>
 <span id="picked-normal-angle-value" class="measurement-label" hidden></span><span id="tree-point-label" class="measurement-label" hidden></span>
 <span id="tree-length-label" class="measurement-label" hidden></span>
-<span id="tree-area-label" class="measurement-label" hidden></span></div></div>
+<span id="tree-area-label" class="measurement-label" hidden></span>
+<span id="tree-curvature-label" class="measurement-label" hidden></span></div></div>
 <p id="face-keyboard-hint">Focus the view: F frames all Faces; Shift+F frames the current tree parent.</p>
 <details id="face-keyboard-help"><summary>About focused view shortcuts</summary>
 <p>These shortcuts work only when the view canvas has focus. F frames all current Faces. Shift+F frames the parent Face of the current original tree node, including a Curve node.
@@ -254,6 +255,14 @@ Reset clears only this length report. No global accuracy or native ray-hit certi
 It does not measure trimmed Face, solid, union or display-triangle area. The point label uses the full original parameter-domain midpoint, not a centroid or an area centre.
 Screen projection is approximate and does not test occlusion. Hidden current Surface selections keep native reports and can still be inspected; their labels stay hidden.
 Reset clears only this area report. No certified error bound or global accuracy certificate is implied.</p></details>
+<button id="inspect-tree-curvature" disabled>Inspect selected Curve curvature</button><button id="reset-tree-curvature" disabled>Reset tree curvature</button>
+<p id="tree-curvature-output" role="status" aria-live="polite"></p>
+<details id="tree-curvature-help"><summary>About selected Curve curvature</summary>
+<p>This uses the declared original native t to report local curvature in 1/mm and local osculating radius in mm.
+A regular straight point has zero curvature and no finite radius. A failed derivative query does not become a straight result.
+The Curve can remain native data without a separate displayed line. Its label projects the original parameter point approximately, without occlusion testing or a native screen-hit claim.
+Hidden current Curve selections remain inspectable while their labels stay hidden. Reset clears only this curvature report.
+Local radius is not an authored-circle radius, a global minimum radius, a whole-Curve smoothness test or a manufacturing accuracy certificate.</p></details>
 <details id="tree-help"><summary>About the original geometry tree</summary>
 <p>Each source retains its complete Face and five original native objects. Expand the Source and Face groups, then choose a geometry.
 Parameters use the original numeric domain; defaults are its checked midpoint. Control points use mm, while weights and UV parameter data are dimensionless.
