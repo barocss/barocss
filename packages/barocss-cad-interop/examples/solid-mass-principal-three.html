@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Native Solid mass and stored principal inertia · Three</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#101b2c;color:#edf3fc}body{max-width:1160px;margin:24px auto;padding:0 20px}h1{font-size:28px;margin:0 0 8px}p{line-height:1.5;color:#bbc9dc}.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}button{background:#243a57;color:#edf3fc;border:1px solid #587294;border-radius:6px;padding:10px 14px;font:inherit;cursor:pointer}button:disabled{opacity:.4;cursor:default}#view{width:900px;max-width:100%;overflow:auto}canvas{display:block}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.5 ui-monospace,monospace;background:#142238;padding:14px;border-radius:6px}table{border-collapse:collapse;width:100%;font-size:13px}th,td{text-align:left;vertical-align:top;border-bottom:1px solid #354966;padding:9px;white-space:pre-line}details{margin:16px 0}summary{cursor:pointer;color:#8bd6ff}#status{color:#99e4b7;min-height:24px}#quality{color:#e0c993}.table-scroll{overflow:auto}h2{font-size:20px;margin-top:26px}
+</style></head><body><h1>Native Solid mass and stored principal inertia</h1>
+<p>Complete saved CAD geometry stays fixed while the native property selection changes. Mass and inertia use the original material proof. Canonical stored-tensor axis numbers are data; they do not rotate the geometry or certify a persistent physical frame.</p>
+<div class="toolbar" aria-label="Sequential native property actions"><button id="run-refusals" disabled>Run 17 refusals</button>
+<button id="load-disjoint" disabled>Load disjoint · Total</button><button id="select-body0" disabled>Select Body 0</button><button id="select-body1" disabled>Select Body 1</button>
+<button id="load-cube" disabled>Load cube · Nonunique axes</button><button id="load-empty" disabled>Load empty · Null axes</button>
+<button id="cold-disjoint" disabled>Cold reopen disjoint · Total</button><button id="dispose" disabled>Dispose twice</button></div>
+<p id="status" role="status">Fetching all 51 original files…</p><div id="view"></div>
+<h2>Native measure and stored-tensor result</h2><pre id="readout">Original native proof is loading.</pre>
+<div class="table-scroll"><table><thead><tr><th>Native quantity</th><th>Actual value</th><th>Unit / authority</th></tr></thead><tbody id="measure-rows"></tbody></table></div>
+<h2>Stored principal moments and canonical axis data</h2><div class="table-scroll"><table><thead><tr><th>Sorted index</th><th>Moment</th><th>Original XYZ unit direction</th></tr></thead><tbody id="axis-rows"></tbody></table></div>
+<pre id="quality">Observed numerical clusters are separate from certified geometry or physical material. Empty null fields remain null. Shared depth can occlude panels in a combined frame.</pre>
+<details><summary>Actual refusal receipts</summary><pre id="refusal-readout"></pre></details>
+<details id="proof-details"><summary>Complete current mass, selected measure, principal result and original source proof</summary><pre id="full-proof"></pre></details>
+<details id="lifetime-details"><summary>Measured panel pixels, selection retention and resource lifetime</summary><pre id="lifetime-proof"></pre></details>
+<script type="module" src="./solid-mass-principal-three.mjs"></script></body></html>
