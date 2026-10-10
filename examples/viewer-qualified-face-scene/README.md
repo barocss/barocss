@@ -531,3 +531,42 @@ Hooks add `inspectTreeSurfaceArea(options?)`, `resetTreeSurfaceArea()`,
 `treeSurfaceAreaSnapshot()` and a copied `treeSurfaceAreaReport` getter.
 DOM IDs: inspect-tree-area, reset-tree-area, tree-area-output, tree-area-label,
 and tree-area-help.
+
+
+## Inspect the selected original Curve curvature
+
+Inspect selected Curve curvature uses the current full source-qualified tree
+ref and existing native t input. It validates the whole Source0, all five Model
+objects and complete current Face before calling the unchanged native D2
+curvature helper. Surface selections disable this action. No Curve identity
+or parameter is inferred from a screen triangle.
+
+Output shows local curvature in 1/mm and local osculating radius in mm at the
+declared original t. A regular zero-curvature point has radius null and is
+shown as a regular straight point with no finite radius. Failed D2, zero tangent
+or unrepresentable arithmetic refuses; it never becomes a zero/Infinity radius
+or a synthetic straight result. This is not an authored-circle radius, global
+minimum radius, whole-Curve smoothness or manufacturing accuracy certificate.
+
+The independent report keeps its pin while the same selected node's draft t,
+filter, view, CSS, color, grid, order or Scene translation changes. A successful
+explicit query adopts the new parameter/result. Invalid drafts/queries and
+failed loads retain the accepted result. Hidden current Curves can inspect;
+labels hide until the row is visible. A different node or changed referenced
+Source/full Face clears the report; unrelated edits retain it. Reset tree
+curvature clears only this new report and label. Existing reports keep their
+own selection and lifetime rules.
+
+The caller label projects the declared native parameter point approximately,
+with occlusion not tested. It is not a centroid or visible Curve hit; retained
+Curves need not be separately rendered. Loss/unavailability hides the label
+while current CPU curvature remains queryable. Clear/mode/Dispose clears it.
+
+`queryQualifiedTreeCurveCurvature(viewer,ref,t)` requires explicit finite numeric
+t and returns copied `{version:0,node,measurement}` with the complete existing
+curvature result, original derivatives, radius and anchor.
+`inspectTreeCurveCurvature()` parses the existing t control only when called
+with no argument. Explicit undefined/null is forwarded and refused.
+Hooks add `resetTreeCurveCurvature()`, `treeCurveCurvatureSnapshot()` and copied
+`treeCurveCurvatureReport`. DOM IDs: inspect-tree-curvature, reset-tree-curvature,
+tree-curvature-output, tree-curvature-label and tree-curvature-help.
