@@ -341,3 +341,6 @@ export type { StoredPlateHoleSolidGerm, StoredPlateHoleSolidCorner, StoredPlateH
 
 export { verifyXYAngleArcArtifact, validateXYAngleArcArtifactVerification, serializeXYAngleArcArtifact, parseXYAngleArcArtifact, XYAngleArcArtifactError, XYAngleArcArtifactDiagnosticCode } from './xy-angle-arc-artifact.js';
 export type { XYAngleArcArtifactFieldRule, XYAngleArcArtifactReport, XYAngleArcArtifactVerification } from './xy-angle-arc-artifact.js';
+
+export { classifyStoredPlateHoleSolidPoints, validateStoredPlateHoleSolidPoints, serializeStoredPlateHoleSolidPoints, parseStoredPlateHoleSolidPoints, StoredPlateHolePointError, StoredPlateHolePointDiagnosticCode } from './stored-plate-hole-point-classification.js';
+export type { StoredPlateHolePointQuery, StoredPlateHolePointOptions, StoredPlateHolePointProof, StoredPlateHolePointClassification, StoredPlateHolePointReport, StoredPlateHolePointResult } from './stored-plate-hole-point-classification.js';
