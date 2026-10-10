@@ -8,6 +8,7 @@ import {Button} from './ui/button.js';
 import type {PolePoint} from './curve-pole-projection.js';
 import {ObjectRotationGizmo} from './object-rotation-gizmo.js';
 import {ObjectScaleGizmo} from './object-scale-gizmo.js';
+import {ObjectPlaneGizmo} from './object-plane-gizmo.js';
 import {parseScaleStep} from './scale-projection.js';
 import {parseAngularStep} from './rotation-projection.js';
 import {projectPoleAxis, movePoleOnAxis, axisPointerDisplacement, parseMovementSnapStep, type PoleAxis, type PoleAxisProjection} from './pole-axis-projection.js';
@@ -102,6 +103,8 @@ export function PoleAxisGizmo(props:Props) {
   const rotationMode=snapshot.editTarget==='rotation';
   const scaleMode=snapshot.editTarget==='scale';
   const [scaleMoving,setScaleMoving]=useState(false);
+  const [planeMoving,setPlaneMoving]=useState(false);
+  const planeControl=useRef<Control|null>(null);
   const [scaleSnap,setScaleSnap]=useState(false);
   const [scaleStepRaw,setScaleStepRaw]=useState('0.1');
   let scaleStep:number|null=null,scaleError:string|null=null;
@@ -115,10 +118,12 @@ export function PoleAxisGizmo(props:Props) {
   }
   let control:Control|null = null;
   try {control = currentControl(snapshot,props.documentReceipt,props.curveReceipt);} catch { /* Unavailable bindings have no handles. */ }
+  // Retain captured DOM until the plane gesture can reject a stale anchor.
+  if(planeMoving&&!control)control=planeControl.current;
   const objectMode = snapshot.editTarget === 'object';
   const canvas = props.canvas, rect = canvas?.getBoundingClientRect();
   const pending = Object.keys(snapshot.pending).length > 0;
-  const busy = snapshot.candidate !== null || snapshot.selectionTransition !== null || snapshot.disposed || pending || movingAxis !== null || rotationMoving || scaleMoving || pointerCaptured;
+  const busy = snapshot.candidate !== null || snapshot.selectionTransition !== null || snapshot.disposed || pending || movingAxis !== null || rotationMoving || scaleMoving || planeMoving || pointerCaptured;
   function viewportHasCapture():boolean {
     return [...viewportPointers.current].some(([id,target])=>target.isConnected&&target.hasPointerCapture(id));
   }
@@ -133,7 +138,7 @@ export function PoleAxisGizmo(props:Props) {
       const state=session.getSnapshot(),now=latest.current;
       if(gesture.current||transformGesture.current||viewportHasCapture()||state.disposed||state.candidate||state.selectionTransition||Object.keys(state.pending).length
         ||!available(state,target)||!currentControl(state,now.documentReceipt,now.curveReceipt))return false;
-      const restoreScope=document.activeElement?.closest('.context-mode-controls');
+      const restoreScope=document.activeElement?.closest('.context-mode-controls,.cad-editor-plane-controls');
       session.setEditTarget(target);
       if(restoreScope)now.canvas?.closest('.cad-editor-viewport')?.querySelector<HTMLButtonElement>('[data-testid="native-tool-'+target+'"]')?.focus({preventScroll:true});
       return true;
@@ -338,6 +343,9 @@ export function PoleAxisGizmo(props:Props) {
         </g>;
       })}
     </svg>
+    {(objectMode||planeMoving)&&<ObjectPlaneGizmo session={session} control={control} canvas={canvas} snapStep={snapEnabled?step:null}
+      disabled={(busy&&!planeMoving)||stepError!==null} onError={failure}
+      onGestureChange={active=>{planeControl.current=active?control:null;transformGesture.current=active;setPlaneMoving(active);latest.current.onGestureChange(active);}}/>}
     {rotationMode&&<ObjectRotationGizmo session={session} control={control} canvas={canvas} snapStep={angularSnap?angularStep:null}
       disabled={(busy&&!rotationMoving)||angularError!==null} onError={failure}
       onGestureChange={active=>{transformGesture.current=active;setRotationMoving(active);latest.current.onGestureChange(active);}}/>}

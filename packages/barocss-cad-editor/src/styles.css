@@ -199,3 +199,13 @@
 .context-axis-buttons [aria-pressed="true"] {background:#36442f;color:#cee2bc;border-color:#596d4b;}
 .context-axis-buttons button:disabled {opacity:.45;cursor:default;}
 .context-axis-buttons button:focus-visible {outline:2px solid #b8d599;outline-offset:1px;}
+
+/* Plane polygons constrain the existing whole-object movement to two world axes. */
+.cad-editor-plane-controls {position:absolute;inset:0;pointer-events:none;}
+.object-plane-svg {display:block;overflow:hidden;pointer-events:none;}
+.object-plane-handle {pointer-events:all;touch-action:none;cursor:grab;stroke-width:1.2;fill-opacity:.28;}
+.object-plane-handle[data-plane="xy"] {fill:#81ade2;stroke:#81ade2;}
+.object-plane-handle[data-plane="xz"] {fill:#91c686;stroke:#91c686;}
+.object-plane-handle[data-plane="yz"] {fill:#db8279;stroke:#db8279;}
+.object-plane-handle:hover,.object-plane-handle:focus-visible {fill-opacity:.6;stroke-width:2;outline:none;}
+.object-plane-handle[aria-disabled="true"] {opacity:.4;cursor:default;}
