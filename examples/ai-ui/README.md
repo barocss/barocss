@@ -52,6 +52,17 @@ the shared `getRuntime()` singleton or another host's runtime. Disposal unmounts
 aborts owned fetches, removes the pagehide listener and destroys only its own runtime. Remount creates
 a fresh runtime with the same supported nonce configuration. Server close aborts owned session work.
 
+Unsubmitted name/topic edits survive disposal and remount within the same page when the host
+session, revision, form stage, request and authoritative input still match. The browser keeps one
+bounded in-memory draft and records edits synchronously. Different host lineage or server input
+invalidates it; accepted Restart clears it. An explicit action submits the recovered values through
+the existing input route. Remount itself performs no input write or generation. This does not persist
+across page reload/navigation/crash and does not preserve focus or selection.
+
+After the affected renderer build, `node examples/ai-ui/remount-draft-flow.mjs` runs one authored
+real-browser flow for same-task edits/remount, held old polls, host input invalidation, explicit
+review/edit/confirmation, Restart/new session and owned/foreign runtime cleanup. It calls zero models.
+
 The actual CSP is `default-src 'none'`, same-origin scripts/connections/assets, and same-origin styles
 plus a per-server nonce. There is no `unsafe-inline`, executable generated code, external asset or
 arbitrary HTML/style field. The existing runtime's nonce-capable style-element path is tested;
