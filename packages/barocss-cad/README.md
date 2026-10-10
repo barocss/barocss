@@ -8234,3 +8234,53 @@ do not certify world embedding, self-intersection, global evaluator error,
 manufacturing tolerance, material inside/outside, manifold Solid or general
 3D Boolean. Rendering and editor/save/recovery acceptance require their own
 consumer evidence.
+
+
+## Explicit signed-axis mass frame — #1125
+
+`transformAxisBoxSolidMassFrame(mass, options)` transforms the exact properties
+of one complete owned axis-box Boolean mass result. Select total material with
+`{kind: 'total'}` or one actual Body with `{kind: 'body', bodyId}`. Options also
+contain `pose: {frameId, matrix}` and the fixed `maximumConversions: 32`.
+`validateAxisBoxSolidMassFrame(result)` reconstructs the whole parent binding,
+pose, exact arithmetic, conversion errors and positive-definite proofs.
+
+The matrix uses the existing assembly convention: row-major4x4 with column
+vectors. Its rotation is one of24 proper signed-axis permutations (numeric
+-1/0/1, determinant+1); translations are safe integer mm with absolute value
+at most1e6. The bottom row is [0,0,0,1]. The target frame is an explicit ASCII
+label1..48. Reflection, scaling, shear and arbitrary-angle rotations refuse.
+Original matrix bits, including signed zero, remain in the copied options.
+
+Exact parent fractions are the authority. The target centroid is R*C+t and
+centroidal inertia is R*Ic*R^T. Inertia about the target origin uses the parallel
+axis theorem with the exact integer divisor1000000 for mm2 to m2. Mass and
+volume remain unchanged. Final values use nearest-even binary64 conversion,
+with exact absolute errors and least upward error bounds; symmetric entries
+are mirrored. Generated exact zero is +0. Nonzero underflow refuses.
+Both centroidal and origin tensors must have three positive exact leading
+minors for the model and the stored binary64 tensor. A valid exact tensor whose
+rounded representation loses positive definiteness refuses explicitly.
+
+The six result fields retain the complete original mass and selected measure,
+options, posed properties, rotation/unit proof and report. Empty total material
+has mass0 and null centroid/tensors/positive-definite proof. Body selection
+must identify a real Body. One parent mass owned validation precedes the new
+exact computation; inherited geometry validation work is recorded separately.
+There are no new root Curve/Surface evaluations or source compilations.
+
+The profile has at most32 logical conversions (16values plus16error bounds),
+2048 float-search steps and the unchanged request-local rational limits of
+200000operations/200000GCD steps/8192bits. Coordinate components stay within
+1e7mm. Failures return no partial result. Sources, original moments and parent
+conversion/positive-definite proofs remain unchanged in independent copies.
+
+```sh
+node examples/cad-nurbs/axis-box-mass-frame-demo.mjs --source EVIDENCE_DIR
+```
+
+This API converts mass properties between explicit frames. It does not bake a
+geometry pose or bind the whole multi-source Solid to an assembly instance.
+Arbitrary-angle conversion, general rotated/curved Solid Boolean, physical
+simulation, material certification, rendering and integrated file/recovery
+acceptance remain separate requirements.
