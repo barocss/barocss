@@ -2350,3 +2350,35 @@ roll back. Existing #1334 update recovery retains its own semantics.
 `examples/gpu-scene/primitive-frame-preflight-flow.mjs --output <fresh-directory>`
 uses genuine authored native Surface assets, two materials, explicit poses and
 camera/light, source/emitted APIs, copied files and cold CPU reconstruction.
+
+## Original indexed Torus geometry
+
+`prepareTorusGeometry(input)` accepts exact original parameters:
+`{format:'barocss-gpu-torus-geometry',version:0,id,coordinateSystem:'right-handed-y-up',positionUnit:'scene',majorRadius,minorRadius,majorSegments,minorSegments}`.
+Finite scene-unit radii satisfy `0 < minorRadius < majorRadius` and executed
+Number `majorRadius + minorRadius <= 1000`. Both cell counts are integers from
+3 to 128. The ring is centred at the origin around Y, with its centreline in XZ.
+
+Frozen `{source,prepared}` preserves original scalar parameters and generated
+Number geometry through one existing `prepareTriangleGeometry` call. Independent
+mutable Float32 attributes and Uint16 indices remain separate. Rows use the tube
+angle beta and columns the major angle phi. Position is
+`[(R+r*cos(beta))*cos(phi),r*sin(beta),(R+r*cos(beta))*sin(phi)]`, radial normal
+`[cos(beta)*cos(phi),sin(beta),cos(beta)*sin(phi)]`, UV `[i/W,j/H]`.
+Last column copies each row's first position/normal exactly; last row copies the
+first row, including the double corner. Both UV endpoints remain distinct.
+Outward CCW cell indices are `[a,d,b,a,c,d]`, where b=a+1, c=a+W+1, d=c+1.
+
+Maximum counts are 16,641 vertices, 32,768 triangles and 729,120 typed bytes.
+All parameter admission precedes generation. Existing TriangleGeometryError
+codes, original/F32 area/range/nonzero/collapse refusals and actual causes apply.
+Tiny or near-horn cases may refuse; there is no clamp, trig snapping or healing.
+Radial normals differ from facets, and bounds describe sampled vertices rather
+than exact analytical enclosure. SDF Torus Float32 radius-coefficient rules and
+native CAD topology/identity remain separate; this does not replace either kernel.
+Renderer, pixels, quality/error, physical memory, parity and publication retain
+separate qualifications.
+
+`examples/gpu-scene/torus-geometry-flow.mjs --output <fresh-directory>` checks
+source/emitted APIs, double seams/winding, shared Scene/ray composition, copied
+original files, bounded refusals and cold reconstruction.
