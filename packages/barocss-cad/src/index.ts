@@ -350,3 +350,6 @@ export type { MultiSpanVLinearSurfacePlaneSectionAsset, MultiSpanVLinearSurfaceP
 
 export { buildMultiSpanVLinearSurfacePlaneTrimCandidates, validateMultiSpanVLinearSurfacePlaneTrimCandidates, MultiSpanVLinearSurfacePlaneTrimError, MultiSpanVLinearSurfacePlaneTrimDiagnosticCode } from './multispan-vlinear-plane-trim.js';
 export type { MultiSpanVLinearSurfacePlaneTrimOptions, MultiSpanVLinearSurfacePlaneTrimEdge, MultiSpanVLinearSurfacePlaneTrimReport, MultiSpanVLinearSurfacePlaneTrimResult } from './multispan-vlinear-plane-trim.js';
+
+export { classifyMultiSpanVLinearSurfacePlaneTrimUV, validateMultiSpanVLinearSurfacePlaneTrimUVClassification, MultiSpanVLinearSurfacePlaneTrimUVError, MultiSpanVLinearSurfacePlaneTrimUVDiagnosticCode } from './multispan-vlinear-plane-trim-classification.js';
+export type { MultiSpanVLinearSurfacePlaneTrimUVQuery, MultiSpanVLinearSurfacePlaneTrimUVOptions, MultiSpanVLinearSurfacePlaneTrimUVReport, MultiSpanVLinearSurfacePlaneTrimUVResult } from './multispan-vlinear-plane-trim-classification.js';

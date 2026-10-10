@@ -8915,3 +8915,17 @@ node examples/cad-nurbs/multispan-vlinear-plane-trim-demo.mjs --source <new-outp
 ```
 
 Native completion, Integration adoption, current-root validation and publication have separate receipts.
+
+### Exact material queries on original multi-span stored-UV graphs (#1215)
+
+`classifyMultiSpanVLinearSurfacePlaneTrimUV(trim, queries, options)` classifies the two candidate regions from a complete validated multi-span trim. Queries are `{queryId,u,v}` in original dimensionless UV; options are `{evaluationId,maxQueries,maxSubdivisions}` with1..4 queries and0..16 exact subdivisions per query. It selects one actual original span by query U, retains its local poles/domain and solves the homogeneous U numerator exactly. Query U is not substituted for the native Curve parameter. An exact internal join selects the preceding span's upper endpoint and stays chart-interior; the stored cut itself is boundary for both Faces. Original natural chart boundaries retain their own meaning.
+
+Classification uses exact represented coordinates, positive-weight restricted V numerator signs, endpoint/root equality and constant-V witnesses. It returns `inside`, `outside`, `boundary` or successful `uncertain` for each source-qualified Face. Subdivision exhaustion returns actual uncertainty; arithmetic-budget exhaustion throws an atomic typed error. The report retains exact local and original-domain brackets, hulls, root selections, witnesses and counters. No floating root, tolerance, projection, ideal Plane side, physical embedding, Solid Boolean or manufacturing certificate is inferred. Parent proofs and actual C0/domain-refusal policies remain unchanged. Root native D0/D1 and source calls are zero beyond parent validation.
+
+Save/reopen the complete signed-zero-preserving parent/request/result and use `validateMultiSpanVLinearSurfacePlaneTrimUVClassification` for full reconstruction. The dedicated source/file/public-emitted flow is:
+
+```sh
+node examples/cad-nurbs/multispan-vlinear-plane-trim-classification-demo.mjs --source <new-output-directory>
+```
+
+Existing single-span `classifyVLinearSurfacePlaneTrimUV` and its admission remain unchanged. Native, merged, current-root/consumer validation and publication have separate receipts.
