@@ -13,3 +13,9 @@ With Node22.22.0, build original CAD/Physics using the existing `examples/physic
 ## Status
 
 Original CAD/Physics build and initial private clipping-observer types exit0. Consumer/reference source is being prepared. Actual archive analysis has not run at this checkpoint. Prior1219 failure, full1179/family660 OPEN, native/current integrated checks and publication remain separate.
+
+## Native diagnostic result
+
+Measuredcadfee1a: originalCAD/Physics build0, private types0, Python11analytic controlsPASS,10Nodecontrols pergraphPASS, one nine-case archiveconsumer0. All27inputfiles/72acceptedrawstates revalidated. Source7src/0dist vs compiled0src/7dist originalhelpers; all reconstructed working raw fields, encounter/null/point metadata and Decimalreferences agree across source/repeat/compiled. All66non-null encounter references resolve, maximum deptherror1.581624946e-16m/alignmenterror1.764348519e-16.
+
+FirstALIGNED5 b4/b5, OFFSET16 b6/b7, YAW3 b6/b7 are allno-clipped-candidate. Each has a chosenAface and nonempty finalclippedpolygon(8/6/6vertices), but every candidate separation exceeds1e-6m, so allpoints arefiltered. IndependentpositiveSATdepth0.0210876863/0.1122105732/0.00021488645mm; originaldepthagrees. Independentminimumaxis isedge2×edge0 forALIGNED/OFFSET, B.face.1 forYAW. Nearfacealignment doesnotcertify a unique physicalfeature. This identifies a bounded branch/geometry gap, not a force/stabilityGO. Fullreports/provenance/controls/raw/logs in evidence/native-cadfee1a/. No worldstepped orcandidate rerun; reconstructedposes explicitlyunaccepted. Nativeadoption/currentintegratedvalidation remain separate.
