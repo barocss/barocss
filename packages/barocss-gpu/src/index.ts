@@ -89,3 +89,5 @@ export type {EngineRotationClipV0,EngineRotationTrackV0,EngineRotationKeyV0,Engi
 
 export {sampleEngineScaleClip,EngineScaleClipError,EngineScaleClipDiagnosticCode} from './engine-scale-clip.js';
 export type {EngineScaleClipV0,EngineScaleTrackV0,EngineScaleKeyV0,EngineScaleClipRequestV0,SampledEngineScaleClip} from './engine-scale-clip.js';
+export {prepareEngineOpacityBindings,EngineOpacityBindingsError,EngineOpacityBindingsDiagnosticCode} from './engine-opacity-bindings.js';
+export type {EngineOpacityBindingV0,EngineOpacityBindingsV0,PreparedEngineOpacityBindings} from './engine-opacity-bindings.js';

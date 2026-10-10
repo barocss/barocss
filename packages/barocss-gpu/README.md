@@ -1699,3 +1699,54 @@ validated, with declared Number rounding and no interval certificate.
 Save the full original scene, clip and request. This CPU source service owns
 no clock, player, loop, renderer, native CAD scaling, simulation or browser.
 Existing native millimetre display poses have a separate scale contract.
+
+
+### Original material opacity and object order (CPU source service)
+
+`prepareEngineOpacityBindings(scene, opacityBindings)` prepares one complete
+original scene0 and a separate dimensionless opacity companion0:
+
+```js
+const prepared = prepareEngineOpacityBindings(originalScene, {
+  format: 'barocss-gpu-engine-opacity-bindings', version: 0,
+  sceneId: originalScene.id,
+  bindings: [{ materialId: 'glass', opacity: 0.5 }],
+});
+```
+
+The companion has exactly `format`, `version`, `sceneId` and `bindings`.
+Each of its 0..32 dense own data bindings has exactly `materialId` and
+`opacity`: unique existing material ID, finite Number within 0..1. Hidden
+and unused material references are validated. Unbound materials default to
+1 without adding defaults to the original companion. Authored negative-zero
+is retained and has zero-opacity semantics. Accessors and extra fields refuse.
+
+The frozen result has exactly `{scene, opacityBindings, opaqueNodeIds,
+transparentNodeIds, omittedNodeIds}`. `scene` is the actual prepared scene:
+complete frozen original `scene.scene` and separately owned mutable typed
+execution buffers. New companion records and all three ID arrays are frozen
+and independent. Groups have no list entry. Effective-hidden or zero-opacity
+meshes are omitted; opaque meshes keep original source order. Transparent
+meshes sort far to near by original Number camera-forward depth of original
+world AABB centres; exact ties keep source order. Behind-camera and outside
+frustum meshes remain in the lists. Opacity does not alter original scene
+draws, geometry, camera, poses or CPU ray/frustum query authority.
+
+Preflight checks all own metadata, counts and opacity values before one
+complete scene preparation, then all material references before sorting.
+There are at most 32 depth keys and 496 insertion-sort pair comparisons;
+existing scene/geometry caps remain. `EngineOpacityBindingsError` codes are
+`INPUT`, `VERSION`, `BUDGET`, `REFERENCE`, `RANGE`, `SCENE` and `NUMERICAL`.
+Scene and reflection refusals preserve real causes. Each call leaves caller
+inputs and prior accepted originals untouched.
+
+Save the complete original scene and companion. Ordinary JSON drops the sign
+of negative-zero; retain a separate sign record if exact Number sign matters.
+Cold reconstruction revalidates both original inputs. This API prepares source
+order; existing opaque renderers do not consume the companion. Actual blending,
+shader pixels, GPU resources, transparent visibility and triangle sorting need
+separate renderer qualification. No rendered transparency, PBR or textured
+alpha support is implied.
+
+ONE source/API/file flow: `node examples/gpu-scene/engine-opacity-bindings-flow.mjs
+--output <fresh-directory>`.
