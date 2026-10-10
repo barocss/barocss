@@ -23,6 +23,10 @@
         "types": "./dist/three-uniform-curve.d.ts",
         "import": "./dist/three-uniform-curve.js"
       },
+      "./babylon-uniform-curve": {
+        "types": "./dist/babylon-uniform-curve.d.ts",
+        "import": "./dist/babylon-uniform-curve.js"
+      },
       "./document": {
         "types": "./dist/document.d.ts",
         "import": "./dist/document.js"
@@ -146,6 +150,10 @@
     "./three-uniform-curve": {
       "types": "./src/three-uniform-curve.ts",
       "import": "./src/three-uniform-curve.ts"
+    },
+    "./babylon-uniform-curve": {
+      "types": "./src/babylon-uniform-curve.ts",
+      "import": "./src/babylon-uniform-curve.ts"
     },
     "./document": {
       "types": "./src/document.ts",
