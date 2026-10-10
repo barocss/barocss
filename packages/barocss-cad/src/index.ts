@@ -414,3 +414,7 @@ export type { SourceKnotRecipeLoftGraphV0, SourceKnotRecipeLoftGraphOptions, Sou
 
 export { elevateSourceSurfaceAxisDegree, validateSourceSurfaceAxisDegreeElevation, SourceSurfaceDegreeElevationError, SourceSurfaceDegreeElevationDiagnosticCode } from './source-surface-degree-elevation.js';
 export type { SourceSurfaceDegreeElevationRequest, SourceSurfaceDegreeElevationPatch, SourceSurfaceDegreeElevationReport, SourceSurfaceDegreeElevationResult } from './source-surface-degree-elevation.js';
+
+
+export { importIGES, validateIGESImport, IGESImportError, IGESImportDiagnosticCode } from './iges-import.js';
+export type { IGESImportOptions, IGESImportEntity, IGESImportReport, IGESImportResult } from './iges-import.js';
