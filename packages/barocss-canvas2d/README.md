@@ -285,7 +285,7 @@ An invalid Scene admission retains the renderer's previously accepted frame. Suc
 
 ### Composed atlas game host
 
-See [the game consumer](consumer/game.html) and [run/lifetime instructions](consumer/README.md#public-atlas-game-composition) for a small public-API app combining bounded PNG loading, named atlas frames, host-driven animation/ticker, captured drag and explicit teardown. Its score/token logic is host-owned and is not serialized library state.
+See [the game consumer](consumer/game.html) and [run/lifetime instructions](consumer/README.md#public-atlas-game-composition) for a small public-API app combining bounded PNG loading, named atlas frames, host-owned animation with Application update/render scheduling, captured drag and explicit teardown. Its score/token logic is host-owned and is not serialized library state.
 
 The [nested-mask consumer](consumer/nested-mask.html) demonstrates Scene26 outer/inner crops and restored edits. Each existing common/image/glyph fragment program reserves 64 `vec2` points and two independent counts, resets both counts for every draw, and applies all active masks before path stencil writes. Renderer creation and restoration require at least 128 reported fragment uniform vectors; insufficient capacity reports `UNSUPPORTED_FEATURE` before program allocation. The conservative common/image budgets are 126/119 vectors, including the 16 transformed-clip entries. No texture, framebuffer, stencil layer or additional GPU object category is added. Empty polygon overlap is legal; bounds remain conservative AABB intersections, not Boolean polygon output.
 

@@ -1,9 +1,9 @@
 // @ts-check
-import { createCanvas2D, createDisplayTree, createSpriteAnimation, createSpriteAtlas,
-  createTicker, loadImageURL, stringifySceneJSON } from '@barocss/canvas2d';
+import { createCanvas2DApplication, createSpriteAnimation, createSpriteAtlas,
+  loadImageURL, stringifySceneJSON } from '@barocss/canvas2d';
 
 /** @typedef {import('@barocss/canvas2d').Point} Point */
-/** @typedef {{ tree: import('@barocss/canvas2d').DisplayTree,
+/** @typedef {{ app: import('@barocss/canvas2d').Canvas2DApplication, tree: import('@barocss/canvas2d').DisplayTree,
  * parent: import('@barocss/canvas2d').ContainerHandle, actor: import('@barocss/canvas2d').SpriteHandle,
  * tokens: import('@barocss/canvas2d').SpriteHandle[], renderer: import('@barocss/canvas2d').Canvas2DRenderer,
  * animation: import('@barocss/canvas2d').SpriteAnimation, ticker: import('@barocss/canvas2d').Canvas2DTicker,
@@ -40,13 +40,16 @@ let loadDelayMS = 0;
 /** @type {string[]} */ const hover = [];
 /** @type {import('@barocss/canvas2d').TickInfo[]} */ const tickHistory = [];
 /** @type {null | { code: string, retained: boolean }} */ let refusal = null;
+let automaticFault = false;
+/** @type {null | { code: string, retained: boolean, treeChanged: boolean }} */ let automaticFailure = null;
+/** @type {ReturnType<typeof liveObservation> | null} */ let beforeAutomatic = null;
 /** @type {ReturnType<typeof liveObservation> | null} */ let terminal = null;
 /** @type {(() => void)[]} */ const hostUnbind = [];
 const pendingFrames = new Set();
 const counts = { loadsStarted: 0, loadsDecoded: 0, loadsIgnored: 0, rendererCreations: 0,
   frameRequests: 0, frameCancels: 0, nativeCallbacks: 0, tickCallbacks: 0,
   submits: 0, renders: 0, steps: 0, resets: 0, pointerEvents: 0, pickups: 0,
-  staleCallbacks: 0, disposeCalls: 0, errors: 0 };
+  staleCallbacks: 0, disposeCalls: 0, errors: 0, automaticCompleted: 0, manualRenders: 0, refusalRenders: 0 };
 
 /** @param {unknown} error */
 function codeOf(error) {
@@ -76,7 +79,7 @@ function liveObservation(s) {
   const actorOpaque = toViewport({ x: 8, y: 16 });
   const actorTransparent = toViewport({ x: 28, y: 4 });
   return { sceneVersion: s.accepted.version, actorId: s.actor.id, frameIndex: s.animation.frameIndex,
-    frameName: frameNames[s.animation.frameIndex], playing: s.animation.playing, tickerRunning: s.ticker.running,
+    frameName: frameNames[s.animation.frameIndex], playing: s.animation.playing, tickerRunning: s.ticker.running, appRunning: s.app.running,
     actorPosition: { x: s.actor.data.transform.x, y: s.actor.data.transform.y },
     sourceRect: s.actor.data.sourceRect, parentTransform: s.parent.data.transform,
     actorOpaque: sample(s, actorOpaque), actorTransparent: sample(s, actorTransparent),
@@ -93,13 +96,13 @@ function observe() {
     backing: { width: canvas.width, height: canvas.height }, dpr: options.dpr,
     pendingFrames: pendingFrames.size, dragging: drag !== null, lastPointerId,
     counts: { ...counts }, routes: [...routes], hover: [...hover], ticks: tickHistory.map(info => ({ ...info })),
-    refusal: refusal && { ...refusal }, scene: session ? liveObservation(session) : terminal };
+    refusal: refusal && { ...refusal }, automaticFailure: automaticFailure && { ...automaticFailure }, scene: session ? liveObservation(session) : terminal };
 }
 /** @param {string} message */
 function show(message) {
   status.textContent = message; scoreOutput.textContent = `${score} / 3`;
   output.textContent = JSON.stringify(observe(), null, 2);
-  for (const id of ['play', 'pause', 'step', 'reset', 'invalid', 'missing']) {
+  for (const id of ['play', 'pause', 'step', 'reset', 'invalid', 'missing', 'automatic-fault', 'repair']) {
     const button = /** @type {HTMLButtonElement} */ (document.querySelector(`#${id}`));
     button.disabled = disposed || !session;
   }
@@ -110,8 +113,8 @@ function show(message) {
 /** @param {Session} s */
 function submit(s) {
   if (disposed || session !== s) return;
-  const next = s.tree.snapshot(); s.renderer.updateScene(next); s.accepted = next; counts.submits++;
-  s.renderer.render(); counts.renders++;
+  s.app.render(); s.accepted = s.tree.snapshot(); counts.submits++;
+  counts.renders++; counts.manualRenders++;
 }
 function clearDrag() {
   const id = drag?.pointerId ?? lastPointerId;
@@ -123,11 +126,11 @@ function clearDrag() {
 }
 function pause() {
   if (!session || disposed) return;
-  session.ticker.stop(); session.animation.pause(); show('Paused');
+  session.app.stop(); session.animation.pause(); show('Paused');
 }
 function play() {
   if (!session || disposed || document.hidden) return;
-  session.animation.play(); session.ticker.start(); show('Playing');
+  session.animation.play(); session.app.start(); show('Playing');
 }
 function step() {
   const s = session; if (!s || disposed) return;
@@ -138,7 +141,8 @@ function reset() {
   const s = session; if (!s || disposed) return;
   pause(); clearDrag(); s.animation.seek(0); s.actor.setTransform(initialPose);
   for (const token of s.tokens) token.setVisible(true);
-  score = 0; collected.clear(); refusal = null; counts.resets++; submit(s); show('Reset actor, tokens and score');
+  score = 0; collected.clear(); refusal = null; automaticFault = false; automaticFailure = null;
+  s.actor.setImageSource('GameAtlas', s.actor.data.sourceRect); counts.resets++; submit(s); show('Reset actor, tokens and score');
 }
 /** @param {Session} s */
 function pickup(s) {
@@ -243,23 +247,6 @@ async function load(delayMS = 0) {
     }
     if (disposed || current !== generation || controller.signal.aborted) { counts.loadsIgnored++; return; }
     if (asset.width !== 32 || asset.height !== 8) throw new Error('Expected the 32×8 fixture atlas');
-    const tree = createDisplayTree('AtlasGame');
-    tree.stage.addChild(tree.createRect({ id: 'Back', layer: 0, transform: pose(),
-      width: 320, height: 200, fill: [0.125, 0.15625, 0.21875, 1] }));
-    const parent = tree.createContainer({ id: 'World', layer: 1,
-      transform: { ...pose(36, 28), scaleX: 1.1, scaleY: 0.9, rotation: 0.14 } });
-    tree.stage.addChild(parent);
-    const tokens = tokenRects.map(rect => tree.createSprite({ id: rect.id, layer: 0,
-      transform: pose(rect.x, rect.y), imageId: 'GameAtlas', sourceRect: { x: 24, y: 0, width: 8, height: 8 },
-      width: rect.width, height: rect.height, opacity: 1, sampling: 'nearest', anchorX: 0, anchorY: 0 }));
-    for (const token of tokens) parent.addChild(token);
-    const actor = tree.createSprite({ id: 'Actor', layer: 1, transform: initialPose,
-      imageId: 'GameAtlas', sourceRect: { x: 0, y: 0, width: 8, height: 8 },
-      width: 32, height: 32, opacity: 1, sampling: 'nearest', anchorX: 0, anchorY: 0 });
-    parent.addChild(actor);
-    const atlas = createSpriteAtlas('GameAtlas', { width: asset.width, height: asset.height }, atlasEntries);
-    const animation = createSpriteAnimation(actor, atlas.sequence(frameNames));
-    const renderer = createCanvas2D(canvas, options); counts.rendererCreations++;
     /** @type {import('@barocss/canvas2d').FrameScheduler} */
     const scheduler = {
       requestFrame(callback) {
@@ -267,28 +254,81 @@ async function load(delayMS = 0) {
         const token = requestAnimationFrame(timestampMS => {
           pendingFrames.delete(token); counts.nativeCallbacks++;
           if (disposed || current !== generation) { counts.staleCallbacks++; return; }
-          callback(timestampMS);
+          try { callback(timestampMS); }
+          catch (error) {
+            counts.errors++;
+            const s = session;
+            if (s) {
+              s.app.stop(); s.animation.pause(); clearDrag();
+              const after = liveObservation(s);
+              automaticFailure = { code: codeOf(error),
+                retained: beforeAutomatic !== null &&
+                  JSON.stringify(after.actorOpaque) === JSON.stringify(beforeAutomatic.actorOpaque) &&
+                  JSON.stringify(after.fixedBackground) === JSON.stringify(beforeAutomatic.fixedBackground),
+                treeChanged: !after.sceneMatchesTree };
+            }
+            show(`Automatic update failed: ${codeOf(error)}`);
+          }
         });
         pendingFrames.add(token); return token;
       },
-      cancelFrame(token) { counts.frameCancels++; pendingFrames.delete(token); cancelAnimationFrame(/** @type {number} */ (token)); },
+      cancelFrame(token) {
+        counts.frameCancels++; pendingFrames.delete(token); cancelAnimationFrame(/** @type {number} */ (token));
+      },
     };
-    const ticker = createTicker(scheduler);
-    /** @type {Session} */
-    const s = { tree, parent, actor, tokens, renderer, animation, ticker, accepted: tree.snapshot(), unbind: () => {} };
+    const app = createCanvas2DApplication(canvas, { contextId: 'AtlasGame', renderer: options,
+      scheduler, autoStart: false }); counts.rendererCreations++;
+    const { tree, renderer, ticker } = app;
+    /** @type {import('@barocss/canvas2d').SpriteAnimation | null} */ let ownedAnimation = null;
     try {
-      renderer.setImageAsset('GameAtlas', asset); renderer.updateScene(s.accepted); counts.submits++;
-      renderer.render(); counts.renders++;
-    } catch (error) { ticker.dispose(); animation.dispose(); renderer.dispose(); throw error; }
-    session = s; score = 0; collected.clear(); terminal = null; state = 'ready';
-    s.unbind = bindInput(s);
-    ticker.onTick(info => {
-      if (disposed || session !== s || current !== generation) return;
-      counts.tickCallbacks++; tickHistory.push(info); if (tickHistory.length > 20) tickHistory.shift();
-      try { animation.advance(info.deltaMS); submit(s); show('Playing with capped deltaMS'); }
-      catch (error) { counts.errors++; pause(); clearDrag(); show(`Tick failed: ${codeOf(error)}`); }
-    });
-    show('Ready: drag the actor or Play its animation');
+      tree.stage.addChild(tree.createRect({ id: 'Back', layer: 0, transform: pose(),
+        width: 320, height: 200, fill: [0.125, 0.15625, 0.21875, 1] }));
+      const parent = tree.createContainer({ id: 'World', layer: 1,
+        transform: { ...pose(36, 28), scaleX: 1.1, scaleY: 0.9, rotation: 0.14 } });
+      tree.stage.addChild(parent);
+      const tokens = tokenRects.map(rect => tree.createSprite({ id: rect.id, layer: 0,
+        transform: pose(rect.x, rect.y), imageId: 'GameAtlas', sourceRect: { x: 24, y: 0, width: 8, height: 8 },
+        width: rect.width, height: rect.height, opacity: 1, sampling: 'nearest', anchorX: 0, anchorY: 0 }));
+      for (const token of tokens) parent.addChild(token);
+      const actor = tree.createSprite({ id: 'Actor', layer: 1, transform: initialPose,
+        imageId: 'GameAtlas', sourceRect: { x: 0, y: 0, width: 8, height: 8 },
+        width: 32, height: 32, opacity: 1, sampling: 'nearest', anchorX: 0, anchorY: 0 });
+      parent.addChild(actor);
+      const atlas = createSpriteAtlas('GameAtlas', { width: asset.width, height: asset.height }, atlasEntries);
+      const animation = createSpriteAnimation(actor, atlas.sequence(frameNames));
+      ownedAnimation = animation;
+      /** @type {Session} */
+      const s = { app, tree, parent, actor, tokens, renderer, animation, ticker,
+        accepted: tree.snapshot(), unbind: () => {} };
+      renderer.setImageAsset('GameAtlas', asset); app.render();
+      s.accepted = tree.snapshot(); counts.submits++; counts.renders++; counts.manualRenders++;
+      session = s; score = 0; collected.clear(); terminal = null; automaticFailure = null; state = 'ready';
+      const unbindInput = bindInput(s); s.unbind = unbindInput;
+      const unsubscribeUpdate = app.onUpdate(info => {
+        if (disposed || session !== s || current !== generation) return;
+        if (automaticFault) beforeAutomatic = liveObservation(s);
+        counts.tickCallbacks++; tickHistory.push(info); if (tickHistory.length > 20) tickHistory.shift();
+        animation.advance(info.deltaMS);
+        if (automaticFault) {
+          automaticFault = false;
+          actor.setImageSource('MissingAtlas', actor.data.sourceRect);
+        }
+      });
+      s.unbind = () => { unbindInput(); unsubscribeUpdate(); };
+      // Equal priority registered later: observe only after Application's internal render.
+      const unsubscribeObservation = ticker.onTick(() => {
+        s.accepted = tree.snapshot(); counts.submits++; counts.renders++; counts.automaticCompleted++;
+        show('Playing through Application');
+      }, -100);
+      s.unbind = () => { unbindInput(); unsubscribeUpdate(); unsubscribeObservation(); };
+      show('Ready: drag the actor or Play its animation');
+    } catch (error) {
+      try { session?.unbind(); } catch { /* Preserve the construction failure. */ }
+      session = null;
+      try { ownedAnimation?.dispose(); } catch { /* Preserve the construction failure. */ }
+      try { app.dispose(); } catch { /* Preserve the construction failure. */ }
+      throw error;
+    }
   } catch (error) {
     if (disposed || current !== generation || controller.signal.aborted) { counts.loadsIgnored++; return; }
     counts.errors++; state = 'error'; show(`Load failed: ${codeOf(error)}`);
@@ -304,7 +344,7 @@ function reject(operation) {
   const s = session; if (!s || disposed) return null;
   pause(); clearDrag(); const before = fingerprint(s); let code = 'ACCEPTED';
   try { operation(s); } catch (error) { code = codeOf(error); }
-  s.renderer.render(); counts.renders++; refusal = { code, retained: fingerprint(s) === before };
+  s.renderer.render(); counts.renders++; counts.refusalRenders++; refusal = { code, retained: fingerprint(s) === before };
   show(`Refused candidate: ${code}`); return { ...refusal };
 }
 function invalidCrop() {
@@ -320,11 +360,21 @@ function missingAsset() {
     actor.imageId = 'MissingAtlas'; s.renderer.updateScene(candidate);
   });
 }
+function failAutomatic() {
+  if (!session || disposed) return;
+  automaticFault = true; automaticFailure = null; play();
+}
+function repair() {
+  const s = session; if (!s || disposed) return;
+  s.app.stop(); s.actor.setImageSource('GameAtlas', s.actor.data.sourceRect);
+  automaticFault = false; play();
+}
 function dispose() {
   counts.disposeCalls++; if (disposed) return;
   clearDrag(); const s = session;
   if (s) {
-    s.ticker.dispose(); s.animation.dispose(); s.unbind(); terminal = liveObservation(s); s.renderer.dispose();
+    s.app.stop(); s.animation.pause(); terminal = liveObservation(s);
+    s.unbind(); s.animation.dispose(); s.app.dispose();
   }
   session = null; disposed = true; generation++; loader?.abort(); loader = null; releaseGate();
   for (const unbind of hostUnbind.splice(0)) unbind(); state = 'disposed'; show('Disposed: reload this page to create a new game');
@@ -334,14 +384,14 @@ function visibility() {
 }
 document.addEventListener('visibilitychange', visibility);
 hostUnbind.push(() => document.removeEventListener('visibilitychange', visibility));
-const actions = { play, pause, step, reset, invalid: invalidCrop, missing: missingAsset, dispose,
+const actions = { play, pause, step, reset, 'automatic-fault': failAutomatic, repair, invalid: invalidCrop, missing: missingAsset, dispose,
   load: () => { void load(); }, 'cancel-load': cancelLoad };
 for (const [id, action] of Object.entries(actions)) {
   const button = document.querySelector(`#${id}`); button?.addEventListener('click', action);
   hostUnbind.push(() => button?.removeEventListener('click', action));
 }
 Object.defineProperty(window, 'game', { value: Object.freeze({ observe, play, pause, step, reset, dispose,
-  invalidCrop, missingAsset, load, cancelLoad,
+  invalidCrop, missingAsset, failAutomatic, repair, load, cancelLoad,
   /** @param {Point} point */
   probe(point) { const s = session; return s ? sample(s, point) : null; },
   get canvas() { return canvas; } }), writable: false, configurable: false });
