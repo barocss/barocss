@@ -335,6 +335,12 @@ importers:
       vite:
         specifier: 8.3.1
         version: 8.3.1(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(sass-embedded@1.91.0)(sass@1.91.0)(terser@5.43.1)
+  apps/library-docs:
+    devDependencies:
+      vitepress:
+        specifier: ^1.6.4
+        version: 1.6.4(@algolia/client-search@5.36.0)(@types/node@24.3.0)(lightningcss@1.33.0)(postcss@8.5.28)(sass-embedded@1.91.0)(sass@1.91.0)(search-insights@2.17.3)(terser@5.43.1)(typescript@5.9.3)
+
   apps/render-editor:
     dependencies:
       '@barocss/render-editor':

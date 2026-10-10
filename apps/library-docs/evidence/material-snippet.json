@@ -1,0 +1,22 @@
+{
+  "commit": "5f5ad866205a21510ac69552e704cc162fa253b5",
+  "node": "v22.22.0",
+  "package": "@barocss/gpu",
+  "version": "0.0.0",
+  "compiler": "source TypeScript transformed by esbuild",
+  "shaderId": "wave",
+  "uniform": {
+    "name": "timeSeconds",
+    "type": "float",
+    "min": 0,
+    "max": 2,
+    "default": 0,
+    "glslName": "mat_u_0"
+  },
+  "refused": [
+    "SYNTAX"
+  ],
+  "drawing": "not executed",
+  "ownSourceInputs": 222,
+  "ownDistInputs": 0
+}
