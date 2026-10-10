@@ -4,6 +4,10 @@ Start the [visual playground](/playground). It runs the real source APIs in your
 
 These examples describe the local experimental `@barocss/gpu` version0.0.0 at source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`. The scene samples use source1; the material samples use `mesh-opaque-fragment-v0`. The images show the browser-rendered samples.
 
+## Inspect material color without a display
+
+Use the [public CPU evaluation example](./cpu-material-evaluation) to inspect linear RGB from a compiled shader, explicit uniforms and UV. It explains defaults, copied immutable results, zero handling and genuine range errors. Its numeric result is separate from a GPU frame.
+
 ## Run the portal
 
 Open the [playground](/playground) and select a sample. Edit its complete source, then select **Run input**. Use **Reset example** to restore the original input. See [Use the interactive examples](/concepts/run-examples) for input selection, browser requirements and result interpretation.

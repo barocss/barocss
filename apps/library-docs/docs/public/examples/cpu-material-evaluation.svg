@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 420" role="img" aria-labelledby="title desc">
+<title id="title">CPU linear RGB values for three repeating material requests</title>
+<desc id="desc">Default phase at U=-0.25 produces 0.75 for each channel. Phase 0.5 produces 0.25. Negative zero inputs produce positive zero RGB while the UV negative zero values are retained.</desc>
+<rect width="820" height="420" rx="12" fill="#f8fafc"/>
+<g font-family="system-ui,sans-serif" fill="#172033">
+<text x="28" y="32" font-size="20" font-weight="600">CPU linear RGB values</text>
+<text x="28" y="56" font-size="13" fill="#536176">Same authored program · three requests · numeric channels, not rendered pixels</text>
+<path d="M 205 85 V 339" stroke="#dce4ed"/>
+<text x="205" y="364" text-anchor="middle" font-size="12">0</text>
+<path d="M 330.0 85 V 339" stroke="#dce4ed"/>
+<text x="330.0" y="364" text-anchor="middle" font-size="12">0.25</text>
+<path d="M 455.0 85 V 339" stroke="#dce4ed"/>
+<text x="455.0" y="364" text-anchor="middle" font-size="12">0.5</text>
+<path d="M 580.0 85 V 339" stroke="#dce4ed"/>
+<text x="580.0" y="364" text-anchor="middle" font-size="12">0.75</text>
+<path d="M 705 85 V 339" stroke="#dce4ed"/>
+<text x="705" y="364" text-anchor="middle" font-size="12">1</text>
+<text x="28" y="105" font-size="14" font-weight="600">Default phase</text>
+<text x="28" y="125" font-size="12" fill="#536176">U = −0.25, phase = 0</text>
+<text x="188" y="97" font-size="11" fill="#536176">R</text>
+<rect x="205" y="85" width="375.0" height="14" rx="3" fill="#cf4c5b"/>
+<text x="589.0" y="97" font-size="12">0.75</text>
+<text x="188" y="117" font-size="11" fill="#536176">G</text>
+<rect x="205" y="105" width="375.0" height="14" rx="3" fill="#237d53"/>
+<text x="589.0" y="117" font-size="12">0.75</text>
+<text x="188" y="137" font-size="11" fill="#536176">B</text>
+<rect x="205" y="125" width="375.0" height="14" rx="3" fill="#236ea9"/>
+<text x="589.0" y="137" font-size="12">0.75</text>
+<text x="28" y="193" font-size="14" font-weight="600">Phase override</text>
+<text x="28" y="213" font-size="12" fill="#536176">U = −0.25, phase = 0.5</text>
+<text x="188" y="185" font-size="11" fill="#536176">R</text>
+<rect x="205" y="173" width="125.0" height="14" rx="3" fill="#cf4c5b"/>
+<text x="339.0" y="185" font-size="12">0.25</text>
+<text x="188" y="205" font-size="11" fill="#536176">G</text>
+<rect x="205" y="193" width="125.0" height="14" rx="3" fill="#237d53"/>
+<text x="339.0" y="205" font-size="12">0.25</text>
+<text x="188" y="225" font-size="11" fill="#536176">B</text>
+<rect x="205" y="213" width="125.0" height="14" rx="3" fill="#236ea9"/>
+<text x="339.0" y="225" font-size="12">0.25</text>
+<text x="28" y="281" font-size="14" font-weight="600">Negative zero input</text>
+<text x="28" y="301" font-size="12" fill="#536176">U = −0, phase = −0</text>
+<text x="188" y="273" font-size="11" fill="#536176">R</text>
+<circle cx="205" cy="268" r="3" fill="#cf4c5b"/>
+<text x="214" y="273" font-size="12">0</text>
+<text x="188" y="293" font-size="11" fill="#536176">G</text>
+<circle cx="205" cy="288" r="3" fill="#237d53"/>
+<text x="214" y="293" font-size="12">0</text>
+<text x="188" y="313" font-size="11" fill="#536176">B</text>
+<circle cx="205" cy="308" r="3" fill="#236ea9"/>
+<text x="214" y="313" font-size="12">0</text>
+<text x="28" y="401" font-size="12" fill="#536176">UV retains −0. Resolved uniform zero and final RGB zero are +0.</text>
+</g></svg>

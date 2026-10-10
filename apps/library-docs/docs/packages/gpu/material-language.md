@@ -4,6 +4,8 @@ The material language computes the opaque fragment color of an admitted mesh. It
 
 This page describes `mesh-opaque-fragment-v0` for local experimental `@barocss/gpu` version0.0.0 at source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`. The CPU compiler runs before the mesh renderer adopts the result. The browser host needs WebGL2 and a TypeScript-capable bundler for this local source package.
 
+Read [CPU material evaluation](./cpu-material-evaluation) to inspect a compiled program with explicit uniform values and, for UV profiles, dimensionless coordinates. That guide states the newer API version and its three supported material families.
+
 ## Complete blend material
 
 ```css
