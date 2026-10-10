@@ -1,0 +1,23 @@
+{
+  "name": "@barocss/ui-runtime",
+  "version": "0.0.0-experimental",
+  "private": false,
+  "type": "module",
+  "description": "Opaque browser frame lifecycle for compiled BaroCSS UI artifacts",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build:library": "tsc -p tsconfig.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
