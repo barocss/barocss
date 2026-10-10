@@ -9041,3 +9041,11 @@ This provider does not construct a base Face, shared Body topology, manifold/Sol
 pnpm --filter @barocss/cad build:library
 node examples/cad-nurbs/translated-surface-end-faces-demo.mjs --source <output-directory>
 ```
+
+### Qualified translated-strip Body
+
+`buildQualifiedTranslatedStripBody(base, ends, volume, {evaluationId, resultIdPrefix, maximumParents:3, maximumModels:2, maximumObservations:24})` consumes three complete qualified results built from the same original callers. It creates actual global eight-Vertex, twelve-Edge, six-Face, twenty-four-Use topology, one closed oriented Shell and one Body. Explicit source-qualified Curve pairs define the vertex classes; no coordinate welding is used. Every Edge has two opposite effective Uses. Each Vertex link must be one closed three-germ cycle. The parent constructors already encode Face reversal in their stored Use order; it is applied exactly once.
+
+Two actual Source0 models contain the eighteen used geometry objects as Model16 plus Model2. Every Face and Edge has an explicit support/Curve model reference. All original sources, parents, local IDs, UV sidecars, native observations and earlier flags remain unchanged. The new exact material proof must bind all six entire Face images to the source-defined injective cube map and prove their outward signs. Closed graph counts or a scalar volume cannot substitute for that proof. The separately named restricted Solid qualification is available only after both graph and whole material-boundary checks.
+
+`validateQualifiedTranslatedStripBody` reconstructs every parent, source model, global graph, vertex link, coefficient/material proof and native endpoint observation. This family has a two-MiB request/result file limit; the existing source and per-Model limits remain unchanged. General membership, operand Boolean, arbitrary curved Solid operations, global C1/floating error, manufacturing and publication remain separate. The bounded flow is `node examples/cad-nurbs/qualified-translated-strip-body-demo.mjs --source <new-output-directory>` after the affected CAD build. Source implementation and native/integrated acceptance must be reported separately.

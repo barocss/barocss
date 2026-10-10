@@ -371,3 +371,6 @@ export type { TranslatedSurfaceStripVolumeOptions, TranslatedSurfaceStripVolumeS
 
 export { buildTranslatedSurfaceEndFaces, validateTranslatedSurfaceEndFaces, TranslatedSurfaceEndFacesError, TranslatedSurfaceEndFacesDiagnosticCode } from './translated-surface-end-faces.js';
 export type { TranslatedSurfaceEndFacesOptions, TranslatedSurfaceEndFace, TranslatedSurfaceEndFacesReport, TranslatedSurfaceEndFacesResult } from './translated-surface-end-faces.js';
+
+export { buildQualifiedTranslatedStripBody, validateQualifiedTranslatedStripBody, QualifiedTranslatedStripBodyError, QualifiedTranslatedStripBodyDiagnosticCode } from './qualified-translated-strip-body.js';
+export type { QualifiedTranslatedStripBodyOptions, QualifiedTranslatedStripBodyEdge, QualifiedTranslatedStripBodyReport, QualifiedTranslatedStripBodyResult } from './qualified-translated-strip-body.js';
