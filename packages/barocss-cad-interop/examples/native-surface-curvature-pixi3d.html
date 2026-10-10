@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<link rel="icon" href="data:,">
+<title>Native Surface curvature in Pixi3D</title>
+<style>
+  body { margin: 0; background: #101b2c; color: #eaf4ff; font: 16px/1.5 system-ui, sans-serif; }
+  main { max-width: 880px; margin: 24px auto; padding: 0 16px; }
+  canvas { display: block; width: 840px; height: 560px; border: 1px solid #44617d; }
+  button { margin: 8px 8px 8px 0; padding: 7px 10px; }
+  pre { white-space: pre-wrap; }
+</style>
+<main>
+  <h1>Native Surface curvature in Pixi3D</h1>
+  <p>Original U/V supplies the native cylinder point and unit normal. Magenta shows the point; yellow uses a declared 0.8 mm display length.
+    The overlays leave native geometry unchanged and the camera stays fixed.</p>
+  <div id="view"></div>
+  <p>Initial query: U -3 / V 2. Run seven refusals, then the three saved queries in order.</p>
+  <div>
+    <button id="query-1" disabled>U -1 / V 2.75</button>
+    <button id="query-2" disabled>U 2 / V 3.5</button>
+    <button id="query-3" disabled>U 7 / V 4.25</button>
+    <button id="dispose" disabled>Dispose twice</button>
+  </div>
+  <div>
+    <button id="refuse-nan-u" disabled>NaN U</button><button id="refuse-infinite-v" disabled>Infinite V</button>
+    <button id="refuse-outside-u" disabled>U outside domain</button><button id="refuse-outside-v" disabled>V outside domain</button>
+    <button id="refuse-invalid-surface" disabled>Invalid native Surface</button>
+    <button id="refuse-forged-reference" disabled>Cloned Surface reference</button>
+    <button id="refuse-sphere" disabled>Whole sphere preview</button>
+  </div>
+  <pre id="status">Loading six unchanged producer files…</pre>
+  <pre id="readout">Original native query pending.</pre>
+  <details open><summary>Actual native curvature and original D2 values</summary><pre id="full-native"></pre></details>
+</main>
+<script type="module" src="./native-surface-curvature-pixi3d.mjs"></script>
+</html>

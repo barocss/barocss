@@ -3003,3 +3003,52 @@ two CAD text data routes serve original disk bytes; public module imports
 use ordinary source resolution. NullEngine verifies native data and resource
 behavior. Actual headed HTTP/WebGL2 pixels, published JavaScript/types,
 packed installation and registry publication each need separate evidence.
+
+## Inspect original Surface curvature in a Pixi3D host
+
+`examples/native-surface-curvature-pixi3d.html` reads six original source,
+query and result files. The public Pixi3D loader creates the complete original
+cylinder preview. The caller supplies the Application, renderer, Stage,
+camera, canvas and green marker.
+
+Public `evaluateSurfaceCurvature` and `evaluateSurfaceD2` query the accepted
+original Surface. The readout shows native U/V, point in millimetres, D2,
+unit normal, mean and principal curvature in 1/mm, Gaussian curvature in
+1/mm² and returned metric/discriminant fields. Original saved Gaussian `-0`
+is preserved. This API returns local native observations. Global regularity,
+Face/Solid orientation and engineering certificates have separate contracts.
+
+Source0 grid8 uses 0.001 scene units/mm. The original preview has 64 vertices
+and 98 triangles; native U/V and coefficients remain available. Each query
+creates a separate point sphere of radius0.00008 and a normal line with
+length0.0008 scene units (0.8mm). Point position is native point × 0.001.
+Point and normal materials use explicit overlays with depth tests and depth
+writes disabled. The fixed camera and original preview placement stay intact.
+
+The complete native query and candidate annotation pair are prepared while
+roots are detached. The example then attaches the pair and releases the
+previous pair before render. Real instance destroy wrappers track owned
+roots, meshes, geometry and materials. Four queries create five roots and
+nine mesh/geometry/material resources. Double cleanup releases each once.
+Original source, Model, Surface and native query data remain readable.
+Caller Application, Stage, renderer, Camera and marker remain live.
+
+The original sphere has four valid local curvature queries. Its complete
+grid8 preview raises the actual collapsed-triangle refusal. Invalid U/V,
+malformed native Surface and a forged original object reference preserve the
+accepted cylinder, query, annotations and frame.
+
+Run from a source workspace with Node22 and installed dependencies:
+
+```sh
+node packages/barocss-cad-interop/examples/native-surface-curvature-pixi3d-verify.mjs --output /tmp/baro-pixi-surface-curvature
+pnpm exec vite --config packages/barocss-cad-interop/examples/native-surface-curvature-pixi3d.config.mjs --host 127.0.0.1 --port 5203 --strictPort
+```
+
+Open `/packages/barocss-cad-interop/examples/native-surface-curvature-pixi3d.html`.
+The fixture declares exact hashes for six copied producer files. Only two
+CAD text data routes serve original disk bytes. Public module imports use
+ordinary source resolution. The Node flow checks native and neutral API
+behavior. Actual Pixi controller lifetime and HTTP/WebGL2 pixels are browser
+checks. Published JavaScript/types, packed installation and registry release
+require separate evidence.
