@@ -1316,3 +1316,17 @@ nodes and derives the scalar result interval from the argument endpoints.
 A result bounded in `[0,1]` can serve directly as a color-mix ratio. Existing
 bare uniform/local names `min` and `max` remain valid. Canonical IR, trusted
 lowering, original source and the existing work/depth limits are preserved.
+
+### Literal-edge smoothstep ramps
+
+`smoothstep(edge0,edge1,x)` accepts three scalar arguments. Edges are signed
+literal constants (including transparent parentheses and constant locals),
+within ±1000, with `edge0 < edge1` and finite reciprocal width at most1000.
+The input interval must remain within ±1000 and intermediate bounds within ±1e6.
+It expands to `t=clamp((x-edge0)*reciprocal,0,1)` and
+`clamp(t*t*(3-2*t),0,1)` in the existing IR. All15 generated nodes and two extra
+complete `t` trees charge existing work/depth limits. There is no runtime
+smoothstep intrinsic or IR/profile change. Variable edges, equal/reversed edges,
+unsafe narrow widths and excess work refuse; bare names remain compatible.
+Use `node examples/gpu-scene/material-smoothstep-flow.mjs --output <fresh-dir>`
+after the affected GPU build for the new CPU source/emitted/cold-file flow.

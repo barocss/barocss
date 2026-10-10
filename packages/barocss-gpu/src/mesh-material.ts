@@ -64,7 +64,32 @@ class Parser {
   }
   this.take(')');return this.color('#'+channels.map(value=>value.toString(16).padStart(2,'0')).join('').toUpperCase(),token);
  }
- if(!['sin','cos','mix','clamp','abs','min','max'].includes(name))fail('SYNTAX','Unsupported material function',token);this.take('(');const args:Term[]=[];if(this.current().text!==')'){for(;;){args.push(this.expression(0,nesting+1));if(this.current().text!==',')break;this.take(',');}}this.take(')');let type:'float'|'color'='float',range:[number,number];
+ if(!['sin','cos','mix','clamp','abs','min','max','smoothstep'].includes(name))fail('SYNTAX','Unsupported material function',token);this.take('(');const args:Term[]=[];if(this.current().text!==')'){for(;;){args.push(this.expression(0,nesting+1));if(this.current().text!==',')break;this.take(',');}}this.take(')');let type:'float'|'color'='float',range:[number,number];
+ if(name==='smoothstep'){
+  if(args.length!==3)fail('TYPE','smoothstep requires three floats',token);args.forEach(a=>this.float(a,token));
+  const literalValue=(term:Term):number=>{
+   const e=term.expression;if(e.kind==='float')return e.value;
+   if(e.kind==='unary'&&e.value.kind==='float')return zero((e.operator==='-'?-1:1)*e.value.value);
+   return fail('TYPE','smoothstep edges require signed literal constants',token);
+  };
+  const[edge0,edge1,x]=args,low=literalValue(edge0),high=literalValue(edge1),reciprocal=1/(high-low);
+  if(!(low<high)||!Number.isFinite(reciprocal)||reciprocal>1000)fail('RANGE','smoothstep edges require ordered bounds and reciprocal≤1000',token);
+  if(x.range.some(n=>Math.abs(n)>1000))fail('RANGE','smoothstep input exceeds±1000',token);
+  const literal=(n:number)=>this.term({kind:'float',type:'float',value:n},'float',[n,n],[],token);
+  const binary=(operator:'-'|'*',a:Term,b:Term,r:[number,number])=>this.term({kind:'binary',type:'float',operator,left:a.expression,right:b.expression},'float',r,[a,b],token);
+  const shifted=binary('-',x,edge0,[x.range[0]-low,x.range[1]-low]),inverse=literal(reciprocal);
+  const normalized=binary('*',shifted,inverse,[shifted.range[0]*reciprocal,shifted.range[1]*reciprocal]);
+  const clipped=(n:number)=>Math.max(0,Math.min(1,n)),tArgs=[normalized,literal(0),literal(1)];
+  const t=this.term({kind:'call',type:'float',name:'clamp',args:tArgs.map(a=>a.expression)},'float',[clipped(normalized.range[0]),clipped(normalized.range[1])],tArgs,token);
+  // The polynomial contains three complete t trees; charge the other two.
+  if(this.nodes+2*t.size>256)fail('BUDGET','Material exceeds256 definition and expanded expression nodes',token);
+  this.nodes+=2*t.size;
+  const squared=binary('*',t,t,[t.range[0]*t.range[0],t.range[1]*t.range[1]]),two=literal(2);
+  const twice=binary('*',two,t,[2*t.range[0],2*t.range[1]]),three=literal(3);
+  const factor=binary('-',three,twice,[3-twice.range[1],3-twice.range[0]]);
+  const polynomial=binary('*',squared,factor,[squared.range[0]*factor.range[0],squared.range[1]*factor.range[1]]),out=[polynomial,literal(0),literal(1)];
+  return this.term({kind:'call',type:'float',name:'clamp',args:out.map(a=>a.expression)},'float',[0,1],out,token);
+ }
  if(name==='min'||name==='max'){
   if(args.length!==2)fail('TYPE','min/max requires two floats',token);args.forEach(a=>this.float(a,token));
   if(args.some(a=>a.range.some(n=>Math.abs(n)>1000)))fail('RANGE','min/max argument exceeds±1000',token);
