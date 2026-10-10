@@ -7,6 +7,8 @@
 button,select,input{margin:4px;padding:6px 10px;background:#244462;color:white;border:1px solid #7198bc;border-radius:4px}button:disabled{opacity:.5}
 li{padding:8px;margin-bottom:8px;border:1px solid #56748f;overflow-wrap:anywhere}ul{list-style:none;padding:0}small{display:block}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
 li[data-screen-inspected=true]{border-color:#ffd479;background:#29445d}
+#qualified-face-tree details{margin:6px 0 6px 8px}#qualified-face-tree summary{cursor:pointer}#qualified-face-tree button{display:block}
+#qualified-face-tree button[data-tree-selected=true]{border-color:#ffd479;background:#29445d}
 @media(max-width:900px){.layout{grid-template-columns:1fr}}</style></head><body>
 <h1>Independent original Face assets</h1><p>Each source keeps its whole native model, forward Face and UV boundary data.
 Faces share the view depth; this scene does not create a global Shell or Solid.</p>
@@ -24,7 +26,7 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <span id="picked-angle-third" class="measurement-label" hidden></span><span id="picked-angle-value" class="measurement-label" hidden></span>
 <span id="picked-surface-curvature-label" class="measurement-label" hidden></span>
 <span id="picked-normal-angle-first" class="measurement-label" hidden></span><span id="picked-normal-angle-second" class="measurement-label" hidden></span>
-<span id="picked-normal-angle-value" class="measurement-label" hidden></span></div></div>
+<span id="picked-normal-angle-value" class="measurement-label" hidden></span><span id="tree-point-label" class="measurement-label" hidden></span></div></div>
 <label>Assets <select id="asset-count" disabled><option>6</option><option>2</option></select></label>
 <label>Grid U <select id="count-u" disabled><option>17</option><option>9</option><option>2</option></select></label>
 <label>Grid V <select id="count-v" disabled><option>17</option><option>9</option><option>2</option></select></label>
@@ -218,7 +220,22 @@ The heuristic error estimator is not a certified upper bound. A temporary one-so
 its wrapper identity is only an inspection context. The label uses the original parameter-domain midpoint, not a centroid.
 Screen mapping is approximate and does not test occlusion.</p></details>
 </section>
-</div><aside><h2>Current source-qualified Faces</h2><ul id="assets"></ul></aside></div>
+</div><aside><h2>Current source-qualified Faces</h2><ul id="assets"></ul>
+<section aria-label="Original source-qualified geometry tree"><h2>Original geometry tree</h2>
+<label><input id="sync-face-tree" type="checkbox" disabled>Sync Face screen to tree</label>
+<div id="qualified-face-tree"></div><pre id="tree-properties" aria-label="Selected original geometry properties"></pre>
+<label id="tree-u-label" hidden>Native u <input id="tree-u" aria-label="Tree native u" type="text" inputmode="decimal" disabled></label>
+<label id="tree-v-label" hidden>Native v <input id="tree-v" aria-label="Tree native v" type="text" inputmode="decimal" disabled></label>
+<label id="tree-t-label" hidden>Native t <input id="tree-t" aria-label="Tree native t" type="text" inputmode="decimal" disabled></label>
+<button id="inspect-tree-point" disabled>Inspect original tree point</button><button id="frame-tree-face" disabled>Frame parent Face</button>
+<button id="clear-tree-selection" disabled>Clear tree selection</button><p id="tree-point-output" role="status" aria-live="polite"></p>
+<details id="tree-help"><summary>About the original geometry tree</summary>
+<p>Each source retains its complete Face and five original native objects. Expand the Source and Face groups, then choose a geometry.
+Parameters use the original numeric domain; defaults are its checked midpoint. Control points use mm, while weights and UV parameter data are dimensionless.
+The point query evaluates the original geometry at explicit parameters. Frame parent Face uses sampled filled Surface display bounds, including when an original Curve is selected.
+The optional screen sync identifies only the current Face Surface and does not infer Curve identity or native parameters from the display triangle.
+Tree styling is DOM only. The point label uses approximate CSS projection without occlusion testing; original native results remain available after presentation loss.</p></details>
+</section></aside></div>
 <p>Row inspection is read-only source data. Frame actions use the current sampled filled display bounds.
-Primitive picking, selection and extra layers are unavailable.</p>
+Primitive picking, scene selection and extra layers are unavailable.</p>
 <pre id="status" role="status" aria-live="polite">Loading original Face assets…</pre><script type="module" src="/bundle.js"></script></body></html>
