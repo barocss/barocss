@@ -74,7 +74,7 @@ export function readPinnedFiles(dataDirectory) {
 
 export function runUniformCurveSourceChecks(dataDirectory) {
   assert.deepEqual(Object.keys(uniform).sort(),
-    ['BaroCadUniformCurveSourceError', 'parseBaroCadUniformCurveSource']);
+    ['BaroCadUniformCurveSourceError', 'parseBaroCadUniformCurveSource', 'validateBaroCadUniformCurveSourceOptions']);
   const pinned = readPinnedFiles(dataDirectory);
   const primaryModel = compile(pinned.source);
   assert.equal(primaryModel.name, 'profile');
