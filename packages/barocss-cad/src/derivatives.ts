@@ -97,8 +97,13 @@ export function evaluateCurveD1(curve: Curve, parameter: number): CurveD1Result 
     weight = finite(weight + factor); weightD1 = finite(weightD1 + dFactor);
     add(sum, curve.controlPoints[pole], factor); add(sumD1, curve.controlPoints[pole], dFactor);
   }
-  const point = project(sum, weight);
-  return { point, derivative: quotient(sumD1, weightD1, point, weight) };
+  const point = project(sum, weight), derivative = quotient(sumD1, weightD1, point, weight);
+  // Finish every legacy quotient with its legacy point before restoring constants.
+  for (let axis = 0; axis < 3; axis++) {
+    const coordinate = curve.controlPoints[0][axis];
+    if (curve.controlPoints.every(pole => Object.is(pole[axis], coordinate))) { point[axis] = coordinate; derivative[axis] = 0; }
+  }
+  return { point, derivative };
 }
 
 /** Original U/V partials, without normalization or a surface regularity claim. */
@@ -117,6 +122,10 @@ export function evaluateSurfaceD1(surface: Surface, u: number, v: number): Surfa
     const pole = surface.controlPoints[row][column];
     add(sum, pole, f); add(su, pole, fu); add(sv, pole, fv);
   }
-  const point = project(sum, weight);
-  return { point, du: quotient(su, wu, point, weight), dv: quotient(sv, wv, point, weight) };
+  const point = project(sum, weight), du = quotient(su, wu, point, weight), dv = quotient(sv, wv, point, weight);
+  for (let axis = 0; axis < 3; axis++) {
+    const coordinate = surface.controlPoints[0][0][axis];
+    if (surface.controlPoints.every(row => row.every(pole => Object.is(pole[axis], coordinate)))) { point[axis] = coordinate; du[axis] = 0; dv[axis] = 0; }
+  }
+  return { point, du, dv };
 }

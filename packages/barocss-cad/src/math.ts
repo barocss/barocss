@@ -169,7 +169,13 @@ function curvePoint(curve: Curve, parameter: number): Point {
     weight += factor;
     for (let axis = 0; axis < 3; axis++) sum[axis] += factor * curve.controlPoints[pole][axis];
   }
-  return project(sum, weight);
+  const point = project(sum, weight);
+  // Restore only a full authored coefficient invariant after existing checks.
+  for (let axis = 0; axis < 3; axis++) {
+    const coordinate = curve.controlPoints[0][axis];
+    if (curve.controlPoints.every(pole => Object.is(pole[axis], coordinate))) point[axis] = coordinate;
+  }
+  return point;
 }
 
 function surfacePoint(surface: Surface, u: number, v: number): Point {
@@ -186,7 +192,12 @@ function surfacePoint(surface: Surface, u: number, v: number): Point {
       for (let axis = 0; axis < 3; axis++) sum[axis] += factor * surface.controlPoints[row][column][axis];
     }
   }
-  return project(sum, weight);
+  const point = project(sum, weight);
+  for (let axis = 0; axis < 3; axis++) {
+    const coordinate = surface.controlPoints[0][0][axis];
+    if (surface.controlPoints.every(row => row.every(pole => Object.is(pole[axis], coordinate)))) point[axis] = coordinate;
+  }
+  return point;
 }
 
 export function evaluateCurve(curve: Curve, parameter: number): Point {
