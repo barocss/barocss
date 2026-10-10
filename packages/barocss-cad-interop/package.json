@@ -130,6 +130,10 @@
       "./three-selected-uniform-curve": {
         "types": "./dist/three-selected-uniform-curve.d.ts",
         "import": "./dist/three-selected-uniform-curve.js"
+      },
+      "./babylon-uniform-curve": {
+        "types": "./dist/babylon-uniform-curve.d.ts",
+        "import": "./dist/babylon-uniform-curve.js"
       }
     }
   },
@@ -262,6 +266,10 @@
     "./three-selected-uniform-curve": {
       "types": "./src/three-selected-uniform-curve.ts",
       "import": "./src/three-selected-uniform-curve.ts"
+    },
+    "./babylon-uniform-curve": {
+      "types": "./src/babylon-uniform-curve.ts",
+      "import": "./src/babylon-uniform-curve.ts"
     }
   },
   "files": [

@@ -2702,3 +2702,24 @@ Optional `@barocss/cad-interop/native-selected-uniform-curve` exports `parseBaro
 The selected profile is one source0/mm Model with 1..16 objects, selected degree1..5/2..64 poles/at most70 knots, coordinates within1e6mm and weights1e-6..1e6. Actual CAD compilation owns Source0 UTF16/UTF8 limits. Uniform count2..129 and original domain include both endpoints. Numerical and Float32 loss/collapse checks can refuse a display. Quality remains approximate, without adaptive error, geometry, topology or Solid certification. Only the selected Curve is drawn; siblings retain native CPU data.
 
 `examples/source-curve-control-polygon-three.html` uses24 unchanged actual CAD source-edit originals: quartic, quintic, no-op, signed-zero, cold re-edit and maximum64poles/256changed fields. Genuine source editor and whole owned-result validators retain all original source spans/Model objects, native observations and signed-zero bits. It replaces the selected Line only after complete candidate checks, cold reopens the whole candidate file and applies its saved re-edit request. Edited geometry does not inherit a section/UV proof or update a live document/parametric recipe. Refusal keeps accepted data/resources/frame; disposal captures only owned geometry/material, preserving caller replacements. Native, local integration and npm publication are separate states.
+
+
+### Uniform original Curve in Babylon
+
+Import `BaroCADUniformCurveBabylonLoader` from `@barocss/cad-interop/babylon-uniform-curve`. Supply explicit uniform options and an existing live right-handed Babylon Scene:
+
+```ts
+const loader = new BaroCADUniformCurveBabylonLoader({
+  sourceVersion: 0, unitsPerMillimeter: 0.001,
+  uniformCurveDisplay: { version: 1, count: 129 },
+});
+const result = await loader.loadAsync(originalSourceURL, scene, { signal });
+// The Scene-registered Line starts disabled. Validate your native context before display.
+result.line.setEnabled(true);
+// The complete original native data remain readable after idempotent cleanup.
+result.dispose();
+```
+
+`parse(source, scene)` and `loadAsync(url, scene, transport)` preserve the full neutral uniform result. Constructor options are independently validated snapshots. Only the world Curve is drawn; original parents and dimensionless parameter charts remain separate native data. The adapter owns its LinesMesh, geometry and explicit material, preserves caller resources and releases each owned resource once. Original XYZ and the requested unit conversion are retained. This plain loader does not claim adaptive chord error, native picking or certified Solid topology.
+
+The independently runnable `examples/section-uniform-curve-babylon.html` loads the five original section files, reconstructs the whole parent/proof context, inspects native observations, exercises refusal retention and cold reopening, then disposes twice. Use the matching Vite config (port5248) and focused `section-uniform-curve-babylon-verify.mjs --mode source|compiled --output EVIDENCE_DIR`. Source verification runs before own CAD/interop dist; compiled verification uses actual published JS/declarations.
