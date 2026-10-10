@@ -294,6 +294,9 @@ export type { SourceSurfaceControlNetRequest, SourceSurfaceControlNetPatch, Sour
 export { editSourceCurveControlPolygon, validateSourceCurveControlPolygonEdit, SourceCurveControlPolygonError, SourceCurveControlPolygonDiagnosticCode } from './source-curve-control-polygon.js';
 export type { SourceCurveControlPolygonRequest, SourceCurveControlPolygonPatch, SourceCurveControlPolygonReport, SourceCurveControlPolygonResult } from './source-curve-control-polygon.js';
 
+export { buildPiecewiseRationalLoftSurface, validatePiecewiseRationalLoftSurface, PiecewiseRationalLoftError, PiecewiseRationalLoftDiagnosticCode } from './piecewise-rational-loft.js';
+export type { PiecewiseRationalLoftOptions, PiecewiseRationalLoftProvenance, PiecewiseRationalLoftReport, PiecewiseRationalLoftResult } from './piecewise-rational-loft.js';
+
 export { buildVLinearSurfacePlaneTrimCandidates, validateVLinearSurfacePlaneTrimCandidates, VLinearSurfacePlaneTrimError, VLinearSurfacePlaneTrimDiagnosticCode } from './vlinear-plane-trim.js';
 export type { VLinearSurfacePlaneTrimOptions, VLinearSurfacePlaneTrimEdge, VLinearSurfacePlaneTrimReport, VLinearSurfacePlaneTrimResult } from './vlinear-plane-trim.js';
 

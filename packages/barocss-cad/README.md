@@ -8413,3 +8413,67 @@ This is a source-preserving authoring operation. Live document revisions,
 qualified topology rebinding, global evaluator bounds, self-intersection/Solid,
 manufacturing, renderer/consumer adoption and integrated file recovery remain
 separate requirements. Source0 expressions retain actual compiler refusal.
+
+
+## Independent-weight piecewise rational loft — #1139
+
+`buildPiecewiseRationalLoftSurface(sections, parametersV, options)` constructs an
+explicit piecewise ruled native Surface from2..15original Curves. Sections use
+common original Udegree1..5/count2..16/knot/domain bits; each keeps its own
+positive native weights. The resulting Surface has Vdegree1 and clamped linear
+Vknots at the original strictly increasing finite stations. All adjacent and
+full parameter spans must be finite and positive. Caller order, IDs, Cartesian
+poles, weights, original Uknots and signed-zero bits are retained without repair.
+The native Surface axis16 bound is separate from the general Curve64pole cap.
+
+```js
+const loft = cad.buildPiecewiseRationalLoftSurface(sections, [2, 4, 8, 12], {
+  surfaceId: 'piecewise_surface',
+  modelName: 'new_loft_model',
+  maximumSections: 15,
+  maximumUPoles: 16,
+  maximumPointObservations: 87,
+  maximumDerivativeObservations: 87,
+});
+const report = cad.validatePiecewiseRationalLoftSurface(loft);
+```
+
+Rows correspond to original U poles; columns correspond to original sections.
+Native validation and an actual Source0 compiler confirm every copied section
+and constructed Surface bit. The emitted NEW Model contains ordered sections
+plus the Surface, at most16objects. This new construction source does not
+replace a caller's unseen complete mixed original file. The full request,
+sections, stations, compiled geometry, source, coefficient provenance and report
+remain independently copied; owned validation reconstructs the whole operation.
+
+Between stations, the Surface blends homogeneous numerators and denominators.
+Independent weights generally change the Cartesian interpolation fraction.
+Actual native basis/section denominators and point evaluators provide the
+observed homogeneous comparison; a naive Cartesian blend difference is a
+sample witness. Three represented original Uparameters at each station and
+adjacent Vmidpoint generate at most87point comparisons. Every comparison must
+pass the declared local1e-7mm guard. This observation is not a global error bound.
+Narrow parameter ranges can repeat a represented midpoint; no perturbation or
+reparameterization is performed.
+
+Actual native SurfaceD1 is attempted at every point query. Interior Vstations
+have formal C0 basis continuity; inherited U C0 and arithmetic refusals also
+remain as labelled native evaluated/refused unions. No derivative is fabricated
+and no smooth/G1/G2 loft is certified. D0 or observation arithmetic failure is
+atomic and returns no partial Surface/source. The API performs no file writes.
+
+Fixed limits sections15/Uaxis16/Udegree5/Vdegree1/point87/D1attempt87,
+CurveD0calls129/SurfaceD0calls87/basis84/decimalemissions2306, source262144UTF-16
+and UTF-8 bytes, copied1Mvalues/depth64. Original native coordinates remain
+within±1e6mm and weights1e-6..1e6. IDs are distinct under native/source rules.
+Direct construction/source/observation counts exclude inherited validations.
+
+```sh
+node examples/cad-nurbs/piecewise-rational-loft-demo.mjs --source EVIDENCE_DIR
+```
+
+Existing two/three-section independent-weight constructors and the matching-
+weight multi-section loft remain unchanged. General unlike bases, smooth
+independent-weight lofts, guides, transported frames, caps/Solid, topology,
+manufacturing/global binary64 enclosure, live document/consumer rendering and
+release acceptance remain separate requirements.
