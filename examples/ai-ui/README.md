@@ -208,3 +208,35 @@ restart with delayed results. The frozen historical controller tests run unchang
 Evidence is authored and no-model. It proves this application protocol's correctness under the
 tested transport responses. It makes no live-model quality, production latency or browser integration
 claim. The browser/server evidence above is also no-model. No CSS core change, package export or Changeset is needed.
+
+## Shared renderer declarations and one focused offline flow
+
+`scenario.mjs` now imports `getRenderSpecDefinition(REQUEST_CONTRACT)` through the renderer
+manifest's compiled public root. Build the renderer before importing the scenario. Component
+props, finite style choices, node-level Button events, limits, patterns and graph rules come from
+the renderer's shared definition. The scenario still owns permissions, transitions, forbidden
+instructions and exact summary checks. Metadata format `definitionVersion: 1` is separate from
+host prompt version `request-ui-v1`. New declaration digests invalidate old prepared packets;
+historical records are preserved, and no model run follows from this change.
+
+With Node22, installed React19.2.3 peers, Playwright Core and Chromium:
+
+```sh
+pnpm --filter @barocss/render build:library
+node examples/ai-ui/contract-catalog-flow.mjs
+```
+
+`REPO_DEPS_ROOT`, `REACT_ROOT` and `PW_DIR` can identify already installed dependency roots.
+The host also needs the adopted `packages/barocss-browser/dist/cdn/barocss.umd.cjs` artifact.
+No downloads are performed. The driver checks the public compiled import, shared source graph,
+new declaration types, detached metadata and representative validator error paths. It uses the
+existing ProfileForm for default name/save confirmation, then the current request server/session
+and browser for configured name/topic review/edit/confirm. All responses are authored offline.
+
+The second form display changes labels/layout while preserving stable IDs and host values.
+Review removes inputs; edit recreates them with the retained values. This does not prove focus
+or DOM identity survives remounting. The same flow checks props.on, unknown component/action,
+truncated JSON, cancellation with a late response and stale revision; rejected updates preserve
+the accepted screen/input. Browser observations are separate from source/API checks. The driver
+closes its own servers/browser and removes its temporary consumer. It is one bounded prototype,
+not a live-model, streaming, general continuity, performance or release acceptance suite.

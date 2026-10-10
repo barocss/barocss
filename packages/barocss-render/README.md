@@ -27,7 +27,7 @@ Package root exports contain built JavaScript and TypeScript declarations, not r
 CommonJS `require` is not supported.
 
 ```tsx
-import { Renderer, validateSpec, classesFor } from '@barocss/render';
+import { Renderer, validateSpec, classesFor, getRenderSpecDefinition } from '@barocss/render';
 import type { ComponentRegistry, FormState, ScreenSpec } from '@barocss/render';
 ```
 
@@ -125,6 +125,39 @@ Compatibility: existing valid profile screens and CSS mappings are unchanged. Th
 supplied a missing or inherited `save` handler now fail at render time instead of during a click.
 This intentional action-registration guard does not add CSS utilities or change CSS semantics.
 
+## Shared screen definition
+
+`getRenderSpecDefinition(contract?)` returns a detached, JSON-serializable description of the
+same definitions used by `validateSpec` and `classesFor`. `definitionVersion: 1` is the metadata
+format version, independent of the package release version. `RenderSpecDefinition<Binding, Action>`
+is the corresponding TypeScript type. The omitted contract describes `/name` and `save`.
+
+```ts
+const definition = getRenderSpecDefinition(contract);
+// Include JSON.stringify(definition) in host-authored AI declarations.
+// Continue validating responses with validateSpec(candidate, contract).
+```
+
+The descriptor contains `components`, `styleClasses`, `limits`, `syntax`, `fields`, `graph` and
+`permissions`. All props listed in a component are required. Choice arrays describe allowed values;
+Input `value.$bindState` and Button **node-level** `on.press.action` list host declarations.
+`props.on` is forbidden. Layout/Card `styleClasses` describe the fixed utilities; Card `base` is
+`rounded-xl`. Text limits count JavaScript UTF-16 code units, not graphemes. All nodes require a
+children array; leaves require an empty array. Binding patterns describe the restricted unescaped
+path syntax above. The renderer never interprets a binding or executes metadata.
+
+Each call copies every nested array/object, including permissions and CSS mappings. Editing a
+returned definition cannot change runtime validation, styles, another returned copy or the host
+contract. Invalid host declarations throw `TypeError` with the first `contract.*` error path;
+`validateSpec` continues returning validation errors. Metadata is descriptive, not a schema extension
+or authority token. Generated screens cannot use it to grant themselves actions or fields.
+
+Repository source uses the private frozen `src/definition.mjs`. The bundled public root includes
+that definition and the API; consumers do not import source files. The AI request example imports
+only the compiled public root before composing its host-owned transitions and business rules.
+Previously prepared generation packets have different declaration digests and must not be rewritten
+or silently reused. Preparing a new packet does not authorize a model call.
+
 ## Accepted screen contract
 
 Only `root` and `elements` are accepted. There must be 2–32 nodes; root is a Layout. IDs match
@@ -156,7 +189,7 @@ pnpm --filter @barocss/render test
 node .github/scripts/check-packages.mjs
 ```
 
-The packed-package check imports all three exports and type-checks an isolated consumer.
+The existing packed-package check imports the original three exports and type-checks an isolated consumer.
 The optional `test:consumer` also tests browser input, save, validation rejection and last-valid
 screen retention. It needs already installed React DOM, React types and Playwright/Chromium.
 Set `REPO_DEPS_ROOT`, `REACT_ROOT`, `REACT_TYPES_ROOT`, and `PW_DIR` only if those assets are outside

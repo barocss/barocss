@@ -1,6 +1,6 @@
 import { validateSpec } from './contract.mjs';
 
-export { validateSpec, classesFor } from './contract.mjs';
+export { validateSpec, classesFor, getRenderSpecDefinition } from './contract.mjs';
 
 // A stable node ID is the React key. The host owns components, form state, and actions.
 export function Renderer({ spec, components, state, setState, actions, contract }) {
