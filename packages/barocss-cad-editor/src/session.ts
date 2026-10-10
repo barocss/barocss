@@ -1,17 +1,20 @@
 import {
-  CadReferenceDiagnosticCode, CadReferenceError, CadCurveArcLengthError,
+  CadReferenceDiagnosticCode, CadReferenceError, CadCurveArcLengthError, CadDocumentError,
+  SourceCurveIntervalExtractionError, curveDomain,
   createCadDocument, createCadGeometryReference, editSourceSurfaceControlNet, editSourceCurveControlPolygon,
   evaluateCurveD2, evaluateSurfaceD2, evaluateCurveCurvature, evaluateSurfaceCurvature,
   exportCadDocument, getCadDocumentExportCapabilities, inspectCadDocumentExport,
   parseCadDocument, queryCadDocumentCurveArcLength, resolveCadGeometryReference, serializeCadDocument,
   validateCadDocumentResult, validateSourceSurfaceControlNetEdit, validateSourceCurveControlPolygonEdit,
 } from '@barocss/cad';
-import type { CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, CurvePoleEdit, SurfacePoleEdit } from '@barocss/cad';
+import type { CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, Curve, CurvePoleEdit, SurfacePoleEdit,
+  SourceCurveIntervalExtractionResult } from '@barocss/cad';
 import { CadEditorError } from './types.js';
 import { translateBodySource, withinTranslationProfile } from './body-translation.js';
 import { rotateBodySource } from './body-rotation.js';
 import { scaleBodySource } from './body-scale.js';
 import { duplicateBodySourceDocument } from './body-duplicate.js';
+import { extractCurveIntervalSource } from './curve-interval.js';
 import type {
   CadEditorCandidate, CadEditorDiagnosticCode, CadEditorPoleField, CadEditorSelectedPole, CadEditorSelectedCurvePole, CadEditorView,
   CadEditorEditTarget, CadEditorBodyTranslationField, CadEditorRotationAxis, CadEditorScaleAxis,
@@ -189,11 +192,23 @@ interface Presentation {
   editTarget: CadEditorEditTarget; rotationAxis: CadEditorRotationAxis; scaleAxis: CadEditorScaleAxis;
 }
 interface DuplicateBoundary { before: Presentation; after: Presentation }
-interface HistoryState { document: CadDocumentV1; bytes: number; duplicateBoundary?: DuplicateBoundary }
+interface IntervalBoundary { bodyId: string }
+interface IntervalBinding {
+  bodyId: string; reference: CadGeometryReferenceV0; source: string; curve: Curve; domain: [number, number];
+  baseGeneration: number; baseDisplayGeneration: number; view: CadEditorView;
+}
+interface IntervalPreparation {
+  extraction?: SourceCurveIntervalExtractionResult;
+  boundary?: IntervalBoundary;
+  clearPoleBodyId?: string;
+}
+interface HistoryState { document: CadDocumentV1; bytes: number; duplicateBoundary?: DuplicateBoundary;
+  intervalBoundary?: IntervalBoundary }
 interface Prepared {
   candidate: CadEditorCandidate; historyIndex?: number;
   selectionTarget?: CadEditorSelectionTarget | null; transitionToken?: string;
   structuralPresentation?: Presentation; duplicateBoundary?: DuplicateBoundary;
+  intervalBoundary?: IntervalBoundary; clearCurvePoleBodyId?: string;
 }
 
 /** Create an owned source-authoritative editor. No renderer or browser resources are created. */
@@ -216,6 +231,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   let curveSelection: CadEditorSelectedCurvePole | null = null;
   let selectionTransition: CadEditorSelectionTransition | null = null;
   let pending: CadEditorSnapshot['pending'] = {};
+  let intervalBinding: IntervalBinding | null = null;
   let prepared: Prepared | null = null;
   let history: HistoryState[] = [{ document: copy(accepted.document), bytes: fileBudget(serialize(accepted)) }];
   let historyIndex = 0;
@@ -228,6 +244,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   let lastBodyTranslation: CadEditorSnapshot['lastBodyTranslation'] = null;
   let lastBodyRotation: CadEditorSnapshot['lastBodyRotation'] = null;
   let lastBodyScale: CadEditorSnapshot['lastBodyScale'] = null;
+  let lastCurveInterval: CadEditorSnapshot['lastCurveInterval'] = null;
   const listeners = new Set<() => void>();
 
   const live = () => requireEditor(!disposed, 'LIFECYCLE', 'The editor session is disposed.');
@@ -246,7 +263,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     accepted, generation, displayGeneration, displayBodyIds, view, editTarget, rotationAxis, scaleAxis, bodyCapabilities,
     selectedBodyId, selection, curveSelection, selectionTransition, pending, candidate: prepared?.candidate ?? null,
     history: { index: historyIndex, count: history.length, bytes: historyBytes(), canUndo: historyIndex > 0, canRedo: historyIndex < history.length - 1 },
-    dirty, downloadStatus, disposed, lastProvenance, lastCurveProvenance, lastBodyTranslation, lastBodyRotation, lastBodyScale,
+    dirty, downloadStatus, disposed, lastProvenance, lastCurveProvenance, lastBodyTranslation, lastBodyRotation, lastBodyScale, lastCurveInterval,
   });
   const select = (input: CadEditorSurfaceSelection, document = accepted): CadEditorSelectedPole => {
     const context = { documentId: document.document.documentId, bodyId: input?.bodyId, field: 'selection-transition' };
@@ -315,6 +332,9 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     if (resolved.target.bodyId === selectedBodyId && (resolved.curvePole !== null
       ? curveSelection !== null && curveSelection.index === resolved.curvePole.index
       : selection !== null && resolved.pole !== null && selection.uIndex === resolved.pole.uIndex && selection.vIndex === resolved.pole.vIndex)) return null;
+    requireEditor(!(hasIntervalRaw() && resolved.target.bodyId === selectedBodyId), 'INPUT',
+      'Apply or discard the interval before selecting another original point on this Curve.',
+      { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: 'curve-interval' });
     prepared = null;
     if (Object.keys(pending).length > 0) {
       selectionTransition = { token: newToken(), baseGeneration: generation, target: copy(resolved.target) };
@@ -326,6 +346,47 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   const requireResolvedDraft = () => requireEditor(Object.keys(pending).length === 0 && selectionTransition === null,
     'INPUT', 'Apply or discard the draft before Open or history.',
     { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: 'selection-transition' });
+  const intervalContext = (): CadEditorError['context'] => ({ documentId: accepted.document.documentId,
+    bodyId: selectedBodyId ?? undefined, field: 'curve-interval' });
+  const hasIntervalRaw = () => Object.hasOwn(pending, 'intervalMin') || Object.hasOwn(pending, 'intervalMax');
+  const requireNoIntervalDraft = () => requireEditor(!hasIntervalRaw(), 'INPUT',
+    'Apply or discard the interval before entering other object or pole fields.', intervalContext());
+  const intervalNative = <T>(action: () => T, message: string): T => {
+    try { return action(); } catch (cause) {
+      if (cause instanceof CadEditorError) throw cause;
+      const code = cause instanceof CadReferenceError && cause.code === CadReferenceDiagnosticCode.STALE ? 'STALE'
+        : (cause instanceof SourceCurveIntervalExtractionError || cause instanceof CadDocumentError) && cause.code === 'BUDGET' ? 'BUDGET' : 'NATIVE';
+      throw new CadEditorError(code, message, intervalContext(), cause);
+    }
+  };
+  const intervalBodyReference = () => {
+    const context = intervalContext();
+    requireEditor(editTarget === 'pole', 'INPUT', 'Select Control point before restricting an interval.', context);
+    requireEditor(selectedBodyId !== null && view.kind === 'curve-focus' && view.bodyId === selectedBodyId,
+      'DISPLAY', 'Select and focus the original Curve before restricting its interval.', context);
+    const reference = intervalNative(() => createCadGeometryReference(accepted, { bodyId: selectedBodyId! }),
+      'Native interval body reference creation failed.').reference;
+    const resolved = intervalNative(() => resolveCadGeometryReference(accepted, reference), 'Native interval body resolution failed.');
+    requireEditor(resolved.geometry.kind === 'curve', 'UNSUPPORTED', 'Interval restriction requires an original Curve.', context);
+    return { reference: resolved.reference, geometry: resolved.geometry, source: resolved.source };
+  };
+  const captureInterval = (): IntervalBinding => {
+    const resolved = intervalBodyReference();
+    return { bodyId: resolved.reference.bodyId, reference: copy(resolved.reference), source: resolved.source,
+      curve: copy(resolved.geometry), domain: intervalNative(() => curveDomain(resolved.geometry), 'Native original Curve domain query failed.'),
+      baseGeneration: generation, baseDisplayGeneration: displayGeneration, view: copy(view) };
+  };
+  const currentInterval = (binding: IntervalBinding) => {
+    const context = intervalContext();
+    requireEditor(editTarget === 'pole' && selectedBodyId === binding.bodyId
+      && binding.baseGeneration === generation && binding.baseDisplayGeneration === displayGeneration
+      && view.kind === 'curve-focus' && binding.view.kind === 'curve-focus'
+      && view.bodyId === binding.view.bodyId && view.count === binding.view.count,
+    'STALE', 'The interval body or focused view changed. Review the pending parameters.', context);
+    const resolved = intervalNative(() => resolveCadGeometryReference(accepted, binding.reference), 'Native bound interval reference resolution failed.');
+    requireEditor(resolved.source === binding.source && resolved.geometry.kind === 'curve', 'STALE',
+      'The interval must remain bound to the original complete source.', context);
+  };
   const requireEditable = () => {
     const context = { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: 'edit-capability' };
     requireEditor(selectedBodyId !== null, 'INPUT', 'Select an editable Surface body first.', context);
@@ -355,7 +416,16 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     bodyTranslation: CadEditorCandidate['bodyTranslation'] = null,
     bodyRotation: CadEditorCandidate['bodyRotation'] = null,
     bodyScale: CadEditorCandidate['bodyScale'] = null,
-    structural?: { presentation: Presentation; duplicateBoundary?: DuplicateBoundary }): CadEditorCandidate => {
+    structural?: { presentation: Presentation; duplicateBoundary?: DuplicateBoundary },
+    interval?: IntervalPreparation): CadEditorCandidate => {
+    if (interval?.clearPoleBodyId !== undefined) {
+      const reference = native(() => createCadGeometryReference(result, { bodyId: interval.clearPoleBodyId! }),
+        'Native interval presentation reference creation failed.', result.document.documentId, { field: 'curve-interval' }).reference;
+      const resolved = native(() => resolveCadGeometryReference(result, reference),
+        'Native interval presentation body resolution failed.', result.document.documentId, { field: 'curve-interval' });
+      requireEditor(resolved.geometry.kind === 'curve', 'STALE', 'The interval must retain the original Curve body.',
+        { documentId: result.document.documentId, bodyId: interval.clearPoleBodyId, field: 'curve-interval' });
+    }
     const proposed = structural === undefined ? undefined : {
       ...copy(structural.presentation),
       displayBodyIds: displayIds(result, structural.presentation.displayBodyIds),
@@ -366,11 +436,15 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     prepared = { candidate: { kind, result, provenance, curveProvenance, bodyTranslation, bodyRotation, bodyScale, token: newToken(), baseGeneration: generation,
       baseDisplayGeneration: displayGeneration, displayBodyIds: copy(proposed?.displayBodyIds ?? candidateDisplayIds), view: copy(proposed?.view ?? candidateView),
       ...(proposed === undefined ? {} : { selectionTarget: copy(proposed.selectionTarget), presentation: 'structural' as const }),
+      ...(interval?.extraction === undefined ? {} : { curveInterval: interval.extraction }),
+      ...(interval?.clearPoleBodyId === undefined ? {} : { selectionTarget: { bodyId: interval.clearPoleBodyId }, clearCurvePoleSelection: true as const }),
     }, historyIndex: targetIndex,
-      selectionTarget: proposed !== undefined ? copy(proposed.selectionTarget) : postSelection === undefined ? undefined : {
+      selectionTarget: interval?.clearPoleBodyId !== undefined ? { bodyId: interval.clearPoleBodyId }
+        : proposed !== undefined ? copy(proposed.selectionTarget) : postSelection === undefined ? undefined : {
         bodyId: postSelection.target.bodyId, uIndex: postSelection.target.uIndex, vIndex: postSelection.target.vIndex, index: postSelection.target.index,
       }, transitionToken: postSelection?.token,
-      structuralPresentation: proposed, duplicateBoundary: copy(structural?.duplicateBoundary) };
+      structuralPresentation: proposed, duplicateBoundary: copy(structural?.duplicateBoundary),
+      intervalBoundary: copy(interval?.boundary), clearCurvePoleBodyId: interval?.clearPoleBodyId };
     const returned = copy(prepared.candidate);
     emit();
     return returned;
@@ -428,7 +502,10 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       return prior.source === asset.source ? asset : { ...asset, source: prior.source, revision: nextRevision(asset.revision) };
     });
     const result = admit(native(() => createCadDocument(document), 'Native history reconstruction failed.', document.documentId));
-    return prepare(direction < 0 ? 'undo' : 'redo', result, [], targetIndex);
+    const intervalBoundary = direction < 0 ? history[historyIndex].intervalBoundary : history[targetIndex].intervalBoundary;
+    return prepare(direction < 0 ? 'undo' : 'redo', result, [], targetIndex, undefined, displayBodyIds, view, [], null, null, null,
+      undefined, intervalBoundary !== undefined && selectedBodyId === intervalBoundary.bodyId
+        ? { clearPoleBodyId: intervalBoundary.bodyId } : undefined);
   };
   const pendingValues = (bodyId: string, curve = false, translation = false): Partial<Record<CadEditorPoleField, number>> => {
     const values: Partial<Record<CadEditorPoleField, number>> = {};
@@ -444,6 +521,48 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   };
   const prepareApply = (): CadEditorCandidate | null => {
     live();
+    // Interval history can retain the focused body while deliberately clearing its old pole.
+    if (Object.keys(pending).length === 0 && selectedBodyId !== null && curveSelection === null
+      && view.kind === 'curve-focus' && view.bodyId === selectedBodyId) {
+      const body = intervalNative(() => createCadGeometryReference(accepted, { bodyId: selectedBodyId! }),
+        'Native body-only Curve reference creation failed.');
+      if (body.geometry.kind === 'curve') return null;
+    }
+    if (hasIntervalRaw()) {
+      const context = intervalContext();
+      requireEditor(prepared === null, 'INPUT', 'Resolve the current candidate before restricting the interval.', context);
+      requireEditor(intervalBinding !== null && Object.keys(pending).every(key => key === 'intervalMin' || key === 'intervalMax'),
+        'INPUT', 'Interval parameters cannot be mixed with other draft fields.', context);
+      const binding = intervalBinding;
+      currentInterval(binding);
+      const bounds: [number, number] = [...binding.domain];
+      for (const [key, index] of [['intervalMin', 0], ['intervalMax', 1]] as const) if (Object.hasOwn(pending, key)) {
+        const text = pending[key]!.trim();
+        requireEditor(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text),
+          'INPUT', 'Interval parameters must be decimal or exponent numbers.', context);
+        const value = Number(text);
+        requireEditor(Number.isFinite(value), 'INPUT', 'Interval parameters must be finite.', context);
+        bounds[index] = value;
+      }
+      const extraction = intervalNative(() => extractCurveIntervalSource(binding.source, binding.curve, bounds),
+        'Native complete-source Curve interval restriction failed.');
+      const document = copy(accepted.document);
+      document.revision = nextRevision(document.revision, context);
+      document.assets = document.assets.map(asset => asset.id === binding.reference.assetId
+        ? { ...asset, source: extraction.source, revision: nextRevision(asset.revision, context) } : asset);
+      const result = intervalNative(() => {
+        const result = createCadDocument(document);
+        validateCadDocumentResult(result);
+        fileBudget(serializeCadDocument(result.document), context);
+        return result;
+      }, 'Native restricted Curve document admission failed.');
+      const transition = selectionTransition;
+      if (transition !== null && transition.target.bodyId === binding.bodyId && transition.target.index !== undefined)
+        requireEditor(false, 'INPUT', 'Finish the interval before choosing a new point on this Curve.', context);
+      return prepare('curve-interval', result, [], undefined, transition ?? undefined, displayBodyIds, view, [], null, null, null,
+        undefined, { extraction, boundary: { bodyId: binding.bodyId },
+          ...(transition === null || transition.target.bodyId === binding.bodyId ? { clearPoleBodyId: binding.bodyId } : {}) });
+    }
     if (editTarget === 'scale') {
       const resolved = requireBodyTransformEditable('scale');
       const bodyId = resolved.reference.bodyId;
@@ -702,6 +821,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       if (choice === 'discard') {
         switchTarget(selectionTransition.target);
         pending = {};
+        intervalBinding = null;
       }
       selectionTransition = null; prepared = null; emit(); return null;
     },
@@ -735,6 +855,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     },
     stageBodyRotation(rawAngleDegrees) {
       live();
+      requireNoIntervalDraft();
       const context = { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: 'body-rotation' };
       requireEditor(editTarget === 'rotation', 'INPUT', 'Select Rotate object before entering an angle.', context);
       requireBodyTransformEditable('rotation');
@@ -753,6 +874,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     },
     stageBodyScale(rawFactor) {
       live();
+      requireNoIntervalDraft();
       const context = { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: 'body-scale' };
       requireEditor(editTarget === 'scale', 'INPUT', 'Select Scale object before entering a factor.', context);
       requireBodyTransformEditable('scale');
@@ -762,6 +884,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     },
     stageBodyTranslationField(field, rawText) {
       live();
+      requireNoIntervalDraft();
       const context = { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: 'body-translation' };
       requireEditor(editTarget === 'object', 'INPUT', 'Select Object before entering translation offsets.', context);
       requireBodyTransformEditable('translation');
@@ -770,21 +893,40 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       pending = { ...pending, [field]: rawText }; prepared = null; selectionTransition = null; emit();
     },
     stageSurfacePoleField(field, rawText) {
-      live(); requireEditor(editTarget === 'pole', 'INPUT', 'Select Control point before editing a pole.', { field: 'edit-target' });
+      live(); requireNoIntervalDraft(); requireEditor(editTarget === 'pole', 'INPUT', 'Select Control point before editing a pole.', { field: 'edit-target' });
       requireEditable(); requireEditor(selection !== null, 'INPUT', 'Select an original Surface pole first.');
       requireEditor(FIELDS.includes(field), 'INPUT', 'The pole field is unsupported.');
       requireEditor(typeof rawText === 'string' && rawText.length <= 128, 'BUDGET', 'Pole input must have at most 128 characters.');
       pending = { ...pending, [field]: rawText }; prepared = null; selectionTransition = null; emit();
     },
     stageCurvePoleField(field, rawText) {
-      live(); requireEditor(editTarget === 'pole', 'INPUT', 'Select Control point before editing a pole.', { field: 'edit-target' });
+      live(); requireNoIntervalDraft(); requireEditor(editTarget === 'pole', 'INPUT', 'Select Control point before editing a pole.', { field: 'edit-target' });
       requireCurveEditable();
       const context = { documentId: accepted.document.documentId, bodyId: curveSelection!.bodyId, field: 'curve-pole' };
       requireEditor(FIELDS.includes(field), 'INPUT', 'The Curve Point field is unsupported.', context);
       requireEditor(typeof rawText === 'string' && rawText.length <= 128, 'BUDGET', 'Point input must have at most 128 characters.', context);
       pending = { ...pending, [field]: rawText }; prepared = null; selectionTransition = null; emit();
     },
-    discardPending() { live(); pending = {}; prepared = null; selectionTransition = null; emit(); },
+    stageCurveIntervalField(field, rawText) {
+      live();
+      const context = intervalContext();
+      requireEditor(field === 'min' || field === 'max', 'INPUT', 'Choose the minimum or maximum parameter.', context);
+      requireEditor(typeof rawText === 'string' && rawText.length <= 128, 'BUDGET',
+        'Interval input must have at most 128 characters.', context);
+      requireEditor(Object.keys(pending).every(key => key === 'intervalMin' || key === 'intervalMax'),
+        'INPUT', 'Apply or discard other fields before restricting an interval.', context);
+      const binding = intervalBinding ?? captureInterval();
+      currentInterval(binding);
+      const text = rawText.trim();
+      const value = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text) ? Number(text) : NaN;
+      const key = field === 'min' ? 'intervalMin' : 'intervalMax';
+      const fields = { ...pending };
+      if (Number.isFinite(value) && Object.is(value, binding.domain[field === 'min' ? 0 : 1])) delete fields[key];
+      else fields[key] = rawText;
+      pending = fields; intervalBinding = Object.hasOwn(fields, 'intervalMin') || Object.hasOwn(fields, 'intervalMax') ? binding : null;
+      prepared = null; selectionTransition = null; emit();
+    },
+    discardPending() { live(); pending = {}; intervalBinding = null; prepared = null; selectionTransition = null; emit(); },
     prepareApply,
     prepareOpen(text, options) {
       live(); fileBudget(text);
@@ -882,17 +1024,34 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       const target = current.structuralPresentation !== undefined ? current.selectionTarget ?? null
         : current.candidate.kind === 'open' || selectedBodyId === null ? null
           : current.selectionTarget ?? { bodyId: selectedBodyId, uIndex: selection?.uIndex, vIndex: selection?.vIndex, index: curveSelection?.index };
-      const nextTarget = target === null ? null : resolveTarget(target, result);
+      // An interval can leave a logical body selected without a pole. Ordinary
+      // same-inventory commits must not turn that absence into an implicit point0.
+      const bodyOnly = target !== null && current.structuralPresentation === undefined
+        && current.selectionTarget === undefined && selectedBodyId === target.bodyId
+        && selection === null && curveSelection === null;
+      const clearBodyId = current.clearCurvePoleBodyId ?? (bodyOnly ? target!.bodyId : undefined);
+      const clearCurvePole = clearBodyId !== undefined && target?.bodyId === clearBodyId;
+      if (clearCurvePole) {
+        const context = { documentId: result.document.documentId, bodyId: clearBodyId, field: 'curve-interval' };
+        const reference = native(() => createCadGeometryReference(result, { bodyId: clearBodyId! }),
+          'Native restored interval body reference creation failed.', result.document.documentId, context).reference;
+        const resolved = native(() => resolveCadGeometryReference(result, reference),
+          'Native restored interval body resolution failed.', result.document.documentId, context);
+        requireEditor(resolved.geometry.kind === 'curve', 'STALE', 'The interval boundary must retain its original Curve body.', context);
+      }
+      const nextTarget = target === null || clearCurvePole ? null : resolveTarget(target, result);
       const nextCapabilities = capabilities(result);
       const state: HistoryState = { document: copy(result.document), bytes: fileBudget(serialize(result)) };
       if (current.candidate.kind === 'duplicate') state.duplicateBoundary = copy(current.duplicateBoundary);
+      if (current.candidate.kind === 'curve-interval') state.intervalBoundary = copy(current.intervalBoundary);
       if (current.candidate.kind === 'open') { history = [state]; historyIndex = 0; }
-      else if (current.candidate.kind === 'apply' || current.candidate.kind === 'rename' || current.candidate.kind === 'duplicate') {
+      else if (current.candidate.kind === 'apply' || current.candidate.kind === 'rename' || current.candidate.kind === 'duplicate'
+        || current.candidate.kind === 'curve-interval') {
         history = [...history.slice(0, historyIndex + 1), state];
         while (history.length > HISTORY_LIMIT || historyBytes() > HISTORY_BYTES) history.shift();
         historyIndex = history.length - 1;
       } else historyIndex = current.historyIndex!;
-      accepted = result; selectedBodyId = nextTarget?.target.bodyId ?? null; selection = nextTarget?.pole ?? null;
+      accepted = result; selectedBodyId = clearCurvePole ? clearBodyId! : nextTarget?.target.bodyId ?? null; selection = nextTarget?.pole ?? null;
       curveSelection = nextTarget?.curvePole ?? null;
       bodyCapabilities = nextCapabilities;
       if (current.candidate.kind === 'open') { displayBodyIds = copy(current.candidate.displayBodyIds); view = copy(current.candidate.view); editTarget = 'pole'; rotationAxis = 'z'; scaleAxis = 'uniform'; displayGeneration++; }
@@ -912,12 +1071,13 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
         assetRevisionHighWater.set(asset.id, Math.max(assetRevisionHighWater.get(asset.id) ?? 0, asset.revision));
       const retainedAssetIds = new Set(history.flatMap(state => state.document.assets.map(asset => asset.id)));
       for (const id of assetRevisionHighWater.keys()) if (!retainedAssetIds.has(id)) assetRevisionHighWater.delete(id);
-      generation++; pending = {}; prepared = null; selectionTransition = null;
+      generation++; pending = {}; intervalBinding = null; prepared = null; selectionTransition = null;
       lastProvenance = copy(current.candidate.provenance);
       lastCurveProvenance = copy(current.candidate.curveProvenance);
       lastBodyTranslation = copy(current.candidate.bodyTranslation);
       lastBodyRotation = copy(current.candidate.bodyRotation);
       lastBodyScale = copy(current.candidate.bodyScale);
+      lastCurveInterval = copy(current.candidate.curveInterval ?? null);
       dirty = current.candidate.kind !== 'open'; downloadStatus = 'Not downloaded'; download = null;
       const returned = snapshot(); emit(); return returned;
     },
@@ -937,7 +1097,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     },
     dispose() {
       if (disposed) return;
-      disposed = true; prepared = null; selectionTransition = null; download = null; pending = {}; emit(); listeners.clear();
+      disposed = true; prepared = null; intervalBinding = null; selectionTransition = null; download = null; pending = {}; emit(); listeners.clear();
     },
   };
 }

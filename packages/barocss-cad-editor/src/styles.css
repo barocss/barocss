@@ -295,3 +295,26 @@ text.assembly-translation-guide[data-axis="z"] { fill:#8babcf; stroke:none; }
 .driving-add-dialog .cad-editor-field input,.driving-add-dialog .cad-editor-field select { width:100%; min-width:0; height:28px; border:1px solid #454e55; border-radius:4px; padding:4px 7px; background:#1c2023; color:#dce4e8; font-size:11px; }
 .driving-add-actions { display:flex; align-items:center; justify-content:flex-end; gap:7px; margin-top:14px; }
 .driving-add-actions>button:first-child { margin-right:auto; }
+
+/* Curve bounds use original parameters and leave the accepted Curve visible. */
+.curve-interval-panel { margin:8px 0; padding:8px 0; border-top:1px solid #39434a; }
+.curve-interval-panel .cad-editor-field { grid-template-columns:68px minmax(0,1fr); margin:6px 0; }
+.curve-interval-panel .cad-editor-field input { height:28px; min-width:0; padding:4px 7px; font-size:11px; }
+.curve-interval-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin:7px 0; }
+.curve-interval-toolbar [data-slot="button"] { height:25px; min-height:25px; padding:3px 7px; font-size:10px; }
+.curve-interval-toolbar>button:first-child { background:#b8d599; color:#24321d; }
+.curve-interval-panel .curve-interval-domain,.curve-interval-panel .curve-interval-status { margin:4px 0; font-size:10px; line-height:1.4; color:#aab8c0; overflow-wrap:anywhere; }
+.curve-interval-panel [role="alert"] { margin:6px 0; color:#ffd2ce; font-size:10px; line-height:1.4; }
+.curve-interval-overlay { position:absolute; inset:0; z-index:3; pointer-events:none; }
+.curve-interval-svg { display:block; overflow:hidden; pointer-events:none; }
+.curve-interval-guide { fill:none; stroke:#b8d599; stroke-width:1.5; pointer-events:none; }
+.curve-interval-handle { fill:#b8d599; stroke:#f0f5e9; stroke-width:1.5; pointer-events:all; touch-action:none; cursor:grab; }
+.curve-interval-handle[data-endpoint="max"] { fill:#aac7de; }
+.curve-interval-handle:active { cursor:grabbing; }
+.curve-interval-handle:focus-visible { outline:none; stroke:#fff; stroke-width:3; }
+.curve-interval-handle[aria-disabled="true"] { opacity:.45; cursor:default; }
+.curve-interval-ghost { fill:none; stroke:#dfc685; stroke-width:2; stroke-dasharray:4 3; pointer-events:none; }
+.curve-interval-label { fill:#dbe8ce; font-size:10px; paint-order:stroke; stroke:#171e24; stroke-width:3px; pointer-events:none; }
+.curve-interval-overlay>.curve-interval-status { position:absolute; left:8px; bottom:8px; max-width:calc(100% - 16px); padding:4px 6px; margin:0; border:1px solid #39444a; border-radius:3px; background:#22272be8; color:#b9c7cf; font-size:10px; line-height:1.4; pointer-events:none; }
+.curve-interval-toolbar>.cad-editor-inspector-title,.curve-interval-toolbar>.cad-editor-field,.curve-interval-toolbar>p,.curve-interval-toolbar>.cad-editor-actions { width:100%; flex-basis:100%; }
+.curve-interval-toolbar>.cad-editor-actions { margin:4px 0; gap:5px; }

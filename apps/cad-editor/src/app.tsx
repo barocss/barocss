@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Box, ChevronRight, Copy, Crosshair, Download, Expand, FolderOpen, Layers3, Maximize, MousePointer2, PanelLeftClose, PanelRightClose, Redo2, Shrink, Spline, Undo2 } from 'lucide-react';
 import { parseCadDocument, resolveCadGeometryReference } from '@barocss/cad';
 import { CadEditorError, createCadEditorSession, type CadEditorExportResult, type CadEditorGeometryAnalysisResult, type CadEditorCurveLength, type CadEditorView, type CadEditorSnapshot, type CadEditorEditTarget } from '@barocss/cad-editor';
-import { CadEditor, CadEditorExportReview, useCadEditorSnapshot, type CadEditorDisplayOptions, type CadEditorDisplayReceipt, type CadEditorCurveFocusReceipt } from '@barocss/cad-editor/react';
+import { CadEditor, CadEditorExportReview, useCadEditorSnapshot, type CadEditorDisplayOptions, type CadEditorDisplayReceipt, type CadEditorCurveFocusReceipt, type CadEditorCurvePresentationReceipt } from '@barocss/cad-editor/react';
 import fixtureText from '../fixtures/canonical-surface-and-curve.cad-document.json?raw';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './components/ui/dialog';
 import { Button } from './components/ui/button';
@@ -30,6 +30,7 @@ function nativeCauses(error: Error): {message:string;code:string|null}[] {
   return causes;
 }
 function actionError(error: CadEditorError): string {
+  if(error.context.field==='curve-interval')return error.code==='STALE'?'The Curve or view changed. Review the pending bounds.':error.code==='DISPLAY'?'Cannot display this interval. The accepted Curve is retained.':'Enter a proper increasing interval within the current Curve bounds.';
   if(error.context.field==='curve-pole-drag')return error.code==='STALE'?'The point or view changed. Review the pending values before dragging again.':'Cannot move this point. Apply or discard the draft, then try again.';
   if(error.context.field==='curve-focus')return 'Cannot show this Curve view. Keep the current view, or choose another object. Open Help for the supported limits.';
   if(error.context.field==='curve-pole')return 'Cannot apply this Curve point. Check its coordinates and weight, then use Focus Curve.';
@@ -75,6 +76,7 @@ function DirectApp() {
   const [error, setError] = useState<CadEditorError | null>(null);
   const [filename, setFilename] = useState('Weighted surface');
   const [curveDisplay,setCurveDisplay]=useState<CadEditorCurveFocusReceipt|null>(null);
+  const [curvePresentation,setCurvePresentation]=useState<CadEditorCurvePresentationReceipt|null>(null);
   const openChoiceFocusRef=useRef<HTMLElement|null>(null);
   const [receipt, setReceipt] = useState<CadEditorDisplayReceipt | null>(null);
   const [exportReview,setExportReview]=useState<CadEditorExportResult|null>(null);
@@ -133,13 +135,13 @@ function DirectApp() {
   function closeRecovery(){if(recoveryMutation.current)return;clearReplacement();cancelRecoveryConfirmation();setRecoveryOpen(false);}
   async function mutateRecovery(kind:'replace'|'delete',raw:string|undefined,record?:RecoveryRecord){
     if(recoveryMutation.current)return;
-    recoveryMutation.current=true;recoveryReadSerial.current++;setRecoveryBusy(true);setRecoveryMessage(null);
+    recoveryMutation.current=true;appRoot.current?.setAttribute('data-direct-host-busy','true');recoveryReadSerial.current++;setRecoveryBusy(true);setRecoveryMessage(null);
     let message:string;
     try{
       if(kind==='delete')await deleteRecoveryCopy(raw);else {if(!record)throw new Error('A captured document is required.');await writeRecoveryCopy(raw,record);}
       message=kind==='delete'?'Recovery copy deleted.':'Copy stored in this browser.'+(record?.hadPending?' Draft fields were not copied.':'')+' Later changes are not included.';
     }catch(cause){message=cause instanceof Error&&'code' in cause&&cause.code==='STALE'?'The recovery copy changed. Review it before trying again.':'Cannot change the recovery copy. The current document is retained.';}
-    finally{recoveryMutation.current=false;setRecoveryBusy(false);cancelRecoveryConfirmation();}
+    finally{recoveryMutation.current=false;if(!replacementAttempt.current)appRoot.current?.removeAttribute('data-direct-host-busy');setRecoveryBusy(false);cancelRecoveryConfirmation();}
     setRecoveryMessage(message);
     await refreshRecovery();
   }
@@ -160,7 +162,7 @@ function DirectApp() {
     let id=requestSerial.current;
     try{
       clearReplacement();id=requestSerial.current;setError(null);
-      const anchor=captureReplacementAnchor(session);replacementAttempt.current=true;setRecoveryChecking(true);
+      const anchor=captureReplacementAnchor(session);replacementAttempt.current=true;appRoot.current?.setAttribute('data-direct-host-busy','true');setRecoveryChecking(true);
       const slot=await readRecoverySlot();if(id!==requestSerial.current)return;
       assertReplacementCurrent(session,anchor);
       if(slot.raw!==observed.raw||!slot.record||slot.error)throw new Error('The recovery copy changed or cannot be read.');
@@ -191,16 +193,16 @@ function DirectApp() {
     // This focused flow seam exposes copied data and declared host actions only.
     const api = {
       snapshot: () => session.getSnapshot(), display: () => structuredClone(receipt), error: () => error ? {code:error.code,message:error.message,context:{...error.context},cause:error.cause instanceof Error ? error.cause.message : null,causeChain:nativeCauses(error)} : null,
-      exportReview:()=>structuredClone(exportReview),geometryAnalysis:()=>structuredClone(geometryAnalysis),curveLength:()=>structuredClone(curveLength),curveDisplay:()=>structuredClone(curveDisplay),recovery:()=>({status:recoveryStatus,slot:structuredClone(recoverySlot),unsaved:recoveredUnsavedRef.current}),readFrame:()=>setReadRequest(value=>value+1),
+      exportReview:()=>structuredClone(exportReview),geometryAnalysis:()=>structuredClone(geometryAnalysis),curveLength:()=>structuredClone(curveLength),curveDisplay:()=>structuredClone(curveDisplay),curvePresentation:()=>structuredClone(curvePresentation),recovery:()=>({status:recoveryStatus,slot:structuredClone(recoverySlot),unsaved:recoveredUnsavedRef.current}),readFrame:()=>setReadRequest(value=>value+1),
       setDisplayRefusal: (refuse: boolean) => setDisplayOptions(refuse ? { ...defaultDisplay, document: { ...defaultDisplay.document, native: { ...defaultDisplay.document.native, countU: 1 } } } : defaultDisplay),
       setMounted: (mounted: boolean) => { setMount(mounted); if (mounted) setMountKey(key => key + 1); },
       session,
     };
     Object.assign(window, { __cadEditorFlow: api });
     return () => { delete (window as Window & { __cadEditorFlow?: unknown }).__cadEditorFlow; };
-  }, [flowMode, session, receipt, exportReview, geometryAnalysis, curveLength,curveDisplay, error,recoveryStatus,recoverySlot]);
+  }, [flowMode, session, receipt, exportReview, geometryAnalysis, curveLength,curveDisplay,curvePresentation, error,recoveryStatus,recoverySlot]);
   function clearReplacement() {
-    requestSerial.current++;setReplacementBusy(false);setRecoveryChecking(false);recoveryCommitRef.current=null;replacementAttempt.current=false;replacementRef.current=null;setReplacement(null);setOpenChoice(null);
+    requestSerial.current++;setReplacementBusy(false);setRecoveryChecking(false);recoveryCommitRef.current=null;replacementAttempt.current=false;if(!recoveryMutation.current)appRoot.current?.removeAttribute('data-direct-host-busy');replacementRef.current=null;setReplacement(null);setOpenChoice(null);
   }
   function replacementError(cause:unknown) {
     clearReplacement();if(pendingOpen.current&&session.getSnapshot().candidate?.token!==pendingOpen.current.token)pendingOpen.current=null;setReadRequest(value=>value+1);
@@ -245,7 +247,7 @@ function DirectApp() {
     let id=requestSerial.current;
     try {
       clearReplacement();id=requestSerial.current;setError(null);
-      const anchor=captureReplacementAnchor(session),focus=openButton.current;replacementAttempt.current=true;
+      const anchor=captureReplacementAnchor(session),focus=openButton.current;replacementAttempt.current=true;appRoot.current?.setAttribute('data-direct-host-busy','true');
       const text=await readCadEditorFile(file);
       if(id!==requestSerial.current)return;
       assertReplacementCurrent(session,anchor);
@@ -259,7 +261,7 @@ function DirectApp() {
     }catch(cause){if(id===requestSerial.current)replacementError(cause);}
   };
   const newSample = () => {
-    try{clearReplacement();setError(null);const anchor=captureReplacementAnchor(session);replacementAttempt.current=true;receiveTarget(requestSerial.current,anchor,{kind:'sample',text:fixtureText,filename:'Weighted surface'},fileMenu.current);}
+    try{clearReplacement();setError(null);const anchor=captureReplacementAnchor(session);replacementAttempt.current=true;appRoot.current?.setAttribute('data-direct-host-busy','true');receiveTarget(requestSerial.current,anchor,{kind:'sample',text:fixtureText,filename:'Weighted surface'},fileMenu.current);}
     catch(cause){replacementError(cause);}
   };
   function downloadReplacementCopy() {
@@ -298,8 +300,8 @@ function DirectApp() {
       ||!appRoot.current?.getClientRects().length||appRoot.current.querySelector('.cad-editor-viewport')?.getAttribute('data-viewer-ready')!=='true'
       ||document.querySelector('[role="dialog"][data-state="open"]')||(!ignoreMenu&&document.querySelector('[role="menu"]')))return false;
     if(current.accepted.document.assets.length>=4||current.accepted.document.bodies.length>=16||current.accepted.document.revision>=2147483647)return false;
-    return current.view.kind==='curve-focus'?current.view.bodyId===current.selectedBodyId&&curveDisplay?.state.status==='ready'
-      &&curveDisplay.generation===current.generation&&curveDisplay.displayGeneration===current.displayGeneration
+    return current.view.kind==='curve-focus'?current.view.bodyId===current.selectedBodyId&&curvePresentation?.state.status==='ready'
+      &&curvePresentation.generation===current.generation&&curvePresentation.displayGeneration===current.displayGeneration
       :current.displayBodyIds.length<4&&receipt?.state.status==='ready'&&JSON.stringify(receipt.state.document)===JSON.stringify(current.accepted);
   }
   function duplicateAnchor(){
@@ -341,8 +343,8 @@ function DirectApp() {
   const layout=useWorkspaceLayout(appRoot,session,()=>busy||snapshot.selectionTransition!==null||snapshot.disposed||projectView||!mount
     ||replacement!==null||openChoice!==null||recoveryOpen||replacementAttempt.current||replacementBusy||recoveryChecking
     ||recoveryMutation.current||recoveryCommitRef.current!==null,
-    snapshot.view.kind==='curve-focus'?curveDisplay?.state.status==='ready'&&curveDisplay.generation===snapshot.generation
-      &&curveDisplay.displayGeneration===snapshot.displayGeneration:receipt?.state.status==='ready'
+    snapshot.view.kind==='curve-focus'?curvePresentation?.state.status==='ready'&&curvePresentation.generation===snapshot.generation
+      &&curvePresentation.displayGeneration===snapshot.displayGeneration:receipt?.state.status==='ready'
       &&JSON.stringify(receipt.state.document)===JSON.stringify(snapshot.accepted));
   const modelBusy=busy||layout.resizing;
   const panelStyle={
@@ -356,8 +358,8 @@ function DirectApp() {
       ||recoveryMutation.current||recoveryCommitRef.current!==null;
   }
   function commandReady(current:CadEditorSnapshot=session.getSnapshot()){
-    return current.view.kind==='curve-focus'?curveDisplay?.state.status==='ready'&&curveDisplay.generation===current.generation
-      &&curveDisplay.displayGeneration===current.displayGeneration:receipt?.state.status==='ready'
+    return current.view.kind==='curve-focus'?curvePresentation?.state.status==='ready'&&curvePresentation.generation===current.generation
+      &&curvePresentation.displayGeneration===current.displayGeneration:receipt?.state.status==='ready'
       &&JSON.stringify(receipt.state.document)===JSON.stringify(current.accepted);
   }
   function commandAvailable(id:CommandId,current:CadEditorSnapshot=session.getSnapshot()):boolean {
@@ -365,7 +367,7 @@ function DirectApp() {
     if(id==='objects'||id==='properties')return !layout.focused;
     if(id==='focus'||id==='fit-document')return true;
     if(id==='fit-selected')return current.selectedBodyId!==null&&(current.view.kind==='curve-focus'
-      ?current.view.bodyId===current.selectedBodyId&&curveDisplay?.reference.bodyId===current.selectedBodyId
+      ?current.view.bodyId===current.selectedBodyId&&curvePresentation?.reference.bodyId===current.selectedBodyId
       :current.displayBodyIds.includes(current.selectedBodyId)&&receipt?.state.documentBodies.some(body=>body.binding.bodyId===current.selectedBodyId)===true);
     if(Object.keys(current.pending).length)return false;
     const cap=current.bodyCapabilities.find(body=>body.bodyId===current.selectedBodyId);
@@ -378,10 +380,10 @@ function DirectApp() {
         &&receipt?.state.documentBodies.some(body=>body.binding.bodyId===current.selection?.bodyId&&body.ref.kind==='surface'))
         return resolveCadGeometryReference(current.accepted,current.selection.reference).geometry.kind==='surface';
       if(current.view.kind==='curve-focus'&&current.curveSelection&&current.view.bodyId===current.curveSelection.bodyId
-        &&current.curveSelection.bodyId===current.selectedBodyId&&curveDisplay
-        &&JSON.stringify(curveDisplay.reference)===JSON.stringify(current.curveSelection.reference)){
+        &&current.curveSelection.bodyId===current.selectedBodyId&&curvePresentation
+        &&JSON.stringify(curvePresentation.reference)===JSON.stringify(current.curveSelection.reference)){
         const resolved=resolveCadGeometryReference(current.accepted,current.curveSelection.reference);
-        return resolved.geometry.kind==='curve'&&resolved.source===curveDisplay.preview.source;
+        return resolved.geometry.kind==='curve'&&resolved.source===curvePresentation.preview.source;
       }
     }catch{return false;}
     return false;
@@ -406,7 +408,7 @@ function DirectApp() {
     status:command.id===snapshot.editTarget?'Current':command.status}));
 
   return <div ref={appRoot} className="cad-app cad-direct-app" data-objects-visible={layout.objectsVisible}
-    data-properties-visible={layout.propertiesVisible} data-canvas-focused={layout.focused} data-panel-resizing={layout.resizing}
+    data-direct-host-busy={replacementAttempt.current||replacement!==null||openChoice!==null||recoveryBusy||recoveryChecking?'true':undefined} data-properties-visible={layout.propertiesVisible} data-canvas-focused={layout.focused} data-panel-resizing={layout.resizing}
     data-object-panel-width={layout.objectsWidth??'auto'} data-property-panel-width={layout.propertiesWidth??'auto'} style={panelStyle}
     onKeyDownCapture={event=>{if(layout.resizing&&event.key!=='Escape'){event.preventDefault();event.stopPropagation();}}}>
     <header className="app-header">
@@ -485,10 +487,10 @@ function DirectApp() {
         })}
       </aside>
       <main className="main-workspace" inert={layout.resizing}>
-        {projectView ? <section className="projects-view"><span className="eyebrow">LOCAL DOCUMENTS</span><h1>Projects</h1><p>Start with the weighted surface, or open a native document.</p><button className="sample-project" data-testid="project-new-sample" onClick={newSample}><span className="sample-symbol">▱</span><span><strong>Weighted surface</strong><small>Quadratic 3 × 3 surface · Reference line</small></span><ChevronRight size={20}/></button><Button variant="outline" onClick={chooseOpenFile}><FolderOpen/>Open document</Button></section> : mount && <CadEditor key={mountKey} session={session} displayOptions={displayOptions} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest}
+        {projectView ? <section className="projects-view"><span className="eyebrow">LOCAL DOCUMENTS</span><h1>Projects</h1><p>Start with the weighted surface, or open a native document.</p><button className="sample-project" data-testid="project-new-sample" onClick={newSample}><span className="sample-symbol">▱</span><span><strong>Weighted surface</strong><small>Quadratic 3 × 3 surface · Reference line</small></span><ChevronRight size={20}/></button><Button variant="outline" onClick={chooseOpenFile}><FolderOpen/>Open document</Button></section> : mount && <CadEditor key={mountKey} session={session} displayOptions={displayOptions} fitRequest={fitRequest} fitSelectedRequest={fitSelectedRequest || undefined} readRequest={readRequest} curvePresentationPolicy="native-state" curveReadRequest={flowMode?readRequest:undefined}
           onLength={result=>{setCurveLength(result);if(result!==null)setError(current=>current?.context.field==='curve-length'?null:current);}}
           onAnalysis={result=>{setGeometryAnalysis(result);if(result!==null)setError(current=>current?.context.field==='geometry-analysis'?null:current);}}
-          onCurveDisplay={setCurveDisplay} onError={failure => { pendingOpen.current=null;setError(failure); }} onAccepted={(accepted,candidate) => { setError(null);if(candidate.kind==='open'&&pendingOpen.current?.token===candidate.token){setFilename(pendingOpen.current.filename);provenance(pendingOpen.current.recovery?.wasDirty??false);if(pendingOpen.current.recovery)setRecoveryMessage(pendingOpen.current.recovery.hadPending?'Recovery copy opened. Draft fields were not restored.':'Recovery copy opened.');}pendingOpen.current=null;location.hash='/documents/'+accepted.accepted.document.documentId; }} onDisplay={setReceipt}/>}
+          onCurveDisplay={setCurveDisplay} onCurvePresentation={setCurvePresentation} onDisplayInvalidated={()=>{setReceipt(null);setCurveDisplay(null);}} onError={failure => { pendingOpen.current=null;setError(failure); }} onAccepted={(accepted,candidate) => { setError(null);if(candidate.kind==='open'&&pendingOpen.current?.token===candidate.token){setFilename(pendingOpen.current.filename);provenance(pendingOpen.current.recovery?.wasDirty??false);if(pendingOpen.current.recovery)setRecoveryMessage(pendingOpen.current.recovery.hadPending?'Recovery copy opened. Draft fields were not restored.':'Recovery copy opened.');}pendingOpen.current=null;location.hash='/documents/'+accepted.accepted.document.documentId; }} onDisplay={setReceipt}/>}
       </main>
       <WorkspacePanelDivider {...layout.dividerProps('objects')}/>
       <WorkspacePanelDivider {...layout.dividerProps('properties')}/>

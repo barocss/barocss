@@ -4,7 +4,7 @@ import type {
   CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, SurfacePoleEditProvenance,
   CadCurveArcLengthOptions, CadCurveArcLengthResult,
   CurveCurvatureResult, CurveD2Result, CurvePoleEditProvenance, SurfaceCurvatureResult, SurfaceD2Result,
-  AffineGeometryTransformReport,
+  AffineGeometryTransformReport, SourceCurveIntervalExtractionResult,
 } from '@barocss/cad';
 
 export type CadEditorExportCapability = CadDocumentExportCapability;
@@ -45,7 +45,8 @@ export class CadEditorError extends Error {
 }
 export type CadEditorPoleField = 'xMM' | 'yMM' | 'zMM' | 'weight';
 export type CadEditorBodyTranslationField = Exclude<CadEditorPoleField, 'weight'>;
-export type CadEditorDraftField = CadEditorPoleField | 'angleDegrees' | 'scaleFactor';
+export type CadEditorCurveIntervalField = 'min' | 'max';
+export type CadEditorDraftField = CadEditorPoleField | 'angleDegrees' | 'scaleFactor' | 'intervalMin' | 'intervalMax';
 export type CadEditorEditTarget = 'pole' | 'object' | 'rotation' | 'scale';
 export type CadEditorRotationAxis = 'x' | 'y' | 'z';
 export type CadEditorScaleAxis = 'uniform' | 'x' | 'y' | 'z';
@@ -94,9 +95,11 @@ export interface CadEditorSelectedPole extends CadEditorSurfaceSelection {
 }
 export interface CadEditorCandidate {
   token: string; baseGeneration: number; baseDisplayGeneration: number;
-  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'rename' | 'duplicate';
+  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'rename' | 'duplicate' | 'curve-interval';
   selectionTarget?: CadEditorSelectionTarget | null;
   presentation?: 'structural';
+  curveInterval?: SourceCurveIntervalExtractionResult;
+  clearCurvePoleSelection?: true;
   displayBodyIds: string[];
   view: CadEditorView;
   result: CadDocumentResult;
@@ -135,6 +138,7 @@ export interface CadEditorSnapshot {
   lastBodyTranslation: CadEditorBodyTranslation | null;
   lastBodyRotation: CadEditorBodyRotation | null;
   lastBodyScale: CadEditorBodyScale | null;
+  lastCurveInterval: SourceCurveIntervalExtractionResult | null;
 }
 export interface CadEditorDownload { token: string; text: string; suggestedFilename: string }
 export interface CadEditorSession {
@@ -160,6 +164,7 @@ export interface CadEditorSession {
   stageBodyTranslationField(field: CadEditorBodyTranslationField, rawText: string): void;
   stageSurfacePoleField(field: CadEditorPoleField, rawText: string): void;
   stageCurvePoleField(field: CadEditorPoleField, rawText: string): void;
+  stageCurveIntervalField(field: CadEditorCurveIntervalField, rawText: string): void;
   discardPending(): void;
   prepareApply(): CadEditorCandidate | null;
   prepareOpen(text: string, options?: CadEditorSessionOptions): CadEditorCandidate;

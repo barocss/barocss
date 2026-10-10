@@ -2,7 +2,7 @@ import {useEffect, useId, useRef, useState, type PointerEvent as ReactPointerEve
 import {Spline,Move,RotateCw,Scaling} from 'lucide-react';
 import {resolveCadGeometryReference, type CadGeometryReferenceV0} from '@barocss/cad';
 import {CadEditorError, type CadEditorSession, type CadEditorSnapshot, type CadEditorPoleField, type CadEditorEditTarget, type CadEditorDraftField, type CadEditorRotationAxis, type CadEditorScaleAxis} from '../types.js';
-import type {CadEditorDisplayReceipt, CadEditorCurveFocusReceipt} from './types.js';
+import type {CadEditorDisplayReceipt, CadEditorCurvePresentationReceipt} from './types.js';
 import {useCadEditorSnapshot} from './use-session.js';
 import {Button} from './ui/button.js';
 import type {PolePoint} from './curve-pole-projection.js';
@@ -16,7 +16,7 @@ import {projectPoleAxis, movePoleOnAxis, axisPointerDisplacement, parseMovementS
 interface Props {
   session: CadEditorSession;
   documentReceipt: CadEditorDisplayReceipt | null;
-  curveReceipt: CadEditorCurveFocusReceipt | null;
+  curveReceipt: CadEditorCurvePresentationReceipt | null;
   canvas: HTMLCanvasElement | null;
   onError: (error: CadEditorError) => void;
   onGestureChange: (active: boolean) => void;
@@ -26,7 +26,7 @@ export interface Control {
   key: string;
   reference: CadGeometryReferenceV0;
   kind: 'surface' | 'curve';
-  receipt: CadEditorDisplayReceipt;
+  receipt: Pick<CadEditorDisplayReceipt, 'state' | 'width' | 'height'>;
 }
 interface Gesture {
   pointerId: number;
@@ -59,7 +59,7 @@ function sameRaw(a:Partial<Record<CadEditorPoleField,string>>,b:Partial<Record<C
   return Object.keys(a).length === Object.keys(b).length && Object.keys(a).every(key => a[key as CadEditorPoleField] === b[key as CadEditorPoleField]);
 }
 
-function currentControl(snapshot:CadEditorSnapshot, documentReceipt:CadEditorDisplayReceipt|null, curveReceipt:CadEditorCurveFocusReceipt|null):Control|null {
+function currentControl(snapshot:CadEditorSnapshot, documentReceipt:CadEditorDisplayReceipt|null, curveReceipt:CadEditorCurvePresentationReceipt|null):Control|null {
   if (snapshot.disposed) return null;
   const surface = snapshot.selection, curve = snapshot.curveSelection;
   const capability = snapshot.bodyCapabilities.find(body => body.bodyId === snapshot.selectedBodyId);

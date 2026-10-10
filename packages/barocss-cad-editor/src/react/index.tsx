@@ -5,6 +5,7 @@ import { cn } from '../lib/utils.js';
 import { CadEditorViewport } from './viewport.js';
 import { CadEditorInspector } from './inspector.js';
 import type { CadEditorProps } from './types.js';
+import { CurveIntervalProvider } from './curve-interval.js';
 import { useCadEditorSnapshot } from './use-session.js';
 
 export function CadEditor({ className, ...props }: CadEditorProps) {
@@ -19,11 +20,11 @@ export function CadEditor({ className, ...props }: CadEditorProps) {
   }, [snapshot.generation, Object.keys(snapshot.pending).length, snapshot.selectionTransition?.token, snapshot.candidate?.token]);
   const onError = useCallback((error: CadEditorError) => {
     // A failed diagnostic read must not cause an endless read/error cycle.
-    if (error.context.field !== 'pixel-read' && error.context.field !== 'display-callback') {
+    if (!(props.curvePresentationPolicy === 'native-state' && props.session.getSnapshot().view.kind === 'curve-focus') && error.context.field !== 'pixel-read' && error.context.field !== 'display-callback') {
       setDisplayReadRequest(value => value + 1);
     }
     props.onError?.(error);
-  }, [props.onError]);
+  }, [props.onError, props.curvePresentationPolicy, props.session]);
   function historyKey(event: KeyboardEvent<HTMLDivElement>) {
     if (event.repeat || event.altKey || event.nativeEvent.isComposing || event.keyCode === 229 || composingRef.current) return;
     const target = event.target;
@@ -60,8 +61,10 @@ export function CadEditor({ className, ...props }: CadEditorProps) {
   return <div className={cn('cad-editor', className)} onKeyDown={historyKey}
     onCompositionStartCapture={() => { composingRef.current = true; }}
     onCompositionEndCapture={() => { composingRef.current = false; }}>
-    <CadEditorViewport {...props} onError={onError} readRequest={displayReadRequest + (props.readRequest ?? 0)} />
+    <CurveIntervalProvider session={props.session} onError={onError}>
+    <CadEditorViewport {...props} onError={onError} readRequest={props.curvePresentationPolicy === 'native-state' && snapshot.view.kind === 'curve-focus' ? undefined : displayReadRequest + (props.readRequest ?? 0)} />
     <CadEditorInspector session={props.session} onError={onError} onAnalysis={props.onAnalysis} onLength={props.onLength} />
+    </CurveIntervalProvider>
     {keyboardError && <p className="cad-editor-history-error" role="alert">{keyboardError}</p>}
   </div>;
 }
@@ -69,7 +72,7 @@ export function CadEditor({ className, ...props }: CadEditorProps) {
 export { CadEditorViewport } from './viewport.js';
 export { CadEditorInspector } from './inspector.js';
 export { useCadEditorSnapshot } from './use-session.js';
-export type { CadEditorDisplayOptions, CadEditorDisplayReceipt, CadEditorCurveFocusReceipt, CadEditorViewportProps,
+export type { CadEditorDisplayOptions, CadEditorDisplayReceipt, CadEditorCurveFocusReceipt, CadEditorCurvePresentationReceipt, CadEditorViewportProps,
   CadEditorInspectorProps, CadEditorProps } from './types.js';
 export { CadEditorFeature } from './feature-editor.js';
 export { CadEditorNurbsLoftEditor } from './nurbs-loft-editor.js';

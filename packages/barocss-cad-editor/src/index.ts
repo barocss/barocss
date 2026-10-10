@@ -24,3 +24,5 @@ export { createCadEditorDrivingSketchSession } from './driving-session.js';
 export type { CadEditorDrivingSketchConstraintField, CadEditorDrivingSketchView,
   CadEditorDrivingSketchSessionOptions, CadEditorDrivingSketchSelection, CadEditorDrivingSketchPending,
   CadEditorDrivingSketchCandidate, CadEditorDrivingSketchSnapshot, CadEditorDrivingSketchSession } from './driving-types.js';
+
+export type { CadEditorCurveIntervalField } from './types.js';

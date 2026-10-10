@@ -23,8 +23,12 @@ export interface CadEditorDisplayReceipt {
   lifecycle: { mounts: number; disposals: number };
 }
 
-/** Actual focused Viewer data; its document and documentBodies remain empty. */
-export interface CadEditorCurveFocusReceipt extends CadEditorDisplayReceipt {
+/** Actual focused presentation data, without measured pixel diagnostics. */
+export interface CadEditorCurvePresentationReceipt {
+  state: ViewerState;
+  width: number;
+  height: number;
+  lifecycle: { mounts: number; disposals: number };
   reference: CadGeometryReferenceV0;
   bodyName: string;
   sourceModelName: string;
@@ -33,6 +37,8 @@ export interface CadEditorCurveFocusReceipt extends CadEditorDisplayReceipt {
   generation: number;
   displayGeneration: number;
 }
+/** Measured focused pixels retain the existing public callback contract. */
+export interface CadEditorCurveFocusReceipt extends CadEditorDisplayReceipt, CadEditorCurvePresentationReceipt {}
 
 export interface CadEditorViewportProps {
   session: CadEditorSession;
@@ -45,6 +51,10 @@ export interface CadEditorViewportProps {
   onError?: (error: CadEditorError) => void;
   onAccepted?: (snapshot: CadEditorSnapshot, candidate: CadEditorCandidate) => void;
   onDisplay?: (receipt: CadEditorDisplayReceipt) => void;
+  curvePresentationPolicy?: 'legacy-pixel' | 'native-state';
+  curveReadRequest?: number;
+  onCurvePresentation?: (receipt: CadEditorCurvePresentationReceipt | null) => void;
+  onDisplayInvalidated?: () => void;
   onCurveDisplay?: (receipt: CadEditorCurveFocusReceipt | null) => void;
   className?: string;
 }

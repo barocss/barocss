@@ -1,0 +1,50 @@
+{
+  "schema": "barocss-cad-document",
+  "version": 1,
+  "profile": "direct-geometry",
+  "documentId": "curve_interval_document",
+  "revision": 0,
+  "units": {
+    "length": "mm",
+    "angle": "rad"
+  },
+  "nativeFrame": "authored-xyz-no-axis-conversion",
+  "assets": [
+    {
+      "id": "interval_asset",
+      "revision": 0,
+      "role": "authored-native-source",
+      "sourceVersion": 0,
+      "sourceFrame": "authored-xyz-no-axis-conversion",
+      "source": "/* complete original π source; preserve CRLF and comments */\r\n@model interval_model { version:0; length-unit:mm;\r\n@curve #interval_discard_start {type:nurbs;degree:1;knots:[-0,/* sibling comment */-0,+1.000,1];control-points:[[-0,-0,-0],[+2.000,3,4]];weights:[1.000,1];}\r\n@curve #main_quintic { /* selected metadata stays unchanged */ type:nurbs;degree:5;\r\nweights:[ 1 , 3 , 1 , 3 , 1 , 3 , 1 , 3 ];\r\ncontrol-points:[\r\n[ 0 , 1 , 0 ] ,\r\n[ 2 , -2 , 0.25 ] ,\r\n[ 4 , 3 , 1 ] ,\r\n[ 6 , -4 , 2.25 ] ,\r\n[ 8 , 5 , 4 ] ,\r\n[ 10 , -6 , 6.25 ] ,\r\n[ 12 , 7 , 9 ] ,\r\n[ 14 , -8 , 12.25 ]\r\n];\r\nknots:[ -3 , -3 , -3 , -3 , -3 , -3 , -1 , 2 , 5 , 5 , 5 , 5 , 5 , 5 ];}\r\n@surface #unused_surface {type:nurbs;degree-u:1;degree-v:1;knots-u:[-0,-0,1,1];knots-v:[0,0,1,1];control-points:[[[-0,-0,0],[0,1,0]],[[1,0,0],[1,1,0]]];weights:[[1,1],[1,1]];}\r\n/* unchanged Ω ending */\r\n}\r\n"
+    }
+  ],
+  "bodies": [
+    {
+      "id": "interval_quintic_body",
+      "name": "Weighted quintic",
+      "kind": "direct-geometry-object",
+      "assetId": "interval_asset",
+      "geometryId": "main_quintic"
+    },
+    {
+      "id": "interval_sibling_curve_body",
+      "name": "Sibling line",
+      "kind": "direct-geometry-object",
+      "assetId": "interval_asset",
+      "geometryId": "interval_discard_start"
+    },
+    {
+      "id": "interval_sibling_surface_body",
+      "name": "Sibling Surface",
+      "kind": "direct-geometry-object",
+      "assetId": "interval_asset",
+      "geometryId": "unused_surface"
+    }
+  ],
+  "features": [],
+  "parameters": [],
+  "constraints": [],
+  "placements": [],
+  "derivedCaches": []
+}

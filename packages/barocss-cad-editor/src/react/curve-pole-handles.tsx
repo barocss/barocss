@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { resolveCadGeometryReference, type CadGeometryReferenceV0 } from '@barocss/cad';
 import { CadEditorError, type CadEditorSession, type CadEditorPoleField } from '../types.js';
-import type { CadEditorCurveFocusReceipt } from './types.js';
+import type { CadEditorCurvePresentationReceipt } from './types.js';
 import { useCadEditorSnapshot } from './use-session.js';
 import { projectCurvePole,moveCurvePoleInViewPlane,type CurvePolePlane,type PolePoint } from './curve-pole-projection.js';
 
-interface Props {session:CadEditorSession;receipt:CadEditorCurveFocusReceipt|null;canvas:HTMLCanvasElement|null;onError:(error:CadEditorError)=>void}
+interface Props {session:CadEditorSession;receipt:CadEditorCurvePresentationReceipt|null;canvas:HTMLCanvasElement|null;onError:(error:CadEditorError)=>void}
 interface Gesture {
   pointerId:number;element:SVGCircleElement;bodyId:string;index:number;previousIndex:number;
   generation:number;displayGeneration:number;reference:CadGeometryReferenceV0;
