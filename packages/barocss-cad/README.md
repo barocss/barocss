@@ -9292,3 +9292,18 @@ Requested outer endpoints that numerically equal the original domain adopt the o
 Ideal restricted homogeneous polynomial identities and rounded stored coefficients are separate. Local observations do not certify global error, G1/G2, topology, Solid, manufacturing, display or persistent feature references.
 
 Run `node examples/cad-nurbs/source-curve-interval-extraction-demo.mjs --source <output-directory>`. Native and Integration/consumer status are recorded separately in Issue1378.
+
+
+## Align three complete section sources and construct a rational Loft
+
+`buildSourceKnotAlignedLoft({ assets, parametersV, options })` retains three complete literal Source0 assets while aligning their selected degree1..5 Curves to the maximum original interior knot multiplicities. Assets are ordered `{ sourceId, sourceVersion: 0, source, curveId }` records. Options require explicit `evaluationId`, `constructionSourceId`, `modelName`, `surfaceId`, three `constructionSectionIds`, and fixed limits `maximumSections: 3`, `maximumAlignedUPoles: 16`, `maximumInsertionCalls: 28`.
+
+Original domains and numeric-equal donor knots must have equal represented bits. Opposite zero bits, incompatible degrees or an aligned basis above16 U poles refuse before refinement. The constructor calls the existing complete-source Curve insertion API once per missing occurrence, in section order then numeric knot order. Every full insertion receipt and actual preceding candidate source is retained. Only the selected three array values change; all original/refined source siblings, Model metadata, authored IDs and outside text stay intact. Existing source262144, Model16 and parent insertion limits stay unchanged.
+
+Source-qualified original IDs and Model names may repeat across different source assets. The new construction source uses three explicit, distinct Curve copy IDs and a distinct Surface ID. Each copied Curve differs from its actual aligned section only in that declared ID. The existing piecewise rational Loft provider creates a real degreeV1 Surface from those copied sections and caller-ordered V stations. Full original/aligned contexts, union plan, source-to-construction bindings, all insertion receipts and the complete Loft source/Model4/result remain in the owned result. `validateSourceKnotAlignedLoft(result)` rebuilds once from the original request and compares every retained bit.
+
+The new aggregate envelope is2MiB for the request and16MiB for the complete result, in both UTF16 units and UTF8 bytes, including signed zeros and one final newline. Complete retained prefixes are checked after every insertion. A chain of individually valid parent results can still exceed this aggregate limit and refuse atomically. No source, parent receipt or Model is dropped to make it fit. The maximum insertion count is28; whole-result admission is a separate condition.
+
+Each inserted section uses actual rounded stored coefficients. Exact ideal refinement identities, actual stored coefficient differences and local native observations remain separate. Native C0 derivative refusals stay visible. PiecewiseV1 does not certify smoothG1/G2, global shape/error, topology, Solid, manufacturing, display or persistent structural feature references.
+
+Run `node examples/cad-nurbs/source-knot-aligned-loft-demo.mjs --source <output-directory>`. Native completion, local Integration adoption and consumer/current-root acceptance are recorded separately in Issue1373.

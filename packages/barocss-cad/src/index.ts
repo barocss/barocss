@@ -398,3 +398,7 @@ export type { SourceSurfaceKnotInsertionRequest, SourceSurfaceKnotInsertionPatch
 
 export { extractSourceCurveInterval, validateSourceCurveIntervalExtraction, SourceCurveIntervalExtractionError, SourceCurveIntervalExtractionDiagnosticCode } from './source-curve-interval-extraction.js';
 export type { SourceCurveIntervalExtractionRequest, SourceCurveIntervalExtractionPatch, SourceCurveIntervalExtractionReport, SourceCurveIntervalExtractionResult } from './source-curve-interval-extraction.js';
+
+
+export { buildSourceKnotAlignedLoft, validateSourceKnotAlignedLoft, SourceKnotAlignedLoftError, SourceKnotAlignedLoftDiagnosticCode } from './source-knot-aligned-loft.js';
+export type { SourceKnotAlignedLoftRequest, SourceKnotAlignedLoftOptions, SourceKnotAlignedLoftReport, SourceKnotAlignedLoftResult } from './source-knot-aligned-loft.js';
