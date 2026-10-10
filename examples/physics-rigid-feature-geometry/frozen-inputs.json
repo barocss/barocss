@@ -3,7 +3,6 @@
   "archiveMeasuredHead": "cadfee1a46f2e70c7ce12f1ee9b5d1561419461e",
   "parentNative": "e35c9d76cf0e77df867c8ce205abdd358c97b520",
   "acceptedInputStates": 72,
-  "successfulEncounters": 66,
   "expectedFailures": {
     "ALIGNED": 5,
     "OFFSET": 16,
@@ -104,5 +103,8 @@
     "examples/physics-rigid-contact-reference/fixtures.mjs": "ca760b2945d246de1e2f32cb4763ef58bf95e87422b6d4545682c20abb3a1ac0",
     "examples/physics-rigid-contact-reference/geometry-reference.py": "2c8bc7f6cd809e865c986a859b8614c963c4862296920555eb31c9487411af26",
     "examples/physics-rigid-contact-diagnostic/observer.mjs": "85b3e216b28ec12511f8fc7262f96c3e050eeccd32b588d154797083ed795a98"
-  }
+  },
+  "satHitInstances": 66,
+  "successfulManifoldInstances": 57,
+  "firstRefusalInstances": 9
 }

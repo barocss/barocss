@@ -23,7 +23,7 @@ export async function loadArchive(directory,parentRoot,previousDirectory,frozen)
   assert.equal(Object.keys(manifest).length,26);assert.deepEqual((await readdir(directory)).sort(),[...Object.keys(manifest),'manifest.json'].sort());
   for(const [name,hash] of Object.entries(manifest)){assert.match(name,/^[A-Za-z0-9.-]+$/);verify(await readFile(resolve(directory,name)),hash,name);}
   const provenance=JSON.parse(await readFile(resolve(directory,'provenance.json')));assert.equal(provenance.measuredHead,frozen.archiveMeasuredHead);assert.equal(provenance.consumerExit,0);
-  assert.equal(provenance.actualEncounterReferences,frozen.successfulEncounters);assert.equal(provenance.worldStepped,false);
+  assert.equal(provenance.actualEncounterReferences,frozen.satHitInstances);assert.equal(provenance.worldStepped,false);
   const reports=[];
   for(const graph of ['source','source-repeat','compiled-dependencies']) for(const scene of ['ALIGNED','OFFSET','YAW']) {
     const name=`${graph}-${scene}-report.json`,plain=gunzipSync(await readFile(resolve(directory,name+'.gz')));verify(plain,provenance.uncompressedArtifactHashes[name],name);

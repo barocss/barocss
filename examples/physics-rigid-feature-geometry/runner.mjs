@@ -15,7 +15,7 @@ const input=await loadArchive(archive,parentRoot,previousArchive,frozen),referen
 const reports=[],audits=[],controlRows=[];
 try {
   for(const graph of ['source','source-repeat','compiled-dependencies']) {
-    const built=await bundle(graph,out);audits.push(built.audit);const m=await import(pathToFileURL(built.path));controlRows.push({graph,controls:await controls(m,reference)});
+    const built=await bundle(graph,out);audits.push(built.audit);const m=await import(pathToFileURL(built.path));const controlRow={graph,controls:await controls(m,reference)};controlRows.push(controlRow);await writeFile(resolve(out,`${graph}-controls.json`),JSON.stringify(controlRow,null,2)+'\n');
     for(const row of input.reports.filter(r=>r.report.graph===graph)) {
       const reconstructed=row.reconstruct(m,row.previousConfig,row.previousLast);assert.deepEqual(reconstructed,row.workingBodies,'reconstruct/raw exact parity');
       const saved=structuredClone(row.workingBodies),results=[];
@@ -40,10 +40,10 @@ try {
   }
   for(const scene of ['ALIGNED','OFFSET','YAW']) {const rows=reports.filter(r=>r.scene===scene),{graph,...first}=rows[0];for(const row of rows.slice(1)){const {graph,...next}=row;assert.deepEqual(next,first,'source-repeat-compiled geometry/reference parity');}}
   const hits=reports.flatMap(r=>r.results.filter(x=>x.selection)),witnesses=hits.filter(r=>r.geometry).flatMap(r=>r.geometry.points);
-  assert.equal(hits.filter(r=>!r.originalNull).length,frozen.successfulEncounters);
+  assert.equal(hits.length,frozen.satHitInstances);assert.equal(hits.filter(r=>!r.originalNull).length,frozen.successfulManifoldInstances);assert.equal(hits.filter(r=>r.originalNull).length,frozen.firstRefusalInstances);
   const failed=hits.filter(r=>!r.geometry||!r.independent?.ok),summary={base:'5a4d02f6fe0062473cbf1dccd1dc7f54420b66d0',measuredHead:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),node:process.version,
     archiveManifestSha256:frozen.archiveManifestSha256,validatedInputFiles:Object.keys(input.manifest).length,previousValidatedFiles:input.previousFiles,previousAcceptedStates:input.previousAcceptedStates,
-    graphAudits:audits,controlRows,originalHits: hits.length,retainedSuccessfulEncounterInstances:frozen.successfulEncounters,totalWitnesses:witnesses.length,
+    graphAudits:audits,controlRows,originalHits: hits.length,retainedSuccessfulManifoldInstances:frozen.successfulManifoldInstances,retainedFirstRefusalInstances:frozen.firstRefusalInstances,totalWitnesses:witnesses.length,
     sourceRepeatCompiledParity:true,worldStepped:false,geometryGO:failed.length===0,physicalModelGO:false,failures:failed,referenceStderr:reference.stderr()};
   await writeFile(resolve(out,'summary.json'),JSON.stringify(summary,null,2)+'\n');console.log(JSON.stringify({geometryGO:summary.geometryGO,hits:hits.length,witnesses:witnesses.length,failed:failed.length,worldStepped:false}));
 }finally{reference.close();}
