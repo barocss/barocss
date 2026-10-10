@@ -59,3 +59,14 @@ Use Help→Surface position for the native Position X/Y/Z fields in the mixed ap
 Each axis requires a complete finite number in `[-1000, 1000]`. Raw minus signs, empty text, invalid numbers, and out-of-range values remain in the fields so the user can correct them. Apply is unavailable while an axis is invalid. The actual transformed Surface must also remain within the admitted bounds; a finite input inside the field range can still be refused by complete scene preparation or display admission. A refusal keeps the applied document and preview under the existing controller rules.
 
 Position remains a draft until Apply succeeds. Closing Help returns focus to the persistent Help menu trigger and keeps the raw X/Y/Z text. Native source import keeps unrelated position drafts. Save/Open/New/project navigation use the existing Apply/Discard/Cancel guard: Apply and continue refuses invalid position data, Cancel keeps the raw fields, and Discard restores the applied position. Save serializes applied authored X/Y/Z only; fresh Open restores those values.
+
+
+## Object inspector
+
+Use Help→Object inspector for the mixed editor's local Sphere/Surface editing targets. Sphere shows the actual current name/type and an Edit Source action that focuses the Scene textarea. Surface shows the selected original native Surface reference, Position X/Y/Z, color, and advanced display controls. Camera remains in the common View section. A changed native Surface reference is marked Draft; Applied references follow the accepted document.
+
+Selecting an object row changes the local editing target and matching source tab while focus stays on the row. Explicit Edit Source moves focus to the Scene textarea. Source tabs independently choose which original source to edit. Rows do not perform pixel picking/highlighting or change authoring/history/file authority. No guessed radius, pose, material, or geometry values are added.
+
+Hidden Surface controls remain mounted and retain raw minus signs, empty text, and invalid position drafts. A hidden invalid axis still blocks Apply and the existing file guard's Apply and continue action. Use Edit Surface position in Diagnostics to reveal the Surface controls and focus the first invalid axis. Correct the field or Discard to restore accepted values. Import, Open, Save, project routes, and keyboard guards retain their existing behavior.
+
+The target defaults to Sphere for each mounted editor. It stays selected through Apply, same-page Open, and project changes; names/references refresh from current document data. A fresh page starts on Sphere. Help closes to the persistent Help menu trigger and preserves raw position text and all other drafts.
