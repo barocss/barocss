@@ -14,7 +14,8 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <div id="measurement-labels" class="measurement-labels" aria-hidden="true">
 <span id="measurement-point-1" class="measurement-label" hidden></span><span id="measurement-point-2" class="measurement-label" hidden></span>
 <span id="measurement-distance" class="measurement-label" hidden></span><span id="surface-area-label" class="measurement-label" hidden></span>
-<span id="curve-length-label" class="measurement-label" hidden></span><span id="native-angle-label" class="measurement-label" hidden></span></div></div>
+<span id="curve-length-label" class="measurement-label" hidden></span><span id="native-angle-label" class="measurement-label" hidden></span>
+<span id="curve-curvature-label" class="measurement-label" hidden></span></div></div>
 <label>Assets <select id="asset-count" disabled><option>6</option><option>2</option></select></label>
 <label>Grid U <select id="count-u" disabled><option>17</option><option>9</option><option>2</option></select></label>
 <label>Grid V <select id="count-v" disabled><option>17</option><option>9</option><option>2</option></select></label>
@@ -25,6 +26,18 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <button id="resize" disabled>Resize view</button><button id="clear" disabled>Clear viewer</button><button id="run-proof" disabled>Run proof</button>
 <button id="lose-context" disabled>Lose context</button><button id="dispose" disabled>Dispose viewer</button>
 <pre id="inspection" aria-label="Read-only original source and Face inspection">Inspect an admitted source from its row.</pre>
+<section aria-label="Original Curve local curvature inspection">
+<h2>Inspect original Curve local radius</h2>
+<label>Source <select id="curvature-source" aria-label="Curvature source" disabled></select></label>
+<label>Curve <select id="curvature-curve" aria-label="Curvature Curve" disabled></select></label>
+<label>Native t <input id="curvature-t" aria-label="Curvature t" type="text" inputmode="decimal" value="0.5" disabled></label>
+<button id="inspect-curvature" disabled>Inspect Curve curvature</button><p id="curvature-output" role="status" aria-live="polite"></p>
+<details id="curve-curvature-help"><summary>About this local radius</summary>
+<p>This uses the original native Curve and its derivatives at the literal native parameter t. Radius is local osculating radius in mm;
+curvature is in 1/mm. A regular straight point has exactly zero curvature and no finite radius. Derivative or arithmetic failure is not a straight result.
+This is not an authored-circle radius, whole-Curve minimum radius or certified precision bound. The point label uses approximate CSS camera mapping without occlusion testing;
+the retained Curve need not be separately drawn.</p></details>
+</section>
 <section aria-label="Original three-point angle measurement">
 <h2>Measure original three-point angle</h2>
 <fieldset><legend>First angle point</legend>

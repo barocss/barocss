@@ -200,3 +200,32 @@ The hook exposes `queryQualifiedFaceAngle`, `measureAngle(first?,vertex?,third?)
 `updateAngleLabel`, `angleSnapshot` and a copied `angleReport` getter. No SDK,
 provider, package config, release or broad earlier campaign changes are part of
 this example. The earlier #1080 transition anomaly remains separately pending.
+
+## Original Curve curvature and local radius (#1145)
+
+Choose a current source, original Curve and original parameter **t**, then select
+**Inspect Curve curvature**. The output shows local radius in mm and curvature
+in 1/mm. A regular point with exact zero curvature has no finite radius. This
+is a local osculating radius, not an authored circle or a global minimum radius.
+
+`curvaturePin(scene,sourceId,curveId,t=.5)` captures current qualification.
+`queryQualifiedFaceCurveCurvature(scene,pin)` checks six own fields, rebuilds the
+complete original Source0 Model and checks all original geometry bits. It calls
+public native curvature once. The copied result includes actual D2 point,
+first/second derivatives, speed, unit tangent, curvature vector/magnitude and
+radius. Native domain, continuity, regularity and arithmetic errors propagate.
+The literal default t=.5 is not a normalized fraction for other knot domains.
+
+The label uses the original parameter point, with approximate CSS projection
+and no occlusion test. Curves need not be separately drawn in this Face scene.
+View, grid, color, order and CSS changes retain native curvature; original
+source/reference changes clear the report. Invalid queries retain prior output.
+After loss or unavailable presentation, retained CPU queries remain possible,
+while projection refuses and the label hides. Clear, mode change and Dispose
+invalidate authority. Other point, angle, area and length panels are independent.
+
+Hook: `curvaturePin`, `queryQualifiedFaceCurveCurvature`, `inspectCurvature(pin?)`,
+`updateCurvatureLabel`, `curvatureSnapshot` and copied `curvatureReport`. Public
+CAD `evaluateCurveCurvature` and `evaluateCurveD2` support independent controls.
+No derivative substitution, global accuracy, manufacturing or release claim is
+made. The earlier #1080 transition anomaly remains a separate pending check.
