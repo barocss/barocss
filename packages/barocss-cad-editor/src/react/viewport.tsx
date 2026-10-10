@@ -309,7 +309,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
       if (mounted.optionsRefused) throw new CadEditorError('DISPLAY', 'The display options were refused. The pending values remain available.');
       mounted.viewer.loadDocument(candidate.result, documentOptions(mounted.options.document, candidate.displayBodyIds));
       displayed = true;
-      if (candidate.kind === 'display') mounted.viewer.setView(before.camera);
+      if (candidate.kind === 'display' || candidate.kind === 'rename') mounted.viewer.setView(before.camera);
       selectBody(mounted.viewer, candidate.kind === 'open' ? null : current.selectionTransition?.target.bodyId ?? current.selectedBodyId);
       const receipt = displayReceipt(mounted.viewer, canvas, mounted.options.viewer.background, lifecycleRef.current, readIndexRef);
       const accepted = session.acceptCandidate(candidate.token);

@@ -78,3 +78,5 @@ export { CadEditorExportReview } from './export-review.js';
 export type { CadEditorExportReviewProps } from './export-review.js';
 export { CadEditorGeometryAnalysis } from './geometry-analysis.js';
 export type { CadEditorGeometryAnalysisProps } from './geometry-analysis.js';
+export { CadEditorBodyRename } from './body-rename.js';
+export type { CadEditorBodyRenameProps } from './body-rename.js';

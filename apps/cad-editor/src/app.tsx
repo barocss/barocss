@@ -20,6 +20,7 @@ function nativeCauses(error: Error): {message:string;code:string|null}[] {
   return causes;
 }
 function actionError(error: CadEditorError): string {
+  if(error.context.field==='body-name')return 'Cannot rename this object. Check the name and try again.';
   if(error.context.field==='geometry-analysis')return 'Cannot inspect this geometry here. Check the original parameters or try Derivatives.';
   if(error.context.field==='document-export' || error.context.field==='export-download')return 'Cannot complete this export. Check the captured review, selected bodies and output IDs.';
   const chain=nativeCauses(error), cause=chain.map(item=>item.message).join('\n');

@@ -55,7 +55,7 @@ export interface CadEditorSelectedPole extends CadEditorSurfaceSelection {
 }
 export interface CadEditorCandidate {
   token: string; baseGeneration: number; baseDisplayGeneration: number;
-  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display';
+  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'rename';
   displayBodyIds: string[];
   result: CadDocumentResult;
   provenance: SurfacePoleEditProvenance[];
@@ -96,6 +96,7 @@ export interface CadEditorSession {
   prepareApply(): CadEditorCandidate | null;
   prepareOpen(text: string, options?: CadEditorSessionOptions): CadEditorCandidate;
   prepareDisplayBodies(bodyIds: string[]): CadEditorCandidate;
+  prepareRenameBody(bodyId: string, name: string): CadEditorCandidate | null;
   prepareUndo(): CadEditorCandidate;
   prepareRedo(): CadEditorCandidate;
   acceptCandidate(token: string): CadEditorSnapshot;

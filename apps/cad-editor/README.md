@@ -336,3 +336,29 @@ The flow-only host exposes a private `geometryAnalysis()` result or null and
 uses the existing `readFrame()` request for actual Viewer pixels. Unmount
 clears the analysis while the host-owned native session survives. Canonical
 Viewer lifecycle/status and remount pixels do not claim public GPU counters.
+
+
+## Rename an original object
+
+Select a Curve or Surface, then choose Rename object in the Inspector. Enter a
+new name and choose Rename. Cancel or Escape retains the document and returns
+focus to the entry. Help explains the file name limit. Native names keep their
+exact spelling; duplicate friendly names are allowed. Invalid names retain raw
+input for repair. Apply or discard pole edits before renaming.
+
+Rename changes only the canonical body name and document revision. Original
+Source0 assets, IDs, coefficients and asset revisions remain intact. The actual
+Viewer gates acceptance and retains its camera. Undo/Redo restores both names
+and source edits at fresh revisions. Download/Open retains the names and full
+native sources. This does not rename native IDs or add Curve pole authoring.
+
+Run the same bounded source/public compiled consumer with Node22:
+
+```sh
+node apps/cad-editor/flows/body-rename-flow.mjs --headed --port 52026
+node apps/cad-editor/flows/body-rename-flow.mjs --compiled --port 52027
+```
+
+Receipts are stored outside the repository. Prepared checkpoint metadata is
+separate from actual execution. Native completion, Integration adoption and
+publication remain separate.
