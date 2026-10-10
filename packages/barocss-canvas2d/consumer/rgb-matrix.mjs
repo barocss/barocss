@@ -245,7 +245,7 @@ async function openText(text, reservedToken = null) {
   try {
     const parsed = await parseCanvasDocument(text); if (!current(token)) { counts.ignored++; return; }
     const tree = createDisplayTreeFromScene(parsed.scene), group = tree.get('Outer'), frame = tree.get('Frame');
-    if(parsed.scene.version!==27||group?.kind!=='container'||frame?.kind!=='frame'||getInner(tree).kind!=='container'||parsed.assets.size!==2||
+    if((parsed.scene.version!==27&&parsed.scene.version!==28)||group?.kind!=='container'||frame?.kind!=='frame'||getInner(tree).kind!=='container'||parsed.assets.size!==2||
       !parsed.assets.has('RGBA')||!parsed.assets.has('GlyphAtlas'))throw new Error('RGB document topology differs');
     for(const id of [...effectIds,'Plain'])if(tree.get(id)?.kind!=='sprite')throw new Error(`${id} Sprite missing`);
     if(tree.get('Glyph')?.kind!=='glyphRun')throw new Error('Glyph missing');

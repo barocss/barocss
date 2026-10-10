@@ -1,0 +1,3474 @@
+{
+  "stages": [
+    {
+      "name": "initial28",
+      "value": {
+        "counts": {
+          "created": 1,
+          "disposed": 0,
+          "bindings": 1,
+          "unbindings": 0,
+          "pointers": 0,
+          "edits": 0
+        },
+        "pointerTargets": [],
+        "version": 28,
+        "mode": "screen",
+        "failure": null,
+        "opened": null,
+        "savedBytes": 0,
+        "samples": {
+          "opaque0_0": {
+            "rgba": [
+              128,
+              61,
+              146,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back0"
+          },
+          "translucent0_0": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque1_0": {
+            "rgba": [
+              166,
+              86,
+              223,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_1": {
+            "rgba": [
+              136,
+              251,
+              243,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back1"
+          },
+          "translucent1_0": {
+            "rgba": [
+              116,
+              86,
+              147,
+              230
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_1": {
+            "rgba": [
+              86,
+              251,
+              167,
+              255
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque2_0": {
+            "rgba": [
+              139,
+              79,
+              181,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_1": {
+            "rgba": [
+              118,
+              211,
+              189,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back2"
+          },
+          "translucent2_0": {
+            "rgba": [
+              107,
+              79,
+              126,
+              179
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_1": {
+            "rgba": [
+              80,
+              211,
+              140,
+              255
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "effect": {
+            "rgba": [
+              44,
+              64,
+              100,
+              139
+            ],
+            "hit": "Effect"
+          },
+          "maskOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "frameOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "following": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Following"
+          },
+          "path": {
+            "rgba": [
+              115,
+              38,
+              77,
+              178
+            ],
+            "hit": "FollowingPath"
+          },
+          "editInk": {
+            "rgba": [
+              107,
+              167,
+              107,
+              255
+            ],
+            "hit": "Editable"
+          },
+          "editTransparent": {
+            "rgba": [
+              26,
+              153,
+              51,
+              255
+            ],
+            "hit": "HitBack"
+          }
+        }
+      }
+    },
+    {
+      "name": "editNormal",
+      "value": {
+        "counts": {
+          "created": 1,
+          "disposed": 0,
+          "bindings": 1,
+          "unbindings": 0,
+          "pointers": 4,
+          "edits": 1
+        },
+        "pointerTargets": [
+          "Editable",
+          "HitBack",
+          "FollowingPath",
+          "Effect"
+        ],
+        "version": 28,
+        "mode": "normal",
+        "failure": null,
+        "opened": null,
+        "savedBytes": 0,
+        "samples": {
+          "opaque0_0": {
+            "rgba": [
+              128,
+              61,
+              146,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back0"
+          },
+          "translucent0_0": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque1_0": {
+            "rgba": [
+              166,
+              86,
+              223,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_1": {
+            "rgba": [
+              136,
+              251,
+              243,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back1"
+          },
+          "translucent1_0": {
+            "rgba": [
+              116,
+              86,
+              147,
+              230
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_1": {
+            "rgba": [
+              86,
+              251,
+              167,
+              255
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque2_0": {
+            "rgba": [
+              139,
+              79,
+              181,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_1": {
+            "rgba": [
+              118,
+              211,
+              189,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back2"
+          },
+          "translucent2_0": {
+            "rgba": [
+              107,
+              79,
+              126,
+              179
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_1": {
+            "rgba": [
+              80,
+              211,
+              140,
+              255
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "effect": {
+            "rgba": [
+              44,
+              64,
+              100,
+              139
+            ],
+            "hit": "Effect"
+          },
+          "maskOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "frameOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "following": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Following"
+          },
+          "path": {
+            "rgba": [
+              115,
+              38,
+              77,
+              178
+            ],
+            "hit": "FollowingPath"
+          },
+          "editInk": {
+            "rgba": [
+              103,
+              111,
+              96,
+              255
+            ],
+            "hit": "Editable"
+          },
+          "editTransparent": {
+            "rgba": [
+              26,
+              153,
+              51,
+              255
+            ],
+            "hit": "HitBack"
+          }
+        }
+      }
+    },
+    {
+      "name": "editAdd",
+      "value": {
+        "counts": {
+          "created": 1,
+          "disposed": 0,
+          "bindings": 1,
+          "unbindings": 0,
+          "pointers": 4,
+          "edits": 2
+        },
+        "pointerTargets": [
+          "Editable",
+          "HitBack",
+          "FollowingPath",
+          "Effect"
+        ],
+        "version": 28,
+        "mode": "add",
+        "failure": null,
+        "opened": null,
+        "savedBytes": 0,
+        "samples": {
+          "opaque0_0": {
+            "rgba": [
+              128,
+              61,
+              146,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back0"
+          },
+          "translucent0_0": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque1_0": {
+            "rgba": [
+              166,
+              86,
+              223,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_1": {
+            "rgba": [
+              136,
+              251,
+              243,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back1"
+          },
+          "translucent1_0": {
+            "rgba": [
+              116,
+              86,
+              147,
+              230
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_1": {
+            "rgba": [
+              86,
+              251,
+              167,
+              255
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque2_0": {
+            "rgba": [
+              139,
+              79,
+              181,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_1": {
+            "rgba": [
+              118,
+              211,
+              189,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back2"
+          },
+          "translucent2_0": {
+            "rgba": [
+              107,
+              79,
+              126,
+              179
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_1": {
+            "rgba": [
+              80,
+              211,
+              140,
+              255
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "effect": {
+            "rgba": [
+              44,
+              64,
+              100,
+              139
+            ],
+            "hit": "Effect"
+          },
+          "maskOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "frameOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "following": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Following"
+          },
+          "path": {
+            "rgba": [
+              115,
+              38,
+              77,
+              178
+            ],
+            "hit": "FollowingPath"
+          },
+          "editInk": {
+            "rgba": [
+              116,
+              188,
+              121,
+              255
+            ],
+            "hit": "Editable"
+          },
+          "editTransparent": {
+            "rgba": [
+              26,
+              153,
+              51,
+              255
+            ],
+            "hit": "HitBack"
+          }
+        }
+      }
+    },
+    {
+      "name": "editScreen",
+      "value": {
+        "counts": {
+          "created": 1,
+          "disposed": 0,
+          "bindings": 1,
+          "unbindings": 0,
+          "pointers": 4,
+          "edits": 3
+        },
+        "pointerTargets": [
+          "Editable",
+          "HitBack",
+          "FollowingPath",
+          "Effect"
+        ],
+        "version": 28,
+        "mode": "screen",
+        "failure": null,
+        "opened": null,
+        "savedBytes": 0,
+        "samples": {
+          "opaque0_0": {
+            "rgba": [
+              128,
+              61,
+              146,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back0"
+          },
+          "translucent0_0": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque1_0": {
+            "rgba": [
+              166,
+              86,
+              223,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_1": {
+            "rgba": [
+              136,
+              251,
+              243,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back1"
+          },
+          "translucent1_0": {
+            "rgba": [
+              116,
+              86,
+              147,
+              230
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_1": {
+            "rgba": [
+              86,
+              251,
+              167,
+              255
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque2_0": {
+            "rgba": [
+              139,
+              79,
+              181,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_1": {
+            "rgba": [
+              118,
+              211,
+              189,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back2"
+          },
+          "translucent2_0": {
+            "rgba": [
+              107,
+              79,
+              126,
+              179
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_1": {
+            "rgba": [
+              80,
+              211,
+              140,
+              255
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "effect": {
+            "rgba": [
+              44,
+              64,
+              100,
+              139
+            ],
+            "hit": "Effect"
+          },
+          "maskOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "frameOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "following": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Following"
+          },
+          "path": {
+            "rgba": [
+              115,
+              38,
+              77,
+              178
+            ],
+            "hit": "FollowingPath"
+          },
+          "editInk": {
+            "rgba": [
+              107,
+              167,
+              107,
+              255
+            ],
+            "hit": "Editable"
+          },
+          "editTransparent": {
+            "rgba": [
+              26,
+              153,
+              51,
+              255
+            ],
+            "hit": "HitBack"
+          }
+        }
+      }
+    },
+    {
+      "name": "invalidRetained",
+      "value": {
+        "counts": {
+          "created": 1,
+          "disposed": 0,
+          "bindings": 1,
+          "unbindings": 0,
+          "pointers": 4,
+          "edits": 3
+        },
+        "pointerTargets": [
+          "Editable",
+          "HitBack",
+          "FollowingPath",
+          "Effect"
+        ],
+        "version": 28,
+        "mode": "screen",
+        "failure": {
+          "code": "INVALID_SCENE",
+          "retained": true
+        },
+        "opened": null,
+        "savedBytes": 0,
+        "samples": {
+          "opaque0_0": {
+            "rgba": [
+              128,
+              61,
+              146,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back0"
+          },
+          "translucent0_0": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque1_0": {
+            "rgba": [
+              166,
+              86,
+              223,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_1": {
+            "rgba": [
+              136,
+              251,
+              243,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back1"
+          },
+          "translucent1_0": {
+            "rgba": [
+              116,
+              86,
+              147,
+              230
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_1": {
+            "rgba": [
+              86,
+              251,
+              167,
+              255
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque2_0": {
+            "rgba": [
+              139,
+              79,
+              181,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_1": {
+            "rgba": [
+              118,
+              211,
+              189,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back2"
+          },
+          "translucent2_0": {
+            "rgba": [
+              107,
+              79,
+              126,
+              179
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_1": {
+            "rgba": [
+              80,
+              211,
+              140,
+              255
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "effect": {
+            "rgba": [
+              44,
+              64,
+              100,
+              139
+            ],
+            "hit": "Effect"
+          },
+          "maskOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "frameOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "following": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Following"
+          },
+          "path": {
+            "rgba": [
+              115,
+              38,
+              77,
+              178
+            ],
+            "hit": "FollowingPath"
+          },
+          "editInk": {
+            "rgba": [
+              107,
+              167,
+              107,
+              255
+            ],
+            "hit": "Editable"
+          },
+          "editTransparent": {
+            "rgba": [
+              26,
+              153,
+              51,
+              255
+            ],
+            "hit": "HitBack"
+          }
+        }
+      }
+    },
+    {
+      "name": "injectedDrawFailureRestored",
+      "value": {
+        "counts": {
+          "created": 1,
+          "disposed": 0,
+          "bindings": 1,
+          "unbindings": 0,
+          "pointers": 4,
+          "edits": 3
+        },
+        "pointerTargets": [
+          "Editable",
+          "HitBack",
+          "FollowingPath",
+          "Effect"
+        ],
+        "version": 28,
+        "mode": "screen",
+        "failure": {
+          "code": "INVALID_SCENE",
+          "retained": true
+        },
+        "opened": null,
+        "savedBytes": 0,
+        "samples": {
+          "opaque0_0": {
+            "rgba": [
+              128,
+              61,
+              146,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back0"
+          },
+          "translucent0_0": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque1_0": {
+            "rgba": [
+              166,
+              86,
+              223,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_1": {
+            "rgba": [
+              136,
+              251,
+              243,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back1"
+          },
+          "translucent1_0": {
+            "rgba": [
+              116,
+              86,
+              147,
+              230
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_1": {
+            "rgba": [
+              86,
+              251,
+              167,
+              255
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque2_0": {
+            "rgba": [
+              139,
+              79,
+              181,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_1": {
+            "rgba": [
+              118,
+              211,
+              189,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back2"
+          },
+          "translucent2_0": {
+            "rgba": [
+              107,
+              79,
+              126,
+              179
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_1": {
+            "rgba": [
+              80,
+              211,
+              140,
+              255
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "effect": {
+            "rgba": [
+              44,
+              64,
+              100,
+              139
+            ],
+            "hit": "Effect"
+          },
+          "maskOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "frameOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "following": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Following"
+          },
+          "path": {
+            "rgba": [
+              115,
+              38,
+              77,
+              178
+            ],
+            "hit": "FollowingPath"
+          },
+          "editInk": {
+            "rgba": [
+              107,
+              167,
+              107,
+              255
+            ],
+            "hit": "Editable"
+          },
+          "editTransparent": {
+            "rgba": [
+              26,
+              153,
+              51,
+              255
+            ],
+            "hit": "HitBack"
+          }
+        }
+      }
+    },
+    {
+      "name": "saved28",
+      "value": {
+        "counts": {
+          "created": 1,
+          "disposed": 0,
+          "bindings": 1,
+          "unbindings": 0,
+          "pointers": 4,
+          "edits": 3
+        },
+        "pointerTargets": [
+          "Editable",
+          "HitBack",
+          "FollowingPath",
+          "Effect"
+        ],
+        "version": 28,
+        "mode": "screen",
+        "failure": {
+          "code": "INVALID_SCENE",
+          "retained": true
+        },
+        "opened": null,
+        "savedBytes": 5314,
+        "samples": {
+          "opaque0_0": {
+            "rgba": [
+              128,
+              61,
+              146,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back0"
+          },
+          "translucent0_0": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque1_0": {
+            "rgba": [
+              166,
+              86,
+              223,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_1": {
+            "rgba": [
+              136,
+              251,
+              243,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back1"
+          },
+          "translucent1_0": {
+            "rgba": [
+              116,
+              86,
+              147,
+              230
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_1": {
+            "rgba": [
+              86,
+              251,
+              167,
+              255
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque2_0": {
+            "rgba": [
+              139,
+              79,
+              181,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_1": {
+            "rgba": [
+              118,
+              211,
+              189,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back2"
+          },
+          "translucent2_0": {
+            "rgba": [
+              107,
+              79,
+              126,
+              179
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_1": {
+            "rgba": [
+              80,
+              211,
+              140,
+              255
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "effect": {
+            "rgba": [
+              44,
+              64,
+              100,
+              139
+            ],
+            "hit": "Effect"
+          },
+          "maskOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "frameOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "following": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Following"
+          },
+          "path": {
+            "rgba": [
+              115,
+              38,
+              77,
+              178
+            ],
+            "hit": "FollowingPath"
+          },
+          "editInk": {
+            "rgba": [
+              107,
+              167,
+              107,
+              255
+            ],
+            "hit": "Editable"
+          },
+          "editTransparent": {
+            "rgba": [
+              26,
+              153,
+              51,
+              255
+            ],
+            "hit": "HitBack"
+          }
+        }
+      }
+    },
+    {
+      "name": "physicalOpen28",
+      "value": {
+        "counts": {
+          "created": 2,
+          "disposed": 1,
+          "bindings": 2,
+          "unbindings": 1,
+          "pointers": 4,
+          "edits": 3
+        },
+        "pointerTargets": [
+          "Editable",
+          "HitBack",
+          "FollowingPath",
+          "Effect"
+        ],
+        "version": 28,
+        "mode": "screen",
+        "failure": {
+          "code": "INVALID_SCENE",
+          "retained": true
+        },
+        "opened": {
+          "savedVersion": 28,
+          "freshCanvas": true,
+          "bytesEqual": true
+        },
+        "savedBytes": 5314,
+        "samples": {
+          "opaque0_0": {
+            "rgba": [
+              128,
+              61,
+              146,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back0"
+          },
+          "translucent0_0": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque1_0": {
+            "rgba": [
+              166,
+              86,
+              223,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_1": {
+            "rgba": [
+              136,
+              251,
+              243,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back1"
+          },
+          "translucent1_0": {
+            "rgba": [
+              116,
+              86,
+              147,
+              230
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_1": {
+            "rgba": [
+              86,
+              251,
+              167,
+              255
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque2_0": {
+            "rgba": [
+              139,
+              79,
+              181,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_1": {
+            "rgba": [
+              118,
+              211,
+              189,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back2"
+          },
+          "translucent2_0": {
+            "rgba": [
+              107,
+              79,
+              126,
+              179
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_1": {
+            "rgba": [
+              80,
+              211,
+              140,
+              255
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "effect": {
+            "rgba": [
+              44,
+              64,
+              100,
+              139
+            ],
+            "hit": "Effect"
+          },
+          "maskOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "frameOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "following": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Following"
+          },
+          "path": {
+            "rgba": [
+              115,
+              38,
+              77,
+              178
+            ],
+            "hit": "FollowingPath"
+          },
+          "editInk": {
+            "rgba": [
+              107,
+              167,
+              107,
+              255
+            ],
+            "hit": "Editable"
+          },
+          "editTransparent": {
+            "rgba": [
+              26,
+              153,
+              51,
+              255
+            ],
+            "hit": "HitBack"
+          }
+        }
+      }
+    },
+    {
+      "name": "restoredNormal",
+      "value": {
+        "counts": {
+          "created": 2,
+          "disposed": 1,
+          "bindings": 2,
+          "unbindings": 1,
+          "pointers": 6,
+          "edits": 4
+        },
+        "pointerTargets": [
+          "Editable",
+          "HitBack",
+          "FollowingPath",
+          "Effect",
+          "Editable",
+          "HitBack"
+        ],
+        "version": 28,
+        "mode": "normal",
+        "failure": null,
+        "opened": {
+          "savedVersion": 28,
+          "freshCanvas": true,
+          "bytesEqual": true
+        },
+        "savedBytes": 5314,
+        "samples": {
+          "opaque0_0": {
+            "rgba": [
+              128,
+              61,
+              146,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back0"
+          },
+          "translucent0_0": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque1_0": {
+            "rgba": [
+              166,
+              86,
+              223,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_1": {
+            "rgba": [
+              136,
+              251,
+              243,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back1"
+          },
+          "translucent1_0": {
+            "rgba": [
+              116,
+              86,
+              147,
+              230
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_1": {
+            "rgba": [
+              86,
+              251,
+              167,
+              255
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque2_0": {
+            "rgba": [
+              139,
+              79,
+              181,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_1": {
+            "rgba": [
+              118,
+              211,
+              189,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back2"
+          },
+          "translucent2_0": {
+            "rgba": [
+              107,
+              79,
+              126,
+              179
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_1": {
+            "rgba": [
+              80,
+              211,
+              140,
+              255
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "effect": {
+            "rgba": [
+              44,
+              64,
+              100,
+              139
+            ],
+            "hit": "Effect"
+          },
+          "maskOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "frameOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "following": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Following"
+          },
+          "path": {
+            "rgba": [
+              115,
+              38,
+              77,
+              178
+            ],
+            "hit": "FollowingPath"
+          },
+          "editInk": {
+            "rgba": [
+              103,
+              111,
+              96,
+              255
+            ],
+            "hit": "Editable"
+          },
+          "editTransparent": {
+            "rgba": [
+              26,
+              153,
+              51,
+              255
+            ],
+            "hit": "HitBack"
+          }
+        }
+      }
+    },
+    {
+      "name": "restoredScreen",
+      "value": {
+        "counts": {
+          "created": 2,
+          "disposed": 1,
+          "bindings": 2,
+          "unbindings": 1,
+          "pointers": 6,
+          "edits": 5
+        },
+        "pointerTargets": [
+          "Editable",
+          "HitBack",
+          "FollowingPath",
+          "Effect",
+          "Editable",
+          "HitBack"
+        ],
+        "version": 28,
+        "mode": "screen",
+        "failure": null,
+        "opened": {
+          "savedVersion": 28,
+          "freshCanvas": true,
+          "bytesEqual": true
+        },
+        "savedBytes": 5314,
+        "samples": {
+          "opaque0_0": {
+            "rgba": [
+              128,
+              61,
+              146,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back0"
+          },
+          "translucent0_0": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque1_0": {
+            "rgba": [
+              166,
+              86,
+              223,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_1": {
+            "rgba": [
+              136,
+              251,
+              243,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back1"
+          },
+          "translucent1_0": {
+            "rgba": [
+              116,
+              86,
+              147,
+              230
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_1": {
+            "rgba": [
+              86,
+              251,
+              167,
+              255
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque2_0": {
+            "rgba": [
+              139,
+              79,
+              181,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_1": {
+            "rgba": [
+              118,
+              211,
+              189,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back2"
+          },
+          "translucent2_0": {
+            "rgba": [
+              107,
+              79,
+              126,
+              179
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_1": {
+            "rgba": [
+              80,
+              211,
+              140,
+              255
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "effect": {
+            "rgba": [
+              44,
+              64,
+              100,
+              139
+            ],
+            "hit": "Effect"
+          },
+          "maskOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "frameOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "following": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Following"
+          },
+          "path": {
+            "rgba": [
+              115,
+              38,
+              77,
+              178
+            ],
+            "hit": "FollowingPath"
+          },
+          "editInk": {
+            "rgba": [
+              107,
+              167,
+              107,
+              255
+            ],
+            "hit": "Editable"
+          },
+          "editTransparent": {
+            "rgba": [
+              26,
+              153,
+              51,
+              255
+            ],
+            "hit": "HitBack"
+          }
+        }
+      }
+    },
+    {
+      "name": "genuineEarlierScene27Reconstruction",
+      "value": {
+        "counts": {
+          "created": 2,
+          "disposed": 1,
+          "bindings": 2,
+          "unbindings": 1,
+          "pointers": 6,
+          "edits": 5
+        },
+        "pointerTargets": [
+          "Editable",
+          "HitBack",
+          "FollowingPath",
+          "Effect",
+          "Editable",
+          "HitBack"
+        ],
+        "version": 28,
+        "mode": "screen",
+        "failure": null,
+        "opened": {
+          "savedVersion": 28,
+          "freshCanvas": true,
+          "bytesEqual": true
+        },
+        "savedBytes": 5314,
+        "samples": {
+          "opaque0_0": {
+            "rgba": [
+              128,
+              61,
+              146,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Opaque0"
+          },
+          "opaque0_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back0"
+          },
+          "translucent0_0": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_1": {
+            "rgba": [
+              60,
+              200,
+              90,
+              255
+            ],
+            "hit": "Translucent0"
+          },
+          "translucent0_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque1_0": {
+            "rgba": [
+              166,
+              86,
+              223,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_1": {
+            "rgba": [
+              136,
+              251,
+              243,
+              255
+            ],
+            "hit": "Opaque1"
+          },
+          "opaque1_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back1"
+          },
+          "translucent1_0": {
+            "rgba": [
+              116,
+              86,
+              147,
+              230
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_1": {
+            "rgba": [
+              86,
+              251,
+              167,
+              255
+            ],
+            "hit": "Translucent1"
+          },
+          "translucent1_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "opaque2_0": {
+            "rgba": [
+              139,
+              79,
+              181,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_1": {
+            "rgba": [
+              118,
+              211,
+              189,
+              255
+            ],
+            "hit": "Opaque2"
+          },
+          "opaque2_2": {
+            "rgba": [
+              76,
+              51,
+              153,
+              255
+            ],
+            "hit": "Back2"
+          },
+          "translucent2_0": {
+            "rgba": [
+              107,
+              79,
+              126,
+              179
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_1": {
+            "rgba": [
+              80,
+              211,
+              140,
+              255
+            ],
+            "hit": "Translucent2"
+          },
+          "translucent2_2": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "effect": {
+            "rgba": [
+              44,
+              64,
+              100,
+              139
+            ],
+            "hit": "Effect"
+          },
+          "maskOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "frameOutside": {
+            "rgba": [
+              26,
+              51,
+              77,
+              102
+            ],
+            "hit": null
+          },
+          "following": {
+            "rgba": [
+              103,
+              61,
+              109,
+              179
+            ],
+            "hit": "Following"
+          },
+          "path": {
+            "rgba": [
+              115,
+              38,
+              77,
+              178
+            ],
+            "hit": "FollowingPath"
+          },
+          "editInk": {
+            "rgba": [
+              107,
+              167,
+              107,
+              255
+            ],
+            "hit": "Editable"
+          },
+          "editTransparent": {
+            "rgba": [
+              26,
+              153,
+              51,
+              255
+            ],
+            "hit": "HitBack"
+          }
+        }
+      }
+    },
+    {
+      "name": "disposeAndLatePointer",
+      "value": {
+        "counts": {
+          "created": 2,
+          "disposed": 2,
+          "bindings": 2,
+          "unbindings": 2,
+          "pointers": 6,
+          "edits": 5
+        },
+        "pointerTargets": [
+          "Editable",
+          "HitBack",
+          "FollowingPath",
+          "Effect",
+          "Editable",
+          "HitBack"
+        ],
+        "version": null,
+        "mode": null,
+        "failure": null,
+        "opened": {
+          "savedVersion": 28,
+          "freshCanvas": true,
+          "bytesEqual": true
+        },
+        "savedBytes": 5314,
+        "samples": null
+      }
+    }
+  ],
+  "oracle": [
+    {
+      "name": "opaque0_0",
+      "expected": [
+        128,
+        61,
+        146,
+        255
+      ],
+      "actual": [
+        128,
+        61,
+        146,
+        255
+      ],
+      "delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "opaque0_1",
+      "expected": [
+        60,
+        200,
+        90,
+        255
+      ],
+      "actual": [
+        60,
+        200,
+        90,
+        255
+      ],
+      "delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "opaque0_2",
+      "expected": [
+        77,
+        51,
+        153,
+        255
+      ],
+      "actual": [
+        76,
+        51,
+        153,
+        255
+      ],
+      "delta": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "translucent0_0",
+      "expected": [
+        103,
+        61,
+        108,
+        179
+      ],
+      "actual": [
+        103,
+        61,
+        109,
+        179
+      ],
+      "delta": [
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "name": "translucent0_1",
+      "expected": [
+        60,
+        200,
+        90,
+        255
+      ],
+      "actual": [
+        60,
+        200,
+        90,
+        255
+      ],
+      "delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "translucent0_2",
+      "expected": [
+        26,
+        51,
+        77,
+        102
+      ],
+      "actual": [
+        26,
+        51,
+        77,
+        102
+      ],
+      "delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "opaque1_0",
+      "expected": [
+        167,
+        86,
+        223,
+        255
+      ],
+      "actual": [
+        166,
+        86,
+        223,
+        255
+      ],
+      "delta": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "opaque1_1",
+      "expected": [
+        137,
+        251,
+        243,
+        255
+      ],
+      "actual": [
+        136,
+        251,
+        243,
+        255
+      ],
+      "delta": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "opaque1_2",
+      "expected": [
+        77,
+        51,
+        153,
+        255
+      ],
+      "actual": [
+        76,
+        51,
+        153,
+        255
+      ],
+      "delta": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "translucent1_0",
+      "expected": [
+        116,
+        86,
+        147,
+        230
+      ],
+      "actual": [
+        116,
+        86,
+        147,
+        230
+      ],
+      "delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "translucent1_1",
+      "expected": [
+        86,
+        251,
+        167,
+        255
+      ],
+      "actual": [
+        86,
+        251,
+        167,
+        255
+      ],
+      "delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "translucent1_2",
+      "expected": [
+        26,
+        51,
+        77,
+        102
+      ],
+      "actual": [
+        26,
+        51,
+        77,
+        102
+      ],
+      "delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "opaque2_0",
+      "expected": [
+        140,
+        79,
+        181,
+        255
+      ],
+      "actual": [
+        139,
+        79,
+        181,
+        255
+      ],
+      "delta": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "opaque2_1",
+      "expected": [
+        119,
+        211,
+        189,
+        255
+      ],
+      "actual": [
+        118,
+        211,
+        189,
+        255
+      ],
+      "delta": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "opaque2_2",
+      "expected": [
+        77,
+        51,
+        153,
+        255
+      ],
+      "actual": [
+        76,
+        51,
+        153,
+        255
+      ],
+      "delta": [
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "translucent2_0",
+      "expected": [
+        107,
+        79,
+        126,
+        179
+      ],
+      "actual": [
+        107,
+        79,
+        126,
+        179
+      ],
+      "delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "translucent2_1",
+      "expected": [
+        80,
+        211,
+        140,
+        255
+      ],
+      "actual": [
+        80,
+        211,
+        140,
+        255
+      ],
+      "delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "translucent2_2",
+      "expected": [
+        26,
+        51,
+        77,
+        102
+      ],
+      "actual": [
+        26,
+        51,
+        77,
+        102
+      ],
+      "delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "effect",
+      "expected": [
+        43,
+        64,
+        99,
+        139
+      ],
+      "actual": [
+        44,
+        64,
+        100,
+        139
+      ],
+      "delta": [
+        1,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "name": "maskOutside",
+      "expected": [
+        26,
+        51,
+        77,
+        102
+      ],
+      "actual": [
+        26,
+        51,
+        77,
+        102
+      ],
+      "delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "frameOutside",
+      "expected": [
+        26,
+        51,
+        77,
+        102
+      ],
+      "actual": [
+        26,
+        51,
+        77,
+        102
+      ],
+      "delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "following",
+      "expected": [
+        103,
+        61,
+        108,
+        179
+      ],
+      "actual": [
+        103,
+        61,
+        109,
+        179
+      ],
+      "delta": [
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "name": "path",
+      "expected": [
+        115,
+        38,
+        77,
+        179
+      ],
+      "actual": [
+        115,
+        38,
+        77,
+        178
+      ],
+      "delta": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "name": "editInk",
+      "expected": [
+        107,
+        167,
+        107,
+        255
+      ],
+      "actual": [
+        107,
+        167,
+        107,
+        255
+      ],
+      "delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "editTransparent",
+      "expected": [
+        26,
+        153,
+        51,
+        255
+      ],
+      "actual": [
+        26,
+        153,
+        51,
+        255
+      ],
+      "delta": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "failureRestore": {
+    "caughtOriginal": true,
+    "factors": [
+      1,
+      771,
+      1,
+      771
+    ]
+  },
+  "historical": {
+    "savedVersion": 27,
+    "currentTreeVersion": 28,
+    "modes": [
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "add",
+      "normal",
+      "normal",
+      "normal",
+      "normal"
+    ],
+    "allBytesEqual": true,
+    "background": [
+      32,
+      64,
+      96,
+      255
+    ],
+    "assets": 2
+  },
+  "resources": [
+    {
+      "created": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "deleted": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "live": {
+        "Shader": 0,
+        "Program": 0,
+        "Buffer": 0,
+        "VertexArray": 0,
+        "Texture": 0,
+        "Framebuffer": 0
+      },
+      "error": 0,
+      "capacity": 4096
+    },
+    {
+      "created": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "deleted": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 1,
+        "Framebuffer": 0
+      },
+      "live": {
+        "Shader": 0,
+        "Program": 0,
+        "Buffer": 0,
+        "VertexArray": 0,
+        "Texture": 0,
+        "Framebuffer": 0
+      },
+      "error": 0,
+      "capacity": 4096
+    },
+    {
+      "created": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 2,
+        "Framebuffer": 0
+      },
+      "deleted": {
+        "Shader": 4,
+        "Program": 2,
+        "Buffer": 3,
+        "VertexArray": 2,
+        "Texture": 2,
+        "Framebuffer": 0
+      },
+      "live": {
+        "Shader": 0,
+        "Program": 0,
+        "Buffer": 0,
+        "VertexArray": 0,
+        "Texture": 0,
+        "Framebuffer": 0
+      },
+      "error": 0,
+      "capacity": 4096
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36"
+}

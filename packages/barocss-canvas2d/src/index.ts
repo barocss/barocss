@@ -52,3 +52,5 @@ export type { SceneV27, NodeV27, GroupNodeV27, FrameNodeV27, ImageNodeV27, Sprit
 
 export { rasterizeBrowserText } from './browser-text.js';
 export type { BrowserTextOptions, BrowserTextRaster } from './browser-text.js';
+
+export type { SceneV28, NodeV28, GroupNodeV28, FrameNodeV28, ImageNodeV28 } from './schema.js';
