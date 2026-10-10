@@ -523,7 +523,7 @@
       "repair": "Restarted only owned preview and created a fresh tab at the exact same URL. Current GUI input Q/C match saved authored commands and real screen is readable. Cache mechanism not measured; no URL/settings/API/expected-value change."
     }
   ],
-  "qualification": "One real Q drag, Undo/Redo, invalid coordinate, physical Save, fresh filechooser Open and C1 re-edit. C2/cancel/resize/context-loss variants are reviewed source contracts, not executed campaigns. SVG guides/buttons are app overlays, not package editor/history APIs. Frame FNV and JPEG are not binary RGBA/device/parity proof. No native1370 producer/private-helper replay or publication/currentRoot1254/674 claim.",
+  "qualification": "Development executed genuine Q and C1 drags, Undo/Redo, invalid-coordinate retention, one physical Save and fresh filechooser Open/re-edit. Production separately executed the C2 drag and final rebuilt-GUI fresh Open/input synchronization. Escape/cancel/resize/context-loss variants remain source-reviewed, not executed campaigns. SVG guides/buttons and bounded history are app-owned, not public package editor/history APIs. Frame FNV, JPEG and whole-file SHA are distinct evidence, not binary RGBA/device/parity proof. No native1370 producer/private-helper replay or publication/currentRoot1254/674 claim.",
   "production": {
     "guideURL": "http://127.0.0.1:52948/packages/canvas2d/path-editing",
     "exampleURL": "http://127.0.0.1:52948/playground#path-edit",
