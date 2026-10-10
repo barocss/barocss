@@ -1330,3 +1330,18 @@ smoothstep intrinsic or IR/profile change. Variable edges, equal/reversed edges,
 unsafe narrow widths and excess work refuse; bare names remain compatible.
 Use `node examples/gpu-scene/material-smoothstep-flow.mjs --output <fresh-dir>`
 after the affected GPU build for the new CPU source/emitted/cold-file flow.
+
+### Explicit material degree conversion (#1152)
+
+`radians(x)` converts one scalar expression from explicit degree input into
+radians. Its conservative input interval must remain within -1000 to 1000.
+It expands to existing multiplication by `Math.PI / 180`, with two generated
+nodes and no repeated argument subtree. Existing node/depth/source budgets,
+IR version0/profile and runtime calls remain unchanged. Bare `radians` uniform
+and local names remain legal. No uniform, native geometry or scene rotation
+unit is implicitly converted. Wrong arity/type and unsafe input ranges refuse.
+
+For example, use `sin(radians(angleDegrees))` with a degree-valued uniform.
+The CPU source/emitted/cold-file flow is
+`node examples/gpu-scene/material-radians-flow.mjs --output <fresh-dir>`.
+Native grammar completion does not establish browser or editor adoption.

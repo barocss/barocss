@@ -64,7 +64,13 @@ class Parser {
   }
   this.take(')');return this.color('#'+channels.map(value=>value.toString(16).padStart(2,'0')).join('').toUpperCase(),token);
  }
- if(!['sin','cos','mix','clamp','abs','min','max','smoothstep'].includes(name))fail('SYNTAX','Unsupported material function',token);this.take('(');const args:Term[]=[];if(this.current().text!==')'){for(;;){args.push(this.expression(0,nesting+1));if(this.current().text!==',')break;this.take(',');}}this.take(')');let type:'float'|'color'='float',range:[number,number];
+ if(!['sin','cos','mix','clamp','abs','min','max','smoothstep','radians'].includes(name))fail('SYNTAX','Unsupported material function',token);this.take('(');const args:Term[]=[];if(this.current().text!==')'){for(;;){args.push(this.expression(0,nesting+1));if(this.current().text!==',')break;this.take(',');}}this.take(')');let type:'float'|'color'='float',range:[number,number];
+ if(name==='radians'){
+  if(args.length!==1)fail('TYPE','radians requires one float',token);this.float(args[0],token);
+  const value=args[0];if(value.range.some(n=>Math.abs(n)>1000))fail('RANGE','radians argument exceeds±1000 degrees',token);
+  const factor=Math.PI/180,constant=this.term({kind:'float',type:'float',value:factor},'float',[factor,factor],[],token);
+  return this.term({kind:'binary',type:'float',operator:'*',left:value.expression,right:constant.expression},'float',[value.range[0]*factor,value.range[1]*factor],[value,constant],token);
+ }
  if(name==='smoothstep'){
   if(args.length!==3)fail('TYPE','smoothstep requires three floats',token);args.forEach(a=>this.float(a,token));
   const literalValue=(term:Term):number=>{
