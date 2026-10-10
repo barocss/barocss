@@ -399,3 +399,38 @@ node apps/cad-editor/flows/unsaved-replacement-flow.mjs --compiled --port 52029
 Selected extrusion properties shows current/refresh task status. Exact accepted
 revision/output binding remains in Help/details and full typed records, with
 Construction volume estimate and Geometric centroid terms unchanged.
+
+
+## Inspect original Curve length
+
+Select a named Curve and choose Length estimate in Analysis. Full curve is the
+default. Parameter interval exposes Start and End in the original knot domain.
+Inspect explicitly reads the accepted original native Curve. Reset interval
+retains the extent choice and restores original bounds without calculating.
+Typing and Tab do not calculate; Enter outside composition or Space on Inspect
+can run the query. Invalid interval/profile input keeps raw text and native data.
+
+Main values are Estimated length and Estimated error in mm. A small positive
+estimated error uses scientific notation rather than apparent zero. The error
+is a local numerical estimator, not a certified global upper bound. Help and
+Details retain native limits, original source/reference/options/panels/guards
+and full work/quality report. Length supports degree1..3; wider D2/curvature and
+new native source-Curve writers do not imply wider length or Curve editing UI.
+Zero speed and recorded C0 guards are valid length cases. Surface area/mass and
+Curve pole authoring remain separate.
+
+Optional onLength callbacks receive copied full native records or null. Existing
+onAnalysis records remain unchanged. Native/body/raw/extent/mode changes clear
+length; camera/display-only changes retain it. Pending/active pure reads use
+accepted data. Surface edits/history and native-file replacement refresh current
+references; this property does not add a Curve editing transaction. Existing
+unsaved replacement decisions apply to Open/New. Desktop minimum1000x700 and
+ordinary1440x960 access are observed by the same focused flow, not mobile proof.
+
+```sh
+node apps/cad-editor/flows/curve-length-flow.mjs --headed --port 52030
+node apps/cad-editor/flows/curve-length-flow.mjs --compiled --port 52031
+```
+
+Native author completion, sole Integration adoption, later integrated checks and
+publication remain separate. No new engine/dependency or broad suite follows.

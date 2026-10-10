@@ -51,7 +51,7 @@ function actionableMessage(error: CadEditorError): string {
   return 'The change was not applied. Check the values and try again.';
 }
 
-export function CadEditorInspector({ session, onError, onAnalysis, className }: CadEditorInspectorProps) {
+export function CadEditorInspector({ session, onError, onAnalysis, onLength, className }: CadEditorInspectorProps) {
   const snapshot = useCadEditorSnapshot(session);
   const id = useId();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -271,6 +271,6 @@ export function CadEditorInspector({ session, onError, onAnalysis, className }: 
     </> : <p role="status" data-testid={snapshot.selectedBodyId === null ? undefined : 'cad-editor-readonly-curve'}>{snapshot.selectedBodyId === null
       ? 'Select a Surface to edit its control points.' : 'This Curve is read-only.'}</p>}
     {errorMessage && <p className="cad-editor-error" role="alert">{errorMessage}</p>}
-    <CadEditorGeometryAnalysis session={session} onAnalysis={onAnalysis} onError={onError} />
+    <CadEditorGeometryAnalysis session={session} onAnalysis={onAnalysis} onLength={onLength} onError={onError} />
   </aside>;
 }

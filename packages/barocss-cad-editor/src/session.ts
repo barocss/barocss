@@ -1,9 +1,9 @@
 import {
-  CadReferenceDiagnosticCode, CadReferenceError,
+  CadReferenceDiagnosticCode, CadReferenceError, CadCurveArcLengthError,
   createCadDocument, createCadGeometryReference, editSourceSurfaceControlNet,
   evaluateCurveD2, evaluateSurfaceD2, evaluateCurveCurvature, evaluateSurfaceCurvature,
   exportCadDocument, getCadDocumentExportCapabilities, inspectCadDocumentExport,
-  parseCadDocument, resolveCadGeometryReference, serializeCadDocument,
+  parseCadDocument, queryCadDocumentCurveArcLength, resolveCadGeometryReference, serializeCadDocument,
   validateCadDocumentResult, validateSourceSurfaceControlNetEdit,
 } from '@barocss/cad';
 import type { CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, SurfacePoleEdit } from '@barocss/cad';
@@ -359,6 +359,16 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       live();
       return copy(native(() => exportCadDocument(accepted, exportOptions), 'Native accepted document export failed.',
         accepted.document.documentId, { field: 'document-export' }));
+    },
+    inspectCurveLength(reference, lengthOptions) {
+      live();
+      try {
+        return copy(queryCadDocumentCurveArcLength(accepted, reference, lengthOptions));
+      } catch (cause) {
+        const code = cause instanceof CadCurveArcLengthError && cause.code === 'STALE' ? 'STALE' : 'NATIVE';
+        throw new CadEditorError(code, 'Native Curve length estimate refused.',
+          { documentId: accepted.document.documentId, field: 'curve-length' }, cause);
+      }
     },
     inspectCurveD2(reference, parameter) {
       const resolved = resolveCurveAnalysis(reference);
