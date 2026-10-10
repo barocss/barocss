@@ -1,0 +1,10 @@
+
+> @barocss/physics@0.0.0-experimental build:library /Users/user/.codex/worktrees/physics-engine-1179/barocss/packages/barocss-physics
+> tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --external:./types.js --outfile=dist/index.js
+
+src/cad-proxy-admission.ts(1,33): error TS2307: Cannot find module '@barocss/cad' or its corresponding type declarations.
+src/cad-proxy-admission.ts(61,47): error TS7006: Parameter 'object' implicitly has an 'any' type.
+/Users/user/.codex/worktrees/physics-engine-1179/barocss/packages/barocss-physics:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @barocss/physics@0.0.0-experimental build:library: `tsc && esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --external:./types.js --outfile=dist/index.js`
+Exit status 2
+ WARN   Local package.json exists, but node_modules missing, did you mean to install?

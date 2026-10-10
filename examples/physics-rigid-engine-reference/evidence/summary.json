@@ -1,0 +1,91 @@
+{
+  "result": "ok",
+  "stage": "public-admission-and-one-step-only",
+  "base": "9616f178fdf3fbc4d78d02a8e4c313fa5769e53f",
+  "measuredHead": "e6e9acb93f6706a00e8db4a299250b53f394f337",
+  "node": "v22.22.0",
+  "fixtureSha256": "b20ce00017c16dedc7ef11e9a53f972e4539c49dd50af55819bacfbda9f602e7",
+  "sourceCompiledEqual": true,
+  "graphs": [
+    {
+      "graph": "source",
+      "sourceInputs": 39,
+      "distInputs": 0
+    },
+    {
+      "graph": "compiled",
+      "sourceInputs": 0,
+      "distInputs": 2
+    }
+  ],
+  "cases": [
+    {
+      "id": "DROP16",
+      "admission": "admitted",
+      "quality": "unmeasured"
+    },
+    {
+      "id": "STACK2_CONTROL",
+      "admission": "admitted",
+      "quality": "unmeasured"
+    },
+    {
+      "id": "STACK8_ALIGNED",
+      "admission": "refused",
+      "error": {
+        "code": "INVALID_CONFIG",
+        "message": "persistent-box-v1 admits at most four bodies"
+      },
+      "quality": "unmeasured"
+    },
+    {
+      "id": "STACK8_ROTATED",
+      "admission": "refused",
+      "error": {
+        "code": "INVALID_CONFIG",
+        "message": "persistent-box-v1 admits at most four bodies"
+      },
+      "quality": "unmeasured"
+    },
+    {
+      "id": "STACK8_BASIC",
+      "admission": "admitted",
+      "quality": "unmeasured"
+    },
+    {
+      "id": "LARGE_STACK8_PERSISTENT",
+      "admission": "refused",
+      "error": {
+        "code": "INVALID_CONFIG",
+        "message": "large-v1 requires aabb and excludes joints and persistent-box-v1"
+      },
+      "quality": "unmeasured"
+    },
+    {
+      "id": "HINGE1_CONTROL",
+      "admission": "admitted",
+      "quality": "unmeasured"
+    },
+    {
+      "id": "HINGE2",
+      "admission": "refused",
+      "error": {
+        "code": "INVALID_CONFIG",
+        "message": "dynamic pair supports one joint between two dynamic spheres"
+      },
+      "quality": "unmeasured"
+    },
+    {
+      "id": "CAPSULE_THIN_CCD",
+      "admission": "refused",
+      "error": {
+        "code": "INVALID_CONFIG",
+        "message": "ccd is supported for dynamic spheres or boxes only and must be true"
+      },
+      "quality": "unmeasured"
+    }
+  ],
+  "numericalCampaignExecuted": false,
+  "viewerExecuted": false,
+  "performanceMeasured": false
+}
