@@ -1,5 +1,6 @@
 import { compileCadModel, evaluateCurve, curveDomain, evaluateSurface, tessellateSurface } from '@barocss/cad';
 import { mountScene, mountMesh, compileMeshMaterial } from '@barocss/gpu';
+// DOCS_HOST_FACTORIES
 export const presets = {
   scene: { title:'GPU scene · rotated box and sphere', language:'GPU scene source1', source:`@scene shapes {
   version: 1;
@@ -66,6 +67,9 @@ function samplingGrid(packet){
 export function createExample(canvas,key,source){
  const preset=presets[key];if(!preset)throw Error('Unknown example');
  const kind=preset.kind;
+ if(kind==='viewer')return createViewerExample(canvas,source);
+ if(kind==='canvas2d')return createCanvas2DExample(canvas,source);
+ if(kind==='physics')return createPhysicsExample(canvas,source);
  if(kind==='scene'){
   const renderer=mountScene(canvas,source,undefined,{sourceVersion:1});
   return{dispose:()=>renderer.dispose(),update(text){const result=renderer.update(text);if(!result.ok)throw result.error;return this.report();},report:()=>({sourceVersion:1,objects:renderer.scene.objects.map(o=>({id:o.id,type:o.type,translate:o.translate,rotateDegrees:o.rotateDegrees})),backend:'WebGL2 SDF'})};

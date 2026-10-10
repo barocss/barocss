@@ -1,0 +1,28 @@
+{
+  "physics-step": {
+    "kind": "physics",
+    "title": "Physics sample \u00b7 manual fixed-step sphere",
+    "label": "Physics fixed step",
+    "language": "PhysicsWorldConfig JSON \u2192 host Canvas2D",
+    "source": "{\n  \"fixedStepSeconds\": 0.008333333333333333,\n  \"gravityMps2\": [\n    0,\n    -9.81,\n    0\n  ],\n  \"bodies\": [\n    {\n      \"id\": \"part:ball\",\n      \"kind\": \"dynamic\",\n      \"shape\": {\n        \"kind\": \"sphere\",\n        \"radiusM\": 0.15\n      },\n      \"positionM\": [\n        0,\n        2,\n        0\n      ],\n      \"velocityMps\": [\n        0,\n        0,\n        0\n      ],\n      \"massKg\": 1,\n      \"restitution\": 0.25\n    }\n  ]\n}",
+    "description": "Advance one admitted free-falling sphere using explicit fixed 1/120-second Physics steps. The host draws copied metre state on its own Canvas2D, with a copied initial-state ghost and a non-colliding Y=0 reference. Reset reconstructs a new world from accepted input; it is not a rigid-world reset API.",
+    "actions": [
+      {
+        "id": "step-1",
+        "label": "Advance 1 step"
+      },
+      {
+        "id": "step-20",
+        "label": "Advance 20 steps"
+      },
+      {
+        "id": "invalid-step",
+        "label": "Try 1/60 s"
+      },
+      {
+        "id": "reset",
+        "label": "Reset from accepted input"
+      }
+    ]
+  }
+}
