@@ -1,0 +1,4827 @@
+{
+  "graph": "source",
+  "sourceInputs": 39,
+  "distInputs": 0,
+  "inputs": [
+    "packages/barocss-physics/src/types.ts",
+    "packages/barocss-physics/src/limits.ts",
+    "packages/barocss-physics/src/validation.ts",
+    "packages/barocss-physics/src/math.ts",
+    "packages/barocss-physics/src/dynamic-anchor-pair.ts",
+    "packages/barocss-physics/src/dynamic-fixed-joint.ts",
+    "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+    "packages/barocss-physics/src/joints.ts",
+    "packages/barocss-physics/src/joint-motor.ts",
+    "packages/barocss-physics/src/capsule-contact.ts",
+    "packages/barocss-physics/src/collision.ts",
+    "packages/barocss-physics/src/contact-manifold.ts",
+    "packages/barocss-physics/src/persistent-box-contact.ts",
+    "packages/barocss-physics/src/ccd-slab.ts",
+    "packages/barocss-physics/src/ccd-box.ts",
+    "packages/barocss-physics/src/ccd.ts",
+    "packages/barocss-physics/src/ccd-pair.ts",
+    "packages/barocss-physics/src/broadphase.ts",
+    "packages/barocss-physics/src/scene-profile.ts",
+    "packages/barocss-physics/src/sleep.ts",
+    "packages/barocss-physics/src/world.ts",
+    "packages/barocss-physics/src/capsule-query-error.ts",
+    "packages/barocss-physics/src/capsule-query/profile.ts",
+    "packages/barocss-physics/src/capsule-query/admission.ts",
+    "packages/barocss-physics/src/capsule-query/geometry.ts",
+    "packages/barocss-physics/src/capsule-query/sweep.ts",
+    "packages/barocss-physics/src/capsule-query/snapshot.ts",
+    "packages/barocss-physics/src/capsule-query.ts",
+    "packages/barocss-physics/src/character/profile.ts",
+    "packages/barocss-physics/src/character/admission.ts",
+    "packages/barocss-physics/src/character/math.ts",
+    "packages/barocss-physics/src/character/state.ts",
+    "packages/barocss-physics/src/character/query.ts",
+    "packages/barocss-physics/src/character/step-assist.ts",
+    "packages/barocss-physics/src/character/slide.ts",
+    "packages/barocss-physics/src/character/ground.ts",
+    "packages/barocss-physics/src/character/core.ts",
+    "packages/barocss-physics/src/character-controller.ts",
+    "packages/barocss-physics/src/index.ts",
+    "examples/physics-rigid-engine-reference/admission-flow.mjs",
+    "packages/barocss-physics/consumer.mjs"
+  ],
+  "cases": [
+    {
+      "id": "DROP16",
+      "input": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          -9.81,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -1.125,
+              1.5,
+              -1.125
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -0.375,
+              1.5,
+              -1.125
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b2",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.375,
+              1.5,
+              -1.125
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b3",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              1.125,
+              1.5,
+              -1.125
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b4",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -1.125,
+              1.5,
+              -0.375
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b5",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -0.375,
+              1.5,
+              -0.375
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b6",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.375,
+              1.5,
+              -0.375
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b7",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              1.125,
+              1.5,
+              -0.375
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b8",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -1.125,
+              1.5,
+              0.375
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b9",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -0.375,
+              1.5,
+              0.375
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b10",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.375,
+              1.5,
+              0.375
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b11",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              1.125,
+              1.5,
+              0.375
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b12",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -1.125,
+              1.5,
+              1.125
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b13",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -0.375,
+              1.5,
+              1.125
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b14",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.375,
+              1.5,
+              1.125
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b15",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              1.125,
+              1.5,
+              1.125
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ]
+      },
+      "admission": "admitted",
+      "initial": {
+        "stepIndex": 0,
+        "timeSeconds": 0,
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -1.125,
+              1.5,
+              -1.125
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -0.375,
+              1.5,
+              -1.125
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b2",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.375,
+              1.5,
+              -1.125
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b3",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              1.125,
+              1.5,
+              -1.125
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b4",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -1.125,
+              1.5,
+              -0.375
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b5",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -0.375,
+              1.5,
+              -0.375
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b6",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.375,
+              1.5,
+              -0.375
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b7",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              1.125,
+              1.5,
+              -0.375
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b8",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -1.125,
+              1.5,
+              0.375
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b9",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -0.375,
+              1.5,
+              0.375
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b10",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.375,
+              1.5,
+              0.375
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b11",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              1.125,
+              1.5,
+              0.375
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b12",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -1.125,
+              1.5,
+              1.125
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b13",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -0.375,
+              1.5,
+              1.125
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b14",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.375,
+              1.5,
+              1.125
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b15",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              1.125,
+              1.5,
+              1.125
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "contacts": [],
+        "events": [],
+        "joints": [],
+        "ccdHits": [],
+        "pairStats": {
+          "eligiblePairs": 0,
+          "candidatePairs": 0,
+          "aabbTests": 0
+        }
+      },
+      "accepted": {
+        "stepIndex": 1,
+        "timeSeconds": 0.008333333333333333,
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -1.125,
+              1.49931875,
+              -1.125
+            ],
+            "velocityMps": [
+              0,
+              -0.08175,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -0.375,
+              1.49931875,
+              -1.125
+            ],
+            "velocityMps": [
+              0,
+              -0.08175,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b2",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.375,
+              1.49931875,
+              -1.125
+            ],
+            "velocityMps": [
+              0,
+              -0.08175,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b3",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              1.125,
+              1.49931875,
+              -1.125
+            ],
+            "velocityMps": [
+              0,
+              -0.08175,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b4",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -1.125,
+              1.49931875,
+              -0.375
+            ],
+            "velocityMps": [
+              0,
+              -0.08175,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b5",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -0.375,
+              1.49931875,
+              -0.375
+            ],
+            "velocityMps": [
+              0,
+              -0.08175,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b6",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.375,
+              1.49931875,
+              -0.375
+            ],
+            "velocityMps": [
+              0,
+              -0.08175,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b7",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              1.125,
+              1.49931875,
+              -0.375
+            ],
+            "velocityMps": [
+              0,
+              -0.08175,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b8",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -1.125,
+              1.49931875,
+              0.375
+            ],
+            "velocityMps": [
+              0,
+              -0.08175,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b9",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -0.375,
+              1.49931875,
+              0.375
+            ],
+            "velocityMps": [
+              0,
+              -0.08175,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b10",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.375,
+              1.49931875,
+              0.375
+            ],
+            "velocityMps": [
+              0,
+              -0.08175,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b11",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              1.125,
+              1.49931875,
+              0.375
+            ],
+            "velocityMps": [
+              0,
+              -0.08175,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b12",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -1.125,
+              1.49931875,
+              1.125
+            ],
+            "velocityMps": [
+              0,
+              -0.08175,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b13",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              -0.375,
+              1.49931875,
+              1.125
+            ],
+            "velocityMps": [
+              0,
+              -0.08175,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b14",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.375,
+              1.49931875,
+              1.125
+            ],
+            "velocityMps": [
+              0,
+              -0.08175,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b15",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              1.125,
+              1.49931875,
+              1.125
+            ],
+            "velocityMps": [
+              0,
+              -0.08175,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "contacts": [],
+        "events": [],
+        "joints": [],
+        "ccdHits": [],
+        "pairStats": {
+          "eligiblePairs": 1088,
+          "candidatePairs": 1088,
+          "aabbTests": 0
+        }
+      },
+      "lifecycle": {
+        "finite": true,
+        "copied": true,
+        "badStepRetained": true,
+        "disposed": true
+      },
+      "quality": "unmeasured"
+    },
+    {
+      "id": "STACK2_CONTROL",
+      "input": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          -9.81,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              0.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ],
+        "contactMode": "persistent-box-v1"
+      },
+      "admission": "admitted",
+      "initial": {
+        "stepIndex": 0,
+        "timeSeconds": 0,
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              0.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "contacts": [],
+        "events": [],
+        "joints": [],
+        "ccdHits": [],
+        "pairStats": {
+          "eligiblePairs": 0,
+          "candidatePairs": 0,
+          "aabbTests": 0
+        }
+      },
+      "accepted": {
+        "stepIndex": 1,
+        "timeSeconds": 0.008333333333333333,
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.24999999999999997,
+              0
+            ],
+            "velocityMps": [
+              0.000001003414886793395,
+              -2.6413365474507733e-7,
+              4.702925046304622e-7
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              8.590350305261497e-7,
+              7.755481386366447e-7,
+              -0.000004029145160974255
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              0.749994677734375,
+              0
+            ],
+            "velocityMps": [
+              0.003073033939728225,
+              -0.0009464971609443578,
+              0.000010239806732950352
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0.00001662660456446271,
+              -0.0000010163429008317248,
+              -0.005480553220337811
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "contacts": [
+          {
+            "aId": "b0",
+            "bId": "b1",
+            "normalAtoB": [
+              0,
+              1,
+              0
+            ],
+            "pointM": [
+              0.024999999999999994,
+              0.499994677734375,
+              0
+            ],
+            "penetrationM": 0.0006812499999999666,
+            "impulseNs": 0.08080350283905563,
+            "tangentImpulseNs": [
+              0.0030730339397282234,
+              0,
+              0.000010239806732950375
+            ]
+          },
+          {
+            "aId": "b0",
+            "bId": "floor",
+            "normalAtoB": [
+              0,
+              -1,
+              0
+            ],
+            "pointM": [
+              0,
+              -0.0000026611328125120126,
+              0
+            ],
+            "penetrationM": 0.0006812499999999666,
+            "impulseNs": 0.16255323870540092,
+            "tangentImpulseNs": [
+              -0.003074037354615016,
+              0,
+              -0.00001071009923758054
+            ]
+          }
+        ],
+        "events": [
+          {
+            "aId": "b0",
+            "bId": "b1",
+            "kind": "contact",
+            "phase": "begin"
+          },
+          {
+            "aId": "b0",
+            "bId": "floor",
+            "kind": "contact",
+            "phase": "begin"
+          }
+        ],
+        "joints": [],
+        "ccdHits": [],
+        "pairStats": {
+          "eligiblePairs": 24,
+          "candidatePairs": 24,
+          "aabbTests": 0
+        }
+      },
+      "lifecycle": {
+        "finite": true,
+        "copied": true,
+        "badStepRetained": true,
+        "disposed": true
+      },
+      "quality": "unmeasured"
+    },
+    {
+      "id": "STACK8_ALIGNED",
+      "input": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          -9.81,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b2",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b3",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b4",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b5",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b6",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b7",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ],
+        "contactMode": "persistent-box-v1"
+      },
+      "admission": "refused",
+      "error": {
+        "code": "INVALID_CONFIG",
+        "message": "persistent-box-v1 admits at most four bodies"
+      },
+      "quality": "unmeasured"
+    },
+    {
+      "id": "STACK8_ROTATED",
+      "input": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          -9.81,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              0.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              -0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b2",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b3",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              1.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              -0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b4",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b5",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              2.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              -0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b6",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "b7",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0.05,
+              3.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              -0.024997395914712332,
+              0,
+              0.9996875162757026
+            ]
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ],
+        "contactMode": "persistent-box-v1"
+      },
+      "admission": "refused",
+      "error": {
+        "code": "INVALID_CONFIG",
+        "message": "persistent-box-v1 admits at most four bodies"
+      },
+      "quality": "unmeasured"
+    },
+    {
+      "id": "STACK8_BASIC",
+      "input": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          -9.81,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b2",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b3",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b4",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b5",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b6",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b7",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ]
+      },
+      "admission": "admitted",
+      "initial": {
+        "stepIndex": 0,
+        "timeSeconds": 0,
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b2",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b3",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b4",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b5",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b6",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b7",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "contacts": [],
+        "events": [],
+        "joints": [],
+        "ccdHits": [],
+        "pairStats": {
+          "eligiblePairs": 0,
+          "candidatePairs": 0,
+          "aabbTests": 0
+        }
+      },
+      "accepted": {
+        "stepIndex": 1,
+        "timeSeconds": 0.008333333333333333,
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.24999999999999997,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.7497324729919435,
+              0
+            ],
+            "velocityMps": [
+              0,
+              -0.03210324096679688,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b2",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.2496287303924563,
+              0
+            ],
+            "velocityMps": [
+              0,
+              -0.04455235290527344,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b3",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.7495467342376712,
+              0
+            ],
+            "velocityMps": [
+              0,
+              -0.05439189147949219,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b4",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.2494859439849857,
+              0
+            ],
+            "velocityMps": [
+              0,
+              -0.06168672180175781,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b5",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.749445652770996,
+              0
+            ],
+            "velocityMps": [
+              0,
+              -0.06652166748046875,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b6",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.2494255071640015,
+              0
+            ],
+            "velocityMps": [
+              0,
+              -0.06893914031982422,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "b7",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.7494255071640015,
+              0
+            ],
+            "velocityMps": [
+              0,
+              -0.06893914031982422,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaDiagonalKgM2": [
+              0.041666666666666664,
+              0.041666666666666664,
+              0.041666666666666664
+            ]
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "contacts": [
+          {
+            "aId": "b0",
+            "bId": "b1",
+            "normalAtoB": [
+              0,
+              1,
+              0
+            ],
+            "pointM": [
+              0,
+              0.49985729675292967,
+              0
+            ],
+            "penetrationM": 0.0006812499999999666,
+            "impulseNs": 0.1751158447265625,
+            "tangentImpulseNs": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "aId": "b0",
+            "bId": "floor",
+            "normalAtoB": [
+              0,
+              -1,
+              0
+            ],
+            "pointM": [
+              0,
+              -0.0000713516235351791,
+              0
+            ],
+            "penetrationM": 0.0006812499999999666,
+            "impulseNs": 0.2568658447265625,
+            "tangentImpulseNs": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "aId": "b1",
+            "bId": "b2",
+            "normalAtoB": [
+              0,
+              1,
+              0
+            ],
+            "pointM": [
+              0,
+              0.9997324729919435,
+              0
+            ],
+            "penetrationM": 0.0003406249999999833,
+            "impulseNs": 0.12546908569335938,
+            "tangentImpulseNs": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "aId": "b2",
+            "bId": "b3",
+            "normalAtoB": [
+              0,
+              1,
+              0
+            ],
+            "pointM": [
+              0,
+              1.4996287303924563,
+              0
+            ],
+            "penetrationM": 0.00022353515625006537,
+            "impulseNs": 0.0882714385986328,
+            "tangentImpulseNs": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "aId": "b3",
+            "bId": "b4",
+            "normalAtoB": [
+              0,
+              1,
+              0
+            ],
+            "pointM": [
+              0,
+              1.9995467342376712,
+              0
+            ],
+            "penetrationM": 0.00016532287597659234,
+            "impulseNs": 0.06091333007812499,
+            "tangentImpulseNs": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "aId": "b4",
+            "bId": "b5",
+            "normalAtoB": [
+              0,
+              1,
+              0
+            ],
+            "pointM": [
+              0,
+              2.4994859439849857,
+              0
+            ],
+            "penetrationM": 0.0001215805053709218,
+            "impulseNs": 0.040850051879882804,
+            "tangentImpulseNs": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "aId": "b5",
+            "bId": "b6",
+            "normalAtoB": [
+              0,
+              1,
+              0
+            ],
+            "pointM": [
+              0,
+              2.999445652770996,
+              0
+            ],
+            "penetrationM": 0.00008058242797881476,
+            "impulseNs": 0.025621719360351555,
+            "tangentImpulseNs": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "aId": "b6",
+            "bId": "b7",
+            "normalAtoB": [
+              0,
+              1,
+              0
+            ],
+            "pointM": [
+              0,
+              3.4994255071640015,
+              0
+            ],
+            "penetrationM": 0.00004029121398918534,
+            "impulseNs": 0.012810859680175778,
+            "tangentImpulseNs": [
+              0,
+              0,
+              0
+            ]
+          }
+        ],
+        "events": [
+          {
+            "aId": "b0",
+            "bId": "b1",
+            "kind": "contact",
+            "phase": "begin"
+          },
+          {
+            "aId": "b0",
+            "bId": "floor",
+            "kind": "contact",
+            "phase": "begin"
+          },
+          {
+            "aId": "b1",
+            "bId": "b2",
+            "kind": "contact",
+            "phase": "begin"
+          },
+          {
+            "aId": "b2",
+            "bId": "b3",
+            "kind": "contact",
+            "phase": "begin"
+          },
+          {
+            "aId": "b3",
+            "bId": "b4",
+            "kind": "contact",
+            "phase": "begin"
+          },
+          {
+            "aId": "b4",
+            "bId": "b5",
+            "kind": "contact",
+            "phase": "begin"
+          },
+          {
+            "aId": "b5",
+            "bId": "b6",
+            "kind": "contact",
+            "phase": "begin"
+          },
+          {
+            "aId": "b6",
+            "bId": "b7",
+            "kind": "contact",
+            "phase": "begin"
+          }
+        ],
+        "joints": [],
+        "ccdHits": [],
+        "pairStats": {
+          "eligiblePairs": 288,
+          "candidatePairs": 288,
+          "aabbTests": 0
+        }
+      },
+      "lifecycle": {
+        "finite": true,
+        "copied": true,
+        "badStepRetained": true,
+        "disposed": true
+      },
+      "quality": "unmeasured"
+    },
+    {
+      "id": "LARGE_STACK8_PERSISTENT",
+      "input": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          -9.81,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              0.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b2",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b3",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              1.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b4",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b5",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              2.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b6",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.25,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "b7",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.25,
+                0.25,
+                0.25
+              ]
+            },
+            "positionM": [
+              0,
+              3.75,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                2,
+                0.1,
+                2
+              ]
+            },
+            "positionM": [
+              0,
+              -0.1,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ],
+        "sceneMode": "large-v1",
+        "broadPhase": "aabb",
+        "contactMode": "persistent-box-v1"
+      },
+      "admission": "refused",
+      "error": {
+        "code": "INVALID_CONFIG",
+        "message": "large-v1 requires aabb and excludes joints and persistent-box-v1"
+      },
+      "quality": "unmeasured"
+    },
+    {
+      "id": "HINGE1_CONTROL",
+      "input": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          0,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "pairA0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "sphere",
+              "radiusM": 0.1
+            },
+            "positionM": [
+              -0.1,
+              0,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "pairB0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "sphere",
+              "radiusM": 0.1
+            },
+            "positionM": [
+              0.1,
+              0,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ],
+        "joints": [
+          {
+            "id": "hinge0",
+            "kind": "hinge",
+            "aId": "pairA0",
+            "bId": "pairB0",
+            "anchorALocalM": [
+              0.1,
+              0,
+              0
+            ],
+            "anchorBLocalM": [
+              -0.1,
+              0,
+              0
+            ],
+            "axisWorld": [
+              0,
+              0,
+              1
+            ],
+            "limitRad": [
+              -0.8,
+              0.8
+            ],
+            "motor": {
+              "targetSpeedRadps": 0.5,
+              "maxImpulseNms": 0.0001,
+              "maxReactionNms": 0.01
+            }
+          }
+        ]
+      },
+      "admission": "admitted",
+      "initial": {
+        "stepIndex": 0,
+        "timeSeconds": 0,
+        "bodies": [
+          {
+            "id": "pairA0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "sphere",
+              "radiusM": 0.1
+            },
+            "positionM": [
+              -0.1,
+              0,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaKgM2": 0.004000000000000001
+          },
+          {
+            "id": "pairB0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "sphere",
+              "radiusM": 0.1
+            },
+            "positionM": [
+              0.1,
+              0,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0
+            ],
+            "inertiaKgM2": 0.004000000000000001
+          }
+        ],
+        "contacts": [],
+        "events": [],
+        "joints": [
+          {
+            "id": "hinge0",
+            "kind": "hinge",
+            "aId": "pairA0",
+            "bId": "pairB0",
+            "linearImpulseNs": [
+              0,
+              0,
+              0
+            ],
+            "angularImpulseNms": [
+              0,
+              0,
+              0
+            ],
+            "angleRad": 0,
+            "motorImpulseNms": 0
+          }
+        ],
+        "ccdHits": [],
+        "pairStats": {
+          "eligiblePairs": 0,
+          "candidatePairs": 0,
+          "aabbTests": 0
+        }
+      },
+      "accepted": {
+        "stepIndex": 1,
+        "timeSeconds": 0.008333333333333333,
+        "bodies": [
+          {
+            "id": "pairA0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "sphere",
+              "radiusM": 0.1
+            },
+            "positionM": [
+              -0.09999999782986135,
+              0,
+              0
+            ],
+            "velocityMps": [
+              2.6041663830727606e-7,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              -0.00010416666082688386,
+              0.9999999945746534
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              -0.024999998643663347
+            ],
+            "inertiaKgM2": 0.004000000000000001
+          },
+          {
+            "id": "pairB0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "sphere",
+              "radiusM": 0.1
+            },
+            "positionM": [
+              0.09999999782986135,
+              0,
+              0
+            ],
+            "velocityMps": [
+              -2.6041663830727606e-7,
+              0,
+              0
+            ],
+            "orientation": [
+              0,
+              0,
+              0.00010416666082688386,
+              0.9999999945746534
+            ],
+            "angularVelocityRadps": [
+              0,
+              0,
+              0.024999998643663347
+            ],
+            "inertiaKgM2": 0.004000000000000001
+          }
+        ],
+        "contacts": [],
+        "events": [],
+        "joints": [
+          {
+            "id": "hinge0",
+            "kind": "hinge",
+            "aId": "pairA0",
+            "bId": "pairB0",
+            "linearImpulseNs": [
+              -2.6041663830727606e-7,
+              0,
+              0
+            ],
+            "angularImpulseNms": [
+              0,
+              0,
+              -5.425346588650016e-12
+            ],
+            "angleRad": 0.00041666664406105573,
+            "motorImpulseNms": 0.0001
+          }
+        ],
+        "ccdHits": [],
+        "pairStats": {
+          "eligiblePairs": 0,
+          "candidatePairs": 0,
+          "aabbTests": 0
+        }
+      },
+      "lifecycle": {
+        "finite": true,
+        "copied": true,
+        "badStepRetained": true,
+        "disposed": true
+      },
+      "quality": "unmeasured"
+    },
+    {
+      "id": "HINGE2",
+      "input": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          0,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "pairA0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "sphere",
+              "radiusM": 0.1
+            },
+            "positionM": [
+              -0.1,
+              0,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "pairB0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "sphere",
+              "radiusM": 0.1
+            },
+            "positionM": [
+              0.1,
+              0,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "pairA1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "sphere",
+              "radiusM": 0.1
+            },
+            "positionM": [
+              -0.1,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          },
+          {
+            "id": "pairB1",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "sphere",
+              "radiusM": 0.1
+            },
+            "positionM": [
+              0.1,
+              0,
+              1
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ],
+        "joints": [
+          {
+            "id": "hinge0",
+            "kind": "hinge",
+            "aId": "pairA0",
+            "bId": "pairB0",
+            "anchorALocalM": [
+              0.1,
+              0,
+              0
+            ],
+            "anchorBLocalM": [
+              -0.1,
+              0,
+              0
+            ],
+            "axisWorld": [
+              0,
+              0,
+              1
+            ],
+            "limitRad": [
+              -0.8,
+              0.8
+            ],
+            "motor": {
+              "targetSpeedRadps": 0.5,
+              "maxImpulseNms": 0.0001,
+              "maxReactionNms": 0.01
+            }
+          },
+          {
+            "id": "hinge1",
+            "kind": "hinge",
+            "aId": "pairA1",
+            "bId": "pairB1",
+            "anchorALocalM": [
+              0.1,
+              0,
+              0
+            ],
+            "anchorBLocalM": [
+              -0.1,
+              0,
+              0
+            ],
+            "axisWorld": [
+              0,
+              0,
+              1
+            ],
+            "limitRad": [
+              -0.8,
+              0.8
+            ],
+            "motor": {
+              "targetSpeedRadps": 0.5,
+              "maxImpulseNms": 0.0001,
+              "maxReactionNms": 0.01
+            }
+          }
+        ]
+      },
+      "admission": "refused",
+      "error": {
+        "code": "INVALID_CONFIG",
+        "message": "dynamic pair supports one joint between two dynamic spheres"
+      },
+      "quality": "unmeasured"
+    },
+    {
+      "id": "CAPSULE_THIN_CCD",
+      "input": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          0,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "capsule",
+              "radiusM": 0.1,
+              "halfLengthM": 0.2
+            },
+            "positionM": [
+              -0.4,
+              0,
+              0
+            ],
+            "velocityMps": [
+              100,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "ccd": true
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.001,
+                1,
+                1
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ]
+      },
+      "admission": "refused",
+      "error": {
+        "code": "INVALID_CONFIG",
+        "message": "ccd is supported for dynamic spheres or boxes only and must be true"
+      },
+      "quality": "unmeasured"
+    }
+  ]
+}
