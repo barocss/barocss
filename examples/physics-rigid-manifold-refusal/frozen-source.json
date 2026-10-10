@@ -1,0 +1,11 @@
+{
+  "archive.mjs": "9c460ab324f8a6241bd88814c696e40dc373bf2e949db21189ff839a06b79180",
+  "bundle.mjs": "6ffcec3c02a6d8b4796ea93ed8f8cf29e294d2f5339979969d3b2322798c435f",
+  "controls.mjs": "6266e9c81896ebc94ab74c3ca07b4a0bec2e2cac8bd8d6ab40a01bb1e95dd4e0",
+  "entry.ts": "0a4dbcb70bcc029fcfd64382906eca70fa65f75a6ca97cdd298d282fa633d17f",
+  "frozen-inputs.json": "36b6470e9903f8035b9a0f07b521a77505303e292856c7e5fdccbef67b811c27",
+  "geometry-reference.py": "0449f0895b93903d5112193cc98043f69b6a1a314af8716f44449858af1f88dc",
+  "inspect-manifold.ts": "737e3549ba43206acc3567ca0eea4589d4c7ab5a4bea2e80a33c230d63b3ffe0",
+  "reconstruct.mjs": "1c1a750a4d524f4ad6ecc9e04fc6be9d40a2e2285888ed7a0d83e204e7ff4f5f",
+  "runner.mjs": "b04f1013b09d95a98de196c13f0594a5ff1adfe3c30c2a69c064271fd332a6c4"
+}
