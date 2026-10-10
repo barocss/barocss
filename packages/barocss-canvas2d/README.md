@@ -296,3 +296,57 @@ SpriteSpec accepts optional `rgbMatrix: SpriteRGBMatrix`, twelve copied row-majo
 The image shader filters the original straight RGBA, applies the three row dot products and RGB clamp, then tint and alpha premultiplication for the existing blend. Alpha, hit tests, source bytes, masks and clip do not change. Nine-slice/tile draws carry the matrix; each ordinary Sprite and synthesized glyph resets missing rows to identity. This is channel arithmetic, with no color-space or perceptual-gray claim. No new GPU resource category/pass is added. Three vec4 uniforms raise the image fragment budget to122, below the retained128 requirement (common126). SVG still refuses image export.
 
 The [RGB matrix consumer](consumer/rgb-matrix.html) covers copied inputs, color order, reset, file/restored handles and explicit resource lifetime. Its recorded observations state the actual executed scope.
+
+## Prepare one browser text label
+
+`rasterizeBrowserText` synchronously returns owned RGBA8 bytes and an existing
+whole-label `GlyphRunLayout`. Prepare fonts in the host before calling it:
+
+```ts
+import { rasterizeBrowserText, createDisplayTree, createCanvas2D } from '@barocss/canvas2d';
+await document.fonts.ready;
+await document.fonts.load('24px monospace', 'H I');
+const raster = rasterizeBrowserText({
+  text: 'H I', font: '24px monospace', atlasId: 'LabelAtlas', dpr: 1.5,
+});
+const tree = createDisplayTree('LabelHost');
+const label = tree.createGlyphRun({
+  id: 'Label', layer: 0,
+  transform: { x: 24, y: 72, scaleX: 1, scaleY: 1, rotation: 0 },
+  ...raster.layout,
+});
+tree.stage.addChild(label);
+const renderer = createCanvas2D(canvas, { logicalSize: { width: 320, height: 128 }, dpr: 2 });
+renderer.setImageAsset(raster.layout.atlasId, raster.asset);
+renderer.updateScene(tree.snapshot());
+renderer.render();
+// Later edits prepare new bytes and use label.setLayout(next.layout).
+// The host disposes its renderer when it no longer needs it.
+renderer.dispose();
+```
+
+Text permits 1..128 ASCII letters, digits and spaces, with at least one letter or
+digit. Font declarations are nonempty, at most 256 characters, without CR/LF/NUL.
+DPR is 1..4 (default1). Options require ordinary own enumerable data fields.
+Two sentinel assignments detect ignored CSS font syntax, followed by a readiness
+check. The helper never loads fonts, schedules work, registers assets or creates
+a display renderer. Its normalized `font` describes the declaration; a readiness
+check does not certify a named typeface.
+
+`bounds` has a baseline of zero and two logical pixels of padding. Backing
+extents use `ceil(logical extent * dpr)`; returned logical extents include the
+extra fractional-DPR edge pixels. The raster must fit 1024x256 and 1 MiB and
+contain ink. Each result has independent bytes and metadata. Transparent pixels
+keep the existing glyph alpha hit behavior. The detached scratch canvas is not
+retained in the result.
+
+Malformed options/text/font/DPR use `INVALID_SCENE`; bad asset IDs, unready fonts,
+invalid metrics or allocation/draw/read failures use `INVALID_ASSET`. Positive
+safe extents beyond caps use `ASSET_LIMIT`; missing browser/font/2D APIs use
+`UNSUPPORTED_FEATURE`. Root import is inert in Node; a call requires a browser.
+The host owns candidate admission and replacement. v1 saves layout/text and
+asset bytes. Cold Open does not rasterize or need the original font; restored
+edits explicitly use the current host font. See
+[consumer/browser-text.html](consumer/browser-text.html). This API does not
+provide multiline text, Unicode, wrapping, per-character carets, font discovery,
+typography parity or performance claims.
