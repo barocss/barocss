@@ -42,3 +42,9 @@ The Playwright module is an external verification tool, not a product dependency
 ## First failures
 
 Evidence/first retains original prototype build output, metadata-edit syntax failure/repair, actual complete compiled invalid-factory identity failure and first source control failure. Initial nested runtime error imports produced a duplicate compiled PhysicsError. A pre-code scope addendum introduced one tiny internal root error bridge, keeping the original build command and maps unchanged. Source reflection errors were separated from internal validator/semantic errors. The first near-unit control incorrectly used w>1; the declared component bound correctly rejected it. Repair that control to an admitted near-unit value without changing any primary31scene, numeric algorithm, tolerance, cap or target. Final clean source/native/browser receipts follow in evidence/receipt.json.
+
+## Executed native result
+
+Clean4c1f7412 affected build, source and emitted-type consumers, full public source206src/0dist and compiled0src/173dist graphs pass31cases/34caller refusals and all28per-case cost trials. Node maximum p95: source1.108208ms, compiled1.113958ms. Actual Chrome155 separate source/compiled graphs both pass31cases/raw/identity/console0; maximump95 about0.8ms, observedclockabout0.1ms. Original25,672LEbytes exactly match selected private reference data; four independent decoder runs pass.
+
+Library source is byte-unchanged after the measured commit. Later changes only retain evidence/docs and move optional tool import before server start. The missing-tool failure exits1 promptly before any server starts; captured expected failure is in evidence/cleanup. All actual normal browser flows closed owned resources. These are named profile CPU query results, not arbitrary32geometry latency or Viewer/controller proof. Numeric/cap64 guards were not triggered by genuine public fixtures.

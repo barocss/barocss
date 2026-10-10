@@ -1,0 +1,7 @@
+{
+  "repair": "Optional tool import moved before server starts; no math/cost change",
+  "expectedMissingToolExit": 1,
+  "actualFastFailure": true,
+  "serverStart": "after successful tool import",
+  "scope": "Invalid tool path only; not a public numeric failure"
+}
