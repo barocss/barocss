@@ -1,22 +1,28 @@
 // @ts-check
 import { createCanvas2D, createDisplayTree, createDisplayTreeFromScene,
-  createSpriteAnimation, createSpriteAtlas, createTicker, stringifySceneJSON } from '@barocss/canvas2d';
-import { serializeCanvasDocument, stageCanvasDocument } from '@barocss/canvas2d/document';
+  createSpriteAnimation, createSpriteAtlas, packSpriteAtlas, createTicker, stringifySceneJSON } from '@barocss/canvas2d';
+import { serializeCanvasDocument, stageCanvasDocument, exportCanvasDocumentPNG } from '@barocss/canvas2d/document';
+
+/** @typedef {{created:number,deleted:number,objects:object[],live:()=>number}} Resource */
+/** @type {{gl:WebGL2RenderingContext,lost:boolean,calls:{draw:number,read:number},resources:Record<string,Resource>}[]} */const contexts=[];
+/** @param {HTMLCanvasElement} canvas */
+function instrument(canvas){const get=canvas.getContext.bind(canvas);canvas.getContext=/** @type {HTMLCanvasElement['getContext']} */((/** @type {string} */kind,/** @type {any} */attrs)=>{const gl=/** @type {WebGL2RenderingContext|null} */(get(/** @type {'webgl2'} */(kind),attrs));if(kind==='webgl2'&&gl&&!contexts.some(c=>c.gl===gl)){const c={gl,lost:false,calls:{draw:0,read:0},resources:/** @type {Record<string,Resource>} */({})};contexts.push(c);canvas.addEventListener('webglcontextlost',()=>{c.lost=true;});for(const [name,create,del,is] of [['shader','createShader','deleteShader','isShader'],['program','createProgram','deleteProgram','isProgram'],['buffer','createBuffer','deleteBuffer','isBuffer'],['vao','createVertexArray','deleteVertexArray','isVertexArray'],['texture','createTexture','deleteTexture','isTexture'],['fbo','createFramebuffer','deleteFramebuffer','isFramebuffer']]){const raw=/** @type {any} */(gl),a=raw[create].bind(gl),b=raw[del].bind(gl),test=raw[is].bind(gl);const r={created:0,deleted:0,objects:/** @type {object[]} */([]),live:()=>r.objects.filter(v=>test(v)).length};c.resources[name]=r;raw[create]=/** @param {...any} args */(...args)=>{const v=a(...args);if(v){r.created++;r.objects.push(v);}return v;};raw[del]=(/** @type {object|null} */v)=>{if(v)r.deleted++;return b(v);};}for(const [name,key] of [['drawArrays','draw'],['readPixels','read']]){const raw=/** @type {any} */(gl),f=raw[name].bind(gl);raw[name]=/** @param {...any} args */(...args)=>{c.calls[/** @type {'draw'|'read'} */(key)]++;return f(...args);};}}return gl;});return canvas;}
 
 /** @type {import('@barocss/canvas2d').Canvas2DOptions} */
 const options = { logicalSize: { width: 100, height: 80 }, dpr: 2 };
 const pose = (/** @type {number} */ x, /** @type {number} */ y) =>
   ({ x, y, scaleX: 1, scaleY: 1, rotation: 0 });
-const atlasImage = { width: 3, height: 1, pixels: new Uint8Array([
+/** @type {import('@barocss/canvas2d').ImageAssetInput} */
+let atlasImage = { width: 3, height: 1, pixels: new Uint8Array([
   255, 0, 0, 255, 0, 0, 255, 255, 0, 255, 0, 0,
 ]) };
-const entries = [
+let entries = [
   { name: 'Red', sourceRect: { x: 0, y: 0, width: 1, height: 1 }, durationMS: 40 },
   { name: 'Blue', sourceRect: { x: 1, y: 0, width: 1, height: 1 }, durationMS: 60 },
   { name: 'Clear', sourceRect: { x: 2, y: 0, width: 1, height: 1 }, durationMS: 20 },
 ];
-const sheet = createSpriteAtlas('Atlas', { width: 3, height: 1 }, entries);
-const frames = sheet.sequence(['Red', 'Blue', 'Clear']);
+let sheet = createSpriteAtlas('Atlas', { width: 3, height: 1 }, entries);
+let frames = sheet.sequence(['Red', 'Blue', 'Clear']);
 let tree = createDisplayTree('SpriteAtlasConsumer');
 let back = tree.createRect({ id: 'Back', layer: 0, transform: pose(10, 10),
   width: 70, height: 60, fill: [1, 1, 0, 1] });
@@ -26,13 +32,14 @@ let sprite = tree.createSprite({ id: 'Sprite', layer: 1, transform: pose(20, 20)
 tree.stage.addChild(back); tree.stage.addChild(sprite);
 /** @type {HTMLCanvasElement} */
 let canvas = /** @type {HTMLCanvasElement} */ (document.querySelector('#scene'));
-let renderer = createCanvas2D(canvas, options);
+let renderer = createCanvas2D(instrument(canvas), options);
 renderer.setImageAsset('Atlas', atlasImage);
 let animation = createSpriteAnimation(sprite, frames);
 /** @type {import('@barocss/canvas2d').Scene} */
 let accepted = tree.snapshot();
 renderer.updateScene(accepted); renderer.render();
-let generation = 1;
+let generation = 1, packCalls=0, disposed=false, binds=0, unbinds=0, pointerEvents=0;
+let packed=false;
 /** @type {string[]} */ let pointerLog = [];
 /** @type {() => void} */ let unbind = () => {};
 const status = /** @type {HTMLElement} */ (document.querySelector('#status'));
@@ -69,7 +76,8 @@ function observe() {
     tickerRunning: ticker.running, imageId: sprite.data.imageId,
     sourceRect: sprite.data.sourceRect ?? null, scene: stringifySceneJSON(accepted),
     treeScene: stringifySceneJSON(tree.snapshot()),
-    samples: samples.map(([x, y]) => ({ x, y, rgba: pixel(x, y),
+    packed,packCalls,disposed,binds,unbinds,pointerEvents,asset: {width:atlasImage.width,height:atlasImage.height,bytes:atlasImage.pixels.length},contexts:contexts.map(c=>({lost:c.lost,calls:{...c.calls},error:c.gl.getError(),resources:Object.fromEntries(Object.entries(c.resources).map(([k,r])=>[k,{created:r.created,deleted:r.deleted,live:r.live()}]))})),
+    samples: disposed ? [] : samples.map(([x, y]) => ({ x, y, rgba: pixel(x, y),
       hit: renderer.hitTest({ x, y })?.id ?? null })), pointerLog: [...pointerLog] };
 }
 /** @param {string} message */
@@ -79,9 +87,10 @@ function subscribe() {
   tree.stage.onPointer('pointerdown', () => pointerLog.push('stage'));
 }
 function bind() {
-  const current = canvas;
+  const current = canvas; binds++; let removed=false;
   /** @param {PointerEvent} event */
   const onPointer = event => {
+    pointerEvents++;
     const bounds = current.getBoundingClientRect();
     const point = { x: (event.clientX - bounds.left) * options.logicalSize.width / bounds.width,
       y: (event.clientY - bounds.top) * options.logicalSize.height / bounds.height };
@@ -90,7 +99,7 @@ function bind() {
     show('Dispatched pointerdown');
   };
   current.addEventListener('pointerdown', onPointer);
-  return () => current.removeEventListener('pointerdown', onPointer);
+  return () => {if(!removed){removed=true;current.removeEventListener('pointerdown', onPointer);unbinds++;}};
 }
 function bindTicker() {
   ticker.onTick(info => {
@@ -118,17 +127,18 @@ async function save() {
 }
 /** @param {string} text */
 async function openText(text) {
-  const fresh = document.createElement('canvas'); fresh.id = 'scene';
+  const fresh = instrument(document.createElement('canvas')); fresh.id = 'scene';
   const staged = await stageCanvasDocument(text, fresh, options);
   /** @type {import('@barocss/canvas2d').DisplayTree} */ let nextTree;
   /** @type {import('@barocss/canvas2d').SpriteHandle} */ let nextSprite;
   /** @type {import('@barocss/canvas2d').RectHandle} */ let nextBack;
   /** @type {import('@barocss/canvas2d').SpriteAnimation} */ let nextAnimation;
+  /** @type {import('@barocss/canvas2d').SpriteAtlas} */ let nextSheet;
   try {
     nextTree = createDisplayTreeFromScene(staged.scene);
     const image = nextTree.get('Sprite'), underlay = nextTree.get('Back');
     if (image?.kind !== 'sprite' || underlay?.kind !== 'rect' ||
-        image.data.imageId !== 'Atlas' || image.data.sourceRect?.x !== 2) {
+        image.data.imageId !== 'Atlas' || JSON.stringify(image.data.sourceRect)!==JSON.stringify(frames[2].sourceRect)) {
       throw new Error('Document does not contain the saved animation frame');
     }
     nextSprite = image; nextBack = underlay;
@@ -137,20 +147,38 @@ async function openText(text) {
         reopened.pixels.some((byte, index) => byte !== atlasImage.pixels[index])) {
       throw new Error('Document atlas bytes differ');
     }
-    const nextSheet = createSpriteAtlas('Atlas', { width: reopened.width, height: reopened.height }, entries);
+    nextSheet = createSpriteAtlas('Atlas', { width: reopened.width, height: reopened.height }, entries);
     nextAnimation = createSpriteAnimation(nextSprite, nextSheet.sequence(['Red', 'Blue', 'Clear']),
       { initialFrameIndex: 2 });
   } catch (error) { staged.renderer.dispose(); throw error; }
   ticker.dispose(); animation.dispose(); unbind();
   const old = renderer;
   canvas.replaceWith(fresh); canvas = fresh; renderer = staged.renderer;
-  tree = nextTree; sprite = nextSprite; back = nextBack; animation = nextAnimation;
+  tree = nextTree; sprite = nextSprite; back = nextBack; animation = nextAnimation; sheet=nextSheet;
   accepted = /** @type {import('@barocss/canvas2d').Scene} */ (staged.scene);
   generation++; pointerLog = []; clockMS = 0; pending = null;
   ticker = createTicker(scheduler); bindTicker(); subscribe(); unbind = bind(); old.dispose();
   show('Opened saved frame 2');
 }
+/** @param {number} width @param {number} height @param {number[]} rgba */
+function solid(width,height,rgba){const pixels=new Uint8Array(width*height*4);for(let i=0;i<pixels.length;i+=4)pixels.set(rgba,i);return {width,height,pixels};}
+function inputs(){return [
+ {name:'Red',asset:solid(3,2,[255,0,0,255]),durationMS:40},
+ {name:'Blue',asset:solid(2,3,[0,0,255,255]),durationMS:60},
+ {name:'Clear',asset:solid(1,2,[0,255,0,0]),durationMS:20},
+ {name:'Gold',asset:solid(4,1,[255,0,255,128]),durationMS:80},
+];}
+/** @param {number} maxWidth */
+function pack(maxWidth=5){if(disposed)throw new Error('consumer disposed');const candidate=packSpriteAtlas('Atlas',inputs(),maxWidth);const nextFrames=candidate.atlas.sequence(['Red','Blue','Clear']);pause();renderer.setImageAsset('Atlas',candidate.asset);animation.dispose();animation=createSpriteAnimation(sprite,nextFrames);atlasImage=candidate.asset;sheet=candidate.atlas;frames=nextFrames;entries=['Red','Blue','Clear','Gold'].map(name=>{const f=sheet.frame(name);if(!f.sourceRect)throw new Error('packed crop missing');return {name,sourceRect:f.sourceRect,durationMS:f.durationMS};});packed=true;packCalls++;(/** @type {HTMLButtonElement} */(document.querySelector('#gold'))).disabled=false;accepted=tree.snapshot();renderer.updateScene(accepted);renderer.render();show('Packed four images into a 5 by 5 atlas');return candidate;}
+async function documentText(){return serializeCanvasDocument(accepted,id=>renderer.getImageAsset(id));}
+function editGold(){pause();const crop=sheet.frame('Gold').sourceRect;if(!crop)throw new Error('Gold crop missing');sprite.setSourceRect(crop);accepted=tree.snapshot();renderer.updateScene(accepted);renderer.render();show('Edited restored Sprite to Gold');}
+async function png(){const text=await documentText(),result=await exportCanvasDocumentPNG(text,options,()=>instrument(document.createElement('canvas'))),url=URL.createObjectURL(result.blob),a=document.createElement('a');a.href=url;a.download='packed-atlas.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return {bytes:result.blob.size,size:result.backingSize};}
+function dispose(){if(disposed)return;ticker.dispose();animation.dispose();unbind();renderer.dispose();disposed=true;document.querySelectorAll('button').forEach(button=>{button.disabled=true;});openInput.disabled=true;show('Disposed');}
 subscribe(); unbind = bind();
+document.querySelector('#pack')?.addEventListener('click',()=>pack());
+document.querySelector('#gold')?.addEventListener('click',editGold);
+document.querySelector('#png')?.addEventListener('click',()=>{void png();});
+document.querySelector('#dispose')?.addEventListener('click',dispose);
 document.querySelector('#start')?.addEventListener('click', start);
 document.querySelector('#tick40')?.addEventListener('click', () => tick(40));
 document.querySelector('#tick60')?.addEventListener('click', () => tick(60));
@@ -162,6 +190,7 @@ openInput.addEventListener('change', () => {
   void file.text().then(openText).catch(error => show(`Open failed: ${error.code ?? 'ERROR'}`));
   openInput.value = '';
 });
-Object.assign(window, { __spriteAtlasConsumer: { observe, start, pause, tick, save, openText,
+Object.assign(window, { __spriteAtlasConsumer: { observe, start, pause, tick, save, openText, pack, inputs, editGold, png, dispose, documentText, contexts,
+  get renderer(){return renderer;}, get tree(){return tree;}, get sprite(){return sprite;}, get catalog(){return sheet;}, get asset(){return atlasImage;},
   get canvas() { return canvas; } } });
 show('Ready at frame 0');

@@ -1,0 +1,586 @@
+{
+  "runtime": "v22.22.0",
+  "module": "compiled-root",
+  "oracle": "independent grouped-row placement and destination-pixel lookup",
+  "comparisons": 36,
+  "randomImages": 32,
+  "fixedSize": {
+    "width": 5,
+    "height": 5,
+    "byteLength": 100
+  },
+  "fixedCrops": [
+    {
+      "x": 0,
+      "y": 0,
+      "width": 3,
+      "height": 2
+    },
+    {
+      "x": 3,
+      "y": 0,
+      "width": 2,
+      "height": 3
+    },
+    {
+      "x": 0,
+      "y": 3,
+      "width": 1,
+      "height": 2
+    },
+    {
+      "x": 1,
+      "y": 3,
+      "width": 4,
+      "height": 1
+    }
+  ],
+  "callerOrder": true,
+  "mixedRowHeights": true,
+  "exactWidthFits": true,
+  "actualOccupiedWidth": true,
+  "transparentPadding": true,
+  "hiddenRGBPreserved": true,
+  "maxSixteenFrames": true,
+  "repeatedAssetsAdmitted": true,
+  "independentCopies": true,
+  "catalogCopies": true,
+  "outerFrozen": true,
+  "getters": 0,
+  "refusals": 105,
+  "refusalAllocations": 0,
+  "exactOneMiBInputOutputAdmitted": true,
+  "maximumAllocations": [
+    1048576,
+    1048576
+  ],
+  "maximumTypedPayload": 2097152,
+  "paddedExactOneMiBOutputAdmitted": true,
+  "refusalCases": [
+    {
+      "name": "image ID undefined",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "image ID null",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "image ID ",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "image ID 1Atlas",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "image ID AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "image ID A B",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "image ID 1",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "maxWidth undefined",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "maxWidth null",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "maxWidth 0",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "maxWidth 0",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "maxWidth -1",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "maxWidth 1.5",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "maxWidth 1025",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "maxWidth NaN",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "maxWidth Infinity",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "maxWidth 4",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "image array",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "image array",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "image array",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "image array",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "image array",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "sparse entries",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "extra array field",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "symbol array field",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "accessor array entry",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "hidden array entry",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "seventeen entries",
+      "code": "ASSET_LIMIT",
+      "allocations": 0
+    },
+    {
+      "name": "frame name undefined",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "frame name null",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "frame name ",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "frame name 1Frame",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "frame name AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "frame name A B",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "frame name 1",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "duration undefined",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "duration null",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "duration 0",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "duration 0",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "duration -1",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "duration 1.5",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "duration 60001",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "duration NaN",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "duration Infinity",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "duration 40",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "duplicate names",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "entry record",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "entry record",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "entry record",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "entry record",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "entry record",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "missing entry name",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "accessor entry name",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "hidden entry name",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "missing entry asset",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "accessor entry asset",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "hidden entry asset",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "missing entry durationMS",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "accessor entry durationMS",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "hidden entry durationMS",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset record",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset record",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset record",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset record",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset record",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "missing asset width",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "accessor asset width",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "hidden asset width",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "missing asset height",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "accessor asset height",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "hidden asset height",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "missing asset pixels",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "accessor asset pixels",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "hidden asset pixels",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset width 0",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset width 1.5",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset width 4097",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset width NaN",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset width Infinity",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset width 1",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset height 0",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset height 1.5",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset height 4097",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset height NaN",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset height Infinity",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "asset height 1",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel type/extent",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel type/extent",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel type/extent",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel type/extent",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel type/extent",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "shared pixel buffer",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel metadata accessor buffer",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel metadata override buffer",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel metadata accessor byteLength",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel metadata override byteLength",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel metadata accessor byteOffset",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel metadata override byteOffset",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel metadata accessor length",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "pixel metadata override length",
+      "code": "INVALID_ASSET",
+      "allocations": 0
+    },
+    {
+      "name": "image wider than shelf",
+      "code": "ASSET_LIMIT",
+      "allocations": 0
+    },
+    {
+      "name": "output height above 1024",
+      "code": "ASSET_LIMIT",
+      "allocations": 0
+    },
+    {
+      "name": "output byte cap from padding",
+      "code": "ASSET_LIMIT",
+      "allocations": 0
+    },
+    {
+      "name": "aggregate input byte cap",
+      "code": "ASSET_LIMIT",
+      "allocations": 0
+    },
+    {
+      "name": "repeated input counts toward cap",
+      "code": "ASSET_LIMIT",
+      "allocations": 0
+    }
+  ]
+}

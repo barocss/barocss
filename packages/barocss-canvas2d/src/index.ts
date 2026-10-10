@@ -36,6 +36,8 @@ export { createSpriteAnimation } from './sprite-animation.js';
 export type { SpriteAnimation, SpriteAnimationFrame, SpriteAnimationOptions } from './sprite-animation.js';
 export { createSpriteAtlas } from './sprite-atlas.js';
 export type { SpriteAtlas, SpriteAtlasEntry } from './sprite-atlas.js';
+export { packSpriteAtlas } from './sprite-atlas-pack.js';
+export type { SpriteAtlasImage, PackedSpriteAtlas } from './sprite-atlas-pack.js';
 export { booleanOrthogonalPolygons } from './boolean.js';
 export type { PolygonContour, PolygonOperand, PolygonOperation, PolygonBooleanResult } from './boolean.js';
 

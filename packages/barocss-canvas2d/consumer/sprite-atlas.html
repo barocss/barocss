@@ -15,10 +15,11 @@
 </head>
 <body>
   <h1>Canvas2D named sprite atlas animation</h1>
-  <p>Manual scheduler steps drive the public ticker and a named atlas catalog and one stable sprite handle.</p>
-  <button id="start">Start</button><button id="tick40">Tick 40 ms</button>
+  <p>Pack four owned RGBA images into one named atlas. Manual scheduler steps drive the public ticker and a named atlas catalog and one stable sprite handle.</p>
+  <button id="pack">Pack images</button><button id="start">Start</button><button id="tick40">Tick 40 ms</button>
   <button id="tick60">Tick 60 ms</button><button id="tick20">Tick 20 ms</button>
   <button id="pause">Pause</button><button id="save">Save document</button>
+  <button id="gold" disabled>Edit restored Gold</button><button id="png">Export PNG</button><button id="dispose">Dispose</button>
   <label for="open">Open document</label><input id="open" type="file" accept="application/json,.json">
   <p id="status" role="status"></p>
   <canvas id="scene" width="200" height="160"></canvas>
