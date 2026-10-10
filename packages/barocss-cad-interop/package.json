@@ -122,6 +122,14 @@
       "./model-set": {
         "types": "./dist/model-set.d.ts",
         "import": "./dist/model-set.js"
+      },
+      "./native-selected-uniform-curve": {
+        "types": "./dist/native-selected-uniform-curve.d.ts",
+        "import": "./dist/native-selected-uniform-curve.js"
+      },
+      "./three-selected-uniform-curve": {
+        "types": "./dist/three-selected-uniform-curve.d.ts",
+        "import": "./dist/three-selected-uniform-curve.js"
       }
     }
   },
@@ -246,9 +254,22 @@
     "./model-set": {
       "types": "./src/model-set.ts",
       "import": "./src/model-set.ts"
+    },
+    "./native-selected-uniform-curve": {
+      "types": "./src/native-selected-uniform-curve.ts",
+      "import": "./src/native-selected-uniform-curve.ts"
+    },
+    "./three-selected-uniform-curve": {
+      "types": "./src/three-selected-uniform-curve.ts",
+      "import": "./src/three-selected-uniform-curve.ts"
     }
   },
-  "files": ["dist", "examples", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "examples",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build:library": "tsc -p tsconfig.json",
     "type-check": "tsc -p tsconfig.json --noEmit",
@@ -270,10 +291,18 @@
     "pixi3d": "2.5.0"
   },
   "peerDependenciesMeta": {
-    "@babylonjs/core": { "optional": true },
-    "three": { "optional": true },
-    "pixi.js": { "optional": true },
-    "pixi3d": { "optional": true }
+    "@babylonjs/core": {
+      "optional": true
+    },
+    "three": {
+      "optional": true
+    },
+    "pixi.js": {
+      "optional": true
+    },
+    "pixi3d": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@babylonjs/core": "9.29.0",
