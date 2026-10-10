@@ -3,8 +3,8 @@
 <style>body{font:14px system-ui;margin:20px;max-width:1000px}button,input{margin:0 8px 12px 0}canvas{display:block;width:320px;height:144px;touch-action:none}pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:400px;overflow:auto}p{max-width:78ch}</style>
 <script type="importmap">{"imports":{"@barocss/canvas2d":"../dist/index.js","@barocss/canvas2d/document":"../dist/document.js"}}</script>
 </head><body><h1>Public browser text</h1><p>The host prepares the font. The public helper returns one whole-label glyph quad and owned RGBA bytes. Save stores those bytes. Open restores the label without preparing the font.</p>
-<button id="numeric">12.5</button><button id="currency">-$20</button><button id="statusLabel">FPS:60</button><button id="hi">HI at DPR 2</button><button id="space">H I at DPR 1.5</button><button id="invalid">Reject invalid font</button><button id="oversize">Reject oversized font</button>
+<button id="multiline">Balance / -$20</button><button id="numeric">12.5</button><button id="currency">-$20</button><button id="statusLabel">FPS:60</button><button id="hi">HI at DPR 2</button><button id="space">H I at DPR 1.5</button><button id="invalid">Reject invalid font</button><button id="oversize">Reject oversized font</button>
 <button id="save">Save document</button><label>Open document <input id="open" type="file" accept=".json,application/json"></label>
-<button id="restored">Rerasterize restored -$20</button><button id="png">Export PNG</button><button id="dispose">Dispose</button>
+<button id="restored">Edit restored label</button><button id="png">Export PNG</button><button id="dispose">Dispose</button>
 <canvas id="scene" width="640" height="288"></canvas><p id="status" role="status"></p><pre id="observation"></pre>
 <script type="module" src="./browser-text.mjs"></script></body></html>
