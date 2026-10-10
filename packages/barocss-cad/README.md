@@ -9266,3 +9266,16 @@ Only the selected knots/control-points/weights array values are canonicalized. T
 Native point and derivative comparisons are local observations. Actual exact-C0 derivative refusals remain explicit null states. Ideal shape-preserving insertion and rounded stored coefficients are separate; this API does not certify global shape error, G1/G2, topology, Solid, manufacturing, display or publication.
 
 The bounded source/API/file/cold/owned/public example is `node examples/cad-nurbs/source-curve-knot-insertion-demo.mjs --source <output-directory>`. Native completion and Integration/consumer acceptance are recorded separately in Issue1353.
+
+
+## Insert a U or V knot in a complete original Surface source
+
+`insertSourceSurfaceKnot({ source, sourceVersion: 0, surfaceId, axis, knot, maximumObservations: 1024 })` inserts one interior knot on the selected original U or V axis. Both degrees are1..5. It reuses the existing native coefficient kernel on each real row or column, reconstructs the complete net and compiles the full candidate Source0. Complete original/candidate Models, sources, supports, actual strip receipts, copied coefficient maps, three AST array patches and native D0/D1 observations remain in the result. `validateSourceSurfaceKnotInsertion(result)` reconstructs from the complete request and compares every retained bit.
+
+The selected axis has at most15 original and16 output poles. The other axis has at most16 poles; the output has at most256. Selected coordinates remain within±10000mm and weights use the existing native positive range. Source262144 UTF16/UTF8, Model16 and native16×16 limits are unchanged. The new complete request/result envelope is4MiB with signed zero and the final newline. Existing620 and Curve1353 profiles stay unchanged.
+
+Only the selected knot array, full control-point net and weights array are canonicalized. Comments inside these replaced ranges refuse; all outside text and the entire other-knot array remain exact. Private temporary strip IDs never become authored Model/source objects and may coincide with an unrelated authored Curve ID. Independent strip weights and homogeneous geometry are retained separately.
+
+The actual schedule has at most992 occurrences within the fixed1024 budget. A native exact-C0 knot on either axis refuses the whole D1 state; both partial comparisons then remain null. All derivative comparison norms must be finite. Local observations and ideal tensor-polynomial identity are separate from rounded stored coefficients; no global shape/error, G1/G2, regularity, topology, Solid, manufacturing, display or publication certification follows.
+
+Run the bounded example with `node examples/cad-nurbs/source-surface-knot-insertion-demo.mjs --source <output-directory>`. Native and Integration/consumer status are recorded separately in Issue1363.

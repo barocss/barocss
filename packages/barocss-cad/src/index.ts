@@ -392,3 +392,6 @@ export type { QualifiedTranslatedStripBodyMeshOptions, QualifiedTranslatedStripB
 
 export { insertSourceCurveKnot, validateSourceCurveKnotInsertion, SourceCurveKnotInsertionError, SourceCurveKnotInsertionDiagnosticCode } from './source-curve-knot-insertion.js';
 export type { SourceCurveKnotInsertionRequest, SourceCurveKnotInsertionPatch, SourceCurveKnotInsertionReport, SourceCurveKnotInsertionResult } from './source-curve-knot-insertion.js';
+
+export { insertSourceSurfaceKnot, validateSourceSurfaceKnotInsertion, SourceSurfaceKnotInsertionError, SourceSurfaceKnotInsertionDiagnosticCode } from './source-surface-knot-insertion.js';
+export type { SourceSurfaceKnotInsertionRequest, SourceSurfaceKnotInsertionPatch, SourceSurfaceKnotInsertionReport, SourceSurfaceKnotInsertionResult } from './source-surface-knot-insertion.js';
