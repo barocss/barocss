@@ -688,3 +688,33 @@ GPU refusal. Dispose clears mixed source/inventory/measurements.
 The bounded example is `examples/viewer-mixed-depth-scene`. A mixed framebuffer
 is derived display; it does not certify native CAD intersection, full SDF
 accuracy, parent topology, Physics, editor persistence or publication.
+
+
+## Independent original Face assets
+
+`loadQualifiedFaceScene(input)` takes `ViewerQualifiedFaceInputV0`: version0,
+`basis: 'authored-xyz-matches-rhyup'`, 2–6 complete `assets`, `countU`,
+`countV`, explicit `camera` and `translateScene`. Each asset has a unique
+`sourceId`, complete original Source0 text, matching native `FaceBundle` and
+RGB color. Public GPU preparation recompiles every original Model0, compares
+its native values with the Face geometry, validates the forward Face and
+tessellates its original Surface. Repeated local Face and Curve IDs remain
+qualified by `sourceId`. This display does not form a global Shell or Solid.
+
+Viewer applies its `mmToSceneUnit` once, followed by scene-unit translation.
+Viewer background applies to this mode. `getState().qualifiedFaceScene`
+returns a copy of the complete accepted scene and all original assets. The
+old primitive inventory is empty. Legacy unqualified native queries refuse
+this mode because local model and geometry IDs can repeat across assets.
+Fit, primitive picking, selection, visibility, motion and simulation or
+material layers also refuse. Callers can inspect each copied asset with
+public CAD APIs under its explicit `sourceId`.
+
+Camera changes and resize check complete GPU transaction results. CPU state
+and URL generation commit after successful presentation. Failed recovery
+retains CPU authority and reports `unavailable`; retained pixels are not
+guaranteed in that status. Clear stages an empty primitive viewport. Actual
+context loss retires the owned backend while the context is lost, retains
+CPU copies and keeps GPU operations blocked after caller restoration.
+Dispose clears the Face scene. The bounded original-file consumer is
+`examples/viewer-qualified-face-scene`.
