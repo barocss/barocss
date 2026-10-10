@@ -1,0 +1,34 @@
+{
+  "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+  "before": {
+    "running": false,
+    "treeNodes": 2,
+    "rendererScene": "{\"version\":0,\"unit\":\"logical-px\",\"contextId\":\"Empty\",\"nodes\":[]}",
+    "hit": null,
+    "requests": 0
+  },
+  "missingAssetCode": "INVALID_ASSET",
+  "inputAndSnapshotCopies": true,
+  "actualNativeRefusal": {
+    "badCode": "INVALID_SCENE",
+    "ctxRequests": 0,
+    "requests": 0
+  },
+  "synchronousSchedulerFailure": {
+    "sameError": true,
+    "made": {
+      "shader": 4,
+      "program": 2,
+      "buffer": 3,
+      "vertexArray": 2
+    },
+    "deleted": {
+      "shader": 4,
+      "program": 2,
+      "buffer": 3,
+      "vertexArray": 2
+    },
+    "remainingListeners": 0,
+    "glError": 0
+  }
+}

@@ -123,3 +123,5 @@ After the compiled package build, open `browser-text.html`. The host waits for i
 ## Browser-font raster text consumer (#1011)
 
 After the compiled package build, open `/packages/barocss-canvas2d/consumer/text-raster.html`. This host prepares a fixed 24px monospace ASCII label with browser font readiness, measured baseline bounds and copied DPR2 RGBA bytes. One public glyph run represents the complete label; spaces remain transparent. An edit uses a fresh candidate canvas/tree/renderer and commits only the newest accepted generation. Failed or late candidates retain the live label. Save stores Scene and RGBA bytes in v1; Open restores pixels without preparing a font, and later edits use the current host font. PNG uses an actual export file. Font metadata, Unicode shaping and per-character caret mapping are outside this consumer.
+
+- [initial-scene.html](initial-scene.html): stopped Application with a copied initialScene, explicit assets/manual admission, restored handles, controlled update schedule, physical Save/Open/fresh canvas, PNG/context restoration and Dispose. See [native execution](evidence/initial-scene/observation.md).

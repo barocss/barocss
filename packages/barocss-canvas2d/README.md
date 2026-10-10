@@ -257,7 +257,7 @@ Bounds conservatively intersect mask and frame AABBs; they do not prove exact cl
 
 ## Owned Application
 
-`createCanvas2DApplication` combines a new renderer, display tree and ticker. Its default state is stopped. Populate the tree and register assets before starting. It does not bind DOM input or own document/file transactions.
+`createCanvas2DApplication` combines a new renderer, display tree and ticker. Its default state is stopped. Populate the tree and register assets before starting. Optional `initialScene` reconstructs a fresh copied owned tree through the existing Scene v6..v27 reconstruction API. Its contextId must match the required options.contextId. Explicit null/undefined and option accessors refuse before renderer/ticker allocation. Absent retains empty-tree behavior. The restored tree is available immediately; renderer admission/render still starts only after the host registers assets and calls render/start. No Scene, document envelope or asset registry is inferred from this option. It does not bind DOM input or own document/file transactions.
 
 ```ts
 import { createCanvas2DApplication } from '@barocss/canvas2d';
@@ -354,3 +354,5 @@ typography parity or performance claims.
 ## Browser-font raster text consumer (#1011)
 
 After the compiled package build, open `/packages/barocss-canvas2d/consumer/text-raster.html`. This host prepares a fixed 24px monospace ASCII label with browser font readiness, measured baseline bounds and copied DPR2 RGBA bytes. One public glyph run represents the complete label; spaces remain transparent. An edit uses a fresh candidate canvas/tree/renderer and commits only the newest accepted generation. Failed or late candidates retain the live label. Save stores Scene and RGBA bytes in v1; Open restores pixels without preparing a font, and later edits use the current host font. PNG uses an actual export file. Font metadata, Unicode shaping and per-character caret mapping are outside this consumer.
+
+The [initial Scene consumer](consumer/initial-scene.html) composes saved Scene values with an owned stopped Application, host asset registration and a fresh-canvas file transaction. See [native evidence](consumer/evidence/initial-scene/observation.md).

@@ -73,6 +73,7 @@
     "nested-mask.mjs",
     "rgb-matrix.mjs",
     "text-raster.mjs",
-    "text-raster-host.mjs"
+    "text-raster-host.mjs",
+    "initial-scene.mjs"
   ]
 }
