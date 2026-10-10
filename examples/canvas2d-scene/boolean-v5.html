@@ -11,11 +11,15 @@
 <button id="union">Union</button><button id="intersection">Intersection</button>
 <button id="difference">Left − right</button><button id="touching">Try touching input</button>
 <button id="save">Save result JSON</button><label>Open result JSON <input id="open" type="file" accept="application/json,.json"></label>
+<button id="open-button" hidden>Open Scene29 JSON</button><button id="edit-restored" hidden>Edit restored operand</button><button id="dispose" hidden>Dispose</button>
 <div id="surface"><canvas></canvas></div><p id="status" role="status">Loading</p>
 <pre id="lineage"></pre>
 <script type="module">
   import { booleanOrthogonalPolygons, createCanvas2D } from '../../packages/barocss-canvas2d/dist/index.js';
-  import { left, right, sceneFromResult } from './boolean-v5.mjs';
+  import { left, right, sceneFromResult, startConvexConsumer } from './boolean-v5.mjs';
+  if (new URLSearchParams(location.search).get('convex') === '1') {
+    await startConvexConsumer();
+  } else {
   const surface = document.querySelector('#surface');
   const status = document.querySelector('#status');
   const lineage = document.querySelector('#lineage');
@@ -78,5 +82,6 @@
     },
   };
   compute('union');
+  }
 </script>
 </html>
