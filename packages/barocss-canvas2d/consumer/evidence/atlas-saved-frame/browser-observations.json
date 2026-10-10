@@ -1,0 +1,1645 @@
+{
+  "status": "FIXTURE_DUPLICATE_UPLOAD",
+  "stages": [
+    {
+      "label": "manualDefaultRed",
+      "generation": 1,
+      "frameIndex": 0,
+      "playing": false,
+      "tickerRunning": false,
+      "imageId": "Atlas",
+      "sourceRect": {
+        "x": 0,
+        "y": 0,
+        "width": 1,
+        "height": 1
+      },
+      "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":1,\"height\":1}}]}",
+      "treeScene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":1,\"height\":1}}]}",
+      "packed": false,
+      "packCalls": 0,
+      "disposed": false,
+      "binds": 1,
+      "unbinds": 0,
+      "pointerEvents": 0,
+      "asset": {
+        "width": 3,
+        "height": 1,
+        "bytes": 12
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 2,
+            "read": 2
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 0,
+              "live": 1
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ],
+      "samples": [
+        {
+          "x": 35,
+          "y": 40,
+          "rgba": [
+            255,
+            0,
+            0,
+            255
+          ],
+          "hit": "Sprite"
+        },
+        {
+          "x": 60,
+          "y": 40,
+          "rgba": [
+            255,
+            0,
+            0,
+            255
+          ],
+          "hit": "Sprite"
+        }
+      ],
+      "pointerLog": []
+    },
+    {
+      "label": "packedRed",
+      "generation": 1,
+      "frameIndex": 0,
+      "playing": false,
+      "tickerRunning": false,
+      "imageId": "Atlas",
+      "sourceRect": {
+        "x": 0,
+        "y": 0,
+        "width": 3,
+        "height": 2
+      },
+      "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":3,\"height\":2}}]}",
+      "treeScene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":3,\"height\":2}}]}",
+      "packed": true,
+      "packCalls": 1,
+      "disposed": false,
+      "binds": 1,
+      "unbinds": 0,
+      "pointerEvents": 0,
+      "asset": {
+        "width": 5,
+        "height": 5,
+        "bytes": 100
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 4,
+            "read": 8
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 2,
+              "deleted": 1,
+              "live": 1
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ],
+      "samples": [
+        {
+          "x": 35,
+          "y": 40,
+          "rgba": [
+            255,
+            0,
+            0,
+            255
+          ],
+          "hit": "Sprite"
+        },
+        {
+          "x": 60,
+          "y": 40,
+          "rgba": [
+            255,
+            0,
+            0,
+            255
+          ],
+          "hit": "Sprite"
+        }
+      ],
+      "pointerLog": []
+    },
+    {
+      "label": "goldBeforeSave",
+      "generation": 1,
+      "frameIndex": 0,
+      "playing": false,
+      "tickerRunning": false,
+      "imageId": "Atlas",
+      "sourceRect": {
+        "x": 1,
+        "y": 3,
+        "width": 4,
+        "height": 1
+      },
+      "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":1,\"y\":3,\"width\":4,\"height\":1}}]}",
+      "treeScene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":1,\"y\":3,\"width\":4,\"height\":1}}]}",
+      "packed": true,
+      "packCalls": 1,
+      "disposed": false,
+      "binds": 1,
+      "unbinds": 0,
+      "pointerEvents": 0,
+      "asset": {
+        "width": 5,
+        "height": 5,
+        "bytes": 100
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 6,
+            "read": 14
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 2,
+              "deleted": 1,
+              "live": 1
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ],
+      "samples": [
+        {
+          "x": 35,
+          "y": 40,
+          "rgba": [
+            255,
+            127,
+            128,
+            255
+          ],
+          "hit": "Sprite"
+        },
+        {
+          "x": 60,
+          "y": 40,
+          "rgba": [
+            255,
+            127,
+            128,
+            255
+          ],
+          "hit": "Sprite"
+        }
+      ],
+      "pointerLog": []
+    },
+    {
+      "label": "savedGoldScene29",
+      "generation": 1,
+      "frameIndex": 0,
+      "playing": false,
+      "tickerRunning": false,
+      "imageId": "Atlas",
+      "sourceRect": {
+        "x": 1,
+        "y": 3,
+        "width": 4,
+        "height": 1
+      },
+      "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":1,\"y\":3,\"width\":4,\"height\":1}}]}",
+      "treeScene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":1,\"y\":3,\"width\":4,\"height\":1}}]}",
+      "packed": true,
+      "packCalls": 1,
+      "disposed": false,
+      "binds": 1,
+      "unbinds": 0,
+      "pointerEvents": 0,
+      "asset": {
+        "width": 5,
+        "height": 5,
+        "bytes": 100
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 6,
+            "read": 19
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 2,
+              "deleted": 1,
+              "live": 1
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ],
+      "samples": [
+        {
+          "x": 35,
+          "y": 40,
+          "rgba": [
+            255,
+            127,
+            128,
+            255
+          ],
+          "hit": "Sprite"
+        },
+        {
+          "x": 60,
+          "y": 40,
+          "rgba": [
+            255,
+            127,
+            128,
+            255
+          ],
+          "hit": "Sprite"
+        }
+      ],
+      "pointerLog": []
+    },
+    {
+      "label": "physicalOneOpenGold",
+      "generation": 2,
+      "frameIndex": 3,
+      "playing": false,
+      "tickerRunning": false,
+      "imageId": "Atlas",
+      "sourceRect": {
+        "x": 1,
+        "y": 3,
+        "width": 4,
+        "height": 1
+      },
+      "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":1,\"y\":3,\"width\":4,\"height\":1}}]}",
+      "treeScene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":1,\"y\":3,\"width\":4,\"height\":1}}]}",
+      "packed": true,
+      "packCalls": 1,
+      "disposed": false,
+      "binds": 2,
+      "unbinds": 1,
+      "pointerEvents": 0,
+      "asset": {
+        "width": 5,
+        "height": 5,
+        "bytes": 100
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 6,
+            "read": 21
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 2,
+            "read": 4
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 0,
+              "live": 1
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ],
+      "samples": [
+        {
+          "x": 35,
+          "y": 40,
+          "rgba": [
+            255,
+            127,
+            128,
+            255
+          ],
+          "hit": "Sprite"
+        },
+        {
+          "x": 60,
+          "y": 40,
+          "rgba": [
+            255,
+            127,
+            128,
+            255
+          ],
+          "hit": "Sprite"
+        }
+      ],
+      "pointerLog": []
+    },
+    {
+      "label": "unknownCropRefusedRetainedGold",
+      "generation": 2,
+      "frameIndex": 3,
+      "playing": false,
+      "tickerRunning": false,
+      "imageId": "Atlas",
+      "sourceRect": {
+        "x": 1,
+        "y": 3,
+        "width": 4,
+        "height": 1
+      },
+      "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":1,\"y\":3,\"width\":4,\"height\":1}}]}",
+      "treeScene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":1,\"y\":3,\"width\":4,\"height\":1}}]}",
+      "packed": true,
+      "packCalls": 1,
+      "disposed": false,
+      "binds": 2,
+      "unbinds": 1,
+      "pointerEvents": 0,
+      "asset": {
+        "width": 5,
+        "height": 5,
+        "bytes": 100
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 6,
+            "read": 21
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 2,
+            "read": 8
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 0,
+              "live": 1
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 2,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ],
+      "samples": [
+        {
+          "x": 35,
+          "y": 40,
+          "rgba": [
+            255,
+            127,
+            128,
+            255
+          ],
+          "hit": "Sprite"
+        },
+        {
+          "x": 60,
+          "y": 40,
+          "rgba": [
+            255,
+            127,
+            128,
+            255
+          ],
+          "hit": "Sprite"
+        }
+      ],
+      "pointerLog": []
+    },
+    {
+      "label": "startFirstDeltaZeroGold",
+      "generation": 2,
+      "frameIndex": 3,
+      "playing": true,
+      "tickerRunning": true,
+      "imageId": "Atlas",
+      "sourceRect": {
+        "x": 1,
+        "y": 3,
+        "width": 4,
+        "height": 1
+      },
+      "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":1,\"y\":3,\"width\":4,\"height\":1}}]}",
+      "treeScene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":1,\"y\":3,\"width\":4,\"height\":1}}]}",
+      "packed": true,
+      "packCalls": 1,
+      "disposed": false,
+      "binds": 2,
+      "unbinds": 1,
+      "pointerEvents": 0,
+      "asset": {
+        "width": 5,
+        "height": 5,
+        "bytes": 100
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 6,
+            "read": 21
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 2,
+            "read": 15
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 0,
+              "live": 1
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 2,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ],
+      "samples": [
+        {
+          "x": 35,
+          "y": 40,
+          "rgba": [
+            255,
+            127,
+            128,
+            255
+          ],
+          "hit": "Sprite"
+        },
+        {
+          "x": 60,
+          "y": 40,
+          "rgba": [
+            255,
+            127,
+            128,
+            255
+          ],
+          "hit": "Sprite"
+        }
+      ],
+      "pointerLog": []
+    },
+    {
+      "label": "tick80WrapRed",
+      "generation": 2,
+      "frameIndex": 0,
+      "playing": true,
+      "tickerRunning": true,
+      "imageId": "Atlas",
+      "sourceRect": {
+        "x": 0,
+        "y": 0,
+        "width": 3,
+        "height": 2
+      },
+      "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":3,\"height\":2}}]}",
+      "treeScene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":3,\"height\":2}}]}",
+      "packed": true,
+      "packCalls": 1,
+      "disposed": false,
+      "binds": 2,
+      "unbinds": 1,
+      "pointerEvents": 0,
+      "asset": {
+        "width": 5,
+        "height": 5,
+        "bytes": 100
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 6,
+            "read": 21
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 4,
+            "read": 20
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 0,
+              "live": 1
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 2,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ],
+      "samples": [
+        {
+          "x": 35,
+          "y": 40,
+          "rgba": [
+            255,
+            0,
+            0,
+            255
+          ],
+          "hit": "Sprite"
+        },
+        {
+          "x": 60,
+          "y": 40,
+          "rgba": [
+            255,
+            0,
+            0,
+            255
+          ],
+          "hit": "Sprite"
+        }
+      ],
+      "pointerLog": []
+    },
+    {
+      "label": "realSpriteThenBackPointers",
+      "generation": 2,
+      "frameIndex": 0,
+      "playing": true,
+      "tickerRunning": true,
+      "imageId": "Atlas",
+      "sourceRect": {
+        "x": 0,
+        "y": 0,
+        "width": 3,
+        "height": 2
+      },
+      "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":3,\"height\":2}}]}",
+      "treeScene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":3,\"height\":2}}]}",
+      "packed": true,
+      "packCalls": 1,
+      "disposed": false,
+      "binds": 2,
+      "unbinds": 1,
+      "pointerEvents": 2,
+      "asset": {
+        "width": 5,
+        "height": 5,
+        "bytes": 100
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 6,
+            "read": 21
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 4,
+            "read": 27
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 4
+            },
+            "program": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 0,
+              "live": 3
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 0,
+              "live": 2
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 0,
+              "live": 1
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 2,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ],
+      "samples": [
+        {
+          "x": 35,
+          "y": 40,
+          "rgba": [
+            255,
+            0,
+            0,
+            255
+          ],
+          "hit": "Sprite"
+        },
+        {
+          "x": 60,
+          "y": 40,
+          "rgba": [
+            255,
+            0,
+            0,
+            255
+          ],
+          "hit": "Sprite"
+        }
+      ],
+      "pointerLog": [
+        "Sprite",
+        "stage",
+        "stage"
+      ]
+    },
+    {
+      "label": "disposeLatePointer",
+      "generation": 2,
+      "frameIndex": 0,
+      "playing": false,
+      "tickerRunning": false,
+      "imageId": "Atlas",
+      "sourceRect": {
+        "x": 0,
+        "y": 0,
+        "width": 3,
+        "height": 2
+      },
+      "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":3,\"height\":2}}]}",
+      "treeScene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":3,\"height\":2}}]}",
+      "packed": true,
+      "packCalls": 1,
+      "disposed": true,
+      "binds": 2,
+      "unbinds": 2,
+      "pointerEvents": 2,
+      "asset": {
+        "width": 5,
+        "height": 5,
+        "bytes": 100
+      },
+      "contexts": [
+        {
+          "lost": false,
+          "calls": {
+            "draw": 6,
+            "read": 21
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 4,
+            "read": 29
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "lost": false,
+          "calls": {
+            "draw": 2,
+            "read": 0
+          },
+          "error": 0,
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 1,
+              "deleted": 1,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ],
+      "samples": [],
+      "pointerLog": [
+        "Sprite",
+        "stage",
+        "stage"
+      ]
+    }
+  ],
+  "final": {
+    "generation": 3,
+    "frameIndex": 3,
+    "playing": false,
+    "tickerRunning": false,
+    "imageId": "Atlas",
+    "sourceRect": {
+      "x": 1,
+      "y": 3,
+      "width": 4,
+      "height": 1
+    },
+    "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":1,\"y\":3,\"width\":4,\"height\":1}}]}",
+    "treeScene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SpriteAtlasConsumer\",\"nodes\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":10,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":70,\"height\":60,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":50,\"height\":50,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":1,\"y\":3,\"width\":4,\"height\":1}}]}",
+    "packed": true,
+    "packCalls": 1,
+    "disposed": true,
+    "binds": 3,
+    "unbinds": 2,
+    "pointerEvents": 2,
+    "asset": {
+      "width": 5,
+      "height": 5,
+      "bytes": 100
+    },
+    "contexts": [
+      {
+        "lost": false,
+        "calls": {
+          "draw": 6,
+          "read": 21
+        },
+        "error": 0,
+        "resources": {
+          "shader": {
+            "created": 4,
+            "deleted": 4,
+            "live": 0
+          },
+          "program": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "buffer": {
+            "created": 3,
+            "deleted": 3,
+            "live": 0
+          },
+          "vao": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "texture": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "fbo": {
+            "created": 0,
+            "deleted": 0,
+            "live": 0
+          }
+        }
+      },
+      {
+        "lost": false,
+        "calls": {
+          "draw": 4,
+          "read": 29
+        },
+        "error": 0,
+        "resources": {
+          "shader": {
+            "created": 4,
+            "deleted": 4,
+            "live": 0
+          },
+          "program": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "buffer": {
+            "created": 3,
+            "deleted": 3,
+            "live": 0
+          },
+          "vao": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "texture": {
+            "created": 1,
+            "deleted": 1,
+            "live": 0
+          },
+          "fbo": {
+            "created": 0,
+            "deleted": 0,
+            "live": 0
+          }
+        }
+      },
+      {
+        "lost": false,
+        "calls": {
+          "draw": 2,
+          "read": 0
+        },
+        "error": 0,
+        "resources": {
+          "shader": {
+            "created": 4,
+            "deleted": 4,
+            "live": 0
+          },
+          "program": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "buffer": {
+            "created": 3,
+            "deleted": 3,
+            "live": 0
+          },
+          "vao": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "texture": {
+            "created": 1,
+            "deleted": 1,
+            "live": 0
+          },
+          "fbo": {
+            "created": 0,
+            "deleted": 0,
+            "live": 0
+          }
+        }
+      },
+      {
+        "lost": false,
+        "calls": {
+          "draw": 2,
+          "read": 0
+        },
+        "error": 0,
+        "resources": {
+          "shader": {
+            "created": 4,
+            "deleted": 4,
+            "live": 0
+          },
+          "program": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "buffer": {
+            "created": 3,
+            "deleted": 3,
+            "live": 0
+          },
+          "vao": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "texture": {
+            "created": 1,
+            "deleted": 1,
+            "live": 0
+          },
+          "fbo": {
+            "created": 0,
+            "deleted": 0,
+            "live": 0
+          }
+        }
+      }
+    ],
+    "samples": [],
+    "pointerLog": []
+  },
+  "allNativeContexts": 4,
+  "errors": [],
+  "rejections": [],
+  "goldFramebuffer": {
+    "comparedBytes": 128000,
+    "tolerance": 2,
+    "maximumDifference": 0
+  },
+  "redFramebuffer": {
+    "comparedBytes": 128000,
+    "tolerance": 2,
+    "maximumDifference": 0
+  },
+  "unknownCrop": {
+    "validCrop": {
+      "x": 0,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    "contextCountBefore": 2,
+    "refusal": {
+      "name": "Error",
+      "code": null,
+      "message": "Document does not contain the saved animation frame"
+    },
+    "contextCountAfter": 3,
+    "retained": true,
+    "candidateDisposed": true
+  },
+  "savedText": "{\"format\":\"barocss-canvas-document\",\"version\":1,\"scene\":\"{\\\"version\\\":29,\\\"unit\\\":\\\"logical-px\\\",\\\"contextId\\\":\\\"SpriteAtlasConsumer\\\",\\\"nodes\\\":[{\\\"kind\\\":\\\"rect\\\",\\\"id\\\":\\\"Back\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":10,\\\"y\\\":10,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"width\\\":70,\\\"height\\\":60,\\\"fill\\\":[1,1,0,1]},{\\\"kind\\\":\\\"image\\\",\\\"id\\\":\\\"Sprite\\\",\\\"layer\\\":1,\\\"transform\\\":{\\\"x\\\":20,\\\"y\\\":20,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"imageId\\\":\\\"Atlas\\\",\\\"width\\\":50,\\\"height\\\":50,\\\"opacity\\\":1,\\\"sampling\\\":\\\"nearest\\\",\\\"anchorX\\\":0,\\\"anchorY\\\":0,\\\"tint\\\":[1,1,1],\\\"blendMode\\\":\\\"normal\\\",\\\"sourceRect\\\":{\\\"x\\\":1,\\\"y\\\":3,\\\"width\\\":4,\\\"height\\\":1}}]}\",\"assets\":[{\"id\":\"Atlas\",\"width\":5,\"height\":5,\"byteLength\":100,\"sha256\":\"8afaec87d39665abbd8df496780b535e99a143b9a6862ecace1e695750c231d3\",\"pixelsBase64\":\"/wAA//8AAP//AAD/AAD//wAA////AAD//wAA//8AAP8AAP//AAD//wAAAAAAAAAAAAAAAAAA//8AAP//AP8AAP8A/4D/AP+A/wD/gP8A/4AA/wAAAAAAAAAAAAAAAAAAAAAAAA==\"}]}",
+  "saveDownloads": 1,
+  "physicalChoosers": 1,
+  "acceptedUploads": 2,
+  "fixtureFailure": "Initial run-code continued after modal return and setFiles; one subsequent CLI upload caused a second accepted Open after initial Dispose.",
+  "extraRendererCleanup": "Public pause then current renderer.dispose; fourth context all resources deleted; late-added pointer binding has no public unbind and browser closure ends it.",
+  "firstAcceptedFlowProductSourcesUnchanged": true,
+  "frozenParent": "934d7f03f7195b0523bb8d965081583c17d70e3a",
+  "sourceSHA256BeforeAfter": {
+    "packages/barocss-canvas2d/consumer/sprite-atlas.mjs": "a0de4dbce11140e672aea957d06e58e42f731de3f6364fb5afccd90184976d96",
+    "packages/barocss-canvas2d/consumer/README.md": "1cc923fc2da55324417f480426e5e94fbb478f58ea758bcf251bd96e09810324",
+    "packages/barocss-canvas2d/src/index.ts": "4afae41719bcbc1d8876a886ddc25cbccfc8fb81faa8c229f61f3fbda5eaa353"
+  },
+  "sourceChangedAfterFirstAcceptedFlow": false,
+  "fullCLIConsole": {
+    "errors": 0,
+    "warnings": 4,
+    "detail": "Four native ReadPixels GPU stall warnings"
+  },
+  "firstOperationalFailures": [
+    "Host initial build missing dependencies; root fixed only ignored dependency link before GO.",
+    "Focused probe initial esbuild module lookup missing dependency before assertions; corrected before GO.",
+    "Browser initial run-code returned at filechooser modal while async code remained alive; I failed to check async state before CLI upload, causing second accepted Open after first complete disposal."
+  ],
+  "allFourGLResourceCleanupVerified": true,
+  "allHostBindingControllerCleanupVerified": false,
+  "remainingBinding": {
+    "binds": 3,
+    "unbinds": 2,
+    "lateAdded": 1,
+    "externalListenerInstrumentation": false,
+    "publicControllerPauseSucceeded": true,
+    "publicControllerDisposeUnavailable": true,
+    "hostDisposeEarlyReturnsDueToDisposedFlag": true
+  },
+  "currentComposedRootAcceptance": "UNRUN;1254/674",
+  "recoveryDecision": "Root: no replay/new flow; retain original generation2 acceptance and unexpected second-upload addendum.",
+  "browserClosed": true,
+  "serverClosed": true,
+  "lateBindingTermination": "Browser/page closure ended its runtime. No public API unbind was observed for the late binding.",
+  "wholeAggregateFlowPassed": false,
+  "originalGeneration2AcceptanceRecorded": true,
+  "rawFirstAttemptLog": "/tmp/c2d1296-phase1.log",
+  "rawFinalStateLog": "/tmp/c2d1296-initial-state.log",
+  "driverEvidenceCorrection": "Final browser-flow.js splits Save (phase1), physical chooser/CLI upload, and continuation (phase2). Initial executed phase1 included chooser.setFiles and continued after modal return. Corrected split was NOT replayed.",
+  "artifactHashes": {
+    "saved-document.json": {
+      "bytes": 1054,
+      "sha256": "c00e318d8ee4d56d6082d5bc037197d3032184d4cc774939f2d0d5928316bb09"
+    },
+    "screenshot.png": {
+      "bytes": 398744,
+      "sha256": "18652debc25703890b1eaac8302a779e9adc175122e76dbf57c5ff901813ce2b"
+    }
+  }
+}

@@ -125,6 +125,25 @@ async function save() {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   show(`Saved ${new TextEncoder().encode(text).length} bytes`);
 }
+/** @param {import('@barocss/canvas2d').SpriteAtlas} catalog
+ * @param {import('@barocss/canvas2d').SourceRect|null|undefined} crop
+ * @param {boolean} hasGold */
+function selectSavedAtlasFrame(catalog, crop, hasGold) {
+  const frames = catalog.sequence(['Red', 'Blue', 'Clear']);
+  /** @param {import('@barocss/canvas2d').SpriteAnimationFrame} frame */
+  const matches = frame => {
+    const source = frame.sourceRect;
+    return !!source && !!crop && source.x === crop.x && source.y === crop.y &&
+      source.width === crop.width && source.height === crop.height;
+  };
+  const initialFrameIndex = frames.findIndex(matches);
+  if (initialFrameIndex >= 0) return { frames, initialFrameIndex };
+  if (hasGold) {
+    const gold = catalog.frame('Gold');
+    if (matches(gold)) return { frames: [...frames, gold], initialFrameIndex: 3 };
+  }
+  throw new Error('Document does not contain the saved animation frame');
+}
 /** @param {string} text */
 async function openText(text) {
   const fresh = instrument(document.createElement('canvas')); fresh.id = 'scene';
@@ -134,11 +153,12 @@ async function openText(text) {
   /** @type {import('@barocss/canvas2d').RectHandle} */ let nextBack;
   /** @type {import('@barocss/canvas2d').SpriteAnimation} */ let nextAnimation;
   /** @type {import('@barocss/canvas2d').SpriteAtlas} */ let nextSheet;
+  let nextInitialFrameIndex = 0;
   try {
     nextTree = createDisplayTreeFromScene(staged.scene);
     const image = nextTree.get('Sprite'), underlay = nextTree.get('Back');
     if (image?.kind !== 'sprite' || underlay?.kind !== 'rect' ||
-        image.data.imageId !== 'Atlas' || JSON.stringify(image.data.sourceRect)!==JSON.stringify(frames[2].sourceRect)) {
+        image.data.imageId !== 'Atlas') {
       throw new Error('Document does not contain the saved animation frame');
     }
     nextSprite = image; nextBack = underlay;
@@ -148,8 +168,11 @@ async function openText(text) {
       throw new Error('Document atlas bytes differ');
     }
     nextSheet = createSpriteAtlas('Atlas', { width: reopened.width, height: reopened.height }, entries);
-    nextAnimation = createSpriteAnimation(nextSprite, nextSheet.sequence(['Red', 'Blue', 'Clear']),
-      { initialFrameIndex: 2 });
+    const selected = selectSavedAtlasFrame(nextSheet, nextSprite.data.sourceRect,
+      entries.some(entry => entry.name === 'Gold'));
+    nextInitialFrameIndex = selected.initialFrameIndex;
+    nextAnimation = createSpriteAnimation(nextSprite, selected.frames,
+      { initialFrameIndex: selected.initialFrameIndex });
   } catch (error) { staged.renderer.dispose(); throw error; }
   ticker.dispose(); animation.dispose(); unbind();
   const old = renderer;
@@ -158,7 +181,7 @@ async function openText(text) {
   accepted = /** @type {import('@barocss/canvas2d').Scene} */ (staged.scene);
   generation++; pointerLog = []; clockMS = 0; pending = null;
   ticker = createTicker(scheduler); bindTicker(); subscribe(); unbind = bind(); old.dispose();
-  show('Opened saved frame 2');
+  show(`Opened saved frame ${nextInitialFrameIndex}`);
 }
 /** @param {number} width @param {number} height @param {number[]} rgba */
 function solid(width,height,rgba){const pixels=new Uint8Array(width*height*4);for(let i=0;i<pixels.length;i+=4)pixels.set(rgba,i);return {width,height,pixels};}
