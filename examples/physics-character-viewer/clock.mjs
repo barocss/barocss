@@ -36,11 +36,13 @@ export function createPlaybackClock({ step, onProgress = () => {}, onError = () 
     }
     try {
       while (playing && debt >= DT && record.steps < MAX_STEPS_PER_RAF && cursor < STEPS) {
+        const fullHostStart = performance.now();
         const result = step();
         cursor = result.stepIndex; acceptedSteps++; record.steps++; submissions++; twinSteps += result.twinSteps;
-        solverSamplesMs.push(result.solverMs); submitSamplesMs.push(result.submitMs); hostSamplesMs.push(result.hostMs);
+        solverSamplesMs.push(result.solverMs); submitSamplesMs.push(result.submitMs);
         debt -= DT;
         onProgress({ result, stats: stats() });
+        hostSamplesMs.push(performance.now() - fullHostStart);
       }
       record.debtAfterSeconds = debt;
       if (cursor >= STEPS) { stop('complete'); return; }

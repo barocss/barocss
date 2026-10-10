@@ -1,0 +1,9 @@
+@model terrain_box_2 {
+  version:0; length-unit:mm;
+  @surface #box_2_face_0 { type:nurbs; degree-u:1; degree-v:1; knots-u:[0,0,1,1]; knots-v:[0,0,1,1]; control-points:[[[3000,1055,-1000],[3000,1055,1000]],[[3000,1155,-1000],[3000,1155,1000]]]; weights:[[1,1],[1,1]]; }
+  @surface #box_2_face_1 { type:nurbs; degree-u:1; degree-v:1; knots-u:[0,0,1,1]; knots-v:[0,0,1,1]; control-points:[[[-3000,1055,-1000],[-3000,1155,-1000]],[[-3000,1055,1000],[-3000,1155,1000]]]; weights:[[1,1],[1,1]]; }
+  @surface #box_2_face_2 { type:nurbs; degree-u:1; degree-v:1; knots-u:[0,0,1,1]; knots-v:[0,0,1,1]; control-points:[[[-3000,1155,-1000],[3000,1155,-1000]],[[-3000,1155,1000],[3000,1155,1000]]]; weights:[[1,1],[1,1]]; }
+  @surface #box_2_face_3 { type:nurbs; degree-u:1; degree-v:1; knots-u:[0,0,1,1]; knots-v:[0,0,1,1]; control-points:[[[-3000,1055,-1000],[-3000,1055,1000]],[[3000,1055,-1000],[3000,1055,1000]]]; weights:[[1,1],[1,1]]; }
+  @surface #box_2_face_4 { type:nurbs; degree-u:1; degree-v:1; knots-u:[0,0,1,1]; knots-v:[0,0,1,1]; control-points:[[[-3000,1055,1000],[-3000,1155,1000]],[[3000,1055,1000],[3000,1155,1000]]]; weights:[[1,1],[1,1]]; }
+  @surface #box_2_face_5 { type:nurbs; degree-u:1; degree-v:1; knots-u:[0,0,1,1]; knots-v:[0,0,1,1]; control-points:[[[-3000,1055,-1000],[3000,1055,-1000]],[[-3000,1155,-1000],[3000,1155,-1000]]]; weights:[[1,1],[1,1]]; }
+}

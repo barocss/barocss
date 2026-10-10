@@ -1,4 +1,5 @@
 import {createViewer} from '@barocss/viewer';
+import authored from './authored-sources.json';
 import {CASES} from './fixture.mjs';
 import {createCapsulePacket} from './capsule-mesh.mjs';
 import {createTerrain} from './terrain.mjs';
@@ -13,7 +14,7 @@ let viewer=null,controller=null,clock=null,fixture=null,terrain=null,packets=nul
 window.characterHostReady=false;
 function status(t){el('status').textContent=t;}
 function controls(){const s=disposed?null:controller?.getSnapshot(),playing=clock?.getStats().playing??false;for(const [id,b]of Object.entries(buttons))b.disabled=disposed||busy||(id==='reset'?lost&&!restored:!s||lost||s.needsReset||(id==='pause'?!playing:id==='play'?playing||s.state.stepIndex>=240:playing||s.state.stepIndex>=240));select.disabled=busy||disposed||lost||playing;}
-function render(){if(disposed)return;const s=controller?.getSnapshot();el('step').textContent=s?s.state.stepIndex+' / 240':'받은 상태 없음';el('display-step').textContent=s?.displayStep===null?'표시 확인 필요':s?String(s.displayStep):'—';el('time').textContent=s?s.state.timeSeconds.toFixed(3)+' s':'—';el('position').textContent=s?s.state.positionM.map(x=>x.toFixed(4)).join(', '):'—';el('support').textContent=s?.state.support?.bodyId??'—';el('blocked').textContent=s?(s.state.blocked?'제한됨':'제한 없음'):'—';controls();}
+function render(){if(disposed)return;const s=controller?.getSnapshot();el('step').textContent=s?s.state.stepIndex+' / 240':'받은 상태 없음';el('display-step').textContent=s?.displayStep===null?'표시 확인 필요':s?String(s.displayStep):'—';el('time').textContent=s?s.state.timeSeconds.toFixed(3)+' s':'—';el('position').textContent=s?s.state.positionM.map(x=>x.toFixed(4)).join(', '):'—';el('grounded').textContent=s?(s.state.grounded?'지지됨':'공중'):'—';el('tilt').textContent=s?(Math.acos(Math.max(-1,Math.min(1,1-2*(s.state.orientationXYZW[0]**2+s.state.orientationXYZW[2]**2))))*180/Math.PI).toFixed(3)+'°':'—';const speed=fixture?Math.hypot(...fixture.requestMps):0;el('progress').textContent=s?(speed?s.state.positionM.reduce((sum,v,i)=>sum+(v-fixture.positionM[i])*fixture.requestMps[i]/speed,0):0).toFixed(4)+' m':'—';el('support').textContent=s?.state.support?.bodyId??'—';el('blocked').textContent=s?(s.state.blocked?'제한됨':'제한 없음'):'—';controls();}
 function error(e){lastError={name:e.name,code:e.code??null,message:e.message};const s=controller?.getSnapshot();status(s?.needsReset?'계산과 화면의 단계가 다릅니다. 초기화하세요.':'단계를 유지했습니다: '+e.message);render();}
 function stop({reason}){if(reason==='complete')status('240단계 완료 · 초기화하면 다시 재생할 수 있습니다.');else if(reason==='paused')status('일시 정지');else if(reason==='debt-overflow'||reason==='raf-step-limit')status('재생 지연이 한도를 넘었습니다. 일시 정지했습니다.');render();}
 function makeViewer(){return createViewer(canvas,{mmToSceneUnit:.001,background:[.025,.04,.06],lighting:{ambientStrength:.4,directionalStrength:.6,direction:[.3,1,.4]}});}
@@ -23,7 +24,7 @@ async function reset(name=select.value){
  const oldController=controller,oldViewer=viewer;let nextViewer=null,nextController=null,presentationAttempted=false,committed=false;
  try{
  const nextFixture=CASES.find(f=>f.name===name);if(!nextFixture)throw new Error('Unknown fixture');
- const nextTerrain=createTerrain(nextFixture),nextPackets=[createCapsulePacket(),...nextTerrain.packets];
+ const nextTerrain=createTerrain(nextFixture);if(nextTerrain.sources.some((source,i)=>source.source!==authored[nextFixture.name][i].source))throw new Error('Authored source changed');const nextPackets=[createCapsulePacket(),...nextTerrain.packets];
  nextViewer=lost||!viewer?makeViewer():viewer;
  try{nextController=createHostController(nextViewer,nextFixture,nextPackets,{onPresent:()=>{presentationAttempted=true;}});}
  catch(e){if(!nextFixture.expectedError||e.code!==nextFixture.expectedError)throw e;
