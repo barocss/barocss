@@ -1,0 +1,10 @@
+{
+  "apiToGuide": true,
+  "cliCommand": true,
+  "twoPublicSignatures": true,
+  "profileSeparated": true,
+  "examplesToGuide": true,
+  "errors": [],
+  "warnings": [],
+  "url": "http://127.0.0.1:52948/packages/cad/body-1301"
+}

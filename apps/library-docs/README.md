@@ -52,3 +52,9 @@ node apps/library-docs/scripts/run-example.mjs apps/library-docs/scripts/snippet
 ```
 
 The runner accepts a source-capable consumer file; it executes that file. Browser-only APIs require a real browser host. Render remains dist-default and is not remapped to source by this runner. Source probe, browser pixels, emitted acceptance, integration and publication retain separate receipts.
+
+## Separate CAD1301 Body profile
+
+`node apps/library-docs/scripts/run-cad-body-1301.mjs [--input <complete-request.json>]` runs a versioned compiled-public Body API from provider `ded1ef68`/native `51821d21`. Its complete original input is bundled under `samples/cad-1301`; the app-private runtime container preserves179JS/179declarations, the original manifest and MIT license. The loader verifies hashes and materializes the actual publishConfig public root in an isolated ignored cache. No install, donor/source rebuild, alias or workspace module-link replacement is needed. This cache package is not a registry publication.
+
+The guide `/packages/cad/body-1301` explains complete parents, IDs, units, ownership/refusals, exact volume and restricted material proof. The old5f inventory/reference/runner/livegallery remain unchanged. CLI bytes/input preservation and selected public builder/validator execution have separate evidence; currentRoot/emitted/registry/renderer/generalSolid/manufacturing acceptance is not inferred. The runtime container is documentation infrastructure, not a CAD file codec.
