@@ -3690,3 +3690,30 @@ Source and emitted package validation are separate from publication.
 
 This optional entry adds no URL loader or byte transport.
 Examples require Node.js 22.
+
+## Complete source Surface knot insertion receipt
+
+Use the optional `@barocss/cad-interop/source-surface-knot-insertion` entry:
+
+```ts
+import {
+  parseBaroCadSourceSurfaceKnotInsertion,
+  readBaroCadSourceSurfaceKnotInsertion,
+} from '@barocss/cad-interop/source-surface-knot-insertion';
+
+const saved = parseBaroCadSourceSurfaceKnotInsertion(jsonText);
+const copied = readBaroCadSourceSurfaceKnotInsertion(saved.native);
+```
+
+Both functions keep the complete eight-field native result and a separate
+whole-validation report. Each eligible read validates the whole result once.
+The result is `{ native, validationReport, profile, sourceText }`.
+`sourceText` is the exact admitted JSON text, or `null` for owned data.
+Native and report are independent mutable CPU copies; profile is deeply frozen.
+
+The dedicated limits are 4 MiB UTF8/UTF16 and 1,048,576 values per copy pass.
+Strict JSON, numeric `-0`, original/candidate Source, all Model objects, knot
+slots, AST patches, native D1 refusals and qualification flags are retained.
+Ideal tensor identity and rounded stored residuals remain separate evidence.
+This entry does not insert knots, render, smooth C0 knots, dispose caller
+resources, or certify global shape, topology, Solid or manufacturing.
