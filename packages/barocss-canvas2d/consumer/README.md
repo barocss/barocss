@@ -283,3 +283,12 @@ The existing atlas host rejects `openText` with `Error('consumer disposed')` whe
 The host admits the copied tree and new renderer before replacing the target canvas. Accepted asset snapshots are copies from the renderer, separate from returned preparation pixels. Open restores the file bytes directly. **Move restored Sprite** uses public `setPosition(8,0)`; **Export PNG** uses the public document exporter. Dispose removes the exact target pointer binding, deletes source/target renderer resources and disables controls. Owned CPU snapshots remain available after Dispose. Diagnostic GL context listeners remain available for evidence and are distinct from pointer bindings.
 
 Use the existing package build/common check and `tsc -p packages/barocss-canvas2d/consumer/tsconfig.image-mirror.json` for the actual source host and explicit source/compiled declarations. `evidence/image-mirror/` contains the independent both-axis byte oracle and native browser/file/PNG/lifetime record. The helper's 2 MiB internal payload excludes host and registration copies.
+
+
+### Prepare source-over pixels (#1317)
+
+The existing `sprite-image-source.html` retains its AtlasA/B source controls. **Compose images** prepares a fixed same-size foreground over original AtlasA and displays the independent `Composite` asset with a full 2×2 source rectangle. The Sprite stays 80×80 logical pixels on the 120×120 DPR2 host. A copied tree and fresh renderer are admitted before the canvas swap. Caller mutation of the returned preparation cannot change the registered bytes or the separate host-owned asset snapshots.
+
+Save/Open restores Composite bytes directly. Open also registers missing original AtlasA/B assets so their controls remain usable. **Move restored Sprite** uses public `setPosition(8,0)`. **Export PNG** downloads once through the public document exporter. **Dispose** removes the pointer binding and deletes renderer resources; disposed Open entry refuses before staging, and a late staged candidate is closed before adoption. Host-owned asset copies remain available for CPU checks and canonical evidence after disposal.
+
+Use the normal package build and common consumer check, plus `tsc -p packages/barocss-canvas2d/consumer/tsconfig.image-composite.json`. The scoped check covers this actual source host and explicit compiled-root declarations. The focused BigInt oracle and bounded browser/file/PNG/lifetime records are in `evidence/image-composite/`. The helper's 3 MiB internal payload bound excludes host and renderer registration copies.

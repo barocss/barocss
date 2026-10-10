@@ -73,3 +73,5 @@ export type { ImageQuarterTurns } from './image-rotate.js';
 
 export { mirrorImageAsset } from './image-mirror.js';
 export type { ImageMirrorAxis } from './image-mirror.js';
+
+export { compositeImageAssets } from './image-composite.js';
