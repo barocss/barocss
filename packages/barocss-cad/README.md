@@ -9093,3 +9093,44 @@ This API certifies membership in the retained source-defined region. Its report
 keeps the parent's Body, BRep and general Boolean flags unchanged. Renderer
 picking, arbitrary curved Solid queries and manufacturing tolerance have
 separate admission requirements.
+
+### Complete NURBS source edits and a dependent Loft feature
+
+`evaluateNurbsSourceLoftFeatureGraph(document, options)` evaluates three
+source-curve edit nodes and one dependent piecewise rational Loft node. Sources
+are complete authored Source0 files. Every section reference names its node,
+root source and selected Curve. Edit nodes can consume an original source or
+the complete candidate source of a predecessor in the same namespace.
+
+The graph uses the existing whole-source Curve writer and independent-weight
+Loft constructor. Original sources, unrelated objects, comments and numeric
+bits remain in complete receipts. The derived Loft has a new construction
+Source0 and Model4. Its three ordered sections share the original U basis;
+V is piecewise linear with explicit stations and actual D1 refusal states.
+
+`updateNurbsSourceLoftFeatureGraph(previous, edits)` requires the next explicit
+revision. It returns `{result, transaction}`. Changed recipes invalidate their
+dependent edit nodes and Loft. Unaffected native receipts are copied. A
+suppressed Loft keeps its recipe and publishes no derived geometry. Resuming
+it invokes the real Loft constructor once. An equal recipe still advances the
+revision and refreshes bindings, with zero new producer calls.
+
+Graph reports contain deterministic retained-receipt counts. Transaction
+reports record the actual affected, reused and producer-call counts. The
+separate graph and update validators reconstruct these authorities in full.
+Serialization saves the authored document; parsing evaluates it from complete
+original sources. The existing strict JSON grammar remains unchanged.
+
+New wrapper limits are three sources, four nodes, three sections, degree 1 to 5
+and at most 16 U poles. Aggregate original source text has a 262144 UTF16/UTF8
+limit. Authored files have a 1 MiB limit. Complete graph and update result files
+have a 2 MiB limit. All full receipts must fit; overflows reject atomically.
+Existing writer, Loft, source, Model and numeric limits remain unchanged.
+
+```sh
+node examples/cad-nurbs/nurbs-source-loft-feature-graph-demo.mjs --source EVIDENCE_DIR
+```
+
+This profile supports source authoring and dependent piecewise Loft updates.
+Smooth G1/G2 Loft, persistent topology references, Solid construction, general
+Surface operations and manufacturing have separate admission requirements.

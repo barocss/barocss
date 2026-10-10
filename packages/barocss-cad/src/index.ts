@@ -377,3 +377,6 @@ export type { QualifiedTranslatedStripBodyOptions, QualifiedTranslatedStripBodyE
 
 export { classifyTranslatedSurfaceStripWorldPoints, validateTranslatedSurfaceStripWorldPointClassification, TranslatedSurfaceStripWorldPointError, TranslatedSurfaceStripWorldPointDiagnosticCode } from './translated-surface-strip-world-points.js';
 export type { TranslatedSurfaceStripWorldPointQuery, TranslatedSurfaceStripWorldPointOptions, TranslatedSurfaceStripWorldPointReport, TranslatedSurfaceStripWorldPointResult } from './translated-surface-strip-world-points.js';
+
+export { evaluateNurbsSourceLoftFeatureGraph, updateNurbsSourceLoftFeatureGraph, validateNurbsSourceLoftFeatureGraph, validateNurbsSourceLoftFeatureGraphUpdate, serializeNurbsSourceLoftFeatureGraph, parseNurbsSourceLoftFeatureGraph, NurbsSourceLoftFeatureGraphError, NurbsSourceLoftFeatureGraphDiagnosticCode } from './nurbs-source-loft-feature-graph.js';
+export type { NurbsSourceLoftFeatureGraphV0, NurbsSourceLoftFeatureGraphOptions, NurbsSourceLoftFeatureGraphEdits, NurbsSourceLoftFeatureGraphResult, NurbsSourceLoftFeatureGraphReport, NurbsSourceLoftFeatureGraphTransaction, NurbsSourceLoftFeatureGraphTransactionReport, NurbsSourceLoftFeatureGraphUpdateResult } from './nurbs-source-loft-feature-graph.js';
