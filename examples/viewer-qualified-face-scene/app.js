@@ -18,6 +18,7 @@ import {measurePickedFaceNormalAngle} from './picked-normal-angle.js';
 import {buildQualifiedFaceTree,queryQualifiedFaceTreeNode,inspectQualifiedFaceTreeNode} from './qualified-face-tree.js';
 import {filterQualifiedFaceTree} from './qualified-face-tree-filter.js';
 import {queryQualifiedTreeCurveLength} from './tree-curve-length.js';
+import {queryQualifiedTreeSurfaceArea} from './tree-surface-area.js';
 import {parseBaroCadSource} from '@barocss/cad-interop/native';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2} from '@barocss/cad-interop/document';
@@ -49,6 +50,8 @@ const treeFilterQuery=document.querySelector('#tree-filter-query'),treeFilterSou
 const clearTreeFiltersButton=document.querySelector('#clear-tree-filters'),treeFilterStatus=document.querySelector('#tree-filter-status');
 const measureTreeLengthButton=document.querySelector('#measure-tree-length'),resetTreeLengthButton=document.querySelector('#reset-tree-length');
 const treeLengthOutput=document.querySelector('#tree-length-output'),treeLengthLabel=document.querySelector('#tree-length-label');
+const inspectTreeAreaButton=document.querySelector('#inspect-tree-area'),resetTreeAreaButton=document.querySelector('#reset-tree-area');
+const treeAreaOutput=document.querySelector('#tree-area-output'),treeAreaLabel=document.querySelector('#tree-area-label');
 const assetCount=document.querySelector('#asset-count'),countU=document.querySelector('#count-u'),countV=document.querySelector('#count-v');
 const colorAsset=document.querySelector('#color-asset'),colorInput=document.querySelector('#color');
 const measureButton=document.querySelector('#measure-points'),measurementOutput=document.querySelector('#measurement-output');
@@ -114,6 +117,7 @@ let pickedNormalAngleFirst=null,pickedNormalAngleReport=null,pickedNormalAnglePr
 let qualifiedTreeContent=null,qualifiedTreeData=null,qualifiedTreeSelected=null,qualifiedTreeReport=null,treePointProjection=null,treeGeneration=0,treeNodeButtons=[];
 let qualifiedTreeFilter={query:'',sourceId:null,kind:'all'},qualifiedTreeFiltered=null,qualifiedTreeSelectedHidden=false;
 let treeCurveLengthReport=null,treeCurveLengthProjection=null;
+let treeSurfaceAreaReport=null,treeSurfaceAreaProjection=null;
 const colors=[[.9,.3,.2],[.25,.8,.4],[.25,.45,.95],[.95,.7,.2],[.3,.8,.9],[.85,.35,.75]];
 const camera={eye:[2,1.5,3.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:10},mmToSceneUnit=.12,background=[.02,.03,.04],translateScene=[-.6,-.6,-.7];
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
@@ -306,6 +310,7 @@ function remeasurePickedNormalAngle(){check(pickedNormalAngleReport,'Select two 
 function resetPickedNormalAngle(){clearPickedNormalAngle();refreshPickedNormalAngle();display('Picked normal angle reset.');}
 function clearTreeSelection(){qualifiedTreeSelected=null;qualifiedTreeReport=null;treePointProjection=null;treeProperties.textContent='';treePointOutput.textContent='';
   clearTreeCurveLength();measureTreeLengthButton.disabled=true;resetTreeLengthButton.disabled=true;
+  clearTreeSurfaceArea();inspectTreeAreaButton.disabled=true;resetTreeAreaButton.disabled=true;
   qualifiedTreeSelectedHidden=false;
   treeU.value='';treeV.value='';treeT.value='';treePointLabel.hidden=true;
   for(const input of[treeU,treeV,treeT,inspectTreePointButton,frameTreeFaceButton,clearTreeSelectionButton])input.disabled=true;
@@ -375,6 +380,27 @@ function measureTreeCurveLength(options=LENGTH_OPTIONS){refreshQualifiedTree();c
     +' mm · endpoint chord '+areaNumber(report.measurement.chordMM)+' mm';
   refreshQualifiedTree();display('Original tree Curve length ready for '+ref.sourceId+'/'+ref.geometryId+'.');return clone(report);}
 function resetTreeCurveLength(){clearTreeCurveLength();refreshQualifiedTree();display('Tree Curve length reset.');}
+function clearTreeSurfaceArea(){treeSurfaceAreaReport=null;treeSurfaceAreaProjection=null;treeAreaOutput.textContent='';treeAreaLabel.hidden=true;}
+function treeSurfaceAreaSnapshot(){return{report:clone(treeSurfaceAreaReport),output:treeAreaOutput.textContent,enabled:!inspectTreeAreaButton.disabled,
+  projection:clone(treeSurfaceAreaProjection),label:pickedChordLabelSnapshot(treeAreaLabel)};}
+function refreshTreeSurfaceArea(){const state=disposed?null:viewer.getState();
+  if(treeSurfaceAreaReport&&(!qualifiedTreeSelected||!same(treeSurfaceAreaReport.node.ref,qualifiedTreeSelected.ref)))clearTreeSurfaceArea();
+  inspectTreeAreaButton.disabled=disposed||running||!state?.qualifiedFaceScene||qualifiedTreeSelected?.ref.kind!=='surface';
+  resetTreeAreaButton.disabled=disposed||running||!treeSurfaceAreaReport;
+  treeSurfaceAreaProjection=null;treeAreaLabel.hidden=true;if(disposed||qualifiedTreeSelectedHidden||!treeSurfaceAreaReport||state.status!=='ready')return;
+  try{treeSurfaceAreaProjection=viewer.projectQualifiedFacePoint(treeSurfaceAreaReport.measurement.anchor);}catch{}
+  if(treeSurfaceAreaProjection){const ref=treeSurfaceAreaReport.node.ref;
+    treeAreaLabel.textContent=ref.sourceId+'/'+ref.geometryId+' · area estimate '+areaNumber(treeSurfaceAreaReport.measurement.area.areaEstimateMM2)+' mm²';
+    treeAreaLabel.style.left=treeSurfaceAreaProjection.xCss+'px';treeAreaLabel.style.top=treeSurfaceAreaProjection.yCss+'px';treeAreaLabel.hidden=false;}}
+function inspectTreeSurfaceArea(options=AREA_OPTIONS){refreshQualifiedTree();check(!inspectTreeAreaButton.disabled&&qualifiedTreeSelected,'Select a current original Surface first.');
+  const ref=clone(qualifiedTreeSelected.ref),before=queryQualifiedFaceTreeNode(viewer,ref);check(before.ref.kind==='surface','Select a current original Surface first.');
+  const next=queryQualifiedTreeSurfaceArea(viewer,ref,options),current=queryQualifiedFaceTreeNode(viewer,ref);
+  check(qualifiedTreeSelected&&same(qualifiedTreeSelected.ref,current.ref)&&same(ref,current.ref),'The original Surface selection changed during area inspection.');
+  const report=clone(next);treeSurfaceAreaReport=report;
+  treeAreaOutput.textContent=report.node.ref.sourceId+'/'+report.node.ref.geometryId+' · Surface area estimate '+areaNumber(report.measurement.area.areaEstimateMM2)
+    +' mm² · heuristic error estimate '+areaNumber(report.measurement.area.errorEstimateMM2)+' mm²';
+  refreshQualifiedTree();display('Original tree Surface area ready for '+ref.sourceId+'/'+ref.geometryId+'.');return clone(report);}
+function resetTreeSurfaceArea(){clearTreeSurfaceArea();refreshQualifiedTree();display('Tree Surface area reset.');}
 function refreshQualifiedTree(){if(disposed){clearQualifiedTree();for(const input of[treeU,treeV,treeT,inspectTreePointButton,frameTreeFaceButton,clearTreeSelectionButton,syncFaceTree,treeFilterQuery,treeFilterSource,treeFilterKind,clearTreeFiltersButton])input.disabled=true;return qualifiedTreeSnapshot();}
   const state=viewer.getState(),scene=state.qualifiedFaceScene,content=scene?scene.assets.map(asset=>({sourceId:asset.sourceId,source:asset.source,face:asset.face}))
     .sort((a,b)=>a.sourceId<b.sourceId?-1:a.sourceId>b.sourceId?1:0):null;
@@ -393,12 +419,12 @@ function refreshQualifiedTree(){if(disposed){clearQualifiedTree();for(const inpu
   inspectTreePointButton.disabled=!selected;frameTreeFaceButton.disabled=!selected||state.status!=='ready';clearTreeSelectionButton.disabled=!selected;
   treeU.disabled=!selected||!surface;treeV.disabled=!selected||!surface;treeT.disabled=!selected||surface;
   document.querySelector('#tree-u-label').hidden=!surface;document.querySelector('#tree-v-label').hidden=!surface;document.querySelector('#tree-t-label').hidden=!qualifiedTreeSelected||surface;
-  markQualifiedTreeSelection();updateTreePointLabel();refreshTreeCurveLength();return qualifiedTreeSnapshot();
+  markQualifiedTreeSelection();updateTreePointLabel();refreshTreeCurveLength();refreshTreeSurfaceArea();return qualifiedTreeSnapshot();
 }
 function treeDomainMidpoint(domain){const value=domain[0]/2+domain[1]/2;check(Number.isFinite(value)&&value>=domain[0]&&value<=domain[1],'Original parameter-domain midpoint is not finite or inclusive.');return Object.is(value,-0)?'-0':String(value);}
 function selectQualifiedTreeNode(ref){refreshQualifiedTree();const next=queryQualifiedFaceTreeNode(viewer,ref),changed=!qualifiedTreeSelected||!same(qualifiedTreeSelected.ref,next.ref);
   const defaults=changed?Object.fromEntries(Object.entries(next.properties.domain).map(([key,domain])=>[key,treeDomainMidpoint(domain)])):null;
-  qualifiedTreeSelected=clone(next);if(changed){clearTreeCurveLength();qualifiedTreeReport=null;treePointOutput.textContent='';treeU.value=defaults.u??'';treeV.value=defaults.v??'';treeT.value=defaults.t??'';}
+  qualifiedTreeSelected=clone(next);if(changed){clearTreeCurveLength();clearTreeSurfaceArea();qualifiedTreeReport=null;treePointOutput.textContent='';treeU.value=defaults.u??'';treeV.value=defaults.v??'';treeT.value=defaults.t??'';}
   treeProperties.textContent=JSON.stringify(next.properties,null,2);refreshQualifiedTree();const selected=treeNodeButtons.find(node=>same(node.ref,next.ref));
   if(selected){selected.sourceGroup.open=true;selected.faceGroup.open=true;}display('Original geometry ready for '+next.ref.sourceId+'/'+next.ref.geometryId+'.');return clone(next);}
 function treeControlParameters(){check(qualifiedTreeSelected,'Select an original geometry tree node first.');const fields=qualifiedTreeSelected.ref.kind==='surface'?{u:treeU,v:treeV}:{t:treeT};
@@ -864,6 +890,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
     buildQualifiedFaceTree,queryQualifiedFaceTreeNode,inspectQualifiedFaceTreeNode,selectQualifiedTreeNode,refreshQualifiedTree,inspectTreePoint,frameTreeFace,clearTreeSelection,qualifiedTreeSnapshot,
     filterQualifiedFaceTree,setQualifiedTreeFilter,clearQualifiedTreeFilter,
     queryQualifiedTreeCurveLength,measureTreeCurveLength,resetTreeCurveLength,treeCurveLengthSnapshot,
+    queryQualifiedTreeSurfaceArea,inspectTreeSurfaceArea,resetTreeSurfaceArea,treeSurfaceAreaSnapshot,
     AREA_OPTIONS,areaPin,queryQualifiedFaceSurfaceArea,inspectArea,updateAreaLabel,areaSnapshot,mismatchCandidate,dispose,resourceCounts,uploads,draws,glErrors,errors,warnings,lossExtension,failAllocation,
     LENGTH_OPTIONS,lengthPin,queryQualifiedFaceCurveLength,inspectLength,updateLengthLabel,lengthSnapshot,
     queryQualifiedFaceAngle,measureAngle,updateAngleLabel,angleSnapshot,
@@ -883,7 +910,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
     get surfaceCurvatureReport(){return clone(surfaceCurvatureReport);},get tangentAngleReport(){return clone(tangentAngleReport);},get normalAngleReport(){return clone(normalAngleReport);},
     get nativeSampleReport(){return clone(nativeSampleRecord?.sample??null);},get pickedChordReport(){return clone(pickedChordReport);},get pickedAngleReport(){return clone(pickedAngleReport);},
     get pickedSurfaceCurvatureReport(){return clone(pickedSurfaceCurvatureReport);},get pickedNormalAngleReport(){return clone(pickedNormalAngleReport);},
-    get treeCurveLengthReport(){return clone(treeCurveLengthReport);},get result(){return result;}};
+    get treeCurveLengthReport(){return clone(treeCurveLengthReport);},get treeSurfaceAreaReport(){return clone(treeSurfaceAreaReport);},get result(){return result;}};
   display('Original Faces ready. Inspect a current source from its row.');
 }catch(error){display('Original Faces could not load: '+error.message);}
 buttons.load.addEventListener('click',()=>action(()=>load(candidate({assetCount:Number(assetCount.value),countU:Number(countU.value),countV:Number(countV.value)}))));
@@ -920,6 +947,7 @@ function applyTreeFilterControls(){try{setQualifiedTreeFilter({query:treeFilterQ
 treeFilterQuery.addEventListener('input',applyTreeFilterControls);treeFilterSource.addEventListener('change',applyTreeFilterControls);treeFilterKind.addEventListener('change',applyTreeFilterControls);
 clearTreeFiltersButton.addEventListener('click',()=>action(clearQualifiedTreeFilter));
 measureTreeLengthButton.addEventListener('click',()=>action(()=>measureTreeCurveLength()));resetTreeLengthButton.addEventListener('click',()=>action(resetTreeCurveLength));
+inspectTreeAreaButton.addEventListener('click',()=>action(()=>inspectTreeSurfaceArea()));resetTreeAreaButton.addEventListener('click',()=>action(resetTreeSurfaceArea));
 canvas.addEventListener('click',event=>{const inspectEnabled=faceInspectMode.checked&&!faceInspectMode.disabled,sampleEnabled=nativeSampleMode.checked&&!nativeSampleMode.disabled,
   chordEnabled=pickedChordMode.checked&&!pickedChordMode.disabled,angleEnabled=pickedAngleMode.checked&&!pickedAngleMode.disabled,normalAngleEnabled=pickedNormalAngleMode.checked&&!pickedNormalAngleMode.disabled;
   if(!inspectEnabled&&!sampleEnabled&&!chordEnabled&&!angleEnabled&&!normalAngleEnabled)return;const rect=canvas.getBoundingClientRect(),point={xCss:event.clientX-rect.left,yCss:event.clientY-rect.top};

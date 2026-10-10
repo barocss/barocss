@@ -493,3 +493,41 @@ Hooks add `measureTreeCurveLength(options?)`, `resetTreeCurveLength()`,
 `treeCurveLengthSnapshot()` and a copied `treeCurveLengthReport` getter.
 DOM IDs: measure-tree-length, reset-tree-length, tree-length-output,
 tree-length-label and tree-length-help.
+
+
+## Inspect the selected original Surface area
+
+Inspect selected Surface area validates the full current source-qualified tree
+ref, complete Source0, all five Model objects and Face before using the existing
+one-source document-bound area query and validator. Curve selections disable
+this action. The physical UI uses unchanged AREA_OPTIONS for the whole original
+Surface: .01 mm² absolute tolerance, 1e-6 relative tolerance, 16384 evaluations,
+128 subdivisions and depth8. Optional proof/helper options follow the existing
+public region and budget profile; original root/nested Proxy options refuse.
+
+Output shows the original parametric area estimate and heuristic error in mm².
+It counts parameterization multiplicity, not trimmed Face, BRep, Solid or union
+area. The error estimator is not a certified upper bound. The original D1
+quadrature is unchanged; no D2 or finite-difference fallback is introduced.
+
+The independent tree area report survives current-node filter/view/CSS/color/
+grid/order/translation changes. Hidden selected Surfaces remain inspectable,
+with disclosure and hidden labels. Different selections or changed referenced
+Source/full Face clear the report; unrelated edits retain it. Failed ref,
+options, budget and load retain the accepted result. Reset tree area clears
+only this report and label. Manual panels, tree point, tree Curve length and
+picked reports keep their own existing selection/lifetime rules.
+
+The caller label projects the midpoint of the original full native domains,
+even for a helper query over a partial region. It is not a measured-region
+midpoint, centroid, area centre or visible hit. Projection is approximate and
+occlusion is not tested. Loss/unavailability hides labels while retained CPU
+area remains queryable. Clear/mode/Dispose clears the report and authority.
+
+`queryQualifiedTreeSurfaceArea(viewer,ref,options=AREA_OPTIONS)` returns copied
+`{version:0,node,measurement}` with the whole existing helper result.
+`measurement.area.areaEstimateMM2` and `errorEstimateMM2` are native mm².
+Hooks add `inspectTreeSurfaceArea(options?)`, `resetTreeSurfaceArea()`,
+`treeSurfaceAreaSnapshot()` and a copied `treeSurfaceAreaReport` getter.
+DOM IDs: inspect-tree-area, reset-tree-area, tree-area-output, tree-area-label,
+and tree-area-help.
