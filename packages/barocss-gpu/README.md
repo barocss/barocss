@@ -1415,3 +1415,27 @@ Texture, alpha, mesh parents, lights, raycasting and animation are later profile
 
 Run `node examples/gpu-scene/engine-scene-flow.mjs --output <fresh-directory>`
 after the GPU library build for one source/emitted/cold-file acceptance flow.
+
+## General engine ray selection
+
+`raycastEngineScene(scene, ray)` returns the nearest eligible front-facing
+triangle hit or `null`. Supply original engine-scene0 and explicit engine-ray0
+records in right-handed Y-up scene units. The ray has bounded origin, unit
+(direction-length tolerance1e-9) direction and inclusive near/far distances.
+The entire source scene is admitted again, including hidden assets. Visible
+instance work is capped at262144 triangles before intersection begins.
+
+Hits retain node/geometry/material IDs and original triangle ordinal. Point,
+distance, barycentrics, original UV interpolation and transformed unit normal
+come from authored Number world geometry. Exact-distance ties retain authored
+draw/triangle order. Results and arrays are independently frozen; caller source
+and ray stay unchanged. Prepared mutable execution buffers are not query inputs.
+
+The first profile skips back-facing and near-parallel triangles (normalized
+front determinant must exceed1e-8). Barycentric/range boundaries use computed
+Number comparisons with no clamping or epsilon expansion. This CPU selection
+profile has floating edge ambiguity and proves no rendered pixel or native CAD
+intersection accuracy. Screen-to-ray conversion, BVH, textures and editor
+selection are separate consumers/stages. Run the single
+`examples/gpu-scene/engine-raycast-flow.mjs --output <fresh-directory>` flow after
+the GPU library build for source/emitted/file acceptance.
