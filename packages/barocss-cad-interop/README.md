@@ -3514,3 +3514,48 @@ The example preserves unchanged original files and an independent oracle,
 and uses a private signed-zero writer for complete saved-file reopen.
 Source and emitted checks cover the real outside-to-inside edit and exact
 quadratic boundary witnesses, independent copies and genuine refused inputs.
+
+## Complete degree-five Surface edits in Three
+
+The `wide-source-surface-three` example uses the existing complete-source CAD
+wide Surface writer and the public native/Three loaders. It keeps the whole
+mixed Source0 Model, both Surfaces and the unrendered context Curve.
+
+Its two literal input families retain native U/V degree5: a six-by-six grid
+with coordinates beyond the older narrow editor profile, and a sixteen-by-sixteen
+grid with256poles/1024 changed scalar fields. The original eight files are
+copied unchanged. A saved mesh or selected Surface alone is not the source asset.
+
+The display options are explicit:
+
+```js
+const options = {
+  sourceVersion: 0,
+  countU: 17,
+  countV: 9,
+  unitsPerMillimeter: 0.001,
+};
+```
+
+No new nativeCapacity, curveDisplay or public SDK entry is required. Each native
+Surface packet has153vertices/256triangles. Display positions/normals/native-UV
+copies are Float32; indices are Uint16. Native XYZ/mm and the original Model
+remain separate from the display buffers; scaling occurs once.
+
+The whole edit validator returns an independent report. Preserve the complete
+edit result, original/candidate source, Models, patch spans, scalar provenance,
+unselected siblings, knot/domain/grid values and numeric signed zero.
+Stored native D0/D1 observations are retained. Triangle normals use sampled D0
+and area-weighted triangle sums; they are not analytic D1 or smoothness proof.
+
+Actual native refusals include weight0 (`NATIVE` with the original weight Error),
+missing Surface (`TARGET`), own getter/nonfinite scalar (`INPUT`, getters0), and
+changed owned patch/source (`OWNED`). Host binding and transport failures retain
+the current accepted native data, buffers, caller resources and camera.
+
+The example stages complete candidate data before replacing the accepted result.
+Its source and emitted verifier records the literal files, whole native values,
+actual target buffers, cold source loading, refused replacements and ownership.
+Current local adoption, integrated acceptance and registry publication are separate.
+No smooth Loft, persistent recipe/topology binding, Solid, manufacturing or
+publication certificate follows from this display. Packed consumer #801 remains held.

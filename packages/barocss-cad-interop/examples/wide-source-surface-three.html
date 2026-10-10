@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Complete degree-five Surface edits · Three</title>
+  <style>
+    :root{font:15px/1.5 system-ui,sans-serif;color:#e8edf6;background:#101b2c;color-scheme:dark}
+    body{margin:0;padding:24px;max-width:1460px;margin-inline:auto}h1{margin:0;font-size:24px}p{max-width:1000px;color:#b6c3d6}
+    button{font:inherit;padding:8px 12px;border:1px solid #617188;border-radius:5px;background:#22334b;color:inherit;cursor:pointer}button:disabled{opacity:.45;cursor:default}
+    nav{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0}.layout{display:grid;grid-template-columns:minmax(0,900px) minmax(240px,1fr);gap:20px}#view{width:900px;max-width:100%;overflow:auto}canvas{display:block}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.45 ui-monospace,monospace;background:#152238;padding:12px;border-radius:5px}summary{cursor:pointer}textarea{width:100%;height:180px;box-sizing:border-box;font:12px/1.4 ui-monospace,monospace}details{margin-top:14px}@media(max-width:1100px){.layout{display:block}}
+  </style>
+</head>
+<body>
+  <h1>Complete degree-five Surface edits in Three</h1>
+  <p>Original and edited mixed Models retain both Surfaces and the native Curve. The view shows the selected target and one caller marker. The context Plane stays attached and visible at its authored pose, outside this target-focused camera.</p>
+  <nav aria-label="Surface file actions">
+    <button id="run-refusals" disabled>Check 14 refusals</button>
+    <button id="apply-edit" disabled>Apply degree-five edit</button>
+    <button id="original-maximum" disabled>Open maximum grid</button>
+    <button id="cold-reopen" disabled>Cold reopen maximum edit</button>
+    <button id="dispose" disabled>Release owned resources twice</button>
+  </nav>
+  <pre id="status" role="status">Loading original files…</pre>
+  <div class="layout"><div id="view" aria-label="Actual Three Surface view"></div><section><h2>Native readout</h2><pre id="readout"></pre></section></div>
+  <details><summary>Exact admitted source</summary><textarea id="source-text" readonly aria-label="Exact admitted Source0"></textarea></details>
+  <details><summary>Complete native proof and report</summary><pre id="full-proof"></pre></details>
+  <details><summary>Actual refusal receipts</summary><pre id="refusal-readout"></pre></details>
+  <script type="module" src="./wide-source-surface-three.mjs"></script>
+</body>
+</html>
