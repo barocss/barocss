@@ -1,0 +1,9 @@
+{
+  "name": "physics-character-public-reference",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@barocss/physics": "workspace:*",
+    "@barocss/cad": "workspace:*"
+  }
+}

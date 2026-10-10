@@ -160,3 +160,55 @@ Initial contact within1e-12m returns fraction0 even for zero/parallel/away trave
 The canonical PhysicsError is shared inside each source or compiled package graph through an internal root error bridge. Source and compiled constructors in distinct graphs need not be identical. The compiled root still needs sibling dist/types.js under the existing #1022 build rule. No new subpath or manifest map is added.
 
 See [the full contract](https://github.com/barocss/barocss/wiki/Physics-Upright-Capsule-Query) and `examples/physics-capsule-query-scene` for the31fixed numerical cases,28accepted cost cases, source/compiled public consumers, original-bit decoder and actual browser evidence. Named crowded translations are capacity observations, not a promise that every arbitrary32rotated geometry takes2ms. No controller, dynamic obstacles, arbitrary capsule orientation, exact CAD collision, Viewer scene or physics certification follows.
+
+## Upright capsule controller v1
+
+`createUprightCapsuleController` moves a fixed upright capsule through an immutable
+bounded box scene. It uses the existing capsule query. Units are metres, seconds
+and metres per second. The capsule radius is 0.15m and centreline half-length is
+0.35m. The profile uses world Y, fixed gravity −9.81m/s², a 0.002m skin, a 0.1m
+step limit and a 10° walkable slope limit.
+
+```ts
+import { createUprightCapsuleController } from '@barocss/physics';
+const controller = createUprightCapsuleController({
+  version: 1,
+  profile: 'upright-capsule-controller-v1',
+  scene: {
+    version: 1, profile: 'upright-capsule-box-v1', revision: 'scene1',
+    boxes: [{ id: 'floor', centerM: [0, -0.05, 0],
+      halfExtentsM: [3, 0.05, 1], orientationXYZW: [0, 0, 0, 1] }],
+  },
+  positionM: [-1, 0.505, 0],
+});
+const state = controller.step({ dtSeconds: 1 / 120,
+  sceneRevision: 'scene1', desiredVelocityMps: [1, 0, 0] });
+controller.dispose();
+```
+
+The caller supplies the clock and renders accepted `positionM` and
+`orientationXYZW`. Each command must use exactly 1/120 second. The request has
+zero Y and horizontal speed at most 1m/s. The scene has at most 32 boxes; initial
+penetration refuses with `INITIAL_OVERLAP`. After 240 steps, create a new instance
+for a new bounded run. This API does not provide moving platforms, dynamic body
+pushing, arbitrary terrain, a rendering clock or serialized state restoration.
+
+`getSnapshot()` and `step()` return independent copies of 14 fields. Total
+`velocityMps` is the accepted pose change divided by the fixed time, including
+lift and snap. `fallVelocityYMps` is the separate gravity recurrence. `support`
+and `assist` contain copied query IDs and normals or pending step information.
+`queryCount` is the accepted step's query work; it excludes initial admission.
+
+Use `PhysicsError.code`, not message text. Input errors use `INVALID_CONFIG` or
+`INVALID_COMMAND`; wrong finite time uses `INVALID_STEP`, stale revision uses
+`STALE_SNAPSHOT`, work limits use `WORLD_LIMIT`, and unresolved movement uses
+`INVALID_COMMAND`. Query errors preserve their existing codes. Each refusal
+preserves all accepted state. Disposal is idempotent; later calls use `DISPOSED`
+before input inspection. Records and tuples must be ordinary same-realm data
+with exactly the declared fields. Getters and extra fields refuse.
+
+The bounded native verification example is
+`examples/physics-character-public-reference`. Its table is numerical evidence.
+The actual 3D Viewer consumer is tracked in Issue #1065. Native implementation,
+Integration adoption, integrated screen/file checks and publication are separate
+states.

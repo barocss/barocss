@@ -1,0 +1,50 @@
+{
+  "issue": 1064,
+  "parent": "716e84428bd0f5145b6c6aac9c0a63254b14a5fa",
+  "cleanMeasuredSource": "f255b3734fe37d5ae8e224bc34b67b6ff2f2c234",
+  "branch": "codex/physics-character-controller-1064",
+  "candidateGO": true,
+  "build": "original affected Physics build and source/emitted type consumers pass",
+  "graphs": {
+    "source": {
+      "resolution": 39,
+      "worstP95Ms": 0.034457999999972344
+    },
+    "compiled": {
+      "resolution": 18,
+      "worstP95Ms": 0.0373339999999871
+    },
+    "browser/source": {
+      "resolution": 39,
+      "worstP95Ms": 0.10000000894069672
+    },
+    "browser/compiled": {
+      "resolution": 18,
+      "worstP95Ms": 0.10000000894069672
+    }
+  },
+  "publicControls": 39,
+  "originalInternalControls": 12,
+  "acceptedStates": 1687,
+  "hitWitnesses": 2489,
+  "rawTraceBytes": 852432,
+  "publicStateRawBytes": 236752,
+  "allGraphsBitsExact": true,
+  "observerOffCost": true,
+  "clockResolutionChromeMs": 0.09999999403953552,
+  "inspectedScreenshots": [
+    "browser/source/public-cases.png",
+    "browser/compiled/public-cases.png"
+  ],
+  "sameProductionCore": "direct recorded core projected raw bits equal public facade; trace is not direct facade-call observation",
+  "unobserved": [
+    "genuine unresolved lookahead",
+    "public computed numeric guard",
+    "genuine scalar64 cap"
+  ],
+  "firstFailure": "working verifier duplicate saved declaration; fixed, first artifacts immutable",
+  "staticHelper": "admission/identity/rollback/capture-neutrality reviewed; no defects; no numerical helper work",
+  "actualViewer": false,
+  "integration": "native ready; not adopted",
+  "publication": false
+}

@@ -1,0 +1,80 @@
+{
+  "work_id": 1064,
+  "nodeVersion": "v22.22.0",
+  "gitHead": "f255b3734fe37d5ae8e224bc34b67b6ff2f2c234",
+  "sourceTreeDirty": false,
+  "mode": "compiled",
+  "browserVersion": "155.0.8059.39",
+  "url": "http://127.0.0.1:54633/browser.html?mode=compiled",
+  "resolution": {
+    "sourceFiles": 0,
+    "compiledFiles": 18,
+    "ownInputs": [
+      "packages/barocss-physics/dist/types.js",
+      "packages/barocss-physics/dist/index.js",
+      "packages/barocss-physics/dist/capsule-query-error.js",
+      "packages/barocss-physics/dist/capsule-query/profile.js",
+      "packages/barocss-physics/dist/capsule-query/admission.js",
+      "packages/barocss-physics/dist/capsule-query/geometry.js",
+      "packages/barocss-physics/dist/capsule-query/sweep.js",
+      "packages/barocss-physics/dist/capsule-query/snapshot.js",
+      "packages/barocss-physics/dist/capsule-query.js",
+      "packages/barocss-physics/dist/character/profile.js",
+      "packages/barocss-physics/dist/character/math.js",
+      "packages/barocss-physics/dist/character/admission.js",
+      "packages/barocss-physics/dist/character/state.js",
+      "packages/barocss-physics/dist/character/query.js",
+      "packages/barocss-physics/dist/character/step-assist.js",
+      "packages/barocss-physics/dist/character/slide.js",
+      "packages/barocss-physics/dist/character/ground.js",
+      "packages/barocss-physics/dist/character/core.js"
+    ],
+    "sourceResolverPlugin": false,
+    "sourceCustomConditions": false,
+    "compiledResolver": "complete transitive publishConfig plus explicit private emitted core",
+    "publishedResolutions": [
+      {
+        "specifier": "@barocss/physics",
+        "importer": "examples/physics-character-public-reference/campaign.mjs",
+        "exportKey": ".",
+        "target": "packages/barocss-physics/dist/index.js"
+      },
+      {
+        "specifier": "@barocss/physics",
+        "importer": "examples/physics-character-public-reference/controls.mjs",
+        "exportKey": ".",
+        "target": "packages/barocss-physics/dist/index.js"
+      }
+    ]
+  },
+  "exactNodeBits": true,
+  "exactNodeObservations": true,
+  "nodeComparedHead": "f255b3734fe37d5ae8e224bc34b67b6ff2f2c234",
+  "errors": [],
+  "warnings": [],
+  "format": "character-movement-reference-raw-v1",
+  "endianness": "little",
+  "files": [
+    {
+      "file": "inputs.f64.bin",
+      "type": "Float64Array",
+      "bytes": 1488,
+      "elements": 186,
+      "sha256": "feda47adb6facf25db155ea6ae7d25451d3bc6f2c214b21b94e71c8fc6c1b1ad"
+    },
+    {
+      "file": "outputs.f64.bin",
+      "type": "Float64Array",
+      "bytes": 850944,
+      "elements": 106368,
+      "sha256": "e22a39b24738f0b5e58b026082150566c8951f3cbbd7b6a16fc63c567988c11c"
+    }
+  ],
+  "totalRawBytes": 852432,
+  "negativeZeroInputOffsets": [],
+  "negativeZeroOutputOffsets": [],
+  "publicStates": {
+    "bytes": 236752,
+    "sha256": "398c769b5c79258740465d43a1973aca0c2769ea0697050fe22cedc9cef83bc8"
+  }
+}
