@@ -406,3 +406,7 @@ export type { SourceKnotAlignedLoftRequest, SourceKnotAlignedLoftOptions, Source
 
 export { elevateSourceCurveDegree, validateSourceCurveDegreeElevation, SourceCurveDegreeElevationError, SourceCurveDegreeElevationDiagnosticCode } from './source-curve-degree-elevation.js';
 export type { SourceCurveDegreeElevationRequest, SourceCurveDegreeElevationPatch, SourceCurveDegreeElevationReport, SourceCurveDegreeElevationResult } from './source-curve-degree-elevation.js';
+
+
+export { evaluateSourceKnotRecipeLoftGraph, updateSourceKnotRecipeLoftGraph, validateSourceKnotRecipeLoftGraph, validateSourceKnotRecipeLoftGraphUpdate, serializeSourceKnotRecipeLoftGraph, parseSourceKnotRecipeLoftGraph, SourceKnotRecipeLoftGraphError, SourceKnotRecipeLoftGraphDiagnosticCode } from './source-knot-recipe-loft-graph.js';
+export type { SourceKnotRecipeLoftGraphV0, SourceKnotRecipeLoftGraphOptions, SourceKnotRecipeLoftGraphEdits, SourceKnotRecipeLoftGraphResult, SourceKnotRecipeLoftGraphReport, SourceKnotRecipeLoftGraphTransaction, SourceKnotRecipeLoftGraphTransactionReport, SourceKnotRecipeLoftGraphUpdateResult } from './source-knot-recipe-loft-graph.js';
