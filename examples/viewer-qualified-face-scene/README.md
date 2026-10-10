@@ -263,3 +263,39 @@ These are local native values. They do not certify whole-Surface regularity,
 Face/Solid orientation, manufacturing, principal directions or global accuracy.
 No principal radius or heatmap is inferred. The earlier #1080 transition anomaly
 remains a separate pending Integration check.
+
+
+## Native Curve tangent angle (#1157)
+
+Choose two current Sources, original Curves and original parameters **t**. Select
+**Measure native tangent angle**. The output gives the unsigned angle, 0..180°,
+between increasing-parameter native tangents. It is not a three-point chord,
+screen angle, edge traversal angle or topological dihedral angle.
+
+`tangentAnglePin(scene,sourceId,curveId,t=.5)` captures current qualification.
+`queryQualifiedFaceTangentAngle(scene,first,second)` validates both six-field pins,
+compiles both complete Source0 Models and checks all original geometry bits
+before two public `evaluateCurveD1` calls. D2 is not required: a D1-valid C1 knot
+can be inspected when native curvature D2 refuses. The literal default .5 is
+an original parameter, not a normalized domain fraction.
+
+The copied result keeps original points, derivatives, norms, unit tangents,
+radians and degrees. Derivative norms are in mm per original numeric parameter,
+not physical speed. Positive finite norms and representable normalization and
+products are required; zero tangents and nonfinite/underflow values refuse.
+The computation uses atan2 of normalized cross magnitude and dot product,
+without epsilon or clamping. There is no global angular accuracy certificate.
+
+The caller label uses the first original point. CSS projection is approximate
+and does not test occlusion; the Curve need not be drawn separately. View, grid,
+color, order and CSS changes retain the native report. Source/reference changes
+clear it; failed queries retain the prior output. Retained CPU authority remains
+queryable after loss or unavailable presentation, while projection refuses and
+the label hides. Clear, mode change and Dispose invalidate authority. Other six
+inspection panels are independent.
+
+Hook: `tangentAnglePin`, `queryQualifiedFaceTangentAngle`,
+`measureTangentAngle(first?,second?)`, `updateTangentAngleLabel`,
+`tangentAngleSnapshot`, copied `tangentAngleReport`, and public CAD
+`evaluateCurveD1`. No new SDK/provider API or release is claimed. The earlier
+#1080 transition anomaly remains an independent pending Integration check.

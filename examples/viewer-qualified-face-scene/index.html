@@ -15,7 +15,8 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <span id="measurement-point-1" class="measurement-label" hidden></span><span id="measurement-point-2" class="measurement-label" hidden></span>
 <span id="measurement-distance" class="measurement-label" hidden></span><span id="surface-area-label" class="measurement-label" hidden></span>
 <span id="curve-length-label" class="measurement-label" hidden></span><span id="native-angle-label" class="measurement-label" hidden></span>
-<span id="curve-curvature-label" class="measurement-label" hidden></span><span id="surface-curvature-label" class="measurement-label" hidden></span></div></div>
+<span id="curve-curvature-label" class="measurement-label" hidden></span><span id="surface-curvature-label" class="measurement-label" hidden></span>
+<span id="native-tangent-angle-label" class="measurement-label" hidden></span></div></div>
 <label>Assets <select id="asset-count" disabled><option>6</option><option>2</option></select></label>
 <label>Grid U <select id="count-u" disabled><option>17</option><option>9</option><option>2</option></select></label>
 <label>Grid V <select id="count-v" disabled><option>17</option><option>9</option><option>2</option></select></label>
@@ -26,6 +27,25 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <button id="resize" disabled>Resize view</button><button id="clear" disabled>Clear viewer</button><button id="run-proof" disabled>Run proof</button>
 <button id="lose-context" disabled>Lose context</button><button id="dispose" disabled>Dispose viewer</button>
 <pre id="inspection" aria-label="Read-only original source and Face inspection">Inspect an admitted source from its row.</pre>
+<section aria-label="Original native Curve tangent angle">
+<h2>Measure original native tangent angle</h2>
+<fieldset><legend>First tangent</legend>
+<label>Source <select id="tangent-first-source" aria-label="First tangent source" disabled></select></label>
+<label>Curve <select id="tangent-first-curve" aria-label="First tangent Curve" disabled></select></label>
+<label>Native t <input id="tangent-first-t" aria-label="First tangent t" type="text" inputmode="decimal" value="0.5" disabled></label>
+</fieldset>
+<fieldset><legend>Second tangent</legend>
+<label>Source <select id="tangent-second-source" aria-label="Second tangent source" disabled></select></label>
+<label>Curve <select id="tangent-second-curve" aria-label="Second tangent Curve" disabled></select></label>
+<label>Native t <input id="tangent-second-t" aria-label="Second tangent t" type="text" inputmode="decimal" value="0.5" disabled></label>
+</fieldset>
+<button id="measure-tangent-angle" disabled>Measure native tangent angle</button><p id="tangent-angle-output" role="status" aria-live="polite"></p>
+<details id="tangent-angle-help"><summary>About this native tangent angle</summary>
+<p>This unsigned local angle uses original Curve first derivatives in increasing native t, not an edge-loop orientation, screen angle or three-point chord.
+Derivative norm is mm per original numeric parameter, not physical speed. Literal t is not remapped to a normalized domain fraction.
+The first-point label uses approximate CSS camera mapping without occlusion testing; the tangent need not be separately drawn.
+No global angular accuracy or tangent-arrow display is implied.</p></details>
+</section>
 <section aria-label="Original Surface local curvature inspection">
 <h2>Inspect original Surface curvature</h2>
 <label>Source <select id="surface-curvature-source" aria-label="Surface curvature source" disabled></select></label>
