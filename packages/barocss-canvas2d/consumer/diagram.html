@@ -4,6 +4,7 @@
 <script type="importmap">{"imports":{"@barocss/canvas2d":"../dist/index.js","@barocss/canvas2d/document":"../dist/document.js"}}</script>
 </head><body><h1>Editable glyph diagram</h1>
 <p>Drag either box. The connector follows its center. Pointer capture continues outside the box and canvas. The labels use a fixed H/I raster atlas. Transparent label pixels pass input to the box.</p>
+<section id="browserLabels" hidden><label>Node <select id="nodeKey"><option>A</option><option>B</option></select></label><label>Label <input id="labelText" maxlength="32" value="설계 A1"></label><button id="applyLabel">Apply node label</button><p>Each node stores its own label pixels. Open restores saved pixels; Apply uses the current font.</p></section>
 <button id="label">Edit A label H ↔ I</button><button id="invalid">Reject invalid position</button>
 <button id="save">Save document</button><label>Open document <input id="open" type="file" accept=".json,application/json"></label>
 <button id="png">Export PNG</button><button id="dispose">Dispose</button>
