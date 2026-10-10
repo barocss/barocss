@@ -79,3 +79,41 @@ commit, normal cleanup resources0 and separate loss/restore/refusal/Dispose.
 No lost-handle deletion0 or Editor Save/fresh Open acceptance is claimed.
 This proves a provider seam; editor consumer/history/publication gates remain
 separate from native completion and serial Integration.
+
+
+## Open an original local Source0 file
+
+Choose **Original Source0 file** to stage a local file. The staged name and byte
+count are shown before any read, native parse or display replacement. Choose
+**Open original source** to read and admit it. **Discard file choice** clears
+only the draft. A dialog cancel keeps the previous choice. The retained File
+can be reopened or selected again. File names and extensions are display hints.
+
+The bounded profile is 1 to 65,536 UTF-8 bytes and code units, with one to four
+complete native Surface/Curve objects. All original objects and refs must be
+admitted. UTF-8 decoding is fatal on invalid bytes. Source text keeps its BOM,
+newlines and signed-zero tokens without trimming or normalization; the public
+parser decides whether that complete text is supported. The original bytes
+are SHA256 hashed. Unsupported input does not become a partial model.
+
+Open uses the existing atomic native replacement with no initial motion, all
+original refs visible and automatic display fit. The fixed source profile
+uses a 5×5 Surface sample and adaptive Curve version1 with .02mm chord tolerance,
+512 segments and depth16. Display remains .13scene units per original mm.
+Source0 geometry does not imply Face topology, a saved canonical document,
+Shell, assembly, history or a full editor Save/Open flow.
+
+Only the latest owned Open/source intent may commit an asynchronous read. A
+new choice, another Open attempt, Discard, source action, Clear or Dispose
+cancels the previous local intent. The File read itself need not be abortable.
+A failed latest attempt retains the accepted scene and file provenance.
+Successful source actions clear accepted file provenance after adoption and
+keep the staged choice. Clear also keeps that choice so Open works from empty.
+
+The Curve inspector uses the current original domain midpoint and lower
+endpoint. It does not normalize arbitrary file parameters. A Surface-only
+file disables Curve inspection. Loss or unavailable recovery retains readable
+CPU source/provenance and blocks Open. Picker/Discard remain CPU draft actions.
+Dispose clears the file controller before the Viewer. Failed recovery has no
+pixel rollback promise. These local intent rules do not certify unseen SDK
+reloads, global numerical accuracy or release acceptance.
