@@ -421,16 +421,24 @@ def analyze_case(directory, graph):
     return case, parity
 
 
+def validate_summary_graphs(results):
+    require(isinstance(results, list) and len(results) == 3, "summary must contain three graph rows")
+    require(all(isinstance(row, dict) and "graph" in row for row in results),
+            "summary result requires an explicit graph")
+    graphs = [row["graph"] for row in results]
+    require(all(isinstance(graph, str) for graph in graphs) and set(graphs) == set(GRAPHS),
+            "summary graph coverage differs")
+    # This producer runs ONLY OFFSET. Scene is an explicit report field, not a
+    # summary result field. analyze_case checks every report.scene independently.
+
+
 def analyze_directory(directory):
     cases, baseline = [], None
     location = {"file": "summary.json"}
     try:
         summary = read_json(directory / "summary.json")
         require(isinstance(summary, dict) and summary.get("physicalModelGO") is False, "summary physical NO-GO receipt missing")
-        results = summary.get("results")
-        require(isinstance(results, list) and len(results) == 3, "summary must contain three OFFSET graphs")
-        identities = [(row.get("graph"), row.get("scene")) for row in results if isinstance(row, dict)]
-        require(len(identities) == 3 and set(identities) == {(graph, "OFFSET") for graph in GRAPHS}, "summary graph coverage differs")
+        validate_summary_graphs(summary.get("results"))
         for graph in GRAPHS:
             location = {"graph": graph, "scene": "OFFSET"}
             case, parity = analyze_case(directory, graph)
@@ -460,6 +468,14 @@ def self_check():
     controls = []
     def record(name, passed):
         controls.append({"control": name, "passed": bool(passed)})
+    validate_summary_graphs([{"graph": graph} for graph in GRAPHS])
+    record("actual_summary_schema_does_not_require_scene", True)
+    try:
+        validate_summary_graphs([{"graph": "source"}] * 3)
+        duplicate_rejected = False
+    except InvalidDiagnostic:
+        duplicate_rejected = True
+    record("duplicate_summary_graph_rejected", duplicate_rejected)
     record("3489_ordered_frames", len(ORDER) == 3489)
     record("36_sorted_pairs", len(PAIRS) == 36 and PAIRS == tuple(sorted(PAIRS)))
     record("three_integrated_24_pass_end_six_projection", sum(row[0] == "integrated" for row in ORDER) == 3
