@@ -305,3 +305,6 @@ export type { AxisBoxSolidBooleanPointQuery, AxisBoxSolidBooleanPointOptions, Ax
 
 export { measureAxisBoxSolidBooleanMass, validateAxisBoxSolidBooleanMass, AxisBoxSolidMassError, AxisBoxSolidMassDiagnosticCode } from './axis-box-solid-mass.js';
 export type { AxisBoxSolidMassOptions, AxisBoxSolidMassMeasure, AxisBoxSolidMassReport, AxisBoxSolidMassResult } from './axis-box-solid-mass.js';
+
+export { analyzeAxisBoxSolidPrincipalInertia, validateAxisBoxSolidPrincipalInertia, AxisBoxSolidPrincipalInertiaError, AxisBoxSolidPrincipalInertiaDiagnosticCode } from './axis-box-principal-inertia.js';
+export type { AxisBoxSolidPrincipalInertiaSelection, AxisBoxSolidPrincipalInertiaOptions, AxisBoxSolidPrincipalInertiaReport, AxisBoxSolidPrincipalInertiaResult } from './axis-box-principal-inertia.js';

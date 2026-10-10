@@ -7708,6 +7708,38 @@ Physical material certification, nonuniform density, arbitrary curved Solid
 properties, principal directions, physics pose conversion, manufacturing
 tolerance and integrated consumers remain separate.
 
+## Principal moments and axes for owned Solid mass — #1118
+
+`analyzeAxisBoxSolidPrincipalInertia(mass, options)` analyzes the stored inertia
+tensor of the complete owned cell-Solid mass result. Options contain selection,
+maximumRotations:0..64, scaledResidualTolerance and degeneracyToleranceRelative.
+Select `{kind:'total'}` or `{kind:'body',bodyId}`. Tolerances range from256EPS
+to1e-8 for residuals and1e-6 for degeneracy. The owned validator reconstructs
+the full operation. Results retain mass/options/measure/principal/report.
+
+The parent is validated once. Its exact moments, conversion errors and PD
+witnesses stay unchanged. Numerical authority is the selected stored symmetric
+kg*m2 tensor. Matrix scaling and bounded Jacobi rotations record pivots, raw
+annihilation residuals, matrix/eigenvector traces and similarity guards. Final
+eigenvector, reconstruction, orthogonality, unit and right-handed checks retain
+their actual residuals. Unresolved iterations or representation failures refuse
+atomically. Empty total material returns no axes or eigensystem.
+
+Moments are sorted ascending. The first two axes use positive dominant XYZ
+components with XYZ ties; the third completes a right-handed frame. Only exact
+zero axis components become +0. Adjacent small moment gaps form observed
+clusters and a nonunique-axis indication. These are local representatives,
+not persistent or certified unique geometric axes.
+
+```sh
+node examples/cad-nurbs/axis-box-principal-inertia-demo.mjs --source EVIDENCE_DIR
+```
+
+This is observed numerical analysis of a stored tensor. It does not replace
+the exact parent moment/error authority or certify exact-geometry eigenvectors,
+global floating error, manufacturing tolerance, physical material or pose.
+The previous normal-prism principal API remains a separate family.
+
 ```sh
 node examples/cad-nurbs/local-curvature-demo.mjs --source /tmp/cad-local-curvature
 ```
