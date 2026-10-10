@@ -1,0 +1,45 @@
+{
+  "graph": "source",
+  "originalSourceCount": 7,
+  "originalDistCount": 0,
+  "observerSource": true,
+  "worldStepped": false,
+  "inputs": [
+    {
+      "path": "packages/barocss-physics/src/types.ts",
+      "sha256": "e8befc80c94e1b109f5024581f056639acff2c19ed445f2875e20eaf2d3bf240"
+    },
+    {
+      "path": "packages/barocss-physics/src/limits.ts",
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3"
+    },
+    {
+      "path": "packages/barocss-physics/src/validation.ts",
+      "sha256": "5b0a3016c32ef19076984e6b7f529253af581c29eb9dd1adb19cc8dba185479f"
+    },
+    {
+      "path": "packages/barocss-physics/src/math.ts",
+      "sha256": "6605633830fa7fdf39f9531fbf988b52e306a6835655a318c961eb44c6b05ff8"
+    },
+    {
+      "path": "packages/barocss-physics/src/capsule-contact.ts",
+      "sha256": "a9df21430e4e2a37b1055143a5954a6a3f997b758c46432daebc11998630f3cd"
+    },
+    {
+      "path": "packages/barocss-physics/src/collision.ts",
+      "sha256": "2ba769697e5f9c5174f30a7a9ae8dceb61c1ba03c6fb507c24b6b6f7d4240388"
+    },
+    {
+      "path": "packages/barocss-physics/src/contact-manifold.ts",
+      "sha256": "4fc473bba47d820b040324d6cf6d0837001796ab34b63be444214030b8f504c4"
+    },
+    {
+      "path": "examples/physics-rigid-manifold-refusal/inspect-manifold.ts",
+      "sha256": "737e3549ba43206acc3567ca0eea4589d4c7ab5a4bea2e80a33c230d63b3ffe0"
+    },
+    {
+      "path": "examples/physics-rigid-manifold-refusal/entry.ts",
+      "sha256": "0a4dbcb70bcc029fcfd64382906eca70fa65f75a6ca97cdd298d282fa633d17f"
+    }
+  ]
+}

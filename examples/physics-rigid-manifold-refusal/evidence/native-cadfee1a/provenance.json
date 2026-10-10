@@ -1,0 +1,145 @@
+{
+  "base": "673ac26f95fe9f36088f741eaf365d3c400893ac",
+  "measuredHead": "cadfee1a46f2e70c7ce12f1ee9b5d1561419461e",
+  "node": "v22.22.0",
+  "originalBuildExit": 0,
+  "privateTypesExit": 0,
+  "independentAnalyticControlsExit": 0,
+  "independentAnalyticControls": 11,
+  "nodeAnalyticControlsPerGraph": 10,
+  "consumerExit": 0,
+  "archiveFilesValidated": 27,
+  "acceptedArchiveStatesValidated": 72,
+  "inputManifestSha256": "8b02e0ca40e6551c1facc8748339be6ab71f194444704c0e9a1eb957ffea4342",
+  "frozenSourceHashes": {
+    "archive.mjs": "9c460ab324f8a6241bd88814c696e40dc373bf2e949db21189ff839a06b79180",
+    "bundle.mjs": "6ffcec3c02a6d8b4796ea93ed8f8cf29e294d2f5339979969d3b2322798c435f",
+    "controls.mjs": "6266e9c81896ebc94ab74c3ca07b4a0bec2e2cac8bd8d6ab40a01bb1e95dd4e0",
+    "entry.ts": "0a4dbcb70bcc029fcfd64382906eca70fa65f75a6ca97cdd298d282fa633d17f",
+    "frozen-inputs.json": "36b6470e9903f8035b9a0f07b521a77505303e292856c7e5fdccbef67b811c27",
+    "geometry-reference.py": "0449f0895b93903d5112193cc98043f69b6a1a314af8716f44449858af1f88dc",
+    "inspect-manifold.ts": "737e3549ba43206acc3567ca0eea4589d4c7ab5a4bea2e80a33c230d63b3ffe0",
+    "reconstruct.mjs": "1c1a750a4d524f4ad6ecc9e04fc6be9d40a2e2285888ed7a0d83e204e7ff4f5f",
+    "runner.mjs": "b04f1013b09d95a98de196c13f0594a5ff1adfe3c30c2a69c064271fd332a6c4"
+  },
+  "reusedConsumerHashes": {
+    "examples/physics-rigid-contact-reference/fixtures.mjs": "ca760b2945d246de1e2f32cb4763ef58bf95e87422b6d4545682c20abb3a1ac0",
+    "examples/physics-rigid-contact-reference/geometry-reference.py": "2c8bc7f6cd809e865c986a859b8614c963c4862296920555eb31c9487411af26",
+    "examples/physics-rigid-contact-diagnostic/observer.mjs": "85b3e216b28ec12511f8fc7262f96c3e050eeccd32b588d154797083ed795a98"
+  },
+  "actualEncounterReferences": 66,
+  "resolvedEncounterReferences": 66,
+  "maxDepthErrorM": 1.5816249463586694e-16,
+  "maxAlignmentError": 1.7643485187623497e-16,
+  "allThreeGraphRawAndInspectionReferenceParity": true,
+  "facts": [
+    {
+      "scene": "ALIGNED",
+      "attemptedStep": 5,
+      "pair": [
+        "b4",
+        "b5"
+      ],
+      "nullBranch": "no-clipped-candidate",
+      "reference": {
+        "bodyId": "b4",
+        "axis": 1,
+        "side": 1
+      },
+      "incident": {
+        "bodyId": "b5",
+        "axis": 1,
+        "side": -1
+      },
+      "clippedVertexCount": 8,
+      "candidateSeparationRangeM": [
+        1.0623611032149923e-05,
+        1.2479365123391725e-05
+      ],
+      "hitDepthM": 2.1087686323029153e-05,
+      "independentMinimumAxes": [
+        "A.edge.2xB.edge.0"
+      ],
+      "workingRawSha256": "73b6822b9b04e199637b1b57bab22068f6f49d16134216a384fe70293ca53cd4"
+    },
+    {
+      "scene": "OFFSET",
+      "attemptedStep": 16,
+      "pair": [
+        "b6",
+        "b7"
+      ],
+      "nullBranch": "no-clipped-candidate",
+      "reference": {
+        "bodyId": "b6",
+        "axis": 1,
+        "side": 1
+      },
+      "incident": {
+        "bodyId": "b7",
+        "axis": 1,
+        "side": -1
+      },
+      "clippedVertexCount": 6,
+      "candidateSeparationRangeM": [
+        0.00013792848260191177,
+        0.0002491948769430025
+      ],
+      "hitDepthM": 0.00011221057318255845,
+      "independentMinimumAxes": [
+        "A.edge.2xB.edge.0"
+      ],
+      "workingRawSha256": "ad071449448b11144f3c9049013fa765739de3591ab4eaef990128a1a9a7234d"
+    },
+    {
+      "scene": "YAW",
+      "attemptedStep": 3,
+      "pair": [
+        "b6",
+        "b7"
+      ],
+      "nullBranch": "no-clipped-candidate",
+      "reference": {
+        "bodyId": "b6",
+        "axis": 1,
+        "side": 1
+      },
+      "incident": {
+        "bodyId": "b7",
+        "axis": 1,
+        "side": -1
+      },
+      "clippedVertexCount": 6,
+      "candidateSeparationRangeM": [
+        1.0875665902761824e-06,
+        1.087566591083658e-06
+      ],
+      "hitDepthM": 2.1488644974532178e-07,
+      "independentMinimumAxes": [
+        "B.face.1"
+      ],
+      "workingRawSha256": "a775c23fcad853fddf1db0a16d2e25b66e822cef5e668e0762a0cbc036dca3d3"
+    }
+  ],
+  "worldStepped": false,
+  "modelGO": false,
+  "limitations": [
+    "Working poses are reconstructed command-free/unaccepted, not recorded failed body snapshots.",
+    "All source helpers are unchanged; no manifold repair or original solver rerun.",
+    "Depth/normal reference agreement does not prove contact force/stability or a unique physical feature.",
+    "No refinement/cost/Chrome/Viewer/integrated file or publication claim."
+  ],
+  "uncompressedArtifactHashes": {
+    "compiled-dependencies-ALIGNED-report.json": "7ffad73e5dab4f4a81a9d21f142c7669fe66f5ab1e87f03cc019d6caf3ec7ed5",
+    "compiled-dependencies-OFFSET-report.json": "3247f6e69af1a2e22c8ff0022d2ebadc7be9ec9dddb8cc05369ba1751b49fa5a",
+    "compiled-dependencies-YAW-report.json": "e8e7e9fdb26c974c37ce79735fd6c81bbe0dd6c87ed328151c633c508439f6cc",
+    "source-ALIGNED-report.json": "115c2d15d26ff82f05c36a633142fba52fb26d54174f9c0f1e5c4a9ca7944bcc",
+    "source-OFFSET-report.json": "8dd93eb61ab80c150994d358e6114c12495ec0bca9d78e135fcdc4129d1d5993",
+    "source-YAW-report.json": "f6649c7d13501030c4db89596af51d7f96ecb76d07a2193536c334a03b9d960c",
+    "source-repeat-ALIGNED-report.json": "3b2bc89b6fcca0b2aacedbf82c2330b3cc9da54519331bef1af9de8810953378",
+    "source-repeat-OFFSET-report.json": "a6b0969e8f3bf3d4e0ae698a818bbd2b8b90dea0a6587cd8e15e2642be03251c",
+    "source-repeat-YAW-report.json": "43129b71bb35d3cd622505f47d0ef363dd71882aeab983619171b0cb2b2b4698",
+    "summary.json": "7e11f8854c8e8f6daa285561f0a369717c0f7c6b0692afc51ada719de41b685a"
+  },
+  "packaging": "gzip reports/summary decompress byte-exact; canonical consumer unchanged"
+}
