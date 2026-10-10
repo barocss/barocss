@@ -1,0 +1,80 @@
+/* Source-only studio regions. Authoring controls are supplied by the host. */
+.re-editor.re-source-studio {
+  --re-bg: #1c1e22;
+  --re-panel: #282a2f;
+  --re-line: #3a3d44;
+  --re-muted: #a1a6ae;
+  --re-fg: #e1e4e9;
+  --re-accent: #6aa6ef;
+  min-width: 622px;
+  overflow: hidden;
+  font: 12px/1.4 system-ui, sans-serif;
+}
+.re-editor.re-source-studio .re-studio-toolbar {
+  display: flex; align-items: center; flex: none; min-height: 30px;
+  gap: 4px; padding: 2px 4px; border-bottom: 1px solid #17191d; background: #2b2d32;
+}
+.re-editor.re-source-studio .re-studio-add-toolbar {display: flex; align-items: center; min-width: 0; gap: 4px; flex: 1;}
+.re-editor.re-source-studio .re-studio-actions {display: flex; align-items: center; flex: none; gap: 4px;}
+.re-editor.re-source-studio .re-studio-toolbar button {min-height: 24px; padding: 2px 6px; border-radius: 3px; font-size: 11px;}
+.re-editor.re-source-studio .re-studio-toolbar label {display: flex; align-items: center; gap: 4px; font-size: 11px;}
+.re-editor.re-source-studio .re-studio-toolbar input,
+.re-editor.re-source-studio .re-studio-toolbar select {min-width: 0; padding: 2px 4px; font-size: 11px; max-width: 124px;}
+.re-editor.re-source-studio .re-studio-toolbar .re-scene-object-tools {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+  min-width: 0; margin: 0; padding: 0; border: 0; font-size: 11px;
+}
+.re-editor.re-source-studio .re-studio-toolbar .re-studio-add-types {display: flex; flex: none; align-items: center; gap: 2px;}
+.re-editor.re-source-studio .re-studio-toolbar .re-studio-add-types button {position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none; width: 26px; height: 24px; min-height: 24px; padding: 0;}
+.re-editor.re-source-studio .re-studio-toolbar .re-studio-add-types svg {width: 16px; height: 16px; flex: none;}
+.re-editor.re-source-studio .re-studio-toolbar .re-studio-add-types button > span {position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;}
+.re-editor.re-source-studio .re-studio-toolbar .re-scene-object-tools > label {display: inline-flex; flex: none; align-items: center; justify-content: flex-start; gap: 4px; height: 24px; margin: 0; padding: 0; white-space: nowrap;}
+.re-editor.re-source-studio .re-studio-toolbar .re-scene-object-tools select {width: 76px; max-width: 76px; height: 24px; padding: 2px 3px;}
+.re-editor.re-source-studio .re-studio-toolbar .re-scene-object-tools input {width: 90px; max-width: 90px; height: 24px; padding: 2px 4px;}
+.re-editor.re-source-studio .re-studio-toolbar .re-scene-tool-actions {display: flex; flex: none; flex-wrap: nowrap; align-items: center; gap: 4px; height: 24px; margin: 0; padding: 0;}
+.re-editor.re-source-studio .re-studio-toolbar .re-scene-tool-actions button {height: 24px; min-height: 24px; margin: 0; padding: 2px 6px; line-height: 18px; white-space: nowrap;}
+.re-editor.re-source-studio .re-studio-toolbar .re-scene-object-tools > .re-caption {order: 1; flex: 1 0 100%; min-width: 0; margin: 0; padding: 0; font-size: 10px; line-height: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.re-editor.re-source-studio .re-studio-toolbar [data-testid="add-object-name-error"] {color: #e3b2a2;}
+.re-editor.re-source-studio .re-studio-toolbar .re-scene-source-error {display: flex; order: 1; flex: 1 0 100%; align-items: flex-start; gap: 8px; min-width: 0; margin: 0; padding: 0; font-size: 10px; line-height: 16px;}
+.re-editor.re-source-studio .re-studio-toolbar .re-scene-source-error p {margin: 0; padding: 0;}
+.re-editor.re-source-studio .re-studio-toolbar .re-scene-source-error details {min-width: 0;}
+.re-editor.re-source-studio .re-studio-toolbar .re-scene-source-error summary {cursor: pointer; white-space: nowrap;}
+.re-editor.re-source-studio .re-studio-toolbar .re-scene-source-error pre {max-height: 120px; margin: 4px 0 0; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere;}
+.re-editor.re-source-studio .re-studio-grid {display: grid; grid-template-columns: 38px minmax(360px, 1fr) 4px var(--re-studio-right-width); flex: 1; min-width: 0; min-height: 0; overflow: hidden;}
+.re-editor.re-source-studio .re-studio-tool-rail {display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 4px 3px; border-right: 1px solid #17191d; background: #24262b; overflow: auto;}
+.re-editor.re-source-studio .re-studio-tool-rail button {display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 32px; width: 100%; padding: 3px 0; gap: 2px; border-radius: 3px; font-size: 9px;}
+.re-editor.re-source-studio .re-studio-tool-rail button[aria-pressed="true"] {border-color: #6294d1; background: #344b6b; color: #eef5ff;}
+.re-editor.re-source-studio .re-studio-center {display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; background: var(--re-bg);}
+.re-editor.re-source-studio .re-studio-viewport {position: relative; display: flex; flex: 1; min-width: 0; min-height: 264px; overflow: hidden;}
+.re-editor.re-source-studio .re-studio-timeline {flex: none; min-width: 0; max-height: 220px; overflow: auto;}
+.re-editor.re-source-studio .re-studio-timeline:empty {display: none;}
+.re-editor.re-source-studio .re-studio-right {display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; background: var(--re-panel);}
+.re-editor.re-source-studio .re-studio-outliner {display: flex; flex-direction: column; flex: none; height: var(--re-studio-outliner-height); min-height: 112px; overflow: hidden;}
+.re-editor.re-source-studio .re-studio-properties {display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;}
+.re-editor.re-source-studio .re-studio-region-heading {display: flex; align-items: center; flex: none; gap: 5px; height: 24px; padding: 0 6px; border-bottom: 1px solid var(--re-line); background: #24262b;}
+.re-editor.re-source-studio .re-studio-region-heading h2 {margin: 0; font-size: 11px; font-weight: 500;}
+.re-editor.re-source-studio .re-studio-tabs {display: flex; flex: none; height: 24px; background: #27292e; border-bottom: 1px solid var(--re-line);}
+.re-editor.re-source-studio .re-studio-tabs [role="tab"] {display: flex; align-items: center; justify-content: center; flex: 1; gap: 4px; min-width: 0; padding: 2px 6px; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: transparent; color: var(--re-muted); font-size: 11px;}
+.re-editor.re-source-studio .re-studio-tabs [aria-selected="true"] {background: #32353c; border-bottom-color: #6aa6ef; color: var(--re-fg);}
+.re-editor.re-source-studio .re-studio-tabs button:hover {background: #343840; color: var(--re-fg);}
+.re-editor.re-source-studio .re-studio-tabs button:focus-visible {outline-offset: -2px;}
+.re-editor.re-source-studio .re-studio-panel {flex: 1; min-height: 0; min-width: 0; overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: #4d535d transparent;}
+.re-editor.re-source-studio .re-studio-splitter {position: relative; flex: none; background: #17191d; touch-action: none; user-select: none; z-index: 5; outline-offset: -1px;}
+.re-editor.re-source-studio .re-studio-splitter--vertical {width: 4px; cursor: col-resize;}
+.re-editor.re-source-studio .re-studio-splitter--horizontal {width: 100%; height: 4px; cursor: row-resize;}
+.re-editor.re-source-studio .re-studio-splitter:hover,
+.re-editor.re-source-studio .re-studio-splitter:focus-visible {background: #5286c4; outline: 1px solid #7dafec;}
+.re-editor.re-source-studio .re-studio-disclosures {display: flex; align-items: center; flex: none; height: 24px; border-top: 1px solid var(--re-line); background: #24262b;}
+.re-editor.re-source-studio .re-studio-disclosures button {display: flex; align-items: center; gap: 4px; height: 22px; padding: 2px 6px; border: 0; border-radius: 0; background: transparent; color: var(--re-muted); font-size: 11px;}
+.re-editor.re-source-studio .re-studio-disclosures button[aria-expanded="true"],
+.re-editor.re-source-studio .re-studio-disclosures button:hover {background: #343840; color: var(--re-fg);}
+.re-editor.re-source-studio .re-studio-disclosures .re-studio-close-drawer {margin-left: auto; padding-inline: 10px; font-size: 17px;}
+.re-editor.re-source-studio .re-studio-problem-count {display: inline-flex; align-items: center; justify-content: center; min-width: 16px; height: 16px; background: #363a42; border-radius: 3px; font-size: 10px;}
+.re-editor.re-source-studio .re-studio-problem-count.is-active {background: #503b35; color: #f5baa8;}
+.re-editor.re-source-studio .re-studio-drawer {display: flex; flex-direction: column; flex: none; height: var(--re-studio-drawer-height); min-height: 96px; min-width: 0; overflow: hidden; background: #23262c;}
+.re-editor.re-source-studio .re-studio-drawer-panel {display: flex; flex-direction: column; flex: 1; min-width: 0; min-height: 0; overflow: auto; scrollbar-width: thin; overscroll-behavior: contain;}
+.re-editor.re-source-studio .re-studio-drawer-panel > div {display: flex; flex-direction: column; flex: 1; min-height: 0;}
+.re-editor.re-source-studio .re-studio-panel .re-panel-heading {padding: 3px 6px; min-height: 24px;}
+.re-editor.re-source-studio .re-studio-outliner .re-objects ul {padding: 2px;}
+.re-editor.re-source-studio .re-studio-outliner .re-objects li button {min-height: 24px; margin: 0; padding: 3px 5px; border-radius: 2px;}
+.re-editor.re-source-studio .re-studio-outliner .re-object-note {margin-top: 6px;}

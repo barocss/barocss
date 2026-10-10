@@ -1,4 +1,5 @@
 import {mountScene, type SceneRenderer} from '@barocss/gpu';
+import type {MeshCamera} from '@barocss/gpu';
 import type {RenderSceneDocument} from './document.js';
 import type {RenderEditorPreparedCandidate} from './session.js';
 import type {PresentationResult, RenderEditorPresenter} from './controller.js';
@@ -9,6 +10,8 @@ export function createSceneViewportPresenter(canvas: HTMLCanvasElement, onUnavai
   let shown: RenderSceneDocument | null = null;
   let disposed = false;
   const errorOf = (error: unknown) => error instanceof Error ? error : new Error('Viewport failed.');
+  const sameCamera = (a: MeshCamera, b: MeshCamera) => (['eye', 'target', 'up'] as const).every(field => a[field].every((value, index) => Object.is(value, b[field][index])))
+    && Object.is(a.fovYDegrees, b.fovYDegrees) && Object.is(a.near, b.near) && Object.is(a.far, b.far);
   const live = () => { try { renderer!.readPixels(); return true; } catch { return false; } };
   const refused = (error: unknown, recovered = live()): PresentationResult => ({ok: false, error: errorOf(error), recovered});
   const onLoss = (event: Event) => {
@@ -22,6 +25,12 @@ export function createSceneViewportPresenter(canvas: HTMLCanvasElement, onUnavai
     present(candidate: RenderEditorPreparedCandidate, previous: RenderSceneDocument) {
       if (disposed || !renderer) return refused(new Error('The viewport is unavailable.'), false);
       try {
+        if (!shown || previous.sceneSource !== shown.sceneSource || !sameCamera(previous.camera, shown.camera)) {
+          return refused(new Error('Presentation rollback must name the actual displayed source and camera.'), live());
+        }
+        if (candidate.mode === 'source' && !sameCamera(candidate.document.camera, shown.camera)) {
+          return refused(new Error('Source-only presentation must preserve the actual viewport camera.'), live());
+        }
         if (candidate.mode === 'camera') {
           if (!shown || shown.sceneSource !== candidate.document.sceneSource || shown.sourceVersion !== candidate.document.sourceVersion) {
             return refused(new Error('Camera-only presentation cannot replace the displayed scene source.'), live());
