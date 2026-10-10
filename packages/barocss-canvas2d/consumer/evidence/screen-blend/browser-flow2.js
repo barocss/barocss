@@ -1,0 +1,14 @@
+async page=>{
+await page.evaluate(()=>{const before=__beforeOpen,o=__record('physicalOpen28');if(o.opened.savedVersion!==28||!o.opened.freshCanvas||!o.opened.bytesEqual||JSON.stringify(screenBlend.scene())!==JSON.stringify(before.scene)||JSON.stringify(screenBlend.bytes())!==JSON.stringify(before.bytes)||JSON.stringify(o.samples)!==JSON.stringify(before.samples))throw Error('Open retention');});
+const box=await page.locator('#scene').boundingBox();for(const[x,y]of [[20,144],[68,144]])await page.mouse.click(box.x+x,box.y+y);
+await page.getByRole('button',{name:'Normal',exact:true}).click();await page.evaluate(()=>{const o=__record('restoredNormal');const c=[180/255,70/255,140/255],a=128/255,d=[.1,.6,.2];const expected=c.map((v,i)=>Math.round((v*a+d[i]*(1-a))*255)).concat(255);if(o.mode!=='normal'||o.samples.editInk.rgba.some((v,i)=>Math.abs(v-expected[i])>2))throw Error('restored normal oracle');});
+await page.getByRole('button',{name:'Screen',exact:true}).click();await page.evaluate(()=>__record('restoredScreen'));
+await page.evaluate(async()=>{
+const root=await import('@barocss/canvas2d'),doc=await import('@barocss/canvas2d/document');const text=await(await fetch('evidence/screen-blend/earlier-scene27.json')).text();const parsed=await doc.parseCanvasDocument(text),tree=root.createDisplayTreeFromScene(parsed.scene),canvas=document.createElement('canvas');const renderer=root.createCanvas2D(canvas,{logicalSize:{width:320,height:240},dpr:2,backgroundColor:[32/255,64/255,96/255,1]});
+try{for(const[id,asset]of parsed.assets)renderer.setImageAsset(id,asset);renderer.updateScene(parsed.scene);renderer.render();const modes=[];function visit(nodes){for(const n of nodes){if(n.kind==='image')modes.push(n.blendMode);if(n.children)visit(n.children)}}visit(parsed.scene.nodes);if(parsed.scene.version!==27||!modes.includes('normal')||!modes.includes('add')||modes.includes('screen'))throw Error('genuine old modes');
+const gl=canvas.getContext('webgl2'),bytes=new Uint8Array(4);gl.readPixels(300*2,canvas.height-230*2-1,1,1,gl.RGBA,gl.UNSIGNED_BYTE,bytes);if(JSON.stringify([...bytes])!==JSON.stringify([32,64,96,255]))throw Error('old render');let allBytesEqual=true;for(const[id,asset]of parsed.assets)if(JSON.stringify([...renderer.getImageAsset(id).pixels])!==JSON.stringify([...asset.pixels]))allBytesEqual=false;
+window.__historical={savedVersion:parsed.scene.version,currentTreeVersion:tree.snapshot().version,modes,allBytesEqual,background:[...bytes],assets:parsed.assets.size};}finally{renderer.dispose()}
+__record('genuineEarlierScene27Reconstruction');
+});
+console.log(JSON.stringify({stages:await page.evaluate(()=>__screenStages),oracle:await page.evaluate(()=>__oracle),failureRestore:await page.evaluate(()=>__failureRestore),historical:await page.evaluate(()=>__historical)}));
+}

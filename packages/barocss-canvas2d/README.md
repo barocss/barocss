@@ -354,3 +354,9 @@ typography parity or performance claims.
 ## Browser-font raster text consumer (#1011)
 
 After the compiled package build, open `/packages/barocss-canvas2d/consumer/text-raster.html`. This host prepares a fixed 24px monospace ASCII label with browser font readiness, measured baseline bounds and copied DPR2 RGBA bytes. One public glyph run represents the complete label; spaces remain transparent. An edit uses a fresh candidate canvas/tree/renderer and commits only the newest accepted generation. Failed or late candidates retain the live label. Save stores Scene and RGBA bytes in v1; Open restores pixels without preparing a font, and later edits use the current host font. PNG uses an actual export file. Font metadata, Unicode shaping and per-character caret mapping are outside this consumer.
+
+## Sprite screen blending (Scene28)
+
+Latest display snapshots use Scene28. Sprite creation and `setBlendMode` accept `normal`, `add` and `screen`; earlier Scene0..27 types/admission remain unchanged and reject screen. Screen combines premultiplied stored channels as `s+d-s*d`, with source-over alpha. It reuses source matrix/tint/opacity, clipping/masks and source-alpha hit testing; image bytes are unchanged. Normal/add behavior and document envelope1 stay unchanged. No group blend isolation or full CSS/color-space parity is promised.
+
+The bounded `consumer/screen-blend.html` example compares opaque/translucent backgrounds, edits one Sprite, saves/opens a native document, and disposes owned renderers. Node22 build plus strict `consumer/tsconfig.screen-blend.json` and `consumer/evidence/screen-blend/probe.mjs` check current sources/public compiled types; the recorded actual WebGL2/file/pointer flow is in `consumer/evidence/screen-blend/observation.md`. Historical probes stay tied to their original native Scene versions. Native proof is separate from merged/integrated validation or release.
