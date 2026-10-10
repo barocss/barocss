@@ -2253,3 +2253,30 @@ pixels, lifetime, textures and publication retain their separate qualifications.
 `examples/gpu-scene/box-geometry-flow.mjs --output <fresh-directory>` exercises
 source/emitted APIs, independent Box attributes, a shared two-instance scene,
 refusals and original parameter files with cold reconstruction.
+
+## Original indexed Plane geometry
+
+`preparePlaneGeometry(input)` accepts exact original parameters:
+`{format:'barocss-gpu-plane-geometry',version:0,id,coordinateSystem:'right-handed-y-up',positionUnit:'scene',sizeXY:[width,height],segmentsXY:[nx,ny]}`.
+Dimensions are finite Numbers in scene units, `0 < size <= 2000`. Cell counts
+are integers from 1 to 128 per axis. The plane lies in XY, centred at the origin, with
++Z normals. Existing scene node poses supply orientation and placement.
+
+The frozen `{source,prepared}` result keeps independent original parameters
+and generated Number attributes. One existing `prepareTriangleGeometry` call
+creates independent mutable Float32 attributes and Uint16 indices. Vertex
+`j*(nx+1)+i` has position `[width*(i/nx-.5),height*(j/ny-.5),0]`, normal `[0,0,1]`
+and UV `[i/nx,j/ny]`. Each cell a, b=a+1, c=a+nx+1, d=c+1 has CCW indices
+`[a,b,d,a,d,c]`. Vertices and cells follow rows from bottom to top, left to right.
+
+There are `(nx+1)*(ny+1)` vertices and `2*nx*ny` triangles. The maximum lattice
+has 16,641 vertices, 32,768 triangles and 729,120 typed buffer bytes. Segments
+are admitted before attribute generation. Existing `TriangleGeometryError`
+codes and original/F32 area, range and collapse refusals apply; tiny positive
+sizes can refuse. Source and separate calls never share mutable arrays.
+This is generic mesh authoring; native CAD Plane, topology, renderers and
+publication retain their separate contracts.
+
+`examples/gpu-scene/plane-geometry-flow.mjs --output <fresh-directory>` covers
+source/emitted APIs, original parameters/files, shared scene instances,
+source-coordinate ray queries, bounded refusals and cold reconstruction.

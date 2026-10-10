@@ -128,3 +128,6 @@ export { PrimitiveSceneRecoveryError } from './primitive-scene-renderer.js';
 
 export { prepareBoxGeometry } from './box-geometry.js';
 export type { BoxGeometrySourceV0, PreparedBoxGeometry } from './box-geometry.js';
+
+export { preparePlaneGeometry } from './plane-geometry.js';
+export type { PlaneGeometrySourceV0, PreparedPlaneGeometry } from './plane-geometry.js';
