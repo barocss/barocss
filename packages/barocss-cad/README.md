@@ -7675,6 +7675,39 @@ The new flow checks current contact/disjoint results, saved positive-overlap
 digests, exact XYZ material queries and compiled consumers. Earlier #1101
 receipts keep their original restricted scope and first verification history.
 
+## Exact cell-Solid mass, centroid and inertia — #1112
+
+`measureAxisBoxSolidBooleanMass(boolean, options)` measures the complete owned
+integer-cell Solid with an explicit uniform declared density. Options contain
+densityKgPerM3 (positive finite, at most1e6) and maximumCells:27.
+`validateAxisBoxSolidBooleanMass(result)` reconstructs the entire operation.
+The result retains boolean/options/bodies/total/report and all parent sources,
+native geometry and manifold/material proofs.
+
+Only occupied cells contribute. Exact rational volume, first moments and second
+coordinate moments give each Body's and the total mass, centroid and centroidal
+inertia. Unit conversion divides by exact integers: mass uses density/1e9 and
+inertia uses density/1e15. Products and translated-centre cancellation stay
+exact even when a raw moment exceeds the safe integer range. Overlapping
+operands are not double-counted; cavities and disconnected Bodies follow the
+actual material cells.
+
+Returned units are kg, mm and kg*m2, with density in kg/m3. Final values use
+nearest-even conversion and retain exact/upward error bounds. Both the exact
+and stored symmetric inertia matrices must have positive leading principal
+minors for nonempty material. Nonzero underflow refuses instead of returning a
+false zero. Empty material has mass0 and null centroid/tensor. The fixed exact
+arithmetic budget may refuse oversized work atomically.
+
+```sh
+node examples/cad-nurbs/axis-box-solid-mass-demo.mjs --source EVIDENCE_DIR
+```
+
+These are properties of the admitted coefficient model and declared density.
+Physical material certification, nonuniform density, arbitrary curved Solid
+properties, principal directions, physics pose conversion, manufacturing
+tolerance and integrated consumers remain separate.
+
 ```sh
 node examples/cad-nurbs/local-curvature-demo.mjs --source /tmp/cad-local-curvature
 ```
