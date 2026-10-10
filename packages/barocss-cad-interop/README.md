@@ -3216,3 +3216,29 @@ The preview does not produce a clipped fill, a sewn BRep, a Body or a Solid.
 This example uses the existing public CAD classifier/validator, neutral native
 parser and Three loader. It adds no CAD or adapter API. Product integration,
 publication and later screen/file/recovery validation have separate receipts.
+
+## Original multi-span trim UV classification in Babylon.js
+
+The independent `examples/multispan-trim-uv-babylon.html` host reads the original multi-span classification beside its complete, untrimmed Support Surface. It uses the existing public CAD and Babylon.js loaders.
+
+Sixteen unchanged files contain nine authored queries, the complete Model8 source, both original parent sources and seven dimensionless UV sidecars. The seven Curves remain in the native model. The host displays original spans, lower-span joins, parameter brackets, subdivision steps and both qualified Face classifications. Cap0 is a successful `uncertain` result.
+
+The Surface preview uses the original17×9 grid. It does not turn UV data into World lines or clip the Surface. The source and readout remain available after owned resources are released. The caller keeps its camera, scene, renderer and marker.
+
+The ordered flow checks11 genuine input refusals and5 shared transport refusals, reads all three cases, then loads12 fresh original files and the public whole-parent source URL. It checks the native data, camera, full frame and actual resource lifetime before double cleanup.
+
+From the repository root with Node22, run the source verifier before building the CAD and interop packages:
+
+```sh
+node packages/barocss-cad-interop/examples/multispan-trim-uv-babylon-verify.mjs --mode source --output <fresh-source-evidence>
+pnpm exec vite --config packages/barocss-cad-interop/examples/multispan-trim-uv-babylon.config.mjs
+```
+
+After the affected builds, check the emitted public entries and use their browser bundle:
+
+```sh
+node packages/barocss-cad-interop/examples/multispan-trim-uv-babylon-verify.mjs --mode compiled --output <fresh-compiled-evidence>
+LOADER1288_COMPILED_BUNDLE=<fresh-compiled-evidence>/browser.bundle.mjs pnpm exec vite --config packages/barocss-cad-interop/examples/multispan-trim-uv-babylon.config.mjs
+```
+
+The actual host uses port5299 at `/packages/barocss-cad-interop/examples/multispan-trim-uv-babylon.html`. CPU checks and genuine WebGL2 target checks have separate receipts. Issue#1288 and the Loader Wiki record the actual native commit, executed gates and first errors. Native delivery, local integration and publication are separate states.
