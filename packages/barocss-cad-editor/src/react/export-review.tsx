@@ -103,33 +103,43 @@ export function CadEditorExportReview(props:CadEditorExportReviewProps) {
   return <Dialog open={open} onOpenChange={setOpen}>
     <DialogTrigger asChild><Button type="button" variant="ghost" size="sm" disabled={busy} data-testid="export-iges-trigger">Export IGES</Button></DialogTrigger>
     <DialogContent className="cad-editor-help-dialog cad-editor-export-dialog" data-testid="export-review-dialog">
-      <DialogHeader><DialogTitle>Review IGES export</DialogTitle><DialogDescription>Original accepted geometry · IGES 5.3 ASCII · mm · authored XYZ</DialogDescription></DialogHeader>
+      <DialogHeader><DialogTitle>Review IGES export</DialogTitle><DialogDescription>Choose objects and review the export before downloading.</DialogDescription></DialogHeader>
       <div className="cad-editor-export-body">
-        <p>Accepted revision {document.revision}. Select original bodies independently of what is displayed.</p>
-        <div className="cad-editor-export-field"><Label htmlFor={id+'-model'}>Export model ID</Label><Input id={id+'-model'}
-          data-testid="export-model-id" type="text" value={currentRaw.modelId} disabled={busy} onChange={event=>changeModel(event.target.value)}/></div>
-        <fieldset className="cad-editor-export-selections"><legend>Original bodies</legend>
+        <p>IGES 5.3 ASCII · mm</p>
+        {error && <p role="alert" className="cad-editor-error">{guidance(error)}</p>}
+        <fieldset className="cad-editor-export-selections"><legend>Objects to export</legend>
           {rows.map(({body,value})=>{
             const binding=snapshot.accepted.bodyBindings.find(value=>value.bodyId===body.id)!;
             return <div className="cad-editor-export-object" key={body.id}>
               <label className="cad-editor-export-choice"><input type="checkbox" data-testid={'export-body-'+body.id} disabled={busy}
                 checked={value.selected} onChange={event=>changeBody(body.id,{selected:event.target.checked})}/><span>{body.name}</span>
-                <small>{snapshot.displayBodyIds.includes(body.id)?'Displayed':'Hidden'} · {binding.geometryKind}</small></label>
-              <p className="cad-editor-export-identity">Asset {body.assetId} · Original geometry {body.geometryId}</p>
-              <div className="cad-editor-export-field"><Label htmlFor={id+'-'+body.id}>Output ID</Label>
-                <Input id={id+'-'+body.id} data-testid={'export-output-id-'+body.id} type="text" value={value.outputId} disabled={busy || !value.selected}
-                  onChange={event=>changeBody(body.id,{outputId:event.target.value})}/></div>
+                <small>{snapshot.displayBodyIds.includes(body.id)?'Displayed':'Hidden'} · {binding.geometryKind==='surface'?'Surface':'Curve'}</small></label>
             </div>;
           })}
         </fieldset>
+        <details data-testid="export-review-naming"><summary>Export naming</summary>
+          <div className="cad-editor-export-field"><Label htmlFor={id+'-model'}>Export model ID</Label><Input id={id+'-model'}
+            data-testid="export-model-id" type="text" value={currentRaw.modelId} disabled={busy} onChange={event=>changeModel(event.target.value)}/></div>
+          {rows.filter(row=>row.value.selected).map(({body,value})=><div className="cad-editor-export-object" key={body.id}>
+            <p>{body.name}</p><p className="cad-editor-export-identity">Asset {body.assetId} · Original geometry {body.geometryId}</p>
+            <div className="cad-editor-export-field"><Label htmlFor={id+'-'+body.id}>Output ID</Label>
+              <Input id={id+'-'+body.id} data-testid={'export-output-id-'+body.id} type="text" value={value.outputId} disabled={busy || !value.selected}
+                onChange={event=>changeBody(body.id,{outputId:event.target.value})}/></div>
+          </div>)}
+        </details>
         <p>{selectedCount} selected · {rows.length-selectedCount} unselected</p>
-        {error && <p role="alert" className="cad-editor-error">{guidance(error)}</p>}
         {result && <section data-testid="export-review-result" className="cad-editor-export-result">
-          <h3>Captured native export</h3><p data-testid="export-review-revision">Accepted revision {result.report.documentRevision}</p>
-          <p>IGES 5.3 ASCII · mm · authored XYZ · no axis conversion</p>
+          <h3>Ready to download</h3>
+          <p data-testid="export-review-loss-summary">Geometry only. Source and history are excluded.</p>
+          {result.report.directoryLabels.truncatedCount>0 && <p>Names are shortened in IGES.</p>}
+          {result.report.directoryLabels.collisions.length>0 && <p>Some shortened names repeat. Download the loss report to keep the full name mappings.</p>}
+          <p>Save the native document separately to keep editing.</p>
           <dl><dt>Selected objects</dt><dd data-testid="export-review-selected">{result.report.selectedObjectCount}</dd>
             <dt>Unselected bodies</dt><dd data-testid="export-review-unselected">{result.report.unselectedBodyIds.length}</dd>
             <dt>Output bytes</dt><dd data-testid="export-review-bytes">{result.report.outputBytes}</dd></dl>
+          <details data-testid="export-review-details"><summary>Export details</summary>
+          <p data-testid="export-review-revision">Accepted revision {result.report.documentRevision}</p>
+          <p>Authored XYZ · no axis conversion</p>
           <p data-testid="export-review-signed-zero">Original native -0 occurrences: {result.report.signedZeroNormalization.nativeOccurrences}. IGES parameter -0 normalized to +0: {result.report.signedZeroNormalization.parameterOccurrences}. Original native bits stay unchanged.</p>
           <p data-testid="export-review-truncated">Directory labels use at most {result.report.directoryLabels.maximumCharacters} characters. Truncated labels: {result.report.directoryLabels.truncatedCount}.</p>
           <p data-testid="export-review-collisions">Label collisions: {result.report.directoryLabels.collisions.length}. Keep the full-ID report with the IGES file.</p>
@@ -149,13 +159,14 @@ export function CadEditorExportReview(props:CadEditorExportReviewProps) {
           </details>
           <p>Geometric validity: {result.report.geometricValidity}. Topology certified: {String(result.report.topologyCertified)}. Solid: {String(result.report.solid)}.</p>
           <details><summary>Full native loss and identity report</summary><pre>{JSON.stringify(result.report,null,2)}</pre></details>
+          </details>
         </section>}
       </div>
       <DialogFooter>
         <Dialog><DialogTrigger asChild><Button type="button" variant="ghost" data-testid="export-review-help" className="cad-editor-export-help">Help</Button></DialogTrigger>
           <DialogContent className="cad-editor-help-dialog" data-testid="export-review-help-dialog">
             <DialogHeader><DialogTitle>IGES export review</DialogTitle><DialogDescription>Accepted original geometry and explicit loss review.</DialogDescription></DialogHeader>
-            <p>Review export calls exportAccepted once to capture actual IGES bytes and its report. inspectExport is a separate public read API that stages/reconstructs/writes output internally; it is not metadata-only.</p>
+            <p>Review export creates and captures the IGES file and its full loss report. This step reconstructs the selected geometry and writes the output. Download uses the current capture.</p>
             <p>Choose 1–16 original canonical bodies by full document/asset/body/geometry references. Hidden and read-only bodies can be exported. Writer Source0 degree 1–5 support is independent of Viewer display support.</p>
             <p>Use distinct model/output ASCII IDs beginning with a letter or underscore and containing only letters, digits, underscores or hyphens, from 1 to 48 characters. IDs are not silently repaired. IGES directory labels have 8 characters, so truncation and collisions need the full-ID sidecar.</p>
             <p>IGES carries Curve 126 and Surface 128 geometry in authored XYZ/mm with no axis or unit conversion and no mesh export. The native report gives exact domains, directory/parameter mapping and output limits: 2 MiB, 80 ASCII columns and LF records.</p>

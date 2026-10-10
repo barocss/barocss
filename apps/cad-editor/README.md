@@ -301,3 +301,5 @@ unmounts both Viewer and review UI, invalidating the capture while preserving
 the host-owned native session. The canonical Viewer has no public GPU resource
 counts; disposal/status/lifecycle, fresh remount pixels and native state retention
 are separate evidence.
+
+The ordinary export review shows object names, format/mm, selection and real geometry-only/history/name-loss decisions. Export naming is secondary; full native mappings, signed-zero counts and certification details remain in expandable Export details and Help. No generic No loss claim follows from the writer geometry-loss field.

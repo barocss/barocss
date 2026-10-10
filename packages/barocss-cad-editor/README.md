@@ -397,3 +397,5 @@ not unioned or totaled by this API. ConstructionEstimateOnly remains true;
 Solid, topology, manifold, sewing, manufacturing, density, mass and inertia
 certification remain unavailable. The native helpers can reconstruct the parent
 multiple times; the new-support evaluation budget is not total rebuild cost.
+
+The ordinary export review shows object names, format/mm, selection and real geometry-only/history/name-loss decisions. Export naming is secondary; full native mappings, signed-zero counts and certification details remain in expandable Export details and Help. No generic No loss claim follows from the writer geometry-loss field.
