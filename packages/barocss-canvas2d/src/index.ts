@@ -75,3 +75,6 @@ export { mirrorImageAsset } from './image-mirror.js';
 export type { ImageMirrorAxis } from './image-mirror.js';
 
 export { compositeImageAssets } from './image-composite.js';
+
+export { trimImageAsset } from './image-trim.js';
+export type { TrimmedImageAsset } from './image-trim.js';
