@@ -1,3 +1,38 @@
+# Owner decision: three package-specific Render lanes (2026-10-11)
+
+The human message in Execute Render turn
+`01a126ae-bdb5-7392-8c76-d59fe4c17e4a` authorizes package-specific Execute
+work: "좋아 그렇게 해서 Execute 를 패키지별로 분리해서 진행해보자".
+Integration read the original userMessage on 2026-10-11. The earlier
+permission to research new packages remains part of that session.
+
+The following three existing lanes own only their named new package and
+matching example directory:
+
+- Execute Render Stream, `01a126b1-6ab5-7612-862d-403aef58396d`:
+  #1366, `packages/barocss-render-stream/**`, `examples/render-stream-package/**`.
+- Execute UI Compiler, `01a126b1-6dfb-7a50-a522-560fff8cdd99`:
+  #1367, `packages/barocss-ui-compiler/**`, `examples/ui-compiler-package/**`.
+- Execute UI Runtime, `01a126b1-7256-74e3-8edc-4cb86da1e5e5`:
+  #1368, `packages/barocss-ui-runtime/**`, `examples/ui-runtime-package/**`.
+
+Execute Render retains `packages/barocss-render/**`. Integration remains
+sole serial owner of shared root, workspace, lock, static and policy changes
+and exact native adoption. Authors submit dependency proposals; package
+startup is not implementation, code adoption or integrated acceptance.
+Compiler artifact and finite runtime bridge v0 are explicit contracts;
+composed Runtime qualification requires the actual emitted Compiler artifact.
+
+This is a narrow exception to earlier no-new-Work/ownership statements for
+these three lanes only. It does not authorize other new chats, changes to
+models or schedules, live inference, publication or release. Preserve dirty
+Render/kiosk files, old native research receipts and absent original research
+worktree history. Do not restore/reset another author's checkout or adopt a
+research commit's entire ancestry. Merge-first notices and deferred #1254/#674
+acceptance continue to apply.
+
+---
+
 # Latest owner decision: merge first, notify immediately, track later validation (2026-10-10)
 
 Authenticated owner message `Sentinel_23f7733188748191ab659a36051f9322`,
