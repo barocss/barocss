@@ -27,7 +27,8 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <span id="picked-surface-curvature-label" class="measurement-label" hidden></span>
 <span id="picked-normal-angle-first" class="measurement-label" hidden></span><span id="picked-normal-angle-second" class="measurement-label" hidden></span>
 <span id="picked-normal-angle-value" class="measurement-label" hidden></span><span id="tree-point-label" class="measurement-label" hidden></span>
-<span id="tree-length-label" class="measurement-label" hidden></span></div></div>
+<span id="tree-length-label" class="measurement-label" hidden></span>
+<span id="tree-area-label" class="measurement-label" hidden></span></div></div>
 <p id="face-keyboard-hint">Focus the view: F frames all Faces; Shift+F frames the current tree parent.</p>
 <details id="face-keyboard-help"><summary>About focused view shortcuts</summary>
 <p>These shortcuts work only when the view canvas has focus. F frames all current Faces. Shift+F frames the parent Face of the current original tree node, including a Curve node.
@@ -246,6 +247,13 @@ Screen mapping is approximate and does not test occlusion.</p></details>
 The quadrature error estimate is heuristic. The point label uses the original parameter-interval midpoint, not an arc-length midpoint or a visible edge hit.
 Screen projection is approximate and does not test occlusion. Hidden current selections keep native reports and can still be measured; their labels stay hidden.
 Reset clears only this length report. No global accuracy or native ray-hit certificate is implied.</p></details>
+<button id="inspect-tree-area" disabled>Inspect selected Surface area</button><button id="reset-tree-area" disabled>Reset tree area</button>
+<p id="tree-area-output" role="status" aria-live="polite"></p>
+<details id="tree-area-help"><summary>About selected Surface area</summary>
+<p>This estimates the whole original parametric Surface area in mm², including parameterization multiplicity. The quadrature error estimate is heuristic.
+It does not measure trimmed Face, solid, union or display-triangle area. The point label uses the full original parameter-domain midpoint, not a centroid or an area centre.
+Screen projection is approximate and does not test occlusion. Hidden current Surface selections keep native reports and can still be inspected; their labels stay hidden.
+Reset clears only this area report. No certified error bound or global accuracy certificate is implied.</p></details>
 <details id="tree-help"><summary>About the original geometry tree</summary>
 <p>Each source retains its complete Face and five original native objects. Expand the Source and Face groups, then choose a geometry.
 Parameters use the original numeric domain; defaults are its checked midpoint. Control points use mm, while weights and UV parameter data are dimensionless.
