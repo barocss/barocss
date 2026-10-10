@@ -122,6 +122,7 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
             <section><h3>Editing limits</h3>
               <p>The native document can contain 1–4 source assets and up to 16 bodies. The viewport displays 1–4 chosen bodies at a time.</p>
               <p>Choose the displayed bodies in the object list. You can select and inspect a hidden body. Show it before using Fit Selected.</p>
+              <p>Double-click a displayed object to fit it in the canvas. The first click uses the normal object selection. Fitting changes only the camera and uses the same view as Fit Selected. Finish a drag, apply or discard a draft, and close menus or dialogs before fitting. Empty or ambiguous hits cannot fit an object.</p>
               <p>A supported Surface can be edited in document view even when its source contains other objects or its Model name differs from its Surface ID. Select Focus Curve to edit a supported Curve in its separate focused view.</p>
               <p>The selected Surface must have degree 1–3, 2–16 control poles on each grid axis and at most 256 poles. Coordinates must stay within ±10000 mm, weights within 0.000001–1000000 and the native Surface ID within 48 characters.</p>
               <p>Source0 assets support 1–16 objects and at most 262144 UTF-16 code units and UTF-8 bytes. Pole edits require directly authored numeric coefficient bindings. The native provider can refuse unsupported bindings or source budgets during Apply.</p>

@@ -230,7 +230,54 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     let observer: ResizeObserver | null = null;
     let disposed = false;
     let published = false;
-    let clickGesture: { id: number; x: number; y: number; moved: boolean } | null = null;
+    type FitStamp = { id: number; pointerType: string; x: number; y: number; time: number;
+      generation: number; displayGeneration: number; view: CadEditorView };
+    let clickGesture: { id: number; x: number; y: number; moved: boolean; fit?: FitStamp } | null = null;
+    let fitClicks: FitStamp[] = [];
+    const observedPointers = new Set<number>();
+    const normalReleases = new Set<number>();
+    function interruptFit() { fitClicks = []; if (clickGesture) clickGesture.fit = undefined; }
+    function observeDown(event: PointerEvent) {
+      observedPointers.add(event.pointerId); normalReleases.clear();
+      if (event.target !== canvas) interruptFit();
+    }
+    function observeRelease(event: PointerEvent) {
+      observedPointers.delete(event.pointerId);
+      if (event.type === 'pointerup' && event.isTrusted) normalReleases.add(event.pointerId);
+      else { normalReleases.delete(event.pointerId); interruptFit(); }
+    }
+    function lostCapture(event: PointerEvent) {
+      // Native controls release inside pointerup; earlier capture loss cannot authorize Fit.
+      if (!normalReleases.has(event.pointerId)) interruptFit();
+    }
+    function anyCapture() {
+      return [...observedPointers].some(id => [document.documentElement, ...document.querySelectorAll('*')]
+        .some(element => element.hasPointerCapture(id)));
+    }
+    function fitAllowed() {
+      const mounted = mountedRef.current, current = session.getSnapshot(), bounds = canvas.getBoundingClientRect();
+      return viewer !== null && !disposed && canvas.isConnected && canvas.getClientRects().length > 0
+        && bounds.width > 0 && bounds.height > 0 && viewportRef.current?.getAttribute('data-viewer-ready') === 'true'
+        && mounted?.viewer === viewer && !mounted.admitting && !mounted.unavailable && !mounted.optionsRefused
+        && mounted.generation === current.generation && mounted.displayGeneration === current.displayGeneration
+        && sameOptions(mounted.view, current.view) && viewer.getState().status === 'ready'
+        && !current.disposed && !current.candidate && !current.selectionTransition && Object.keys(current.pending).length === 0
+        && !axisGestureRef.current && !anyCapture()
+        && document.querySelector('[role="dialog"][data-state="open"],[role="menu"]') === null;
+    }
+    function stampFit(event: PointerEvent, gesture: NonNullable<typeof clickGesture>) {
+      const start = gesture.fit, current = session.getSnapshot();
+      if (!start || !event.isTrusted || !event.isPrimary || event.button !== 0 || event.shiftKey || event.altKey
+        || event.ctrlKey || event.metaKey || !normalReleases.has(event.pointerId) || !fitAllowed()
+        || start.generation !== current.generation || start.displayGeneration !== current.displayGeneration
+        || !sameOptions(start.view, current.view)) { interruptFit(); return; }
+      const completed = { ...start, x: event.clientX, y: event.clientY, time: event.timeStamp };
+      const previous = fitClicks.at(-1);
+      const samePair = previous && previous.id === completed.id && previous.pointerType === completed.pointerType
+        && previous.generation === completed.generation && previous.displayGeneration === completed.displayGeneration
+        && sameOptions(previous.view, completed.view);
+      fitClicks = samePair ? [previous, completed] : [completed];
+    }
     function publish() {
       if (!viewer || disposed || !published || mountedRef.current?.unavailable || mountedRef.current?.admitting) return;
       try { notify(displayReceipt(viewer, canvas, mountedRef.current!.options.viewer.background, lifecycleRef.current, readIndexRef)); }
@@ -251,26 +298,31 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     }
     function down(event: PointerEvent) {
       clickGesture = null;
-      if (disposed || !event.isPrimary || event.button !== 0 || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) return;
+      if (disposed || !event.isPrimary || event.button !== 0 || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) { interruptFit(); return; }
+      const current = session.getSnapshot();
       clickGesture = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
+      if (event.isTrusted) clickGesture.fit = { id: event.pointerId, pointerType: event.pointerType,
+        x: event.clientX, y: event.clientY, time: event.timeStamp, generation: current.generation,
+        displayGeneration: current.displayGeneration, view: structuredClone(current.view) };
+      else interruptFit();
     }
     function move(event: PointerEvent) {
       if (clickGesture?.id === event.pointerId
-        && Math.hypot(event.clientX - clickGesture.x, event.clientY - clickGesture.y) > 3) clickGesture.moved = true;
+        && Math.hypot(event.clientX - clickGesture.x, event.clientY - clickGesture.y) > 3) { clickGesture.moved = true; interruptFit(); }
     }
-    function cancel() { clickGesture = null; }
+    function cancel() { clickGesture = null; interruptFit(); }
     function picked(event: PointerEvent) {
       const gesture = clickGesture;
       clickGesture = null;
       if (!viewer || disposed || !gesture || gesture.id !== event.pointerId || gesture.moved
-        || Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) > 3) return;
+        || Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) > 3) { interruptFit(); return; }
       const mounted = mountedRef.current;
       const current = session.getSnapshot();
-      if (!mounted || mounted.admitting || mounted.unavailable || current.candidate || current.selectionTransition || current.disposed) return;
+      if (!mounted || mounted.admitting || mounted.unavailable || current.candidate || current.selectionTransition || current.disposed) { interruptFit(); return; }
       try {
         const bounds = canvas.getBoundingClientRect();
         const pick = viewer.pickGeometry({ xCss: event.clientX - bounds.left, yCss: event.clientY - bounds.top });
-        if (!pick) return;
+        if (!pick) { stampFit(event, gesture); return; }
         if (pick.ambiguous) throw new CadEditorError('DISPLAY', 'The display pick is ambiguous. Select the object from the object list.');
         const state = viewer.getState();
         if (mounted.focus) {
@@ -280,7 +332,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
             || focus.reference.documentRevision !== current.accepted.document.revision) {
             throw new CadEditorError('STALE', 'The picked focused Curve does not match its qualified native document.', { field: 'curve-focus' });
           }
-          session.requestSelection({ bodyId: focus.reference.bodyId }); return;
+          session.requestSelection({ bodyId: focus.reference.bodyId }); stampFit(event, gesture); return;
         }
         const body = state.documentBodies.find(body => body.ref.kind === pick.kind
           && body.ref.modelId === pick.ref.modelId
@@ -292,8 +344,74 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
           throw new CadEditorError('STALE', 'The picked display body does not match the current native document.');
         }
         session.requestSelection({ bodyId: body.binding.bodyId });
-      } catch (cause) { report(cause, 'Selecting the picked body failed'); }
+        stampFit(event, gesture);
+      } catch (cause) { interruptFit(); report(cause, 'Selecting the picked body failed'); }
     }
+    function fitPicked(event: MouseEvent) {
+      const pair = fitClicks; fitClicks = [];
+      if (!event.isTrusted || event.button !== 0 || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey
+        || pair.length !== 2 || !fitAllowed() || !viewer) return;
+      const mounted = mountedRef.current!, current = session.getSnapshot(), last = pair[1];
+      if (pair.some(click => click.generation !== current.generation || click.displayGeneration !== current.displayGeneration
+        || !sameOptions(click.view, current.view)) || last.time > event.timeStamp
+        || Math.hypot(event.clientX - last.x, event.clientY - last.y) > 3) return;
+      const before = viewer.getState();
+      let fitting = false;
+      try {
+        const bounds = canvas.getBoundingClientRect();
+        const pick = viewer.pickGeometry({ xCss: event.clientX - bounds.left, yCss: event.clientY - bounds.top });
+        if (!pick) return;
+        if (pick.ambiguous) throw new CadEditorError('DISPLAY', 'The display pick is ambiguous. Select the object from the object list.', { field: 'canvas-fit' });
+        const pickedRef = pick.kind === 'curve' ? { kind: 'curve' as const, ...pick.ref }
+          : { kind: 'surface' as const, ...pick.ref };
+        if (mounted.focus) {
+          const focus = mounted.focus;
+          if (pick.kind !== 'curve' || pick.ref.modelId !== focus.sourceModelName || pick.ref.curveId !== focus.curveId
+            || current.view.kind !== 'curve-focus' || current.view.bodyId !== focus.reference.bodyId
+            || focus.reference.documentId !== current.accepted.document.documentId
+            || focus.reference.documentRevision !== current.accepted.document.revision
+            || before.document !== null || before.documentBodies.length !== 0 || before.curveSampleVersion !== 3
+            || !sameOptions(before.selectedUniformCurve, focus.preview)
+            || !before.visibleGeometry.some(ref => sameOptions(ref, pickedRef)))
+            throw new CadEditorError('STALE', 'The picked focused Curve does not match the current native view.', { field: 'canvas-fit' });
+          fitting = true; viewer.fitGeometry({ kind: 'curve', modelId: focus.sourceModelName, curveId: focus.curveId });
+        } else {
+          const body = before.documentBodies.find(body => sameOptions(body.ref, pickedRef));
+          const nativeBody = current.accepted.document.bodies.find(value => value.id === body?.binding.bodyId);
+          const nativeAsset = current.accepted.document.assets.find(value => value.id === nativeBody?.assetId);
+          if (!body || !nativeBody || current.view.kind !== 'document' || !sameOptions(before.document, current.accepted)
+            || body.binding.documentId !== current.accepted.document.documentId || body.binding.documentRevision !== current.accepted.document.revision
+            || body.binding.assetId !== nativeBody.assetId || body.binding.geometryId !== nativeBody.geometryId
+            || !nativeAsset || body.binding.assetRevision !== nativeAsset.revision || body.binding.geometryKind !== pick.kind
+            || !current.displayBodyIds.includes(body.binding.bodyId) || !before.visibleGeometry.some(ref => sameOptions(ref, body.ref)))
+            throw new CadEditorError('STALE', 'The picked body does not match the current displayed native document.', { field: 'canvas-fit' });
+          fitting = true; viewer.fitNativeDocumentBody({ ref: body.ref, documentRevision: current.accepted.document.revision });
+        }
+        const receipt = displayReceipt(viewer, canvas, mounted.options.viewer.background, lifecycleRef.current, readIndexRef);
+        checkFocusFrame(receipt, mounted.focus);
+        if (!mounted.focus) checkDocumentFrame(receipt, current.accepted, current.displayBodyIds);
+        notify(receipt);
+      } catch (cause) {
+        if (fitting) {
+          try {
+            viewer.setView(before.camera);
+            const restored = displayReceipt(viewer, canvas, mounted.options.viewer.background, lifecycleRef.current, readIndexRef);
+            checkFocusFrame(restored, mounted.focus);
+            if (!mounted.focus) checkDocumentFrame(restored, current.accepted, current.displayBodyIds);
+            notify(restored);
+          } catch (restoreCause) { report(restoreCause, 'Restoring the accepted frame failed'); return; }
+        }
+        report(cause, 'Fitting the picked body failed');
+      }
+    }
+    let fitContext = session.getSnapshot();
+    const unsubscribeFit = session.subscribe(() => {
+      const next = session.getSnapshot();
+      if (next.generation !== fitContext.generation || next.displayGeneration !== fitContext.displayGeneration
+        || !sameOptions(next.view, fitContext.view) || next.candidate || next.selectionTransition || next.disposed
+        || Object.keys(next.pending).length > 0) interruptFit();
+      fitContext = next;
+    });
     setReady(false);
     setFocusedReceipt(null);
     setErrorMessage(null);
@@ -328,6 +446,13 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
       canvas.addEventListener('pointerup', picked);
       canvas.addEventListener('pointercancel', cancel);
       canvas.addEventListener('wheel', cancel);
+      canvas.addEventListener('dblclick', fitPicked);
+      window.addEventListener('pointerdown', observeDown, true);
+      window.addEventListener('pointerup', observeRelease, true);
+      window.addEventListener('pointercancel', observeRelease, true);
+      window.addEventListener('lostpointercapture', lostCapture, true);
+      window.addEventListener('wheel', interruptFit, true);
+      window.addEventListener('keydown', interruptFit, true);
     } catch (cause) {
       mountedRef.current = null;
       try { propsRef.current.onCurveDisplay?.(null); } catch { /* No focused frame was admitted. */ }
@@ -354,6 +479,15 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
       canvas.removeEventListener('pointerup', picked);
       canvas.removeEventListener('pointercancel', cancel);
       canvas.removeEventListener('wheel', cancel);
+      canvas.removeEventListener('dblclick', fitPicked);
+      window.removeEventListener('pointerdown', observeDown, true);
+      window.removeEventListener('pointerup', observeRelease, true);
+      window.removeEventListener('pointercancel', observeRelease, true);
+      window.removeEventListener('lostpointercapture', lostCapture, true);
+      window.removeEventListener('wheel', interruptFit, true);
+      window.removeEventListener('keydown', interruptFit, true);
+      observedPointers.clear(); normalReleases.clear(); fitClicks = [];
+      unsubscribeFit();
       pointer?.dispose();
       keyboard?.dispose();
       if (viewer) {
