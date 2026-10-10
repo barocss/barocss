@@ -113,3 +113,22 @@
 .re-scene-object-tools{padding:4px 6px 6px;border-top:1px solid var(--re-line);font-size:11px}.re-scene-object-tools>.re-panel-heading{padding:4px 0}.re-scene-object-tools>label{display:flex;align-items:center;justify-content:space-between;gap:4px;margin:4px 0}.re-scene-object-tools input,.re-scene-object-tools select{min-width:0;width:100px;max-width:100px;font-size:11px;padding:3px 4px;background:#24262b;border:1px solid var(--re-line);border-radius:3px}.re-scene-tool-actions{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}.re-scene-tool-actions button{font-size:11px}.re-scene-object-tools .re-caption{padding:0;margin:6px 0;overflow-wrap:anywhere}.re-scene-source-error{margin:6px;font-size:11px;color:#e3b2a2}.re-scene-source-error p{margin:4px 0}.re-scene-source-error pre{font:10px/1.4 ui-monospace,monospace;white-space:pre-wrap;overflow-wrap:anywhere}.re-scene-object-inspector fieldset{padding:0;margin:6px;border:0;min-width:0}.re-scene-object-inspector legend{font-size:11px;margin:0 0 4px}.re-scene-vector{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.re-scene-vector label{display:flex;flex-direction:column;gap:2px;min-width:0}.re-scene-vector label>span{font-size:10px;color:var(--re-muted)}.re-scene-property-field{min-width:0}.re-scene-object-inspector input{width:100%;min-width:0;font:11px/1.4 ui-monospace,monospace;padding:4px;border:1px solid var(--re-line);border-radius:3px;background:#24262b;color:var(--re-fg)}.re-scene-scalar{display:grid;grid-template-columns:minmax(0,1fr) 88px;gap:4px;align-items:start;margin:6px;font-size:11px}.re-scene-scalar>label{padding-top:4px}.re-scene-field-error{font-size:10px;color:#e3b2a2;line-height:1.3;margin:3px 0 0;overflow-wrap:anywhere}
 .re-scene-main-actions{display:flex;align-items:center;gap:4px}
 .re-scene-viewport>.re-workbench-viewport-header{position:relative;flex:none;height:44px;min-height:44px;background:#222428;border-bottom:1px solid var(--re-line)}.re-scene-viewport>.re-workbench-canvas{position:relative;flex:1;min-height:220px;overflow:hidden}.re-scene-viewport>.re-workbench-canvas canvas{position:absolute;inset:0;width:100%;height:100%;display:block}.re-scene-viewport .re-camera-toolbar{gap:3px}.re-scene-viewport .re-camera-replacement{white-space:nowrap;font-size:9px}.re-scene-viewport .re-camera-local-help{bottom:6px}
+
+/* Source handles use actual canvas-local CSS coordinates. */
+.re-editor--workbench .re-gizmo-overlay {position:absolute;inset:0;z-index:3;overflow:visible;pointer-events:none;touch-action:none}
+.re-editor--workbench .re-gizmo-toolbar {position:absolute;left:6px;top:6px;z-index:4;display:flex;gap:4px;align-items:center;padding:3px;background:#222428e8;border:1px solid #41454a;border-radius:4px}
+.re-editor--workbench .re-gizmo-toolbar button {min-height:24px;padding:2px 6px;font-size:11px}
+.re-editor--workbench .re-gizmo-toolbar button[aria-pressed="true"] {background:#354862;color:#d9eaff;border-color:#6195d0}
+.re-editor--workbench .re-gizmo-handle {pointer-events:all;cursor:grab;color:#e86666;outline:none}
+.re-editor--workbench .re-gizmo-axis-y {color:#81c86a}
+.re-editor--workbench .re-gizmo-axis-z {color:#6da5f5}
+.re-editor--workbench .re-gizmo-axis-uniform {color:#e8d48b}
+.re-editor--workbench .re-gizmo-line {fill:none;stroke:currentColor;stroke-width:2;filter:drop-shadow(0 1px 1px #000)}
+.re-editor--workbench .re-gizmo-hit {fill:none;stroke:transparent;stroke-width:18;pointer-events:stroke}
+.re-editor--workbench .re-gizmo-hit-anchor {fill:transparent;stroke:none}
+.re-editor--workbench .re-gizmo-anchor {fill:currentColor;stroke:#202226;stroke-width:1.5}
+.re-editor--workbench .re-gizmo-handle text {fill:currentColor;font-size:11px;font-weight:700;paint-order:stroke;stroke:#202226;stroke-width:3;pointer-events:none}
+.re-editor--workbench .re-gizmo-handle:focus .re-gizmo-line {stroke-width:4}
+.re-editor--workbench .re-gizmo-status {position:absolute;left:6px;bottom:6px;max-width:calc(100% - 100px);z-index:4;pointer-events:none;margin:0;padding:3px 5px;background:#222428dd;font-size:11px;color:#d7dbe2;border-radius:3px}
+.re-editor--workbench .re-gizmo-status:empty {display:none}
+.re-editor--workbench .re-gizmo-pivot {fill:#e4e8ee;stroke:#202226;stroke-width:1;pointer-events:none}

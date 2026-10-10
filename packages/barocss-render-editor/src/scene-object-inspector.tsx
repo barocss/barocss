@@ -68,6 +68,9 @@ interface SceneObjectInspectorProps {
 /** Accepted-ID forms stay mounted. One incomplete object's text owns the global guard. */
 export function SceneObjectInspector({controller, manualEdit, onEditSource, onHelp, onError, onInvalidObject, disabled = false}: SceneObjectInspectorProps) {
   const snapshot = useSyncExternalStore(controller.session.subscribe, controller.session.getSnapshot, controller.session.getSnapshot);
+  const view=useSyncExternalStore(controller.subscribe,controller.getSnapshot,controller.getSnapshot);
+  let previewProperties: RenderSceneObjectProperties | undefined;
+  try { if(view.transformPreview)previewProperties=inspectRenderSceneObjects(view.transformPreview.source).find(value=>value.objectId===view.transformPreview!.objectId); } catch {}
   const [stored, setStored] = useState(() => readStore(snapshot, manualEdit));
   const store = useRef(stored);
   const changed = stored.accepted !== snapshot.accepted || stored.manualEdit !== manualEdit || stored.lastOutput !== snapshot.draftSource || (stored.invalidId !== null && !snapshot.objectInputInvalid);
@@ -75,7 +78,7 @@ export function SceneObjectInspector({controller, manualEdit, onEditSource, onHe
   if (changed) { store.current = current; setStored(current); }
   const change = (id: string, field: string, text: string, axis?: number) => {
     const state = controller.session.getSnapshot(), previous = store.current, old = previous.entries.get(id);
-    if (disabled || controller.getSnapshot().cameraPreview || state.disposed || !old || old.removed || previous.sourceError || (previous.invalidId && previous.invalidId !== id) || text.length > 256) return;
+    if (disabled || (controller.getSnapshot().cameraPreview||controller.getSnapshot().transformPreview) || state.disposed || !old || old.removed || previous.sourceError || (previous.invalidId && previous.invalidId !== id) || text.length > 256) return;
     const raw = {...old.raw};
     if (axis === undefined) raw[field] = text;
     else { const vector = [...raw[field]] as [string, string, string]; vector[axis] = text; raw[field] = vector; }
@@ -101,20 +104,21 @@ export function SceneObjectInspector({controller, manualEdit, onEditSource, onHe
   };
   const selected = snapshot.activeObjectId;
   return <section className="re-camera re-panel re-scene-object-inspector" aria-label="Object properties">
-    <div className="re-panel-heading"><h2>Object</h2><span>{snapshot.sourceDirty ? 'Draft' : 'Applied'}</span></div>
+    <div className="re-panel-heading"><h2>Object</h2><span>{view.transformPreview ? 'Transform preview' : snapshot.sourceDirty ? 'Draft' : 'Applied'}</span></div>
     {!selected ? <p className="re-caption">Select an applied object. Add stages a new object for Apply.</p> : null}
     {current.sourceError ? <p className="re-caption">Correct the Scene source to edit object properties.</p> : null}
     {snapshot.metadata.objects.map(object => {
       const binding = current.entries.get(object.id), active = selected === object.id;
+      const shownRaw = previewProperties?.objectId===object.id ? rawOf(previewProperties) : binding?.raw;
       const errors = binding ? parse(binding).errors : {};
-      const locked = disabled || snapshot.disposed || !binding || binding.removed || current.sourceError !== null || (current.invalidId !== null && current.invalidId !== object.id);
+      const locked = disabled || Boolean(view.cameraPreview||view.transformPreview) || snapshot.disposed || !binding || binding.removed || current.sourceError !== null || (current.invalidId !== null && current.invalidId !== object.id);
       return <div key={object.id} hidden={!active} data-testid={active ? 'scene-object-fields' : undefined} data-object-id={object.id}>
         <dl className="re-object-summary"><dt>Name</dt><dd>{object.id}</dd><dt>Type</dt><dd>{LABELS[binding?.properties.type ?? object.type]}</dd></dl>
         {binding?.removed ? <p className="re-caption">Removed in draft. Apply or Discard to resolve it.</p> : null}
         {current.invalidId && current.invalidId !== object.id ? <p className="re-caption">Correct {current.invalidId} before editing another object.</p> : null}
         {binding && keys(binding.properties.type).map(field => {
           const label = field === 'translate' ? 'Position · scene units' : field === 'rotateDegrees' ? 'Rotation · degrees' : field === 'size' ? 'Size · scene units' : field === 'start' ? 'Segment start · scene units' : field === 'end' ? 'Segment end · scene units' : field === 'majorRadius' ? 'Major radius · scene units' : field === 'minorRadius' ? 'Minor radius · scene units' : field === 'color' ? 'Color · opaque hex' : `${field === 'radius' ? 'Radius' : 'Height'} · scene units`;
-          const raw = binding.raw[field];
+          const raw = shownRaw![field];
           const input = (value: string, axis?: number) => {
             const key = axis === undefined ? field : `${field}.${axis}`;
             const error = errors[key] ?? (binding.error && binding.error.code !== 'DOCUMENT_BYTES' && binding.editedField === key ? 'Check this value against the other dimensions.' : undefined);
