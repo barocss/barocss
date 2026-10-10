@@ -1,0 +1,7 @@
+{
+  "stage": "first actual source Chrome screen",
+  "observed": "native reference floor extends below900x660frame at front camera; screenshotsstep0/60 retained",
+  "physicsTargetsChanged": false,
+  "plannedCameraRepair": "scale both front/underside eye offsets from fixed target by1.35; fov/target/near/far remain",
+  "notYetQualified": true
+}

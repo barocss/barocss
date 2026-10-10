@@ -1,0 +1,2 @@
+{"issue":981,"nodeVersion":"v22.22.0","gitHead":"ec20329ce0184530b1e955dc9d0296c890e0fc5e","sourceTreeDirty":true,"mode":"source","passed":true,"firstFailure":null,"errors":[],"warnings":[],"audit":{"ownSourceCount":216,"ownDistCount":0},"worstSolverP95":null,"minPlaybackRatio":null}
+{"issue":981,"nodeVersion":"v22.22.0","gitHead":"ec20329ce0184530b1e955dc9d0296c890e0fc5e","sourceTreeDirty":true,"mode":"compiled","passed":true,"firstFailure":null,"errors":[],"warnings":[],"audit":{"ownSourceCount":0,"ownDistCount":176},"worstSolverP95":null,"minPlaybackRatio":null}

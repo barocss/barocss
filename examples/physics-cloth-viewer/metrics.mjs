@@ -1,0 +1,10 @@
+// Independent numeric checks of actual public cloth states; no solver/profile/constraint imports.
+const size=17,side=1,rest=side/(size-1),centre=[0,.1,0],radius=.3,envelope=.302;
+const distance=(positions,a,b)=>Math.hypot(...[0,1,2].map(axis=>positions[3*a+axis]-positions[3*b+axis]));
+export function clothMetrics(state){const p=state.positionsM,t=state.triangles;let extension=0,vertexLoss=0,pinDrift=0,sampledLoss=0;
+ for(let z=0;z<size;z++)for(let x=0;x<size;x++){const i=x+size*z;if(x+1<size)extension=Math.max(extension,distance(p,i,i+1)/rest-1);if(z+1<size)extension=Math.max(extension,distance(p,i,i+size)/rest-1);vertexLoss=Math.max(vertexLoss,envelope-Math.hypot(p[3*i]-centre[0],p[3*i+1]-centre[1],p[3*i+2]-centre[2]));}
+ for(const pin of [0,16]){const expected=[pin/16-.5,.55,-.5];pinDrift=Math.max(pinDrift,Math.hypot(...expected.map((value,axis)=>p[3*pin+axis]-value)));}
+ for(let i=0;i<t.length;i+=3)for(const weights of [[1/3,1/3,1/3],[.5,.5,0],[0,.5,.5],[.5,0,.5]]){const point=centre.map((c,axis)=>weights.reduce((sum,w,k)=>sum+w*p[3*t[i+k]+axis],0)-c);sampledLoss=Math.max(sampledLoss,radius-Math.hypot(...point));}
+ const checks={count:state.vertexCount===289&&state.triangleCount===512&&p.length===867&&state.velocitiesMps.length===867&&t.length===1536,finite:p.every(Number.isFinite)&&state.velocitiesMps.every(Number.isFinite),pins:pinDrift===0,structural:extension<=.1,vertexEnvelope:vertexLoss<=1e-6,sampledTriangle:sampledLoss<=.002,cursor:state.stepIndex>=0&&state.stepIndex<=240&&state.timeSeconds===state.stepIndex*(1/120)};
+ return {passed:Object.values(checks).every(Boolean),checks,structuralExtension:extension,vertexEnvelopePenetrationM:Math.max(0,vertexLoss),pinDriftM:pinDrift,sampledTrianglePenetrationM:Math.max(0,sampledLoss),continuousTriangleContact:false};}
+export function exact(a,b){if(Object.is(a,b))return true;if(!a||!b||typeof a!=='object'||typeof b!=='object')return false;const ak=Object.keys(a),bk=Object.keys(b);return ak.length===bk.length&&ak.every(k=>Object.hasOwn(b,k)&&exact(a[k],b[k]));}

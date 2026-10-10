@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>BaroCSS · Cloth</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23060a0f'/%3E%3Cpath d='M8 8h10a5 5 0 0 1 0 10H8m0-5h11a5 5 0 0 1 0 10H8Z' fill='none' stroke='%2375d3c2' stroke-width='2'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="lab">
+      <header class="lab-heading">
+        <h1><span>BaroCSS</span><span class="heading-divider" aria-hidden="true">/</span>Cloth</h1>
+        <p>구 위에 놓인 천 · 3D 물리 실험</p>
+      </header>
+
+      <div class="workspace">
+        <section class="experiment" aria-label="천 시뮬레이션">
+          <div class="viewport">
+            <canvas id="view" width="900" height="660" aria-label="천과 원본 기준 면의 3D 화면">
+              이 화면은 Canvas를 지원하는 브라우저가 필요합니다.
+            </canvas>
+            <svg id="proxy-guide" viewBox="0 0 900 660" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+          </div>
+
+          <div class="controls" role="group" aria-label="시뮬레이션 조작">
+            <button id="play" class="primary-action" type="button" disabled>재생</button>
+            <button id="pause" type="button" disabled>일시 정지</button>
+            <button id="one-step" type="button" disabled>한 단계</button>
+            <button id="reset" type="button">초기화</button>
+            <span class="control-divider" aria-hidden="true"></span>
+            <button id="front" type="button" disabled>정면</button>
+            <button id="underside" type="button" disabled>아래에서 보기</button>
+          </div>
+
+          <p id="status" class="status" role="status" aria-live="polite">초기 프레임을 준비하고 있습니다.</p>
+          <div class="scope-notes">
+            <p id="boundary-note">구 가이드는 화면에 투영한 선입니다. 깊이 가림을 적용하지 않습니다.</p>
+            <p>구 반경 0.300 m · 접촉 여유 0.002 m · 정점 접촉 기준 0.302 m</p>
+            <p id="source-label">원본 CAD 기준 면은 충돌 면이 아닙니다. 천은 구와만 충돌합니다.</p>
+            <p>원본 CAD 선택에는 천과 구 가이드가 포함되지 않습니다.</p>
+          </div>
+        </section>
+
+        <aside class="inspector" aria-labelledby="inspector-heading">
+          <h2 id="inspector-heading">현재 상태</h2>
+          <p class="profile-note">17 × 17 정점 · 삼각형 512개<br />고정점 2개 · 단계 간격 1/120 s</p>
+          <dl class="readouts">
+            <div><dt>단계</dt><dd id="step">—</dd></div>
+            <div><dt>물리 시간</dt><dd id="sim-time">—</dd></div>
+            <div><dt>정점</dt><dd id="vertices">—</dd></div>
+            <div><dt>삼각형</dt><dd id="triangles">—</dd></div>
+            <div class="metric-start"><dt>최대 늘어남</dt><dd id="strain">—</dd></div>
+            <div><dt>정점 침투</dt><dd id="vertex-loss">—</dd></div>
+            <div><dt>삼각형 표본 침투</dt><dd id="triangle-loss">—</dd></div>
+            <div><dt>고정점 이동</dt><dd id="pin-drift">—</dd></div>
+            <div class="hash-readout"><dt>정점 위치 SHA-256</dt><dd id="positions-sha">—</dd></div>
+          </dl>
+          <p class="measurement-note">정점 침투는 0.302 m 기준입니다. 삼각형 침투는 중심과 세 변의 중점을 0.300 m 구와 비교한 값입니다.</p>
+        </aside>
+      </div>
+    </main>
+    <script type="module" src="/bundle.js"></script>
+  </body>
+</html>
