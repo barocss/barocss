@@ -68,3 +68,28 @@ export function Renderer<State = FormState>(props: RendererBaseProps<State, '/na
   { contract?: RenderContract }): ReactElement;
 export function Renderer<State, Binding extends string, Action extends string>(
   props: RendererBaseProps<State, Binding, Action> & { contract: RenderContract<Binding, Action> }): ReactElement;
+
+/** Serializable format version 1. All component props listed here are required. */
+export interface RenderSpecDefinition<Binding extends string = '/name', Action extends string = 'save'> {
+  definitionVersion: 1;
+  components: {
+    Layout: { props: { id: string; columns: LayoutNode['props']['columns'][]; gap: LayoutNode['props']['gap'][] }; container: true };
+    Card: { props: { id: string; padding: CardNode['props']['padding'][]; tone: CardNode['props']['tone'][] }; container: true };
+    Text: { props: { id: string; text: string }; container: false };
+    Input: { props: { id: string; label: string; value: { $bindState: Binding[] } }; container: false };
+    Button: { props: { id: string; label: string }; on: { press: { action: Action[] } }; container: false };
+  };
+  styleClasses: {
+    Layout: Record<LayoutNode['props']['columns'] | LayoutNode['props']['gap'], string>;
+    Card: Record<CardNode['props']['padding'] | CardNode['props']['tone'] | 'base', string>;
+  };
+  limits: { nodes: [number, number]; text: [number, number]; declarations: number; bindingLength: number };
+  syntax: { idPattern: string; bindingSegmentPattern: string; bindingPrefix: '/'; bindingSeparator: '/'; unsafeNames: string[] };
+  fields: { screen: string[]; node: string[]; contract: string[]; textProps: string[] };
+  graph: { rootType: 'Layout'; matchingIds: true; leafChildrenEmpty: true; oneParent: true; reachable: true; acyclic: true };
+  permissions: { textBindings: Binding[]; actions: Action[] };
+}
+/** Returns a fresh deep copy; invalid host declarations throw TypeError at contract.*. */
+export function getRenderSpecDefinition(contract?: undefined): RenderSpecDefinition;
+export function getRenderSpecDefinition<Binding extends string, Action extends string>(
+  contract: RenderContract<Binding, Action>): RenderSpecDefinition<Binding, Action>;
