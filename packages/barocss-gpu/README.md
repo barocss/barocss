@@ -2449,3 +2449,41 @@ GL, performance, parity and publication. Existing providers and exports remain.
 `examples/gpu-scene/cone-geometry-flow.mjs --output <fresh-directory>` checks
 source/emitted/DTS APIs, literal topology/winding/seams/cap UV/apex normals, shared
 Scene/rays, originals/copies/refusals and real cold original-file reconstruction.
+
+## Original closed indexed Capsule geometry
+
+`prepareCapsuleGeometry(input)` admits exact ten-field parameters:
+`{format:'barocss-gpu-capsule-geometry',version:0,id,coordinateSystem:'right-handed-y-up',positionUnit:'scene',radius,halfLength,radialSegments,bodySegments,capSegments}`.
+Positive scene-unit radius r and middle half-length L require original `r+L <= 1000`
+and `r+L > L`. Cells: radial S3..128, body B1..128, each cap C2..64. Always closed
+along Y with cap centres±L and axial endpoints±(L+r); no zero-middle Sphere
+fallback, arbitrary axis/endpoints, open or partial-arc options.
+
+Frozen copied scalar source and original Number mesh remain separate from mutable
+owned Float32 positions/normals/UVs and Uint16 indices. One existing
+`prepareTriangleGeometry` admits the generated candidate. Positive rings follow
+C−1 lower interiors, B+1 body rows including exact shared equators, C−1 upper
+interiors. Azimuth seams copy position/normal bits with U0/U1. Two poles each
+retain S midpoint-U vertices and exact ±Y normals. UV V is normalized ring index
+with denominator B+2C, including physical poles at0/1; it is not arc length.
+
+Lower theta=(PI/2)*(j/C) uses rho=r*sin(theta), y=-L-r*cos(theta), normal
+`[sin(theta)*cos(phi),-cos(theta),sin(theta)*sin(phi)]`. Upper uses
+rho=r*cos(theta), y=L+r*sin(theta), normal
+`[cos(theta)*cos(phi),sin(theta),cos(theta)*sin(phi)]`. Body normals are radial,
+with exact equator Y±L. Vertex order is all positive rings, bottom poles, top poles.
+Indices first all strips `[a,d,b,a,c,d]`, then bottom pole/current/next and top
+current/pole/next fans. K=B+2C−1; maximum33,151 vertices/65,280 triangles/1,452,512
+typed bytes remain within existing geometry/Scene/ray limits.
+
+Original pole/ring Y levels must be strictly increasing; a genuine helper
+RangeError becomes GEOMETRY with its actual cause. After inherited admission,
+the same Float32 Y levels must remain distinct or refuse REPRESENTATION.
+Existing type/version/budget/reflection/geometry/Float32 causes remain; no clamp,
+snapping or healing. Bounds describe actual sampled vertices. This generic mesh
+is separate from Source1/SDF, native CAD Solid, collision/Physics, analytical
+enclosure/global accuracy, raster pixels, performance/parity and publication.
+
+`examples/gpu-scene/capsule-geometry-flow.mjs --output <fresh-directory>` checks
+source/emitted/DTS, independent rings/poles/UV/winding/equators, shared Scene/ray
+composition, original source/mesh copies/refusals and cold file reconstruction.

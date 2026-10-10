@@ -146,3 +146,6 @@ export type { CylinderGeometrySourceV0, PreparedCylinderGeometry } from './cylin
 
 export { prepareConeGeometry } from './cone-geometry.js';
 export type { ConeGeometrySourceV0, PreparedConeGeometry } from './cone-geometry.js';
+
+export { prepareCapsuleGeometry } from './capsule-geometry.js';
+export type { CapsuleGeometrySourceV0, PreparedCapsuleGeometry } from './capsule-geometry.js';
