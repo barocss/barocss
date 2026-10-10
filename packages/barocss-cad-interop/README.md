@@ -3659,3 +3659,34 @@ It provides no general Boolean, global continuity, manufacturing or release cert
 The example verifier checks original union, intersection and empty difference receipts.
 The typed example uses the optional public entry and the published declarations.
 Examples require Node.js 22.
+
+## Qualified Body boundary meshes in Three
+
+Import `BaroCADQualifiedBodyBoundaryMeshThreeLoader` from
+`@barocss/cad-interop/qualified-body-boundary-mesh-three`.
+
+Construct it with `{ unitsPerMillimeter: 0.001 }`. Call `parse(text)`
+or `read(wholeResult)` to validate a complete native boundary mesh.
+
+Each result contains `data`, `group`, `faceBindings` and `dispose()`.
+The detached Group has six Face Meshes in native order.
+Position and normal attributes use independent Float32 arrays.
+Triangle indices use independent Uint32 arrays.
+Full native UV, remaps and conversion measurements remain in CPU data.
+
+The `data` field retains the complete neutral read and its profile.
+Facet normals are approximate. Native certificates remain unchanged.
+Successful object creation does not certify a renderer or manufacture.
+
+The host attaches the Group and checks its actual renderer and frame.
+Stage the candidate before replacing the previous visible result.
+Call `dispose()` to release captured geometry and materials once.
+Repeated cleanup is safe. Caller scenes, cameras and resources stay owned
+by the caller. Replacing a Mesh resource does not transfer its ownership.
+
+The example preserves full receipts and exact native JSON files.
+It checks actual Three frames, copies and resource cleanup.
+Source and emitted package validation are separate from publication.
+
+This optional entry adds no URL loader or byte transport.
+Examples require Node.js 22.
