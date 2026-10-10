@@ -2228,3 +2228,28 @@ Viewer must consume the published fatal error to retain native CPU/provenance
 while fencing Open/Fit/presentation. There is no public private-state getter,
 new renderer/profile or resize-recovery promise. Code/build/public-error checks
 are separate from actual single/double-fault WebGL2/Viewer/resource proof.
+
+### Generic indexed Box authoring
+
+`prepareBoxGeometry(input)` accepts exact Box source0 parameters:
+`{format:'barocss-gpu-box-geometry',version:0,id,coordinateSystem:'right-handed-y-up',positionUnit:'scene',sizeXYZ:[width,height,depth]}`.
+Dimensions are finite Numbers satisfying `0 < size <= 2000` in scene units. The
+Box is centred at the origin. Existing EngineScene nodes supply poses.
+
+The frozen result `{source,prepared}` retains original dimensions and uses
+`prepareTriangleGeometry` for the generated original Number geometry and
+independent mutable Float32 execution buffers. Six flat faces have 24 split
+vertices, 12 outward CCW triangles, face-local dimensionless UVs and Uint16
+indices: 840 buffer bytes. Face order is +X, -X, +Y, -Y, +Z, -Z. UV seams and
+flat normals remain separate; this does not generate native CAD topology or
+replace SDF Box kernels.
+
+Errors reuse `TriangleGeometryError`. Exact data, metadata, dimension bounds,
+original area and Float32 nonzero/collapse checks apply. Tiny positive dimensions
+can genuinely refuse; values are never enlarged or clamped. Source/caller data
+and independent calls do not share mutable arrays. Existing general renderer,
+pixels, lifetime, textures and publication retain their separate qualifications.
+
+`examples/gpu-scene/box-geometry-flow.mjs --output <fresh-directory>` exercises
+source/emitted APIs, independent Box attributes, a shared two-instance scene,
+refusals and original parameter files with cold reconstruction.

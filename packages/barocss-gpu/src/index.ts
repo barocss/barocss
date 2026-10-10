@@ -125,3 +125,6 @@ export { evaluateAuthoredMaterial, AuthoredMaterialEvaluationError, AuthoredMate
 export type { AuthoredMaterialRequest, AuthoredMaterialSample } from './material-evaluation.js';
 
 export { PrimitiveSceneRecoveryError } from './primitive-scene-renderer.js';
+
+export { prepareBoxGeometry } from './box-geometry.js';
+export type { BoxGeometrySourceV0, PreparedBoxGeometry } from './box-geometry.js';
