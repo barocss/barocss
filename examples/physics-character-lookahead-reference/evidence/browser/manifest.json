@@ -1,0 +1,27 @@
+{
+  "modelId": "same-ray-lookahead-v1",
+  "lookaheadM": 0.02,
+  "gitHead": "8d72af1f11bcd4a583afbfa55f7ccf07954fd930",
+  "sourceTreeDirty": false,
+  "format": "character-movement-reference-raw-v1",
+  "endianness": "little",
+  "files": [
+    {
+      "file": "inputs.f64.bin",
+      "type": "Float64Array",
+      "bytes": 1488,
+      "elements": 186,
+      "sha256": "feda47adb6facf25db155ea6ae7d25451d3bc6f2c214b21b94e71c8fc6c1b1ad"
+    },
+    {
+      "file": "outputs.f64.bin",
+      "type": "Float64Array",
+      "bytes": 850944,
+      "elements": 106368,
+      "sha256": "e22a39b24738f0b5e58b026082150566c8951f3cbbd7b6a16fc63c567988c11c"
+    }
+  ],
+  "totalRawBytes": 852432,
+  "negativeZeroInputOffsets": [],
+  "negativeZeroOutputOffsets": []
+}
