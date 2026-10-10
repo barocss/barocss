@@ -190,3 +190,8 @@ Use Wrap paragraph in browser-text.html to fit Canvas2D labels fit this panel at
 ### Sampled-color alpha mask
 
 The existing rgb-matrix host also edits Scene29 alpha masks: Mask by green/average RGB, Clear alpha masks and Reject invalid alpha mask. Original source texture colors determine transparency; RGB styling remains independent. Save/Open keeps authored mask/RGB tuples and all44source bytes. Restored public setters remain editable. The following colored glyph/plainSprite test row resets, and Frame/twoMasks/linear/nine/tile remain in the same fixture. alpha-mask-types/tsconfig.alpha-mask and focused evidence use publictypes plus bounded private CPU sampling checks. Native browser/file/resource proof is recorded separately from current integrated validation.
+
+
+### Owned renderer capture
+
+`renderer.captureImageAsset()` renders accepted state once and returns independent top-left straight RGBA8 `ImageAssetInput` at backing size. Register it with another renderer's `setImageAsset` and display it as a Sprite. Capture is bounded to 1MiB and adds no GPU object. Disposed/lost/mismatched backing and oversize refuse before drawing/readback. Use `renderer.resize` for dimensions. Pixels are unpremultiplied from quantized framebuffer bytes; alpha zero has RGB zero, low-alpha color loses precision, and additive RGB above alpha clamps. The derived Sprite has its own sampled-alpha hit behavior; original IDs/geometry remain in the editable source document. Captures are snapshots, not live render textures. Raw host GL mutation is outside renderer ownership. See consumer/capture-image.html for cross-renderer capture, file restoration and PNG export.
