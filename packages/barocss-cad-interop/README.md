@@ -3190,3 +3190,29 @@ BAROCSS_LOADER1238_MODE=compiled BAROCSS_LOADER1238_COMPILED_DIR=/tmp/barocss-lo
 ```
 
 The caller host initializes the real depth buffer before each frame while preserving the prior depth write mask. Materials explicitly use its Camera and LightingEnvironment. Global camera/lighting, renderer, Stage, canvas and caller resources remain outside adapter disposal. Approximate display geometry and dimensionless native proof are shown separately; no trimmed fill, Solid, manufacturing or npm release certificate follows from this example.
+
+## Original multi-span trim UV classification in Three
+
+The independent `examples/multispan-trim-uv-three.html` host reads the unchanged
+original multi-span trim request and owned-result files. It shows each original
+query, selected span/domain/pole indices, original parameter bracket, subdivision
+steps and two qualified Face classifications beside the complete untrimmed
+Support Surface. The original Model8 retains its seven unrendered Curves.
+Native UV values remain dimensionless. Cap0 remains successful `uncertain`.
+
+Run the source host from the repository root with Node22:
+
+```sh
+pnpm exec vite --config packages/barocss-cad-interop/examples/multispan-trim-uv-three.config.mjs
+```
+
+Open `http://127.0.0.1:5298/packages/barocss-cad-interop/examples/multispan-trim-uv-three.html`.
+Use the buttons in order: source refusals, transport refusals, joins, cap0,
+fresh file reopen and double cleanup. The host verifies original byte/SHA pins,
+complete native ownership, actual Three buffers and fixed camera/frame retention.
+The caller marker survives cleanup. The complete native readout remains available.
+The preview does not produce a clipped fill, a sewn BRep, a Body or a Solid.
+
+This example uses the existing public CAD classifier/validator, neutral native
+parser and Three loader. It adds no CAD or adapter API. Product integration,
+publication and later screen/file/recovery validation have separate receipts.
