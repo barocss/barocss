@@ -2760,3 +2760,40 @@ refused-candidate retention using the unchanged CAD-produced files. The source
 and emitted public consumers use source-curve-control-polygon-babylon-verify.mjs.
 Source edits retain full source/proof authority; they do not preserve obsolete
 section UV associations or certify topology, a Solid or global display error.
+
+
+## Original signed-sweep XY arcs in Three
+
+`examples/xy-angle-arc-three.html` uses the existing `native-uniform-curve`
+and `three-uniform-curve` entries with forty unchanged CAD-produced files.
+Each of the ten cases retains its complete original Source0, authored request,
+owned native artifact and independent rational-angle witness.
+
+CAD `verifyXYAngleArcArtifact(original)` returns the full copied original
+`artifact` and a separate portable verification `report`.
+`validateXYAngleArcArtifactVerification(verification)` checks the whole result.
+The original source, Model, Curve coefficients and report remain unchanged.
+The example retains exact original CSS-to-artifact binding and uses that CSS
+for native sampling and the displayed Line. Fresh builder results and the old
+strict validator are separate runtime observations. Portable verification does
+not claim fresh construction has identical bits across runtimes.
+
+The native readout keeps authored mm/rad units, signed sweep, direction,
+original domain, D0/D1 observations, seam policy and construction quality.
+A separate section shows portable field rules and their units and bounds.
+Uniform native parameters are not angles or uniform arc-length samples.
+Interior C0 derivative refusals remain refusals. Copied full-turn endpoints
+keep `periodic:false`; sampled observations do not certify a global circle.
+
+The host checks the complete original artifact, portable report and detached
+Group/Line before admission. It releases previous captured geometry/material
+before its callback. Cold reopen reads all four original files and compares
+complete native data, verification, target positions and the displayed frame.
+Refusal preserves the accepted data and resources. Double cleanup preserves
+caller resources and readable native CPU data. The existing BufferAttribute
+uses that result's own Float32 positions; its copy contract is unchanged.
+
+Use `xy-angle-arc-three-verify.mjs` for the bounded source and emitted public
+consumers. This example adds no loader entry, workplane editor, constraints,
+region or Solid support. Native completion, local integration checks and npm
+publication are recorded separately.
