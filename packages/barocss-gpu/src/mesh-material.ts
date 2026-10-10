@@ -20,6 +20,7 @@ export interface MeshMaterialIR {format:'barocss-gpu-mesh-material';version:0;pr
 export interface MeshMaterialBinding {material:MeshMaterialIR;uniforms:Record<string,number>}
 export interface LoweredMeshMaterial {expression:string;uniformDeclarations:string;uniformLayout:(MeshMaterialUniform&{glslName:string})[]}
 export interface EngineUVMaterialIR {format:'barocss-gpu-engine-uv-material';version:0;profile:'engine-opaque-uv-fragment-v0';source:string;shaderId:string;uniforms:MeshMaterialUniform[];expression:EngineUVMaterialExpression}
+export interface EngineUVMaterialBinding {material:EngineUVMaterialIR;uniforms:Record<string,number>}
 export interface LoweredEngineUVMaterial extends LoweredMeshMaterial {inputDeclarations:'in vec2 v_engine_uv;'}
 type Token={text:string;start:number;end:number};
 type ParsedMaterial={source:string;shaderId:string;uniforms:MeshMaterialUniform[];expression:EngineUVMaterialExpression};
@@ -227,6 +228,23 @@ export function lowerMeshMaterial(input:unknown):LoweredMeshMaterial{return lowe
 export function lowerEngineUVMaterial(input:unknown):LoweredEngineUVMaterial{
  const result:LoweredEngineUVMaterial={...lowerMaterial(validateEngineUVMaterialIR(input)),inputDeclarations:'in vec2 v_engine_uv;'};
  return freeze(result);
+}
+/** Internal catalog provider: distinct UV profile; no caller-supplied input values. */
+export function validateEngineUVMaterialBinding(input:unknown):EngineUVMaterialBinding{
+ let data:Record<string,unknown>;
+ try{data=ownSnapshot(input) as Record<string,unknown>;}
+ catch(cause){if(cause instanceof MeshMaterialError)throw cause;throw uvError('INPUT','UV material binding own-data reflection refused',0,0,cause);}
+ if(!data||typeof data!=='object'||Array.isArray(data)||Object.keys(data).length!==2||!Object.hasOwn(data,'material')||!Object.hasOwn(data,'uniforms'))throw uvError('INPUT','UV material binding requires material/uniforms');
+ const material=validateEngineUVMaterialIR(data.material),values=data.uniforms;
+ if(!values||typeof values!=='object'||Array.isArray(values))throw uvError('UNIFORM','Uniform values require own record');
+ const entries=Object.entries(values);
+ if(entries.length>16||entries.some(([name])=>!material.uniforms.some(u=>u.name===name)))throw uvError('UNIFORM','Unknown/excess uniform value');
+ const uniforms=Object.fromEntries(material.uniforms.map(u=>{
+  const n=Object.hasOwn(values,u.name)?(values as Record<string,unknown>)[u.name]:u.default;
+  if(typeof n!=='number'||!Number.isFinite(n)||n<u.min||n>u.max)throw uvError('UNIFORM','Uniform '+u.name+' outside its finite declared range');
+  return[u.name,zero(n)];
+ }));
+ return freeze({material,uniforms});
 }
 export function validateMeshMaterialBinding(input:unknown):MeshMaterialBinding{
  const data=ownSnapshot(input) as Record<string,unknown>;if(!data||typeof data!=='object'||Array.isArray(data)||Object.keys(data).length!==2||!Object.hasOwn(data,'material')||!Object.hasOwn(data,'uniforms'))fail('INPUT','Material binding requires material/uniforms');const material=validateMeshMaterialIR(data.material),values=data.uniforms;if(!values||typeof values!=='object'||Array.isArray(values))fail('UNIFORM','Uniform values require own record');const entries=Object.entries(values);if(entries.length>16||entries.some(([name])=>!material.uniforms.some(u=>u.name===name)))fail('UNIFORM','Unknown/excess uniform value');const uniforms:Record<string,number>={};for(const u of material.uniforms){const n=Object.hasOwn(values,u.name)?(values as Record<string,unknown>)[u.name]:u.default;if(typeof n!=='number'||!Number.isFinite(n)||n<u.min||n>u.max)fail('UNIFORM','Uniform '+u.name+' outside its finite declared range');uniforms[u.name]=zero(n);}return freeze({material,uniforms});

@@ -1,8 +1,8 @@
 import { ownRecord, freezeGpuData } from './gpu-data.js';
 import { prepareEngineScene } from './engine-scene.js';
 import type { PreparedEngineScene } from './engine-scene.js';
-import { validateMeshMaterialBinding, lowerMeshMaterial } from './mesh-material.js';
-import type { MeshMaterialIR, MeshMaterialBinding, LoweredMeshMaterial } from './mesh-material.js';
+import { validateMeshMaterialBinding, lowerMeshMaterial, validateEngineUVMaterialBinding, lowerEngineUVMaterial } from './mesh-material.js';
+import type { MeshMaterialIR, MeshMaterialBinding, LoweredMeshMaterial, EngineUVMaterialIR, EngineUVMaterialBinding, LoweredEngineUVMaterial } from './mesh-material.js';
 
 export const EngineMaterialBindingsDiagnosticCode = Object.freeze({
   INPUT: 'INPUT', VERSION: 'VERSION', BUDGET: 'BUDGET', REFERENCE: 'REFERENCE',
@@ -30,6 +30,43 @@ export interface PreparedEngineMaterialBindings {
   readonly resolvedBindings: { materialId: string; binding: MeshMaterialBinding }[];
   readonly loweredBindings: { materialId: string; lowered: LoweredMeshMaterial }[];
 }
+
+export interface EngineUVMaterialBindingV0 {
+  materialId: string; material: EngineUVMaterialIR; uniforms: Record<string, number>;
+}
+export interface EngineUVMaterialBindingsV0 {
+  format: 'barocss-gpu-engine-uv-material-bindings'; version: 0; sceneId: string;
+  bindings: EngineUVMaterialBindingV0[];
+}
+export interface PreparedEngineUVMaterialBindings {
+  readonly scene: PreparedEngineScene;
+  readonly materialBindings: EngineUVMaterialBindingsV0;
+  readonly resolvedBindings: { materialId: string; binding: EngineUVMaterialBinding }[];
+  readonly loweredBindings: { materialId: string; lowered: LoweredEngineUVMaterial }[];
+}
+
+// Trusted profiles reuse the catalog guards. Callers cannot supply a profile or providers.
+type MaterialIR = MeshMaterialIR | EngineUVMaterialIR;
+type MaterialBinding = MeshMaterialBinding | EngineUVMaterialBinding;
+type LoweredMaterial = LoweredMeshMaterial | LoweredEngineUVMaterial;
+type CatalogEntry<M extends MaterialIR> = { materialId: string; material: M; uniforms: Record<string, number> };
+interface PreparedCatalog<M extends MaterialIR, F extends string, B extends MaterialBinding, L extends LoweredMaterial> {
+  readonly scene: PreparedEngineScene;
+  readonly materialBindings: { format: F; version: 0; sceneId: string; bindings: CatalogEntry<M>[] };
+  readonly resolvedBindings: { materialId: string; binding: B }[];
+  readonly loweredBindings: { materialId: string; lowered: L }[];
+}
+interface CatalogProfile<M extends MaterialIR, F extends string, B extends MaterialBinding, L extends LoweredMaterial> {
+  format: F;
+  bind(input: unknown): B;
+  lower(input: M): L;
+}
+const legacyProfile: CatalogProfile<MeshMaterialIR, 'barocss-gpu-engine-material-bindings', MeshMaterialBinding, LoweredMeshMaterial> = {
+  format: 'barocss-gpu-engine-material-bindings', bind: validateMeshMaterialBinding, lower: lowerMeshMaterial,
+};
+const uvProfile: CatalogProfile<EngineUVMaterialIR, 'barocss-gpu-engine-uv-material-bindings', EngineUVMaterialBinding, LoweredEngineUVMaterial> = {
+  format: 'barocss-gpu-engine-uv-material-bindings', bind: validateEngineUVMaterialBinding, lower: lowerEngineUVMaterial,
+};
 
 const CODE = EngineMaterialBindingsDiagnosticCode;
 const IR_FIELDS = ['format', 'version', 'profile', 'source', 'shaderId', 'uniforms', 'expression'];
@@ -70,7 +107,7 @@ function uniformKeys(input: unknown): PropertyKey[] {
   return keys;
 }
 
-/** Independent own snapshots preserve original signs before the legacy binder normalizes zero. */
+/** Independent own snapshots preserve original signs before the trusted binders normalize zero. */
 function snapshot(input: unknown): unknown {
   let remaining = 8192;
   const active = new WeakSet<object>();
@@ -113,9 +150,18 @@ function snapshot(input: unknown): unknown {
 
 /** Full original authored source and independent resolved/lowered catalogs; no graphics support. */
 export function prepareEngineMaterialBindings(sceneInput: unknown, materialInput: unknown): PreparedEngineMaterialBindings {
+  return prepareBindings(sceneInput, materialInput, legacyProfile);
+}
+/** Explicit UV source companion; the legacy profile is not upgraded or mixed. */
+export function prepareEngineUVMaterialBindings(sceneInput: unknown, materialInput: unknown): PreparedEngineUVMaterialBindings {
+  return prepareBindings(sceneInput, materialInput, uvProfile);
+}
+function prepareBindings<M extends MaterialIR, F extends string, B extends MaterialBinding, L extends LoweredMaterial>(
+  sceneInput: unknown, materialInput: unknown, profile: CatalogProfile<M, F, B, L>,
+): PreparedCatalog<M, F, B, L> {
   try {
     const root = ownRecord(materialInput, ['format', 'version', 'sceneId', 'bindings']);
-    check(root.format === 'barocss-gpu-engine-material-bindings' && root.version === 0,
+    check(root.format === profile.format && root.version === 0,
       CODE.VERSION, 'Only engine material bindings0 is supported');
     const sceneId = identifier(root.sceneId, 'sceneId');
     const length = count(root.bindings, 8, 'Bindings');
@@ -141,7 +187,7 @@ export function prepareEngineMaterialBindings(sceneInput: unknown, materialInput
       sourceBytes += new TextEncoder().encode(header.material.source as string).length;
       check(sourceBytes <= 65536, CODE.BUDGET, 'Aggregate UTF8 material source exceeds64KiB');
     }
-    const bindings = headers.map(header => snapshot(header) as EngineMaterialBindingV0);
+    const bindings = headers.map(header => snapshot(header) as CatalogEntry<M>);
     for (const entry of bindings) {
       count(entry.material.uniforms, 16, 'Snapshot material uniform declarations');
       uniformKeys(entry.uniforms);
@@ -151,12 +197,12 @@ export function prepareEngineMaterialBindings(sceneInput: unknown, materialInput
         && entry.material.uniforms.every(uniform => !uniform || typeof uniform !== 'object'
           || uniform.name !== '__proto__'), CODE.INPUT, 'Uniform name __proto__ is unsupported by this service');
     }
-    const resolvedBindings: PreparedEngineMaterialBindings['resolvedBindings'] = [];
-    const loweredBindings: PreparedEngineMaterialBindings['loweredBindings'] = [];
+    const resolvedBindings: PreparedCatalog<M, F, B, L>['resolvedBindings'] = [];
+    const loweredBindings: PreparedCatalog<M, F, B, L>['loweredBindings'] = [];
     for (const entry of bindings) {
       try {
-        const binding = validateMeshMaterialBinding({ material: entry.material, uniforms: entry.uniforms });
-        const lowered = lowerMeshMaterial(binding.material);
+        const binding = profile.bind({ material: entry.material, uniforms: entry.uniforms });
+        const lowered = profile.lower(binding.material as M);
         resolvedBindings.push({ materialId: entry.materialId, binding });
         loweredBindings.push({ materialId: entry.materialId, lowered });
       } catch (cause) {
@@ -173,7 +219,7 @@ export function prepareEngineMaterialBindings(sceneInput: unknown, materialInput
         CODE.REFERENCE, 'Bindings require unique existing material IDs');
       used.add(entry.materialId);
     }
-    const materialBindings: EngineMaterialBindingsV0 = { format: 'barocss-gpu-engine-material-bindings',
+    const materialBindings: PreparedCatalog<M, F, B, L>['materialBindings'] = { format: profile.format,
       version: 0, sceneId, bindings };
     freezeGpuData(materialBindings); freezeGpuData(resolvedBindings); freezeGpuData(loweredBindings);
     return Object.freeze({ scene, materialBindings, resolvedBindings, loweredBindings });

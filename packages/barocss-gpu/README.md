@@ -1920,3 +1920,51 @@ No GPU program/cache/gamma/resource lifetime or consumer adoption is implied.
 
 ONE source/IR/API/file/cold flow:
 `node examples/gpu-scene/engine-uv-material-flow.mjs --output <fresh-directory>`.
+
+### Original UV material-ID source binding (CPU companion0)
+
+`prepareEngineUVMaterialBindings(sceneInput, materialInput)` prepares a distinct
+`barocss-gpu-engine-uv-material-bindings` version0 companion. Root fields are
+exactly `format`, `version`, `sceneId`, `bindings`; entries are exactly
+`materialId`, full `EngineUVMaterialIR`, `uniforms`. The material ID must exist
+in the original admitted scene, be unique in the catalog, and the scene ID must
+match. Hidden or unused materials still undergo complete admission. Empty
+catalogs are allowed. Existing companion0 remains legacy-profile only; each
+companion refuses the other's root format and material IR. No mixed catalog.
+
+The result has exactly `scene`, `materialBindings`, `resolvedBindings` and
+`loweredBindings`. Original full source/comments/IR, supplied omissions/values
+and negative zero remain frozen in `materialBindings`. Separate resolved
+bindings reconstruct the actual UV source, fill declared defaults and normalize
+numeric zero. Separate trusted lowered catalogs retain the UV compiler's four
+fields, including `inputDeclarations: 'in vec2 v_engine_uv;'`. Every catalog,
+record and layout is frozen and independent. Original scene/UV/IDs remain
+separate from mutable derived typed buffers and other preparations.
+
+This reuses private catalog admission, actual UV validation/uniform binding/
+lowering and one actual scene admission. Limits are eight bindings, 16 declared
+and supplied uniforms per binding (128 of each aggregate), 64KiB aggregate
+UTF8 source with code-unit preflight before encoding. Own snapshots preserve
+original signs; 8192 visited values/depth24 per entry, record keys16, dense
+arrays256, with array cardinality checked before enumeration. All headers,
+counts, byte guards and entry snapshots precede any material provider. At most
+16 actual source reconstructions (eight binding and eight lowering), then one
+scene admission before identity checks. Existing compiler/scene limits remain.
+Finite supplied scalars must have declared names and ranges; omitted values use
+defaults. The service refuses `__proto__` declarations/values with `INPUT`,
+matching the existing catalog boundary.
+
+Errors reuse `EngineMaterialBindingsError`/diagnostic codes and retain actual
+causes: `INPUT`, `VERSION`, `BUDGET`, `REFERENCE`, `MATERIAL`, `SCENE`.
+Messages are bounded to1024 characters. Forged IR/source/profile or bad numeric
+uniforms preserve the real material error and source diagnostic offsets; scene
+refusals preserve the actual scene cause. No partial result or caller mutation.
+
+This admits original analytic UV source and trusted text; it does not execute
+shaders, supply caller UV values, mount a renderer or establish pixel, gamma,
+resource/cache/lifetime or consumer support. Dimensionless original triangle UV
+is the authority; native CAD parameters are separate. Consumer source document
+and actual renderer composition require their own contracts and receipts.
+
+ONE source/API/file/cold flow:
+`node examples/gpu-scene/engine-uv-material-bindings-flow.mjs --output <fresh-directory>`.

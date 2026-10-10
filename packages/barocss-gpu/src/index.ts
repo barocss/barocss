@@ -97,3 +97,7 @@ export {prepareEngineLightingBindings,EngineLightingBindingsError,EngineLighting
 export type {EngineLightingBindingV0,EngineLightingBindingsV0,PreparedEngineLightingBindings} from './engine-lighting-bindings.js';
 export {prepareEngineMaterialBindings,EngineMaterialBindingsError,EngineMaterialBindingsDiagnosticCode} from './engine-material-bindings.js';
 export type {EngineMaterialBindingV0,EngineMaterialBindingsV0,PreparedEngineMaterialBindings} from './engine-material-bindings.js';
+
+export {prepareEngineUVMaterialBindings} from './engine-material-bindings.js';
+export type {EngineUVMaterialBindingV0,EngineUVMaterialBindingsV0,PreparedEngineUVMaterialBindings} from './engine-material-bindings.js';
+export type {EngineUVMaterialBinding} from './mesh-material.js';
