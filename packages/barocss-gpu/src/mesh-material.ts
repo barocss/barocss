@@ -64,6 +64,19 @@ class Parser {
   }
   this.take(')');return this.color('#'+channels.map(value=>value.toString(16).padStart(2,'0')).join('').toUpperCase(),token);
  }
+ if(name==='pow'){
+  this.take('(');if(this.current().text===')')fail('TYPE','pow requires a float and unsigned integer literal2..8',token);
+  const base=this.expression(0,nesting+1);if(this.current().text!==',')fail('TYPE','pow requires two arguments',token);this.take(',');
+  if(!/^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?$/.test(this.current().text))fail('TYPE','pow exponent requires an unsigned numeric literal',token);
+  const exponent=this.primary(nesting+1);if(this.current().text!==')')fail('TYPE','pow exponent must be a single literal',token);this.take(')');this.float(base,token);
+  const n=exponent.expression.kind==='float'?exponent.expression.value:NaN;
+  if(!Number.isInteger(n)||n<2||n>8)fail('RANGE','pow exponent requires integer2..8',token);
+  const copies=(n-1)*base.size;if(this.nodes+copies>256)fail('BUDGET','Material exceeds256 definition and expanded expression nodes',token);this.nodes+=copies;
+  let product=base;for(let i=1;i<n;i++){
+   const[a,b]=product.range,[c,d]=base.range,values=[a*c,a*d,b*c,b*d];
+   product=this.term({kind:'binary',type:'float',operator:'*',left:product.expression,right:base.expression},'float',[Math.min(...values),Math.max(...values)],[product,base],token);
+  }return product;
+ }
  if(!['sin','cos','mix','clamp','abs','min','max','smoothstep','radians'].includes(name))fail('SYNTAX','Unsupported material function',token);this.take('(');const args:Term[]=[];if(this.current().text!==')'){for(;;){args.push(this.expression(0,nesting+1));if(this.current().text!==',')break;this.take(',');}}this.take(')');let type:'float'|'color'='float',range:[number,number];
  if(name==='radians'){
   if(args.length!==1)fail('TYPE','radians requires one float',token);this.float(args[0],token);

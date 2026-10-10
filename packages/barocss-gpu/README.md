@@ -1345,3 +1345,18 @@ For example, use `sin(radians(angleDegrees))` with a degree-valued uniform.
 The CPU source/emitted/cold-file flow is
 `node examples/gpu-scene/material-radians-flow.mjs --output <fresh-dir>`.
 Native grammar completion does not establish browser or editor adoption.
+
+
+### Bounded integer-power material expressions
+
+`pow(base, n)` accepts a scalar expression and one unsigned numeric literal
+whose parsed value is an integer from 2 through 8. Decimal/exponent spellings
+are supported; computed, signed or parenthesized exponents are refused.
+It emits exactly the existing left-associated repeated multiplication IR.
+Every copied base subtree and generated multiply is charged, plus the parsed
+exponent literal; conservative interval bounds, depth16 and work256 remain.
+Bare `pow` uniform/local identifiers stay valid. No general fractional or
+dynamic exponent, new runtime intrinsic, angle unit or IR/profile is added.
+For a cubic fade, use `mix(#000,#FFF,pow(strength,3))` with strength bounded0..1.
+Run `node examples/gpu-scene/material-integer-power-demo.mjs --source <fresh-dir>`
+for one source/emitted/cold-file CPU flow. This does not establish rendered pixels.
