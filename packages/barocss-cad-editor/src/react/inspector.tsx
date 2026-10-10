@@ -72,10 +72,12 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
   const selectedKind = accepted.bodyBindings.find(body => body.bodyId === snapshot.selectedBodyId)?.geometryKind;
   const objectMode = snapshot.editTarget === 'object';
   const rotationMode = snapshot.editTarget === 'rotation';
-  const transformMode = objectMode||rotationMode;
+  const scaleMode = snapshot.editTarget === 'scale';
+  const transformMode = objectMode||rotationMode||scaleMode;
+  const scaleComposing=useRef(false);
   const rotationComposing=useRef(false);
-  const canEdit = selection !== null ? (rotationMode ? capability?.canRotateBody === true : objectMode ? capability?.canTranslateBody === true : capability?.canEditSurfacePole === true) && snapshot.view.kind === 'document'
-    : curveSelection !== null && (rotationMode ? capability?.canRotateBody === true : objectMode ? capability?.canTranslateBody === true : capability?.canEditCurvePole === true) && snapshot.view.kind === 'curve-focus' && snapshot.view.bodyId === curveSelection.bodyId;
+  const canEdit = selection !== null ? (scaleMode ? capability?.canScaleBody === true : rotationMode ? capability?.canRotateBody === true : objectMode ? capability?.canTranslateBody === true : capability?.canEditSurfacePole === true) && snapshot.view.kind === 'document'
+    : curveSelection !== null && (scaleMode ? capability?.canScaleBody === true : rotationMode ? capability?.canRotateBody === true : objectMode ? capability?.canTranslateBody === true : capability?.canEditCurvePole === true) && snapshot.view.kind === 'curve-focus' && snapshot.view.bodyId === curveSelection.bodyId;
   useEffect(() => {
     if (!transition) {
       attemptedTransitionRef.current = null;
@@ -109,7 +111,7 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
   }
   return <aside className={cn('cad-editor-inspector', transformMode&&'cad-editor-object-translation', className)} aria-label="Native control point inspector">
     <div className="cad-editor-inspector-title">
-      <h2 className="cad-editor-heading">{rotationMode ? 'Rotate object' : objectMode ? 'Move object' : curveSelection ? 'Curve point' : selection ? 'Control point' : 'Object'}</h2>
+      <h2 className="cad-editor-heading">{scaleMode ? 'Scale object' : rotationMode ? 'Rotate object' : objectMode ? 'Move object' : curveSelection ? 'Curve point' : selection ? 'Control point' : 'Object'}</h2>
       <Dialog>
         <DialogTrigger asChild><Button type="button" variant="ghost" size="xs" data-testid="cad-editor-help"
           aria-label="Control point editing help">Help</Button></DialogTrigger>
@@ -141,6 +143,13 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
               <p>Snap movement rounds the distance from the starting point to the nearest step in mm. It does not round the absolute coordinate or change native units. The step must be a finite number from 0.000001 to 1000000 mm. Invalid text stays visible and prevents an axis move.</p>
               <p>Focus an axis handle and use the arrow keys to move one step. Without snapping, a keyboard step is 1 mm. Settings and view buttons are disabled while a draft or gesture is active. Snapping settings stay local to this viewport; they are not saved with the document or recovery copy.</p>
               <p>The colored axis and control-point ghost are pending coefficients. The actual accepted shape changes only after native validation, display admission and a fresh frame read. A refused edit retains its raw value for correction.</p>
+            </section>
+            <section><h3>Scaling an object</h3>
+              <p>Choose Scale object. All changes every original coordinate around the selected grip. X, Y or Z changes only that world axis. The grip is an original control pole, not a certified center.</p>
+              <p>Factor is a ratio: 1 keeps the size, 2 doubles it and 0.5 halves it. Enter a finite positive factor from 0.001 to 100. Zero, negative values and reflection are not supported. Native coordinate, matrix or display limits can still refuse a change.</p>
+              <p>Drag the square handle. Axis handles invert the actual perspective projection; All uses the screen-diagonal distance from its captured start as a ratio. Snap factor rounds the change from 1 using a separate step from 0.001 to 1. Arrow keys apply 1.1 or 0.9 without snapping, or one factor step with snapping.</p>
+              <p>The pending square and Factor field show the proposed ratio. The full accepted shape stays unchanged until release and successful admission. One accepted change adds one history entry. Escape or pointer cancellation discards only the owned draft; a refusal retains the raw factor for correction.</p>
+              <p>Scaling uses the native affine provider and complete-source writers. Original IDs, weights, knots, sibling objects and other assets are preserved. Curve scaling requires its matching focused view; Surface scaling requires document view. Surface edits use private validated batches of at most 16 poles. Temporary IDs, mode, axes and snapping are not saved in the native document or recovery copy.</p>
             </section>
             <section><h3>Moving an object</h3>
               <p>Choose Object in the movement palette to translate the entire selected Curve or Surface. Offsets use mm from the current accepted position. The original point selected by U/V or Point is the movement grip; it is not a certified center.</p>
@@ -300,12 +309,12 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
           onChange={event => action(() => session.requestSelection({ bodyId: curveSelection.bodyId, index: Number(event.target.value) }))}>
           {Array.from({ length: curveSelection.count }, (_, index) => <option key={index} value={index}>Point {index + 1}</option>)}
         </select></div>}
-      <h3 className="cad-editor-heading">{rotationMode ? 'Rotation' : objectMode ? 'Object offset (mm)' : 'Coordinates and weight'}</h3>
+      <h3 className="cad-editor-heading">{scaleMode ? 'Scale' : rotationMode ? 'Rotation' : objectMode ? 'Object offset (mm)' : 'Coordinates and weight'}</h3>
       {Object.keys(pending).length > 0 && <p className="cad-editor-draft-status">Unapplied changes</p>}
-      {transformMode && !(rotationMode?capability?.canRotateBody:capability?.canTranslateBody) && <p className="cad-editor-readonly" role="status">This object is outside the movement limits. Choose Control point editing or another object.</p>}
-      {transformMode && (!(rotationMode?capability?.canRotateBody:capability?.canTranslateBody) || !canEdit || snapshot.view.kind==='document'&&!snapshot.displayBodyIds.includes(snapshot.selectedBodyId!)) && <div className="cad-editor-field">
+      {transformMode && !(scaleMode?capability?.canScaleBody:rotationMode?capability?.canRotateBody:capability?.canTranslateBody) && <p className="cad-editor-readonly" role="status">This object is outside the movement limits. Choose Control point editing or another object.</p>}
+      {transformMode && (!(scaleMode?capability?.canScaleBody:rotationMode?capability?.canRotateBody:capability?.canTranslateBody) || !canEdit || snapshot.view.kind==='document'&&!snapshot.displayBodyIds.includes(snapshot.selectedBodyId!)) && <div className="cad-editor-field">
         <Label htmlFor={`${id}-edit-target`}>Target</Label><select id={`${id}-edit-target`} data-testid="inspector-edit-target" value={snapshot.editTarget} disabled={busy||Object.keys(pending).length>0||transition!==null}
-          onChange={event=>action(()=>session.setEditTarget(event.target.value as 'pole'|'object'|'rotation'))}><option value="pole">Control point</option><option value="object" disabled={!capability?.canTranslateBody}>Object</option><option value="rotation" disabled={!capability?.canRotateBody}>Rotate object</option></select></div>}
+          onChange={event=>action(()=>session.setEditTarget(event.target.value as 'pole'|'object'|'rotation'|'scale'))}><option value="pole">Control point</option><option value="object" disabled={!capability?.canTranslateBody}>Object</option><option value="rotation" disabled={!capability?.canRotateBody}>Rotate object</option><option value="scale" disabled={!capability?.canScaleBody}>Scale object</option></select></div>}
       {rotationMode&&<>
         <p className="cad-editor-grip-note">{snapshot.rotationAxis.toUpperCase()} axis · Selected grip</p>
         <div className="cad-editor-field"><Label htmlFor={`${id}-rotation-angle`}>Angle (deg)</Label>
@@ -318,7 +327,19 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
           {Object.hasOwn(pending,'angleDegrees')&&<span className="cad-editor-accepted">Current: 0</span>}
         </div>
       </>}
-      {!rotationMode&&FIELDS.filter(({field})=>!objectMode||field!=='weight').map(({ field, label }) => <div className="cad-editor-field" key={field}>
+      {scaleMode&&<>
+        <p className="cad-editor-grip-note">{snapshot.scaleAxis==='uniform'?'All axes':snapshot.scaleAxis.toUpperCase()+' axis'} · Selected grip</p>
+        <div className="cad-editor-field"><Label htmlFor={`${id}-scale-factor`}>Factor (×)</Label>
+          <Input id={`${id}-scale-factor`} data-testid="cad-editor-scale-factor" type="text" inputMode="decimal" maxLength={128} disabled={busy||!canEdit}
+            value={pending.scaleFactor??'1'} className={Object.hasOwn(pending,'scaleFactor')?'cad-editor-pending-input':undefined}
+            onFocus={event=>{lastFieldRef.current=event.currentTarget;}}
+            onCompositionStart={()=>{scaleComposing.current=true;}} onCompositionEnd={()=>{scaleComposing.current=false;}}
+            onKeyDown={event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();return;}if(event.key==='Enter'&&!event.repeat&&!event.nativeEvent.isComposing&&event.keyCode!==229&&!scaleComposing.current&&!event.altKey&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey){event.preventDefault();event.stopPropagation();action(()=>{session.prepareApply();});}}}
+            onChange={event=>action(()=>session.stageBodyScale(event.target.value))}/>
+          {Object.hasOwn(pending,'scaleFactor')&&<span className="cad-editor-accepted">Current: 1</span>}
+        </div>
+      </>}
+      {!rotationMode&&!scaleMode&&FIELDS.filter(({field})=>!objectMode||field!=='weight').map(({ field, label }) => <div className="cad-editor-field" key={field}>
         <Label htmlFor={`${id}-${field}`}>{objectMode ? 'Offset '+field[0].toUpperCase() : label}</Label>
         <Input id={`${id}-${field}`} type="text" inputMode="decimal" disabled={busy || !canEdit}
           className={Object.hasOwn(pending, field) ? 'cad-editor-pending-input' : undefined}

@@ -1,7 +1,7 @@
 import { CadEditorError, type CadEditorSession, type CadEditorSnapshot, type CadEditorView } from '@barocss/cad-editor';
 
 const STATE_FIELDS = ['generation', 'displayGeneration', 'selectedBodyId', 'selection', 'pending',
-  'curveSelection','view','editTarget','rotationAxis','selectionTransition', 'candidate', 'dirty', 'downloadStatus', 'disposed'] as const;
+  'curveSelection','view','editTarget','rotationAxis','scaleAxis','selectionTransition', 'candidate', 'dirty', 'downloadStatus', 'disposed'] as const;
 type ReplacementState = Pick<CadEditorSnapshot, typeof STATE_FIELDS[number]>;
 export type ReplacementAnchor = ReplacementState & { session: CadEditorSession };
 export interface ReplacementTarget {

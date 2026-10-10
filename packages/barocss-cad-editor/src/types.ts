@@ -45,9 +45,10 @@ export class CadEditorError extends Error {
 }
 export type CadEditorPoleField = 'xMM' | 'yMM' | 'zMM' | 'weight';
 export type CadEditorBodyTranslationField = Exclude<CadEditorPoleField, 'weight'>;
-export type CadEditorDraftField = CadEditorPoleField | 'angleDegrees';
-export type CadEditorEditTarget = 'pole' | 'object' | 'rotation';
+export type CadEditorDraftField = CadEditorPoleField | 'angleDegrees' | 'scaleFactor';
+export type CadEditorEditTarget = 'pole' | 'object' | 'rotation' | 'scale';
 export type CadEditorRotationAxis = 'x' | 'y' | 'z';
+export type CadEditorScaleAxis = 'uniform' | 'x' | 'y' | 'z';
 export interface CadEditorBodyTranslation {
   reference: CadGeometryReferenceV0;
   resultReference: CadGeometryReferenceV0;
@@ -59,6 +60,14 @@ export interface CadEditorBodyRotation {
   resultReference: CadGeometryReferenceV0;
   axis: CadEditorRotationAxis;
   angleDegrees: number;
+  pivotMM: [number, number, number];
+  report: AffineGeometryTransformReport;
+}
+export interface CadEditorBodyScale {
+  reference: CadGeometryReferenceV0;
+  resultReference: CadGeometryReferenceV0;
+  axis: CadEditorScaleAxis;
+  factor: number;
   pivotMM: [number, number, number];
   report: AffineGeometryTransformReport;
 }
@@ -92,6 +101,7 @@ export interface CadEditorCandidate {
   curveProvenance: CurvePoleEditProvenance[];
   bodyTranslation: CadEditorBodyTranslation | null;
   bodyRotation: CadEditorBodyRotation | null;
+  bodyScale: CadEditorBodyScale | null;
 }
 export interface CadEditorSnapshot {
   accepted: CadDocumentResult;
@@ -101,9 +111,11 @@ export interface CadEditorSnapshot {
   view: CadEditorView;
   editTarget: CadEditorEditTarget;
   rotationAxis: CadEditorRotationAxis;
+  scaleAxis: CadEditorScaleAxis;
   bodyCapabilities: { bodyId: string; canEditSurfacePole: boolean; canEditCurvePole: boolean;
     canTranslateBody: boolean; translationReason: null | 'translation-profile';
     canRotateBody: boolean; rotationReason: null | 'rotation-profile';
+    canScaleBody: boolean; scaleReason: null | 'scale-profile';
     reason: null | 'curve' | 'curve-profile' | 'surface-profile' | 'asset-has-siblings' }[];
   selectedBodyId: string | null;
   selection: CadEditorSelectedPole | null;
@@ -119,6 +131,7 @@ export interface CadEditorSnapshot {
   lastCurveProvenance: CurvePoleEditProvenance[];
   lastBodyTranslation: CadEditorBodyTranslation | null;
   lastBodyRotation: CadEditorBodyRotation | null;
+  lastBodyScale: CadEditorBodyScale | null;
 }
 export interface CadEditorDownload { token: string; text: string; suggestedFilename: string }
 export interface CadEditorSession {
@@ -139,6 +152,8 @@ export interface CadEditorSession {
   setEditTarget(target: CadEditorEditTarget): void;
   setRotationAxis(axis: CadEditorRotationAxis): void;
   stageBodyRotation(rawAngleDegrees: string): void;
+  setScaleAxis(axis: CadEditorScaleAxis): void;
+  stageBodyScale(rawFactor: string): void;
   stageBodyTranslationField(field: CadEditorBodyTranslationField, rawText: string): void;
   stageSurfacePoleField(field: CadEditorPoleField, rawText: string): void;
   stageCurvePoleField(field: CadEditorPoleField, rawText: string): void;

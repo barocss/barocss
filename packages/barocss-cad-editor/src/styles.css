@@ -161,3 +161,14 @@
 .cad-editor-axis-palette {z-index:1;}
 
 .cad-editor-grip-note {margin:4px 0 8px;font-size:10px;color:#aabac3;}
+.cad-editor-scale-controls {position:absolute;inset:0;pointer-events:none;}
+.cad-editor-scale-svg {display:block;overflow:hidden;pointer-events:none;}
+.scale-axis-line {stroke:#b8d599;stroke-width:2;}
+.scale-pivot {fill:#b8d599;stroke:#667f50;stroke-width:1.5;}
+.scale-axis-handle {fill:#b8d599;stroke:#46543c;stroke-width:2;pointer-events:all;cursor:grab;touch-action:none;}
+.scale-axis-handle:active {cursor:grabbing;}
+.scale-axis-handle:focus-visible {outline:none;stroke:#f4ffe9;stroke-width:3;}
+.scale-axis-handle[aria-disabled="true"] {opacity:.5;cursor:default;}
+.scale-axis-label {fill:#b8d599;font-size:11px;font-weight:550;paint-order:stroke;stroke:#1c2228;stroke-width:3;}
+.cad-editor-scale-controls.pending .scale-axis-line {stroke:#e4b66c;stroke-dasharray:4 3;}
+.cad-editor-scale-controls.pending .scale-axis-handle {fill:#e4b66c;stroke:#967743;}

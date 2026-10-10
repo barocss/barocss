@@ -5,6 +5,8 @@ import type {CadEditorDisplayReceipt, CadEditorCurveFocusReceipt} from './types.
 import {useCadEditorSnapshot} from './use-session.js';
 import type {PolePoint} from './curve-pole-projection.js';
 import {ObjectRotationGizmo} from './object-rotation-gizmo.js';
+import {ObjectScaleGizmo} from './object-scale-gizmo.js';
+import {parseScaleStep} from './scale-projection.js';
 import {parseAngularStep} from './rotation-projection.js';
 import {projectPoleAxis, movePoleOnAxis, axisPointerDisplacement, parseMovementSnapStep, type PoleAxis, type PoleAxisProjection} from './pole-axis-projection.js';
 
@@ -52,7 +54,7 @@ function currentControl(snapshot:CadEditorSnapshot, documentReceipt:CadEditorDis
   if (snapshot.disposed) return null;
   const surface = snapshot.selection, curve = snapshot.curveSelection;
   const capability = snapshot.bodyCapabilities.find(body => body.bodyId === snapshot.selectedBodyId);
-  if (snapshot.view.kind === 'document' && surface && (snapshot.editTarget === 'rotation' ? capability?.canRotateBody : snapshot.editTarget === 'object' ? capability?.canTranslateBody : capability?.canEditSurfacePole)
+  if (snapshot.view.kind === 'document' && surface && (snapshot.editTarget === 'scale' ? capability?.canScaleBody : snapshot.editTarget === 'rotation' ? capability?.canRotateBody : snapshot.editTarget === 'object' ? capability?.canTranslateBody : capability?.canEditSurfacePole)
     && documentReceipt?.state.status === 'ready' && snapshot.displayBodyIds.includes(surface.bodyId)
     && documentReceipt.state.documentBodies.some(body => body.binding.bodyId === surface.bodyId && body.ref.kind === 'surface')
     && same(documentReceipt.state.document,snapshot.accepted)) {
@@ -60,7 +62,7 @@ function currentControl(snapshot:CadEditorSnapshot, documentReceipt:CadEditorDis
     if (resolved.geometry.kind === 'surface') return {point:[...resolved.geometry.controlPoints[surface.uIndex][surface.vIndex]],
       key:`surface:${surface.bodyId}:${surface.uIndex}:${surface.vIndex}`,reference:surface.reference,kind:'surface',receipt:documentReceipt};
   }
-  if (snapshot.view.kind === 'curve-focus' && curve && (snapshot.editTarget === 'rotation' ? capability?.canRotateBody : snapshot.editTarget === 'object' ? capability?.canTranslateBody : capability?.canEditCurvePole)
+  if (snapshot.view.kind === 'curve-focus' && curve && (snapshot.editTarget === 'scale' ? capability?.canScaleBody : snapshot.editTarget === 'rotation' ? capability?.canRotateBody : snapshot.editTarget === 'object' ? capability?.canTranslateBody : capability?.canEditCurvePole)
     && snapshot.view.bodyId === curve.bodyId && curveReceipt?.state.status === 'ready'
     && curveReceipt.generation === snapshot.generation && curveReceipt.displayGeneration === snapshot.displayGeneration
     && same(curveReceipt.reference,curve.reference)) {
@@ -86,6 +88,12 @@ export function PoleAxisGizmo(props:Props) {
   const [angularSnap,setAngularSnap]=useState(false);
   const [angularStepRaw,setAngularStepRaw]=useState('15');
   const rotationMode=snapshot.editTarget==='rotation';
+  const scaleMode=snapshot.editTarget==='scale';
+  const [scaleMoving,setScaleMoving]=useState(false);
+  const [scaleSnap,setScaleSnap]=useState(false);
+  const [scaleStepRaw,setScaleStepRaw]=useState('0.1');
+  let scaleStep:number|null=null,scaleError:string|null=null;
+  if(scaleSnap){try{scaleStep=parseScaleStep(scaleStepRaw);}catch{scaleError='Enter a factor step from 0.001 to 1.';}}
   let angularStep:number|null=null,angularError:string|null=null;
   if(angularSnap){try{angularStep=parseAngularStep(angularStepRaw);}catch{angularError='Enter an angle step from 0.001 to 180 degrees.';}}
   let step:number|null = null, stepError:string|null = null;
@@ -99,9 +107,9 @@ export function PoleAxisGizmo(props:Props) {
   const capability = snapshot.bodyCapabilities.find(body=>body.bodyId===snapshot.selectedBodyId);
   const canvas = props.canvas, rect = canvas?.getBoundingClientRect();
   const pending = Object.keys(snapshot.pending).length > 0;
-  const busy = snapshot.candidate !== null || snapshot.selectionTransition !== null || snapshot.disposed || pending || movingAxis !== null || rotationMoving;
+  const busy = snapshot.candidate !== null || snapshot.selectionTransition !== null || snapshot.disposed || pending || movingAxis !== null || rotationMoving || scaleMoving;
   const projections:(PoleAxisProjection|null)[] = [];
-  if (!rotationMode && control && rect && rect.width > 0 && rect.height > 0 && control.receipt.width > 0 && control.receipt.height > 0) {
+  if (!rotationMode && !scaleMode && control && rect && rect.width > 0 && rect.height > 0 && control.receipt.width > 0 && control.receipt.height > 0) {
     const ghost = control.point.map((value,index) => {
       const raw = snapshot.pending[fields[index]];
       if (raw === undefined) return value;
@@ -248,13 +256,24 @@ export function PoleAxisGizmo(props:Props) {
     {rotationMode&&<ObjectRotationGizmo session={session} control={control} canvas={canvas} snapStep={angularSnap?angularStep:null}
       disabled={(busy&&!rotationMoving)||angularError!==null} onError={failure}
       onGestureChange={active=>{setRotationMoving(active);latest.current.onGestureChange(active);}}/>}
+    {scaleMode&&<ObjectScaleGizmo session={session} control={control} canvas={canvas} snapStep={scaleSnap?scaleStep:null}
+      disabled={(busy&&!scaleMoving)||scaleError!==null} onError={failure}
+      onGestureChange={active=>{setScaleMoving(active);latest.current.onGestureChange(active);}}/>}
     <div className="cad-editor-axis-palette" aria-label="Control point movement">
-      <div className="pole-move-title">{rotationMode?'Rotate object':objectMode?'Move object':'Move control point'} <span>{rotationMode?'XYZ · deg':'XYZ · mm'}</span></div>
+      <div className="pole-move-title">{scaleMode?'Scale object':rotationMode?'Rotate object':objectMode?'Move object':'Move control point'} <span>{scaleMode?'XYZ · ×':rotationMode?'XYZ · deg':'XYZ · mm'}</span></div>
       <label className="pole-move-target">Target<select data-testid="gizmo-edit-target" value={snapshot.editTarget} disabled={busy}
         onChange={event=>{try{session.setEditTarget(event.target.value as CadEditorEditTarget);}catch(cause){failure(cause);}}}>
-        <option value="pole">Control point</option><option value="object" disabled={!capability?.canTranslateBody}>Object</option><option value="rotation" disabled={!capability?.canRotateBody}>Rotate object</option>
+        <option value="pole">Control point</option><option value="object" disabled={!capability?.canTranslateBody}>Object</option><option value="rotation" disabled={!capability?.canRotateBody}>Rotate object</option><option value="scale" disabled={!capability?.canScaleBody}>Scale object</option>
       </select></label>
-      {rotationMode?<>
+      {scaleMode?<>
+        <label className="pole-move-target">Scale axes<select data-testid="scale-axis" value={snapshot.scaleAxis} disabled={busy}
+          onChange={event=>{try{session.setScaleAxis(event.target.value as 'uniform'|'x'|'y'|'z');}catch(cause){failure(cause);}}}><option value="uniform">All</option><option value="x">X</option><option value="y">Y</option><option value="z">Z</option></select></label>
+        <label className="pole-snap-toggle"><input type="checkbox" data-testid="scale-snap-enabled" checked={scaleSnap} disabled={busy} onChange={event=>setScaleSnap(event.target.checked)}/>Snap factor</label>
+        <label className="pole-snap-distance">Step (×)<input type="text" inputMode="decimal" maxLength={128} data-testid="scale-snap-step" value={scaleStepRaw} disabled={!scaleSnap||busy}
+          aria-invalid={scaleError!==null} onChange={event=>setScaleStepRaw(event.target.value)}/></label>
+        {scaleError&&<p data-testid="scale-snap-error" role="alert">{scaleError}</p>}
+        <p>{scaleMoving?'Release to apply. Escape cancels.':pending?'Factor pending. Apply or discard.':'Scale around the selected grip.'}</p>
+      </>:rotationMode?<>
         <label className="pole-move-target">Axis<select data-testid="rotation-axis" value={snapshot.rotationAxis} disabled={busy}
           onChange={event=>{try{session.setRotationAxis(event.target.value as 'x'|'y'|'z');}catch(cause){failure(cause);}}}><option value="x">X</option><option value="y">Y</option><option value="z">Z</option></select></label>
         <label className="pole-snap-toggle"><input type="checkbox" data-testid="rotation-snap-enabled" checked={angularSnap} disabled={busy} onChange={event=>setAngularSnap(event.target.checked)}/>Snap angle</label>

@@ -128,6 +128,6 @@ export function CurvePoleHandles({session,receipt,canvas,onError}:Props){
         onPointerDown={event=>begin(event,index)} onPointerMove={move} onPointerUp={end} onPointerCancel={()=>cancel(true)} onLostPointerCapture={()=>{if(gesture.current)cancel(true);}}
         onKeyDown={event=>{if((event.key==='Enter'||event.key===' ')&&!event.nativeEvent.isComposing){event.preventDefault();const state=session.getSnapshot();if(state.candidate||state.selectionTransition||state.disposed)return;try{session.requestSelection({bodyId:receipt.reference.bodyId,index});}catch(cause){failure(cause);}}}}/>:null)}
     </svg>
-    {snapshot.editTarget!=='rotation'&&<p className="cad-editor-curve-drag-hint" role="status" data-testid="curve-drag-status">{moving?'Release to apply. Escape cancels.':pending?'Point values pending. Apply or discard to continue.':snapshot.editTarget!=='pole'?'Select a grip, then use the object handle.':'Drag a point to move it in the view plane.'}</p>}
+    {snapshot.editTarget!=='rotation'&&snapshot.editTarget!=='scale'&&<p className="cad-editor-curve-drag-hint" role="status" data-testid="curve-drag-status">{moving?'Release to apply. Escape cancels.':pending?'Point values pending. Apply or discard to continue.':snapshot.editTarget!=='pole'?'Select a grip, then use the object handle.':'Drag a point to move it in the view plane.'}</p>}
   </div>;
 }

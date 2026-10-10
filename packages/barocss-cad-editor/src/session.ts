@@ -10,9 +10,10 @@ import type { CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, CurvePol
 import { CadEditorError } from './types.js';
 import { translateBodySource, withinTranslationProfile } from './body-translation.js';
 import { rotateBodySource } from './body-rotation.js';
+import { scaleBodySource } from './body-scale.js';
 import type {
   CadEditorCandidate, CadEditorDiagnosticCode, CadEditorPoleField, CadEditorSelectedPole, CadEditorSelectedCurvePole, CadEditorView,
-  CadEditorEditTarget, CadEditorBodyTranslationField, CadEditorRotationAxis,
+  CadEditorEditTarget, CadEditorBodyTranslationField, CadEditorRotationAxis, CadEditorScaleAxis,
   CadEditorSelectionTarget, CadEditorSelectionTransition, CadEditorSession, CadEditorSessionOptions, CadEditorSnapshot, CadEditorSurfaceSelection,
 } from './types.js';
 
@@ -118,7 +119,8 @@ function capabilities(result: CadDocumentResult): CadEditorSnapshot['bodyCapabil
     return { bodyId: body.id, canEditSurfacePole: geometry.kind === 'surface' && reason === null,
       canEditCurvePole: geometry.kind === 'curve' && reason === null, reason,
       canTranslateBody, translationReason: canTranslateBody ? null : 'translation-profile',
-      canRotateBody: canTranslateBody, rotationReason: canTranslateBody ? null : 'rotation-profile' };
+      canRotateBody: canTranslateBody, rotationReason: canTranslateBody ? null : 'rotation-profile',
+      canScaleBody: canTranslateBody, scaleReason: canTranslateBody ? null : 'scale-profile' };
   });
 }
 
@@ -195,6 +197,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   let view = initialConfiguration.view;
   let editTarget: CadEditorEditTarget = 'pole';
   let rotationAxis: CadEditorRotationAxis = 'z';
+  let scaleAxis: CadEditorScaleAxis = 'uniform';
   let bodyCapabilities = capabilities(accepted);
   const sessionId = ++sessionSequence;
   let tokenSequence = 0;
@@ -216,6 +219,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   let lastCurveProvenance: CadEditorSnapshot['lastCurveProvenance'] = [];
   let lastBodyTranslation: CadEditorSnapshot['lastBodyTranslation'] = null;
   let lastBodyRotation: CadEditorSnapshot['lastBodyRotation'] = null;
+  let lastBodyScale: CadEditorSnapshot['lastBodyScale'] = null;
   const listeners = new Set<() => void>();
 
   const live = () => requireEditor(!disposed, 'LIFECYCLE', 'The editor session is disposed.');
@@ -231,10 +235,10 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   const newToken = () => `cad-editor-${sessionId}-${++tokenSequence}`;
   const historyBytes = () => history.reduce((total, state) => total + state.bytes, 0);
   const snapshot = (): CadEditorSnapshot => copy({
-    accepted, generation, displayGeneration, displayBodyIds, view, editTarget, rotationAxis, bodyCapabilities,
+    accepted, generation, displayGeneration, displayBodyIds, view, editTarget, rotationAxis, scaleAxis, bodyCapabilities,
     selectedBodyId, selection, curveSelection, selectionTransition, pending, candidate: prepared?.candidate ?? null,
     history: { index: historyIndex, count: history.length, bytes: historyBytes(), canUndo: historyIndex > 0, canRedo: historyIndex < history.length - 1 },
-    dirty, downloadStatus, disposed, lastProvenance, lastCurveProvenance, lastBodyTranslation, lastBodyRotation,
+    dirty, downloadStatus, disposed, lastProvenance, lastCurveProvenance, lastBodyTranslation, lastBodyRotation, lastBodyScale,
   });
   const select = (input: CadEditorSurfaceSelection, document = accepted): CadEditorSelectedPole => {
     const context = { documentId: document.document.documentId, bodyId: input?.bodyId, field: 'selection-transition' };
@@ -314,12 +318,12 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     requireEditor(bodyCapabilities.find(body => body.bodyId === curveSelection!.bodyId)?.canEditCurvePole === true,
       'UNSUPPORTED', 'This Curve is outside the native pole edit profile.', context);
   };
-  const requireBodyTransformEditable = (operation: 'translation' | 'rotation') => {
+  const requireBodyTransformEditable = (operation: 'translation' | 'rotation' | 'scale') => {
     const context = { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: `body-${operation}` };
     const selected = selection ?? curveSelection;
     requireEditor(selected !== null && selected.bodyId === selectedBodyId, 'INPUT', 'Select an original object first.', context);
     const capability = bodyCapabilities.find(body => body.bodyId === selected.bodyId);
-    requireEditor((operation === 'rotation' ? capability?.canRotateBody : capability?.canTranslateBody) === true,
+    requireEditor((operation === 'scale' ? capability?.canScaleBody : operation === 'rotation' ? capability?.canRotateBody : capability?.canTranslateBody) === true,
       'UNSUPPORTED', `This object is outside the native ${operation} profile.`, context);
     return native(() => resolveCadGeometryReference(accepted, selected.reference),
       `Native object ${operation} reference resolution failed.`, accepted.document.documentId, context);
@@ -329,8 +333,9 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     postSelection?: CadEditorSelectionTransition, candidateDisplayIds = displayBodyIds, candidateView = view,
     curveProvenance: CadEditorCandidate['curveProvenance'] = [],
     bodyTranslation: CadEditorCandidate['bodyTranslation'] = null,
-    bodyRotation: CadEditorCandidate['bodyRotation'] = null): CadEditorCandidate => {
-    prepared = { candidate: { kind, result, provenance, curveProvenance, bodyTranslation, bodyRotation, token: newToken(), baseGeneration: generation,
+    bodyRotation: CadEditorCandidate['bodyRotation'] = null,
+    bodyScale: CadEditorCandidate['bodyScale'] = null): CadEditorCandidate => {
+    prepared = { candidate: { kind, result, provenance, curveProvenance, bodyTranslation, bodyRotation, bodyScale, token: newToken(), baseGeneration: generation,
       baseDisplayGeneration: displayGeneration, displayBodyIds: copy(candidateDisplayIds), view: copy(candidateView) }, historyIndex: targetIndex,
       selectionTarget: postSelection === undefined ? undefined : {
         bodyId: postSelection.target.bodyId, uIndex: postSelection.target.uIndex, vIndex: postSelection.target.vIndex, index: postSelection.target.index,
@@ -379,6 +384,48 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   };
   const prepareApply = (): CadEditorCandidate | null => {
     live();
+    if (editTarget === 'scale') {
+      const resolved = requireBodyTransformEditable('scale');
+      const bodyId = resolved.reference.bodyId;
+      const context = { documentId: accepted.document.documentId, bodyId, field: 'body-scale' };
+      requireEditor(prepared === null, 'INPUT', 'Resolve the current candidate before scaling the object.', context);
+      requireEditor(resolved.geometry.kind === 'curve'
+        ? view.kind === 'curve-focus' && view.bodyId === bodyId : view.kind === 'document',
+      'DISPLAY', resolved.geometry.kind === 'curve' ? 'Focus this Curve before scaling it.' : 'Return to document view before scaling this Surface.',
+      { ...context, field: 'curve-focus' });
+      const transition = selectionTransition;
+      if (Object.keys(pending).length === 0) { emit(); return null; }
+      requireEditor(Object.keys(pending).length === 1 && Object.hasOwn(pending, 'scaleFactor'), 'INPUT',
+        'Object scale accepts a dimensionless factor only.', context);
+      const text = pending.scaleFactor!.trim();
+      requireEditor(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text), 'INPUT',
+        'Scale factor must be a decimal or exponent number.', context);
+      const factor = Number(text);
+      requireEditor(Number.isFinite(factor) && factor >= 0.001 && factor <= 100, 'INPUT',
+        'Enter a positive scale factor from 0.001 to 100.', context);
+      const pivotMM: [number, number, number] = resolved.geometry.kind === 'curve'
+        ? [...resolved.geometry.controlPoints[curveSelection!.index]]
+        : [...resolved.geometry.controlPoints[selection!.uIndex][selection!.vIndex]];
+      const compiled = accepted.compiledAssets.find(asset => asset.assetId === resolved.reference.assetId);
+      requireEditor(compiled !== undefined, 'NATIVE', 'The native scale asset binding is missing.', context);
+      const edited = native(() => scaleBodySource(resolved.source, compiled.model, resolved.geometry,
+        pivotMM, scaleAxis, factor), 'Native complete-source object scale failed.', accepted.document.documentId, context);
+      if (edited.noOp) {
+        if (transition !== null) switchTarget(transition.target);
+        pending = {}; prepared = null; selectionTransition = null; emit(); return null;
+      }
+      const document = copy(accepted.document);
+      document.revision = nextRevision(document.revision, context);
+      document.assets = document.assets.map(asset => asset.id === resolved.reference.assetId
+        ? { ...asset, source: edited.source, revision: nextRevision(asset.revision, context) } : asset);
+      const result = admit(native(() => createCadDocument(document), 'Native scaled document creation failed.',
+        document.documentId, context), context);
+      const resultReference = native(() => createCadGeometryReference(result, { bodyId }),
+        'Native scaled body reference creation failed.', document.documentId, context).reference;
+      return prepare('apply', result, edited.provenance, undefined, transition ?? undefined, displayBodyIds, view,
+        edited.curveProvenance, null, null, { reference: resolved.reference, resultReference, axis: scaleAxis,
+          factor, pivotMM, report: edited.report });
+    }
     if (editTarget === 'rotation') {
       const resolved = requireBodyTransformEditable('rotation');
       const bodyId = resolved.reference.bodyId;
@@ -432,7 +479,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       { ...context, field: 'curve-focus' });
       const transition = selectionTransition;
       if (Object.keys(pending).length === 0) { emit(); return null; }
-      requireEditor(!Object.hasOwn(pending, 'weight') && !Object.hasOwn(pending, 'angleDegrees'), 'INPUT', 'Object translation accepts XYZ offsets only.', context);
+      requireEditor(!Object.hasOwn(pending, 'weight') && !Object.hasOwn(pending, 'angleDegrees') && !Object.hasOwn(pending, 'scaleFactor'), 'INPUT', 'Object translation accepts XYZ offsets only.', context);
       const values = pendingValues(bodyId, false, true);
       const offsetMM: [number, number, number] = [values.xMM ?? 0, values.yMM ?? 0, values.zMM ?? 0];
       const requested = (['xMM', 'yMM', 'zMM'] as CadEditorBodyTranslationField[]).filter(field => Object.hasOwn(pending, field));
@@ -611,7 +658,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     setEditTarget(target) {
       live();
       const context = { documentId: accepted.document.documentId, field: 'edit-target' };
-      requireEditor(target === 'pole' || target === 'object' || target === 'rotation', 'INPUT', 'Choose Control point, Object or Rotate object.', context);
+      requireEditor(target === 'pole' || target === 'object' || target === 'rotation' || target === 'scale', 'INPUT', 'Choose Control point, Object, Rotate object or Scale object.', context);
       requireEditor(Object.keys(pending).length === 0 && prepared === null && selectionTransition === null,
         'INPUT', 'Resolve the draft, candidate or selection decision before changing the edit target.', context);
       if (editTarget === target) return;
@@ -634,6 +681,24 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       requireEditor(typeof rawAngleDegrees === 'string' && rawAngleDegrees.length <= 128,
         'BUDGET', 'Rotation input must have at most 128 characters.', context);
       pending = { angleDegrees: rawAngleDegrees }; prepared = null; selectionTransition = null; emit();
+    },
+    setScaleAxis(axis) {
+      live();
+      const context = { documentId: accepted.document.documentId, field: 'scale-axis' };
+      requireEditor(axis === 'uniform' || axis === 'x' || axis === 'y' || axis === 'z', 'INPUT', 'Choose All, X, Y or Z.', context);
+      requireEditor(Object.keys(pending).length === 0 && prepared === null && selectionTransition === null,
+        'INPUT', 'Resolve the draft, candidate or selection decision before changing the scale axis.', context);
+      if (scaleAxis === axis) return;
+      scaleAxis = axis; emit();
+    },
+    stageBodyScale(rawFactor) {
+      live();
+      const context = { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: 'body-scale' };
+      requireEditor(editTarget === 'scale', 'INPUT', 'Select Scale object before entering a factor.', context);
+      requireBodyTransformEditable('scale');
+      requireEditor(typeof rawFactor === 'string' && rawFactor.length <= 128,
+        'BUDGET', 'Scale input must have at most 128 characters.', context);
+      pending = { scaleFactor: rawFactor }; prepared = null; selectionTransition = null; emit();
     },
     stageBodyTranslationField(field, rawText) {
       live();
@@ -736,12 +801,13 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       accepted = result; selectedBodyId = nextTarget?.target.bodyId ?? null; selection = nextTarget?.pole ?? null;
       curveSelection = nextTarget?.curvePole ?? null;
       bodyCapabilities = nextCapabilities;
-      if (current.candidate.kind === 'open') { displayBodyIds = copy(current.candidate.displayBodyIds); view = copy(current.candidate.view); editTarget = 'pole'; rotationAxis = 'z'; displayGeneration++; }
+      if (current.candidate.kind === 'open') { displayBodyIds = copy(current.candidate.displayBodyIds); view = copy(current.candidate.view); editTarget = 'pole'; rotationAxis = 'z'; scaleAxis = 'uniform'; displayGeneration++; }
       generation++; pending = {}; prepared = null; selectionTransition = null;
       lastProvenance = copy(current.candidate.provenance);
       lastCurveProvenance = copy(current.candidate.curveProvenance);
       lastBodyTranslation = copy(current.candidate.bodyTranslation);
       lastBodyRotation = copy(current.candidate.bodyRotation);
+      lastBodyScale = copy(current.candidate.bodyScale);
       dirty = current.candidate.kind !== 'open'; downloadStatus = 'Not downloaded'; download = null;
       const returned = snapshot(); emit(); return returned;
     },
