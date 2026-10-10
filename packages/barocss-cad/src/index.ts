@@ -347,3 +347,6 @@ export type { StoredPlateHolePointQuery, StoredPlateHolePointOptions, StoredPlat
 
 export { buildMultiSpanVLinearSurfacePlaneSection, validateMultiSpanVLinearSurfacePlaneSection, MultiSpanVLinearSurfacePlaneSectionError, MultiSpanVLinearSurfacePlaneSectionDiagnosticCode } from './multispan-vlinear-plane-section.js';
 export type { MultiSpanVLinearSurfacePlaneSectionAsset, MultiSpanVLinearSurfacePlaneSectionOptions, MultiSpanVLinearSurfacePlaneSectionReport, MultiSpanVLinearSurfacePlaneSectionResult } from './multispan-vlinear-plane-section.js';
+
+export { buildMultiSpanVLinearSurfacePlaneTrimCandidates, validateMultiSpanVLinearSurfacePlaneTrimCandidates, MultiSpanVLinearSurfacePlaneTrimError, MultiSpanVLinearSurfacePlaneTrimDiagnosticCode } from './multispan-vlinear-plane-trim.js';
+export type { MultiSpanVLinearSurfacePlaneTrimOptions, MultiSpanVLinearSurfacePlaneTrimEdge, MultiSpanVLinearSurfacePlaneTrimReport, MultiSpanVLinearSurfacePlaneTrimResult } from './multispan-vlinear-plane-trim.js';
