@@ -1,0 +1,64 @@
+{
+  "schema": "barocss-cad-document",
+  "version": 1,
+  "profile": "direct-geometry",
+  "documentId": "native_capacity_document",
+  "revision": 5,
+  "units": {
+    "length": "mm",
+    "angle": "rad"
+  },
+  "nativeFrame": "authored-xyz-no-axis-conversion",
+  "assets": [
+    {
+      "id": "asset-pattern",
+      "revision": 2,
+      "role": "authored-native-source",
+      "sourceVersion": 0,
+      "sourceFrame": "authored-xyz-no-axis-conversion",
+      "source": "@model quarter_pattern { version:0; length-unit:mm; @curve #quarter_seed { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[2,-0,-0],[2,2,-0],[0,2,-0]]; weights:[1,0.7071067811865476,1]; } @curve #quarter_copy_1 { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[4,-0,-0],[4,2,-0],[2,2,-0]]; weights:[1,0.7071067811865476,1]; } @curve #quarter_copy_2 { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[6,-0,-0],[6,2,-0],[4,2,-0]]; weights:[1,0.7071067811865476,1]; } @curve #quarter_copy_3 { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[8,-0,-0],[8,2,-0],[6,2,-0]]; weights:[1,0.7071067811865476,1]; } @curve #quarter_copy_4 { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[10,-0,-0],[10,2,-0],[8,2,-0]]; weights:[1,0.7071067811865476,1]; } }\n"
+    }
+  ],
+  "bodies": [
+    {
+      "id": "body_seed",
+      "name": "Pattern seed",
+      "kind": "direct-geometry-object",
+      "assetId": "asset-pattern",
+      "geometryId": "quarter_seed"
+    },
+    {
+      "id": "body_copy_1",
+      "name": "Pattern copy 1",
+      "kind": "direct-geometry-object",
+      "assetId": "asset-pattern",
+      "geometryId": "quarter_copy_1"
+    },
+    {
+      "id": "body_copy_2",
+      "name": "Pattern copy 2",
+      "kind": "direct-geometry-object",
+      "assetId": "asset-pattern",
+      "geometryId": "quarter_copy_2"
+    },
+    {
+      "id": "body_copy_3",
+      "name": "Pattern copy 3",
+      "kind": "direct-geometry-object",
+      "assetId": "asset-pattern",
+      "geometryId": "quarter_copy_3"
+    },
+    {
+      "id": "body_copy_4",
+      "name": "Pattern copy 4",
+      "kind": "direct-geometry-object",
+      "assetId": "asset-pattern",
+      "geometryId": "quarter_copy_4"
+    }
+  ],
+  "features": [],
+  "parameters": [],
+  "constraints": [],
+  "placements": [],
+  "derivedCaches": []
+}

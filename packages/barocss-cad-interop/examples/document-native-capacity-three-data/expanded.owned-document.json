@@ -1,0 +1,355 @@
+{
+  "document": {
+    "schema": "barocss-cad-document",
+    "version": 1,
+    "profile": "direct-geometry",
+    "documentId": "native_capacity_document",
+    "revision": 5,
+    "units": {
+      "length": "mm",
+      "angle": "rad"
+    },
+    "nativeFrame": "authored-xyz-no-axis-conversion",
+    "assets": [
+      {
+        "id": "asset-pattern",
+        "revision": 2,
+        "role": "authored-native-source",
+        "sourceVersion": 0,
+        "sourceFrame": "authored-xyz-no-axis-conversion",
+        "source": "@model quarter_pattern { version:0; length-unit:mm; @curve #quarter_seed { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[2,-0,-0],[2,2,-0],[0,2,-0]]; weights:[1,0.7071067811865476,1]; } @curve #quarter_copy_1 { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[4,-0,-0],[4,2,-0],[2,2,-0]]; weights:[1,0.7071067811865476,1]; } @curve #quarter_copy_2 { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[6,-0,-0],[6,2,-0],[4,2,-0]]; weights:[1,0.7071067811865476,1]; } @curve #quarter_copy_3 { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[8,-0,-0],[8,2,-0],[6,2,-0]]; weights:[1,0.7071067811865476,1]; } @curve #quarter_copy_4 { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[10,-0,-0],[10,2,-0],[8,2,-0]]; weights:[1,0.7071067811865476,1]; } }\n"
+      }
+    ],
+    "bodies": [
+      {
+        "id": "body_seed",
+        "name": "Pattern seed",
+        "kind": "direct-geometry-object",
+        "assetId": "asset-pattern",
+        "geometryId": "quarter_seed"
+      },
+      {
+        "id": "body_copy_1",
+        "name": "Pattern copy 1",
+        "kind": "direct-geometry-object",
+        "assetId": "asset-pattern",
+        "geometryId": "quarter_copy_1"
+      },
+      {
+        "id": "body_copy_2",
+        "name": "Pattern copy 2",
+        "kind": "direct-geometry-object",
+        "assetId": "asset-pattern",
+        "geometryId": "quarter_copy_2"
+      },
+      {
+        "id": "body_copy_3",
+        "name": "Pattern copy 3",
+        "kind": "direct-geometry-object",
+        "assetId": "asset-pattern",
+        "geometryId": "quarter_copy_3"
+      },
+      {
+        "id": "body_copy_4",
+        "name": "Pattern copy 4",
+        "kind": "direct-geometry-object",
+        "assetId": "asset-pattern",
+        "geometryId": "quarter_copy_4"
+      }
+    ],
+    "features": [],
+    "parameters": [],
+    "constraints": [],
+    "placements": [],
+    "derivedCaches": []
+  },
+  "compiledAssets": [
+    {
+      "assetId": "asset-pattern",
+      "sourceVersion": 0,
+      "source": "@model quarter_pattern { version:0; length-unit:mm; @curve #quarter_seed { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[2,-0,-0],[2,2,-0],[0,2,-0]]; weights:[1,0.7071067811865476,1]; } @curve #quarter_copy_1 { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[4,-0,-0],[4,2,-0],[2,2,-0]]; weights:[1,0.7071067811865476,1]; } @curve #quarter_copy_2 { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[6,-0,-0],[6,2,-0],[4,2,-0]]; weights:[1,0.7071067811865476,1]; } @curve #quarter_copy_3 { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[8,-0,-0],[8,2,-0],[6,2,-0]]; weights:[1,0.7071067811865476,1]; } @curve #quarter_copy_4 { type:nurbs; degree:2; knots:[-3,-3,-3,7,7,7]; control-points:[[10,-0,-0],[10,2,-0],[8,2,-0]]; weights:[1,0.7071067811865476,1]; } }\n",
+      "model": {
+        "name": "quarter_pattern",
+        "version": 0,
+        "lengthUnit": "mm",
+        "objects": [
+          {
+            "kind": "curve",
+            "id": "quarter_seed",
+            "degree": 2,
+            "knots": [
+              -3,
+              -3,
+              -3,
+              7,
+              7,
+              7
+            ],
+            "controlPoints": [
+              [
+                2,
+                -0,
+                -0
+              ],
+              [
+                2,
+                2,
+                -0
+              ],
+              [
+                0,
+                2,
+                -0
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1
+            ]
+          },
+          {
+            "kind": "curve",
+            "id": "quarter_copy_1",
+            "degree": 2,
+            "knots": [
+              -3,
+              -3,
+              -3,
+              7,
+              7,
+              7
+            ],
+            "controlPoints": [
+              [
+                4,
+                -0,
+                -0
+              ],
+              [
+                4,
+                2,
+                -0
+              ],
+              [
+                2,
+                2,
+                -0
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1
+            ]
+          },
+          {
+            "kind": "curve",
+            "id": "quarter_copy_2",
+            "degree": 2,
+            "knots": [
+              -3,
+              -3,
+              -3,
+              7,
+              7,
+              7
+            ],
+            "controlPoints": [
+              [
+                6,
+                -0,
+                -0
+              ],
+              [
+                6,
+                2,
+                -0
+              ],
+              [
+                4,
+                2,
+                -0
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1
+            ]
+          },
+          {
+            "kind": "curve",
+            "id": "quarter_copy_3",
+            "degree": 2,
+            "knots": [
+              -3,
+              -3,
+              -3,
+              7,
+              7,
+              7
+            ],
+            "controlPoints": [
+              [
+                8,
+                -0,
+                -0
+              ],
+              [
+                8,
+                2,
+                -0
+              ],
+              [
+                6,
+                2,
+                -0
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1
+            ]
+          },
+          {
+            "kind": "curve",
+            "id": "quarter_copy_4",
+            "degree": 2,
+            "knots": [
+              -3,
+              -3,
+              -3,
+              7,
+              7,
+              7
+            ],
+            "controlPoints": [
+              [
+                10,
+                -0,
+                -0
+              ],
+              [
+                10,
+                2,
+                -0
+              ],
+              [
+                8,
+                2,
+                -0
+              ]
+            ],
+            "weights": [
+              1,
+              0.7071067811865476,
+              1
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "bodyBindings": [
+    {
+      "bodyId": "body_seed",
+      "assetId": "asset-pattern",
+      "geometryId": "quarter_seed",
+      "geometryKind": "curve"
+    },
+    {
+      "bodyId": "body_copy_1",
+      "assetId": "asset-pattern",
+      "geometryId": "quarter_copy_1",
+      "geometryKind": "curve"
+    },
+    {
+      "bodyId": "body_copy_2",
+      "assetId": "asset-pattern",
+      "geometryId": "quarter_copy_2",
+      "geometryKind": "curve"
+    },
+    {
+      "bodyId": "body_copy_3",
+      "assetId": "asset-pattern",
+      "geometryId": "quarter_copy_3",
+      "geometryKind": "curve"
+    },
+    {
+      "bodyId": "body_copy_4",
+      "assetId": "asset-pattern",
+      "geometryId": "quarter_copy_4",
+      "geometryKind": "curve"
+    }
+  ],
+  "report": {
+    "schema": "barocss-cad-document-report",
+    "version": 0,
+    "fileVersion": 1,
+    "profile": "direct-geometry",
+    "sourceVersion": 0,
+    "units": {
+      "length": "mm",
+      "angle": "rad"
+    },
+    "nativeFrame": "authored-xyz-no-axis-conversion",
+    "documentId": "native_capacity_document",
+    "revision": 5,
+    "assetCount": 1,
+    "bodyCount": 5,
+    "nativeObjectCount": 5,
+    "aggregateSourceBytes": 819,
+    "supportedDomains": [
+      "document-identity-revision",
+      "authored-native-source0-assets",
+      "qualified-direct-geometry-object-bodies"
+    ],
+    "unsupportedDomains": [
+      "feature-graphs",
+      "parameters",
+      "constraints",
+      "placements",
+      "derived-caches",
+      "brep-topology"
+    ],
+    "geometryAuthority": "authored-native-source-text",
+    "geometricValidity": "not-certified",
+    "topologyCertified": false,
+    "solid": false,
+    "quality": {
+      "sourceTextPreserved": true,
+      "sourceNumericBitsRemainInText": true,
+      "nativeModels": "actual-source0-compiler-derived-only",
+      "referenceSemantics": "geometry-id-qualified-by-asset-id",
+      "bodySemantics": "native-object-reference-not-solid-certificate",
+      "frameSemantics": "authored-xyz-no-axis-conversion",
+      "globalBinary64ErrorCertified": false,
+      "manufacturingToleranceCertified": false,
+      "ownership": "copied-cpu-data-gc-no-renderer-resources"
+    },
+    "limits": {
+      "maximumAssets": 4,
+      "maximumBodies": 16,
+      "maximumRevision": 2147483647,
+      "maximumSourceBytes": 262144,
+      "maximumSourceCodeUnits": 262144,
+      "maximumAggregateSourceBytes": 1048576,
+      "maximumFileBytes": 2097152,
+      "maximumFileCodeUnits": 2097152,
+      "inputValues": 65536,
+      "inputDepth": 12,
+      "inputArrayElements": 64,
+      "inputRecordFields": 16,
+      "snapshotValues": 262144,
+      "snapshotDepth": 24,
+      "arrayElements": 4096,
+      "recordFields": 64,
+      "sourceStringCharacters": 262144,
+      "authoredIdCharacters": 48,
+      "geometryIdCharacters": 128,
+      "nameBytes": 128
+    }
+  }
+}

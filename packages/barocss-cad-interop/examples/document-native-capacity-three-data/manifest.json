@@ -1,0 +1,17 @@
+{
+  "schema": "barocss-document-native-capacity-example",
+  "version": 1,
+  "consumerIssue": 990,
+  "producerIssue": 964,
+  "document": {"file":"expanded.cad-document.json","bytes":2328,"sha256":"a832c5c6048da28502e404870bd7d3273fbc80c95bc7698d5a2d763f0222b3e0"},
+  "owned": {"file":"expanded.owned-document.json","bytes":9803,"sha256":"e987f2504d62ef70d37a1e787a98a95e3397964c7276d2080dd5d839638aae12","negativeZeroCount":20},
+  "source": {"file":"../linear-geometry-pattern-babylon-data/five_quarter_x_copies.barocad","bytes":819,"sha256":"f40feb68dab3f96e30922c82ab4e872d585154fad33f559bb561bdc223a5b8e2"},
+  "documentId": "native_capacity_document",
+  "revision": 5,
+  "assetId": "asset-pattern",
+  "assetRevision": 2,
+  "modelName": "quarter_pattern",
+  "geometryIds": ["quarter_seed","quarter_copy_1","quarter_copy_2","quarter_copy_3","quarter_copy_4"],
+  "bodyIds": ["body_seed","body_copy_1","body_copy_2","body_copy_3","body_copy_4"],
+  "selectionIds": ["body_copy_3","body_copy_2","body_copy_1","body_seed"]
+}
