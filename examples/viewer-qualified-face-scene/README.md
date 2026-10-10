@@ -570,3 +570,42 @@ with no argument. Explicit undefined/null is forwarded and refused.
 Hooks add `resetTreeCurveCurvature()`, `treeCurveCurvatureSnapshot()` and copied
 `treeCurveCurvatureReport`. DOM IDs: inspect-tree-curvature, reset-tree-curvature,
 tree-curvature-output, tree-curvature-label and tree-curvature-help.
+
+
+## Inspect the selected original Surface curvature
+
+Inspect selected Surface curvature uses the current full source-qualified tree
+ref and existing native U/V drafts. It validates the whole Source0, all five
+Model objects and current Face before calling the unchanged public D2 helper.
+Curve selections disable the action; no parent Surface or screen UV is inferred.
+
+Output shows signed mean and ordered principal curvatures in 1/mm and Gaussian
+curvature in 1/mm². Signs follow the original U/V normal, not an outward Solid
+normal. The copied result preserves original D2, normalized metric/second form
+and discriminant metadata. No Surface radius, principal direction, heatmap or
+normal arrow is added. Regular plane zero is valid. Failed D2, singular metric
+or unsafe arithmetic refuses; it never becomes a synthetic plane result or
+uses a D1/finite-difference fallback. Existing roundoff policy is unchanged.
+
+Only a successful explicit action adopts new U/V and output. Draft-only edits,
+invalid queries and failed loads retain the accepted report. Hidden current
+Surfaces remain inspectable with filter disclosure and hidden labels; clearing
+filters restores display. A different node or affected Source/full Face clears
+the report; unrelated edits and view/CSS/grid/color/order/translation retain it.
+Reset tree Surface curvature clears only this report and label. Other panels
+keep their existing selection and lifetime rules.
+
+The caller label projects the declared native parameter point approximately,
+with occlusion not tested. It is not a centroid or native visible hit. Retained
+CPU sources remain queryable after loss/unavailability while labels hide and
+framing refuses. Clear/mode/Dispose clears authority. No whole-Surface C2,
+manufacturing accuracy or global error certificate is implied.
+
+`queryQualifiedTreeSurfaceCurvature(viewer,ref,u,v)` requires both explicit
+finite native numbers and returns copied `{version:0,node,measurement}`.
+`inspectTreeSurfaceCurvature()` parses both existing controls only with zero
+arguments; supplied partial/undefined/null arguments are forwarded and refused.
+Hooks add `resetTreeSurfaceCurvature()`, `treeSurfaceCurvatureSnapshot()` and
+copied `treeSurfaceCurvatureReport`. DOM IDs: inspect-tree-surface-curvature,
+reset-tree-surface-curvature, tree-surface-curvature-output,
+tree-surface-curvature-label and tree-surface-curvature-help.

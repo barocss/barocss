@@ -29,7 +29,8 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <span id="picked-normal-angle-value" class="measurement-label" hidden></span><span id="tree-point-label" class="measurement-label" hidden></span>
 <span id="tree-length-label" class="measurement-label" hidden></span>
 <span id="tree-area-label" class="measurement-label" hidden></span>
-<span id="tree-curvature-label" class="measurement-label" hidden></span></div></div>
+<span id="tree-curvature-label" class="measurement-label" hidden></span>
+<span id="tree-surface-curvature-label" class="measurement-label" hidden></span></div></div>
 <label>Assets <select id="asset-count" disabled><option>6</option><option>2</option></select></label>
 <label>Grid U <select id="count-u" disabled><option>17</option><option>9</option><option>2</option></select></label>
 <label>Grid V <select id="count-v" disabled><option>17</option><option>9</option><option>2</option></select></label>
@@ -258,6 +259,14 @@ A regular straight point has zero curvature and no finite radius. A failed deriv
 The Curve can remain native data without a separate displayed line. Its label projects the original parameter point approximately, without occlusion testing or a native screen-hit claim.
 Hidden current Curve selections remain inspectable while their labels stay hidden. Reset clears only this curvature report.
 Local radius is not an authored-circle radius, a global minimum radius, a whole-Curve smoothness test or a manufacturing accuracy certificate.</p></details>
+<button id="inspect-tree-surface-curvature" disabled>Inspect selected Surface curvature</button><button id="reset-tree-surface-curvature" disabled>Reset tree Surface curvature</button>
+<p id="tree-surface-curvature-output" role="status" aria-live="polite"></p>
+<details id="tree-surface-curvature-help"><summary>About selected Surface curvature</summary>
+<p>This uses the declared original native u and v. Signed mean H and ordered principal curvatures k1 and k2 use 1/mm; Gaussian K uses 1/mm².
+Mean and principal signs follow the original U/V normal, not an outward solid normal. A regular plane has zero curvature; a failed derivative query does not become a plane result.
+The native report retains the derivative, metric and discriminant roundoff data. It does not supply principal radii, directions or a whole-Surface regularity certificate.
+The label projects the original parameter point approximately, without occlusion testing or a native screen-hit claim. Hidden current Surface selections remain inspectable while their labels stay hidden.
+Reset clears only this report. Local curvature does not certify manufacturing or global accuracy.</p></details>
 <details id="tree-help"><summary>About the original geometry tree</summary>
 <p>Each source retains its complete Face and five original native objects. Expand the Source and Face groups, then choose a geometry.
 Parameters use the original numeric domain; defaults are its checked midpoint. Control points use mm, while weights and UV parameter data are dimensionless.

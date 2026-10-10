@@ -20,6 +20,7 @@ import {filterQualifiedFaceTree} from './qualified-face-tree-filter.js';
 import {queryQualifiedTreeCurveLength} from './tree-curve-length.js';
 import {queryQualifiedTreeSurfaceArea} from './tree-surface-area.js';
 import {queryQualifiedTreeCurveCurvature} from './tree-curve-curvature.js';
+import {queryQualifiedTreeSurfaceCurvature} from './tree-surface-curvature.js';
 import {parseBaroCadSource} from '@barocss/cad-interop/native';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2} from '@barocss/cad-interop/document';
@@ -55,6 +56,8 @@ const inspectTreeAreaButton=document.querySelector('#inspect-tree-area'),resetTr
 const treeAreaOutput=document.querySelector('#tree-area-output'),treeAreaLabel=document.querySelector('#tree-area-label');
 const inspectTreeCurvatureButton=document.querySelector('#inspect-tree-curvature'),resetTreeCurvatureButton=document.querySelector('#reset-tree-curvature');
 const treeCurvatureOutput=document.querySelector('#tree-curvature-output'),treeCurvatureLabel=document.querySelector('#tree-curvature-label');
+const inspectTreeSurfaceCurvatureButton=document.querySelector('#inspect-tree-surface-curvature'),resetTreeSurfaceCurvatureButton=document.querySelector('#reset-tree-surface-curvature');
+const treeSurfaceCurvatureOutput=document.querySelector('#tree-surface-curvature-output'),treeSurfaceCurvatureLabel=document.querySelector('#tree-surface-curvature-label');
 const assetCount=document.querySelector('#asset-count'),countU=document.querySelector('#count-u'),countV=document.querySelector('#count-v');
 const colorAsset=document.querySelector('#color-asset'),colorInput=document.querySelector('#color');
 const measureButton=document.querySelector('#measure-points'),measurementOutput=document.querySelector('#measurement-output');
@@ -122,6 +125,7 @@ let qualifiedTreeFilter={query:'',sourceId:null,kind:'all'},qualifiedTreeFiltere
 let treeCurveLengthReport=null,treeCurveLengthProjection=null;
 let treeSurfaceAreaReport=null,treeSurfaceAreaProjection=null;
 let treeCurveCurvatureReport=null,treeCurveCurvatureProjection=null;
+let treeSurfaceCurvatureReport=null,treeSurfaceCurvatureProjection=null;
 const colors=[[.9,.3,.2],[.25,.8,.4],[.25,.45,.95],[.95,.7,.2],[.3,.8,.9],[.85,.35,.75]];
 const camera={eye:[2,1.5,3.2],target:[0,0,0],up:[0,1,0],fovYDegrees:45,near:.01,far:10},mmToSceneUnit=.12,background=[.02,.03,.04],translateScene=[-.6,-.6,-.7];
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
@@ -316,6 +320,7 @@ function clearTreeSelection(){qualifiedTreeSelected=null;qualifiedTreeReport=nul
   clearTreeCurveLength();measureTreeLengthButton.disabled=true;resetTreeLengthButton.disabled=true;
   clearTreeSurfaceArea();inspectTreeAreaButton.disabled=true;resetTreeAreaButton.disabled=true;
   clearTreeCurveCurvature();inspectTreeCurvatureButton.disabled=true;resetTreeCurvatureButton.disabled=true;
+  clearTreeSurfaceCurvature();inspectTreeSurfaceCurvatureButton.disabled=true;resetTreeSurfaceCurvatureButton.disabled=true;
   qualifiedTreeSelectedHidden=false;
   treeU.value='';treeV.value='';treeT.value='';treePointLabel.hidden=true;
   for(const input of[treeU,treeV,treeT,inspectTreePointButton,frameTreeFaceButton,clearTreeSelectionButton])input.disabled=true;
@@ -429,6 +434,29 @@ function inspectTreeCurveCurvature(t){refreshQualifiedTree();check(!inspectTreeC
       :'local radius '+areaNumber(curvature.radiusMM)+' mm · curvature '+areaNumber(curvature.curvaturePerMM)+' 1/mm');
   refreshQualifiedTree();display('Original tree Curve curvature ready for '+ref.sourceId+'/'+ref.geometryId+'.');return clone(report);}
 function resetTreeCurveCurvature(){clearTreeCurveCurvature();refreshQualifiedTree();display('Tree Curve curvature reset.');}
+function clearTreeSurfaceCurvature(){treeSurfaceCurvatureReport=null;treeSurfaceCurvatureProjection=null;treeSurfaceCurvatureOutput.textContent='';treeSurfaceCurvatureLabel.hidden=true;}
+function treeSurfaceCurvatureSnapshot(){return{report:clone(treeSurfaceCurvatureReport),output:treeSurfaceCurvatureOutput.textContent,enabled:!inspectTreeSurfaceCurvatureButton.disabled,
+  projection:clone(treeSurfaceCurvatureProjection),label:pickedChordLabelSnapshot(treeSurfaceCurvatureLabel)};}
+function refreshTreeSurfaceCurvature(){const state=disposed?null:viewer.getState();
+  if(treeSurfaceCurvatureReport&&(!qualifiedTreeSelected||!same(treeSurfaceCurvatureReport.node.ref,qualifiedTreeSelected.ref)))clearTreeSurfaceCurvature();
+  inspectTreeSurfaceCurvatureButton.disabled=disposed||running||!state?.qualifiedFaceScene||qualifiedTreeSelected?.ref.kind!=='surface';
+  resetTreeSurfaceCurvatureButton.disabled=disposed||running||!treeSurfaceCurvatureReport;
+  treeSurfaceCurvatureProjection=null;treeSurfaceCurvatureLabel.hidden=true;if(disposed||qualifiedTreeSelectedHidden||!treeSurfaceCurvatureReport||state.status!=='ready')return;
+  try{treeSurfaceCurvatureProjection=viewer.projectQualifiedFacePoint(treeSurfaceCurvatureReport.measurement.anchor);}catch{}
+  if(treeSurfaceCurvatureProjection){const ref=treeSurfaceCurvatureReport.node.ref;
+    treeSurfaceCurvatureLabel.textContent=ref.sourceId+'/'+ref.geometryId+' · H '+signedCurvature(treeSurfaceCurvatureReport.measurement.curvature.meanCurvaturePerMM)+' 1/mm';
+    treeSurfaceCurvatureLabel.style.left=treeSurfaceCurvatureProjection.xCss+'px';treeSurfaceCurvatureLabel.style.top=treeSurfaceCurvatureProjection.yCss+'px';treeSurfaceCurvatureLabel.hidden=false;}}
+function inspectTreeSurfaceCurvature(u,v){refreshQualifiedTree();check(!inspectTreeSurfaceCurvatureButton.disabled&&qualifiedTreeSelected,'Select a current original Surface first.');
+  const ref=clone(qualifiedTreeSelected.ref),before=queryQualifiedFaceTreeNode(viewer,ref);check(before.ref.kind==='surface','Select a current original Surface first.');
+  if(arguments.length===0){const parameters=treeControlParameters();u=parameters.u;v=parameters.v;}
+  const next=queryQualifiedTreeSurfaceCurvature(viewer,ref,u,v),current=queryQualifiedFaceTreeNode(viewer,ref);
+  check(qualifiedTreeSelected&&same(qualifiedTreeSelected.ref,current.ref)&&same(ref,current.ref),'The original Surface selection changed during curvature inspection.');
+  const report=clone(next);treeSurfaceCurvatureReport=report;const measurement=report.measurement,curvature=measurement.curvature;
+  treeSurfaceCurvatureOutput.textContent=ref.sourceId+'/'+ref.geometryId+' · u '+areaNumber(measurement.pin.u)+', v '+areaNumber(measurement.pin.v)
+    +' · H '+signedCurvature(curvature.meanCurvaturePerMM)+' 1/mm · K '+signedCurvature(curvature.gaussianCurvaturePerMM2)+' 1/mm²'
+    +' · k1 '+signedCurvature(curvature.principalCurvaturesPerMM[0])+', k2 '+signedCurvature(curvature.principalCurvaturesPerMM[1])+' 1/mm';
+  refreshQualifiedTree();display('Original tree Surface curvature ready for '+ref.sourceId+'/'+ref.geometryId+'.');return clone(report);}
+function resetTreeSurfaceCurvature(){clearTreeSurfaceCurvature();refreshQualifiedTree();display('Tree Surface curvature reset.');}
 function refreshQualifiedTree(){if(disposed){clearQualifiedTree();for(const input of[treeU,treeV,treeT,inspectTreePointButton,frameTreeFaceButton,clearTreeSelectionButton,syncFaceTree,treeFilterQuery,treeFilterSource,treeFilterKind,clearTreeFiltersButton])input.disabled=true;return qualifiedTreeSnapshot();}
   const state=viewer.getState(),scene=state.qualifiedFaceScene,content=scene?scene.assets.map(asset=>({sourceId:asset.sourceId,source:asset.source,face:asset.face}))
     .sort((a,b)=>a.sourceId<b.sourceId?-1:a.sourceId>b.sourceId?1:0):null;
@@ -447,12 +475,12 @@ function refreshQualifiedTree(){if(disposed){clearQualifiedTree();for(const inpu
   inspectTreePointButton.disabled=!selected;frameTreeFaceButton.disabled=!selected||state.status!=='ready';clearTreeSelectionButton.disabled=!selected;
   treeU.disabled=!selected||!surface;treeV.disabled=!selected||!surface;treeT.disabled=!selected||surface;
   document.querySelector('#tree-u-label').hidden=!surface;document.querySelector('#tree-v-label').hidden=!surface;document.querySelector('#tree-t-label').hidden=!qualifiedTreeSelected||surface;
-  markQualifiedTreeSelection();updateTreePointLabel();refreshTreeCurveLength();refreshTreeSurfaceArea();refreshTreeCurveCurvature();return qualifiedTreeSnapshot();
+  markQualifiedTreeSelection();updateTreePointLabel();refreshTreeCurveLength();refreshTreeSurfaceArea();refreshTreeCurveCurvature();refreshTreeSurfaceCurvature();return qualifiedTreeSnapshot();
 }
 function treeDomainMidpoint(domain){const value=domain[0]/2+domain[1]/2;check(Number.isFinite(value)&&value>=domain[0]&&value<=domain[1],'Original parameter-domain midpoint is not finite or inclusive.');return Object.is(value,-0)?'-0':String(value);}
 function selectQualifiedTreeNode(ref){refreshQualifiedTree();const next=queryQualifiedFaceTreeNode(viewer,ref),changed=!qualifiedTreeSelected||!same(qualifiedTreeSelected.ref,next.ref);
   const defaults=changed?Object.fromEntries(Object.entries(next.properties.domain).map(([key,domain])=>[key,treeDomainMidpoint(domain)])):null;
-  qualifiedTreeSelected=clone(next);if(changed){clearTreeCurveLength();clearTreeSurfaceArea();clearTreeCurveCurvature();qualifiedTreeReport=null;treePointOutput.textContent='';treeU.value=defaults.u??'';treeV.value=defaults.v??'';treeT.value=defaults.t??'';}
+  qualifiedTreeSelected=clone(next);if(changed){clearTreeCurveLength();clearTreeSurfaceArea();clearTreeCurveCurvature();clearTreeSurfaceCurvature();qualifiedTreeReport=null;treePointOutput.textContent='';treeU.value=defaults.u??'';treeV.value=defaults.v??'';treeT.value=defaults.t??'';}
   treeProperties.textContent=JSON.stringify(next.properties,null,2);refreshQualifiedTree();const selected=treeNodeButtons.find(node=>same(node.ref,next.ref));
   if(selected){selected.sourceGroup.open=true;selected.faceGroup.open=true;}display('Original geometry ready for '+next.ref.sourceId+'/'+next.ref.geometryId+'.');return clone(next);}
 function treeControlParameters(){check(qualifiedTreeSelected,'Select an original geometry tree node first.');const fields=qualifiedTreeSelected.ref.kind==='surface'?{u:treeU,v:treeV}:{t:treeT};
@@ -920,6 +948,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
     queryQualifiedTreeCurveLength,measureTreeCurveLength,resetTreeCurveLength,treeCurveLengthSnapshot,
     queryQualifiedTreeSurfaceArea,inspectTreeSurfaceArea,resetTreeSurfaceArea,treeSurfaceAreaSnapshot,
     queryQualifiedTreeCurveCurvature,inspectTreeCurveCurvature,resetTreeCurveCurvature,treeCurveCurvatureSnapshot,
+    queryQualifiedTreeSurfaceCurvature,inspectTreeSurfaceCurvature,resetTreeSurfaceCurvature,treeSurfaceCurvatureSnapshot,
     AREA_OPTIONS,areaPin,queryQualifiedFaceSurfaceArea,inspectArea,updateAreaLabel,areaSnapshot,mismatchCandidate,dispose,resourceCounts,uploads,draws,glErrors,errors,warnings,lossExtension,failAllocation,
     LENGTH_OPTIONS,lengthPin,queryQualifiedFaceCurveLength,inspectLength,updateLengthLabel,lengthSnapshot,
     queryQualifiedFaceAngle,measureAngle,updateAngleLabel,angleSnapshot,
@@ -939,7 +968,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
     get surfaceCurvatureReport(){return clone(surfaceCurvatureReport);},get tangentAngleReport(){return clone(tangentAngleReport);},get normalAngleReport(){return clone(normalAngleReport);},
     get nativeSampleReport(){return clone(nativeSampleRecord?.sample??null);},get pickedChordReport(){return clone(pickedChordReport);},get pickedAngleReport(){return clone(pickedAngleReport);},
     get pickedSurfaceCurvatureReport(){return clone(pickedSurfaceCurvatureReport);},get pickedNormalAngleReport(){return clone(pickedNormalAngleReport);},
-    get treeCurveLengthReport(){return clone(treeCurveLengthReport);},get treeSurfaceAreaReport(){return clone(treeSurfaceAreaReport);},get treeCurveCurvatureReport(){return clone(treeCurveCurvatureReport);},get result(){return result;}};
+    get treeCurveLengthReport(){return clone(treeCurveLengthReport);},get treeSurfaceAreaReport(){return clone(treeSurfaceAreaReport);},get treeCurveCurvatureReport(){return clone(treeCurveCurvatureReport);},get treeSurfaceCurvatureReport(){return clone(treeSurfaceCurvatureReport);},get result(){return result;}};
   display('Original Faces ready. Inspect a current source from its row.');
 }catch(error){display('Original Faces could not load: '+error.message);}
 buttons.load.addEventListener('click',()=>action(()=>load(candidate({assetCount:Number(assetCount.value),countU:Number(countU.value),countV:Number(countV.value)}))));
@@ -978,6 +1007,7 @@ clearTreeFiltersButton.addEventListener('click',()=>action(clearQualifiedTreeFil
 measureTreeLengthButton.addEventListener('click',()=>action(()=>measureTreeCurveLength()));resetTreeLengthButton.addEventListener('click',()=>action(resetTreeCurveLength));
 inspectTreeAreaButton.addEventListener('click',()=>action(()=>inspectTreeSurfaceArea()));resetTreeAreaButton.addEventListener('click',()=>action(resetTreeSurfaceArea));
 inspectTreeCurvatureButton.addEventListener('click',()=>action(()=>inspectTreeCurveCurvature()));resetTreeCurvatureButton.addEventListener('click',()=>action(resetTreeCurveCurvature));
+inspectTreeSurfaceCurvatureButton.addEventListener('click',()=>action(()=>inspectTreeSurfaceCurvature()));resetTreeSurfaceCurvatureButton.addEventListener('click',()=>action(resetTreeSurfaceCurvature));
 canvas.addEventListener('click',event=>{const inspectEnabled=faceInspectMode.checked&&!faceInspectMode.disabled,sampleEnabled=nativeSampleMode.checked&&!nativeSampleMode.disabled,
   chordEnabled=pickedChordMode.checked&&!pickedChordMode.disabled,angleEnabled=pickedAngleMode.checked&&!pickedAngleMode.disabled,normalAngleEnabled=pickedNormalAngleMode.checked&&!pickedNormalAngleMode.disabled;
   if(!inspectEnabled&&!sampleEnabled&&!chordEnabled&&!angleEnabled&&!normalAngleEnabled)return;const rect=canvas.getBoundingClientRect(),point={xCss:event.clientX-rect.left,yCss:event.clientY-rect.top};
