@@ -380,3 +380,6 @@ export type { TranslatedSurfaceStripWorldPointQuery, TranslatedSurfaceStripWorld
 
 export { evaluateNurbsSourceLoftFeatureGraph, updateNurbsSourceLoftFeatureGraph, validateNurbsSourceLoftFeatureGraph, validateNurbsSourceLoftFeatureGraphUpdate, serializeNurbsSourceLoftFeatureGraph, parseNurbsSourceLoftFeatureGraph, NurbsSourceLoftFeatureGraphError, NurbsSourceLoftFeatureGraphDiagnosticCode } from './nurbs-source-loft-feature-graph.js';
 export type { NurbsSourceLoftFeatureGraphV0, NurbsSourceLoftFeatureGraphOptions, NurbsSourceLoftFeatureGraphEdits, NurbsSourceLoftFeatureGraphResult, NurbsSourceLoftFeatureGraphReport, NurbsSourceLoftFeatureGraphTransaction, NurbsSourceLoftFeatureGraphTransactionReport, NurbsSourceLoftFeatureGraphUpdateResult } from './nurbs-source-loft-feature-graph.js';
+
+export { buildExactSurfaceBandTrim, validateExactSurfaceBandTrim, ExactSurfaceBandTrimError, ExactSurfaceBandTrimDiagnosticCode } from './exact-surface-band-trim.js';
+export type { ExactSurfaceBandTrimOptions, ExactSurfaceBandTrimEdge, ExactSurfaceBandTrimReport, ExactSurfaceBandTrimResult } from './exact-surface-band-trim.js';

@@ -9134,3 +9134,44 @@ node examples/cad-nurbs/nurbs-source-loft-feature-graph-demo.mjs --source EVIDEN
 This profile supports source authoring and dependent piecewise Loft updates.
 Smooth G1/G2 Loft, persistent topology references, Solid construction, general
 Surface operations and manufacturing have separate admission requirements.
+
+### Original Surface band Face between two cuts
+
+`buildExactSurfaceBandTrim(lowerBinding, upperBinding, options)` accepts two
+complete exact cut bindings from the same complete original Surface source.
+The cuts can come from different original Planes. Options name `evaluationId`,
+`resultIdPrefix`, `orientation` and fixed budgets `maximumParents: 2` and
+`maximumObservations: 40`.
+
+The Face follows the lower cut, the right side, the upper cut in reverse and
+the left side in reverse. Both World cuts and their exact native UV curves
+remain unchanged. Two real World Lines and two UV Lines connect the endpoints
+at fixed original U. Reversing a Face changes the entire Use order and senses
+once; it does not reverse the degree 4 Curve geometry.
+
+Whole degree 2 Bernstein coefficients must prove that the lower cut stays
+above the native V minimum, the upper cut stays below the maximum and every
+band gap coefficient is positive. Exact positive X(U) and Z(V) projection
+proves an embedded individual Face. Fixed-U affine side coefficients must
+match the stored World Lines exactly. The compiled new Model5 contains the
+original Surface and four actual World Curves. Both complete parents retain
+their source text, siblings, old and new UV, proofs and prior flags.
+
+Native World, UV and Surface observations retain actual coordinates and
+evaluated or refused D1 states. Four spans use 40 slots. These sampled checks
+are separate from the whole coefficient proofs. The full owned validator
+rebuilds parents, the band, the side Lines, the Model and observations.
+
+This new band family has a 2 MiB request and result limit in both UTF16 and
+UTF8, including the final newline and negative zero. Existing source, Model,
+parent ownership and numeric limits remain unchanged. Overflow rejects the
+whole result. Side UV endpoints retain their actual published bits; exact
+fixed-U equality permits an original domain -0 and a stored endpoint +0.
+
+```sh
+node examples/cad-nurbs/exact-surface-band-trim-demo.mjs --source EVIDENCE_DIR
+```
+
+This API creates an individual trimmed Surface Face. Body splitting, shared
+Solid topology, arbitrary trimming, general Boolean and manufacturing require
+separate admission.
