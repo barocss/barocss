@@ -59,6 +59,13 @@ invalidates it; accepted Restart clears it. An explicit action submits the recov
 the existing input route. Remount itself performs no input write or generation. This does not persist
 across page reload/navigation/crash and does not preserve focus or selection.
 
+Accepted host input changes also reach the editable form at the same revision. When the
+authoritative values are unchanged, ordinary polls retain a matching unsent local draft.
+Changed host values invalidate that draft and replace the displayed values before the next
+explicit submission. Synchronization itself performs no input write or generation.
+After the affected renderer build, `node examples/ai-ui/host-input-flow.mjs` checks this
+host-update/submission flow in the actual browser with authored responses and zero models.
+
 After the affected renderer build, `node examples/ai-ui/remount-draft-flow.mjs` runs one authored
 real-browser flow for same-task edits/remount, held old polls, host input invalidation, explicit
 review/edit/confirmation, Restart/new session and owned/foreign runtime cleanup. It calls zero models.

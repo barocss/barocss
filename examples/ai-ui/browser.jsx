@@ -63,7 +63,9 @@ function Application({ resources }) {
         lastRevision = next.revision;
         if (next.spec) { setDraft(restore ? structuredClone(retainedDraft.draft) : next.input); setScreenRequest(next.screenRequest); }
         if (next.phase === 'idle') { setDraft({ draft: { name: '민지', topic: '커피' } }); setScreenRequest('Create a request form'); }
-      } else if (invalidated && editable(next)) setDraft(next.input);
+      } else if (editable(next) && !restore
+        && (latest.current.draft.draft.name !== next.input.draft.name
+          || latest.current.draft.draft.topic !== next.input.draft.topic)) setDraft(next.input);
       setState(next);
     };
     const poll = async () => {
