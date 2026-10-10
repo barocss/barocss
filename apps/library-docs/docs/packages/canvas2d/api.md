@@ -1,5 +1,8 @@
 # Canvas2D public entries
 
+Read the [complete public signature reference](./reference) for exact exported functions, types and public class members. This task page explains their support, ownership, errors and lifecycle.
+
+
 | Entry | Workspace | Release configuration |
 | --- | --- | --- |
 | `@barocss/canvas2d` | `src/index.ts` | `dist/index.js` and declaration |
@@ -25,16 +28,16 @@ Renderer also exposes asset set/get/remove, background set/get, view set, resize
 
 The root exports `decodeImageBlob`, `loadImageURL`, `createImageAssetCache`, `blurImageAsset`, `shadowImageAsset`, `createSpriteAtlas`, `packSpriteAtlas`, `createSpriteAnimation`, `createTicker`, `rasterizeBrowserText`, `rasterizeBrowserMultilineText`, `rasterizeBrowserWrappedText`, `importSVGElement`, `exportSceneSVG`, `booleanOrthogonalPolygons`, `parseSceneJSON`, `stringifySceneJSON` and `Canvas2DError`. Each is bounded; an image/text helper is not an unrestricted design-tool pipeline.
 
-[Exact exported runtime symbols and public types](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-canvas2d/src/index.ts) · [Renderer method signatures](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-canvas2d/src/renderer.ts) · [DisplayTree and handle contracts](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-canvas2d/src/display-tree.ts)
+[Exact exported runtime symbols and public types](/packages/canvas2d/reference#declarations-d01fa4b173ed) · [Renderer method signatures](/packages/canvas2d/reference#declarations-ef07061cdae4) · [DisplayTree and handle contracts](/packages/canvas2d/reference#declarations-e8552442c5bb)
 
 ## Document entry
 
 `serializeCanvasDocument(acceptedScene, getAsset): Promise<string>` copies referenced assets and canonical scene data. `parseCanvasDocument(text): Promise<ParsedCanvasDocument>` verifies and returns copied scene/assets. `stageCanvasDocument(text,freshCanvas,options): Promise<StagedCanvasDocument>` adds a rendered candidate. `exportCanvasDocumentPNG(text,options,createCanvas): Promise<CanvasPNGExport>` renders an owned candidate, returns a Blob and size metadata, and disposes its renderer.
 
-[Exact document types and functions](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-canvas2d/src/document.ts)
+[Exact document types and functions](/packages/canvas2d/reference#declarations-197efc20a356)
 
 ## Versioned public data
 
 The root exports Scene/Node profile types through SceneV29, paint/transform/color/view types, image asset types, display handles/events, path observations, ticker/atlas/animation/text types and image preparation options. Scene versions are independent of package and document versions. Read the linked declarations for exact required fields; do not combine fields from different Scene versions.
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-canvas2d/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-canvas2d/README.md)
+`packages/barocss-canvas2d/package.json` (Manifest and version; local source) · `packages/barocss-canvas2d/README.md` (Package task notes; local source)

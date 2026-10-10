@@ -1,0 +1,9 @@
+{
+  "commit": "5f5ad866205a21510ac69552e704cc162fa253b5",
+  "checkedDate": "2026-10-10",
+  "command": "gh api repos/barocss/barocss/commits/5f5ad866205a21510ac69552e704cc162fa253b5 --jq .sha",
+  "available": false,
+  "httpStatus": 422,
+  "message": "No commit found for SHA",
+  "policy": "Use actual site-local public declaration groups. Keep local paths/SHA as text; no moving branch substitution or product push."
+}

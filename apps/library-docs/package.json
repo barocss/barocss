@@ -7,7 +7,11 @@
     "dev": "vitepress dev docs",
     "build": "vitepress build docs",
     "preview": "vitepress preview docs",
-    "check:docs": "node scripts/check-docs.mjs"
+    "check:docs": "node scripts/check-docs.mjs",
+    "check:api": "node scripts/public-api.mjs --check",
+    "docs:api": "node scripts/public-api.mjs --write"
   },
-  "devDependencies": { "vitepress": "^1.6.4" }
+  "devDependencies": {
+    "vitepress": "^1.6.4"
+  }
 }

@@ -32,4 +32,4 @@ Kit, Browser and Server have source manifest version `0.12.0` in this snapshot. 
 
 Renderer work tracked under #1183 and #1184 is not an available public runtime quickstart here. Use only actual exports at the fixed source commit. Do not infer professional CAD parity, format parity or whole-engine support from one bounded example.
 
-Fixed-SHA source links identify provenance. The native source commit can exist only in local Git before a later authorized product publication. If a remote link is unavailable, use the same repository-relative path in the stated local checkout. Do not substitute a different remote branch as the manual's version.
+The exact source commit is local-only: GitHub commit lookup returned HTTP422 No commit found on 10 October 2026. Public declaration references therefore open in this portal. Other repository paths remain plain provenance text. A pinned GitHub source link is allowed only after the exact commit is confirmed remotely. Do not substitute a moving remote branch as the manual's version.

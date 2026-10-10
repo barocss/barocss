@@ -28,4 +28,4 @@ This checks an authored screen and reads a copied contract descriptor. It does n
 
 Validate the inner screen object after parsing your response envelope. `ok` is not a TypeScript type guard. Keep your previous accepted screen when validation fails. Catch rendering errors in a host error boundary. See [host declarations](./guides#declare-bindings-and-actions).
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render/README.md)
+`packages/barocss-render/package.json` (Manifest and version; local source) · `packages/barocss-render/README.md` (Package task notes; local source)

@@ -1,5 +1,8 @@
 # Physics public root and subpaths
 
+Read the [complete public signature reference](./reference) for exact exported functions, types and public class members. This task page explains their support, ownership, errors and lifecycle.
+
+
 | Entry | Runtime functions | Arguments and result |
 | --- | --- | --- |
 | Root | `createPhysicsWorld`, `createUprightCapsuleQuery`, `createUprightCapsuleController`, `PhysicsError` | Rigid config/world; immutable static-box query; bounded character controller. |
@@ -17,14 +20,14 @@
 
 Commands are force, impulse, torque, angularImpulse or kinematicTarget. Shape unions are sphere, box and capsule. Type-level shape existence does not admit every pair/profile combination.
 
-[Public rigid signatures and type fields](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-physics/src/types.ts) · [Actual root re-exports](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-physics/src/index.ts)
+[Public rigid signatures and type fields](/packages/physics/reference#declarations-3788ece59031) · [Actual root re-exports](/packages/physics/reference#declarations-e7855e28b690)
 
 ## Subpath declarations
 
-[CAD proxy entry](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-physics/src/cad-proxy.ts) · [Replay entry](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-physics/src/replay.ts) · [Fluid entry](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-physics/src/fluid.ts) · [Cloth entry](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-physics/src/cloth.ts) · [Fluid CAD entry](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-physics/src/fluid-cad.ts)
+[CAD proxy entry](/packages/physics/reference#declarations-ae7d3ac2a228) · [Replay entry](/packages/physics/reference#declarations-e94fb366d62c) · [Fluid entry](/packages/physics/reference#declarations-ad609a7c16fe) · [Cloth entry](/packages/physics/reference#declarations-c5c8b13109ba) · [Fluid CAD entry](/packages/physics/reference#declarations-801ef1c14e69)
 
 Fluid/cloth worlds expose `getState`, `step`, `reset` and `dispose`; their exact dt, state arrays and numerical acceptance gates belong to those profiles. CAD fluid step/reset additionally require current source text/revision. Replay session step takes command frames under its saved fixed step.
 
 Root public types include vectors/quaternions, shapes, config/command/joint/body/contact/event/state/query/world types and capsule-query/controller types. Each subpath re-exports only its declared binding/scene/result/session types. Internal solver/body records are not consumer APIs even when their defining module uses `export` internally.
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-physics/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-physics/README.md)
+`packages/barocss-physics/package.json` (Manifest and version; local source) · `packages/barocss-physics/README.md` (Package task notes; local source)

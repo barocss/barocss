@@ -1,6 +1,6 @@
 # Load a native Surface and attach controls
 
-Copy the real [two-surfaces.barocad fixture](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/examples/viewer-scene/two-surfaces.barocad) into your host assets. Read it as text. Pass the complete text and a visible canvas to this browser-bundled function.
+Copy the real `examples/viewer-scene/two-surfaces.barocad` (two-surfaces.barocad fixture; local source) into your host assets. Read it as text. Pass the complete text and a visible canvas to this browser-bundled function.
 
 ```ts
 import { createViewer } from '@barocss/viewer';
@@ -27,4 +27,4 @@ At this scale, 1000 native millimetres become one scene unit. Primary drag orbit
 
 Call `viewer.pick(xCss,yCss)` with canvas-local CSS pixels, then `viewer.select(hit.ref)` when a hit exists. This selects a displayed Surface reference, not a native ray/Surface intersection certificate. See [measurement](./guides#measure-original-native-points).
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-viewer/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-viewer/README.md)
+`packages/barocss-viewer/package.json` (Manifest and version; local source) · `packages/barocss-viewer/README.md` (Package task notes; local source)

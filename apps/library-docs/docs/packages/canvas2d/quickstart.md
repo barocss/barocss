@@ -28,4 +28,4 @@ Call the returned cleanup when the document closes. The hit contains the semanti
 
 To change size, call `rectangle.setRect({width:100,height:50,fill:[1,0,0,1]})`, then submit a fresh snapshot and render again. A valid handle mutation does not guarantee later renderer admission under device or scene budgets. See [transaction boundaries](./guides#submit-a-tree-edit).
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-canvas2d/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-canvas2d/README.md)
+`packages/barocss-canvas2d/package.json` (Manifest and version; local source) · `packages/barocss-canvas2d/README.md` (Package task notes; local source)

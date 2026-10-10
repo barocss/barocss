@@ -26,4 +26,4 @@ Physics outputs metres. Viewer cloth/fluid adapters copy supported frame data an
 
 Dispose pointer/keyboard adapters and Viewer on document close. Context loss or unavailable presentation retains only the documented authority for that mode; old pixels are not promised. Explicitly reconstruct a supported Viewer/provider path for recovery. Do not use a disposed object.
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-viewer/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-viewer/README.md)
+`packages/barocss-viewer/package.json` (Manifest and version; local source) · `packages/barocss-viewer/README.md` (Package task notes; local source)

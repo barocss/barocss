@@ -47,12 +47,12 @@ The surface net is indexed U then V. Here increasing U follows +X and increasing
 
 | Task | Fixed repository example |
 | --- | --- |
-| Original parameter derivatives | [derivative demo](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/examples/cad-nurbs/derivative-demo.mjs) |
-| Native rectangle construction | [rectangle extrusion demo](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/examples/cad-nurbs/axis-rectangle-extrusion-demo.mjs) |
-| Plane packet input | [preview-flat.css](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/examples/cad-nurbs/preview-flat.css) |
-| Rational nonplanar Surface | [preview-weighted.css](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/examples/cad-nurbs/preview-weighted.css) |
-| Editable native sketch | [XY sketch document demo](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/examples/cad-nurbs/xy-sketch-document-demo.mjs) |
-| Native mass calculation | [axis-box mass demo](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/examples/cad-nurbs/axis-box-solid-mass-demo.mjs) |
+| Original parameter derivatives | `examples/cad-nurbs/derivative-demo.mjs` (derivative demo; local source) |
+| Native rectangle construction | `examples/cad-nurbs/axis-rectangle-extrusion-demo.mjs` (rectangle extrusion demo; local source) |
+| Plane packet input | `examples/cad-nurbs/preview-flat.css` (preview-flat.css; local source) |
+| Rational nonplanar Surface | `examples/cad-nurbs/preview-weighted.css` (preview-weighted.css; local source) |
+| Editable native sketch | `examples/cad-nurbs/xy-sketch-document-demo.mjs` (XY sketch document demo; local source) |
+| Native mass calculation | `examples/cad-nurbs/axis-box-solid-mass-demo.mjs` (axis-box mass demo; local source) |
 
 Read a demo's import and flags before running it. Existing artifact demos may use explicit dist and require an affected library build. Source-mode demos use their documented `--source` mode. Source and emitted checkpoints are separate. Do not rerun every exchange reader or gallery to learn one task.
 
@@ -62,6 +62,6 @@ Store source bytes, Model name, full native object IDs, options and actual repor
 
 ---
 
-Source snapshot: local Git `5f5ad866205a21510ac69552e704cc162fa253b5`. [Manifest](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-cad/package.json), [public root](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-cad/src/index.ts), [package README](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-cad/README.md). Fixed-SHA links identify that snapshot; this native local commit may not yet be available on the remote. Local source is the authority for this manual.
+Source snapshot: local Git `5f5ad866205a21510ac69552e704cc162fa253b5`. `packages/barocss-cad/package.json` (Manifest; local source), [public root](/packages/cad/reference#declarations-f921e035f2c3), `packages/barocss-cad/README.md` (package README; local source). Source references identify that fixed snapshot. This native source commit is local-only; public declaration references open in this portal. Local source is the authority for this manual.
 
 [Overview](./) · [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits](./limits)

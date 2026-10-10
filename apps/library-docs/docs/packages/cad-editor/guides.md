@@ -47,4 +47,4 @@ A document with more than four bodies needs an explicit 1–4 body display choic
 
 Use `inspectExport(options)` to describe capability, then `exportAccepted(options)` to obtain qualified derived output and its report. Keep native source identity and conversion/loss descriptions visible. Derived export is a separate artifact, not replacement authoring authority.
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-cad-editor/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-cad-editor/README.md)
+`packages/barocss-cad-editor/package.json` (Manifest and version; local source) · `packages/barocss-cad-editor/README.md` (Package task notes; local source)

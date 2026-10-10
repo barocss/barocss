@@ -1,5 +1,8 @@
 # CAD Editor entries and transactions
 
+Read the [complete public signature reference](./reference) for exact exported functions, types and public class members. This task page explains their support, ownership, errors and lifecycle.
+
+
 | Public entry | Workspace / release map | Consumer role |
 | --- | --- | --- |
 | Root | `src/index.ts` / `dist/index.js` | Pure native sessions and public types. |
@@ -31,16 +34,16 @@
 | `inspectExport`, `exportAccepted`, `inspectCurveLength`, `inspectCurveD2`, `inspectSurfaceD2`, `inspectCurveCurvature`, `inspectSurfaceCurvature` | Accepted revision-qualified reference and query/options. | Original native result; errors preserve authority. |
 | `discardPending()`, `dispose()` | Clear raw fields; release CPU session. | Dispose idempotent, later mutations refuse. |
 
-[Exact public canonical session signatures and result fields](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-cad-editor/src/types.ts)
+[Exact public canonical session signatures and result fields](/packages/cad-editor/reference#declarations-a00efa965bcc)
 
 ## Feature and React entries
 
 Feature sessions expose the shared candidate/history/download lifecycle plus `selectFeature`, `stageLengthParameter`, `stageBooleanOperation`, `getFaceCorners`, `prepareFaceCornerEdit`, `prepareDisplayOutputs`, `prepareExtrusionTransaction`, `prepareParameterTransaction`, `prepareReferencedFeatureTransaction` and `inspectExtrusionProperties`.
 
-[Feature session types](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-cad-editor/src/feature-types.ts)
+[Feature session types](/packages/cad-editor/reference#declarations-daa6ffeca679)
 
 React exports `CadEditor`, `CadEditorViewport`, `CadEditorInspector`, `useCadEditorSnapshot`, `CadEditorFeature`, `useCadEditorFeatureSnapshot`, `CadEditorExportReview`, `CadEditorGeometryAnalysis` and `CadEditorBodyRename`, with their public props/receipt types. Hooks subscribe to caller-owned sessions. Receipts distinguish actual native inventory, view and fresh pixels; they are not native document authority.
 
-[React public exports](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-cad-editor/src/react/index.tsx) · [React props and receipt contracts](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-cad-editor/src/react/types.ts)
+[React public exports](/packages/cad-editor/reference#declarations-2a5b602a16ab) · [React props and receipt contracts](/packages/cad-editor/reference#declarations-0473f72584e3)
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-cad-editor/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-cad-editor/README.md)
+`packages/barocss-cad-editor/package.json` (Manifest and version; local source) · `packages/barocss-cad-editor/README.md` (Package task notes; local source)

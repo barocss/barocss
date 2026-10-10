@@ -22,4 +22,4 @@ Raw incomplete hidden object/Surface input blocks full Apply and file/camera Use
 
 No general native geometry editor, arbitrary mixed shapes/materials, picking, unrestricted asset scene, Physics coupling, full IME/mobile/recovery certification or publication is established here.
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render-editor/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render-editor/README.md)
+`packages/barocss-render-editor/package.json` (Manifest and version; local source) · `packages/barocss-render-editor/README.md` (Package task notes; local source)

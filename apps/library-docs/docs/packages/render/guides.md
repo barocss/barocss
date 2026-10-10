@@ -32,4 +32,4 @@ Use the existing [Browser package gateway](/packages/browser/) to start and stop
 
 Keep IDs and positions stable for updates that should retain input instances. Component functions must implement controlled fields with the supplied `state` and `setState`. A named Button callback uses the registered host function captured for that render. Changing a registry property later does not redirect the captured callback.
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render/README.md)
+`packages/barocss-render/package.json` (Manifest and version; local source) · `packages/barocss-render/README.md` (Package task notes; local source)

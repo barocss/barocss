@@ -1,5 +1,8 @@
 # Viewer public API
 
+Read the [complete public signature reference](./reference) for exact exported functions, types and public class members. This task page explains their support, ownership, errors and lifecycle.
+
+
 Only `@barocss/viewer` is exported. `createViewer(canvas:HTMLCanvasElement,options:ViewerOptions):Viewer` validates `mmToSceneUnit`, background RGB and optional lighting. Viewer is also a public class; prefer the factory for option validation.
 
 ## Core method contracts
@@ -30,10 +33,10 @@ Display: `setVisibleGeometry`, `setSurfaceMaterial`, `setFluidFrame`, `setClothF
 
 These methods are profile-specific. The retained pose method names do not create an active Motion package.
 
-[Exact public method signatures, arguments and exported Viewer types](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-viewer/src/index.ts) · [Public sample result fields re-exported by root](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-viewer/src/qualified-face-native-sample.ts)
+[Exact public method signatures, arguments and exported Viewer types](/packages/viewer/reference#declarations-7b22356f8dac) · [Public sample result fields re-exported by root](/packages/viewer/reference#declarations-8b3e2d3311bd)
 
 ## Errors and ownership
 
 Viewer admission uses errors from its validation and reached CAD/loader/GPU provider causes. Do not infer one universal Viewer error code from a message. Route caught errors through your host's diagnostics. `getState` distinguishes `empty`, `ready`, `context-lost`, `unavailable` and `disposed`. Control adapters each return `dispose()`; they own listeners, not the Viewer or canvas.
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-viewer/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-viewer/README.md)
+`packages/barocss-viewer/package.json` (Manifest and version; local source) · `packages/barocss-viewer/README.md` (Package task notes; local source)

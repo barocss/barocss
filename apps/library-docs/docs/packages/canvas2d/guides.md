@@ -38,4 +38,4 @@ Use a fresh canvas for Open. Stage verifies referenced RGBA8 bytes/digests, regi
 
 `createCanvas2DApplication` owns one renderer, tree and ticker. It starts stopped unless `autoStart:true`. Register `onUpdate`, mutate handles, and let the application submit one automatic frame after updates. `stop()` cancels its frame loop. `dispose()` stops owned scheduling, clears subscriptions and disposes its renderer. The host still owns canvas/DOM/file state.
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-canvas2d/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-canvas2d/README.md)
+`packages/barocss-canvas2d/package.json` (Manifest and version; local source) · `packages/barocss-canvas2d/README.md` (Package task notes; local source)
