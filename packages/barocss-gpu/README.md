@@ -2382,3 +2382,35 @@ separate qualifications.
 `examples/gpu-scene/torus-geometry-flow.mjs --output <fresh-directory>` checks
 source/emitted APIs, double seams/winding, shared Scene/ray composition, copied
 original files, bounded refusals and cold reconstruction.
+
+## Original closed indexed Cylinder geometry
+
+`prepareCylinderGeometry(input)` admits exact parameters:
+`{format:'barocss-gpu-cylinder-geometry',version:0,id,coordinateSystem:'right-handed-y-up',positionUnit:'scene',radius,height,radialSegments,heightSegments}`.
+Finite scene-unit dimensions satisfy `0 < radius <= 1000`, `0 < height <= 2000`.
+Radial cells are integers from 3 to 128; height cells from 1 to 128. The cylinder
+is centred at the origin along Y and always closed. Cone, open and partial-arc
+options are excluded.
+
+Frozen `{source,prepared}` keeps copied original parameters and generated Number
+geometry through one `prepareTriangleGeometry` call. Independent mutable Float32
+attributes and Uint16 indices remain separate. Side rows ascend Y, columns follow
+`phi=(2*PI)*(i/S)`, with position `[r*cos(phi),h*(j/H-.5),r*sin(phi)]`, radial normal
+`[cos(phi),0,sin(phi)]`, UV `[i/S,j/H]`. The last column copies its first exactly
+with U=1. Separate top/bottom cap rims copy the actual side endpoint positions;
+flat normals ±Y retain hard edges. Both cap disks use UV `[(nx+1)/2,(nz+1)/2]`.
+Centres have UV `[.5,.5]`.
+
+Vertex order is sides, top rim/centre, bottom rim/centre. Side indices are
+`[a,d,b,a,c,d]`; top fans use centre/next/current and bottom centre/current/next.
+Maximum counts are 16,901 vertices, 33,024 triangles and 738,976 typed bytes.
+All input admission precedes generation. Existing TriangleGeometryError codes,
+original/F32 range/area/nonzero/collapse checks and actual causes remain. Tiny
+positive dimensions can refuse; there is no snapping, normalization or healing.
+Bounds describe sampled vertices, not analytic enclosure. SDF Cylinder, native
+CAD identity/topology, pixels, quality/error, performance, parity and publication
+retain separate contracts.
+
+`examples/gpu-scene/cylinder-geometry-flow.mjs --output <fresh-directory>` checks
+source/emitted APIs, side/cap seam and normal/UV splits, shared Scene/ray queries,
+original parameter files, copies, refusals and cold reconstruction.

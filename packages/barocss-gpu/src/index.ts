@@ -140,3 +140,6 @@ export type { PrimitiveSceneFrameProfile, PrimitiveSceneCpuFrameV0, PreparedPrim
 
 export { prepareTorusGeometry } from './torus-geometry.js';
 export type { TorusGeometrySourceV0, PreparedTorusGeometry } from './torus-geometry.js';
+
+export { prepareCylinderGeometry } from './cylinder-geometry.js';
+export type { CylinderGeometrySourceV0, PreparedCylinderGeometry } from './cylinder-geometry.js';
