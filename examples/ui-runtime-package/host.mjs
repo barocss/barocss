@@ -38,6 +38,9 @@ const start = async (variant = 'base') => {
 };
 window.fixture = {
   start,
+  sourceOpenFailure: () => runtime.start({
+    [Symbol.asyncIterator]() { throw new Error('Source iterator open failed'); },
+  }),
   finish() { gate?.(); gate = null; },
   cancel() { runtime.cancel(); gate?.(); gate = null; },
   hint: (state) => runtime.hint(state),

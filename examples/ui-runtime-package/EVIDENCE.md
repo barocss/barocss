@@ -30,3 +30,38 @@ Base digest `27765ede184ade6ad761098057b1b50421998c213991e589ccc716d2d94c5421`, 
 `PLAYWRIGHT_CORE_DIR=/Users/user/.codex/visualizations/2026/10/06/495-note-native2-codec-tests-v1/dependency-before/playwright-core@1.58.0/node_modules/playwright-core COMPOSED_ARTIFACTS=/Users/user/.codex/worktrees/ui-runtime-1368/barocss/examples/ui-runtime-package/output/composed/artifacts.json RESULT_ROOT=examples/ui-runtime-package/output/final-composed node examples/ui-runtime-package/flow.mjs`
 
 Result: passed, the same six milestones, one Save callback, zero page errors. This stage uses **actual emitted `@barocss/ui-compiler` artifact bytes** in the Runtime controller. The browser host supplied resource URLs and the frame document. No integrated Integration merge, production CSP, hostile JavaScript/CPU, model, mobile, persistence or release acceptance is claimed.
+
+## #1416 source iterator construction recovery
+
+Parent `74333e3d79781183224389676836941c7ef96c3f` is the actual local
+Integration checkpoint for this separate fix. The first Chrome 155 run added
+a source whose `Symbol.asyncIterator` method throws after a committed UI. It
+failed with `Source iterator open failed`: `start()` rejected, phase stayed
+`receiving`, `active` was null, and the old frame remained hidden. The first
+ignored report is `output/iterator-first/failure.json`.
+
+The runtime now catches iterator construction before creating a ticket,
+reports the original error once and restores the committed frame. An iterator
+without `next()` uses the same path. The corrected browser flow verified
+`start() === false`, phase `error`, exact retained frame instance and
+`Sujin/3` state, visible input, one reported error and a later valid changed
+module run. The full bounded flow passed seven milestones, one Save callback
+and zero page errors. Its ignored report is
+`output/iterator-corrected/report.json`.
+
+```sh
+PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH \
+  /Users/user/.barocss-ai/v3/integration/node_modules/.bin/tsc \
+  -p packages/barocss-ui-runtime/tsconfig.json
+PATH=/Users/user/Library/pnpm/nodejs/22.19.0/bin:$PATH \
+  PLAYWRIGHT_CORE_DIR=/Users/user/.codex/visualizations/2026/10/06/495-note-native2-codec-tests-v1/dependency-before/playwright-core@1.58.0/node_modules/playwright-core \
+  RESULT_ROOT=examples/ui-runtime-package/output/iterator-corrected \
+  node examples/ui-runtime-package/flow.mjs
+```
+
+Source SHA256 `15094fadb6159b52e08f9b8a79995a09d6f1cee0aeb43e8b2f2c487a7d995f19`;
+emitted Runtime JS `305ca34cd8c83e0fb913c34d5c9447c69f9843f9d26002eab9dc33e272f5fb44`;
+declaration `98e6e60b853785c6097896652e5b645478365da2c99b0b6862ec79eac2a6432f`.
+This run used an authored bridge fixture. The earlier composed Compiler/Runtime
+proof and adopted-checkpoint #1254 receipt remain separate. No v0 schema,
+compiler code, host action authority or integrated acceptance changed.

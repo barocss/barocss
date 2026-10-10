@@ -236,7 +236,15 @@ export function createUiRuntime(options: UiRuntimeOptions): UiRuntime {
     if (active && active !== committed) removeFrame(active);
     if (committed) { committed.element.hidden = true; active = null; }
     phase = 'receiving';
-    const iterator = records[Symbol.asyncIterator]();
+    let iterator: AsyncIterator<unknown>;
+    try {
+      iterator = records[Symbol.asyncIterator]();
+      if (!iterator || typeof iterator.next !== 'function') throw new TypeError('Invalid UI source iterator');
+    } catch (error) {
+      report(error);
+      restore('error');
+      return false;
+    }
     const abort = new AbortController();
     let resolveCancelled!: () => void;
     const cancelled = new Promise<false>((resolve) => { resolveCancelled = () => resolve(false); });

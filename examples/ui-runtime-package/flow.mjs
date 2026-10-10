@@ -59,6 +59,15 @@ try {
   assert.deepEqual((await inspect()).active.state, { name: 'Sujin', count: 3 });
   milestones.push('final action once and wrong-window bridge rejection');
 
+  assert.equal(await page.evaluate(() => window.fixture.sourceOpenFailure()), false);
+  assert.equal((await inspect()).phase, 'error');
+  assert.equal((await inspect()).active.instanceId, first.active.instanceId);
+  assert.deepEqual((await inspect()).active.state, { name: 'Sujin', count: 3 });
+  assert.equal(await visible().getByLabel('Name').inputValue(), 'Sujin');
+  assert.equal(await page.locator('iframe').count(), 1);
+  assert.equal(await page.evaluate(() => window.fixture.errors.filter((value) => value === 'Source iterator open failed').length), 1);
+  milestones.push('source iterator construction error restores committed frame');
+
   await start('different');
   assert.equal(await page.locator('iframe').count(), 2);
   await page.evaluate(() => window.fixture.cancel());
