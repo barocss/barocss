@@ -86,3 +86,6 @@ export type {EngineTextureV0,EngineTextureBindingV0,EngineTextureBindingsV0,Prep
 
 export {sampleEngineRotationClip,EngineRotationClipError,EngineRotationClipDiagnosticCode} from './engine-rotation-clip.js';
 export type {EngineRotationClipV0,EngineRotationTrackV0,EngineRotationKeyV0,EngineRotationClipRequestV0,SampledEngineRotationClip} from './engine-rotation-clip.js';
+
+export {sampleEngineScaleClip,EngineScaleClipError,EngineScaleClipDiagnosticCode} from './engine-scale-clip.js';
+export type {EngineScaleClipV0,EngineScaleTrackV0,EngineScaleKeyV0,EngineScaleClipRequestV0,SampledEngineScaleClip} from './engine-scale-clip.js';
