@@ -186,3 +186,7 @@ In browser-text.html use Left lines, Center lines or Right lines. Each action pr
 ### Wrapped paragraph
 
 Use Wrap paragraph in browser-text.html to fit Canvas2D labels fit this panel at maxWidth160/lineAdvance30/DPR2. Three visual lines retain one original30-character paragraph. Save/Open is bytes-only. Refit restored paragraph supplies currentwidth220 through publicwrappedhelper and glyph.setLayout, retaining text while producing two lines. width is preparation metadata and is not inferred from saved bytes. Existing explicit-LF alignment and singleline controls remain. Run tsconfig.wrapped-text.json and evidence/wrapped-text/probe.mjs after the affected build. Native and integrated evidence remain separate.
+
+### Sampled-color alpha mask
+
+The existing rgb-matrix host also edits Scene29 alpha masks: Mask by green/average RGB, Clear alpha masks and Reject invalid alpha mask. Original source texture colors determine transparency; RGB styling remains independent. Save/Open keeps authored mask/RGB tuples and all44source bytes. Restored public setters remain editable. The following colored glyph/plainSprite test row resets, and Frame/twoMasks/linear/nine/tile remain in the same fixture. alpha-mask-types/tsconfig.alpha-mask and focused evidence use publictypes plus bounded private CPU sampling checks. Native browser/file/resource proof is recorded separately from current integrated validation.

@@ -232,7 +232,7 @@ async function openText(text, reservedToken = null) {
     const parsed = await parseCanvasDocument(text); if (!current(token)) { counts.ignored++; return; }
     const tree = createDisplayTreeFromScene(parsed.scene), group = tree.get('Outer'), frame = tree.get('Frame');
     const sprite = tree.get('Sprite'), glyph = tree.get('Glyph');
-    if ((parsed.scene.version !== 26 && parsed.scene.version !== 27 && parsed.scene.version !== 28) || group?.kind !== 'container' || frame?.kind !== 'frame' ||
+    if ((parsed.scene.version !== 26 && parsed.scene.version !== 27 && parsed.scene.version !== 28 && parsed.scene.version !== 29) || group?.kind !== 'container' || frame?.kind !== 'frame' ||
         sprite?.kind !== 'sprite' || glyph?.kind !== 'glyphRun' || sprite.data.imageId !== 'Red' || glyph.data.atlasId !== 'GlyphAtlas' ||
         !frame.children.includes(group) || !group.children.includes(getInner(tree)) || !getInner(tree).children.includes(sprite) || !getInner(tree).children.includes(glyph) || parsed.assets.size !== 2 ||
         !parsed.assets.has('Red') || !parsed.assets.has('GlyphAtlas')) throw new Error('Document polygon fixture topology differs');

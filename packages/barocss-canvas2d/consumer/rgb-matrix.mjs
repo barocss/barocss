@@ -49,7 +49,7 @@ let disposed = false;
 /** @type {ReturnType<typeof sessionObservation>|null} */ let terminal = null;
 /** @type {{code:string,retained:boolean}|null} */ let failure = null;
 /** @type {{byteLength:number,filename:string}|null} */ let saved = null;
-/** @type {{bytesEqualPrevious:boolean|null,commandsEqualPrevious:boolean|null,idsEqualPrevious:boolean|null}|null} */ let opened = null;
+/** @type {{bytesEqualPrevious:boolean|null,commandsEqualPrevious:boolean|null,idsEqualPrevious:boolean|null,alphaMasksEqualPrevious:boolean|null}|null} */ let opened = null;
 /** @type {{byteLength:number,width:number,height:number}|null} */ let png = null;
 /** @type {string[]} */ const pointerLog = [];
 /** @type {(()=>void)[]} */ const hostUnbind = [];
@@ -143,11 +143,13 @@ function oracle(s,id,viewport) {
   if(node.sampling==='linear'){const x=Math.max(0,Math.min(2,sx-0.5)),lo=Math.floor(x),hi=Math.min(2,lo+1),fraction=x-lo;
     const a=pixel(lo),b=pixel(hi);rgba=a.map((v,i)=>v*(1-fraction)+b[i]*fraction);
   }else rgba=pixel(Math.max(0,Math.min(2,Math.floor(sx))));
-  const matrix=node.rgbMatrix??matrices.identity,tint=node.tint,alpha=rgba[3]*node.opacity*node.alpha;
+  const row=node.alphaMask??[0,0,0,1],factor=Math.max(0,Math.min(1,
+    Math.fround(row[0])*rgba[0]+Math.fround(row[1])*rgba[1]+Math.fround(row[2])*rgba[2]+Math.fround(row[3])));
+  const matrix=node.rgbMatrix??matrices.identity,tint=node.tint,alpha=rgba[3]*node.opacity*node.alpha*factor;
   const rgb=[0,1,2].map(row=>Math.max(0,Math.min(1,Math.fround(matrix[row*4])*rgba[0]+Math.fround(matrix[row*4+1])*rgba[1]+
     Math.fround(matrix[row*4+2])*rgba[2]+Math.fround(matrix[row*4+3])))*tint[row]);
   const back=[32/255,64/255,96/255];
-  return [...rgb.map((v,i)=>Math.round(Math.max(0,Math.min(1,v*alpha+back[i]*(node.blendMode==='add'?1:1-alpha)))*255)),255];
+  return [...rgb.map((v,i)=>Math.round(Math.max(0,Math.min(1,node.blendMode==='screen'?v*alpha+back[i]-v*alpha*back[i]:v*alpha+back[i]*(node.blendMode==='add'?1:1-alpha)))*255)),255];
 }
 /** @param {Session} s */
 function samplesFor(s) {
@@ -162,7 +164,8 @@ function samplesFor(s) {
 function idsFor(handle){return[handle.id,...('children'in handle?handle.children.flatMap(idsFor):[])];}
 /** @param {Session} s */
 function sessionObservation(s) {
-  return {generation:s.generation,version:s.scene.version,ids:s.tree.stage.children.flatMap(idsFor),
+  return {generation:s.generation,version:s.scene.version,contextId:s.scene.contextId,ids:s.tree.stage.children.flatMap(idsFor),
+    alphaMasks:Object.fromEntries([...effectIds,'Plain'].map(id=>[id,getSprite(s,id).data.alphaMask??null])),
     matrices:Object.fromEntries([...effectIds,'Plain'].map(id=>[id,getSprite(s,id).data.rgbMatrix??null])),
     assetBytes:Object.fromEntries(Object.keys(assets).map(id=>[id,[...(s.renderer.getImageAsset(id)?.pixels??[])]])),
     samples:samplesFor(s),points:pointsFor(s),sceneMatchesTree:stringifySceneJSON(s.scene)===stringifySceneJSON(s.tree.snapshot()),
@@ -196,13 +199,13 @@ function bind(/** @type {Session} */ s) {
 }
 /** @param {unknown} error @param {string} before */
 function refused(error, before) { counts.errors++; failure = { code: codeOf(error), retained: fingerprint() === before }; show(`Refused ${failure.code}`); return failure; }
-/** @param {(sprite:import('@barocss/canvas2d').SpriteHandle)=>void} change */
+/** @param {(sprite:import('@barocss/canvas2d').SpriteHandle,tree:import('@barocss/canvas2d').DisplayTree)=>void} change */
 function edit(change) {
   const s=session;if(!s||disposed)return false;const token=++requestedGeneration,before=fingerprint();
   /** @type {Session|null} */let next=null;let admitted=false;
   try{const tree=createDisplayTreeFromScene(s.scene),group=tree.get('Outer'),frame=tree.get('Frame'),sprite=tree.get('Swap');
     if(group?.kind!=='container'||frame?.kind!=='frame'||sprite?.kind!=='sprite')throw new Error('RGB fixture topology missing');
-    change(sprite);const scene=tree.snapshot();s.renderer.updateScene(scene);admitted=true;s.renderer.render();
+    change(sprite,tree);const scene=tree.snapshot();s.renderer.updateScene(scene);admitted=true;s.renderer.render();
     next={...s,tree,group,frame,scene,generation:token,unbind:()=>{}};next.unbind=bind(next);session=next;s.unbind();counts.edits++;failure=null;show('Edited restored Swap matrix');return true;
   }catch(error){if(next&&session!==next)next.unbind();if(admitted&&session===s){try{s.renderer.updateScene(s.scene);s.renderer.render();}catch{}}
     refused(error,before);return false;}
@@ -210,6 +213,20 @@ function edit(change) {
 function grayscale(){return edit(sprite=>sprite.setRGBMatrix(matrices.gray));}
 function clear(){return edit(sprite=>sprite.setRGBMatrix(null));}
 function reapply(){return edit(sprite=>sprite.setRGBMatrix(matrices.swap));}
+/** @param {import('@barocss/canvas2d').SpriteAlphaMask|null} mask */
+function maskAll(mask) { return edit((_sprite,tree)=>{
+  const parent=tree.get('Inner'); if(parent?.kind!=='container')throw new Error('Inner missing');
+  for(const child of parent.children) if(child.kind==='sprite')child.setAlphaMask(mask);
+}); }
+function alphaGreen(){return maskAll([0,1,0,0]);}
+function alphaGray(){return maskAll([1/3,1/3,1/3,0]);}
+function alphaClear(){return maskAll(null);}
+/** @param {import('@barocss/canvas2d').SpriteAlphaMask|null} mask @param {'normal'|'add'|'screen'} blend */
+function applyAlpha(mask,blend='normal'){return edit(sprite=>{sprite.setAlphaMask(mask);sprite.setBlendMode(blend);});}
+/** @param {import('@barocss/canvas2d').SpriteAlphaMask} mask */
+function invalidAlpha(mask){const s=session;if(!s||disposed)return null;requestedGeneration++;const before=fingerprint();
+  try{getSprite(s,'Swap').setAlphaMask(mask);failure={code:'ACCEPTED',retained:fingerprint()===before};show('Invalid alpha admitted');return failure;}
+  catch(error){return refused(error,before);}}
 function invalid(){const s=session;if(!s||disposed)return null;requestedGeneration++;const before=fingerprint();
   try{getSprite(s,'Swap').setRGBMatrix([5,0,0,0,0,1,0,0,0,0,1,0]);failure={code:'ACCEPTED',retained:fingerprint()===before};show('Invalid candidate admitted');return failure;
   }catch(error){return refused(error,before);}}
@@ -245,7 +262,7 @@ async function openText(text, reservedToken = null) {
   try {
     const parsed = await parseCanvasDocument(text); if (!current(token)) { counts.ignored++; return; }
     const tree = createDisplayTreeFromScene(parsed.scene), group = tree.get('Outer'), frame = tree.get('Frame');
-    if((parsed.scene.version!==27&&parsed.scene.version!==28)||group?.kind!=='container'||frame?.kind!=='frame'||getInner(tree).kind!=='container'||parsed.assets.size!==2||
+    if((parsed.scene.version!==27&&parsed.scene.version!==28&&parsed.scene.version!==29)||group?.kind!=='container'||frame?.kind!=='frame'||getInner(tree).kind!=='container'||parsed.assets.size!==2||
       !parsed.assets.has('RGBA')||!parsed.assets.has('GlyphAtlas'))throw new Error('RGB document topology differs');
     for(const id of [...effectIds,'Plain'])if(tree.get(id)?.kind!=='sprite')throw new Error(`${id} Sprite missing`);
     if(tree.get('Glyph')?.kind!=='glyphRun')throw new Error('Glyph missing');
@@ -255,8 +272,9 @@ async function openText(text, reservedToken = null) {
     const now = sessionObservation(next);
     opened = { bytesEqualPrevious: prior ? JSON.stringify(prior.assetBytes) === JSON.stringify(now.assetBytes) : null,
       commandsEqualPrevious: prior ? JSON.stringify(prior.matrices) === JSON.stringify(now.matrices) : null,
-      idsEqualPrevious: prior ? JSON.stringify(prior.ids) === JSON.stringify(now.ids) : null };
-    adopt(next); releaseTemporary(); acquired = false; show('Opened Scene27 matrices and authoritative asset bytes on a fresh canvas');
+      idsEqualPrevious: prior ? JSON.stringify(prior.ids) === JSON.stringify(now.ids) : null,
+      alphaMasksEqualPrevious: prior ? JSON.stringify(prior.alphaMasks) === JSON.stringify(now.alphaMasks) : null };
+    adopt(next); releaseTemporary(); acquired = false; show('Opened current matrices and alpha masks and authoritative asset bytes on a fresh canvas');
   } catch (error) { if (next && session !== next) { next.unbind(); disposeRenderer(next.renderer); }
     if (current(token)) refused(error, before); else counts.ignored++;
   } finally { if (acquired) releaseTemporary(); }
@@ -283,14 +301,14 @@ async function exportPNG() {
 function dispose() { counts.disposeCalls++; if (disposed) return; const s = session;
   if (s) { terminal = sessionObservation(s); s.unbind(); disposeRenderer(s.renderer); } session = null; disposed = true; requestedGeneration++;
   for (const resolve of waiters.splice(0)) resolve(); for (const remove of hostUnbind.splice(0)) remove(); show('Disposed RGB matrix fixture and listeners'); }
-const actions={gray:grayscale,clear,reapply,invalid,lose:loseContext,context:restoreContext,save:()=>{void save().catch(error=>show(`Save failed: ${codeOf(error)}`));},png:()=>{void exportPNG();},dispose};
+const actions={alphaGreen,alphaGray,alphaClear,alphaInvalid:()=>invalidAlpha([5,0,0,0]),gray:grayscale,clear,reapply,invalid,lose:loseContext,context:restoreContext,save:()=>{void save().catch(error=>show(`Save failed: ${codeOf(error)}`));},png:()=>{void exportPNG();},dispose};
 for (const [id, action] of Object.entries(actions)) { const button = document.querySelector(`#${id}`); button?.addEventListener('click', action);
   hostUnbind.push(() => button?.removeEventListener('click', action)); }
 const onOpen = () => { const file = input.files?.[0]; if (!file || disposed) return; const token = ++requestedGeneration, before = fingerprint();
   void file.text().then(text => { if (!current(token)) { counts.ignored++; return; } return openText(text, token); })
     .catch(error => { if (current(token)) refused(error, before); }); input.value = ''; };
 input.addEventListener('change', onOpen); hostUnbind.push(() => input.removeEventListener('change', onOpen));
-Object.defineProperty(window,'rgbMatrixFixture',{value:Object.freeze({observe,grayscale,clear,reapply,invalid,save,openText,exportPNG,loseContext,restoreContext,dispose,
+Object.defineProperty(window,'rgbMatrixFixture',{value:Object.freeze({observe,alphaGreen,alphaGray,alphaClear,applyAlpha,invalidAlpha,grayscale,clear,reapply,invalid,save,openText,exportPNG,loseContext,restoreContext,dispose,
   get canvas(){return canvas;},points(){return session?pointsFor(session):null;},samples(){return session?samplesFor(session):null;},
   /** @param {Point} point */probe(point){return session?sample(session,point):null;},
   documentText(){return session?serialize(session):Promise.resolve(null);},debug(){return session?{scene:structuredClone(session.scene)}:null;}

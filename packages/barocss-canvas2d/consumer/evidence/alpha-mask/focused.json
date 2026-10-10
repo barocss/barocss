@@ -1,0 +1,33 @@
+{
+  "runtime": "v22.22.0",
+  "module": "compiled-root",
+  "refusals": 101,
+  "getters": 0,
+  "currentVersion": 29,
+  "historicalVersionsAccepted": 29,
+  "historicalAlphaMaskRejected": 29,
+  "reconstruct6through29": true,
+  "factoryCopies": true,
+  "setterCopies": true,
+  "dataCopies": true,
+  "snapshotCopies": true,
+  "atomicInvalidSetter": true,
+  "nullClears": true,
+  "cpu": {
+    "identityRed": 0.5,
+    "identityGreen": 0.25098039215686274,
+    "maskRed": 0.5,
+    "maskGreenRejected": 0,
+    "greenRow": 0.25098039215686274,
+    "clampHigh": 0.5,
+    "clampLow": 0,
+    "preColorMask": 0.5,
+    "linearAfterSample": 0.18774509803921569,
+    "transparent": 0,
+    "float32Rows": 0.25019608215958467
+  },
+  "linearPostSampleMask": true,
+  "sourceRGBBeforeColorEffects": true,
+  "float32Coefficients": true,
+  "renderAdmissionGPUCalls": 0
+}
