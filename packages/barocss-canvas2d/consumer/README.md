@@ -182,3 +182,7 @@ Ordinary enumerable data options text/font/atlasId/lineAdvance plus optional dpr
 ### Explicit multiline alignment
 
 In browser-text.html use Left lines, Center lines or Right lines. Each action prepares Balance LF -$20 through the public multiline helper. Alignment follows measured advance boxes, including spaces, with the longest line's origin unchanged. Save/Open keeps original text and raster bytes; it does not infer preparation policy. Center restored lines uses current host font/alignment and public glyph.setLayout with unchanged text. Existing default, original restored text editing and lifetime controls remain available. Run tsconfig.aligned-text.json and evidence/aligned-text/probe.mjs after the affected build. The evidence receipt separates native checks from merged validation.
+
+### Wrapped paragraph
+
+Use Wrap paragraph in browser-text.html to fit Canvas2D labels fit this panel at maxWidth160/lineAdvance30/DPR2. Three visual lines retain one original30-character paragraph. Save/Open is bytes-only. Refit restored paragraph supplies currentwidth220 through publicwrappedhelper and glyph.setLayout, retaining text while producing two lines. width is preparation metadata and is not inferred from saved bytes. Existing explicit-LF alignment and singleline controls remain. Run tsconfig.wrapped-text.json and evidence/wrapped-text/probe.mjs after the affected build. Native and integrated evidence remain separate.
