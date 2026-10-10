@@ -193,6 +193,12 @@ try {
       await page.getByTestId('draft-cancel').click();
       await page.getByTestId('draft-dialog').waitFor({ state: 'detached' });
       check(await x().inputValue() === '-' && await page.getByTestId('mixed-scene-source').inputValue() === sceneDraft, 'File Cancel erased pending raw/source data.');
+      // Dismiss the retained action error before clicking rows behind its overlay.
+      if (await page.getByTestId('app-error').count()) {
+        await page.getByRole('button', { name: 'Dismiss error', exact: true }).click();
+        await page.getByTestId('app-error').waitFor({ state: 'detached' });
+      }
+      check(await x().inputValue() === '-', 'Dismissing the action error changed the hidden raw draft.');
       await page.getByRole('button', { name: 'Edit Surface position', exact: true }).click();
       await target('surface');
       await page.waitForFunction(() => document.activeElement?.getAttribute('aria-label') === 'Native X');
