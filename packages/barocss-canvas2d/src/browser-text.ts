@@ -52,6 +52,70 @@ export type BrowserMultilineTextRaster = BrowserTextRaster & {
 export type BrowserWrappedTextOptions = BrowserMultilineTextOptions & { maxWidth: number };
 export type BrowserWrappedTextRaster = BrowserMultilineTextRaster & { maxWidth: number };
 
+export type BrowserEllipsizedTextOptions = {
+  text: string;
+  font: string;
+  atlasId: string;
+  /** Maximum logical advance; padded ink bounds can extend beyond it. */
+  maxWidth: number;
+  dpr?: number;
+};
+export type BrowserEllipsizedTextRaster = BrowserTextRaster & {
+  maxWidth: number;
+  /** Derived printable ASCII display, at most 130 code units. */
+  displayText: string;
+  truncated: boolean;
+  /** End offset of the visible original prefix, excluding the three dots. */
+  visibleTextEnd: number;
+};
+
+function ellipsizedOptionsOf(value: unknown): Required<BrowserTextOptions> & { ellipsisMaxWidth: number } {
+  if (!value || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype) {
+    invalid('browser ellipsis options must be an ordinary data record');
+  }
+  const fields = Object.getOwnPropertyDescriptors(value);
+  for (const key of Reflect.ownKeys(fields)) {
+    if (typeof key !== 'string' || !['text', 'font', 'atlasId', 'maxWidth', 'dpr'].includes(key) ||
+        !fields[key].enumerable || !('value' in fields[key])) invalid('browser ellipsis options require declared data fields');
+  }
+  for (const key of ['text', 'font', 'atlasId', 'maxWidth']) {
+    if (!Object.hasOwn(fields, key)) invalid(`browser ellipsis options require ${key}`);
+  }
+  const maxWidth: unknown = fields.maxWidth.value;
+  if (typeof maxWidth !== 'number' || !Number.isFinite(maxWidth) || maxWidth <= 0 || maxWidth > 1e6) {
+    invalid('browser ellipsis width must be positive within finite coordinate limits');
+  }
+  const admitted = optionsOf({ text: fields.text.value, font: fields.font.value, atlasId: fields.atlasId.value,
+    ...(Object.hasOwn(fields, 'dpr') ? { dpr: fields.dpr.value } : {}), textPolicy: 'printable-ascii' });
+  return { ...admitted, ellipsisMaxWidth: maxWidth };
+}
+
+/** Rasterize the longest fitting printable ASCII prefix plus three dots.
+ * Keep the complete original semantic text and whole-label range. */
+export function rasterizeBrowserEllipsizedText(options: BrowserEllipsizedTextOptions): BrowserEllipsizedTextRaster {
+  return rasterize(ellipsizedOptionsOf(options)) as BrowserEllipsizedTextRaster;
+}
+
+function ellipsizedLabel(context: CanvasRenderingContext2D, text: string, maxWidth: number) {
+  function measure(candidate: string) {
+    const metrics = context.measureText(candidate);
+    if (!Number.isFinite(metrics.width) || metrics.width < 0 || metrics.width > 1e6) {
+      throw new Canvas2DError('INVALID_ASSET', 'browser text metrics are outside finite coordinate limits');
+    }
+    return metrics;
+  }
+  const original = measure(text);
+  if (original.width <= maxWidth) return { displayText: text, metrics: original, truncated: false, visibleTextEnd: text.length };
+  let selected: { displayText: string; metrics: TextMetrics; truncated: boolean; visibleTextEnd: number } | null = null;
+  // Measure every whole candidate: kerning does not guarantee monotonic widths.
+  for (let end = 0; end < text.length; end++) {
+    const candidate = `${text.slice(0, end)}...`, metrics = measure(candidate);
+    if (metrics.width <= maxWidth) selected = { displayText: candidate, metrics, truncated: true, visibleTextEnd: end };
+  }
+  if (!selected) throw new Canvas2DError('ASSET_LIMIT', 'browser ellipsis has no candidate within maxWidth');
+  return selected;
+}
+
 function invalid(message: string): never {
   throw new Canvas2DError('INVALID_SCENE', message);
 }
@@ -208,7 +272,7 @@ function wrappedLines(context: CanvasRenderingContext2D, text: string, maxWidth:
   return lines;
 }
 
-function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number; lineAlign?: BrowserMultilineTextAlignment; maxWidth?: number }): BrowserTextRaster | BrowserMultilineTextRaster | BrowserWrappedTextRaster {
+function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number; lineAlign?: BrowserMultilineTextAlignment; maxWidth?: number; ellipsisMaxWidth?: number }): BrowserTextRaster | BrowserMultilineTextRaster | BrowserWrappedTextRaster | BrowserEllipsizedTextRaster {
   if (typeof document === 'undefined' || typeof document.createElement !== 'function' ||
       !document.fonts || typeof document.fonts.check !== 'function') {
     throw new Canvas2DError('UNSUPPORTED_FEATURE', 'browser text and font APIs are unavailable');
@@ -236,7 +300,7 @@ function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number;
     if (first !== font || typeof font !== 'string' || font.length === 0) {
       invalid('browser ignored the CSS font declaration');
     }
-    if (!document.fonts.check(font, input.text)) {
+    if (!document.fonts.check(font, input.ellipsisMaxWidth === undefined ? input.text : `${input.text}...`)) {
       throw new Canvas2DError('INVALID_ASSET', 'browser text font is not ready');
     }
     function configure() {
@@ -254,12 +318,13 @@ function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number;
     }
     configure();
     const wrapped = input.maxWidth === undefined ? null : wrappedLines(context, input.text, input.maxWidth);
-    const texts = wrapped ? wrapped.map(line => line.text) : input.lineAdvance === undefined ? [input.text] : input.text.split('\n');
+    const ellipsis = input.ellipsisMaxWidth === undefined ? null : ellipsizedLabel(context, input.text, input.ellipsisMaxWidth);
+    const texts = ellipsis ? [ellipsis.displayText] : wrapped ? wrapped.map(line => line.text) : input.lineAdvance === undefined ? [input.text] : input.text.split('\n');
     const lines: BrowserMultilineTextLine[] = [];
     const inkEdges: { left: number; right: number }[] = [];
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, advance = 0, textStart = 0;
     for (const [index, text] of texts.entries()) {
-      const measured = context.measureText(text);
+      const measured = ellipsis?.metrics ?? context.measureText(text);
       const values = [measured.width, measured.actualBoundingBoxLeft, measured.actualBoundingBoxRight,
         measured.actualBoundingBoxAscent, measured.actualBoundingBoxDescent];
       const baseline = index * (input.lineAdvance ?? 0);
@@ -315,6 +380,8 @@ function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number;
       bounds, layout: { atlasId: input.atlasId, text: input.text, baseline: 0, opacity: 1, sampling: 'nearest',
         glyphs: [{ sourceRect: { x: 0, y: 0, width, height }, x: left, y: top,
           width: bounds.width, height: bounds.height, textStart: 0, textEnd: input.text.length }] } };
+    if (ellipsis) return { ...result, maxWidth: input.ellipsisMaxWidth as number, displayText: ellipsis.displayText,
+      truncated: ellipsis.truncated, visibleTextEnd: ellipsis.visibleTextEnd };
     if (input.lineAdvance === undefined) return result;
     const multiline = { ...result, lineAdvance: input.lineAdvance, lines };
     return input.maxWidth === undefined ? multiline : { ...multiline, maxWidth: input.maxWidth };

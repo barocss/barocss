@@ -344,3 +344,9 @@ The existing browser-text consumer adds an editable Unicode draft using
 24px system-ui at DPR2, with accepted-state retention on refusal and disposal.
 No downloaded font, shaping kernel, global coverage or cross-device parity is
 provided. Existing raster size, byte limits and scratch cleanup remain.
+
+### Ellipsis in the existing text raster host
+
+`text-raster.html` retains the automatic `Canvas2D` bootstrap and original controls. **Ellipsize long label** prepares semantic `A B C D E F G H` with width90,24px monospace/DPR2. Native measurements select a display prefix plus `...`; the full semantic text/range stays in the GlyphRun. Candidates reuse existing readiness/admission/lifetime logic and retain independent renderer-owned CPU pixels.
+
+Saved files store original text/ranges and prepared raster bytes. Open does not prepare fonts or rasterize again. Font and ellipsis preparation profile are null/unknown on file restore; pixels do not identify the display string or font. **Move restored label** uses public position40,64 without rerasterizing. PNG and Dispose reuse existing APIs. This is an advance-width policy, not pixel clipping or arbitrary typography/caret parity.

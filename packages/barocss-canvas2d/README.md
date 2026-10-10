@@ -569,3 +569,9 @@ The existing browser-text consumer adds an editable Unicode draft using
 24px system-ui at DPR2, with accepted-state retention on refusal and disposal.
 No downloaded font, shaping kernel, global coverage or cross-device parity is
 provided. Existing raster size, byte limits and scratch cleanup remain.
+
+### Bounded single-line ASCII ellipsis
+
+`rasterizeBrowserEllipsizedText({text,font,atlasId,maxWidth,dpr?})` accepts1..128 printable ASCII code units with a nonspace character. The host prepares the font. Maximum logical advance is required, finite and positive, at most1e6. DPR defaults1 in1..4. Full original text is drawn when its advance fits. Otherwise every prefix of length0..N-1 plus ASCII `...` is measured, and the greatest fitting prefix wins. Nonmonotonic kerning is supported; no candidate fit throws `ASSET_LIMIT` before drawing.
+
+The result exposes `displayText`, `truncated`, `visibleTextEnd` and `maxWidth`. Derived display text is at most130 code units. `layout.text` and the whole-label range0..N preserve original semantics. The visible prefix end excludes the three dots; no caret/grapheme mapping is claimed. Maximum129 whole-string measures reuse selected metrics; one private canvas and one draw retain1024×256/1MiB raster caps and finally release the backing to0×0. Width bounds advance, not ink overhang or padding. This fixed ASCII entry does not change Unicode/default/multiline/wrapped policies or introduce a Unicode ellipsis character.

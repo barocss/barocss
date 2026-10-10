@@ -1,0 +1,1950 @@
+{
+  "status": "PASS",
+  "actualBrowser": false,
+  "sourceBundleInMemoryOnly": true,
+  "assertions": 1656,
+  "records": [
+    {
+      "kind": "source-bundle",
+      "status": "PASS",
+      "cases": [
+        {
+          "label": "originalfits",
+          "originalText": "ABC",
+          "displayText": "ABC",
+          "truncated": false,
+          "visibleTextEnd": 3,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1400,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "originalbelowcap",
+          "originalText": "A",
+          "displayText": "A",
+          "truncated": false,
+          "visibleTextEnd": 1,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 616,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "markeronly",
+          "originalText": "ABCDEFGHIJ",
+          "displayText": "...",
+          "truncated": true,
+          "visibleTextEnd": 0,
+          "measures": 11,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1400,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "longestnonmonotonic",
+          "originalText": "ABCD",
+          "displayText": "ABC...",
+          "truncated": true,
+          "visibleTextEnd": 3,
+          "measures": 5,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 672,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "markeronlytoowidebutprefixfits",
+          "originalText": "ABC",
+          "displayText": "A...",
+          "truncated": true,
+          "visibleTextEnd": 1,
+          "measures": 4,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 672,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "inkcanexceedadvancecap",
+          "originalText": "A",
+          "displayText": "A",
+          "truncated": false,
+          "visibleTextEnd": 1,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 5824,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "dpr2",
+          "originalText": "A B C D",
+          "displayText": "A B...",
+          "truncated": true,
+          "visibleTextEnd": 3,
+          "measures": 8,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 10304,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "punctuation",
+          "originalText": "[]!?, ABC",
+          "displayText": "[]!...",
+          "truncated": true,
+          "visibleTextEnd": 3,
+          "measures": 10,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2576,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "derived130/max129",
+          "originalText": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "displayText": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...",
+          "truncated": true,
+          "visibleTextEnd": 127,
+          "measures": 129,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 3584,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-1",
+          "originalText": "A",
+          "displayText": "A",
+          "truncated": false,
+          "visibleTextEnd": 1,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 616,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-2",
+          "originalText": "AB",
+          "displayText": "AB",
+          "truncated": false,
+          "visibleTextEnd": 2,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1008,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-3",
+          "originalText": "ABC",
+          "displayText": "ABC",
+          "truncated": false,
+          "visibleTextEnd": 3,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1400,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-4",
+          "originalText": "ABCD",
+          "displayText": "ABCD",
+          "truncated": false,
+          "visibleTextEnd": 4,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1792,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-5",
+          "originalText": "ABCDE",
+          "displayText": "ABCDE",
+          "truncated": false,
+          "visibleTextEnd": 5,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2184,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-6",
+          "originalText": "ABCDE ",
+          "displayText": "ABCDE ",
+          "truncated": false,
+          "visibleTextEnd": 6,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2576,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-7",
+          "originalText": "ABCDE A",
+          "displayText": "...",
+          "truncated": true,
+          "visibleTextEnd": 0,
+          "measures": 8,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1400,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-8",
+          "originalText": "ABCDE AB",
+          "displayText": "A...",
+          "truncated": true,
+          "visibleTextEnd": 1,
+          "measures": 9,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1792,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-9",
+          "originalText": "ABCDE ABC",
+          "displayText": "AB...",
+          "truncated": true,
+          "visibleTextEnd": 2,
+          "measures": 10,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2184,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-10",
+          "originalText": "ABCDE ABCD",
+          "displayText": "ABC...",
+          "truncated": true,
+          "visibleTextEnd": 3,
+          "measures": 11,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2576,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-11",
+          "originalText": "ABCDE ABCDE",
+          "displayText": "ABCD...",
+          "truncated": true,
+          "visibleTextEnd": 4,
+          "measures": 12,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2968,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-12",
+          "originalText": "ABCDE ABCDE ",
+          "displayText": "ABCDE...",
+          "truncated": true,
+          "visibleTextEnd": 5,
+          "measures": 13,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 3360,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-13",
+          "originalText": "ABCDE ABCDE A",
+          "displayText": "ABCDE ...",
+          "truncated": true,
+          "visibleTextEnd": 6,
+          "measures": 14,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 3752,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-14",
+          "originalText": "ABCDE ABCDE AB",
+          "displayText": "...",
+          "truncated": true,
+          "visibleTextEnd": 0,
+          "measures": 15,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1400,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-15",
+          "originalText": "ABCDE ABCDE ABC",
+          "displayText": "A...",
+          "truncated": true,
+          "visibleTextEnd": 1,
+          "measures": 16,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1792,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-16",
+          "originalText": "ABCDE ABCDE ABCD",
+          "displayText": "AB...",
+          "truncated": true,
+          "visibleTextEnd": 2,
+          "measures": 17,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2184,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-17",
+          "originalText": "ABCDE ABCDE ABCDE",
+          "displayText": "ABC...",
+          "truncated": true,
+          "visibleTextEnd": 3,
+          "measures": 18,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2576,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-18",
+          "originalText": "ABCDE ABCDE ABCDE ",
+          "displayText": "ABCD...",
+          "truncated": true,
+          "visibleTextEnd": 4,
+          "measures": 19,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2968,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-19",
+          "originalText": "ABCDE ABCDE ABCDE A",
+          "displayText": "ABCDE...",
+          "truncated": true,
+          "visibleTextEnd": 5,
+          "measures": 20,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 3360,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-20",
+          "originalText": "ABCDE ABCDE ABCDE AB",
+          "displayText": "ABCDE ...",
+          "truncated": true,
+          "visibleTextEnd": 6,
+          "measures": 21,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 3752,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-21",
+          "originalText": "ABCDE ABCDE ABCDE ABC",
+          "displayText": "...",
+          "truncated": true,
+          "visibleTextEnd": 0,
+          "measures": 22,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1400,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-22",
+          "originalText": "ABCDE ABCDE ABCDE ABCD",
+          "displayText": "A...",
+          "truncated": true,
+          "visibleTextEnd": 1,
+          "measures": 23,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1792,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-23",
+          "originalText": "ABCDE ABCDE ABCDE ABCDE",
+          "displayText": "AB...",
+          "truncated": true,
+          "visibleTextEnd": 2,
+          "measures": 24,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2184,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-24",
+          "originalText": "ABCDE ABCDE ABCDE ABCDE ",
+          "displayText": "ABC...",
+          "truncated": true,
+          "visibleTextEnd": 3,
+          "measures": 25,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2576,
+          "cleanup": [
+            0,
+            0
+          ]
+        }
+      ],
+      "refusals": [
+        {
+          "label": "maxWidth-0",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "maxWidth-0",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "maxWidth--1",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "maxWidth-NaN",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "maxWidth-Infinity",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "maxWidth-1000001",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "maxWidth-90",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "maxWidth-null",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "maxWidth-undefined",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "accessor-text",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "accessor-font",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "accessor-atlasId",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "accessor-maxWidth",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "accessor-dpr",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "missing-text",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "missing-font",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "missing-atlasId",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "missing-maxWidth",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "null",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "array",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "foreignproto",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "hiddenmaxwidth",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "extrafield",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "symbolfield",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "policyfield",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-text-\"\"",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-text-\" \"",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-text-\"A\\nB\"",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-text-\"\ud55c\uae00\"",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-text-\"\ud83d\ude42\"",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-text-\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-text-\"\\u0000\"",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-dpr-0",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-dpr-5",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-dpr-NaN",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-dpr-2",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-font",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-atlas",
+          "code": "INVALID_ASSET",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "nocandidatefits",
+          "code": "ASSET_LIMIT",
+          "canvases": 1,
+          "measures": 4,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "font-unready",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "font-ignored",
+          "code": "INVALID_SCENE",
+          "canvases": 1,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "2dunavailable",
+          "code": "UNSUPPORTED_FEATURE",
+          "canvases": 1,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "measureunavailable",
+          "code": "UNSUPPORTED_FEATURE",
+          "canvases": 1,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-metric-NaN",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-metric--1",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-metric-Infinity",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-metric-1000001",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-selected-bounds",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "rasterheightcap",
+          "code": "ASSET_LIMIT",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "rasterwidthcap",
+          "code": "ASSET_LIMIT",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "drawerror",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 0
+        },
+        {
+          "label": "readerror",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1
+        },
+        {
+          "label": "badreadback",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1
+        },
+        {
+          "label": "noink",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1
+        }
+      ],
+      "getterReads": 0,
+      "legacyWitnesses": [
+        {
+          "name": "default",
+          "draws": 1,
+          "measures": 1
+        },
+        {
+          "name": "unicode",
+          "draws": 1,
+          "measures": 1
+        },
+        {
+          "name": "multiline",
+          "draws": 2,
+          "measures": 2
+        },
+        {
+          "name": "wrapped",
+          "draws": 3,
+          "measures": 8
+        }
+      ],
+      "maximumWholeCandidateMeasures": 129,
+      "maximumDerivedDisplayUnits": 130
+    },
+    {
+      "kind": "compiled-root",
+      "status": "PASS",
+      "cases": [
+        {
+          "label": "originalfits",
+          "originalText": "ABC",
+          "displayText": "ABC",
+          "truncated": false,
+          "visibleTextEnd": 3,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1400,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "originalbelowcap",
+          "originalText": "A",
+          "displayText": "A",
+          "truncated": false,
+          "visibleTextEnd": 1,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 616,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "markeronly",
+          "originalText": "ABCDEFGHIJ",
+          "displayText": "...",
+          "truncated": true,
+          "visibleTextEnd": 0,
+          "measures": 11,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1400,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "longestnonmonotonic",
+          "originalText": "ABCD",
+          "displayText": "ABC...",
+          "truncated": true,
+          "visibleTextEnd": 3,
+          "measures": 5,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 672,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "markeronlytoowidebutprefixfits",
+          "originalText": "ABC",
+          "displayText": "A...",
+          "truncated": true,
+          "visibleTextEnd": 1,
+          "measures": 4,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 672,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "inkcanexceedadvancecap",
+          "originalText": "A",
+          "displayText": "A",
+          "truncated": false,
+          "visibleTextEnd": 1,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 5824,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "dpr2",
+          "originalText": "A B C D",
+          "displayText": "A B...",
+          "truncated": true,
+          "visibleTextEnd": 3,
+          "measures": 8,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 10304,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "punctuation",
+          "originalText": "[]!?, ABC",
+          "displayText": "[]!...",
+          "truncated": true,
+          "visibleTextEnd": 3,
+          "measures": 10,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2576,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "derived130/max129",
+          "originalText": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+          "displayText": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA...",
+          "truncated": true,
+          "visibleTextEnd": 127,
+          "measures": 129,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 3584,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-1",
+          "originalText": "A",
+          "displayText": "A",
+          "truncated": false,
+          "visibleTextEnd": 1,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 616,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-2",
+          "originalText": "AB",
+          "displayText": "AB",
+          "truncated": false,
+          "visibleTextEnd": 2,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1008,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-3",
+          "originalText": "ABC",
+          "displayText": "ABC",
+          "truncated": false,
+          "visibleTextEnd": 3,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1400,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-4",
+          "originalText": "ABCD",
+          "displayText": "ABCD",
+          "truncated": false,
+          "visibleTextEnd": 4,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1792,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-5",
+          "originalText": "ABCDE",
+          "displayText": "ABCDE",
+          "truncated": false,
+          "visibleTextEnd": 5,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2184,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-6",
+          "originalText": "ABCDE ",
+          "displayText": "ABCDE ",
+          "truncated": false,
+          "visibleTextEnd": 6,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2576,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-7",
+          "originalText": "ABCDE A",
+          "displayText": "...",
+          "truncated": true,
+          "visibleTextEnd": 0,
+          "measures": 8,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1400,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-8",
+          "originalText": "ABCDE AB",
+          "displayText": "A...",
+          "truncated": true,
+          "visibleTextEnd": 1,
+          "measures": 9,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1792,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-9",
+          "originalText": "ABCDE ABC",
+          "displayText": "AB...",
+          "truncated": true,
+          "visibleTextEnd": 2,
+          "measures": 10,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2184,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-10",
+          "originalText": "ABCDE ABCD",
+          "displayText": "ABC...",
+          "truncated": true,
+          "visibleTextEnd": 3,
+          "measures": 11,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2576,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-11",
+          "originalText": "ABCDE ABCDE",
+          "displayText": "ABCD...",
+          "truncated": true,
+          "visibleTextEnd": 4,
+          "measures": 12,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2968,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-12",
+          "originalText": "ABCDE ABCDE ",
+          "displayText": "ABCDE...",
+          "truncated": true,
+          "visibleTextEnd": 5,
+          "measures": 13,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 3360,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-13",
+          "originalText": "ABCDE ABCDE A",
+          "displayText": "ABCDE ...",
+          "truncated": true,
+          "visibleTextEnd": 6,
+          "measures": 14,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 3752,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-14",
+          "originalText": "ABCDE ABCDE AB",
+          "displayText": "...",
+          "truncated": true,
+          "visibleTextEnd": 0,
+          "measures": 15,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1400,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-15",
+          "originalText": "ABCDE ABCDE ABC",
+          "displayText": "A...",
+          "truncated": true,
+          "visibleTextEnd": 1,
+          "measures": 16,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1792,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-16",
+          "originalText": "ABCDE ABCDE ABCD",
+          "displayText": "AB...",
+          "truncated": true,
+          "visibleTextEnd": 2,
+          "measures": 17,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2184,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-17",
+          "originalText": "ABCDE ABCDE ABCDE",
+          "displayText": "ABC...",
+          "truncated": true,
+          "visibleTextEnd": 3,
+          "measures": 18,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2576,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-18",
+          "originalText": "ABCDE ABCDE ABCDE ",
+          "displayText": "ABCD...",
+          "truncated": true,
+          "visibleTextEnd": 4,
+          "measures": 19,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2968,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-19",
+          "originalText": "ABCDE ABCDE ABCDE A",
+          "displayText": "ABCDE...",
+          "truncated": true,
+          "visibleTextEnd": 5,
+          "measures": 20,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 3360,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-20",
+          "originalText": "ABCDE ABCDE ABCDE AB",
+          "displayText": "ABCDE ...",
+          "truncated": true,
+          "visibleTextEnd": 6,
+          "measures": 21,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 3752,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-21",
+          "originalText": "ABCDE ABCDE ABCDE ABC",
+          "displayText": "...",
+          "truncated": true,
+          "visibleTextEnd": 0,
+          "measures": 22,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1400,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-22",
+          "originalText": "ABCDE ABCDE ABCDE ABCD",
+          "displayText": "A...",
+          "truncated": true,
+          "visibleTextEnd": 1,
+          "measures": 23,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 1792,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-23",
+          "originalText": "ABCDE ABCDE ABCDE ABCDE",
+          "displayText": "AB...",
+          "truncated": true,
+          "visibleTextEnd": 2,
+          "measures": 24,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2184,
+          "cleanup": [
+            0,
+            0
+          ]
+        },
+        {
+          "label": "wholeprefix-24",
+          "originalText": "ABCDE ABCDE ABCDE ABCDE ",
+          "displayText": "ABC...",
+          "truncated": true,
+          "visibleTextEnd": 3,
+          "measures": 25,
+          "draws": 1,
+          "readbacks": 1,
+          "bytes": 2576,
+          "cleanup": [
+            0,
+            0
+          ]
+        }
+      ],
+      "refusals": [
+        {
+          "label": "maxWidth-0",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "maxWidth-0",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "maxWidth--1",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "maxWidth-NaN",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "maxWidth-Infinity",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "maxWidth-1000001",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "maxWidth-90",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "maxWidth-null",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "maxWidth-undefined",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "accessor-text",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "accessor-font",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "accessor-atlasId",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "accessor-maxWidth",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "accessor-dpr",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "missing-text",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "missing-font",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "missing-atlasId",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "missing-maxWidth",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "null",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "array",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "foreignproto",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "hiddenmaxwidth",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "extrafield",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "symbolfield",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "policyfield",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-text-\"\"",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-text-\" \"",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-text-\"A\\nB\"",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-text-\"\ud55c\uae00\"",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-text-\"\ud83d\ude42\"",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-text-\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\"",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-text-\"\\u0000\"",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-dpr-0",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-dpr-5",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-dpr-NaN",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-dpr-2",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-font",
+          "code": "INVALID_SCENE",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-atlas",
+          "code": "INVALID_ASSET",
+          "canvases": 0,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "nocandidatefits",
+          "code": "ASSET_LIMIT",
+          "canvases": 1,
+          "measures": 4,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "font-unready",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "font-ignored",
+          "code": "INVALID_SCENE",
+          "canvases": 1,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "2dunavailable",
+          "code": "UNSUPPORTED_FEATURE",
+          "canvases": 1,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "measureunavailable",
+          "code": "UNSUPPORTED_FEATURE",
+          "canvases": 1,
+          "measures": 0,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-metric-NaN",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-metric--1",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-metric-Infinity",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-metric-1000001",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "invalid-selected-bounds",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "rasterheightcap",
+          "code": "ASSET_LIMIT",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "rasterwidthcap",
+          "code": "ASSET_LIMIT",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 0,
+          "readbacks": 0
+        },
+        {
+          "label": "drawerror",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 0
+        },
+        {
+          "label": "readerror",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1
+        },
+        {
+          "label": "badreadback",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1
+        },
+        {
+          "label": "noink",
+          "code": "INVALID_ASSET",
+          "canvases": 1,
+          "measures": 1,
+          "draws": 1,
+          "readbacks": 1
+        }
+      ],
+      "getterReads": 0,
+      "legacyWitnesses": [
+        {
+          "name": "default",
+          "draws": 1,
+          "measures": 1
+        },
+        {
+          "name": "unicode",
+          "draws": 1,
+          "measures": 1
+        },
+        {
+          "name": "multiline",
+          "draws": 2,
+          "measures": 2
+        },
+        {
+          "name": "wrapped",
+          "draws": 3,
+          "measures": 8
+        }
+      ],
+      "maximumWholeCandidateMeasures": 129,
+      "maximumDerivedDisplayUnits": 130
+    }
+  ],
+  "probeAssertionFailures": [],
+  "firstRecords": [
+    {
+      "stage": "initial synthetic probe",
+      "error": "Fixture expected INVALID_SCENE for bad atlasId; existing validateImageAssetId correctly uses INVALID_ASSET. Corrected only oracle error code before browser; source unchanged.",
+      "log": "/tmp/c2d1371-probe-first-failure.txt"
+    }
+  ],
+  "types": {
+    "status": "PASS",
+    "commonExit": 0,
+    "commonFinalLog": "/tmp/c2d1371-common-types-final.txt",
+    "scopedExit": 0,
+    "scopedLog": "/tmp/c2d1371-scoped-types.txt",
+    "actualSourceHosts": true,
+    "explicitSourceAndEmittedRootTypes": true
+  },
+  "limitations": [
+    "Synthetic Canvas2D metrics/readback are not font shaping or browser pixel evidence.",
+    "Actual provider has one private canvas per call; reference control canvas is independent and separately identified.",
+    "Advance cap does not cap ink overhang/padding or establish Unicode ellipsis."
+  ]
+}

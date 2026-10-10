@@ -89,3 +89,6 @@ export { applyImageAlphaMask } from './image-alpha-mask.js';
 export { extrudeImageAsset } from './image-extrude.js';
 
 export { applyImageAlphaMatte } from './image-alpha-matte.js';
+
+export { rasterizeBrowserEllipsizedText } from './browser-text.js';
+export type { BrowserEllipsizedTextOptions, BrowserEllipsizedTextRaster } from './browser-text.js';

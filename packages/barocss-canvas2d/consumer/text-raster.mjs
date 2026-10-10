@@ -2,16 +2,16 @@
 import { createCanvas2D, createDisplayTree, createDisplayTreeFromScene,
   stringifySceneJSON } from '@barocss/canvas2d';
 import { serializeCanvasDocument, parseCanvasDocument, exportCanvasDocumentPNG } from '@barocss/canvas2d/document';
-import { prepareRaster, oversizeRaster, getHostCounts, validateText } from './text-raster-host.mjs';
+import { prepareRaster, prepareEllipsizedRaster, oversizeRaster, getHostCounts, validateText } from './text-raster-host.mjs';
 
 /** @typedef {import('@barocss/canvas2d').Point} Point */
-/** @typedef {NonNullable<Awaited<ReturnType<typeof prepareRaster>>>} Prepared */
+/** @typedef {NonNullable<Awaited<ReturnType<typeof prepareRaster>>> & {ellipsis?:{maxWidth:number,displayText:string,truncated:boolean,visibleTextEnd:number}}} Prepared */
 /** @typedef {{ left: number, right: number, top: number, bottom: number, width: number, height: number,
  * backingWidth: number, backingHeight: number, advance: number | null }} Bounds */
 /** @typedef {{ canvas: HTMLCanvasElement, renderer: import('@barocss/canvas2d').Canvas2DRenderer,
  * tree: import('@barocss/canvas2d').DisplayTree, glyph: import('@barocss/canvas2d').GlyphRunHandle,
  * scene: import('@barocss/canvas2d').Scene, asset: import('@barocss/canvas2d').ImageAssetInput,
- * bounds: Bounds, font: Prepared['font'] | null, generation: number, source: 'prepared' | 'document',
+ * bounds: Bounds, font: Prepared['font'] | null, ellipsis: Prepared['ellipsis'] | null, generation: number, source: 'prepared' | 'document',
  * unbind: () => void }} Session */
 const options = { logicalSize: { width: 320, height: 128 }, dpr: 2 };
 const atlasId = 'TextAtlas';
@@ -39,7 +39,7 @@ let disposed = false;
 const counts = { prepareCalls: 0, candidates: 0, accepted: 0, ignored: 0, errors: 0,
   rendererCreated: 0, rendererDisposed: 0, liveDisplayRenderers: 0, maxDisplayRenderers: 0,
   sceneSubmits: 0, renders: 0, pointerEvents: 0, openCalls: 0, pngCalls: 0,
-  pngTemporaryCanvases: 0, disposeCalls: 0, bindings: 0, unbindings: 0, layoutEdits: 0 };
+  pngTemporaryCanvases: 0, disposeCalls: 0, bindings: 0, unbindings: 0, layoutEdits: 0, positionEdits: 0 };
 
 /** @param {unknown} error */
 function codeOf(error) { return error instanceof Error && 'code' in error ? String(error.code)
@@ -104,7 +104,7 @@ function sample(s, point) {
 function sessionObservation(s) {
   const points = sourcePoints(s); const actual = s.renderer.getImageAsset(atlasId);
   return { generation: s.generation, source: s.source, text: s.glyph.data.text, sceneVersion: s.scene.version,
-    bounds: { ...s.bounds }, font: s.font && { ...s.font }, contextId: s.scene.contextId,
+    bounds: { ...s.bounds }, font: s.font && { ...s.font }, ellipsis:s.ellipsis&&{...s.ellipsis}, contextId: s.scene.contextId,
     layout: layoutOf(s),
     atlas: { width: s.asset.width, height: s.asset.height, byteLength: s.asset.pixels.length, hash: byteHash(s.asset.pixels) },
     atlasMatchesRenderer: !!actual && sameBytes(s.asset, actual),
@@ -123,7 +123,7 @@ function points() { return session ? sourcePoints(session) : null; }
 /** @param {string} message */
 function show(message) {
   status.textContent = message; output.textContent = JSON.stringify(observe(), null, 2);
-  for (const id of ['hi', 'space', 'slow', 'malformed', 'oversize', 'save', 'restored', 'png', 'dispose']) {
+  for (const id of ['hi', 'space', 'slow', 'malformed', 'oversize', 'save', 'restored', 'ellipsize', 'position', 'png', 'dispose']) {
     /** @type {HTMLButtonElement} */ (document.querySelector(`#${id}`)).disabled = disposed;
   }
   input.disabled = disposed;
@@ -197,8 +197,8 @@ function stagePrepared(prepared, token, restored = null) {
   try {
     renderer.setImageAsset(atlasId, prepared.asset); const scene = tree.snapshot(); renderer.updateScene(scene);
     counts.sceneSubmits++; renderer.render(); counts.renders++;
-    return { canvas: fresh, renderer, tree, glyph, scene, asset: prepared.asset,
-      bounds: { ...prepared.bounds }, font: prepared.font, generation: token,
+    return { canvas: fresh, renderer, tree, glyph, scene, asset: renderer.getImageAsset(atlasId) ?? prepared.asset,
+      bounds: { ...prepared.bounds }, font: prepared.font, ellipsis:prepared.ellipsis?{...prepared.ellipsis}:null, generation: token,
       source: /** @type {const} */ ('prepared'), unbind: () => {} };
   } catch (error) { disposeRenderer(renderer); throw error; }
 }
@@ -208,15 +208,15 @@ function reportFailure(error, before, token) {
   counts.errors++; failure = { code: codeOf(error), retained: fingerprint() === before, generation: token };
   state = session ? 'ready' : 'error'; show(`Candidate refused: ${failure.code}`);
 }
-/** @param {string} text @param {number} delayMS @param {boolean} restoredEdit */
-async function edit(text, delayMS = 0, restoredEdit = false) {
+/** @param {string} text @param {number} delayMS @param {boolean} restoredEdit @param {number|undefined} ellipsisWidth */
+async function edit(text, delayMS = 0, restoredEdit = false, ellipsisWidth = undefined) {
   if (disposed) return;
   const token = ++requestedGeneration; const before = fingerprint(); const restored = restoredEdit ? session : null; counts.candidates++; counts.prepareCalls++;
   state = 'preparing'; show(`Preparing ${JSON.stringify(text)}`);
   let acquired = false;
   /** @type {Session | null} */ let candidate = null;
   try {
-    const prepared = await prepareRaster(text, delayMS, () => current(token));
+    const prepared = ellipsisWidth===undefined?await prepareRaster(text,delayMS,()=>current(token)):await prepareEllipsizedRaster(text,ellipsisWidth,()=>current(token));
     if (!prepared || !current(token)) { markIgnored(token); return; }
     acquired = await acquireStage(token, 'edit');
     if (!acquired || !current(token)) { markIgnored(token); return; }
@@ -241,7 +241,7 @@ function oversize() {
 /** @param {string} text */
 async function openText(text) {
   if (disposed) return;
-  const token = ++requestedGeneration; const before = fingerprint(); const previous = session; const helperCalls = getHostCounts().helperCalls;
+  const token = ++requestedGeneration; const before = fingerprint(); const previous = session; const helperCounts = getHostCounts();
   counts.openCalls++; state = 'preparing'; show('Validating saved scene and bytes'); let acquired = false;
   /** @type {Session | null} */ let candidate = null;
   try {
@@ -276,11 +276,11 @@ async function openText(text) {
       next = { canvas: fresh, renderer, tree, glyph, scene: parsed.scene, asset,
         bounds: { left: quad.x, right: quad.x + quad.width, top: quad.y, bottom: quad.y + quad.height,
           width: quad.width, height: quad.height, backingWidth: asset.width, backingHeight: asset.height, advance: null },
-        font: null, generation: token, source: 'document', unbind: () => {} };
+        font: null, ellipsis:null, generation: token, source: 'document', unbind: () => {} };
       opened = { bytesEqualPrevious: previous ? sameBytes(previous.asset, asset) : null,
         samplesEqualPrevious: previous ? JSON.stringify({ ink: sessionObservation(previous).ink, space: sessionObservation(previous).space }) ===
           JSON.stringify({ ink: sessionObservation(next).ink, space: sessionObservation(next).space }) : null,
-        ids: tree.stage.children.map(child => child.id), fontPrepared: false, helperCallsUnchanged: getHostCounts().helperCalls === helperCalls,
+        ids: tree.stage.children.map(child => child.id), fontPrepared: false, helperCallsUnchanged: JSON.stringify(getHostCounts()) === JSON.stringify(helperCounts),
         layoutEqualPrevious: previous ? JSON.stringify(layoutOf(previous)) === JSON.stringify(layoutOf(next)) : null,
         contextEqualPrevious: previous ? previous.scene.contextId === next.scene.contextId : null,
         idsEqualPrevious: previous ? JSON.stringify(previous.tree.stage.children.map(child => child.id)) === JSON.stringify(tree.stage.children.map(child => child.id)) : null };
@@ -328,6 +328,11 @@ async function exportPNG() {
   } catch (error) { if (current(token)) show(`PNG refused: ${codeOf(error)}`); }
   finally { if (acquired) releaseStage(); }
 }
+function ellipsize(){return edit('A B C D E F G H',0,false,90);}
+function moveRestored(){
+  const s=session;if(!s||disposed)return;
+  s.glyph.setPosition(40,64);const scene=s.tree.snapshot();s.renderer.updateScene(scene);counts.sceneSubmits++;s.renderer.render();counts.renders++;s.scene=scene;counts.positionEdits++;show('Moved restored label to40,64');
+}
 function dispose() {
   counts.disposeCalls++; if (disposed) return;
   const s = session; if (s) { terminal = sessionObservation(s); s.unbind(); disposeRenderer(s.renderer); }
@@ -335,7 +340,7 @@ function dispose() {
   for (const unbind of hostUnbind.splice(0)) unbind(); show('Disposed; late text candidates are ignored');
 }
 const actions = { hi: () => { void edit('HI'); }, space: () => { void edit('H I'); },
-  slow: () => { void edit('HI', 750); }, malformed: () => { void edit('HI\n'); }, oversize,
+  slow: () => { void edit('HI', 750); }, ellipsize:()=>{void ellipsize();}, position:moveRestored, malformed: () => { void edit('HI\n'); }, oversize,
   save: () => { void save(); }, restored: () => { void edit('HI', 0, true); }, png: () => { void exportPNG(); }, dispose };
 for (const [id, action] of Object.entries(actions)) {
   const button = document.querySelector(`#${id}`); button?.addEventListener('click', action);
@@ -350,8 +355,9 @@ const onOpen = () => {
   }).catch(error => reportFailure(error, before, token)); input.value = '';
 };
 input.addEventListener('change', onOpen); hostUnbind.push(() => input.removeEventListener('change', onOpen));
-Object.defineProperty(window, 'textRaster', { value: Object.freeze({ observe, points, edit, oversize, save, openText,
+Object.defineProperty(window, 'textRaster', { value: Object.freeze({ observe, points, edit, ellipsize, moveRestored, oversize, save, openText,
   exportPNG, dispose, get canvas() { return canvas; },
+  get renderer(){return session?.renderer??null;}, get tree(){return session?.tree??null;},
   bytes() { const bytes = session?.renderer.getImageAsset(atlasId)?.pixels; return bytes ? new Uint8Array(bytes) : null; },
   documentText() { return session ? serialize(session) : Promise.resolve(null); },
   /** @param {Point} point */ pixel(point) { return session ? sample(session, point) : null; } }),

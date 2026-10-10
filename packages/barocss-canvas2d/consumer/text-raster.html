@@ -4,6 +4,7 @@
 <script type="importmap">{"imports":{"@barocss/canvas2d":"../dist/index.js","@barocss/canvas2d/document":"../dist/document.js"}}</script>
 </head><body><h1>Browser font to raster GlyphRun</h1>
 <p>This host prepares one label with 24px generic monospace. The public browser text helper supplies owned RGBA bytes and a complete glyph layout. Transparent space passes input to Back. The baseline is at (24, 64) logical pixels.</p>
+<button id="ellipsize">Ellipsize long label</button><button id="position">Move restored label</button>
 <button id="hi">HI</button><button id="space">H I</button><button id="slow">Slow HI</button>
 <button id="malformed">Reject malformed text</button><button id="oversize">Reject oversized font</button>
 <button id="save">Save document</button><label>Open document <input id="open" type="file" accept=".json,application/json"></label>

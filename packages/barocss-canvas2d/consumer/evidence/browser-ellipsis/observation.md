@@ -1,0 +1,43 @@
+# #1371 bounded printable ASCII ellipsis receipt
+
+Native feature and actual one-page flow PASS. Parent `a3f00b98f703892f2fd271c59367cbba17f5e79e`, branch `codex/canvas2d-1371`; exactly17 paths. Contractdb0a33c and authorfreeze3bb490be215efb4ad2899fb62bfc84312cc277b1/claim6099994230 preceded code. Root owns sole commit/adoption. Adopted Unicode1355/default/multiline/wrapped remain unchanged; their old browser flows were not replayed.
+
+## API and limits
+
+Required synchronous rasterizeBrowserEllipsizedText({text,font,atlasId,maxWidth,dpr?}) and BrowserEllipsizedTextOptions/Raster. Fixed printableASCII1..128 with nonspace; maxWidth positive finite<=1e6, logical ADVANCE cap; DPR defaults1 in1..4. Original advance fitting the cap keeps the original display. Otherwise all whole prefix lengths0..N-1 plus ASCII three dots are measured; greatest fitting prefix wins. No monotonic/binary-search assumption or early marker-only refusal. No fitting candidate is ASSET_LIMIT before draw. Original once plus N candidates at most129 measures; selected TextMetrics reused. Derived display at most130 units. Result displayText/truncated/visibleTextEnd are separate from original layout.text and whole-label0..N range. No Unicode ellipsis/caret/grapheme mapping or padded-ink-width claim.
+
+Existing shared scratch retains ordinary-data validation/getter0, CSS font admission/readiness, metric error codes,1024x256/1MiB caps, copiedRGBA and independent width0/height0 finally cleanup. One private canvas/one draw per successful call. Malformed descriptors/width are INVALID_SCENE; atlas ID uses existing INVALID_ASSET. No new Scene/file fields.
+
+## Gates and retained first records
+
+Node22.22 ONE affected build FIRSTPASS300.9KiB; final common actual-host checkJs and scoped source/explicit emitted public types exit0. Initial common passed before final host font-catch wrapper; final common repeated solely for final source coverage. Logs `/tmp/c2d1371-build.txt`, common-types-final.txt, scoped-types.txt.
+
+ONE successful paired source-bundle/emitted focused probe1656 assertions, EACH33 selection/copiedRGBA cases and54 refusals/getter0. Independent exhaustive candidate oracle tests nonmonotonic latest fit, marker-only too wide but prefix fits, original fit, marker-only, derived130/max129, no selected remeasure/one draw/read/copy/cleanup, metric/font/readback/cap failures. Four bounded synthetic inherited-mode witnesses preserve existing outputs/readiness, without old browser replay. First probe wrongly expected INVALID_SCENE for bad atlas ID; existing validator correctly returned INVALID_ASSET. Only oracle code repaired, source unchanged; first log retained `probe-first-failure.txt`. No successful numerical rerun.
+
+Driver preparation first referenced an archived donor WT and failed before writing driver; repaired to immutable inherited instrumentation in this current WT (`driver-first-error.txt`). Root preexecution review removed an unavailable Chrome148 global FontFaceSet reference and wrapped document.fonts.load with its bound receiver (`driver-static-font-fix.txt`). This was BEFORE any1371 browser execution, not a1371 runtime failure. Frozen final driver SHA256 `59ef08857646c6757ad9b8dfd00760ac2dc12ed873a156d7e99cd1bed565000a`.
+
+## One actual browser flow
+
+Chromium148 launched ANGLE/SwiftShader WebGL2, logical320x128/DPR2/back640x256. Original automatic Canvas2D bootstrap retained and awaited: normalhelper1, private scratch1/measure1/draw1/read1/reset0x0. ONE new UI Ellipsis accepted semantic `A B C D E F G H` (15 units), width90,24px generic monospace/DPR2. Independent reference canvas separately loads the font, measures original and all15 complete candidates, draws once, reads allRGBA and releases0x0; it is not counted as a provider scratch. Actual original advance216.03515625; selected `A B...`, visibleEnd3, advance86.4140625. No matched-font identity claim.
+
+Provider accepted scratch1/16whole-candidate measures/one draw/one read/final0x0. All26448RGBA of174x38 match the independent native reference, including boundsleft-3/top-16/87x19 and full source range0..15. GlyphRun.text remains full original text. Renderer-owned CPU copy and registration bytes remain exact after actual prepared caller pixels are mutated. Back32/40/56/255; Label initially24,64. Independent referenceRGBA/pixel-grid composition checks WHOLE655360 premultiplied frame, max0 at fixed tolerance2. Real opaque/transparent-space/Back pointers route Label/Back and stage.
+
+Three direct native refusals (malformed width0/getter/no-fit width1) preserve full accepted host observations/draft/tree/canonical/frame/bytes/identities. Getter0; malformed/getter allocate no private canvas. No-fit creates ONE scratch/16 measures/no draw/read/final0x0; GL draw/read unchanged. These are distinct from host font readiness and create no host candidate or generation change.
+
+## Native file and restored edit
+
+ONE public Save explicitly awaited to its return, before SEPARATE physical CLI chooser1/upload1. Pre-upload boundary complete=true/running=false/generation2/inputchange0/File.text0/pendinghash0. Actual completed native JSON36290bytes copied to saved-document.json; freshmtime afterphase0/exact canonical/SHA256 `233ef1fc41bcfb0c8de7b89c5e7acb072201589b27d085cd7ec4deefd764538c`. It contains Scene29/TextRasterConsumer/Back+Label/original15 text/full range0..15/full174x38 atlas and ALLRGBA; assetSHA256 `5bda88c3b2e85be308bd64a6faccdec682dc9ec1206ad17b663c8de995794ca8`. Font/ellipsis preparation profile is absent from file.
+
+ONE physical upload/change/File.text gives fresh canvas/tree/renderer/generation4 (existing input-read token plus Open token), identical canonical/scene/IDs/layout/sourceRGBA/frame. Both normalhelper1 and ellipsishelper1 unchanged; font-load count unchanged. Restored font and ellipsis profile null/unknown, advance null: never inferred from stored pixels or prior session. Public position40,64 edit1 rerenders without rasterizing; all source bytes and full semantic text/range preserved. Three restored real pointers keep opaque/space/Back routes.
+
+PNG1 actual native7080-byte completed download copied to exported.png; freshmtime/SHA256 `8a97062aa990b0dfa9ecd26693e59e8bb0520e2958e560ea586890304215ce8e`. Public decodeImageBlob returns640x256/all655360 bytes. Initial/moved/publicPNG reference-premultiplied comparisons each max0/tolerance2. Screenshot inspected by author/root: readable A B... at40,64, readygeneration4/positionEdits1/helper1/ellipsis1/bind3-unbind2 BEFOREDispose, distinct terminal3/3.
+
+## Lifetime, immutable proof and limits
+
+ALL4 actual GL contexts (bootstrap, ellipse candidate, fresh Open, PNG exporter) included; EACH shader4/program2/buffer3/VAO2/texture1/FBO0 created=deleted/native is*live0/error0/noLoss before page closure. Exact3 canvas target/callback/capture identities add3/remove3/active0. Six live physical canvas clicks plus one late click;12 bubble callbacks are distinct. Late pointer adds no event; controls/input disabled; repeated Dispose changes no resources. Consumer dispose-call diagnostic may count repeated invocation, without reopening resources.
+
+ALL5 Canvas2D scratch roles final0x0: bootstrap, accepted provider, no-fit provider, independent reference, decoder. One decoded bitmap closed once/0x0. Normal helper bootstrap and refused no-fit scratch are explicitly included, not hidden. Application errors0/rejections0/nativeGLerrors0/consoleerrors0; four readPixels stall warnings retained. All four actual phases passed FIRSTPASS; no repair, accepted replay or source/driver edit after acceptance. Browserc2d1371 closed, server31371/PID85103 stopped after API cleanup.
+
+Frozen228 source-host-config hashes/approved driver unchanged; all732 unowned baseline blobs including506 original evidence files exact.17 files complete; all prior native proofs preserved. Raw `/tmp/c2d1371-phase0.log` through phase3.log, prechooser-boundary/click/upload/native-save.json/native-png.json/close.log retained. The frozen four-phase CLI driver runs once: phase1 fullyreturns; copy genuine native JSON then separatechooser/upload beforephase2; copy genuine PNG beforephase3. Root final offline native/blobs review and solecommit/handoff follow.
+
+Native scope only; broad current-root1254/674 acceptance UNRUN, adoption pending. Generic browser font metrics/pixels are platform-specific; no cross-device/typeface/linear-light/Unicode ellipsis/caret/performance/GC/contextloss/release claim. Original text semantics and prepared display are deliberately distinct. No downloaded fonts, new example, shared checkout/root/lock/config edits or product push.

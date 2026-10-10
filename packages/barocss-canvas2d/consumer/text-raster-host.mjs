@@ -1,10 +1,10 @@
 // @ts-check
 // The host owns font readiness and its narrower example limits.
-import { rasterizeBrowserText } from '@barocss/canvas2d';
+import { rasterizeBrowserText, rasterizeBrowserEllipsizedText } from '@barocss/canvas2d';
 export const fontStyle = '24px monospace';
 export const rasterDPR = 2;
 const atlasId = 'TextAtlas';
-const hostCounts = { helperCalls: 0 };
+const hostCounts = { helperCalls: 0, ellipsisCalls: 0 };
 export function getHostCounts() { return { ...hostCounts }; }
 export class HostTextError extends Error {
   /** @param {string} code @param {string} message */
@@ -69,4 +69,20 @@ export async function prepareRaster(text, delayMS = 0, isCurrent = () => true) {
 export function oversizeRaster() {
   hostCounts.helperCalls++;
   return rasterizeBrowserText({ text: 'M'.repeat(32), font: '1000px monospace', atlasId, dpr: rasterDPR });
+}
+
+/** @param {string} text @param {number} maxWidth @param {()=>boolean} isCurrent */
+export async function prepareEllipsizedRaster(text, maxWidth, isCurrent) {
+  const label=validateText(text);
+  if(!document.fonts||typeof document.fonts.load!=='function'||typeof document.fonts.check!=='function')throw new HostTextError('HOST_FONT','Browser font APIs unavailable');
+  /** @type {ReturnType<typeof setTimeout>|undefined} */ let timeout;
+  let loadedFaces;
+  try { loadedFaces=await Promise.race([
+    (async()=>{await document.fonts.ready;const loaded=await document.fonts.load(fontStyle,label+'...');if(!document.fonts.check(fontStyle,label+'...'))throw new HostTextError('HOST_FONT','Declared browser font is not ready');return loaded.length;})(),
+    /** @type {Promise<never>} */(new Promise((_,reject)=>{timeout=setTimeout(()=>reject(new HostTextError('HOST_FONT_TIMEOUT','Font readiness exceeded 5s')),5000);})),
+  ]); } catch(error) {if(error instanceof HostTextError)throw error;throw new HostTextError('HOST_FONT','Browser font readiness failed');} finally {clearTimeout(timeout);}
+  if(!isCurrent())return null;
+  hostCounts.ellipsisCalls++;
+  const result=rasterizeBrowserEllipsizedText({text:label,font:fontStyle,atlasId,dpr:rasterDPR,maxWidth});
+  return {...admitRaster(result,loadedFaces),ellipsis:{maxWidth:result.maxWidth,displayText:result.displayText,truncated:result.truncated,visibleTextEnd:result.visibleTextEnd}};
 }
