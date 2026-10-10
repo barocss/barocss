@@ -11,7 +11,7 @@ import {WorkbenchIcon, ViewOrientation} from './mixed-workbench-icons.js';
 import {SourceTimeline} from './source-timeline.js';
 import {SceneGizmo} from './scene-gizmo.js';
 import {SceneObjectInspector} from './scene-object-inspector.js';
-import {inspectRenderSceneObjects, addRenderSceneObjectSource, removeRenderSceneObjectSource} from './scene-object-source.js';
+import {inspectRenderSceneObjects, addRenderSceneObjectSource, removeRenderSceneObjectSource, duplicateRenderSceneObjectSource} from './scene-object-source.js';
 import type {RenderSceneObjectKind} from './scene-object-source.js';
 const OBJECT_LABELS: Record<RenderSceneObjectKind, string> = {sphere:'Sphere',box:'Box',cylinder:'Cylinder',capsule:'Capsule','rounded-box':'Rounded box',torus:'Torus'};
 export {createSceneViewportPresenter} from './scene-viewport.js';
@@ -24,6 +24,7 @@ export interface RenderEditorProps extends RenderEditorPanelProps {
   onAction?: (action: 'new' | 'open' | 'save') => void;
   projectBrowser?: ReactNode;
   onObjectHelp?: () => void;
+  onDuplicateCommandChange?: (command:(()=>void)|null) => void;
 }
 function useSession(controller: RenderEditorController) { return useSyncExternalStore(controller.session.subscribe, controller.session.getSnapshot, controller.session.getSnapshot); }
 function action(result: RenderEditorActionResult, onError?: (error: RenderEditorError) => void) { if (!result.ok) onError?.(result.error); }
@@ -145,7 +146,7 @@ export function DiagnosticsPanel({controller, onError, onCorrectObject, onCorrec
 }
 
 /** Reusable workbench. The application supplies file actions, routes and menus. */
-export function RenderEditor({controller, header, toolbar, onError, onAction, projectBrowser, onObjectHelp, onCameraHelp, onGizmoHelp, onTransformGesture, onPlaybackChange, onAnimationHelp, navigationDisabled}: RenderEditorProps) {
+export function RenderEditor({controller, header, toolbar, onError, onAction, projectBrowser, onObjectHelp, onCameraHelp, onGizmoHelp, onTransformGesture, onPlaybackChange, onAnimationHelp, onDuplicateCommandChange, navigationDisabled}: RenderEditorProps) {
   const state = useSession(controller), view = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
   const [gizmoMode,setGizmoMode]=useState<RenderSceneGizmoMode>('translate');
   const [playbackActive,setPlaybackActive]=useState(false), playbackRef=useRef(false), [keyCorrection,setKeyCorrection]=useState(0);
@@ -156,7 +157,9 @@ export function RenderEditor({controller, header, toolbar, onError, onAction, pr
   const automaticAddName=useRef(true);
   const source = useRef<HTMLDivElement>(null), object = useRef<HTMLDivElement>(null), invalidObject = useRef<string|null>(null);
   const invalidObjectSource = useRef(false);
-  const pendingSelection = useRef<{id:string; documentId:string}|null>(null);
+  const duplicateCommand=useRef<()=>void>(()=>{});
+  const pendingSelection = useRef<{id:string; documentId:string;duplicateBase?:typeof state.accepted}|null>(null);
+  useEffect(()=>controller.session.subscribe(()=>{const pending=pendingSelection.current,next=controller.session.getSnapshot();if(pending?.duplicateBase&&next.accepted===pending.duplicateBase&&next.draftSource===pending.duplicateBase.sceneSource)pendingSelection.current=null;}),[controller]);
   const objects = useMemo(() => { try { return inspectRenderSceneObjects(state.draftSource); } catch { return null; } }, [state.draftSource]);
   const sourceValid = objects !== null, cameraPending=playbackActive||transformGesture||Boolean(view.cameraPreview||view.transformPreview||view.animationPreview), disabled = cameraPending || state.disposed || state.objectInputInvalid || state.animationInputInvalid || !sourceValid;
   const active = state.activeObjectId, draftIds = new Set(objects?.map(value => value.objectId) ?? []);
@@ -185,13 +188,28 @@ export function RenderEditor({controller, header, toolbar, onError, onAction, pr
     try {const output=addRenderSceneObjectSource(controller.session.getSnapshot().draftSource,kind,id);controller.session.setDraftObjectSource(output);pendingSelection.current={id,documentId:state.accepted.documentId};setToolError(null);const ids=new Set(inspectRenderSceneObjects(output).map(value=>value.objectId));let n=1;while(ids.has(`${kind}_${n}`))n++;setAddKind(kind);if(!quick||automaticAddName.current){automaticAddName.current=true;setAddId(`${kind}_${n}`);}}
     catch(cause){report(cause);}
   };
+  const duplicateSelected = () => {
+    const current=controller.session.getSnapshot(),presentation=controller.getSnapshot();
+    if(navigationDisabled||playbackRef.current||transformGestureRef.current||current.disposed||presentation.disposed||presentation.cameraPreview||presentation.transformPreview||presentation.animationPreview||current.objectInputInvalid||current.animationInputInvalid||!current.activeObjectId)return;
+    try {
+      const inventory=inspectRenderSceneObjects(current.draftSource),selected=inventory.find(value=>value.objectId===current.activeObjectId);
+      if(!selected||inventory.length>=32)return;
+      const ids=new Set(inventory.map(value=>value.objectId));let number=1;while(ids.has(`${selected.type}_${number}`))number++;
+      const id=`${selected.type}_${number}`,output=duplicateRenderSceneObjectSource(current.draftSource,selected.objectId,id);
+      if(controller.session.getSnapshot()!==current||controller.getSnapshot()!==presentation)return;
+      controller.session.setDraftObjectSource(output);
+      pendingSelection.current={id,documentId:current.accepted.documentId,duplicateBase:current.accepted};setToolError(null);
+    }catch(cause){report(cause);}
+  };
+  duplicateCommand.current=duplicateSelected;
+  useEffect(()=>{let live=true;onDuplicateCommandChange?.(()=>{if(live)duplicateCommand.current();});return()=>{live=false;onDuplicateCommandChange?.(null);};},[controller,onDuplicateCommandChange]);
   const remove = () => {
     if(playbackRef.current||transformGestureRef.current||disabled||(controller.getSnapshot().cameraPreview||controller.getSnapshot().transformPreview||controller.getSnapshot().animationPreview)||!active||!draftIds.has(active))return;
     try {controller.session.setDraftObjectSource(removeRenderSceneObjectSource(state.draftSource,active));setToolError(null);}catch(cause){report(cause);}
   };
   const addNameError = !/^[A-Za-z_][A-Za-z0-9_-]{0,47}$/.test(addId) ? 'Use an ASCII name of 1 to 48 characters.' : draftIds.has(addId) ? 'This name already exists.' : null;
   const scene = <div onClickCapture={event=>{if((event.target as HTMLElement).closest('[data-scene-object]'))setInspectorTab('object');}}><ObjectPanel controller={controller} navigationDisabled={transformGesture||playbackActive}/></div>;
-  const addToolbar = <section className="re-scene-object-tools" aria-label="Scene object tools"><div className="re-studio-add-types" aria-label="Add primitives">{(['sphere','box','cylinder','capsule','rounded-box','torus'] as const).map(kind=><button key={kind} type="button" data-testid={`add-${kind}`} aria-label={`Add ${OBJECT_LABELS[kind]}`} title={`Add ${OBJECT_LABELS[kind]} to draft`} disabled={disabled||(objects?.length??0)>=32} onClick={()=>add(kind,nextId(kind),true)}><WorkbenchIcon kind={kind}/><span>{OBJECT_LABELS[kind]}</span></button>)}</div><label>Type<select aria-label="Add object type" data-testid="add-object-type" disabled={disabled} value={addKind} onChange={event=>{const kind=event.target.value as RenderSceneObjectKind;setAddKind(kind);if(automaticAddName.current)setAddId(nextId(kind));}}>{(['sphere','box','cylinder','capsule','rounded-box','torus'] as const).map(kind=><option key={kind} value={kind}>{OBJECT_LABELS[kind]}</option>)}</select></label><label>Name<input aria-label="Add object name" data-testid="add-object-name" type="text" maxLength={48} disabled={disabled} value={addId} aria-invalid={addNameError!==null} onChange={event=>{automaticAddName.current=false;setAddId(event.target.value);}}/></label>{addNameError&&<p className="re-caption" data-testid="add-object-name-error">{addNameError}</p>}<div className="re-scene-tool-actions"><button type="button" data-testid="add-object" disabled={disabled||Boolean(addNameError)||(objects?.length??0)>=32} onClick={()=>add()}>Add to draft</button><button type="button" data-testid="remove-object" disabled={disabled||!active||!draftIds.has(active)} onClick={remove}>Remove selected</button></div>{pendingAdded.length>0&&<p className="re-caption" data-testid="pending-add">Pending add: {pendingAdded.join(', ')}. Apply to show.</p>}{pendingRemoved.length>0&&<p className="re-caption" data-testid="pending-remove">Pending remove: {pendingRemoved.join(', ')}. Apply to remove.</p>}{toolError&&<div className="re-scene-source-error"><p>The object operation was refused. Check the source or fields.</p><details><summary>Details</summary><pre>{toolError.message}</pre></details></div>}</section>;
+  const addToolbar = <section className="re-scene-object-tools" aria-label="Scene object tools"><div className="re-studio-add-types" aria-label="Add primitives">{(['sphere','box','cylinder','capsule','rounded-box','torus'] as const).map(kind=><button key={kind} type="button" data-testid={`add-${kind}`} aria-label={`Add ${OBJECT_LABELS[kind]}`} title={`Add ${OBJECT_LABELS[kind]} to draft`} disabled={disabled||(objects?.length??0)>=32} onClick={()=>add(kind,nextId(kind),true)}><WorkbenchIcon kind={kind}/><span>{OBJECT_LABELS[kind]}</span></button>)}</div><label>Type<select aria-label="Add object type" data-testid="add-object-type" disabled={disabled} value={addKind} onChange={event=>{const kind=event.target.value as RenderSceneObjectKind;setAddKind(kind);if(automaticAddName.current)setAddId(nextId(kind));}}>{(['sphere','box','cylinder','capsule','rounded-box','torus'] as const).map(kind=><option key={kind} value={kind}>{OBJECT_LABELS[kind]}</option>)}</select></label><label>Name<input aria-label="Add object name" data-testid="add-object-name" type="text" maxLength={48} disabled={disabled} value={addId} aria-invalid={addNameError!==null} onChange={event=>{automaticAddName.current=false;setAddId(event.target.value);}}/></label>{addNameError&&<p className="re-caption" data-testid="add-object-name-error">{addNameError}</p>}<div className="re-scene-tool-actions"><button type="button" data-testid="add-object" disabled={disabled||Boolean(addNameError)||(objects?.length??0)>=32} onClick={()=>add()}>Add to draft</button><button type="button" data-testid="duplicate-object" disabled={disabled||navigationDisabled||!active||!draftIds.has(active)||(objects?.length??0)>=32} onClick={duplicateSelected}>Duplicate selected</button><button type="button" data-testid="remove-object" disabled={disabled||!active||!draftIds.has(active)} onClick={remove}>Remove selected</button></div>{pendingAdded.length>0&&<p className="re-caption" data-testid="pending-add">Pending add: {pendingAdded.join(', ')}. Apply to show.</p>}{pendingRemoved.length>0&&<p className="re-caption" data-testid="pending-remove">Pending remove: {pendingRemoved.join(', ')}. Apply to remove.</p>}{toolError&&<div className="re-scene-source-error"><p>The object operation was refused. Check the source or fields.</p><details><summary>Details</summary><pre>{toolError.message}</pre></details></div>}</section>;
   const selectedType=state.metadata.objects.find(value=>value.id===active)?.type;
   const railMode=(mode:RenderSceneGizmoMode)=>{if(playbackRef.current||transformGestureRef.current||controller.getSnapshot().cameraPreview||controller.getSnapshot().transformPreview||controller.getSnapshot().animationPreview)return;setGizmoMode(mode);};
   const toolRail=<>{(['translate','rotate','scale'] as const).map(mode=><button type="button" key={mode} data-testid={`gizmo-mode-${mode}`} aria-pressed={gizmoMode===mode} disabled={cameraPending||state.disposed} aria-label={mode==='translate'?'Move':mode==='rotate'?'Rotate':selectedType==='rounded-box'?'Size':selectedType==='box'?'Scale':'Uniform scale'} title={mode==='translate'?'Move':mode==='rotate'?'Rotate':selectedType==='rounded-box'?'Size XYZ / uniform':selectedType==='box'?'Scale XYZ / uniform':'Uniform scale'} onClick={()=>railMode(mode)}><span aria-hidden="true">{mode==='translate'?'↗':mode==='rotate'?'↻':'↔'}</span></button>)}</>;

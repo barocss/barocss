@@ -191,6 +191,39 @@ export function addRenderSceneObjectSource(source: string, kind: RenderSceneObje
   return output;
 }
 
+/** Duplicate effective compiler values into a fresh exact-ID rule; original text stays intact. */
+export function duplicateRenderSceneObjectSource(source: string, objectId: string, newId: string): string {
+  existingId(objectId); id(newId);
+  try {
+    const before = compiled(source), selected = before.scene.objects.find(object => object.id === objectId);
+    if (!selected) throw input('Object ID does not exist in the original scene.');
+    if (before.scene.objects.some(object => object.id === newId)) throw input('New object ID already exists.');
+    const last = before.ast.declarations.at(-1);
+    if (!last) throw new RenderEditorError('SOURCE_REFUSED', 'Compiled scene declaration boundary is unavailable.');
+    const color = hex(selected.color);
+    if (!same(rgb(color), selected.color)) throw new RenderEditorError('SOURCE_REFUSED', 'The effective color cannot be copied exactly with supported opaque Source colors.');
+    const declarations = [`color: ${color};`, `translate: ${selected.translate.map(text).join(' ')};`,
+      ...selected.rotateDegrees.map((value, axis) => `${['rotate-x', 'rotate-y', 'rotate-z'][axis]}: ${text(value)}deg;`)];
+    for (const key of DIMENSIONS[selected.type]) {
+      const value = (selected as unknown as Record<string, number | readonly number[]>)[key]!;
+      const property = key === 'majorRadius' ? 'major-radius' : key === 'minorRadius' ? 'minor-radius' : key;
+      declarations.push(`${property}: ${(typeof value === 'number' ? [value] : value).map(text).join(' ')};`);
+    }
+    const newline = source.includes('\r\n') ? '\r\n' : '\n';
+    const withDeclaration = source.slice(0, last.range.end) + `${newline} ${selected.type} #${newId};` + source.slice(last.range.end);
+    const output = appendRule(withDeclaration, newId, declarations), after = compiled(output);
+    assertUnchanged(before.scene, after.scene, [...before.scene.objects, {...selected, id: newId}]);
+    return output;
+  } catch (error) {
+    if (error instanceof RenderEditorError && error.code === 'DOCUMENT_BYTES') {
+      const refused = new RenderEditorError('SOURCE_REFUSED', error.message, error.diagnostics);
+      Object.defineProperty(refused, 'cause', {value: error, configurable: true});
+      throw refused;
+    }
+    throw error;
+  }
+}
+
 /** Remove the original declaration and all exact-ID rules; type styles stay intact. */
 export function removeRenderSceneObjectSource(source: string, objectId: string): string {
   existingId(objectId);
