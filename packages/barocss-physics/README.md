@@ -115,7 +115,7 @@ Optional `broadPhase:'aabb'` filters the existing eligible pair list before narr
 
 `world.overlapSphere({centerM,radiusM,includeSensors?})` returns lexically sorted body IDs. `world.raycast({originM,direction,maxDistanceM,includeSensors?})` returns the nearest `{bodyId,distanceM}` or `null`; direction must be unit length within 1e-9. A ray starting inside a shape reports distance zero. Both queries read the last accepted state; they do not advance the world. Sensor inclusion defaults to true. Query positions are within ±10000 m, radius is 0.0001–1000 m, and ray distance is 0.0001–10000 m. Spheres, oriented boxes and capsules are admitted. Invalid queries use `INVALID_QUERY` and keep accepted state. See [PHYS-03 #766](https://github.com/barocss/barocss/issues/766#issuecomment-6058738723) for the original event and query rules.
 
-`PhysicsError.code` identifies `INVALID_CONFIG`, `INVALID_STEP`, `INVALID_COMMAND`, `INVALID_QUERY`, `INVALID_SNAPSHOT`, `STALE_SOURCE`, `STALE_SNAPSHOT`, `WORLD_LIMIT`, `NUMERIC_LIMIT` or `DISPOSED`.
+`PhysicsError.code` identifies `INVALID_CONFIG`, `INVALID_STEP`, `INVALID_COMMAND`, `INVALID_QUERY`, `INVALID_SNAPSHOT`, `STALE_SOURCE`, `STALE_SNAPSHOT`, `WORLD_LIMIT`, `NUMERIC_LIMIT` or `DISPOSED`. The separate upright capsule query also uses `INITIAL_OVERLAP` and `ITERATION_LIMIT`.
 
 The root, `/cloth`, `/fluid` and `/fluid-cad` export the same `PhysicsError`
 constructor within one installed package instance. A caller can catch a genuine

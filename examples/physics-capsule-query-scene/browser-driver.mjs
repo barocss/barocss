@@ -22,8 +22,9 @@ for(const mode of ['source','compiled']){
  bundles['/'+mode+'.bundle.mjs']=bundle.outputFiles[0].contents;resolution[mode]={sourceFiles:src.length,compiledFiles:dist.length,ownInputs:own,...(published?{publishedResolutions:published.resolutions}:{})};
 }
 const html=await readFile(resolve(here,'browser.html'));
+const {chromium}=await import(tool);
 const server=createServer((req,res)=>{const path=new URL(req.url,'http://localhost').pathname;if(path==='/favicon.ico'){res.writeHead(204);res.end();return;}const bytes=path==='/browser.html'?html:bundles[path];if(!bytes){res.writeHead(404);res.end();return;}res.writeHead(200,{'content-type':path.endsWith('.html')?'text/html':'text/javascript','cache-control':'no-store'});res.end(bytes);});
-await new Promise(r=>server.listen(0,'127.0.0.1',r));const {chromium}=await import(tool);let browser;
+await new Promise(r=>server.listen(0,'127.0.0.1',r));let browser;
 try{
  browser=await chromium.launch({headless:true,channel:'chrome'});await mkdir(output,{recursive:true});
  for(const mode of ['source','compiled']){
