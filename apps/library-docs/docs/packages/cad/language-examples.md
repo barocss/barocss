@@ -153,4 +153,3 @@ Each displayed Surface uses a 17×17 sampling grid: 289 vertices and 512 triangl
 Source2 admits at most 64 Parameters and 16 geometry declarations. Fields keep their quantity rules: coordinate/vector components require lengths; degrees, knots and weights require scalars. Arrays must fit the native degree, pole and positive-weight bounds. Compiler ranges use half-open UTF-16 offsets and one-based lines/columns; apply them only to the exact candidate text that produced them. Recompile the complete edited input to obtain new independent native data.
 
 [Model language](./language) · [CAD API](./api) · [Other geometry examples](./examples) · [Limits](./limits)
-
