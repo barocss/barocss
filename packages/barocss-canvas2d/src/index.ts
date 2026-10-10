@@ -59,3 +59,6 @@ export type { BrowserTextOptions, BrowserTextRaster, BrowserTextPolicy, BrowserM
 export type { SceneV28, NodeV28, GroupNodeV28, FrameNodeV28, ImageNodeV28 } from './schema.js';
 
 export type { SceneV29, NodeV29, GroupNodeV29, FrameNodeV29, ImageNodeV29, SpriteAlphaMask } from './schema.js';
+
+export { shadowImageAsset } from './image-shadow.js';
+export type { ImageShadowOptions } from './image-shadow.js';

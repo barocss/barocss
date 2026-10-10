@@ -1,5 +1,5 @@
 // @ts-check
-import {createCanvas2D,createDisplayTree,createDisplayTreeFromScene,Canvas2DError,blurImageAsset} from '@barocss/canvas2d';
+import {createCanvas2D,createDisplayTree,createDisplayTreeFromScene,Canvas2DError,blurImageAsset,shadowImageAsset} from '@barocss/canvas2d';
 import {serializeCanvasDocument,parseCanvasDocument,exportCanvasDocumentPNG} from '@barocss/canvas2d/document';
 const pose=(x=0,y=0)=>({x,y,scaleX:1,scaleY:1,rotation:0});
 const options={logicalSize:{width:128,height:64},dpr:1};
@@ -18,7 +18,7 @@ let tree=createDisplayTree('CaptureDerived');
 /** @type {import('@barocss/canvas2d').Canvas2DRenderer} */let target=createCanvas2D(targetCanvas,options);
 /** @type {import('@barocss/canvas2d').ImageAssetInput|null} */let captured=null;
 /** @type {import('@barocss/canvas2d').ImageAssetInput|null} */let originalCapture=null;
-let disposed=false,opens=0,edits=0,pointers=0,binds=0,unbinds=0,blurPreparations=0;
+let disposed=false,opens=0,edits=0,pointers=0,binds=0,unbinds=0,blurPreparations=0,shadowPreparations=0;
 /** @type {(()=>void)|null} */let unbind=null;
 /** @type {string[]} */const hits=[];
 function bind(){const c=targetCanvas;const on=(/** @type {PointerEvent} */e)=>{const r=c.getBoundingClientRect();const h=target.hitTest({x:e.clientX-r.left-1,y:e.clientY-r.top-1});pointers++;hits.push(h?.id??'none');show();};c.addEventListener('pointerdown',on);binds++;unbind=()=>{c.removeEventListener('pointerdown',on);unbinds++;};}
@@ -27,6 +27,8 @@ function show(){status.textContent=JSON.stringify(observe(),null,2);}
 function capture(){if(disposed)throw new Canvas2DError('DISPOSED','host disposed');const asset=source.captureImageAsset();target.setImageAsset('Captured',asset);const next=createDisplayTree('CaptureDerived');next.stage.addChild(next.createSprite({id:'CapturedSprite',layer:0,transform:pose(),imageId:'Captured',sourceRect:{x:0,y:0,width:asset.width,height:asset.height},width:128,height:64,opacity:1,anchorX:0,anchorY:0,sampling:'nearest'}));target.updateScene(next.snapshot());target.render();tree=next;captured=asset;originalCapture=asset;show();return asset;}
 /** @param {number} radius */
 function blur(radius){if(disposed)throw new Canvas2DError('DISPOSED','host disposed');if(!originalCapture)throw new Canvas2DError('INVALID_ASSET','capture first');const prepared=blurImageAsset(originalCapture,radius);target.setImageAsset('Captured',prepared);target.render();captured=prepared;blurPreparations++;show();return prepared;}
+/** @param {import('@barocss/canvas2d').ImageShadowOptions} options */
+function shadow(options){if(disposed)throw new Canvas2DError('DISPOSED','host disposed');if(!originalCapture)throw new Canvas2DError('INVALID_ASSET','capture first');const prepared=shadowImageAsset(originalCapture,options);target.setImageAsset('Captured',prepared);target.render();captured=prepared;shadowPreparations++;show();return prepared;}
 async function documentText(){return serializeCanvasDocument(tree.snapshot(),id=>target.getImageAsset(id));}
 /** @param {Blob} blob @param {string} filename */function download(blob,filename){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 async function save(){const text=await documentText();download(new Blob([text],{type:'application/json'}),'capture-image-document.json');return text;}
@@ -34,8 +36,8 @@ async function save(){const text=await documentText();download(new Blob([text],{
 function edit(){const s=tree.get('CapturedSprite');if(s?.kind!=='sprite')throw new Error('Sprite missing');s.setPosition(8,0);target.updateScene(tree.snapshot());target.render();edits++;show();}
 async function png(){const text=await documentText(),result=await exportCanvasDocumentPNG(text,options,()=>instrument(document.createElement('canvas')));download(result.blob,'capture-image.png');return {size:result.blob.size,width:result.backingSize.width,height:result.backingSize.height};}
 function dispose(){if(disposed)return;unbind?.();source.dispose();target.dispose();disposed=true;show();}
-function observe(){return {disposed,opens,edits,blurPreparations,pointers,hits:[...hits],binds,unbinds,contextId:tree.snapshot().contextId,sceneVersion:tree.snapshot().version,assetSize:captured?{width:captured.width,height:captured.height,bytes:captured.pixels.length}:null,contexts:contexts.map(c=>({lost:c.lost,calls:{...c.calls},error:c.gl.getError(),resources:Object.fromEntries(Object.entries(c.resources).map(([k,r])=>[k,{created:r.created,deleted:r.deleted,live:r.live()}]))}))};}
+function observe(){return {disposed,opens,edits,blurPreparations,shadowPreparations,pointers,hits:[...hits],binds,unbinds,contextId:tree.snapshot().contextId,sceneVersion:tree.snapshot().version,assetSize:captured?{width:captured.width,height:captured.height,bytes:captured.pixels.length}:null,contexts:contexts.map(c=>({lost:c.lost,calls:{...c.calls},error:c.gl.getError(),resources:Object.fromEntries(Object.entries(c.resources).map(([k,r])=>[k,{created:r.created,deleted:r.deleted,live:r.live()}]))}))};}
 /** @param {import('@barocss/canvas2d').Canvas2DRenderer} r @param {HTMLCanvasElement} c @param {number} x @param {number} y */function sample(r,c,x,y){const gl=/** @type {WebGL2RenderingContext} */(c.getContext('webgl2')),p=new Uint8Array(4);gl.readPixels(x,c.height-y-1,1,1,gl.RGBA,gl.UNSIGNED_BYTE,p);return {rgba:[...p],hit:r.hitTest({x,y})?.id??null};}
-Object.defineProperty(window,'captureFixture',{value:{capture,blur,save,openText,edit,png,dispose,observe,documentText,source,sourceCanvas,get target(){return target;},get canvas(){return targetCanvas;},tree:()=>tree,asset:()=>captured,original:()=>originalCapture,contexts,instrument,sourceSample:(x=4,y=4)=>sample(source,sourceCanvas,x,y),targetSample:(x=4,y=4)=>sample(target,targetCanvas,x,y)}});
-for(const [id,action]of Object.entries({capture,blur:()=>blur(2),save,edit,png,dispose}))document.querySelector('#'+id)?.addEventListener('click',()=>{void Promise.resolve().then(async()=>{await action();}).catch(e=>{status.textContent=String(e);});});
+Object.defineProperty(window,'captureFixture',{value:{capture,blur,shadow,save,openText,edit,png,dispose,observe,documentText,source,sourceCanvas,get target(){return target;},get canvas(){return targetCanvas;},tree:()=>tree,asset:()=>captured,original:()=>originalCapture,contexts,instrument,sourceSample:(x=4,y=4)=>sample(source,sourceCanvas,x,y),targetSample:(x=4,y=4)=>sample(target,targetCanvas,x,y)}});
+for(const [id,action]of Object.entries({capture,blur:()=>blur(2),shadow:()=>shadow({radius:2,offsetX:6,offsetY:4,color:[0.25,0.5,1,0.75]}),save,edit,png,dispose}))document.querySelector('#'+id)?.addEventListener('click',()=>{void Promise.resolve().then(async()=>{await action();}).catch(e=>{status.textContent=String(e);});});
 const input=/** @type {HTMLInputElement} */(document.querySelector('#open'));input.addEventListener('change',()=>{const f=input.files?.[0];if(f)void f.text().then(openText).catch(e=>{status.textContent=String(e);});input.value='';});show();
