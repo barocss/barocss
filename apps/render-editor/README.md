@@ -2,6 +2,10 @@
 
 A private React and shadcn host for `@barocss/render-editor`. The app owns menus, native files, downloads, workspace navigation, and example documents. The module owns source, camera, inventory, diagnostics, and the GPU viewport.
 
+The mixed app uses compact document/file chrome and a viewport-first workbench. Scene and Projects share one left dock; Object and Camera share the right inspector. Source and Problems open on request below the viewport. Apply and Discard stay visible when Source is closed. Drag the panel separators or focus them and use the arrow keys, Home and End to resize within their bounds. The existing New/Open/Save, workspace and pending/unsaved decisions remain. Help → Editor layout explains the controls. Layout changes do not edit source or create history and are not saved.
+
+`workbench-layout-flow.mjs --layout-file <real unchanged download> --edited-file <real re-edited download> --output <new-directory>` qualifies actual browser files against the prior original native document. CUA separately checks the real viewport, panels, keyboard/pointer resizing, hidden raw guards, camera preview and file picker. The cold script does not drive a browser or prove GL behavior. Source-only editor styles and native geometry/rendering contracts remain separate.
+
 ## Run
 
 Use the repository's installed Node 22 toolchain and dependencies. This app requires no custom source condition or source alias.
@@ -39,7 +43,7 @@ The mixed app owns the same shadcn File/Edit/Workspace/Help shell, project route
 
 Native file size is checked against 524288 bytes before `File.text()`. A late read is refused when the session snapshot or project changes. Open adds a project only after the real controller accepts and presents it. Save downloads `.render-mixed.json`; fresh Open reconstructs the complete mixed frame from authored data. Version 0 scene files use the source editor and are refused here.
 
-Projects stay in this tab. Save a file before closing. Notices and optional Details overlay the workbench without resizing the preview. The module owns preview and draft diagnostic notices. Restore preview is offered only when the display is unavailable and the controller is live. No precise picking, materials, Physics, independent poses for multiple assets, or broader mixed shape support is claimed.
+Projects stay in this tab. Save a file before closing. Host notices and optional Details appear at the bottom right without resizing the preview or covering Apply, Discard and the camera header. The module owns preview and draft diagnostic notices. Restore preview is offered only when the display is unavailable and the controller is live. No precise picking, materials, Physics, independent poses for multiple assets, or broader mixed shape support is claimed.
 
 The mixed app keeps the file/guard/error/revision selectors described above and adds `render-mixed-editor-app`, `project-surface_study`, and `project-rational_panel`. Accepted and displayed numeric revisions remain in `data-revision`. Use an isolated strict port override for the mixed native flow; the existing 52047 source-editor preview remains unchanged.
 
