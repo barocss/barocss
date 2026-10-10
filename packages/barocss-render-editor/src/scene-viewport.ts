@@ -1,12 +1,12 @@
 import {mountScene, type SceneRenderer} from '@barocss/gpu';
-import type {RenderSceneDocumentV0} from './document.js';
+import type {RenderSceneDocument} from './document.js';
 import type {RenderEditorPreparedCandidate} from './session.js';
 import type {PresentationResult, RenderEditorPresenter} from './controller.js';
 
 /** One owned source1 renderer. No canvas, input or clock is constructed by the pure root. */
 export function createSceneViewportPresenter(canvas: HTMLCanvasElement, onUnavailable?: (error: Error) => void): RenderEditorPresenter & {resize(width: number, height: number): void; readPixels(): Uint8Array} {
   let renderer: SceneRenderer<1> | null = null;
-  let shown: RenderSceneDocumentV0 | null = null;
+  let shown: RenderSceneDocument | null = null;
   let disposed = false;
   const errorOf = (error: unknown) => error instanceof Error ? error : new Error('Viewport failed.');
   const live = () => { try { renderer!.readPixels(); return true; } catch { return false; } };
@@ -19,7 +19,7 @@ export function createSceneViewportPresenter(canvas: HTMLCanvasElement, onUnavai
   };
   canvas.addEventListener('webglcontextlost', onLoss);
   return {
-    present(candidate: RenderEditorPreparedCandidate, previous: RenderSceneDocumentV0) {
+    present(candidate: RenderEditorPreparedCandidate, previous: RenderSceneDocument) {
       if (disposed || !renderer) return refused(new Error('The viewport is unavailable.'), false);
       try {
         if (candidate.mode === 'camera') {

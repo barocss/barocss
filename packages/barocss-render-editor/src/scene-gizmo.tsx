@@ -22,19 +22,19 @@ export function SceneGizmo({controller,canvas,disabled=false,onError,onHelp,onGe
   const localHelpOpen=useRef(localHelp);localHelpOpen.current=localHelp;
   const cancelGesture=useRef<(()=>void)|null>(null);
   useEffect(()=>{if(!canvas)return;const update=()=>setBox(measure(canvas));const observer=new ResizeObserver(update);observer.observe(canvas);update();return()=>observer.disconnect();},[canvas]);
-  const clean=!session.sourceDirty&&!session.cameraDirty&&!session.objectInputInvalid;
+  const clean=!session.sourceDirty&&!session.cameraDirty&&!session.objectInputInvalid&&!session.animationInputInvalid;
   const preparation=useMemo(()=>{
-    if(!box||!session.activeObjectId||view.cameraPreview||view.disposed||view.presentedRevision===null||(!clean&&!view.transformPreview))return {pivot:[0,0] as Point,handles:[],unavailable:null};
+    if(!box||!session.activeObjectId||view.cameraPreview||view.animationPreview||view.disposed||view.presentedRevision===null||(!clean&&!view.transformPreview))return {pivot:[0,0] as Point,handles:[],unavailable:null};
     try{return prepareRenderSceneGizmo(view.transformPreview?.source??session.accepted.sceneSource,session.activeObjectId,session.accepted.camera,viewportOf(box),mode);}
     catch{return {pivot:[0,0] as Point,handles:[],unavailable:'Handles are unavailable for this view. Use the object fields.'};}
-  },[box,session.accepted,session.activeObjectId,clean,view.transformPreview,view.cameraPreview,view.disposed,view.presentedRevision,mode]);
+  },[box,session.accepted,session.activeObjectId,clean,view.transformPreview,view.cameraPreview,view.animationPreview,view.disposed,view.presentedRevision,mode]);
   useEffect(()=>{
     if(!canvas||!svg.current)return;
     const element=svg.current;
     type Gesture={snapshot:ReturnType<typeof controller.session.getSnapshot>;id:string;source:string;box:Box;mode:RenderSceneGizmoMode;key:'x'|'y'|'z'|'uniform';from:Point;to:Point;pointer:number;capture:Element;expected:ReturnType<typeof controller.getSnapshot>['transformPreview'];moved:boolean;failed:boolean};
     let gesture:Gesture|null=null, frame:number|null=null, presenting=false;
     const point=(event:PointerEvent,g:Gesture):Point=>[event.clientX-g.box.left,event.clientY-g.box.top];
-    const fresh=(g:Gesture)=>!controller.getSnapshot().disposed&&controller.getSnapshot().presentedRevision!==null&&!controller.getSnapshot().cameraPreview&&controller.session.getSnapshot()===g.snapshot&&controller.session.getSnapshot().activeObjectId===g.id&&controller.getSnapshot().transformPreview===g.expected;
+    const fresh=(g:Gesture)=>!controller.getSnapshot().disposed&&controller.getSnapshot().presentedRevision!==null&&!controller.getSnapshot().cameraPreview&&!controller.getSnapshot().animationPreview&&controller.session.getSnapshot()===g.snapshot&&controller.session.getSnapshot().activeObjectId===g.id&&controller.getSnapshot().transformPreview===g.expected;
     const valid=(g:Gesture)=>fresh(g)&&sameBox(measure(canvas),g.box);
     const release=()=>{if(frame!==null){cancelAnimationFrame(frame);frame=null;}const old=gesture;gesture=null;if(old&&old.capture.hasPointerCapture(old.pointer))old.capture.releasePointerCapture(old.pointer);setActive(null);latest.current.onGestureChange?.(false);};
     const report=(cause:unknown)=>{const error=normalizeRenderEditorError(cause);if(error!==cause)Object.defineProperty(error,'cause',{value:cause,enumerable:false,configurable:true});setNotice('The transform was refused. Check the object fields or camera.');latest.current.onError?.(error);};
@@ -56,7 +56,7 @@ export function SceneGizmo({controller,canvas,disabled=false,onError,onHelp,onGe
     const down=(event:PointerEvent)=>{
       const handle=(event.target as Element).closest<SVGElement>('[data-gizmo-key]');
       const state=controller.session.getSnapshot(), current=controller.getSnapshot();
-      if(!handle||event.button!==0||gesture||latest.current.disabled||current.cameraPreview||current.transformPreview||current.disposed||current.presentedRevision===null||state.sourceDirty||state.cameraDirty||state.objectInputInvalid||!state.activeObjectId)return;
+      if(!handle||event.button!==0||gesture||latest.current.disabled||current.cameraPreview||current.transformPreview||current.animationPreview||current.disposed||current.presentedRevision===null||state.sourceDirty||state.cameraDirty||state.objectInputInvalid||state.animationInputInvalid||!state.activeObjectId)return;
       event.preventDefault();event.stopPropagation();const rect=measure(canvas), key=handle.dataset.gizmoKey as Gesture['key'];
       gesture={snapshot:state,id:state.activeObjectId,source:state.accepted.sceneSource,box:rect,mode:latest.current.mode,key,from:[event.clientX-rect.left,event.clientY-rect.top],to:[event.clientX-rect.left,event.clientY-rect.top],pointer:event.pointerId,capture:handle,expected:null,moved:false,failed:false};
       handle.focus();handle.setPointerCapture(event.pointerId);setActive(handle.getAttribute('aria-label'));setNotice('');latest.current.onGestureChange?.(true);
@@ -74,7 +74,7 @@ export function SceneGizmo({controller,canvas,disabled=false,onError,onHelp,onGe
       const offsets:Record<string,Point>={ArrowLeft:[-6,0],ArrowRight:[6,0],ArrowUp:[0,-6],ArrowDown:[0,6]};
       if(handle&&offsets[event.key]&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&!event.isComposing){
         event.preventDefault();event.stopPropagation();const state=controller.session.getSnapshot(), current=controller.getSnapshot();
-        if(event.repeat||gesture||latest.current.disabled||current.cameraPreview||current.transformPreview||current.disposed||current.presentedRevision===null||state.sourceDirty||state.cameraDirty||state.objectInputInvalid||!state.activeObjectId)return;
+        if(event.repeat||gesture||latest.current.disabled||current.cameraPreview||current.transformPreview||current.animationPreview||current.disposed||current.presentedRevision===null||state.sourceDirty||state.cameraDirty||state.objectInputInvalid||state.animationInputInvalid||!state.activeObjectId)return;
         try {const rect=measure(canvas), key=handle.dataset.gizmoKey as Gesture['key'];const prepared=prepareRenderSceneGizmo(state.accepted.sceneSource,state.activeObjectId,state.accepted.camera,viewportOf(rect),latest.current.mode);const selected=prepared.handles.find(value=>value.key===key);if(!selected)return;
           const delta=offsets[event.key]!, from=selected.anchor, to:Point=[from[0]+delta[0],from[1]+delta[1]];
           const patch=deriveRenderSceneGizmoPatch(state.accepted.sceneSource,state.activeObjectId,state.accepted.camera,viewportOf(rect),latest.current.mode,key,from,to), source=editRenderSceneObjectSource(state.accepted.sceneSource,state.activeObjectId,patch);
@@ -96,7 +96,7 @@ export function SceneGizmo({controller,canvas,disabled=false,onError,onHelp,onGe
     window.addEventListener('keydown',keydown);window.addEventListener('blur',cancel);canvas.addEventListener('webglcontextlost',context);
     return()=>{gestureObserver.disconnect();cancel();cancelGesture.current=null;unview();unsession();element.removeEventListener('pointerdown',down);element.removeEventListener('pointermove',move);element.removeEventListener('pointerup',up);element.removeEventListener('pointercancel',lost);element.removeEventListener('lostpointercapture',lost);window.removeEventListener('keydown',keydown);window.removeEventListener('blur',cancel);canvas.removeEventListener('webglcontextlost',context);};
   },[controller,canvas]);
-  const pending=Boolean(view.transformPreview), locked=disabled||Boolean(active)||pending||Boolean(view.cameraPreview)||view.disposed;
+  const pending=Boolean(view.transformPreview), locked=disabled||Boolean(active)||pending||Boolean(view.cameraPreview||view.animationPreview)||view.disposed;
   const choose=(value:RenderSceneGizmoMode)=>{if(locked)return;setMode(value);setNotice('');};
   const cancelPending=()=>{cancelGesture.current?.();if(controller.getSnapshot().transformPreview){const result=controller.cancelObjectPreview();if(!result.ok)onError?.(result.error);}};
   return <>

@@ -6,7 +6,7 @@ import {createCameraInput} from './camera-input.js';
 export function createSceneCameraInput(canvas: HTMLCanvasElement, controller: RenderEditorController, options: {
   mode: () => 'orbit' | 'pan'; onError: (error: RenderEditorError) => void; canNavigate?: () => boolean;
 }) {
-  return createCameraInput(canvas, controller, {...options, canNavigate: () => !controller.getSnapshot().transformPreview && (options.canNavigate?.() ?? true), normalizeError: cause => {
+  return createCameraInput(canvas, controller, {...options, canNavigate: () => !controller.getSnapshot().transformPreview && !controller.getSnapshot().animationPreview && (options.canNavigate?.() ?? true), normalizeError: cause => {
     const error = new RenderEditorError('DOCUMENT_INPUT', 'The camera move could not be previewed.');
     Object.defineProperty(error, 'cause', {value: cause, enumerable: false, configurable: true});
     return error;

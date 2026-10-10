@@ -1,9 +1,9 @@
-import type { RenderSceneDocumentV0 } from '@barocss/render-editor';
+import type { RenderSceneDocument } from '@barocss/render-editor';
 import { fixtureDocuments } from './fixtures';
 
 export interface WorkspaceProject {
   key: string;
-  document: RenderSceneDocumentV0;
+  document: RenderSceneDocument;
   origin: 'example' | 'local' | 'file';
   savedRevision: number | null;
 }

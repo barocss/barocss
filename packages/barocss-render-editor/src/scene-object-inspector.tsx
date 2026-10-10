@@ -70,7 +70,7 @@ export function SceneObjectInspector({controller, manualEdit, onEditSource, onHe
   const snapshot = useSyncExternalStore(controller.session.subscribe, controller.session.getSnapshot, controller.session.getSnapshot);
   const view=useSyncExternalStore(controller.subscribe,controller.getSnapshot,controller.getSnapshot);
   let previewProperties: RenderSceneObjectProperties | undefined;
-  try { if(view.transformPreview)previewProperties=inspectRenderSceneObjects(view.transformPreview.source).find(value=>value.objectId===view.transformPreview!.objectId); } catch {}
+  try { const previewSource=view.animationPreview?.source??view.transformPreview?.source;if(previewSource)previewProperties=inspectRenderSceneObjects(previewSource).find(value=>value.objectId===snapshot.activeObjectId); } catch {}
   const [stored, setStored] = useState(() => readStore(snapshot, manualEdit));
   const store = useRef(stored);
   const changed = stored.accepted !== snapshot.accepted || stored.manualEdit !== manualEdit || stored.lastOutput !== snapshot.draftSource || (stored.invalidId !== null && !snapshot.objectInputInvalid);
@@ -78,7 +78,7 @@ export function SceneObjectInspector({controller, manualEdit, onEditSource, onHe
   if (changed) { store.current = current; setStored(current); }
   const change = (id: string, field: string, text: string, axis?: number) => {
     const state = controller.session.getSnapshot(), previous = store.current, old = previous.entries.get(id);
-    if (disabled || (controller.getSnapshot().cameraPreview||controller.getSnapshot().transformPreview) || state.disposed || !old || old.removed || previous.sourceError || (previous.invalidId && previous.invalidId !== id) || text.length > 256) return;
+    if (disabled || state.animationInputInvalid || (controller.getSnapshot().cameraPreview||controller.getSnapshot().transformPreview||controller.getSnapshot().animationPreview) || state.disposed || !old || old.removed || previous.sourceError || (previous.invalidId && previous.invalidId !== id) || text.length > 256) return;
     const raw = {...old.raw};
     if (axis === undefined) raw[field] = text;
     else { const vector = [...raw[field]] as [string, string, string]; vector[axis] = text; raw[field] = vector; }
@@ -104,14 +104,14 @@ export function SceneObjectInspector({controller, manualEdit, onEditSource, onHe
   };
   const selected = snapshot.activeObjectId;
   return <section className="re-camera re-panel re-scene-object-inspector" aria-label="Object properties">
-    <div className="re-panel-heading"><h2>Object</h2><span>{view.transformPreview ? 'Transform preview' : snapshot.sourceDirty ? 'Draft' : 'Applied'}</span></div>
+    <div className="re-panel-heading"><h2>Object</h2><span>{view.animationPreview ? 'Animation preview' : view.transformPreview ? 'Transform preview' : snapshot.sourceDirty ? 'Draft' : 'Applied'}</span></div>
     {!selected ? <p className="re-caption">Select an applied object. Add stages a new object for Apply.</p> : null}
     {current.sourceError ? <p className="re-caption">Correct the Scene source to edit object properties.</p> : null}
     {snapshot.metadata.objects.map(object => {
       const binding = current.entries.get(object.id), active = selected === object.id;
       const shownRaw = previewProperties?.objectId===object.id ? rawOf(previewProperties) : binding?.raw;
       const errors = binding ? parse(binding).errors : {};
-      const locked = disabled || Boolean(view.cameraPreview||view.transformPreview) || snapshot.disposed || !binding || binding.removed || current.sourceError !== null || (current.invalidId !== null && current.invalidId !== object.id);
+      const locked = disabled || Boolean(view.cameraPreview||view.transformPreview||view.animationPreview)||snapshot.animationInputInvalid || snapshot.disposed || !binding || binding.removed || current.sourceError !== null || (current.invalidId !== null && current.invalidId !== object.id);
       return <div key={object.id} hidden={!active} data-testid={active ? 'scene-object-fields' : undefined} data-object-id={object.id}>
         <dl className="re-object-summary"><dt>Name</dt><dd>{object.id}</dd><dt>Type</dt><dd>{LABELS[binding?.properties.type ?? object.type]}</dd></dl>
         {binding?.removed ? <p className="re-caption">Removed in draft. Apply or Discard to resolve it.</p> : null}

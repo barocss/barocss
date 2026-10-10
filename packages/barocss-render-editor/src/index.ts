@@ -1,7 +1,7 @@
 export {RenderEditorError, normalizeRenderEditorError} from './errors.js';
 export type {RenderEditorErrorCode} from './errors.js';
 export {RENDER_EDITOR_LIMITS, validateRenderEditorDocument, parseRenderEditorDocument, serializeRenderEditorDocument, compileRenderEditorSource} from './document.js';
-export type {RenderSceneDocumentV0, RenderEditorMetadata, RenderEditorObjectMetadata} from './document.js';
+export type {RenderSceneDocument, RenderSceneDocumentV0, RenderSceneDocumentV1, RenderEditorMetadata, RenderEditorObjectMetadata} from './document.js';
 export * from './session.js';
 export * from './controller.js';
 export * from './mixed-document.js';
@@ -19,3 +19,6 @@ export {inspectRenderSceneObjects, editRenderSceneObjectSource, addRenderSceneOb
 export type {RenderSceneObjectKind, RenderSceneObjectProperties, RenderSceneObjectPatch} from './scene-object-source.js';
 export {prepareRenderSceneGizmo, deriveRenderSceneGizmoPatch} from './scene-gizmo-projection.js';
 export type {RenderSceneGizmoMode, RenderSceneGizmoAxis, RenderSceneGizmoKey, RenderSceneGizmoViewport, RenderSceneGizmoHandle, RenderSceneGizmoPreparation} from './scene-gizmo-projection.js';
+
+export {validateRenderSceneAnimationClip, sampleRenderSceneAnimationSource} from './source-animation.js';
+export type {RenderSceneAnimationKeyV0, RenderSceneAnimationTrackV0, RenderSceneAnimationClipV0} from './source-animation.js';
