@@ -165,10 +165,10 @@ export function CadEditorExportReview(props:CadEditorExportReviewProps) {
             <p>Closing Help preserves all fields and returns focus to Help. Close or Escape returns to Export IGES. This exchange is not certified topology, Solid, manufacturing or IGES reimport/equivalence evidence.</p>
             {error && <details><summary>Technical error details</summary><pre>{details(error)}</pre></details>}
             {result && <details><summary>Actual native capabilities and quality</summary><pre>{JSON.stringify({capabilities:result.report.capabilities,quality:result.report.quality,limits:result.report.limits},null,2)}</pre></details>}
-            <DialogClose asChild><Button type="button" variant="outline" data-testid="export-review-help-close">Close help</Button></DialogClose>
+            <DialogClose asChild><Button type="button" variant="outline" data-testid="export-review-help-close" className="cad-editor-export-close">Close help</Button></DialogClose>
           </DialogContent>
         </Dialog>
-        <DialogClose asChild><Button type="button" variant="outline" data-testid="export-review-close">Close</Button></DialogClose>
+        <DialogClose asChild><Button type="button" variant="outline" data-testid="export-review-close" className="cad-editor-export-close">Close</Button></DialogClose>
         <Button type="button" variant="outline" disabled={busy} data-testid="export-review-confirm" onClick={review}>Review export</Button>
         <Button type="button" disabled={busy || !currentCapture} data-testid="export-review-download-iges" onClick={()=>download('iges')}>Download IGES</Button>
         <Button type="button" variant="outline" disabled={busy || !currentCapture} data-testid="export-review-download-report" onClick={()=>download('report')}>Download loss report</Button>
