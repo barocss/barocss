@@ -6,6 +6,7 @@
 .measurement-label{position:absolute;transform:translate(-50%,-50%);padding:3px 6px;border-radius:4px;background:#102032e8;color:#fff;font-size:12px;line-height:1.3;white-space:nowrap}
 button,select,input{margin:4px;padding:6px 10px;background:#244462;color:white;border:1px solid #7198bc;border-radius:4px}button:disabled{opacity:.5}
 li{padding:8px;margin-bottom:8px;border:1px solid #56748f;overflow-wrap:anywhere}ul{list-style:none;padding:0}small{display:block}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px}
+li[data-screen-inspected=true]{border-color:#ffd479;background:#29445d}
 @media(max-width:900px){.layout{grid-template-columns:1fr}}</style></head><body>
 <h1>Independent original Face assets</h1><p>Each source keeps its whole native model, forward Face and UV boundary data.
 Faces share the view depth; this scene does not create a global Shell or Solid.</p>
@@ -26,6 +27,13 @@ Faces share the view depth; this scene does not create a global Shell or Solid.<
 <button id="saved-view" disabled>Original view</button><button id="orbit" disabled>Turn view</button><button id="pan" disabled>Pan view</button>
 <button id="resize" disabled>Resize view</button><button id="clear" disabled>Clear viewer</button><button id="run-proof" disabled>Run proof</button>
 <button id="lose-context" disabled>Lose context</button><button id="dispose" disabled>Dispose viewer</button>
+<label><input id="face-inspect-mode" type="checkbox" disabled>Face inspect mode</label>
+<p id="face-screen-inspection" role="status" aria-live="polite"></p>
+<details id="face-screen-inspection-help"><summary>About Face screen inspection</summary>
+<p>Click the view to identify a current source row from an approximate filled-triangle query. The row keeps its full original source reference.
+Triangle index and depth refer to the current display grid and scene units. They do not identify native UV or topology, or certify a rendered pixel or depth value.
+An ambiguous source tie is reported explicitly. Edges are not queried. The row mark does not highlight GPU geometry.
+Inspect again after the source or view changes.</p></details>
 <pre id="inspection" aria-label="Read-only original source and Face inspection">Inspect an admitted source from its row.</pre>
 <section aria-label="Original native Surface normal angle">
 <h2>Measure original native normal angle</h2>
@@ -167,5 +175,5 @@ its wrapper identity is only an inspection context. The label uses the original 
 Screen mapping is approximate and does not test occlusion.</p></details>
 </section>
 </div><aside><h2>Current source-qualified Faces</h2><ul id="assets"></ul></aside></div>
-<p>Row inspection is read-only source data. Combined fit, picking, selection and extra layers are unavailable.</p>
+<p>Row inspection is read-only source data. Combined fit, primitive picking, selection and extra layers are unavailable.</p>
 <pre id="status" role="status" aria-live="polite">Loading original Face assets…</pre><script type="module" src="/bundle.js"></script></body></html>

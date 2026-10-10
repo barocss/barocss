@@ -50,6 +50,9 @@ export type { ViewerQualifiedFacePointInput, ViewerQualifiedFacePoint, ViewerQua
 import { projectViewerQualifiedFacePoint } from './qualified-face-projection.js';
 import type { ViewerQualifiedFacePointProjection } from './qualified-face-projection.js';
 export type { ViewerQualifiedFacePointProjection } from './qualified-face-projection.js';
+import { pickViewerQualifiedFace } from './qualified-face-pick.js';
+import type { ViewerQualifiedFacePick } from './qualified-face-pick.js';
+export type { ViewerQualifiedFacePick } from './qualified-face-pick.js';
 
 type Vec3 = [number, number, number];
 type Quat = [number, number, number, number];
@@ -1005,6 +1008,13 @@ export class Viewer {
     check(this.qualifiedFaceScene, 'Viewer has no current qualified Face scene');
     const rect = this.canvas.getBoundingClientRect();
     return projectViewerQualifiedFacePoint(this.qualifiedFaceScene, input,
+      this.canvas.width, this.canvas.height, rect.width, rect.height);
+  }
+  pickQualifiedFace(point: ViewerGeometryPoint): ViewerQualifiedFacePick | null {
+    this.gpuLive(); check(!this.contextLost, 'Cannot pick qualified Faces after WebGL2 context loss');
+    check(this.qualifiedFaceScene, 'Viewer has no current qualified Face scene');
+    const rect = this.canvas.getBoundingClientRect();
+    return pickViewerQualifiedFace(this.qualifiedFaceScene, point,
       this.canvas.width, this.canvas.height, rect.width, rect.height);
   }
   replaceNativeScene(input: ViewerNativeSceneReplacementV0): void {
