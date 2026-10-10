@@ -128,5 +128,18 @@
     "All source helpers are unchanged; no manifold repair or original solver rerun.",
     "Depth/normal reference agreement does not prove contact force/stability or a unique physical feature.",
     "No refinement/cost/Chrome/Viewer/integrated file or publication claim."
-  ]
+  ],
+  "uncompressedArtifactHashes": {
+    "compiled-dependencies-ALIGNED-report.json": "7ffad73e5dab4f4a81a9d21f142c7669fe66f5ab1e87f03cc019d6caf3ec7ed5",
+    "compiled-dependencies-OFFSET-report.json": "3247f6e69af1a2e22c8ff0022d2ebadc7be9ec9dddb8cc05369ba1751b49fa5a",
+    "compiled-dependencies-YAW-report.json": "e8e7e9fdb26c974c37ce79735fd6c81bbe0dd6c87ed328151c633c508439f6cc",
+    "source-ALIGNED-report.json": "115c2d15d26ff82f05c36a633142fba52fb26d54174f9c0f1e5c4a9ca7944bcc",
+    "source-OFFSET-report.json": "8dd93eb61ab80c150994d358e6114c12495ec0bca9d78e135fcdc4129d1d5993",
+    "source-YAW-report.json": "f6649c7d13501030c4db89596af51d7f96ecb76d07a2193536c334a03b9d960c",
+    "source-repeat-ALIGNED-report.json": "3b2bc89b6fcca0b2aacedbf82c2330b3cc9da54519331bef1af9de8810953378",
+    "source-repeat-OFFSET-report.json": "a6b0969e8f3bf3d4e0ae698a818bbd2b8b90dea0a6587cd8e15e2642be03251c",
+    "source-repeat-YAW-report.json": "43129b71bb35d3cd622505f47d0ef363dd71882aeab983619171b0cb2b2b4698",
+    "summary.json": "7e11f8854c8e8f6daa285561f0a369717c0f7c6b0692afc51ada719de41b685a"
+  },
+  "packaging": "gzip reports/summary decompress byte-exact; canonical consumer unchanged"
 }
