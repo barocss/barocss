@@ -8477,3 +8477,63 @@ weight multi-section loft remain unchanged. General unlike bases, smooth
 independent-weight lofts, guides, transported frames, caps/Solid, topology,
 manufacturing/global binary64 enclosure, live document/consumer rendering and
 release acceptance remain separate requirements.
+
+
+## Native degree-five whole-source Surface editing — #1147
+
+`editSourceSurfaceControlNetWide({source, sourceVersion: 0, surfaceId, edits})`
+edits coordinate and weight literals in a complete original mixed Source0 file.
+The actual native profile is U/Vdegree1..5, each below its2..16axis count,
+up to256poles, original knots<=22peraxis, coordinateswithin±1e6mm and positive
+weights1e-6..1e6. `edits: {poleEdits}` admits1..256unique(uIndex,vIndex) records,
+each with a nonempty xMM/yMM/zMM/weight subset; at most1024requested fields and
+changed scalar patches. Existing619/1071 lower-profile operations remain intact.
+
+```js
+const result = cad.editSourceSurfaceControlNetWide({
+  source: completeOriginalSource,
+  sourceVersion: 0,
+  surfaceId: 'selected_surface',
+  edits: {poleEdits: [{uIndex: 1, vIndex: 2, zMM: 12, weight: 2}]},
+});
+const report = cad.validateSourceSurfaceControlNetWideEdit(result);
+// result.source is the complete accepted candidate with all original siblings.
+```
+
+Original whole-source compilation binds the selected Surface through real
+AST/IR/native geometry and exclusive UTF-16 numeric spans. Every requested
+field, including no-op, binds its original coefficient bits. Private scalar
+edits pass actual `validateSurface`; only Object.is changed literals use the
+existing decimal emitter. Sorted patches and candidate whole-source compilation
+verify every untouched source span, Model metadata/name/order/IDs, unrelated
+Curve+Surface and the exact edited Surface. Original degrees/knots/domains/grid
+and unrequested coefficients remain unchanged. Unicode/CRLF/comments and
+untouched signed zero survive; no-op preserves unusual decimal spelling.
+
+The eight result fields retain request/originalModel/model/source/surface/
+provenance/patches/report as independent copies. Owned validation reconstructs
+the complete original request and compares all source/proof/geometry bits.
+No previous source or input is mutated; failures return no partial candidate
+and the API has no filesystem side effects.
+
+Original U/Vleft, halfleft+halfright and right parameters form nine pairs,
+with18actual before/afterD0 calls and18D1attempts. Narrow-domain duplicate
+parameters remain disclosed. D0 failure is atomic; actual U/V C0 or arithmetic
+D1 refusal stays labelled with its native message, without invented derivatives.
+Maximum observed point change is a sample observation, not a global error bound.
+
+Whole source stays within262144UTF-16 units and UTF-8 bytes/Model16objects;
+copy limits are1Mvalues/depth64,1024patches/256edits/literal512characters.
+Direct work originalCompile1/candidateCompile1/nativeEditedSurfaceValidation1/
+domainQuery1/D0calls18/D1attempts18/decimalChangedFields is recorded separately
+from inherited compiler/domain/evaluator validation. Native bounds are retained.
+
+```sh
+node examples/cad-nurbs/source-surface-control-net-wide-demo.mjs --source EVIDENCE_DIR
+```
+
+Editing a loft's constructed Surface preserves its sibling Curves but does not
+keep the old owned loft recipe valid or rebind topology/consumer references.
+Live revision handling, geometry/Solid/regularity/global error/manufacturing,
+GPU/Loader/editor adoption, rendering and integrated file recovery remain
+separate requirements. Source0 expressions retain actual compiler refusal.
