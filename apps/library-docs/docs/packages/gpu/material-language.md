@@ -6,6 +6,10 @@ This page describes `mesh-opaque-fragment-v0` for local experimental `@barocss/g
 
 Read [CPU material evaluation](./cpu-material-evaluation) to inspect a compiled program with explicit uniform values and, for UV profiles, dimensionless coordinates. That guide states the newer API version and its three supported material families.
 
+## Combine functions in a complete material
+
+The [transition-window material](./composition-examples#material-transition-window) combines `clamp`, `smoothstep`, `rgb` and `mix` with one explicit uniform. Compare complete input, source-derived ratios and actual output images.
+
 ## Complete blend material
 
 ```css

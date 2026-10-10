@@ -4,6 +4,10 @@ Compile original geometry, query it, then prepare a separate display mesh. These
 
 [Open the CAD playground](/playground#cad-surface) · [Compiler signature](./reference#compilecadmodel) · [Surface sampling signature](./reference#tessellatesurface)
 
+## More editable language examples
+
+Use [CAD language practice](./language-examples) for weighted parameters, curved extrusion and nonunit Curve domains. Read the native values alongside each fitted display.
+
 ## Edit sections and rebuild a Loft
 
 Use the [complete NURBS Loft graph example](./nurbs-loft-graph) to change a middle section pole and weight, preserve unrelated original geometry, and inspect affected versus reused results. The guide uses a separate newer API version and explains authored Save/Open versus complete evaluated result ingestion.

@@ -4,6 +4,10 @@ The CAD language describes native rational B-spline geometry and bounded constru
 
 [Compile and evaluate examples](./examples#run-the-complete-cpu-examples) · [Open the CAD playground](/playground#cad-surface) · [Public compiler signature](./reference#compilecadmodel)
 
+## Practice complete CAD inputs
+
+The [CAD language practice examples](./language-examples) add typed weighted Surface and curved extrusion programs, plus a rational Curve with original U domain `[2,7]`. Each includes an editable input, expected native values and an actual output image.
+
 ## Choose a source dialect
 
 | Source dialect | Admitted declarations | Numeric fields | Returned IR |

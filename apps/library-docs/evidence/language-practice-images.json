@@ -1,0 +1,68 @@
+{
+  "images": [
+    {
+      "key": "cad-weighted-parameters",
+      "path": "apps/library-docs/docs/public/examples/cad-weighted-parameters.png",
+      "bytes": 24844,
+      "sha256": "676671785dcbcc7daadf3b616bc7fa0a083946becd5bcf4d3f6ad138b08f0d85",
+      "width": 640,
+      "height": 420,
+      "actualCanvas": "Native browser Canvas2D/WebGL2 output",
+      "amount": null
+    },
+    {
+      "key": "cad-curved-extrude",
+      "path": "apps/library-docs/docs/public/examples/cad-curved-extrude.png",
+      "bytes": 17251,
+      "sha256": "ba145462767e8bbb9a51f07e8521e1d75d1291c00d9c4b3d3608cf7e889a06a1",
+      "width": 640,
+      "height": 420,
+      "actualCanvas": "Native browser Canvas2D/WebGL2 output",
+      "amount": null
+    },
+    {
+      "key": "cad-nonunit-curve",
+      "path": "apps/library-docs/docs/public/examples/cad-nonunit-curve.png",
+      "bytes": 22697,
+      "sha256": "eb5d1e7cda03a64c91824f92b253a6912a16819d27fb5abd8c1a3db5443bc470",
+      "width": 640,
+      "height": 420,
+      "actualCanvas": "Native browser Canvas2D/WebGL2 output",
+      "amount": null
+    },
+    {
+      "key": "gpu-rounded-stack",
+      "path": "apps/library-docs/docs/public/examples/gpu-rounded-stack.png",
+      "bytes": 19422,
+      "sha256": "575294a792dd4240c1458afbdbc52586a3761408b52c9d8d4b33a71c8ae0cfbc",
+      "width": 640,
+      "height": 420,
+      "actualCanvas": "Native browser Canvas2D/WebGL2 output",
+      "amount": null
+    },
+    {
+      "key": "gpu-crossed-capsules",
+      "path": "apps/library-docs/docs/public/examples/gpu-crossed-capsules.png",
+      "bytes": 38303,
+      "sha256": "812d17868e0b981583398ccd3241c11f8ec672c04e3bf455af7939f8fd87baca",
+      "width": 640,
+      "height": 420,
+      "actualCanvas": "Native browser Canvas2D/WebGL2 output",
+      "amount": null
+    },
+    {
+      "key": "material-transition-window",
+      "path": "apps/library-docs/docs/public/examples/material-transition-window.png",
+      "bytes": 19824,
+      "sha256": "61b01307d9fed1d730d75676b6208df32234826b88d040516c121375b5285dac",
+      "width": 640,
+      "height": 420,
+      "actualCanvas": "Native browser Canvas2D/WebGL2 output",
+      "amount": 0.5
+    }
+  ],
+  "visualReview": "All six actual 640x420 outputs inspected: weighted sampling grid, curved extrusion, original-domain Curve/control polygon, rounded-box cascade, rotated local capsules and amount .5 material.",
+  "previousImageAssetsUnchanged": 25,
+  "previousJsonPresetFilesUnchanged": 6,
+  "previousFourInlineSourcesUnchanged": true
+}

@@ -4,6 +4,10 @@ The scene language declares simple 3D objects and assigns their properties. The 
 
 This page describes source0 and source1 at local source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`. The language is a bounded scene format. CSS selectors, JavaScript expressions and arbitrary GLSL are separate formats and are not accepted here.
 
+## Practice styles and local transforms
+
+The [GPU composition examples](./composition-examples) show type styles with ID overrides, rounded-box dimensions and local capsule endpoints under rotation. Complete sources and actual images accompany the live examples.
+
 ## Choose the correct language
 
 | Input | Purpose | CPU entry | Drawing entry |

@@ -1,0 +1,165 @@
+{
+  "cad-weighted-parameters": {
+    "kind": "surface",
+    "title": "CAD weighted patch · typed parameters",
+    "label": "CAD weighted parameters",
+    "language": "CAD source2 → GPU mesh",
+    "sourceVersion": 2,
+    "description": "Length parameters set the patch size and lifted corner. A scalar corner weight changes the rational shape. Change cornerWeight from 3 to 1; setting it to 0 refuses the candidate.",
+    "source": "@model weighted_parameters {\n  version: 2; length-unit: mm;\n  @parameter #width { type: length; value: 4 cm; }\n  @parameter #height { type: length; value: 2 cm; }\n  @parameter #lift { type: length; value: 1 cm; }\n  @parameter #cornerWeight { type: scalar; value: 3; }\n  @surface #patch {\n    type: nurbs; degree-u: 1; degree-v: 1;\n    knots-u: [0,0,1,1]; knots-v: [0,0,1,1];\n    control-points: [[[0,0,0],[0,$height,0]],\n                     [[$width,0,0],[$width,$height,$lift]]];\n    weights: [[1,1],[1,$cornerWeight]];\n  }\n}",
+    "expected": {
+      "sourceVersion": 2,
+      "irSchemaVersion": 2,
+      "modelVersion": 0,
+      "surfaceId": "patch",
+      "nativeObjectIds": [
+        "patch"
+      ],
+      "centerMM": [
+        26.666666666666668,
+        13.333333333333334,
+        5
+      ],
+      "vertices": 289,
+      "triangles": 512,
+      "certified": false,
+      "solid": false,
+      "parameters": {
+        "width": {
+          "value": 40,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 20,
+          "unit": "mm"
+        },
+        "lift": {
+          "value": 10,
+          "unit": "mm"
+        },
+        "cornerWeight": {
+          "value": 3,
+          "unit": "1"
+        }
+      },
+      "edited": {
+        "replace": "value: 3;",
+        "with": "value: 1;",
+        "centerMM": [
+          20,
+          10,
+          2.5
+        ]
+      },
+      "refused": {
+        "replace": "value: 3;",
+        "with": "value: 0;",
+        "code": "WEIGHTS"
+      }
+    }
+  },
+  "cad-curved-extrude": {
+    "kind": "surface",
+    "title": "CAD curved extrusion · driven bow",
+    "label": "CAD curved extrude",
+    "language": "CAD source2 → GPU mesh",
+    "sourceVersion": 2,
+    "description": "A quadratic profile uses length parameters for its span and bow. Extrude it along a native millimetre height. Change bow from 2 cm to 4 cm; height 0 mm refuses a zero vector.",
+    "source": "@model curved_extrusion {\n  version: 2; length-unit: mm;\n  @parameter #span { type: length; value: 4 cm; }\n  @parameter #bow { type: length; value: 2 cm; }\n  @parameter #height { type: length; value: 3 cm; }\n  @curve #profile {\n    type: nurbs; degree: 2;\n    knots: [0,0,0,1,1,1];\n    control-points: [[0,0,0],[$span/2,$bow,0],[$span,0,0]];\n    weights: [1,1,1];\n  }\n  @extrude #wall { curve: #profile; vector: [0,0,$height]; }\n}",
+    "expected": {
+      "sourceVersion": 2,
+      "irSchemaVersion": 2,
+      "modelVersion": 0,
+      "surfaceId": "wall",
+      "nativeObjectIds": [
+        "profile",
+        "wall"
+      ],
+      "centerMM": [
+        20,
+        10,
+        15
+      ],
+      "vertices": 289,
+      "triangles": 512,
+      "certified": false,
+      "solid": false,
+      "parameters": {
+        "span": {
+          "value": 40,
+          "unit": "mm"
+        },
+        "bow": {
+          "value": 20,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 30,
+          "unit": "mm"
+        }
+      },
+      "edited": {
+        "replace": "value: 2 cm;",
+        "with": "value: 4 cm;",
+        "centerMM": [
+          20,
+          20,
+          15
+        ]
+      },
+      "refused": {
+        "replace": "value: 3 cm;",
+        "with": "value: 0 mm;",
+        "code": "GEOMETRY"
+      }
+    }
+  },
+  "cad-nonunit-curve": {
+    "kind": "curve",
+    "title": "CAD rational arc · original parameter domain",
+    "label": "CAD nonunit curve",
+    "language": "CAD source0 → Canvas2D",
+    "sourceVersion": 0,
+    "description": "The rational quarter-circle keeps its authored parameter domain 2 to 7. Change its middle weight to 1 to obtain a polynomial quadratic; descending knots refuse the candidate.",
+    "source": "@model nonunit_arc {\n  version: 0; length-unit: mm;\n  @curve #quarter {\n    type: nurbs; degree: 2;\n    knots: [2,2,2,7,7,7];\n    control-points: [[20,0,0],[20,20,0],[0,20,0]];\n    weights: [1,0.7071067811865476,1];\n  }\n}",
+    "expected": {
+      "sourceVersion": 0,
+      "irSchemaVersion": 1,
+      "modelVersion": 0,
+      "curveId": "quarter",
+      "nativeObjectIds": [
+        "quarter"
+      ],
+      "domain": [
+        2,
+        7
+      ],
+      "midpointParameter": 4.5,
+      "midpointMM": [
+        14.14213562373095,
+        14.14213562373095,
+        0
+      ],
+      "sampleCount": 101,
+      "solid": false,
+      "edited": {
+        "replace": "weights: [1,0.7071067811865476,1];",
+        "with": "weights: [1,1,1];",
+        "domain": [
+          2,
+          7
+        ],
+        "midpointMM": [
+          15,
+          15,
+          0
+        ]
+      },
+      "refused": {
+        "replace": "knots: [2,2,2,7,7,7];",
+        "with": "knots: [2,2,2,1,7,7];",
+        "code": "KNOTS"
+      }
+    }
+  }
+}
