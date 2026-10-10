@@ -269,3 +269,8 @@ The helper is synchronous CPU preparation. It does not change display geometry, 
 The existing `sprite-atlas.html` host matches the saved Sprite crop against the current session's named catalog. Red, Blue and Clear restore the original three-frame sequence at index 0, 1 or 2. A saved packed Gold crop appends Gold to that reconstructed sequence and restores index 3. The controller starts paused. After Start, the first controlled timestamp has delta 0 and keeps Gold; its 80 ms duration then wraps to Red.
 
 Document v1 stores the accepted Scene crop and atlas bytes. The host retains catalog names and durations in the current session and checks exact atlas dimensions and bytes before Open. The file does not store ticker progress, elapsed frame time or the catalog policy. An unknown crop or mismatched atlas retains the current host and disposes the rejected staged renderer. See `evidence/atlas-saved-frame/observation.md` for the native focused file and lifetime checks.
+
+
+### Atlas Open after Dispose (#1304)
+
+The existing atlas host rejects `openText` with `Error('consumer disposed')` when the host is disposed. A call that starts after Dispose creates no canvas, parser work, GL renderer or pointer binding. If Dispose occurs while document staging is pending, the host disposes the staged renderer before tree reconstruction, canvas replacement or input binding. Native hash completion can create that temporary candidate; the host then closes it. Dispose remains idempotent. The saved-frame selection and live Open validation keep their existing behavior. See `evidence/atlas-open-dispose/observation.md` for the focused lifecycle checks.

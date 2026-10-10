@@ -146,8 +146,13 @@ function selectSavedAtlasFrame(catalog, crop, hasGold) {
 }
 /** @param {string} text */
 async function openText(text) {
+  if (disposed) throw new Error('consumer disposed');
   const fresh = instrument(document.createElement('canvas')); fresh.id = 'scene';
   const staged = await stageCanvasDocument(text, fresh, options);
+  if (disposed) {
+    staged.renderer.dispose();
+    throw new Error('consumer disposed');
+  }
   /** @type {import('@barocss/canvas2d').DisplayTree} */ let nextTree;
   /** @type {import('@barocss/canvas2d').SpriteHandle} */ let nextSprite;
   /** @type {import('@barocss/canvas2d').RectHandle} */ let nextBack;
