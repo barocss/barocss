@@ -117,3 +117,34 @@ CPU source/provenance and blocks Open. Picker/Discard remain CPU draft actions.
 Dispose clears the file controller before the Viewer. Failed recovery has no
 pixel rollback promise. These local intent rules do not certify unseen SDK
 reloads, global numerical accuracy or release acceptance.
+
+
+## Download the accepted original source
+
+Choose **Download original source** to offer the current ordinary native
+Source0 as a local UTF-8 file. The action uses accepted CPU source authority.
+A staged file does not replace that authority. An opened file keeps its name
+as a browser hint; a source loaded without File provenance uses
+`<modelId>.source0.css`. The report shows bytes and SHA256.
+
+The helper validates the complete current Model against the public parser.
+It keeps all original Surface and Curve refs, including a legacy unrendered
+Curve. The fixed profile supports one to four original objects. Source bytes
+keep BOM, newlines and signed-zero tokens. There is no formatting or source
+rewrite. Unsupported mode, stale content or mismatched File metadata refuses
+the offer. The downloaded file can be selected and opened through the local
+File controls; reopening admits all supported original objects.
+
+Download does not change File Open intent, staged choice, camera, visibility,
+poses, inspection or GPU state. Each offer owns a temporary anchor and Blob
+URL. The anchor is removed after the click. The URL is revoked after one
+second, or during Dispose. A pending hash is canceled by a newer download,
+changed native content, Clear, mode change or Dispose.
+
+CPU source download remains available after context loss or unavailable
+presentation. This does not fix the primitive recovery defect tracked in
+#1334. The local File feature in #1322 remains partial until that required
+native recovery check passes. Download saves original geometry only; it does
+not save camera, display settings, Face topology, document history or a full
+editor project. An offered link and a verified saved download are separate
+results.
