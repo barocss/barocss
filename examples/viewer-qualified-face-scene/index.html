@@ -286,6 +286,17 @@ Mean and principal signs follow the original U/V normal, not an outward solid no
 The native report retains the derivative, metric and discriminant roundoff data. It does not supply principal radii, directions or a whole-Surface regularity certificate.
 The label projects the original parameter point approximately, without occlusion testing or a native screen-hit claim. Hidden current Surface selections remain inspectable while their labels stay hidden.
 Reset clears only this report. Local curvature does not certify manufacturing or global accuracy.</p></details>
+<label>Fixed original axis <select id="tree-iso-axis" aria-label="Tree iso-Curve fixed axis" disabled><option value="u">Fix U; vary V</option><option value="v">Fix V; vary U</option></select></label>
+<button id="inspect-tree-isocurve" disabled>Inspect selected Surface iso-Curve</button><button id="reset-tree-isocurve" disabled>Reset tree iso-Curve</button>
+<p id="tree-isocurve-output" role="status" aria-live="polite"></p>
+<div style="overflow-x:auto"><table id="tree-isocurve-observations" style="min-width:640px;font-size:12px" hidden>
+<caption>Original native iso-Curve observations</caption><thead><tr><th scope="col">Varying parameter</th><th scope="col">U</th><th scope="col">V</th><th scope="col">Surface xyz mm</th><th scope="col">Curve xyz mm</th><th scope="col">Difference mm</th></tr></thead><tbody></tbody></table></div>
+<details><summary>Complete native iso-Curve result</summary><pre id="tree-isocurve-details"></pre></details>
+<details id="tree-isocurve-help"><summary>About original Surface iso-Curves</summary>
+<p>Fix U reads only the current original U draft and varies V. Fix V reads only V and varies U. Parameters keep their original native domains.
+The result contains a derived native Curve, Curve-only Source0 and Model, provenance and all returned observations, up to 32. It does not replace the accepted original source or add a displayed or pickable Curve.
+Points and observed differences use original mm. Finite observations do not certify every parameter, trimmed edges, topology, a Solid or global accuracy.
+Hidden current Surface selections remain inspectable. Views and drafts keep the accepted result; selecting a different node clears it. Reset clears only this iso-Curve report.</p></details>
 <button id="capture-tree-tangent" disabled>Capture selected Curve tangent</button><button id="reset-tree-tangent-angle" disabled>Reset tree tangent angle</button>
 <p id="tree-tangent-angle-output" role="status" aria-live="polite"></p>
 <details id="tree-tangent-angle-help"><summary>About captured tree tangent angles</summary>

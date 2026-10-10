@@ -777,3 +777,38 @@ while color actions and projection remain blocked.
 Source or complete Face changes invalidate affected native authority. Clear and
 Dispose remove retained reports. These controls do not author CAD materials,
 edit source, recolor native Curve lines or add selection highlights.
+
+
+## Original Surface parameter iso-Curve inspection
+
+Select a Surface in the original geometry tree. Choose **Fix U; vary V** or
+**Fix V; vary U**, enter the corresponding original Tree U or V parameter,
+then select **Inspect selected Surface iso-Curve**. The unused parameter draft
+is ignored. Values use the original native domain, including nonunit domains.
+Changing the axis or a draft does not replace an accepted report.
+
+The result shows the derived native Curve degree, varying domain and poles,
+all returned native observation points in mm, and the full Curve/source/Model/
+provenance/report in technical details. The derived source is an inspection
+artifact. The accepted original full source and five-object Model stay intact.
+The renderer continues to display the original filled Faces.
+
+`queryQualifiedTreeSurfaceIsoCurve(viewer, ref, fixedAxis, parameter)` requires
+an exact current full Surface tree reference, explicit `u` or `v`, and a finite
+original parameter. It qualifies the complete original source and Face, then
+calls the existing native extraction once and returns copied
+`{version:0,node,measurement}` data. Native extraction has a narrower degree,
+ID and coordinate profile than general Viewer admission; unsupported input
+refuses without changing accepted data. Native errors and causes are retained.
+
+A hidden current Surface remains a CPU inspection target. Reset clears only
+the iso-Curve output. Selecting a different node, clearing the selection or
+changing its original source/Face clears that output. Camera, color, counts,
+filters and view scale keep the current report and its accepted parameters.
+CPU inspection remains available after view loss or unavailable presentation;
+Clear and Dispose remove its authority.
+
+Observation differences describe only the returned native checks. They do not
+certify every Curve point, derivative continuity, topology or global accuracy.
+This control does not mount a GPU Curve, draw a projected trace, author a trim
+edge or edit persistent CAD geometry.
