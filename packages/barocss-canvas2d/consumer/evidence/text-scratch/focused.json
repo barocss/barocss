@@ -1,0 +1,870 @@
+{
+  "runtime": "v22.22.0",
+  "module": "compiled-root",
+  "controlledFacilities": true,
+  "preflightCases": 28,
+  "preflightDOMReads": 0,
+  "preflightCanvases": 0,
+  "getters": 0,
+  "firstFailures": [],
+  "cases": 53,
+  "exactCopiedRGBA": true,
+  "literalLayoutBounds": true,
+  "helpers": [
+    "single-default",
+    "single-printable",
+    "multiline",
+    "wrapped"
+  ],
+  "independentResetAttempts": true,
+  "cleanupErrorsSuppressed": true,
+  "originalErrorsPreserved": true,
+  "independentBatchedSynchronousCalls": true,
+  "caseDetails": [
+    {
+      "name": "single exact bytes and layout",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "printable exact bytes and layout",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "multiline exact bytes and layout",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 2,
+        "draw": 2,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "wrapped exact bytes and layout",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 5,
+        "draw": 2,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "failure create",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 0,
+        "measure": 0,
+        "draw": 0,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": []
+    },
+    {
+      "name": "failure context",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 0,
+        "draw": 0,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "failure fontSetup",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 0,
+        "draw": 0,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "failure configure",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 0,
+        "draw": 0,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "failure measure",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 0,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "failure widthSetup",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 0,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "failure heightSetup",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 0,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "failure draw",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "failure read",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "failure allocation",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 1,
+        "allocations": 1
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "missing context API",
+      "code": "UNSUPPORTED_FEATURE",
+      "counts": {
+        "create": 1,
+        "context": 0,
+        "measure": 0,
+        "draw": 0,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "null context",
+      "code": "UNSUPPORTED_FEATURE",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 0,
+        "draw": 0,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "ignored CSS font",
+      "code": "INVALID_SCENE",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 0,
+        "draw": 0,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "unready font",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 0,
+        "draw": 0,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "invalid metrics",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 0,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "invalid readback extent",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "no ink",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "single cleanup throws preserve result",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "single cleanup throws preserve original error",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "single cleanup throws preserve result",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "single cleanup throws preserve original error",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "single cleanup throws preserve result",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "single cleanup throws preserve original error",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "single cleanup preserves existing error identity",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "printable cleanup throws preserve result",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "printable cleanup throws preserve original error",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "printable cleanup throws preserve result",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "printable cleanup throws preserve original error",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "printable cleanup throws preserve result",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "printable cleanup throws preserve original error",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "printable cleanup preserves existing error identity",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "multiline cleanup throws preserve result",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 2,
+        "draw": 2,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "multiline cleanup throws preserve original error",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 2,
+        "draw": 1,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "multiline cleanup throws preserve result",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 2,
+        "draw": 2,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "multiline cleanup throws preserve original error",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 2,
+        "draw": 1,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "multiline cleanup throws preserve result",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 2,
+        "draw": 2,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "multiline cleanup throws preserve original error",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 2,
+        "draw": 1,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "multiline cleanup preserves existing error identity",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 2,
+        "draw": 1,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "wrapped cleanup throws preserve result",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 5,
+        "draw": 2,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "wrapped cleanup throws preserve original error",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 5,
+        "draw": 1,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "wrapped cleanup throws preserve result",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 5,
+        "draw": 2,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "wrapped cleanup throws preserve original error",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 5,
+        "draw": 1,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "wrapped cleanup throws preserve result",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 5,
+        "draw": 2,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "wrapped cleanup throws preserve original error",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 5,
+        "draw": 1,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "wrapped cleanup preserves existing error identity",
+      "code": "INVALID_ASSET",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 5,
+        "draw": 1,
+        "read": 0,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "batched isolated call 0",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "batched isolated call 1",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 1,
+        "draw": 1,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "batched isolated call 2",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 2,
+        "draw": 2,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    },
+    {
+      "name": "batched isolated call 3",
+      "code": "success",
+      "counts": {
+        "create": 1,
+        "context": 1,
+        "measure": 5,
+        "draw": 2,
+        "read": 1,
+        "allocations": 0
+      },
+      "cleanup": [
+        "width:0",
+        "height:0"
+      ]
+    }
+  ]
+}

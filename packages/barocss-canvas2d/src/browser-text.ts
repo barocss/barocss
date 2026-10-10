@@ -305,9 +305,10 @@ function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number;
     if (error instanceof Canvas2DError) throw error;
     throw new Canvas2DError('INVALID_ASSET', 'browser could not allocate, measure, draw or read text');
   } finally {
-    if (input.lineAdvance !== undefined && canvas) {
-      // Release the rejected or copied composite backing without hiding its error.
-      try { canvas.width = 0; canvas.height = 0; } catch { /* No owned renderer was allocated. */ }
+    if (canvas) {
+      // Release the rejected or copied backing without changing the result or error.
+      try { canvas.width = 0; } catch { /* Continue with the other dimension. */ }
+      try { canvas.height = 0; } catch { /* Preserve the result or original error. */ }
     }
   }
 }

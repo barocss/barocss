@@ -467,3 +467,10 @@ rejection. Cleanup failures do not replace the original error. Normal EOF and
 later decoder failures do not trigger reader cancellation. This is local stream
 ownership; it does not guarantee that a remote server stops transmitting.
 The URL, fetch, MIME, 8 MiB encoded and decoded image policies stay unchanged.
+
+
+### Browser text scratch release (#1266)
+
+`rasterizeBrowserText`, `rasterizeBrowserMultilineText` and `rasterizeBrowserWrappedText` release their private 2D canvas backing after success or failure. Width and height are each reset to zero. A cleanup setter failure does not replace the returned copied RGBA bytes or the original error, and does not prevent the other reset attempt. Invalid options and unavailable APIs still refuse before canvas allocation. Font readiness, text policy, layout, limits and public errors are unchanged. This is an explicit local resource release contract; it does not measure garbage collection or establish a permanent memory leak.
+
+Scoped checks: `consumer/tsconfig.text-scratch.json` covers the unchanged browser text host and source/explicit compiled public types. `consumer/evidence/text-scratch/probe.mjs` exercises controlled cleanup paths; `observation.md` records the native browser, file, PNG and resource results. Composed integration acceptance is tracked separately in #1254/#674.
