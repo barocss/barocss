@@ -14,10 +14,11 @@
   <script type="importmap">{"imports":{"@barocss/canvas2d":"../dist/index.js","@barocss/canvas2d/document":"../dist/document.js"}}</script>
 </head>
 <body>
-  <h1>Canvas2D Scene v7 sprite tint</h1>
-  <p>RGB tint changes one sprite without changing its host-owned RGBA8 asset.</p>
+  <h1>Canvas2D sprite tint and prepared color</h1>
+  <p>RGB tint changes one sprite without changing its host-owned RGBA8 asset. Bake RGB bytes makes a copied 2×1 asset with a red offset and unchanged alpha.</p>
   <button id="white">White</button><button id="cyan">Cyan</button><button id="black">Black</button>
   <button id="transparent">Transparent crop</button><button id="invalid">Invalid tint</button>
+  <button id="bake">Bake RGB bytes</button><button id="edit">Move restored Sprite</button><button id="png">Export PNG</button><button id="dispose">Dispose</button>
   <button id="save">Save document</button>
   <label for="open">Open document</label><input id="open" type="file" accept="application/json,.json">
   <p id="status" role="status"></p>
