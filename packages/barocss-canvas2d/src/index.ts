@@ -87,3 +87,5 @@ export { applyImageRGBMatrix } from './image-color.js';
 export { applyImageAlphaMask } from './image-alpha-mask.js';
 
 export { extrudeImageAsset } from './image-extrude.js';
+
+export { applyImageAlphaMatte } from './image-alpha-matte.js';

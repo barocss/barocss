@@ -1,0 +1,99 @@
+{
+  "status": "PASS",
+  "assertions": 818,
+  "entries": [
+    {
+      "entry": "source",
+      "fullByteCases": 37,
+      "refusals": 94,
+      "getterReads": 0,
+      "indexedPixelKeyScans": 0,
+      "allAlphaPairs": 65536,
+      "inputByteLimit": 1048576,
+      "maximumTypedAllocations": [
+        1048576,
+        1048576,
+        1048576
+      ],
+      "maximumTypedPayload": 3145728,
+      "allRefusalTypedAllocations": 0
+    },
+    {
+      "entry": "compiled",
+      "fullByteCases": 37,
+      "refusals": 94,
+      "getterReads": 0,
+      "indexedPixelKeyScans": 0,
+      "allAlphaPairs": 65536,
+      "inputByteLimit": 1048576,
+      "maximumTypedAllocations": [
+        1048576,
+        1048576,
+        1048576
+      ],
+      "maximumTypedPayload": 3145728,
+      "allRefusalTypedAllocations": 0
+    }
+  ],
+  "parent": "c6d45418e64cec2a3d8db3d1be9b7d0933cbcf9c",
+  "actualCPU": true,
+  "browserAcceptance": "Separate browser-observations.json; this receipt covers CPU/type checks only",
+  "checks": {
+    "build": {
+      "exit": 0,
+      "firstPass": false,
+      "bytesKiB": 282.2,
+      "log": "/tmp/c2d1357-build-ready.txt"
+    },
+    "sourceBundle": {
+      "exit": 0,
+      "output": "/tmp/c2d1357-source.mjs",
+      "log": "/tmp/c2d1357-source-bundle.txt"
+    },
+    "pairedProbe": {
+      "exit": 0,
+      "firstPass": true,
+      "log": "/tmp/c2d1357-focused-probe.txt",
+      "reruns": 0
+    },
+    "commonTypes": {
+      "exit": 0,
+      "firstPass": true,
+      "log": "/tmp/c2d1357-common-types.txt"
+    },
+    "scopedSourceCompiledTypes": {
+      "exit": 0,
+      "firstPass": true,
+      "log": "/tmp/c2d1357-scoped-types.txt"
+    }
+  },
+  "firstRecords": [
+    {
+      "kind": "first build tooling failure",
+      "exit": 127,
+      "error": "esbuild command not found after tsc",
+      "log": "/tmp/c2d1357-build.txt",
+      "cause": "prior worktree dependency chain no longer exists",
+      "repair": "owned ignored link points directly to existing Integration node_modules; no shared write/install/config/source edit"
+    }
+  ],
+  "sourceHashes": {
+    "packages/barocss-canvas2d/src/image-alpha-matte.ts": "d4dd32341c2c088953555248e40b8448fb3d8ee4291e425428a906f2a2dd24d7",
+    "packages/barocss-canvas2d/src/index.ts": "45ff8f4ad2e4d0c0429cfb1fb2eb046a6c81a33447fd6ecf171661639b4d1300",
+    "packages/barocss-canvas2d/consumer/alpha.mjs": "7c4f10af49670d7262b7ed871fbe6204a6f9beee2325cc6467c135e47573d3ec",
+    "packages/barocss-canvas2d/consumer/image-alpha-matte-types.ts": "b67de145d2e9b35a05053afd12b00514f955fe1cdb46b030b578a25afc453231",
+    "packages/barocss-canvas2d/consumer/tsconfig.image-alpha-matte.json": "d4c6d604172fbdbb9e7a46e5b7c62819997ba9eff9ddb3ec72774c8e7c4e5fb9"
+  },
+  "claims": {
+    "fullAlphaProductDomain": true,
+    "independentOracle": "BigInt quotient/remainder nearest, no helper +127 expression",
+    "equalExtentShapePriority": true,
+    "sourceRGBExact": true,
+    "sourceAlpha0NeverRevealed": true,
+    "matteRGBIgnored": true,
+    "aliasedInputsAllowed": true,
+    "copiesHaveIndependentBuffers": true,
+    "globalDOMGPU": false,
+    "performanceClaim": false
+  }
+}

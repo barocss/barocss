@@ -14,10 +14,11 @@
   <script type="importmap">{"imports":{"@barocss/canvas2d":"../dist/index.js","@barocss/canvas2d/document":"../dist/document.js"}}</script>
 </head>
 <body>
-  <h1>Canvas2D Scene v10 inherited alpha</h1>
-  <p>Fade a parent while retaining each child's paint. Save and reopen the scene.</p>
+  <h1>Canvas2D inherited alpha and prepared matte</h1>
+  <p>Fade a parent while retaining each child's paint. Apply a copied image matte, then save and reopen the scene.</p>
   <button id="half">Parent 0.5</button><button id="zero">Parent 0</button><button id="full">Parent 1</button>
   <button id="sprite-half">Sprite 0.5</button><button id="invalid">Invalid alpha</button>
+  <button id="matte">Apply alpha matte</button><button id="edit">Move restored Sprite</button><button id="png">Export PNG</button><button id="dispose">Dispose</button>
   <button id="invalid-asset">Invalid zero-alpha asset</button><button id="save">Save document</button>
   <label for="open">Open document</label><input id="open" type="file" accept="application/json,.json">
   <p id="status" role="status"></p>
