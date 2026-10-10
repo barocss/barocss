@@ -17,3 +17,5 @@ export {inspectRenderMixedSphereSource, editRenderMixedSphereSource} from './mix
 export type {RenderMixedSphereProperties, RenderMixedSpherePatch} from './mixed-sphere-source.js';
 export {inspectRenderSceneObjects, editRenderSceneObjectSource, addRenderSceneObjectSource, removeRenderSceneObjectSource} from './scene-object-source.js';
 export type {RenderSceneObjectKind, RenderSceneObjectProperties, RenderSceneObjectPatch} from './scene-object-source.js';
+export {prepareRenderSceneGizmo, deriveRenderSceneGizmoPatch} from './scene-gizmo-projection.js';
+export type {RenderSceneGizmoMode, RenderSceneGizmoAxis, RenderSceneGizmoKey, RenderSceneGizmoViewport, RenderSceneGizmoHandle, RenderSceneGizmoPreparation} from './scene-gizmo-projection.js';
