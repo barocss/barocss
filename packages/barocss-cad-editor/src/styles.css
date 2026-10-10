@@ -185,3 +185,17 @@
 /* Seven perspective sides retain the compact two-row navigator without resizing Canvas. */
 .cad-editor-view-tools {grid-template-columns:repeat(4,minmax(0,1fr));min-width:188px;}
 .cad-editor-view-tools>button {white-space:nowrap;}
+
+/* Mode settings stay secondary to the actual native modeling toolbar. */
+.cad-editor-axis-palette {padding:7px 8px;}
+.cad-editor-axis-palette .context-mode-controls[hidden],.cad-editor-axis-palette .pole-snap-distance[hidden] {display:none;}
+.cad-editor-axis-palette .pole-move-title {margin-bottom:7px;font-size:10px;}
+.cad-editor-axis-palette .pole-snap-toggle {margin:0;font-size:10px;min-height:18px;}
+.cad-editor-axis-palette .pole-snap-distance {margin-top:6px;font-size:10px;}
+.context-axis-row {display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px;font-size:10px;color:#aebdc6;}
+.context-axis-buttons {display:flex;gap:2px;border:1px solid #46535c;border-radius:4px;padding:2px;background:#1c2226;}
+.context-axis-buttons [data-slot="button"] {height:22px;min-height:22px;min-width:25px;padding:2px 5px;border:1px solid transparent;border-radius:2px;background:transparent;color:#c2cdd4;font-size:10px;cursor:pointer;}
+.context-axis-buttons [data-slot="button"]:hover:not(:disabled) {background:#343c41;}
+.context-axis-buttons [aria-pressed="true"] {background:#36442f;color:#cee2bc;border-color:#596d4b;}
+.context-axis-buttons button:disabled {opacity:.45;cursor:default;}
+.context-axis-buttons button:focus-visible {outline:2px solid #b8d599;outline-offset:1px;}
