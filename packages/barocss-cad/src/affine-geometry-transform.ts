@@ -125,7 +125,7 @@ function attempt<T>(action: () => T, refused: (cause: Error) => void): D1State<T
   }
 }
 type AxisMapping = AffineGeometryTransformReport['coefficientMappings'][number]['axes'][number];
-function mapPoint(matrix: CadAffineMatrix3x4, point: Point, translation: boolean): { point: Point; axes: AxisMapping[] } {
+export function mapPoint(matrix: CadAffineMatrix3x4, point: Point, translation: boolean): { point: Point; axes: AxisMapping[] } {
   const axes: AxisMapping[] = [];
   const values = [0, 1, 2].map(axis => {
     const offset = axis * 4, row: [number, number, number, number] = [matrix[offset], matrix[offset + 1], matrix[offset + 2], translation ? matrix[offset + 3] : 0];

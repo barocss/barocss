@@ -1,3 +1,5 @@
+import { admitWorkplaneSketchFrame } from './workplane-sketch-frame-internal.js';
+import type { WorkplaneSketchFrameReport } from './workplane-sketch-frame-internal.js';
 import { evaluateXYSketchDocument, updateXYSketchDocument } from './xy-sketch-document.js';
 import type { XYSketchDocumentV0, XYSketchDocumentEdit, XYSketchDocumentResult, XYSketchEvaluatedProfile } from './xy-sketch-document.js';
 import { transformNativeGeometryAffine, validateAffineGeometryTransform } from './affine-geometry-transform.js';
@@ -12,7 +14,7 @@ type WorldBinding = { profileId: string; worldCurveId: string };
 const DOCUMENT_LIMITS = { maximumProfiles: 8, maximumAffineObservations: 127, maximumAggregateObservations: 1016, maximumWorldPointBindings: 136, maximumAggregateSourceUTF16: 4194304, maximumAggregateSourceUTF8: 4194304, maximumJSONUTF16: 262144, maximumJSONUTF8: 262144, frameTolerance: 0.000000001 } as const;
 export interface WorkplaneSketchDocumentV0 { format: 'barocss-workplane-sketch'; version: 0; id: string; lengthUnit: 'mm'; plane: WorkplaneSketchFrame; localSketch: XYSketchDocumentV0; worldBindings: WorldBinding[]; limits: typeof DOCUMENT_LIMITS }
 export interface WorkplaneSketchDocumentEdit { plane: WorkplaneSketchFrame | null; localEdits: XYSketchDocumentEdit[]; worldBindings: WorldBinding[] | null }
-type FrameReport = { norms: { u: number; v: number; normal: number }; unitNormErrors: { u: number; v: number; normal: number }; dotProducts: { uv: number; un: number; vn: number }; determinant: number; determinantError: number; maximumNormError: number; maximumOrthogonalityError: number; tolerance: 0.000000001; accepted: true };
+type FrameReport = WorkplaneSketchFrameReport;
 type WorldPointBinding = { profileId: string; pointId: string; localCurveId: string; worldCurveId: string; poleIndex: number; parameter: number; localPointMM: Point; worldPointMM: Point; observedLocalPointMM: Point; observedWorldPointMM: Point; isClosing: boolean; affineMappingIndex: number; planeResidualMM: number };
 export interface WorkplaneSketchDocumentReport {
   schema: 'barocss-workplane-sketch-document-evaluation'; version: 0; documentId: string; mode: 'evaluate' | 'update'; noOp: boolean; planeId: string; localSketchId: string; profileCount: number; authoredPointCount: number; worldCurveIds: string[]; worldPointBindingCount: number; aggregateObservationCount: number; aggregateSourceUTF16: number; aggregateSourceUTF8: number; maximumPlaneResidualMM: number;
@@ -40,17 +42,7 @@ function snapshot(input: unknown, owned = false): unknown {
 function same(a: unknown, b: unknown): boolean { if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((value, index) => same(value, b[index])); if (a && b && typeof a === 'object' && typeof b === 'object') { const x = a as Record<string, unknown>, y = b as Record<string, unknown>; return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(key => Object.hasOwn(y, key) && same(x[key], y[key])); } return Object.is(a, b); }
 function bytes(text: string): number { let count = 0; for (let i = 0; i < text.length; i++) { const c = text.charCodeAt(i), next = text.charCodeAt(i + 1); if (c < 128) count++; else if (c < 2048) count += 2; else if (c >= 0xd800 && c <= 0xdbff && next >= 0xdc00 && next <= 0xdfff) { count += 4; i++; } else count += 3; } return count; }
 function identifier(value: unknown, maximum: number, code: WorkplaneSketchDocumentDiagnosticCode = CODE.IDENTITY): string { check(typeof value === 'string' && value.length <= maximum && /^[A-Za-z_][A-Za-z0-9_-]*$/.test(value), code, 'A bounded ASCII identifier is required'); return value; }
-function frame(input: WorkplaneSketchFrame): { plane: WorkplaneSketchFrame; report: FrameReport; matrix: CadAffineMatrix3x4 } {
-  const data = record(input, ['id', 'originMM', 'uAxis', 'vAxis', 'normalAxis']); identifier(data.id, 64);
-  for (const key of ['originMM', 'uAxis', 'vAxis', 'normalAxis']) check(Array.isArray(data[key]) && data[key].length === 3 && (data[key] as unknown[]).every(n => typeof n === 'number' && Number.isFinite(n)), CODE.FRAME, 'Finite original frame triples are required');
-  const plane = data as unknown as WorkplaneSketchFrame; check(plane.originMM.every(n => Math.abs(n) <= 10000), CODE.FRAME, 'Frame origin must remain within10000mm');
-  const u = plane.uAxis, v = plane.vAxis, n = plane.normalAxis, dot = (a: Point, b: Point) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-  const norms = { u: Math.hypot(...u), v: Math.hypot(...v), normal: Math.hypot(...n) }, unitNormErrors = { u: Math.abs(norms.u - 1), v: Math.abs(norms.v - 1), normal: Math.abs(norms.normal - 1) }, dotProducts = { uv: dot(u, v), un: dot(u, n), vn: dot(v, n) };
-  const determinant = dot(u, [v[1] * n[2] - v[2] * n[1], v[2] * n[0] - v[0] * n[2], v[0] * n[1] - v[1] * n[0]]), determinantError = Math.abs(determinant - 1), maximumNormError = Math.max(...Object.values(unitNormErrors)), maximumOrthogonalityError = Math.max(...Object.values(dotProducts).map(Math.abs));
-  check([...Object.values(norms), ...Object.values(unitNormErrors), ...Object.values(dotProducts), determinant, determinantError, maximumNormError, maximumOrthogonalityError].every(Number.isFinite) && maximumNormError <= 1e-9 && maximumOrthogonalityError <= 1e-9 && determinant > 0 && determinantError <= 1e-9, CODE.FRAME, 'Original frame must be numerically unit, orthogonal and proper within1e-9');
-  const matrix: CadAffineMatrix3x4 = [u[0], v[0], n[0], plane.originMM[0], u[1], v[1], n[1], plane.originMM[1], u[2], v[2], n[2], plane.originMM[2]];
-  return { plane, matrix, report: { norms, unitNormErrors, dotProducts, determinant, determinantError, maximumNormError, maximumOrthogonalityError, tolerance: 0.000000001, accepted: true } };
-}
+function frame(input: WorkplaneSketchFrame): { plane: WorkplaneSketchFrame; report: FrameReport; matrix: CadAffineMatrix3x4 } { return admitWorkplaneSketchFrame(input, (code, detail) => { throw new WorkplaneSketchDocumentError(code, detail); }); }
 function admit(input: unknown): WorkplaneSketchDocumentV0 {
   const data = record(snapshot(input), ['format', 'version', 'id', 'lengthUnit', 'plane', 'localSketch', 'worldBindings', 'limits']); check(data.format === 'barocss-workplane-sketch' && data.version === 0 && data.lengthUnit === 'mm', CODE.VERSION, 'Explicit workplane Sketch0/mm is required'); identifier(data.id, 64);
   record(data.limits, Object.keys(DOCUMENT_LIMITS)); check(same(data.limits, DOCUMENT_LIMITS), CODE.BUDGET, 'The fixed authored limits must match exactly');
