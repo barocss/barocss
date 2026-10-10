@@ -1,0 +1,1 @@
+{"cases":8,"acceptedSceneStates":1687,"totalRawBytes":819000,"hitWitnesses":2364,"exactOriginalInputs":true,"originalBitsHashes":true,"allStatesMetricsIndependentlyReplayed":true,"decisionPreserved":"NO-GO","firstFailures":[{"name":"WALL_SLIDE","failure":{"stepIndex":180,"check":"wallBoundAllFrames","detail":0.29903810567665556}}],"importsNoCandidate":true}

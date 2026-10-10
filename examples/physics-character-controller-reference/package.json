@@ -1,0 +1,1 @@
+{"name":"physics-character-controller-reference","private":true,"type":"module","dependencies":{"@barocss/physics":"workspace:*","@barocss/cad":"workspace:*"}}
