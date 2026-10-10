@@ -1,0 +1,93 @@
+{
+  "cad-extrude": {
+    "kind": "surface",
+    "title": "CAD extrusion \u00b7 source1 open Surface",
+    "label": "CAD extrude",
+    "language": "CAD source1 \u2192 GPU mesh",
+    "sourceVersion": 1,
+    "source": "@model raised_edge {\n  version: 1; length-unit: mm;\n  @curve #profile {\n    type: nurbs; degree: 1; knots: [0,0,1,1];\n    control-points: [[0,0,0],[20,0,0]]; weights: [1,1];\n  }\n  @extrude #wall { curve: #profile; vector: [0,0,30]; }\n}",
+    "description": "The compiler extrudes the authored profile along a native millimetre vector. A sampled U/V grid displays the resulting open Surface. Edit the vector and run the candidate again.",
+    "expected": {
+      "sourceVersion": 1,
+      "irSchemaVersion": 1,
+      "modelVersion": 0,
+      "surfaceId": "wall",
+      "nativeObjectIds": [
+        "profile",
+        "wall"
+      ],
+      "centerMM": [
+        10,
+        0,
+        15
+      ],
+      "vertices": 289,
+      "triangles": 512,
+      "solid": false
+    }
+  },
+  "cad-parameters": {
+    "kind": "surface",
+    "title": "CAD parameters \u00b7 source2 driven Surface",
+    "label": "CAD parameters",
+    "language": "CAD source2 \u2192 GPU mesh",
+    "sourceVersion": 2,
+    "source": "@model driven {\n  version: 2; length-unit: mm;\n  @parameter #width { type: length; value: 10 cm; }\n  @parameter #height { type: length; value: $width / 2; }\n  @parameter #scale { type: scalar; value: 2; }\n  @curve #profile {\n    type: nurbs; degree: 1; knots: [0,0,1,1];\n    control-points: [[0,0,0],[$width,0,0]]; weights: [1,1];\n  }\n  @extrude #wall { curve: #profile; vector: [0,0,$height * $scale]; }\n}",
+    "description": "Length Parameters normalize to millimetres; the scalar scale controls extrusion height. Edit width from 10 cm to 12 cm and run the complete candidate. The native IDs remain profile and wall.",
+    "expected": {
+      "sourceVersion": 2,
+      "irSchemaVersion": 2,
+      "modelVersion": 0,
+      "surfaceId": "wall",
+      "nativeObjectIds": [
+        "profile",
+        "wall"
+      ],
+      "centerMM": [
+        50,
+        0,
+        50
+      ],
+      "vertices": 289,
+      "triangles": 512,
+      "parameters": {
+        "width": {
+          "value": 100,
+          "unit": "mm"
+        },
+        "height": {
+          "value": 50,
+          "unit": "mm"
+        },
+        "scale": {
+          "value": 2,
+          "unit": "1"
+        }
+      },
+      "edited": {
+        "replace": "10 cm",
+        "with": "12 cm",
+        "centerMM": [
+          60,
+          0,
+          60
+        ],
+        "parameters": {
+          "width": {
+            "value": 120,
+            "unit": "mm"
+          },
+          "height": {
+            "value": 60,
+            "unit": "mm"
+          },
+          "scale": {
+            "value": 2,
+            "unit": "1"
+          }
+        }
+      },
+      "solid": false
+    }
+  }
+}

@@ -1,0 +1,433 @@
+{
+  "captures": [
+    {
+      "key": "cad-extrude",
+      "report": {
+        "backend": "CAD sampling \u2192 WebGL2 mesh",
+        "sourceVersion": 1,
+        "centerMM": [
+          10,
+          0,
+          15
+        ],
+        "parameters": [],
+        "vertices": 289,
+        "triangles": 512,
+        "maxSampledDeviationMM": 5.204170427930421e-17,
+        "certified": false,
+        "mmToSceneUnit": 0.060000000000000005
+      },
+      "source": "@model raised_edge {\n  version: 1; length-unit: mm;\n  @curve #profile {\n    type: nurbs; degree: 1; knots: [0,0,1,1];\n    control-points: [[0,0,0],[20,0,0]]; weights: [1,1];\n  }\n  @extrude #wall { curve: #profile; vector: [0,0,30]; }\n}",
+      "image": "docs/public/examples/cad-extrude.png"
+    },
+    {
+      "key": "cad-parameters",
+      "report": {
+        "backend": "CAD sampling \u2192 WebGL2 mesh",
+        "sourceVersion": 2,
+        "centerMM": [
+          50,
+          0,
+          50
+        ],
+        "parameters": [
+          {
+            "id": "width",
+            "value": 100,
+            "unit": "mm"
+          },
+          {
+            "id": "height",
+            "value": 50,
+            "unit": "mm"
+          },
+          {
+            "id": "scale",
+            "value": 2,
+            "unit": "1"
+          }
+        ],
+        "vertices": 289,
+        "triangles": 512,
+        "maxSampledDeviationMM": 0,
+        "certified": false,
+        "mmToSceneUnit": 0.018000000000000002
+      },
+      "source": "@model driven {\n  version: 2; length-unit: mm;\n  @parameter #width { type: length; value: 10 cm; }\n  @parameter #height { type: length; value: $width / 2; }\n  @parameter #scale { type: scalar; value: 2; }\n  @curve #profile {\n    type: nurbs; degree: 1; knots: [0,0,1,1];\n    control-points: [[0,0,0],[$width,0,0]]; weights: [1,1];\n  }\n  @extrude #wall { curve: #profile; vector: [0,0,$height * $scale]; }\n}",
+      "image": "docs/public/examples/cad-parameters.png"
+    },
+    {
+      "key": "gpu-six-shapes",
+      "report": {
+        "sourceVersion": 1,
+        "objects": [
+          {
+            "id": "ball",
+            "type": "sphere",
+            "translate": [
+              -2,
+              1,
+              0
+            ],
+            "rotateDegrees": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": "block",
+            "type": "box",
+            "translate": [
+              0,
+              1,
+              0
+            ],
+            "rotateDegrees": [
+              0,
+              25,
+              0
+            ]
+          },
+          {
+            "id": "post",
+            "type": "cylinder",
+            "translate": [
+              2,
+              1,
+              0
+            ],
+            "rotateDegrees": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": "pill",
+            "type": "capsule",
+            "translate": [
+              -2,
+              -1,
+              0
+            ],
+            "rotateDegrees": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": "case",
+            "type": "rounded-box",
+            "translate": [
+              0,
+              -1,
+              0
+            ],
+            "rotateDegrees": [
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "id": "ring",
+            "type": "torus",
+            "translate": [
+              2,
+              -1,
+              0
+            ],
+            "rotateDegrees": [
+              90,
+              0,
+              0
+            ]
+          }
+        ],
+        "backend": "WebGL2 SDF"
+      },
+      "source": "@scene sixShapes {\n  version: 1;\n  background: #101820;\n  sphere #ball;\n  box #block;\n  cylinder #post;\n  capsule #pill;\n  rounded-box #case;\n  torus #ring;\n}\n#ball { radius: .4; translate: -2 1 0; color: #F1AA55; }\n#block { size: .7 .9 .6; translate: 0 1 0; rotate-y: 25deg; color: #57B4D9; }\n#post { radius: .35; height: 1; translate: 2 1 0; color: #95D88B; }\n#pill { radius: .25; start: 0 -.4 0; end: 0 .4 0; translate: -2 -1 0; color: #CA97E5; }\n#case { size: 1 .8 .6; radius: .1; translate: 0 -1 0; color: #ED8090; }\n#ring { major-radius: .55; minor-radius: .15; translate: 2 -1 0; rotate-x: 90deg; color: #F0D670; }",
+      "image": "docs/public/examples/gpu-six-shapes.png"
+    },
+    {
+      "key": "material-rgb",
+      "report": {
+        "backend": "CAD sampling \u2192 WebGL2 mesh",
+        "sourceVersion": 0,
+        "centerMM": [
+          7.7,
+          5.2,
+          1
+        ],
+        "parameters": [],
+        "vertices": 289,
+        "triangles": 512,
+        "maxSampledDeviationMM": 0.02878837032366707,
+        "certified": false,
+        "mmToSceneUnit": 0.12,
+        "shaderId": "function_rgb",
+        "targetFunction": "rgb",
+        "uniforms": {
+          "amount": 0.25
+        }
+      },
+      "source": "@shader #function_rgb {\n  @uniform amount: float(0,1,0);\n  @fragment { color: mix(rgb(32,96,208),rgb(240,144,48),amount); }\n}\n",
+      "image": "docs/public/examples/material-rgb.png"
+    },
+    {
+      "key": "material-sin",
+      "report": {
+        "backend": "CAD sampling \u2192 WebGL2 mesh",
+        "sourceVersion": 0,
+        "centerMM": [
+          7.7,
+          5.2,
+          1
+        ],
+        "parameters": [],
+        "vertices": 289,
+        "triangles": 512,
+        "maxSampledDeviationMM": 0.02878837032366707,
+        "certified": false,
+        "mmToSceneUnit": 0.12,
+        "shaderId": "function_sin",
+        "targetFunction": "sin",
+        "uniforms": {
+          "amount": 0.25
+        }
+      },
+      "source": "@shader #function_sin {\n  @uniform amount: float(0,1,0);\n  @let ratio: float(sin(amount*6.283185307179586)*.5+.5);\n  @fragment { color: mix(#2060D0,#F09030,ratio); }\n}\n",
+      "image": "docs/public/examples/material-sin.png"
+    },
+    {
+      "key": "material-cos",
+      "report": {
+        "backend": "CAD sampling \u2192 WebGL2 mesh",
+        "sourceVersion": 0,
+        "centerMM": [
+          7.7,
+          5.2,
+          1
+        ],
+        "parameters": [],
+        "vertices": 289,
+        "triangles": 512,
+        "maxSampledDeviationMM": 0.02878837032366707,
+        "certified": false,
+        "mmToSceneUnit": 0.12,
+        "shaderId": "function_cos",
+        "targetFunction": "cos",
+        "uniforms": {
+          "amount": 0.25
+        }
+      },
+      "source": "@shader #function_cos {\n  @uniform amount: float(0,1,0);\n  @let ratio: float(cos(amount*6.283185307179586)*.5+.5);\n  @fragment { color: mix(#2060D0,#F09030,ratio); }\n}\n",
+      "image": "docs/public/examples/material-cos.png"
+    },
+    {
+      "key": "material-radians",
+      "report": {
+        "backend": "CAD sampling \u2192 WebGL2 mesh",
+        "sourceVersion": 0,
+        "centerMM": [
+          7.7,
+          5.2,
+          1
+        ],
+        "parameters": [],
+        "vertices": 289,
+        "triangles": 512,
+        "maxSampledDeviationMM": 0.02878837032366707,
+        "certified": false,
+        "mmToSceneUnit": 0.12,
+        "shaderId": "function_radians",
+        "targetFunction": "radians",
+        "uniforms": {
+          "amount": 0.25
+        }
+      },
+      "source": "@shader #function_radians {\n  @uniform amount: float(0,1,0);\n  @let ratio: float(clamp(radians(amount*180)/3.141592653589793,0,1));\n  @fragment { color: mix(#2060D0,#F09030,ratio); }\n}\n",
+      "image": "docs/public/examples/material-radians.png"
+    },
+    {
+      "key": "material-pow",
+      "report": {
+        "backend": "CAD sampling \u2192 WebGL2 mesh",
+        "sourceVersion": 0,
+        "centerMM": [
+          7.7,
+          5.2,
+          1
+        ],
+        "parameters": [],
+        "vertices": 289,
+        "triangles": 512,
+        "maxSampledDeviationMM": 0.02878837032366707,
+        "certified": false,
+        "mmToSceneUnit": 0.12,
+        "shaderId": "function_pow",
+        "targetFunction": "pow",
+        "uniforms": {
+          "amount": 0.25
+        }
+      },
+      "source": "@shader #function_pow {\n  @uniform amount: float(0,1,0);\n  @let ratio: float(pow(amount,2));\n  @fragment { color: mix(#2060D0,#F09030,ratio); }\n}\n",
+      "image": "docs/public/examples/material-pow.png"
+    },
+    {
+      "key": "material-abs",
+      "report": {
+        "backend": "CAD sampling \u2192 WebGL2 mesh",
+        "sourceVersion": 0,
+        "centerMM": [
+          7.7,
+          5.2,
+          1
+        ],
+        "parameters": [],
+        "vertices": 289,
+        "triangles": 512,
+        "maxSampledDeviationMM": 0.02878837032366707,
+        "certified": false,
+        "mmToSceneUnit": 0.12,
+        "shaderId": "function_abs",
+        "targetFunction": "abs",
+        "uniforms": {
+          "amount": 0.25
+        }
+      },
+      "source": "@shader #function_abs {\n  @uniform amount: float(0,1,0);\n  @let ratio: float(abs(amount*2-1));\n  @fragment { color: mix(#2060D0,#F09030,ratio); }\n}\n",
+      "image": "docs/public/examples/material-abs.png"
+    },
+    {
+      "key": "material-min",
+      "report": {
+        "backend": "CAD sampling \u2192 WebGL2 mesh",
+        "sourceVersion": 0,
+        "centerMM": [
+          7.7,
+          5.2,
+          1
+        ],
+        "parameters": [],
+        "vertices": 289,
+        "triangles": 512,
+        "maxSampledDeviationMM": 0.02878837032366707,
+        "certified": false,
+        "mmToSceneUnit": 0.12,
+        "shaderId": "function_min",
+        "targetFunction": "min",
+        "uniforms": {
+          "amount": 0.25
+        }
+      },
+      "source": "@shader #function_min {\n  @uniform amount: float(0,1,0);\n  @let ratio: float(min(amount,.6));\n  @fragment { color: mix(#2060D0,#F09030,ratio); }\n}\n",
+      "image": "docs/public/examples/material-min.png"
+    },
+    {
+      "key": "material-max",
+      "report": {
+        "backend": "CAD sampling \u2192 WebGL2 mesh",
+        "sourceVersion": 0,
+        "centerMM": [
+          7.7,
+          5.2,
+          1
+        ],
+        "parameters": [],
+        "vertices": 289,
+        "triangles": 512,
+        "maxSampledDeviationMM": 0.02878837032366707,
+        "certified": false,
+        "mmToSceneUnit": 0.12,
+        "shaderId": "function_max",
+        "targetFunction": "max",
+        "uniforms": {
+          "amount": 0.25
+        }
+      },
+      "source": "@shader #function_max {\n  @uniform amount: float(0,1,0);\n  @let ratio: float(max(amount,.4));\n  @fragment { color: mix(#2060D0,#F09030,ratio); }\n}\n",
+      "image": "docs/public/examples/material-max.png"
+    },
+    {
+      "key": "material-clamp",
+      "report": {
+        "backend": "CAD sampling \u2192 WebGL2 mesh",
+        "sourceVersion": 0,
+        "centerMM": [
+          7.7,
+          5.2,
+          1
+        ],
+        "parameters": [],
+        "vertices": 289,
+        "triangles": 512,
+        "maxSampledDeviationMM": 0.02878837032366707,
+        "certified": false,
+        "mmToSceneUnit": 0.12,
+        "shaderId": "function_clamp",
+        "targetFunction": "clamp",
+        "uniforms": {
+          "amount": 0.25
+        }
+      },
+      "source": "@shader #function_clamp {\n  @uniform amount: float(0,1,0);\n  @let ratio: float(clamp(amount,.25,.75));\n  @fragment { color: mix(#2060D0,#F09030,ratio); }\n}\n",
+      "image": "docs/public/examples/material-clamp.png"
+    },
+    {
+      "key": "material-smoothstep",
+      "report": {
+        "backend": "CAD sampling \u2192 WebGL2 mesh",
+        "sourceVersion": 0,
+        "centerMM": [
+          7.7,
+          5.2,
+          1
+        ],
+        "parameters": [],
+        "vertices": 289,
+        "triangles": 512,
+        "maxSampledDeviationMM": 0.02878837032366707,
+        "certified": false,
+        "mmToSceneUnit": 0.12,
+        "shaderId": "function_smoothstep",
+        "targetFunction": "smoothstep",
+        "uniforms": {
+          "amount": 0.25
+        }
+      },
+      "source": "@shader #function_smoothstep {\n  @uniform amount: float(0,1,0);\n  @let ratio: float(smoothstep(.2,.8,amount));\n  @fragment { color: mix(#2060D0,#F09030,ratio); }\n}\n",
+      "image": "docs/public/examples/material-smoothstep.png"
+    },
+    {
+      "key": "material-mix",
+      "report": {
+        "backend": "CAD sampling \u2192 WebGL2 mesh",
+        "sourceVersion": 0,
+        "centerMM": [
+          7.7,
+          5.2,
+          1
+        ],
+        "parameters": [],
+        "vertices": 289,
+        "triangles": 512,
+        "maxSampledDeviationMM": 0.02878837032366707,
+        "certified": false,
+        "mmToSceneUnit": 0.12,
+        "shaderId": "function_mix",
+        "targetFunction": "mix",
+        "uniforms": {
+          "amount": 0.25
+        }
+      },
+      "source": "@shader #function_mix {\n  @uniform amount: float(0,1,0);\n  @let ratio: float(mix(.2,.8,amount));\n  @fragment { color: mix(#2060D0,#F09030,ratio); }\n}\n",
+      "image": "docs/public/examples/material-mix.png"
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "url": "http://127.0.0.1:52949/playground"
+}

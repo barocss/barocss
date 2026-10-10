@@ -1,0 +1,156 @@
+[
+  {
+    "name": "cad-extrude",
+    "bytes": 122998,
+    "dimensions": [
+      1152,
+      1145
+    ],
+    "sha256": "599e269a3cd1811ce7bbb7c52b1bf85143316bcf1c91740c8b6f5e28bfe7aa4b",
+    "builtMatches": true,
+    "captureContext": "actual native browser at localhost52949, material amount0.25"
+  },
+  {
+    "name": "cad-parameters",
+    "bytes": 134320,
+    "dimensions": [
+      1152,
+      1145
+    ],
+    "sha256": "f38940b8c74dd9328652e9b171270ee6f815b5cce06e09b8be5ce49ec0c4190a",
+    "builtMatches": true,
+    "captureContext": "actual native browser at localhost52949, material amount0.25"
+  },
+  {
+    "name": "gpu-six-shapes",
+    "bytes": 127844,
+    "dimensions": [
+      1152,
+      1117
+    ],
+    "sha256": "8402da338ef9cca9d1e2b715613a67c6d08c738da371105ccdf5ba79c1a5bd28",
+    "builtMatches": true,
+    "captureContext": "actual native browser at localhost52949, material amount0.25"
+  },
+  {
+    "name": "material-rgb",
+    "bytes": 101152,
+    "dimensions": [
+      1152,
+      1185
+    ],
+    "sha256": "a5af6202242559d2b1ae1d8a1146d48adf26c1077a5921105f47707ccf28f7f2",
+    "builtMatches": true,
+    "captureContext": "actual native browser at localhost52949, material amount0.25"
+  },
+  {
+    "name": "material-sin",
+    "bytes": 100293,
+    "dimensions": [
+      1152,
+      1157
+    ],
+    "sha256": "ec8870ce9fc134b763fe07b8b9085d189164fb92e251318dd0fd0613d999a16c",
+    "builtMatches": true,
+    "captureContext": "actual native browser at localhost52949, material amount0.25"
+  },
+  {
+    "name": "material-cos",
+    "bytes": 100626,
+    "dimensions": [
+      1152,
+      1157
+    ],
+    "sha256": "d9b13f39c85e98cab1797ee5b26ec2c3caf6ee7089e1e0106ffe0fab39de4623",
+    "builtMatches": true,
+    "captureContext": "actual native browser at localhost52949, material amount0.25"
+  },
+  {
+    "name": "material-radians",
+    "bytes": 107036,
+    "dimensions": [
+      1152,
+      1185
+    ],
+    "sha256": "0a7a04d1dd8a76aa5449a19e85761d1e6107260045a486ef037297be3a711153",
+    "builtMatches": true,
+    "captureContext": "actual native browser at localhost52949, material amount0.25"
+  },
+  {
+    "name": "material-pow",
+    "bytes": 99729,
+    "dimensions": [
+      1152,
+      1157
+    ],
+    "sha256": "eb3a4fa1169e54b421a68677ed6270d8fc3b93e7333ddabcad8ccc023bb0ebb3",
+    "builtMatches": true,
+    "captureContext": "actual native browser at localhost52949, material amount0.25"
+  },
+  {
+    "name": "material-abs",
+    "bytes": 103526,
+    "dimensions": [
+      1152,
+      1185
+    ],
+    "sha256": "1dbfe923f18917322b93d88b5439d5305824045cfcf1cd89f44a1e4af09e24d5",
+    "builtMatches": true,
+    "captureContext": "actual native browser at localhost52949, material amount0.25"
+  },
+  {
+    "name": "material-min",
+    "bytes": 98576,
+    "dimensions": [
+      1152,
+      1157
+    ],
+    "sha256": "a9fa048d80f5f8252a82a4ac5063557d16d27950a1bddbd282ab5e8e446340ab",
+    "builtMatches": true,
+    "captureContext": "actual native browser at localhost52949, material amount0.25"
+  },
+  {
+    "name": "material-max",
+    "bytes": 98463,
+    "dimensions": [
+      1152,
+      1157
+    ],
+    "sha256": "9e14e635d5737cf7028582628fc01d3f4615efe07a043d0266edbbb974e7ef09",
+    "builtMatches": true,
+    "captureContext": "actual native browser at localhost52949, material amount0.25"
+  },
+  {
+    "name": "material-clamp",
+    "bytes": 100988,
+    "dimensions": [
+      1152,
+      1157
+    ],
+    "sha256": "66063a61bb0076282e56018224f12956d2b6cec3d3f2a18a7c88b85523ffd9b1",
+    "builtMatches": true,
+    "captureContext": "actual native browser at localhost52949, material amount0.25"
+  },
+  {
+    "name": "material-smoothstep",
+    "bytes": 101982,
+    "dimensions": [
+      1152,
+      1157
+    ],
+    "sha256": "d623c9834e258aef180fa0c9c2f2c995e16e68a48ea09387806bb09d43320a59",
+    "builtMatches": true,
+    "captureContext": "actual native browser at localhost52949, material amount0.25"
+  },
+  {
+    "name": "material-mix",
+    "bytes": 103490,
+    "dimensions": [
+      1152,
+      1185
+    ],
+    "sha256": "6a3a93020d2bba54004bae08a53e2ea67e3a1d213092063aa7fce8a0a83677d5",
+    "builtMatches": true,
+    "captureContext": "actual native browser at localhost52949, material amount0.25"
+  }
+]

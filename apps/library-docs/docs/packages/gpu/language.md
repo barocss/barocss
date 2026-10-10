@@ -185,9 +185,12 @@ The coordinate system is right handed with Y up. Source1 applies local X rotatio
 
 ### Source1 shapes in one complete input
 
+Open [GPU six shapes](/playground#gpu-six-shapes) to compare these six shapes in one view. Each shape has its own color. The two rows make their silhouettes and extents easier to compare.
+
 ```css
 @scene sixShapes {
   version: 1;
+  background: #101820;
   sphere #ball;
   box #block;
   cylinder #post;
@@ -195,19 +198,23 @@ The coordinate system is right handed with Y up. Source1 applies local X rotatio
   rounded-box #case;
   torus #ring;
 }
-#ball { radius: .4; translate: -2 1 0; }
-#block { size: .7 .9 .6; translate: 0 1 0; rotate-y: 25deg; }
-#post { radius: .35; height: 1; translate: 2 1 0; }
-#pill { radius: .25; start: 0 -.4 0; end: 0 .4 0; translate: -2 -1 0; }
-#case { size: 1 .8 .6; radius: .1; translate: 0 -1 0; }
-#ring { major-radius: .55; minor-radius: .15; translate: 2 -1 0; rotate-x: 90deg; }
+#ball { radius: .4; translate: -2 1 0; color: #F1AA55; }
+#block { size: .7 .9 .6; translate: 0 1 0; rotate-y: 25deg; color: #57B4D9; }
+#post { radius: .35; height: 1; translate: 2 1 0; color: #95D88B; }
+#pill { radius: .25; start: 0 -.4 0; end: 0 .4 0; translate: -2 -1 0; color: #CA97E5; }
+#case { size: 1 .8 .6; radius: .1; translate: 0 -1 0; color: #ED8090; }
+#ring { major-radius: .55; minor-radius: .15; translate: 2 -1 0; rotate-x: 90deg; color: #F0D670; }
 ```
+
+The accepted object order is sphere, box, cylinder, capsule, rounded-box, torus. Their IDs are `ball`, `block`, `post`, `pill`, `case`, `ring`. Translation places the first three at Y=1 and the last three at Y=-1. The example uses source1 explicitly; its render IR has schema version2 and pipeline `sdf`.
 
 The cylinder is aligned to local Y before rotation. Its height includes the complete straight cylinder, not a half height. The capsule adds hemispherical ends around its center segment; its overall extent is greater than the segment length by two radii.
 
 The rounded box's `size` is its outer size. The rounding radius must be positive and at most half the smallest outer extent. These checks also run in Float32. A radius equal to the smallest half extent is accepted; a larger radius is refused.
 
 The torus axis is local Y, and its centerline is in local XZ. It requires `0 < minor-radius < major-radius` and `major-radius + minor-radius <= 1000`. Float32 radii must retain a positive hole. Capsule endpoints must retain a usable nonzero separation after Float32 conversion.
+
+In this preset, X rotation90deg turns the ring toward the default camera. Change its minor radius from`.15` to`.55` to create an intentional refusal: its major and minor radii would be equal. The compiler returns `VALIDATION`; a live renderer retains its accepted scene while the context is usable. See the [six-shape image and edit steps](./examples#compare-all-six-source1-primitives).
 
 ## Compile and inspect errors before drawing
 

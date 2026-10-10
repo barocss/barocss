@@ -31,7 +31,7 @@ features:
 
 ## See an actual result
 
-[Run four editable examples](/playground): GPU scene, CAD curve, CAD surface and GPU material. Read the [CAD language](/packages/cad/language), [GPU scene language](/packages/gpu/language) and [GPU material language](/packages/gpu/material-language) beside their inputs.
+[Run eighteen editable examples](/playground): CAD curves, Surfaces, source1 Extrude and source2 parameters; GPU scenes and six primitives; eleven independent material function samples. Read the [CAD language](/packages/cad/language), [GPU scene language](/packages/gpu/language), [GPU material language](/packages/gpu/material-language) and [function gallery](/packages/gpu/function-examples) beside their inputs.
 
 ## Pick your first task
 

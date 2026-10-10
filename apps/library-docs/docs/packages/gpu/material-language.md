@@ -136,6 +136,8 @@ Division is deliberately restricted. `amount / 2` is valid. `amount / -2` is val
 
 The source language supports the functions below. Several lower to the smaller IR vocabulary. The generated IR function names therefore do not enumerate all accepted source functions.
 
+Use the [individual function examples](./function-examples) for complete material inputs, their amount values and expected results. These examples cover all11source functions, including the distinct cosine blend and explicit clamp threshold. Each material uses the admitted mesh path; the function language does not create geometry.
+
 | Function | Arguments → result | Conditions |
 | --- | --- | --- |
 | `rgb(r,g,b)` | Three numeric literals → color | Integer bytes0..255; expressions and uniforms cannot be channels |
