@@ -1,6 +1,6 @@
 # Actual upright capsule Viewer host (#1065)
 
-Stage: implementation under native qualification. No host GO or Integration adoption is implied by this README.
+Stage: native implementation and own actual 3D qualification complete. Exact sole Integration adoption pending. See RESULTS.md and evidence/canonical; native GO does not imply current integrated/editor acceptance or publication.
 
 Run Node22 `node examples/physics-character-viewer/setup.mjs`, then `node examples/physics-character-viewer/server.mjs source`. The printed local URL is the host. `compiled` selects every transitive public publishConfig export and requires the original library builds. No source alias or new package API.
 
