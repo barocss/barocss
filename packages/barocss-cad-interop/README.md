@@ -3268,3 +3268,27 @@ LOADER1289_COMPILED_BUNDLE=<fresh-compiled-evidence>/browser.bundle.mjs pnpm exe
 ```
 
 The actual host uses port5300 at `/packages/barocss-cad-interop/examples/multispan-trim-uv-pixi3d.html`. CPU checks and genuine WebGL2 target checks have separate receipts. Issue#1289 and the Loader Wiki record the actual native commit, executed gates and first errors. Native delivery, local integration and publication are separate states.
+
+## Inspect an exact lower-strip Face in Three.js
+
+[Issue #1299](https://github.com/barocss/barocss/issues/1299) defines this external host.
+Open `examples/exact-lower-strip-face-three.html` with its dedicated Vite config.
+The two complete original files retain one Support and four native Curves each.
+Read the forward/reverse Face, oriented Uses, exact bindings and original native observations.
+The visible Surface remains the whole untrimmed Support. Native UV values are dimensionless.
+Individual Face certificates do not define a sewn Body, Solid or clipped display fill.
+
+Use Node22 and the repository's installed optional Three peer. From the repository root:
+
+```sh
+node packages/barocss-cad-interop/examples/exact-lower-strip-face-three-verify.mjs --mode source --output /tmp/loader1299-source
+pnpm exec vite --config packages/barocss-cad-interop/examples/exact-lower-strip-face-three.config.mjs
+```
+
+Run the source verifier before building the CAD and interop libraries. The emitted verifier
+uses `--mode compiled` and a fresh output directory. Set `LOADER1299_COMPILED_BUNDLE`
+to that directory's `browser.bundle.mjs` to serve the same host from actual emitted entries.
+The host checks original files, native/input refusals, transport refusal, replacement,
+fresh whole-source reload and double cleanup. It retains complete native CPU authority.
+Only the owned Three resources are disposed. Caller objects and the camera remain available.
+This is a local runnable host; package publication and current composed acceptance are separate.

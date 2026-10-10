@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Original exact lower-strip Face · Three</title>
+  <style>
+    :root{color-scheme:dark;font:15px/1.5 system-ui,sans-serif;background:#101b2c;color:#e5edf6}body{margin:0;padding:24px;max-width:1400px}h1{font-size:26px;margin:0 0 8px}p{max-width:1000px}button{padding:8px 12px;border:1px solid #66829f;border-radius:4px;background:#203a54;color:inherit;cursor:pointer}button:disabled{opacity:.4;cursor:default}nav{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}#view{max-width:900px}canvas{display:block;max-width:100%;height:auto!important;border:1px solid #43576d}table{border-collapse:collapse;width:100%;font-size:13px}th,td{padding:8px;border-bottom:1px solid #43576d;text-align:left;vertical-align:top}th{color:#afc7df}pre{overflow:auto;max-height:400px;background:#18273a;padding:12px;white-space:pre-wrap;overflow-wrap:anywhere}summary{cursor:pointer;padding:8px 0}.note{color:#afc7df}.table-wrap{overflow:auto}#status{min-height:24px}
+  </style>
+</head>
+<body>
+  <h1>Original exact lower-strip Face in Three</h1>
+  <p>Read the original Face, its oriented loop and exact boundary certificates beside the complete Support Surface. The preview is untrimmed. Four boundary Curves remain in the complete native model. UV values are dimensionless.</p>
+  <p class="note">The certificate applies to one original Face. It does not certify a closed Body or Solid. Native C0 derivative refusals remain visible.</p>
+  <nav aria-label="Original Face flow">
+    <button id="negatives" disabled>Check original input refusals</button>
+    <button id="transport" disabled>Check transport refusals</button>
+    <button id="high" disabled>Read original high Face</button>
+    <button id="cold" disabled>Reopen original high files</button>
+    <button id="cleanup" disabled>Clean up owned Support twice</button>
+  </nav>
+  <p id="status" role="status">Reading the original files…</p>
+  <div id="view" aria-label="Original untrimmed Support and caller marker"></div>
+  <h2>Original oriented loop</h2>
+  <p id="face-summary"></p>
+  <div class="table-wrap"><table><thead><tr><th>Qualified Face / Use</th><th>Edge / original Curve</th><th>Sense / interval</th><th>Dimensionless UV</th></tr></thead><tbody id="uses"></tbody></table></div>
+  <h2>Original native observations</h2>
+  <div class="table-wrap"><table><thead><tr><th>Edge / parameter</th><th>World D1</th><th>UV D1</th><th>Original Surface D1</th><th>Actual residuals</th></tr></thead><tbody id="observations"></tbody></table></div>
+  <details><summary>Complete original Face, binding, parents and independent oracles</summary><pre id="native"></pre></details>
+  <details><summary>Actual resource and refusal receipts</summary><pre id="receipts"></pre></details>
+  <script type="module" src="./exact-lower-strip-face-three.mjs"></script>
+</body>
+</html>

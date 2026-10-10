@@ -1,0 +1,1 @@
+@model original_plane_model {version:0;length-unit:mm;@curve #original_plane_unused {type:nurbs;degree:1;knots:[-0,-0,1,1];control-points:[[-0,0,0],[1,1,0]];weights:[1,1];}@surface #original_shared_plane {type:nurbs;degree-u:1;degree-v:1;knots-u:[0,0,1,1];knots-v:[0,0,1,1];control-points:[[[0,0,2],[0,64,2]],[[64,0,6],[64,64,6]]];weights:[[1,1],[1,1]];}}
