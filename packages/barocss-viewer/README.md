@@ -832,3 +832,25 @@ The display-triangle intersection and evaluated native point are separate. `disp
 The query changes no Viewer/GPU/measurement/request state. It uses the existing screen input, nearest/tie, clipping and lifecycle rules. Loss, unavailable presentation, sticky restoration, wrong mode and disposal refuse a screen sample. Manual native parameter queries retain their separate CPU authority.
 
 Approximate screen-selected U/V may vary with Float32 scaling and camera rounding. Native evaluation at a fixed original U/V remains original geometry; inferred parameters are not an invariant accuracy certificate.
+
+
+### Primitive accepted-presentation recovery
+
+Primitive transaction results preserve the original candidate error when
+accepted-frame recovery succeeds. If that recovery also fails, the public
+GPU `PrimitiveSceneRecoveryError` carries `code: 'CONTEXT'` and the unchanged
+`errors: [original, recovery]` pair. Viewer throws that same error and reports
+`unavailable` while retaining accepted CPU native source, camera and query
+authority. This status does not certify hardware context loss. Actual canvas
+context loss keeps the existing `context-lost` priority.
+
+Further GPU actions, including Open and Fit, refuse until a fresh Viewer.
+CPU native inspection can remain available. Failed recovery has no pixel
+rollback promise. Dispose still releases resources when the actual GL
+context is live. Ordinary validation or recovered candidate errors do not
+set this unavailable state.
+
+This guard covers result-returning primitive scene, complete-frame, clear,
+particle/cloth layer and material transactions. Primitive resize, readback
+throws and renderer-mount recovery keep their existing public contracts.
+Other Mesh, Shell, Mixed and qualified Face recovery rules remain separate.
