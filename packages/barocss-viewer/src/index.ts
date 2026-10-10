@@ -22,6 +22,8 @@ import type { MeshCamera, MeshLighting, PreviewPacket, PrimitiveSceneEntryV1,
   UniformCurvePreview, SelectedUniformCurvePreview, QualifiedFaceSceneV0 } from '@barocss/gpu';
 
 import { prepareViewerClothFrame } from './cloth-frame.js';
+import { prepareMountedNativeSceneAppearance } from './mounted-native-scene-appearance.js';
+import type { ViewerNativeSceneAppearanceInputV1 } from './native-scene-appearance.js';
 import type { ViewerClothFrameV0 } from './cloth-frame.js';
 export type { ViewerClothFrameV0 } from './cloth-frame.js';
 import { prepareViewerAssembly } from './assembly.js';
@@ -620,6 +622,8 @@ export class Viewer {
   private qualifiedFaceScene: QualifiedFaceSceneV0 | null = null;
   private presentationUnavailable = false;
   private nativeReplacement = false;
+  private appearanceDocument: CadDocumentResult | null = null;
+  private acceptedLighting: MeshLighting | null = null;
   private modelSet: BaroCadModelSetResult | null = null;
   private document: CadDocumentResult | null = null;
   private documentBodies: ViewerDocumentBody[] = [];
@@ -714,17 +718,21 @@ export class Viewer {
       && width <= 4096 && height <= 4096 && width * height <= 4194304, 'Canvas dimensions exceed limits');
   }
   private gpuOptions(camera = this.camera) {
+    const lighting = this.acceptedLighting ?? this.options.lighting;
     return { mmToSceneUnit: this.options.mmToSceneUnit, translate: [0, 0, 0] as Vec3,
       background: this.options.background, camera,
-      ...(this.options.lighting ? { lighting: this.options.lighting } : {}) };
+      ...(lighting ? { lighting } : {}) };
   }
   private gpuEntries(packets: ViewerPacket[], selected: ViewerRef | null, motion: ViewerMotionState | null,
-    geometryMotion: ViewerGeometryMotionState | null) {
+    geometryMotion: ViewerGeometryMotionState | null, paletteInventory: ViewerGeometryRef[] | null = null) {
     return packets.map((entry, index) => {
       const ref = { modelId: entry.modelId, surfaceId: entry.packet.surfaceId };
       const pose = surfacePose(ref, motion, geometryMotion);
+      const colorIndex = paletteInventory ? paletteInventory.findIndex(value =>
+        sameGeometryRef(value, { kind: 'surface', ...ref })) : index;
+      check(colorIndex >= 0, 'Native appearance Surface is absent from the current palette inventory');
       return { packet: entry.packet,
-        color: sameRef(ref, selected) ? SELECTED_COLOR : PALETTE[index],
+        color: sameRef(ref, selected) ? SELECTED_COLOR : PALETTE[colorIndex],
         ...(pose ? { transform: { translationMm: pose.translationMm,
           rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {}) };
     });
@@ -755,7 +763,9 @@ export class Viewer {
       { kind: 'curve', modelId: entry.modelId, curveId: viewerCurveId(entry) })));
     check(!clothLayer || (qualified && packets.length === 1 && curves.length === 0),
       'Active cloth requires one visible qualified native Surface');
-    const surfaces = this.gpuEntries(packets, selected, motion, geometryMotion), options = this.gpuOptions(camera);
+    const paletteInventory = this.appearanceDocument !== null && this.appearanceDocument === this.document
+      && allPackets === this.packets && allCurves === this.curves ? this.geometryRefs() : null;
+    const surfaces = this.gpuEntries(packets, selected, motion, geometryMotion, paletteInventory), options = this.gpuOptions(camera);
     if (packets.length + curves.length === 0) {
       if (this.renderer instanceof PrimitiveViewport) {
         const result = this.renderer.clear(options);
@@ -777,11 +787,14 @@ export class Viewer {
         ...curves.map((entry, index): PrimitiveSceneEntryV2 => {
           const ref = { modelId: entry.modelId, geometryId: viewerCurveId(entry) };
           const pose = curvePose({ modelId: entry.modelId, curveId: ref.geometryId }, geometryMotion);
+          const colorIndex = paletteInventory ? paletteInventory.findIndex(value => sameGeometryRef(value,
+            { kind: 'curve', modelId: ref.modelId, curveId: ref.geometryId })) : packets.length + index;
+          check(colorIndex >= 0, 'Native appearance Curve is absent from the current palette inventory');
           const fields = {
             basis: 'authored-xyz-matches-rhyup' as const, ref,
             color: geometrySelection?.kind === 'curve' && geometrySelection.modelId === ref.modelId
               && geometrySelection.curveId === ref.geometryId
-              ? SELECTED_COLOR : PALETTE[(packets.length + index) % PALETTE.length],
+              ? SELECTED_COLOR : PALETTE[colorIndex % PALETTE.length],
             ...(pose ? { transform: { translationMm: pose.translationMm,
               rotationXYZW: pose.rotationXYZW, scale: pose.scale } } : {}),
           };
@@ -940,7 +953,7 @@ export class Viewer {
     const camera = fittedCamera(packets, curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
     this.present(packets, curves, camera, null, null, null, null, qualified, [], null, [], null);
     this.packets = packets; this.curves = curves; this.camera = camera; this.shell = null; this.uniformCurve = null; this.selectedUniformCurve = null; this.mixedDepth = null; this.qualifiedFaceScene = null;
-    this.nativeReplacement = false;
+    this.nativeReplacement = false; this.appearanceDocument = null;
     this.selected = null; this.selectedGeometry = null; this.native = native; this.modelSet = modelSet;
     this.document = document; this.documentBodies = documentBodies;
     this.assembly = null; this.assemblyInstances = [];
@@ -979,9 +992,10 @@ export class Viewer {
       } catch (error) { this.recoverPresentation(prior, error, true); }
     }
     this.mixedDepth = candidate; this.camera = candidate.frame.camera; this.qualifiedFaceScene = null;
+    this.acceptedLighting = null;
     this.packets = [{ modelId: candidate.frame.surface.ref.modelId, packet: candidate.frame.surface.packet }];
     this.curves = []; this.native = null; this.modelSet = null; this.document = null; this.documentBodies = [];
-    this.uniformCurve = null; this.selectedUniformCurve = null; this.nativeReplacement = false;
+    this.uniformCurve = null; this.selectedUniformCurve = null; this.nativeReplacement = false; this.appearanceDocument = null;
     this.assembly = null; this.assemblyInstances = []; this.shell = null;
     this.selected = null; this.selectedGeometry = null; this.hiddenGeometry = [];
     this.motion = null; this.geometryMotion = null; this.measurement = null; this.curveMeasurement = null;
@@ -1002,9 +1016,10 @@ export class Viewer {
       } catch (error) { this.recoverPresentation(prior, error, true); }
     }
     this.qualifiedFaceScene = candidate; this.camera = candidate.camera;
+    this.acceptedLighting = null;
     this.packets = []; this.curves = []; this.native = null; this.document = null; this.documentBodies = [];
     this.modelSet = null; this.assembly = null; this.assemblyInstances = []; this.shell = null;
-    this.uniformCurve = null; this.selectedUniformCurve = null; this.mixedDepth = null; this.nativeReplacement = false;
+    this.uniformCurve = null; this.selectedUniformCurve = null; this.mixedDepth = null; this.nativeReplacement = false; this.appearanceDocument = null;
     this.selected = null; this.selectedGeometry = null; this.hiddenGeometry = []; this.motion = null; this.geometryMotion = null;
     this.measurement = null; this.curveMeasurement = null; this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
     this.surfaceMaterials = []; this.fluidFrame = null; this.particleLayer = null; this.clothFrame = null; this.clothLayer = null;
@@ -1180,7 +1195,34 @@ export class Viewer {
     this.measurement = null; this.curveMeasurement = null; this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
     this.surfaceMaterials = []; this.fluidFrame = null; this.particleLayer = null; this.clothFrame = null; this.clothLayer = null;
     this.nativeReplacement = true;
+    this.appearanceDocument = null;
     this.sceneRequest++;
+  }
+  /** One complete frame update on an already accepted qualified primitive backend. */
+  replaceNativeSceneAppearance(input: ViewerNativeSceneAppearanceInputV1): void {
+    this.gpuLive(); check(!this.contextLost, 'Cannot replace native appearance after WebGL2 context loss');
+    const renderer = this.renderer, request = this.sceneRequest;
+    check(renderer instanceof PrimitiveSceneRendererV2 || renderer instanceof PrimitiveViewport,
+      'Native appearance requires an already mounted qualified V2 or Viewport backend');
+    const candidate = prepareMountedNativeSceneAppearance(input,
+      { mmToSceneUnit: this.options.mmToSceneUnit, background: this.options.background });
+    check(renderer instanceof PrimitiveViewport || candidate.prepared.prepared.frame.scene.entries.length > 0,
+      'An empty native appearance requires an already mounted Viewport backend');
+    this.gpuLive(); check(!this.contextLost, 'Cannot replace native appearance after WebGL2 context loss');
+    check(this.renderer === renderer && this.sceneRequest === request,
+      'Native appearance preparation changed the accepted renderer or source request');
+    this.primitiveResult(renderer.updateFrame(candidate.prepared.prepared.frame));
+    this.packets = candidate.packets; this.curves = candidate.curves;
+    this.document = candidate.prepared.source.result; this.documentBodies = candidate.documentBodies;
+    this.hiddenGeometry = candidate.hiddenGeometry; this.geometryMotion = candidate.prepared.display.motion;
+    this.camera = candidate.prepared.display.camera; this.surfaceMaterials = candidate.surfaceMaterials;
+    this.acceptedLighting = candidate.lighting; this.appearanceDocument = this.document;
+    this.native = null; this.modelSet = null; this.assembly = null; this.assemblyInstances = []; this.shell = null;
+    this.uniformCurve = null; this.selectedUniformCurve = null; this.mixedDepth = null; this.qualifiedFaceScene = null;
+    this.motion = null; this.selected = null; this.selectedGeometry = null;
+    this.measurement = null; this.curveMeasurement = null; this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
+    this.fluidFrame = null; this.particleLayer = null; this.clothFrame = null; this.clothLayer = null;
+    this.nativeReplacement = true; this.sceneRequest++;
   }
   loadUniformCurvePreview(input: UniformCurvePreview,
     options: { basis: 'authored-xyz-matches-rhyup' }): void {
@@ -1199,7 +1241,7 @@ export class Viewer {
     const camera = fittedCamera([], curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
     this.present([], curves, camera, null, null, null, null, true, [], null, [], null);
     this.packets = []; this.curves = curves; this.camera = camera; this.uniformCurve = uniformCurve; this.selectedUniformCurve = null; this.mixedDepth = null; this.qualifiedFaceScene = null;
-    this.nativeReplacement = false;
+    this.nativeReplacement = false; this.appearanceDocument = null;
     this.native = null; this.modelSet = null; this.document = null; this.documentBodies = [];
     this.assembly = null; this.assemblyInstances = []; this.shell = null;
     this.selected = null; this.selectedGeometry = null; this.hiddenGeometry = [];
@@ -1227,7 +1269,7 @@ export class Viewer {
     const camera = fittedCamera([], curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height);
     this.present([], curves, camera, null, null, null, null, true, [], null, [], null);
     this.packets = []; this.curves = curves; this.camera = camera; this.selectedUniformCurve = selectedUniformCurve; this.mixedDepth = null; this.qualifiedFaceScene = null;
-    this.uniformCurve = null; this.nativeReplacement = false;
+    this.uniformCurve = null; this.nativeReplacement = false; this.appearanceDocument = null;
     this.native = null; this.modelSet = null; this.document = null; this.documentBodies = [];
     this.assembly = null; this.assemblyInstances = []; this.shell = null;
     this.selected = null; this.selectedGeometry = null; this.hiddenGeometry = [];
@@ -1253,7 +1295,7 @@ export class Viewer {
         prior?.dispose();
       } catch (error) { this.recoverPresentation(prior, error); }
     }
-    this.shell = candidate; this.camera = camera; this.uniformCurve = null; this.selectedUniformCurve = null; this.mixedDepth = null; this.qualifiedFaceScene = null; this.nativeReplacement = false;
+    this.shell = candidate; this.camera = camera; this.uniformCurve = null; this.selectedUniformCurve = null; this.mixedDepth = null; this.qualifiedFaceScene = null; this.nativeReplacement = false; this.appearanceDocument = null;
     this.packets = []; this.curves = []; this.native = null; this.modelSet = null;
     this.document = null; this.documentBodies = []; this.assembly = null; this.assemblyInstances = [];
     this.selected = null; this.selectedGeometry = null; this.hiddenGeometry = [];
@@ -1290,7 +1332,7 @@ export class Viewer {
     this.present(packets, curves, camera, null, null, null, candidate.geometryMotion,
       true, [], null, [], null);
     this.packets = packets; this.curves = curves; this.camera = camera; this.shell = null; this.uniformCurve = null; this.selectedUniformCurve = null; this.mixedDepth = null; this.qualifiedFaceScene = null;
-    this.nativeReplacement = false;
+    this.nativeReplacement = false; this.appearanceDocument = null;
     this.native = null; this.modelSet = null; this.document = null; this.documentBodies = [];
     this.assembly = candidate.assembly; this.assemblyInstances = candidate.instances;
     this.selected = null; this.selectedGeometry = null; this.hiddenGeometry = [];
@@ -1396,7 +1438,7 @@ export class Viewer {
     this.gpuLive();
     this.present([], [], this.camera, null, null, null, null, false, [], null, [], null);
     this.packets = []; this.curves = []; this.native = null; this.modelSet = null; this.shell = null; this.uniformCurve = null; this.selectedUniformCurve = null; this.mixedDepth = null; this.qualifiedFaceScene = null;
-    this.nativeReplacement = false;
+    this.nativeReplacement = false; this.appearanceDocument = null;
     this.document = null; this.documentBodies = [];
     this.assembly = null; this.assemblyInstances = [];
     this.hiddenGeometry = [];
@@ -2344,7 +2386,7 @@ export class Viewer {
       : this.packets.length + this.curves.length || this.shell?.boundsScene || this.qualifiedFaceScene ? 'ready' : 'empty';
     return structuredClone({ status, frame: 'right-handed-y-up', sourceUnit: 'mm',
       mmToSceneUnit: this.options.mmToSceneUnit, camera: this.camera,
-      lighting: this.options.lighting ?? null,
+      lighting: this.acceptedLighting ?? this.options.lighting ?? null,
       surfaces: this.packets.map(entry => ({ modelId: entry.modelId, surfaceId: entry.packet.surfaceId })),
       curves: this.curves.map(entry => ({ modelId: entry.modelId, curveId: viewerCurveId(entry) })),
       visibleGeometry: this.geometryRefs().filter(ref => this.visible(ref)),
@@ -2394,7 +2436,7 @@ export class Viewer {
       this.hiddenGeometry = []; this.motion = null; this.geometryMotion = null; this.selected = null; this.selectedGeometry = null;
       this.measurement = null; this.curveMeasurement = null; this.surfaceCurveMeasurement = null; this.nativeMeasurement = null;
     }
-    this.nativeReplacement = false;
+    this.nativeReplacement = false; this.appearanceDocument = null;
     if (this.assembly || this.uniformCurve || this.selectedUniformCurve) { this.motion = null; this.geometryMotion = null; }
     if (this.selectedUniformCurve) {
       this.curves = []; this.selected = null; this.selectedGeometry = null; this.hiddenGeometry = [];
