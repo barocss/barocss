@@ -1,14 +1,15 @@
 import {compileGpu, validateMeshCamera} from '@barocss/gpu';
 import type {MeshCamera} from '@barocss/gpu';
+import {sampleRenderSceneAnimationSource} from './source-animation.js';
 import {RenderEditorError, normalizeRenderEditorError} from './errors.js';
 import {validateRenderEditorDocument, compileRenderEditorSource} from './document.js';
-import type {RenderSceneDocumentV0} from './document.js';
+import type {RenderSceneDocument} from './document.js';
 import type {RenderEditorApplyMode, RenderEditorPreparedCandidate, RenderEditorSession, RenderEditorSessionSnapshot} from './session.js';
 
 export type PresentationResult = {ok: true} | {ok: false; error: Error; recovered: boolean};
 export interface RenderEditorPresenter {
-  present(candidate: RenderEditorPreparedCandidate, previous: RenderSceneDocumentV0): PresentationResult;
-  recover(document: RenderSceneDocumentV0): PresentationResult;
+  present(candidate: RenderEditorPreparedCandidate, previous: RenderSceneDocument): PresentationResult;
+  recover(document: RenderSceneDocument): PresentationResult;
   dispose(): void;
 }
 export interface RenderEditorControllerSnapshot {
@@ -16,6 +17,7 @@ export interface RenderEditorControllerSnapshot {
   readonly presentationError: RenderEditorError | null;
   readonly cameraPreview: MeshCamera | null;
   readonly transformPreview: {readonly objectId: string; readonly source: string} | null;
+  readonly animationPreview: {readonly source: string; readonly timeSeconds: number} | null;
   readonly disposed: boolean;
 }
 export type RenderEditorActionResult = {ok: true} | {ok: false; error: RenderEditorError};
@@ -36,6 +38,8 @@ export interface RenderEditorController {
   previewObjectSource(objectId: string, source: string): RenderEditorActionResult;
   applyObjectPreview(): RenderEditorActionResult;
   cancelObjectPreview(): RenderEditorActionResult;
+  previewAnimation(timeSeconds: number): RenderEditorActionResult;
+  cancelAnimationPreview(): RenderEditorActionResult;
   presentationUnavailable(error: Error): void;
   dispose(): void;
 }
@@ -53,11 +57,12 @@ function cameraEqual(a: MeshCamera, b: MeshCamera): boolean {
 /** Pure synchronous orchestration. Hosts inject their presentation resources. */
 export function createRenderEditorController(session: RenderEditorSession, initialPresenter?: RenderEditorPresenter): RenderEditorController {
   let presenter: RenderEditorPresenter | null = null;
-  let presentedDocument: RenderSceneDocumentV0 | null = null;
+  let presentedDocument: RenderSceneDocument | null = null;
   let previewBaseline: RenderEditorSessionSnapshot | null = null;
   let transformBaseline: RenderEditorSessionSnapshot | null = null;
+  let animationBaseline: RenderEditorSessionSnapshot | null = null;
   let transactionActive = false, viewEpoch = 0;
-  let snapshot: RenderEditorControllerSnapshot = Object.freeze({presentedRevision: null, presentationError: null, cameraPreview: null, transformPreview: null, disposed: false});
+  let snapshot: RenderEditorControllerSnapshot = Object.freeze({presentedRevision: null, presentationError: null, cameraPreview: null, transformPreview: null, animationPreview: null, disposed: false});
   const listeners = new Set<() => void>();
   const emit = (next: RenderEditorControllerSnapshot) => {
     snapshot = Object.freeze(next);
@@ -69,12 +74,12 @@ export function createRenderEditorController(session: RenderEditorSession, initi
   };
   const failure = (error: unknown): RenderEditorActionResult => ({ok: false, error: error instanceof RenderEditorError ? error : caused(error)});
   const unavailable = (error: unknown): RenderEditorActionResult => {
-    viewEpoch++; presentedDocument = null; previewBaseline = null; transformBaseline = null;
+    viewEpoch++; presentedDocument = null; previewBaseline = null; transformBaseline = null; animationBaseline = null;
     const notice = caused(error);
-    emit({...snapshot, presentedRevision: null, presentationError: notice, cameraPreview: null, transformPreview: null});
+    emit({...snapshot, presentedRevision: null, presentationError: notice, cameraPreview: null, transformPreview: null, animationPreview: null});
     return failure(notice);
   };
-  const present = (candidate: RenderEditorPreparedCandidate, previous: RenderSceneDocumentV0): RenderEditorActionResult => {
+  const present = (candidate: RenderEditorPreparedCandidate, previous: RenderSceneDocument): RenderEditorActionResult => {
     const epoch = viewEpoch;
     try {
       if (!presenter) throw new RenderEditorError('PRESENTATION_REFUSED', 'No viewport is attached.');
@@ -88,7 +93,7 @@ export function createRenderEditorController(session: RenderEditorSession, initi
       return {ok: true};
     } catch (cause) { return unavailable(cause); }
   };
-  const cameraCandidate = (accepted: RenderSceneDocumentV0, camera: MeshCamera, mode: 'camera' | 'both' = 'camera'): RenderEditorPreparedCandidate => {
+  const cameraCandidate = (accepted: RenderSceneDocument, camera: MeshCamera, mode: 'camera' | 'both' = 'camera'): RenderEditorPreparedCandidate => {
     let owned: MeshCamera;
     try { owned = validateMeshCamera(camera); } catch (cause) { throw caused(cause, 'DOCUMENT_INPUT'); }
     const document = validateRenderEditorDocument({...accepted, camera: owned});
@@ -103,8 +108,10 @@ export function createRenderEditorController(session: RenderEditorSession, initi
     const candidate = cameraCandidate(accepted, accepted.camera, mode), result = present(candidate, presentedDocument);
     if (!result.ok) return result;
     if (session.getSnapshot().accepted !== accepted) return unavailable(new RenderEditorError('STALE_CANDIDATE', 'The applied scene changed during view restoration. Recover the viewport.'));
-    presentedDocument = accepted; previewBaseline = null; transformBaseline = null;
-    emit({...snapshot, presentedRevision: accepted.revision, presentationError: null, cameraPreview: null, transformPreview: null});
+    presentedDocument = accepted; previewBaseline = null; transformBaseline = null; animationBaseline = null;
+    const epoch = viewEpoch;
+    emit({...snapshot, presentedRevision: accepted.revision, presentationError: null, cameraPreview: null, transformPreview: null, animationPreview: null});
+    if (epoch !== viewEpoch) return failure(snapshot.presentationError ?? new RenderEditorError('PRESENTATION_REFUSED', 'The viewport became unavailable during restoration.'));
     return {ok: true};
   };
   const previewBase = (): RenderEditorSessionSnapshot => {
@@ -121,7 +128,7 @@ export function createRenderEditorController(session: RenderEditorSession, initi
     if (current !== transformBaseline) throw new RenderEditorError('STALE_CANDIDATE', 'The scene or selection changed during the transform. Cancel the transform before continuing.');
     return transformBaseline;
   };
-  const objectCandidate = (accepted: RenderSceneDocumentV0, objectId: string, source: string) => {
+  const objectCandidate = (accepted: RenderSceneDocument, objectId: string, source: string) => {
     const document = validateRenderEditorDocument({...accepted, sceneSource: source});
     const before = compileGpu({kind: 'scene', source: accepted.sceneSource, sourceVersion: 1});
     const after = compileGpu({kind: 'scene', source, sourceVersion: 1});
@@ -145,7 +152,7 @@ export function createRenderEditorController(session: RenderEditorSession, initi
   const run = (prepare: () => RenderEditorPreparedCandidate | null): RenderEditorActionResult => {
     try {
       check();
-      if (snapshot.cameraPreview || snapshot.transformPreview) throw new RenderEditorError('STALE_CANDIDATE', 'Finish or cancel the temporary view or transform before applying other changes.');
+      if (snapshot.cameraPreview || snapshot.transformPreview || snapshot.animationPreview) throw new RenderEditorError('STALE_CANDIDATE', 'Finish or cancel the temporary view or transform before applying other changes.');
       if (!presenter || snapshot.presentedRevision === null || presentedDocument !== session.getSnapshot().accepted) throw new RenderEditorError('PRESENTATION_REFUSED', 'Recover the viewport before applying an edit.');
       const candidate = prepare();
       if (!candidate) return {ok: true};
@@ -156,7 +163,7 @@ export function createRenderEditorController(session: RenderEditorSession, initi
         if (!result.ok) throw result.error;
       }); } finally { transactionActive = false; }
       presentedDocument = candidate.document;
-      emit({...snapshot, presentedRevision: candidate.document.revision, presentationError: null, cameraPreview: null, transformPreview: null});
+      emit({...snapshot, presentedRevision: candidate.document.revision, presentationError: null, cameraPreview: null, transformPreview: null, animationPreview: null});
       return {ok: true};
     } catch (error) { return failure(error); }
   };
@@ -170,8 +177,8 @@ export function createRenderEditorController(session: RenderEditorSession, initi
     },
     detachPresenter(previous) {
       if (presenter !== previous) return;
-      check(); presenter = null; presentedDocument = null; previewBaseline = null; transformBaseline = null; viewEpoch++;
-      try { previous.dispose(); } finally { emit({...snapshot, presentedRevision: null, cameraPreview: null, transformPreview: null}); }
+      check(); presenter = null; presentedDocument = null; previewBaseline = null; transformBaseline = null; animationBaseline = null; viewEpoch++;
+      try { previous.dispose(); } finally { emit({...snapshot, presentedRevision: null, cameraPreview: null, transformPreview: null, animationPreview: null}); }
     },
     apply: (mode = 'both') => run(() => session.prepareDraft(mode)),
     open: text => run(() => session.prepareOpen(text)),
@@ -179,6 +186,7 @@ export function createRenderEditorController(session: RenderEditorSession, initi
     previewCamera(camera) {
       try {
         check();
+        if (snapshot.animationPreview) throw new RenderEditorError('STALE_CANDIDATE', 'Reset the animation sample before navigating or transforming.');
         if (snapshot.transformPreview) throw new RenderEditorError('STALE_CANDIDATE', 'Finish or cancel the object transform before navigating the camera.');
         const baseline = snapshot.cameraPreview ? previewBase() : session.getSnapshot();
         if (baseline.disposed) throw new RenderEditorError('DISPOSED', 'The editor session is disposed.');
@@ -196,20 +204,22 @@ export function createRenderEditorController(session: RenderEditorSession, initi
       } catch (cause) { return failure(cause); }
     },
     cancelCameraPreview() {
-      try { check(); if (snapshot.transformPreview) throw new RenderEditorError('STALE_CANDIDATE', 'Finish or cancel the object transform first.'); if (!snapshot.cameraPreview) return {ok: true}; transactionActive = true;
+      try { check(); if (snapshot.animationPreview) throw new RenderEditorError('STALE_CANDIDATE', 'Reset the animation sample before navigating or transforming.');
+        if (snapshot.transformPreview) throw new RenderEditorError('STALE_CANDIDATE', 'Finish or cancel the object transform first.'); if (!snapshot.cameraPreview) return {ok: true}; transactionActive = true;
         try { return restoreAccepted(); } finally { transactionActive = false; }
       } catch (cause) { return failure(cause); }
     },
     applyCameraPreview() {
       try {
-        check(); if (snapshot.transformPreview) throw new RenderEditorError('STALE_CANDIDATE', 'Finish or cancel the object transform first.'); const baseline = previewBase(), camera = snapshot.cameraPreview!;
+        check(); if (snapshot.animationPreview) throw new RenderEditorError('STALE_CANDIDATE', 'Reset the animation sample before navigating or transforming.');
+        if (snapshot.transformPreview) throw new RenderEditorError('STALE_CANDIDATE', 'Finish or cancel the object transform first.'); const baseline = previewBase(), camera = snapshot.cameraPreview!;
         transactionActive = true;
         try {
           const restored = restoreAccepted(); if (!restored.ok) return restored;
           if (session.getSnapshot() !== baseline) throw new RenderEditorError('STALE_CANDIDATE', 'The scene or draft changed before the view could be staged.');
           session.setDraftCamera(camera);
           const staged = session.getSnapshot();
-          if (staged.accepted !== baseline.accepted || staged.draftSource !== baseline.draftSource || staged.objectInputInvalid !== baseline.objectInputInvalid
+          if (staged.accepted !== baseline.accepted || staged.draftSource !== baseline.draftSource || staged.objectInputInvalid !== baseline.objectInputInvalid || staged.draftAnimation !== baseline.draftAnimation || staged.animationInputInvalid !== baseline.animationInputInvalid
             || staged.activeObjectId !== baseline.activeObjectId || staged.savedRevision !== baseline.savedRevision || !cameraEqual(staged.draftCamera, camera)) {
             throw new RenderEditorError('STALE_CANDIDATE', 'The scene or camera changed while the view was staged. Your drafts are kept. Apply them explicitly.');
           }
@@ -220,6 +230,7 @@ export function createRenderEditorController(session: RenderEditorSession, initi
     previewObjectSource(objectId, source) {
       try {
         check();
+        if (snapshot.animationPreview) throw new RenderEditorError('STALE_CANDIDATE', 'Reset the animation sample before navigating or transforming.');
         if (snapshot.cameraPreview) throw new RenderEditorError('STALE_CANDIDATE', 'Use or cancel the camera view before transforming an object.');
         const baseline = snapshot.transformPreview ? transformBase() : session.getSnapshot();
         if (baseline.disposed) throw new RenderEditorError('DISPOSED', 'The editor session is disposed.');
@@ -245,13 +256,14 @@ export function createRenderEditorController(session: RenderEditorSession, initi
       } catch (cause) {return failure(cause);}
     },
     cancelObjectPreview() {
-      try {check(); if (!snapshot.transformPreview) return {ok: true}; transactionActive = true;
+      try {check(); if (snapshot.animationPreview) throw new RenderEditorError('STALE_CANDIDATE', 'Reset the animation sample first.'); if (!snapshot.transformPreview) return {ok: true}; transactionActive = true;
         try {return restoreAccepted();} finally {transactionActive = false;}
       } catch (cause) {return failure(cause);}
     },
     applyObjectPreview() {
       try {
-        check(); if (snapshot.cameraPreview) throw new RenderEditorError('STALE_CANDIDATE', 'Use or cancel the camera view first.');
+        check(); if (snapshot.animationPreview) throw new RenderEditorError('STALE_CANDIDATE', 'Reset the animation sample before navigating or transforming.');
+        if (snapshot.cameraPreview) throw new RenderEditorError('STALE_CANDIDATE', 'Use or cancel the camera view first.');
         if (!snapshot.transformPreview) return {ok: true};
         const baseline = transformBase(), source = snapshot.transformPreview.source;
         transactionActive = true;
@@ -260,7 +272,7 @@ export function createRenderEditorController(session: RenderEditorSession, initi
           if (session.getSnapshot() !== baseline) throw new RenderEditorError('STALE_CANDIDATE', 'The scene or selection changed before the transform could be staged.');
           session.setDraftObjectSource(source);
           const staged = session.getSnapshot();
-          if (staged.accepted !== baseline.accepted || staged.draftSource !== source || staged.objectInputInvalid !== baseline.objectInputInvalid
+          if (staged.accepted !== baseline.accepted || staged.draftSource !== source || staged.objectInputInvalid !== baseline.objectInputInvalid || staged.draftAnimation !== baseline.draftAnimation || staged.animationInputInvalid !== baseline.animationInputInvalid
             || staged.activeObjectId !== baseline.activeObjectId || staged.savedRevision !== baseline.savedRevision || !cameraEqual(staged.draftCamera, baseline.draftCamera)) {
             throw new RenderEditorError('STALE_CANDIDATE', 'Another draft changed while the transform was staged. Your drafts are kept. Apply them explicitly.');
           }
@@ -268,18 +280,50 @@ export function createRenderEditorController(session: RenderEditorSession, initi
         return controller.apply('both');
       } catch (cause) {return failure(cause);}
     },
+    previewAnimation(timeSeconds) {
+      try {
+        check();
+        if (snapshot.cameraPreview || snapshot.transformPreview) throw new RenderEditorError('STALE_CANDIDATE', 'Finish or cancel the temporary view or transform before playback.');
+        const baseline = snapshot.animationPreview ? animationBaseline : session.getSnapshot();
+        if (!baseline || session.getSnapshot() !== baseline) throw new RenderEditorError('STALE_CANDIDATE', 'The scene or draft changed during playback. Reset the sample before continuing.');
+        if (baseline.disposed) throw new RenderEditorError('DISPOSED', 'The editor session is disposed.');
+        if (baseline.sourceDirty || baseline.cameraDirty || baseline.objectInputInvalid || baseline.animationInputInvalid) throw new RenderEditorError('SOURCE_REFUSED', 'Apply or discard drafts before playback.', baseline.diagnostics);
+        const accepted = baseline.accepted;
+        if (accepted.version !== 1 || !accepted.animation.tracks.length) throw new RenderEditorError('DOCUMENT_INPUT', 'Playback requires applied animation keys.');
+        if (!presenter || !presentedDocument || (!snapshot.animationPreview && presentedDocument !== accepted)) throw new RenderEditorError('PRESENTATION_REFUSED', 'Recover the viewport before playback.');
+        const source = sampleRenderSceneAnimationSource(accepted.sceneSource, accepted.animation, accepted.camera, timeSeconds);
+        const document = validateRenderEditorDocument({...accepted, sceneSource: source});
+        const candidate: RenderEditorPreparedCandidate = Object.freeze({document, metadata: compileRenderEditorSource(source), mode: 'source', purpose: 'apply'});
+        transactionActive = true;
+        try {
+          const result = present(candidate, presentedDocument); if (!result.ok) return result;
+          if (session.getSnapshot().accepted !== accepted) return unavailable(new RenderEditorError('STALE_CANDIDATE', 'The applied scene changed during sample presentation. Recover the viewport.'));
+          presentedDocument = document; animationBaseline = baseline;
+          const epoch = viewEpoch;
+          emit({...snapshot, presentedRevision: accepted.revision, presentationError: null, animationPreview: Object.freeze({source, timeSeconds})});
+          if (epoch !== viewEpoch) return failure(snapshot.presentationError ?? new RenderEditorError('PRESENTATION_REFUSED', 'The viewport became unavailable during playback.'));
+          if (session.getSnapshot() !== baseline) throw new RenderEditorError('STALE_CANDIDATE', 'The scene or draft changed during playback. Reset the sample before continuing.');
+          return {ok: true};
+        } finally {transactionActive = false;}
+      } catch (cause) {return failure(cause);}
+    },
+    cancelAnimationPreview() {
+      try {check(); if (!snapshot.animationPreview) return {ok: true}; transactionActive = true;
+        try {return restoreAccepted();} finally {transactionActive = false;}
+      } catch (cause) {return failure(cause);}
+    },
     recover() {
       try { check(); } catch (cause) { return failure(cause); }
       try {
         if (!presenter) throw new RenderEditorError('PRESENTATION_REFUSED', 'No viewport is attached.');
-        previewBaseline = null; transformBaseline = null; transactionActive = true;
+        previewBaseline = null; transformBaseline = null; animationBaseline = null; transactionActive = true;
         try {
           const epoch = viewEpoch, document = session.getSnapshot().accepted, result = presenter.recover(document);
           if (epoch !== viewEpoch) return failure(snapshot.presentationError ?? new RenderEditorError('PRESENTATION_REFUSED', 'The preview is unavailable.'));
           if (!result.ok) return unavailable(result.error);
           if (session.getSnapshot().accepted !== document) return unavailable(new RenderEditorError('STALE_CANDIDATE', 'The applied scene changed during viewport recovery. Recover it again.'));
           presentedDocument = document;
-          emit({...snapshot, presentedRevision: document.revision, presentationError: null, cameraPreview: null, transformPreview: null});
+          emit({...snapshot, presentedRevision: document.revision, presentationError: null, cameraPreview: null, transformPreview: null, animationPreview: null});
           return {ok: true};
         } finally { transactionActive = false; }
       } catch (cause) { return unavailable(cause); }
@@ -287,8 +331,8 @@ export function createRenderEditorController(session: RenderEditorSession, initi
     presentationUnavailable(error) { if (!snapshot.disposed) unavailable(error); },
     dispose() {
       if (snapshot.disposed) return;
-      check(); const previous = presenter; presenter = null; presentedDocument = null; previewBaseline = null; transformBaseline = null; viewEpoch++;
-      try { previous?.dispose(); } finally { emit({presentedRevision: null, presentationError: null, cameraPreview: null, transformPreview: null, disposed: true}); listeners.clear(); }
+      check(); const previous = presenter; presenter = null; presentedDocument = null; previewBaseline = null; transformBaseline = null; animationBaseline = null; viewEpoch++;
+      try { previous?.dispose(); } finally { emit({presentedRevision: null, presentationError: null, cameraPreview: null, transformPreview: null, animationPreview: null, disposed: true}); listeners.clear(); }
     }
   };
   if (initialPresenter) controller.attachPresenter(initialPresenter);

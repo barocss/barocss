@@ -2,25 +2,30 @@ import type { GpuDiagnostic, MeshCamera } from '@barocss/gpu';
 import { compileRenderEditorSource, copyRenderEditorDraftCamera, parseRenderEditorDocument,
   RENDER_EDITOR_LIMITS, renderEditorUtf8Bytes, serializeRenderEditorDocument,
   validateRenderEditorDocument, validateRenderEditorSourceInput } from './document.js';
-import type { RenderEditorMetadata, RenderSceneDocumentV0 } from './document.js';
+import type { RenderEditorMetadata, RenderSceneDocument } from './document.js';
 import { RenderEditorError } from './errors.js';
+import { validateRenderSceneAnimationClip } from './source-animation.js';
+import type { RenderSceneAnimationClipV0 } from './source-animation.js';
 import { inspectRenderSceneObjects } from './scene-object-source.js';
 
 export type RenderEditorApplyMode = 'source' | 'camera' | 'both';
 export type RenderEditorPurpose = 'apply' | 'open' | 'undo' | 'redo';
 export interface RenderEditorPreparedCandidate {
-  readonly document: RenderSceneDocumentV0;
+  readonly document: RenderSceneDocument;
   readonly metadata: RenderEditorMetadata;
   readonly mode: RenderEditorApplyMode;
   readonly purpose: RenderEditorPurpose;
 }
 export interface RenderEditorSessionSnapshot {
-  readonly accepted: RenderSceneDocumentV0;
+  readonly accepted: RenderSceneDocument;
   readonly metadata: RenderEditorMetadata;
   readonly draftSource: string;
   readonly draftCamera: MeshCamera;
   readonly sourceDirty: boolean;
   readonly objectInputInvalid: boolean;
+  readonly draftAnimation: RenderSceneAnimationClipV0 | null;
+  readonly animationDirty: boolean;
+  readonly animationInputInvalid: boolean;
   readonly cameraDirty: boolean;
   readonly activeObjectId: string | null;
   readonly diagnostics: readonly GpuDiagnostic[];
@@ -34,6 +39,8 @@ export interface RenderEditorSession {
   subscribe(listener: () => void): () => void;
   setDraftSource(source: string): void;
   setDraftObjectSource(source: string | null): void;
+  setDraftAnimation(clip: RenderSceneAnimationClipV0 | null): void;
+  setAnimationInputInvalid(invalid: boolean): void;
   setDraftCamera(camera: MeshCamera): void;
   setActiveObject(id: string | null): void;
   prepareDraft(mode?: RenderEditorApplyMode): RenderEditorPreparedCandidate;
@@ -45,12 +52,21 @@ export interface RenderEditorSession {
   markSaved(revision: number): void;
   dispose(): void;
 }
-interface HistoryEntry { readonly document: RenderSceneDocumentV0; readonly bytes: number }
+interface HistoryEntry { readonly document: RenderSceneDocument; readonly bytes: number }
 interface CandidateState { readonly generation: number; readonly historyIndex: number | null; readonly bytes: number; used: boolean }
 const EMPTY_DIAGNOSTICS: readonly GpuDiagnostic[] = Object.freeze([]);
 const OBJECT_DIAGNOSTICS: readonly GpuDiagnostic[] = Object.freeze([Object.freeze({ code: 'SOURCE', severity: 'error' as const,
   message: 'Check the object properties before Apply.', range: null })]);
 
+const ANIMATION_DIAGNOSTICS: readonly GpuDiagnostic[] = Object.freeze([Object.freeze({ code: 'SOURCE', severity: 'error' as const,
+  message: 'Check the animation keys before Apply.', range: null })]);
+function animationOf(document: RenderSceneDocument): RenderSceneAnimationClipV0 | null { return document.version === 1 ? document.animation : null; }
+function clipsEqual(a: RenderSceneAnimationClipV0 | null, b: RenderSceneAnimationClipV0 | null): boolean {
+  if (a === b) return true;
+  if (!a || !b || a.id !== b.id || a.tracks.length !== b.tracks.length) return false;
+  return a.tracks.every((track, i) => { const other = b.tracks[i]!; return track.objectId === other.objectId && track.keys.length === other.keys.length
+    && track.keys.every((key, k) => Object.is(key.timeSeconds, other.keys[k]!.timeSeconds) && key.translation.every((n, axis) => Object.is(n, other.keys[k]!.translation[axis]))); });
+}
 function camerasEqual(a: MeshCamera, b: MeshCamera): boolean {
   return ['eye', 'target', 'up'].every((key) => {
     const vector = key as 'eye' | 'target' | 'up';
@@ -58,15 +74,17 @@ function camerasEqual(a: MeshCamera, b: MeshCamera): boolean {
   }) && Object.is(a.fovYDegrees, b.fovYDegrees) && Object.is(a.near, b.near) && Object.is(a.far, b.far);
 }
 
-export function createRenderEditorSession(initial: RenderSceneDocumentV0): RenderEditorSession {
+export function createRenderEditorSession(initial: RenderSceneDocument): RenderEditorSession {
   let accepted = validateRenderEditorDocument(initial), metadata = compileRenderEditorSource(accepted.sceneSource);
   let draftSource = accepted.sceneSource, draftCamera = accepted.camera;
+  let draftAnimation = animationOf(accepted), animationInputInvalid = false;
   let diagnostics = EMPTY_DIAGNOSTICS, activeObjectId: string | null = null, savedRevision: number | null = null;
   let disposed = false, locked = false, objectInputInvalid = false, generation = 0, historyIndex = 0;
   let history: HistoryEntry[] = [{ document: accepted, bytes: renderEditorUtf8Bytes(serializeRenderEditorDocument(accepted)) }];
   const candidates = new WeakMap<object, CandidateState>(), listeners = new Set<() => void>();
   const makeSnapshot = (): RenderEditorSessionSnapshot => Object.freeze({ accepted, metadata, draftSource, draftCamera,
-    sourceDirty: objectInputInvalid || draftSource !== accepted.sceneSource, objectInputInvalid, cameraDirty: !camerasEqual(draftCamera, accepted.camera),
+    sourceDirty: objectInputInvalid || animationInputInvalid || !clipsEqual(draftAnimation, animationOf(accepted)) || draftSource !== accepted.sceneSource, objectInputInvalid,
+    draftAnimation, animationDirty: !clipsEqual(draftAnimation, animationOf(accepted)), animationInputInvalid, cameraDirty: !camerasEqual(draftCamera, accepted.camera),
     activeObjectId, diagnostics, canUndo: !disposed && historyIndex > 0, canRedo: !disposed && historyIndex < history.length - 1,
     savedRevision, disposed });
   let snapshot = makeSnapshot();
@@ -87,7 +105,7 @@ export function createRenderEditorSession(initial: RenderSceneDocumentV0): Rende
     if (accepted.revision === 2147483647) throw new RenderEditorError('DOCUMENT_INPUT', 'Accepted revision is at its maximum');
     return accepted.revision + 1;
   };
-  const prepare = (input: RenderSceneDocumentV0, mode: RenderEditorApplyMode, purpose: RenderEditorPurpose,
+  const prepare = (input: RenderSceneDocument, mode: RenderEditorApplyMode, purpose: RenderEditorPurpose,
     targetIndex: number | null = null): RenderEditorPreparedCandidate => {
     assertMutable();
     const document = validateRenderEditorDocument(input), bytes = renderEditorUtf8Bytes(serializeRenderEditorDocument(document));
@@ -121,14 +139,27 @@ export function createRenderEditorSession(initial: RenderSceneDocumentV0): Rende
       }
       draftSource = source;
       objectInputInvalid = false;
-      diagnostics = nextDiagnostics;
+      diagnostics = animationInputInvalid ? ANIMATION_DIAGNOSTICS : nextDiagnostics;
       changed();
     },
     setDraftObjectSource(source) {
       assertMutable();
-      if (source === null) { objectInputInvalid = true; diagnostics = OBJECT_DIAGNOSTICS; changed(); return; }
+      if (source === null) { objectInputInvalid = true; diagnostics = animationInputInvalid ? ANIMATION_DIAGNOSTICS : OBJECT_DIAGNOSTICS; changed(); return; }
       inspectRenderSceneObjects(source);
-      draftSource = source; objectInputInvalid = false; diagnostics = EMPTY_DIAGNOSTICS; changed();
+      draftSource = source; objectInputInvalid = false; diagnostics = animationInputInvalid ? ANIMATION_DIAGNOSTICS : EMPTY_DIAGNOSTICS; changed();
+    },
+    setDraftAnimation(clip) {
+      assertMutable();
+      const copied = clip === null ? null : validateRenderSceneAnimationClip(draftSource, clip, draftCamera);
+      draftAnimation = copied; animationInputInvalid = false; diagnostics = objectInputInvalid ? OBJECT_DIAGNOSTICS : EMPTY_DIAGNOSTICS; changed();
+    },
+    setAnimationInputInvalid(invalid) {
+      assertMutable();
+      if (typeof invalid !== 'boolean') throw new RenderEditorError('DOCUMENT_INPUT', 'Animation raw input state must be boolean.');
+      animationInputInvalid = invalid;
+      diagnostics = invalid ? ANIMATION_DIAGNOSTICS : objectInputInvalid ? OBJECT_DIAGNOSTICS : EMPTY_DIAGNOSTICS;
+      if (!invalid && !objectInputInvalid) { try { compileRenderEditorSource(draftSource); } catch (error) { if (error instanceof RenderEditorError) diagnostics = error.diagnostics; else throw error; } }
+      changed();
     },
     setDraftCamera(camera) {
       assertMutable();
@@ -146,10 +177,14 @@ export function createRenderEditorSession(initial: RenderSceneDocumentV0): Rende
     prepareDraft(mode = 'both') {
       assertMutable();
       if (mode !== 'source' && mode !== 'camera' && mode !== 'both') throw new RenderEditorError('DOCUMENT_INPUT', 'Unknown Apply mode');
+      if (animationInputInvalid) throw new RenderEditorError('SOURCE_REFUSED', 'Check the animation keys before Apply.', ANIMATION_DIAGNOSTICS);
       if (objectInputInvalid) throw new RenderEditorError('SOURCE_REFUSED', 'Check the object properties before Apply.', OBJECT_DIAGNOSTICS);
-      return prepare({ ...accepted, revision: nextRevision(),
-        sceneSource: mode === 'camera' ? accepted.sceneSource : draftSource,
-        camera: mode === 'source' ? accepted.camera : draftCamera }, mode, 'apply');
+      const { version: _version, ...fields } = accepted;
+      const { animation: _animation, ...base } = fields as typeof fields & { animation?: RenderSceneAnimationClipV0 };
+      const animation = mode === 'camera' ? animationOf(accepted) : draftAnimation;
+      const values = { ...base, revision: nextRevision(), sceneSource: mode === 'camera' ? accepted.sceneSource : draftSource,
+        camera: mode === 'source' ? accepted.camera : draftCamera };
+      return prepare(animation === null ? { ...values, version: 0 } : { ...values, version: 1, animation }, mode, 'apply');
     },
     prepareOpen(text) { assertMutable(); return prepare(parseRenderEditorDocument(text), 'both', 'open'); },
     prepareUndo() {
@@ -187,7 +222,7 @@ export function createRenderEditorSession(initial: RenderSceneDocumentV0): Rende
         // A callback cannot reenter setters, commit, preparation, save, or disposal.
         accepted = candidate.document; metadata = candidate.metadata;
         history = nextHistory; historyIndex = nextIndex; state.used = true;
-        if (candidate.purpose !== 'apply' || candidate.mode !== 'camera') { draftSource = accepted.sceneSource; objectInputInvalid = false; diagnostics = EMPTY_DIAGNOSTICS; }
+        if (candidate.purpose !== 'apply' || candidate.mode !== 'camera') { draftSource = accepted.sceneSource; draftAnimation = animationOf(accepted); animationInputInvalid = false; objectInputInvalid = false; diagnostics = EMPTY_DIAGNOSTICS; }
         if (candidate.purpose !== 'apply' || candidate.mode !== 'source') draftCamera = accepted.camera;
         if (activeObjectId !== null && !metadata.objects.some((object) => object.id === activeObjectId)) activeObjectId = null;
         if (candidate.purpose === 'open') savedRevision = accepted.revision;
@@ -195,7 +230,7 @@ export function createRenderEditorSession(initial: RenderSceneDocumentV0): Rende
       changed();
     },
     discardDraft() {
-      assertMutable(); draftSource = accepted.sceneSource; draftCamera = accepted.camera; objectInputInvalid = false; diagnostics = EMPTY_DIAGNOSTICS; changed();
+      assertMutable(); draftSource = accepted.sceneSource; draftCamera = accepted.camera; draftAnimation = animationOf(accepted); animationInputInvalid = false; objectInputInvalid = false; diagnostics = EMPTY_DIAGNOSTICS; changed();
     },
     markSaved(revision) {
       assertMutable();

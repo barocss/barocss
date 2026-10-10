@@ -1,5 +1,7 @@
 import { compileGpu, validateMeshCamera } from '@barocss/gpu';
 import type { MeshCamera, SceneObject1, SourceRange } from '@barocss/gpu';
+import { validateRenderSceneAnimationClip } from './source-animation.js';
+import type { RenderSceneAnimationClipV0 } from './source-animation.js';
 import { RenderEditorError, normalizeRenderEditorError } from './errors.js';
 
 export const RENDER_EDITOR_LIMITS = Object.freeze({ fileBytes: 262144, sourceBytes: 65536, historyEntries: 32, historyBytes: 4 * 1024 * 1024 });
@@ -15,6 +17,11 @@ export interface RenderSceneDocumentV0 {
   readonly sceneSource: string;
   readonly camera: MeshCamera;
 }
+export interface RenderSceneDocumentV1 extends Omit<RenderSceneDocumentV0, 'version'> {
+  readonly version: 1;
+  readonly animation: RenderSceneAnimationClipV0;
+}
+export type RenderSceneDocument = RenderSceneDocumentV0 | RenderSceneDocumentV1;
 export interface RenderEditorObjectMetadata {
   readonly id: string;
   readonly type: SceneObject1['type'];
@@ -96,10 +103,13 @@ export function compileRenderEditorSource(source: string): RenderEditorMetadata 
 }
 
 /** Validate, compile, and return a frozen owned document. Keep source bytes intact. */
-export function validateRenderEditorDocument(input: unknown): RenderSceneDocumentV0 {
-  const data = exactRecord(input, ['format', 'version', 'kind', 'documentId', 'title', 'revision', 'sourceVersion', 'sceneSource', 'camera'], 'Document');
-  if (data.format !== 'barocss-render-editor' || data.version !== 0 || data.kind !== 'gpu-scene' || data.sourceVersion !== 1) {
-    throw new RenderEditorError('DOCUMENT_VERSION', 'Only barocss-render-editor version 0 GPU scenes with sourceVersion 1 are supported');
+export function validateRenderEditorDocument(input: unknown): RenderSceneDocument {
+  const version = input !== null && typeof input === 'object' ? Object.getOwnPropertyDescriptor(input, 'version') : undefined;
+  if (!version || !('value' in version) || (version.value !== 0 && version.value !== 1)) throw new RenderEditorError('DOCUMENT_VERSION', 'Only Source GPU scene documents version 0 or 1 are supported');
+  const fields = ['format', 'version', 'kind', 'documentId', 'title', 'revision', 'sourceVersion', 'sceneSource', 'camera'];
+  const data = exactRecord(input, version.value === 1 ? [...fields, 'animation'] : fields, 'Document');
+  if (data.format !== 'barocss-render-editor' || (data.version !== 0 && data.version !== 1) || data.kind !== 'gpu-scene' || data.sourceVersion !== 1) {
+    throw new RenderEditorError('DOCUMENT_VERSION', 'Only barocss-render-editor version 0 or 1 GPU scenes with sourceVersion 1 are supported');
   }
   if (typeof data.documentId !== 'string' || !/^[A-Za-z_][A-Za-z0-9_-]{0,47}$/.test(data.documentId)) {
     throw new RenderEditorError('DOCUMENT_INPUT', 'Document ID must be an ASCII identifier of 1..48 characters');
@@ -111,8 +121,10 @@ export function validateRenderEditorDocument(input: unknown): RenderSceneDocumen
   validateRenderEditorSourceInput(data.sceneSource);
   let camera: MeshCamera;
   try { camera = validateMeshCamera(data.camera); } catch (error) { throw normalizeRenderEditorError(error); }
-  const document: RenderSceneDocumentV0 = Object.freeze({ format: 'barocss-render-editor', version: 0, kind: 'gpu-scene',
-    documentId: data.documentId, title: data.title, revision: data.revision, sourceVersion: 1, sceneSource: data.sceneSource, camera });
+  const base: RenderSceneDocumentV0 = { format: 'barocss-render-editor', version: 0, kind: 'gpu-scene',
+    documentId: data.documentId, title: data.title, revision: data.revision, sourceVersion: 1, sceneSource: data.sceneSource, camera };
+  const document: RenderSceneDocument = data.version === 0 ? Object.freeze(base) : Object.freeze({ ...base, version: 1,
+    animation: validateRenderSceneAnimationClip(data.sceneSource, data.animation, camera) });
   if (renderEditorUtf8Bytes(JSON.stringify(document)) > RENDER_EDITOR_LIMITS.fileBytes) {
     throw new RenderEditorError('DOCUMENT_BYTES', 'Document exceeds 262144 UTF-8 bytes');
   }
@@ -120,7 +132,7 @@ export function validateRenderEditorDocument(input: unknown): RenderSceneDocumen
   return document;
 }
 
-export function parseRenderEditorDocument(text: string): RenderSceneDocumentV0 {
+export function parseRenderEditorDocument(text: string): RenderSceneDocument {
   if (typeof text !== 'string') throw new RenderEditorError('DOCUMENT_INPUT', 'Document JSON must be a string');
   if (text.length > RENDER_EDITOR_LIMITS.fileBytes || renderEditorUtf8Bytes(text) > RENDER_EDITOR_LIMITS.fileBytes) {
     throw new RenderEditorError('DOCUMENT_BYTES', 'Document exceeds 262144 UTF-8 bytes');
@@ -130,8 +142,17 @@ export function parseRenderEditorDocument(text: string): RenderSceneDocumentV0 {
   return validateRenderEditorDocument(input);
 }
 
-export function serializeRenderEditorDocument(document: RenderSceneDocumentV0): string {
-  const text = JSON.stringify(validateRenderEditorDocument(document), null, 2) + '\n';
+function animationJson(value: unknown, depth = 0): string {
+  if (typeof value === 'number') return Object.is(value, -0) ? '-0' : JSON.stringify(value);
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  const indent = '  '.repeat(depth), child = '  '.repeat(depth + 1);
+  if (Array.isArray(value)) return value.length ? '[\n' + value.map(item => child + animationJson(item, depth + 1)).join(',\n') + '\n' + indent + ']' : '[]';
+  const entries = Object.entries(value);
+  return entries.length ? '{\n' + entries.map(([key, item]) => child + JSON.stringify(key) + ': ' + animationJson(item, depth + 1)).join(',\n') + '\n' + indent + '}' : '{}';
+}
+export function serializeRenderEditorDocument(document: RenderSceneDocument): string {
+  const owned = validateRenderEditorDocument(document);
+  const text = (owned.version === 0 ? JSON.stringify(owned, null, 2) : animationJson(owned)) + '\n';
   if (renderEditorUtf8Bytes(text) > RENDER_EDITOR_LIMITS.fileBytes) throw new RenderEditorError('DOCUMENT_BYTES', 'Serialized document exceeds 262144 UTF-8 bytes');
   return text;
 }
