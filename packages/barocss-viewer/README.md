@@ -777,3 +777,36 @@ The query prepares the original native mesh through the public GPU buffer API, s
 Within one leaf the exact nearest depth wins; exact depth equality uses the lower local triangle index. Distinct leaves within1e-6 scene units of the GLOBAL nearest depth form the ambiguous set, without chaining. ASCII graphId, numeric revision, ASCII featureId and outputSlotId choose one copied result. That result may be slightly farther within the stated ambiguity tolerance. Same-leaf shared edges alone do not make leaf identity ambiguous.
 
 At most four complete buffer preparations and1152 triangle tests run per query. These counts do not certify latency or allocation limits. The existing `examples/viewer-shell-scene` Inspect mode marks a current original source row and shows the full tuple. Accepted source/view/backing/CSS changes clear the row; failed loads retain it. Context loss retains CPU graph provenance but refuses this screen query even after caller restoration. Dispose removes host observers and clears authority.
+
+## Current qualified Face screen inspection
+
+`pickQualifiedFace({xCss,yCss})` returns null or a copied
+`ViewerQualifiedFacePick`. Its `ref` contains the original `sourceId`, complete
+`expectedSource`, `faceId`, `modelId` and `surfaceId`. The result adds local
+derived `triangleIndex`, `displayPositionScene`, positive `depthScene`,
+`approximate:true` and `ambiguous`. This read-only query does not select,
+highlight, edit, cache or write Viewer/GPU state. Primitive pick and selection
+contracts remain separate. Requery after current source/view/backing/CSS changes.
+
+The complete current public Face scene is validated against each original
+Source0 and Face geometry. Public tessellation and mesh preparation reconstruct
+the actual Float32 positions and Uint16 indices with native mm scale followed
+by scene translation once. Public prepared Float32 camera matrices and the
+shared Shell numeric ray policy determine a two-sided, near/far-clipped segment
+intersection. This observes filled display triangles; it does not recover
+native UV, BRep topology, native precision or raster/Depth24 equivalence.
+
+Input requires exact plain own xCss/yCss data and finite coordinates0..4096.
+Actual CSS dimensions must be positive and at most4096. Inclusive right/bottom
+boundaries are admitted; outside/accessor/Proxy/wrong-mode/unavailable/lost or
+disposed queries refuse. A valid miss returns null. Within a source, exact
+nearest depth wins and exact-depth ties use lower triangleIndex. Distinct
+sources within1e-6 scene units of the GLOBAL minimum are ambiguous; ASCII
+sourceId chooses a copied result, possibly slightly farther within that
+tolerance. No tolerance chaining or same-source ambiguity is used.
+
+At most six17×17 surfaces produce1734 vertices/3072 triangle tests per query.
+Complete source/mesh reconstruction is not a latency certificate. Retained CPU
+source data after loss/unavailability remains available to native queries, but
+this screen observation refuses, including after sticky context restoration.
+The caller owns current row/epoch invalidation and any approximate labels.

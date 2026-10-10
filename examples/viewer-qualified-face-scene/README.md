@@ -336,3 +336,27 @@ Hooks: `normalAnglePin`, `queryQualifiedFaceNormalAngle`, `measureNormalAngle`,
 `updateNormalAngleLabel`, `normalAngleSnapshot`, copied `normalAngleReport`, and
 public `evaluateSurfaceD1`. No new SDK/provider API or release is claimed. The
 earlier #1080 transition anomaly remains an independent Integration follow-up.
+
+## Inspect a current Face from a screen point (#1174)
+
+Enable **Face inspect mode**, then click the canvas. The host calls the separate
+read-only `pickQualifiedFace` query and marks the current source row. Its concise
+report names the original Source/Face/Model/Surface, local derived triangle and
+positive view depth. GPU colors do not change. Help explains approximate filled
+Float32 triangle observation, no native UV/topology hit and no pixel precision
+or selection guarantee. Original duplicate local IDs stay qualified by sourceId.
+
+Accepted source/view/backing/CSS changes clear the screen row. Failed recoverable
+loads retain it. Other CPU inspection actions retain it when the scene/view is
+unchanged. Detached row callbacks check current scope and connection. Loss,
+unavailable presentation, mode change, Clear and Dispose remove the row;
+Dispose disconnects the shared observer. Observable direct SDK changes are
+checked on render/refresh. Same-content unseen reload has no SDK generation
+certificate. The eight prior CPU panels remain independent.
+
+Hooks: `inspectFaceAt`, `faceInspectionSnapshot`, `refreshFaceInspection`,
+public `prepareCamera`, `prepareMesh` and `tessellateSurface` for bounded current
+display witnesses. The query returns independent full source refs and points.
+It writes no GPU, Viewer selection, measurement or request state. The earlier
+#1080 allocation-retention anomaly remains a separate unresolved Integration
+follow-up.
