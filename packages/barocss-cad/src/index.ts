@@ -335,3 +335,6 @@ export type { MixedWorkplaneSketchProfileIntent, MixedWorkplaneSketchDocumentV0,
 
 export { evaluateDrivenMixedSketchLines, updateDrivenMixedSketchLines, validateDrivenMixedSketchLines, serializeDrivenMixedSketchLines, parseDrivenMixedSketchLines, DrivenMixedSketchLinesError, DrivenMixedSketchLinesDiagnosticCode } from './driven-mixed-sketch-lines.js';
 export type { DrivenMixedSketchLinesSegmentBinding, DrivenMixedSketchLinesDocumentV0, DrivenMixedSketchLinesDocumentEdit, DrivenMixedSketchLinesReport, DrivenMixedSketchLinesResult } from './driven-mixed-sketch-lines.js';
+
+export { qualifyStoredPlateHoleSolid, validateStoredPlateHoleSolid, serializeStoredPlateHoleSolid, parseStoredPlateHoleSolid, StoredPlateHoleSolidError, StoredPlateHoleSolidDiagnosticCode } from './stored-plate-hole-solid.js';
+export type { StoredPlateHoleSolidGerm, StoredPlateHoleSolidCorner, StoredPlateHoleSolidVertexLink, StoredPlateHoleSolidCertificate, StoredPlateHoleSolidResult } from './stored-plate-hole-solid.js';

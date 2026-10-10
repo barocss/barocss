@@ -8803,3 +8803,30 @@ node examples/cad-nurbs/driven-mixed-sketch-lines-demo.mjs --source EVIDENCE_DIR
 Nonlinear length/radius/angle/tangent constraints, construction geometry,
 whole-Sketch constraint certification, general feature graphs, region/Face/Solid,
 source-language Sketch/Part grammar, editor/renderer and release remain open.
+
+
+### Restricted stored-rational plate-hole Solid
+
+`qualifyStoredPlateHoleSolid(bundle)` accepts an unchanged `buildOwnPlateCircularHole` bundle only when its stored planar pcurves and supporting geometry agree exactly. It returns owned `{bundle,parentReport,certificate}`. The original candidate report retains `solid:false`; the separately named certificate establishes one embedded stored-rational material component for this narrow family. It is not general plate-minus-cylinder Boolean.
+
+```ts
+const candidate = buildOwnPlateCircularHole({
+  bodyId: 'plate', featureId: 'hole',
+  parameterIds: {width: 'w', height: 'h', thickness: 't', centerX: 'cx', centerY: 'cy', radius: 'r'},
+  widthMM: 80, heightMM: 40, thicknessMM: 8, centreMM: [40, 20], radiusMM: 5,
+});
+const solid = qualifyStoredPlateHoleSolid(candidate.bundle);
+const certificate = validateStoredPlateHoleSolid(solid);
+const file = serializeStoredPlateHoleSolid(solid);
+const reopened = parseStoredPlateHoleSolid(file);
+```
+
+The proof uses exact fractions decoded from finite stored binary64 coefficients. It checks all six affine support charts, whole Edge/pcurve correspondence, four positive-weight monotone ring quadrants, strict outer containment, the reversed product wall, endpoint Vertex agreement, two opposite Edge uses and ten oriented vertex-link cycles. Ring self-loops have distinct endpoint germs. The retained wall seam has both uses and both corner occurrences. Annular caps give weighted Euler0 and genus1.
+
+This does not certify an exact ideal circle, global floating-point evaluator error, manufacturing tolerances or the parent report's pi-based area/volume formulas. Exact chart admission is narrower than ordinary tolerance-based CAD: for example, the unchanged parent can accept width81 but this qualifier refuses its rounded UV coefficients. It never adjusts coefficients or welds boundaries. Existing native D1 refusals at internal C0 knots remain in effect.
+
+`validateStoredPlateHoleSolid` reconstructs the full result, including original sources, sign bits, parent report, geometric proof, germs and counters. The authored JSON format `barocss-stored-plate-hole-solid` version0 saves the original request; parse invokes actual parent construction and qualification. Signed zero is retained, decoded duplicate keys refuse, files are bounded to262144 UTF16/UTF8 units, and all seven Source0 Models remain in the reconstructed result.
+
+Errors are `StoredPlateHoleSolidError` with INPUT/NATIVE/GEOMETRY/TOPOLOGY/BUDGET/OWNED/CODEC/VERSION codes. Native/owned/syntax refusals retain their actual cause. Getter-bearing, sparse, hidden, foreign or non-finite data refuse. Own-data limits:131072 occurrences/depth32/1024 array entries/64 record fields; aggregate strings1048576 units/bytes. Exact request-local arithmetic uses the unchanged200000 operation/200000 GCD-step/8192-bit bounds. The proof makes no direct D0/D1 calls; its parent validation remains a separate real operation. Failure leaves caller data and previous results unchanged.
+
+Run `node examples/cad-nurbs/stored-plate-hole-solid-demo.mjs --source <output-directory>` after the affected CAD library build for the actual native/source/file/cold/public-compiled flow. Rendering, STEP Solid exchange, general Boolean and commercial engine parity remain separate requirements.
