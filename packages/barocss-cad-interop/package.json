@@ -178,6 +178,10 @@
       "./source-surface-knot-insertion": {
         "types": "./dist/source-surface-knot-insertion.d.ts",
         "import": "./dist/source-surface-knot-insertion.js"
+      },
+      "./qualified-body-boundary-mesh-babylon": {
+        "types": "./dist/qualified-body-boundary-mesh-babylon.d.ts",
+        "import": "./dist/qualified-body-boundary-mesh-babylon.js"
       }
     }
   },
@@ -358,6 +362,10 @@
     "./source-surface-knot-insertion": {
       "types": "./src/source-surface-knot-insertion.ts",
       "import": "./src/source-surface-knot-insertion.ts"
+    },
+    "./qualified-body-boundary-mesh-babylon": {
+      "types": "./src/qualified-body-boundary-mesh-babylon.ts",
+      "import": "./src/qualified-body-boundary-mesh-babylon.ts"
     }
   },
   "files": [

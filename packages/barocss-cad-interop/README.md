@@ -3717,3 +3717,14 @@ slots, AST patches, native D1 refusals and qualification flags are retained.
 Ideal tensor identity and rounded stored residuals remain separate evidence.
 This entry does not insert knots, render, smooth C0 knots, dispose caller
 resources, or certify global shape, topology, Solid or manufacturing.
+
+
+### Qualified Body boundary mesh — Babylon
+
+The optional `@barocss/cad-interop/qualified-body-boundary-mesh-babylon` entry exports `BaroCADQualifiedBodyBoundaryMeshBabylonLoader`. Pass explicit `{ unitsPerMillimeter: 0.001 }` and a live Babylon 9.29 Scene with `useRightHandedSystem = true`. Its `parse(text)` and `read(input)` call the complete neutral reader once and return `{ data, meshes, faceBindings, dispose }`.
+
+Each result owns six initially disabled Scene-registered Mesh objects, separate Float32 position/normal data and Uint32 indices, and six original Geometry/StandardMaterial objects. The full native receipt, independent validation report, CPU projection, native Float64 UV and original qualification remain in `data`. No UV buffer is uploaded. Materials are opaque, unlit purple with both sides visible; facet normals remain an approximation.
+
+The caller owns shader preparation, staging and rendering. Real WebGL2 with unsigned-int index support is the bounded display profile. NullEngine CPU arrays do not certify GPU buffers or draws. `dispose()` releases the captured original resources once, preserves foreign geometry/material replacements, and does not dispose the caller Scene, Engine, Camera, canvas or child resources. CPU data remains readable after disposal.
+
+See `examples/qualified-body-boundary-mesh-babylon.html` and its config, observer and verifier for the original MAIN, edited, single-span and fresh-file flow. The entry adds no source editing, resampling, welding, axis conversion, global error, new Solid, manufacturing or publication guarantee.
