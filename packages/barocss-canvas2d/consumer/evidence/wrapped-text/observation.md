@@ -1,0 +1,39 @@
+# #1199 native observation: bounded browser paragraph wrapping
+
+## Start and ownership
+
+User directly requested continued development without waiting for integrated validation. No existing unimplemented ready owned Issue was available. Source/duplicate audit found explicitLF1192 but no maxWidth/automatic paragraph helper. FunctionalWiki571ff52 preceded directIssue1199/Planneronly1199. Authorfreeze44e7e10 /6095291351 preceded source writes; first freeze push racedremote and was fetched/rebased/published before code. Exact clean adopted parentcb061d89ae1acc5b74557ba4b58633fe9163b823 includes1192merge1220a073, Canvasdelta0. Branchcodex/canvas2d-1199,managed /Users/user/.codex/worktrees/canvas2d-wrap-native/barocss. Ownership17packagepaths: corebrowser-text/index2,README2,existingconsumerhtml-mjs-types3,scopedconfig1,evidence9. No schema/tree/renderer/Scene28/document/envelope/shader/manifest/root/lock delta.
+
+Public rasterizeBrowserWrappedText/BrowserWrappedTextOptions/Raster. Requiredplaintext-font-atlas-lineAdvance-maxWidth/optionaldpr1-lineAlignleft-center-right. Original1..128printableASCIIparagraph words separatedsingleASCIIspace; noleading/trailing/repeatedspace/LF/Unicode normalization. Greedy complete-candidate nativeadvance<=maxWidth, no wordsplit/hyphen/shrink; longword or >4lines ASSET_LIMIT. Originaltext/ranges/onecopiedRGBA/wholequad/maxWidth returned; alignment within configuredmaxWidth, measuredadvanceboxes, not clipping/inkedge. Reusehostfonts/privateboundedraster/finally0x0/currentfinitecaps1024x2561MiB. At most128measure/4draw/onecopiedreadback. Existing singleline/explicitLF APIs unchanged.
+
+## Executed Node checkpoint
+
+Node22.22.0; affectedlibrary241.0KiB build passed. Commands: pnpm --filter @barocss/canvas2d build:library; pnpm exec tsc -p packages/barocss-canvas2d/consumer/tsconfig.wrapped-text.json; node packages/barocss-canvas2d/consumer/evidence/wrapped-text/probe.mjs. SourcehostcheckJs+explicitcompiledroottypes passed. Bounded worker owns onlytypes/config/probe/focused; rootowns source-host-docs-dist-browser, no overlap.
+
+First sourcebundle and finalcompiledroot focused81refusal/checkcases passed/getter0/DOMreads0. Independent nonadditive candidate fixture widths AV9.5,To8.25,wholeAV-space-To12.5 proves wholecandidate measurement, exact12.5boundary versus12.49 reflow, original ranges/skippedspace/columnalignment, fourline/workcaps, longword/no split, metricbounds/copy/defaultDPR/cleanup. AcceptedwithoutDOM endsUNSUPPORTED_FEATURE, notraster. Existing oldAPI outputshape/unknownmaxWidth refusal retained. No fullproducer/pack/install/release campaign.
+
+## ONE actual current host flow
+
+python3 -m http.server31199 --bind127.0.0.1 --directorypackages/barocss-canvas2d; URL http://127.0.0.1:31199/consumer/browser-text.html. CLI sessionc2d1199/config/tmp/c2d1109-browser.json. ActualHeadlessChrome148/softwareANGLEWebGL2/display320x144DPR2/backing640x288. ONE page9stages/11realpointer, default→wrappedparagraph160→Save→physicalOpen→restored220→PNG→Dispose. All5GLcontexts retained in final population; no discarded context exclusion or browserreplay.
+
+Original30UTF16 'Canvas2D labels fit this panel'. Width160 yields ['Canvas2D','labels fit','this panel'], ranges[0,8],[9,19],[20,30], baselines0,30,60/advances115.21875,144.0234375,144.0234375. One294x170atlas/all199920RGBAbytes. Independent directbrowsermeasureText/inkbounds/fillText reference matches entireRGBA andranges; threewhite255lineinteriors hitLabel, transparentgap32,40,56,255 hitsBack, physicalpointer4. Samepage directconfiguredcenterwidth160 preparation matches all198560bytes/292x170, offsets22.390625,7.98828125,7.98828125. This is fixed genericmonospace proof, not everyfont/shaping/string quality.
+
+Narrow exact1192source compatibility comparison compiles gitshowbfd13fee:package/src/browser-text.ts with Nodeesbuild stdin ts/resolveDir current package/src/bundleESMbrowseres2022 toignored dist/wrap-parent.js. Current schemaimport unchanged. ActualsingleA/DPR1.5 and explicitBalanceLF-$20/center whole results equal oldprovider. No historical host/producer suite replay or published output.
+
+Actual13earlyinvalid width/text/getter options INVALID_SCENE beforeScratchdelta0/getter0. Fouractual longword10/fiveline15/1000pxfontmaxWidth1e6/lineAdvance200 ASSET_LIMIT scratchreleased/drawdelta0. All17frame-tree-text-allbytes-layout-candidate retained; serializeddocument before/afterall17exactequal. No historyAPIclaim. Preparation catches failures before candidate; currenterrorcodes/fonts/cap profile reused.
+
+## Physical file, restored reflow, PNG
+
+Actual267584-byte v1Scene28 Save SHA256e1b44025dd4db9ea63afa6a2ebb6cedf02b882521624c9bba045d8139abd7b07. SeparateCLIphysicalchooserONEupload(saved-document.json), freshcanvas/tree/renderer; originalparagraph/all199920RGBA/layout/IDsBack+Label/contextBrowserTextConsumer/pixelhits exactequal. Font/helper/scratch counters unchanged; maxWidth/lineAlign/lines preparationmetadataNULL. No saved width/wrap policy inferred from bytes. Physicalpointer4 afterOpen.
+
+Refit restored paragraph uses currenthostwidth220/publicwrappedhelper+glyph.setLayout, retains original30-charactertext/IDs/context/onequad. Two lines ['Canvas2D labels','fit this panel'], ranges[0,15],[16,30], baselines0,30,advances216.03515625/201.6328125. Independent wholeRGBA matches436x110/all191840bytes. Physicalpointer3. No newScene/documentfield.
+
+Actual22342-bytePNG640x288 SHA256068b5b405cf6643b23228919a8781726a168703c942458dc52ec551a047e9a30. One PNG export/download occurred. A repair-script variable error after download prevented its explicit saveAs; CLI had already stored the actual download at/tmp/.playwright-cli/browser-text.png. Size22342 and modifiedUTC2026-10-10T07:58:11.399792Z match this currentexport/session; copied exactfile toexported.png withoutreexport. Browserdecode comparesfourline1-line2-gap-background samples exactly, bitmapclosed/decoderbacking0, screenshotinspected showsoriginalparagraphreflowedintotwolines.
+
+## Lifetime and first failures
+
+Display4created=4disposed/live0/binds4=4/latepointer11unchanged. Final5actualGLcontexts4display+PNG1 eachshader4program2buffer3VAO2texture1FBO0created=deleted/nativeis*live0/error0/cap4096. RGB/alphaONE-ONE_MINUS_SRC_ALPHA/error0. Capturedapplicationconsole0errors0warnings; CLI4samepageReadPixelsdriverwarnings retained. Tracked2D19: threeinheritedsinglelinebackings119x21/30x27/30x27 retainoldlifetime; remaining16wrapped-multiline-reference-decoder0x0. No claimthatoldsingleline releasesbacking. Ownbrowser/serverclosed.
+
+First native build/type/probe passed. Browser fixture first failed 'restored original reflow' because __record returns an allBytes-pruned observation; actualhosthadalreadycorrectlyreflowed. Corrected assertion tobrowserTextConsumer.observe() fullbytes. A premature nextphase tried thecoldOpen guard again and proofcapture wasundefined/JSONparsefailed; no newhostcandidate. Samepage resumevalidatedretainedactualreflow; its evidence variable was missing after one successfulPNGexport, correctedusingverifiedactualCLIdownload. Mark-PNG eval initiallyusedsemicolonstatements as an expression and failedSyntaxError; fixedIIFE, then finaldecode/screenshot/Disposepassed. Allrepairsarefixture/orchestrationonly, noproductcodechange, nofreshpage/population exclusion, no duplicatedSave/Open/refit/PNG. Corrected browser-flow.js reproduces the successful fresh sequence; browser-observations.json preserves fixtureRepair metadata. Private logs /tmp/c2d1199-{phase2,phase3,repaired-phase2,mark-png,finalphase,proof-cli}.txt retainfirsterrors. Do not relabel them as productfault or hide them.
+
+Native/currentmergedvalidation/release remain separate. No Unicode/shaping/namedface/hyphenation/justify/richtext/caret/fontloader/contextloss/asyncsupersession/deviceperformance/fullproducer/pack/install/productpush/PR/npm/release claim. Alloldproof/cleanuprefs/deferred1032preserved.

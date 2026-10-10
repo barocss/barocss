@@ -1,12 +1,12 @@
 // @ts-check
-import { createCanvas2D, createDisplayTree, createDisplayTreeFromScene, rasterizeBrowserText, rasterizeBrowserMultilineText, stringifySceneJSON } from '@barocss/canvas2d';
+import { createCanvas2D, createDisplayTree, createDisplayTreeFromScene, rasterizeBrowserText, rasterizeBrowserMultilineText, rasterizeBrowserWrappedText, stringifySceneJSON } from '@barocss/canvas2d';
 import { serializeCanvasDocument, parseCanvasDocument, exportCanvasDocumentPNG } from '@barocss/canvas2d/document';
 /** @typedef {import('@barocss/canvas2d').Point} Point */
 /** @typedef {ReturnType<typeof rasterizeBrowserText>} Prepared */
 /** @typedef {{canvas:HTMLCanvasElement,renderer:import('@barocss/canvas2d').Canvas2DRenderer,
  * tree:import('@barocss/canvas2d').DisplayTree,glyph:import('@barocss/canvas2d').GlyphRunHandle,
  * scene:import('@barocss/canvas2d').Scene,asset:import('@barocss/canvas2d').ImageAssetInput,
- * lineAlign:import('@barocss/canvas2d').BrowserMultilineTextAlignment|null,lineAdvance:number|null,lines:import('@barocss/canvas2d').BrowserMultilineTextLine[]|null, font:string|null,rasterDPR:number|null,advance:number|null,generation:number,source:'helper'|'document',unbind:()=>void}} Session */
+ * maxWidth:number|null,lineAlign:import('@barocss/canvas2d').BrowserMultilineTextAlignment|null,lineAdvance:number|null,lines:import('@barocss/canvas2d').BrowserMultilineTextLine[]|null, font:string|null,rasterDPR:number|null,advance:number|null,generation:number,source:'helper'|'document',unbind:()=>void}} Session */
 const options = { logicalSize: { width: 320, height: 144 }, dpr: 2 };
 const atlasId = 'BrowserTextAtlas', font = '24px monospace';
 const pose = (/** @type {number} */ x = 0, /** @type {number} */ y = 0) => ({ x, y, scaleX: 1, scaleY: 1, rotation: 0 });
@@ -63,12 +63,18 @@ function pointsFor(s) {
     }
     return point(ax, ay);
   };
-  const multiline = s.glyph.data.text.includes('\n') && rowGap >= 0;
-  const line1 = multiline ? linePixel(firstRow, rowGap) : null;
-  const line2 = multiline ? linePixel(rowGap + rowLength, lastRow + 1) : null;
+  const bands = []; let bandStart = -1;
+  for (let y = 0; y <= height; y++) {
+    if (y < height && rows[y] && bandStart < 0) bandStart = y;
+    if ((y === height || !rows[y]) && bandStart >= 0) { bands.push({ from: bandStart, to: y }); bandStart = -1; }
+  }
+  const multiline = bands.length > 1 && rowGap >= 0;
+  const line1 = multiline ? linePixel(bands[0].from, bands[0].to) : null;
+  const line2 = multiline ? linePixel(bands[1].from, bands[1].to) : null;
+  const line3 = bands.length > 2 ? linePixel(bands[2].from, bands[2].to) : null;
   const interline = multiline ? point(Math.floor(width / 2), rowGap + Math.floor(rowLength / 2)) : null;
   const ink = point(inkX, inkY), gapX = gapStart + Math.floor(gapLength / 2), gapY = Math.floor(height / 2);
-  return { ink, line1, line2, interline, space: gapStart >= 0 ? point(gapX, gapY) : null, background: { x: 300, y: 120 },
+  return { ink, line1, line2, line3, interline, space: gapStart >= 0 ? point(gapX, gapY) : null, background: { x: 300, y: 120 },
     inkAtlas: { x: inkX, y: inkY, alpha: maxAlpha },
     spaceAtlas: gapStart >= 0 ? { x: gapX, y: gapY, alpha: pixels[(gapY * width + gapX) * 4 + 3], emptyColumn: true } : null };
 }
@@ -83,13 +89,13 @@ function sample(s, point) {
 function sessionObservation(s) {
   const points = pointsFor(s), actual = s.renderer.getImageAsset(atlasId);
   return { generation: s.generation, source: s.source, text: s.glyph.data.text, version: s.scene.version,
-    lineAlign: s.lineAlign, lineAdvance: s.lineAdvance, lines: s.lines, font: s.font, rasterDPR: s.rasterDPR, advance: s.advance, layout: layoutOf(s), transform: s.glyph.data.transform,
+    maxWidth: s.maxWidth, lineAlign: s.lineAlign, lineAdvance: s.lineAdvance, lines: s.lines, font: s.font, rasterDPR: s.rasterDPR, advance: s.advance, layout: layoutOf(s), transform: s.glyph.data.transform,
     bounds: { left: s.glyph.data.glyphs[0].x, top: s.glyph.data.glyphs[0].y,
       width: s.glyph.data.glyphs[0].width, height: s.glyph.data.glyphs[0].height },
     atlas: { width: s.asset.width, height: s.asset.height, byteLength: s.asset.pixels.length }, allBytes: [...s.asset.pixels],
     bytesMatchRenderer: !!actual && actual.width === s.asset.width && actual.height === s.asset.height &&
       actual.pixels.length === s.asset.pixels.length && actual.pixels.every((b, i) => b === s.asset.pixels[i]),
-    points, samples: { line1: points.line1 && sample(s, points.line1), line2: points.line2 && sample(s, points.line2), interline: points.interline && sample(s, points.interline), ink: sample(s, points.ink), space: points.space && sample(s, points.space), background: sample(s, points.background) },
+    points, samples: { line3: points.line3 && sample(s, points.line3), line1: points.line1 && sample(s, points.line1), line2: points.line2 && sample(s, points.line2), interline: points.interline && sample(s, points.interline), ink: sample(s, points.ink), space: points.space && sample(s, points.space), background: sample(s, points.background) },
     contextId: s.scene.contextId, ids: s.tree.stage.children.map(c => c.id), sceneMatchesTree: stringifySceneJSON(s.scene) === stringifySceneJSON(s.tree.snapshot()),
     backing: { width: s.canvas.width, height: s.canvas.height } };
 }
@@ -119,7 +125,7 @@ function fresh(tree, asset, token, source, prepared, lineAlign = null) {
   const nextCanvas = document.createElement('canvas'); nextCanvas.id = 'scene'; counts.candidates++;
   const renderer = createCanvas2D(nextCanvas, options); counts.rendererCreated++; counts.liveRenderers++;
   try { renderer.setImageAsset(atlasId, asset); const scene = tree.snapshot(); renderer.updateScene(scene); renderer.render();
-    return { canvas: nextCanvas, renderer, tree, glyph, scene, asset, lineAlign, lineAdvance: prepared && 'lineAdvance' in prepared ? /** @type {import('@barocss/canvas2d').BrowserMultilineTextRaster} */ (prepared).lineAdvance : null,
+    return { canvas: nextCanvas, renderer, tree, glyph, scene, asset, maxWidth: prepared && 'maxWidth' in prepared ? /** @type {import('@barocss/canvas2d').BrowserWrappedTextRaster} */ (prepared).maxWidth : null, lineAlign, lineAdvance: prepared && 'lineAdvance' in prepared ? /** @type {import('@barocss/canvas2d').BrowserMultilineTextRaster} */ (prepared).lineAdvance : null,
       lines: prepared && 'lines' in prepared ? /** @type {import('@barocss/canvas2d').BrowserMultilineTextRaster} */ (prepared).lines : null, font: prepared?.font ?? null,
       rasterDPR: prepared?.dpr ?? null, advance: prepared?.advance ?? null, generation: token, source, unbind: () => {} };
   } catch (error) { release(renderer); throw error; }
@@ -130,14 +136,14 @@ function adopt(/** @type {Session} */ next) { next.unbind = bind(next); const ol
 /** @param {unknown} error @param {string} before @param {number} candidates */
 function refuse(error, before, candidates) { counts.errors++; preparing = false;
   failure = { code: codeOf(error), retained: fingerprint() === before, candidatesUnchanged: candidates === counts.candidates }; show(`Refused ${failure.code}`); return failure; }
-/** Host owns font readiness. The public helper stays synchronous. @param {string} text @param {number} dpr @param {import('@barocss/canvas2d').BrowserTextPolicy} textPolicy @param {number|null} lineAdvance @param {import('@barocss/canvas2d').BrowserMultilineTextAlignment} lineAlign */
-async function edit(text, dpr = 2, textPolicy = 'alphanumeric', lineAdvance = null, lineAlign = 'left') {
+/** Host owns font readiness. The public helper stays synchronous. @param {string} text @param {number} dpr @param {import('@barocss/canvas2d').BrowserTextPolicy} textPolicy @param {number|null} lineAdvance @param {import('@barocss/canvas2d').BrowserMultilineTextAlignment} lineAlign @param {number|null} maxWidth */
+async function edit(text, dpr = 2, textPolicy = 'alphanumeric', lineAdvance = null, lineAlign = 'left', maxWidth = null) {
   if (disposed) return; const token = ++generation, before = fingerprint(), candidates = counts.candidates;
   preparing = true; show('Preparing font');
   try { counts.fontPreparations++; await document.fonts.ready; await document.fonts.load(font, text);
     if (!current(token)) { counts.ignored++; return; }
     if (!document.fonts.check(font, text)) throw new Error('Host font unavailable');
-    counts.helperCalls++; const prepared = lineAdvance === null ? rasterizeBrowserText({ text, font, atlasId, dpr, textPolicy }) : rasterizeBrowserMultilineText({ text, font, atlasId, dpr, lineAdvance, lineAlign });
+    counts.helperCalls++; const prepared = maxWidth !== null ? rasterizeBrowserWrappedText({ text, font, atlasId, dpr, lineAdvance: lineAdvance ?? 30, lineAlign, maxWidth }) : lineAdvance === null ? rasterizeBrowserText({ text, font, atlasId, dpr, textPolicy }) : rasterizeBrowserMultilineText({ text, font, atlasId, dpr, lineAdvance, lineAlign });
     const tree = createDisplayTree('BrowserTextConsumer');
     tree.stage.addChild(tree.createRect({ id: 'Back', layer: 0, transform: pose(), width: 320, height: 144, fill: [0.125, 0.15625, 0.21875, 1] }));
     tree.stage.addChild(tree.createGlyphRun({ id: 'Label', layer: 1, transform: pose(24, lineAdvance === null ? 72 : 40), ...prepared.layout }));
@@ -171,19 +177,19 @@ async function openText(text, reserved = null) {
     adopt(next); show('Opened saved bytes on a fresh canvas and editable tree');
   } catch (error) { if (next && session !== next) release(next.renderer); if (current(token)) refuse(error, before, candidates); else counts.ignored++; }
 }
-/** @param {import('@barocss/canvas2d').BrowserMultilineTextAlignment|null} alignment */
-async function restoredEdit(alignment = null) {
+/** @param {import('@barocss/canvas2d').BrowserMultilineTextAlignment|null} alignment @param {number|null} wrapWidth */
+async function restoredEdit(alignment = null, wrapWidth = null) {
   const s = session; if (!s || disposed) return; const token = ++generation, before = fingerprint(), candidates = counts.candidates;
-  const multiline = s.glyph.data.text.includes('\n'), text = alignment !== null ? s.glyph.data.text : multiline ? s.glyph.data.text.split('\n')[0] + '\n-$25' : '-$20';
+  const multiline = s.glyph.data.text.includes('\n'), text = wrapWidth !== null || alignment !== null ? s.glyph.data.text : multiline ? s.glyph.data.text.split('\n')[0] + '\n-$25' : '-$20';
   preparing = true; show('Preparing the current font for restored label');
   try { counts.fontPreparations++; await document.fonts.ready; await document.fonts.load(font, text);
     if (!current(token) || session !== s) { counts.ignored++; return; }
     if (!document.fonts.check(font, text)) throw new Error('Host font unavailable');
-    counts.helperCalls++; const prepared = multiline ? rasterizeBrowserMultilineText({ text, font, atlasId, dpr: 2, lineAdvance: 40, lineAlign: alignment ?? 'left' }) : rasterizeBrowserText({ text, font, atlasId, dpr: 2, textPolicy: 'printable-ascii' });
+    counts.helperCalls++; const prepared = wrapWidth !== null ? rasterizeBrowserWrappedText({ text, font, atlasId, dpr: 2, lineAdvance: 30, maxWidth: wrapWidth, lineAlign: 'left' }) : multiline ? rasterizeBrowserMultilineText({ text, font, atlasId, dpr: 2, lineAdvance: 40, lineAlign: alignment ?? 'left' }) : rasterizeBrowserText({ text, font, atlasId, dpr: 2, textPolicy: 'printable-ascii' });
     const tree = createDisplayTreeFromScene(s.scene), glyph = tree.get('Label');
     if (glyph?.kind !== 'glyphRun') throw new Error('Label missing');
     glyph.setLayout(prepared.layout);
-    adopt(fresh(tree, prepared.asset, token, 'helper', prepared, multiline ? alignment ?? 'left' : null)); show('Edited the restored public glyph handle');
+    adopt(fresh(tree, prepared.asset, token, 'helper', prepared, wrapWidth !== null ? 'left' : multiline ? alignment ?? 'left' : null)); show('Edited the restored public glyph handle');
   } catch (error) { if (current(token)) refuse(error, before, candidates); else counts.ignored++; }
 }
 /** @param {import('@barocss/canvas2d').BrowserMultilineTextOptions} options */
@@ -193,6 +199,14 @@ function rejectMultiline(options) {
     throw new Error('Unexpected multiline acceptance');
   } catch (error) { return refuse(error, before, candidates); }
 }
+/** @param {import('@barocss/canvas2d').BrowserWrappedTextOptions} options */
+function rejectWrapped(options) {
+  if (disposed) return; ++generation; const before = fingerprint(), candidates = counts.candidates;
+  try { counts.helperCalls++; rasterizeBrowserWrappedText(options); throw new Error('Unexpected wrapped acceptance'); }
+  catch (error) { return refuse(error, before, candidates); }
+}
+/** @param {string} text @param {number} maxWidth */
+function editWrapped(text, maxWidth = 160) { return edit(text, 2, 'printable-ascii', 30, 'left', maxWidth); }
 /** @param {string} text @param {number} lineAdvance @param {number} dpr @param {import('@barocss/canvas2d').BrowserMultilineTextAlignment} lineAlign */
 function editMultiline(text, lineAdvance = 40, dpr = 2, lineAlign = 'left') { return edit(text, dpr, 'printable-ascii', lineAdvance, lineAlign); }
 function serialize(/** @type {Session} */ s) { return serializeCanvasDocument(s.scene, id => s.renderer.getImageAsset(id)); }
@@ -210,7 +224,7 @@ async function exportPNG() { const s = session; if (!s || disposed) return; cons
 }
 function dispose() { if (disposed) return; if (session) { terminal = sessionObservation(session); session.unbind(); release(session.renderer); }
   session = null; disposed = true; preparing = false; generation++; for (const remove of hostUnbind.splice(0)) remove(); show('Disposed renderer and listeners'); }
-const actions = { alignLeft: () => { void editMultiline('Balance\n-$20', 40, 2, 'left'); }, alignCenter: () => { void editMultiline('Balance\n-$20', 40, 2, 'center'); }, alignRight: () => { void editMultiline('Balance\n-$20', 40, 2, 'right'); }, restoredCenter: () => { void restoredEdit('center'); }, multiline: () => { void editMultiline('Balance\n-$20'); }, numeric: () => { void edit('12.5', 2, 'printable-ascii'); }, currency: () => { void edit('-$20', 2, 'printable-ascii'); }, statusLabel: () => { void edit('FPS:60', 1.5, 'printable-ascii'); }, hi: () => { void edit('HI', 2); }, space: () => { void edit('H I', 1.5); },
+const actions = { wrapped: () => { void editWrapped('Canvas2D labels fit this panel'); }, restoredWrapped: () => { void restoredEdit(null, 220); }, alignLeft: () => { void editMultiline('Balance\n-$20', 40, 2, 'left'); }, alignCenter: () => { void editMultiline('Balance\n-$20', 40, 2, 'center'); }, alignRight: () => { void editMultiline('Balance\n-$20', 40, 2, 'right'); }, restoredCenter: () => { void restoredEdit('center'); }, multiline: () => { void editMultiline('Balance\n-$20'); }, numeric: () => { void edit('12.5', 2, 'printable-ascii'); }, currency: () => { void edit('-$20', 2, 'printable-ascii'); }, statusLabel: () => { void edit('FPS:60', 1.5, 'printable-ascii'); }, hi: () => { void edit('HI', 2); }, space: () => { void edit('H I', 1.5); },
   invalid: () => { rejectFont('not a font'); }, oversize: () => { rejectFont('1000px monospace', 'M'.repeat(128)); },
   restored: () => { void restoredEdit(); }, save: () => { void save().catch(error => show(`Save failed: ${codeOf(error)}`)); },
   png: () => { void exportPNG(); }, dispose };
@@ -220,7 +234,7 @@ const onOpen = () => { const file = input.files?.[0]; if (!file || disposed) ret
   void file.text().then(text => { if (!current(token)) { counts.ignored++; return; } return openText(text, token); })
     .catch(error => { if (current(token)) refuse(error, before, candidates); }); input.value = ''; };
 input.addEventListener('change', onOpen); hostUnbind.push(() => input.removeEventListener('change', onOpen));
-Object.defineProperty(window, 'browserTextConsumer', { value: Object.freeze({ observe, edit, editMultiline, rejectMultiline, rejectFont, openText, restoredEdit, save, exportPNG, dispose,
+Object.defineProperty(window, 'browserTextConsumer', { value: Object.freeze({ observe, edit, editMultiline, editWrapped, rejectWrapped, rejectMultiline, rejectFont, openText, restoredEdit, save, exportPNG, dispose,
   get canvas() { return canvas; }, points() { return session ? pointsFor(session) : null; },
   /** @param {Point} point */ pixel(point) { return session ? sample(session, point) : null; },
   documentText() { return session ? serialize(session) : Promise.resolve(null); } }), writable: false, configurable: false });

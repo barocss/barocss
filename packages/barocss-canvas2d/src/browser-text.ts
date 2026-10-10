@@ -48,6 +48,10 @@ export type BrowserMultilineTextRaster = BrowserTextRaster & {
   lines: BrowserMultilineTextLine[];
 };
 
+/** One printable paragraph with single-space word boundaries. */
+export type BrowserWrappedTextOptions = BrowserMultilineTextOptions & { maxWidth: number };
+export type BrowserWrappedTextRaster = BrowserMultilineTextRaster & { maxWidth: number };
+
 function invalid(message: string): never {
   throw new Canvas2DError('INVALID_SCENE', message);
 }
@@ -96,19 +100,19 @@ function optionsOf(value: unknown): Required<BrowserTextOptions> {
   return { text, font, dpr, textPolicy, atlasId: validateImageAssetId(fields.atlasId.value) };
 }
 
-function multilineOptionsOf(value: unknown): Required<BrowserTextOptions> & { lineAdvance: number; lineAlign: BrowserMultilineTextAlignment } {
+function multilineOptionsOf(value: unknown, wrapped = false): Required<BrowserTextOptions> & { lineAdvance: number; lineAlign: BrowserMultilineTextAlignment; maxWidth?: number } {
   if (!value || typeof value !== 'object' || Array.isArray(value) ||
       Object.getPrototypeOf(value) !== Object.prototype) {
     invalid('browser multiline text options must be an ordinary data record');
   }
   const fields = Object.getOwnPropertyDescriptors(value);
   for (const key of Reflect.ownKeys(fields)) {
-    if (typeof key !== 'string' || !['text', 'font', 'atlasId', 'dpr', 'lineAdvance', 'lineAlign'].includes(key)) {
+    if (typeof key !== 'string' || !['text', 'font', 'atlasId', 'dpr', 'lineAdvance', 'lineAlign', ...(wrapped ? ['maxWidth'] : [])].includes(key)) {
       invalid('browser multiline text options contain an unknown field');
     }
     if (!fields[key].enumerable || !('value' in fields[key])) invalid('browser multiline text options require data fields');
   }
-  for (const key of ['text', 'font', 'atlasId', 'lineAdvance']) {
+  for (const key of ['text', 'font', 'atlasId', 'lineAdvance', ...(wrapped ? ['maxWidth'] : [])]) {
     if (!Object.hasOwn(fields, key)) invalid(`browser multiline text options require ${key}`);
   }
   const text: unknown = fields.text.value, font: unknown = fields.font.value;
@@ -120,6 +124,13 @@ function multilineOptionsOf(value: unknown): Required<BrowserTextOptions> & { li
   }
   if (typeof text !== 'string' || text.length < 1 || text.length > 128) {
     invalid('browser multiline text requires 1..128 characters including LF');
+  }
+  if (wrapped && !/^[\x21-\x7E]+(?: [\x21-\x7E]+)*$/.test(text)) {
+    invalid('browser wrapped text requires printable ASCII words separated by one space');
+  }
+  const maxWidth: unknown = wrapped ? fields.maxWidth.value : undefined;
+  if (wrapped && (typeof maxWidth !== 'number' || !Number.isFinite(maxWidth) || maxWidth <= 0 || maxWidth > 1e6)) {
+    invalid('browser wrapped width must be positive within finite coordinate limits');
   }
   const lines = text.split('\n');
   if (lines.length > 4 || lines.some(line => !/^[\x20-\x7E]+$/.test(line) || !/[^ ]/.test(line))) {
@@ -135,7 +146,7 @@ function multilineOptionsOf(value: unknown): Required<BrowserTextOptions> & { li
       lineAdvance > 1e6 || (lines.length - 1) * lineAdvance > 1e6) {
     invalid('browser multiline baseline advance must be positive within finite coordinate limits');
   }
-  return { text, font, dpr, lineAdvance, lineAlign, textPolicy: 'printable-ascii', atlasId: validateImageAssetId(fields.atlasId.value) };
+  return { text, font, dpr, lineAdvance, lineAlign, textPolicy: 'printable-ascii', atlasId: validateImageAssetId(fields.atlasId.value), ...(wrapped ? { maxWidth: maxWidth as number } : {}) };
 }
 
 /** Prepare owned raster data. The host must prepare fonts before this call. */
@@ -149,7 +160,38 @@ export function rasterizeBrowserMultilineText(options: BrowserMultilineTextOptio
   return rasterize(multilineOptionsOf(options)) as BrowserMultilineTextRaster;
 }
 
-function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number; lineAlign?: BrowserMultilineTextAlignment }): BrowserTextRaster | BrowserMultilineTextRaster {
+/** Greedily wrap whole words; preserve original offsets and text in the result. */
+export function rasterizeBrowserWrappedText(options: BrowserWrappedTextOptions): BrowserWrappedTextRaster {
+  return rasterize(multilineOptionsOf(options, true)) as BrowserWrappedTextRaster;
+}
+
+function wrappedLines(context: CanvasRenderingContext2D, text: string, maxWidth: number) {
+  const lines: { text: string; start: number }[] = [];
+  let line = '', start = 0, cursor = 0;
+  const measure = (candidate: string) => {
+    const width = context.measureText(candidate).width;
+    if (!Number.isFinite(width) || width < 0 || width > 1e6) {
+      throw new Canvas2DError('INVALID_ASSET', 'browser text metrics are outside finite coordinate limits');
+    }
+    return width;
+  };
+  for (const word of text.split(' ')) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (measure(candidate) <= maxWidth) line = candidate;
+    else {
+      if (!line) throw new Canvas2DError('ASSET_LIMIT', 'browser wrapped word exceeds maxWidth');
+      lines.push({ text: line, start });
+      if (lines.length >= 4) throw new Canvas2DError('ASSET_LIMIT', 'browser wrapped text exceeds four lines');
+      if (measure(word) > maxWidth) throw new Canvas2DError('ASSET_LIMIT', 'browser wrapped word exceeds maxWidth');
+      line = word; start = cursor;
+    }
+    cursor += word.length + 1;
+  }
+  lines.push({ text: line, start });
+  return lines;
+}
+
+function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number; lineAlign?: BrowserMultilineTextAlignment; maxWidth?: number }): BrowserTextRaster | BrowserMultilineTextRaster | BrowserWrappedTextRaster {
   if (typeof document === 'undefined' || typeof document.createElement !== 'function' ||
       !document.fonts || typeof document.fonts.check !== 'function') {
     throw new Canvas2DError('UNSUPPORTED_FEATURE', 'browser text and font APIs are unavailable');
@@ -194,7 +236,8 @@ function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number;
       if ('wordSpacing' in context!) context!.wordSpacing = '0px';
     }
     configure();
-    const texts = input.lineAdvance === undefined ? [input.text] : input.text.split('\n');
+    const wrapped = input.maxWidth === undefined ? null : wrappedLines(context, input.text, input.maxWidth);
+    const texts = wrapped ? wrapped.map(line => line.text) : input.lineAdvance === undefined ? [input.text] : input.text.split('\n');
     const lines: BrowserMultilineTextLine[] = [];
     const inkEdges: { left: number; right: number }[] = [];
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity, advance = 0, textStart = 0;
@@ -210,11 +253,13 @@ function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number;
       }
       inkEdges.push({ left: -measured.actualBoundingBoxLeft, right: measured.actualBoundingBoxRight });
       minY = Math.min(minY, inkTop); maxY = Math.max(maxY, inkBottom); advance = Math.max(advance, measured.width);
+      if (wrapped) textStart = wrapped[index].start;
       lines.push({ textStart, textEnd: textStart + text.length, baseline, advance: measured.width });
       textStart += text.length + 1;
     }
-    const offsets = lines.map(line => input.lineAlign === 'center' ? (advance - line.advance) / 2 :
-      input.lineAlign === 'right' ? advance - line.advance : 0);
+    const alignWidth = input.maxWidth ?? advance;
+    const offsets = lines.map(line => input.lineAlign === 'center' ? (alignWidth - line.advance) / 2 :
+      input.lineAlign === 'right' ? alignWidth - line.advance : 0);
     for (const [index, ink] of inkEdges.entries()) {
       const inkLeft = offsets[index] + ink.left, inkRight = offsets[index] + ink.right;
       if (![inkLeft, inkRight].every(value => Number.isFinite(value) && Math.abs(value) <= 1e6)) {
@@ -253,7 +298,9 @@ function rasterize(input: Required<BrowserTextOptions> & { lineAdvance?: number;
       bounds, layout: { atlasId: input.atlasId, text: input.text, baseline: 0, opacity: 1, sampling: 'nearest',
         glyphs: [{ sourceRect: { x: 0, y: 0, width, height }, x: left, y: top,
           width: bounds.width, height: bounds.height, textStart: 0, textEnd: input.text.length }] } };
-    return input.lineAdvance === undefined ? result : { ...result, lineAdvance: input.lineAdvance, lines };
+    if (input.lineAdvance === undefined) return result;
+    const multiline = { ...result, lineAdvance: input.lineAdvance, lines };
+    return input.maxWidth === undefined ? multiline : { ...multiline, maxWidth: input.maxWidth };
   } catch (error) {
     if (error instanceof Canvas2DError) throw error;
     throw new Canvas2DError('INVALID_ASSET', 'browser could not allocate, measure, draw or read text');

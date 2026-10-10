@@ -1,4 +1,6 @@
-import { rasterizeBrowserText, rasterizeBrowserMultilineText, createDisplayTree } from '../dist/index.js';
+import { rasterizeBrowserText, rasterizeBrowserMultilineText, rasterizeBrowserWrappedText, createDisplayTree } from '../dist/index.js';
+import { rasterizeBrowserWrappedText as sourceWrappedText } from '../src/index.js';
+import type { BrowserWrappedTextOptions as SourceWrappedOptions, BrowserWrappedTextRaster as SourceWrappedRaster } from '../src/index.js';
 import type { ImageAssetInput, GlyphRunLayout, BrowserTextOptions, BrowserTextRaster, BrowserTextPolicy } from '../dist/index.js';
 export function compiledRootBrowserText() {
   const options: BrowserTextOptions = { text: 'H I', font: '24px monospace', atlasId: 'BrowserTextAtlas', dpr: 1.5 };
@@ -46,4 +48,22 @@ export function alignedMultilineRootType() {
   rasterizeBrowserText({ text: 'A', font: options.font, atlasId: options.atlasId, lineAlign: 'center' });
   void invalid;
   return { result, alignments };
+}
+
+export function wrappedRootAndSourceTypes() {
+  const options: import('../dist/index.js').BrowserWrappedTextOptions = {
+    text: 'Balance is $20', font: '24px monospace', atlasId: 'WrappedLabel',
+    maxWidth: 160, lineAdvance: 40, lineAlign: 'right', dpr: 1.5 };
+  const sourceOptions: SourceWrappedOptions = options;
+  const sourceResult: SourceWrappedRaster = sourceWrappedText(sourceOptions);
+  const result: import('../dist/index.js').BrowserWrappedTextRaster = rasterizeBrowserWrappedText(options);
+  const multiline: import('../dist/index.js').BrowserMultilineTextRaster = result;
+  const configuredWidth: number = result.maxWidth;
+  // @ts-expect-error A configured wrapping width is required.
+  rasterizeBrowserWrappedText({ text: 'A B', font: options.font, atlasId: options.atlasId, lineAdvance: 40 });
+  // @ts-expect-error Wrapped options do not permit unsupported alignment values.
+  sourceWrappedText({ ...sourceOptions, lineAlign: 'justify' });
+  // @ts-expect-error Line records keep original ranges without a new x field.
+  result.lines[0].x;
+  return { result, sourceResult, multiline, configuredWidth };
 }
