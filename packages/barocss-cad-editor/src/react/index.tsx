@@ -73,6 +73,9 @@ export type { CadEditorDisplayOptions, CadEditorDisplayReceipt, CadEditorCurveFo
   CadEditorInspectorProps, CadEditorProps } from './types.js';
 export { CadEditorFeature } from './feature-editor.js';
 export { CadEditorNurbsLoftEditor } from './nurbs-loft-editor.js';
+export { CadEditorAssemblyEditor } from './assembly-editor.js';
+export type { CadEditorAssemblyEditorProps, CadEditorAssemblyDisplayOptions, CadEditorAssemblyDisplayReceipt,
+  CadEditorAssemblyFrameReceipt } from './assembly-editor.js';
 export type { CadEditorNurbsLoftProps, CadEditorLoftDisplayReceipt } from './nurbs-loft-editor.js';
 export type { CadEditorFeatureProps, CadEditorFeatureDisplayReceipt } from './feature-editor.js';
 export { useCadEditorFeatureSnapshot } from './use-feature-session.js';

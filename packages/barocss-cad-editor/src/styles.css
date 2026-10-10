@@ -238,3 +238,33 @@
 .cad-editor-loft-controls .curve-control-point:active { cursor:grabbing; }
 .cad-editor-loft-controls .curve-control-point[aria-disabled="true"] { opacity:.45; cursor:default; }
 .cad-editor-loft-drag-hint { position:absolute; left:8px; bottom:8px; max-width:calc(100% - 16px); padding:4px 6px; margin:0; background:#22272be8; color:#b9c7cf; border:1px solid #39444a; border-radius:3px; font-size:10px; line-height:1.4; pointer-events:none; }
+
+.cad-editor-assembly { min-width:0; min-height:0; }
+.cad-editor-assembly .cad-editor-inspector { padding:10px 12px; }
+.cad-editor-assembly .cad-editor-field { margin:6px 0; grid-template-columns:62px minmax(0,1fr); }
+.cad-editor-assembly .cad-editor-field input,.cad-editor-assembly .cad-editor-field select { height:28px; padding:4px 7px; font-size:11px; }
+.cad-editor-assembly .cad-editor-actions { margin:10px 0; gap:7px; }
+.cad-editor-assembly .cad-editor-actions button { height:28px; min-height:28px; font-size:11px; padding:4px 9px; }
+.cad-editor-assembly-controls { position:absolute; inset:0; z-index:2; pointer-events:none; }
+.cad-editor-assembly-controls .assembly-translation-svg { overflow:hidden; pointer-events:none; }
+.assembly-translation-guide { stroke:#a9c1d4; stroke-width:1.5; fill:none; pointer-events:none; }
+.assembly-translation-guide[data-axis="x"] { stroke:#d89983; }
+.assembly-translation-guide[data-axis="y"] { stroke:#9bbf8b; }
+.assembly-translation-guide[data-axis="z"] { stroke:#8babcf; }
+.assembly-translation-handle { fill:#bfd1b3; stroke:#f0f5e9; stroke-width:1.5; pointer-events:all; touch-action:none; cursor:grab; }
+.assembly-translation-handle:active { cursor:grabbing; }
+.assembly-translation-handle:focus-visible { outline:none; stroke:#fff; stroke-width:3; }
+.assembly-translation-handle[aria-disabled="true"] { opacity:.45; cursor:default; }
+.assembly-translation-ghost { fill:none; stroke:#d9c37a; stroke-width:2; pointer-events:none; }
+.assembly-translation-status { position:absolute; left:8px; bottom:8px; margin:0; padding:4px 6px; max-width:calc(100% - 16px); border:1px solid #39444a; border-radius:3px; background:#22272be8; color:#b9c7cf; font-size:10px; line-height:1.4; pointer-events:none; }
+.cad-assembly-app .assembly-tree-row .tree-body { padding:7px 5px; gap:6px; min-width:0; }
+.cad-assembly-app .assembly-tree-row .tree-body>span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cad-assembly-app .assembly-tree-row>input { margin-right:4px; flex:0 0 auto; }
+.assembly-display-actions { display:flex; gap:4px; margin-top:8px; }
+.assembly-open-instances { display:grid; gap:8px; max-height:45vh; overflow:auto; margin:12px 0; }
+.assembly-open-instances label { display:flex; gap:8px; align-items:center; font-size:12px; }
+.assembly-open-instances input { accent-color:#bcd69e; }
+text.assembly-translation-guide { fill:#b9cbd9; stroke:none; font-size:10px; }
+text.assembly-translation-guide[data-axis="x"] { fill:#d89983; stroke:none; }
+text.assembly-translation-guide[data-axis="y"] { fill:#9bbf8b; stroke:none; }
+text.assembly-translation-guide[data-axis="z"] { fill:#8babcf; stroke:none; }

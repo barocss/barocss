@@ -1,6 +1,10 @@
 export { createCadEditorSession } from './session.js';
 export { createCadEditorFeatureSession } from './feature-session.js';
 export { createCadEditorLoftSession } from './loft-session.js';
+export { createCadEditorAssemblySession } from './assembly-session.js';
+export type { CadEditorAssemblyPoseField, CadEditorAssemblyDisplay, CadEditorAssemblySessionOptions,
+  CadEditorAssemblyOpenOptions, CadEditorAssemblySelection, CadEditorAssemblySelectedInstance,
+  CadEditorAssemblyPending, CadEditorAssemblyCandidate, CadEditorAssemblySnapshot, CadEditorAssemblySession } from './assembly-types.js';
 export type { CadEditorLoftSessionOptions, CadEditorLoftView, CadEditorLoftPoleField, CadEditorLoftNodeBinding,
   CadEditorLoftPoleSelection, CadEditorLoftSelectedPole, CadEditorLoftPending, CadEditorLoftCandidate,
   CadEditorLoftSnapshot, CadEditorLoftSession } from './loft-types.js';
