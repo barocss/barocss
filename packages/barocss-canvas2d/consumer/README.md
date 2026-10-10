@@ -274,3 +274,12 @@ Document v1 stores the accepted Scene crop and atlas bytes. The host retains cat
 ### Atlas Open after Dispose (#1304)
 
 The existing atlas host rejects `openText` with `Error('consumer disposed')` when the host is disposed. A call that starts after Dispose creates no canvas, parser work, GL renderer or pointer binding. If Dispose occurs while document staging is pending, the host disposes the staged renderer before tree reconstruction, canvas replacement or input binding. Native hash completion can create that temporary candidate; the host then closes it. Dispose remains idempotent. The saved-frame selection and live Open validation keep their existing behavior. See `evidence/atlas-open-dispose/observation.md` for the focused lifecycle checks.
+
+
+### Exact copied pixel reflection (#1324)
+
+`capture-image.html` keeps its capture, blur, shadow, resize and rotation controls. **Mirror horizontal** prepares original captured pixels with reversed columns. The source and result stay 128×64 pixels, and the Sprite stays 128×64 logical pixels with a full source rectangle. The helper also supports vertical row reversal. Each preparation starts from the cached original; the control does not toggle the current result.
+
+The host admits the copied tree and new renderer before replacing the target canvas. Accepted asset snapshots are copies from the renderer, separate from returned preparation pixels. Open restores the file bytes directly. **Move restored Sprite** uses public `setPosition(8,0)`; **Export PNG** uses the public document exporter. Dispose removes the exact target pointer binding, deletes source/target renderer resources and disables controls. Owned CPU snapshots remain available after Dispose. Diagnostic GL context listeners remain available for evidence and are distinct from pointer bindings.
+
+Use the existing package build/common check and `tsc -p packages/barocss-canvas2d/consumer/tsconfig.image-mirror.json` for the actual source host and explicit source/compiled declarations. `evidence/image-mirror/` contains the independent both-axis byte oracle and native browser/file/PNG/lifetime record. The helper's 2 MiB internal payload excludes host and registration copies.

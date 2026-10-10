@@ -70,3 +70,6 @@ export { cropImageAsset } from './image-crop.js';
 
 export { rotateImageAsset } from './image-rotate.js';
 export type { ImageQuarterTurns } from './image-rotate.js';
+
+export { mirrorImageAsset } from './image-mirror.js';
+export type { ImageMirrorAxis } from './image-mirror.js';

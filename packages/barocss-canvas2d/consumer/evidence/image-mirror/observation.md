@@ -1,0 +1,25 @@
+# #1324 exact pixel reflection
+
+Parent `9174fbf3d6f804eb1e6679bdbc3d9d17e67148c7`, branch `codex/canvas2d-1324`. Wiki `d58d2dc` and claim6098191177 preceded code. Root and independent review approved source, executed build/types/probes and driver SHA256 `4c396373ab4424db03df98a1f7eabe2e6dd014318ef4d45a7863311a1fabd379` before the sole browser flow. This worker wrote only six browser evidence files. Root owns the native commit and lifecycle.
+
+## Actual result
+
+Chromium148/ANGLE Vulkan SwiftShader/WebGL2, browserc2d1324/server31324. All 12 stages are retained. One Capture used logical64×32/DPR2 to produce128×64/all32768RGBA bytes, equal to independent literal Red/Green/Blue regions. Mutating the actual caller-returned capture pixels left the original cache, asset snapshot and registration unchanged. One horizontal Mirror produced all32768 expected bytes with unchanged explicit Sprite128×64/full128×64 crop. Direct public vertical3×2 preparation matched all24 literal bytes, including hidden alpha-zero RGB, and output mutation left its input and host registration unchanged.
+
+Initial, moved and decoded PNG frames each matched all32768 independent premultiplied bytes at frozen tolerance2/maxdifference0. Five initial and three restored real pointer clicks matched expected opaque/partial/transparent hits. Invalid axis, pixels getter and oversized input refused expected codes with getter0/typedcopy0/candidate0/drawread0. All stable host fields, tree/object identities, registered bytes, full frame/hits and canonical file remained exact; only GL diagnostic counters were excluded from the stable comparison.
+
+Save completed and RETURNED before the separate physical chooser. The actual fresh native download was copied after byte-for-byte canonical verification:44407bytes/SHA256 `a29628a143f905b6c71d14d0688d62c96fd0a0882bf4f6b49c379b0c4554d2a2`. An executed prechooser check confirmed Capture1/Mirror1/Save1, phase completed, File.text0/inputchange0. One separate CLI chooser click and one upload restored fresh canvas/tree/renderer, all32768bytes, full crop, Captured/CapturedSprite IDs, CaptureDerived context, v1/Scene29 and exact canonical file. File.text/inputchange each1; Mirror remained1 on Open.
+
+The restored public setPosition(8,0) retained bytes and moved/clipped pixels and hits. One PNG download was copied from the completed native artifact:469bytes/SHA256 `f2d91f4cf81703cb15c01ee7fa85e0acfa2d09f39091def3f06797343a77b257`. Public decodeImageBlob returned128×64/all32768bytes; its whole premultiplied-frame oracle matched. One decoder Canvas2D backing reset0×0 and one ImageBitmap closed once/native width-height0.
+
+Screenshot was inspected by this worker and root before Dispose. It shows original source Red/Green/Blue at left, mirrored moved Green/Red/Blue at right, x8/y0, Open/edit/Save/PNG/Mirror1 and bind3/unbind2 at that image stage. The final API receipt separately proves3/3.
+
+## Cleanup and first records
+
+Before page closure, ALL FIVE GL contexts were checked: source, initial capture target, mirror candidate, fresh Open and PNG. Each had exactly shader4/program2/buffer3/VAO2/FBO0 created=deleted/nativeis-live0/error0/no context loss. Texture counts were exactly0/1/1/1/1, all deleted. All three target pointer callback identities were added and removed once, active0; hostbind3/unbind3. Late pointer stayed at8, controls were disabled, repeated Dispose was safe. Pure CPU Mirror after Dispose returned all expected bytes without DOM/GPU changes. Pointer counts exclude platform window instrumentation and retained diagnostic webglcontextlost audit listeners; no GC/global-listener claim is made.
+
+No build/type/probe/browser/CLI acceptance assertion failed. The source owner's private Python edit script had a SyntaxError before any product write; corrected quoting was applied before acceptance. Its original log is `/tmp/c2d1324-host-first-edit-error.txt`. Root's read-only automation metadata parse, truncated inventory/raw-log displays, missing policy/driver lookups and unmatched private glob are preserved in `/tmp/c2d1324-operational-records.json`. Recoveries made no product/runtime change or unrelated automation cancellation. The historical OMX Stop marker had no current active execution mode.
+
+Application errors/rejections/native GL errors0; four retained ReadPixels driver warnings. All199 frozen source hashes, approved driver and624 unowned parent blobs were unchanged. Root's one offline final checker passed142 assertions (`/tmp/c2d1324-final-receipt-check.json`), with no additional runtime. No source/driver edit, accepted Capture/Mirror/Save/Open/PNG replay or context exclusion occurred. Browser and server are closed after API proof was persisted.
+
+Native evidence is complete in this frozen scope. Native adoption/Issue closure remain root-owned; broader current-root acceptance staysUNRUN #1254/#674. Original1296 aggregate failure and prior capture/blur/shadow/resize/rotation proofs remain separately attributed and unchanged. No packed install, broad producer, performance/GC/context-loss/device campaign, product push/PR/npm/deploy/release is claimed.

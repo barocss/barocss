@@ -1,0 +1,3347 @@
+{
+  "status": "PASS",
+  "actualBrowser": false,
+  "oracle": "Independent row/tuple order plus literal3x2 and exact-budget corner placement",
+  "sourceBundleInMemoryOnly": true,
+  "noDOMGPU": true,
+  "records": [
+    {
+      "kind": "source-bundle",
+      "status": "PASS",
+      "comparisons": [
+        {
+          "label": "literal3x2-horizontal-CBA-FED",
+          "axis": "horizontal",
+          "width": 3,
+          "height": 2,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "literal3x2-vertical-DEF-ABC",
+          "axis": "vertical",
+          "width": 3,
+          "height": 2,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-1x1-horizontal",
+          "axis": "horizontal",
+          "width": 1,
+          "height": 1,
+          "comparedBytes": 4,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 4,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 4,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-1x1-vertical",
+          "axis": "vertical",
+          "width": 1,
+          "height": 1,
+          "comparedBytes": 4,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 4,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 4,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-1x9-horizontal",
+          "axis": "horizontal",
+          "width": 1,
+          "height": 9,
+          "comparedBytes": 36,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-1x9-vertical",
+          "axis": "vertical",
+          "width": 1,
+          "height": 9,
+          "comparedBytes": 36,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-9x1-horizontal",
+          "axis": "horizontal",
+          "width": 9,
+          "height": 1,
+          "comparedBytes": 36,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-9x1-vertical",
+          "axis": "vertical",
+          "width": 9,
+          "height": 1,
+          "comparedBytes": 36,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-2x3-horizontal",
+          "axis": "horizontal",
+          "width": 2,
+          "height": 3,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-2x3-vertical",
+          "axis": "vertical",
+          "width": 2,
+          "height": 3,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-3x2-horizontal",
+          "axis": "horizontal",
+          "width": 3,
+          "height": 2,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-3x2-vertical",
+          "axis": "vertical",
+          "width": 3,
+          "height": 2,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-7x4-horizontal",
+          "axis": "horizontal",
+          "width": 7,
+          "height": 4,
+          "comparedBytes": 112,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 112,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 112,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-7x4-vertical",
+          "axis": "vertical",
+          "width": 7,
+          "height": 4,
+          "comparedBytes": 112,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 112,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 112,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-1x4096-horizontal",
+          "axis": "horizontal",
+          "width": 1,
+          "height": 4096,
+          "comparedBytes": 16384,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 16384,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 16384,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-1x4096-vertical",
+          "axis": "vertical",
+          "width": 1,
+          "height": 4096,
+          "comparedBytes": 16384,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 16384,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 16384,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-0-horizontal",
+          "axis": "horizontal",
+          "width": 1,
+          "height": 1,
+          "comparedBytes": 4,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 4,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 4,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-0-vertical",
+          "axis": "vertical",
+          "width": 1,
+          "height": 1,
+          "comparedBytes": 4,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 4,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 4,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-1-horizontal",
+          "axis": "horizontal",
+          "width": 2,
+          "height": 2,
+          "comparedBytes": 16,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 16,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 16,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-1-vertical",
+          "axis": "vertical",
+          "width": 2,
+          "height": 2,
+          "comparedBytes": 16,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 16,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 16,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-2-horizontal",
+          "axis": "horizontal",
+          "width": 3,
+          "height": 3,
+          "comparedBytes": 36,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-2-vertical",
+          "axis": "vertical",
+          "width": 3,
+          "height": 3,
+          "comparedBytes": 36,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-3-horizontal",
+          "axis": "horizontal",
+          "width": 4,
+          "height": 4,
+          "comparedBytes": 64,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 64,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 64,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-3-vertical",
+          "axis": "vertical",
+          "width": 4,
+          "height": 4,
+          "comparedBytes": 64,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 64,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 64,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-4-horizontal",
+          "axis": "horizontal",
+          "width": 5,
+          "height": 5,
+          "comparedBytes": 100,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 100,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 100,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-4-vertical",
+          "axis": "vertical",
+          "width": 5,
+          "height": 5,
+          "comparedBytes": 100,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 100,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 100,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-5-horizontal",
+          "axis": "horizontal",
+          "width": 6,
+          "height": 1,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-5-vertical",
+          "axis": "vertical",
+          "width": 6,
+          "height": 1,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-6-horizontal",
+          "axis": "horizontal",
+          "width": 7,
+          "height": 2,
+          "comparedBytes": 56,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 56,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 56,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-6-vertical",
+          "axis": "vertical",
+          "width": 7,
+          "height": 2,
+          "comparedBytes": 56,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 56,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 56,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-7-horizontal",
+          "axis": "horizontal",
+          "width": 1,
+          "height": 3,
+          "comparedBytes": 12,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 12,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 12,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-7-vertical",
+          "axis": "vertical",
+          "width": 1,
+          "height": 3,
+          "comparedBytes": 12,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 12,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 12,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-8-horizontal",
+          "axis": "horizontal",
+          "width": 2,
+          "height": 4,
+          "comparedBytes": 32,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 32,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 32,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-8-vertical",
+          "axis": "vertical",
+          "width": 2,
+          "height": 4,
+          "comparedBytes": 32,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 32,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 32,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-9-horizontal",
+          "axis": "horizontal",
+          "width": 3,
+          "height": 5,
+          "comparedBytes": 60,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 60,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 60,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-9-vertical",
+          "axis": "vertical",
+          "width": 3,
+          "height": 5,
+          "comparedBytes": 60,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 60,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 60,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-10-horizontal",
+          "axis": "horizontal",
+          "width": 4,
+          "height": 1,
+          "comparedBytes": 16,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 16,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 16,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-10-vertical",
+          "axis": "vertical",
+          "width": 4,
+          "height": 1,
+          "comparedBytes": 16,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 16,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 16,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-11-horizontal",
+          "axis": "horizontal",
+          "width": 5,
+          "height": 2,
+          "comparedBytes": 40,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 40,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 40,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-11-vertical",
+          "axis": "vertical",
+          "width": 5,
+          "height": 2,
+          "comparedBytes": 40,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 40,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 40,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-12-horizontal",
+          "axis": "horizontal",
+          "width": 6,
+          "height": 3,
+          "comparedBytes": 72,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 72,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 72,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-12-vertical",
+          "axis": "vertical",
+          "width": 6,
+          "height": 3,
+          "comparedBytes": 72,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 72,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 72,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-13-horizontal",
+          "axis": "horizontal",
+          "width": 7,
+          "height": 4,
+          "comparedBytes": 112,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 112,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 112,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-13-vertical",
+          "axis": "vertical",
+          "width": 7,
+          "height": 4,
+          "comparedBytes": 112,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 112,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 112,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-14-horizontal",
+          "axis": "horizontal",
+          "width": 1,
+          "height": 5,
+          "comparedBytes": 20,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 20,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 20,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-14-vertical",
+          "axis": "vertical",
+          "width": 1,
+          "height": 5,
+          "comparedBytes": 20,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 20,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 20,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-15-horizontal",
+          "axis": "horizontal",
+          "width": 2,
+          "height": 1,
+          "comparedBytes": 8,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 8,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 8,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-15-vertical",
+          "axis": "vertical",
+          "width": 2,
+          "height": 1,
+          "comparedBytes": 8,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 8,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 8,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-16-horizontal",
+          "axis": "horizontal",
+          "width": 3,
+          "height": 2,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-16-vertical",
+          "axis": "vertical",
+          "width": 3,
+          "height": 2,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-17-horizontal",
+          "axis": "horizontal",
+          "width": 4,
+          "height": 3,
+          "comparedBytes": 48,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 48,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 48,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-17-vertical",
+          "axis": "vertical",
+          "width": 4,
+          "height": 3,
+          "comparedBytes": 48,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 48,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 48,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-18-horizontal",
+          "axis": "horizontal",
+          "width": 5,
+          "height": 4,
+          "comparedBytes": 80,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 80,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 80,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-18-vertical",
+          "axis": "vertical",
+          "width": 5,
+          "height": 4,
+          "comparedBytes": 80,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 80,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 80,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-19-horizontal",
+          "axis": "horizontal",
+          "width": 6,
+          "height": 5,
+          "comparedBytes": 120,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 120,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 120,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-19-vertical",
+          "axis": "vertical",
+          "width": 6,
+          "height": 5,
+          "comparedBytes": 120,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 120,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 120,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-20-horizontal",
+          "axis": "horizontal",
+          "width": 7,
+          "height": 1,
+          "comparedBytes": 28,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 28,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 28,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-20-vertical",
+          "axis": "vertical",
+          "width": 7,
+          "height": 1,
+          "comparedBytes": 28,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 28,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 28,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-21-horizontal",
+          "axis": "horizontal",
+          "width": 1,
+          "height": 2,
+          "comparedBytes": 8,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 8,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 8,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-21-vertical",
+          "axis": "vertical",
+          "width": 1,
+          "height": 2,
+          "comparedBytes": 8,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 8,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 8,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-22-horizontal",
+          "axis": "horizontal",
+          "width": 2,
+          "height": 3,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-22-vertical",
+          "axis": "vertical",
+          "width": 2,
+          "height": 3,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-23-horizontal",
+          "axis": "horizontal",
+          "width": 3,
+          "height": 4,
+          "comparedBytes": 48,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 48,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 48,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-23-vertical",
+          "axis": "vertical",
+          "width": 3,
+          "height": 4,
+          "comparedBytes": 48,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 48,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 48,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "ordinary-null-prototype-record",
+          "axis": "vertical",
+          "width": 3,
+          "height": 2,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "irrelevant-fields-ignored-horizontal",
+          "axis": "horizontal",
+          "width": 3,
+          "height": 2,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "irrelevant-fields-ignored-vertical",
+          "axis": "vertical",
+          "width": 3,
+          "height": 2,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        }
+      ],
+      "wholeByteCases": 67,
+      "refusals": [
+        {
+          "label": "invalid-axis-missing",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-axis-null",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-axis-both",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-axis-uppercase",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-axis-aliasX",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-axis-number",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-axis-record",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-axis-boxedString",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-axis-symbol",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "null-asset",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "foreign-record",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "extra-field",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "symbol-field",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "hidden-field",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "pixels-accessor",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "width-accessor",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-width-zero",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-width-negativeZero",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-width-negative",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-width-fraction",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-width-Infinity",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-width-NaN",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-width-string",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-width-4097",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-height-zero",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-height-negativeZero",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-height-negative",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-height-fraction",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-height-Infinity",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-height-NaN",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-height-string",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-height-4097",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "array-pixels",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "clamped-pixels",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "subclass-pixels",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "detached-pixels",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "shared-pixels",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "wrong-byte-extent",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "metadata-buffer",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "metadata-byteLength",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "metadata-byteOffset",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "metadata-length",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "valid-budget-excess-horizontal",
+          "code": "ASSET_LIMIT",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "valid-budget-excess-vertical",
+          "code": "ASSET_LIMIT",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        }
+      ],
+      "refusalCount": 44,
+      "getterReads": 0,
+      "exactBudget": {
+        "dimensions": [
+          4096,
+          64
+        ],
+        "inputBytes": 1048576,
+        "comparedOutputBytes": 1048576,
+        "internalTypedPayloadBytes": 2097152,
+        "allocations": [
+          {
+            "name": "Uint8Array",
+            "byteLength": 1048576,
+            "typedCopy": true
+          },
+          {
+            "name": "Uint8Array",
+            "byteLength": 1048576,
+            "typedCopy": false
+          }
+        ],
+        "indexedKeyScans": 0
+      }
+    },
+    {
+      "kind": "compiled-root",
+      "status": "PASS",
+      "comparisons": [
+        {
+          "label": "literal3x2-horizontal-CBA-FED",
+          "axis": "horizontal",
+          "width": 3,
+          "height": 2,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "literal3x2-vertical-DEF-ABC",
+          "axis": "vertical",
+          "width": 3,
+          "height": 2,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-1x1-horizontal",
+          "axis": "horizontal",
+          "width": 1,
+          "height": 1,
+          "comparedBytes": 4,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 4,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 4,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-1x1-vertical",
+          "axis": "vertical",
+          "width": 1,
+          "height": 1,
+          "comparedBytes": 4,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 4,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 4,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-1x9-horizontal",
+          "axis": "horizontal",
+          "width": 1,
+          "height": 9,
+          "comparedBytes": 36,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-1x9-vertical",
+          "axis": "vertical",
+          "width": 1,
+          "height": 9,
+          "comparedBytes": 36,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-9x1-horizontal",
+          "axis": "horizontal",
+          "width": 9,
+          "height": 1,
+          "comparedBytes": 36,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-9x1-vertical",
+          "axis": "vertical",
+          "width": 9,
+          "height": 1,
+          "comparedBytes": 36,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-2x3-horizontal",
+          "axis": "horizontal",
+          "width": 2,
+          "height": 3,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-2x3-vertical",
+          "axis": "vertical",
+          "width": 2,
+          "height": 3,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-3x2-horizontal",
+          "axis": "horizontal",
+          "width": 3,
+          "height": 2,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-3x2-vertical",
+          "axis": "vertical",
+          "width": 3,
+          "height": 2,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-7x4-horizontal",
+          "axis": "horizontal",
+          "width": 7,
+          "height": 4,
+          "comparedBytes": 112,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 112,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 112,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-7x4-vertical",
+          "axis": "vertical",
+          "width": 7,
+          "height": 4,
+          "comparedBytes": 112,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 112,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 112,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-1x4096-horizontal",
+          "axis": "horizontal",
+          "width": 1,
+          "height": 4096,
+          "comparedBytes": 16384,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 16384,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 16384,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "thin-nonsquare-1x4096-vertical",
+          "axis": "vertical",
+          "width": 1,
+          "height": 4096,
+          "comparedBytes": 16384,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 16384,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 16384,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-0-horizontal",
+          "axis": "horizontal",
+          "width": 1,
+          "height": 1,
+          "comparedBytes": 4,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 4,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 4,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-0-vertical",
+          "axis": "vertical",
+          "width": 1,
+          "height": 1,
+          "comparedBytes": 4,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 4,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 4,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-1-horizontal",
+          "axis": "horizontal",
+          "width": 2,
+          "height": 2,
+          "comparedBytes": 16,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 16,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 16,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-1-vertical",
+          "axis": "vertical",
+          "width": 2,
+          "height": 2,
+          "comparedBytes": 16,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 16,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 16,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-2-horizontal",
+          "axis": "horizontal",
+          "width": 3,
+          "height": 3,
+          "comparedBytes": 36,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-2-vertical",
+          "axis": "vertical",
+          "width": 3,
+          "height": 3,
+          "comparedBytes": 36,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 36,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-3-horizontal",
+          "axis": "horizontal",
+          "width": 4,
+          "height": 4,
+          "comparedBytes": 64,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 64,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 64,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-3-vertical",
+          "axis": "vertical",
+          "width": 4,
+          "height": 4,
+          "comparedBytes": 64,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 64,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 64,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-4-horizontal",
+          "axis": "horizontal",
+          "width": 5,
+          "height": 5,
+          "comparedBytes": 100,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 100,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 100,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-4-vertical",
+          "axis": "vertical",
+          "width": 5,
+          "height": 5,
+          "comparedBytes": 100,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 100,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 100,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-5-horizontal",
+          "axis": "horizontal",
+          "width": 6,
+          "height": 1,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-5-vertical",
+          "axis": "vertical",
+          "width": 6,
+          "height": 1,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-6-horizontal",
+          "axis": "horizontal",
+          "width": 7,
+          "height": 2,
+          "comparedBytes": 56,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 56,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 56,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-6-vertical",
+          "axis": "vertical",
+          "width": 7,
+          "height": 2,
+          "comparedBytes": 56,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 56,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 56,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-7-horizontal",
+          "axis": "horizontal",
+          "width": 1,
+          "height": 3,
+          "comparedBytes": 12,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 12,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 12,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-7-vertical",
+          "axis": "vertical",
+          "width": 1,
+          "height": 3,
+          "comparedBytes": 12,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 12,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 12,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-8-horizontal",
+          "axis": "horizontal",
+          "width": 2,
+          "height": 4,
+          "comparedBytes": 32,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 32,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 32,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-8-vertical",
+          "axis": "vertical",
+          "width": 2,
+          "height": 4,
+          "comparedBytes": 32,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 32,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 32,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-9-horizontal",
+          "axis": "horizontal",
+          "width": 3,
+          "height": 5,
+          "comparedBytes": 60,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 60,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 60,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-9-vertical",
+          "axis": "vertical",
+          "width": 3,
+          "height": 5,
+          "comparedBytes": 60,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 60,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 60,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-10-horizontal",
+          "axis": "horizontal",
+          "width": 4,
+          "height": 1,
+          "comparedBytes": 16,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 16,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 16,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-10-vertical",
+          "axis": "vertical",
+          "width": 4,
+          "height": 1,
+          "comparedBytes": 16,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 16,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 16,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-11-horizontal",
+          "axis": "horizontal",
+          "width": 5,
+          "height": 2,
+          "comparedBytes": 40,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 40,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 40,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-11-vertical",
+          "axis": "vertical",
+          "width": 5,
+          "height": 2,
+          "comparedBytes": 40,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 40,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 40,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-12-horizontal",
+          "axis": "horizontal",
+          "width": 6,
+          "height": 3,
+          "comparedBytes": 72,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 72,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 72,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-12-vertical",
+          "axis": "vertical",
+          "width": 6,
+          "height": 3,
+          "comparedBytes": 72,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 72,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 72,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-13-horizontal",
+          "axis": "horizontal",
+          "width": 7,
+          "height": 4,
+          "comparedBytes": 112,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 112,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 112,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-13-vertical",
+          "axis": "vertical",
+          "width": 7,
+          "height": 4,
+          "comparedBytes": 112,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 112,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 112,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-14-horizontal",
+          "axis": "horizontal",
+          "width": 1,
+          "height": 5,
+          "comparedBytes": 20,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 20,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 20,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-14-vertical",
+          "axis": "vertical",
+          "width": 1,
+          "height": 5,
+          "comparedBytes": 20,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 20,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 20,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-15-horizontal",
+          "axis": "horizontal",
+          "width": 2,
+          "height": 1,
+          "comparedBytes": 8,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 8,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 8,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-15-vertical",
+          "axis": "vertical",
+          "width": 2,
+          "height": 1,
+          "comparedBytes": 8,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 8,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 8,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-16-horizontal",
+          "axis": "horizontal",
+          "width": 3,
+          "height": 2,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-16-vertical",
+          "axis": "vertical",
+          "width": 3,
+          "height": 2,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-17-horizontal",
+          "axis": "horizontal",
+          "width": 4,
+          "height": 3,
+          "comparedBytes": 48,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 48,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 48,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-17-vertical",
+          "axis": "vertical",
+          "width": 4,
+          "height": 3,
+          "comparedBytes": 48,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 48,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 48,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-18-horizontal",
+          "axis": "horizontal",
+          "width": 5,
+          "height": 4,
+          "comparedBytes": 80,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 80,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 80,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-18-vertical",
+          "axis": "vertical",
+          "width": 5,
+          "height": 4,
+          "comparedBytes": 80,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 80,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 80,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-19-horizontal",
+          "axis": "horizontal",
+          "width": 6,
+          "height": 5,
+          "comparedBytes": 120,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 120,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 120,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-19-vertical",
+          "axis": "vertical",
+          "width": 6,
+          "height": 5,
+          "comparedBytes": 120,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 120,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 120,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-20-horizontal",
+          "axis": "horizontal",
+          "width": 7,
+          "height": 1,
+          "comparedBytes": 28,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 28,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 28,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-20-vertical",
+          "axis": "vertical",
+          "width": 7,
+          "height": 1,
+          "comparedBytes": 28,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 28,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 28,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-21-horizontal",
+          "axis": "horizontal",
+          "width": 1,
+          "height": 2,
+          "comparedBytes": 8,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 8,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 8,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-21-vertical",
+          "axis": "vertical",
+          "width": 1,
+          "height": 2,
+          "comparedBytes": 8,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 8,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 8,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-22-horizontal",
+          "axis": "horizontal",
+          "width": 2,
+          "height": 3,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-22-vertical",
+          "axis": "vertical",
+          "width": 2,
+          "height": 3,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-23-horizontal",
+          "axis": "horizontal",
+          "width": 3,
+          "height": 4,
+          "comparedBytes": 48,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 48,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 48,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "seeded-23-vertical",
+          "axis": "vertical",
+          "width": 3,
+          "height": 4,
+          "comparedBytes": 48,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 48,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 48,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "ordinary-null-prototype-record",
+          "axis": "vertical",
+          "width": 3,
+          "height": 2,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "irrelevant-fields-ignored-horizontal",
+          "axis": "horizontal",
+          "width": 3,
+          "height": 2,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        },
+        {
+          "label": "irrelevant-fields-ignored-vertical",
+          "axis": "vertical",
+          "width": 3,
+          "height": 2,
+          "comparedBytes": 24,
+          "indexedKeyScans": 0,
+          "allocations": [
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": true
+            },
+            {
+              "name": "Uint8Array",
+              "byteLength": 24,
+              "typedCopy": false
+            }
+          ]
+        }
+      ],
+      "wholeByteCases": 67,
+      "refusals": [
+        {
+          "label": "invalid-axis-missing",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-axis-null",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-axis-both",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-axis-uppercase",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-axis-aliasX",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-axis-number",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-axis-record",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-axis-boxedString",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-axis-symbol",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "null-asset",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "foreign-record",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "extra-field",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "symbol-field",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "hidden-field",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "pixels-accessor",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "width-accessor",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-width-zero",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-width-negativeZero",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-width-negative",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-width-fraction",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-width-Infinity",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-width-NaN",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-width-string",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-width-4097",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-height-zero",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-height-negativeZero",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-height-negative",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-height-fraction",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-height-Infinity",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-height-NaN",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-height-string",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "invalid-height-4097",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "array-pixels",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "clamped-pixels",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "subclass-pixels",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "detached-pixels",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "shared-pixels",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "wrong-byte-extent",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "metadata-buffer",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "metadata-byteLength",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "metadata-byteOffset",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "metadata-length",
+          "code": "INVALID_ASSET",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "valid-budget-excess-horizontal",
+          "code": "ASSET_LIMIT",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        },
+        {
+          "label": "valid-budget-excess-vertical",
+          "code": "ASSET_LIMIT",
+          "typedAllocations": 0,
+          "indexedKeyScans": 0
+        }
+      ],
+      "refusalCount": 44,
+      "getterReads": 0,
+      "exactBudget": {
+        "dimensions": [
+          4096,
+          64
+        ],
+        "inputBytes": 1048576,
+        "comparedOutputBytes": 1048576,
+        "internalTypedPayloadBytes": 2097152,
+        "allocations": [
+          {
+            "name": "Uint8Array",
+            "byteLength": 1048576,
+            "typedCopy": true
+          },
+          {
+            "name": "Uint8Array",
+            "byteLength": 1048576,
+            "typedCopy": false
+          }
+        ],
+        "indexedKeyScans": 0
+      }
+    }
+  ],
+  "assertions": 1356,
+  "firstRecords": [
+    {
+      "stage": "initial read-only helper lookup",
+      "message": "Expected new helper file absent before owner implementation; no probe assertion failure."
+    }
+  ],
+  "probeAssertionFailures": [],
+  "limitations": [
+    "Allocation observation measures internal typed payload, not process memory peak or GC.",
+    "Numerical source/emitted API checks do not establish browser pixels, runtime GL lifetime, packaging, device performance or broad composed acceptance."
+  ],
+  "probeFunctionalRuns": 1,
+  "successfulProbeReruns": 0,
+  "types": {
+    "status": "PASS",
+    "config": "consumer/tsconfig.image-mirror.json",
+    "actualSourceHost": true,
+    "explicitSourceAndCompiledPublicTypes": true,
+    "finalExecutedBy": "source worker; executed exits0 confirmed by Root",
+    "exit": 0,
+    "logs": [
+      "/tmp/c2d1324-common-final-types.txt",
+      "/tmp/c2d1324-scoped-final-types.txt"
+    ],
+    "finalLogsRead": true,
+    "ownRedundantRerun": false,
+    "finalHostBlob": "1c5f98ab1197cf84d6eacdf8b3ef40fff6305554"
+  },
+  "sourceBlobs": {
+    "packages/barocss-canvas2d/src/image-mirror.ts": "0dd82c9eaf8a620a8d88e40589215ca56d03b8f1",
+    "packages/barocss-canvas2d/src/index.ts": "6859cf782f41db3173a8b5192367879a0cfeaf4a"
+  },
+  "independentSourceReview": {
+    "status": "GO_HELPER",
+    "axisSemantics": "horizontal reverses columns/X; vertical reverses rows/Y",
+    "admission": "Required strict axis first; exact ordinary data record, integer1..4096/negativezero refusal, exact nonshared ordinaryUint8 metadata guards, then1MiB budget beforecopies.",
+    "copies": "Existing copyImageAsset plus one newoutput only; no pixelindexedkeyscan or extrasgetterread.",
+    "algorithm": "Independent row/tuple reversal/manual3x2 labels and boundarycorner fixture corroborate every returnedRGBA; reflectioninvolution used onlysupplementarily.",
+    "runtimeBoundary": "This is executedsource/emittednumericproof plus source review; actual browser/file/lifetime validation ispending."
+  },
+  "sourceWorkerFirstRecords": [
+    {
+      "stage": "private host editing script before writes",
+      "error": "Python editing SyntaxError before any host write",
+      "repair": "Corrected private edit script before source/types/browser",
+      "log": "/tmp/c2d1324-host-first-edit-error.txt",
+      "providerOrRuntimeFailure": false
+    }
+  ],
+  "independentDriverReview": {
+    "status": "GO_STATIC_BEFORE_BROWSER",
+    "sha256": "4c396373ab4424db03df98a1f7eabe2e6dd014318ef4d45a7863311a1fabd379",
+    "confirmed": [
+      "One cachedoriginal capture with observed native capturecount1 and caller-return/cache/registration isolation.",
+      "Independent32768original/horizontalbytes and fullpremultipliedframe tolerance2; directvertical3x2/literal24 preserveshiddenalphaRGB without secondhostflow.",
+      "Bad axis/getter/oversize beforecandidate/copy/draw/read; complete stablehost excludesdiagnosticcontextcounters but retains tree/assets/frame/hits/canonicalfile.",
+      "Completed Savephase antiReplay/runningfalse/completedtrue RETURN beforeseparate CLI physicalchooser/upload1; actual File.text/inputchange counters.",
+      "FreshOpen fullbytes/Scene29/CaptureDerived/crop/IDs/canonical file withouthelper replay; restored8,0 position and one nativePNG/publicdecode.",
+      "ALL5nativeGL resource counts shader4/program2/buffer3/vao2/fbo0each, textures0/1/1/1/1; exact3target/callback/capture removals throughAPI beforepageclose; disabledbuttons/file,latepointer/repeatDispose/CPUafterDispose."
+    ],
+    "remainingBlockingDefects": [],
+    "runtimeStatus": "Actual browser not executed by this probe worker; static driver GO is not runtime proof."
+  }
+}
