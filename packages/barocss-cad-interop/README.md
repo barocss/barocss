@@ -2499,3 +2499,42 @@ memory and records the actual CAD/interop source inputs with zero own dist
 inputs. Source development requires no package prebuild, aliases or custom
 conditions. This example is a workspace source consumer; explicit published
 JS/types checks and the held independent packed consumer #801 remain separate.
+
+## Complete integer Boolean results in Three
+
+The [complete Boolean example](./examples/axis-box-boolean-three.html) loads all
+native panels of the saved union, cavity, through-hole, severed and empty results.
+It retains both original seven-object operand Models, each five-object panel
+Model, all Body/Shell/void references and the original World XYZ queries. Its
+source inputs come from one coherent CAD point-classification result set.
+
+Each whole panel goes through public `BaroCADLoader.parse` with sourceVersion0,
+countU2/countV2, unitsPerMillimeter0.001 and nativeCapacity version1/maximumObjects16.
+With `curveDisplay` omitted, the four original Curves remain unrendered and one
+Surface Mesh owns one geometry/material pair. The host uses fixed cameras in the
+original XYZ frame. Its cavity view changes the camera while all panels remain
+attached; ordinary depth occlusion remains visible.
+
+The native integer Boolean/material report and the derived Float32 display have
+separate authority. An open panel is not independently a Solid. Native original
+queries, including an extreme finite outside point, are inspected as data;
+the example does not provide exact screen picking or a general Solid kernel.
+
+Run this focused source checkpoint with Node22 before building CAD/interop dist:
+
+```sh
+node packages/barocss-cad-interop/examples/axis-box-boolean-three-verify.mjs --output EVIDENCE_DIR
+pnpm exec vite --config packages/barocss-cad-interop/examples/axis-box-boolean-three.config.mjs --host 127.0.0.1 --port 5214 --strictPort
+```
+
+Open `http://127.0.0.1:5214/packages/barocss-cad-interop/examples/axis-box-boolean-three.html`.
+Use the example controls for complete replacement, the declared camera presets,
+refusal retention, empty acceptance, cold reopening and double cleanup. Disposal
+releases only example target results; the caller Scene, renderer, cameras,
+canvas and green marker remain owned by the host.
+
+[Issue1114](https://github.com/barocss/barocss/issues/1114) records the frozen
+inputs/limits and the actual native versus integration evidence. The theoretical
+72-panel/144-pair staging limits do not establish arbitrary GPU capacity or
+performance; the largest original case contains60 panels. Package publication
+and the held independent packed-consumer check remain separate.
