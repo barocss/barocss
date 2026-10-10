@@ -3469,3 +3469,48 @@ Solid authority, Boolean operation, manufacturing or publication API here.
 The file example uses unchanged native originals and a private signed-zero
 writer. Source and emitted checks cover complete file reopen, independent
 copies, the real suppressed/no-op receipts, and genuine refusals.
+
+### Complete translated-strip World XYZ classification results
+
+The optional `@barocss/cad-interop/translated-strip-world-points` entry reads
+complete saved native source-region classification results.
+It calls the actual public CAD whole validator for each eligible read.
+
+```ts
+import {
+  parseBaroCadTranslatedSurfaceStripWorldPointClassification,
+  readBaroCadTranslatedSurfaceStripWorldPointClassification,
+} from '@barocss/cad-interop/translated-strip-world-points';
+const result = parseBaroCadTranslatedSurfaceStripWorldPointClassification(text);
+const copy = readBaroCadTranslatedSurfaceStripWorldPointClassification(result.native);
+```
+
+Each result has `native`, `validationReport`, `profile`, and `sourceText`.
+The complete native data and actual validator report are independent mutable
+CPU copies. They share no mutable objects with input or other reads.
+The profile is deeply frozen. Text reads preserve exact admitted text;
+own-data reads return `sourceText: null`.
+
+The reader retains the whole volume, original Sources and Models, exact
+query coordinates, classifications, root selectors, rational remainder and
+sign witnesses, reports, native work scopes, and original file-size metadata.
+Inside/outside/boundary describes the declared source-defined region.
+Exact irrational native U can be null. No rounded native U is invented.
+An internal span join is not automatically a material boundary.
+Authored XYZ/mm and dimensionless UV remain unchanged, including numeric `-0`.
+This family does not establish Body, BRep, Solid, picking or collision authority.
+
+Raw UTF-8 bytes and UTF-16 units each have a 1 MiB family cap before decode.
+Canonical copied native JSON plus newline also has a 1 MiB cap before
+native work. The unchanged shared copy helper has a transient 2 MiB guard;
+this is separate from the accepted 1 MiB family cap. Work quotas apply per pass.
+Strict JSON rejects malformed data, decoded duplicate keys, invalid Unicode
+scalars and nonfinite numbers. Own data rejects getters, cycles, hidden fields,
+foreign records and sparse arrays. Acyclic aliases are copied per occurrence.
+Actual CAD failure causes are retained by the named reader error.
+
+There is no URL, byte-input, public serializer or renderer-resource API here.
+The example preserves unchanged original files and an independent oracle,
+and uses a private signed-zero writer for complete saved-file reopen.
+Source and emitted checks cover the real outside-to-inside edit and exact
+quadratic boundary witnesses, independent copies and genuine refused inputs.

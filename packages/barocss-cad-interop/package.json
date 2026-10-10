@@ -154,6 +154,10 @@
       "./nurbs-source-loft-feature-graph": {
         "types": "./dist/nurbs-source-loft-feature-graph.d.ts",
         "import": "./dist/nurbs-source-loft-feature-graph.js"
+      },
+      "./translated-strip-world-points": {
+        "types": "./dist/translated-strip-world-points.d.ts",
+        "import": "./dist/translated-strip-world-points.js"
       }
     }
   },
@@ -310,6 +314,10 @@
     "./nurbs-source-loft-feature-graph": {
       "types": "./src/nurbs-source-loft-feature-graph.ts",
       "import": "./src/nurbs-source-loft-feature-graph.ts"
+    },
+    "./translated-strip-world-points": {
+      "types": "./src/translated-strip-world-points.ts",
+      "import": "./src/translated-strip-world-points.ts"
     }
   },
   "files": [
