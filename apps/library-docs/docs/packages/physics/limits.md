@@ -20,4 +20,4 @@ Replay has at most 512 recorded steps, 4096 total commands, a 128 Ki-code-unit s
 
 No exact Surface/mesh collision, arbitrary joint network, self-colliding/tearing cloth, general CFD, engineering stress or publication is established here.
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-physics/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-physics/README.md)
+`packages/barocss-physics/package.json` (Manifest and version; local source) · `packages/barocss-physics/README.md` (Package task notes; local source)

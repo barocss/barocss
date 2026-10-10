@@ -19,4 +19,4 @@ Scene profiles have exact field sets. The current source exposes SceneV29. Sever
 
 `dispose()` releases owned GL resources and listeners. Stop host listeners and schedulers as part of document cleanup. A browser text raster depends on host font availability and is not cross-device text-layout certification. SVG supports a bounded subset. Orthogonal polygon Boolean operations are authored integer 2D operations, not CAD B-Rep Booleans. Scene JSON and PNG do not imply history, collaboration or full design-tool support.
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-canvas2d/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-canvas2d/README.md)
+`packages/barocss-canvas2d/package.json` (Manifest and version; local source) · `packages/barocss-canvas2d/README.md` (Package task notes; local source)

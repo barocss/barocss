@@ -11,7 +11,7 @@ const catalog = { text: 'Packages', items: packages.map(p => ({ text: names[p] |
 const sidebar = Object.fromEntries(packages.map(p => [`/packages/${p}/`, [
   { text: names[p] || p[0].toUpperCase() + p.slice(1), items: [
     { text: 'Overview', link: `/packages/${p}/` },
-    ...(packages.indexOf(p) < 3 ? [] : ['quickstart', 'guides', 'api', 'examples', 'limits'].map(page => ({ text: { quickstart: 'Quickstart', guides: 'Guides', api: 'API reference', examples: 'Examples', limits: 'Limits and lifecycle' }[page], link: `/packages/${p}/${page}` })))
+    ...(packages.indexOf(p) < 3 ? [] : ['quickstart', 'guides', 'api', 'reference', 'examples', 'limits'].map(page => ({ text: { quickstart: 'Quickstart', guides: 'Guides', api: 'API reference', reference: 'Public signatures', examples: 'Examples', limits: 'Limits and lifecycle' }[page], link: `/packages/${p}/${page}` })))
   ] }, { text: 'Shared concepts', items: common }, catalog
 ]]))
 export default defineConfig({

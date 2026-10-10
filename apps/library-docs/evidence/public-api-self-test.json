@@ -1,0 +1,22 @@
+{
+  "unchanged": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "changed": {
+    "added": [
+      "fixture.:added"
+    ],
+    "removed": [],
+    "changed": [
+      "fixture.:entry",
+      "fixture.:Spaced",
+      "fixture.:value"
+    ]
+  },
+  "privateMembersExcluded": true,
+  "publicParameterPropertiesIncluded": true,
+  "literalWhitespacePreserved": true,
+  "fixture": "temporary TypeScript API declarations only; no package runtime mutation"
+}

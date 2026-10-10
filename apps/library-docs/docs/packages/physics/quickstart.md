@@ -29,4 +29,4 @@ try {
 
 For display, map accepted body poses through the supported host bridge. Convert metres to millimetres only once when passing CAD/Viewer pose data. See [CAD proxies](./guides#admit-a-cad-proxy).
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-physics/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-physics/README.md)
+`packages/barocss-physics/package.json` (Manifest and version; local source) · `packages/barocss-physics/README.md` (Package task notes; local source)

@@ -16,4 +16,4 @@ Unmount releases component-owned Viewer/listeners and keeps caller CPU data. Dis
 
 No general solids/topology, manufacturing tolerance, unrestricted source binding, global precision/device recovery or publication is established by this checkpoint.
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-cad-editor/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-cad-editor/README.md)
+`packages/barocss-cad-editor/package.json` (Manifest and version; local source) · `packages/barocss-cad-editor/README.md` (Package task notes; local source)

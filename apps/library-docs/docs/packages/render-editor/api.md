@@ -1,5 +1,8 @@
 # Render Editor public entry contracts
 
+Read the [complete public signature reference](./reference) for exact exported functions, types and public class members. This task page explains their support, ownership, errors and lifecycle.
+
+
 | Entry | Workspace / release configuration |
 | --- | --- |
 | Root | `src/index.ts` / `dist/index.js` and declarations |
@@ -22,7 +25,7 @@ Session methods: `getSnapshot`, `subscribe`, `setDraftSource`, `setDraftObjectSo
 
 Controller methods: `getSnapshot`, `subscribe`, `attachPresenter`, `detachPresenter`, `apply`, `open`, `undo`, `redo`, `recover`, `previewCamera`, `applyCameraPreview`, `cancelCameraPreview`, `presentationUnavailable`, `dispose`.
 
-[Session signatures/types](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render-editor/src/session.ts) · [Controller/presenter contracts](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render-editor/src/controller.ts)
+[Session signatures/types](/packages/render-editor/reference#declarations-0c75caeb5a00) · [Controller/presenter contracts](/packages/render-editor/reference#declarations-cf976af88b6c)
 
 ## Mixed public families
 
@@ -36,16 +39,16 @@ Controller methods: `getSnapshot`, `subscribe`, `attachPresenter`, `detachPresen
 
 `inspectRenderMixedSphereSource`, `editRenderMixedSphereSource`, `inspectRenderSceneObjects`, `editRenderSceneObjectSource`, `addRenderSceneObjectSource`, `removeRenderSceneObjectSource` expose source-authoritative compiler/AST edits. Their patch/property types are re-exported; implementation helpers are not root APIs.
 
-[Exact root export graph](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render-editor/src/index.ts) · [Mixed session signatures](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render-editor/src/mixed-session.ts) · [Mixed document types](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render-editor/src/mixed-document.ts)
+[Exact root export graph](/packages/render-editor/reference#declarations-7ff934513450) · [Mixed session signatures](/packages/render-editor/reference#declarations-6e602b9cef07) · [Mixed document types](/packages/render-editor/reference#declarations-8867ea2c9777)
 
 ## React exports
 
 `RenderEditor`, `SourcePanel`, `ObjectPanel`, `CameraPanel`, `DiagnosticsPanel`, `SceneViewport`, `createSceneViewportPresenter` and the mixed React family are available from `/react`. `RenderMixedEditor`, `MixedSceneViewport` and `createMixedViewportPresenter` connect the whole mixed frame path. Props/slots remain host composition; `onAction` requests file actions and performs no I/O.
 
-[React root and props](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render-editor/src/react.tsx) · [Mixed React exports](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render-editor/src/mixed-react.tsx)
+[React root and props](/packages/render-editor/reference#declarations-ff49b1eb9943) · [Mixed React exports](/packages/render-editor/reference#declarations-ac9669117634)
 
 ## Disposal
 
 Controller disposal releases its presenter and subscriptions. Viewport disposal removes owned renderer/listeners/resize observation. Session disposal releases CPU lifecycle. The host owns the canvas/DOM and must close its session explicitly.
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render-editor/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render-editor/README.md)
+`packages/barocss-render-editor/package.json` (Manifest and version; local source) · `packages/barocss-render-editor/README.md` (Package task notes; local source)

@@ -29,18 +29,18 @@ Choose the package that owns your task. These 12 entries come from the fixed sou
 ## Verify entry points
 
 These are actual development export keys at the fixed commit. Compiled maps and exact manifest hashes are retained in the app inventory. Read each package API page for names and support.
-- **@barocss/kit**: `.`, `./theme/default`. [Manifest](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss/package.json).
-- **@barocss/browser**: `.`. [Manifest](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-browser/package.json).
-- **@barocss/server**: `.`. [Manifest](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-server/package.json).
-- **@barocss/render**: `.`. [Manifest](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render/package.json).
-- **@barocss/gpu**: `.`, `./source`. [Manifest](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-gpu/package.json).
-- **@barocss/cad**: `.`. [Manifest](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-cad/package.json).
-- **@barocss/cad-interop**: `.`, `./native`, `./native-uniform-curve`, `./three-uniform-curve`, `./document`, `./boolean-extrusion-feature-graph`, `./boolean-extrusion-feature-mesh`, `./boolean-extrusion-feature-properties`, `./assembly`, `./document-glb`, `./boolean-mesh-glb`, `./boolean-extrusion-glb`, `./three-document`, `./three-assembly`, `./three-boolean-contours`, `./three-boolean-mesh`, `./three-boolean-extrusion-mesh`, `./three`, `./babylon`, `./babylon-document`, `./babylon-assembly`, `./babylon-boolean-mesh`, `./babylon-boolean-extrusion-mesh`, `./pixi3d`, `./pixi3d-document`, `./pixi3d-assembly`, `./pixi3d-boolean-mesh`, `./pixi3d-boolean-extrusion-mesh`, `./model-set`, `./native-selected-uniform-curve`, `./three-selected-uniform-curve`, `./babylon-uniform-curve`, `./pixi3d-uniform-curve`, `./babylon-selected-uniform-curve`, `./pixi3d-selected-uniform-curve`. [Manifest](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-cad-interop/package.json).
-- **@barocss/canvas2d**: `.`, `./document`. [Manifest](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-canvas2d/package.json).
-- **@barocss/viewer**: `.`. [Manifest](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-viewer/package.json).
-- **@barocss/physics**: `.`, `./cad-proxy`, `./replay`, `./fluid`, `./cloth`, `./fluid-cad`. [Manifest](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-physics/package.json).
-- **@barocss/cad-editor**: `.`, `./react`, `./styles.css`. [Manifest](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-cad-editor/package.json).
-- **@barocss/render-editor**: `.`, `./react`, `./style.css`. [Manifest](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render-editor/package.json).
+- **@barocss/kit**: `.`, `./theme/default`. `packages/barocss/package.json` (Manifest; local source).
+- **@barocss/browser**: `.`. `packages/barocss-browser/package.json` (Manifest; local source).
+- **@barocss/server**: `.`. `packages/barocss-server/package.json` (Manifest; local source).
+- **@barocss/render**: `.`. `packages/barocss-render/package.json` (Manifest; local source).
+- **@barocss/gpu**: `.`, `./source`. `packages/barocss-gpu/package.json` (Manifest; local source).
+- **@barocss/cad**: `.`. `packages/barocss-cad/package.json` (Manifest; local source).
+- **@barocss/cad-interop**: `.`, `./native`, `./native-uniform-curve`, `./three-uniform-curve`, `./document`, `./boolean-extrusion-feature-graph`, `./boolean-extrusion-feature-mesh`, `./boolean-extrusion-feature-properties`, `./assembly`, `./document-glb`, `./boolean-mesh-glb`, `./boolean-extrusion-glb`, `./three-document`, `./three-assembly`, `./three-boolean-contours`, `./three-boolean-mesh`, `./three-boolean-extrusion-mesh`, `./three`, `./babylon`, `./babylon-document`, `./babylon-assembly`, `./babylon-boolean-mesh`, `./babylon-boolean-extrusion-mesh`, `./pixi3d`, `./pixi3d-document`, `./pixi3d-assembly`, `./pixi3d-boolean-mesh`, `./pixi3d-boolean-extrusion-mesh`, `./model-set`, `./native-selected-uniform-curve`, `./three-selected-uniform-curve`, `./babylon-uniform-curve`, `./pixi3d-uniform-curve`, `./babylon-selected-uniform-curve`, `./pixi3d-selected-uniform-curve`. `packages/barocss-cad-interop/package.json` (Manifest; local source).
+- **@barocss/canvas2d**: `.`, `./document`. `packages/barocss-canvas2d/package.json` (Manifest; local source).
+- **@barocss/viewer**: `.`. `packages/barocss-viewer/package.json` (Manifest; local source).
+- **@barocss/physics**: `.`, `./cad-proxy`, `./replay`, `./fluid`, `./cloth`, `./fluid-cad`. `packages/barocss-physics/package.json` (Manifest; local source).
+- **@barocss/cad-editor**: `.`, `./react`, `./styles.css`. `packages/barocss-cad-editor/package.json` (Manifest; local source).
+- **@barocss/render-editor**: `.`, `./react`, `./style.css`. `packages/barocss-render-editor/package.json` (Manifest; local source).
 
 Motion was retired locally. Spatial and Interaction remain capability requirements; neither is a package in this inventory.
 

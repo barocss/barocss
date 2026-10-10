@@ -16,4 +16,4 @@ Use validator paths for candidate correction. A renderer throw belongs to the ho
 
 This prototype has no arbitrary schema extension, transport, AI call, normalization, focus manager or persistence. Package version 0.12.0 is the clean manifest value. [#478](https://github.com/barocss/barocss/issues/478) verifies the historical published artifact; it does not qualify later local source changes or prove identical payloads. The old package README staged-release notice is historical.
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render/README.md)
+`packages/barocss-render/package.json` (Manifest and version; local source) · `packages/barocss-render/README.md` (Package task notes; local source)

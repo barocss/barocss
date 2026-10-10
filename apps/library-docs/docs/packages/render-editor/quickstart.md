@@ -29,4 +29,4 @@ For a visible editor, mount `RenderEditor` with a controller and real presenter 
 
 Save the serialized original document, not compiler IR, GLSL or a screen image. The host owns file download and the meaning of saved status.
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render-editor/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-render-editor/README.md)
+`packages/barocss-render-editor/package.json` (Manifest and version; local source) · `packages/barocss-render-editor/README.md` (Package task notes; local source)

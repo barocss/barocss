@@ -1,3 +1,4 @@
+import { repairSourceLinks } from './source-links.mjs';
 import { readFile, readdir, access } from 'node:fs/promises';
 import { resolve, dirname, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -20,13 +21,14 @@ await walk(docs);
 for (const p of inventory.packages) {
   const bytes = await readFile(resolve(root, p.directory, 'package.json'));
   if (createHash('sha256').update(bytes).digest('hex') !== p.manifestSha256) throw new Error(`Manifest drift: ${p.name}; review the snapshot before updating it.`);
-  const required = ['index', ...( ['kit','browser','server'].includes(p.slug) ? [] : ['quickstart','guides','api','examples','limits'])];
+  const required = ['index', ...( ['kit','browser','server'].includes(p.slug) ? [] : ['quickstart','guides','api','reference','examples','limits'])];
   for (const name of required) {
     const text = await readFile(resolve(docs, 'packages', p.slug, `${name}.md`), 'utf8');
-    if (!text.startsWith('# ') || text.length < 350) throw new Error(`Missing substantive page: ${p.slug}/${name}`);
+    if (!text.replace(/^---[\s\S]*?---\s*/, '').startsWith('# ') || text.length < 350) throw new Error(`Missing substantive page: ${p.slug}/${name}`);
   }
 }
 let links = 0;
+const builtAnchors = new Map();
 for (const page of pages) {
   const text = (await readFile(page, 'utf8')).replace(/```[\s\S]*?```/g, '');
   for (const match of text.matchAll(/\]\(([^)]+)\)/g)) {
@@ -45,10 +47,14 @@ for (const page of pages) {
     await access(target).catch(() => { throw new Error(`Broken link ${href} in ${page}`); });
     if (anchor) {
       const htmlPath = target.replace(docs, resolve(docs, '.vitepress/dist')).replace(/\.md$/, '.html');
-      const html = await readFile(htmlPath, 'utf8');
-      if (!html.includes(`id="${decodeURIComponent(anchor)}"`)) throw new Error(`Missing built anchor: ${href}`);
+      if (!builtAnchors.has(htmlPath)) {
+        const html = await readFile(htmlPath, 'utf8');
+        builtAnchors.set(htmlPath, new Set([...html.matchAll(/id="([^"]+)"/g)].map(match => match[1])));
+      }
+      if (!builtAnchors.get(htmlPath).has(decodeURIComponent(anchor))) throw new Error(`Missing built anchor: ${href}`);
     }
     links++;
   }
 }
+await repairSourceLinks(JSON.parse(await readFile(resolve(app, 'evidence/public-api.json'), 'utf8')), { check: true });
 console.log(JSON.stringify({ pages: pages.length, packages: 12, checkedInternalLinks: links, manifestHashes: 'matched', sourceCommit: inventory.commit }));

@@ -16,4 +16,4 @@ Control `onError` reports failed gestures/keys to the host. The host owns DOM po
 
 No exact CAD picking, engineering dimension certificate, unrestricted materials, global precision, all-device recovery or publication is established by these pages.
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-viewer/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-viewer/README.md)
+`packages/barocss-viewer/package.json` (Manifest and version; local source) · `packages/barocss-viewer/README.md` (Package task notes; local source)

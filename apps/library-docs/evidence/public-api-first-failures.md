@@ -1,0 +1,13 @@
+# First failures — #1259
+
+Initial actual export extraction refused Loader /document CadDocumentResult because the isolated native checkout lacked the transitive CAD workspace link. No missing symbol was silently skipped. Added ignored app-local links for the nine actual packages and an ordinary TypeScript module-search fallback through that app-local node_modules directory. Own package paths outside the native root are explicitly rejected. This setup is a bounded static documentation resolver, not a source condition, runtime import alias, emitted artifact or peer type-check proof.
+
+Second extraction refused CAD Editor /react CadEditorViewport because the static program lacked a JSX mode for its actual .tsx declaration graph. Enabled the existing React JSX parser mode in the documentation program only. No export or source implementation changed, and the refusal remained recorded.
+
+Review found public constructor parameter properties were not represented as class fields. Added their actual public/readonly fields while retaining private/protected exclusions. Regenerated the declaration baseline and pages; this is a documentation-extractor repair. The writer now refuses package diffs from the frozen source commit or declaration paths absent at that commit, preventing new source from being mislabeled with an old pin.
+
+The final reference build passed but reported its normal >500kBminified-chunk warning. The complete CAD/Canvas type reference is large. The warning is retained; no threshold was raised or result described as a performance certificate. Reference split-by-entry/declaration can be a later bounded documentation change if actual navigation becomes slow.
+
+Concrete owner/Planner feedback identified a functional source-link failure: exact pinned GitHub commit lookup actually returned422No commit found. Generated public declaration-group anchors and mapped former remote public entry/group/symbol links to those real site-local targets. Other local README/example/manifest paths became precise provenance text, retaining source pin. No moving-main substitution or product push. Recorded source-link-status.json; active unavailable fixed-SHA GitHub links are now refused by the app-local check.1248native historical receipts remain unchanged.
+
+One initial1259browser click had a stale element ref after the visible page changed between calls. Captured a fresh actual snapshot and used its current public-signature link; no DOM state was guessed. Signature details opened and showed actual compileMeshMaterial string/result types. Search selected the same public symbol. The final post-link-repair flow is recorded separately.

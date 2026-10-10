@@ -37,4 +37,4 @@ The sheet has fixed topology and pins. Returned vertices/triangles are copies fo
 
 `createUprightCapsuleQuery` queries immutable static boxes without advancing a world. The separate `createUprightCapsuleController` uses that query to move its fixed upright character profile. Do not treat either as an arbitrary capsule or dynamic-character solver.
 
-[Manifest and version](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-physics/package.json) · [Package task notes](https://github.com/barocss/barocss/blob/5f5ad866205a21510ac69552e704cc162fa253b5/packages/barocss-physics/README.md)
+`packages/barocss-physics/package.json` (Manifest and version; local source) · `packages/barocss-physics/README.md` (Package task notes; local source)
