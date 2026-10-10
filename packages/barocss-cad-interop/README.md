@@ -3163,3 +3163,30 @@ bytes. The verifier records actual source resolution and Three CPU resource
 events; the browser separately observes HTTP bytes, real pixels and lifetime.
 This workspace source example does not establish published JS/types, editor
 Save/Open recovery, other targets, packed consumer #801 or npm release.
+
+
+### Original multi-span Surface–Plane sections in Pixi3D
+
+`examples/multispan-section-pixi3d.html` loads the unchanged original World Curve and complete Surface/Plane Models. It shows all17 native observations, four-span lineage, dual dimensionless UV, whole Models and genuine C0 derivative refusals. Parent Curves stay native and unrendered. Native UV is retained in `surface.mesh.parameters`; it is not a texture UV or a World line.
+
+The example uses the existing public `BaroCADPixi3DLoader` and `BaroCADUniformCurvePixi3DLoader` entries. World uses129 original uniform samples and sequential Uint16 `LINE_STRIP` indices. Each Surface has a separate material. Results qualify while detached before attach; replacement, refused inputs, cancelled loads, fresh original URL loads and double cleanup retain caller resources. Surface cleanup retains its existing current-geometry/material ownership policy; this example does not substitute caller resources into owned results.
+
+Run from the workspace with Node22 and the pinned PixiJS7.2.4/Pixi3D2.5 peers:
+
+```sh
+node packages/barocss-cad-interop/examples/multispan-section-pixi3d-verify.mjs --mode source --output /tmp/barocss-loader1238-source
+pnpm exec vite --config packages/barocss-cad-interop/examples/multispan-section-pixi3d.config.mjs
+```
+
+Open `http://127.0.0.1:5297/multispan-section-pixi3d.html`. Follow the buttons through refused inputs, cancelled loads, nonuniform original, cold reopen and double cleanup. The caller Sphere remains green. World visibility can be toggled independently; native data stays unchanged.
+
+The source verifier runs before CAD/interop builds and uses ordinary native CPU APIs without a fake Pixi DOM. For actual emitted JS and selected published declarations, build the two libraries and run:
+
+```sh
+pnpm --filter @barocss/cad build:library
+pnpm --filter @barocss/cad-interop build:library
+node packages/barocss-cad-interop/examples/multispan-section-pixi3d-verify.mjs --mode compiled --output /tmp/barocss-loader1238-compiled
+BAROCSS_LOADER1238_MODE=compiled BAROCSS_LOADER1238_COMPILED_DIR=/tmp/barocss-loader1238-compiled pnpm exec vite --config packages/barocss-cad-interop/examples/multispan-section-pixi3d.config.mjs
+```
+
+The caller host initializes the real depth buffer before each frame while preserving the prior depth write mask. Materials explicitly use its Camera and LightingEnvironment. Global camera/lighting, renderer, Stage, canvas and caller resources remain outside adapter disposal. Approximate display geometry and dimensionless native proof are shown separately; no trimmed fill, Solid, manufacturing or npm release certificate follows from this example.

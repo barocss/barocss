@@ -1,0 +1,1 @@
+@model shift_plane_model {version:0;length-unit:mm;@surface #shifted_plane {type:nurbs;degree-u:1;degree-v:1;knots-u:[-5,-5,5,5];knots-v:[2,2,6,6];control-points:[[[0,0,2],[0,64,2]],[[40,0,4.5],[40,64,4.5]]];weights:[[1,1],[1,1]];}}

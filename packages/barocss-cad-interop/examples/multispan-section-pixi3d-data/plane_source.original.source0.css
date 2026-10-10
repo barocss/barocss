@@ -1,0 +1,1 @@
+@model plane_model {version:0;length-unit:mm;@curve #plane_unused {type:nurbs;degree:1;knots:[-0,-0,1,1];control-points:[[-0,0,0],[1,1,0]];weights:[1,1];}@surface #inclined_support {type:nurbs;degree-u:1;degree-v:1;knots-u:[0,0,1,1];knots-v:[0,0,1,1];control-points:[[[0,0,2],[0,64,2]],[[40,0,4.5],[40,64,4.5]]];weights:[[1,1],[1,1]];}}
