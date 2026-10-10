@@ -120,3 +120,6 @@ export type { AffineSceneObject2, AffineScene2, CompiledAffineSceneSource } from
 
 export {prepareSourceSceneBounds,SourceSceneBoundsError,SourceSceneBoundsDiagnosticCode} from './source-scene-bounds.js';
 export type {SourceSceneBoundsRequest,SourceSceneBoundsBox,SourceSceneObjectBounds,PreparedSourceSceneBounds} from './source-scene-bounds.js';
+
+export { evaluateAuthoredMaterial, AuthoredMaterialEvaluationError, AuthoredMaterialEvaluationDiagnosticCode } from './material-evaluation.js';
+export type { AuthoredMaterialRequest, AuthoredMaterialSample } from './material-evaluation.js';

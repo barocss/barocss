@@ -2178,3 +2178,35 @@ Run the bounded source/API/emitted/file flow after building, with a fresh output
 ```sh
 node examples/gpu-scene/source-scene-bounds-flow.mjs --output /absolute/fresh/output
 ```
+
+
+### CPU authored material color inspection
+
+`evaluateAuthoredMaterial({material,uniforms,uv?})` reconstructs one existing
+Mesh, UV or repeating material through its actual binder, resolves declared
+uniform defaults/overrides and evaluates the canonical tree in JavaScript
+binary64. `uniforms` is required; `{}` selects defaults. UV/repeating profiles
+require a dense dimensionless UV tuple within[-1000,1000]; legacy Mesh forbids
+UV. Supplied UV -0 is preserved; inherited uniforms and final RGB normalize
+zero to +0. The new service refuses `__proto__` uniform names explicitly.
+
+The fresh deeply frozen sample has exact fields `format,version,profile,
+colorSpace,uvUnit,source,material,uniforms,uv,linearRGB`. Format is
+`barocss-gpu-authored-material-sample`, version0, profile
+`binary64-linear-rgb-v0`. It retains original source and independent canonical
+material. This is authored linear RGB only, without lighting/gamma/alpha,
+texture, geometry, clock, rendered pixels or a GPU precision certificate.
+
+Canonical traversal counts at most256 occurrences/depth16. Existing expanded
+functions keep their recorded operation order. Color mix clamps the ratio,
+then evaluates A*(1-r)+B*r per channel; final RGB clamps to[0,1]. Actual provider
+budgets and two independent8192-visit/depth24 snapshots remain unchanged.
+`AuthoredMaterialEvaluationError` exposes code and actual cause; inherited
+legacy lost source offsets are not reconstructed. Messages are at most1024
+characters; reflection proxies have no side-effect guarantee.
+
+For a phase uniform in[-1,1], the existing repeating compiler refuses
+`fract(uv_u+phase)` because its inferred range exceeds[-1000,1000]. Use the
+existing composition `fract(clamp(uv_u,-999,999)+phase)` for bounded inspection.
+CPU evaluation/native adoption, editor use, actual graphics and publication
+are separate stages.
