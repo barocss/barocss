@@ -744,3 +744,36 @@ Dispose removes the keyboard listener before pointer controls and Viewer.
 No focus is taken during render. Existing pointer navigation remains separate.
 These keys provide sampled display framing; they do not add primitive
 selection, native bounds, gesture cancellation or an editor shortcut map.
+
+
+## Current parent Face appearance
+
+Apply color uses the chosen source. Apply tree parent color uses the current
+Surface or Curve tree selection, including a selection outside the list filter.
+A Curve selection changes the whole parent Surface fill. The color draft stays
+independent of both selections. This changes display RGB only.
+
+Both actions qualify the complete original source, five-object Model and Face.
+They retain current native inspection, precise point-pair measurements, the
+other seven manual reports, tree and picked reports, camera, filters, drafts
+and connected tree focus. A changed color clears ephemeral screen inspection
+and samples; native labels use their existing projection rules.
+
+`applyQualifiedTreeFaceColor(viewer, ref, rgb)` accepts the current full tree
+reference and an ordinary dense array of three finite numbers in `0..1`.
+It returns copied `{version:0,node,color,changed}` data. It rejects getters,
+Proxy inputs, extra fields, sparse arrays and stale original references.
+Channel equality uses `Object.is`, including signed zero. An exactly equal
+qualified color is a no-op and makes no GPU or scene request write.
+
+All appearance actions require a ready Face view, including same-color calls.
+A changed color admits the whole scene through the existing public load. This
+advances the public scene request and supersedes earlier pending URL admission.
+A refused candidate retains accepted CPU reports; successful recovery retains
+pixels and resources. Failed presentation recovery has no pixel rollback
+promise. CPU inspection remains available under its existing loss policy,
+while color actions and projection remain blocked.
+
+Source or complete Face changes invalidate affected native authority. Clear and
+Dispose remove retained reports. These controls do not author CAD materials,
+edit source, recolor native Curve lines or add selection highlights.

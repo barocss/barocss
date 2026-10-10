@@ -25,6 +25,7 @@ import {queryQualifiedTreeTangentAngle} from './tree-curve-tangent-angle.js';
 import {queryQualifiedTreeNormalAngle} from './tree-surface-normal-angle.js';
 import {createQualifiedFacePointerNavigation} from './pointer-navigation.js';
 import {createQualifiedFaceKeyboardFraming} from './keyboard-framing.js';
+import {applyQualifiedTreeFaceColor} from './tree-face-appearance.js';
 import {parseBaroCadSource} from '@barocss/cad-interop/native';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {loadBaroCadDocument,parseBaroCadDocument,prepareBaroCadDocumentPrimitiveNativeRefsV2} from '@barocss/cad-interop/document';
@@ -69,6 +70,7 @@ const captureTreeNormalButton=document.querySelector('#capture-tree-normal'),res
 const treeNormalLabels=Object.fromEntries(['first','second','angle'].map(side=>[side,document.querySelector('#tree-normal-'+side+'-label')]));
 const assetCount=document.querySelector('#asset-count'),countU=document.querySelector('#count-u'),countV=document.querySelector('#count-v');
 const colorAsset=document.querySelector('#color-asset'),colorInput=document.querySelector('#color');
+const applyTreeColorButton=document.querySelector('#apply-tree-color'),treeColorTarget=document.querySelector('#tree-color-target');
 const measureButton=document.querySelector('#measure-points'),measurementOutput=document.querySelector('#measurement-output');
 const pointLabels=[1,2].map(index=>document.querySelector('#measurement-point-'+index)),distanceLabel=document.querySelector('#measurement-distance');
 const areaSource=document.querySelector('#area-source'),inspectAreaButton=document.querySelector('#inspect-area'),areaOutput=document.querySelector('#area-output');
@@ -114,7 +116,7 @@ const drawElements=WebGL2RenderingContext.prototype.drawElements;
 WebGL2RenderingContext.prototype.drawElements=function(mode,count,...args){draws.push({mode,count,depth:this.getParameter(this.DEPTH_FUNC),write:this.getParameter(this.DEPTH_WRITEMASK)});return drawElements.call(this,mode,count,...args);};
 window.addEventListener('error',event=>errors.push(event.message));window.addEventListener('unhandledrejection',event=>errors.push(String(event.reason)));
 const warn=console.warn;console.warn=(...args)=>{warnings.push(args.map(String).join(' '));warn.apply(console,args);};
-const fixtures={},originalRequests={},originalSources={};let manifest=[],viewer=null,disposed=false,running=false,result=null,inspectionReport=null,measurementReport=null;
+const fixtures={},originalRequests={},originalSources={};let manifest=[],viewer=null,disposed=false,running=false,result=null,inspectionReport=null,inspectionFace=null,measurementReport=null;
 let labelPins=null,currentProjections=[null,null],labelResizeObserver=null,faceNavigation=null,disposeFaceKeyboard=null;
 let areaReport=null,areaProjection=null;
 let lengthReport=null,lengthProjection=null;
@@ -143,7 +145,9 @@ const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,
 const glErrors=()=>[...contexts].map(gl=>gl.getError());
 const pixelInfo=()=>({hash:hash(viewer.readPixels())});
 const display=value=>status.textContent=typeof value==='string'?value:JSON.stringify(value,null,2);
-function clearInspection(){inspectionReport=null;inspection.textContent='';}
+function clearInspection(){inspectionReport=null;inspectionFace=null;inspection.textContent='';}
+function inspectionScopeChanged(scene){if(!inspectionReport)return false;const asset=scene?.assets.find(asset=>asset.sourceId===inspectionReport.sourceId);
+  return !asset||asset.source!==inspectionReport.source||!inspectionFace||!same(asset.face,inspectionFace);}
 function currentFaceInspectionScope(){if(!viewer)return null;const state=viewer.getState(),rect=canvas.getBoundingClientRect();
   return{scene:state.qualifiedFaceScene,camera:state.camera,status:state.status,width:canvas.width,height:canvas.height,
     css:{left:rect.left,top:rect.top,width:rect.width,height:rect.height}};}
@@ -332,7 +336,7 @@ function clearTreeSelection(){qualifiedTreeSelected=null;qualifiedTreeReport=nul
   clearTreeSurfaceArea();inspectTreeAreaButton.disabled=true;resetTreeAreaButton.disabled=true;
   clearTreeCurveCurvature();inspectTreeCurvatureButton.disabled=true;resetTreeCurvatureButton.disabled=true;
   clearTreeSurfaceCurvature();inspectTreeSurfaceCurvatureButton.disabled=true;resetTreeSurfaceCurvatureButton.disabled=true;
-  qualifiedTreeSelectedHidden=false;
+  qualifiedTreeSelectedHidden=false;applyTreeColorButton.disabled=true;treeColorTarget.textContent='Select an original Surface or Curve for its parent Face color.';
   treeU.value='';treeV.value='';treeT.value='';treePointLabel.hidden=true;
   for(const input of[treeU,treeV,treeT,inspectTreePointButton,frameTreeFaceButton,clearTreeSelectionButton])input.disabled=true;
   for(const id of['tree-u-label','tree-v-label','tree-t-label'])document.querySelector('#'+id).hidden=true;markQualifiedTreeSelection();}
@@ -590,7 +594,7 @@ function refreshQualifiedTree(){if(disposed){clearQualifiedTree();for(const inpu
   inspectTreePointButton.disabled=!selected;frameTreeFaceButton.disabled=!selected||state.status!=='ready';clearTreeSelectionButton.disabled=!selected;
   treeU.disabled=!selected||!surface;treeV.disabled=!selected||!surface;treeT.disabled=!selected||surface;
   document.querySelector('#tree-u-label').hidden=!surface;document.querySelector('#tree-v-label').hidden=!surface;document.querySelector('#tree-t-label').hidden=!qualifiedTreeSelected||surface;
-  markQualifiedTreeSelection();updateTreePointLabel();refreshTreeCurveLength();refreshTreeSurfaceArea();refreshTreeCurveCurvature();refreshTreeSurfaceCurvature();refreshTreeTangentAngle();refreshTreeNormalAngle();return qualifiedTreeSnapshot();
+  markQualifiedTreeSelection();updateTreePointLabel();refreshTreeCurveLength();refreshTreeSurfaceArea();refreshTreeCurveCurvature();refreshTreeSurfaceCurvature();refreshTreeTangentAngle();refreshTreeNormalAngle();renderAppearanceControls(state);return qualifiedTreeSnapshot();
 }
 function treeDomainMidpoint(domain){const value=domain[0]/2+domain[1]/2;check(Number.isFinite(value)&&value>=domain[0]&&value<=domain[1],'Original parameter-domain midpoint is not finite or inclusive.');return Object.is(value,-0)?'-0':String(value);}
 function selectQualifiedTreeNode(ref){refreshQualifiedTree();const next=queryQualifiedFaceTreeNode(viewer,ref),changed=!qualifiedTreeSelected||!same(qualifiedTreeSelected.ref,next.ref);
@@ -922,7 +926,22 @@ function setFaceNavigationEnabled(enabled){if(typeof enabled!=='boolean')throw n
   check(faceNavigation&&!disposed,'Face navigation is unavailable after disposal.');
   if(enabled){const state=viewer.getState();check(!running&&state.status==='ready'&&state.qualifiedFaceScene,'Load an available qualified Face view before enabling navigation.');}
   faceNavigation.setEnabled(enabled);const snapshot=syncFaceNavigation();display(enabled?'View navigation enabled. Drag to turn, Shift-drag to pan, or use the wheel to zoom.':'View navigation disabled.');return snapshot;}
+function colorDraft(){const hex=colorInput.value;check(typeof hex==='string'&&/^#[0-9a-fA-F]{6}$/.test(hex),'Color must be an exact six-digit hex value.');
+  return[1,3,5].map(index=>parseInt(hex.slice(index,index+2),16)/255);}
+function finishAppearance(result){if(result.changed)invalidateFaceInspection();render();const ref=result.node.ref;
+  display('Parent Face color '+(result.changed?'applied':'unchanged')+' for '+ref.sourceId+'/'+ref.expectedFace.topology.face.surfaceId+'.');return clone(result);}
+function applySourceColor(){check(arguments.length===0,'Source color uses the current color draft only.');check(!disposed&&!running,'Color changes need an idle live host.');
+  const rgb=colorDraft(),tree=buildQualifiedFaceTree(viewer),source=tree?.sources.find(source=>source.sourceId===colorAsset.value),node=source?.geometries.find(node=>node.ref.kind==='surface');
+  check(node,'Choose a current original Face source.');return finishAppearance(applyQualifiedTreeFaceColor(viewer,node.ref,rgb));}
+function applyTreeParentColor(){check(arguments.length===0,'Tree parent color uses the current color draft only.');check(!disposed&&!running,'Color changes need an idle live host.');
+  const rgb=colorDraft();refreshQualifiedTree();check(qualifiedTreeSelected,'Select a current original Surface or Curve first.');
+  return finishAppearance(applyQualifiedTreeFaceColor(viewer,clone(qualifiedTreeSelected.ref),rgb));}
+function renderAppearanceControls(state){const ready=!disposed&&!running&&state.status==='ready'&&!!state.qualifiedFaceScene;
+  buttons['apply-color'].disabled=!ready||!state.qualifiedFaceScene?.assets.some(asset=>asset.sourceId===colorAsset.value);applyTreeColorButton.disabled=!ready||!qualifiedTreeSelected;
+  const ref=qualifiedTreeSelected?.ref;treeColorTarget.textContent=ref?'Current tree parent: '+ref.sourceId+'/'+ref.expectedFace.topology.face.surfaceId+' · selected '+ref.kind+' '+ref.geometryId
+    :'Select an original Surface or Curve for its parent Face color.';}
 function render(){refreshFaceInspection();refreshPickedChord();refreshPickedAngle();refreshPickedNormalAngle();refreshPickedSurfaceCurvature();refreshQualifiedTree();const state=viewer.getState(),scene=state.qualifiedFaceScene,available=!disposed&&!['context-lost','unavailable'].includes(state.status);
+  if(inspectionScopeChanged(scene))clearInspection();
   if(measurementScopeChanged(scene))clearMeasurement();
   if(areaScopeChanged(scene))clearArea();
   if(lengthScopeChanged(scene))clearLength();
@@ -937,6 +956,7 @@ function render(){refreshFaceInspection();refreshPickedChord();refreshPickedAngl
   if(scene){assetCount.value=String(scene.assets.length);countU.value=String(scene.countU);countV.value=String(scene.countV);}
   const previous=colorAsset.value;colorAsset.replaceChildren(...(scene?.assets??[]).map(asset=>{const option=document.createElement('option');option.value=asset.sourceId;option.textContent=asset.sourceId;return option;}));
   if([...colorAsset.options].some(option=>option.value===previous))colorAsset.value=previous;
+  renderAppearanceControls(state);
   const rowEpoch=faceInspectionEpoch,rowScope=clone(faceInspectionScope);
   rows.replaceChildren(...(scene?.assets??[]).map(asset=>{const item=document.createElement('li'),title=document.createElement('strong'),detail=document.createElement('small'),button=document.createElement('button'),frameButton=document.createElement('button'),ref=currentFaceRef(asset);
     faceRowRefs.set(item,clone(ref));
@@ -977,7 +997,7 @@ function inspect(sourceId){const scene=viewer.getState().qualifiedFaceScene,asse
     faceId:asset.face.topology.face.id,surfaceId:surface.id,nativePointMM:evaluateSurface(surface,.5,.5),parametersUV:[.5,.5],
     originalBoundaryUV:clone(asset.face.topology.loop.uses.map(use=>use.pcurve)),orientation:asset.face.topology.face.orientation,
     incidenceValid:report.incidenceValid,solid:report.solid,geometricValidity:report.geometricValidity,source:asset.source};
-  inspection.textContent=JSON.stringify(inspectionReport,null,2);return clone(inspectionReport);
+  inspectionFace=clone(asset.face);inspection.textContent=JSON.stringify(inspectionReport,null,2);return clone(inspectionReport);
 }
 function witness(input){const scene=viewer.getState().qualifiedFaceScene;check(scene.assets.length===input.assets.length&&same(scene.assets,input.assets),'Whole original source-qualified assets changed');
   const records=[];for(const asset of scene.assets){const surface=asset.face.geometry.objects.find(object=>object.kind==='surface'&&object.id===asset.face.topology.face.surfaceId),
@@ -1067,7 +1087,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
     onError:error=>{display(error instanceof Error?error.message:String(error));render();}});
   load(candidate());lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
   labelResizeObserver=new ResizeObserver(()=>{refreshFaceInspection();refreshPickedChord();refreshPickedAngle();refreshPickedNormalAngle();refreshPickedSurfaceCurvature();refreshQualifiedTree();updateLabels();updateAreaLabel();updateLengthLabel();updateAngleLabel();updateCurvatureLabel();updateSurfaceCurvatureLabel();updateTangentAngleLabel();updateNormalAngleLabel();syncFaceNavigation();});labelResizeObserver.observe(canvas);
-  window.__viewerQualifiedFaceProof={viewer,createViewer,createQualifiedFaceKeyboardFraming,createQualifiedFacePointerNavigation,setFaceNavigationEnabled,syncFaceNavigation,faceNavigationSnapshot,candidate,load,render,frameAllFaces,frameFace,inspect,inspectFaceAt,faceInspectionSnapshot,refreshFaceInspection,sampleFaceAt,nativeSampleSnapshot,measurementInput,measure,updateLabels,labelSnapshot,
+  window.__viewerQualifiedFaceProof={viewer,createViewer,applyQualifiedTreeFaceColor,applySourceColor,applyTreeParentColor,createQualifiedFaceKeyboardFraming,createQualifiedFacePointerNavigation,setFaceNavigationEnabled,syncFaceNavigation,faceNavigationSnapshot,candidate,load,render,frameAllFaces,frameFace,inspect,inspectFaceAt,faceInspectionSnapshot,refreshFaceInspection,sampleFaceAt,nativeSampleSnapshot,measurementInput,measure,updateLabels,labelSnapshot,
     createPickedFacePoint,measurePickedFaceChord,isPickedFacePointCurrent,pickedChordSnapshot,pickChordAt,refreshPickedChord,remeasurePickedChord,resetPickedChord,
     measurePickedFaceAngle,pickAngleAt,refreshPickedAngle,remeasurePickedAngle,resetPickedAngle,pickedAngleSnapshot,
     queryPickedFaceSurfaceCurvature,inspectPickedSurfaceCurvature,refreshPickedSurfaceCurvature,remeasurePickedSurfaceCurvature,resetPickedSurfaceCurvature,pickedSurfaceCurvatureSnapshot,
@@ -1106,9 +1126,7 @@ navigateFaceView.addEventListener('change',()=>action(()=>setFaceNavigationEnabl
 buttons.load.addEventListener('click',()=>action(()=>load(candidate({assetCount:Number(assetCount.value),countU:Number(countU.value),countV:Number(countV.value)}))));
 buttons['interior-edit'].addEventListener('click',()=>action(()=>load(candidate({variant:'interior_edit'}))));buttons.mismatch.addEventListener('click',()=>action(()=>load(mismatchCandidate())));
 buttons.reverse.addEventListener('click',()=>action(()=>{const scene=viewer.getState().qualifiedFaceScene;check(scene,'Load current Faces first.');load({version:0,basis:scene.basis,assets:[...clone(scene.assets)].reverse(),countU:scene.countU,countV:scene.countV,camera:clone(scene.camera),translateScene:[...scene.translate]});}));
-buttons['apply-color'].addEventListener('click',()=>action(()=>{const scene=viewer.getState().qualifiedFaceScene;check(scene,'Load current Faces first.');const assets=clone(scene.assets),asset=assets.find(value=>value.sourceId===colorAsset.value);
-  check(asset,'Choose a current source');asset.color=[1,3,5].map(index=>parseInt(colorInput.value.slice(index,index+2),16)/255);
-  load({version:0,basis:scene.basis,assets,countU:scene.countU,countV:scene.countV,camera:clone(scene.camera),translateScene:[...scene.translate]});}));
+buttons['apply-color'].addEventListener('click',()=>action(applySourceColor));applyTreeColorButton.addEventListener('click',()=>action(applyTreeParentColor));
 buttons['saved-view'].addEventListener('click',()=>action(()=>changeView(()=>viewer.setView(camera))));buttons.orbit.addEventListener('click',()=>action(()=>changeView(()=>viewer.orbit(.05,.02))));buttons.pan.addEventListener('click',()=>action(()=>changeView(()=>viewer.pan(.01,0))));
 buttons['frame-all-faces'].addEventListener('click',()=>action(frameAllFaces));
 buttons.resize.addEventListener('click',()=>action(()=>changeView(()=>viewer.resize(canvas.width===640?480:640,canvas.height===480?360:480))));buttons.clear.addEventListener('click',()=>action(()=>{viewer.clear();invalidateFaceInspection();clearPickedChord();clearPickedAngle();clearPickedNormalAngle();clearPickedSurfaceCurvature();clearQualifiedTree();clearInspection();clearMeasurement();clearArea();clearLength();clearAngle();clearCurvature();clearSurfaceCurvature();clearTangentAngle();clearNormalAngle();}));
