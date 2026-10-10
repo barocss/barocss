@@ -435,7 +435,7 @@ function render(){refreshFaceInspection();const state=viewer.getState(),scene=st
   const previous=colorAsset.value;colorAsset.replaceChildren(...(scene?.assets??[]).map(asset=>{const option=document.createElement('option');option.value=asset.sourceId;option.textContent=asset.sourceId;return option;}));
   if([...colorAsset.options].some(option=>option.value===previous))colorAsset.value=previous;
   const rowEpoch=faceInspectionEpoch,rowScope=clone(faceInspectionScope);
-  rows.replaceChildren(...(scene?.assets??[]).map(asset=>{const item=document.createElement('li'),title=document.createElement('strong'),detail=document.createElement('small'),button=document.createElement('button'),ref=currentFaceRef(asset);
+  rows.replaceChildren(...(scene?.assets??[]).map(asset=>{const item=document.createElement('li'),title=document.createElement('strong'),detail=document.createElement('small'),button=document.createElement('button'),frameButton=document.createElement('button'),ref=currentFaceRef(asset);
     faceRowRefs.set(item,clone(ref));
     item.dataset.sourceId=asset.sourceId;title.textContent=asset.sourceId+' · '+asset.face.topology.face.id;
     detail.textContent='Surface '+asset.face.topology.face.surfaceId+' · '+asset.face.geometry.objects.length+' original native objects · forward Face';
@@ -443,7 +443,13 @@ function render(){refreshFaceInspection();const state=viewer.getState(),scene=st
     button.addEventListener('click',()=>{try{checkFaceInspectionScope(rowEpoch,rowScope);check(item.isConnected,'This Face row is stale.');
       const current=viewer.getState().qualifiedFaceScene?.assets.find(value=>value.sourceId===ref.sourceId);
       check(current&&same(currentFaceRef(current),ref),'This original Face source reference is stale.');inspect(ref.sourceId);
-    }catch(error){display(error.message);}});item.append(title,detail,button);return item;}));
+    }catch(error){display(error.message);}});
+    frameButton.textContent='Frame this Face';frameButton.setAttribute('aria-label','Frame original Face '+asset.sourceId);
+    frameButton.disabled=!available||running||state.status!=='ready';
+    frameButton.addEventListener('click',()=>action(()=>{checkFaceInspectionScope(rowEpoch,rowScope);check(item.isConnected,'This Face row is stale.');
+      const current=viewer.getState().qualifiedFaceScene?.assets.find(value=>value.sourceId===ref.sourceId);
+      check(current&&same(currentFaceRef(current),ref),'This original Face source reference is stale.');frameFace(clone(ref));
+    }));item.append(title,detail,button,frameButton);return item;}));
   markFaceInspectionRows();
   renderMeasurementControls(scene);
   updateLabels();
@@ -459,6 +465,7 @@ function load(input=candidate()){uploads.length=0;draws.length=0;viewer.loadQual
 function action(callback){if(disposed)return;try{callback();render();}catch(error){render();display(error.message);}}
 function changeView(callback){callback();invalidateFaceInspection();}
 function frameAllFaces(){check(viewer.getState().qualifiedFaceScene,'Load current Faces first.');changeView(()=>viewer.fit());render();display('All current Faces framed.');}
+function frameFace(pin){changeView(()=>viewer.fitQualifiedFace(pin));render();display('Current Face framed for '+pin.sourceId+'.');}
 function inspect(sourceId){const scene=viewer.getState().qualifiedFaceScene,asset=scene?.assets.find(value=>value.sourceId===sourceId);check(asset,'This source is not in the current accepted scene.');
   const compiled=compileCadModel(asset.source,{sourceVersion:0});check(compiled.ok&&same(compiled.model,asset.face.geometry),'Current original source/Face binding differs');
   const report=validateFaceBundle(asset.face),surface=asset.face.geometry.objects.find(object=>object.kind==='surface'&&object.id===asset.face.topology.face.surfaceId);
@@ -550,7 +557,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
   check(fixtures['interior_edit_F.source0.css'].text===originalRequests.interior_edit.assets[5].source,'Original interior-edit Source0 association differs');
   viewer=createViewer(canvas,{mmToSceneUnit,background});load(candidate());lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
   labelResizeObserver=new ResizeObserver(()=>{refreshFaceInspection();updateLabels();updateAreaLabel();updateLengthLabel();updateAngleLabel();updateCurvatureLabel();updateSurfaceCurvatureLabel();updateTangentAngleLabel();updateNormalAngleLabel();});labelResizeObserver.observe(canvas);
-  window.__viewerQualifiedFaceProof={viewer,createViewer,candidate,load,render,frameAllFaces,inspect,inspectFaceAt,faceInspectionSnapshot,refreshFaceInspection,measurementInput,measure,updateLabels,labelSnapshot,
+  window.__viewerQualifiedFaceProof={viewer,createViewer,candidate,load,render,frameAllFaces,frameFace,inspect,inspectFaceAt,faceInspectionSnapshot,refreshFaceInspection,measurementInput,measure,updateLabels,labelSnapshot,
     AREA_OPTIONS,areaPin,queryQualifiedFaceSurfaceArea,inspectArea,updateAreaLabel,areaSnapshot,mismatchCandidate,dispose,resourceCounts,uploads,draws,glErrors,errors,warnings,lossExtension,failAllocation,
     LENGTH_OPTIONS,lengthPin,queryQualifiedFaceCurveLength,inspectLength,updateLengthLabel,lengthSnapshot,
     queryQualifiedFaceAngle,measureAngle,updateAngleLabel,angleSnapshot,

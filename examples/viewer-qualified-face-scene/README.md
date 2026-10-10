@@ -35,7 +35,7 @@ Rows inspect only the current accepted sourceId/whole Model/Face/Surface/UV
 association. Native D0 at(.5,.5) is evaluated by public CAD under that explicit
 source scope. The report is CPU source inspection, not GPU highlight/picking.
 Successful scene replacement/Clear/Dispose clears it; failed candidates and
-camera/resize preserve it. The host supports whole display framing; individual fit, legacy native metric,
+camera/resize preserve it. The host supports whole and source-pinned display framing; legacy fitGeometry, legacy native metric,
 picking/selection/motion/material/particle/cloth controls in this first profile.
 
 The two point controls measure a source-qualified original Face Surface or
@@ -365,4 +365,8 @@ follow-up.
 
 “Frame all Faces” calls the existing Viewer `fit()` action for all currently admitted filled Face display triangles. Successful framing clears the screen inspection row and updates projected labels. The eight native CPU reports and original source pins remain independent of the camera. A recoverable failed fit retains the accepted camera and reports; unavailable/lost/disposed presentation disables framing.
 
-Bounds use sampled Float32 display vertices after native mm conversion and Scene translation once. They exclude unshown Curves and original control hulls. Coarse sampled display framing is not a native Surface extremum/BRep/Solid bounds certificate. Original view remains available; single-asset framing and selection are separate unsupported operations.
+Bounds use sampled Float32 display vertices after native mm conversion and Scene translation once. They exclude unshown Curves and original control hulls. Coarse sampled display framing is not a native Surface extremum/BRep/Solid bounds certificate. Original view remains available; legacy fitGeometry and selection remain unsupported.
+
+## Frame this Face (#1195)
+
+Each current source row has “Frame this Face”. Its full sourceId/exact Source0/Face/Model/Surface pin is checked before the view action. Successful framing clears the screen inspection row and reprojects native labels. Eight CPU reports stay independent of the camera. Old detached callbacks and stale sources refuse. Other assets remain drawn; framing one asset does not promise to include them in view. The button is disabled when no ready Face presentation exists. Whole “Frame all Faces” remains available.

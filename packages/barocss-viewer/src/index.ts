@@ -41,7 +41,9 @@ import { prepareViewerMixedDepth } from './mixed-depth.js';
 import type { ViewerMixedDepthInputV0, ViewerMixedDepthState } from './mixed-depth.js';
 export type { ViewerMixedDepthInputV0, ViewerMixedDepthState } from './mixed-depth.js';
 import { prepareViewerQualifiedFaces } from './qualified-faces.js';
-import { qualifiedFaceDisplayBounds } from './qualified-face-fit.js';
+import { qualifiedFaceAssetDisplayBounds, qualifiedFaceDisplayBounds } from './qualified-face-fit.js';
+import type { ViewerQualifiedFaceFitInput } from './qualified-face-fit.js';
+export type { ViewerQualifiedFaceFitInput } from './qualified-face-fit.js';
 import type { ViewerQualifiedFaceInputV0 } from './qualified-faces.js';
 export type { ViewerQualifiedFaceInputV0 } from './qualified-faces.js';
 import { measureViewerQualifiedFacePoints } from './qualified-face-measurement.js';
@@ -1804,6 +1806,12 @@ export class Viewer {
     check(packets.length + curves.length > 0, 'Viewer has no visible geometry');
     this.setView(fittedCamera(packets, curves, this.options.mmToSceneUnit, this.canvas.width, this.canvas.height,
       this.motion, this.geometryMotion));
+  }
+  fitQualifiedFace(input: ViewerQualifiedFaceFitInput): void {
+    this.gpuLive(); check(!this.contextLost, 'Cannot fit qualified Faces after WebGL2 context loss');
+    check(this.qualifiedFaceScene, 'Viewer has no current qualified Face scene');
+    const bounds = qualifiedFaceAssetDisplayBounds(this.qualifiedFaceScene, input);
+    this.setView(cameraForBounds(bounds.min, bounds.max, this.canvas.width, this.canvas.height));
   }
   fitGeometry(input: ViewerGeometryRef): void {
     this.gpuLive(); this.primitiveScope();
