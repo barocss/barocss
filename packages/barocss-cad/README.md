@@ -9307,3 +9307,18 @@ The new aggregate envelope is2MiB for the request and16MiB for the complete resu
 Each inserted section uses actual rounded stored coefficients. Exact ideal refinement identities, actual stored coefficient differences and local native observations remain separate. Native C0 derivative refusals stay visible. PiecewiseV1 does not certify smoothG1/G2, global shape/error, topology, Solid, manufacturing, display or persistent structural feature references.
 
 Run `node examples/cad-nurbs/source-knot-aligned-loft-demo.mjs --source <output-directory>`. Native completion, local Integration adoption and consumer/current-root acceptance are recorded separately in Issue1373.
+
+
+## Raise Curve degree in a complete original source
+
+`elevateSourceCurveDegree({ source, sourceVersion: 0, curveId, targetDegree, maximumObservations: 128 })` raises one selected degree1..4 Curve by one degree. The result keeps the authored ID, full original/candidate sources and Models, native supports, four actual source patches, all coefficient receipts and native observations. `validateSourceCurveDegreeElevation(result)` rebuilds once from the full original request and compares every retained bit.
+
+The supported basis is a single Bezier span or an existing C0 Bezier chain. Every interior knot block must have multiplicity equal to the original degree. Lower-multiplicity bases and degree5 inputs refuse. The constructor does not refine, fit, normalize weights or reparameterize a Curve. Every repeated original knot block must have uniform represented bits, including zero signs. All old knot slots are copied, and each block gets one new duplicate. Original endpoints and shared joins retain their Cartesian and weight bits directly.
+
+A private wide homogeneous Bernstein calculation generates the new interiors from the actual original span coefficients. The old selected-only degree-elevation APIs remain unchanged. Only the selected degree token and knots/control-points/weights array values are replaced. Protected comments inside those arrays refuse. All outside text, Model metadata, object order and unrelated Curve/Surface objects remain intact.
+
+Output admission stays within64 poles and70 knots. Accepted span maxima for original degrees1/2/3/4 are31/21/15/12. A quadratic21-span chain reaches64 output poles. Dimensions and all represented quarter stations are checked before coefficient work. Existing Source262144, Model16, coordinate and positive-weight limits stay unchanged. Complete request/result JSON has a2MiB envelope in both UTF16 and UTF8, with signed zeros and one final newline. Full receipts are retained; budget refusal is atomic.
+
+The constructor observes both actual Curves at every original break and quarter station. Structural C0 derivative refusals remain visible. Every successful derivative comparison checks finite vector norms before division. Exact ideal elevation identity is separate from rounded stored coefficients and local native observations. Global error, G1/G2, topology/Solid, manufacturing, display and structural graph references remain uncertified.
+
+Run `node examples/cad-nurbs/source-curve-degree-elevation-demo.mjs --source <output-directory>`. Native completion, local Integration adoption and consumer/current-root acceptance are recorded separately in Issue1385.

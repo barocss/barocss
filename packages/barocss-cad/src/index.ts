@@ -402,3 +402,7 @@ export type { SourceCurveIntervalExtractionRequest, SourceCurveIntervalExtractio
 
 export { buildSourceKnotAlignedLoft, validateSourceKnotAlignedLoft, SourceKnotAlignedLoftError, SourceKnotAlignedLoftDiagnosticCode } from './source-knot-aligned-loft.js';
 export type { SourceKnotAlignedLoftRequest, SourceKnotAlignedLoftOptions, SourceKnotAlignedLoftReport, SourceKnotAlignedLoftResult } from './source-knot-aligned-loft.js';
+
+
+export { elevateSourceCurveDegree, validateSourceCurveDegreeElevation, SourceCurveDegreeElevationError, SourceCurveDegreeElevationDiagnosticCode } from './source-curve-degree-elevation.js';
+export type { SourceCurveDegreeElevationRequest, SourceCurveDegreeElevationPatch, SourceCurveDegreeElevationReport, SourceCurveDegreeElevationResult } from './source-curve-degree-elevation.js';
