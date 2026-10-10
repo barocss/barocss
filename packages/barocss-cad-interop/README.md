@@ -3559,3 +3559,31 @@ actual target buffers, cold source loading, refused replacements and ownership.
 Current local adoption, integrated acceptance and registry publication are separate.
 No smooth Loft, persistent recipe/topology binding, Solid, manufacturing or
 publication certificate follows from this display. Packed consumer #801 remains held.
+
+## Qualified translated-strip Body boundary mesh
+
+The optional `@barocss/cad-interop/qualified-body-boundary-mesh` entry reads complete native mesh results and prepares six independent CPU display chunks.
+It uses the native whole-result validator. It retains the complete Body, original source Models, authority packet, Edge paths, Face samples, proof and report.
+
+```ts
+import { parseBaroCadQualifiedBodyBoundaryMesh, readBaroCadQualifiedBodyBoundaryMesh } from '@barocss/cad-interop/qualified-body-boundary-mesh';
+const read = parseBaroCadQualifiedBodyBoundaryMesh(text, { unitsPerMillimeter: 0.001 });
+const copied = readBaroCadQualifiedBodyBoundaryMesh(read.native, { unitsPerMillimeter: 0.001 });
+```
+
+Both functions require the explicit fixed `0.001` scale. Other scales are refused.
+The result contains `native`, an independent `validationReport`, a deeply frozen `profile`, exact `sourceText` (or `null` for owned input), and `projection`.
+Each projection retains the original Face ID, role, orientation and qualified support reference.
+Position and facet-normal arrays are Float32; original native UV is Float64; local and authority/sample/triangle indices are UInt32.
+Native quantization, additional scale/upload and total display-to-authority gaps are separate observed values in mm.
+Facet normals describe approximate triangles. Native evaluated and refused-C0 derivative states remain unchanged.
+
+Strict JSON and safe own-data copies use separate 4 MiB UTF8/UTF16/canonical-native budgets and 4,194,304 values per pass.
+Duplicate decoded keys, nonfinite numbers, invalid scalar Unicode, getters, cycles and unsupported own data are refused; numeric `-0` is retained.
+The older qualified Body reader keeps its separate 2 MiB limits.
+All mutable returned data is independently owned. Only frozen profile metadata is shared.
+This entry has no renderer, URL/byte loader, serializer or disposal API.
+It does not certify global geometric error, mesh embedding, a new Solid, manufacturing or publication.
+
+`examples/qualified-body-boundary-mesh-verify.mjs` checks the three original complete files, copies, private signed-file round trips and scoped refusals.
+`examples/qualified-body-boundary-mesh-contract.ts` checks the public reader and typed projection declarations.

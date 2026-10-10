@@ -158,6 +158,10 @@
       "./translated-strip-world-points": {
         "types": "./dist/translated-strip-world-points.d.ts",
         "import": "./dist/translated-strip-world-points.js"
+      },
+      "./qualified-body-boundary-mesh": {
+        "types": "./dist/qualified-body-boundary-mesh.d.ts",
+        "import": "./dist/qualified-body-boundary-mesh.js"
       }
     }
   },
@@ -318,6 +322,10 @@
     "./translated-strip-world-points": {
       "types": "./src/translated-strip-world-points.ts",
       "import": "./src/translated-strip-world-points.ts"
+    },
+    "./qualified-body-boundary-mesh": {
+      "types": "./src/qualified-body-boundary-mesh.ts",
+      "import": "./src/qualified-body-boundary-mesh.ts"
     }
   },
   "files": [
