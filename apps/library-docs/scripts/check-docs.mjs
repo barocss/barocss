@@ -27,10 +27,20 @@ for (const p of inventory.packages) {
     if (!text.replace(/^---[\s\S]*?---\s*/, '').startsWith('# ') || text.length < 350) throw new Error(`Missing substantive page: ${p.slug}/${name}`);
   }
 }
-let links = 0, assets = 0;
+let links = 0, assets = 0, downloads = 0;
 const builtAnchors = new Map();
 for (const page of pages) {
   const text = (await readFile(page, 'utf8')).replace(/```[\s\S]*?```/g, '');
+  // Complete example data uses native download anchors, not documentation routes.
+  for (const match of text.matchAll(/<a\b[^>]*\bhref="([^"?#]+\.json)"[^>]*>/g)) {
+    const href = match[1];
+    if (!href.startsWith('/examples/')) throw new Error(`Unexpected example download: ${href}`);
+    const source = resolve(docs, 'public', `.${href}`);
+    const built = resolve(docs, '.vitepress/dist', `.${href}`);
+    const [sourceBytes, builtBytes] = await Promise.all([readFile(source), readFile(built)]);
+    if (!sourceBytes.equals(builtBytes)) throw new Error(`Built example download changed: ${href}`);
+    downloads++;
+  }
   for (const match of text.matchAll(/\]\(([^)]+)\)/g)) {
     const href = match[1];
     if (href.startsWith(`https://github.com/barocss/barocss/blob/${inventory.commit}/`)) {
@@ -63,4 +73,4 @@ for (const page of pages) {
   }
 }
 await repairSourceLinks(JSON.parse(await readFile(resolve(app, 'evidence/public-api.json'), 'utf8')), { check: true });
-console.log(JSON.stringify({ pages: pages.length, packages: 12, checkedInternalLinks: links, checkedImageAssets: assets, manifestHashes: 'matched', sourceCommit: inventory.commit }));
+console.log(JSON.stringify({ pages: pages.length, packages: 12, checkedInternalLinks: links, checkedImageAssets: assets, checkedDownloadAssets: downloads, manifestHashes: 'matched', sourceCommit: inventory.commit }));

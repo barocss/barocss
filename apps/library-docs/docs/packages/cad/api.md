@@ -6,6 +6,10 @@ Read the [complete public signature reference](./reference) for exact exported f
 
 The [NURBS Loft graph guide](./nurbs-loft-graph) covers the newer public `evaluateNurbsSourceLoftFeatureGraph`, `updateNurbsSourceLoftFeatureGraph`, both whole-result validators, and authored `serializeNurbsSourceLoftFeatureGraph` / `parseNurbsSourceLoftFeatureGraph`. It includes complete input, selective updates and a numeric before/after view. These version 0 APIs are available in the newer CAD provider identified in that guide; the general signatures below retain their earlier reference snapshot.
 
+## Mesh an occupied Body boundary
+
+The [Body boundary mesh guide](./body-boundary-mesh) explains `tessellateQualifiedTranslatedStripBody` and `validateQualifiedTranslatedStripBodyMesh`. It provides a complete example Body, fixed options, a shared indexed packet and six faceted display chunks. Its newer API availability is separate from the original Body guide and the earlier general reference.
+
 ## Body and topology
 
 The [Body and topology guide](./body-1301) explains `buildQualifiedTranslatedStripBody` and `validateQualifiedTranslatedStripBody`: complete qualified inputs, shared topology, material boundaries and copied result ownership. These newer APIs have their own availability note; the reference below describes the earlier CAD API version.
