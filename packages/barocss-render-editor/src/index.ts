@@ -33,3 +33,5 @@ export * from './material-controller.js';
 export * from './native-scene-document.js';
 export * from './native-scene-session.js';
 export type {RenderNativeSceneDisplay, RenderNativeScenePose} from './native-scene-display.js';
+export * from './parametric-scene-document.js';
+export * from './parametric-scene-session.js';

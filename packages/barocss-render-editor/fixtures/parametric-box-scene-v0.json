@@ -1,0 +1,134 @@
+{
+  "format": "barocss-render-editor-parametric-scene",
+  "version": 0,
+  "profile": "box-unlit-engine-v0",
+  "documentId": "box-parameter-study",
+  "title": "Shared asymmetric Box",
+  "revision": 0,
+  "sceneId": "shared_box_scene",
+  "coordinateSystem": "right-handed-y-up",
+  "positionUnit": "scene",
+  "geometrySources": [
+    {
+      "format": "barocss-gpu-box-geometry",
+      "version": 0,
+      "id": "box_authored",
+      "coordinateSystem": "right-handed-y-up",
+      "positionUnit": "scene",
+      "sizeXYZ": [
+        0.3,
+        0.7,
+        1.1
+      ]
+    }
+  ],
+  "camera": {
+    "eye": [
+      12,
+      9,
+      15
+    ],
+    "target": [
+      0,
+      0,
+      0
+    ],
+    "up": [
+      -0.0,
+      1,
+      0
+    ],
+    "fovYDegrees": 45,
+    "near": 0.01,
+    "far": 100
+  },
+  "background": [
+    0.02,
+    -0.0,
+    0.04
+  ],
+  "materials": [
+    {
+      "id": "box_material",
+      "type": "unlit",
+      "colorSpace": "linear",
+      "color": [
+        0.25,
+        0.5,
+        0.75
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "id": "box_group",
+      "type": "group",
+      "parentId": null,
+      "translation": [
+        -0.0,
+        0,
+        0
+      ],
+      "rotationXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "visible": true
+    },
+    {
+      "id": "left_box",
+      "type": "mesh",
+      "parentId": "box_group",
+      "geometryId": "box_authored",
+      "materialId": "box_material",
+      "translation": [
+        -5,
+        -0.0,
+        0
+      ],
+      "rotationXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "visible": true
+    },
+    {
+      "id": "right_box",
+      "type": "mesh",
+      "parentId": "box_group",
+      "geometryId": "box_authored",
+      "materialId": "box_material",
+      "translation": [
+        5,
+        1,
+        -2
+      ],
+      "rotationXYZW": [
+        -0.0,
+        0,
+        0.7071067811865476,
+        0.7071067811865476
+      ],
+      "scale": [
+        2,
+        0.5,
+        1
+      ],
+      "visible": true
+    }
+  ]
+}
