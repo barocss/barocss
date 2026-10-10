@@ -374,3 +374,6 @@ export type { TranslatedSurfaceEndFacesOptions, TranslatedSurfaceEndFace, Transl
 
 export { buildQualifiedTranslatedStripBody, validateQualifiedTranslatedStripBody, QualifiedTranslatedStripBodyError, QualifiedTranslatedStripBodyDiagnosticCode } from './qualified-translated-strip-body.js';
 export type { QualifiedTranslatedStripBodyOptions, QualifiedTranslatedStripBodyEdge, QualifiedTranslatedStripBodyReport, QualifiedTranslatedStripBodyResult } from './qualified-translated-strip-body.js';
+
+export { classifyTranslatedSurfaceStripWorldPoints, validateTranslatedSurfaceStripWorldPointClassification, TranslatedSurfaceStripWorldPointError, TranslatedSurfaceStripWorldPointDiagnosticCode } from './translated-surface-strip-world-points.js';
+export type { TranslatedSurfaceStripWorldPointQuery, TranslatedSurfaceStripWorldPointOptions, TranslatedSurfaceStripWorldPointReport, TranslatedSurfaceStripWorldPointResult } from './translated-surface-strip-world-points.js';

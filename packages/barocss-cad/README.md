@@ -9049,3 +9049,47 @@ node examples/cad-nurbs/translated-surface-end-faces-demo.mjs --source <output-d
 Two actual Source0 models contain the eighteen used geometry objects as Model16 plus Model2. Every Face and Edge has an explicit support/Curve model reference. All original sources, parents, local IDs, UV sidecars, native observations and earlier flags remain unchanged. The new exact material proof must bind all six entire Face images to the source-defined injective cube map and prove their outward signs. Closed graph counts or a scalar volume cannot substitute for that proof. The separately named restricted Solid qualification is available only after both graph and whole material-boundary checks.
 
 `validateQualifiedTranslatedStripBody` reconstructs every parent, source model, global graph, vertex link, coefficient/material proof and native endpoint observation. This family has a two-MiB request/result file limit; the existing source and per-Model limits remain unchanged. General membership, operand Boolean, arbitrary curved Solid operations, global C1/floating error, manufacturing and publication remain separate. The bounded flow is `node examples/cad-nurbs/qualified-translated-strip-body-demo.mjs --source <new-output-directory>` after the affected CAD build. Source implementation and native/integrated acceptance must be reported separately.
+
+### Exact World XYZ queries for translated Surface strip regions
+
+`classifyTranslatedSurfaceStripWorldPoints(volume, queries, options)` accepts
+the complete qualified strip-volume result and 1 to 16 authored XYZ points
+in mm. Each query contains `queryId` and `pointMM`. Options contain
+`evaluationId` and the fixed `maximumQueries: 16`.
+
+```ts
+const result = classifyTranslatedSurfaceStripWorldPoints(
+  volume,
+  [{queryId: 'probe', pointMM: [20, 12, 1]}],
+  {evaluationId: 'region_probe', maximumQueries: 16},
+);
+console.log(result.classifications);
+```
+
+The result classifies each point as `inside`, `boundary` or `outside` the
+parent's exact source-defined occupied region. Boundary roles are `u-min`,
+`u-max`, `v-min`, `roof`, `lower` and `upper`. Internal span joins are not
+material boundaries. Outside constraints take priority over equalities.
+
+Predicates use exact fractions from represented coordinates and actual source
+coefficients. A strictly increasing linear or quadratic X polynomial selects
+the unique native parameter. Polynomial remainders and rational threshold order
+determine Y signs without a square root, approximate root or float conversion.
+The complete parent, source proofs and per-query sign witnesses remain in the
+result. New direct native calls are zero. Parent validation runs once; its own
+work remains in the retained parent.
+
+`validateTranslatedSurfaceStripWorldPointClassification` rebuilds the whole
+result and checks every field. Complete request and result JSON each have a
+1 MiB UTF16 and UTF8 limit, including the final newline and negative zero.
+Exact-work limits remain 200,000 operations and 8,192 integer bits. A budget
+failure rejects the whole batch and preserves the previous accepted data.
+
+```sh
+node examples/cad-nurbs/translated-surface-strip-world-points-demo.mjs --source EVIDENCE_DIR
+```
+
+This API certifies membership in the retained source-defined region. Its report
+keeps the parent's Body, BRep and general Boolean flags unchanged. Renderer
+picking, arbitrary curved Solid queries and manufacturing tolerance have
+separate admission requirements.
