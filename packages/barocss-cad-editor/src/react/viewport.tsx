@@ -11,6 +11,7 @@ import { prepareFocusedCurve } from './curve-focus.js';
 import type { FocusedCurveBinding } from './curve-focus.js';
 import { CurvePoleHandles } from './curve-pole-handles.js';
 import { SurfacePoleHandles } from './surface-pole-handles.js';
+import { PoleAxisGizmo } from './pole-axis-gizmo.js';
 
 interface MountedViewer {
   viewer: Viewer;
@@ -138,6 +139,8 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
   const [ready, setReady] = useState(false);
   const [focusedReceipt, setFocusedReceipt] = useState<CadEditorCurveFocusReceipt | null>(null);
 
+  const axisGestureRef = useRef(false);
+  const [axisGestureActive,setAxisGestureActive] = useState(false);
   const [documentReceipt, setDocumentReceipt] = useState<CadEditorDisplayReceipt | null>(null);
 
   function report(cause: unknown, detail: string) {
@@ -158,7 +161,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
           ? 'Select the object from the list. This display point cannot be selected.'
           : detail === 'Fitting the selected body failed'
             ? 'Select a displayed object before fitting it.'
-        : detail === 'Surface point gesture failed' || detail === 'Curve point gesture failed'
+        : detail === 'Surface point gesture failed' || detail === 'Curve point gesture failed' || detail === 'Axis point gesture failed'
           ? error.message
         : 'Cannot display this change. The current view is retained.');
     try { propsRef.current.onError?.(error); } catch { /* Host callbacks do not change admission. */ }
@@ -453,7 +456,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
   useEffect(() => {
     const mounted = mountedRef.current;
     const canvas = canvasRef.current;
-    if (!mounted || !canvas || mounted.admitting || mounted.unavailable || props.fitRequest === undefined) return;
+    if (!mounted || !canvas || axisGestureRef.current || mounted.admitting || mounted.unavailable || props.fitRequest === undefined) return;
     try {
       fitDisplayed(mounted.viewer);
       notify(displayReceipt(mounted.viewer, canvas, mounted.options.viewer.background, lifecycleRef.current, readIndexRef));
@@ -466,7 +469,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     lastFitSelectedRequestRef.current = requested;
     const mounted = mountedRef.current;
     const canvas = canvasRef.current;
-    if (!mounted || !canvas || mounted.admitting || mounted.unavailable || requested === undefined) return;
+    if (!mounted || !canvas || axisGestureRef.current || mounted.admitting || mounted.unavailable || requested === undefined) return;
     try {
       const current = session.getSnapshot();
       const state = mounted.viewer.getState();
@@ -496,7 +499,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
 
   function changeView(view: 'front'|'right'|'top'|'isometric') {
     const state = session.getSnapshot(), mounted = mountedRef.current, canvas = canvasRef.current;
-    if (!mounted || !canvas || mounted.unavailable || mounted.admitting || state.candidate
+    if (!mounted || !canvas || axisGestureRef.current || mounted.unavailable || mounted.admitting || state.candidate
       || state.selectionTransition || Object.keys(state.pending).length) return;
     const before = mounted.viewer.getState().camera;
     const distance = Math.hypot(...before.eye.map((value,index)=>value-before.target[index]));
@@ -522,8 +525,10 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     else if(Math.abs(d[0])<eps&&d[1]>1-eps&&Math.abs(d[2])<eps)orientation='Top';
     else if(d.every(value=>Math.abs(value-1/Math.sqrt(3))<eps))orientation='Isometric';
   }
-  const viewBusy=!ready||snapshot.candidate!==null||snapshot.selectionTransition!==null||Object.keys(snapshot.pending).length>0;
-  return <div className={cn('cad-editor-viewport', className)} data-viewer-ready={ready}>
+  const viewBusy=!ready||axisGestureActive||snapshot.candidate!==null||snapshot.selectionTransition!==null||Object.keys(snapshot.pending).length>0;
+  return <div className={cn('cad-editor-viewport', className)} data-viewer-ready={ready}
+    onWheelCapture={event=>{if(axisGestureRef.current){event.preventDefault();event.stopPropagation();}}}
+    onPointerDownCapture={event=>{if(axisGestureRef.current&&event.target===canvasRef.current){event.preventDefault();event.stopPropagation();}}}>
     <canvas ref={canvasRef} width={640} height={480} tabIndex={0} className="cad-editor-canvas"
       onKeyDownCapture={event => {
         const fitKey = (event.key === 'f' || event.key === 'F') && !event.repeat
@@ -536,7 +541,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
         const canvas = canvasRef.current;
         if (!mounted || !canvas || mounted.unavailable) return;
         try {
-          if (fitKey) fitDisplayed(mounted.viewer);
+          if (fitKey && !axisGestureRef.current) fitDisplayed(mounted.viewer);
           notify(displayReceipt(mounted.viewer, canvas, mounted.options.viewer.background, lifecycleRef.current, readIndexRef));
         }
         catch (cause) { report(cause, 'Reading the displayed frame failed'); }
@@ -547,6 +552,9 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
       {(['front','right','top','isometric'] as const).map(view=><button key={view} type="button" data-view={view} data-testid={'view-'+view} aria-label={view[0].toUpperCase()+view.slice(1)+' view'} aria-pressed={orientation.toLowerCase()===view} disabled={viewBusy} onClick={()=>changeView(view)}>{view==='isometric'?'Iso':view[0].toUpperCase()+view.slice(1)}</button>)}
     </div>
     <SurfacePoleHandles session={session} receipt={ready?documentReceipt:null} canvas={canvasRef.current} onError={error=>report(error,'Surface point gesture failed')} />
+    <PoleAxisGizmo session={session} documentReceipt={ready?documentReceipt:null} curveReceipt={ready?focusedReceipt:null} canvas={canvasRef.current}
+      onGestureChange={active=>{axisGestureRef.current=active;setAxisGestureActive(active);}}
+      onError={error=>report(error,'Axis point gesture failed')}/>
     {focusedReceipt&&<p className="cad-editor-curve-view-label" data-testid="curve-view-label">Curve focus · {focusedReceipt.bodyName}<span>Other objects remain in document view.</span></p>}
     <CurvePoleHandles session={session} receipt={focusedReceipt} canvas={canvasRef.current} onError={error => report(error, 'Curve point gesture failed')} />
     {errorMessage && <p className="cad-editor-error" role="alert">{errorMessage}</p>}

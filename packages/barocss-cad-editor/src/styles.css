@@ -90,3 +90,32 @@
   .cad-editor:not(.cad-editor-feature) .cad-editor-inspector { padding:17px 14px; }
   .cad-editor-view-tools>button { padding:4px 7px; }
 }
+
+/* Original coefficient axis movement: separate from native rendered shape. */
+.cad-editor-axis-controls {position:absolute;inset:0;pointer-events:none;z-index:2;}
+.cad-editor-axis-svg {display:block;overflow:hidden;pointer-events:none;}
+.pole-axis {--axis-color:#db8279;}
+.pole-axis-y {--axis-color:#91c686;}
+.pole-axis-z {--axis-color:#81ade2;}
+.pole-axis line {stroke:var(--axis-color);stroke-width:2.3;pointer-events:none;}
+.pole-axis polygon {fill:var(--axis-color);stroke:#1c2228;stroke-width:.7;pointer-events:none;}
+.pole-axis circle {fill:transparent;stroke:transparent;stroke-width:2;pointer-events:all;cursor:ew-resize;touch-action:none;}
+.pole-axis text {fill:var(--axis-color);font-size:11px;font-weight:650;paint-order:stroke;stroke:#1c2228;stroke-width:3;pointer-events:none;}
+.pole-axis.pending line {stroke-dasharray:4 3;}
+.pole-axis.disabled {opacity:.45;}
+.pole-axis circle[aria-disabled="true"] {opacity:.45;cursor:default;}
+.pole-axis circle:focus-visible {outline:none;stroke:#f5edcf;stroke-width:3;}
+.cad-editor-axis-palette {position:absolute;right:12px;bottom:12px;width:224px;padding:12px;border:1px solid #414b51;border-radius:5px;background:#22272bf2;color:#d3dce0;pointer-events:auto;font-size:11px;box-shadow:0 2px 8px #0002;}
+.pole-move-title {display:flex;justify-content:space-between;font-weight:550;margin-bottom:12px;}
+.pole-move-title span {font-size:9px;color:#9aabb4;font-weight:400;}
+.pole-snap-toggle {display:flex;gap:8px;align-items:center;margin-bottom:10px;}
+.pole-snap-toggle input {accent-color:#b8d599;margin:0;width:12px;height:12px;}
+.pole-snap-distance {display:grid;grid-template-columns:1fr 96px;align-items:center;gap:12px;color:#aebdc6;}
+.pole-snap-distance input {width:100%;height:28px;min-width:0;padding:4px 7px;border:1px solid #46535c;border-radius:3px;color:#dee7ec;background:#1c2226;font:inherit;font-variant-numeric:tabular-nums;}
+.pole-snap-distance input:disabled {opacity:.45;}
+.pole-snap-distance input[aria-invalid="true"] {border-color:#dba975;}
+.cad-editor-axis-palette input:focus-visible {outline:2px solid #b8d599;outline-offset:2px;}
+.cad-editor-axis-palette p {font-size:10px;line-height:1.55;margin:10px 0 0;color:#aab9c3;}
+.cad-editor-axis-palette [role="alert"] {color:#e9bd88;}
+.cad-editor-viewport>.cad-editor-error {z-index:5;}
+@media(min-width:1000px) and (max-width:1050px) {.cad-editor-axis-palette {width:208px;padding:10px;}.cad-editor-axis-palette p {font-size:9px;}}
