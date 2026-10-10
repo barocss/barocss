@@ -1,0 +1,23 @@
+[
+  {
+    "name": "compiled-dependencies.mjs",
+    "bytes": 174591,
+    "sha256": "c757385ddd84c9b7d54e8e3a8ec3116ab20e83a23279d58a9ca760f740a376b8",
+    "committed": false,
+    "reconstructibleFromFrozenBundleAndEmittedGraph": true
+  },
+  {
+    "name": "source-repeat.mjs",
+    "bytes": 174011,
+    "sha256": "a94a3e95b9a4365721fe4c78945d2737ac3a3a40e48398730f28a36fb14274bf",
+    "committed": false,
+    "reconstructibleFromFrozenBundleAndEmittedGraph": true
+  },
+  {
+    "name": "source.mjs",
+    "bytes": 174011,
+    "sha256": "a94a3e95b9a4365721fe4c78945d2737ac3a3a40e48398730f28a36fb14274bf",
+    "committed": false,
+    "reconstructibleFromFrozenBundleAndEmittedGraph": true
+  }
+]

@@ -1,0 +1,3398 @@
+{
+  "issue": 1298,
+  "base": "b8d4fb1f74e977fe25fa3a7093fa807943f207e6",
+  "fixture": {
+    "fixedStepSeconds": 0.008333333333333333,
+    "gravityMps2": [
+      0,
+      0,
+      0
+    ],
+    "bodies": [
+      {
+        "id": "b0",
+        "kind": "dynamic",
+        "shape": {
+          "kind": "capsule",
+          "radiusM": 0.1,
+          "halfLengthM": 0.2
+        },
+        "positionM": [
+          -0.4,
+          0,
+          0
+        ],
+        "velocityMps": [
+          100,
+          0,
+          0
+        ],
+        "massKg": 1,
+        "restitution": 0,
+        "friction": {
+          "static": 1,
+          "dynamic": 0.7
+        },
+        "ccd": true
+      },
+      {
+        "id": "floor",
+        "kind": "static",
+        "shape": {
+          "kind": "box",
+          "halfExtentsM": [
+            0.001,
+            1,
+            1
+          ]
+        },
+        "positionM": [
+          0,
+          0,
+          0
+        ],
+        "restitution": 0,
+        "friction": {
+          "static": 1,
+          "dynamic": 0.7
+        }
+      }
+    ]
+  },
+  "worldCases": [
+    {
+      "name": "original-head-on",
+      "config": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          0,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "capsule",
+              "radiusM": 0.1,
+              "halfLengthM": 0.2
+            },
+            "positionM": [
+              -0.4,
+              0,
+              0
+            ],
+            "velocityMps": [
+              100,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "ccd": true
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.001,
+                1,
+                1
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "yaw-0.2-head-on",
+      "config": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          0,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "capsule",
+              "radiusM": 0.1,
+              "halfLengthM": 0.2
+            },
+            "positionM": [
+              -0.39202663113649666,
+              0,
+              0.0794677323180245
+            ],
+            "velocityMps": [
+              98.00665778412416,
+              0,
+              -19.866933079506122
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "ccd": true
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.001,
+                1,
+                1
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0.09983341664682815,
+              0,
+              0.9950041652780257
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "initial-touch",
+      "config": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          0,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "capsule",
+              "radiusM": 0.1,
+              "halfLengthM": 0.2
+            },
+            "positionM": [
+              -0.101,
+              0,
+              0
+            ],
+            "velocityMps": [
+              100,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "ccd": true
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.001,
+                1,
+                1
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "resting-at-touch",
+      "config": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          0,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "capsule",
+              "radiusM": 0.1,
+              "halfLengthM": 0.2
+            },
+            "positionM": [
+              -0.101,
+              0,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "ccd": true
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.001,
+                1,
+                1
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "contact-beyond-step",
+      "config": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          0,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "capsule",
+              "radiusM": 0.1,
+              "halfLengthM": 0.2
+            },
+            "positionM": [
+              -0.4,
+              0,
+              0
+            ],
+            "velocityMps": [
+              10,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "ccd": true
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.001,
+                1,
+                1
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "zero-motion",
+      "config": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          0,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "capsule",
+              "radiusM": 0.1,
+              "halfLengthM": 0.2
+            },
+            "positionM": [
+              -0.4,
+              0,
+              0
+            ],
+            "velocityMps": [
+              0,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "ccd": true
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.001,
+                1,
+                1
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "departing-with-clearance",
+      "config": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          0,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "capsule",
+              "radiusM": 0.1,
+              "halfLengthM": 0.2
+            },
+            "positionM": [
+              -0.4,
+              0,
+              0
+            ],
+            "velocityMps": [
+              -100,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "ccd": true
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.001,
+                1,
+                1
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "departing-at-touch",
+      "config": {
+        "fixedStepSeconds": 0.008333333333333333,
+        "gravityMps2": [
+          0,
+          0,
+          0
+        ],
+        "bodies": [
+          {
+            "id": "b0",
+            "kind": "dynamic",
+            "shape": {
+              "kind": "capsule",
+              "radiusM": 0.1,
+              "halfLengthM": 0.2
+            },
+            "positionM": [
+              -0.101,
+              0,
+              0
+            ],
+            "velocityMps": [
+              -100,
+              0,
+              0
+            ],
+            "massKg": 1,
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "ccd": true
+          },
+          {
+            "id": "floor",
+            "kind": "static",
+            "shape": {
+              "kind": "box",
+              "halfExtentsM": [
+                0.001,
+                1,
+                1
+              ]
+            },
+            "positionM": [
+              0,
+              0,
+              0
+            ],
+            "restitution": 0,
+            "friction": {
+              "static": 1,
+              "dynamic": 0.7
+            },
+            "orientation": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "worldErrorLiterals": {
+    "profile": "private capsule face world profile is unsupported",
+    "commands": "private capsule face world commands are unsupported",
+    "step": "private capsule face world step is unsupported",
+    "result": "private capsule face world result is invalid"
+  },
+  "worldReferenceGates": {
+    "distanceM": 1e-12,
+    "velocityMps": 1e-12,
+    "timeSeconds": 1e-12,
+    "fraction": 1e-12,
+    "decimalPrecisionDifference": "1e-25",
+    "spin": "exact-zero",
+    "orientation": "exact-identity",
+    "staticFixture": "exact",
+    "firstAbsoluteEpisodeContact": true
+  },
+  "literalWorldComparatorControls": [
+    {
+      "name": "independent-nominal-world-record",
+      "input": {
+        "initial": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.4,
+            0,
+            0
+          ],
+          "velocityMps": [
+            100,
+            0,
+            0
+          ],
+          "stepSeconds": 0.008333333333333333,
+          "evaluateCandidate": false
+        },
+        "stepIndex": 1,
+        "outcome": "accepted",
+        "previousState": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.4,
+                0,
+                0
+              ],
+              "velocityMps": [
+                100,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "state": {
+          "stepIndex": 1,
+          "timeSeconds": 0.008333333333333333,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.101,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [
+            {
+              "bodyId": "b0",
+              "fixtureId": "floor",
+              "toiFraction": 0.3588,
+              "normalFixtureToBody": [
+                -1,
+                0,
+                0
+              ]
+            }
+          ],
+          "pairStats": {
+            "eligiblePairs": 8,
+            "candidatePairs": 8,
+            "aabbTests": 0
+          }
+        },
+        "diagnostic": {
+          "acceptedStepIndex": 1,
+          "stepSeconds": 0.008333333333333333,
+          "startCenterM": [
+            -0.4,
+            0,
+            0
+          ],
+          "startVelocityMps": [
+            100,
+            0,
+            0
+          ],
+          "hit": {
+            "dynamicBodyId": "b0",
+            "fixtureId": "floor",
+            "fraction": 0.3588,
+            "normal": [
+              -1,
+              0,
+              0
+            ],
+            "pointM": [
+              -0.001,
+              0,
+              0
+            ],
+            "segmentPointM": [
+              -0.101,
+              0,
+              0
+            ]
+          },
+          "hitTimeSeconds": 0.00299,
+          "remainingTimeSeconds": 0.005343333333333333,
+          "faceFinalCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "faceFinalVelocityMps": [
+            0,
+            0,
+            0
+          ],
+          "acceptedCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "acceptedVelocityMps": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "ok": true,
+      "resolved": true
+    },
+    {
+      "name": "nonzero-spin-exact-gate",
+      "input": {
+        "initial": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.4,
+            0,
+            0
+          ],
+          "velocityMps": [
+            100,
+            0,
+            0
+          ],
+          "stepSeconds": 0.008333333333333333,
+          "evaluateCandidate": false
+        },
+        "stepIndex": 1,
+        "outcome": "attempted-refused",
+        "previousState": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.4,
+                0,
+                0
+              ],
+              "velocityMps": [
+                100,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "state": {
+          "stepIndex": 1,
+          "timeSeconds": 0.008333333333333333,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.101,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                1e-30
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [
+            {
+              "bodyId": "b0",
+              "fixtureId": "floor",
+              "toiFraction": 0.3588,
+              "normalFixtureToBody": [
+                -1,
+                0,
+                0
+              ]
+            }
+          ],
+          "pairStats": {
+            "eligiblePairs": 8,
+            "candidatePairs": 8,
+            "aabbTests": 0
+          }
+        },
+        "diagnostic": {
+          "acceptedStepIndex": 1,
+          "stepSeconds": 0.008333333333333333,
+          "startCenterM": [
+            -0.4,
+            0,
+            0
+          ],
+          "startVelocityMps": [
+            100,
+            0,
+            0
+          ],
+          "hit": {
+            "dynamicBodyId": "b0",
+            "fixtureId": "floor",
+            "fraction": 0.3588,
+            "normal": [
+              -1,
+              0,
+              0
+            ],
+            "pointM": [
+              -0.001,
+              0,
+              0
+            ],
+            "segmentPointM": [
+              -0.101,
+              0,
+              0
+            ]
+          },
+          "hitTimeSeconds": 0.00299,
+          "remainingTimeSeconds": 0.005343333333333333,
+          "faceFinalCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "faceFinalVelocityMps": [
+            0,
+            0,
+            0
+          ],
+          "acceptedCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "acceptedVelocityMps": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "ok": false,
+      "resolved": true
+    },
+    {
+      "name": "changed-orientation-exact-gate",
+      "input": {
+        "initial": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.4,
+            0,
+            0
+          ],
+          "velocityMps": [
+            100,
+            0,
+            0
+          ],
+          "stepSeconds": 0.008333333333333333,
+          "evaluateCandidate": false
+        },
+        "stepIndex": 1,
+        "outcome": "accepted",
+        "previousState": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.4,
+                0,
+                0
+              ],
+              "velocityMps": [
+                100,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "state": {
+          "stepIndex": 1,
+          "timeSeconds": 0.008333333333333333,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.101,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                1e-30,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [
+            {
+              "bodyId": "b0",
+              "fixtureId": "floor",
+              "toiFraction": 0.3588,
+              "normalFixtureToBody": [
+                -1,
+                0,
+                0
+              ]
+            }
+          ],
+          "pairStats": {
+            "eligiblePairs": 8,
+            "candidatePairs": 8,
+            "aabbTests": 0
+          }
+        },
+        "diagnostic": {
+          "acceptedStepIndex": 1,
+          "stepSeconds": 0.008333333333333333,
+          "startCenterM": [
+            -0.4,
+            0,
+            0
+          ],
+          "startVelocityMps": [
+            100,
+            0,
+            0
+          ],
+          "hit": {
+            "dynamicBodyId": "b0",
+            "fixtureId": "floor",
+            "fraction": 0.3588,
+            "normal": [
+              -1,
+              0,
+              0
+            ],
+            "pointM": [
+              -0.001,
+              0,
+              0
+            ],
+            "segmentPointM": [
+              -0.101,
+              0,
+              0
+            ]
+          },
+          "hitTimeSeconds": 0.00299,
+          "remainingTimeSeconds": 0.005343333333333333,
+          "faceFinalCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "faceFinalVelocityMps": [
+            0,
+            0,
+            0
+          ],
+          "acceptedCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "acceptedVelocityMps": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "ok": false,
+      "resolved": true
+    },
+    {
+      "name": "fixture-movement-exact-gate",
+      "input": {
+        "initial": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.4,
+            0,
+            0
+          ],
+          "velocityMps": [
+            100,
+            0,
+            0
+          ],
+          "stepSeconds": 0.008333333333333333,
+          "evaluateCandidate": false
+        },
+        "stepIndex": 1,
+        "outcome": "accepted",
+        "previousState": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.4,
+                0,
+                0
+              ],
+              "velocityMps": [
+                100,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "state": {
+          "stepIndex": 1,
+          "timeSeconds": 0.008333333333333333,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.101,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                1e-30,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [
+            {
+              "bodyId": "b0",
+              "fixtureId": "floor",
+              "toiFraction": 0.3588,
+              "normalFixtureToBody": [
+                -1,
+                0,
+                0
+              ]
+            }
+          ],
+          "pairStats": {
+            "eligiblePairs": 8,
+            "candidatePairs": 8,
+            "aabbTests": 0
+          }
+        },
+        "diagnostic": {
+          "acceptedStepIndex": 1,
+          "stepSeconds": 0.008333333333333333,
+          "startCenterM": [
+            -0.4,
+            0,
+            0
+          ],
+          "startVelocityMps": [
+            100,
+            0,
+            0
+          ],
+          "hit": {
+            "dynamicBodyId": "b0",
+            "fixtureId": "floor",
+            "fraction": 0.3588,
+            "normal": [
+              -1,
+              0,
+              0
+            ],
+            "pointM": [
+              -0.001,
+              0,
+              0
+            ],
+            "segmentPointM": [
+              -0.101,
+              0,
+              0
+            ]
+          },
+          "hitTimeSeconds": 0.00299,
+          "remainingTimeSeconds": 0.005343333333333333,
+          "faceFinalCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "faceFinalVelocityMps": [
+            0,
+            0,
+            0
+          ],
+          "acceptedCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "acceptedVelocityMps": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "ok": false,
+      "resolved": true
+    },
+    {
+      "name": "dropped-real-hit",
+      "input": {
+        "initial": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.4,
+            0,
+            0
+          ],
+          "velocityMps": [
+            100,
+            0,
+            0
+          ],
+          "stepSeconds": 0.008333333333333333,
+          "evaluateCandidate": false
+        },
+        "stepIndex": 1,
+        "outcome": "accepted",
+        "previousState": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.4,
+                0,
+                0
+              ],
+              "velocityMps": [
+                100,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "state": {
+          "stepIndex": 1,
+          "timeSeconds": 0.008333333333333333,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.101,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 8,
+            "candidatePairs": 8,
+            "aabbTests": 0
+          }
+        },
+        "diagnostic": {
+          "acceptedStepIndex": 1,
+          "stepSeconds": 0.008333333333333333,
+          "startCenterM": [
+            -0.4,
+            0,
+            0
+          ],
+          "startVelocityMps": [
+            100,
+            0,
+            0
+          ],
+          "hit": null,
+          "hitTimeSeconds": 0.00299,
+          "remainingTimeSeconds": 0.005343333333333333,
+          "faceFinalCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "faceFinalVelocityMps": [
+            0,
+            0,
+            0
+          ],
+          "acceptedCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "acceptedVelocityMps": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "ok": false,
+      "resolved": true
+    },
+    {
+      "name": "null-time-is-not-zero",
+      "input": {
+        "initial": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.4,
+            0,
+            0
+          ],
+          "velocityMps": [
+            100,
+            0,
+            0
+          ],
+          "stepSeconds": 0.008333333333333333,
+          "evaluateCandidate": false
+        },
+        "stepIndex": 1,
+        "outcome": "accepted",
+        "previousState": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.4,
+                0,
+                0
+              ],
+              "velocityMps": [
+                100,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "state": {
+          "stepIndex": 1,
+          "timeSeconds": 0.008333333333333333,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.101,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [
+            {
+              "bodyId": "b0",
+              "fixtureId": "floor",
+              "toiFraction": 0.3588,
+              "normalFixtureToBody": [
+                -1,
+                0,
+                0
+              ]
+            }
+          ],
+          "pairStats": {
+            "eligiblePairs": 8,
+            "candidatePairs": 8,
+            "aabbTests": 0
+          }
+        },
+        "diagnostic": {
+          "acceptedStepIndex": 1,
+          "stepSeconds": 0.008333333333333333,
+          "startCenterM": [
+            -0.4,
+            0,
+            0
+          ],
+          "startVelocityMps": [
+            100,
+            0,
+            0
+          ],
+          "hit": {
+            "dynamicBodyId": "b0",
+            "fixtureId": "floor",
+            "fraction": 0.3588,
+            "normal": [
+              -1,
+              0,
+              0
+            ],
+            "pointM": [
+              -0.001,
+              0,
+              0
+            ],
+            "segmentPointM": [
+              -0.101,
+              0,
+              0
+            ]
+          },
+          "hitTimeSeconds": null,
+          "remainingTimeSeconds": 0.005343333333333333,
+          "faceFinalCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "faceFinalVelocityMps": [
+            0,
+            0,
+            0
+          ],
+          "acceptedCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "acceptedVelocityMps": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "ok": false,
+      "resolved": false
+    },
+    {
+      "name": "null-vector-is-not-zero",
+      "input": {
+        "initial": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.4,
+            0,
+            0
+          ],
+          "velocityMps": [
+            100,
+            0,
+            0
+          ],
+          "stepSeconds": 0.008333333333333333,
+          "evaluateCandidate": false
+        },
+        "stepIndex": 1,
+        "outcome": "accepted",
+        "previousState": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.4,
+                0,
+                0
+              ],
+              "velocityMps": [
+                100,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "state": {
+          "stepIndex": 1,
+          "timeSeconds": 0.008333333333333333,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.101,
+                0,
+                0
+              ],
+              "velocityMps": [
+                null,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [
+            {
+              "bodyId": "b0",
+              "fixtureId": "floor",
+              "toiFraction": 0.3588,
+              "normalFixtureToBody": [
+                -1,
+                0,
+                0
+              ]
+            }
+          ],
+          "pairStats": {
+            "eligiblePairs": 8,
+            "candidatePairs": 8,
+            "aabbTests": 0
+          }
+        },
+        "diagnostic": {
+          "acceptedStepIndex": 1,
+          "stepSeconds": 0.008333333333333333,
+          "startCenterM": [
+            -0.4,
+            0,
+            0
+          ],
+          "startVelocityMps": [
+            100,
+            0,
+            0
+          ],
+          "hit": {
+            "dynamicBodyId": "b0",
+            "fixtureId": "floor",
+            "fraction": 0.3588,
+            "normal": [
+              -1,
+              0,
+              0
+            ],
+            "pointM": [
+              -0.001,
+              0,
+              0
+            ],
+            "segmentPointM": [
+              -0.101,
+              0,
+              0
+            ]
+          },
+          "hitTimeSeconds": 0.00299,
+          "remainingTimeSeconds": 0.005343333333333333,
+          "faceFinalCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "faceFinalVelocityMps": [
+            0,
+            0,
+            0
+          ],
+          "acceptedCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "acceptedVelocityMps": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "ok": false,
+      "resolved": false
+    },
+    {
+      "name": "nonfinite-vector-codec",
+      "input": {
+        "initial": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.4,
+            0,
+            0
+          ],
+          "velocityMps": [
+            100,
+            0,
+            0
+          ],
+          "stepSeconds": 0.008333333333333333,
+          "evaluateCandidate": false
+        },
+        "stepIndex": 1,
+        "outcome": "accepted",
+        "previousState": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.4,
+                0,
+                0
+              ],
+              "velocityMps": [
+                100,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "state": {
+          "stepIndex": 1,
+          "timeSeconds": 0.008333333333333333,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.101,
+                0,
+                0
+              ],
+              "velocityMps": [
+                null,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [
+            {
+              "bodyId": "b0",
+              "fixtureId": "floor",
+              "toiFraction": 0.3588,
+              "normalFixtureToBody": [
+                -1,
+                0,
+                0
+              ]
+            }
+          ],
+          "pairStats": {
+            "eligiblePairs": 8,
+            "candidatePairs": 8,
+            "aabbTests": 0
+          }
+        },
+        "diagnostic": {
+          "acceptedStepIndex": 1,
+          "stepSeconds": 0.008333333333333333,
+          "startCenterM": [
+            -0.4,
+            0,
+            0
+          ],
+          "startVelocityMps": [
+            100,
+            0,
+            0
+          ],
+          "hit": {
+            "dynamicBodyId": "b0",
+            "fixtureId": "floor",
+            "fraction": 0.3588,
+            "normal": [
+              -1,
+              0,
+              0
+            ],
+            "pointM": [
+              -0.001,
+              0,
+              0
+            ],
+            "segmentPointM": [
+              -0.101,
+              0,
+              0
+            ]
+          },
+          "hitTimeSeconds": 0.00299,
+          "remainingTimeSeconds": 0.005343333333333333,
+          "faceFinalCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "faceFinalVelocityMps": [
+            0,
+            0,
+            0
+          ],
+          "acceptedCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "acceptedVelocityMps": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "ok": false,
+      "resolved": false
+    },
+    {
+      "name": "missing-vector-entry-codec",
+      "input": {
+        "initial": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.4,
+            0,
+            0
+          ],
+          "velocityMps": [
+            100,
+            0,
+            0
+          ],
+          "stepSeconds": 0.008333333333333333,
+          "evaluateCandidate": false
+        },
+        "stepIndex": 1,
+        "outcome": "accepted",
+        "previousState": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.4,
+                0,
+                0
+              ],
+              "velocityMps": [
+                100,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "state": {
+          "stepIndex": 1,
+          "timeSeconds": 0.008333333333333333,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.101,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                null,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [
+            {
+              "bodyId": "b0",
+              "fixtureId": "floor",
+              "toiFraction": 0.3588,
+              "normalFixtureToBody": [
+                -1,
+                0,
+                0
+              ]
+            }
+          ],
+          "pairStats": {
+            "eligiblePairs": 8,
+            "candidatePairs": 8,
+            "aabbTests": 0
+          }
+        },
+        "diagnostic": {
+          "acceptedStepIndex": 1,
+          "stepSeconds": 0.008333333333333333,
+          "startCenterM": [
+            -0.4,
+            0,
+            0
+          ],
+          "startVelocityMps": [
+            100,
+            0,
+            0
+          ],
+          "hit": {
+            "dynamicBodyId": "b0",
+            "fixtureId": "floor",
+            "fraction": 0.3588,
+            "normal": [
+              -1,
+              0,
+              0
+            ],
+            "pointM": [
+              -0.001,
+              0,
+              0
+            ],
+            "segmentPointM": [
+              -0.101,
+              0,
+              0
+            ]
+          },
+          "hitTimeSeconds": 0.00299,
+          "remainingTimeSeconds": 0.005343333333333333,
+          "faceFinalCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "faceFinalVelocityMps": [
+            0,
+            0,
+            0
+          ],
+          "acceptedCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "acceptedVelocityMps": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "ok": false,
+      "resolved": false
+    },
+    {
+      "name": "wrong-world-dynamic-ID",
+      "input": {
+        "initial": {
+          "capsule": {
+            "radiusM": 0.1,
+            "halfLengthM": 0.2
+          },
+          "box": {
+            "id": "floor",
+            "centerM": [
+              0,
+              0,
+              0
+            ],
+            "halfExtentsM": [
+              0.001,
+              1,
+              1
+            ],
+            "orientationXYZW": [
+              0,
+              0,
+              0,
+              1
+            ]
+          },
+          "centerM": [
+            -0.4,
+            0,
+            0
+          ],
+          "velocityMps": [
+            100,
+            0,
+            0
+          ],
+          "stepSeconds": 0.008333333333333333,
+          "evaluateCandidate": false
+        },
+        "stepIndex": 1,
+        "outcome": "accepted",
+        "previousState": {
+          "stepIndex": 0,
+          "timeSeconds": 0,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.4,
+                0,
+                0
+              ],
+              "velocityMps": [
+                100,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [],
+          "pairStats": {
+            "eligiblePairs": 0,
+            "candidatePairs": 0,
+            "aabbTests": 0
+          }
+        },
+        "state": {
+          "stepIndex": 1,
+          "timeSeconds": 0.008333333333333333,
+          "bodies": [
+            {
+              "id": "b0",
+              "kind": "dynamic",
+              "shape": {
+                "kind": "capsule",
+                "radiusM": 0.1,
+                "halfLengthM": 0.2
+              },
+              "positionM": [
+                -0.101,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ],
+              "ccd": true,
+              "inertiaDiagonalKgM2": [
+                0.03600000000000001,
+                0.03600000000000001,
+                0.03600000000000001
+              ]
+            },
+            {
+              "id": "floor",
+              "kind": "static",
+              "shape": {
+                "kind": "box",
+                "halfExtentsM": [
+                  0.001,
+                  1,
+                  1
+                ]
+              },
+              "positionM": [
+                0,
+                0,
+                0
+              ],
+              "velocityMps": [
+                0,
+                0,
+                0
+              ],
+              "orientation": [
+                0,
+                0,
+                0,
+                1
+              ],
+              "angularVelocityRadps": [
+                0,
+                0,
+                0
+              ]
+            }
+          ],
+          "contacts": [],
+          "events": [],
+          "joints": [],
+          "ccdHits": [
+            {
+              "bodyId": "floor",
+              "fixtureId": "floor",
+              "toiFraction": 0.3588,
+              "normalFixtureToBody": [
+                -1,
+                0,
+                0
+              ]
+            }
+          ],
+          "pairStats": {
+            "eligiblePairs": 8,
+            "candidatePairs": 8,
+            "aabbTests": 0
+          }
+        },
+        "diagnostic": {
+          "acceptedStepIndex": 1,
+          "stepSeconds": 0.008333333333333333,
+          "startCenterM": [
+            -0.4,
+            0,
+            0
+          ],
+          "startVelocityMps": [
+            100,
+            0,
+            0
+          ],
+          "hit": {
+            "dynamicBodyId": "b0",
+            "fixtureId": "floor",
+            "fraction": 0.3588,
+            "normal": [
+              -1,
+              0,
+              0
+            ],
+            "pointM": [
+              -0.001,
+              0,
+              0
+            ],
+            "segmentPointM": [
+              -0.101,
+              0,
+              0
+            ]
+          },
+          "hitTimeSeconds": 0.00299,
+          "remainingTimeSeconds": 0.005343333333333333,
+          "faceFinalCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "faceFinalVelocityMps": [
+            0,
+            0,
+            0
+          ],
+          "acceptedCenterM": [
+            -0.101,
+            0,
+            0
+          ],
+          "acceptedVelocityMps": [
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "ok": false,
+      "resolved": false
+    }
+  ],
+  "command": "ordinary empty only",
+  "observerPhase": "post8passes/events before original validation/new diagnostic/fixed pose gate/commit",
+  "firstFailure": "preserve attempt/prior accepted; stop physical graph prefix; repeat same prefix across graphs; no retries",
+  "fullHalf": "body metadata/pose/velocity/time +firstabsolutecontact only; fullcursor1 halfcursor2, no whole-state equality",
+  "rawZero": "live JS andFloat64LE exact; JSONzero-loss separate"
+}

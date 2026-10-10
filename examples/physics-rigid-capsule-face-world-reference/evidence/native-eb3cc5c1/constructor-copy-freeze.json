@@ -1,0 +1,24 @@
+{
+  "node": "v22.22.0",
+  "candidateSource": "eb3cc5c1654b3e672a06f35a99398f67bd2517ab",
+  "candidateSourceUnchanged": true,
+  "controlSha256": "c7354e262527826c3114b8a665ef034ef5fd1f6378b1cf78bdeeb4e01294c47a",
+  "bundles": [
+    {
+      "graph": "source",
+      "name": "source.mjs",
+      "sha256": "a94a3e95b9a4365721fe4c78945d2737ac3a3a40e48398730f28a36fb14274bf"
+    },
+    {
+      "graph": "source-repeat",
+      "name": "source-repeat.mjs",
+      "sha256": "a94a3e95b9a4365721fe4c78945d2737ac3a3a40e48398730f28a36fb14274bf"
+    },
+    {
+      "graph": "compiled-dependencies",
+      "name": "compiled-dependencies.mjs",
+      "sha256": "c757385ddd84c9b7d54e8e3a8ec3116ab20e83a23279d58a9ca760f740a376b8"
+    }
+  ],
+  "worldStepCount": 0
+}

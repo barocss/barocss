@@ -1,0 +1,144 @@
+--- originalWorld
++++ candidateWorld
+@@ -1,20 +1,23 @@
+-import type { Body, PhysicsCcdHit, PhysicsContact, PhysicsEvent, PhysicsJointState, PhysicsPairStats, PhysicsState, PhysicsWorld, PhysicsWorldConfig, PhysicsRayHit, Vec3 } from './types.js';
+-import { MAX_BODIES, MAX_LARGE_BODIES, MAX_STEPS, MAX_STEP_DISPLACEMENT_M, SOLVER_PASSES } from './limits.js';
+-import { error, record, fields, finite, vector, parseBody, parseCommands, copyBody, copyShape, queryRecord, queryVector, queryNumber, includeSensors } from './validation.js';
+-import { add, scale, inverseInertia, advanceOrientation } from './math.js';
+-import { parseJoints, projectJoint } from './joints.js';
+-import { driveDynamicHingeMotor, driveHingeMotor } from './joint-motor.js';
+-import { admitDynamicHingeCommands, admitDynamicHingeScene } from './dynamic-hinge-joint.js';
+-import { detect, solve, validateResult, sphereOverlaps, rayDistance } from './collision.js';
+-import { boxFaceManifold } from './contact-manifold.js';
+-import { correctPersistentPair, solvePersistentPoint, warmStartPoint } from './persistent-box-contact.js';
+-import type { PointImpulse } from './persistent-box-contact.js';
+-import { admitCcd, sweepSphere } from './ccd.js';
+-import { sweepSpherePair } from './ccd-pair.js';
+-import { axisAlignedBox, rejectAngularBoxCommand, sweepDynamicBox } from './ccd-box.js';
+-import { bodyBounds, boundsOverlap } from './broadphase.js';
+-import { dormantPair, filterAllowsPair, wakeOnContact } from './scene-profile.js';
+-import { updateSleeping, wakeForActions } from './sleep.js';
++import { parseCandidateBody } from './candidate-validation.js';
++import { admitCapsuleFaceScene, admitEmptyCommands, copyObserverOptions, WORLD_ERRORS, type CapsuleFaceWorldOptions } from './candidate-profile.js';
++import { makeDiagnostics, copyDiagnostics, validateStepDiagnostics, validateFinalFacePose, type CapsuleFaceStepDiagnostics } from './candidate-diagnostics.js';
++import type { Body, PhysicsCcdHit, PhysicsContact, PhysicsEvent, PhysicsJointState, PhysicsPairStats, PhysicsState, PhysicsWorld, PhysicsWorldConfig, PhysicsRayHit, Vec3 } from '../../packages/barocss-physics/src/types.js';
++import { MAX_BODIES, MAX_LARGE_BODIES, MAX_STEPS, MAX_STEP_DISPLACEMENT_M, SOLVER_PASSES } from '../../packages/barocss-physics/src/limits.js';
++import { error, record, fields, finite, vector, parseCommands, copyBody, copyShape, queryRecord, queryVector, queryNumber, includeSensors } from '../../packages/barocss-physics/src/validation.js';
++import { add, scale, inverseInertia, advanceOrientation } from '../../packages/barocss-physics/src/math.js';
++import { parseJoints, projectJoint } from '../../packages/barocss-physics/src/joints.js';
++import { driveDynamicHingeMotor, driveHingeMotor } from '../../packages/barocss-physics/src/joint-motor.js';
++import { admitDynamicHingeCommands, admitDynamicHingeScene } from '../../packages/barocss-physics/src/dynamic-hinge-joint.js';
++import { detect, solve, validateResult, sphereOverlaps, rayDistance } from '../../packages/barocss-physics/src/collision.js';
++import { boxFaceManifold } from '../../packages/barocss-physics/src/contact-manifold.js';
++import { correctPersistentPair, solvePersistentPoint, warmStartPoint } from '../../packages/barocss-physics/src/persistent-box-contact.js';
++import type { PointImpulse } from '../../packages/barocss-physics/src/persistent-box-contact.js';
++import { admitCandidateCcd, advanceCandidateCapsuleFace, sweepSphere, type CapsuleFaceAdvance } from './candidate-ccd.js';
++import { sweepSpherePair } from '../../packages/barocss-physics/src/ccd-pair.js';
++import { axisAlignedBox, rejectAngularBoxCommand, sweepDynamicBox } from '../../packages/barocss-physics/src/ccd-box.js';
++import { bodyBounds, boundsOverlap } from '../../packages/barocss-physics/src/broadphase.js';
++import { dormantPair, filterAllowsPair, wakeOnContact } from '../../packages/barocss-physics/src/scene-profile.js';
++import { updateSleeping, wakeForActions } from '../../packages/barocss-physics/src/sleep.js';
+ 
+ function publicState(bodies: Body[], contacts: PhysicsContact[], events: PhysicsEvent[],
+   joints: PhysicsJointState[], ccdHits: PhysicsCcdHit[], pairStats: PhysicsPairStats,
+@@ -40,7 +43,7 @@
+   };
+ }
+ 
+-export function createPhysicsWorld(config: PhysicsWorldConfig): PhysicsWorld {
++export function createCapsuleFaceCandidateWorld(config: PhysicsWorldConfig, options: CapsuleFaceWorldOptions = {}): PhysicsWorld & { getCapsuleFaceStepDiagnostics(): CapsuleFaceStepDiagnostics | null } {
+   const input = record(config, 'world');
+   fields(input, ['fixedStepSeconds', 'gravityMps2', 'bodies', 'joints', 'broadPhase', 'contactMode', 'sceneMode'], 'world');
+   if (Object.hasOwn(input, 'sceneMode') && input.sceneMode !== 'large-v1') {
+@@ -64,20 +67,27 @@
+   if (!Array.isArray(input.bodies) || input.bodies.length < 1 || input.bodies.length > bodyLimit) {
+     error('INVALID_CONFIG', `bodies must contain 1..${bodyLimit} entries`);
+   }
++  const bodyArray = input.bodies;
++  if (Object.getPrototypeOf(bodyArray) !== Array.prototype || Reflect.ownKeys(bodyArray).length !== bodyArray.length + 1 ||
++    !Array.from({ length: bodyArray.length }, (_, index) => index).every(index => Object.hasOwn(bodyArray, index))) {
++    error('INVALID_CONFIG', WORLD_ERRORS.profile);
++  }
+   if (usePersistentBox && input.bodies.length > 4) {
+     error('INVALID_CONFIG', 'persistent-box-v1 admits at most four bodies');
+   }
+-  let bodies = input.bodies.map((value) => parseBody(value, largeMode));
++  let bodies = input.bodies.map((value) => parseCandidateBody(value, largeMode));
+   if (largeMode && bodies.some((body) => body.ccd)) {
+     error('INVALID_CONFIG', 'large-v1 excludes CCD');
+   }
+   if (!bodies.some((body) => body.kind === 'dynamic')) error('INVALID_CONFIG', 'at least one dynamic body is required');
+   if (new Set(bodies.map((body) => body.id)).size !== bodies.length) error('INVALID_CONFIG', 'duplicate body ID');
+   const joints = parseJoints(Object.hasOwn(input, 'joints') ? input.joints : [], bodies);
++  const privateScene = admitCapsuleFaceScene(input, bodies, joints.length, gravity, dt);
++  const observerOptions = copyObserverOptions(options);
+   const dynamicHinge = joints.find((joint) => joint.kind === 'hinge' &&
+     bodies[joint.aIndex].kind === 'dynamic');
+   if (dynamicHinge) admitDynamicHingeScene(dynamicHinge, bodies, gravity);
+-  const ccd = admitCcd(bodies, joints.length, gravity);
++  const ccd = admitCandidateCcd(bodies, privateScene, dt);
+   if (ccd.kind === 'box-pair' && usePersistentBox) {
+     error('INVALID_CONFIG', 'box CCD excludes persistent-box-v1');
+   }
+@@ -106,15 +116,18 @@
+   let activePairs = new Map<string, Omit<PhysicsEvent, 'phase'>>();
+   let persistentPoints = new Map<string, PointImpulse>();
+   let sleepFrames = bodies.map(() => 0);
++  let diagnostic: CapsuleFaceStepDiagnostics | null = null;
+   let stepIndex = 0;
+   let disposed = false;
+   const ensureActive = () => { if (disposed) error('DISPOSED', 'world is disposed'); };
+   return {
++    getCapsuleFaceStepDiagnostics() { ensureActive(); return copyDiagnostics(diagnostic); },
+     getState() { ensureActive(); return publicState(bodies, contacts, events, jointStates, ccdHits, pairStats, stepIndex, dt); },
+     step(fixedStepSeconds, commands = []) {
+       ensureActive();
+       if (fixedStepSeconds !== dt) error('INVALID_STEP', 'step must equal configured fixedStepSeconds');
+       if (stepIndex >= MAX_STEPS) error('WORLD_LIMIT', 'world step limit reached');
++      admitEmptyCommands(commands);
+       const actions = parseCommands(commands, bodies);
+       if (dynamicHinge) admitDynamicHingeCommands(dynamicHinge, bodies, actions);
+       if (ccd.kind === 'box-pair') rejectAngularBoxCommand(actions.get(bodies[ccd.boxIndex].id));
+@@ -166,7 +179,11 @@
+           for (let i = 0; i < 3; i++) body.positionM[i] += body.velocityMps[i] * dt;
+         }
+       }
+-      const hit = ccd.kind === 'static-boxes'
++      let faceAdvance: CapsuleFaceAdvance | null = null;
++      if (ccd.kind === 'capsule-face') faceAdvance = advanceCandidateCapsuleFace(bodies, next, ccd, dt);
++      const hit = ccd.kind === 'capsule-face'
++        ? faceAdvance!.worldHit
++        : ccd.kind === 'static-boxes'
+         ? sweepSphere(bodies[ccd.sphereIndex], next[ccd.sphereIndex], ccd.fixtures)
+         : ccd.kind === 'sphere-pair'
+           ? sweepSpherePair(bodies[ccd.sphereIndex], next[ccd.sphereIndex],
+@@ -274,6 +291,10 @@
+         const previous = activePairs.get(key);
+         return { ...(current ?? previous!), phase: current ? previous ? 'stay' : 'begin' : 'end' };
+       });
++      if (faceAdvance === null) error('NUMERIC_LIMIT', WORLD_ERRORS.result);
++      const nextDiagnostic = makeDiagnostics(stepIndex + 1, dt, bodies[privateScene.capsuleIndex], next[privateScene.capsuleIndex], faceAdvance);
++      // The observer gets detached actual staged data before any final gate or commit.
++      observerOptions.observeAttempt?.({ workingState: publicState(next, nextContacts, nextEvents, nextJoints, nextCcdHits, nextPairStats, stepIndex + 1, dt), diagnostics: copyDiagnostics(nextDiagnostic)! });
+       validateResult(next, nextContacts);
+       if (ccd.kind === 'box-pair' && !axisAlignedBox(next[ccd.boxIndex])) {
+         error('NUMERIC_LIMIT', 'box CCD contact rotated outside the admitted profile');
+@@ -288,6 +309,9 @@
+           error('NUMERIC_LIMIT', `${joints[index].id} exceeded motor reaction limit`);
+         }
+       }
++      validateStepDiagnostics(nextDiagnostic, bodies[privateScene.capsuleIndex].id, bodies[privateScene.fixtureIndex].id);
++      validateFinalFacePose(bodies, next, privateScene, nextDiagnostic);
++      diagnostic = nextDiagnostic;
+       bodies = next;
+       contacts = nextContacts;
+       events = nextEvents;
+@@ -331,7 +355,7 @@
+       }
+       return best;
+     },
+-    dispose() { disposed = true; bodies = []; contacts = []; events = []; ccdHits = [];
++    dispose() { if (ccd.kind === 'capsule-face') ccd.reference.dispose(); disposed = true; bodies = []; contacts = []; events = []; ccdHits = [];
+       activePairs.clear(); persistentPoints.clear(); sleepFrames = []; },
+   };
+ }

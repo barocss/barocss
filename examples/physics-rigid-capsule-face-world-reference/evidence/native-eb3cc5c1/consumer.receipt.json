@@ -1,0 +1,16 @@
+{
+  "phase": "consumer",
+  "command": [
+    "node",
+    "examples/physics-rigid-capsule-face-world-reference/runner.mjs",
+    "/tmp/physics-1298-canonical"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 1.2867610454559326,
+  "measuredHead": "eb3cc5c1654b3e672a06f35a99398f67bd2517ab",
+  "sourceFreezeSha256": "ec6236f43d9731fe1521b5e783f3f8e7a9a7ef8fd8dc296c9f24156bd8aa6c6a",
+  "stdoutBytes": 490,
+  "stdoutSha256": "d9f6cadbd93b3e94f9df29a50e6f13aae83504480330cb82e9849662c2b127af",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

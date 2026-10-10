@@ -1,0 +1,11 @@
+export { createCapsuleFaceCandidateWorld } from './candidate-world.js';
+export { parseCandidateBody } from './candidate-validation.js';
+export { WORLD_ERRORS } from './candidate-profile.js';
+export type { CapsuleFaceWorldOptions, CandidateObserverPayload } from './candidate-profile.js';
+export { validateStepDiagnostics } from './candidate-diagnostics.js';
+export type { CapsuleFaceStepDiagnostics, CapsuleFaceDiagnosticHit } from './candidate-diagnostics.js';
+export { createPhysicsWorld as createOriginalWorld } from '../../packages/barocss-physics/src/world.js';
+export { PhysicsError } from '../../packages/barocss-physics/src/types.js';
+export { parseBody } from '../../packages/barocss-physics/src/validation.js';
+export { detect } from '../../packages/barocss-physics/src/collision.js';
+export { createUprightCapsuleQuery } from '../../packages/barocss-physics/src/capsule-query.js';

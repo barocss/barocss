@@ -1,0 +1,412 @@
+{
+  "actualCaseStepsPerGraph": 11,
+  "structuralReceipts": 25,
+  "diagnosticReceipts": 5,
+  "transactionReceipts": 11,
+  "disposeWorlds": 9,
+  "disposeReceipts": 45,
+  "originalBoundsReceipt": {
+    "name": "original-position-bounds",
+    "code": "NUMERIC_LIMIT",
+    "message": "b0 position exceeded bounds",
+    "originalPhysicsError": true
+  },
+  "rawBytes": 4576,
+  "rawSha256": "5f562d0c21287d4d94e70896f36ff49f0d9e51cf2cc7aa62d3da44e7dd183338",
+  "numericBytes": 10976,
+  "numericSha256": "d11611ed61aebaf6c2a3caaec16fd3b817ae5dc3fb535041eb596cdcd72ba6d3",
+  "maximumErrors": {
+    "previousCenterErrorM": 0,
+    "previousVelocityErrorMps": 0,
+    "finalCenterErrorM": 2.7755575615628914e-17,
+    "finalVelocityErrorMps": 1.4601662185926434e-14,
+    "stepTimeErrorSeconds": 0,
+    "startCenterErrorM": 0,
+    "startVelocityErrorMps": 0,
+    "faceFinalCenterErrorM": 2.7755575615628914e-17,
+    "faceFinalVelocityErrorMps": 1.4601662185926434e-14,
+    "acceptedCenterDiagnosticErrorM": 0,
+    "acceptedVelocityDiagnosticErrorMps": 0,
+    "hitTimeErrorSeconds": 4.336808689942018e-19,
+    "remainingTimeErrorSeconds": 8.673617379884035e-19,
+    "timeAccountingErrorSeconds": 0,
+    "fractionError": 1.1102230246251565e-16,
+    "witnessSegmentMembershipErrorM": 1.1907212904719191e-17,
+    "witnessBoxMembershipErrorM": 0,
+    "witnessFaceMembershipErrorM": 1.4063035091204935e-19,
+    "witnessDistanceErrorM": 7.47279786838765e-17,
+    "normalError": 4.0652699819383584e-17,
+    "normalUnitError": 6.4336346465315944e-18,
+    "worldFractionDiagnosticError": 0,
+    "worldNormalDiagnosticError": 0,
+    "contactNormalOrientationError": 0,
+    "contactNormalUnitError": 0
+  },
+  "caseResults": [
+    {
+      "label": "original-full-step1",
+      "acceptedStep": 1,
+      "time": 0.008333333333333333,
+      "center": [
+        -0.101,
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0,
+        0
+      ],
+      "contacts": 1,
+      "normalImpulses": [
+        0
+      ],
+      "depths": [
+        2.7755575615628914e-17
+      ],
+      "events": [
+        {
+          "aId": "b0",
+          "bId": "floor",
+          "kind": "contact",
+          "phase": "begin"
+        }
+      ]
+    },
+    {
+      "label": "original-half-step1",
+      "acceptedStep": 1,
+      "time": 0.004166666666666667,
+      "center": [
+        -0.101,
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0,
+        0
+      ],
+      "contacts": 1,
+      "normalImpulses": [
+        0
+      ],
+      "depths": [
+        2.7755575615628914e-17
+      ],
+      "events": [
+        {
+          "aId": "b0",
+          "bId": "floor",
+          "kind": "contact",
+          "phase": "begin"
+        }
+      ]
+    },
+    {
+      "label": "original-half-step2",
+      "acceptedStep": 2,
+      "time": 0.008333333333333333,
+      "center": [
+        -0.101,
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0,
+        0
+      ],
+      "contacts": 1,
+      "normalImpulses": [
+        0
+      ],
+      "depths": [
+        0
+      ],
+      "events": [
+        {
+          "aId": "b0",
+          "bId": "floor",
+          "kind": "contact",
+          "phase": "stay"
+        }
+      ]
+    },
+    {
+      "label": "original-one-stationary-copy-control",
+      "acceptedStep": 2,
+      "time": 0.016666666666666666,
+      "center": [
+        -0.101,
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0,
+        0
+      ],
+      "contacts": 1,
+      "normalImpulses": [
+        0
+      ],
+      "depths": [
+        0
+      ],
+      "events": [
+        {
+          "aId": "b0",
+          "bId": "floor",
+          "kind": "contact",
+          "phase": "stay"
+        }
+      ]
+    },
+    {
+      "label": "yaw-0.2-head-on",
+      "acceptedStep": 1,
+      "time": 0.008333333333333333,
+      "center": [
+        -0.09898672436196541,
+        0,
+        0.020065602410301215
+      ],
+      "velocity": [
+        1.4210854715202004e-14,
+        0,
+        3.552713678800501e-15
+      ],
+      "contacts": 0,
+      "normalImpulses": [],
+      "depths": [],
+      "events": []
+    },
+    {
+      "label": "initial-touch",
+      "acceptedStep": 1,
+      "time": 0.008333333333333333,
+      "center": [
+        -0.101,
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0,
+        0
+      ],
+      "contacts": 1,
+      "normalImpulses": [
+        0
+      ],
+      "depths": [
+        0
+      ],
+      "events": [
+        {
+          "aId": "b0",
+          "bId": "floor",
+          "kind": "contact",
+          "phase": "begin"
+        }
+      ]
+    },
+    {
+      "label": "resting-at-touch",
+      "acceptedStep": 1,
+      "time": 0.008333333333333333,
+      "center": [
+        -0.101,
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0,
+        0
+      ],
+      "contacts": 1,
+      "normalImpulses": [
+        0
+      ],
+      "depths": [
+        0
+      ],
+      "events": [
+        {
+          "aId": "b0",
+          "bId": "floor",
+          "kind": "contact",
+          "phase": "begin"
+        }
+      ]
+    },
+    {
+      "label": "contact-beyond-step",
+      "acceptedStep": 1,
+      "time": 0.008333333333333333,
+      "center": [
+        -0.3166666666666667,
+        0,
+        0
+      ],
+      "velocity": [
+        10,
+        0,
+        0
+      ],
+      "contacts": 0,
+      "normalImpulses": [],
+      "depths": [],
+      "events": []
+    },
+    {
+      "label": "zero-motion",
+      "acceptedStep": 1,
+      "time": 0.008333333333333333,
+      "center": [
+        -0.4,
+        0,
+        0
+      ],
+      "velocity": [
+        0,
+        0,
+        0
+      ],
+      "contacts": 0,
+      "normalImpulses": [],
+      "depths": [],
+      "events": []
+    },
+    {
+      "label": "departing-with-clearance",
+      "acceptedStep": 1,
+      "time": 0.008333333333333333,
+      "center": [
+        -1.2333333333333334,
+        0,
+        0
+      ],
+      "velocity": [
+        -100,
+        0,
+        0
+      ],
+      "contacts": 0,
+      "normalImpulses": [],
+      "depths": [],
+      "events": []
+    },
+    {
+      "label": "departing-at-touch",
+      "acceptedStep": 1,
+      "time": 0.008333333333333333,
+      "center": [
+        -0.9343333333333333,
+        0,
+        0
+      ],
+      "velocity": [
+        -100,
+        0,
+        0
+      ],
+      "contacts": 0,
+      "normalImpulses": [],
+      "depths": [],
+      "events": []
+    }
+  ],
+  "halfComparison": {
+    "fullCursor": 1,
+    "halfCursor": 2,
+    "fullElapsed": 0.008333333333333333,
+    "halfElapsed": 0.008333333333333333,
+    "firstFullAbsoluteContactTime": 0.0029900000000000005,
+    "firstHalfAbsoluteContactTime": 0.0029900000000000005,
+    "fullStepLocalCCD": [
+      {
+        "bodyId": "b0",
+        "fixtureId": "floor",
+        "toiFraction": 0.35880000000000006,
+        "normalFixtureToBody": [
+          -1,
+          0,
+          0
+        ]
+      }
+    ],
+    "halfStepLocalCCD": [
+      [
+        {
+          "bodyId": "b0",
+          "fixtureId": "floor",
+          "toiFraction": 0.7176000000000001,
+          "normalFixtureToBody": [
+            -1,
+            0,
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "bodyId": "b0",
+          "fixtureId": "floor",
+          "toiFraction": 0,
+          "normalFixtureToBody": [
+            -1,
+            0,
+            0
+          ]
+        }
+      ]
+    ],
+    "fullEvents": [
+      {
+        "aId": "b0",
+        "bId": "floor",
+        "kind": "contact",
+        "phase": "begin"
+      }
+    ],
+    "halfEvents": [
+      [
+        {
+          "aId": "b0",
+          "bId": "floor",
+          "kind": "contact",
+          "phase": "begin"
+        }
+      ],
+      [
+        {
+          "aId": "b0",
+          "bId": "floor",
+          "kind": "contact",
+          "phase": "stay"
+        }
+      ]
+    ],
+    "wholeStateEqualityClaimed": false,
+    "reference": {
+      "ok": true,
+      "resolved": true,
+      "executionFailure": false,
+      "metrics": {
+        "finalCenterErrorM": 0,
+        "finalVelocityErrorMps": 0,
+        "elapsedTimeErrorSeconds": 0,
+        "firstContactTimeErrorSeconds": 0
+      },
+      "violations": [],
+      "firstAbsoluteContactTimeSeconds": [
+        0.0029900000000000005,
+        0.0029900000000000005
+      ],
+      "wholeLastStatesCompared": false
+    }
+  }
+}

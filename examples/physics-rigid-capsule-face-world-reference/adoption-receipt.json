@@ -1,0 +1,11 @@
+{
+  "chosenBase": "b8d4fb1f74e977fe25fa3a7093fa807943f207e6",
+  "nativeBase": "6bd3376d6943a8d84b83ca62b0031a9ec8927bea",
+  "nativeHead": "43ea7abcb83475b3beee1ceafbb40e45c94c2551",
+  "paths": 46,
+  "exactModesAndBlobs": true,
+  "nativeManifestSha256": "aa80b2a2c3dee24f9af44d6c9ac6baf364786f09a98914a4cb6c03098d1b6302",
+  "artifactMismatches": [],
+  "nativeArtifactCount": 28,
+  "nativeArtifactsVerified": true
+}

@@ -1,0 +1,17 @@
+{
+  "phase": "types",
+  "command": [
+    "node",
+    "node_modules/typescript/bin/tsc",
+    "-p",
+    "examples/physics-rigid-capsule-face-world-reference/tsconfig.json"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 0.7511899471282959,
+  "measuredHead": "eb3cc5c1654b3e672a06f35a99398f67bd2517ab",
+  "sourceFreezeSha256": "ec6236f43d9731fe1521b5e783f3f8e7a9a7ef8fd8dc296c9f24156bd8aa6c6a",
+  "stdoutBytes": 0,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

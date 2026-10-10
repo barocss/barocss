@@ -1,0 +1,15 @@
+{
+  "phase": "build",
+  "command": [
+    "node",
+    "examples/physics-rigid-engine-reference/build-local.mjs"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 7.296093940734863,
+  "measuredHead": "eb3cc5c1654b3e672a06f35a99398f67bd2517ab",
+  "sourceFreezeSha256": "ec6236f43d9731fe1521b5e783f3f8e7a9a7ef8fd8dc296c9f24156bd8aa6c6a",
+  "stdoutBytes": 441,
+  "stdoutSha256": "b2a103b9478df59e87305901d31853780238cdda2cb6cc48f0e9bdc76d0b6ace",
+  "stderrBytes": 43,
+  "stderrSha256": "3aeb892d287bac14e32a87da7e13603765637c0400d81a4ca8dbb852e6815c30"
+}

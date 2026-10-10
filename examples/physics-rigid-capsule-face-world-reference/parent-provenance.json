@@ -1,0 +1,9 @@
+{
+  "nativeSourceFreezeSHA": "501eee4f9f61fddf4b499bd2d5974742b0e723df2c13c1c4e1f95799e03d9e57",
+  "historicalPinsVerifiedAtNative": 276,
+  "changedCurrentPaths": [
+    "packages/barocss-cad/src/index.ts"
+  ],
+  "historicalPinsRewritten": false,
+  "historicalProducerReplayed": false
+}
