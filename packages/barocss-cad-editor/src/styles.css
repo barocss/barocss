@@ -181,3 +181,7 @@
 .cad-editor-native-tools button[aria-pressed="true"] {background:#36442f;color:#cee2bc;border-color:#596d4b;}
 .cad-editor-native-tools button:disabled {opacity:.45;cursor:default;}
 .cad-editor-native-tools button:focus-visible {outline:2px solid #b8d599;outline-offset:1px;}
+
+/* Seven perspective sides retain the compact two-row navigator without resizing Canvas. */
+.cad-editor-view-tools {grid-template-columns:repeat(4,minmax(0,1fr));min-width:188px;}
+.cad-editor-view-tools>button {white-space:nowrap;}

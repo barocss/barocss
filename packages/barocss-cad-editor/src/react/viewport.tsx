@@ -12,6 +12,7 @@ import type { FocusedCurveBinding } from './curve-focus.js';
 import { CurvePoleHandles } from './curve-pole-handles.js';
 import { SurfacePoleHandles } from './surface-pole-handles.js';
 import { PoleAxisGizmo } from './pole-axis-gizmo.js';
+import { CadEditorViewNavigator, VIEW_SIDES, type NativeViewSide } from './view-navigator.js';
 
 interface MountedViewer {
   viewer: Viewer;
@@ -141,7 +142,40 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
 
   const axisGestureRef = useRef(false);
   const [axisGestureActive,setAxisGestureActive] = useState(false);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const viewportPointersRef = useRef(new Map<number, Element>());
+  const [viewportCaptured, setViewportCaptured] = useState(false);
+  const hasViewportCapture = () => [...viewportPointersRef.current].some(([id, target]) =>
+    target.isConnected && target.hasPointerCapture(id));
   const [documentReceipt, setDocumentReceipt] = useState<CadEditorDisplayReceipt | null>(null);
+
+  useEffect(() => {
+    let listening = true;
+    const down = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element) || !viewportRef.current?.contains(target)) return;
+      viewportPointersRef.current.set(event.pointerId, target);
+      // Native controls and React overlays capture later in this event turn.
+      setTimeout(() => { if (listening) setViewportCaptured(hasViewportCapture()); }, 0);
+    };
+    const release = (event: PointerEvent) => {
+      if (!viewportPointersRef.current.has(event.pointerId)) return;
+      viewportPointersRef.current.delete(event.pointerId);
+      setViewportCaptured(hasViewportCapture());
+    };
+    window.addEventListener('pointerdown', down, true);
+    window.addEventListener('pointerup', release, true);
+    window.addEventListener('pointercancel', release, true);
+    window.addEventListener('lostpointercapture', release, true);
+    return () => {
+      listening = false; viewportPointersRef.current.clear();
+      window.removeEventListener('pointerdown', down, true);
+      window.removeEventListener('pointerup', release, true);
+      window.removeEventListener('pointercancel', release, true);
+      window.removeEventListener('lostpointercapture', release, true);
+    };
+  }, [session]);
+  useEffect(() => { if (viewportCaptured && !hasViewportCapture()) setViewportCaptured(false); });
 
   function report(cause: unknown, detail: string) {
     const error = cause instanceof CadEditorError ? cause
@@ -497,16 +531,21 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     }
   }, [props.readRequest, session, ready]);
 
-  function changeView(view: 'front'|'right'|'top'|'isometric') {
+  function changeView(view: NativeViewSide) {
     const state = session.getSnapshot(), mounted = mountedRef.current, canvas = canvasRef.current;
-    if (!mounted || !canvas || axisGestureRef.current || mounted.unavailable || mounted.admitting || state.candidate
-      || state.selectionTransition || Object.keys(state.pending).length) return;
-    const before = mounted.viewer.getState().camera;
+    if (!mounted || !canvas || axisGestureRef.current || hasViewportCapture() || mounted.unavailable || mounted.admitting || state.disposed || state.candidate
+      || state.selectionTransition || Object.keys(state.pending).length
+      || mounted.generation !== state.generation || mounted.displayGeneration !== state.displayGeneration) return;
+    const displayed = mounted.viewer.getState();
+    if (displayed.status !== 'ready') return;
+    const before = displayed.camera;
     const distance = Math.hypot(...before.eye.map((value,index)=>value-before.target[index]));
-    const direction: [number,number,number] = view==='front'?[0,0,1]:view==='right'?[1,0,0]:view==='top'?[0,1,0]:[1,1,1];
+    const side = VIEW_SIDES.find(side => side.side === view);
+    if (!side) return;
+    const direction = side.direction;
     const length = Math.hypot(...direction);
     try {
-      mounted.viewer.setView({...before,eye:before.target.map((value,index)=>value+direction[index]*distance/length) as [number,number,number],up:view==='top'?[0,0,-1]:[0,1,0]});
+      mounted.viewer.setView({...before,eye:before.target.map((value,index)=>value+direction[index]*distance/length) as [number,number,number],up:[...side.up]});
       notify(displayReceipt(mounted.viewer,canvas,mounted.options.viewer.background,lifecycleRef.current,readIndexRef));
       setErrorMessage(null);
     } catch (cause) {
@@ -516,17 +555,8 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     }
   }
   const camera = focusedReceipt?.state.camera ?? documentReceipt?.state.camera;
-  let orientation = 'Custom';
-  if (camera) {
-    const delta = camera.eye.map((value,index)=>value-camera.target[index]);
-    const length = Math.hypot(...delta), d=delta.map(value=>value/length),eps=1e-6;
-    if(Math.abs(d[0])<eps&&Math.abs(d[1])<eps&&d[2]>1-eps)orientation='Front';
-    else if(d[0]>1-eps&&Math.abs(d[1])<eps&&Math.abs(d[2])<eps)orientation='Right';
-    else if(Math.abs(d[0])<eps&&d[1]>1-eps&&Math.abs(d[2])<eps)orientation='Top';
-    else if(d.every(value=>Math.abs(value-1/Math.sqrt(3))<eps))orientation='Isometric';
-  }
-  const viewBusy=!ready||axisGestureActive||snapshot.candidate!==null||snapshot.selectionTransition!==null||Object.keys(snapshot.pending).length>0;
-  return <div className={cn('cad-editor-viewport', className)} data-viewer-ready={ready}
+  const viewBusy=!ready||viewportCaptured||axisGestureActive||snapshot.disposed||snapshot.candidate!==null||snapshot.selectionTransition!==null||Object.keys(snapshot.pending).length>0;
+  return <div ref={viewportRef} className={cn('cad-editor-viewport', className)} data-viewer-ready={ready}
     onWheelCapture={event=>{if(axisGestureRef.current){event.preventDefault();event.stopPropagation();}}}
     onPointerDownCapture={event=>{if(axisGestureRef.current&&event.target===canvasRef.current){event.preventDefault();event.stopPropagation();}}}>
     <canvas ref={canvasRef} width={640} height={480} tabIndex={0} className="cad-editor-canvas"
@@ -547,10 +577,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
         catch (cause) { report(cause, 'Reading the displayed frame failed'); }
       }}
       data-testid="cad-editor-canvas" aria-label="CAD viewport. Drag to orbit. Shift drag to pan. Scroll to zoom. Press F to fit." />
-    <div className="cad-editor-view-tools" role="group" aria-label="Viewport orientation">
-      <span data-testid="viewport-view-status">{orientation} · Perspective</span>
-      {(['front','right','top','isometric'] as const).map(view=><button key={view} type="button" data-view={view} data-testid={'view-'+view} aria-label={view[0].toUpperCase()+view.slice(1)+' view'} aria-pressed={orientation.toLowerCase()===view} disabled={viewBusy} onClick={()=>changeView(view)}>{view==='isometric'?'Iso':view[0].toUpperCase()+view.slice(1)}</button>)}
-    </div>
+    <CadEditorViewNavigator camera={ready ? camera : null} disabled={viewBusy} onChoose={changeView} />
     <SurfacePoleHandles session={session} receipt={ready?documentReceipt:null} canvas={canvasRef.current} onError={error=>report(error,'Surface point gesture failed')} />
     <PoleAxisGizmo session={session} documentReceipt={ready?documentReceipt:null} curveReceipt={ready?focusedReceipt:null} canvas={canvasRef.current}
       onGestureChange={active=>{axisGestureRef.current=active;setAxisGestureActive(active);}}
