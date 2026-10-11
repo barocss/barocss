@@ -206,6 +206,10 @@
       "./paired-surface-intersection-branch": {
         "types": "./dist/paired-surface-intersection-branch.d.ts",
         "import": "./dist/paired-surface-intersection-branch.js"
+      },
+      "./translated-strip-plane-split-result": {
+        "types": "./dist/translated-strip-plane-split-result.d.ts",
+        "import": "./dist/translated-strip-plane-split-result.js"
       }
     }
   },
@@ -414,6 +418,10 @@
     "./paired-surface-intersection-branch": {
       "types": "./src/paired-surface-intersection-branch.ts",
       "import": "./src/paired-surface-intersection-branch.ts"
+    },
+    "./translated-strip-plane-split-result": {
+      "types": "./src/translated-strip-plane-split-result.ts",
+      "import": "./src/translated-strip-plane-split-result.ts"
     }
   },
   "files": [

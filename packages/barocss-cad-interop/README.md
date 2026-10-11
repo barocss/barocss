@@ -3881,3 +3881,16 @@ The bounded verifier is
 checks have separate execution receipts. Library availability, exact local
 adoption, integrated UI/file/recovery acceptance and npm publication are separate
 states.
+
+
+## Complete translated Strip plane split receipts
+
+Use the optional `@barocss/cad-interop/translated-strip-plane-split-result` entry to read a complete saved `barocss-translated-strip-plane-split` version-0 result. `parseBaroCadTranslatedStripPlaneSplitResult(text)` admits JSON text; `readBaroCadTranslatedStripPlaneSplitResult(data)` admits owned data.
+
+Each read returns exactly `native`, `validationReport`, `profile`, and `sourceText`. It keeps the complete supplied request, cut Model, proof, two output Bodies, source-qualified bindings, and report. A single matching native validator returns a separate report. The supplied receipt and returned report are independent mutable CPU data; only the profile is frozen. Matching validation reconstructs internally, including parent Body validation, cut Source compilation, and twenty-two producer delegations.
+
+The dedicated outer codec bounds UTF8 and UTF16 input and canonical JSON plus one LF to 12 MiB, with four million charged value occurrences. Existing Source, nested Body, native request, rational-work limits, and older ingestion entries retain their own limits. Numeric negative zero, complete Sources and Models, rational fractions, topology, material conservation, parameter maps, and true and false native quality fields are retained.
+
+The reader adds no split, Body builder, general Boolean, renderer, URL loader, editor, or public serializer. Save native-only data with a sign-preserving JSON writer when exact negative-zero preservation is needed. Ordinary JSON.stringify turns negative zero into zero.
+
+`examples/translated-strip-plane-split-result-verify.mjs` uses eight original files: two full results and six request/edit/authored comparison records. It verifies Source and emitted entries, full mutable copies, native and codec refusals, exact saved-file bytes, a new Node process, and physical published declarations. Original failure records and bounded adoption evidence remain in Issue #1450. Current integrated UI, Save/Open, recovery, and release acceptance are separate.
