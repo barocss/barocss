@@ -313,3 +313,6 @@ Native Surface duplication uses `deriveRenderNativeSceneBodyDuplicate(document, 
 
 
 GizmoSurface accepts optional viewportShortcuts (default false) and onFrame. Opted-in focused supplied Canvas or same-overlay handle targets use unmodified W/E/R for the existing mode callback and F for onFrame. Composing, repeated or modified keys, foreign/editable/menu targets, disabled/active/pending/retained/local-Help states are ignored. No authored state changes are introduced. Existing Source callers opt out by default and keep their handle keyboard behavior.
+
+
+GizmoSurface also accepts optional onFrameAll and pivotLabel. With viewportShortcuts enabled, F uses onFrame and Shift+F uses onFrameAll; absent callbacks leave their key unconsumed. Shift with W/E/R remains ignored. A supplied pivotLabel is displayed in the existing toolbar; it does not select or calculate a new pivot. The uniform handle is visibly labelled All while its existing uniform key, projection, picking and scale calculation remain intact. Default Source callers remain opted out of viewport shortcuts.

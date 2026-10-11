@@ -20,7 +20,7 @@ export interface GizmoSurfaceProps<C> {
   disabled?: boolean; pending?: boolean; onModeChange?: (mode: RenderSceneGizmoMode) => void;
   onGestureChange?: (active: boolean) => void; onError?: (error: RenderEditorError) => void; onHelp?: () => void;
   onCancelPending?: () => GizmoSurfaceActionResult; showModeButtons?: boolean; scaleLabel?: string; profileNotice?: string; helpText?: string;
-  viewportShortcuts?: boolean; onFrame?: () => void;
+  viewportShortcuts?: boolean; onFrame?: () => void; onFrameAll?: () => void; pivotLabel?: string;
 }
 const viewportOf = (box: Box): RenderSceneGizmoViewport => ({width: box.width, height: box.height, backingWidth: box.backingWidth, backingHeight: box.backingHeight});
 const sameBox = (a: Box, b: Box) => (['width', 'height', 'backingWidth', 'backingHeight', 'left', 'top'] as const).every(key => a[key] === b[key]);
@@ -28,11 +28,11 @@ const measure = (canvas: HTMLCanvasElement): Box => {const rect = canvas.getBoun
 const arrowPoints = (points: readonly Point[], anchor: Point) => {const prior = points[Math.max(0, points.length - 2)] ?? anchor, dx = anchor[0] - prior[0], dy = anchor[1] - prior[1], length = Math.hypot(dx, dy) || 1, x = dx / length, y = dy / length; return [[anchor[0] + 4 * x, anchor[1] + 4 * y], [anchor[0] - 7 * x + 4 * y, anchor[1] - 7 * y - 4 * x], [anchor[0] - 7 * x - 4 * y, anchor[1] - 7 * y + 4 * x]].map(p => p.join(',')).join(' ');};
 
 /** Shared projected handles and capture arbitration. The adapter owns authored units and transactions. */
-export function GizmoSurface<C>({canvas, mode, adapter, disabled = false, pending = false, onModeChange, onGestureChange, onError, onHelp, onCancelPending, showModeButtons = true, scaleLabel = 'Scale', profileNotice = '', helpText = '', viewportShortcuts = false, onFrame}: GizmoSurfaceProps<C>) {
+export function GizmoSurface<C>({canvas, mode, adapter, disabled = false, pending = false, onModeChange, onGestureChange, onError, onHelp, onCancelPending, showModeButtons = true, scaleLabel = 'Scale', profileNotice = '', helpText = '', viewportShortcuts = false, onFrame, onFrameAll, pivotLabel = ''}: GizmoSurfaceProps<C>) {
   const [box, setBox] = useState<Box | null>(null), [revision, setRevision] = useState(0);
   const [active, setActive] = useState<string | null>(null), [notice, setNotice] = useState(''), [localHelp, setLocalHelp] = useState(false), [hovered, setHovered] = useState<string | null>(null), [focused, setFocused] = useState<string | null>(null), [capturedKey, setCapturedKey] = useState<RenderSceneGizmoKey | null>(null), [retained, setRetained] = useState(false);
   const svg = useRef<SVGSVGElement>(null), help = useRef<HTMLButtonElement>(null), retry = useRef<C | null>(null);
-  const latest = useRef({disabled, pending, mode, adapter, localHelp, active, retained, viewportShortcuts, onFrame, onModeChange, onError, onHelp, onGestureChange, onCancelPending}); latest.current = {disabled, pending, mode, adapter, localHelp, active, retained, viewportShortcuts, onFrame, onModeChange, onError, onHelp, onGestureChange, onCancelPending};
+  const latest = useRef({disabled, pending, mode, adapter, localHelp, active, retained, viewportShortcuts, onFrame, onFrameAll, onModeChange, onError, onHelp, onGestureChange, onCancelPending}); latest.current = {disabled, pending, mode, adapter, localHelp, active, retained, viewportShortcuts, onFrame, onFrameAll, onModeChange, onError, onHelp, onGestureChange, onCancelPending};
   const chooseMode = (value: RenderSceneGizmoMode) => {latest.current.onModeChange?.(value); setHovered(null); setFocused(null); setNotice('');};
   const cancelGesture = useRef<(() => void) | null>(null);
   const subscriptionRevision = useRef(0);
@@ -119,15 +119,16 @@ export function GizmoSurface<C>({canvas, mode, adapter, disabled = false, pendin
       const shortcut = event.key.toLowerCase();
       if (latest.current.viewportShortcuts && ['w', 'e', 'r', 'f'].includes(shortcut)) {
         const target = event.target;
-        if (event.isComposing || event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey
+        if (event.isComposing || event.repeat || event.ctrlKey || event.metaKey || event.altKey || (event.shiftKey && shortcut !== 'f')
           || gesture || latest.current.active !== null || latest.current.pending || latest.current.retained || retry.current !== null
           || !(target instanceof Element) || target !== canvas && handle === null
           || target.closest('input,textarea,select,[contenteditable],button,[role="menu"],[role="menuitem"],[role="dialog"]')
           || canvas.ownerDocument.activeElement !== target) return;
-        if (shortcut === 'f' && !latest.current.onFrame) return;
+        const frameAction = event.shiftKey ? latest.current.onFrameAll : latest.current.onFrame;
+        if (shortcut === 'f' && !frameAction) return;
         event.preventDefault(); event.stopPropagation();
         try {
-          if (shortcut === 'f') latest.current.onFrame?.();
+          if (shortcut === 'f') frameAction?.();
           else chooseMode(shortcut === 'w' ? 'translate' : shortcut === 'e' ? 'rotate' : 'scale');
         } catch (cause) {report(cause);}
         return;
@@ -162,11 +163,12 @@ export function GizmoSurface<C>({canvas, mode, adapter, disabled = false, pendin
   };
   const locked = disabled || active !== null || pending || retained, highlighted = capturedKey ?? hovered ?? focused;
   return <>
-    <div className="re-gizmo-toolbar" aria-label="Object transform controls">{showModeButtons && (['translate', 'rotate', 'scale'] as const).map(value => <button key={value} type="button" data-testid={`gizmo-mode-${value}`} aria-pressed={mode === value} aria-keyshortcuts={viewportShortcuts ? value === 'translate' ? 'W' : value === 'rotate' ? 'E' : 'R' : undefined} disabled={locked} onClick={() => {if (!locked) chooseMode(value);}}>{value === 'translate' ? 'Move' : value === 'rotate' ? 'Rotate' : scaleLabel}</button>)}<button ref={help} type="button" data-testid="gizmo-help" aria-label="Transform controls Help" disabled={active !== null || pending || retained} onClick={() => onHelp ? onHelp() : setLocalHelp(true)}>Help</button>{(pending || retained) && !active && <button type="button" disabled={disabled} onClick={cancelPending}>Cancel transform</button>}</div>
+    <div className="re-gizmo-toolbar" aria-label="Object transform controls">{showModeButtons && (['translate', 'rotate', 'scale'] as const).map(value => <button key={value} type="button" data-testid={`gizmo-mode-${value}`} aria-pressed={mode === value} aria-keyshortcuts={viewportShortcuts ? value === 'translate' ? 'W' : value === 'rotate' ? 'E' : 'R' : undefined} disabled={locked} onClick={() => {if (!locked) chooseMode(value);}}>{value === 'translate' ? 'Move' : value === 'rotate' ? 'Rotate' : scaleLabel}</button>)}{pivotLabel && <span className="re-gizmo-pivot-label" data-testid="gizmo-pivot-label">Pivot: {pivotLabel}</span>}<button ref={help} type="button" data-testid="gizmo-help" aria-label="Transform controls Help" disabled={active !== null || pending || retained} onClick={() => onHelp ? onHelp() : setLocalHelp(true)}>Help</button>{(pending || retained) && !active && <button type="button" disabled={disabled} onClick={cancelPending}>Cancel transform</button>}</div>
     <svg ref={svg} className="re-gizmo-overlay" data-testid="gizmo-overlay" width="100%" height="100%" style={{pointerEvents: 'none'}} aria-label="Projected object transform handles" data-active-axis={capturedKey ?? undefined} data-hovered-axis={hovered ?? undefined}>{preparation.handles.length > 0 && <circle className="re-gizmo-pivot" cx={preparation.pivot[0]} cy={preparation.pivot[1]} r="3"/>}{preparation.handles.map(handle => <g key={`${mode}-${handle.key}`} data-gizmo-key={handle.key} data-anchor-x={handle.anchor[0]} data-anchor-y={handle.anchor[1]} data-testid={`gizmo-handle-${handle.key}`} aria-label={handle.label} role="button" tabIndex={locked ? -1 : 0} aria-disabled={locked} data-highlighted={highlighted === handle.key ? 'true' : undefined} data-active-axis={capturedKey === handle.key ? 'true' : undefined} onFocus={() => setFocused(handle.key)} onBlur={() => setFocused(previous => previous === handle.key ? null : previous)} className={`re-gizmo-handle re-gizmo-axis-${handle.key}`} style={{pointerEvents: 'none'}}>
+      {handle.key === 'uniform' && <title>Scale all axes uniformly</title>}
       {(handle.segments ?? [{points: handle.points, front: true}]).map((segment, index) => <polyline key={index} className={`re-gizmo-line${segment.front ? '' : ' re-gizmo-ring-back'}`} data-front={segment.front ? 'true' : 'false'} points={segment.points.map(p => p.join(',')).join(' ')} style={{pointerEvents: 'none'}}/>)}
       {mode === 'translate' ? <polygon className="re-gizmo-anchor" points={arrowPoints(handle.points, handle.anchor)} style={{pointerEvents: 'none'}}/> : mode === 'scale' ? <rect className="re-gizmo-anchor" x={handle.anchor[0] - 5} y={handle.anchor[1] - 5} width="10" height="10" style={{pointerEvents: 'none'}}/> : null}
-      {mode !== 'rotate' && <text x={handle.anchor[0] + 8} y={handle.anchor[1] - 7} style={{pointerEvents: 'none'}}>{handle.key === 'uniform' ? 'S' : handle.key.toUpperCase()}</text>}
+      {mode !== 'rotate' && <text x={handle.anchor[0] + 8} y={handle.anchor[1] - 7} style={{pointerEvents: 'none'}}>{handle.key === 'uniform' ? 'All' : handle.key.toUpperCase()}</text>}
     </g>)}</svg>
     <p className="re-gizmo-status" data-testid="gizmo-status" role="status">{active ? `${active} · Release to apply · Escape to cancel` : pending || retained ? 'Transform preview · Cancel or correct the refused change' : notice || preparation.unavailable || profileNotice || (highlighted ? `${mode === 'translate' ? 'Move' : mode === 'rotate' ? 'Rotate' : 'Scale'} ${highlighted === 'uniform' ? 'uniform' : highlighted.toUpperCase()}` : '')}</p>
     {localHelp && <div className="re-camera-local-help" role="dialog" aria-label="Transform controls"><p>{helpText}</p><button type="button" onClick={() => {setLocalHelp(false); help.current?.focus();}}>Close Help</button></div>}

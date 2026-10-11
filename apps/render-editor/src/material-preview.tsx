@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {createViewer} from '@barocss/viewer';
-import type {Viewer, ViewerState, ViewerRef, ViewerGeometryPoint, ViewerGeometryPick} from '@barocss/viewer';
+import type {Viewer, ViewerState, ViewerRef, ViewerGeometryPoint, ViewerGeometryPick, ViewerNativeDocumentFitInput} from '@barocss/viewer';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import type {MeshCamera} from '@barocss/gpu';
 import {prepareNativeViewportAppearance} from './native-viewport-presentation';
@@ -10,7 +10,7 @@ import type {RenderMaterialController, RenderMaterialPreparation, RenderNativeSc
 import {assertNativeScenePreviewContext} from './native-scene-host';
 import type {NativeSceneHost} from './native-scene-host';
 import {NativeSceneGizmo} from './native-scene-gizmo';
-import {createNativeSceneSelectionInput} from './native-scene-selection';
+import {createNativeSceneSelectionInput, resolveNativeSelectedFrame} from './native-scene-selection';
 
 export interface MaterialPreviewBridge {
   readonly source: string;
@@ -19,6 +19,7 @@ export interface MaterialPreviewBridge {
   getEpoch(): number;
   getAppearanceToken(): object;
   pickNativeSurface(point: ViewerGeometryPoint): ViewerGeometryPick | null;
+  frameNativeBody(input: ViewerNativeDocumentFitInput): void;
   present(prepared: RenderNativeSceneAppearancePreparation, cameraOverride?: MeshCamera): void;
   beginTransition(): void;
   endTransition(): void;
@@ -27,6 +28,10 @@ export interface MaterialPreviewBridge {
 type PreviewHandle = {viewer: Viewer; ref: ViewerRef; refresh(): void; syncControls(): void; present(material: RenderMaterialPreparation): void; bridge: MaterialPreviewBridge};
 interface Props {controller: RenderMaterialController; nativeHost?: NativeSceneHost | null; disabled: boolean; onError(error: unknown): void; onBridgeChange?(bridge: MaterialPreviewBridge | null): void; onTarget?(bodyId: string): void}
 const context = {mmToSceneUnit: .001, background: [.025, .04, .06] as const};
+const sameCamera = (a: MeshCamera, b: MeshCamera) => ['eye', 'target', 'up'].every(key => {
+  const field = key as 'eye' | 'target' | 'up';
+  return a[field].every((value, index) => Object.is(value, b[field][index]));
+}) && Object.is(a.fovYDegrees, b.fovYDegrees) && Object.is(a.near, b.near) && Object.is(a.far, b.far);
 
 /** The Viewer belongs to this mounted Canvas, independently of its document session. */
 export function MaterialPreview({controller, nativeHost = null, disabled, onError, onBridgeChange, onTarget}: Props) {
@@ -129,6 +134,14 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
             if (token !== appearanceToken || mount !== epoch || active !== requireViewer()) throw new RenderEditorError('STALE_CANDIDATE', 'The scene changed during body selection.');
             return hit;
           },
+          frameNativeBody: input => {
+            const active = requireViewer(), token = appearanceToken, mount = epoch;
+            if (active.getState().status !== 'ready') throw new RenderEditorError('PRESENTATION_REFUSED', 'Body framing is unavailable.');
+            try {
+              active.fitNativeDocumentBody(input);
+              if (token !== appearanceToken || mount !== epoch || active !== requireViewer()) throw new RenderEditorError('STALE_CANDIDATE', 'The scene changed during body framing.');
+            } catch (cause) {failure(cause); throw cause;}
+          },
           beginTransition: () => {requireViewer(); transitions++; stopControls();},
           endTransition: () => {if (transitions > 0) transitions--; syncControls();},
           retireLegacy: () => {
@@ -192,9 +205,44 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
       active.refresh(); active.syncControls();
     } catch (cause) {active.refresh(); current.current.onError(cause);}
   };
+  const frameNative = (selected: boolean) => {
+    const active = handle.current, host = current.current.nativeHost, element = canvas.current;
+    if (!active || !host || !element || current.current.disabled) return;
+    const initial = host.getSnapshot();
+    if (!initial.available || initial.disposed || initial.poseGestureActive || initial.posePreview || active.bridge.getState().status !== 'ready') return;
+    let transition = false;
+    try {
+      active.bridge.beginTransition(); transition = true;
+      const before = host.getSnapshot(), epoch = active.bridge.getEpoch(), owner = active.bridge.getAppearanceToken();
+      const view = host.getDisplayCamera(), shown = active.bridge.getState();
+      const measure = () => {
+        const rect = element.getBoundingClientRect();
+        const values = [rect.left, rect.top, rect.width, rect.height, element.width, element.height];
+        if (!values.every(Number.isFinite) || rect.width <= 0 || rect.height <= 0 || element.width <= 0 || element.height <= 0) throw new RenderEditorError('PRESENTATION_REFUSED', 'The Canvas size is unavailable.');
+        return values;
+      };
+      const box = measure(), request = selected ? resolveNativeSelectedFrame(before, shown) : null;
+      const unchanged = () => {
+        const snapshot = host.getSnapshot();
+        return handle.current === active && canvas.current === element && current.current.nativeHost === host && !current.current.disabled
+          && snapshot === before && snapshot.accepted === before.accepted && snapshot.preparation === before.preparation && snapshot.selectedBodyId === before.selectedBodyId
+          && snapshot.available && !snapshot.disposed && !snapshot.poseGestureActive && snapshot.posePreview === null
+          && active.bridge.getEpoch() === epoch && active.bridge.getAppearanceToken() === owner
+          && measure().every((value, index) => Object.is(value, box[index]));
+      };
+      if (!unchanged() || shown.status !== 'ready' || !sameCamera(view, shown.camera)
+        || !sameCamera(view, host.getDisplayCamera()) || !sameCamera(view, active.bridge.getState().camera)) throw new RenderEditorError('STALE_CANDIDATE', 'The scene or view changed before framing.');
+      if (request) active.bridge.frameNativeBody(request); else active.viewer.fit();
+      if (!unchanged() || active.bridge.getState().status !== 'ready') throw new RenderEditorError('STALE_CANDIDATE', 'The scene changed during framing.');
+      active.refresh(); host.observeView(active.bridge.getState().camera);
+    } catch (cause) {active.refresh(); current.current.onError(cause);}
+    finally {if (transition) {try {active.bridge.endTransition();} catch (cause) {current.current.onError(cause);}}}
+  };
+  const fitSelected = () => frameNative(true);
   const fit = () => {
-    const active = handle.current, draft = nativeHost?.getSnapshot(); if (!active || disabled || draft && (!draft.available || draft.disposed || draft.poseGestureActive || draft.posePreview)) return;
-    try {active.viewer.fit(); active.refresh(); if (nativeHost) nativeHost.observeView(active.viewer.getState().camera);} catch (cause) {current.current.onError(cause);}
+    if (current.current.nativeHost) {frameNative(false); return;}
+    const active = handle.current; if (!active || current.current.disabled) return;
+    try {active.viewer.fit(); active.refresh();} catch (cause) {current.current.onError(cause);}
   };
   const bindings = state?.surfaceMaterials ?? [], original = state?.modelSet?.entries[0]?.result;
   const inspection = state && {status: state.status, sourceUnit: state.sourceUnit, mmToSceneUnit: state.mmToSceneUnit,
@@ -210,12 +258,13 @@ export function MaterialPreview({controller, nativeHost = null, disabled, onErro
         {nativeHost && <><span className="native-camera-badge" data-testid="native-camera-view-state">{nativeHost.getSnapshot().viewDirty ? 'User view' : 'Scene view'}</span>
           <button type="button" data-testid="native-scene-camera" disabled={disabled || !ready || !nativeHost.getSnapshot().available} onClick={() => {try {nativeHost.resetViewportCamera();} catch (cause) {onError(cause);}}}>Scene camera</button>
           <button type="button" data-testid="native-set-scene-camera" disabled={disabled || !ready || !nativeHost.getSnapshot().available || nativeHost.getSnapshot().dirty || !nativeHost.getSnapshot().viewDirty} onClick={() => {try {nativeHost.applyCamera();} catch (cause) {onError(cause);}}}>Set scene camera</button></>}
-        <button type="button" data-testid="native-frame" aria-keyshortcuts={nativeHost ? 'F' : undefined} disabled={disabled || !ready || !visible || !!nativeHost && !nativeHost.getSnapshot().available} onClick={fit}>Frame</button>
+        {nativeHost && <button type="button" data-testid="native-frame-selected" aria-keyshortcuts="F" disabled={disabled || !ready || !visible || !nativeHost.getSnapshot().available || nativeHost.getSnapshot().poseGestureActive || !!nativeHost.getSnapshot().posePreview} onClick={fitSelected}>Frame selected</button>}
+        <button type="button" data-testid="native-frame" aria-keyshortcuts={nativeHost ? 'Shift+F' : undefined} disabled={disabled || !ready || !visible || !!nativeHost && (!nativeHost.getSnapshot().available || nativeHost.getSnapshot().poseGestureActive || !!nativeHost.getSnapshot().posePreview)} onClick={fit}>{nativeHost ? 'Frame all' : 'Frame'}</button>
       </div>
     </div>
     <div className="material-native-canvas re-editor--workbench">
       <canvas ref={canvas} data-testid="material-preview-canvas" data-mount-id={mountId.current} aria-label="Rendered native Surface" tabIndex={nativeHost ? 0 : undefined} onPointerDown={nativeHost ? event => {if (!disabled && event.target === event.currentTarget) event.currentTarget.focus({preventScroll: true});} : undefined}/>
-      {nativeHost && <NativeSceneGizmo host={nativeHost} canvas={canvasElement} disabled={disabled || !ready || !visible} onError={onError} onFrame={fit}/>}
+      {nativeHost && <NativeSceneGizmo host={nativeHost} canvas={canvasElement} disabled={disabled || !ready || !visible} onError={onError} onFrame={fitSelected} onFrameAll={fit}/>}
       {nativeHost && selectionMessage && selectionMessage.document === nativeHost.getSnapshot().accepted && selectionMessage.bodyId === nativeHost.getSnapshot().selectedBodyId && <p className="native-selection-status" role="status" data-testid="native-selection-status">{selectionMessage.text}</p>}
       {(disabled || !ready || !visible) && <div className="material-native-overlay">{disabled ? 'Finish the current dialog to use the preview.' : visible ? message : state ? 'Surface hidden · Show to resume' : message}</div>}
       <span className="material-native-navigation">Drag: orbit · Shift + drag: pan · Wheel: zoom</span>
