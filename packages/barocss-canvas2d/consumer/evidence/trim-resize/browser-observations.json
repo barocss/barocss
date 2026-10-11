@@ -1,0 +1,4894 @@
+{
+  "status": "PASS",
+  "phase": 2,
+  "actualBrowser": true,
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+  "sourceProfile": "SOURCE bundled public ESM; no native installed tarball flow",
+  "logical": [
+    120,
+    120
+  ],
+  "DPR": 2,
+  "backing": [
+    240,
+    240
+  ],
+  "wholeFrameBytes": 230400,
+  "allBeforeAfterBytesExact": true,
+  "beforeOracle": {
+    "compared": 230400,
+    "maxError": 0,
+    "tolerance": 2,
+    "qualification": "THIS fixed nearest/integeraligned fixture, no linear/arbitrarytransform parity"
+  },
+  "afterOracle": {
+    "compared": 230400,
+    "maxError": 0,
+    "tolerance": 2,
+    "qualification": "THIS fixed nearest/integeraligned fixture, no linear/arbitrarytransform parity"
+  },
+  "qualifiedHits": [
+    {
+      "x": 44,
+      "y": 35,
+      "hit": "Sprite"
+    },
+    {
+      "x": 60,
+      "y": 35,
+      "hit": "Back"
+    },
+    {
+      "x": 76,
+      "y": 35,
+      "hit": "Sprite"
+    },
+    {
+      "x": 44,
+      "y": 45,
+      "hit": "Sprite"
+    },
+    {
+      "x": 60,
+      "y": 45,
+      "hit": "Sprite"
+    },
+    {
+      "x": 76,
+      "y": 45,
+      "hit": "Sprite"
+    },
+    {
+      "x": 20,
+      "y": 25,
+      "hit": "Back"
+    },
+    {
+      "x": 105,
+      "y": 90,
+      "hit": "Back"
+    }
+  ],
+  "Download": 0,
+  "physicalOpen": 0,
+  "PNG": 0,
+  "APIArtifactQualification": "document-snapshot.json is API serialization ONLY, notUISave/genuine download",
+  "disposedError": {
+    "name": "Canvas2DError",
+    "message": "host disposed",
+    "code": "DISPOSED"
+  },
+  "terminal": {
+    "generation": 3,
+    "disposed": true,
+    "borderedLoads": 1,
+    "trimPreparations": 1,
+    "candidates": 2,
+    "opens": 0,
+    "edits": 0,
+    "saves": 0,
+    "pngs": 0,
+    "binds": 3,
+    "unbinds": 3,
+    "lastTrim": {
+      "offsetX": 1,
+      "offsetY": 1
+    },
+    "contextId": "SizeConsumer",
+    "sceneVersion": 29,
+    "spriteData": {
+      "id": "Sprite",
+      "layer": 1,
+      "transform": {
+        "x": 36,
+        "y": 30,
+        "scaleX": 1,
+        "scaleY": 1,
+        "rotation": 0
+      },
+      "visible": true,
+      "alpha": 1,
+      "hitMode": "auto",
+      "imageId": "Trimmed",
+      "width": 48,
+      "height": 20,
+      "opacity": 1,
+      "sampling": "nearest",
+      "anchorX": 0,
+      "anchorY": 0,
+      "tint": [
+        1,
+        1,
+        1
+      ],
+      "blendMode": "normal",
+      "sourceRect": {
+        "x": 0,
+        "y": 0,
+        "width": 3,
+        "height": 2
+      }
+    },
+    "size": [
+      48,
+      20
+    ],
+    "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SizeConsumer\",\"nodes\":[{\"kind\":\"group\",\"id\":\"Team\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":100,\"height\":80,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":36,\"y\":30,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Trimmed\",\"width\":48,\"height\":20,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":3,\"height\":2}}]}]}",
+    "treeScene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SizeConsumer\",\"nodes\":[{\"kind\":\"group\",\"id\":\"Team\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":100,\"height\":80,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":36,\"y\":30,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Trimmed\",\"width\":48,\"height\":20,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":3,\"height\":2}}]}]}",
+    "assetBytes": [
+      255,
+      0,
+      0,
+      255,
+      10,
+      20,
+      30,
+      0,
+      0,
+      255,
+      0,
+      128,
+      0,
+      0,
+      255,
+      255,
+      255,
+      0,
+      255,
+      64,
+      255,
+      255,
+      255,
+      1
+    ],
+    "assets": {
+      "Atlas": {
+        "width": 2,
+        "height": 2,
+        "pixels": [
+          255,
+          0,
+          0,
+          255,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          255,
+          255,
+          0,
+          255,
+          0,
+          255
+        ]
+      },
+      "Bordered": {
+        "width": 5,
+        "height": 4,
+        "pixels": [
+          7,
+          8,
+          9,
+          0,
+          7,
+          8,
+          9,
+          0,
+          7,
+          8,
+          9,
+          0,
+          7,
+          8,
+          9,
+          0,
+          7,
+          8,
+          9,
+          0,
+          7,
+          8,
+          9,
+          0,
+          255,
+          0,
+          0,
+          255,
+          10,
+          20,
+          30,
+          0,
+          0,
+          255,
+          0,
+          128,
+          7,
+          8,
+          9,
+          0,
+          7,
+          8,
+          9,
+          0,
+          0,
+          0,
+          255,
+          255,
+          255,
+          0,
+          255,
+          64,
+          255,
+          255,
+          255,
+          1,
+          7,
+          8,
+          9,
+          0,
+          7,
+          8,
+          9,
+          0,
+          7,
+          8,
+          9,
+          0,
+          7,
+          8,
+          9,
+          0,
+          7,
+          8,
+          9,
+          0,
+          7,
+          8,
+          9,
+          0
+        ]
+      },
+      "Trimmed": {
+        "width": 3,
+        "height": 2,
+        "pixels": [
+          255,
+          0,
+          0,
+          255,
+          10,
+          20,
+          30,
+          0,
+          0,
+          255,
+          0,
+          128,
+          0,
+          0,
+          255,
+          255,
+          255,
+          0,
+          255,
+          64,
+          255,
+          255,
+          255,
+          1
+        ]
+      }
+    },
+    "contexts": [
+      {
+        "lost": false,
+        "calls": {
+          "draw": 2,
+          "read": 21
+        },
+        "error": 0,
+        "resources": {
+          "shader": {
+            "created": 4,
+            "deleted": 4,
+            "live": 0
+          },
+          "program": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "buffer": {
+            "created": 3,
+            "deleted": 3,
+            "live": 0
+          },
+          "vao": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "texture": {
+            "created": 1,
+            "deleted": 1,
+            "live": 0
+          },
+          "fbo": {
+            "created": 0,
+            "deleted": 0,
+            "live": 0
+          }
+        }
+      },
+      {
+        "lost": false,
+        "calls": {
+          "draw": 4,
+          "read": 64
+        },
+        "error": 0,
+        "resources": {
+          "shader": {
+            "created": 4,
+            "deleted": 4,
+            "live": 0
+          },
+          "program": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "buffer": {
+            "created": 3,
+            "deleted": 3,
+            "live": 0
+          },
+          "vao": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "texture": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "fbo": {
+            "created": 0,
+            "deleted": 0,
+            "live": 0
+          }
+        }
+      },
+      {
+        "lost": false,
+        "calls": {
+          "draw": 2,
+          "read": 57
+        },
+        "error": 0,
+        "resources": {
+          "shader": {
+            "created": 4,
+            "deleted": 4,
+            "live": 0
+          },
+          "program": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "buffer": {
+            "created": 3,
+            "deleted": 3,
+            "live": 0
+          },
+          "vao": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "texture": {
+            "created": 3,
+            "deleted": 3,
+            "live": 0
+          },
+          "fbo": {
+            "created": 0,
+            "deleted": 0,
+            "live": 0
+          }
+        }
+      }
+    ],
+    "samples": [],
+    "pointerLog": [
+      "Sprite",
+      "Team",
+      "stage"
+    ]
+  },
+  "facilities": {
+    "contexts": [
+      {
+        "id": 1,
+        "canvasId": "scene",
+        "lost": false,
+        "error": 0,
+        "draws": 2,
+        "reads": 21,
+        "resources": {
+          "shader": {
+            "created": 4,
+            "deleted": 4,
+            "live": 0
+          },
+          "program": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "buffer": {
+            "created": 3,
+            "deleted": 3,
+            "live": 0
+          },
+          "vao": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "texture": {
+            "created": 1,
+            "deleted": 1,
+            "live": 0
+          },
+          "fbo": {
+            "created": 0,
+            "deleted": 0,
+            "live": 0
+          }
+        }
+      },
+      {
+        "id": 2,
+        "canvasId": "scene",
+        "lost": false,
+        "error": 0,
+        "draws": 4,
+        "reads": 64,
+        "resources": {
+          "shader": {
+            "created": 4,
+            "deleted": 4,
+            "live": 0
+          },
+          "program": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "buffer": {
+            "created": 3,
+            "deleted": 3,
+            "live": 0
+          },
+          "vao": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "texture": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "fbo": {
+            "created": 0,
+            "deleted": 0,
+            "live": 0
+          }
+        }
+      },
+      {
+        "id": 3,
+        "canvasId": "scene",
+        "lost": false,
+        "error": 0,
+        "draws": 2,
+        "reads": 57,
+        "resources": {
+          "shader": {
+            "created": 4,
+            "deleted": 4,
+            "live": 0
+          },
+          "program": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "buffer": {
+            "created": 3,
+            "deleted": 3,
+            "live": 0
+          },
+          "vao": {
+            "created": 2,
+            "deleted": 2,
+            "live": 0
+          },
+          "texture": {
+            "created": 3,
+            "deleted": 3,
+            "live": 0
+          },
+          "fbo": {
+            "created": 0,
+            "deleted": 0,
+            "live": 0
+          }
+        }
+      }
+    ],
+    "listeners": [
+      {
+        "id": 1,
+        "targetIdentity": 1,
+        "targetId": "scene",
+        "type": "webglcontextlost",
+        "capture": false,
+        "category": "host-diagnostic",
+        "active": true,
+        "adds": 1,
+        "removes": 0,
+        "disabled": null
+      },
+      {
+        "id": 2,
+        "targetIdentity": 1,
+        "targetId": "scene",
+        "type": "webglcontextlost",
+        "capture": false,
+        "category": "renderer-core",
+        "active": false,
+        "adds": 1,
+        "removes": 1,
+        "disabled": null
+      },
+      {
+        "id": 3,
+        "targetIdentity": 1,
+        "targetId": "scene",
+        "type": "webglcontextrestored",
+        "capture": false,
+        "category": "renderer-core",
+        "active": false,
+        "adds": 1,
+        "removes": 1,
+        "disabled": null
+      },
+      {
+        "id": 4,
+        "targetIdentity": 1,
+        "targetId": "scene",
+        "type": "pointerdown",
+        "capture": false,
+        "category": "host-product",
+        "active": false,
+        "adds": 1,
+        "removes": 1,
+        "disabled": null
+      },
+      {
+        "id": 5,
+        "targetIdentity": 2,
+        "targetId": "wide",
+        "type": "click",
+        "capture": false,
+        "category": "host-product",
+        "active": true,
+        "adds": 1,
+        "removes": 0,
+        "disabled": true
+      },
+      {
+        "id": 6,
+        "targetIdentity": 3,
+        "targetId": "tall",
+        "type": "click",
+        "capture": false,
+        "category": "host-product",
+        "active": true,
+        "adds": 1,
+        "removes": 0,
+        "disabled": true
+      },
+      {
+        "id": 7,
+        "targetIdentity": 4,
+        "targetId": "invalid",
+        "type": "click",
+        "capture": false,
+        "category": "host-product",
+        "active": true,
+        "adds": 1,
+        "removes": 0,
+        "disabled": true
+      },
+      {
+        "id": 8,
+        "targetIdentity": 5,
+        "targetId": "bordered",
+        "type": "click",
+        "capture": false,
+        "category": "host-product",
+        "active": true,
+        "adds": 1,
+        "removes": 0,
+        "disabled": true
+      },
+      {
+        "id": 9,
+        "targetIdentity": 6,
+        "targetId": "trim",
+        "type": "click",
+        "capture": false,
+        "category": "host-product",
+        "active": true,
+        "adds": 1,
+        "removes": 0,
+        "disabled": true
+      },
+      {
+        "id": 10,
+        "targetIdentity": 7,
+        "targetId": "edit",
+        "type": "click",
+        "capture": false,
+        "category": "host-product",
+        "active": true,
+        "adds": 1,
+        "removes": 0,
+        "disabled": true
+      },
+      {
+        "id": 11,
+        "targetIdentity": 8,
+        "targetId": "png",
+        "type": "click",
+        "capture": false,
+        "category": "host-product",
+        "active": true,
+        "adds": 1,
+        "removes": 0,
+        "disabled": true
+      },
+      {
+        "id": 12,
+        "targetIdentity": 9,
+        "targetId": "dispose",
+        "type": "click",
+        "capture": false,
+        "category": "host-product",
+        "active": true,
+        "adds": 1,
+        "removes": 0,
+        "disabled": true
+      },
+      {
+        "id": 13,
+        "targetIdentity": 10,
+        "targetId": "save",
+        "type": "click",
+        "capture": false,
+        "category": "host-product",
+        "active": true,
+        "adds": 1,
+        "removes": 0,
+        "disabled": true
+      },
+      {
+        "id": 14,
+        "targetIdentity": 11,
+        "targetId": "open",
+        "type": "change",
+        "capture": false,
+        "category": "host-product",
+        "active": true,
+        "adds": 1,
+        "removes": 0,
+        "disabled": true
+      },
+      {
+        "id": 15,
+        "targetIdentity": 12,
+        "targetId": "scene",
+        "type": "webglcontextlost",
+        "capture": false,
+        "category": "host-diagnostic",
+        "active": true,
+        "adds": 1,
+        "removes": 0,
+        "disabled": null
+      },
+      {
+        "id": 16,
+        "targetIdentity": 12,
+        "targetId": "scene",
+        "type": "webglcontextlost",
+        "capture": false,
+        "category": "renderer-core",
+        "active": false,
+        "adds": 1,
+        "removes": 1,
+        "disabled": null
+      },
+      {
+        "id": 17,
+        "targetIdentity": 12,
+        "targetId": "scene",
+        "type": "webglcontextrestored",
+        "capture": false,
+        "category": "renderer-core",
+        "active": false,
+        "adds": 1,
+        "removes": 1,
+        "disabled": null
+      },
+      {
+        "id": 18,
+        "targetIdentity": 12,
+        "targetId": "scene",
+        "type": "pointerdown",
+        "capture": false,
+        "category": "host-product",
+        "active": false,
+        "adds": 1,
+        "removes": 1,
+        "disabled": null
+      },
+      {
+        "id": 19,
+        "targetIdentity": 13,
+        "targetId": "scene",
+        "type": "webglcontextlost",
+        "capture": false,
+        "category": "host-diagnostic",
+        "active": true,
+        "adds": 1,
+        "removes": 0,
+        "disabled": null
+      },
+      {
+        "id": 20,
+        "targetIdentity": 13,
+        "targetId": "scene",
+        "type": "webglcontextlost",
+        "capture": false,
+        "category": "renderer-core",
+        "active": false,
+        "adds": 1,
+        "removes": 1,
+        "disabled": null
+      },
+      {
+        "id": 21,
+        "targetIdentity": 13,
+        "targetId": "scene",
+        "type": "webglcontextrestored",
+        "capture": false,
+        "category": "renderer-core",
+        "active": false,
+        "adds": 1,
+        "removes": 1,
+        "disabled": null
+      },
+      {
+        "id": 22,
+        "targetIdentity": 13,
+        "targetId": "scene",
+        "type": "pointerdown",
+        "capture": false,
+        "category": "host-product",
+        "active": false,
+        "adds": 1,
+        "removes": 1,
+        "disabled": null
+      }
+    ],
+    "events": [
+      {
+        "type": "pointerdown",
+        "target": "bordered",
+        "trusted": true,
+        "clientX": 252.8800048828125,
+        "clientY": 136.25
+      },
+      {
+        "type": "click",
+        "target": "bordered",
+        "trusted": true,
+        "clientX": 252,
+        "clientY": 136
+      },
+      {
+        "type": "pointerdown",
+        "target": "wide",
+        "trusted": true,
+        "clientX": 54.41999816894531,
+        "clientY": 136.25
+      },
+      {
+        "type": "click",
+        "target": "wide",
+        "trusted": true,
+        "clientX": 54,
+        "clientY": 136
+      },
+      {
+        "type": "pointerdown",
+        "target": "trim",
+        "trusted": true,
+        "clientX": 403.2099914550781,
+        "clientY": 136.25
+      },
+      {
+        "type": "click",
+        "target": "trim",
+        "trusted": true,
+        "clientX": 403,
+        "clientY": 136
+      },
+      {
+        "type": "pointerdown",
+        "target": "scene",
+        "trusted": true,
+        "clientX": 64,
+        "clientY": 284.75
+      },
+      {
+        "type": "click",
+        "target": "scene",
+        "trusted": true,
+        "clientX": 64,
+        "clientY": 284
+      },
+      {
+        "type": "pointerdown",
+        "target": "dispose",
+        "trusted": true,
+        "clientX": 776.9099731445312,
+        "clientY": 136.25
+      },
+      {
+        "type": "click",
+        "target": "dispose",
+        "trusted": true,
+        "clientX": 776,
+        "clientY": 136
+      },
+      {
+        "type": "pointerdown",
+        "target": "scene",
+        "trusted": true,
+        "clientX": 64,
+        "clientY": 284.75
+      },
+      {
+        "type": "click",
+        "target": "scene",
+        "trusted": true,
+        "clientX": 64,
+        "clientY": 284
+      }
+    ],
+    "errors": [],
+    "rejections": [],
+    "nativeErrors": [],
+    "urls": [],
+    "downloads": [],
+    "files": 0,
+    "fileTexts": 0,
+    "hashes": [
+      {
+        "settled": true
+      },
+      {
+        "settled": true
+      },
+      {
+        "settled": true
+      },
+      {
+        "settled": true
+      },
+      {
+        "settled": true
+      },
+      {
+        "settled": true
+      },
+      {
+        "settled": true
+      },
+      {
+        "settled": true
+      }
+    ],
+    "nativeImages": "UNINSTRUMENTED; no decoder flow exercised",
+    "nativeFonts": "UNINSTRUMENTED; no font flow exercised"
+  },
+  "stages": [
+    {
+      "label": "initial default; no producer replay",
+      "stable": {
+        "state": {
+          "generation": 1,
+          "disposed": false,
+          "borderedLoads": 0,
+          "trimPreparations": 0,
+          "candidates": 0,
+          "opens": 0,
+          "edits": 0,
+          "saves": 0,
+          "pngs": 0,
+          "binds": 1,
+          "unbinds": 0,
+          "lastTrim": null,
+          "contextId": "SizeConsumer",
+          "sceneVersion": 29,
+          "spriteData": {
+            "id": "Sprite",
+            "layer": 1,
+            "transform": {
+              "x": 60,
+              "y": 60,
+              "scaleX": 1,
+              "scaleY": 1,
+              "rotation": 0
+            },
+            "visible": true,
+            "alpha": 1,
+            "hitMode": "auto",
+            "imageId": "Atlas",
+            "width": 40,
+            "height": 40,
+            "opacity": 1,
+            "sampling": "nearest",
+            "anchorX": 0.5,
+            "anchorY": 0.5,
+            "tint": [
+              1,
+              1,
+              1
+            ],
+            "blendMode": "normal"
+          },
+          "size": [
+            40,
+            40
+          ],
+          "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SizeConsumer\",\"nodes\":[{\"kind\":\"group\",\"id\":\"Team\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":100,\"height\":80,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":60,\"y\":60,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":40,\"height\":40,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0.5,\"anchorY\":0.5,\"tint\":[1,1,1],\"blendMode\":\"normal\"}]}]}",
+          "treeScene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SizeConsumer\",\"nodes\":[{\"kind\":\"group\",\"id\":\"Team\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":100,\"height\":80,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":60,\"y\":60,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Atlas\",\"width\":40,\"height\":40,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0.5,\"anchorY\":0.5,\"tint\":[1,1,1],\"blendMode\":\"normal\"}]}]}",
+          "assetBytes": [
+            255,
+            0,
+            0,
+            255,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            255,
+            255,
+            0,
+            255,
+            0,
+            255
+          ],
+          "assets": {
+            "Atlas": {
+              "width": 2,
+              "height": 2,
+              "pixels": [
+                255,
+                0,
+                0,
+                255,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                255,
+                255,
+                0,
+                255,
+                0,
+                255
+              ]
+            }
+          },
+          "samples": [
+            {
+              "x": 30,
+              "y": 50,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 50,
+              "y": 50,
+              "rgba": [
+                255,
+                0,
+                0,
+                255
+              ],
+              "hit": "Sprite"
+            },
+            {
+              "x": 70,
+              "y": 50,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 30,
+              "y": 70,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 50,
+              "y": 70,
+              "rgba": [
+                0,
+                0,
+                255,
+                255
+              ],
+              "hit": "Sprite"
+            },
+            {
+              "x": 70,
+              "y": 70,
+              "rgba": [
+                0,
+                255,
+                0,
+                255
+              ],
+              "hit": "Sprite"
+            },
+            {
+              "x": 50,
+              "y": 30,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            }
+          ],
+          "pointerLog": []
+        },
+        "document": "{\"format\":\"barocss-canvas-document\",\"version\":1,\"scene\":\"{\\\"version\\\":29,\\\"unit\\\":\\\"logical-px\\\",\\\"contextId\\\":\\\"SizeConsumer\\\",\\\"nodes\\\":[{\\\"kind\\\":\\\"group\\\",\\\"id\\\":\\\"Team\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"children\\\":[{\\\"kind\\\":\\\"rect\\\",\\\"id\\\":\\\"Back\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":10,\\\"y\\\":20,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"width\\\":100,\\\"height\\\":80,\\\"fill\\\":[1,1,0,1]},{\\\"kind\\\":\\\"image\\\",\\\"id\\\":\\\"Sprite\\\",\\\"layer\\\":1,\\\"transform\\\":{\\\"x\\\":60,\\\"y\\\":60,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"imageId\\\":\\\"Atlas\\\",\\\"width\\\":40,\\\"height\\\":40,\\\"opacity\\\":1,\\\"sampling\\\":\\\"nearest\\\",\\\"anchorX\\\":0.5,\\\"anchorY\\\":0.5,\\\"tint\\\":[1,1,1],\\\"blendMode\\\":\\\"normal\\\"}]}]}\",\"assets\":[{\"id\":\"Atlas\",\"width\":2,\"height\":2,\"byteLength\":16,\"sha256\":\"112659c75b0a08343bb4625ce39a879b9114f821056f57351774008a1e905240\",\"pixelsBase64\":\"/wAA/wAAAAAAAP//AP8A/w==\"}]}",
+        "assets": {
+          "Atlas": {
+            "width": 2,
+            "height": 2,
+            "pixels": [
+              255,
+              0,
+              0,
+              255,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              255,
+              255,
+              0,
+              255,
+              0,
+              255
+            ]
+          }
+        }
+      },
+      "facilities": {
+        "contexts": [
+          {
+            "id": 1,
+            "canvasId": "scene",
+            "lost": false,
+            "error": 0,
+            "draws": 2,
+            "reads": 14,
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 4
+              },
+              "program": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 0,
+                "live": 3
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "texture": {
+                "created": 1,
+                "deleted": 0,
+                "live": 1
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          }
+        ],
+        "listeners": [
+          {
+            "id": 1,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "host-diagnostic",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 2,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "renderer-core",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 3,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "webglcontextrestored",
+            "capture": false,
+            "category": "renderer-core",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 4,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "pointerdown",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 5,
+            "targetIdentity": 2,
+            "targetId": "wide",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 6,
+            "targetIdentity": 3,
+            "targetId": "tall",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 7,
+            "targetIdentity": 4,
+            "targetId": "invalid",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 8,
+            "targetIdentity": 5,
+            "targetId": "bordered",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 9,
+            "targetIdentity": 6,
+            "targetId": "trim",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 10,
+            "targetIdentity": 7,
+            "targetId": "edit",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 11,
+            "targetIdentity": 8,
+            "targetId": "png",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 12,
+            "targetIdentity": 9,
+            "targetId": "dispose",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 13,
+            "targetIdentity": 10,
+            "targetId": "save",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 14,
+            "targetIdentity": 11,
+            "targetId": "open",
+            "type": "change",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          }
+        ],
+        "events": [],
+        "errors": [],
+        "rejections": [],
+        "nativeErrors": [],
+        "urls": [],
+        "downloads": [],
+        "files": 0,
+        "fileTexts": 0,
+        "hashes": [
+          {
+            "settled": true
+          }
+        ],
+        "nativeImages": "UNINSTRUMENTED; no decoder flow exercised",
+        "nativeFonts": "UNINSTRUMENTED; no font flow exercised"
+      }
+    },
+    {
+      "label": "physical Load bordered establishes bounded source/geometry",
+      "stable": {
+        "state": {
+          "generation": 2,
+          "disposed": false,
+          "borderedLoads": 1,
+          "trimPreparations": 0,
+          "candidates": 1,
+          "opens": 0,
+          "edits": 0,
+          "saves": 0,
+          "pngs": 0,
+          "binds": 2,
+          "unbinds": 1,
+          "lastTrim": null,
+          "contextId": "SizeConsumer",
+          "sceneVersion": 29,
+          "spriteData": {
+            "id": "Sprite",
+            "layer": 1,
+            "transform": {
+              "x": 20,
+              "y": 20,
+              "scaleX": 1,
+              "scaleY": 1,
+              "rotation": 0
+            },
+            "visible": true,
+            "alpha": 1,
+            "hitMode": "auto",
+            "imageId": "Bordered",
+            "width": 80,
+            "height": 80,
+            "opacity": 1,
+            "sampling": "nearest",
+            "anchorX": 0,
+            "anchorY": 0,
+            "tint": [
+              1,
+              1,
+              1
+            ],
+            "blendMode": "normal",
+            "sourceRect": {
+              "x": 0,
+              "y": 0,
+              "width": 5,
+              "height": 4
+            }
+          },
+          "size": [
+            80,
+            80
+          ],
+          "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SizeConsumer\",\"nodes\":[{\"kind\":\"group\",\"id\":\"Team\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":100,\"height\":80,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Bordered\",\"width\":80,\"height\":80,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":5,\"height\":4}}]}]}",
+          "treeScene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SizeConsumer\",\"nodes\":[{\"kind\":\"group\",\"id\":\"Team\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":100,\"height\":80,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Bordered\",\"width\":80,\"height\":80,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":5,\"height\":4}}]}]}",
+          "assetBytes": [
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            255,
+            0,
+            0,
+            255,
+            10,
+            20,
+            30,
+            0,
+            0,
+            255,
+            0,
+            128,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            0,
+            0,
+            255,
+            255,
+            255,
+            0,
+            255,
+            64,
+            255,
+            255,
+            255,
+            1,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0
+          ],
+          "assets": {
+            "Atlas": {
+              "width": 2,
+              "height": 2,
+              "pixels": [
+                255,
+                0,
+                0,
+                255,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                255,
+                255,
+                0,
+                255,
+                0,
+                255
+              ]
+            },
+            "Bordered": {
+              "width": 5,
+              "height": 4,
+              "pixels": [
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                255,
+                0,
+                0,
+                255,
+                10,
+                20,
+                30,
+                0,
+                0,
+                255,
+                0,
+                128,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                0,
+                0,
+                255,
+                255,
+                255,
+                0,
+                255,
+                64,
+                255,
+                255,
+                255,
+                1,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0
+              ]
+            }
+          },
+          "samples": [
+            {
+              "x": 30,
+              "y": 50,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 50,
+              "y": 50,
+              "rgba": [
+                255,
+                0,
+                0,
+                255
+              ],
+              "hit": "Sprite"
+            },
+            {
+              "x": 70,
+              "y": 50,
+              "rgba": [
+                127,
+                255,
+                0,
+                255
+              ],
+              "hit": "Sprite"
+            },
+            {
+              "x": 30,
+              "y": 70,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 50,
+              "y": 70,
+              "rgba": [
+                0,
+                0,
+                255,
+                255
+              ],
+              "hit": "Sprite"
+            },
+            {
+              "x": 70,
+              "y": 70,
+              "rgba": [
+                255,
+                255,
+                1,
+                255
+              ],
+              "hit": "Sprite"
+            },
+            {
+              "x": 50,
+              "y": 30,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            }
+          ],
+          "pointerLog": []
+        },
+        "document": "{\"format\":\"barocss-canvas-document\",\"version\":1,\"scene\":\"{\\\"version\\\":29,\\\"unit\\\":\\\"logical-px\\\",\\\"contextId\\\":\\\"SizeConsumer\\\",\\\"nodes\\\":[{\\\"kind\\\":\\\"group\\\",\\\"id\\\":\\\"Team\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"children\\\":[{\\\"kind\\\":\\\"rect\\\",\\\"id\\\":\\\"Back\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":10,\\\"y\\\":20,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"width\\\":100,\\\"height\\\":80,\\\"fill\\\":[1,1,0,1]},{\\\"kind\\\":\\\"image\\\",\\\"id\\\":\\\"Sprite\\\",\\\"layer\\\":1,\\\"transform\\\":{\\\"x\\\":20,\\\"y\\\":20,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"imageId\\\":\\\"Bordered\\\",\\\"width\\\":80,\\\"height\\\":80,\\\"opacity\\\":1,\\\"sampling\\\":\\\"nearest\\\",\\\"anchorX\\\":0,\\\"anchorY\\\":0,\\\"tint\\\":[1,1,1],\\\"blendMode\\\":\\\"normal\\\",\\\"sourceRect\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"width\\\":5,\\\"height\\\":4}}]}]}\",\"assets\":[{\"id\":\"Bordered\",\"width\":5,\"height\":4,\"byteLength\":80,\"sha256\":\"cd9775e234a4fba8f0003f95e5f8ae626d6da5a5248fe96ca2a463349a3c8eee\",\"pixelsBase64\":\"BwgJAAcICQAHCAkABwgJAAcICQAHCAkA/wAA/woUHgAA/wCABwgJAAcICQAAAP///wD/QP///wEHCAkABwgJAAcICQAHCAkABwgJAAcICQA=\"}]}",
+        "assets": {
+          "Atlas": {
+            "width": 2,
+            "height": 2,
+            "pixels": [
+              255,
+              0,
+              0,
+              255,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              255,
+              255,
+              0,
+              255,
+              0,
+              255
+            ]
+          },
+          "Bordered": {
+            "width": 5,
+            "height": 4,
+            "pixels": [
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              255,
+              0,
+              0,
+              255,
+              10,
+              20,
+              30,
+              0,
+              0,
+              255,
+              0,
+              128,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              0,
+              0,
+              255,
+              255,
+              255,
+              0,
+              255,
+              64,
+              255,
+              255,
+              255,
+              1,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0
+            ]
+          }
+        }
+      },
+      "facilities": {
+        "contexts": [
+          {
+            "id": 1,
+            "canvasId": "scene",
+            "lost": false,
+            "error": 0,
+            "draws": 2,
+            "reads": 21,
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 0
+              },
+              "program": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 3,
+                "live": 0
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "texture": {
+                "created": 1,
+                "deleted": 1,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          },
+          {
+            "id": 2,
+            "canvasId": "scene",
+            "lost": false,
+            "error": 0,
+            "draws": 2,
+            "reads": 28,
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 4
+              },
+              "program": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 0,
+                "live": 3
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "texture": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          }
+        ],
+        "listeners": [
+          {
+            "id": 1,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "host-diagnostic",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 2,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "renderer-core",
+            "active": false,
+            "adds": 1,
+            "removes": 1,
+            "disabled": null
+          },
+          {
+            "id": 3,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "webglcontextrestored",
+            "capture": false,
+            "category": "renderer-core",
+            "active": false,
+            "adds": 1,
+            "removes": 1,
+            "disabled": null
+          },
+          {
+            "id": 4,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "pointerdown",
+            "capture": false,
+            "category": "host-product",
+            "active": false,
+            "adds": 1,
+            "removes": 1,
+            "disabled": null
+          },
+          {
+            "id": 5,
+            "targetIdentity": 2,
+            "targetId": "wide",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 6,
+            "targetIdentity": 3,
+            "targetId": "tall",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 7,
+            "targetIdentity": 4,
+            "targetId": "invalid",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 8,
+            "targetIdentity": 5,
+            "targetId": "bordered",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 9,
+            "targetIdentity": 6,
+            "targetId": "trim",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 10,
+            "targetIdentity": 7,
+            "targetId": "edit",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 11,
+            "targetIdentity": 8,
+            "targetId": "png",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 12,
+            "targetIdentity": 9,
+            "targetId": "dispose",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 13,
+            "targetIdentity": 10,
+            "targetId": "save",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 14,
+            "targetIdentity": 11,
+            "targetId": "open",
+            "type": "change",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 15,
+            "targetIdentity": 12,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "host-diagnostic",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 16,
+            "targetIdentity": 12,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "renderer-core",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 17,
+            "targetIdentity": 12,
+            "targetId": "scene",
+            "type": "webglcontextrestored",
+            "capture": false,
+            "category": "renderer-core",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 18,
+            "targetIdentity": 12,
+            "targetId": "scene",
+            "type": "pointerdown",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          }
+        ],
+        "events": [
+          {
+            "type": "pointerdown",
+            "target": "bordered",
+            "trusted": true,
+            "clientX": 252.8800048828125,
+            "clientY": 136.25
+          },
+          {
+            "type": "click",
+            "target": "bordered",
+            "trusted": true,
+            "clientX": 252,
+            "clientY": 136
+          }
+        ],
+        "errors": [],
+        "rejections": [],
+        "nativeErrors": [],
+        "urls": [],
+        "downloads": [],
+        "files": 0,
+        "fileTexts": 0,
+        "hashes": [
+          {
+            "settled": true
+          },
+          {
+            "settled": true
+          }
+        ],
+        "nativeImages": "UNINSTRUMENTED; no decoder flow exercised",
+        "nativeFonts": "UNINSTRUMENTED; no font flow exercised"
+      }
+    },
+    {
+      "label": "physical Wide80x40; beforeTrim fullframe/literal oracle",
+      "stable": {
+        "state": {
+          "generation": 2,
+          "disposed": false,
+          "borderedLoads": 1,
+          "trimPreparations": 0,
+          "candidates": 1,
+          "opens": 0,
+          "edits": 0,
+          "saves": 0,
+          "pngs": 0,
+          "binds": 2,
+          "unbinds": 1,
+          "lastTrim": null,
+          "contextId": "SizeConsumer",
+          "sceneVersion": 29,
+          "spriteData": {
+            "id": "Sprite",
+            "layer": 1,
+            "transform": {
+              "x": 20,
+              "y": 20,
+              "scaleX": 1,
+              "scaleY": 1,
+              "rotation": 0
+            },
+            "visible": true,
+            "alpha": 1,
+            "hitMode": "auto",
+            "imageId": "Bordered",
+            "width": 80,
+            "height": 40,
+            "opacity": 1,
+            "sampling": "nearest",
+            "anchorX": 0,
+            "anchorY": 0,
+            "tint": [
+              1,
+              1,
+              1
+            ],
+            "blendMode": "normal",
+            "sourceRect": {
+              "x": 0,
+              "y": 0,
+              "width": 5,
+              "height": 4
+            }
+          },
+          "size": [
+            80,
+            40
+          ],
+          "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SizeConsumer\",\"nodes\":[{\"kind\":\"group\",\"id\":\"Team\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":100,\"height\":80,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Bordered\",\"width\":80,\"height\":40,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":5,\"height\":4}}]}]}",
+          "treeScene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SizeConsumer\",\"nodes\":[{\"kind\":\"group\",\"id\":\"Team\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":100,\"height\":80,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":20,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Bordered\",\"width\":80,\"height\":40,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":5,\"height\":4}}]}]}",
+          "assetBytes": [
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            255,
+            0,
+            0,
+            255,
+            10,
+            20,
+            30,
+            0,
+            0,
+            255,
+            0,
+            128,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            0,
+            0,
+            255,
+            255,
+            255,
+            0,
+            255,
+            64,
+            255,
+            255,
+            255,
+            1,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0,
+            7,
+            8,
+            9,
+            0
+          ],
+          "assets": {
+            "Atlas": {
+              "width": 2,
+              "height": 2,
+              "pixels": [
+                255,
+                0,
+                0,
+                255,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                255,
+                255,
+                0,
+                255,
+                0,
+                255
+              ]
+            },
+            "Bordered": {
+              "width": 5,
+              "height": 4,
+              "pixels": [
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                255,
+                0,
+                0,
+                255,
+                10,
+                20,
+                30,
+                0,
+                0,
+                255,
+                0,
+                128,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                0,
+                0,
+                255,
+                255,
+                255,
+                0,
+                255,
+                64,
+                255,
+                255,
+                255,
+                1,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0
+              ]
+            }
+          },
+          "samples": [
+            {
+              "x": 30,
+              "y": 50,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 50,
+              "y": 50,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 70,
+              "y": 50,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 30,
+              "y": 70,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 50,
+              "y": 70,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 70,
+              "y": 70,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 50,
+              "y": 30,
+              "rgba": [
+                255,
+                0,
+                0,
+                255
+              ],
+              "hit": "Sprite"
+            }
+          ],
+          "pointerLog": []
+        },
+        "document": "{\"format\":\"barocss-canvas-document\",\"version\":1,\"scene\":\"{\\\"version\\\":29,\\\"unit\\\":\\\"logical-px\\\",\\\"contextId\\\":\\\"SizeConsumer\\\",\\\"nodes\\\":[{\\\"kind\\\":\\\"group\\\",\\\"id\\\":\\\"Team\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"children\\\":[{\\\"kind\\\":\\\"rect\\\",\\\"id\\\":\\\"Back\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":10,\\\"y\\\":20,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"width\\\":100,\\\"height\\\":80,\\\"fill\\\":[1,1,0,1]},{\\\"kind\\\":\\\"image\\\",\\\"id\\\":\\\"Sprite\\\",\\\"layer\\\":1,\\\"transform\\\":{\\\"x\\\":20,\\\"y\\\":20,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"imageId\\\":\\\"Bordered\\\",\\\"width\\\":80,\\\"height\\\":40,\\\"opacity\\\":1,\\\"sampling\\\":\\\"nearest\\\",\\\"anchorX\\\":0,\\\"anchorY\\\":0,\\\"tint\\\":[1,1,1],\\\"blendMode\\\":\\\"normal\\\",\\\"sourceRect\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"width\\\":5,\\\"height\\\":4}}]}]}\",\"assets\":[{\"id\":\"Bordered\",\"width\":5,\"height\":4,\"byteLength\":80,\"sha256\":\"cd9775e234a4fba8f0003f95e5f8ae626d6da5a5248fe96ca2a463349a3c8eee\",\"pixelsBase64\":\"BwgJAAcICQAHCAkABwgJAAcICQAHCAkA/wAA/woUHgAA/wCABwgJAAcICQAAAP///wD/QP///wEHCAkABwgJAAcICQAHCAkABwgJAAcICQA=\"}]}",
+        "assets": {
+          "Atlas": {
+            "width": 2,
+            "height": 2,
+            "pixels": [
+              255,
+              0,
+              0,
+              255,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              255,
+              255,
+              0,
+              255,
+              0,
+              255
+            ]
+          },
+          "Bordered": {
+            "width": 5,
+            "height": 4,
+            "pixels": [
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              255,
+              0,
+              0,
+              255,
+              10,
+              20,
+              30,
+              0,
+              0,
+              255,
+              0,
+              128,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              0,
+              0,
+              255,
+              255,
+              255,
+              0,
+              255,
+              64,
+              255,
+              255,
+              255,
+              1,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0
+            ]
+          }
+        }
+      },
+      "facilities": {
+        "contexts": [
+          {
+            "id": 1,
+            "canvasId": "scene",
+            "lost": false,
+            "error": 0,
+            "draws": 2,
+            "reads": 21,
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 0
+              },
+              "program": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 3,
+                "live": 0
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "texture": {
+                "created": 1,
+                "deleted": 1,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          },
+          {
+            "id": 2,
+            "canvasId": "scene",
+            "lost": false,
+            "error": 0,
+            "draws": 4,
+            "reads": 64,
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 4
+              },
+              "program": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 0,
+                "live": 3
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "texture": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          }
+        ],
+        "listeners": [
+          {
+            "id": 1,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "host-diagnostic",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 2,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "renderer-core",
+            "active": false,
+            "adds": 1,
+            "removes": 1,
+            "disabled": null
+          },
+          {
+            "id": 3,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "webglcontextrestored",
+            "capture": false,
+            "category": "renderer-core",
+            "active": false,
+            "adds": 1,
+            "removes": 1,
+            "disabled": null
+          },
+          {
+            "id": 4,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "pointerdown",
+            "capture": false,
+            "category": "host-product",
+            "active": false,
+            "adds": 1,
+            "removes": 1,
+            "disabled": null
+          },
+          {
+            "id": 5,
+            "targetIdentity": 2,
+            "targetId": "wide",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 6,
+            "targetIdentity": 3,
+            "targetId": "tall",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 7,
+            "targetIdentity": 4,
+            "targetId": "invalid",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 8,
+            "targetIdentity": 5,
+            "targetId": "bordered",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 9,
+            "targetIdentity": 6,
+            "targetId": "trim",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 10,
+            "targetIdentity": 7,
+            "targetId": "edit",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 11,
+            "targetIdentity": 8,
+            "targetId": "png",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 12,
+            "targetIdentity": 9,
+            "targetId": "dispose",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 13,
+            "targetIdentity": 10,
+            "targetId": "save",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 14,
+            "targetIdentity": 11,
+            "targetId": "open",
+            "type": "change",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 15,
+            "targetIdentity": 12,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "host-diagnostic",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 16,
+            "targetIdentity": 12,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "renderer-core",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 17,
+            "targetIdentity": 12,
+            "targetId": "scene",
+            "type": "webglcontextrestored",
+            "capture": false,
+            "category": "renderer-core",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 18,
+            "targetIdentity": 12,
+            "targetId": "scene",
+            "type": "pointerdown",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          }
+        ],
+        "events": [
+          {
+            "type": "pointerdown",
+            "target": "bordered",
+            "trusted": true,
+            "clientX": 252.8800048828125,
+            "clientY": 136.25
+          },
+          {
+            "type": "click",
+            "target": "bordered",
+            "trusted": true,
+            "clientX": 252,
+            "clientY": 136
+          },
+          {
+            "type": "pointerdown",
+            "target": "wide",
+            "trusted": true,
+            "clientX": 54.41999816894531,
+            "clientY": 136.25
+          },
+          {
+            "type": "click",
+            "target": "wide",
+            "trusted": true,
+            "clientX": 54,
+            "clientY": 136
+          }
+        ],
+        "errors": [],
+        "rejections": [],
+        "nativeErrors": [],
+        "urls": [],
+        "downloads": [],
+        "files": 0,
+        "fileTexts": 0,
+        "hashes": [
+          {
+            "settled": true
+          },
+          {
+            "settled": true
+          },
+          {
+            "settled": true
+          }
+        ],
+        "nativeImages": "UNINSTRUMENTED; no decoder flow exercised",
+        "nativeFonts": "UNINSTRUMENTED; no font flow exercised"
+      }
+    },
+    {
+      "label": "physical Trim preserves ALL230400 bytes after Wide; derived48x20at36,30",
+      "stable": {
+        "state": {
+          "generation": 3,
+          "disposed": false,
+          "borderedLoads": 1,
+          "trimPreparations": 1,
+          "candidates": 2,
+          "opens": 0,
+          "edits": 0,
+          "saves": 0,
+          "pngs": 0,
+          "binds": 3,
+          "unbinds": 2,
+          "lastTrim": {
+            "offsetX": 1,
+            "offsetY": 1
+          },
+          "contextId": "SizeConsumer",
+          "sceneVersion": 29,
+          "spriteData": {
+            "id": "Sprite",
+            "layer": 1,
+            "transform": {
+              "x": 36,
+              "y": 30,
+              "scaleX": 1,
+              "scaleY": 1,
+              "rotation": 0
+            },
+            "visible": true,
+            "alpha": 1,
+            "hitMode": "auto",
+            "imageId": "Trimmed",
+            "width": 48,
+            "height": 20,
+            "opacity": 1,
+            "sampling": "nearest",
+            "anchorX": 0,
+            "anchorY": 0,
+            "tint": [
+              1,
+              1,
+              1
+            ],
+            "blendMode": "normal",
+            "sourceRect": {
+              "x": 0,
+              "y": 0,
+              "width": 3,
+              "height": 2
+            }
+          },
+          "size": [
+            48,
+            20
+          ],
+          "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SizeConsumer\",\"nodes\":[{\"kind\":\"group\",\"id\":\"Team\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":100,\"height\":80,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":36,\"y\":30,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Trimmed\",\"width\":48,\"height\":20,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":3,\"height\":2}}]}]}",
+          "treeScene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SizeConsumer\",\"nodes\":[{\"kind\":\"group\",\"id\":\"Team\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":100,\"height\":80,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":36,\"y\":30,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Trimmed\",\"width\":48,\"height\":20,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":3,\"height\":2}}]}]}",
+          "assetBytes": [
+            255,
+            0,
+            0,
+            255,
+            10,
+            20,
+            30,
+            0,
+            0,
+            255,
+            0,
+            128,
+            0,
+            0,
+            255,
+            255,
+            255,
+            0,
+            255,
+            64,
+            255,
+            255,
+            255,
+            1
+          ],
+          "assets": {
+            "Atlas": {
+              "width": 2,
+              "height": 2,
+              "pixels": [
+                255,
+                0,
+                0,
+                255,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                255,
+                255,
+                0,
+                255,
+                0,
+                255
+              ]
+            },
+            "Bordered": {
+              "width": 5,
+              "height": 4,
+              "pixels": [
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                255,
+                0,
+                0,
+                255,
+                10,
+                20,
+                30,
+                0,
+                0,
+                255,
+                0,
+                128,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                0,
+                0,
+                255,
+                255,
+                255,
+                0,
+                255,
+                64,
+                255,
+                255,
+                255,
+                1,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0
+              ]
+            },
+            "Trimmed": {
+              "width": 3,
+              "height": 2,
+              "pixels": [
+                255,
+                0,
+                0,
+                255,
+                10,
+                20,
+                30,
+                0,
+                0,
+                255,
+                0,
+                128,
+                0,
+                0,
+                255,
+                255,
+                255,
+                0,
+                255,
+                64,
+                255,
+                255,
+                255,
+                1
+              ]
+            }
+          },
+          "samples": [
+            {
+              "x": 30,
+              "y": 50,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 50,
+              "y": 50,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Sprite"
+            },
+            {
+              "x": 70,
+              "y": 50,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Sprite"
+            },
+            {
+              "x": 30,
+              "y": 70,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 50,
+              "y": 70,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 70,
+              "y": 70,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 50,
+              "y": 30,
+              "rgba": [
+                255,
+                0,
+                0,
+                255
+              ],
+              "hit": "Sprite"
+            }
+          ],
+          "pointerLog": []
+        },
+        "document": "{\"format\":\"barocss-canvas-document\",\"version\":1,\"scene\":\"{\\\"version\\\":29,\\\"unit\\\":\\\"logical-px\\\",\\\"contextId\\\":\\\"SizeConsumer\\\",\\\"nodes\\\":[{\\\"kind\\\":\\\"group\\\",\\\"id\\\":\\\"Team\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"children\\\":[{\\\"kind\\\":\\\"rect\\\",\\\"id\\\":\\\"Back\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":10,\\\"y\\\":20,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"width\\\":100,\\\"height\\\":80,\\\"fill\\\":[1,1,0,1]},{\\\"kind\\\":\\\"image\\\",\\\"id\\\":\\\"Sprite\\\",\\\"layer\\\":1,\\\"transform\\\":{\\\"x\\\":36,\\\"y\\\":30,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"imageId\\\":\\\"Trimmed\\\",\\\"width\\\":48,\\\"height\\\":20,\\\"opacity\\\":1,\\\"sampling\\\":\\\"nearest\\\",\\\"anchorX\\\":0,\\\"anchorY\\\":0,\\\"tint\\\":[1,1,1],\\\"blendMode\\\":\\\"normal\\\",\\\"sourceRect\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"width\\\":3,\\\"height\\\":2}}]}]}\",\"assets\":[{\"id\":\"Trimmed\",\"width\":3,\"height\":2,\"byteLength\":24,\"sha256\":\"3073bd3c2e9fb2a8399c8b33f065c9afee78d84454dbb846be9a69d5930d0e11\",\"pixelsBase64\":\"/wAA/woUHgAA/wCAAAD///8A/0D///8B\"}]}",
+        "assets": {
+          "Atlas": {
+            "width": 2,
+            "height": 2,
+            "pixels": [
+              255,
+              0,
+              0,
+              255,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              255,
+              255,
+              0,
+              255,
+              0,
+              255
+            ]
+          },
+          "Bordered": {
+            "width": 5,
+            "height": 4,
+            "pixels": [
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              255,
+              0,
+              0,
+              255,
+              10,
+              20,
+              30,
+              0,
+              0,
+              255,
+              0,
+              128,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              0,
+              0,
+              255,
+              255,
+              255,
+              0,
+              255,
+              64,
+              255,
+              255,
+              255,
+              1,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0
+            ]
+          },
+          "Trimmed": {
+            "width": 3,
+            "height": 2,
+            "pixels": [
+              255,
+              0,
+              0,
+              255,
+              10,
+              20,
+              30,
+              0,
+              0,
+              255,
+              0,
+              128,
+              0,
+              0,
+              255,
+              255,
+              255,
+              0,
+              255,
+              64,
+              255,
+              255,
+              255,
+              1
+            ]
+          }
+        }
+      },
+      "facilities": {
+        "contexts": [
+          {
+            "id": 1,
+            "canvasId": "scene",
+            "lost": false,
+            "error": 0,
+            "draws": 2,
+            "reads": 21,
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 0
+              },
+              "program": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 3,
+                "live": 0
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "texture": {
+                "created": 1,
+                "deleted": 1,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          },
+          {
+            "id": 2,
+            "canvasId": "scene",
+            "lost": false,
+            "error": 0,
+            "draws": 4,
+            "reads": 64,
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 0
+              },
+              "program": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 3,
+                "live": 0
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "texture": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          },
+          {
+            "id": 3,
+            "canvasId": "scene",
+            "lost": false,
+            "error": 0,
+            "draws": 2,
+            "reads": 29,
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 4
+              },
+              "program": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 0,
+                "live": 3
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "texture": {
+                "created": 3,
+                "deleted": 0,
+                "live": 3
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          }
+        ],
+        "listeners": [
+          {
+            "id": 1,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "host-diagnostic",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 2,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "renderer-core",
+            "active": false,
+            "adds": 1,
+            "removes": 1,
+            "disabled": null
+          },
+          {
+            "id": 3,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "webglcontextrestored",
+            "capture": false,
+            "category": "renderer-core",
+            "active": false,
+            "adds": 1,
+            "removes": 1,
+            "disabled": null
+          },
+          {
+            "id": 4,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "pointerdown",
+            "capture": false,
+            "category": "host-product",
+            "active": false,
+            "adds": 1,
+            "removes": 1,
+            "disabled": null
+          },
+          {
+            "id": 5,
+            "targetIdentity": 2,
+            "targetId": "wide",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 6,
+            "targetIdentity": 3,
+            "targetId": "tall",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 7,
+            "targetIdentity": 4,
+            "targetId": "invalid",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 8,
+            "targetIdentity": 5,
+            "targetId": "bordered",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 9,
+            "targetIdentity": 6,
+            "targetId": "trim",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 10,
+            "targetIdentity": 7,
+            "targetId": "edit",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 11,
+            "targetIdentity": 8,
+            "targetId": "png",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 12,
+            "targetIdentity": 9,
+            "targetId": "dispose",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 13,
+            "targetIdentity": 10,
+            "targetId": "save",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 14,
+            "targetIdentity": 11,
+            "targetId": "open",
+            "type": "change",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 15,
+            "targetIdentity": 12,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "host-diagnostic",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 16,
+            "targetIdentity": 12,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "renderer-core",
+            "active": false,
+            "adds": 1,
+            "removes": 1,
+            "disabled": null
+          },
+          {
+            "id": 17,
+            "targetIdentity": 12,
+            "targetId": "scene",
+            "type": "webglcontextrestored",
+            "capture": false,
+            "category": "renderer-core",
+            "active": false,
+            "adds": 1,
+            "removes": 1,
+            "disabled": null
+          },
+          {
+            "id": 18,
+            "targetIdentity": 12,
+            "targetId": "scene",
+            "type": "pointerdown",
+            "capture": false,
+            "category": "host-product",
+            "active": false,
+            "adds": 1,
+            "removes": 1,
+            "disabled": null
+          },
+          {
+            "id": 19,
+            "targetIdentity": 13,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "host-diagnostic",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 20,
+            "targetIdentity": 13,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "renderer-core",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 21,
+            "targetIdentity": 13,
+            "targetId": "scene",
+            "type": "webglcontextrestored",
+            "capture": false,
+            "category": "renderer-core",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 22,
+            "targetIdentity": 13,
+            "targetId": "scene",
+            "type": "pointerdown",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          }
+        ],
+        "events": [
+          {
+            "type": "pointerdown",
+            "target": "bordered",
+            "trusted": true,
+            "clientX": 252.8800048828125,
+            "clientY": 136.25
+          },
+          {
+            "type": "click",
+            "target": "bordered",
+            "trusted": true,
+            "clientX": 252,
+            "clientY": 136
+          },
+          {
+            "type": "pointerdown",
+            "target": "wide",
+            "trusted": true,
+            "clientX": 54.41999816894531,
+            "clientY": 136.25
+          },
+          {
+            "type": "click",
+            "target": "wide",
+            "trusted": true,
+            "clientX": 54,
+            "clientY": 136
+          },
+          {
+            "type": "pointerdown",
+            "target": "trim",
+            "trusted": true,
+            "clientX": 403.2099914550781,
+            "clientY": 136.25
+          },
+          {
+            "type": "click",
+            "target": "trim",
+            "trusted": true,
+            "clientX": 403,
+            "clientY": 136
+          }
+        ],
+        "errors": [],
+        "rejections": [],
+        "nativeErrors": [],
+        "urls": [],
+        "downloads": [],
+        "files": 0,
+        "fileTexts": 0,
+        "hashes": [
+          {
+            "settled": true
+          },
+          {
+            "settled": true
+          },
+          {
+            "settled": true
+          },
+          {
+            "settled": true
+          }
+        ],
+        "nativeImages": "UNINSTRUMENTED; no decoder flow exercised",
+        "nativeFonts": "UNINSTRUMENTED; no font flow exercised"
+      }
+    },
+    {
+      "label": "trusted native Sprite-Team-stage pointer; API serialization only",
+      "stable": {
+        "state": {
+          "generation": 3,
+          "disposed": false,
+          "borderedLoads": 1,
+          "trimPreparations": 1,
+          "candidates": 2,
+          "opens": 0,
+          "edits": 0,
+          "saves": 0,
+          "pngs": 0,
+          "binds": 3,
+          "unbinds": 2,
+          "lastTrim": {
+            "offsetX": 1,
+            "offsetY": 1
+          },
+          "contextId": "SizeConsumer",
+          "sceneVersion": 29,
+          "spriteData": {
+            "id": "Sprite",
+            "layer": 1,
+            "transform": {
+              "x": 36,
+              "y": 30,
+              "scaleX": 1,
+              "scaleY": 1,
+              "rotation": 0
+            },
+            "visible": true,
+            "alpha": 1,
+            "hitMode": "auto",
+            "imageId": "Trimmed",
+            "width": 48,
+            "height": 20,
+            "opacity": 1,
+            "sampling": "nearest",
+            "anchorX": 0,
+            "anchorY": 0,
+            "tint": [
+              1,
+              1,
+              1
+            ],
+            "blendMode": "normal",
+            "sourceRect": {
+              "x": 0,
+              "y": 0,
+              "width": 3,
+              "height": 2
+            }
+          },
+          "size": [
+            48,
+            20
+          ],
+          "scene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SizeConsumer\",\"nodes\":[{\"kind\":\"group\",\"id\":\"Team\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":100,\"height\":80,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":36,\"y\":30,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Trimmed\",\"width\":48,\"height\":20,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":3,\"height\":2}}]}]}",
+          "treeScene": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SizeConsumer\",\"nodes\":[{\"kind\":\"group\",\"id\":\"Team\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"rect\",\"id\":\"Back\",\"layer\":0,\"transform\":{\"x\":10,\"y\":20,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":100,\"height\":80,\"fill\":[1,1,0,1]},{\"kind\":\"image\",\"id\":\"Sprite\",\"layer\":1,\"transform\":{\"x\":36,\"y\":30,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"imageId\":\"Trimmed\",\"width\":48,\"height\":20,\"opacity\":1,\"sampling\":\"nearest\",\"anchorX\":0,\"anchorY\":0,\"tint\":[1,1,1],\"blendMode\":\"normal\",\"sourceRect\":{\"x\":0,\"y\":0,\"width\":3,\"height\":2}}]}]}",
+          "assetBytes": [
+            255,
+            0,
+            0,
+            255,
+            10,
+            20,
+            30,
+            0,
+            0,
+            255,
+            0,
+            128,
+            0,
+            0,
+            255,
+            255,
+            255,
+            0,
+            255,
+            64,
+            255,
+            255,
+            255,
+            1
+          ],
+          "assets": {
+            "Atlas": {
+              "width": 2,
+              "height": 2,
+              "pixels": [
+                255,
+                0,
+                0,
+                255,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                255,
+                255,
+                0,
+                255,
+                0,
+                255
+              ]
+            },
+            "Bordered": {
+              "width": 5,
+              "height": 4,
+              "pixels": [
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                255,
+                0,
+                0,
+                255,
+                10,
+                20,
+                30,
+                0,
+                0,
+                255,
+                0,
+                128,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                0,
+                0,
+                255,
+                255,
+                255,
+                0,
+                255,
+                64,
+                255,
+                255,
+                255,
+                1,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0,
+                7,
+                8,
+                9,
+                0
+              ]
+            },
+            "Trimmed": {
+              "width": 3,
+              "height": 2,
+              "pixels": [
+                255,
+                0,
+                0,
+                255,
+                10,
+                20,
+                30,
+                0,
+                0,
+                255,
+                0,
+                128,
+                0,
+                0,
+                255,
+                255,
+                255,
+                0,
+                255,
+                64,
+                255,
+                255,
+                255,
+                1
+              ]
+            }
+          },
+          "samples": [
+            {
+              "x": 30,
+              "y": 50,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 50,
+              "y": 50,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Sprite"
+            },
+            {
+              "x": 70,
+              "y": 50,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Sprite"
+            },
+            {
+              "x": 30,
+              "y": 70,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 50,
+              "y": 70,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 70,
+              "y": 70,
+              "rgba": [
+                255,
+                255,
+                0,
+                255
+              ],
+              "hit": "Back"
+            },
+            {
+              "x": 50,
+              "y": 30,
+              "rgba": [
+                255,
+                0,
+                0,
+                255
+              ],
+              "hit": "Sprite"
+            }
+          ],
+          "pointerLog": [
+            "Sprite",
+            "Team",
+            "stage"
+          ]
+        },
+        "document": "{\"format\":\"barocss-canvas-document\",\"version\":1,\"scene\":\"{\\\"version\\\":29,\\\"unit\\\":\\\"logical-px\\\",\\\"contextId\\\":\\\"SizeConsumer\\\",\\\"nodes\\\":[{\\\"kind\\\":\\\"group\\\",\\\"id\\\":\\\"Team\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"children\\\":[{\\\"kind\\\":\\\"rect\\\",\\\"id\\\":\\\"Back\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":10,\\\"y\\\":20,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"width\\\":100,\\\"height\\\":80,\\\"fill\\\":[1,1,0,1]},{\\\"kind\\\":\\\"image\\\",\\\"id\\\":\\\"Sprite\\\",\\\"layer\\\":1,\\\"transform\\\":{\\\"x\\\":36,\\\"y\\\":30,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"imageId\\\":\\\"Trimmed\\\",\\\"width\\\":48,\\\"height\\\":20,\\\"opacity\\\":1,\\\"sampling\\\":\\\"nearest\\\",\\\"anchorX\\\":0,\\\"anchorY\\\":0,\\\"tint\\\":[1,1,1],\\\"blendMode\\\":\\\"normal\\\",\\\"sourceRect\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"width\\\":3,\\\"height\\\":2}}]}]}\",\"assets\":[{\"id\":\"Trimmed\",\"width\":3,\"height\":2,\"byteLength\":24,\"sha256\":\"3073bd3c2e9fb2a8399c8b33f065c9afee78d84454dbb846be9a69d5930d0e11\",\"pixelsBase64\":\"/wAA/woUHgAA/wCAAAD///8A/0D///8B\"}]}",
+        "assets": {
+          "Atlas": {
+            "width": 2,
+            "height": 2,
+            "pixels": [
+              255,
+              0,
+              0,
+              255,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              255,
+              255,
+              0,
+              255,
+              0,
+              255
+            ]
+          },
+          "Bordered": {
+            "width": 5,
+            "height": 4,
+            "pixels": [
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              255,
+              0,
+              0,
+              255,
+              10,
+              20,
+              30,
+              0,
+              0,
+              255,
+              0,
+              128,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              0,
+              0,
+              255,
+              255,
+              255,
+              0,
+              255,
+              64,
+              255,
+              255,
+              255,
+              1,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0,
+              7,
+              8,
+              9,
+              0
+            ]
+          },
+          "Trimmed": {
+            "width": 3,
+            "height": 2,
+            "pixels": [
+              255,
+              0,
+              0,
+              255,
+              10,
+              20,
+              30,
+              0,
+              0,
+              255,
+              0,
+              128,
+              0,
+              0,
+              255,
+              255,
+              255,
+              0,
+              255,
+              64,
+              255,
+              255,
+              255,
+              1
+            ]
+          }
+        }
+      },
+      "facilities": {
+        "contexts": [
+          {
+            "id": 1,
+            "canvasId": "scene",
+            "lost": false,
+            "error": 0,
+            "draws": 2,
+            "reads": 21,
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 0
+              },
+              "program": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 3,
+                "live": 0
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "texture": {
+                "created": 1,
+                "deleted": 1,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          },
+          {
+            "id": 2,
+            "canvasId": "scene",
+            "lost": false,
+            "error": 0,
+            "draws": 4,
+            "reads": 64,
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 0
+              },
+              "program": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 3,
+                "live": 0
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "texture": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          },
+          {
+            "id": 3,
+            "canvasId": "scene",
+            "lost": false,
+            "error": 0,
+            "draws": 2,
+            "reads": 57,
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 4
+              },
+              "program": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 0,
+                "live": 3
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "texture": {
+                "created": 3,
+                "deleted": 0,
+                "live": 3
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          }
+        ],
+        "listeners": [
+          {
+            "id": 1,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "host-diagnostic",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 2,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "renderer-core",
+            "active": false,
+            "adds": 1,
+            "removes": 1,
+            "disabled": null
+          },
+          {
+            "id": 3,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "webglcontextrestored",
+            "capture": false,
+            "category": "renderer-core",
+            "active": false,
+            "adds": 1,
+            "removes": 1,
+            "disabled": null
+          },
+          {
+            "id": 4,
+            "targetIdentity": 1,
+            "targetId": "scene",
+            "type": "pointerdown",
+            "capture": false,
+            "category": "host-product",
+            "active": false,
+            "adds": 1,
+            "removes": 1,
+            "disabled": null
+          },
+          {
+            "id": 5,
+            "targetIdentity": 2,
+            "targetId": "wide",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 6,
+            "targetIdentity": 3,
+            "targetId": "tall",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 7,
+            "targetIdentity": 4,
+            "targetId": "invalid",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 8,
+            "targetIdentity": 5,
+            "targetId": "bordered",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 9,
+            "targetIdentity": 6,
+            "targetId": "trim",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 10,
+            "targetIdentity": 7,
+            "targetId": "edit",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 11,
+            "targetIdentity": 8,
+            "targetId": "png",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 12,
+            "targetIdentity": 9,
+            "targetId": "dispose",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 13,
+            "targetIdentity": 10,
+            "targetId": "save",
+            "type": "click",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 14,
+            "targetIdentity": 11,
+            "targetId": "open",
+            "type": "change",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": false
+          },
+          {
+            "id": 15,
+            "targetIdentity": 12,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "host-diagnostic",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 16,
+            "targetIdentity": 12,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "renderer-core",
+            "active": false,
+            "adds": 1,
+            "removes": 1,
+            "disabled": null
+          },
+          {
+            "id": 17,
+            "targetIdentity": 12,
+            "targetId": "scene",
+            "type": "webglcontextrestored",
+            "capture": false,
+            "category": "renderer-core",
+            "active": false,
+            "adds": 1,
+            "removes": 1,
+            "disabled": null
+          },
+          {
+            "id": 18,
+            "targetIdentity": 12,
+            "targetId": "scene",
+            "type": "pointerdown",
+            "capture": false,
+            "category": "host-product",
+            "active": false,
+            "adds": 1,
+            "removes": 1,
+            "disabled": null
+          },
+          {
+            "id": 19,
+            "targetIdentity": 13,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "host-diagnostic",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 20,
+            "targetIdentity": 13,
+            "targetId": "scene",
+            "type": "webglcontextlost",
+            "capture": false,
+            "category": "renderer-core",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 21,
+            "targetIdentity": 13,
+            "targetId": "scene",
+            "type": "webglcontextrestored",
+            "capture": false,
+            "category": "renderer-core",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          },
+          {
+            "id": 22,
+            "targetIdentity": 13,
+            "targetId": "scene",
+            "type": "pointerdown",
+            "capture": false,
+            "category": "host-product",
+            "active": true,
+            "adds": 1,
+            "removes": 0,
+            "disabled": null
+          }
+        ],
+        "events": [
+          {
+            "type": "pointerdown",
+            "target": "bordered",
+            "trusted": true,
+            "clientX": 252.8800048828125,
+            "clientY": 136.25
+          },
+          {
+            "type": "click",
+            "target": "bordered",
+            "trusted": true,
+            "clientX": 252,
+            "clientY": 136
+          },
+          {
+            "type": "pointerdown",
+            "target": "wide",
+            "trusted": true,
+            "clientX": 54.41999816894531,
+            "clientY": 136.25
+          },
+          {
+            "type": "click",
+            "target": "wide",
+            "trusted": true,
+            "clientX": 54,
+            "clientY": 136
+          },
+          {
+            "type": "pointerdown",
+            "target": "trim",
+            "trusted": true,
+            "clientX": 403.2099914550781,
+            "clientY": 136.25
+          },
+          {
+            "type": "click",
+            "target": "trim",
+            "trusted": true,
+            "clientX": 403,
+            "clientY": 136
+          },
+          {
+            "type": "pointerdown",
+            "target": "scene",
+            "trusted": true,
+            "clientX": 64,
+            "clientY": 284.75
+          },
+          {
+            "type": "click",
+            "target": "scene",
+            "trusted": true,
+            "clientX": 64,
+            "clientY": 284
+          }
+        ],
+        "errors": [],
+        "rejections": [],
+        "nativeErrors": [],
+        "urls": [],
+        "downloads": [],
+        "files": 0,
+        "fileTexts": 0,
+        "hashes": [
+          {
+            "settled": true
+          },
+          {
+            "settled": true
+          },
+          {
+            "settled": true
+          },
+          {
+            "settled": true
+          },
+          {
+            "settled": true
+          },
+          {
+            "settled": true
+          }
+        ],
+        "nativeImages": "UNINSTRUMENTED; no decoder flow exercised",
+        "nativeFonts": "UNINSTRUMENTED; no font flow exercised"
+      }
+    }
+  ],
+  "documentSnapshot": "{\"format\":\"barocss-canvas-document\",\"version\":1,\"scene\":\"{\\\"version\\\":29,\\\"unit\\\":\\\"logical-px\\\",\\\"contextId\\\":\\\"SizeConsumer\\\",\\\"nodes\\\":[{\\\"kind\\\":\\\"group\\\",\\\"id\\\":\\\"Team\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"children\\\":[{\\\"kind\\\":\\\"rect\\\",\\\"id\\\":\\\"Back\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":10,\\\"y\\\":20,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"width\\\":100,\\\"height\\\":80,\\\"fill\\\":[1,1,0,1]},{\\\"kind\\\":\\\"image\\\",\\\"id\\\":\\\"Sprite\\\",\\\"layer\\\":1,\\\"transform\\\":{\\\"x\\\":36,\\\"y\\\":30,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"imageId\\\":\\\"Trimmed\\\",\\\"width\\\":48,\\\"height\\\":20,\\\"opacity\\\":1,\\\"sampling\\\":\\\"nearest\\\",\\\"anchorX\\\":0,\\\"anchorY\\\":0,\\\"tint\\\":[1,1,1],\\\"blendMode\\\":\\\"normal\\\",\\\"sourceRect\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"width\\\":3,\\\"height\\\":2}}]}]}\",\"assets\":[{\"id\":\"Trimmed\",\"width\":3,\"height\":2,\"byteLength\":24,\"sha256\":\"3073bd3c2e9fb2a8399c8b33f065c9afee78d84454dbb846be9a69d5930d0e11\",\"pixelsBase64\":\"/wAA/woUHgAA/wCAAAD///8A/0D///8B\"}]}",
+  "listenerBoundary": "Core6 and hostpointer3 removed; existingdisabledcontrols10+hostdiagnostics3 remainuntilownedpageclosure; noallDOM0claim",
+  "broaderAcceptance": "UNRUN; linearfiltering/arbitrarytransform/anchor/resampling parity excluded",
+  "requestAudit": {
+    "requests": [
+      "http://127.0.0.1:31456/consumer/sprite-size.html",
+      "http://127.0.0.1:31456/consumer/sprite-size.mjs",
+      "http://127.0.0.1:31456/dist/index.js",
+      "http://127.0.0.1:31456/dist/document.js"
+    ],
+    "external": [],
+    "externalCount": 0
+  },
+  "rootPreparation": {
+    "issue": 1556,
+    "lane": "C",
+    "changedOldFunctions": [
+      "trim"
+    ],
+    "sourceReview": true,
+    "sourceSHA256": "5b74b7fd3c8e8a7a1290d6fb58ec4bc74ef18f667bab65dafdd8bd8e99e73572",
+    "affectedBuildExit": 0,
+    "scopedTypesExit": 0,
+    "sourceHostDirectory": "/tmp/c2d-next-C-source",
+    "serverDirectory": "/tmp/c2d-next-C-source/packages/barocss-canvas2d",
+    "actualURL": "http://127.0.0.1:31456/consumer/sprite-size.html",
+    "sourceFiles": {
+      "packages/barocss-canvas2d/dist/index.js": {
+        "bytes": 338187,
+        "SHA256": "16d72d411448135f290b77f45fba3e09f78bed6facd22f19129eca19fad79834"
+      },
+      "packages/barocss-canvas2d/dist/document.js": {
+        "bytes": 134586,
+        "SHA256": "996ba49a17413b7d1c3fa02a5177f721325366d53ead4db133fa4d252b21971d"
+      },
+      "packages/barocss-canvas2d/consumer/sprite-size.html": {
+        "bytes": 1457,
+        "SHA256": "9f3dc378e299c606710506507111784b192a27d8e7b6755c38f7a399b9763f5c"
+      },
+      "packages/barocss-canvas2d/consumer/sprite-size.mjs": {
+        "bytes": 16484,
+        "SHA256": "5b74b7fd3c8e8a7a1290d6fb58ec4bc74ef18f667bab65dafdd8bd8e99e73572"
+      }
+    },
+    "notes": "Only trim branch geometry; all other source exact. PreservePlacement restricted to sameBordered/fullcrop/anchor0/unitrotation/pivotzero/noSliceTile; original fallback recipe retained.",
+    "driverSHA256": "0e0415760c11085378af69a43b88f9b4b36d29af90572b4c2ce0e94ab2b4f6e5",
+    "driverBytes": 17920,
+    "configPath": "/tmp/c2d-next-C-runtime/browser.json",
+    "configSHA256": "75c58074d9b704af689faea0afa4aa4e7d5da5cd4f8b2c9ddba25ce7bb096edd",
+    "sameBrowserOptionsEmptyOutput": true,
+    "ownershipAndProtectedCustodyPass": true,
+    "expectedContexts": 3,
+    "expectedListeners": {
+      "adds": 22,
+      "removes": 9,
+      "remaining": 13,
+      "qualification": "10disabledcontrols+3existingdiagnosticsuntilpageclosure"
+    },
+    "GO": "ONLYphase0/onefirstmeaningfulflowphase1; rootactualscreenshotbeforephase2; fullterminalrootreadbeforeonlyownclose"
+  },
+  "rootScreenshotReview": {
+    "issue": 1556,
+    "phase1SHA256": "23539f09e2d406fbf7309464f0f725e16f90196a62df5b2ad0ee8fa84f21d55d",
+    "phase1Bytes": 116001,
+    "actualScreenshotViewed": true,
+    "screenshotSHA256": "1614162c1f94781ebe301ae1eb5ad86e3f04968b3faadc3ceb8cc53154cb0d5f",
+    "wholeFrameBytes": 230400,
+    "beforeAfterExact": true,
+    "literalOracleMaximumError": 0,
+    "actualImageNotes": "Yellow Back with retained red/blue/green and translucent texels; generation3, oneLoad/oneTrim, zero Open/Save/PNG, Sprite transform36,30 visible. No generic filtering or transform claim.",
+    "GO": "Remaining terminal phase2 only; preserve same first page/flow; no close before fullRootterminal review"
+  },
+  "consoleQualification": {
+    "errors": 0,
+    "warnings": 4,
+    "warning": "Chromium GPU stall due to ReadPixels; preserved, not suppressed"
+  },
+  "ownedRuntime": {
+    "serverPID": 86920,
+    "serverCommand": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python -m http.server 31456 --bind 127.0.0.1 --directory /tmp/c2d-next-C-source/packages/barocss-canvas2d",
+    "execSession": 15905,
+    "browserSession": "c2d-next-trim-resize",
+    "browserPID": 89198,
+    "port": 31456
+  },
+  "runtimeClosure": {
+    "serverPID": 86920,
+    "serverCommand": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python -m http.server 31456 --bind 127.0.0.1 --directory /tmp/c2d-next-C-source/packages/barocss-canvas2d",
+    "execSession": 15905,
+    "browserSession": "c2d-next-trim-resize",
+    "browserPID": 89198,
+    "port": 31456,
+    "verifiedCommandBeforeSIGTERM": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python -m http.server 31456 --bind 127.0.0.1 --directory /tmp/c2d-next-C-source/packages/barocss-canvas2d",
+    "signal": "SIGTERM",
+    "onlyOwnedBrowserClosed": true,
+    "browserCloseExit": 0,
+    "portAbsent": true,
+    "sourceServerExit": 143,
+    "sourceServerExitQualification": "Intentional own server SIGTERM after completed PASS, not interrupted testresult"
+  },
+  "rootTerminalReview": {
+    "path": "/tmp/c2d1556-root-terminal-review.json",
+    "bytes": 655,
+    "SHA256": "6971b04b637abc02d39406151a99977cf9798fbd3e4fd8ba5c79b5d0d9670002",
+    "rootActuallyReadFULLTerminal": true,
+    "rootGrantedOnlyOwnClosure": true
+  }
+}

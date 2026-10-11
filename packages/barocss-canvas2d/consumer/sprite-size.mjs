@@ -179,8 +179,19 @@ function trim(input = bordered) {
   if (!result) return null; // A valid empty result does not create or mutate a candidate.
   const nextTree = createDisplayTreeFromScene(accepted), image = nextTree.get('Sprite');
   if (image?.kind !== 'sprite') throw new Error('Consumer Sprite missing');
+  const prior = image.data, crop = prior.sourceRect;
+  const preservePlacement = input === bordered && prior.imageId === 'Bordered' &&
+    crop?.x === 0 && crop.y === 0 && crop.width === 5 && crop.height === 4 &&
+    prior.anchorX === 0 && prior.anchorY === 0 &&
+    prior.transform.scaleX === 1 && prior.transform.scaleY === 1 && prior.transform.rotation === 0 &&
+    (!prior.pivot || (prior.pivot.x === 0 && prior.pivot.y === 0)) && !prior.slice && !prior.tile;
+  const scaleX = preservePlacement ? prior.width / 5 : 16;
+  const scaleY = preservePlacement ? prior.height / 4 : 20;
+  const x = preservePlacement ? prior.transform.x : 20;
+  const y = preservePlacement ? prior.transform.y : 20;
   image.setImageSource('Trimmed', {x:0,y:0,width:result.asset.width,height:result.asset.height}); image.setAnchor(0,0);
-  image.setSize(result.asset.width * 16, result.asset.height * 20); image.setPosition(20 + result.offsetX * 16,20 + result.offsetY * 20);
+  image.setSize(result.asset.width * scaleX, result.asset.height * scaleY);
+  image.setPosition(x + result.offsetX * scaleX,y + result.offsetY * scaleY);
   const assets = new Map(hostAssets); assets.set('Trimmed', result.asset);
   adoptPrepared(nextTree, assets); trimPreparations++; lastTrim = {offsetX:result.offsetX,offsetY:result.offsetY}; show('Trimmed alpha bounds without moving visible pixels'); return result;
 }
