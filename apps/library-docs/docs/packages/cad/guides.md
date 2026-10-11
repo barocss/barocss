@@ -56,6 +56,10 @@ console.log(d1.point, d1.derivative);
 
 `rectangle` comes from the first example. The query lies inside the first span. Derivatives use mm per original dimensionless parameter and are not normalized. `evaluateSurfaceD1(surface,u,v)` returns point, `du` and `dv`. Endpoints use the interior one-sided span. Exact interior knots refuse D1 when degree minus multiplicity is less than one. Point queries can still succeed there. A finite zero derivative does not certify regularity or define a unit normal.
 
+## Refine a Curve representation
+
+To refine Curve coefficients without sculpting their shape, read [source-qualified knot insertion](./curve-knot-insertion). It retains the original parameter domain and complete mixed source, changes the control polygon, and separates bounded native observations from a CPU illustration. Its public API uses its own matching source profile.
+
 ## Sample a Surface for display
 
 Use [the quadratic rational Surface](./rational-surface) to compare a fixed nine-pole definition with evaluated center/off-center points. Its two typed Parameters change the interior while retaining the boundary curves. The guide separates coefficient poles, sampled U/V lines and GPU display.
