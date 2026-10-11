@@ -1,0 +1,20 @@
+{
+  "kind": "gradient-svg",
+  "title": "Radial gradient · Canvas2D and SVG export",
+  "label": "Radial SVG export",
+  "anchor": "radial-svg-export",
+  "language": "Scene29 JSON → Canvas2D and native radial SVG",
+  "sourceProfile": "c8a914debde531fcb78c225e4f1e637bf5d78894",
+  "description": "Edit the local center, radius and two opaque colors of a retained radial fill. Compare the public Canvas2D renderer with an actual SVG image. Save SVG for display or save editable JSON for fresh Open and later edits.",
+  "source": "{\n  \"version\": 29,\n  \"unit\": \"logical-px\",\n  \"contextId\": \"RadialSVGExample\",\n  \"nodes\": [\n    {\n      \"kind\": \"path\",\n      \"id\": \"Background\",\n      \"layer\": 0,\n      \"transform\": {\n        \"x\": 0,\n        \"y\": 0,\n        \"scaleX\": 1,\n        \"scaleY\": 1,\n        \"rotation\": 0\n      },\n      \"visible\": true,\n      \"alpha\": 1,\n      \"hitMode\": \"auto\",\n      \"commands\": [\n        {\n          \"kind\": \"M\",\n          \"x\": 0,\n          \"y\": 0\n        },\n        {\n          \"kind\": \"L\",\n          \"x\": 320,\n          \"y\": 0\n        },\n        {\n          \"kind\": \"L\",\n          \"x\": 320,\n          \"y\": 200\n        },\n        {\n          \"kind\": \"L\",\n          \"x\": 0,\n          \"y\": 200\n        },\n        {\n          \"kind\": \"Z\"\n        }\n      ],\n      \"fill\": {\n        \"color\": [\n          0.06274509803921569,\n          0.09411764705882353,\n          0.12549019607843137,\n          1\n        ],\n        \"rule\": \"evenodd\"\n      }\n    },\n    {\n      \"kind\": \"group\",\n      \"id\": \"GradientGroup\",\n      \"layer\": 1,\n      \"transform\": {\n        \"x\": 20,\n        \"y\": 18,\n        \"scaleX\": 1,\n        \"scaleY\": 1,\n        \"rotation\": 0.04\n      },\n      \"visible\": true,\n      \"alpha\": 1,\n      \"hitMode\": \"auto\",\n      \"children\": [\n        {\n          \"kind\": \"path\",\n          \"id\": \"RadialPath\",\n          \"layer\": 0,\n          \"transform\": {\n            \"x\": 0,\n            \"y\": 0,\n            \"scaleX\": 1,\n            \"scaleY\": 1,\n            \"rotation\": 0\n          },\n          \"visible\": true,\n          \"alpha\": 1,\n          \"hitMode\": \"auto\",\n          \"commands\": [\n            {\n              \"kind\": \"M\",\n              \"x\": 0,\n              \"y\": 40\n            },\n            {\n              \"kind\": \"Q\",\n              \"cx\": 120,\n              \"cy\": -20,\n              \"x\": 240,\n              \"y\": 40\n            },\n            {\n              \"kind\": \"L\",\n              \"x\": 240,\n              \"y\": 140\n            },\n            {\n              \"kind\": \"L\",\n              \"x\": 0,\n              \"y\": 140\n            },\n            {\n              \"kind\": \"Z\"\n            }\n          ],\n          \"fill\": {\n            \"rule\": \"evenodd\",\n            \"radial\": {\n              \"center\": {\n                \"x\": 120,\n                \"y\": 70\n              },\n              \"radius\": 60,\n              \"startColor\": [\n                0.9411764705882353,\n                0.6901960784313725,\n                0.25098039215686274,\n                1\n              ],\n              \"endColor\": [\n                0.12549019607843137,\n                0.3137254901960784,\n                0.6901960784313725,\n                1\n              ]\n            }\n          },\n          \"stroke\": {\n            \"color\": [\n              1,\n              1,\n              1,\n              1\n            ],\n            \"width\": 2,\n            \"cap\": \"butt\",\n            \"join\": \"bevel\",\n            \"dash\": {\n              \"lengths\": [],\n              \"offset\": 0\n            },\n            \"miterLimit\": 4\n          }\n        }\n      ]\n    }\n  ]\n}",
+  "actions": [
+    {
+      "id": "save-svg",
+      "label": "Download SVG"
+    },
+    {
+      "id": "save-document",
+      "label": "Save editable JSON"
+    }
+  ]
+}

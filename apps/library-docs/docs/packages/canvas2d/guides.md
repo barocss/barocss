@@ -44,6 +44,8 @@ Use a fresh canvas for Open. Stage verifies referenced RGBA8 bytes/digests, regi
 
 Use [linear SVG export](./svg-export) when a supported Scene29 group/path scene needs a browser-display SVG. Save a separate editable JSON document for fresh Open and re-editing; the SVG importer keeps its solid-only contract. This named exporter uses its own newer source profile.
 
+Use [radial SVG export](./radial-svg-export) for concentric two-stop radial paint through the separate newer `exportSceneGradientSVG` profile. Keep the full native scene for radius/center edits after JSON Open; the older linear-only exporter remains unchanged.
+
 ## Own a render loop
 
 `createCanvas2DApplication` owns one renderer, tree and ticker. It starts stopped unless `autoStart:true`. Register `onUpdate`, mutate handles, and let the application submit one automatic frame after updates. `stop()` cancels its frame loop. `dispose()` stops owned scheduling, clears subscriptions and disposes its renderer. The host still owns canvas/DOM/file state.

@@ -1,0 +1,360 @@
+{
+  "development": {
+    "receiptKind": "radial-svg-export-development",
+    "source": "{\n  \"version\": 29,\n  \"unit\": \"logical-px\",\n  \"contextId\": \"RadialSVGExample\",\n  \"nodes\": [\n    {\n      \"kind\": \"path\",\n      \"id\": \"Background\",\n      \"layer\": 0,\n      \"transform\": {\n        \"x\": 0,\n        \"y\": 0,\n        \"scaleX\": 1,\n        \"scaleY\": 1,\n        \"rotation\": 0\n      },\n      \"visible\": true,\n      \"alpha\": 1,\n      \"hitMode\": \"auto\",\n      \"commands\": [\n        {\n          \"kind\": \"M\",\n          \"x\": 0,\n          \"y\": 0\n        },\n        {\n          \"kind\": \"L\",\n          \"x\": 320,\n          \"y\": 0\n        },\n        {\n          \"kind\": \"L\",\n          \"x\": 320,\n          \"y\": 200\n        },\n        {\n          \"kind\": \"L\",\n          \"x\": 0,\n          \"y\": 200\n        },\n        {\n          \"kind\": \"Z\"\n        }\n      ],\n      \"fill\": {\n        \"color\": [\n          0.06274509803921569,\n          0.09411764705882353,\n          0.12549019607843137,\n          1\n        ],\n        \"rule\": \"evenodd\"\n      }\n    },\n    {\n      \"kind\": \"group\",\n      \"id\": \"GradientGroup\",\n      \"layer\": 1,\n      \"transform\": {\n        \"x\": 20,\n        \"y\": 18,\n        \"scaleX\": 1,\n        \"scaleY\": 1,\n        \"rotation\": 0.04\n      },\n      \"visible\": true,\n      \"alpha\": 1,\n      \"hitMode\": \"auto\",\n      \"children\": [\n        {\n          \"kind\": \"path\",\n          \"id\": \"RadialPath\",\n          \"layer\": 0,\n          \"transform\": {\n            \"x\": 0,\n            \"y\": 0,\n            \"scaleX\": 1,\n            \"scaleY\": 1,\n            \"rotation\": 0\n          },\n          \"visible\": true,\n          \"alpha\": 1,\n          \"hitMode\": \"auto\",\n          \"commands\": [\n            {\n              \"kind\": \"M\",\n              \"x\": 0,\n              \"y\": 40\n            },\n            {\n              \"kind\": \"Q\",\n              \"cx\": 120,\n              \"cy\": -20,\n              \"x\": 240,\n              \"y\": 40\n            },\n            {\n              \"kind\": \"L\",\n              \"x\": 240,\n              \"y\": 140\n            },\n            {\n              \"kind\": \"L\",\n              \"x\": 0,\n              \"y\": 140\n            },\n            {\n              \"kind\": \"Z\"\n            }\n          ],\n          \"fill\": {\n            \"rule\": \"evenodd\",\n            \"radial\": {\n              \"center\": {\n                \"x\": 120,\n                \"y\": 70\n              },\n              \"radius\": 60,\n              \"startColor\": [\n                0.9411764705882353,\n                0.6901960784313725,\n                0.25098039215686274,\n                1\n              ],\n              \"endColor\": [\n                0.12549019607843137,\n                0.3137254901960784,\n                0.6901960784313725,\n                1\n              ]\n            }\n          },\n          \"stroke\": {\n            \"color\": [\n              1,\n              1,\n              1,\n              1\n            ],\n            \"width\": 2,\n            \"cap\": \"butt\",\n            \"join\": \"bevel\",\n            \"dash\": {\n              \"lengths\": [],\n              \"offset\": 0\n            },\n            \"miterLimit\": 4\n          }\n        }\n      ]\n    }\n  ]\n}",
+    "initial": {
+      "sourceProfile": "c8a914debde531fcb78c225e4f1e637bf5d78894",
+      "nativeFrame": {
+        "width": 640,
+        "height": 400,
+        "byteCount": 1024000,
+        "rgbaChecksum": "fnv1a32:80082f02"
+      },
+      "svgImageSize": {
+        "width": 320,
+        "height": 200
+      },
+      "svgByteLength": 870
+    },
+    "edited": {
+      "radius": 90,
+      "nativeFrame": {
+        "width": 640,
+        "height": 400,
+        "byteCount": 1024000,
+        "rgbaChecksum": "fnv1a32:5529b905"
+      },
+      "svgImageSize": {
+        "width": 320,
+        "height": 200
+      },
+      "sourceIdMap": [
+        {
+          "sourceId": "RadialSVGExample",
+          "svgId": "RadialSVGExample"
+        },
+        {
+          "sourceId": "Background",
+          "svgId": "Background"
+        },
+        {
+          "sourceId": "GradientGroup",
+          "svgId": "GradientGroup"
+        },
+        {
+          "sourceId": "RadialPath",
+          "svgId": "RadialPath"
+        }
+      ]
+    },
+    "alphaRefusal": {
+      "alert": "Input refused: UNSUPPORTED_FEATURE: SVG export refused [{\"nodeId\":\"RadialPath\",\"code\":\"UNSUPPORTED_FEATURE\",\"feature\":\"radial stop alpha must be 1\"}]. The last accepted output stays visible while the sample remains live.",
+      "exactRawReportRetained": true
+    },
+    "zeroRadiusRefusal": {
+      "alert": "Input refused: INVALID_SCENE: scene.nodes[1].children[0].fill.radial.radius is outside its finite range. The last accepted output stays visible while the sample remains live.",
+      "exactRawReportRetained": true
+    },
+    "saveEvents": {
+      "svg": "Timed out after 10000ms waiting for download.",
+      "json": "Timed out after 10000ms waiting for download."
+    },
+    "freshOpen": {
+      "radius": 90,
+      "nativeFrame": {
+        "width": 640,
+        "height": 400,
+        "byteCount": 1024000,
+        "rgbaChecksum": "fnv1a32:5529b905"
+      },
+      "sceneMatchesEdited": true,
+      "editorMatchesScene": true
+    },
+    "reedit": {
+      "center": {
+        "x": 100,
+        "y": 70
+      },
+      "radius": 90,
+      "nativeFrame": {
+        "width": 640,
+        "height": 400,
+        "byteCount": 1024000,
+        "rgbaChecksum": "fnv1a32:e84b6141"
+      },
+      "svgImageSize": {
+        "width": 320,
+        "height": 200
+      }
+    },
+    "mobile": {
+      "scrollWidth": 390,
+      "width": 390
+    },
+    "logs": [],
+    "qualification": "After resume stale browserID3 rejected creation; fresh inventory mapped existing task IAB toID2. No browser/settings/security change; independent denials preserved."
+  },
+  "physicalFiles": {
+    "svg": {
+      "path": "/Users/user/Downloads/radial-path.svg",
+      "bytes": 870,
+      "sha256": "7a0f56e91d0ea8fc3cf4a29669f2cc9953a9f219c51132b90cd7bb0b6aa69379",
+      "text": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"RadialSVGExample\" width=\"320\" height=\"200\" viewBox=\"0 0 320 200\" preserveAspectRatio=\"none\"><defs><radialGradient id=\"C2DGradient1\" gradientUnits=\"userSpaceOnUse\" spreadMethod=\"pad\" color-interpolation=\"sRGB\" cx=\"120\" cy=\"70\" fx=\"120\" fy=\"70\" fr=\"0\" r=\"90\"><stop offset=\"0\" stop-color=\"#f0b040\" stop-opacity=\"1\"/><stop offset=\"1\" stop-color=\"#2050b0\" stop-opacity=\"1\"/></radialGradient></defs><path id=\"Background\" d=\"M 0 0 L 320 0 L 320 200 L 0 200 Z\" fill=\"#101820\" fill-rule=\"evenodd\" fill-opacity=\"1\"/><g id=\"GradientGroup\" transform=\"translate(20 18) rotate(2.291831180523293)\"><path id=\"RadialPath\" d=\"M 0 40 Q 120 -20 240 40 L 240 140 L 0 140 Z\" fill=\"url(#C2DGradient1)\" fill-rule=\"evenodd\" fill-opacity=\"1\" stroke=\"#ffffff\" stroke-width=\"2\" stroke-opacity=\"1\" stroke-linejoin=\"bevel\" stroke-linecap=\"butt\"/></g></svg>"
+    },
+    "document": {
+      "path": "/Users/user/Downloads/radial-path.canvas.json",
+      "bytes": 1567,
+      "sha256": "cc10958b029dca06c139cf0424f0cf8205c3a6b943b8f2879787e9ba7e571095",
+      "format": "barocss-canvas-document",
+      "version": 1,
+      "sceneVersion": 29,
+      "assets": 0,
+      "radius": 90,
+      "scene": {
+        "version": 29,
+        "unit": "logical-px",
+        "contextId": "RadialSVGExample",
+        "nodes": [
+          {
+            "kind": "path",
+            "id": "Background",
+            "layer": 0,
+            "transform": {
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "rotation": 0
+            },
+            "visible": true,
+            "alpha": 1,
+            "hitMode": "auto",
+            "commands": [
+              {
+                "kind": "M",
+                "x": 0,
+                "y": 0
+              },
+              {
+                "kind": "L",
+                "x": 320,
+                "y": 0
+              },
+              {
+                "kind": "L",
+                "x": 320,
+                "y": 200
+              },
+              {
+                "kind": "L",
+                "x": 0,
+                "y": 200
+              },
+              {
+                "kind": "Z"
+              }
+            ],
+            "fill": {
+              "color": [
+                0.06274509803921569,
+                0.09411764705882353,
+                0.12549019607843137,
+                1
+              ],
+              "rule": "evenodd"
+            }
+          },
+          {
+            "kind": "group",
+            "id": "GradientGroup",
+            "layer": 1,
+            "transform": {
+              "x": 20,
+              "y": 18,
+              "scaleX": 1,
+              "scaleY": 1,
+              "rotation": 0.04
+            },
+            "visible": true,
+            "alpha": 1,
+            "hitMode": "auto",
+            "children": [
+              {
+                "kind": "path",
+                "id": "RadialPath",
+                "layer": 0,
+                "transform": {
+                  "x": 0,
+                  "y": 0,
+                  "scaleX": 1,
+                  "scaleY": 1,
+                  "rotation": 0
+                },
+                "visible": true,
+                "alpha": 1,
+                "hitMode": "auto",
+                "commands": [
+                  {
+                    "kind": "M",
+                    "x": 0,
+                    "y": 40
+                  },
+                  {
+                    "kind": "Q",
+                    "cx": 120,
+                    "cy": -20,
+                    "x": 240,
+                    "y": 40
+                  },
+                  {
+                    "kind": "L",
+                    "x": 240,
+                    "y": 140
+                  },
+                  {
+                    "kind": "L",
+                    "x": 0,
+                    "y": 140
+                  },
+                  {
+                    "kind": "Z"
+                  }
+                ],
+                "fill": {
+                  "radial": {
+                    "center": {
+                      "x": 120,
+                      "y": 70
+                    },
+                    "radius": 90,
+                    "startColor": [
+                      0.9411764705882353,
+                      0.6901960784313725,
+                      0.25098039215686274,
+                      1
+                    ],
+                    "endColor": [
+                      0.12549019607843137,
+                      0.3137254901960784,
+                      0.6901960784313725,
+                      1
+                    ]
+                  },
+                  "rule": "evenodd"
+                },
+                "stroke": {
+                  "color": [
+                    1,
+                    1,
+                    1,
+                    1
+                  ],
+                  "width": 2,
+                  "cap": "butt",
+                  "join": "bevel",
+                  "dash": {
+                    "lengths": [],
+                    "offset": 0
+                  },
+                  "miterLimit": 4
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "qualification": "One actual click for each producer. Download-event waits timed out; both physical files observed. No duplicated save."
+  },
+  "physicalSVGAndDocumentMatchExecutedCPUBytes": true,
+  "image": {
+    "path": "apps/library-docs/docs/public/examples/radial-svg-export.jpg",
+    "width": 462,
+    "height": 163,
+    "bytes": 9829,
+    "sha256": "d397e39c2ce0c9a73609790c60318f18ddbd013ea40b104f4ec9b3c5714dd7cc",
+    "uneditedNativeBytes": true,
+    "variant": "radius90, center120/70, gold#F0B040 toblue#2050B0, otherwiseoriginal Scene29. LeftnativeCanvas/rightactualSVG; no paritycertificate",
+    "firstCaptureQualification": "Outer figure capture included unused stretched white area; actual panel bounds then captured directly with native screenshot clip, no image editing."
+  },
+  "limits": [
+    "Actual physicalfiles observed despite download-event timeout; one producer each.",
+    "Native Canvas2D and native decodedSVG are distinct outputs; no pixel parity or gradientSVGimport claim.",
+    "No completedGPU/provider campaigns or independent deniedscene retries."
+  ],
+  "production": {
+    "receiptKind": "radial-svg-export-production",
+    "guideSourceMatches": true,
+    "image": {
+      "complete": true,
+      "height": 163,
+      "src": "/examples/radial-svg-export.jpg",
+      "width": 462
+    },
+    "initialFrame": {
+      "width": 640,
+      "height": 400,
+      "byteCount": 1024000,
+      "rgbaChecksum": "fnv1a32:80082f02"
+    },
+    "freshOpenFrame": {
+      "width": 640,
+      "height": 400,
+      "byteCount": 1024000,
+      "rgbaChecksum": "fnv1a32:5529b905"
+    },
+    "freshOpenRadius": 90,
+    "editorMatchesScene": true,
+    "reeditRadius": 100,
+    "reeditFrame": {
+      "width": 640,
+      "height": 400,
+      "byteCount": 1024000,
+      "rgbaChecksum": "fnv1a32:424b42a7"
+    },
+    "reeditSVGSize": {
+      "width": 320,
+      "height": 200
+    },
+    "refusal": "Input refused: UNSUPPORTED_FEATURE: SVG export refused [{\"nodeId\":\"RadialPath\",\"code\":\"UNSUPPORTED_FEATURE\",\"feature\":\"radial stop alpha must be 1\"}]. The last accepted output stays visible while the sample remains live.",
+    "exactReportRetained": true,
+    "mobile": {
+      "scrollWidth": 1280,
+      "width": 1280
+    },
+    "physicalProducers": 0,
+    "logs": []
+  },
+  "mobileFinal": {
+    "receiptKind": "radial-svg-export-mobile-final",
+    "firstObservation": {
+      "scrollWidth": 1280,
+      "width": 1280
+    },
+    "finalObservation": {
+      "scrollWidth": 390,
+      "width": 390
+    },
+    "qualification": "Initial immediate read after viewport.set saw prior1280 width. Awaited visible mobile Menu before final read; viewport reset. No source or cap change."
+  },
+  "build": {
+    "seconds": 37.59,
+    "pages": 100,
+    "presets": 38,
+    "categories": {
+      "api": 8,
+      "language": 29,
+      "integration": 1
+    },
+    "generatedModules": 7,
+    "internalLinks": 5369,
+    "imageAssets": 47,
+    "downloadAssets": 2,
+    "manifestHashes": "matched",
+    "radialBundleBytes": 199336,
+    "verifiedBlobs": 39,
+    "ownSourceInputs": 38,
+    "ownDistInputs": 0
+  },
+  "builtImageBytesEqual": true
+}
