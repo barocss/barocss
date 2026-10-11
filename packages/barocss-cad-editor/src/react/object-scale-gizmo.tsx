@@ -88,7 +88,7 @@ export function ObjectScaleGizmo(props:Props) {
       const factor=1+(props.snapStep??.1)*direction;if(factor<.001||factor>100)throw new RangeError('Enter a scale factor from 0.001 to 100.');
       latest.current.session.stageBodyScale(String(factor));latest.current.session.prepareApply();}catch(cause){failure(cause);}
   }
-  if(!projection)return<p className="rotation-view-hint" data-testid="scale-status">Change the view or fit the selected grip to reach these scale axes.</p>;
+  if(!projection)return<p className="rotation-view-hint" data-testid="scale-status">Change view or fit the selected grip.</p>;
   const pending=Object.keys(snapshot.pending).length>0,raw=(snapshot.pending.scaleFactor??'1').trim(),value=Number(raw);
   const factor=/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(raw)&&Number.isFinite(value)&&value>=.001&&value<=100?value:1;
   let marker:{x:number;y:number}|null=null;try{marker=scaleMarkerPoint(projection,factor);}catch{}
@@ -104,6 +104,6 @@ export function ObjectScaleGizmo(props:Props) {
         onLostPointerCapture={event=>{if(gesture.current?.pointerId===event.pointerId)cancel(true);}}/>
       {marker&&<text x={point.x+projection.dirX*20} y={point.y+projection.dirY*20} textAnchor="middle" dominantBaseline="central" className="scale-axis-label">{snapshot.scaleAxis==='uniform'?'All':snapshot.scaleAxis.toUpperCase()}</text>}
     </svg>
-    <p className="rotation-view-hint" data-testid="scale-status" role="status">{gesture.current?'Release to apply. Escape cancels.':pending?'Factor pending. Apply or discard to continue.':'Drag the square. Arrow keys scale one step.'}</p>
+    {(gesture.current||pending)&&<p className="rotation-view-hint" data-testid="scale-status" role="status">{gesture.current?'Release to apply. Escape cancels.':'Factor pending. Apply or discard.'}</p>}
   </div>;
 }

@@ -169,6 +169,6 @@ export function CurvePoleHandles(props:Props){
           if(!value||!context(value)||otherCapture()||state.candidate||state.selectionTransition||state.disposed)return;
           try{session.requestSelection({bodyId:value.reference.bodyId,index});}catch(cause){failure(cause);}}}}/>:null)}
     </svg>
-    {snapshot.editTarget!=='rotation'&&snapshot.editTarget!=='scale'&&<p className="cad-editor-curve-drag-hint" role="status" data-testid="curve-drag-status">{moving?'Release to apply. Escape cancels.':pending?'Point values pending. Apply or discard to continue.':snapshot.editTarget!=='pole'?'Select a grip, then use the object handle.':'Drag a point to move it in the view plane.'}</p>}
+    {snapshot.editTarget!=='rotation'&&snapshot.editTarget!=='scale'&&(moving||pending)&&<p className="cad-editor-curve-drag-hint" role="status" data-testid="curve-drag-status">{moving?'Release to apply. Escape cancels.':'Values pending. Apply or discard.'}</p>}
   </div>;
 }

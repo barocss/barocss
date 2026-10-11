@@ -485,4 +485,7 @@ text.assembly-translation-guide[data-axis="z"] { fill:#8babcf; stroke:none; }
 .cad-editor-command-group .ruled-surface-tools button { display:inline-flex; align-items:center; justify-content:center; gap:4px; width:36px; height:36px; min-width:36px; min-height:36px; padding:4px; pointer-events:auto; }
 .ruled-surface-create { background:#b8d59c; color:#1b2517; }
 .ruled-surface-error { margin:6px 0; color:#ffd2ce; font-size:11px; line-height:1.4; overflow-wrap:anywhere; }
+.cad-editor-axis-palette[hidden] { display:none; }
+.pole-axis-feedback { position:absolute; right:8px; bottom:8px; max-width:184px; padding:4px 7px; border:1px solid #414a50; border-radius:4px; background:#22292ded; color:#c2cdd4; font-size:11px; line-height:1.4; pointer-events:none; }
+.pole-axis-feedback p { margin:0; }
 @media(max-width:799px) { .cad-editor-canvas-command-rail { top:92px; right:8px; } .cad-editor-canvas-command-rail[data-view-kind="curve-focus"] { top:92px; } }

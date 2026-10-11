@@ -118,7 +118,7 @@ export function ObjectRotationGizmo(props:Props) {
       latest.current.session.stageBodyRotation(rawNumber((props.snapStep??1)*direction));latest.current.session.prepareApply();
     }catch(cause){failure(cause);}
   }
-  if(!projection)return <p className="rotation-view-hint" data-testid="rotation-status">Change the view or fit the selected grip to reach this rotation plane.</p>;
+  if(!projection)return <p className="rotation-view-hint" data-testid="rotation-status">Change view or fit the selected grip.</p>;
   const pending=Object.keys(snapshot.pending).length>0;
   const rawAngle=snapshot.pending.angleDegrees??'0';
   const angle=Number(rawAngle);
@@ -135,6 +135,6 @@ export function ObjectRotationGizmo(props:Props) {
       <circle cx={marker.x} cy={marker.y} r={8} tabIndex={0} role="button" aria-label={'Rotate object around '+snapshot.rotationAxis.toUpperCase()}
         aria-disabled={props.disabled&&!gesture.current} className="rotation-ring-handle" data-testid="rotate-ring-handle" {...handlers} onKeyDown={keyboard}/>
     </svg>
-    <p className="rotation-view-hint" data-testid="rotation-status" role="status">{gesture.current?'Release to apply. Escape cancels.':pending?'Angle pending. Apply or discard to continue.':'Drag the ring. Arrow keys rotate one step.'}</p>
+    {(gesture.current||pending)&&<p className="rotation-view-hint" data-testid="rotation-status" role="status">{gesture.current?'Release to apply. Escape cancels.':'Angle pending. Apply or discard.'}</p>}
   </div>;
 }

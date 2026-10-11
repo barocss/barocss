@@ -959,3 +959,9 @@ Only the existing command toolbars move into the rail. Their controllers, settin
 The Construct rail icon opens a concise section chooser. Hidden second Curves remain available. Native basis, domain, knot, weight and capacity rules decide whether the pair is supported; refusal keeps the choice available for correction. Whole-document and current Viewport approval precede one history entry. Undo and Redo preserve structural IDs with current references and revision highwater.
 
 Native ID-mode preflight may make up to four calls. It retries only the exact typed untouched/refined ID-policy refusal before construction. Other Native failures propagate. This does not remap domains, reverse sections, produce a Solid, certify G1/G2 continuity or preserve a live construction recipe in saved geometry.
+
+### On-demand Canvas settings
+
+The Editing rail settings icon opens the existing movement, rotation or scale settings. The panel starts closed. Closing it only hides its DOM; snap values, input text and axis choices remain mounted. An active validation error exposes the relevant settings for correction. The icon provides an accessible name, expansion state and keyboard activation.
+
+Curve, Surface, rotation and scale overlays show short status text during a gesture or pending edit. Idle instructions are hidden. A genuine unavailable-projection message remains available. Settings visibility does not change Native Source, candidate approval, history or Canvas size. Gesture Escape keeps its existing cancellation behavior.
