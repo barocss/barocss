@@ -1,5 +1,5 @@
 // @ts-check
-import { createCanvas2D, createDisplayTree, createDisplayTreeFromScene,
+import { Canvas2DError, createCanvas2D, createDisplayTree, createDisplayTreeFromScene,
   createSpriteAnimation, createSpriteAtlas, packSpriteAtlas, createTicker, stringifySceneJSON } from '@barocss/canvas2d';
 import { serializeCanvasDocument, stageCanvasDocument, exportCanvasDocumentPNG } from '@barocss/canvas2d/document';
 
@@ -45,6 +45,8 @@ let packed=false;
 const status = /** @type {HTMLElement} */ (document.querySelector('#status'));
 const output = /** @type {HTMLElement} */ (document.querySelector('#observation'));
 const openInput = /** @type {HTMLInputElement} */ (document.querySelector('#open'));
+const frameSelect = /** @type {HTMLSelectElement} */ (document.querySelector('#frame'));
+const frameNames = ['Red', 'Blue', 'Clear'];
 const samples = [[35, 40], [60, 40]];
 
 /** @type {{token:number, callback:(timestampMS:number)=>void}|null} */ let pending = null;
@@ -81,7 +83,28 @@ function observe() {
       hit: renderer.hitTest({ x, y })?.id ?? null })), pointerLog: [...pointerLog] };
 }
 /** @param {string} message */
-function show(message) { status.textContent = message; output.textContent = JSON.stringify(observe(), null, 2); }
+function show(message) { syncFrameSelection(); status.textContent = message; output.textContent = JSON.stringify(observe(), null, 2); }
+function syncFrameSelection() {
+  const crop = sprite.data.sourceRect;
+  const index = sheet.sequence(frameNames).findIndex(frame => {
+    const source = frame.sourceRect;
+    return frame.imageId === sprite.data.imageId && !!source && !!crop &&
+      source.x === crop.x && source.y === crop.y &&
+      source.width === crop.width && source.height === crop.height;
+  });
+  frameSelect.value = index < 0 ? 'manual' : String(index);
+}
+/** @param {number} index */
+function seekFrame(index) {
+  if (disposed) throw new Canvas2DError('DISPOSED', 'sprite animation is disposed');
+  if (!Number.isInteger(index) || index < 0 || index > 2) {
+    throw new Canvas2DError('INVALID_SCENE', 'sprite animation frame index is outside its range');
+  }
+  animation.seek(index);
+  accepted = tree.snapshot(); renderer.updateScene(accepted); renderer.render();
+  show(`Selected ${frameNames[index]}`);
+}
+function onFrameChange() { seekFrame(Number(frameSelect.value)); }
 function subscribe() {
   sprite.onPointer('pointerdown', () => pointerLog.push('Sprite'));
   tree.stage.onPointer('pointerdown', () => pointerLog.push('stage'));
@@ -201,8 +224,9 @@ function pack(maxWidth=5){if(disposed)throw new Error('consumer disposed');const
 async function documentText(){return serializeCanvasDocument(accepted,id=>renderer.getImageAsset(id));}
 function editGold(){pause();const crop=sheet.frame('Gold').sourceRect;if(!crop)throw new Error('Gold crop missing');sprite.setSourceRect(crop);accepted=tree.snapshot();renderer.updateScene(accepted);renderer.render();show('Edited restored Sprite to Gold');}
 async function png(){const text=await documentText(),result=await exportCanvasDocumentPNG(text,options,()=>instrument(document.createElement('canvas'))),url=URL.createObjectURL(result.blob),a=document.createElement('a');a.href=url;a.download='packed-atlas.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);return {bytes:result.blob.size,size:result.backingSize};}
-function dispose(){if(disposed)return;ticker.dispose();animation.dispose();unbind();renderer.dispose();disposed=true;document.querySelectorAll('button').forEach(button=>{button.disabled=true;});openInput.disabled=true;show('Disposed');}
+function dispose(){if(disposed)return;ticker.dispose();animation.dispose();unbind();renderer.dispose();disposed=true;frameSelect.disabled=true;frameSelect.removeEventListener('change',onFrameChange);document.querySelectorAll('button').forEach(button=>{button.disabled=true;});openInput.disabled=true;show('Disposed');}
 subscribe(); unbind = bind();
+frameSelect.addEventListener('change',onFrameChange);
 document.querySelector('#pack')?.addEventListener('click',()=>pack());
 document.querySelector('#gold')?.addEventListener('click',editGold);
 document.querySelector('#png')?.addEventListener('click',()=>{void png();});
@@ -218,7 +242,7 @@ openInput.addEventListener('change', () => {
   void file.text().then(openText).catch(error => show(`Open failed: ${error.code ?? 'ERROR'}`));
   openInput.value = '';
 });
-Object.assign(window, { __spriteAtlasConsumer: { observe, start, pause, tick, save, openText, pack, inputs, editGold, png, dispose, documentText, contexts,
+Object.assign(window, { __spriteAtlasConsumer: { observe, start, pause, tick, seekFrame, save, openText, pack, inputs, editGold, png, dispose, documentText, contexts,
   get renderer(){return renderer;}, get tree(){return tree;}, get sprite(){return sprite;}, get catalog(){return sheet;}, get asset(){return atlasImage;},
   get canvas() { return canvas; } } });
 show('Ready at frame 0');
