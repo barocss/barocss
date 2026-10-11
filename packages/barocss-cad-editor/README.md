@@ -625,7 +625,7 @@ Explicit view is document or curve-focus(bodyId,count). prepareCurveFocus and
 prepareDocumentView use view-only candidates: native generation/history/source/
 dirty/raw/download capture remain; successful view admission increments only
 displayGeneration. prepareDisplayBodies proposes actual document view. Curve
-Apply requires its matching focus; Surface Apply requires document view.
+Apply supports document view or its matching focus; Surface Apply requires document view.
 create/Open may take an explicit incoming view; Open clears selections/history
 and does not silently choose a Curve or change source into sampled buffers.
 
@@ -732,3 +732,14 @@ The Canvas grip chooses among 65 original-domain D0 parameter stations at the op
 Native insertion preserves the original degree and domains. It replaces the chosen knot array, points and weights while retaining the complete Model, sibling bytes and original IDs/names. Acceptance and crossing the refinement history boundary clear the affected U/V pole selection without remapping indices. The body and document view remain. Use `Select a point` to choose a fresh current-net pole explicitly. Undo retains original coefficients only while runtime history is available. Download saves the current refined complete Source, without the knot receipt, draft, history or camera.
 
 Current native insertion admits U/V degrees1–5, one strictly interior knot, selected-axis15→16 poles, total256 poles and final multiplicity no greater than degree. Its selected-coordinate10000 mm profile differs from the wide point writer's1000000 mm profile. Full Source256KiB/Model16 and current document presentation are retained; no Curve-focus capacity restriction or Source stripping is added. Native and actual display refusals retain accepted content and corrective input. These current provider profiles do not define the final commercial modeling scope. Observed native D0 preservation is local, not ideal/global equivalence, topology, Solid or manufacturing certification.
+
+
+### Editing an original Curve in document view
+
+Original Curve point/weight edits and Move, Rotate and Scale work in document view as well as optional matching Curve focus. The existing native complete-source writer and affine provider remain authority. Root keeps source-qualified original coefficients, source spelling, IDs, domains, siblings, native noOp, raw values, revisions and history. It does not extract a smaller source to fit focus.
+
+The Canvas control polygon and existing point/axis/plane/ring/scale tools use an actual private document presentation: original Curve/reference resolved from the complete accepted source, real displayed body/asset/document binding and the current Viewer camera, scale and Canvas dimensions. Document display namespaces are distinct from the original native Model name. No focus receipt or uniform preview is fabricated for a document Curve. A hidden logical Curve can use native fields; Canvas controls require a genuine displayed binding. Held movement retains the accepted source/frame; ownership checks retain foreign raw or candidates.
+
+The native point writer supports degrees1–5/64 poles/70 knots/coordinates1000000 mm/complete Model16/Source262144 bytes and code units. Current document adaptive Curve sampling independently supports degrees1–3 and coordinates10000 mm. Focus independently supports degrees1–5 but complete Model4/Source65536; an optional focus refusal can leave a larger document editable. Affine coordinates and knots10000 remain separate. Actual native/display refusals remain visible and retain corrective input. These provider requirements do not define the final modeling scope. Interval editing still requires matching focus.
+
+The bounded author flow is `apps/cad-editor/flows/document-curve-flow.mjs`, using an original weighted cubic Curve in a full16-object source larger than64 KiB. It qualifies actual document bindings, original point drag/weight and affine edits, history, optional focus refusal, raw/capture ownership and genuine native Download/fresh Open/re-edit. Execution evidence is recorded separately from source and integrated availability. Degree4/5 document display, general closed Solid Split, OS IME, resources/recovery and commercial CAD parity are not established by this view-policy change.

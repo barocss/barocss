@@ -47,7 +47,7 @@ function actionableMessage(error: CadEditorError): string {
   const field = FIELDS.find(item => item.field === error.context.field);
   if (error.code === 'INPUT' && field) return `Enter a finite number for ${field.label}.`;
   if (error.code === 'BUDGET') return 'Use a shorter value and try again.';
-  if (error.context.field === 'view' || /curve-focus|document view|focused Curve/i.test(details)) return 'Focus the selected Curve, or return to document view for a Surface.';
+  if (error.context.field === 'view' || /curve-focus|document view|focused Curve/i.test(details)) return 'Use document view or the selected Curve’s matching focus. Interval editing still requires focus.';
   if (error.context.field === 'edit-capability') return 'Choose a supported object to change control points.';
   if (error.code === 'UNSUPPORTED') return 'Cannot edit these points with the current tool. Open Help or choose another object.';
   if (error.code === 'STALE') return 'Select the control pole again, then apply the change.';
@@ -81,7 +81,7 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
   const scaleComposing=useRef(false);
   const rotationComposing=useRef(false);
   const canEdit = selection !== null ? (scaleMode ? capability?.canScaleBody === true : rotationMode ? capability?.canRotateBody === true : objectMode ? capability?.canTranslateBody === true : capability?.canEditSurfacePole === true) && snapshot.view.kind === 'document'
-    : curveSelection !== null && (scaleMode ? capability?.canScaleBody === true : rotationMode ? capability?.canRotateBody === true : objectMode ? capability?.canTranslateBody === true : capability?.canEditCurvePole === true) && snapshot.view.kind === 'curve-focus' && snapshot.view.bodyId === curveSelection.bodyId;
+    : curveSelection !== null && (scaleMode ? capability?.canScaleBody === true : rotationMode ? capability?.canRotateBody === true : objectMode ? capability?.canTranslateBody === true : capability?.canEditCurvePole === true) && (snapshot.view.kind === 'document' || snapshot.view.kind === 'curve-focus' && snapshot.view.bodyId === curveSelection.bodyId);
   useEffect(() => {
     if (!transition) {
       attemptedTransitionRef.current = null;
@@ -127,7 +127,7 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
               <p>The native document can contain 1–4 source assets and up to 16 bodies. The viewport displays 1–4 chosen bodies at a time.</p>
               <p>Choose the displayed bodies in the object list. You can select and inspect a hidden body. Show it before using Fit Selected.</p>
               <p>Double-click a displayed object to fit it in the canvas. The first click uses the normal object selection. Fitting changes only the camera and uses the same view as Fit Selected. Finish a drag, apply or discard a draft, and close menus or dialogs before fitting. Empty or ambiguous hits cannot fit an object.</p>
-              <p>A supported Surface can be edited in document view even when its source contains other objects or its Model name differs from its Surface ID. Select Focus Curve to edit a supported Curve in its separate focused view.</p>
+              <p>Supported Surfaces and Curves can use point, Move, Rotate and Scale editing in document view. The whole source remains authority when its Model name differs from its geometry ID. Focus Curve is an optional separate view.</p>
               <p>The current native Surface point writer supports degree 1–5, 2–16 control poles on each grid axis and at most 256 poles. Coordinates can be within ±1000000 mm, weights within 0.000001–1000000 and the native Surface ID within 48 characters. Apply uses the wide complete-source writer and its native validator.</p>
               <p>Source0 assets support 1–16 objects and at most 262144 UTF-16 code units and UTF-8 bytes. Pole edits require directly authored numeric coefficient bindings. The native provider can refuse unsupported bindings or source budgets during Apply.</p>
               <p>Display parsing reads the whole source asset, including hidden sibling objects. Hiding bodies does not remove those siblings from the source or bypass parsing limits.</p>
@@ -165,7 +165,7 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
               <p>Choose Move object in the viewport toolbar to translate the entire selected Curve or Surface. Offsets use mm from the current accepted position. The original point selected by U/V or Point is the movement grip; it is not a certified center.</p>
               <p>Drag an XY, XZ or YZ plane handle to move along two world axes. The third axis stays unchanged. A nearly edge-on or offscreen plane is hidden. Each movement snap step applies from the captured pointer start. Right and Left increase or decrease the first named axis; Up and Down change the second. Release applies one complete native move; Escape cancels only the owned draft.</p>
               <p>Native affine transformation computes every original pole. Source-preserving writers apply the resulting coordinates to the complete original asset. Knots, weights, geometry IDs, sibling objects and other assets stay unchanged. Temporary native transform geometry is validation evidence; it is not a new saved object or a replacement source.</p>
-              <p>The current native affine profile supports Curve and Surface degree 1–5, with 2–64 Curve poles or 2–16 Surface poles per axis and at most 256 Surface poles. Original and transformed coordinates, matrix translation and original knots must remain within ±10000. Coordinate and translation values use mm; knot values are original parameters. This affine requirement is separate from the wider Surface point-edit range. Source bindings, native numeric or display requirements can still refuse a change. Curve moves require matching Curve focus; Surface moves require document view.</p>
+              <p>The current native affine profile supports Curve and Surface degree 1–5, with 2–64 Curve poles or 2–16 Surface poles per axis and at most 256 Surface poles. Original and transformed coordinates, matrix translation and original knots must remain within ±10000. Coordinate and translation values use mm; knot values are original parameters. This affine requirement is separate from the wider Surface point-edit range. Source bindings, native numeric or display requirements can still refuse a change. Curve moves use document view or matching Curve focus; Surface moves require document view.</p>
               <p>The wide Surface writer applies all transformed original poles in one private, validated complete-source request. One accepted movement adds one history entry. A refusal retains the original source and offsets.</p>
               <p>The control net shifts as a pending ghost. The full accepted shape changes only after release, native validation and the actual rendered frame. Changing tools requires an empty draft and does not edit source or history. Open resets the tool to Control point. Move settings and temporary transform IDs are not stored in the native document or recovery copy.</p>
             </section>
@@ -308,7 +308,6 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
       </p>}
       {selection && snapshot.view.kind !== 'document' && <p role="status" className="cad-editor-readonly">Return to document view to edit Surface points.</p>}
       {curveSelection && capability?.canEditCurvePole === false && <p role="status" className="cad-editor-readonly" data-testid="cad-editor-readonly-curve">These Curve points are outside the editing limits. Open Help or choose another Curve.</p>}
-      {curveSelection && capability?.canEditCurvePole && (snapshot.view.kind!=='curve-focus'||snapshot.view.bodyId!==curveSelection.bodyId) && <p role="status" className="cad-editor-readonly">Focus this Curve to edit its points.</p>}
       {snapshot.view.kind === 'document' && snapshot.selectedBodyId !== null && !snapshot.displayBodyIds.includes(snapshot.selectedBodyId)
         && <p className="cad-editor-hidden-body" role="status">This object is not displayed. Show it to fit or select it in the viewport.</p>}
       {selection ? <div className="cad-editor-selection">

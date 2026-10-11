@@ -600,7 +600,8 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       const body = native(() => createCadGeometryReference(accepted, { bodyId: selectedBodyId! }),
         'Native body-only reference creation failed.', accepted.document.documentId);
       if (body.geometry.kind === 'surface' && view.kind === 'document'
-        || body.geometry.kind === 'curve' && view.kind === 'curve-focus' && view.bodyId === selectedBodyId) return null;
+        || body.geometry.kind === 'curve' && (view.kind === 'document'
+          || view.kind === 'curve-focus' && view.bodyId === selectedBodyId)) return null;
     }
     if (hasSurfaceKnotRaw()) {
       const context = surfaceKnotContext();
@@ -676,8 +677,8 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       const context = { documentId: accepted.document.documentId, bodyId, field: 'body-scale' };
       requireEditor(prepared === null, 'INPUT', 'Resolve the current candidate before scaling the object.', context);
       requireEditor(resolved.geometry.kind === 'curve'
-        ? view.kind === 'curve-focus' && view.bodyId === bodyId : view.kind === 'document',
-      'DISPLAY', resolved.geometry.kind === 'curve' ? 'Focus this Curve before scaling it.' : 'Return to document view before scaling this Surface.',
+        ? view.kind === 'document' || view.kind === 'curve-focus' && view.bodyId === bodyId : view.kind === 'document',
+      'DISPLAY', resolved.geometry.kind === 'curve' ? 'Use document view or focus this Curve before scaling it.' : 'Return to document view before scaling this Surface.',
       { ...context, field: 'curve-focus' });
       const transition = selectionTransition;
       if (Object.keys(pending).length === 0) { emit(); return null; }
@@ -718,8 +719,8 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       const context = { documentId: accepted.document.documentId, bodyId, field: 'body-rotation' };
       requireEditor(prepared === null, 'INPUT', 'Resolve the current candidate before rotating the object.', context);
       requireEditor(resolved.geometry.kind === 'curve'
-        ? view.kind === 'curve-focus' && view.bodyId === bodyId : view.kind === 'document',
-      'DISPLAY', resolved.geometry.kind === 'curve' ? 'Focus this Curve before rotating it.' : 'Return to document view before rotating this Surface.',
+        ? view.kind === 'document' || view.kind === 'curve-focus' && view.bodyId === bodyId : view.kind === 'document',
+      'DISPLAY', resolved.geometry.kind === 'curve' ? 'Use document view or focus this Curve before rotating it.' : 'Return to document view before rotating this Surface.',
       { ...context, field: 'curve-focus' });
       const transition = selectionTransition;
       if (Object.keys(pending).length === 0) { emit(); return null; }
@@ -760,8 +761,8 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       const context = { documentId: accepted.document.documentId, bodyId, field: 'body-translation' };
       requireEditor(prepared === null, 'INPUT', 'Resolve the current candidate before moving the object.', context);
       requireEditor(resolved.geometry.kind === 'curve'
-        ? view.kind === 'curve-focus' && view.bodyId === bodyId : view.kind === 'document',
-      'DISPLAY', resolved.geometry.kind === 'curve' ? 'Focus this Curve before moving it.' : 'Return to document view before moving this Surface.',
+        ? view.kind === 'document' || view.kind === 'curve-focus' && view.bodyId === bodyId : view.kind === 'document',
+      'DISPLAY', resolved.geometry.kind === 'curve' ? 'Use document view or focus this Curve before moving it.' : 'Return to document view before moving this Surface.',
       { ...context, field: 'curve-focus' });
       const transition = selectionTransition;
       if (Object.keys(pending).length === 0) { emit(); return null; }
@@ -792,8 +793,8 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       requireCurveEditable();
       const selected = curveSelection;
       const context = { documentId: accepted.document.documentId, bodyId: selected.bodyId, field: 'curve-pole' };
-      requireEditor(view.kind === 'curve-focus' && view.bodyId === selected.bodyId, 'DISPLAY',
-        'Focus this Curve before applying its Point edits.', { ...context, field: 'curve-focus' });
+      requireEditor(view.kind === 'document' || view.kind === 'curve-focus' && view.bodyId === selected.bodyId, 'DISPLAY',
+        'Use document view or focus this Curve before applying its Point edits.', { ...context, field: 'curve-focus' });
       invalidatePrepared();
       const transition = selectionTransition;
       if (Object.keys(pending).length === 0) { emit(); return null; }

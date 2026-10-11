@@ -33,7 +33,7 @@ function actionError(error: CadEditorError): string {
   if(error.context.field==='curve-interval')return error.code==='STALE'?'The Curve or view changed. Review the pending bounds.':error.code==='DISPLAY'?'Cannot display this interval. The accepted Curve is retained.':'Enter a proper increasing interval within the current Curve bounds.';
   if(error.context.field==='curve-pole-drag')return error.code==='STALE'?'The point or view changed. Review the pending values before dragging again.':'Cannot move this point. Apply or discard the draft, then try again.';
   if(error.context.field==='curve-focus')return 'Cannot show this Curve view. Keep the current view, or choose another object. Open Help for the supported limits.';
-  if(error.context.field==='curve-pole')return 'Cannot apply this Curve point. Check its coordinates and weight, then use Focus Curve.';
+  if(error.context.field==='curve-pole')return 'Cannot apply this Curve point. Check its coordinates and weight.';
   if(error.context.field==='document-recovery')return 'Cannot open this recovery copy. The current document is retained. Open Recovery copies to retry.';
   if(error.context.field==='curve-length')return 'Cannot estimate this Curve length. Check the original interval or open Help.';
   if(error.context.field==='document-replacement-download')return 'Download could not start. The current document is retained.';
@@ -372,13 +372,21 @@ function DirectApp() {
     if(Object.keys(current.pending).length)return false;
     const cap=current.bodyCapabilities.find(body=>body.bodyId===current.selectedBodyId);
     const supported=id==='object'?cap?.canTranslateBody:id==='rotation'?cap?.canRotateBody:id==='scale'?cap?.canScaleBody
-      :current.view.kind==='document'?cap?.canEditSurfacePole:cap?.canEditCurvePole;
+      :current.curveSelection?cap?.canEditCurvePole:cap?.canEditSurfacePole;
     if(!supported)return false;
     try {
       if(current.view.kind==='document'&&current.selection&&current.selection.bodyId===current.selectedBodyId
         &&current.displayBodyIds.includes(current.selection.bodyId)
         &&receipt?.state.documentBodies.some(body=>body.binding.bodyId===current.selection?.bodyId&&body.ref.kind==='surface'))
         return resolveCadGeometryReference(current.accepted,current.selection.reference).geometry.kind==='surface';
+      if(current.view.kind==='document'&&current.curveSelection&&current.curveSelection.bodyId===current.selectedBodyId
+        &&current.displayBodyIds.includes(current.curveSelection.bodyId)){
+        const resolved=resolveCadGeometryReference(current.accepted,current.curveSelection.reference);
+        const body=receipt?.state.documentBodies.find(body=>body.binding.bodyId===current.curveSelection?.bodyId);
+        if(resolved.geometry.kind==='curve'&&body?.ref.kind==='curve'&&body.ref.curveId===resolved.geometry.id
+          &&body.binding.assetId===resolved.reference.assetId&&body.binding.assetRevision===resolved.reference.assetRevision
+          &&body.binding.documentRevision===resolved.reference.documentRevision)return true;
+      }
       if(current.view.kind==='curve-focus'&&current.curveSelection&&current.view.bodyId===current.curveSelection.bodyId
         &&current.curveSelection.bodyId===current.selectedBodyId&&curvePresentation
         &&JSON.stringify(curvePresentation.reference)===JSON.stringify(current.curveSelection.reference)){

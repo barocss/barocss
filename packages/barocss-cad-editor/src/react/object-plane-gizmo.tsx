@@ -2,11 +2,13 @@ import {useEffect,useRef,type PointerEvent as ReactPointerEvent,type KeyboardEve
 import {resolveCadGeometryReference} from '@barocss/cad';
 import {CadEditorError,type CadEditorSession,type CadEditorSnapshot,type CadEditorDraftField,type CadEditorBodyTranslationField} from '../types.js';
 import type {Control} from './pole-axis-gizmo.js';
+import {resolveCurveControlPresentation, sameCurveControlData, type CurveControlPresentation} from './curve-control-presentation.js';
 import {preparePlaneTranslationProjection,planeTranslationDisplacement,type ObjectMovePlane,type PlaneTranslationProjection} from './plane-translation-projection.js';
 
 interface Props {
   session:CadEditorSession;control:Control;canvas:HTMLCanvasElement;snapStep:number|null;disabled:boolean;
   onError:(error:CadEditorError)=>void;onGestureChange:(active:boolean)=>void;
+  isCurrentCurvePresentation?:(presentation:CurveControlPresentation)=>boolean;
 }
 interface Gesture {
   pointerId:number;element:SVGPolygonElement;control:Control;projection:PlaneTranslationProjection;
@@ -55,7 +57,14 @@ export function ObjectPlaneGizmo(props:Props) {
     if(now.control.kind==='surface'){
       if(snapshot.view.kind!=='document'||!snapshot.selection||!snapshot.displayBodyIds.includes(selected.bodyId)
         ||!same(now.control.receipt.state.document,snapshot.accepted))return null;
-    }else if(snapshot.view.kind!=='curve-focus'||!snapshot.curveSelection||snapshot.view.bodyId!==selected.bodyId)return null;
+    }else {
+      if(!snapshot.curveSelection||!now.control.curvePresentation)return null;
+      const presentation=resolveCurveControlPresentation(snapshot,
+        now.control.curvePresentation.kind==='document'?now.control.curvePresentation.receipt:null,
+        now.control.curvePresentation.kind==='focus'?now.control.curvePresentation.receipt:null);
+      if(!presentation||!now.isCurrentCurvePresentation?.(presentation)||!sameCurveControlData(presentation.reference,now.control.reference)
+        ||presentation.source!==now.control.curvePresentation.source)return null;
+    }
     try{
       const resolved=resolveCadGeometryReference(snapshot.accepted,selected.reference);
       const point=resolved.geometry.kind==='surface'&&snapshot.selection
