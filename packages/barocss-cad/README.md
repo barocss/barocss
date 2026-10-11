@@ -9376,3 +9376,16 @@ The complete result keeps the original context and both full child receipts. The
 The new request/result envelopes are1/2MiB in both UTF16 and UTF8, including literal negative zero and one final newline. Full staged prefixes and final ownership are bounded. Existing Source262144, Model16 and every child limit stay unchanged. Some scalar-valid Lines can still fail a strict parent affine-corner check; the real cause is retained, and no endpoint is snapped or repaired. Refusal leaves previous accepted data and files intact.
 
 Run `node examples/cad-nurbs/source-line-width-face-demo.mjs --source <output-directory>`. Native completion, local adoption and later UI/current-root acceptance are tracked in Issue1417. This operation does not construct a Body/Solid or certify global error, G1/G2, manufacturing, arbitrary-direction strokes, curved offsets or a parameter graph. Direct Face extrusion remains separate work.
+
+
+## Extrude an owned rectangle Face into a closed patch Shell
+
+`extrudeConvexPlanarFace(face, { evaluationId, resultIdPrefix, distanceMM, direction: 'positive-z' })` accepts a complete forward Convex planar Face. The first profile is a natural unit-weight degree1 XY rectangle at Z=0, with positive-X and positive-Y parameter directions. Distance is finite1e-6..10000mm. Reverse Faces and other charts refuse.
+
+The result retains the whole original Face, twelve coefficient translation maps, four full ruled-wall receipts, six actual Parametric Faces with complete Model5 sources, and the closed exact-patch Shell with twelve full boundary-pair proofs. The bottom chart transposes U and V; the top preserves the original chart. All six supports use outward forward Face charts. Source references include their actual source IDs, so equal Model names in separate assets remain distinct.
+
+The existing Shell provider verifies eight vertex classes, twelve edges, six Faces, eight vertex links and no free boundaries. This certifies a closed oriented abstract incidence manifold. It does not certify geometric embedding, self-intersection, inside/outside, Solid, support regularity, global error or manufacturing. Length×width×height remains a diagnostic quantity.
+
+`validateConvexPlanarFaceExtrusion(result)` reconstructs once from its complete request and compares every retained field and represented bit. The new request/result limits are2/4MiB in both UTF16 and UTF8, including signed zeros and one final newline. Full staged prefixes and final ownership are bounded. Existing source, Model, Face, ruled Surface and Shell limits stay unchanged. A refusal preserves prior accepted data and files.
+
+Run `node examples/cad-nurbs/convex-planar-face-extrusion-demo.mjs --source <output-directory>`. The example changes only height10→12mm, cold-compiles all six sources, and saves/reopens an authored Face recipe through the existing strict parser before rebuilding the complete result. Geometry sources alone do not restore Face topology. Native completion, Integration adoption and later UI/current-root acceptance are tracked separately in Issue1433.
