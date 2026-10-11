@@ -76,6 +76,10 @@
 .cad-direct-app .command-group-actions { display:flex; align-items:center; gap:2px; }
 .cad-direct-app .command-group-actions button { min-height:24px; height:24px; padding:3px 7px; font-size:11px; }
 .cad-direct-app .command-group-actions svg { width:13px; height:13px; }
+.cad-direct-app .app-header button.document-command-icon,
+.cad-direct-app .modeling-toolbar button.document-command-icon { width:32px; min-width:32px; height:32px; min-height:32px; padding:0; flex-shrink:0; }
+.cad-direct-app .app-header button.document-command-icon svg,
+.cad-direct-app .modeling-toolbar button.document-command-icon svg { width:16px; height:16px; flex-shrink:0; }
 .cad-direct-app .document-tree { width:176px; padding:10px 8px; background:#222629; border-color:#353b3f; }
 .cad-direct-app .document-tree h2 { font-size:12px; font-weight:600; color:#e0e5e7; margin:0 5px 10px; }
 .cad-direct-app .document-tree h2 svg { width:14px; height:14px; color:#a9b3ba; }

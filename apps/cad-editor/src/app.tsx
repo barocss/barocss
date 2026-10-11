@@ -463,8 +463,8 @@ function DirectApp() {
       </Menubar>
       <span className="document-title" title={filename}>{filename}<span className="dirty-dot" aria-label={effectiveUnsaved ? 'Unsaved accepted changes' : 'Accepted content unchanged'}>{effectiveUnsaved ? ' •' : ''}</span></span>
       <CadCommandPalette root={appRoot} commands={paletteCommands} blocked={commandBlocked} ready={commandReady} available={commandAvailable} execute={executeCommand}/>
-      <Button ref={openButton} data-testid="document-open" variant="outline" size="sm" onClick={chooseOpenFile} disabled={modelBusy}><FolderOpen/>Open</Button>
-      <Button size="sm" disabled={layout.resizing} onClick={() => run(downloadCurrent)}><Download/>Download</Button>
+      <Button ref={openButton} data-testid="document-open" variant="outline" size="sm" className="document-command-icon" aria-label="Open" title="Open" onClick={chooseOpenFile} disabled={modelBusy}><FolderOpen size={16} aria-hidden="true"/></Button>
+      <Button size="sm" className="document-command-icon" aria-label="Download" title="Download" disabled={layout.resizing} onClick={() => run(downloadCurrent)}><Download size={16} aria-hidden="true"/></Button>
       <input ref={fileInput} type="file" accept=".json,.cad-document.json" aria-label="Open native document file" className="file-input" onChange={event => { void openFile(event.target.files?.[0]); event.target.value = ''; }}/>
     </header>
     <div className="app-toolbar modeling-toolbar">
@@ -477,7 +477,7 @@ function DirectApp() {
       <Button variant="ghost" size="icon-sm" aria-label="Redo" disabled={!snapshot.history.canRedo || modelBusy || hasDraft} onClick={() => run(() => session.prepareRedo())}><Redo2/></Button>
       </div></div>
       <div className="command-group" role="group" aria-label="View commands"><span className="command-group-label">View</span><div className="command-group-actions">
-      <Button variant="ghost" size="sm" disabled={layout.resizing} onClick={() => setFitRequest(value => value + 1)}><Maximize/>Fit</Button><Button variant="ghost" size="sm" data-testid="fit-selected-body" disabled={!snapshot.selectedBodyId||layout.resizing} onClick={() => setFitSelectedRequest(value => value + 1)}><Crosshair/>Fit selected</Button>
+      <Button variant="ghost" size="sm" className="document-command-icon" aria-label="Fit" title="Fit" disabled={layout.resizing} onClick={() => setFitRequest(value => value + 1)}><Maximize size={16} aria-hidden="true"/></Button><Button variant="ghost" size="sm" data-testid="fit-selected-body" className="document-command-icon" aria-label="Fit selected" title="Fit selected" disabled={!snapshot.selectedBodyId||layout.resizing} onClick={() => setFitSelectedRequest(value => value + 1)}><Crosshair size={16} aria-hidden="true"/></Button>
       <Button variant="ghost" size="icon-sm" data-testid="toggle-object-panel" aria-label={layout.objectsVisible?'Hide objects':'Show objects'} title={layout.objectsVisible?'Hide objects':'Show objects'} aria-pressed={layout.objectsVisible} disabled={layout.disabled||layout.focused} onClick={layout.toggleObjects}><PanelLeftClose/></Button>
       <Button variant="ghost" size="icon-sm" data-testid="toggle-property-panel" aria-label={layout.propertiesVisible?'Hide properties':'Show properties'} title={layout.propertiesVisible?'Hide properties':'Show properties'} aria-pressed={layout.propertiesVisible} disabled={layout.disabled||layout.focused} onClick={layout.toggleProperties}><PanelRightClose/></Button>
       <Button variant="ghost" size="icon-sm" data-testid="toggle-canvas-focus" aria-label={layout.focused?'Restore panels (F8)':'Canvas focus (F8)'} title={layout.focused?'Restore panels (F8)':'Canvas focus (F8)'} aria-pressed={layout.focused} aria-keyshortcuts="F8" disabled={layout.disabled} onClick={layout.toggleFocus}>{layout.focused?<Shrink/>:<Expand/>}</Button>

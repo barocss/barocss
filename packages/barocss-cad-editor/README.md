@@ -985,3 +985,7 @@ The Driving Sketch Inspector uses 16px icons in 36px buttons for Help, Add, Remo
 ### Driving Canvas feedback
 
 Driving dimension and fixed-point overlays show status only during an actual gesture. The status uses the existing rounded local displacement: one axis for a distance, and local X/Y for a fixed point. Idle instructions remain in optional Help and the grip title. Geometry guides, Native admission, draft ownership, capture cancellation, errors and field editing retain their existing behavior.
+
+### Document command icons
+
+The original-document editor uses 16px icons in 32px buttons for Open, Download, Fit and Fit selected. Each button retains its previous name through its accessible label and title. File selection, authored downloads, camera fitting, disabled guards and keyboard activation keep their existing behavior. Direction names, editable values, errors and active decisions remain readable.
