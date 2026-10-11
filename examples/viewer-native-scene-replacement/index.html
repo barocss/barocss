@@ -68,5 +68,13 @@ File choice remains separate. This source action cancels an older local Open int
 The point is authored XYZ in millimetres before display pose and scale. Inspection changes only this report. It preserves source, import provenance, view, selection, measurements and File choices.
 A new selection starts at the original domain midpoint. Invalid active drafts keep the last completed report; inactive parameters are ignored. Reset clears only the report, keeping the drafts.
 Hiding the selected object clears selection and this report. Retained selected CPU geometry can still be inspected after presentation loss. No global precision or topology certificate is implied.</p></details></fieldset>
+<fieldset id="native-chord-pane"><legend>Captured native chord</legend>
+<button id="capture-native-chord-point" disabled>Capture chord point</button><button id="reset-native-chord" disabled>Reset chord points</button>
+<p id="native-chord-output" role="status" aria-live="polite"></p>
+<details><summary>Captured chord details</summary><pre id="native-chord-details"></pre></details>
+<details id="native-chord-help"><summary>About captured native chords</summary><p>Use the selected native point's U/V or t fields above. Capture the first point, choose another object or parameter, then capture the second point to measure their original authored straight-line distance in millimetres. A third capture starts a new pair.
+The first point remains across selection, visibility, view and display pose changes while its whole original source remains current. It does not restore hidden selection. A new source, Clear or Dispose clears the captured points; a failed candidate keeps them.
+The second capture updates the SDK's latest native measurement. Reset clears only these captured points, keeping the parameter drafts, separate point report and latest measurement. A report error after a successful measurement does not undo that SDK cache.
+This is an original native chord, not arc length, a nearest-geometry distance or a distance after display poses. Retained CPU points may be measured after presentation loss; new GPU selection stays blocked. No precision or topology certificate is implied.</p></details></fieldset>
 <pre id="inspection" aria-label="Original native point">Load original source to inspect.</pre></div><aside><h2>Accepted original bodies</h2><ul id="bodies"></ul></aside></div>
 <pre id="status" role="status" aria-live="polite">Loading unchanged canonical document…</pre><script type="module" src="/bundle.js"></script></body></html>

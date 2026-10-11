@@ -1,3 +1,43 @@
+## Capture two original points for a chord
+
+Select an original Surface or Curve and enter its native U/V or t in the
+selected-point controls. Select **Capture chord point** to store the first
+point. Select another original object, or change its parameters, then select
+**Capture chord point** again. The completed report shows the straight-line
+distance between the two original authored XYZ points in millimetres.
+The next capture starts a new first point. **Reset chord points** clears this
+captured set and keeps parameter drafts and the separate point inspector.
+
+This uses the existing public Viewer point-distance method. A successful pair
+updates the SDK latest native measurement. First capture and Reset do not
+change that measurement. The operation preserves the original source, whole
+Model, current view, display poses, other measurement fields, File choice and
+import provenance. It does not draw a line or marker on the canvas.
+
+Captured points retain their original parameters when selection, visibility,
+view or display pose changes. A hidden first endpoint remains original CPU
+geometry; it does not become a hidden SDK selection. A new capture needs a
+current selected object. Source/Model or mode changes, successful source
+admission, Clear and Dispose clear the captured set. Invalid parameters or a
+failed source candidate keep a current set. Matching selected CPU geometry can
+still be captured and measured after presentation loss; new selection remains
+blocked when graphics are unavailable.
+
+The whole current Source0 and Model, both tagged references, original domains,
+parameters and fresh public native points are checked before the paired SDK
+call. Inputs and reports are copied. Point records retain the existing8192
+value/depth16 budget; combined copies are bounded to32768 values/depth18,
+512 array entries,64 record keys and65536 UTF8 bytes/code units per string.
+The supported native Source0 family keeps1..4 complete objects. No original
+object is stripped or replaced by display data. These bounds are input guards,
+not a maximum-workload or numerical-accuracy certificate.
+
+The distance is an original point-to-point chord. It is not Curve arc length,
+a minimum distance between objects, a posed-world distance, a native screen
+hit or a history certificate. A represented zero chord is valid. If the SDK
+pair call succeeds and a later report callback fails, the latest SDK measure
+is already updated; no cache rollback is promised.
+
 ## Inspect the selected original geometry
 
 Open a supported original Source0 or IGES file. Select a visible original
