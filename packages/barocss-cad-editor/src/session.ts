@@ -22,9 +22,10 @@ import { appendJoinedCurveSource } from './curve-join.js';
 import { elevateSurfaceDegreeSource } from './surface-degree-elevation.js';
 import { appendSurfaceRegionSource } from './surface-region.js';
 import { appendSplitCurveSource } from './curve-split.js';
+import { appendSplitSurfaceSource } from './surface-split.js';
 import type {
   CadEditorCandidate, CadEditorDiagnosticCode, CadEditorPoleField, CadEditorSelectedPole, CadEditorSelectedCurvePole, CadEditorView,
-  CadEditorEditTarget, CadEditorBodyTranslationField, CadEditorRotationAxis, CadEditorScaleAxis, CadEditorSurfaceIsoCurveAxis, CadEditorSurfaceIsoCurveCreation, CadEditorCurveJoinCreation, CadEditorSurfaceRegionField, CadEditorSurfaceRegionCreation, CadEditorCurveSplitCreation,
+  CadEditorEditTarget, CadEditorBodyTranslationField, CadEditorRotationAxis, CadEditorScaleAxis, CadEditorSurfaceIsoCurveAxis, CadEditorSurfaceIsoCurveCreation, CadEditorCurveJoinCreation, CadEditorSurfaceRegionField, CadEditorSurfaceRegionCreation, CadEditorCurveSplitCreation, CadEditorSurfaceSplitAxis, CadEditorSurfaceSplitCreation,
   CadEditorSelectionTarget, CadEditorSelectionTransition, CadEditorSession, CadEditorSessionOptions, CadEditorSnapshot, CadEditorSurfaceSelection,
 } from './types.js';
 
@@ -204,6 +205,12 @@ interface SurfaceIsoCurveBoundary { before: Presentation; after: Presentation }
 interface CurveJoinBoundary { before: Presentation; after: Presentation }
 interface SurfaceRegionBoundary { before: Presentation; after: Presentation }
 interface CurveSplitBoundary { before: Presentation; after: Presentation }
+interface SurfaceSplitBoundary { before: Presentation; after: Presentation }
+interface SurfaceSplitBinding {
+  bodyId: string; reference: CadGeometryReferenceV0; source: string; surface: Surface;
+  domains: { u: [number, number]; v: [number, number] }; axis: CadEditorSurfaceSplitAxis;
+  baseGeneration: number; baseDisplayGeneration: number; view: CadEditorView; editTarget: CadEditorEditTarget;
+}
 interface CurveSplitBinding {
   bodyId: string; reference: CadGeometryReferenceV0; source: string; curve: Curve; domain: [number, number];
   baseGeneration: number; baseDisplayGeneration: number; view: CadEditorView; editTarget: CadEditorEditTarget;
@@ -255,15 +262,15 @@ interface SurfaceDegreeElevationPreparation {
   boundary?: SurfaceDegreeElevationBoundary;
   clearPoleBodyId?: string;
 }
-interface HistoryState { document: CadDocumentV1; bytes: number; nativeNames?: string[]; duplicateBoundary?: DuplicateBoundary; surfaceIsoCurveBoundary?: SurfaceIsoCurveBoundary; curveJoinBoundary?: CurveJoinBoundary; surfaceRegionBoundary?: SurfaceRegionBoundary; curveSplitBoundary?: CurveSplitBoundary;
+interface HistoryState { document: CadDocumentV1; bytes: number; nativeNames?: string[]; duplicateBoundary?: DuplicateBoundary; surfaceIsoCurveBoundary?: SurfaceIsoCurveBoundary; curveJoinBoundary?: CurveJoinBoundary; surfaceRegionBoundary?: SurfaceRegionBoundary; curveSplitBoundary?: CurveSplitBoundary; surfaceSplitBoundary?: SurfaceSplitBoundary;
   intervalBoundary?: IntervalBoundary; surfaceKnotBoundary?: SurfaceKnotBoundary; curveKnotBoundary?: CurveKnotBoundary;
   surfaceDegreeElevationBoundary?: SurfaceDegreeElevationBoundary }
 interface Prepared {
   candidate: CadEditorCandidate; historyIndex?: number;
   selectionTarget?: CadEditorSelectionTarget | null; transitionToken?: string;
   structuralPresentation?: Presentation; duplicateBoundary?: DuplicateBoundary;
-  surfaceIsoCurveBoundary?: SurfaceIsoCurveBoundary; curveJoinBoundary?: CurveJoinBoundary; surfaceRegionBoundary?: SurfaceRegionBoundary; curveSplitBoundary?: CurveSplitBoundary; structuralBodyOnly?: boolean;
-  structuralContextField?: 'surface-isocurve' | 'curve-join' | 'surface-region' | 'curve-split';
+  surfaceIsoCurveBoundary?: SurfaceIsoCurveBoundary; curveJoinBoundary?: CurveJoinBoundary; surfaceRegionBoundary?: SurfaceRegionBoundary; curveSplitBoundary?: CurveSplitBoundary; surfaceSplitBoundary?: SurfaceSplitBoundary; structuralBodyOnly?: boolean;
+  structuralContextField?: 'surface-isocurve' | 'curve-join' | 'surface-region' | 'curve-split' | 'surface-split';
   nativeNames?: string[];
   intervalBoundary?: IntervalBoundary; clearCurvePoleBodyId?: string;
   surfaceKnotBoundary?: SurfaceKnotBoundary; clearSurfacePoleBodyId?: string;
@@ -297,6 +304,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   let surfaceIsoCurveBinding: SurfaceIsoCurveBinding | null = null;
   let surfaceRegionBinding: SurfaceRegionBinding | null = null;
   let curveSplitBinding: CurveSplitBinding | null = null;
+  let surfaceSplitBinding: SurfaceSplitBinding | null = null;
   let prepared: Prepared | null = null;
   let history: HistoryState[] = [{ document: copy(accepted.document), bytes: fileBudget(serialize(accepted)),
     nativeNames: accepted.compiledAssets.flatMap(asset => [asset.model.name, ...asset.model.objects.map(geometry => geometry.id)]) }];
@@ -316,6 +324,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   let lastSurfaceIsoCurve: CadEditorSnapshot['lastSurfaceIsoCurve'] = null;
   let lastSurfaceRegion: CadEditorSnapshot['lastSurfaceRegion'] = null;
   let lastCurveSplit: CadEditorSnapshot['lastCurveSplit'] = null;
+  let lastSurfaceSplit: CadEditorSnapshot['lastSurfaceSplit'] = null;
   let lastCurveJoin: CadEditorSnapshot['lastCurveJoin'] = null;
   let lastSurfaceDegreeElevation: CadEditorSnapshot['lastSurfaceDegreeElevation'] = null;
   const listeners = new Set<() => void>();
@@ -336,7 +345,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     accepted, generation, displayGeneration, displayBodyIds, view, editTarget, rotationAxis, scaleAxis, bodyCapabilities,
     selectedBodyId, selection, curveSelection, selectionTransition, pending, candidate: prepared?.candidate ?? null,
     history: { index: historyIndex, count: history.length, bytes: historyBytes(), canUndo: historyIndex > 0, canRedo: historyIndex < history.length - 1 },
-    dirty, downloadStatus, disposed, lastProvenance, lastCurveProvenance, lastBodyTranslation, lastBodyRotation, lastBodyScale, lastCurveInterval, lastSurfaceKnot, lastCurveKnot, lastSurfaceIsoCurve, lastSurfaceRegion, lastCurveSplit, lastCurveJoin, lastSurfaceDegreeElevation,
+    dirty, downloadStatus, disposed, lastProvenance, lastCurveProvenance, lastBodyTranslation, lastBodyRotation, lastBodyScale, lastCurveInterval, lastSurfaceKnot, lastCurveKnot, lastSurfaceIsoCurve, lastSurfaceRegion, lastCurveSplit, lastSurfaceSplit, lastCurveJoin, lastSurfaceDegreeElevation,
   });
   const select = (input: CadEditorSurfaceSelection, document = accepted): CadEditorSelectedPole => {
     const context = { documentId: document.document.documentId, bodyId: input?.bodyId, field: 'selection-transition' };
@@ -418,6 +427,8 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       'Apply or discard the region before selecting another pole on this Surface.', surfaceRegionContext());
     requireEditor(!(hasCurveSplitRaw() && resolved.target.bodyId === selectedBodyId), 'INPUT',
       'Apply or discard the split before selecting another original point on this Curve.', curveSplitContext());
+    requireEditor(!(hasSurfaceSplitRaw() && resolved.target.bodyId === selectedBodyId), 'INPUT',
+      'Apply or discard the split before selecting another original pole on this Surface.', surfaceSplitContext());
     prepared = null;
     if (Object.keys(pending).length > 0) {
       selectionTransition = { token: newToken(), baseGeneration: generation, target: copy(resolved.target) };
@@ -447,7 +458,12 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   const curveSplitContext = (): CadEditorError['context'] => ({ documentId: accepted.document.documentId,
     bodyId: selectedBodyId ?? undefined, field: 'curve-split' });
   const hasCurveSplitRaw = () => Object.hasOwn(pending, 'curveSplit');
+  const surfaceSplitContext = (): CadEditorError['context'] => ({ documentId: accepted.document.documentId,
+    bodyId: selectedBodyId ?? undefined, field: 'surface-split' });
+  const hasSurfaceSplitRaw = () => Object.hasOwn(pending, 'surfaceSplitU') || Object.hasOwn(pending, 'surfaceSplitV');
   const requireNoIntervalDraft = () => {
+    requireEditor(!hasSurfaceSplitRaw(), 'INPUT',
+      'Apply or discard the split before entering other object or pole fields.', surfaceSplitContext());
     requireEditor(!hasCurveSplitRaw(), 'INPUT',
       'Apply or discard the split before entering other object or pole fields.', curveSplitContext());
     requireEditor(!hasSurfaceRegionRaw(), 'INPUT',
@@ -673,6 +689,39 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     requireEditor(resolved.source === binding.source && resolved.geometry.kind === 'curve', 'STALE',
       'The split must remain bound to the original complete Curve source.', context);
   };
+  const surfaceSplitNative = <T>(action: () => T, message: string): T => {
+    try { return action(); } catch (cause) {
+      if (cause instanceof CadEditorError) throw cause;
+      const code = cause instanceof CadReferenceError && cause.code === CadReferenceDiagnosticCode.STALE ? 'STALE'
+        : cause instanceof CadDocumentError && cause.code === 'BUDGET' ? 'BUDGET' : 'NATIVE';
+      throw new CadEditorError(code, message, surfaceSplitContext(), cause);
+    }
+  };
+  const captureSurfaceSplit = (axis: CadEditorSurfaceSplitAxis): SurfaceSplitBinding => {
+    const context = surfaceSplitContext();
+    requireEditor(selectedBodyId !== null && view.kind === 'document', 'DISPLAY',
+      'Select an original Surface in document view before splitting it.', context);
+    const reference = surfaceSplitNative(() => createCadGeometryReference(accepted, { bodyId: selectedBodyId! }),
+      'Native Surface split source reference creation failed.').reference;
+    const resolved = surfaceSplitNative(() => resolveCadGeometryReference(accepted, reference),
+      'Native Surface split source resolution failed.');
+    const surface = resolved.geometry;
+    requireEditor(surface.kind === 'surface', 'UNSUPPORTED', 'Split construction requires an original Surface.', context);
+    return { bodyId: reference.bodyId, reference: copy(reference), source: resolved.source, surface: copy(surface),
+      domains: surfaceSplitNative(() => surfaceDomain(surface), 'Native original Surface domain query failed.'), axis,
+      baseGeneration: generation, baseDisplayGeneration: displayGeneration, view: copy(view), editTarget };
+  };
+  const currentSurfaceSplit = (binding: SurfaceSplitBinding) => {
+    const context = surfaceSplitContext();
+    requireEditor(editTarget === binding.editTarget && selectedBodyId === binding.bodyId
+      && binding.baseGeneration === generation && binding.baseDisplayGeneration === displayGeneration
+      && view.kind === 'document' && binding.view.kind === 'document', 'STALE',
+      'The Surface split source body, tool or view changed. Review the parameter.', context);
+    const resolved = surfaceSplitNative(() => resolveCadGeometryReference(accepted, binding.reference),
+      'Native bound Surface split source resolution failed.');
+    requireEditor(resolved.source === binding.source && resolved.geometry.kind === 'surface', 'STALE',
+      'The split must remain bound to the original complete Surface source.', context);
+  };
   const requireEditable = () => {
     const context = { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: 'edit-capability' };
     requireEditor(selectedBodyId !== null, 'INPUT', 'Select an editable Surface body first.', context);
@@ -712,8 +761,8 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     structural?: { presentation: Presentation; duplicateBoundary?: DuplicateBoundary;
       surfaceIsoCurveBoundary?: SurfaceIsoCurveBoundary; surfaceIsoCurve?: CadEditorSurfaceIsoCurveCreation;
       curveJoinBoundary?: CurveJoinBoundary; curveJoin?: CadEditorCurveJoinCreation;
-      surfaceRegionBoundary?: SurfaceRegionBoundary; curveSplitBoundary?: CurveSplitBoundary; surfaceRegion?: CadEditorSurfaceRegionCreation; curveSplit?: CadEditorCurveSplitCreation; nativeNames?: string[]; preserveBodyOnly?: true;
-      contextField?: 'surface-isocurve' | 'curve-join' | 'surface-region' | 'curve-split' },
+      surfaceRegionBoundary?: SurfaceRegionBoundary; curveSplitBoundary?: CurveSplitBoundary; surfaceSplitBoundary?: SurfaceSplitBoundary; surfaceRegion?: CadEditorSurfaceRegionCreation; curveSplit?: CadEditorCurveSplitCreation; surfaceSplit?: CadEditorSurfaceSplitCreation; nativeNames?: string[]; preserveBodyOnly?: true;
+      contextField?: 'surface-isocurve' | 'curve-join' | 'surface-region' | 'curve-split' | 'surface-split' },
     interval?: IntervalPreparation, surfaceKnot?: SurfaceKnotPreparation, curveKnot?: CurveKnotPreparation,
     surfaceDegreeElevation?: SurfaceDegreeElevationPreparation): CadEditorCandidate => {
     if (interval?.clearPoleBodyId !== undefined) {
@@ -770,6 +819,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       ...(structural?.curveJoin === undefined ? {} : { curveJoin: structural.curveJoin }),
       ...(structural?.surfaceRegion === undefined ? {} : { surfaceRegion: structural.surfaceRegion }),
       ...(structural?.curveSplit === undefined ? {} : { curveSplit: structural.curveSplit }),
+      ...(structural?.surfaceSplit === undefined ? {} : { surfaceSplit: structural.surfaceSplit }),
       ...(interval?.extraction === undefined ? {} : { curveInterval: interval.extraction }),
       ...(curveKnot?.insertion === undefined ? {} : { curveKnot: curveKnot.insertion }),
       ...(surfaceKnot?.insertion === undefined ? {} : { surfaceKnot: surfaceKnot.insertion }),
@@ -789,7 +839,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       structuralPresentation: proposed, duplicateBoundary: copy(structural?.duplicateBoundary),
       surfaceIsoCurveBoundary: copy(structural?.surfaceIsoCurveBoundary), curveJoinBoundary: copy(structural?.curveJoinBoundary),
       surfaceRegionBoundary: copy(structural?.surfaceRegionBoundary), curveSplitBoundary: copy(structural?.curveSplitBoundary),
-      nativeNames: copy(structural?.nativeNames),
+      surfaceSplitBoundary: copy(structural?.surfaceSplitBoundary), nativeNames: copy(structural?.nativeNames),
       structuralBodyOnly, structuralContextField: structural?.contextField,
       intervalBoundary: copy(interval?.boundary), clearCurvePoleBodyId: curveKnot?.clearPoleBodyId ?? interval?.clearPoleBodyId,
       curveKnotBoundary: copy(curveKnot?.boundary),
@@ -812,9 +862,11 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     const joinBoundary = direction < 0 ? history[historyIndex].curveJoinBoundary : history[targetIndex].curveJoinBoundary;
     const regionBoundary = direction < 0 ? history[historyIndex].surfaceRegionBoundary : history[targetIndex].surfaceRegionBoundary;
     const splitBoundary = direction < 0 ? history[historyIndex].curveSplitBoundary : history[targetIndex].curveSplitBoundary;
-    const boundary = duplicateBoundary ?? isoBoundary ?? joinBoundary ?? regionBoundary ?? splitBoundary;
+    const surfaceSplitBoundary = direction < 0 ? history[historyIndex].surfaceSplitBoundary : history[targetIndex].surfaceSplitBoundary;
+    const boundary = duplicateBoundary ?? isoBoundary ?? joinBoundary ?? regionBoundary ?? splitBoundary ?? surfaceSplitBoundary;
     if (boundary !== undefined) {
-      const field = splitBoundary !== undefined ? 'curve-split' : regionBoundary !== undefined ? 'surface-region'
+      const field = surfaceSplitBoundary !== undefined ? 'surface-split'
+        : splitBoundary !== undefined ? 'curve-split' : regionBoundary !== undefined ? 'surface-region'
         : joinBoundary !== undefined ? 'curve-join' : isoBoundary !== undefined ? 'surface-isocurve' : 'body-duplicate';
       const context = { documentId: accepted.document.documentId, field };
       const document = copy(target);
@@ -842,7 +894,8 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       const presentation = copy(direction < 0 ? boundary.before : boundary.after);
       return prepare(direction < 0 ? 'undo' : 'redo', result, [], targetIndex, undefined,
         presentation.displayBodyIds, presentation.view, [], null, null, null,
-        { presentation, ...(splitBoundary !== undefined ? { preserveBodyOnly: true as const, contextField: 'curve-split' as const }
+        { presentation, ...(surfaceSplitBoundary !== undefined ? { preserveBodyOnly: true as const, contextField: 'surface-split' as const }
+          : splitBoundary !== undefined ? { preserveBodyOnly: true as const, contextField: 'curve-split' as const }
           : regionBoundary !== undefined ? { preserveBodyOnly: true as const, contextField: 'surface-region' as const }
           : joinBoundary !== undefined ? { preserveBodyOnly: true as const, contextField: 'curve-join' as const }
           : isoBoundary !== undefined ? { preserveBodyOnly: true as const } : {}) });
@@ -900,6 +953,41 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       if (body.geometry.kind === 'surface' && view.kind === 'document'
         || body.geometry.kind === 'curve' && (view.kind === 'document'
           || view.kind === 'curve-focus' && view.bodyId === selectedBodyId)) return null;
+    }
+    if (hasSurfaceSplitRaw()) {
+      const context = surfaceSplitContext();
+      requireEditor(prepared === null && selectionTransition === null, 'INPUT',
+        'Resolve the current candidate or selection decision before splitting a Surface.', context);
+      requireEditor(surfaceSplitBinding !== null, 'STALE', 'The original Surface split binding is missing.', context);
+      const binding = surfaceSplitBinding, key = binding.axis === 'u' ? 'surfaceSplitU' : 'surfaceSplitV';
+      requireEditor(Object.keys(pending).length === 1 && Object.hasOwn(pending, key), 'INPUT',
+        'A Surface split cannot be mixed with other draft fields or axes.', context);
+      currentSurfaceSplit(binding);
+      requireEditor(displayBodyIds.length <= 2, 'BUDGET', 'Hide bodies so both split Surfaces can be displayed.', context);
+      const text = pending[key]!.trim();
+      requireEditor(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text), 'INPUT',
+        'The split parameter must be a decimal or exponent number.', context);
+      const parameter = Number(text);
+      requireEditor(Number.isFinite(parameter), 'INPUT', 'The split parameter must be finite.', context);
+      const before = currentPresentation(), document = copy(accepted.document);
+      document.revision = nextRevision(document.revision, context);
+      const reserved = new Set(history.flatMap(state => [
+        ...(state.nativeNames ?? []), ...state.document.assets.map(asset => asset.id),
+        ...state.document.bodies.flatMap(body => [body.id, body.geometryId]),
+      ]));
+      for (const asset of accepted.compiledAssets) {
+        reserved.add(asset.model.name);
+        for (const geometry of asset.model.objects) reserved.add(geometry.id);
+      }
+      const appended = surfaceSplitNative(() => appendSplitSurfaceSource(document, binding.surface,
+        copy(binding.reference), binding.axis, parameter, [...reserved]), 'Native Surface split construction failed.');
+      const result = surfaceSplitNative(() => admit(createCadDocument(appended.document), context),
+        'Native Surface split document admission failed.');
+      const after: Presentation = { ...copy(before),
+        displayBodyIds: [...displayBodyIds, appended.creation.lowerBodyId, appended.creation.upperBodyId] };
+      return prepare('surface-split', result, [], undefined, undefined, after.displayBodyIds, after.view,
+        [], null, null, null, { presentation: after, surfaceSplitBoundary: { before, after },
+          surfaceSplit: appended.creation, nativeNames: appended.nativeNames, preserveBodyOnly: true, contextField: 'surface-split' });
     }
     if (hasCurveSplitRaw()) {
       const context = curveSplitContext();
@@ -1371,7 +1459,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
         pending = {};
         intervalBinding = null;
         surfaceKnotBinding = null;
-        curveKnotBinding = null; surfaceIsoCurveBinding = null; surfaceRegionBinding = null; curveSplitBinding = null;
+        curveKnotBinding = null; surfaceIsoCurveBinding = null; surfaceRegionBinding = null; curveSplitBinding = null; surfaceSplitBinding = null;
       }
       selectionTransition = null; prepared = null; emit(); return null;
     },
@@ -1527,6 +1615,25 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       pending = fields; surfaceIsoCurveBinding = Object.hasOwn(fields, key) ? binding : null;
       prepared = null; selectionTransition = null; emit();
     },
+    stageSurfaceSplitField(axis, rawText) {
+      live();
+      const context = surfaceSplitContext();
+      requireEditor(prepared === null && selectionTransition === null, 'INPUT',
+        'Resolve the current candidate or selection decision before entering a Surface split parameter.', context);
+      requireEditor(axis === 'u' || axis === 'v', 'INPUT', 'Choose the original U or V axis.', context);
+      requireEditor(typeof rawText === 'string' && rawText.length <= 128, 'BUDGET',
+        'Surface split input must have at most 128 characters.', context);
+      const key = axis === 'u' ? 'surfaceSplitU' : 'surfaceSplitV';
+      requireEditor(Object.keys(pending).every(field => field === key), 'INPUT',
+        'Apply or discard the current draft before changing the split axis or operation.', context);
+      const binding = surfaceSplitBinding ?? captureSurfaceSplit(axis);
+      requireEditor(binding.axis === axis, 'INPUT', 'Apply or discard the split before changing its axis.', context);
+      currentSurfaceSplit(binding);
+      const fields = { ...pending };
+      if (rawText === '') delete fields[key]; else fields[key] = rawText;
+      pending = fields; surfaceSplitBinding = Object.hasOwn(fields, key) ? binding : null;
+      prepared = null; selectionTransition = null; emit();
+    },
     stageCurveSplitField(rawText) {
       live();
       const context = curveSplitContext();
@@ -1558,7 +1665,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       pending = fields; curveKnotBinding = Object.hasOwn(fields, 'curveKnot') ? binding : null;
       prepared = null; selectionTransition = null; emit();
     },
-    discardPending() { live(); pending = {}; intervalBinding = null; surfaceKnotBinding = null; curveKnotBinding = null; surfaceIsoCurveBinding = null; surfaceRegionBinding = null; curveSplitBinding = null; prepared = null; selectionTransition = null; emit(); },
+    discardPending() { live(); pending = {}; intervalBinding = null; surfaceKnotBinding = null; curveKnotBinding = null; surfaceIsoCurveBinding = null; surfaceRegionBinding = null; curveSplitBinding = null; surfaceSplitBinding = null; prepared = null; selectionTransition = null; emit(); },
     prepareApply,
     prepareOpen(text, options) {
       live(); fileBudget(text);
@@ -1760,6 +1867,10 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       if (current.candidate.kind === 'duplicate') state.duplicateBoundary = copy(current.duplicateBoundary);
       if (current.candidate.kind === 'surface-isocurve') state.surfaceIsoCurveBoundary = copy(current.surfaceIsoCurveBoundary);
       if (current.candidate.kind === 'curve-join') state.curveJoinBoundary = copy(current.curveJoinBoundary);
+      if (current.candidate.kind === 'surface-split') {
+        state.surfaceSplitBoundary = copy(current.surfaceSplitBoundary);
+        state.nativeNames = [...new Set([...(state.nativeNames ?? []), ...(current.nativeNames ?? [])])];
+      }
       if (current.candidate.kind === 'curve-split') {
         state.curveSplitBoundary = copy(current.curveSplitBoundary);
         state.nativeNames = [...new Set([...(state.nativeNames ?? []), ...(current.nativeNames ?? [])])];
@@ -1775,7 +1886,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       if (current.candidate.kind === 'open') { history = [state]; historyIndex = 0; }
       else if (current.candidate.kind === 'apply' || current.candidate.kind === 'rename' || current.candidate.kind === 'duplicate'
         || current.candidate.kind === 'curve-interval' || current.candidate.kind === 'surface-knot' || current.candidate.kind === 'curve-knot'
-        || current.candidate.kind === 'surface-isocurve' || current.candidate.kind === 'curve-join' || current.candidate.kind === 'surface-region' || current.candidate.kind === 'curve-split'
+        || current.candidate.kind === 'surface-isocurve' || current.candidate.kind === 'curve-join' || current.candidate.kind === 'surface-region' || current.candidate.kind === 'curve-split' || current.candidate.kind === 'surface-split'
         || current.candidate.kind === 'surface-degree-elevation') {
         history = [...history.slice(0, historyIndex + 1), state];
         while (history.length > HISTORY_LIMIT || historyBytes() > HISTORY_BYTES) history.shift();
@@ -1801,7 +1912,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
         assetRevisionHighWater.set(asset.id, Math.max(assetRevisionHighWater.get(asset.id) ?? 0, asset.revision));
       const retainedAssetIds = new Set(history.flatMap(state => state.document.assets.map(asset => asset.id)));
       for (const id of assetRevisionHighWater.keys()) if (!retainedAssetIds.has(id)) assetRevisionHighWater.delete(id);
-      generation++; pending = {}; intervalBinding = null; surfaceKnotBinding = null; curveKnotBinding = null; surfaceIsoCurveBinding = null; surfaceRegionBinding = null; curveSplitBinding = null; prepared = null; selectionTransition = null;
+      generation++; pending = {}; intervalBinding = null; surfaceKnotBinding = null; curveKnotBinding = null; surfaceIsoCurveBinding = null; surfaceRegionBinding = null; curveSplitBinding = null; surfaceSplitBinding = null; prepared = null; selectionTransition = null;
       lastProvenance = copy(current.candidate.provenance);
       lastCurveProvenance = copy(current.candidate.curveProvenance);
       lastBodyTranslation = copy(current.candidate.bodyTranslation);
@@ -1813,6 +1924,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       lastSurfaceIsoCurve = copy(current.candidate.surfaceIsoCurve ?? null);
       lastSurfaceRegion = copy(current.candidate.surfaceRegion ?? null);
       lastCurveSplit = copy(current.candidate.curveSplit ?? null);
+      lastSurfaceSplit = copy(current.candidate.surfaceSplit ?? null);
       lastCurveJoin = copy(current.candidate.curveJoin ?? null);
       lastSurfaceDegreeElevation = copy(current.candidate.surfaceDegreeElevation ?? null);
       dirty = current.candidate.kind !== 'open'; downloadStatus = 'Not downloaded'; download = null;
@@ -1834,7 +1946,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     },
     dispose() {
       if (disposed) return;
-      disposed = true; prepared = null; intervalBinding = null; surfaceKnotBinding = null; curveKnotBinding = null; surfaceIsoCurveBinding = null; surfaceRegionBinding = null; curveSplitBinding = null; selectionTransition = null; download = null; pending = {}; emit(); listeners.clear();
+      disposed = true; prepared = null; intervalBinding = null; surfaceKnotBinding = null; curveKnotBinding = null; surfaceIsoCurveBinding = null; surfaceRegionBinding = null; curveSplitBinding = null; surfaceSplitBinding = null; selectionTransition = null; download = null; pending = {}; emit(); listeners.clear();
     },
   };
 }
