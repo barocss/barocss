@@ -4,7 +4,7 @@ import type {
   CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, SurfacePoleEditProvenance,
   CadCurveArcLengthOptions, CadCurveArcLengthResult,
   CurveCurvatureResult, CurveD2Result, CurvePoleEditProvenance, SurfaceCurvatureResult, SurfaceD2Result,
-  AffineGeometryTransformReport, SourceCurveIntervalExtractionResult, SourceSurfaceKnotInsertionResult, SourceCurveKnotInsertionResult, SurfaceIsoCurveResult,
+  AffineGeometryTransformReport, SourceCurveIntervalExtractionResult, SourceSurfaceKnotInsertionResult, SourceCurveKnotInsertionResult, SurfaceIsoCurveResult, JoinedCurveResult,
 } from '@barocss/cad';
 
 export type CadEditorExportCapability = CadDocumentExportCapability;
@@ -47,6 +47,13 @@ export type CadEditorPoleField = 'xMM' | 'yMM' | 'zMM' | 'weight';
 export type CadEditorBodyTranslationField = Exclude<CadEditorPoleField, 'weight'>;
 export type CadEditorCurveIntervalField = 'min' | 'max';
 export type CadEditorSurfaceIsoCurveAxis = 'u' | 'v';
+export interface CadEditorCurveJoinCreation {
+  leftReference: CadGeometryReferenceV0;
+  rightReference: CadGeometryReferenceV0;
+  assetId: string;
+  bodyId: string;
+  result: JoinedCurveResult;
+}
 export interface CadEditorSurfaceIsoCurveCreation {
   sourceReference: CadGeometryReferenceV0;
   assetId: string;
@@ -102,13 +109,14 @@ export interface CadEditorSelectedPole extends CadEditorSurfaceSelection {
 }
 export interface CadEditorCandidate {
   token: string; baseGeneration: number; baseDisplayGeneration: number;
-  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'rename' | 'duplicate' | 'curve-interval' | 'surface-knot' | 'curve-knot' | 'surface-isocurve';
+  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'rename' | 'duplicate' | 'curve-interval' | 'surface-knot' | 'curve-knot' | 'surface-isocurve' | 'curve-join';
   selectionTarget?: CadEditorSelectionTarget | null;
   presentation?: 'structural';
   curveInterval?: SourceCurveIntervalExtractionResult;
   curveKnot?: SourceCurveKnotInsertionResult;
   clearCurvePoleSelection?: true;
   surfaceIsoCurve?: CadEditorSurfaceIsoCurveCreation;
+  curveJoin?: CadEditorCurveJoinCreation;
   surfaceKnot?: SourceSurfaceKnotInsertionResult;
   clearSurfacePoleSelection?: true;
   displayBodyIds: string[];
@@ -153,6 +161,7 @@ export interface CadEditorSnapshot {
   lastSurfaceKnot: SourceSurfaceKnotInsertionResult | null;
   lastCurveKnot: SourceCurveKnotInsertionResult | null;
   lastSurfaceIsoCurve: CadEditorSurfaceIsoCurveCreation | null;
+  lastCurveJoin: CadEditorCurveJoinCreation | null;
 }
 export interface CadEditorDownload { token: string; text: string; suggestedFilename: string }
 export interface CadEditorSession {
@@ -190,6 +199,7 @@ export interface CadEditorSession {
   prepareDocumentView(): CadEditorCandidate;
   prepareRenameBody(bodyId: string, name: string): CadEditorCandidate | null;
   prepareDuplicateBody(bodyId: string, options?: CadEditorDuplicateBodyOptions): CadEditorCandidate;
+  prepareCurveJoin(rightBodyId: string): CadEditorCandidate;
   prepareUndo(): CadEditorCandidate;
   prepareRedo(): CadEditorCandidate;
   acceptCandidate(token: string): CadEditorSnapshot;
