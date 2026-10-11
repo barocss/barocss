@@ -75,3 +75,40 @@ GPU backend; lost-handle deletion counts0 are not claimed. DTO1/multi-file
 selection, global approximation error, playback and publication are outside
 this single original Curve consumer. Native author and Integration remain
 separate evidence stages.
+
+
+## Original degree4 section inspection — #1087
+
+The `degree4_section` source choice loads the complete original world Curve4
+from GPU1082's authentic saved1069 reference. The four committed new files
+are byte-identical to its portable originals. This mm Model0 contains one
+Curve with five poles, domain0..1 and original equal weights24000. It consumes
+the existing uniform DTO0/count2..129 Viewer API; no new section constructor,
+adaptive profile or Viewer API is introduced.
+
+`Inspect section parameters` compares five local t values (0,.25,.5,.75,1).
+The complete original ruled-parent three-object and Plane-parent one-object
+Source0 models remain separate. Their original Surface coefficients are
+evaluated at the original Surface UV3 and Plane UV4 sidecar points. Both
+sidecars retain dimensionless units; they are neither compiled as mm geometry
+nor multiplied by the display mm scale. The panel labels the native world
+point in mm, both UV pairs and local residuals. These five observations do
+not certify a global section, evaluator, inverse topology or parent occlusion.
+Parent Surfaces are not drawn in this single-Curve scene.
+
+Only the current accepted `degree4_section` source enables that action. Other
+accepted sources/native generations and Clear disable and remove its stale
+report. Failed admission keeps the old accepted source/frame. The existing
+native point action also compares degree4 against independent equal-weight
+Bernstein evaluation; old quintic proof remains unchanged. The new fixtures
+are served through `/section-request.json`, `/section-surface-uv.json` and
+`/section-plane-uv.json`; their bytes and hashes are separate from the world
+source entry in `/fixture-manifest.json`.
+
+Root acceptance uses actual physical source/count/inspection/visibility/camera
+controls, independent original129 points/1548-byte Float32 position upload
+with scale0.17 once, copied models, both local parent checks, refusal/Clear and
+normal disposal. Source and transitive compiled startup/loss evidence are
+separate. Source rendering does not invoke or require adoption of1069's new
+constructor/whole validator, GPU1082 example, Loader1078 or editor Save/Open.
+Native and serial Integration stages remain separate.

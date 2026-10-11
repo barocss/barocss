@@ -1,7 +1,7 @@
 import {createViewer} from '@barocss/viewer';
 import {prepareUniformCurvePreview,validateUniformCurvePreview,prepareSelectedUniformCurvePreview,
   PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer} from '@barocss/gpu';
-import {compileCadModel,evaluateCurve,curveDomain,parseBooleanExtrusionFeatureGraph} from '@barocss/cad';
+import {compileCadModel,evaluateCurve,evaluateSurface,curveDomain,parseBooleanExtrusionFeatureGraph} from '@barocss/cad';
 import {parseBaroCadAssembly,loadBaroCadAssembly} from '@barocss/cad-interop/assembly';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {createClothWorld} from '@barocss/physics/cloth';
@@ -13,6 +13,7 @@ const near=(a,b,tolerance=1e-12)=>a.length===b.length&&a.every((n,i)=>Math.abs(n
 const hash=bytes=>bytes.reduce((n,byte)=>Math.imul(n^byte,16777619)>>>0,2166136261);
 const sha=async bytes=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');
 const canvas=document.querySelector('#view'),status=document.querySelector('#status'),inspection=document.querySelector('#inspection');
+const sectionButton=document.querySelector('#section-inspect'),sectionOutput=document.querySelector('#section-output');
 const sourceMenu=document.querySelector('#source'),countMenu=document.querySelector('#count'),visible=document.querySelector('#visible');
 const buttons=Object.fromEntries(['load','query','select','fit','orbit','pan','clear','run-proof','lose-context','dispose'].map(id=>[id,document.querySelector('#'+id)]));
 const contexts=new Set(),resources={},peaks={},uploads=[],draws=[],errors=[],warnings=[];
@@ -35,6 +36,7 @@ WebGL2RenderingContext.prototype.drawArrays=function(mode,first,count){draws.pus
 window.addEventListener('error',event=>errors.push(event.message));window.addEventListener('unhandledrejection',event=>errors.push(String(event.reason)));
 const warn=console.warn;console.warn=(...args)=>{warnings.push(args.map(String).join(' '));warn.apply(console,args);};
 const sources={},fixtures={};let manifest=[],viewer=null,currentName='primary_quintic',disposed=false,running=false,result=null;
+let sectionInputs=null,sectionReport=null;
 const options={basis:'authored-xyz-matches-rhyup'},mmToSceneUnit=.17;
 const resourceCounts=()=>Object.fromEntries(Object.entries(resources).map(([key,live])=>[key,live.size]));
 const glErrors=()=>[...contexts].map(gl=>gl.getError());
@@ -47,15 +49,27 @@ function render(){const state=viewer.getState(),live=!disposed&&state.status!=='
   buttons.fit.disabled=!ready||running||state.visibleGeometry.length===0;
   sourceMenu.disabled=!live||running;countMenu.disabled=!live||running;visible.disabled=!ready||running;
   visible.checked=state.visibleGeometry.length>0;
+  const acceptedName=manifest.find(item=>sources[item.name]===state.uniformCurve?.source)?.name;
+  sourceMenu.value=acceptedName??'';
+  if(acceptedName)currentName=acceptedName;
+  if(state.uniformCurve)countMenu.value=String(state.uniformCurve.count);
+  const currentSection=!!sources.degree4_section&&state.uniformCurve?.source===sources.degree4_section;
+  sectionButton.disabled=!live||running||!currentSection;
+  if(!currentSection){sectionReport=null;sectionOutput.textContent='';}
 }
 function load(name=currentName,count=Number(countMenu.value)){
   const input=prepareUniformCurvePreview({source:sources[name],count});uploads.length=0;draws.length=0;
   viewer.loadUniformCurvePreview(input,clone(options));currentName=name;sourceMenu.value=name;countMenu.value=String(count);render();return input;
 }
 function action(callback){if(disposed)return;try{callback();render();}catch(error){display(error.message);}}
-function independentPoint(curve,parameter){const[left,right]=curveDomain(curve),x=(parameter-left)/(right-left),choose=[1,5,10,10,5,1];
-  check(curve.degree===5&&curve.controlPoints.length===6&&curve.weights.every(n=>n===1),'Fixture requires original polynomial quintic');
-  return[0,1,2].map(axis=>curve.controlPoints.reduce((sum,point,i)=>sum+point[axis]*choose[i]*(1-x)**(5-i)*x**i,0));}
+function independentPoint(curve,parameter){const[left,right]=curveDomain(curve),x=(parameter-left)/(right-left);
+  let degree,choose;
+  if(curve.degree===4){check(curve.id==='poly_world'&&curve.controlPoints.length===5
+      &&curve.weights.every(n=>n===24000)&&left===0&&right===1,'Fixture requires original degree4 section/equal24000 weights');
+    degree=4;choose=[1,4,6,4,1];
+  }else{check(curve.degree===5&&curve.controlPoints.length===6&&curve.weights.every(n=>n===1),'Fixture requires original polynomial quintic');
+    degree=5;choose=[1,5,10,10,5,1];}
+  return[0,1,2].map(axis=>curve.controlPoints.reduce((sum,point,i)=>sum+point[axis]*choose[i]*(1-x)**(degree-i)*x**i,0));}
 function query(parameter){const state=viewer.getState(),curve=state.uniformCurve?.model.objects[0];check(curve,'Load a uniform Curve first.');
   const[left,right]=curveDomain(curve),t=parameter??(left+right)/2,identity=ref();
   const measured=viewer.measureNativeCurvePoints({modelId:identity.modelId,curveId:identity.curveId,t},
@@ -63,6 +77,68 @@ function query(parameter){const state=viewer.getState(),curve=state.uniformCurve
   const expected=independentPoint(curve,t);check(near(measured.first.pointMM,expected),'Original native interior point differs from independent Bernstein evaluation');
   const point={parameter:t,domain:[left,right],originalNativePointMM:measured.first.pointMM,expected,sourceName:currentName,
     profile:state.uniformCurve.profile,observations:state.uniformCurve.count,certification:measured.certification};inspection.textContent=JSON.stringify(point,null,2);return point;
+}
+async function inspectSection(){
+  check(!disposed,'Section inspection requires a live Viewer.');
+  const before=viewer.getState();
+  check(!!sources.degree4_section&&before.uniformCurve?.source===sources.degree4_section,
+    'Load the original degree4 section source before inspecting its separate UV data.');
+  let inputs=sectionInputs?clone(sectionInputs):null;
+  if(!inputs){
+    const files=await Promise.all(['/section-request.json','/section-surface-uv.json','/section-plane-uv.json'].map(async url=>{
+      const response=await fetch(url);check(response.ok,'Section input unavailable: '+url);return response.json();}));
+    inputs={request:files[0],surfaceUV:files[1],planeUV:files[2]};
+  }
+  const request=inputs.request;
+  const parent=compileCadModel(request.surfaceAsset.source,{sourceVersion:0});
+  const planeParent=compileCadModel(request.planeAsset.source,{sourceVersion:0});
+  check(parent.ok&&planeParent.ok,'Original section parent Source0 did not compile.');
+  check(parent.model.objects.length===3&&planeParent.model.objects.length===1,
+    'Section inspection requires complete original three-object parent and one-object Plane models.');
+  const surface=parent.model.objects.find(object=>object.kind==='surface'&&object.id===request.surfaceAsset.surface.id);
+  const plane=planeParent.model.objects.find(object=>object.kind==='surface'&&object.id===request.planeAsset.surface.id);
+  check(surface&&plane&&same(surface,request.surfaceAsset.surface)&&same(plane,request.planeAsset.surface),
+    'Original compiled parent coefficients differ from the authored request bits.');
+  for(const[sidecar,coordinateSystem,degree,id]of[
+    [inputs.surfaceUV,'native-surface-uv',3,request.options.surfacePcurveId],
+    [inputs.planeUV,'native-plane-uv',4,request.options.planePcurveId]]){
+    const curve=sidecar.curve;
+    check(sidecar.coordinateSystem===coordinateSystem&&sidecar.lengthUnit==='dimensionless'
+      &&curve.kind==='curve'&&curve.id===id&&curve.degree===degree
+      &&curve.controlPoints.length===degree+1&&curve.controlPoints.every(point=>point.length===3&&point[2]===0)
+      &&curve.weights.length===degree+1&&curve.weights.every(weight=>Number.isFinite(weight)&&weight>0)
+      &&near(curveDomain(curve),[0,1]),'Section UV must retain original degree/domain and dimensionless zero-Z data.');
+  }
+  const state=viewer.getState();
+  check(state.uniformCurve?.source===sources.degree4_section,'The accepted source changed during section input loading.');
+  const world=state.uniformCurve,curve=world.model.objects[0],identity={modelId:state.curves[0].modelId,curveId:state.curves[0].curveId};
+  check(world.model.name==='profile'&&curve.kind==='curve'&&curve.id===request.options.curveId
+    &&curve.degree===4&&curve.controlPoints.length===5&&curve.weights.every(weight=>weight===24000)
+    &&near(curveDomain(curve),[0,1]),'Accepted world source differs from the original degree4 section.');
+  const candidates=[0,.25,.5,.75,1].map(t=>{
+    const worldPointMM=evaluateCurve(curve,t),surfacePointUV=evaluateCurve(inputs.surfaceUV.curve,t),planePointUV=evaluateCurve(inputs.planeUV.curve,t);
+    check(surfacePointUV[2]===0&&planePointUV[2]===0,'Dimensionless UV evaluation has a nonzero Z component.');
+    const surfaceUV=surfacePointUV.slice(0,2),planeUV=planePointUV.slice(0,2);
+    const surfacePointMM=evaluateSurface(surface,...surfaceUV),planePointMM=evaluateSurface(plane,...planeUV);
+    const surfaceResidualMM=Math.hypot(...worldPointMM.map((value,index)=>value-surfacePointMM[index]));
+    const planeResidualMM=Math.hypot(...worldPointMM.map((value,index)=>value-planePointMM[index]));
+    check(Number.isFinite(surfaceResidualMM)&&Number.isFinite(planeResidualMM)
+      &&surfaceResidualMM<=1e-7&&planeResidualMM<=1e-7,'A local original-parent residual exceeds1e-7mm.');
+    return{t,worldPointMM,surfaceUV,planeUV,surfacePointMM,planePointMM,surfaceResidualMM,planeResidualMM};
+  });
+  const observations=candidates.map(row=>{
+    const measured=viewer.measureNativeCurvePoints({...identity,t:row.t},{...identity,t:0});
+    check(near(measured.first.pointMM,row.worldPointMM),'Viewer native world query differs from original Curve evaluation.');
+    return{...row,nativeQueryPointMM:measured.first.pointMM,nativeDistanceFromStartMM:measured.distanceMM};
+  });
+  const report={source:world.source,sourceName:'degree4_section',worldUnit:'mm',uvUnit:'dimensionless',
+    scope:'Five local original-parent observations; no global section or evaluator certificate.',observations,
+    parentSource:request.surfaceAsset.source,planeSource:request.planeAsset.source,
+    parentModel:parent.model,planeModel:planeParent.model};
+  sectionInputs=clone(inputs);sectionReport=clone(report);
+  sectionOutput.textContent=JSON.stringify({worldUnit:report.worldUnit,uvUnit:report.uvUnit,scope:report.scope,observations},null,2);
+  render();display('Inspected five native world mm points and two separate unscaled dimensionless UV curves.');
+  return clone(report);
 }
 function retained(label,callback){const before=viewer.getState(),pixels=pixelInfo(),counts=resourceCounts();let error;
   try{callback();}catch(value){error=value;}check(error instanceof Error,label+' did not refuse');
@@ -146,9 +222,10 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();for(const item 
   viewer=createViewer(canvas,{mmToSceneUnit,background:[.035,.065,.105]});load('primary_quintic',129);
   lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
   window.__viewerUniformProof={viewer,createViewer,prepareUniformCurvePreview,validateUniformCurvePreview,prepareSelectedUniformCurvePreview,
-    compileCadModel,evaluateCurve,curveDomain,parseBooleanExtrusionFeatureGraph,parseBaroCadAssembly,loadBaroCadAssembly,loadBaroCadModelSet,
+    compileCadModel,evaluateCurve,evaluateSurface,curveDomain,parseBooleanExtrusionFeatureGraph,parseBaroCadAssembly,loadBaroCadAssembly,loadBaroCadModelSet,
     createClothWorld,createPhysicsClothWorld:createClothWorld,PrimitiveSceneRendererV2,PrimitiveViewport,BooleanShellSceneRenderer,sources,fixtures,manifest,options,mmToSceneUnit,canvas,
-    get currentSource(){return sources[currentName];},get sourceName(){return currentName;},get gl(){return[...contexts][0];},get state(){return viewer.getState();},
+    get currentSource(){return viewer.getState().uniformCurve?.source??null;},get sourceName(){return currentName;},get gl(){return[...contexts][0];},get state(){return viewer.getState();},
+    inspectSection,get sectionInputs(){return sectionInputs?clone(sectionInputs):null;},get sectionReport(){return sectionReport?clone(sectionReport):null;},
     load,ref,query,independentPoint,uniformWitness,qualifiedHit,runProof,retained,capture,render,pixelInfo,resourceCounts,glErrors,uploads,draws,errors,warnings,dispose,
     get result(){return result;},lossExtension,failNextBuffer(at=1){failBufferAt=at;bufferAttempts=0;},clearAllocationFault(){failBufferAt=0;return bufferAttempts;}};
   window.__viewerUniformProof.nativeSourcePanel=await(await fetch('/original-panel.barocad')).text();
@@ -158,6 +235,7 @@ buttons.load.addEventListener('click',()=>action(()=>load(sourceMenu.value,Numbe
 buttons.select.addEventListener('click',()=>action(()=>viewer.selectGeometry(ref())));visible.addEventListener('change',()=>action(()=>viewer.setVisibleGeometry(visible.checked?[ref()]:[])));
 buttons.fit.addEventListener('click',()=>action(()=>viewer.fit()));buttons.orbit.addEventListener('click',()=>action(()=>viewer.orbit(.2,.05)));buttons.pan.addEventListener('click',()=>action(()=>viewer.pan(.01,0)));
 buttons.clear.addEventListener('click',()=>action(()=>viewer.clear()));buttons['run-proof'].addEventListener('click',runProof);buttons.dispose.addEventListener('click',dispose);
+sectionButton.addEventListener('click',async()=>{try{await inspectSection();}catch(error){display('Section inspection refused: '+error.message);}finally{render();}});
 buttons['lose-context'].addEventListener('click',()=>lossExtension?.loseContext());canvas.addEventListener('webglcontextlost',()=>{render();display('Context lost; original copied source remains readable.');});
 canvas.addEventListener('click',event=>action(()=>{const rect=canvas.getBoundingClientRect(),hit=viewer.pickGeometry({xCss:event.clientX-rect.left,yCss:event.clientY-rect.top});
   viewer.selectGeometry(hit?{kind:hit.kind,...hit.ref}:null);}));window.addEventListener('beforeunload',()=>{if(viewer)dispose();});

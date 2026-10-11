@@ -1,0 +1,1 @@
+{"coordinateSystem":"native-plane-uv","lengthUnit":"dimensionless","curve":{"kind":"curve","id":"poly_plane_uv","degree":4,"knots":[0,0,0,0,0,1,1,1,1,1],"controlPoints":[[0,0.5,0],[0.25,0.5,0],[0.5,0.5066666666666667,0],[0.75,0.53,0],[1,0.58,0]],"weights":[24000,24000,24000,24000,24000]}}

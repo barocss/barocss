@@ -49,16 +49,39 @@ const nativeSource = '@model cloth_native_control { version:0; length-unit:mm; '
   + 'weights:[[1,1],[1,1]]; } }';
 const fixtureSources = ['primary_quintic', 'endpoint_jet_edit', 'signed_zero'].map(name =>
   [name, resolve(directory, 'fixtures', name + '.source0.css')]);
+const sectionFiles = [
+  { name: 'polynomial.actual-world.source0.css', url: '/fixtures/polynomial.actual-world.source0.css', type: 'text/plain',
+    sha256: 'e81ab0a741e21c7e67fef91474fbc8af6e00bbdad55601d3637c943b58bfc0aa' },
+  { name: 'polynomial.authored-request.json', url: '/section-request.json', type: 'application/json',
+    sha256: 'e03e88358163c3b9dbf10644af97fd61cd3fbbb5f97be17b4dbfdbb44356332c' },
+  { name: 'polynomial.surface-uv.dimensionless-sidecar.json', url: '/section-surface-uv.json', type: 'application/json',
+    sha256: 'd303318d3f1d8597afc61891e7bfc72c92af4f28e3deb892c47d2dd1ad37d676' },
+  { name: 'polynomial.plane-uv.dimensionless-sidecar.json', url: '/section-plane-uv.json', type: 'application/json',
+    sha256: 'cb271feaa6557dc8136e7753f1e4e9770662a6486ac6a0ad5f637dd6e98b22fc' },
+];
+const sectionManifest = [], sectionRoutes = [];
+for (const file of sectionFiles) {
+  const sourcePath = resolve(directory, 'fixtures', file.name), body = await readFile(sourcePath);
+  if (createHash('sha256').update(body).digest('hex') !== file.sha256)
+    throw new Error('Immutable degree4 section fixture hash differs: ' + file.name);
+  sectionManifest.push({ ...file, sourcePath, bytes: body.length });
+  sectionRoutes.push([file.url, { body, type: file.type }]);
+}
+fixtureSources.push(['degree4_section', resolve(directory, 'fixtures', 'polynomial.actual-world.source0.css'),
+  '/fixtures/polynomial.actual-world.source0.css']);
 const fixtureManifest = [], fixtureFiles = [];
-for (const [name, sourcePath] of fixtureSources) {
+for (const [name, sourcePath, sourceURL] of fixtureSources) {
   try {
     const body = await readFile(sourcePath);
-    fixtureManifest.push({ name, sourcePath, bytes: body.length, sha256: createHash('sha256').update(body).digest('hex'), url: '/fixture/' + name });
-    fixtureFiles.push(['/fixture/' + name, { body, type: 'text/plain' }]);
+    const url = sourceURL ?? '/fixture/' + name;
+    fixtureManifest.push({ name, sourcePath, bytes: body.length, sha256: createHash('sha256').update(body).digest('hex'), url,
+      ...(name === 'degree4_section' ? { sectionFiles: sectionManifest } : {}) });
+    fixtureFiles.push([url, { body, type: 'text/plain' }]);
   } catch (error) { throw error; }
 }
 const files = new Map([
   ...fixtureFiles,
+  ...sectionRoutes,
   ['/fixture-manifest.json', { body: JSON.stringify(fixtureManifest, null, 2), type: 'application/json' }],
   ['/', { body: await readFile(resolve(directory, 'index.html')), type: 'text/html' }],
   ...await Promise.all([0, 1].map(async revision => ['/assembly-revision' + revision + '.json', { body: await readFile(resolve(root, 'examples/gpu-scene/fixtures/assembly-revision' + revision + '.json')), type: 'application/json' }])),
