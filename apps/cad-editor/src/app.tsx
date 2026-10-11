@@ -498,10 +498,12 @@ function DirectApp() {
           const binding = snapshot.accepted.bodyBindings.find(item => item.bodyId === body.id)!;
           const selected = snapshot.selectedBodyId === body.id;
           const shown = snapshot.displayBodyIds.includes(body.id);
+          const label = bodyLabels.get(body.id)!;
           return <div key={body.id} className={'tree-body-row' + (selected ? ' selected' : '')}>
             <button className={'tree-body' + (selected ? ' selected' : '')} data-testid={'body-select-' + body.id}
               onClick={() => run(() => session.requestSelection(binding.geometryKind === 'surface' ? { bodyId: body.id, uIndex: 1, vIndex: 1 } : { bodyId: body.id }))} aria-pressed={selected} aria-label={bodyLabels.get(body.id)+' '+(binding.geometryKind==='surface'?'Surface':'Curve')}>
-              <span className={'body-symbol ' + binding.geometryKind}>{binding.geometryKind === 'surface' ? <Layers3 size={16}/> : <Spline size={16}/>}</span><span className="tree-body-name" title={bodyLabels.get(body.id)}>{bodyLabels.get(body.id)}</span>
+              <span className={'body-symbol ' + binding.geometryKind}>{binding.geometryKind === 'surface' ? <Layers3 size={16}/> : <Spline size={16}/>}</span><span className="tree-body-name" title={label}>{body.name}</span>
+              {label !== body.name && <span style={{ flexShrink: 0, whiteSpace: 'pre' }}>{label.slice(body.name.length)}</span>}
             </button>
             <input type="checkbox" data-testid={'body-visible-' + body.id} aria-label={(shown?'Hide ':'Show ')+bodyLabels.get(body.id)+(snapshot.view.kind==='curve-focus'?' in document view':'')}
               checked={shown} disabled={modelBusy} onChange={() => run(() => session.prepareDisplayBodies(shown ? snapshot.displayBodyIds.filter(id => id !== body.id) : [...snapshot.displayBodyIds, body.id]))} />
