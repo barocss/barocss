@@ -1,0 +1,99 @@
+{
+  "status": "PASS",
+  "assertions": 120,
+  "rows": [
+    {
+      "selectionBeforePublication": true,
+      "slotChangeCancelsBothGestures": true,
+      "distinctActualBuilderRefusal": true,
+      "noAdditionalEndpointMinimum": true,
+      "profile": "source public +actual adapters",
+      "status": "PASS",
+      "refusals": 11,
+      "historyUndoRemovesCreatedC": true,
+      "redoSameIdentityData": true,
+      "actualReceivedInverse": true,
+      "initialNoPaths": true,
+      "simulation": "renderer viewport inverse is controlled arithmetic stub; native pointer/GPU proof separate"
+    },
+    {
+      "selectionBeforePublication": true,
+      "slotChangeCancelsBothGestures": true,
+      "distinctActualBuilderRefusal": true,
+      "noAdditionalEndpointMinimum": true,
+      "profile": "emitted public +sameactual adapters",
+      "status": "PASS",
+      "refusals": 11,
+      "historyUndoRemovesCreatedC": true,
+      "redoSameIdentityData": true,
+      "actualReceivedInverse": true,
+      "initialNoPaths": true,
+      "simulation": "renderer viewport inverse is controlled arithmetic stub; native pointer/GPU proof separate"
+    }
+  ],
+  "inheritedProbe": {
+    "status": "PASS",
+    "assertions": 72,
+    "rows": [
+      {
+        "profile": "source public +actual adapters",
+        "status": "PASS",
+        "refusals": 11,
+        "historyUndoRemovesCreatedC": true,
+        "redoSameIdentityData": true,
+        "actualReceivedInverse": true,
+        "initialNoPaths": true,
+        "simulation": "renderer viewport inverse is controlled arithmetic stub; native pointer/GPU proof separate"
+      },
+      {
+        "profile": "emitted public +sameactual adapters",
+        "status": "PASS",
+        "refusals": 11,
+        "historyUndoRemovesCreatedC": true,
+        "redoSameIdentityData": true,
+        "actualReceivedInverse": true,
+        "initialNoPaths": true,
+        "simulation": "renderer viewport inverse is controlled arithmetic stub; native pointer/GPU proof separate"
+      }
+    ],
+    "controller": "actual AST-extracted pointerup with clearly controlled session/history/presentation doubles; native lifetime separate",
+    "firstFailures": [
+      {
+        "phase": "first strict owned host types",
+        "log": "/tmp/c2d1447-types.txt",
+        "codes": "TS7034/TS7006/TS7005",
+        "resolution": "separate completed JSDoc and explicit facade parameter type"
+      },
+      {
+        "phase": "first focused probe",
+        "log": "/tmp/c2d1447-probe.txt",
+        "error": "INVALID_SCENE display object spec has unknown or missing fields",
+        "resolution": "bad test-only createContainer(children) replaced by repeated public authored snapshots; no provider/source helper change"
+      }
+    ],
+    "scope": "one successful paired source/emitted actual adapter/history +controlled actual controller; no DOM/GPU claim"
+  },
+  "repairReason": "actual source repairs for endpoint restriction/selection transaction/slot currentness/provider receipt; native driver remains UNRUN",
+  "controller": "actual AST-extracted select/slotchange/providerRefusal/pointerup with clearly controlled session/history/presentation doubles; native lifetime separate",
+  "firstFailures": [
+    {
+      "phase": "first successor repaired probe",
+      "code": "SCENE_LIMIT",
+      "error": "filled contour has no Float32 area",
+      "resolution": "test incorrectly expected coincident endpoint contour admission after removing8px guard; preserve actual provider geometry refusal and prove1px endpoint is admitted, no source workaround"
+    },
+    {
+      "phase": "first strict owned host types",
+      "log": "/tmp/c2d1447-types.txt",
+      "codes": "TS7034/TS7006/TS7005",
+      "resolution": "separate completed JSDoc and explicit facade parameter type"
+    },
+    {
+      "phase": "first focused probe",
+      "log": "/tmp/c2d1447-probe.txt",
+      "error": "INVALID_SCENE display object spec has unknown or missing fields",
+      "resolution": "bad test-only createContainer(children) replaced by repeated public authored snapshots; no provider/source helper change"
+    }
+  ],
+  "scope": "one successful paired source/emitted actual adapter/history +controlled actual controller; no DOM/GPU claim"
+}

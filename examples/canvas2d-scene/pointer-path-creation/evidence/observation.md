@@ -1,0 +1,7 @@
+# Original #1447 native flow: incomplete retained driver fixture
+
+Native Q/C creation, actual trusted admitted-coordinate inverse1e-8, Q control edit and Undo2/Redo2 passed. Initial zero paths and literal selected paint/hit witnesses passed. Node22 root source build216688B, strict owned checkJs types and one repaired paired120-assertion probe passed; original72 and first numerical/type failures remain.
+
+First actual browser failure: `no-motion cancels`. The frozen canceled-Q end(330,145) maps to viewportY approximately325.5, outside logical480×320. Its actual click did not reach stage; final-control down became the second placement. The earlier Escape assertion passed only CPU draft cancellation/frame/history retention; it did NOT construct/dispose a complete preview. At failure actual renderers8/captures3/release3, not planned9/4/4. Original driver and source stay byte-exact. No accepted Q/C/edit/history operation is replayed or retuned.
+
+Current live page/server are retained. Original raw phase1 failure and first-native-failure-state logs stay under /tmp/c2d1447-successor-*. Native document Save/Open, complete preview cancellation, remaining capture/currentness/refusal and terminal resource acceptance remain UNRUN. A separate bounded fixture correction must publish its contract before remaining-only continuation. This original receipt remains INCOMPLETE even if a correction passes. Root1254/674/integration/publication/Release remain unrun.

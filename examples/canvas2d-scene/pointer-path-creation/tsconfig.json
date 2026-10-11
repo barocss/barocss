@@ -1,0 +1,37 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": true,
+    "skipLibCheck": true,
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "types": [
+      "node"
+    ],
+    "paths": {
+      "@barocss/canvas2d": [
+        "../../../packages/barocss-canvas2d/src/index.ts"
+      ],
+      "@barocss/canvas2d/document": [
+        "../../../packages/barocss-canvas2d/src/document.ts"
+      ],
+      "@example/scene-history": [
+        "./public-types.ts"
+      ]
+    }
+  },
+  "files": [
+    "fixture.mjs",
+    "authoring.mjs",
+    "main.mjs",
+    "flow.mjs",
+    "public-types.ts"
+  ]
+}
