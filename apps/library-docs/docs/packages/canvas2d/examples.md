@@ -14,6 +14,8 @@ The [diagram label guide](./diagram-labels) combines ASCII ellipsis with a separ
 
 [Export a linear SVG](./svg-export) from the [SVG API example](/examples/library#svg-export). Compare the native canvas and actual SVG image, download display SVG, or save editable JSON for fresh Open and another gradient edit. It uses the named public exporter at its stated newer source profile.
 
+[Export a radial SVG](./radial-svg-export) from the [radial API example](/examples/library#radial-svg-export). Enlarge its local radius from 60 to 90, keep the Path and pose unchanged, then save editable JSON for fresh Open and another paint edit. This uses the separate `exportSceneGradientSVG` source profile.
+
 ## Create and submit a retained object
 
 Use a browser host with a TypeScript-capable bundler and the workspace package dependency. Put this HTML in the host page and use the following module as its `main.ts` entry. The bundler resolves public imports and transforms TypeScript; the browser receives JavaScript.

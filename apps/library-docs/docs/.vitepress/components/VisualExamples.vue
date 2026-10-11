@@ -7,7 +7,8 @@ import * as unicode from '../generated/unicode-label.js'
 import * as diagram from '../generated/diagram-label.js'
 import * as pathEdit from '../generated/path-edit.js'
 import * as svgExport from '../generated/svg-export.js'
-const presets={...runtime.presets,...advanced.presets,...unicode.presets,...diagram.presets,...pathEdit.presets,...svgExport.presets}
+import * as radialSvgExport from '../generated/radial-svg-export.js'
+const presets={...runtime.presets,...advanced.presets,...unicode.presets,...diagram.presets,...pathEdit.presets,...svgExport.presets,...radialSvgExport.presets}
 const props=defineProps({category:{type:String,default:'all'}})
 const categoryNames={library:'Library examples',language:'Language examples',integration:'Integrated workflows'}
 const purposeNames={api:'Library API',language:'Language',integration:'Integrated workflow'}
@@ -40,7 +41,8 @@ let controller, animationFrame
 const actionBusy=ref(false), ownedSlot=ref(), documentFile=ref()
 const isDiagram=()=>presets[selected.value].kind==='diagram'
 const isPath=()=>presets[selected.value].kind==='path'
-const isSVG=()=>presets[selected.value].kind==='svg'
+const isSVG=()=>presets[selected.value].kind==='svg'||presets[selected.value].kind==='gradient-svg'
+const svgModule=()=>presets[selected.value].kind==='gradient-svg'?radialSvgExport:svgExport
 const isOwnedCanvas=()=>isDiagram()||isPath()||isSVG()
 const pathHistory=ref({canUndo:false,canRedo:false})
 function syncPath(data){pathHistory.value={canUndo:!!data.history?.canUndo,canRedo:!!data.history?.canRedo}}
@@ -49,11 +51,11 @@ function newOwnedElement(){if(isSVG()){const panel=document.createElement('div')
 function downloadCanvasDocument(text,filename,type='application/json'){const blob=new Blob([text],{type}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=filename;document.body.append(link);try{link.click()}finally{link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}}
 async function openCanvasDocument(event){
  const file=event.target.files?.[0];event.target.value='';if(!file||actionBusy.value||!isOwnedCanvas())return;
- const openEpoch=epoch.value,prior=controller,openingPath=isPath(),openingSVG=isSVG();actionBusy.value=true;error.value='';let candidate;
+ const openEpoch=epoch.value,prior=controller,openingPath=isPath(),openingSVG=isSVG(),openingSVGModule=svgModule();actionBusy.value=true;error.value='';let candidate;
  try{
   if(file.size>48*1024*1024)throw new Error('Canvas document exceeds 48 MiB');
   const text=await file.text();if(openEpoch!==epoch.value)return;
-  const next=newOwnedElement();let pathCandidate;candidate=openingPath?await pathEdit.openPathEditExample(next,text,pathCallbacks(openEpoch,()=>pathCandidate)):openingSVG?await svgExport.openSvgExportExample(next,text):await diagram.openDiagramLabelExample(next,text);pathCandidate=candidate;
+  const next=newOwnedElement();let pathCandidate;candidate=openingPath?await pathEdit.openPathEditExample(next,text,pathCallbacks(openEpoch,()=>pathCandidate)):openingSVG?await openingSVGModule.openSvgExportExample(next,text):await diagram.openDiagramLabelExample(next,text);pathCandidate=candidate;
   if(openEpoch!==epoch.value){candidate.dispose();candidate=undefined;return}
   ownedSlot.value.replaceChildren(next);controller=candidate;candidate=undefined;prior?.dispose();const data=controller.report();if(isPath()){syncPath(data);source.value=JSON.stringify({quadratic:data.paths.find(item=>item.id==='QuadraticPath').commands,cubic:data.paths.find(item=>item.id==='CubicPath').commands},null,2)}if(isSVG())source.value=JSON.stringify(data.scene,null,2);output.value=JSON.stringify(data,null,2);
  }catch(e){candidate?.dispose();if(openEpoch===epoch.value)error.value=describeError(e)}
@@ -95,7 +97,7 @@ async function select(kind){
   try{
     if(isUnicode()||isDiagram())await document.fonts?.ready;
     if(selectionEpoch!==epoch.value)return;
-    if(isOwnedCanvas()){const next=newOwnedElement();let pathCandidate;const candidate=isPath()?(pathCandidate=pathEdit.createPathEditExample(next,source.value,pathCallbacks(selectionEpoch,()=>pathCandidate))):isSVG()?await svgExport.createSvgExportExample(next,source.value):diagram.createDiagramLabelExample(next,source.value);if(selectionEpoch!==epoch.value){candidate.dispose();return}controller=candidate;ownedSlot.value.replaceChildren(next)}
+    if(isOwnedCanvas()){const next=newOwnedElement();let pathCandidate;const candidate=isPath()?(pathCandidate=pathEdit.createPathEditExample(next,source.value,pathCallbacks(selectionEpoch,()=>pathCandidate))):isSVG()?await svgModule().createSvgExportExample(next,source.value):diagram.createDiagramLabelExample(next,source.value);if(selectionEpoch!==epoch.value){candidate.dispose();return}controller=candidate;ownedSlot.value.replaceChildren(next)}
     else controller=isAdvanced()?advanced.createAdvancedShaderExample(canvas.value,source.value):isUnicode()?unicode.createUnicodeTextExample(canvas.value,source.value):runtime.createExample(canvas.value,kind,source.value);
     const data=controller.report();if(isAdvanced())syncAdvanced(data);if(isPath())syncPath(data);output.value=JSON.stringify(data,null,2)
   }catch(e){if(selectionEpoch===epoch.value)error.value=describeError(e)}

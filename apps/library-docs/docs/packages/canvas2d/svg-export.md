@@ -10,6 +10,8 @@ The pictured variant uses gradient endpoint `(80,140)`, turquoise end stop `#50e
 
 This guide uses public `@barocss/canvas2d` version `0.0.0-experimental` at local source provider `572ca35de6581b634c11919de9a1881bf5a72d28`. The named API is `exportSceneLinearSVG`; the existing `exportSceneSVG` keeps its solid-only mapping. Use the matching source package with a TypeScript-capable application build. Source availability does not establish publication or change the earlier Canvas examples' profiles.
 
+For concentric radial paint, follow [the separate radial SVG guide](./radial-svg-export). Its newer `exportSceneGradientSVG` API adds a bounded radial subset; it does not change this guide's original linear-only input, source profile or exporter.
+
 ## Start with the complete scene
 
 ```json
