@@ -1,7 +1,7 @@
 import { parseCadExpression, CAD_EXPRESSION_LIMITS } from './expression-parser.js';
 import type { CadExpression } from './expression-parser.js';
 export { CAD_EXPRESSION_LIMITS } from './expression-parser.js';
-export type { CadExpression } from './expression-parser.js';
+export type { CadExpression, CadCallArgument, CadCallExpression } from './expression-parser.js';
 
 /** UTF-16 offsets, exclusive end, and one-based source coordinates. */
 export interface CadSourceRange { start: number; end: number; line: number; column: number; endLine: number; endColumn: number }
@@ -10,7 +10,12 @@ export type CadAstValue = CadExpression
   | { kind: 'reference'; id: string; range: CadSourceRange }
   | { kind: 'array'; items: CadAstValue[]; range: CadSourceRange };
 export interface CadAstField { name: string; value: CadAstValue; range: CadSourceRange; nameRange: CadSourceRange }
-export interface CadAstDeclaration { kind: 'curve' | 'surface' | 'extrude' | 'parameter'; id: string; range: CadSourceRange; idRange: CadSourceRange; fields: CadAstField[] }
+export interface CadOrdinaryAstDeclaration { kind: 'curve' | 'surface' | 'extrude' | 'parameter'; id: string; range: CadSourceRange; idRange: CadSourceRange; fields: CadAstField[] }
+export type CadFormalArgument = { kind: 'formal-argument'; name: string; nameRange: CadSourceRange;
+  quantityKind: 'length' | 'scalar'; typeRange: CadSourceRange; defaultExpression: CadExpression | null; range: CadSourceRange };
+export type CadFunctionAst = { kind: 'function'; id: string; idRange: CadSourceRange; range: CadSourceRange;
+  arguments: CadFormalArgument[]; returnKind: 'length' | 'scalar'; returnTypeRange: CadSourceRange; fields: [CadAstField] };
+export type CadAstDeclaration = CadOrdinaryAstDeclaration | CadFunctionAst;
 export interface CadModelAst { kind: 'model'; name: string; range: CadSourceRange; nameRange: CadSourceRange; fields: CadAstField[]; declarations: CadAstDeclaration[] }
 
 /** An actual-source parser diagnostic, with no synthetic or partial model. */
@@ -37,9 +42,9 @@ const surfaceFields = ['type', 'degree-u', 'degree-v', 'knots-u', 'knots-v', 'co
 const fieldBounds: Record<string, number[]> = { knots: [70], 'knots-u': [22], 'knots-v': [22], 'control-points': [64, 3], weights: [64] };
 
 /** Parse only source data; unit/types/native geometry belong to semantics. */
-export function parseCadAst(source: string, sourceVersion: 0 | 1 | 2): CadModelAst {
+export function parseCadAst(source: string, sourceVersion: 0 | 1 | 2 | 3): CadModelAst {
   if (typeof source !== 'string') throw new TypeError('Source must be a string');
-  if (sourceVersion !== 0 && sourceVersion !== 1 && sourceVersion !== 2) throw new TypeError('Source version must be 0, 1 or 2');
+  if (sourceVersion !== 0 && sourceVersion !== 1 && sourceVersion !== 2 && sourceVersion !== 3) throw new TypeError('Source version must be 0, 1, 2 or 3');
   const emptyRange = { start: 0, end: 0, line: 1, column: 1, endLine: 1, endColumn: 1 };
   const utf8BytesWithinLimit = () => {
     let bytes = 0;
@@ -68,7 +73,7 @@ export function parseCadAst(source: string, sourceVersion: 0 | 1 | 2): CadModelA
     const first = location(start), last = location(end);
     return { start, end, ...first, endLine: last.line, endColumn: last.column };
   };
-  let at = 0, tokens = 0, values = 0, nodes = 0, expressionNodes = 0, geometryCount = 0, parameterCount = 0, objectId: string | undefined;
+  let at = 0, tokens = 0, values = 0, nodes = 0, expressionNodes = 0, geometryCount = 0, parameterCount = 0, functionCount = 0, objectId: string | undefined;
   const declarations: CadAstDeclaration[] = [], modelFields: CadAstField[] = [];
   const fail = (code: string, detail: string, start = at, end = Math.min(source.length, start + 1)): never => {
     throw new CadAstError(code, detail, range(start, end), objectId);
@@ -100,6 +105,7 @@ export function parseCadAst(source: string, sourceVersion: 0 | 1 | 2): CadModelA
   };
   const expression = (): CadExpression => parseCadExpression({
     source, offset: () => at, advance: (count) => { at += count; }, skip,
+    allowCalls: sourceVersion === 3, reserveRecord: () => chargeNode(),
     token: chargeToken, range, fail,
     reserveNode: () => {
       if (expressionNodes >= CAD_EXPRESSION_LIMITS.aggregateNodes) fail('LIMIT', 'Model exceeds 32768 aggregate expression nodes');
@@ -122,7 +128,7 @@ export function parseCadAst(source: string, sourceVersion: 0 | 1 | 2): CadModelA
     const number = numeric(false); if (number) return number;
     const identifier = ident(); chargeNode(true); return { kind: 'identifier', value: identifier.value, range: identifier.range };
   };
-  const field = (allowed: string[], surface: boolean, seen: Set<string>, mode: 'literal' | 'model' | 'extrude' | 'parameter'): CadAstField => {
+  const field = (allowed: string[], surface: boolean, seen: Set<string>, mode: 'literal' | 'model' | 'extrude' | 'parameter' | 'function'): CadAstField => {
     skip(); const start = at, key = ident();
     if (!allowed.includes(key.value)) fail('FIELD', 'Unsupported ' + (sourceVersion === 1 && mode !== 'literal' ? mode === 'model' ? 'model ' : 'extrusion ' : '') + 'field ' + key.value, start, sourceVersion === 1 && mode !== 'literal' ? at : Math.min(source.length, start + 1));
     if (sourceVersion === 1 && mode !== 'literal' && seen.has(key.value)) fail('DUPLICATE', 'Duplicate field ' + key.value, start, at);
@@ -130,18 +136,18 @@ export function parseCadAst(source: string, sourceVersion: 0 | 1 | 2): CadModelA
     if (sourceVersion >= 1 && mode === 'model') {
       if (key.value === 'version') value = numeric(true)!;
       else { const identifier = ident(); chargeNode(true); value = { kind: 'identifier', value: identifier.value, range: identifier.range }; }
-    } else if (sourceVersion === 2 && mode === 'parameter' && key.value === 'value') {
+    } else if ((sourceVersion >= 2 && mode === 'parameter' && key.value === 'value') || mode === 'function') {
       value = expression();
     } else if (mode === 'extrude') {
       if (key.value === 'curve') { skip(); const refStart = at; take('#'); const ref = ident(); chargeNode(true); value = { kind: 'reference', id: ref.value, range: range(refStart, at) }; }
       else {
         skip(); const vectorStart = at; chargeNode(true); take('[');
-        const x = sourceVersion === 2 ? expression() : numeric(true)!; take(','); const y = sourceVersion === 2 ? expression() : numeric(true)!; take(','); const z = sourceVersion === 2 ? expression() : numeric(true)!; take(']');
+        const x = sourceVersion >= 2 ? expression() : numeric(true)!; take(','); const y = sourceVersion >= 2 ? expression() : numeric(true)!; take(','); const z = sourceVersion >= 2 ? expression() : numeric(true)!; take(']');
         value = { kind: 'array', items: [x, y, z], range: range(vectorStart, at) };
       }
     } else {
       const bounds = surface && key.value === 'control-points' ? [16, 16, 3] : surface && key.value === 'weights' ? [16, 16] : fieldBounds[key.value] ?? [];
-      value = astValue(bounds, 0, sourceVersion === 2 && mode === 'literal' && key.value !== 'type');
+      value = astValue(bounds, 0, sourceVersion >= 2 && mode === 'literal' && key.value !== 'type');
     }
     take(';');
     if (seen.has(key.value)) fail('DUPLICATE', 'Duplicate field ' + key.value, start, Math.min(source.length, start + 1));
@@ -156,16 +162,59 @@ export function parseCadAst(source: string, sourceVersion: 0 | 1 | 2): CadModelA
     objectId = undefined;
     if (source[at] !== '@') { modelFields.push(field(['version', 'length-unit'], false, headerNames, 'model')); continue; }
     const start = at; take('@'); const kind = ident().value;
-    if (!(sourceVersion === 0 ? kind === 'curve' || kind === 'surface' : sourceVersion === 1 ? kind === 'curve' || kind === 'extrude' : kind === 'curve' || kind === 'surface' || kind === 'extrude' || kind === 'parameter')) fail('KIND', (sourceVersion === 0 ? 'Unsupported object ' : 'Unsupported declaration ') + kind, start, sourceVersion === 0 ? Math.min(source.length, start + 1) : at);
-    if (kind === 'parameter' ? parameterCount >= 64 : geometryCount >= CAD_AST_LIMITS.declarations) fail('LIMIT', kind === 'parameter' ? 'Model exceeds 64 parameters' : 'Model exceeds 16 geometry declarations', start);
-    skip(); const idStart = at; take('#'); const identifier = ident(kind === 'parameter'); objectId = identifier.value;
+    if (!(sourceVersion === 0 ? kind === 'curve' || kind === 'surface' : sourceVersion === 1 ? kind === 'curve' || kind === 'extrude' : kind === 'curve' || kind === 'surface' || kind === 'extrude' || kind === 'parameter' || sourceVersion === 3 && kind === 'function')) fail('KIND', (sourceVersion === 0 ? 'Unsupported object ' : 'Unsupported declaration ') + kind, start, sourceVersion === 0 ? Math.min(source.length, start + 1) : at);
+    if (kind === 'function' ? functionCount >= 8 : kind === 'parameter' ? parameterCount >= 64 : geometryCount >= CAD_AST_LIMITS.declarations)
+      fail('LIMIT', kind === 'function' ? 'Model exceeds 8 functions' : kind === 'parameter' ? 'Model exceeds 64 parameters' : 'Model exceeds 16 geometry declarations', start);
+    skip(); const idStart = at; take('#'); const identifier = ident(kind === 'parameter' || kind === 'function'); objectId = identifier.value;
     if (ids.has(objectId)) fail('DUPLICATE', 'Duplicate ID ' + objectId, start, sourceVersion === 0 ? Math.min(source.length, start + 1) : at);
-    ids.add(objectId); if (kind === 'parameter') parameterCount++; else geometryCount++; take('{'); const fields: CadAstField[] = [], seen = new Set<string>();
+    ids.add(objectId);
+    if (kind === 'function') {
+      if (identifier.value.length > 48) fail('LIMIT', 'Function names exceed 48 characters', identifier.range.start, identifier.range.end);
+      functionCount++;
+      take('('); skip();
+      const arguments_: CadFormalArgument[] = [], formalNames = new Set<string>();
+      if (source[at] !== ')') while (true) {
+        skip(); const formalStart = at;
+        if (arguments_.length >= 4) fail('LIMIT', 'A function has at most four formal arguments', formalStart);
+        const name = ident(true);
+        if (name.value.length > 48) fail('LIMIT', 'Formal names exceed 48 characters', name.range.start, name.range.end);
+        if (formalNames.has(name.value)) fail('FUNCTION_ARGUMENT', 'Duplicate formal argument ' + name.value, name.range.start, name.range.end);
+        formalNames.add(name.value); take(':');
+        const type = ident();
+        if (type.value !== 'length' && type.value !== 'scalar') fail('FUNCTION_TYPE', 'Formal type must be length or scalar', type.range.start, type.range.end);
+        const quantityKind = type.value === 'length' ? 'length' : 'scalar';
+        chargeNode();
+        skip(); let defaultExpression: CadExpression | null = null;
+        if (source[at] === '=') { take('='); defaultExpression = expression(); }
+        arguments_.push({ kind: 'formal-argument', name: name.value, nameRange: name.range,
+          quantityKind, typeRange: type.range, defaultExpression,
+          range: range(formalStart, defaultExpression?.range.end ?? type.range.end) });
+        skip(); if (source[at] !== ',') break;
+        take(','); skip();
+        if (source[at] === ')') fail('FUNCTION_ARGUMENT', 'Trailing formal comma is unsupported');
+      }
+      take(')'); take(':');
+      const returnType = ident();
+      if (returnType.value !== 'length' && returnType.value !== 'scalar') fail('FUNCTION_TYPE', 'Function return type must be length or scalar', returnType.range.start, returnType.range.end);
+      const returnKind = returnType.value === 'length' ? 'length' : 'scalar';
+      take('{'); const fields: CadAstField[] = [], seen = new Set<string>();
+      while (true) {
+        skip(); if (source[at] === '}') { take('}'); break; }
+        fields.push(field(['return'], false, seen, 'function'));
+      }
+      if (fields.length !== 1) fail('FIELD', 'A function requires exactly one return expression', start, at);
+      chargeNode();
+      declarations.push({ kind: 'function', id: objectId, range: range(start, at), idRange: range(idStart, identifier.range.end),
+        arguments: arguments_, returnKind, returnTypeRange: returnType.range, fields: fields as [CadAstField] });
+      continue;
+    }
+    if (kind === 'parameter') parameterCount++; else geometryCount++;
+    take('{'); const fields: CadAstField[] = [], seen = new Set<string>();
     while (true) {
       skip(); if (source[at] === '}') { take('}'); break; }
       fields.push(field(kind === 'curve' ? curveFields : kind === 'surface' ? surfaceFields : kind === 'parameter' ? ['type', 'value'] : ['curve', 'vector'], kind === 'surface', seen, kind === 'extrude' ? 'extrude' : kind === 'parameter' ? 'parameter' : 'literal'));
     }
-    chargeNode(); declarations.push({ kind: kind as CadAstDeclaration['kind'], id: objectId, range: range(start, at), idRange: range(idStart, identifier.range.end), fields });
+    chargeNode(); declarations.push({ kind: kind as CadOrdinaryAstDeclaration['kind'], id: objectId, range: range(start, at), idRange: range(idStart, identifier.range.end), fields });
   }
   const modelEnd = at; objectId = undefined; skip(); if (at !== source.length) fail('SYNTAX', 'Unexpected content after model');
   return { kind: 'model', name: modelIdentifier.value, range: range(modelStart, modelEnd), nameRange: modelIdentifier.range, fields: modelFields, declarations };

@@ -9428,3 +9428,22 @@ Both whole validators rebuild once from their authored authority. The update tra
 `serializeSourceLineWidthExtrusionGraph(document, options)` validates and emits only the canonical authored document. `parseSourceLineWidthExtrusionGraph(text, options)` reuses the unchanged strict JSON parser and reconstructs the full graph. Negative-zero bits, complete source spelling, comments, siblings and explicit IDs survive. Authored/request limits are2MiB, current result8MiB and full update16MiB in UTF16 and UTF8; all retained occurrences are charged.
 
 Run `node examples/cad-nurbs/source-line-width-extrusion-graph-demo.mjs --source <output-directory>`. The flow changes width and height, suppresses/resumes extrusion, saves and freshly opens the document, then edits width again and performs a semantic no-op. Native/adopted availability and later Editor/Loader/history/display acceptance are tracked separately in Issue1442. Its closed abstract Shell does not certify Solid, embedding, occupied volume, global error or manufacturing. Parents533/551 retain general feature-graph and persistent-naming requirements.
+
+
+## Compile pure quantity functions in Source3
+
+`compileCadModel(source, { sourceVersion: 3 })` accepts explicit length/scalar functions and named calls. The source header must declare `version: 3; length-unit: mm;`. Existing Source0, Source1 and Source2 retain their dialects. Native output remains Model0.
+
+```css
+@function #scaleLength(value: length, factor: scalar = 2): length {
+  return: $value * $factor;
+}
+@parameter #width { type: length; value: 10 cm; }
+@parameter #height { type: length; value: scaleLength(value: $width); }
+```
+
+Functions use immutable local formals. Defaults contain closed arithmetic constants. Named arguments may appear in any order; their expressions evaluate in source order. A separate memo belongs to each call frame. Defaults are checked once at admission and evaluated again for each omitted argument. IR3 retains the complete definitions, typed bindings, call/definition spans, dependencies and separate work counts. Recursive calls, captures, positional arguments and mismatched units refuse before an accepted native result.
+
+The profile admits at most8 functions,4 arguments,8 active call frames,256 call entries and65536 runtime expression visits. Existing source, expression, parameter and Model limits remain. The complete Source3 success has16MiB UTF16/UTF8 and4M owned-value limits. Each retained occurrence counts; legal source limits do not guarantee that every output fits.
+
+Run `node examples/cad-nurbs/pure-quantity-functions-demo.mjs --source <output-directory>`. Save the original raw source with explicit dialect/hash metadata and compile it again after fresh reading. The demo edits one length literal twice and compares full AST, IR and native outputs. Issue1453 tracks this compiler scope. Editor admission, project codecs, geometry-return functions, conditions and loops require separate work.

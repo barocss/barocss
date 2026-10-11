@@ -1,5 +1,5 @@
 import { CadAstError } from './source-ast.js';
-import type { CadExpression, CadAstValue, CadAstDeclaration, CadModelAst, CadSourceRange } from './source-ast.js';
+import type { CadExpression, CadAstValue, CadAstDeclaration, CadOrdinaryAstDeclaration, CadModelAst, CadSourceRange } from './source-ast.js';
 import { copyCadData } from './data-copy.js';
 
 export type CadQuantityKind = 'length' | 'scalar';
@@ -21,6 +21,7 @@ function expression(value: CadAstValue, owner: string): CadExpression {
   throw new CadAstError('TYPE', 'A numeric expression is required', value.range, owner);
 }
 function references(value: CadExpression): { id: string; range: CadSourceRange }[] {
+  if (value.kind === 'call') throw new CadAstError('TYPE', 'Source2 does not support quantity function calls', value.range);
   if (value.kind === 'parameter-reference') return [{ id: value.id, range: value.range }];
   if (value.kind === 'unary') return references(value.operand);
   if (value.kind === 'group') return references(value.expression);
@@ -44,6 +45,7 @@ export function resolveCadParameters(ast: CadModelAst): {
   const edges = new Map<string, { id: string; range: CadSourceRange }[]>();
   const leaves: Leaf[] = [];
   for (const declaration of ast.declarations) {
+    if (declaration.kind === 'function') throw new CadAstError('TYPE', 'Source2 does not support quantity functions', declaration.range, declaration.id);
     if (declaration.kind !== 'parameter') continue;
     const type = declaration.fields.find(f => f.name === 'type'), value = declaration.fields.find(f => f.name === 'value');
     if (!type || !value) throw new CadAstError('FIELD', 'Parameter requires type and value', declaration.range, declaration.id);
@@ -103,6 +105,7 @@ export function resolveCadParameters(ast: CadModelAst): {
     return { kind, value };
   };
   const evaluate = (node: CadExpression, owner: string): Quantity => {
+    if (node.kind === 'call') throw new CadAstError('TYPE', 'Source2 does not support quantity function calls', node.range, owner);
     const cached = evaluated.get(node); if (cached) return cached;
     let result: Quantity;
     if (node.kind === 'number') {
@@ -161,7 +164,7 @@ export function resolveCadParameters(ast: CadModelAst): {
   };
   const resolvedAst: CadModelAst = {
     kind: 'model', name: ast.name, range: { ...ast.range }, nameRange: { ...ast.nameRange }, fields: copyCadData(ast.fields),
-    declarations: ast.declarations.filter(d => d.kind !== 'parameter').map(d => ({
+    declarations: ast.declarations.filter((d): d is CadOrdinaryAstDeclaration => d.kind !== 'parameter' && d.kind !== 'function').map(d => ({
       kind: d.kind, id: d.id, range: { ...d.range }, idRange: { ...d.idRange },
       fields: d.fields.map(f => ({ name: f.name, range: { ...f.range }, nameRange: { ...f.nameRange }, value: resolvedValue(f.value) })),
     })),

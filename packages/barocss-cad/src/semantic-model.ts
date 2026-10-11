@@ -5,9 +5,12 @@ import { validateCurve, validateSurface } from './math.js';
 import { preflightExtrusion } from './extrusion-validation.js';
 import { copyCadData } from './data-copy.js';
 import { resolveCadParameters } from './parameter-semantics.js';
+import { resolveCadFunctionParameters } from './function-quantity-semantics.js';
+import type { CadResolvedFunction, CadFunctionCallReceipt, CadFunctionWork } from './function-quantity-semantics.js';
 import type { CadResolvedParameter, CadFieldBinding, CadParameterDependency } from './parameter-semantics.js';
 export { copyCadData } from './data-copy.js';
 export type { CadResolvedParameter, CadFieldBinding, CadQuantityKind, CadParameterDependency } from './parameter-semantics.js';
+export type { CadFunctionQuantity, CadResolvedFunction, CadFunctionCallReceipt, CadFunctionWork } from './function-quantity-semantics.js';
 
 export type CadLiteralIRNode = { id: string; span: CadSourceRange; fieldTypes: Record<string, string> } &
   ({ kind: 'curve'; geometry: Curve } | { kind: 'surface'; geometry: Surface });
@@ -26,7 +29,14 @@ export interface CadModelIR2 {
   dependencies: (CadModelIR1['dependencies'][number] | CadParameterDependency)[];
   parameters: CadResolvedParameter[]; bindings: CadFieldBinding[];
 }
-export type CadModelIR = CadModelIR1 | CadModelIR2;
+export interface CadModelIR3 {
+  schema: 'barocss-cad-ir'; schemaVersion: 3; sourceVersion: 3;
+  name: string; lengthUnit: 'mm'; nodes: (CadLiteralIRNode | CadExtrudeIRNode)[];
+  dependencies: (CadModelIR1['dependencies'][number] | CadParameterDependency)[];
+  parameters: CadResolvedParameter[]; bindings: CadFieldBinding[];
+  functions: CadResolvedFunction[]; calls: CadFunctionCallReceipt[]; work: CadFunctionWork;
+}
+export type CadModelIR = CadModelIR1 | CadModelIR2 | CadModelIR3;
 function raw(value: CadAstValue): unknown {
   if (value.kind === 'array') return value.items.map(raw);
   if (value.kind === 'reference') return value.id;
@@ -50,12 +60,13 @@ function geometryRange(d: CadAstDeclaration, message: string): CadSourceRange {
   return d.fields.find(f => keys.includes(f.name))?.value.range ?? d.range;
 }
 /** Resolve original source data and preflight every feature before any lowering. */
-function analyzeGeometry(ast: CadModelAst, sourceVersion: 0 | 1 | 2): { name: string; lengthUnit: 'mm'; nodes: (CadLiteralIRNode | CadExtrudeIRNode)[]; dependencies: CadModelIR1['dependencies'] } {
+function analyzeGeometry(ast: CadModelAst, sourceVersion: 0 | 1 | 2 | 3): { name: string; lengthUnit: 'mm'; nodes: (CadLiteralIRNode | CadExtrudeIRNode)[]; dependencies: CadModelIR1['dependencies'] } {
   const nodes: (CadLiteralIRNode | CadExtrudeIRNode)[] = [];
   const literals = new Map<string, CadLiteralIRNode>();
   const byId = new Map(ast.declarations.map(d => [d.id, d]));
   for (const declaration of ast.declarations) {
     if (declaration.kind === 'parameter') throw new CadAstError('TYPE', 'Unresolved parameter cannot enter geometry validation', declaration.range, declaration.id);
+    if (declaration.kind === 'function') throw new CadAstError('TYPE', 'Unresolved function cannot enter geometry validation', declaration.range, declaration.id);
     if (declaration.kind === 'extrude') {
       if (!declaration.fields.some(f => f.name === 'curve') || !declaration.fields.some(f => f.name === 'vector')) throw new CadAstError('FIELD', 'Extrusion requires curve and vector fields', declaration.range, declaration.id);
       continue;
@@ -104,7 +115,15 @@ function analyzeGeometry(ast: CadModelAst, sourceVersion: 0 | 1 | 2): { name: st
 }
 
 /** All references/quantities/native inputs resolve before any derived lowering. */
-export function analyzeCadAst(ast: CadModelAst, sourceVersion: 0 | 1 | 2, _source: string): CadModelIR {
+export function analyzeCadAst(ast: CadModelAst, sourceVersion: 0 | 1 | 2 | 3, _source: string): CadModelIR {
+  if (sourceVersion === 3) {
+    const resolved = resolveCadFunctionParameters(ast);
+    const geometry = analyzeGeometry(resolved.ast, 3);
+    const dependencies = [...geometry.dependencies, ...resolved.dependencies].sort((a, b) => a.span.start - b.span.start);
+    return { schema: 'barocss-cad-ir', schemaVersion: 3, sourceVersion: 3, ...geometry, dependencies,
+      parameters: resolved.parameters, bindings: resolved.bindings, functions: resolved.functions,
+      calls: resolved.calls, work: resolved.work };
+  }
   if (sourceVersion !== 2) {
     const geometry = analyzeGeometry(ast, sourceVersion);
     return { schema: 'barocss-cad-ir', schemaVersion: 1, sourceVersion, ...geometry };

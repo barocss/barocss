@@ -438,3 +438,9 @@ export type { TranslatedStripPlaneSplitRequest, TranslatedStripPlaneSplitOptions
 
 export { evaluateSourceLineWidthExtrusionGraph, updateSourceLineWidthExtrusionGraph, validateSourceLineWidthExtrusionGraph, validateSourceLineWidthExtrusionGraphUpdate, serializeSourceLineWidthExtrusionGraph, parseSourceLineWidthExtrusionGraph, SourceLineWidthExtrusionGraphError, SourceLineWidthExtrusionGraphDiagnosticCode } from './source-line-width-extrusion-graph.js';
 export type { SourceLineWidthExtrusionGraphV0, SourceLineWidthExtrusionGraphOptions, SourceLineWidthExtrusionGraphEdits, SourceLineWidthExtrusionGraphReport, SourceLineWidthExtrusionGraphResult, SourceLineWidthExtrusionGraphTransactionReport, SourceLineWidthExtrusionGraphTransaction, SourceLineWidthExtrusionGraphUpdateResult } from './source-line-width-extrusion-graph.js';
+
+
+export type { CadCallArgument, CadCallExpression } from './expression-parser.js';
+export type { CadFormalArgument, CadFunctionAst } from './source-ast.js';
+export type { CadModelIR3 } from './semantic-model.js';
+export type { CadFunctionQuantity, CadResolvedFunction, CadFunctionCallReceipt, CadFunctionWork } from './function-quantity-semantics.js';

@@ -1,10 +1,16 @@
 import type { CadSourceRange } from './source-ast.js';
 
+export type CadCallArgument = { kind: 'named-argument'; name: string; nameRange: CadSourceRange;
+  value: CadExpression; range: CadSourceRange };
+export type CadCallExpression = { kind: 'call'; functionId: string; functionRange: CadSourceRange;
+  arguments: CadCallArgument[]; range: CadSourceRange };
+
 export type CadExpression = { kind: 'number'; value: number; range: CadSourceRange; unit?: 'mm' | 'cm' | 'm'; unitRange?: CadSourceRange }
   | { kind: 'parameter-reference'; id: string; range: CadSourceRange }
   | { kind: 'unary'; operator: '+' | '-'; operand: CadExpression; operatorRange: CadSourceRange; range: CadSourceRange }
   | { kind: 'binary'; operator: '+' | '-' | '*' | '/'; left: CadExpression; right: CadExpression; operatorRange: CadSourceRange; range: CadSourceRange }
-  | { kind: 'group'; expression: CadExpression; range: CadSourceRange };
+  | { kind: 'group'; expression: CadExpression; range: CadSourceRange }
+  | CadCallExpression;
 
 export const CAD_EXPRESSION_LIMITS = Object.freeze({ nodes: 256, depth: 32, aggregateNodes: 32768, literalMagnitude: 1e12 });
 /** Callbacks belong to the original parser, never to authored source. */
@@ -15,6 +21,9 @@ export interface CadExpressionCursor {
   skip(): void;
   token(): void;
   reserveNode(): void;
+  /** Source3 only; callers retain legacy grammar when omitted or false. */
+  allowCalls?: boolean;
+  reserveRecord?(): void;
   range(start: number, end: number): CadSourceRange;
   fail(code: string, detail: string, start?: number, end?: number): never;
 }
@@ -48,6 +57,41 @@ export function parseCadExpression(cursor: CadExpressionCursor): CadExpression {
       if (!match) cursor.fail('SYNTAX', 'Expected parameter identifier');
       cursor.token(); cursor.advance(match[0].length);
       return { expression: { kind: 'parameter-reference', id: match[0], range: cursor.range(start, cursor.offset()) }, depth: 1 };
+    }
+    if (cursor.allowCalls) {
+      const name = /^[A-Za-z_][A-Za-z0-9_]*/.exec(cursor.source.slice(start));
+      if (name) {
+        if (name[0].length > 48) cursor.fail('LIMIT', 'Function names exceed 48 characters', start, start + name[0].length);
+        reserve(); cursor.token(); cursor.advance(name[0].length);
+        const functionRange = cursor.range(start, cursor.offset());
+        consume('('); cursor.skip();
+        const arguments_: CadCallArgument[] = [], names = new Set<string>();
+        let treeDepth = 1;
+        if (cursor.source[cursor.offset()] !== ')') while (true) {
+          cursor.skip(); const argumentStart = cursor.offset();
+          if (arguments_.length >= 4) cursor.fail('LIMIT', 'A call has at most four named arguments', argumentStart);
+          const argumentName = /^[A-Za-z_][A-Za-z0-9_]*/.exec(cursor.source.slice(argumentStart));
+          if (!argumentName) cursor.fail('FUNCTION_ARGUMENT', 'A named function argument is required', argumentStart);
+          if (argumentName[0].length > 48) cursor.fail('LIMIT', 'Argument names exceed 48 characters', argumentStart, argumentStart + argumentName[0].length);
+          cursor.token(); cursor.advance(argumentName[0].length);
+          const nameRange = cursor.range(argumentStart, cursor.offset());
+          cursor.skip();
+          if (cursor.source[cursor.offset()] !== ':') cursor.fail('FUNCTION_ARGUMENT', 'Only named function arguments are supported', argumentStart, cursor.offset());
+          if (names.has(argumentName[0])) cursor.fail('FUNCTION_ARGUMENT', 'Duplicate function argument ' + argumentName[0], argumentStart, cursor.offset());
+          names.add(argumentName[0]); consume(':');
+          cursor.reserveRecord?.();
+          const parsed = sum(ancestors + 1);
+          treeDepth = Math.max(treeDepth, parsed.depth + 1); depth(treeDepth, ancestors);
+          arguments_.push({ kind: 'named-argument', name: argumentName[0], nameRange,
+            value: parsed.expression, range: cursor.range(argumentStart, parsed.expression.range.end) });
+          cursor.skip(); if (cursor.source[cursor.offset()] !== ',') break;
+          consume(','); cursor.skip();
+          if (cursor.source[cursor.offset()] === ')') cursor.fail('FUNCTION_ARGUMENT', 'Trailing function argument comma is unsupported');
+        }
+        consume(')');
+        return { expression: { kind: 'call', functionId: name[0], functionRange,
+          arguments: arguments_, range: cursor.range(start, cursor.offset()) }, depth: treeDepth };
+      }
     }
     const match = /^(?:\d+(?:\.\d*)?|\.\d+)/.exec(cursor.source.slice(start));
     if (!match) cursor.fail('SYNTAX', 'Expected number, $parameter or parenthesized expression');
