@@ -161,3 +161,30 @@ body:has(:is(.app-shell--mixed,.app-shell--scene)) [data-slot="dialog-content"] 
   :is(.app-shell--mixed,.app-shell--scene) .app-topbar [data-slot="button"][data-size="icon-sm"] { padding: 0; }
   :is(.app-shell--mixed,.app-shell--scene) .app-status { gap: 8px; }
 }
+
+/* Native editing uses the existing three panes and keeps the Canvas dominant. */
+.re-material-host .re-material-editor--preview .re-material-workspace { grid-template-columns: 260px minmax(0, 1fr) 240px; }
+.re-material-host .re-material-toolbar { height: 30px; padding: 3px 6px; gap: 4px; }
+.re-material-host .re-material-heading { min-height: 26px; padding: 3px 6px; gap: 4px; }
+.re-material-host .re-material-editor button { min-height: 22px; padding: 2px 6px; }
+.re-material-host .re-material-uniform { padding: 4px 6px; }
+.re-material-host .re-material-caption { margin: 4px 6px; font-size: 10px; }
+.re-material-host .re-material-source textarea { padding: 6px; font-size: 11px; line-height: 1.5; }
+.re-material-host .re-material-swatch { height: 28px; margin: 4px 6px; }
+.re-material-host .re-material-sample dl { margin: 4px 6px; gap: 2px; }
+.material-native-preview { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.material-native-canvas { position: relative; flex: 1; min-height: 0; }
+.material-native-canvas canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.material-native-overlay { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(24,27,32,.72); color: #adb7c5; padding: 12px; }
+.material-native-navigation { position: absolute; left: 6px; bottom: 4px; color: #a7b4c7; pointer-events: none; font-size: 10px; }
+.material-native-inspection { padding: 3px 6px; font-size: 10px; border-top: 1px solid #40444a; }
+.material-native-inspection pre { max-height: 150px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.re-native-controls { border-bottom: 1px solid var(--re-material-line); }
+.re-native-controls label { display: flex; align-items: center; gap: 4px; margin: 4px 6px; font-size: 11px; }
+.re-native-controls input,.re-native-controls select { min-width: 0; width: 100%; background: #1e2024; border: 1px solid var(--re-material-line); border-radius: 3px; padding: 3px 5px; }
+.re-native-controls input[aria-invalid="true"] { border-color: #cf8a79; }
+.re-native-controls button { margin: 3px 6px; }
+.re-native-direction { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.re-native-controls .re-native-direction label { margin: 0 0 3px; display: block; }
+.re-native-controls .re-native-direction .re-material-uniform { padding: 4px; }
+.re-native-controls .re-native-direction input { padding: 3px; }

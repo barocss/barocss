@@ -4,30 +4,65 @@ import type {Viewer, ViewerState, ViewerRef} from '@barocss/viewer';
 import {loadBaroCadModelSet} from '@barocss/cad-interop/model-set';
 import {compileMeshMaterial} from '@barocss/gpu';
 import {RenderEditorError, normalizeRenderEditorError} from '@barocss/render-editor';
-import type {RenderMaterialController, RenderMaterialPreparation} from '@barocss/render-editor';
+import type {RenderMaterialController, RenderMaterialPreparation, RenderNativeSceneAppearancePreparation} from '@barocss/render-editor';
+import {assertNativeScenePreviewContext} from './native-scene-host';
+import type {NativeSceneHost} from './native-scene-host';
 
-type PreviewHandle = {viewer: Viewer; ref: ViewerRef; present: (material: RenderMaterialPreparation) => void; refresh: () => void};
-interface Props {controller: RenderMaterialController; disabled: boolean; onError: (error: unknown) => void}
+export interface MaterialPreviewBridge {
+  readonly source: string;
+  readonly context: {mmToSceneUnit: number; background: readonly [number, number, number]};
+  getState(): ViewerState;
+  getEpoch(): number;
+  present(prepared: RenderNativeSceneAppearancePreparation): void;
+  beginTransition(): void;
+  endTransition(): void;
+  retireLegacy(): void;
+}
+type PreviewHandle = {viewer: Viewer; ref: ViewerRef; refresh(): void; syncControls(): void; present(material: RenderMaterialPreparation): void; bridge: MaterialPreviewBridge};
+interface Props {controller: RenderMaterialController; nativeHost?: NativeSceneHost | null; disabled: boolean; onError(error: unknown): void; onBridgeChange?(bridge: MaterialPreviewBridge | null): void}
+const context = {mmToSceneUnit: .001, background: [.025, .04, .06] as const};
 
-/** This fixed native preview is not part of the material file. */
-export function MaterialPreview({controller, disabled, onError}: Props) {
-  const canvas = useRef<HTMLCanvasElement>(null), handle = useRef<PreviewHandle | null>(null), report = useRef(onError);
-  report.current = onError;
+/** The Viewer belongs to this mounted Canvas, independently of its document session. */
+export function MaterialPreview({controller, nativeHost = null, disabled, onError, onBridgeChange}: Props) {
+  const canvas = useRef<HTMLCanvasElement>(null), handle = useRef<PreviewHandle | null>(null);
+  const mountId = useRef(crypto.randomUUID());
+  const current = useRef({controller, nativeHost, disabled, onError, onBridgeChange});
+  current.current = {controller, nativeHost, disabled, onError, onBridgeChange};
   const [state, setState] = useState<ViewerState | null>(null), [message, setMessage] = useState('Loading reference Surface…');
   const presentation = useSyncExternalStore(controller.subscribe, controller.getSnapshot, controller.getSnapshot);
   useEffect(() => {
     const element = canvas.current; if (!element) return;
     let live = true, viewer: Viewer | null = null, controls: {dispose(): void} | null = null;
+    let epoch = 0, transitions = 0, legacy = true;
     const abort = new AbortController();
     const refresh = () => {if (live && viewer) setState(viewer.getState());};
+    const stopControls = () => {controls?.dispose(); controls = null;};
+    const observe = () => queueMicrotask(() => {
+      if (!live || !viewer) return;
+      refresh();
+      const host = current.current.nativeHost;
+      if (host && !host.getSnapshot().disposed) {
+        try {host.observeView(viewer.getState().camera);} catch (cause) {current.current.onError(cause);}
+      }
+    });
     const failure = (cause: unknown) => {
       if (!live) return;
-      refresh(); setMessage(cause instanceof Error ? cause.message : 'Preview failed.'); report.current(cause);
+      refresh(); setMessage(cause instanceof Error ? cause.message : 'Preview failed.'); current.current.onError(cause);
       if (viewer && ['unavailable', 'context-lost', 'disposed'].includes(viewer.getState().status)) {
-        controls?.dispose(); controls = null;
-        // A presenter may report this while the controller is still in its synchronous commit.
-        queueMicrotask(() => {if (live && !controller.getSnapshot().disposed) controller.setPresenter(null);});
+        stopControls();
+        queueMicrotask(() => {
+          if (!live) return;
+          const active = current.current;
+          if (!active.controller.getSnapshot().disposed) active.controller.setPresenter(null);
+          if (active.nativeHost && !active.nativeHost.getSnapshot().disposed) active.nativeHost.setAvailable(false);
+        });
       }
+    };
+    const syncControls = () => {
+      const host = current.current.nativeHost;
+      const draft = host?.getSnapshot();
+      if (!live || !viewer || transitions || current.current.disabled || viewer.getState().status !== 'ready' || draft && (draft.nativeDirty || draft.materialDirty || draft.invalidLighting)) {stopControls(); return;}
+      if (!controls) controls = viewer.attachPointerControls({onError: failure});
     };
     const resize = () => {
       if (!live || !viewer) return;
@@ -39,79 +74,112 @@ export function MaterialPreview({controller, disabled, onError}: Props) {
       } catch (cause) {failure(cause);}
     };
     const observer = new ResizeObserver(resize); observer.observe(element);
-    const lost = () => {if (live) {controls?.dispose(); controls = null; controller.setPresenter(null); refresh(); setMessage('Graphics context lost. Reload this preview to recover.');}};
-    const inspectCamera = () => queueMicrotask(refresh);
-    element.addEventListener('webglcontextlost', lost);
-    element.addEventListener('pointerup', inspectCamera);
-    element.addEventListener('wheel', inspectCamera, {passive: true});
+    const lost = () => {
+      stopControls(); epoch++;
+      // Viewer installs its own context-loss handler first. Defer session changes past any commit lock.
+      queueMicrotask(() => {if (live) failure(new RenderEditorError('PRESENTATION_REFUSED', 'Graphics context lost. Reload the preview to recover.'));});
+    };
+    element.addEventListener('pointermove', observe);
+    element.addEventListener('pointerup', observe);
+    element.addEventListener('wheel', observe, {passive: true});
     void (async () => {
       try {
         const native = await loadBaroCadModelSet({format: 'barocad-model-set', version: 0, entries: [{aliasId: 'cloth_reference', url: './reference-panel.barocad', options: {sourceVersion: 0, countU: 3, countV: 3, unitsPerMillimeter: 1}}]}, {baseURL: location.href, signal: abort.signal});
         if (!live) return;
-        viewer = createViewer(element, {mmToSceneUnit: .001, background: [.025, .04, .06], lighting: {ambientStrength: .4, directionalStrength: .6, direction: [.3, 1, .4]}});
+        viewer = createViewer(element, {mmToSceneUnit: context.mmToSceneUnit, background: [...context.background], lighting: {ambientStrength: .4, directionalStrength: .6, direction: [.3, 1, .4]}});
+        element.addEventListener('webglcontextlost', lost);
         resize(); viewer.loadModelSet(native); viewer.fit();
         const ref = viewer.getState().surfaces[0];
         if (!ref || ref.modelId !== 'cloth_reference' || ref.surfaceId !== 'reference_panel' || native.entries.length !== 1 || native.entries[0].result.model.name !== 'cloth_reference_981' || native.entries[0].result.model.lengthUnit !== 'mm') throw new Error('Reference Surface identity does not match this preview.');
-        const originalSource = native.entries[0].result.source;
-        const present = (material: RenderMaterialPreparation) => {
+        const source = native.entries[0].result.source;
+        const requireViewer = () => {
           if (!live || !viewer || handle.current?.viewer !== viewer) throw new RenderEditorError('PRESENTATION_REFUSED', 'The preview was replaced.');
-          const before = viewer.getState();
-          if (before.status !== 'ready' || before.modelSet?.entries[0]?.result.source !== originalSource) throw new RenderEditorError('PRESENTATION_REFUSED', 'The reference Surface is unavailable.');
+          return viewer;
+        };
+        const present = (material: RenderMaterialPreparation) => {
+          const active = requireViewer(), before = active.getState();
+          if (!legacy || before.status !== 'ready' || before.modelSet?.entries[0]?.result.source !== source) throw new RenderEditorError('PRESENTATION_REFUSED', 'The reference Surface is unavailable.');
           try {
             const compiled = compileMeshMaterial(material.document.shaderSource);
-            if (!compiled.ok) throw new RenderEditorError('SOURCE_REFUSED', 'The applied material shader could not compile for the Viewer.');
-            viewer.setSurfaceMaterial(ref, {material: compiled.material, uniforms: {...material.document.uniforms}});
-            refresh(); setMessage('Rendered Surface · lighting and gamma applied');
+            if (!compiled.ok) throw new RenderEditorError('SOURCE_REFUSED', 'The material shader could not compile.');
+            active.setSurfaceMaterial(ref, {material: compiled.material, uniforms: {...material.document.uniforms}});
+            refresh(); setMessage('Rendered Surface');
           } catch (cause) {
-            failure(cause);
-            const error = normalizeRenderEditorError(cause, 'PRESENTATION_REFUSED');
+            failure(cause); const error = normalizeRenderEditorError(cause, 'PRESENTATION_REFUSED');
             Object.defineProperty(error, 'cause', {value: cause, configurable: true}); throw error;
           }
         };
-        handle.current = {viewer, ref, present, refresh};
-        controller.setPresenter(present);
-        controls = viewer.attachPointerControls({onError: failure}); refresh();
+        const bridge: MaterialPreviewBridge = {
+          source, context,
+          getState: () => requireViewer().getState(), getEpoch: () => epoch,
+          beginTransition: () => {requireViewer(); transitions++; stopControls();},
+          endTransition: () => {if (transitions > 0) transitions--; syncControls();},
+          retireLegacy: () => {
+            legacy = false;
+            const old = current.current.controller;
+            if (!old.getSnapshot().disposed) old.setPresenter(null);
+          },
+          present: prepared => {
+            const active = requireViewer(), token = epoch;
+            stopControls();
+            try {
+              assertNativeScenePreviewContext(prepared.context, active.getState().mmToSceneUnit, context.background);
+              if (token !== epoch || !live || handle.current?.viewer !== active) throw new RenderEditorError('PRESENTATION_REFUSED', 'The preview changed during preparation.');
+              active.replaceNativeSceneAppearance(prepared.request);
+              refresh(); setMessage('Rendered scene');
+            } catch (cause) {failure(cause); throw cause;}
+            finally {queueMicrotask(() => {if (live) syncControls();});}
+          },
+        };
+        handle.current = {viewer, ref, present, refresh, syncControls, bridge};
+        current.current.controller.setPresenter(present);
+        current.current.onBridgeChange?.(bridge);
+        syncControls(); refresh();
       } catch (cause) {if (live && !abort.signal.aborted) failure(cause);}
     })();
     return () => {
-      live = false; abort.abort(); observer.disconnect(); controls?.dispose();
-      element.removeEventListener('webglcontextlost', lost); element.removeEventListener('pointerup', inspectCamera); element.removeEventListener('wheel', inspectCamera);
-      handle.current = null;
-      if (!controller.getSnapshot().disposed) controller.setPresenter(null);
+      live = false; epoch++; abort.abort(); observer.disconnect(); stopControls();
+      element.removeEventListener('webglcontextlost', lost); element.removeEventListener('pointermove', observe); element.removeEventListener('pointerup', observe); element.removeEventListener('wheel', observe);
+      handle.current = null; current.current.onBridgeChange?.(null);
+      if (!current.current.controller.getSnapshot().disposed) current.current.controller.setPresenter(null);
       viewer?.dispose();
     };
-  }, [controller]);
-  const visible = state?.visibleGeometry.some(ref => ref.kind === 'surface') ?? false;
-  const ready = state?.status === 'ready';
+  }, []);
+  useEffect(() => {
+    const active = handle.current;
+    if (active && !nativeHost && !controller.getSnapshot().disposed) controller.setPresenter(active.present);
+    active?.syncControls();
+  }, [controller, nativeHost]);
+  useEffect(() => {handle.current?.syncControls();}, [disabled, presentation]);
+  useEffect(() => nativeHost?.subscribe(() => handle.current?.syncControls()), [nativeHost]);
+  const visible = state?.visibleGeometry.some(ref => ref.kind === 'surface') ?? false, ready = state?.status === 'ready';
   const visibility = () => {
-    const current = handle.current; if (!current || disabled) return;
+    const active = handle.current; if (!active || disabled || nativeHost) return;
     try {
-      if (visible) {
-        current.viewer.setSurfaceMaterial(current.ref, null);
-        controller.setPresenter(null);
-        current.viewer.setVisibleGeometry([]); setMessage('Surface hidden. Show it before Apply.');
-      } else {
-        current.viewer.setVisibleGeometry([{kind: 'surface', ...current.ref}]);
-        controller.setPresenter(current.present); setMessage('Rendered Surface · lighting and gamma applied');
-      }
-      current.refresh();
-    } catch (cause) {current.refresh(); report.current(cause);}
+      if (visible) {active.viewer.setSurfaceMaterial(active.ref, null); controller.setPresenter(null); active.viewer.setVisibleGeometry([]); setMessage('Surface hidden.');}
+      else {active.viewer.setVisibleGeometry([{kind: 'surface', ...active.ref}]); controller.setPresenter(active.present); setMessage('Rendered Surface');}
+      active.refresh(); active.syncControls();
+    } catch (cause) {active.refresh(); current.current.onError(cause);}
   };
-  const fit = () => {const current = handle.current; if (!current || disabled) return; try {current.viewer.fit(); current.refresh();} catch (cause) {report.current(cause);}};
-  const binding = state?.surfaceMaterial;
-  const original = state?.modelSet?.entries[0]?.result;
+  const fit = () => {
+    const active = handle.current, draft = nativeHost?.getSnapshot(); if (!active || disabled || draft && (draft.nativeDirty || draft.materialDirty || draft.invalidLighting)) return;
+    try {active.viewer.fit(); active.refresh(); if (nativeHost) nativeHost.observeView(active.viewer.getState().camera);} catch (cause) {current.current.onError(cause);}
+  };
+  const bindings = state?.surfaceMaterials ?? [], original = state?.modelSet?.entries[0]?.result;
   const inspection = state && {status: state.status, sourceUnit: state.sourceUnit, mmToSceneUnit: state.mmToSceneUnit,
-    nativeSource: original?.source, displayRef: state.surfaces[0], visibleGeometry: state.visibleGeometry, selected: state.selected,
-    material: binding && {ref: binding.ref, source: binding.binding.material.source, shaderId: binding.binding.material.shaderId, uniforms: binding.binding.uniforms},
-    lighting: state.lighting, camera: state.camera, displayedRevision: presentation.displayed?.revision ?? null};
-  return <div className="material-native-preview" style={{display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0}}>
-    <div className="re-material-heading"><h2>Surface preview</h2><span data-testid="material-preview-status">{state?.status ?? 'loading'}</span><button type="button" data-testid="material-preview-visible" disabled={disabled || !ready} onClick={visibility}>{visible ? 'Hide' : 'Show'}</button><button type="button" disabled={disabled || !ready || !visible} onClick={fit}>Frame</button></div>
-    <div style={{position: 'relative', flex: 1, minHeight: 0}}>
-      <canvas ref={canvas} data-testid="material-preview-canvas" aria-label="Rendered native Surface" style={{display: 'block', width: '100%', height: '100%', touchAction: 'none'}}/>
-      {(disabled || !ready || !visible) && <div style={{position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', background: 'rgba(24,27,32,.72)', color: '#adb7c5', padding: 12}}>{disabled ? 'Finish the current dialog to use the preview.' : visible ? message : state ? 'Surface hidden · Show to resume' : message}</div>}
-      <span style={{position: 'absolute', left: 8, bottom: 6, color: '#a7b4c7', pointerEvents: 'none', fontSize: 10}}>Drag: orbit · Shift + drag: pan · Wheel: zoom</span>
+    nativeSource: original?.source, document: state.document, documentBodies: state.documentBodies,
+    surfaces: state.surfaces, visibleGeometry: state.visibleGeometry, selected: state.selected,
+    materials: bindings.map(binding => ({ref: binding.ref, source: binding.binding.material.source, shaderId: binding.binding.material.shaderId, uniforms: binding.binding.uniforms})),
+    geometryMotion: state.geometryMotion, lighting: state.lighting, camera: state.camera, displayedRevision: nativeHost?.getSnapshot().accepted.revision ?? presentation.displayed?.revision ?? null,
+    nativeScene: nativeHost && {accepted: nativeHost.getSnapshot().accepted, selectedBodyId: nativeHost.getSnapshot().selectedBodyId, dirty: nativeHost.getSnapshot().dirty, viewDirty: nativeHost.getSnapshot().viewDirty, available: nativeHost.getSnapshot().available, canUndo: nativeHost.getSnapshot().canUndo, canRedo: nativeHost.getSnapshot().canRedo, savedRevision: nativeHost.getSnapshot().savedRevision}};
+  return <div className="material-native-preview">
+    <div className="re-material-heading"><h2>{nativeHost ? 'Scene' : 'Surface preview'}</h2><span data-testid="material-preview-status">{state?.status ?? 'loading'}</span>{!nativeHost && <button type="button" data-testid="material-preview-visible" disabled={disabled || !ready} onClick={visibility}>{visible ? 'Hide' : 'Show'}</button>}<button type="button" disabled={disabled || !ready || !visible || !!nativeHost && (nativeHost.getSnapshot().nativeDirty || nativeHost.getSnapshot().materialDirty || nativeHost.getSnapshot().invalidLighting)} onClick={fit}>Frame</button></div>
+    <div className="material-native-canvas">
+      <canvas ref={canvas} data-testid="material-preview-canvas" data-mount-id={mountId.current} aria-label="Rendered native Surface"/>
+      {(disabled || !ready || !visible) && <div className="material-native-overlay">{disabled ? 'Finish the current dialog to use the preview.' : visible ? message : state ? 'Surface hidden · Show to resume' : message}</div>}
+      <span className="material-native-navigation">Drag: orbit · Shift + drag: pan · Wheel: zoom</span>
     </div>
-    <div className="re-material-heading"><span style={{marginLeft: 0}} data-testid="material-preview-binding">{binding ? '#' + binding.binding.material.shaderId + ' → reference_panel' : 'No rendered material binding'}</span><span>{presentation.displayed ? 'Applied ' + presentation.displayed.revision : 'Preview detached'}</span></div>
-    <details style={{padding: '3px 6px', fontSize: 10, borderTop: '1px solid #40444a'}}><summary>Reference asset and view</summary><p className="re-material-caption">Original Model: cloth_reference_981 · Surface: reference_panel · mm. Display alias: cloth_reference. Fixed lighting. Material files contain the shader and uniforms; this host supplies the reference asset and view.</p><pre data-testid="material-preview-state" style={{maxHeight: 150, overflow: 'auto', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere'}}>{JSON.stringify(inspection, null, 2)}</pre></details>
+    <div className="re-material-heading"><span style={{marginLeft: 0}} data-testid="material-preview-binding">{bindings.length ? bindings.length + ' material ' + (bindings.length === 1 ? 'binding' : 'bindings') : 'No rendered material binding'}</span><span>{nativeHost ? 'Applied ' + nativeHost.getSnapshot().accepted.revision : presentation.displayed ? 'Applied ' + presentation.displayed.revision : 'Preview detached'}</span></div>
+    <details className="material-native-inspection"><summary>Scene and view details</summary><pre data-testid="material-preview-state">{JSON.stringify(inspection, (_key, value) => typeof value === 'number' && Object.is(value, -0) ? '-0' : value, 2)}</pre></details>
   </div>;
 }

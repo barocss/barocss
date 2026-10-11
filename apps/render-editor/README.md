@@ -147,6 +147,16 @@ Query inputs and results are local and ephemeral. An accepted document-context c
 
 Original-source evaluation uses the existing CAD Float64 path. The GPU preview is sampled, approximate display geometry; the query does not certify pixel or native/display equality, global geometry accuracy, or devices beyond the actual bounded flow. Help→Source point uses the existing dialog and returns focus to the persistent Help trigger while preserving draft text.
 
+## Native Surface scene on the Material Canvas
+
+Open `material.html`. The reference Surface first loads through the existing native Viewer. **Create Scene** declares two original Surface assets and applies their complete native scene on that same Canvas. The Source, Canvas and Inspector stay in three compact panes. Material target selects an authored Surface material in the Inspector.
+
+Material and lighting drafts share **Apply scene**, **Discard** and one scene Undo/Redo history. Invalid input keeps the applied scene and editable raw text. Source, supplied uniforms, original CAD assets and revisions, camera, lighting, visibility and static body poses are stored in `.native-scene.json`. Material-only mode retains its separate `.material.json` format. Scene files have a 2 MiB limit. Open validates the complete scene and refuses a display scale or background that differs from this mounted preview.
+
+Drag to orbit, Shift + drag to pan, and use the wheel to zoom. In scene mode, **Use view** stores the current camera through a complete scene Apply. **Restore view** presents the accepted camera without a history entry. Resolve view changes before File, history or material edits. File transitions and dialogs end held pointer controls. The Viewer remains mounted when entering scene mode or creating another scene; the appearance method requires an already mounted supported backend.
+
+The private `native-scene-flow.mjs` driver checks app host composition against source and actual public SDK output. Its presenter callbacks model CPU transaction boundaries; they do not prove Canvas rendering. `--verify-files <first> <second> --output <new-directory>` qualifies separately captured browser downloads. Public library formats, limits and provider code remain unchanged. Object picking, mesh topology tools, gizmos, animation, renderer first-mount and recovery acceptance are separate work.
+
 ## Supported desktop workspace
 
 The minimum supported workspace is **1000 × 760 CSS pixels**. The right inspector has its own scroll area so Surface controls and Source point remain accessible. Source Apply and topbar File actions remain reachable, and the footer keeps Draft changes visible. This is a named desktop layout scope for the bounded native flow. Existing smaller CSS breakpoints do not establish mobile acceptance. No size-blocking overlay is added.
