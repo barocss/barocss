@@ -316,3 +316,6 @@ GizmoSurface accepts optional viewportShortcuts (default false) and onFrame. Opt
 
 
 GizmoSurface also accepts optional onFrameAll and pivotLabel. With viewportShortcuts enabled, F uses onFrame and Shift+F uses onFrameAll; absent callbacks leave their key unconsumed. Shift with W/E/R remains ignored. A supplied pivotLabel is displayed in the existing toolbar; it does not select or calculate a new pivot. The uniform handle is visibly labelled All while its existing uniform key, projection, picking and scale calculation remain intact. Default Source callers remain opted out of viewport shortcuts.
+
+
+RenderNativeSceneGizmoPivot is origin | bounds-center. prepareRenderNativeSceneGizmo and deriveRenderNativeSceneGizmoPose accept it as an optional final argument; omission retains origin behavior. Bounds center uses the actual original CAD boxCenterMM and the public normalized unit-scale group rotation matrix. Rotation and scale compensate body-origin translation to retain that point; source geometry and authored quaternion stay original. Existing full Native admission applies, including compensation range/refusals; no-op skips compensation. GizmoSurface optionally accepts onTogglePivot to make a supplied pivot label a guarded caller-owned tool button; it calculates no pivot itself.

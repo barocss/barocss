@@ -1,5 +1,6 @@
-import {prepareEngineScene} from '@barocss/gpu';
+import {prepareEngineScene, validateMeshCamera} from '@barocss/gpu';
 import type {MeshCamera} from '@barocss/gpu';
+import {createCadGeometryReference, queryCadDocumentBounds, validateCadDocumentBounds} from '@barocss/cad';
 import type {RenderNativeSceneDocument} from './native-scene-document.js';
 import type {RenderNativeScenePose} from './native-scene-display.js';
 import {prepareRenderNativeSceneAppearance} from './native-scene-appearance.js';
@@ -7,13 +8,26 @@ import {makeGizmoProjectionContext, GIZMO_AXES as AXES, GIZMO_WORLD as WORLD, re
 import type {GizmoProjectionContext, GizmoProjectionPlane, RenderSceneGizmoMode, RenderSceneGizmoKey, RenderSceneGizmoAxis, RenderSceneGizmoViewport, RenderSceneGizmoPreparation, RenderSceneGizmoHandle} from './gizmo-projection-common.js';
 
 export type RenderNativeSceneGizmoSpace = 'world' | 'local';
+export type RenderNativeSceneGizmoPivot = 'origin' | 'bounds-center';
 type Point = readonly [number, number];
 type XYZ = [number, number, number];
 type XYZW = [number, number, number, number];
-interface Context extends GizmoProjectionContext {document: RenderNativeSceneDocument; bodyId: string; bodyIds: readonly string[]; pose: RenderNativeScenePose; axes: XYZ[]; space: RenderNativeSceneGizmoSpace}
+interface Context extends GizmoProjectionContext {document: RenderNativeSceneDocument; bodyId: string; bodyIds: readonly string[]; pose: RenderNativeScenePose; axes: XYZ[]; space: RenderNativeSceneGizmoSpace; centerMM: readonly number[] | null; rotationMatrix: readonly number[]}
 function identity(bodyId: string): RenderNativeScenePose {return {bodyId, translationMM: [0, 0, 0], rotationXYZW: [0, 0, 0, 1], scale: [1, 1, 1]};}
-function context(document: RenderNativeSceneDocument, bodyId: string, camera: MeshCamera, viewport: RenderSceneGizmoViewport, mode: RenderSceneGizmoMode, space: RenderNativeSceneGizmoSpace): Context {
+/** Unit scale avoids narrowing Native scale limits. Rotation remains the public GPU pose service. */
+function rotationMatrix(camera: MeshCamera, translation: XYZ, rotationXYZW: readonly number[]): readonly number[] {
+  const rig = prepareEngineScene({format: 'barocss-gpu-engine-scene', version: 0, id: 'native_gizmo_pose', coordinateSystem: 'right-handed-y-up', positionUnit: 'scene', background: [0, 0, 0], camera, geometries: [], materials: [], nodes: [{id: 'body_pose', type: 'group', parentId: null, translation, rotationXYZW: [...rotationXYZW] as XYZW, scale: [1, 1, 1], visible: true}]});
+  return rig.nodes[0]!.worldMatrix;
+}
+function centerOffset(matrix: readonly number[], centerMM: readonly number[], scale: readonly number[]): XYZ {
+  const scaled = centerMM.map((value, axis) => value * scale[axis]!);
+  const offset = [0, 1, 2].map(row => matrix[row]! * scaled[0]! + matrix[4 + row]! * scaled[1]! + matrix[8 + row]! * scaled[2]!) as XYZ;
+  if (![...scaled, ...offset].every(Number.isFinite)) throw refused('Native bounds-center pose arithmetic is nonfinite.');
+  return offset;
+}
+function context(document: RenderNativeSceneDocument, bodyId: string, camera: MeshCamera, viewport: RenderSceneGizmoViewport, mode: RenderSceneGizmoMode, space: RenderNativeSceneGizmoSpace, pivot: RenderNativeSceneGizmoPivot): Context {
   if (!['translate', 'rotate', 'scale'].includes(mode) || !['world', 'local'].includes(space)) throw refused('Native gizmo mode or coordinate space is unsupported.');
+  if (!['origin', 'bounds-center'].includes(pivot)) throw refused('Native gizmo pivot is unsupported.');
   if (mode === 'scale' && space !== 'local') throw refused('Native Scale requires local coordinate space.');
   if (typeof bodyId !== 'string') throw refused('Native gizmo requires an original body ID.');
   const actual = prepareRenderNativeSceneAppearance(document), authored = actual.authored;
@@ -21,20 +35,33 @@ function context(document: RenderNativeSceneDocument, bodyId: string, camera: Me
   if (!entry || entry.kind !== 'surface' || !authored.document.display.visibleBodyIds.includes(bodyId) || !authored.materials.some(material => material.target.bodyId === bodyId)) throw refused('Native gizmo requires an original visible material-bound Surface body.');
   const pose = authored.document.display.poses.find(pose => pose.bodyId === bodyId) ?? identity(bodyId);
   const origin = pose.translationMM.map(value => value * authored.document.display.mmToSceneUnit) as XYZ;
-  const projection = makeGizmoProjectionContext(origin, camera, viewport);
+  let projection = pivot === 'origin' ? makeGizmoProjectionContext(origin, camera, viewport) : null;
+  const ownedCamera = projection?.camera ?? validateMeshCamera(camera);
   // This unit-scale group is a public pose service, never a replacement native mesh.
-  const rig = prepareEngineScene({format: 'barocss-gpu-engine-scene', version: 0, id: 'native_gizmo_pose', coordinateSystem: 'right-handed-y-up', positionUnit: 'scene', background: [0, 0, 0], camera: projection.camera, geometries: [], materials: [], nodes: [{id: 'body_pose', type: 'group', parentId: null, translation: origin, rotationXYZW: [...pose.rotationXYZW], scale: [1, 1, 1], visible: true}]});
-  const local = AXES.map((_, axis) => unit([0, 1, 2].map(row => rig.nodes[0]!.worldMatrix[axis * 4 + row]!) as XYZ));
-  return {...projection, document: authored.document, bodyId, bodyIds: authored.entries.map(entry => entry.binding.bodyId), pose, axes: space === 'world' ? WORLD : local, space};
+  const matrix = rotationMatrix(ownedCamera, pivot === 'origin' ? origin : [0, 0, 0], pose.rotationXYZW);
+  const local = AXES.map((_, axis) => unit([0, 1, 2].map(row => matrix[axis * 4 + row]!) as XYZ));
+  let centerMM: readonly number[] | null = null;
+  if (pivot === 'bounds-center') {
+    const {reference} = createCadGeometryReference(authored.native, {bodyId});
+    const bounds = queryCadDocumentBounds(authored.native, reference);
+    validateCadDocumentBounds(authored.native, bounds);
+    // Original control-hull box center, never a mass center or tight Surface centroid.
+    centerMM = bounds.boxCenterMM;
+    const offset = centerOffset(matrix, centerMM, pose.scale);
+    const point = pose.translationMM.map((value, axis) => (value + offset[axis]!) * authored.document.display.mmToSceneUnit) as XYZ;
+    if (!point.every(Number.isFinite)) throw refused('Native bounds-center projection is nonfinite.');
+    projection = makeGizmoProjectionContext(point, ownedCamera, viewport);
+  }
+  return {...projection!, document: authored.document, bodyId, bodyIds: authored.entries.map(entry => entry.binding.bodyId), pose, axes: space === 'world' ? WORLD : local, space, centerMM, rotationMatrix: matrix};
 }
 function plane(data: Context, axis: RenderSceneGizmoAxis): GizmoProjectionPlane {
   const index = AXES.indexOf(axis);
   return {normal: data.axes[index]!, a: data.axes[(index + 1) % 3]!, b: data.axes[(index + 2) % 3]!};
 }
-/** Original native origin and public camera/pose projection. No Source1 geometry is synthesized. */
-export function prepareRenderNativeSceneGizmo(document: RenderNativeSceneDocument, bodyId: string, camera: MeshCamera, viewport: RenderSceneGizmoViewport, mode: RenderSceneGizmoMode, space: RenderNativeSceneGizmoSpace): RenderSceneGizmoPreparation {
+/** Original native origin or control-hull bounds center, with public camera/pose projection. */
+export function prepareRenderNativeSceneGizmo(document: RenderNativeSceneDocument, bodyId: string, camera: MeshCamera, viewport: RenderSceneGizmoViewport, mode: RenderSceneGizmoMode, space: RenderNativeSceneGizmoSpace, pivot: RenderNativeSceneGizmoPivot = 'origin'): RenderSceneGizmoPreparation {
   try {
-    const data = context(document, bodyId, camera, viewport, mode, space), handles: RenderSceneGizmoHandle[] = [];
+    const data = context(document, bodyId, camera, viewport, mode, space, pivot), handles: RenderSceneGizmoHandle[] = [];
     if (inside(data.pivot, data.viewport)) {
       for (const [index, axis] of AXES.entries()) {
         try {const value = mode === 'rotate' ? ring(data, plane(data, axis), axis) : axisHandle(data, data.axes[index]!, axis, mode, mode === 'scale' ? 'Scale ' + axis.toUpperCase() : undefined); if (value) handles.push(value);} catch { /* A degenerate projected handle is not shown. */ }
@@ -49,9 +76,9 @@ function product(a: readonly number[], b: readonly number[]): XYZW {
   return [aw! * bx! + ax! * bw! + ay! * bz! - az! * by!, aw! * by! - ax! * bz! + ay! * bw! + az! * bx!, aw! * bz! + ax! * by! - ay! * bx! + az! * bw!, aw! * bw! - ax! * bx! - ay! * by! - az! * bz!];
 }
 /** Captured drag derives original mm/quaternion/positive scale and re-admits the complete native appearance. */
-export function deriveRenderNativeSceneGizmoPose(document: RenderNativeSceneDocument, bodyId: string, camera: MeshCamera, viewport: RenderSceneGizmoViewport, mode: RenderSceneGizmoMode, space: RenderNativeSceneGizmoSpace, key: RenderSceneGizmoKey, from: Point, to: Point): RenderNativeScenePose {
+export function deriveRenderNativeSceneGizmoPose(document: RenderNativeSceneDocument, bodyId: string, camera: MeshCamera, viewport: RenderSceneGizmoViewport, mode: RenderSceneGizmoMode, space: RenderNativeSceneGizmoSpace, key: RenderSceneGizmoKey, from: Point, to: Point, pivot: RenderNativeSceneGizmoPivot = 'origin'): RenderNativeScenePose {
   try {
-    const data = context(document, bodyId, camera, viewport, mode, space), start = pointCopy(from), end = pointCopy(to);
+    const data = context(document, bodyId, camera, viewport, mode, space, pivot), start = pointCopy(from), end = pointCopy(to);
     if (mode === 'scale' ? key !== 'uniform' && !AXES.includes(key as RenderSceneGizmoAxis) : !AXES.includes(key as RenderSceneGizmoAxis)) throw refused('Handle does not match the native gizmo mode.');
     const translationMM = [...data.pose.translationMM] as XYZ, rotationXYZW = [...data.pose.rotationXYZW] as XYZW, scale = [...data.pose.scale] as XYZ;
     const same = start[0] === end[0] && start[1] === end[1], index = AXES.indexOf(key as RenderSceneGizmoAxis), axis = key as RenderSceneGizmoAxis;
@@ -83,6 +110,16 @@ export function deriveRenderNativeSceneGizmoPose(document: RenderNativeSceneDocu
       }
       if (!Number.isFinite(factor) || factor <= 0) throw refused('Native scale requires a finite positive factor.');
       if (key === 'uniform') for (let i = 0; i < 3; i++) scale[i] *= factor; else scale[index] *= factor;
+    }
+    if (!same && data.centerMM && (mode === 'rotate' || mode === 'scale')) {
+      const before = centerOffset(data.rotationMatrix, data.centerMM, data.pose.scale);
+      const afterMatrix = mode === 'rotate' ? rotationMatrix(data.camera, [0, 0, 0], rotationXYZW) : data.rotationMatrix;
+      const after = centerOffset(afterMatrix, data.centerMM, scale);
+      for (let i = 0; i < 3; i++) {
+        // Equal offsets do not rewrite authored zero or negative zero.
+        if (before[i] !== after[i]) translationMM[i] += before[i]! - after[i]!;
+      }
+      if (!translationMM.every(Number.isFinite)) throw refused('Native bounds-center translation compensation is nonfinite.');
     }
     const result: RenderNativeScenePose = Object.freeze({bodyId, translationMM: Object.freeze(translationMM), rotationXYZW: Object.freeze(rotationXYZW), scale: Object.freeze(scale)});
     if (!same) {
