@@ -194,6 +194,10 @@
       "./source-curve-degree-elevation": {
         "types": "./dist/source-curve-degree-elevation.d.ts",
         "import": "./dist/source-curve-degree-elevation.js"
+      },
+      "./source-line-width-face": {
+        "types": "./dist/source-line-width-face.d.ts",
+        "import": "./dist/source-line-width-face.js"
       }
     }
   },
@@ -390,6 +394,10 @@
     "./source-curve-degree-elevation": {
       "types": "./src/source-curve-degree-elevation.ts",
       "import": "./src/source-curve-degree-elevation.ts"
+    },
+    "./source-line-width-face": {
+      "types": "./src/source-line-width-face.ts",
+      "import": "./src/source-line-width-face.ts"
     }
   },
   "files": [

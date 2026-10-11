@@ -3758,3 +3758,37 @@ The reader retains the supplied request, original and elevated Source0, both Mod
 Each eligible read calls the whole CAD validator once. Raw and canonical JSON have a 2MiB UTF8/UTF16 limit and a separate 1M-value budget per copy pass. Dedicated codec errors remain direct. Native refusal keeps its original CAD error as the `NATIVE` cause. This CPU reader adds no degree operation, degree lowering, source editing, smoothing or rendering API. Stored ideal and rounded coefficient evidence remains distinct.
 
 The `source-curve-degree-elevation-native-verify.mjs` example runs source or published code with `--mode source|emitted --output ABS_FRESH`, retains four complete results, and opens the four saved native files in a separate process. Coefficient oracle and editor files are DATA only. The emitted flow also checks selected published types. See Issue #1398 for executed checks and their scope.
+
+## Complete saved Source Line width Face reader
+
+Use the optional CPU entry `@barocss/cad-interop/source-line-width-face`.
+
+`parseBaroCadSourceLineWidthFace(text)` and
+`readBaroCadSourceLineWidthFace(owned)` return
+`{ native, validationReport, profile, sourceText }`. They retain the complete
+saved seven-field native result, full original Model and Curve, real Ruled
+and Convex Face parents, qualified source namespaces, World/UV/Use topology
+and twelve bindings. The matching native validator runs once for each eligible
+input. Its independently copied report stays separate from the supplied result.
+
+Returned native data and reports are mutable independent CPU copies. Only the
+profile is deeply frozen. Text parse retains the exact primitive input text;
+owned read uses `sourceText: null`. Numeric negative zero is preserved.
+The eight fixed limits include 2 MiB UTF-8 and UTF-16 envelopes, 1M values,
+depth 64 and 262144-unit strings. The six diagnostic codes are
+`INPUT | JSON | OWNED | BUDGET | SCHEMA | NATIVE`. Native failures retain
+the original cause.
+
+Original world and Surface parameters and dimensionless UV remain distinct.
+Width operation, general curve offset, sampling, renderer, axis conversion,
+Solid, global error, manufacturing and publication certification are outside
+this reader. Stored area and internal operation counts remain data.
+
+The native verifier is import-inert and requires an explicit new output folder:
+
+`node --max-old-space-size=4096 packages/barocss-cad-interop/examples/source-line-width-face-native-verify.mjs --mode source --output /absolute/fresh-output`
+
+Use `--mode emitted` after the affected package builds to check actual
+published JavaScript and declarations. Three original complete cases cover
+width 5 forward, width 8 forward and the separate width 8 reverse witness.
+Their requests and three cold Models are data, not additional admissions.
