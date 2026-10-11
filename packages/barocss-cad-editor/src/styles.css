@@ -491,6 +491,8 @@ text.assembly-translation-guide[data-axis="z"] { fill:#8babcf; stroke:none; }
 .cad-editor-command-group .sweep-tools button { display:inline-flex; align-items:center; justify-content:center; gap:4px; width:36px; height:36px; min-width:36px; min-height:36px; padding:4px; pointer-events:auto; }
 .sweep-create { background:#b8d59c; color:#1b2517; }
 .sweep-error { margin:6px 0; color:#ffd2ce; font-size:11px; line-height:1.4; overflow-wrap:anywhere; }
+.cad-editor-driving .cad-editor-inspector button.driving-operation-icon { width:36px; height:36px; min-width:36px; min-height:36px; padding:0; flex:0 0 auto; }
+.cad-editor-driving .cad-editor-inspector button.driving-operation-icon svg { width:16px; height:16px; flex:none; }
 .cad-editor-axis-palette[hidden] { display:none; }
 .pole-axis-feedback { position:absolute; right:8px; bottom:8px; max-width:184px; padding:4px 7px; border:1px solid #414a50; border-radius:4px; background:#22292ded; color:#c2cdd4; font-size:11px; line-height:1.4; pointer-events:none; }
 .pole-axis-feedback p { margin:0; }

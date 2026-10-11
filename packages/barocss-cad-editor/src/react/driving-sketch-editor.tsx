@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { CircleHelp, Plus, Trash2, Move } from 'lucide-react';
 import { createViewer, type Viewer, type ViewerOptions, type ViewerState, type ViewerPointerControls, type ViewerKeyboardControls } from '@barocss/viewer';
 import { prepareSelectedUniformCurvePreview, type SelectedUniformCurvePreview } from '@barocss/gpu';
 import type { DrivenMixedSketchLinesResult, XYLinearSketchConstraintV1 } from '@barocss/cad';
@@ -408,7 +409,7 @@ export function CadEditorDrivingSketchEditor(props: CadEditorDrivingSketchEditor
     </div>
     <aside className="cad-editor-inspector" aria-label="Driving Sketch properties">
       <div className="cad-editor-inspector-title"><h2 className="cad-editor-heading">{viewed ? profileLabel(viewed) : 'Sketch'}</h2>
-        <Dialog><DialogTrigger asChild><Button variant="ghost" size="xs" type="button" data-testid="driving-help" disabled={gesturing}>Help</Button></DialogTrigger>
+        <Dialog><DialogTrigger asChild><Button variant="ghost" size="xs" type="button" className="driving-operation-icon" aria-label="Help" title="Help" data-testid="driving-help" disabled={gesturing}><CircleHelp size={16} aria-hidden="true" /></Button></DialogTrigger>
           <DialogContent className="cad-editor-help-dialog" data-testid="driving-help-dialog"><DialogHeader><DialogTitle>Driving dimensions</DialogTitle>
             <DialogDescription>Change supported constraints while keeping the original sketch intent.</DialogDescription></DialogHeader>
             <div className="cad-editor-help-body">
@@ -444,12 +445,12 @@ export function CadEditorDrivingSketchEditor(props: CadEditorDrivingSketchEditor
       </>}
       <div className="cad-editor-actions"><Button type="button" data-testid="driving-apply" disabled={busy || !pending} onClick={() => action(() => session.prepareApply())}>Apply</Button>
         <Button type="button" variant="outline" data-testid="driving-discard" disabled={busy || !pending} onClick={() => action(() => session.discardPending())}>Discard</Button></div>
-      <div className="driving-constraints-heading"><h3>Constraints</h3><Button ref={addTrigger} type="button" size="xs" variant="outline" data-testid="driving-add" disabled={busy || pending} onClick={openAdd}>Add</Button></div>
+      <div className="driving-constraints-heading"><h3>Constraints</h3><Button ref={addTrigger} type="button" size="xs" variant="outline" className="driving-operation-icon" aria-label="Add" title="Add" data-testid="driving-add" disabled={busy || pending} onClick={openAdd}><Plus size={16} aria-hidden="true" /></Button></div>
       <div className="driving-constraints-list">{snapshot.accepted.document.constraints.map(constraint => <section className="driving-constraint-row" key={constraint.id} data-testid={'driving-constraint-' + constraint.id}>
-        <div className="driving-constraint-title"><strong>{constraintLabel(constraint)}</strong><Button type="button" variant="ghost" size="xs" data-testid={'driving-remove-' + constraint.id} disabled={busy || pending}
-          onClick={() => action(() => session.prepareConstraintRemoval(constraint.id))}>Remove</Button></div>
+        <div className="driving-constraint-title"><strong>{constraintLabel(constraint)}</strong><Button type="button" variant="ghost" size="xs" className="driving-operation-icon" aria-label="Remove" title="Remove" data-testid={'driving-remove-' + constraint.id} disabled={busy || pending}
+          onClick={() => action(() => session.prepareConstraintRemoval(constraint.id))}><Trash2 size={16} aria-hidden="true" /></Button></div>
         <p className="cad-editor-properties-note">{definitionNote(constraint)}</p>
-        {constraint.kind === 'fixed' && <Button type="button" size="xs" variant="outline" className="driving-anchor-choose" data-testid={'driving-anchor-' + constraint.id}
+        {constraint.kind === 'fixed' && <Button type="button" size="xs" variant="outline" className="driving-anchor-choose driving-operation-icon" aria-label="Drag point" title="Drag point" data-testid={'driving-anchor-' + constraint.id}
           aria-pressed={activeAnchor === constraint.id && snapshot.selection?.native.pointId === constraint.pointId}
           disabled={busy || pending || !editableView || !pointBindings.some(point => point.pointId === constraint.pointId)}
           onClick={() => action(() => {
@@ -460,7 +461,7 @@ export function CadEditorDrivingSketchEditor(props: CadEditorDrivingSketchEditor
             if (after.selection?.native.pointId !== binding.pointId || after.generation !== now.generation || after.candidate || Object.keys(after.pending.fields).length)
               throw fault('The fixed point changed during selection. Review the values.', 'driving-anchor');
             setActiveAnchor(constraint.id);
-          })}>Drag point</Button>}
+          })}><Move size={16} aria-hidden="true" /></Button>}
         {(constraint.kind === 'distance-x' || constraint.kind === 'distance-y') && scalarField(constraint, 'distanceMM', constraint.distanceMM, 'Distance (mm)')}
         {constraint.kind === 'fixed' && <div className="driving-fixed-fields">{scalarField(constraint, 'xMM', constraint.target[0], 'X (mm)')}{scalarField(constraint, 'yMM', constraint.target[1], 'Y (mm)')}</div>}
       </section>)}</div>
