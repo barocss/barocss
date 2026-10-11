@@ -2795,3 +2795,28 @@ UTF16/LF diagnostic positions and actual base compiler causes.
 
 One source/emitted/file/cold flow:
 `node examples/gpu-scene/scene-literal-parameter-flow.mjs --output /absolute/fresh-directory`.
+
+
+## Typed Scene quantity products
+
+`compileMultiplicativeAffineSceneSource` is a separate source-only entry for
+`calc($NAME * $NAME)` coefficient atoms. Both operands are declared parameters;
+one must be scalar. The other determines scalar, scene-length or degree output.
+A complete calc is one vector component, preserving original operator/reference
+spans and metadata uses. For example a length2scene and scalar.5 yield radius1.
+
+There is exactly one multiply and two references: no nesting, literal operands,
+other operators, initializer arithmetic or runtime overrides. The older literal
+parameter entry continues to refuse calc syntax. The new source result and
+authored AST have their own format/schema/profile, retaining original text and
+independently derived existing Scene2/shader data. This creates no GLSL uniform,
+geometry kernel, physical unit conversion, linked renderer or frame.
+
+Finite products remain within ±1000 for scalar/length and ±360 for degrees;
+existing positivity, Float32 shape checks and scale.01..100 follow. Each product
+charges three expression nodes plus both reference uses under the existing4096
+work/1536use/source64KiB/16parameter/result2MiB bounds. Owned data is fresh/frozen;
+syntax/type/range/budget errors use original spans and actual Scene causes remain.
+
+One new source/emitted/manual-file/cold flow:
+`node examples/gpu-scene/scene-quantity-product-flow.mjs --output /absolute/fresh-directory`.

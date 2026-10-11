@@ -167,3 +167,6 @@ export type {NativeSurfaceUV01ShaderSourceRequest,PreparedNativeSurfaceUV01Shade
 
 export {compileParameterizedAffineSceneSource,SceneParameterSourceError} from './scene-parameter-source.js';
 export type {SceneParameterCode,SceneParameterDiagnostic,SceneParameterDeclaration,ParameterizedAffineSceneAst,SceneParameter,CompiledParameterizedAffineSceneSource} from './scene-parameter-source.js';
+
+export {compileMultiplicativeAffineSceneSource} from './scene-product-source.js';
+export type {MultiplicativeAffineSceneAst,CompiledMultiplicativeAffineSceneSource} from './scene-product-source.js';

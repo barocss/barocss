@@ -59,7 +59,7 @@ function sourceRanges(source: string): (start: number, end: number) => SourceRan
   };
 }
 /** One bounded original-token scan; parentheses are needed only for the new declarations. */
-function scan(source: string, range: (start: number, end: number) => SourceRange): SceneToken[] {
+function scan(source: string, range: (start: number, end: number) => SourceRange, productMode = false): SceneToken[] {
   const tokens: SceneToken[] = [];
   let offset = 0;
   while (offset < source.length) {
@@ -74,8 +74,8 @@ function scan(source: string, range: (start: number, end: number) => SourceRange
       offset = end + 2; continue;
     }
     const start = offset;
-    if ('{}:;@()'.includes(source[offset])) offset++;
-    else while (offset < source.length && !/[\s{}:;@()]/.test(source[offset]) &&
+    if ('{}:;@()'.includes(source[offset]) || productMode && source[offset] === '*') offset++;
+    else while (offset < source.length && !/[\s{}:;@()]/.test(source[offset]) && !(productMode && source[offset] === '*') &&
       !source.startsWith('/*', offset) && !source.startsWith('//', offset)) offset++;
     if (tokens.length === 65536) fail('BUDGET', 'Parameterized scene token limit exceeded', range(start, offset));
     tokens.push({ text: source.slice(start, offset), range: range(start, offset) });
@@ -183,11 +183,24 @@ function boundedResult(value: unknown, range: SourceRange): void {
 }
 /** Explicit source-only opt-in; original authored AST and derived Scene2 are separate owned data. */
 export function compileParameterizedAffineSceneSource(input: unknown): CompiledParameterizedAffineSceneSource {
+  const data = compileSceneParameterData(input);
+  return finishSceneParameterSource({ format: 'barocss-gpu-parameterized-affine-scene-source' as const, version: 0 as const,
+    profile: 'source2-typed-literal-parameters-v0' as const, ...data }, data.ast.range);
+}
+/** INTERNAL compiler-owned result finalization, not an imported-data admission API. */
+export function finishSceneParameterSource<T>(owned: T, range: SourceRange): T {
+  boundedResult(owned, range);
+  return freezeGpuData(copyGpuData(owned));
+}
+/** INTERNAL trusted sibling mode; the public literal entry never enables products. */
+export function compileSceneParameterData(input: unknown, productMode = false): {
+  source: string; ast: ParameterizedAffineSceneAst; parameters: SceneParameter[]; scene: AffineScene2; shaders: SceneShaders;
+} {
   if (typeof input !== 'string') fail('INPUT', 'Complete parameterized scene source must be text', { start: 0, end: 0, line: 1, column: 1 });
   const source = input;
   if (source.length > 65536 || new TextEncoder().encode(source).length > 65536)
     fail('BUDGET', 'Parameterized scene source exceeds64KiB UTF16/UTF8', { start: 0, end: source.length, line: 1, column: 1 });
-  const range = sourceRanges(source), tokens = scan(source, range), declared = definitions(source, tokens, range);
+  const range = sourceRanges(source), tokens = scan(source, range, productMode), declared = definitions(source, tokens, range);
   // Indexed UTF16 units are essential: code-point iteration would shift every
   // original range after a surrogate pair in a comment preceding parameters.
   const masked = source.split('');
@@ -197,12 +210,65 @@ export function compileParameterizedAffineSceneSource(input: unknown): CompiledP
   let work = baseWork(base) + 4 * declared.length, uses = 0;
   if (work > 4096) fail('BUDGET', 'Parameterized scene exceeds4096 cumulative AST work nodes', base.range);
   const byName = new Map(declared.map(definition => [definition.declaration.name.text, definition]));
-  const replacements = new Map<SceneToken, string>();
+  const scanByStart = productMode ? new Map(tokens.map((token, index) => [token.range.start, index])) : null;
+  const chargedUse = (definition: Definition, token: SceneToken) => {
+    if (++uses > 1536) fail('BUDGET', 'Parameterized scene exceeds1536 reference uses', token.range);
+    if (++work > 4096) fail('BUDGET', 'Parameterized scene exceeds4096 cumulative AST work nodes', token.range);
+    definition.uses.push(token.range);
+  };
+  const reference = (token: SceneToken): Definition => {
+    const match = REFERENCE.exec(token.text);
+    if (!match) fail('TYPE', 'Parameter reference requires one exact $NAME token', token.range);
+    const definition = byName.get(match[1]);
+    if (!definition) fail('TYPE', 'Unknown parameter reference', token.range);
+    return definition;
+  };
+  const resolvedRules: AffineSceneAst['rules'] = [];
+  // Resolved token arrays are staged only after original work plus every added
+  // product/use has been admitted. The maps below retain bounded original tokens.
+  const fieldResults = new Map<object, { original: SceneToken; text?: string; range?: SourceRange }[]>();
+  const authoredLiterals = new Map<object, SceneToken[]>();
   for (const rule of base.rules) {
     if (rule.selector.text.includes('$')) fail('TYPE', 'Parameter references require style coefficient slots', rule.selector.range);
     for (const field of rule.declarations) {
       if (field.property.text.includes('$')) fail('TYPE', 'Parameter references require style coefficient values', field.property.range);
-      for (const token of field.literals) if (token.text.includes('$')) {
+      const values: { original: SceneToken; text?: string; range?: SourceRange }[] = [], originals: SceneToken[] = [];
+      for (let index = 0; index < field.literals.length; index++) {
+        const token = field.literals[index];
+        if (productMode && (token.text === 'calc' || token.text.startsWith('calc('))) {
+          const start = scanByStart!.get(token.range.start)!;
+          const atom = tokens.slice(start, start + 6);
+          const at = (i: number) => atom[i] ?? { text: '', range: token.range };
+          for (const [i, expected] of [[0, 'calc'], [1, '('], [3, '*'], [5, ')']] as const)
+            if (at(i).text !== expected || at(i).range.end > field.range.end)
+              fail('SYNTAX', 'Product requires calc($NAME * $NAME)', at(i).range);
+          if (!REFERENCE.test(at(2).text) || !REFERENCE.test(at(4).text))
+            fail('SYNTAX', 'Product requires exactly two parameter references', !REFERENCE.test(at(2).text) ? at(2).range : at(4).range);
+          const end = at(5).range.end, atomRange = range(token.range.start, end);
+          let last = index;
+          while (last < field.literals.length && field.literals[last].range.end < end) last++;
+          if (last >= field.literals.length || field.literals[last].range.end !== end)
+            fail('SYNTAX', 'Product must be one complete coefficient component', atomRange);
+          const a = reference(at(2)), b = reference(at(4));
+          if (a.quantity !== 'scalar' && b.quantity !== 'scalar')
+            fail('TYPE', 'Product requires at least one scalar quantity', at(3).range);
+          const quantity = a.quantity === 'scalar' ? b.quantity : a.quantity;
+          const expected = slot(field.property.text);
+          if (!expected || quantity !== expected) fail('TYPE', 'Product quantity does not match its coefficient slot', atomRange);
+          const originalTokenWork = 6 - (last - index + 1);
+          if (work + originalTokenWork + 3 > 4096) fail('BUDGET', 'Parameterized scene exceeds4096 cumulative AST work nodes', atomRange);
+          work += originalTokenWork + 3;
+          chargedUse(a, at(2)); chargedUse(b, at(4));
+          const value = a.value * b.value, maximum = quantity === 'angle' ? 360 : 1000;
+          if (!Number.isFinite(value) || Math.abs(value) > maximum)
+            fail('RANGE', 'Product must be finite within its quantity bounds', atomRange);
+          originals.push(...atom);
+          values.push({ original: token, text: String(value === 0 ? 0 : value) + (quantity === 'angle' ? 'deg' : ''), range: atomRange });
+          index = last; continue;
+        }
+        originals.push(token);
+        if (!token.text.includes('$')) { values.push({ original: token }); continue; }
+        // Preserve the exact public literal-mode refusal order and source spans.
         const match = REFERENCE.exec(token.text);
         if (!match) fail('TYPE', 'Parameter reference requires one exact $NAME token', token.range);
         const expected = slot(field.property.text);
@@ -210,31 +276,25 @@ export function compileParameterizedAffineSceneSource(input: unknown): CompiledP
         const definition = byName.get(match[1]);
         if (!definition) fail('TYPE', 'Unknown parameter reference', token.range);
         if (definition.quantity !== expected) fail('TYPE', `Parameter ${definition.quantity} cannot fill a ${expected} slot`, token.range);
-        if (++uses > 1536) fail('BUDGET', 'Parameterized scene exceeds1536 reference uses', token.range);
-        if (++work > 4096) fail('BUDGET', 'Parameterized scene exceeds4096 cumulative AST work nodes', token.range);
-        definition.uses.push(token.range);
-        replacements.set(token, String(definition.value) + (expected === 'angle' ? 'deg' : ''));
+        chargedUse(definition, token);
+        values.push({ original: token, text: String(definition.value) + (expected === 'angle' ? 'deg' : '') });
       }
+      fieldResults.set(field, values); authoredLiterals.set(field, originals);
     }
   }
-  // Copy only after cumulative work admission. Numeric text is private derived
-  // data at the original reference range, never a changed original AST token.
-  const resolved: AffineSceneAst = { ...copyGpuData(base), source,
-    rules: base.rules.map(rule => ({ ...copyGpuData(rule), declarations: rule.declarations.map(field => ({ ...copyGpuData(field),
-      literals: field.literals.map(token => ({ text: replacements.get(token) ?? token.text, range: { ...token.range } })),
-    })) })),
-  };
+  for (const rule of base.rules) resolvedRules.push({ ...copyGpuData(rule),
+    declarations: rule.declarations.map(field => ({ ...copyGpuData(field),
+      literals: fieldResults.get(field)!.map(plan => ({ text: plan.text ?? plan.original.text, range: { ...(plan.range ?? plan.original.range) } })) })) });
+  const resolved: AffineSceneAst = { ...copyGpuData(base), source, rules: resolvedRules };
   const lowered = delegated(() => lowerAffineSceneAst(resolved), range(0, 0));
   for (const shader of Object.values(lowered.shaders)) if (shader.length > 65536 || new TextEncoder().encode(shader).length > 65536)
     fail('BUDGET', 'Complete parameterized scene shader exceeds64KiB', base.range);
   const ast: ParameterizedAffineSceneAst = { schema: 'barocss-gpu-parameterized-affine-scene-ast', schemaVersion: 0, sourceVersion: 2, source,
     header: base.header, name: base.name, range: base.range,
-    declarations: [...base.declarations, ...declared.map(definition => definition.declaration)].sort((a, b) => a.range.start - b.range.start), rules: base.rules };
+    declarations: [...base.declarations, ...declared.map(definition => definition.declaration)].sort((a, b) => a.range.start - b.range.start),
+    rules: productMode ? base.rules.map(rule => ({ ...rule, declarations: rule.declarations.map(field => ({ ...field, literals: authoredLiterals.get(field)! })) })) : base.rules };
   const parameters: SceneParameter[] = declared.map(definition => ({ name: definition.declaration.name.text, quantity: definition.quantity,
     unit: definition.quantity === 'length' ? 'scene' : definition.quantity === 'angle' ? 'deg' : 'dimensionless', value: definition.value,
     definition: definition.declaration.range, uses: definition.uses }));
-  const result: CompiledParameterizedAffineSceneSource = { format: 'barocss-gpu-parameterized-affine-scene-source', version: 0,
-    profile: 'source2-typed-literal-parameters-v0', source, ast, parameters, scene: lowered.scene, shaders: lowered.shaders };
-  boundedResult(result, base.range);
-  return freezeGpuData(copyGpuData(result));
+  return { source, ast, parameters, scene: lowered.scene, shaders: lowered.shaders };
 }
