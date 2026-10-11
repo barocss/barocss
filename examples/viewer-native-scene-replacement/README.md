@@ -704,3 +704,57 @@ The new controls do not replace rows or change focus. Snapshot, Reset and local
 Dispose take no arguments. The eight-field snapshot is copied. Local disposal
 comes first; new hooks read no Viewer after it. Issue1540 records native work,
 exact source adoption, integrated runtime acceptance and release separately.
+
+## Inspect the local radius of a selected original Curve
+
+Open a supported original Source0 or IGES file. Select an original Curve.
+Enter its original **t** in the selected-point controls. Choose
+**Inspect Curve curvature**. The result shows the measured t, local curvature
+in 1/mm and local radius in mm. Editing t keeps the last report at its measured
+t. A new inspection replaces the report only after the whole result is valid.
+**Reset Curve curvature report** clears only this report.
+
+The radius uses original authored XYZ coordinates before display scale or poses.
+It is a local value at the specified t. It is not a fitted circle, whole Curve
+radius, display radius or certified global precision. A successful regular
+point with zero local curvature has **no finite local radius**. Its radius is
+null, not zero or infinity. This result does not prove that the whole Curve
+is straight. A failed derivative or zero tangent is an error, not that result.
+
+The helper `querySelectedNativeCurveCurvature(viewer,expected,parameters)` takes
+exactly three arguments. The expected scope contains the whole Source0, complete
+Model and current original Curve reference. Parameters must contain an explicit
+finite t. Both input records are checked and copied before Viewer reads. The
+helper checks fresh full authority, calls the public native curvature function,
+then checks the current full authority before returning its complete copied
+report. It does not write SDK measurements, selection, File state or graphics.
+
+The eight-field report includes the whole six-field public curvature result
+and its original point, first derivative and second derivative. Derivatives use
+the original parameter. The tangent norm is mm per parameter, not physical speed.
+Scalar and vector curvature use 1/mm. The technical disclosure keeps all fields.
+Input allows 8192 values and depth16. Output allows 32768 values, depth18 and
+safe JSON up to8MiB. Capacity failure refuses the whole report. These limits do
+not certify every maximum workload. Copies keep signed zero; JSON text is not
+a signed-zero bit certificate.
+
+D2 supports degree1..5 under its native limits. The displayed original Curve
+profile remains degree1..3. Display success does not guarantee curvature
+success. An exact interior knot must meet the public C2 rule. Native derivative,
+regularity and arithmetic errors keep their original code and cause. There is
+no D1 fallback, finite difference, clamp or fake zero result. A refused query
+keeps the last report while its original authority remains current.
+
+The same Curve, camera, poses, canvas size, File staging and pending reads keep
+the report. Changed source, full Model, current selection, hidden or cleared
+selection, mode, Clear and Dispose clear it. Known successful source acceptance
+also clears it when the bytes match. A failed source keeps a current report.
+Retained selected CPU geometry can still query after graphics loss or unavailable
+presentation. New graphics selection follows its existing rules.
+
+Inspect and Reset keep the separate point, D1, length, chord, angle, drafts,
+SDK caches and File/import provenance under their own scopes. The new actions
+keep body rows and focus. The six-field snapshot is copied. Snapshot, Reset
+and local Dispose take no arguments. Local disposal comes first; the new hooks
+read no Viewer after it. Issue1551 records native work, exact source adoption,
+integrated runtime acceptance and release separately.
