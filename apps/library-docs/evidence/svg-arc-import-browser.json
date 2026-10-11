@@ -1,0 +1,2616 @@
+{
+  "status": "passed-with-recorded-qualifications",
+  "sourcePin": "94a2a776254a73b496431ab6cbb49ea07900bef7",
+  "receipts": {
+    "arc-dev-initial": {
+      "receiptKind": "arc-dev-initial",
+      "url": "http://127.0.0.1:52949/examples/library#svg-arc-import",
+      "report": {
+        "backend": "Public Canvas2D renderer; original SVG image when available",
+        "sourceProfile": "94a2a776254a73b496431ab6cbb49ea07900bef7",
+        "editorSource": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"ArcImportExample\"\n     width=\"320\" height=\"200\" viewBox=\"0 0 320 200\">\n  <path id=\"Background\" fill=\"#101820\"\n        d=\"M 0 0 L 320 0 L 320 200 L 0 200 Z\"/>\n  <g id=\"ArcGroup\" transform=\"translate(24 18) rotate(5)\">\n    <path id=\"ArcPath\" fill=\"#2266cc\" fill-rule=\"nonzero\"\n          stroke=\"#eef2ff\" stroke-width=\"3\"\n          stroke-linejoin=\"bevel\" stroke-linecap=\"butt\"\n          d=\"M 20 100 L 140 100 A 20 40 90 0 1 100 80 L 20 80 Z\"/>\n  </g>\n</svg>",
+        "inputMode": "SVG",
+        "originalSVG": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"ArcImportExample\"\n     width=\"320\" height=\"200\" viewBox=\"0 0 320 200\">\n  <path id=\"Background\" fill=\"#101820\"\n        d=\"M 0 0 L 320 0 L 320 200 L 0 200 Z\"/>\n  <g id=\"ArcGroup\" transform=\"translate(24 18) rotate(5)\">\n    <path id=\"ArcPath\" fill=\"#2266cc\" fill-rule=\"nonzero\"\n          stroke=\"#eef2ff\" stroke-width=\"3\"\n          stroke-linejoin=\"bevel\" stroke-linecap=\"butt\"\n          d=\"M 20 100 L 140 100 A 20 40 90 0 1 100 80 L 20 80 Z\"/>\n  </g>\n</svg>",
+        "importedScene5": {
+          "version": 5,
+          "unit": "logical-px",
+          "contextId": "ArcImportExample",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "width": 320,
+              "height": 200,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "Background",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 320,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 320,
+                          "y": 200
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 200
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.06274509803921569,
+                          0.09411764705882353,
+                          0.12549019607843137,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "ArcGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 24,
+                        "y": 18,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0.08726646259971647
+                      },
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 20,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 100
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 129.39134040641824,
+                              "c1y": 100,
+                              "c2x": 119.21718389045948,
+                              "c2y": 97.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 94.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 90.39140805477025,
+                              "c2x": 100,
+                              "c2y": 85.30432979679088,
+                              "x": 100,
+                              "y": 80
+                            },
+                            {
+                              "kind": "L",
+                              "x": 20,
+                              "y": 80
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 3
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "diagnostics": {
+          "viewport": {
+            "width": 320,
+            "height": 200
+          },
+          "viewBox": {
+            "x": 0,
+            "y": 0,
+            "width": 320,
+            "height": 200
+          },
+          "generatedIds": [
+            "SvgViewBox1",
+            "SvgViewport1"
+          ],
+          "pathIds": [
+            "Background",
+            "ArcPath"
+          ],
+          "groupIds": [
+            "ArcGroup"
+          ]
+        },
+        "scene": {
+          "version": 29,
+          "unit": "logical-px",
+          "contextId": "ArcImportExample",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "visible": true,
+              "alpha": 1,
+              "hitMode": "auto",
+              "width": 320,
+              "height": 200,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "visible": true,
+                  "alpha": 1,
+                  "hitMode": "auto",
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "Background",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 320,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 320,
+                          "y": 200
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 200
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.06274509803921569,
+                          0.09411764705882353,
+                          0.12549019607843137,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "ArcGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 24,
+                        "y": 18,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0.08726646259971647
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "visible": true,
+                          "alpha": 1,
+                          "hitMode": "auto",
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 20,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 100
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 129.39134040641824,
+                              "c1y": 100,
+                              "c2x": 119.21718389045948,
+                              "c2y": 97.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 94.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 90.39140805477025,
+                              "c2x": 100,
+                              "c2y": 85.30432979679088,
+                              "x": 100,
+                              "y": 80
+                            },
+                            {
+                              "kind": "L",
+                              "x": 20,
+                              "y": 80
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 3,
+                            "cap": "butt",
+                            "join": "bevel",
+                            "dash": {
+                              "lengths": [],
+                              "offset": 0
+                            },
+                            "miterLimit": 4
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "actualC": {
+          "kind": "C",
+          "c1x": 129.39134040641824,
+          "c1y": 100,
+          "c2x": 119.21718389045948,
+          "c2y": 97.89286319269165,
+          "x": 111.7157287525381,
+          "y": 94.14213562373095
+        },
+        "originalSVGReference": "Original input SVG",
+        "originalSVGImageSize": {
+          "width": 320,
+          "height": 200
+        },
+        "logicalSize": {
+          "width": 320,
+          "height": 200
+        },
+        "dpr": 2,
+        "view": {
+          "panX": 0,
+          "panY": 0,
+          "zoom": 1
+        },
+        "nativeFrame": {
+          "width": 640,
+          "height": 400,
+          "byteCount": 1024000,
+          "rgbaChecksum": "fnv1a32:b16b6ad5"
+        },
+        "frameCount": 1,
+        "available": true,
+        "disposed": false,
+        "ledger": {
+          "created": 1,
+          "disposeCalls": 0,
+          "listenersAttached": 2,
+          "listenersRemoved": 0,
+          "urlsCreated": 1,
+          "urlsRevoked": 0,
+          "pending": 0,
+          "stageCalls": 0,
+          "lastDisposedLedger": null,
+          "scope": "Application calls and returned renderers across module controllers; not raw GPU deletion"
+        }
+      },
+      "source": null
+    },
+    "arc-dev-first-edit": {
+      "receiptKind": "arc-dev-first-edit",
+      "report": {
+        "report": {
+          "backend": "Public Canvas2D renderer; original SVG image when available",
+          "sourceProfile": "94a2a776254a73b496431ab6cbb49ea07900bef7",
+          "editorSource": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"ArcImportExample\",\"nodes\":[{\"kind\":\"frame\",\"id\":\"SvgViewport1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":320,\"height\":200,\"fill\":[0,0,0,0],\"clip\":true,\"children\":[{\"kind\":\"group\",\"id\":\"SvgViewBox1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"Background\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":0,\"y\":0},{\"kind\":\"L\",\"x\":320,\"y\":0},{\"kind\":\"L\",\"x\":320,\"y\":200},{\"kind\":\"L\",\"x\":0,\"y\":200},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.06274509803921569,0.09411764705882353,0.12549019607843137,1],\"rule\":\"nonzero\"}},{\"kind\":\"group\",\"id\":\"ArcGroup\",\"layer\":1,\"transform\":{\"x\":24,\"y\":18,\"scaleX\":1,\"scaleY\":1,\"rotation\":0.08726646259971647},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"ArcPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":20,\"y\":100},{\"kind\":\"L\",\"x\":140,\"y\":100},{\"kind\":\"C\",\"c1x\":141.39134040641824,\"c1y\":100,\"c2x\":119.21718389045948,\"c2y\":97.89286319269165,\"x\":111.7157287525381,\"y\":94.14213562373095},{\"kind\":\"C\",\"c1x\":104.21427361461672,\"c1y\":90.39140805477025,\"c2x\":100,\"c2y\":85.30432979679088,\"x\":100,\"y\":80},{\"kind\":\"L\",\"x\":20,\"y\":80},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.13333333333333333,0.4,0.8,1],\"rule\":\"nonzero\"},\"stroke\":{\"color\":[0.9333333333333333,0.9490196078431372,1,1],\"width\":3,\"cap\":\"butt\",\"join\":\"bevel\",\"dash\":{\"lengths\":[],\"offset\":0},\"miterLimit\":4}}]}]}]}]}",
+          "inputMode": "JSON",
+          "originalSVG": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"ArcImportExample\"\n     width=\"320\" height=\"200\" viewBox=\"0 0 320 200\">\n  <path id=\"Background\" fill=\"#101820\"\n        d=\"M 0 0 L 320 0 L 320 200 L 0 200 Z\"/>\n  <g id=\"ArcGroup\" transform=\"translate(24 18) rotate(5)\">\n    <path id=\"ArcPath\" fill=\"#2266cc\" fill-rule=\"nonzero\"\n          stroke=\"#eef2ff\" stroke-width=\"3\"\n          stroke-linejoin=\"bevel\" stroke-linecap=\"butt\"\n          d=\"M 20 100 L 140 100 A 20 40 90 0 1 100 80 L 20 80 Z\"/>\n  </g>\n</svg>",
+          "importedScene5": {
+            "version": 5,
+            "unit": "logical-px",
+            "contextId": "ArcImportExample",
+            "nodes": [
+              {
+                "kind": "frame",
+                "id": "SvgViewport1",
+                "layer": 0,
+                "transform": {
+                  "x": 0,
+                  "y": 0,
+                  "scaleX": 1,
+                  "scaleY": 1,
+                  "rotation": 0
+                },
+                "width": 320,
+                "height": 200,
+                "fill": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "clip": true,
+                "children": [
+                  {
+                    "kind": "group",
+                    "id": "SvgViewBox1",
+                    "layer": 0,
+                    "transform": {
+                      "x": 0,
+                      "y": 0,
+                      "scaleX": 1,
+                      "scaleY": 1,
+                      "rotation": 0
+                    },
+                    "children": [
+                      {
+                        "kind": "path",
+                        "id": "Background",
+                        "layer": 0,
+                        "transform": {
+                          "x": 0,
+                          "y": 0,
+                          "scaleX": 1,
+                          "scaleY": 1,
+                          "rotation": 0
+                        },
+                        "commands": [
+                          {
+                            "kind": "M",
+                            "x": 0,
+                            "y": 0
+                          },
+                          {
+                            "kind": "L",
+                            "x": 320,
+                            "y": 0
+                          },
+                          {
+                            "kind": "L",
+                            "x": 320,
+                            "y": 200
+                          },
+                          {
+                            "kind": "L",
+                            "x": 0,
+                            "y": 200
+                          },
+                          {
+                            "kind": "Z"
+                          }
+                        ],
+                        "fill": {
+                          "color": [
+                            0.06274509803921569,
+                            0.09411764705882353,
+                            0.12549019607843137,
+                            1
+                          ],
+                          "rule": "nonzero"
+                        }
+                      },
+                      {
+                        "kind": "group",
+                        "id": "ArcGroup",
+                        "layer": 1,
+                        "transform": {
+                          "x": 24,
+                          "y": 18,
+                          "scaleX": 1,
+                          "scaleY": 1,
+                          "rotation": 0.08726646259971647
+                        },
+                        "children": [
+                          {
+                            "kind": "path",
+                            "id": "ArcPath",
+                            "layer": 0,
+                            "transform": {
+                              "x": 0,
+                              "y": 0,
+                              "scaleX": 1,
+                              "scaleY": 1,
+                              "rotation": 0
+                            },
+                            "commands": [
+                              {
+                                "kind": "M",
+                                "x": 20,
+                                "y": 100
+                              },
+                              {
+                                "kind": "L",
+                                "x": 140,
+                                "y": 100
+                              },
+                              {
+                                "kind": "C",
+                                "c1x": 129.39134040641824,
+                                "c1y": 100,
+                                "c2x": 119.21718389045948,
+                                "c2y": 97.89286319269165,
+                                "x": 111.7157287525381,
+                                "y": 94.14213562373095
+                              },
+                              {
+                                "kind": "C",
+                                "c1x": 104.21427361461672,
+                                "c1y": 90.39140805477025,
+                                "c2x": 100,
+                                "c2y": 85.30432979679088,
+                                "x": 100,
+                                "y": 80
+                              },
+                              {
+                                "kind": "L",
+                                "x": 20,
+                                "y": 80
+                              },
+                              {
+                                "kind": "Z"
+                              }
+                            ],
+                            "fill": {
+                              "color": [
+                                0.13333333333333333,
+                                0.4,
+                                0.8,
+                                1
+                              ],
+                              "rule": "nonzero"
+                            },
+                            "stroke": {
+                              "color": [
+                                0.9333333333333333,
+                                0.9490196078431372,
+                                1,
+                                1
+                              ],
+                              "width": 3
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "diagnostics": {
+            "viewport": {
+              "width": 320,
+              "height": 200
+            },
+            "viewBox": {
+              "x": 0,
+              "y": 0,
+              "width": 320,
+              "height": 200
+            },
+            "generatedIds": [
+              "SvgViewBox1",
+              "SvgViewport1"
+            ],
+            "pathIds": [
+              "Background",
+              "ArcPath"
+            ],
+            "groupIds": [
+              "ArcGroup"
+            ]
+          },
+          "scene": {
+            "version": 29,
+            "unit": "logical-px",
+            "contextId": "ArcImportExample",
+            "nodes": [
+              {
+                "kind": "frame",
+                "id": "SvgViewport1",
+                "layer": 0,
+                "transform": {
+                  "x": 0,
+                  "y": 0,
+                  "scaleX": 1,
+                  "scaleY": 1,
+                  "rotation": 0
+                },
+                "visible": true,
+                "alpha": 1,
+                "hitMode": "auto",
+                "width": 320,
+                "height": 200,
+                "fill": [
+                  0,
+                  0,
+                  0,
+                  0
+                ],
+                "clip": true,
+                "children": [
+                  {
+                    "kind": "group",
+                    "id": "SvgViewBox1",
+                    "layer": 0,
+                    "transform": {
+                      "x": 0,
+                      "y": 0,
+                      "scaleX": 1,
+                      "scaleY": 1,
+                      "rotation": 0
+                    },
+                    "visible": true,
+                    "alpha": 1,
+                    "hitMode": "auto",
+                    "children": [
+                      {
+                        "kind": "path",
+                        "id": "Background",
+                        "layer": 0,
+                        "transform": {
+                          "x": 0,
+                          "y": 0,
+                          "scaleX": 1,
+                          "scaleY": 1,
+                          "rotation": 0
+                        },
+                        "visible": true,
+                        "alpha": 1,
+                        "hitMode": "auto",
+                        "commands": [
+                          {
+                            "kind": "M",
+                            "x": 0,
+                            "y": 0
+                          },
+                          {
+                            "kind": "L",
+                            "x": 320,
+                            "y": 0
+                          },
+                          {
+                            "kind": "L",
+                            "x": 320,
+                            "y": 200
+                          },
+                          {
+                            "kind": "L",
+                            "x": 0,
+                            "y": 200
+                          },
+                          {
+                            "kind": "Z"
+                          }
+                        ],
+                        "fill": {
+                          "color": [
+                            0.06274509803921569,
+                            0.09411764705882353,
+                            0.12549019607843137,
+                            1
+                          ],
+                          "rule": "nonzero"
+                        }
+                      },
+                      {
+                        "kind": "group",
+                        "id": "ArcGroup",
+                        "layer": 1,
+                        "transform": {
+                          "x": 24,
+                          "y": 18,
+                          "scaleX": 1,
+                          "scaleY": 1,
+                          "rotation": 0.08726646259971647
+                        },
+                        "visible": true,
+                        "alpha": 1,
+                        "hitMode": "auto",
+                        "children": [
+                          {
+                            "kind": "path",
+                            "id": "ArcPath",
+                            "layer": 0,
+                            "transform": {
+                              "x": 0,
+                              "y": 0,
+                              "scaleX": 1,
+                              "scaleY": 1,
+                              "rotation": 0
+                            },
+                            "visible": true,
+                            "alpha": 1,
+                            "hitMode": "auto",
+                            "commands": [
+                              {
+                                "kind": "M",
+                                "x": 20,
+                                "y": 100
+                              },
+                              {
+                                "kind": "L",
+                                "x": 140,
+                                "y": 100
+                              },
+                              {
+                                "kind": "C",
+                                "c1x": 141.39134040641824,
+                                "c1y": 100,
+                                "c2x": 119.21718389045948,
+                                "c2y": 97.89286319269165,
+                                "x": 111.7157287525381,
+                                "y": 94.14213562373095
+                              },
+                              {
+                                "kind": "C",
+                                "c1x": 104.21427361461672,
+                                "c1y": 90.39140805477025,
+                                "c2x": 100,
+                                "c2y": 85.30432979679088,
+                                "x": 100,
+                                "y": 80
+                              },
+                              {
+                                "kind": "L",
+                                "x": 20,
+                                "y": 80
+                              },
+                              {
+                                "kind": "Z"
+                              }
+                            ],
+                            "fill": {
+                              "color": [
+                                0.13333333333333333,
+                                0.4,
+                                0.8,
+                                1
+                              ],
+                              "rule": "nonzero"
+                            },
+                            "stroke": {
+                              "color": [
+                                0.9333333333333333,
+                                0.9490196078431372,
+                                1,
+                                1
+                              ],
+                              "width": 3,
+                              "cap": "butt",
+                              "join": "bevel",
+                              "dash": {
+                                "lengths": [],
+                                "offset": 0
+                              },
+                              "miterLimit": 4
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "actualC": {
+            "kind": "C",
+            "c1x": 141.39134040641824,
+            "c1y": 100,
+            "c2x": 119.21718389045948,
+            "c2y": 97.89286319269165,
+            "x": 111.7157287525381,
+            "y": 94.14213562373095
+          },
+          "originalSVGReference": "Original input SVG; cubic path has since been edited",
+          "originalSVGImageSize": {
+            "width": 320,
+            "height": 200
+          },
+          "logicalSize": {
+            "width": 320,
+            "height": 200
+          },
+          "dpr": 2,
+          "view": {
+            "panX": 0,
+            "panY": 0,
+            "zoom": 1
+          },
+          "nativeFrame": {
+            "width": 640,
+            "height": 400,
+            "byteCount": 1024000,
+            "rgbaChecksum": "fnv1a32:0f426dbd"
+          },
+          "frameCount": 2,
+          "available": true,
+          "disposed": false,
+          "ledger": {
+            "created": 2,
+            "disposeCalls": 1,
+            "listenersAttached": 4,
+            "listenersRemoved": 2,
+            "urlsCreated": 2,
+            "urlsRevoked": 1,
+            "pending": 0,
+            "stageCalls": 0,
+            "lastDisposedLedger": null,
+            "scope": "Application calls and returned renderers across module controllers; not raw GPU deletion"
+          }
+        },
+        "acceptedSource": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"ArcImportExample\",\"nodes\":[{\"kind\":\"frame\",\"id\":\"SvgViewport1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":320,\"height\":200,\"fill\":[0,0,0,0],\"clip\":true,\"children\":[{\"kind\":\"group\",\"id\":\"SvgViewBox1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"Background\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":0,\"y\":0},{\"kind\":\"L\",\"x\":320,\"y\":0},{\"kind\":\"L\",\"x\":320,\"y\":200},{\"kind\":\"L\",\"x\":0,\"y\":200},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.06274509803921569,0.09411764705882353,0.12549019607843137,1],\"rule\":\"nonzero\"}},{\"kind\":\"group\",\"id\":\"ArcGroup\",\"layer\":1,\"transform\":{\"x\":24,\"y\":18,\"scaleX\":1,\"scaleY\":1,\"rotation\":0.08726646259971647},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"ArcPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":20,\"y\":100},{\"kind\":\"L\",\"x\":140,\"y\":100},{\"kind\":\"C\",\"c1x\":141.39134040641824,\"c1y\":100,\"c2x\":119.21718389045948,\"c2y\":97.89286319269165,\"x\":111.7157287525381,\"y\":94.14213562373095},{\"kind\":\"C\",\"c1x\":104.21427361461672,\"c1y\":90.39140805477025,\"c2x\":100,\"c2y\":85.30432979679088,\"x\":100,\"y\":80},{\"kind\":\"L\",\"x\":20,\"y\":80},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.13333333333333333,0.4,0.8,1],\"rule\":\"nonzero\"},\"stroke\":{\"color\":[0.9333333333333333,0.9490196078431372,1,1],\"width\":3,\"cap\":\"butt\",\"join\":\"bevel\",\"dash\":{\"lengths\":[],\"offset\":0},\"miterLimit\":4}}]}]}]}]}"
+      },
+      "onlyC1XChanged": false,
+      "fullEditorJSON": ""
+    },
+    "arc-dev-edit-inspection-correction": {
+      "receiptKind": "arc-dev-edit-inspection-correction",
+      "onlyC1XChanged": true,
+      "fullEditorJSON": true,
+      "c1x": 141.39134040641824,
+      "frame": {
+        "width": 640,
+        "height": 400,
+        "byteCount": 1024000,
+        "rgbaChecksum": "fnv1a32:0f426dbd"
+      },
+      "ledger": {
+        "created": 2,
+        "disposeCalls": 1,
+        "listenersAttached": 4,
+        "listenersRemoved": 2,
+        "urlsCreated": 2,
+        "urlsRevoked": 1,
+        "pending": 0,
+        "stageCalls": 0,
+        "lastDisposedLedger": null,
+        "scope": "Application calls and returned renderers across module controllers; not raw GPU deletion"
+      },
+      "qualification": "First inspection compared the action wrapper as if it were report and read textarea textContent; actual report is receipt.report and editor uses value. No second edit/API run."
+    },
+    "arc-dev-image-clip": {
+      "receiptKind": "arc-dev-image-clip",
+      "clip": {
+        "height": 498.5,
+        "width": 462,
+        "x": 765,
+        "y": 916.3984375
+      }
+    },
+    "arc-dev-panel-image-clip": {
+      "receiptKind": "arc-dev-panel-image-clip",
+      "clip": {
+        "height": 181.875,
+        "width": 462,
+        "x": 765,
+        "y": 916.3984375
+      },
+      "qualification": "Outer grid figure stretched to source-editor height; actual owned panel is the screenshot target."
+    },
+    "arc-dev-save-once": {
+      "receiptKind": "arc-dev-save-once",
+      "download": {
+        "status": "event-not-confirmed",
+        "message": "Error: Timed out after 7000ms waiting for download."
+      },
+      "report": {
+        "backend": "Public Canvas2D renderer; original SVG image when available",
+        "sourceProfile": "94a2a776254a73b496431ab6cbb49ea07900bef7",
+        "editorSource": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"ArcImportExample\",\"nodes\":[{\"kind\":\"frame\",\"id\":\"SvgViewport1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":320,\"height\":200,\"fill\":[0,0,0,0],\"clip\":true,\"children\":[{\"kind\":\"group\",\"id\":\"SvgViewBox1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"Background\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":0,\"y\":0},{\"kind\":\"L\",\"x\":320,\"y\":0},{\"kind\":\"L\",\"x\":320,\"y\":200},{\"kind\":\"L\",\"x\":0,\"y\":200},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.06274509803921569,0.09411764705882353,0.12549019607843137,1],\"rule\":\"nonzero\"}},{\"kind\":\"group\",\"id\":\"ArcGroup\",\"layer\":1,\"transform\":{\"x\":24,\"y\":18,\"scaleX\":1,\"scaleY\":1,\"rotation\":0.08726646259971647},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"ArcPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":20,\"y\":100},{\"kind\":\"L\",\"x\":140,\"y\":100},{\"kind\":\"C\",\"c1x\":141.39134040641824,\"c1y\":100,\"c2x\":119.21718389045948,\"c2y\":97.89286319269165,\"x\":111.7157287525381,\"y\":94.14213562373095},{\"kind\":\"C\",\"c1x\":104.21427361461672,\"c1y\":90.39140805477025,\"c2x\":100,\"c2y\":85.30432979679088,\"x\":100,\"y\":80},{\"kind\":\"L\",\"x\":20,\"y\":80},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.13333333333333333,0.4,0.8,1],\"rule\":\"nonzero\"},\"stroke\":{\"color\":[0.9333333333333333,0.9490196078431372,1,1],\"width\":3,\"cap\":\"butt\",\"join\":\"bevel\",\"dash\":{\"lengths\":[],\"offset\":0},\"miterLimit\":4}}]}]}]}]}",
+        "inputMode": "JSON",
+        "originalSVG": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"ArcImportExample\"\n     width=\"320\" height=\"200\" viewBox=\"0 0 320 200\">\n  <path id=\"Background\" fill=\"#101820\"\n        d=\"M 0 0 L 320 0 L 320 200 L 0 200 Z\"/>\n  <g id=\"ArcGroup\" transform=\"translate(24 18) rotate(5)\">\n    <path id=\"ArcPath\" fill=\"#2266cc\" fill-rule=\"nonzero\"\n          stroke=\"#eef2ff\" stroke-width=\"3\"\n          stroke-linejoin=\"bevel\" stroke-linecap=\"butt\"\n          d=\"M 20 100 L 140 100 A 20 40 90 0 1 100 80 L 20 80 Z\"/>\n  </g>\n</svg>",
+        "importedScene5": {
+          "version": 5,
+          "unit": "logical-px",
+          "contextId": "ArcImportExample",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "width": 320,
+              "height": 200,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "Background",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 320,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 320,
+                          "y": 200
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 200
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.06274509803921569,
+                          0.09411764705882353,
+                          0.12549019607843137,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "ArcGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 24,
+                        "y": 18,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0.08726646259971647
+                      },
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 20,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 100
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 129.39134040641824,
+                              "c1y": 100,
+                              "c2x": 119.21718389045948,
+                              "c2y": 97.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 94.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 90.39140805477025,
+                              "c2x": 100,
+                              "c2y": 85.30432979679088,
+                              "x": 100,
+                              "y": 80
+                            },
+                            {
+                              "kind": "L",
+                              "x": 20,
+                              "y": 80
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 3
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "diagnostics": {
+          "viewport": {
+            "width": 320,
+            "height": 200
+          },
+          "viewBox": {
+            "x": 0,
+            "y": 0,
+            "width": 320,
+            "height": 200
+          },
+          "generatedIds": [
+            "SvgViewBox1",
+            "SvgViewport1"
+          ],
+          "pathIds": [
+            "Background",
+            "ArcPath"
+          ],
+          "groupIds": [
+            "ArcGroup"
+          ]
+        },
+        "scene": {
+          "version": 29,
+          "unit": "logical-px",
+          "contextId": "ArcImportExample",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "visible": true,
+              "alpha": 1,
+              "hitMode": "auto",
+              "width": 320,
+              "height": 200,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "visible": true,
+                  "alpha": 1,
+                  "hitMode": "auto",
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "Background",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 320,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 320,
+                          "y": 200
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 200
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.06274509803921569,
+                          0.09411764705882353,
+                          0.12549019607843137,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "ArcGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 24,
+                        "y": 18,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0.08726646259971647
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "visible": true,
+                          "alpha": 1,
+                          "hitMode": "auto",
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 20,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 100
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 141.39134040641824,
+                              "c1y": 100,
+                              "c2x": 119.21718389045948,
+                              "c2y": 97.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 94.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 90.39140805477025,
+                              "c2x": 100,
+                              "c2y": 85.30432979679088,
+                              "x": 100,
+                              "y": 80
+                            },
+                            {
+                              "kind": "L",
+                              "x": 20,
+                              "y": 80
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 3,
+                            "cap": "butt",
+                            "join": "bevel",
+                            "dash": {
+                              "lengths": [],
+                              "offset": 0
+                            },
+                            "miterLimit": 4
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "actualC": {
+          "kind": "C",
+          "c1x": 141.39134040641824,
+          "c1y": 100,
+          "c2x": 119.21718389045948,
+          "c2y": 97.89286319269165,
+          "x": 111.7157287525381,
+          "y": 94.14213562373095
+        },
+        "originalSVGReference": "Original input SVG; cubic path has since been edited",
+        "originalSVGImageSize": {
+          "width": 320,
+          "height": 200
+        },
+        "logicalSize": {
+          "width": 320,
+          "height": 200
+        },
+        "dpr": 2,
+        "view": {
+          "panX": 0,
+          "panY": 0,
+          "zoom": 1
+        },
+        "nativeFrame": {
+          "width": 640,
+          "height": 400,
+          "byteCount": 1024000,
+          "rgbaChecksum": "fnv1a32:0f426dbd"
+        },
+        "frameCount": 2,
+        "available": true,
+        "disposed": false,
+        "ledger": {
+          "created": 2,
+          "disposeCalls": 1,
+          "listenersAttached": 4,
+          "listenersRemoved": 2,
+          "urlsCreated": 2,
+          "urlsRevoked": 1,
+          "pending": 0,
+          "stageCalls": 0,
+          "lastDisposedLedger": null,
+          "scope": "Application calls and returned renderers across module controllers; not raw GPU deletion"
+        }
+      },
+      "saveClicks": 1,
+      "sceneMatchesEdited": true
+    },
+    "arc-dev-reset": {
+      "receiptKind": "arc-dev-reset",
+      "originalSceneRestored": true,
+      "originalSourceRestored": true,
+      "ledger": {
+        "created": 3,
+        "disposeCalls": 2,
+        "listenersAttached": 6,
+        "listenersRemoved": 4,
+        "urlsCreated": 3,
+        "urlsRevoked": 2,
+        "pending": 0,
+        "stageCalls": 0,
+        "lastDisposedLedger": {
+          "created": 2,
+          "disposeCalls": 2,
+          "listenersAttached": 4,
+          "listenersRemoved": 4,
+          "urlsCreated": 2,
+          "urlsRevoked": 2,
+          "pending": 0,
+          "stageCalls": 0,
+          "observedAt": "Controller dispose returned; later asynchronous staging may still settle"
+        },
+        "scope": "Application calls and returned renderers across module controllers; not raw GPU deletion"
+      },
+      "c1x": 129.39134040641824
+    },
+    "arc-dev-open-once": {
+      "receiptKind": "arc-dev-open-once",
+      "report": {
+        "backend": "Public Canvas2D renderer; original SVG image when available",
+        "sourceProfile": "94a2a776254a73b496431ab6cbb49ea07900bef7",
+        "editorSource": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"ArcImportExample\",\"nodes\":[{\"kind\":\"frame\",\"id\":\"SvgViewport1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":320,\"height\":200,\"fill\":[0,0,0,0],\"clip\":true,\"children\":[{\"kind\":\"group\",\"id\":\"SvgViewBox1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"Background\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":0,\"y\":0},{\"kind\":\"L\",\"x\":320,\"y\":0},{\"kind\":\"L\",\"x\":320,\"y\":200},{\"kind\":\"L\",\"x\":0,\"y\":200},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.06274509803921569,0.09411764705882353,0.12549019607843137,1],\"rule\":\"nonzero\"}},{\"kind\":\"group\",\"id\":\"ArcGroup\",\"layer\":1,\"transform\":{\"x\":24,\"y\":18,\"scaleX\":1,\"scaleY\":1,\"rotation\":0.08726646259971647},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"ArcPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":20,\"y\":100},{\"kind\":\"L\",\"x\":140,\"y\":100},{\"kind\":\"C\",\"c1x\":141.39134040641824,\"c1y\":100,\"c2x\":119.21718389045948,\"c2y\":97.89286319269165,\"x\":111.7157287525381,\"y\":94.14213562373095},{\"kind\":\"C\",\"c1x\":104.21427361461672,\"c1y\":90.39140805477025,\"c2x\":100,\"c2y\":85.30432979679088,\"x\":100,\"y\":80},{\"kind\":\"L\",\"x\":20,\"y\":80},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.13333333333333333,0.4,0.8,1],\"rule\":\"nonzero\"},\"stroke\":{\"color\":[0.9333333333333333,0.9490196078431372,1,1],\"width\":3,\"cap\":\"butt\",\"join\":\"bevel\",\"dash\":{\"lengths\":[],\"offset\":0},\"miterLimit\":4}}]}]}]}]}",
+        "inputMode": "JSON",
+        "originalSVG": null,
+        "importedScene5": null,
+        "diagnostics": null,
+        "scene": {
+          "version": 29,
+          "unit": "logical-px",
+          "contextId": "ArcImportExample",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "visible": true,
+              "alpha": 1,
+              "hitMode": "auto",
+              "width": 320,
+              "height": 200,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "visible": true,
+                  "alpha": 1,
+                  "hitMode": "auto",
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "Background",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 320,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 320,
+                          "y": 200
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 200
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.06274509803921569,
+                          0.09411764705882353,
+                          0.12549019607843137,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "ArcGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 24,
+                        "y": 18,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0.08726646259971647
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "visible": true,
+                          "alpha": 1,
+                          "hitMode": "auto",
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 20,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 100
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 141.39134040641824,
+                              "c1y": 100,
+                              "c2x": 119.21718389045948,
+                              "c2y": 97.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 94.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 90.39140805477025,
+                              "c2x": 100,
+                              "c2y": 85.30432979679088,
+                              "x": 100,
+                              "y": 80
+                            },
+                            {
+                              "kind": "L",
+                              "x": 20,
+                              "y": 80
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 3,
+                            "cap": "butt",
+                            "join": "bevel",
+                            "dash": {
+                              "lengths": [],
+                              "offset": 0
+                            },
+                            "miterLimit": 4
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "actualC": {
+          "kind": "C",
+          "c1x": 141.39134040641824,
+          "c1y": 100,
+          "c2x": 119.21718389045948,
+          "c2y": 97.89286319269165,
+          "x": 111.7157287525381,
+          "y": 94.14213562373095
+        },
+        "originalSVGReference": null,
+        "originalSVGImageSize": null,
+        "logicalSize": {
+          "width": 320,
+          "height": 200
+        },
+        "dpr": 2,
+        "view": {
+          "panX": 0,
+          "panY": 0,
+          "zoom": 1
+        },
+        "nativeFrame": {
+          "width": 640,
+          "height": 400,
+          "byteCount": 1024000,
+          "rgbaChecksum": "fnv1a32:0f426dbd"
+        },
+        "frameCount": 1,
+        "available": true,
+        "disposed": false,
+        "ledger": {
+          "created": 4,
+          "disposeCalls": 3,
+          "listenersAttached": 8,
+          "listenersRemoved": 6,
+          "urlsCreated": 3,
+          "urlsRevoked": 3,
+          "pending": 0,
+          "stageCalls": 1,
+          "lastDisposedLedger": {
+            "created": 4,
+            "disposeCalls": 3,
+            "listenersAttached": 8,
+            "listenersRemoved": 6,
+            "urlsCreated": 3,
+            "urlsRevoked": 3,
+            "pending": 0,
+            "stageCalls": 1,
+            "observedAt": "Controller dispose returned; later asynchronous staging may still settle"
+          },
+          "scope": "Application calls and returned renderers across module controllers; not raw GPU deletion"
+        }
+      },
+      "chooserDeliveries": 1,
+      "openedSceneMatchesSaved": true,
+      "provenanceCleared": true,
+      "sourceFullScene": true
+    },
+    "arc-dev-fresh-reedit": {
+      "receiptKind": "arc-dev-fresh-reedit",
+      "report": {
+        "backend": "Public Canvas2D renderer; original SVG image when available",
+        "sourceProfile": "94a2a776254a73b496431ab6cbb49ea07900bef7",
+        "editorSource": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"ArcImportExample\",\"nodes\":[{\"kind\":\"frame\",\"id\":\"SvgViewport1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":320,\"height\":200,\"fill\":[0,0,0,0],\"clip\":true,\"children\":[{\"kind\":\"group\",\"id\":\"SvgViewBox1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"Background\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":0,\"y\":0},{\"kind\":\"L\",\"x\":320,\"y\":0},{\"kind\":\"L\",\"x\":320,\"y\":200},{\"kind\":\"L\",\"x\":0,\"y\":200},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.06274509803921569,0.09411764705882353,0.12549019607843137,1],\"rule\":\"nonzero\"}},{\"kind\":\"group\",\"id\":\"ArcGroup\",\"layer\":1,\"transform\":{\"x\":24,\"y\":18,\"scaleX\":1,\"scaleY\":1,\"rotation\":0.08726646259971647},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"ArcPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":20,\"y\":100},{\"kind\":\"L\",\"x\":140,\"y\":100},{\"kind\":\"C\",\"c1x\":153.39134040641824,\"c1y\":100,\"c2x\":119.21718389045948,\"c2y\":97.89286319269165,\"x\":111.7157287525381,\"y\":94.14213562373095},{\"kind\":\"C\",\"c1x\":104.21427361461672,\"c1y\":90.39140805477025,\"c2x\":100,\"c2y\":85.30432979679088,\"x\":100,\"y\":80},{\"kind\":\"L\",\"x\":20,\"y\":80},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.13333333333333333,0.4,0.8,1],\"rule\":\"nonzero\"},\"stroke\":{\"color\":[0.9333333333333333,0.9490196078431372,1,1],\"width\":3,\"cap\":\"butt\",\"join\":\"bevel\",\"dash\":{\"lengths\":[],\"offset\":0},\"miterLimit\":4}}]}]}]}]}",
+        "inputMode": "JSON",
+        "originalSVG": null,
+        "importedScene5": null,
+        "diagnostics": null,
+        "scene": {
+          "version": 29,
+          "unit": "logical-px",
+          "contextId": "ArcImportExample",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "visible": true,
+              "alpha": 1,
+              "hitMode": "auto",
+              "width": 320,
+              "height": 200,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "visible": true,
+                  "alpha": 1,
+                  "hitMode": "auto",
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "Background",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 320,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 320,
+                          "y": 200
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 200
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.06274509803921569,
+                          0.09411764705882353,
+                          0.12549019607843137,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "ArcGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 24,
+                        "y": 18,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0.08726646259971647
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "visible": true,
+                          "alpha": 1,
+                          "hitMode": "auto",
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 20,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 100
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 153.39134040641824,
+                              "c1y": 100,
+                              "c2x": 119.21718389045948,
+                              "c2y": 97.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 94.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 90.39140805477025,
+                              "c2x": 100,
+                              "c2y": 85.30432979679088,
+                              "x": 100,
+                              "y": 80
+                            },
+                            {
+                              "kind": "L",
+                              "x": 20,
+                              "y": 80
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 3,
+                            "cap": "butt",
+                            "join": "bevel",
+                            "dash": {
+                              "lengths": [],
+                              "offset": 0
+                            },
+                            "miterLimit": 4
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "actualC": {
+          "kind": "C",
+          "c1x": 153.39134040641824,
+          "c1y": 100,
+          "c2x": 119.21718389045948,
+          "c2y": 97.89286319269165,
+          "x": 111.7157287525381,
+          "y": 94.14213562373095
+        },
+        "originalSVGReference": null,
+        "originalSVGImageSize": null,
+        "logicalSize": {
+          "width": 320,
+          "height": 200
+        },
+        "dpr": 2,
+        "view": {
+          "panX": 0,
+          "panY": 0,
+          "zoom": 1
+        },
+        "nativeFrame": {
+          "width": 640,
+          "height": 400,
+          "byteCount": 1024000,
+          "rgbaChecksum": "fnv1a32:29af746e"
+        },
+        "frameCount": 2,
+        "available": true,
+        "disposed": false,
+        "ledger": {
+          "created": 5,
+          "disposeCalls": 4,
+          "listenersAttached": 10,
+          "listenersRemoved": 8,
+          "urlsCreated": 3,
+          "urlsRevoked": 3,
+          "pending": 0,
+          "stageCalls": 1,
+          "lastDisposedLedger": {
+            "created": 4,
+            "disposeCalls": 3,
+            "listenersAttached": 8,
+            "listenersRemoved": 6,
+            "urlsCreated": 3,
+            "urlsRevoked": 3,
+            "pending": 0,
+            "stageCalls": 1,
+            "observedAt": "Controller dispose returned; later asynchronous staging may still settle"
+          },
+          "scope": "Application calls and returned renderers across module controllers; not raw GPU deletion"
+        }
+      },
+      "onlyC1XChanged": true,
+      "noOriginalSVG": true
+    },
+    "arc-dev-import-refusal": {
+      "receiptKind": "arc-dev-import-refusal",
+      "alert": "Input refused: INVALID_SCENE: <path#ArcPath>: arc flags need lexical 0 or 1. The last accepted output stays visible while the sample remains live.",
+      "rawReportRetained": true,
+      "logs": []
+    },
+    "arc-dev-reopened-json-run": {
+      "receiptKind": "arc-dev-reopened-json-run",
+      "acceptedSceneUnchanged": true,
+      "c1x": 153.39134040641824,
+      "noOriginalSVG": true,
+      "frame": {
+        "width": 640,
+        "height": 400,
+        "byteCount": 1024000,
+        "rgbaChecksum": "fnv1a32:29af746e"
+      },
+      "ledger": {
+        "created": 6,
+        "disposeCalls": 5,
+        "listenersAttached": 12,
+        "listenersRemoved": 10,
+        "urlsCreated": 3,
+        "urlsRevoked": 3,
+        "pending": 0,
+        "stageCalls": 1,
+        "lastDisposedLedger": {
+          "created": 4,
+          "disposeCalls": 3,
+          "listenersAttached": 8,
+          "listenersRemoved": 6,
+          "urlsCreated": 3,
+          "urlsRevoked": 3,
+          "pending": 0,
+          "stageCalls": 1,
+          "observedAt": "Controller dispose returned; later asynchronous staging may still settle"
+        },
+        "scope": "Application calls and returned renderers across module controllers; not raw GPU deletion"
+      },
+      "qualification": "One additional admitted JSON Run verifies reopened input mode; six adopted renderer sessions now, not five."
+    },
+    "arc-dev-cubic-refusal": {
+      "receiptKind": "arc-dev-cubic-refusal",
+      "alert": "Input refused: INVALID_SCENE: scene.nodes[0].children[0].children[1].children[0].commands[2].c1x is outside its finite range. The last accepted output stays visible while the sample remains live.",
+      "rawReportRetained": true
+    },
+    "arc-dev-terminal-call-ledger": {
+      "receiptKind": "arc-dev-terminal-call-ledger",
+      "terminal": {
+        "created": 6,
+        "disposeCalls": 6,
+        "listenersAttached": 12,
+        "listenersRemoved": 12,
+        "urlsCreated": 3,
+        "urlsRevoked": 3,
+        "pending": 0,
+        "stageCalls": 1,
+        "observedAt": "Controller dispose returned; later asynchronous staging may still settle"
+      },
+      "current": {
+        "created": 7,
+        "disposeCalls": 6,
+        "listenersAttached": 14,
+        "listenersRemoved": 12,
+        "urlsCreated": 4,
+        "urlsRevoked": 3,
+        "pending": 0,
+        "stageCalls": 1,
+        "lastDisposedLedger": {
+          "created": 6,
+          "disposeCalls": 6,
+          "listenersAttached": 12,
+          "listenersRemoved": 12,
+          "urlsCreated": 3,
+          "urlsRevoked": 3,
+          "pending": 0,
+          "stageCalls": 1,
+          "observedAt": "Controller dispose returned; later asynchronous staging may still settle"
+        },
+        "scope": "Application calls and returned renderers across module controllers; not raw GPU deletion"
+      },
+      "qualification": "Six completed Arc sessions disposed; seventh mount exists only to expose the prior terminal application-call ledger. No raw GPU deletion proof."
+    },
+    "arc-dev-final": {
+      "receiptKind": "arc-dev-final",
+      "url": "http://127.0.0.1:52949/examples/library#svg-arc-import",
+      "logs": [],
+      "currentObserverRendererSessions": 1,
+      "completedFlowTerminalSnapshot": {
+        "created": 6,
+        "disposeCalls": 6,
+        "listenersAttached": 12,
+        "listenersRemoved": 12,
+        "urlsCreated": 3,
+        "urlsRevoked": 3,
+        "pending": 0,
+        "stageCalls": 1,
+        "observedAt": "Controller dispose returned; later asynchronous staging may still settle"
+      },
+      "scope": "Observer mount remains outside the six completed flow sessions; no final observer GPU cleanup claim."
+    },
+    "arc-prod-initial": {
+      "receiptKind": "arc-prod-initial",
+      "ready": "true",
+      "report": {
+        "backend": "Public Canvas2D renderer; original SVG image when available",
+        "sourceProfile": "94a2a776254a73b496431ab6cbb49ea07900bef7",
+        "editorSource": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"ArcImportExample\"\n     width=\"320\" height=\"200\" viewBox=\"0 0 320 200\">\n  <path id=\"Background\" fill=\"#101820\"\n        d=\"M 0 0 L 320 0 L 320 200 L 0 200 Z\"/>\n  <g id=\"ArcGroup\" transform=\"translate(24 18) rotate(5)\">\n    <path id=\"ArcPath\" fill=\"#2266cc\" fill-rule=\"nonzero\"\n          stroke=\"#eef2ff\" stroke-width=\"3\"\n          stroke-linejoin=\"bevel\" stroke-linecap=\"butt\"\n          d=\"M 20 100 L 140 100 A 20 40 90 0 1 100 80 L 20 80 Z\"/>\n  </g>\n</svg>",
+        "inputMode": "SVG",
+        "originalSVG": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"ArcImportExample\"\n     width=\"320\" height=\"200\" viewBox=\"0 0 320 200\">\n  <path id=\"Background\" fill=\"#101820\"\n        d=\"M 0 0 L 320 0 L 320 200 L 0 200 Z\"/>\n  <g id=\"ArcGroup\" transform=\"translate(24 18) rotate(5)\">\n    <path id=\"ArcPath\" fill=\"#2266cc\" fill-rule=\"nonzero\"\n          stroke=\"#eef2ff\" stroke-width=\"3\"\n          stroke-linejoin=\"bevel\" stroke-linecap=\"butt\"\n          d=\"M 20 100 L 140 100 A 20 40 90 0 1 100 80 L 20 80 Z\"/>\n  </g>\n</svg>",
+        "importedScene5": {
+          "version": 5,
+          "unit": "logical-px",
+          "contextId": "ArcImportExample",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "width": 320,
+              "height": 200,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "Background",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 320,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 320,
+                          "y": 200
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 200
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.06274509803921569,
+                          0.09411764705882353,
+                          0.12549019607843137,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "ArcGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 24,
+                        "y": 18,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0.08726646259971647
+                      },
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 20,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 100
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 129.39134040641824,
+                              "c1y": 100,
+                              "c2x": 119.21718389045948,
+                              "c2y": 97.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 94.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 90.39140805477025,
+                              "c2x": 100,
+                              "c2y": 85.30432979679088,
+                              "x": 100,
+                              "y": 80
+                            },
+                            {
+                              "kind": "L",
+                              "x": 20,
+                              "y": 80
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 3
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "diagnostics": {
+          "viewport": {
+            "width": 320,
+            "height": 200
+          },
+          "viewBox": {
+            "x": 0,
+            "y": 0,
+            "width": 320,
+            "height": 200
+          },
+          "generatedIds": [
+            "SvgViewBox1",
+            "SvgViewport1"
+          ],
+          "pathIds": [
+            "Background",
+            "ArcPath"
+          ],
+          "groupIds": [
+            "ArcGroup"
+          ]
+        },
+        "scene": {
+          "version": 29,
+          "unit": "logical-px",
+          "contextId": "ArcImportExample",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "visible": true,
+              "alpha": 1,
+              "hitMode": "auto",
+              "width": 320,
+              "height": 200,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "visible": true,
+                  "alpha": 1,
+                  "hitMode": "auto",
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "Background",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 320,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 320,
+                          "y": 200
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 200
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.06274509803921569,
+                          0.09411764705882353,
+                          0.12549019607843137,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "ArcGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 24,
+                        "y": 18,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0.08726646259971647
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "visible": true,
+                          "alpha": 1,
+                          "hitMode": "auto",
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 20,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 100
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 129.39134040641824,
+                              "c1y": 100,
+                              "c2x": 119.21718389045948,
+                              "c2y": 97.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 94.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 90.39140805477025,
+                              "c2x": 100,
+                              "c2y": 85.30432979679088,
+                              "x": 100,
+                              "y": 80
+                            },
+                            {
+                              "kind": "L",
+                              "x": 20,
+                              "y": 80
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 3,
+                            "cap": "butt",
+                            "join": "bevel",
+                            "dash": {
+                              "lengths": [],
+                              "offset": 0
+                            },
+                            "miterLimit": 4
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "actualC": {
+          "kind": "C",
+          "c1x": 129.39134040641824,
+          "c1y": 100,
+          "c2x": 119.21718389045948,
+          "c2y": 97.89286319269165,
+          "x": 111.7157287525381,
+          "y": 94.14213562373095
+        },
+        "originalSVGReference": "Original input SVG",
+        "originalSVGImageSize": {
+          "width": 320,
+          "height": 200
+        },
+        "logicalSize": {
+          "width": 320,
+          "height": 200
+        },
+        "dpr": 2,
+        "view": {
+          "panX": 0,
+          "panY": 0,
+          "zoom": 1
+        },
+        "nativeFrame": {
+          "width": 640,
+          "height": 400,
+          "byteCount": 1024000,
+          "rgbaChecksum": "fnv1a32:b16b6ad5"
+        },
+        "frameCount": 1,
+        "available": true,
+        "disposed": false,
+        "ledger": {
+          "created": 1,
+          "disposeCalls": 0,
+          "listenersAttached": 2,
+          "listenersRemoved": 0,
+          "urlsCreated": 1,
+          "urlsRevoked": 0,
+          "pending": 0,
+          "stageCalls": 0,
+          "lastDisposedLedger": null,
+          "scope": "Application calls and returned renderers across module controllers; not raw GPU deletion"
+        }
+      },
+      "logs": []
+    },
+    "arc-prod-edit": {
+      "receiptKind": "arc-prod-edit",
+      "c1x": 141.39134040641824,
+      "sceneMatchesDevEdited": true,
+      "frame": {
+        "width": 640,
+        "height": 400,
+        "byteCount": 1024000,
+        "rgbaChecksum": "fnv1a32:0f426dbd"
+      },
+      "fullEditor": true
+    },
+    "arc-prod-refusal": {
+      "receiptKind": "arc-prod-refusal",
+      "alert": "Input refused: INVALID_SCENE: <path#ArcPath>: arc flags need lexical 0 or 1. The last accepted output stays visible while the sample remains live.",
+      "rawReportRetained": true
+    },
+    "arc-prod-reset": {
+      "receiptKind": "arc-prod-reset",
+      "sceneRestored": true,
+      "alertCount": 0
+    },
+    "arc-prod-guide": {
+      "receiptKind": "arc-prod-guide",
+      "url": "http://127.0.0.1:52948/packages/canvas2d/svg-arc-import",
+      "imageCount": 1,
+      "hasBrowserOutcome": true,
+      "hasFirstEdit": true,
+      "logs": []
+    },
+    "arc-prod-mobile-guide": {
+      "receiptKind": "arc-prod-mobile-guide",
+      "bodyWidth": 390,
+      "codeBlocks": 5,
+      "image": {
+        "loaded": true,
+        "naturalHeight": 181,
+        "naturalWidth": 462,
+        "width": 341.9921875
+      },
+      "viewport": 390,
+      "logs": []
+    },
+    "arc-prod-catalog": {
+      "receiptKind": "arc-prod-catalog",
+      "filteredOne": true,
+      "state": "Browser tab: 43, Title: \"Choose an example by its task | BaroCSS Libraries\", URL: \"http://127.0.0.1:52948/examples/\".\nThe following is a diff from the previous accessibility tree with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.\nRemoved element IDs: 8, 101, 108-312\n~\t\t2 link Description: Skip to content, Value: 127.0.0.1:52948/examples/#VPContent\n+\t\t\t\t\t321 text \u2318\n~\t\t\t\t\t51 link Description: Permalink to \"Choose an example by its task\", Value: 127.0.0.1:52948/examples/#choose-an-example-by-its-task\n~\t\t\t\t\t\t100 search text field (settable) Description: Find an example, Value: SVG arc\n+\t\t\t\t\t322 text 1 of 42 runnable examples\n~\t\t\t\t\t\t\t104 link Description: SVG arc import, Value: 127.0.0.1:52948/examples/library#svg-arc-import\n~\t\t\t\t\t\t\t106 link Description: Run example, Value: 127.0.0.1:52948/examples/library#svg-arc-import\n~\t\t\t\t314 link Description: Use the interactive examples, Value: 127.0.0.1:52948/concepts/run-examples\n~\t\t\t\t316 link Description: all-examples playground, Value: 127.0.0.1:52948/playground\n~\t\t\t\t320 link Description: Next page By library, Value: 127.0.0.1:52948/examples/library\nThe focused UI element is 100 search text field (settable) Description: Find an example, Value: SVG arc"
+    },
+    "arc-prod-catalog-link": {
+      "receiptKind": "arc-prod-catalog-link",
+      "url": "http://127.0.0.1:52948/examples/library#svg-arc-import",
+      "ready": "true",
+      "logs": []
+    },
+    "arc-prod-mobile-live": {
+      "receiptKind": "arc-prod-mobile-live",
+      "metrics": {
+        "bodyWidth": 390,
+        "panelWidth": 316,
+        "ready": "true",
+        "selected": "svg-arc-import",
+        "viewport": 390
+      },
+      "runEnabled": true,
+      "logs": []
+    }
+  },
+  "physicalDownload": {
+    "path": "/Users/user/Downloads/svg-arc-import.scene.json",
+    "bytes": 2118,
+    "sha256": "6d8ddd816c8f4949cb144c1232cd9961969355d340d64ccd94fb274f3b5a623d",
+    "saveClicks": 1,
+    "chooserDeliveries": 1,
+    "downloadEventConfirmed": false,
+    "matchesNodeDocumentSHA256": true
+  },
+  "nativeJPEG": {
+    "width": 462,
+    "height": 181,
+    "bytes": 6924,
+    "sha256": "63ed4e5df4c7a364e3d0378f64301cb0a34b4279e8f09821016adb560f61644e",
+    "scope": "Native dev image after first c1x+12; current cubic canvas and original SVG reference. Outer-figure clip was corrected to actual owned panel; no image editing.",
+    "builtBytesEqual": true
+  },
+  "qualifications": [
+    "One extra accepted JSON Run verifies reopened editor mode: six completed Arc renderer sessions. Seventh mount exposes prior terminal call ledger; additional actual importer attempt and temporary rectangle mount are separate.",
+    "Browser iframe/GL deletion/rawRGBA equality not measured; capture checksum only.",
+    "File.text called once per admitted component handler by source; one chooser delivery and one public staging call observed, no File.text spy.",
+    "Initial report inspection used action wrapper and textarea textContent incorrectly, then corrected without API replay. Physical document inspector first assumed scene object; public codec scene is a string.",
+    "Native download event timed out; physical2118B file was verified and used exactlyonce forOpen. Prior1451 partial-session/duplicate-upload/cleanup status is not upgraded."
+  ],
+  "docsCheck": {
+    "exampleCatalog": {
+      "presets": 42,
+      "uniqueAnchors": 42,
+      "authoredSources": 42,
+      "categories": {
+        "api": 9,
+        "language": 32,
+        "integration": 1
+      },
+      "generatedModules": 11,
+      "builtAnchorsChecked": true,
+      "execution": "Preset metadata and links only; no public API calls or gallery execution"
+    },
+    "pages": 107,
+    "packages": 12,
+    "checkedInternalLinks": 668,
+    "checkedImageAssets": 54,
+    "checkedDownloadAssets": 3,
+    "manifestHashes": "matched",
+    "sourceCommit": "5f5ad866205a21510ac69552e704cc162fa253b5"
+  },
+  "builds": [
+    {
+      "seconds": 11.65,
+      "status": "passed",
+      "qualification": "Guide late-finalization was missing from built HTML; source/assets checker passed but actual image/outcome markers absent."
+    },
+    {
+      "seconds": 10.93,
+      "status": "passed",
+      "qualification": "Stable final guide rebuilt; final image/browser outcome/2118bytes/terminal-six markers present and actual production page checked."
+    }
+  ]
+}
