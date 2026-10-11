@@ -919,3 +919,13 @@ New Surface split bodies include their U or V split axis in their default names,
 In the example editor, bodies with the same name show a stable ordinal in the Objects list. The ordinal uses the complete accepted document order, including hidden bodies. Showing or hiding a body does not renumber it. Unique names remain unchanged. Row text, titles and accessible control labels use the same display label; existing geometry icons and row spacing remain.
 
 These ordinal labels are presentation only. They do not rename a body or change its ID, native Source, asset revision, history or saved name. Old files with repeated names remain valid. The native body name limit remains 128 UTF-8 bytes; no schema or name normalization is added.
+
+### Canvas reversed Curve copy
+
+`prepareCurveReversal()` prepares an independent reversed copy of the selected original Curve in document view. The Canvas command shows the original parameter start and end, with a short direction marker from actual native D0 points through the current camera. This is a discrete copy command. It does not stage a continuous reverse drag or replace the original mixed Source.
+
+The session calls `reverseCurveWide` and `validateWideReversedCurveResult`, then validates the complete new document. Only the generated one-Curve Source goes into a new asset and body. The regenerated comparison `originalSource` is proof data. Both original Sources, siblings, asset revisions and logical selection remain. Whole-Viewport approval records one structural history entry; Undo removes the copy and asset, and Redo restores their IDs with fresh references. Saved copy edits use the normal Source writer and leave original assets unchanged.
+
+The Canvas checks the current qualified Source, Curve, selection, view, epochs, frame, camera, size, options and capture state before and after preparation. Foreign drafts and candidates remain owned by their producer. Start/end markers are parameter observations; clipped or degenerate direction glyphs are omitted. Help explains the independent copy. The copy can be chosen in Join, which still requires its actual endpoint and domain conditions.
+
+Native limits remain degree 1–3, at most 64 poles and 70 knots, coordinates within ±10000 mm, positive bounded weights and clamped nonperiodic knots. The existing document, display, Source, file and history capacity rules remain. This does not provide an in-place whole-Source reversal writer, automatic Join/reparameterization, degree 4/5, Solid or a global shape certificate.

@@ -434,3 +434,15 @@ text.assembly-translation-guide[data-axis="z"] { fill:#8babcf; stroke:none; }
 .surface-split-label { fill:#e3edda; font-size:10px; paint-order:stroke; stroke:#171e24; stroke-width:3px; pointer-events:none; }
 .surface-split-status { position:absolute; left:8px; bottom:8px; max-width:calc(100% - 16px); margin:0; padding:3px 6px; border:1px solid var(--border); border-radius:3px; background:var(--background); color:var(--muted-foreground); font-size:10px; pointer-events:none; }
 .surface-split-panel [role="alert"],.surface-split-error { margin:5px 0; color:#ffd2ce; font-size:10px; line-height:1.4; overflow-wrap:anywhere; }
+
+.curve-reversal-tools { position:absolute; top:88px; left:8px; z-index:4; display:flex; flex-wrap:wrap; align-items:center; gap:4px; max-width:calc(100% - 16px); padding:4px; border:1px solid var(--border); border-radius:4px; background:#22272bed; pointer-events:auto; }
+.curve-reversal-tools [data-slot="button"] { width:auto; height:25px; min-height:25px; padding:3px 7px; font-size:10px; }
+.curve-reversal-tools .curve-reversal-create { background:#b8d599; color:#24321d; }
+.curve-reversal-overlay { position:absolute; inset:0; z-index:2; pointer-events:none; }
+.curve-reversal-svg { display:block; overflow:hidden; pointer-events:none; }
+.curve-reversal-point { fill:#b8d599; stroke:#eef5e7; stroke-width:1.5; pointer-events:none; }
+.curve-reversal-point[data-endpoint="end"] { fill:#aac7de; }
+.curve-reversal-label { fill:#dce7d2; font-size:10px; paint-order:stroke; stroke:#171e24; stroke-width:3px; pointer-events:none; }
+.curve-reversal-direction { fill:none; stroke:#dce7d2; stroke-width:1.5; pointer-events:none; }
+.curve-reversal-arrow { fill:#dce7d2; stroke:none; pointer-events:none; }
+.curve-reversal-error { max-width:240px; color:#ffd2ce; font-size:10px; line-height:1.4; overflow-wrap:anywhere; }
