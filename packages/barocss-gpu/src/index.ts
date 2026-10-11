@@ -155,3 +155,6 @@ export type { RoundedBoxGeometrySourceV0, PreparedRoundedBoxGeometry } from './r
 
 export {compileNativeSurfaceUV01Material,validateNativeSurfaceUV01MaterialIR,lowerNativeSurfaceUV01Material} from './mesh-material.js';
 export type {NativeSurfaceUV01MaterialExpression,NativeSurfaceUV01MaterialIR,LoweredNativeSurfaceUV01Material} from './mesh-material.js';
+
+export {prepareNativeSurfaceUV01Geometry,NativeSurfaceUV01GeometryError} from './native-surface-uv01-geometry.js';
+export type {NativeSurfaceUV01GeometryRequest,PreparedNativeSurfaceUV01Geometry,NativeSurfaceUV01GeometryCode} from './native-surface-uv01-geometry.js';

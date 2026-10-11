@@ -2554,3 +2554,39 @@ retain their original meaning. No native render or pixel support is implied.
 
 One CPU source/compiled/file/cold flow:
 `node examples/gpu-scene/native-surface-uv01-material-flow.mjs --output /absolute/fresh-directory`.
+
+## Source-qualified native Surface UV01 geometry (CPU)
+
+`prepareNativeSurfaceUV01Geometry(unknown)` accepts an exact own eight-field
+request: `format: 'barocss-gpu-native-surface-uv01-request'`, `version: 0`,
+`sourceVersion: 0`, complete CAD `source`, `surfaceId`, explicit `countU`/`countV`
+(2..64) and sampled `revision` (0..2147483647). Source is limited to 64KiB UTF8
+and 65536 UTF16 units. The full Model has 1..16 objects; the selected Surface has
+degree 1..5 and a 2..16 control grid per axis. Existing native refusal rules apply.
+
+It compiles the complete original Source0, selects the actual Surface, obtains
+its original domain and generates one native D0 preview. The ten-field v0 result
+with profile `source0-surface-d0-uv01-v0` retains the request, full Model,
+selectedObjectIndex, domain and complete `preview: {packet, report}` beside
+`normalizedParameters` and an independently owned mutable Float32 `uv01` view.
+All ordinary result data is deeply frozen. This view consumes 8 bytes per vertex,
+at most 32768 bytes. A later consumer must re-admit source and rederive it; returned
+metadata and a caller-mutated view are not a trusted backend capability.
+
+Actual original parameters normalize in Number before Float32, in U-outer/V-inner
+sample order. Finite positive represented domain widths and normalized values
+within [0,1] are required; no domain is inferred from packet extrema and no value
+is clamped. Derived zero is +0. Float32 interior rounding, including coincident
+samples or endpoint rounding, is allowed. Original source/native control, knots,
+weights, domain, raw U/V, signs and IDs stay separate. Native positions remain
+mm/authored XYZ; packet frame metadata is retained without axis conversion.
+
+`NativeSurfaceUV01GeometryError` distinguishes INPUT/BUDGET/SOURCE/SELECTOR/
+NATIVE/NORMALIZATION, preserves actual native/reflection causes, and carries
+original source diagnostic UTF16 offsets. No material binding, frame admission,
+vertex attribute, linked program, scene scaling, rendering, exact fragment query
+or document pin qualification is supplied. It does not change existing preview,
+MeshMaterial/EngineUV, Scene or renderer contracts.
+
+One source/emitted/file/cold CPU flow:
+`node examples/gpu-scene/native-surface-uv01-geometry-flow.mjs --output /absolute/fresh-directory`.
