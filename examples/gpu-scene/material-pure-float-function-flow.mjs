@@ -1,0 +1,204 @@
+/** #1454 ONE CPU source/API/file/cold qualifier. Node22, after the affected GPU build.
+ * node examples/gpu-scene/material-pure-float-function-flow.mjs --output ABS_FRESH
+ * No DOM/GL, linked shader, native evaluator, resource or pixel claim.
+ */
+import assert from 'node:assert/strict';
+import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { resolve, dirname, isAbsolute } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { build } from 'esbuild';
+import ts from 'typescript';
+
+assert.equal(Number(process.versions.node.split('.')[0]), 22);
+assert.equal(process.argv.length, 4); assert.equal(process.argv[2], '--output'); assert.ok(isAbsolute(process.argv[3]));
+const repo = resolve(dirname(fileURLToPath(import.meta.url)), '../..'), output = resolve(process.argv[3]);
+await mkdir(output, { recursive: false });
+const parent = '515aabfe4b848f9eb6e9e45ba94b1e21724bfce7', pkg = resolve(repo, 'packages/barocss-gpu');
+const manifest = JSON.parse(await readFile(resolve(pkg, 'package.json'), 'utf8'));
+const hash = value => createHash('sha256').update(value).digest('hex');
+const ordinary = resolve(output, 'ordinary-public.mjs');
+const bundled = await build({ entryPoints: [resolve(pkg, manifest.exports['.'].import)], bundle: true,
+  platform: 'node', format: 'esm', target: 'node22', outfile: ordinary, metafile: true });
+const sourceGraph = Object.keys(bundled.metafile.inputs);
+assert.ok(sourceGraph.some(p => p.endsWith('/src/mesh-material.ts')));
+assert.ok(!sourceGraph.some(p => /barocss-(gpu|cad)\/dist\//.test(p)));
+const providers = [{ label: 'ordinary-source', path: ordinary },
+  { label: 'emitted-public', path: resolve(pkg, manifest.publishConfig.exports['.'].import) }];
+for (const provider of providers) provider.gpu = await import(pathToFileURL(provider.path).href);
+const namespace = Object.keys(providers[0].gpu).sort(); assert.equal(namespace.length, 128);
+assert.deepEqual(Object.keys(providers[1].gpu).sort(), namespace);
+// Fixed-parent public barrel and material declaration compatibility, not a parent functional campaign.
+const parentFile = name => execFileSync('git', ['show', parent + ':packages/barocss-gpu/' + name], { cwd: repo, encoding: 'utf8' });
+assert.equal(await readFile(resolve(pkg, 'src/index.ts'), 'utf8'), parentFile('src/index.ts'));
+assert.deepEqual(manifest, JSON.parse(parentFile('package.json')));
+const parentFolder = resolve(output, 'fixed-parent-declarations'); await mkdir(parentFolder);
+const parentLeaf = resolve(parentFolder, 'mesh-material.ts'); await writeFile(parentLeaf, parentFile('src/mesh-material.ts'), { flag: 'wx' });
+const declarationProgram = ts.createProgram([parentLeaf], { target: ts.ScriptTarget.ES2022,
+  module: ts.ModuleKind.NodeNext, moduleResolution: ts.ModuleResolutionKind.NodeNext,
+  lib: ['lib.es2022.d.ts', 'lib.dom.d.ts'], strict: true, skipLibCheck: true,
+  declaration: true, emitDeclarationOnly: true, outDir: parentFolder });
+const declarationDiagnostics = ts.getPreEmitDiagnostics(declarationProgram);
+assert.equal(declarationDiagnostics.length, 0, ts.formatDiagnosticsWithColorAndContext(declarationDiagnostics,
+  { getCurrentDirectory: () => repo, getCanonicalFileName: x => x, getNewLine: () => '\n' }));
+assert.equal(declarationProgram.emit().emitSkipped, false);
+const parentDTS = await readFile(resolve(parentFolder, 'mesh-material.d.ts'), 'utf8');
+const currentDTS = await readFile(resolve(pkg, 'dist/mesh-material.d.ts'), 'utf8'); assert.equal(currentDTS, parentDTS);
+const indexDTS = await readFile(resolve(pkg, manifest.publishConfig.exports['.'].types), 'utf8');
+assert.ok(!/PureFloatFunction|MaterialFunction|FunctionParameter/.test(currentDTS));
+assert.ok(!/compileMaterialFunction|evaluateNativeSurface/.test(indexDTS));
+const profileDefs = [
+  { name: 'mesh', compile: 'compileMeshMaterial', validate: 'validateMeshMaterialIR', lower: 'lowerMeshMaterial', u: 'amount', v: '.5' },
+  { name: 'uv', compile: 'compileEngineUVMaterial', validate: 'validateEngineUVMaterialIR', lower: 'lowerEngineUVMaterial', u: 'clamp(uv_u,0,1)', v: 'clamp(uv_v,0,1)' },
+  { name: 'repeating', compile: 'compileEngineUVRepeatingMaterial', validate: 'validateEngineUVRepeatingMaterialIR', lower: 'lowerEngineUVRepeatingMaterial', u: 'fract(clamp(uv_u,-999,999))', v: 'fract(clamp(uv_v,-999,999))' },
+  { name: 'native', compile: 'compileNativeSurfaceUV01Material', validate: 'validateNativeSurfaceUV01MaterialIR', lower: 'lowerNativeSurfaceUV01Material', u: 'surface_u01', v: 'surface_v01' },
+];
+const head = '// Original é😀 function source.\r\n@shader #reuse { @uniform amount:float(-0,1,.25); ';
+const functionSource = p => head + '@fn fade(t:float(0,1)):float(t*.5+.25); @let u:float(fade(' + p.u + ')); @fragment { color:mix(mix(#000,#fff,u),#F00,fade(' + p.v + ')*amount); } }\r\n';
+// Independently authored source, not generated by the parser or its function definition.
+const manualSource = p => head + '@let u:float((' + p.u + ')*.5+.25); @fragment { color:mix(mix(#000,#fff,u),#F00,((' + p.v + ')*.5+.25)*amount); } }\r\n';
+function balancedArgument(depth) { return depth === 0 ? '.5' : '(' + balancedArgument(depth - 1) + '+' + balancedArgument(depth - 1) + ')/2'; }
+function signed(v) { if (typeof v === 'number') { assert.ok(Number.isFinite(v)); return Object.is(v, -0) ? '-0' : JSON.stringify(v); }
+  if (v === null || typeof v !== 'object') return JSON.stringify(v);
+  assert.ok(!ArrayBuffer.isView(v)); return Array.isArray(v) ? '[' + v.map(signed).join(',') + ']'
+    : '{' + Object.keys(v).sort().map(k => JSON.stringify(k) + ':' + signed(v[k])).join(',') + '}'; }
+const clone = v => JSON.parse(signed(v));
+function frozen(v) { if (v && typeof v === 'object') { assert.ok(Object.isFrozen(v)); Object.values(v).forEach(frozen); } }
+function refs(v, result = new Set()) { if (v && typeof v === 'object' && !result.has(v)) { result.add(v); Object.values(v).forEach(x => refs(x, result)); } return result; }
+function independent(a, b) { const right = refs(b); for (const object of refs(a)) assert.ok(!right.has(object)); }
+async function fileReceipt(path) { const bytes = await readFile(path); return { path, bytes: bytes.length, sha256: hash(bytes) }; }
+const doc = JSON.parse(await readFile(resolve(repo, 'examples/gpu-scene/fixtures/area-revision1.cad-document.json'), 'utf8'));
+const geometry = { format: 'barocss-gpu-native-surface-uv01-request', version: 0, sourceVersion: 0,
+  source: doc.assets[0].source, surfaceId: 'plane_nonunit', countU: 9, countV: 9, revision: 0 };
+assert.equal(hash(geometry.source), '56985f37e763f01325ac7e91ba2cf251accfa92efad9e5200b8619dc58545dc8');
+let accepted = 0, refused = 0, getters = 0, reflections = 0;
+const rows = [], coldCases = [];
+for (const provider of providers) {
+  const gpu = provider.gpu, admissions = [], failures = [], retained = [];
+  const compile = (p, source) => { const result = gpu[p.compile](source); assert.equal(result.ok, true, JSON.stringify(result)); return result.material; };
+  for (const p of profileDefs) {
+    const source = functionSource(p), ir = compile(p, source), manual = compile(p, manualSource(p));
+    assert.equal(ir.source, source); assert.deepEqual(ir.expression, manual.expression); assert.deepEqual(ir.uniforms, manual.uniforms);
+    assert.ok(!/"kind":"(?:parameter|function|call-parameter)"/.test(JSON.stringify(ir)));
+    assert.equal(ir.uniforms.length, 1); assert.equal(ir.uniforms[0].name, 'amount'); assert.ok(Object.is(ir.uniforms[0].min, +0)); assert.ok(source.includes('float(-0,1,.25)'));
+    const validated = gpu[p.validate](clone(ir)), lowered = gpu[p.lower](ir), manualLowered = gpu[p.lower](manual);
+    assert.deepEqual(validated, ir); independent(validated, ir); assert.deepEqual(lowered, manualLowered); frozen(ir); frozen(validated);
+    assert.ok(!/\bfade\s*\(/.test(lowered.expression)); assert.equal(lowered.uniformLayout.length, 1);
+    assert.equal(lowered.uniformLayout[0].glslName, 'mat_u_0');
+    const prefix = resolve(output, provider.label + '.' + p.name), sourcePath = prefix + '.material.css', manualPath = prefix + '.manual.css';
+    const irPath = prefix + '.ir.json', lowerPath = prefix + '.lower.json';
+    for (const [path, value] of [[sourcePath, source], [manualPath, manualSource(p)], [irPath, signed(ir) + '\n'], [lowerPath, signed(lowered) + '\n']]) await writeFile(path, value, { flag: 'wx' });
+    const files = await Promise.all([sourcePath, manualPath, irPath, lowerPath].map(fileReceipt));
+    const samples = [];
+    if (p.name !== 'native') {
+      for (const amount of [undefined, .75]) {
+        const input = { material: clone(ir), uniforms: amount === undefined ? {} : { amount }, ...(p.name === 'mesh' ? {} : { uv: [.2, .8] }) };
+        const before = signed(input), sample = gpu.evaluateAuthoredMaterial(input); assert.equal(signed(input), before); independent(sample, input); frozen(sample);
+        const a = amount === undefined ? .25 : amount, u = p.name === 'mesh' ? a * .5 + .25 : .2 * .5 + .25;
+        const t = (p.name === 'mesh' ? .5 * .5 + .25 : .8 * .5 + .25) * a;
+        // Existing color mix is component a*(1-t)+b*t; final RGB canonicalizes zero.
+        const expectedRGB = [u * (1 - t) + 1 * t, u * (1 - t) + 0 * t, u * (1 - t) + 0 * t].map(x => x === 0 ? 0 : x);
+        assert.deepEqual(sample.uniforms, { amount: a }); assert.deepEqual(sample.linearRGB, expectedRGB);
+        samples.push({ uniforms: sample.uniforms, linearRGB: sample.linearRGB }); accepted++;
+      }
+    } else {
+      const input = { format: 'barocss-gpu-native-surface-uv01-binding-request', version: 0, geometry: clone(geometry), material: clone(ir), uniforms: {} };
+      const before = signed(input), binding = gpu.prepareNativeSurfaceUV01MaterialBinding(input);
+      assert.equal(signed(input), before); assert.equal(Object.isFrozen(input), false); independent(binding, input);
+      assert.deepEqual(binding.material, ir); assert.deepEqual(binding.lowered, lowered); assert.deepEqual(binding.uniforms, { amount: .25 });
+      assert.deepEqual(binding.geometry.domain, { u: [-3, 7], v: [2, 5] }); assert.equal(binding.geometry.uv01.byteLength, 648);
+      assert.equal(binding.geometry.request.source, geometry.source); assert.equal(binding.geometry.model.objects[binding.geometry.selectedObjectIndex].id, 'plane_nonunit');
+      await writeFile(prefix + '.geometry.css', geometry.source, { flag: 'wx' }); await writeFile(prefix + '.binding-request.json', signed(input) + '\n', { flag: 'wx' });
+      files.push(await fileReceipt(prefix + '.geometry.css'), await fileReceipt(prefix + '.binding-request.json')); accepted++;
+    }
+    const entry = { provider: provider.label, profile: p.name, sourcePath, manualPath, irPath, lowerPath, files,
+      expressionSHA: hash(signed(ir.expression)), loweringSHA: hash(signed(lowered)), samples };
+    coldCases.push(entry); retained.push({ ir, digest: hash(signed(ir)), files }); admissions.push(entry); accepted++;
+  }
+  // Eight independent declarations, including unused bodies, and a zero-width parameter interval.
+  const native = profileDefs[3], definitions = Array.from({ length: 8 }, (_, i) => '@fn f' + i + '(a' + i + ':float(0,1)):float(a' + i + ');').join(' ');
+  const eightSource = '@shader #eight { ' + definitions + ' @fragment { color:mix(#000,#fff,f0(.5)); } }';
+  const eight = compile(native, eightSource); assert.deepEqual(eight.expression, compile(native, '@shader #eight { @fragment { color:mix(#000,#fff,.5); } }').expression); accepted++;
+  const point = compile(native, '@shader #point { @fn fixed(t:float(.5,.5)):float(t); @fragment { color:mix(#000,#fff,fixed(.5)); } }');
+  assert.deepEqual(point.expression, compile(native, '@shader #point { @fragment { color:mix(#000,#fff,.5); } }').expression); accepted++;
+  const identitySource = '@shader #identity { @fn identity(t:float(0,1)):float(t); @fragment { color:mix(#000,#fff,identity(identity(surface_u01))); } }';
+  const identity = compile(native, identitySource), identityManual = compile(native, '@shader #identity { @fragment { color:mix(#000,#fff,surface_u01); } }');
+  assert.deepEqual(identity.expression, identityManual.expression); assert.deepEqual(gpu[native.lower](identity), gpu[native.lower](identityManual));
+  assert.deepEqual(gpu[native.validate](clone(identity)), identity); accepted++;
+  const identitySourcePath = resolve(output, provider.label + '.identity-nested.css'), identityIRPath = resolve(output, provider.label + '.identity-nested.ir.json');
+  await writeFile(identitySourcePath, identitySource, { flag: 'wx' }); await writeFile(identityIRPath, signed(identity) + '\n', { flag: 'wx' });
+  retained.push({ ir: identity, digest: hash(signed(identity)), files: await Promise.all([identitySourcePath, identityIRPath].map(fileReceipt)) });
+  const body = expr => '@shader #negative { @fn fade(t:float(0,1)):float(t*.5+.25); @fragment { color:mix(#000,#fff,' + expr + '); } }';
+  const declaration = text => '// UTF16 😀\r\n@shader #negative { ' + text + ' @fragment { color:#fff; } }';
+  const checks = [
+    ['arity_zero', body('fade()'), 'TYPE', 'fade()'], ['arity_two', body('fade(.2,.3)'), 'TYPE', 'fade(.2,.3)'],
+    ['argument_color', body('fade(#fff)'), 'TYPE', 'fade(#fff)'], ['argument_range', body('fade(-.1)'), 'RANGE', 'fade(-.1)'],
+    ['argument_coordinate_interval', body('fade(uv_u)'), 'RANGE', 'fade(uv_u)', profileDefs[1]],
+    ['function_as_value', body('fade'), 'TYPE'],
+    ['capture_uniform', declaration('@uniform amount:float(0,1,.5); @fn fade(t:float(0,1)):float(amount);'), 'TYPE'],
+    ['capture_coordinate', declaration('@fn fade(t:float(0,1)):float(surface_u01);'), 'TYPE'],
+    ['recursion', declaration('@fn fade(t:float(0,1)):float(fade(t));'), 'SYNTAX'],
+    ['earlier_function_call_in_body', declaration('@fn one(t:float(0,1)):float(t); @fn two(v:float(0,1)):float(one(v));'), 'SYNTAX'],
+    ['forward_call', declaration('@fn one(t:float(0,1)):float(two(t)); @fn two(v:float(0,1)):float(v);'), 'SYNTAX'],
+    ['function_after_local', declaration('@let x:float(.5); @fn fade(t:float(0,1)):float(t);'), 'SYNTAX'],
+    ['uniform_after_function', declaration('@fn fade(t:float(0,1)):float(t); @uniform amount:float(0,1,.5);'), 'SYNTAX'],
+    ['duplicate_function', declaration('@fn fade(t:float(0,1)):float(t); @fn fade(v:float(0,1)):float(v);'), 'TYPE'],
+    ['builtin_collision', declaration('@fn sin(t:float(0,1)):float(t);'), 'TYPE'],
+    ['parameter_own_function_shadow', declaration('@fn fade(fade:float(0,1)):float(fade);'), 'TYPE'],
+    ['parameter_uniform_shadow', declaration('@uniform amount:float(0,1,.5); @fn fade(amount:float(0,1)):float(amount);'), 'TYPE'],
+    ['local_function_collision', declaration('@fn fade(t:float(0,1)):float(t); @let fade:float(.5);'), 'TYPE'],
+    ['function_bound_order', declaration('@fn fade(t:float(1,0)):float(t);'), 'RANGE'],
+    ['nonfloat_body', declaration('@fn fade(t:float(0,1)):float(#fff);'), 'TYPE'],
+    ['ninth_definition', declaration(definitions + ' @fn ninth(v:float(0,1)):float(v);'), 'BUDGET'],
+    ['argument_parse_depth', body('fade(' + '('.repeat(18) + '.5' + ')'.repeat(18) + ')'), 'BUDGET'],
+    ['definition_work', declaration(Array.from({ length: 8 }, (_, i) => '@fn f' + i + '(a' + i + ':float(0,1)):float(smoothstep(0,1,a' + i + '));').join(' ')), 'BUDGET'],
+    ['substitution_work', '@shader #negative { @fn grow(t:float(0,1)):float((t+t)*(t+t)+(t+t)*(t+t)); @fragment { color:mix(#000,#fff,clamp(grow(smoothstep(0,1,surface_u01)),0,1)); } }', 'BUDGET'],
+    // A function which ignores its parameter must still charge the complete parsed argument.
+    ['unused_parameter_argument_work', '@shader #negative { @fn unused(t:float(0,1)):float(0); @fragment { color:mix(#000,#fff,unused(' + balancedArgument(7) + ')); } }', 'BUDGET'],
+    // Left-associative addition has deep IR without deep parse nesting; expansion adds the final multiply and outer mix.
+    ['expanded_expression_depth', '@shader #negative { @fn raise(t:float(0,1)):float(t*.5); @fragment { color:mix(#000,#fff,raise(.5' + '+0'.repeat(14) + ')); } }', 'BUDGET'],
+  ];
+  async function retention() { for (const item of retained) { assert.equal(hash(signed(item.ir)), item.digest); for (const file of item.files) assert.equal(hash(await readFile(file.path)), file.sha256); } assert.equal(getters, 0); }
+  for (const [name, source, code, call, p = native] of checks) {
+    const result = gpu[p.compile](source); assert.equal(result.ok, false, name); const diagnostic = result.diagnostics[0]; assert.equal(diagnostic.code, code, name);
+    assert.ok(diagnostic.message.length <= 1024); assert.ok(diagnostic.start >= 0 && diagnostic.end <= source.length && diagnostic.end >= diagnostic.start);
+    if (call) { const start = source.indexOf(call); assert.equal(diagnostic.start, start, name); assert.equal(diagnostic.end, start + 4, name); }
+    const path = resolve(output, provider.label + '.refused.' + name + '.css'); await writeFile(path, source, { flag: 'wx' });
+    failures.push({ name, diagnostic, file: await fileReceipt(path) }); refused++; await retention();
+  }
+  const ir = retained[3].ir, forged = clone(ir); forged.expression.args[2] = { kind: 'float', type: 'float', value: .125 };
+  const getter = clone(ir); Object.defineProperty(getter, 'source', { enumerable: true, get() { getters++; return ir.source; } });
+  const marker = new gpu.MeshMaterialError('UNIFORM', 'caller reflection provenance', 17, 29);
+  for (const [name, input, code, exactCause] of [ ['forged_IR', forged, 'IR'], ['getter0', getter, 'INPUT'],
+    ['raw_same_class_reflection', new Proxy(clone(ir), { ownKeys() { reflections++; throw marker; } }), 'INPUT', marker] ]) {
+    let error; try { gpu.validateNativeSurfaceUV01MaterialIR(input); } catch (cause) { error = cause; }
+    assert.ok(error instanceof gpu.MeshMaterialError, name); assert.equal(error.code, code, name);
+    if (exactCause) { assert.notStrictEqual(error, exactCause); assert.strictEqual(error.cause, exactCause); assert.equal(error.start, 0); assert.equal(error.end, 0); }
+    failures.push({ name, code: error.code, start: error.start, end: error.end, exactReflectionCause: Boolean(exactCause) }); refused++; await retention();
+  }
+  rows.push({ provider: provider.label, admissions, failures, eightIndependentDefinitions: true, zeroWidthInterval: true });
+}
+for (let i = 0; i < 4; i++) { assert.equal(rows[0].admissions[i].expressionSHA, rows[1].admissions[i].expressionSHA); assert.equal(rows[0].admissions[i].loweringSHA, rows[1].admissions[i].loweringSHA); }
+const coldCode = String.raw`
+import assert from 'node:assert/strict';import{readFileSync}from'node:fs';import{pathToFileURL}from'node:url';import{createHash}from'node:crypto';
+assert.equal(Number(process.versions.node.split('.')[0]),22);const cfg=JSON.parse(readFileSync(process.argv[2],'utf8')),hash=v=>createHash('sha256').update(v).digest('hex');
+function signed(v){if(typeof v==='number')return Object.is(v,-0)?'-0':JSON.stringify(v);if(v===null||typeof v!=='object')return JSON.stringify(v);return Array.isArray(v)?'['+v.map(signed).join(',')+']':'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+signed(v[k])).join(',')+'}';}
+const rows=[];for(const provider of cfg.providers){const gpu=await import(pathToFileURL(provider.path).href);assert.deepEqual(Object.keys(gpu).sort(),cfg.namespace);for(const c of cfg.cases.filter(c=>c.provider===provider.label)){for(const f of c.files)assert.equal(hash(readFileSync(f.path)),f.sha256);const p=cfg.profiles.find(p=>p.name===c.profile),source=readFileSync(c.sourcePath,'utf8'),saved=JSON.parse(readFileSync(c.irPath,'utf8')),compiled=gpu[p.compile](source);assert.equal(compiled.ok,true);assert.deepEqual(compiled.material,saved);const reconstructed=gpu[p.validate](saved),lowered=gpu[p.lower](reconstructed);assert.equal(hash(signed(reconstructed.expression)),c.expressionSHA);assert.equal(hash(signed(lowered)),c.loweringSHA);assert.deepEqual(lowered,JSON.parse(readFileSync(c.lowerPath,'utf8')));if(c.profile==='native'){const path=c.files.find(f=>f.path.endsWith('.binding-request.json')).path,input=JSON.parse(readFileSync(path,'utf8'));assert.equal(input.material.source,source);const binding=gpu.prepareNativeSurfaceUV01MaterialBinding(input);assert.deepEqual(binding.material,saved);assert.equal(binding.geometry.uv01.byteLength,648);}else{for(const sample of c.samples){const input={material:saved,uniforms:sample.uniforms,...(c.profile==='mesh'?{}:{uv:[.2,.8]})};assert.deepEqual(gpu.evaluateAuthoredMaterial(input).linearRGB,sample.linearRGB);}}rows.push({provider:provider.label,profile:c.profile,expressionSHA:c.expressionSHA,loweringSHA:c.loweringSHA});}}
+console.log(JSON.stringify({node:process.version,pid:process.pid,ppid:process.ppid,rows,parentPreparedAuthority:false,actualGL:false,nativeEvaluator:false}));
+`;
+const coldPath = resolve(output, 'cold-function-reopen.mjs'), configPath = resolve(output, 'cold-config.json');
+await writeFile(coldPath, coldCode, { flag: 'wx' });
+await writeFile(configPath, JSON.stringify({ providers: providers.map(({ label, path }) => ({ label, path })), namespace, profiles: profileDefs, cases: coldCases }, null, 2) + '\n', { flag: 'wx' });
+const stdout = execFileSync(process.execPath, [coldPath, configPath], { encoding: 'utf8', maxBuffer: 4 * 1024 * 1024 });
+await writeFile(resolve(output, 'cold.stdout'), stdout, { flag: 'wx' }); const cold = JSON.parse(stdout);
+assert.notEqual(cold.pid, process.pid); assert.equal(cold.ppid, process.pid); assert.equal(cold.rows.length, 8);
+for (const item of coldCases) for (const file of item.files) assert.equal(hash(await readFile(file.path)), file.sha256);
+const report = { issue: 1454, stage: 'MATERIAL_PURE_FLOAT_FUNCTION_SOURCE_CPU', parent, node: process.version,
+  namespaceCount: namespace.length, namespace, sourceGraph, accepted, refused, getters, reflections, rows, cold,
+  ordinary: await fileReceipt(ordinary), emitted: await fileReceipt(providers[1].path),
+  declarationCompatibility: { fixedParent: parent, barrelByteExact: true, materialLeafDTSByteExact: true, parentDTSSHA: hash(parentDTS), currentDTSSHA: hash(currentDTS), noNewPublicTypesOrExports: true },
+  actualGL: false, nativeEvaluator: false, linkedShader: false,
+  support: 'Four existing profiles expand bounded one-parameter float functions into unchanged canonical IR; independent manual U/V lowering, supported CPU evaluation, source-native binding, complete files and fresh-process reconstruction. No renderer, vector/noise/texture/layer/condition/loop or publication claim.' };
+const resultPath = resolve(output, 'actual-result.json'); await writeFile(resultPath, JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+console.log(JSON.stringify({ issue: 1454, accepted, refused, getters, reflections, exports: namespace.length, coldRows: cold.rows.length, result: await fileReceipt(resultPath), actualGL: false }));

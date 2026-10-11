@@ -2674,3 +2674,45 @@ It retains the existing single global lighting model; light entities remain #144
 
 One source/emitted/DTS/file/cold flow:
 `node examples/gpu-scene/native-surface-uv01-shader-source-flow.mjs --output /absolute/fresh-directory`.
+
+## Authored pure float material functions
+
+All four existing material compiler profiles accept bounded expression functions:
+
+```css
+@shader #two_axis_ramp {
+  @fn fade(t:float(0,1)):float(t*.5+.25);
+  @let u:float(fade(surface_u01));
+  @fragment { color:mix(mix(#000,#fff,u),#F00,fade(surface_v01)); }
+}
+```
+
+Use native Surface UV01 compilation for this example. Legacy Mesh and generic
+EngineUV/repeating profiles retain their own coordinate and builtin limits.
+Uniforms precede functions, functions precede locals, and the fragment follows.
+At most eight functions each declare one float parameter with finite ordered
+bounds within ±1000 and return one float expression. Names have 1..32 ASCII
+characters. Argument intervals must fit the declared bounds; no implicit clamp
+is applied. Function/type/builtin/coordinate/uniform names cannot collide.
+
+Bodies can use their parameter, literals and the profile's existing builtins.
+They cannot capture uniforms, locals or coordinates, call authored functions,
+recurse or change state. Calls in locals/fragment can nest within existing work
+and depth limits. There are no defaults, named arguments, multiple parameters,
+color/vector returns, unit declarations, blocks or imported code in this stage.
+
+Original source and UTF16 ranges are retained. Definitions and calls expand into
+the existing canonical expression IR; no parameter uniform, runtime function,
+new IR node, public export, profile or schema version is emitted. Existing
+256-node work includes unused definitions, argument parsing, body expansion and
+EVERY full argument subtree substituted for a parameter reference. Depth16,
+source64KiB, tokens4096, uniforms16 and locals16 remain unchanged. Definition
+errors point to original body tokens; arity/type/argument-range errors point to
+the call name. Refusal does not mutate caller data or previously authored files.
+
+Compilation, reconstruction, trusted lowering and existing supported evaluator
+profiles remain CPU stages. Native shader linkage, UV attributes, rendered
+pixels, file/editor adoption and publication require their separate receipts.
+
+One source/emitted/file/cold flow:
+`node examples/gpu-scene/material-pure-float-function-flow.mjs --output /absolute/fresh-directory`.
