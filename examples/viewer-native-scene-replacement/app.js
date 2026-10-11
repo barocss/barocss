@@ -15,6 +15,7 @@ import {querySelectedNativeCurveLength,NATIVE_CURVE_LENGTH_OPTIONS} from './sele
 import {querySelectedNativeSurfaceArea,NATIVE_SURFACE_AREA_OPTIONS} from './selected-native-area.js';
 import {createNativePointerNavigation} from './pointer-navigation.js';
 import {measureCapturedNativeChord,isCapturedNativeChordPointCurrent} from './captured-native-chord.js';
+import {measureCapturedNativeAngle} from './captured-native-angle.js';
 import {prepareNativeSourceDownload,createNativeSourceDownload} from './native-source-download.js';
 import {buildMountedAppearanceInput,MOUNTED_APPEARANCE_SHADER_SOURCES,MOUNTED_APPEARANCE_LIGHT_PRESETS} from './mounted-appearance.js';
 
@@ -49,6 +50,8 @@ const selectedSurfaceAreaOutput=document.querySelector('#selected-native-surface
 const selectedCurveLengthPane=document.querySelector('#selected-native-curve-length-pane'),selectedCurveLengthTarget=document.querySelector('#selected-native-curve-length-target');
 const inspectSelectedCurveLengthButton=document.querySelector('#inspect-selected-native-curve-length'),resetSelectedCurveLengthButton=document.querySelector('#reset-selected-native-curve-length');
 const selectedCurveLengthOutput=document.querySelector('#selected-native-curve-length-output'),selectedCurveLengthDetails=document.querySelector('#selected-native-curve-length-details');
+const nativeAnglePane=document.querySelector('#native-angle-pane'),nativeAngleOutput=document.querySelector('#native-angle-output'),nativeAngleDetails=document.querySelector('#native-angle-details');
+const captureAngleButton=document.querySelector('#capture-native-angle-point'),resetAngleButton=document.querySelector('#reset-native-angle');
 const nativeChordPane=document.querySelector('#native-chord-pane'),nativeChordOutput=document.querySelector('#native-chord-output'),nativeChordDetails=document.querySelector('#native-chord-details');
 const captureChordButton=document.querySelector('#capture-native-chord-point'),resetChordButton=document.querySelector('#reset-native-chord');
 const buttons=Object.fromEntries(['replacement','fit-replacement','document','native','native-replacement','show-all','hide-all','fit','saved-view','query','clear','run-proof','lose-context','dispose']
@@ -83,6 +86,7 @@ let nativeObjectSelectionEnabled=false,nativeObjectSelectionEligible=false,nativ
 let nativeObjectTap=null,nativeObjectSourceEpoch=0,nativeObjectFeedbackFrame=null,nativeObjectSelectionLastError=null,nativeObjectSelectionErrorCount=0;
 let nativeSelectedFitEligible=false,nativeSelectedFitDisposed=false,nativeSelectedFitStatus='empty',nativeSelectedFitPin=null,nativeSelectedFitLastError=null,nativeSelectedFitErrorCount=0;
 let selectedPointScope=null,selectedPointReport=null,selectedPointEpoch=0,selectedPointDisposed=false;
+let nativeAngleFirst=null,nativeAngleVertex=null,nativeAngleReport=null,nativeAngleEpoch=0,nativeAngleDisposed=false;
 let nativeChordFirst=null,nativeChordReport=null,nativeChordEpoch=0,nativeChordDisposed=false;
 let selectedSurfaceAreaScope=null,selectedSurfaceAreaReport=null,selectedSurfaceAreaEpoch=0,selectedSurfaceAreaDisposed=false;
 let selectedCurveLengthScope=null,selectedCurveLengthReport=null,selectedCurveLengthEpoch=0,selectedCurveLengthDisposed=false;
@@ -151,7 +155,7 @@ function discardIGESFile(){check(igesFileOpen&&!disposed&&!running,'IGES file ch
   igesFileOpen.discard();igesFileChoice.value='';display('IGES choice discarded. Accepted geometry and provenance are unchanged.');return igesFileSnapshot();}
 function invalidateIGESFile(){if(!disposed)igesFileOpen?.invalidate();return igesFileSnapshot();}
 function invalidateFileIntents(){invalidateNativeFile();invalidateIGESFile();}
-function sourceAction(callback){invalidateFileIntents();try{const value=callback();invalidateNativeObjectSelection();invalidateNativeNavigation();nativeFileOpen?.clearAccepted();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();clearSelectedCurveLengthContext();clearSelectedSurfaceAreaContext();inspection.textContent='';render();return value;}catch(error){render();throw error;}}
+function sourceAction(callback){invalidateFileIntents();try{const value=callback();invalidateNativeObjectSelection();invalidateNativeNavigation();nativeFileOpen?.clearAccepted();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();clearSelectedCurveLengthContext();clearSelectedSurfaceAreaContext();clearNativeAngle();inspection.textContent='';render();return value;}catch(error){render();throw error;}}
 function commitReplacement(candidate){uploads.length=0;draws.length=0;viewer.replaceNativeScene(candidate);return viewer.getState();}
 function replace(candidate){return sourceAction(()=>commitReplacement(candidate===undefined?buildCandidate():candidate));}
 function nativeSourceDownloadSnapshot(){return nativeSourceDownload?clone(nativeSourceDownload.snapshot()):{version:0,pending:false,disposed,enabled:false,report:null,error:null,activeUrls:0,activeAnchors:0,activeTimers:0};}
@@ -430,6 +434,85 @@ function disposeSelectedNativeSurfaceArea(){
   inspectSelectedSurfaceAreaButton.disabled=true;resetSelectedSurfaceAreaButton.disabled=true;selectedSurfaceAreaTarget.textContent='';
   return selectedNativeSurfaceAreaSnapshot();
 }
+function nativeAngleSnapshot(){
+  check(arguments.length===0,'Native angle snapshot takes no arguments.');
+  return clone({version:0,phase:nativeAngleReport?'complete':nativeAngleVertex?'vertex':nativeAngleFirst?'first':'empty',
+    first:nativeAngleFirst,vertex:nativeAngleVertex,report:nativeAngleReport,enabled:!captureAngleButton.disabled,
+    disposed:nativeAngleDisposed,output:nativeAngleOutput.textContent});
+}
+function clearNativeAngle(){
+  nativeAngleEpoch++;nativeAngleFirst=null;nativeAngleVertex=null;nativeAngleReport=null;
+  nativeAngleOutput.textContent='';nativeAngleDetails.textContent='';
+}
+function nativeAnglePointsCurrent(first,vertex,report){
+  for(const point of [first,vertex,report?.third]){
+    if(nativeAngleDisposed||disposed)return false;
+    if(point&&!isCapturedNativeChordPointCurrent(viewer,point))return false;
+  }
+  return!nativeAngleDisposed&&!disposed;
+}
+function updateNativeAngleControls(){
+  captureAngleButton.disabled=nativeAngleDisposed||disposed||running||!selectedPointScope;
+  resetAngleButton.disabled=nativeAngleDisposed||disposed||running||!nativeAngleFirst;
+  if(nativeAngleDisposed||disposed)return;
+  const epoch=nativeAngleEpoch,selectionEpoch=selectedPointEpoch,pin=clone(selectedPointScope);
+  const connected=event=>{check(!nativeAngleDisposed&&!disposed,'Native angle host is disposed.');
+    check(event.currentTarget?.isConnected&&nativeAnglePane.contains(event.currentTarget),'This native angle control is detached.');
+    check(epoch===nativeAngleEpoch,'This native angle control is stale.');};
+  captureAngleButton.onclick=event=>{try{connected(event);check(selectionEpoch===selectedPointEpoch&&same(pin,selectedPointScope),
+    'Current native angle input selection changed.');captureNativeAnglePoint();}catch(error){display(error instanceof Error?error.message:String(error));}};
+  resetAngleButton.onclick=event=>{try{connected(event);resetNativeAngle();}catch(error){display(error instanceof Error?error.message:String(error));}};
+}
+function renderNativeAngle(){
+  if(nativeAngleDisposed||disposed){captureAngleButton.disabled=true;resetAngleButton.disabled=true;return;}
+  if(nativeAngleFirst){let current=false;try{current=nativeAnglePointsCurrent(nativeAngleFirst,nativeAngleVertex,nativeAngleReport);}catch{}
+    if(!current)clearNativeAngle();}
+  updateNativeAngleControls();
+}
+function captureNativeAnglePoint(){
+  check(arguments.length<=1,'Native angle capture accepts one explicit parameter record.');
+  check(!nativeAngleDisposed&&!disposed&&!running,'Native angle capture needs an idle live host.');
+  check(selectedPointScope,'A current original native geometry must be selected for capture.');
+  const expected=clone(selectedPointScope),selectionEpoch=selectedPointEpoch,epoch=nativeAngleEpoch;
+  const first=clone(nativeAngleFirst),vertex=clone(nativeAngleVertex),prior=clone(nativeAngleReport);
+  const input=arguments.length?arguments[0]:expected.ref.kind==='surface'
+    ?{u:pointDraft(selectedPointInputs.u,'U'),v:pointDraft(selectedPointInputs.v,'V')}:{t:pointDraft(selectedPointInputs.t,'t')};
+  const localGuard=()=>check(!nativeAngleDisposed&&!disposed&&!running&&epoch===nativeAngleEpoch
+    &&selectionEpoch===selectedPointEpoch&&same(expected,selectedPointScope),'Current native angle capture context changed.');
+  localGuard();check(nativeAnglePointsCurrent(first,vertex,prior),'Stored original native angle points are stale.');localGuard();
+  const point=querySelectedNativePoint(viewer,expected,input);
+  const currentGuard=()=>{localGuard();const current=pointExpected(readNativePointScope(viewer));localGuard();
+    check(same(current,expected),'Current selected original point changed before angle adoption.');};
+  currentGuard();
+  let nextFirst=first,nextVertex=vertex,nextReport=null,output,technical,statusMessage;
+  if(first&&!prior){
+    if(vertex){const candidate=measureCapturedNativeAngle(viewer,first,vertex,point);currentGuard();
+      nextReport=clone(candidate);output='Unsigned native point angle at the vertex: '+Number(candidate.angleDegrees.toPrecision(12))+' degrees';
+      technical=JSON.stringify(nextReport,null,2);statusMessage='Captured original native three-point angle ready.';
+    }else{measureCapturedNativeAngle(viewer,first,point,first);currentGuard();
+      nextVertex=clone(point);output='Vertex captured. Choose the third original native point.';
+      technical=JSON.stringify({first,vertex:nextVertex},null,2);statusMessage='Native vertex captured. Choose the third point.';}
+  }else{nextFirst=clone(point);nextVertex=null;
+    const id=point.scope.ref.kind==='surface'?point.scope.ref.surfaceId:point.scope.ref.curveId;
+    output='First native point: '+id+' · '+JSON.stringify(point.parameters)+'. Choose the original vertex next.';
+    technical=JSON.stringify({first:nextFirst},null,2);statusMessage='First native angle point captured. Choose the vertex.';}
+  currentGuard();
+  nativeAngleFirst=nextFirst;nativeAngleVertex=nextVertex;nativeAngleReport=nextReport;nativeAngleEpoch++;
+  nativeAngleOutput.textContent=output;nativeAngleDetails.textContent=technical;updateNativeAngleControls();display(statusMessage);
+  return nativeAngleSnapshot();
+}
+function resetNativeAngle(){
+  check(arguments.length===0,'Reset angle points takes no arguments.');
+  check(!nativeAngleDisposed&&!disposed&&!running,'Native angle host is disposed or busy.');
+  clearNativeAngle();updateNativeAngleControls();display('Angle points reset. Selection, drafts, other reports, SDK measurements and File choices remain.');
+  return nativeAngleSnapshot();
+}
+function disposeNativeAngle(){
+  check(arguments.length===0,'Native angle disposal takes no arguments.');
+  if(nativeAngleDisposed)return nativeAngleSnapshot();
+  nativeAngleDisposed=true;clearNativeAngle();captureAngleButton.onclick=null;resetAngleButton.onclick=null;
+  captureAngleButton.disabled=true;resetAngleButton.disabled=true;return nativeAngleSnapshot();
+}
 function nativeChordSnapshot(){return clone({version:0,phase:nativeChordReport?'complete':nativeChordFirst?'first':'empty',
   first:nativeChordFirst,report:nativeChordReport,enabled:!captureChordButton.disabled,disposed:nativeChordDisposed,output:nativeChordOutput.textContent});}
 function clearNativeChord(){nativeChordEpoch++;nativeChordFirst=null;nativeChordReport=null;nativeChordOutput.textContent='';nativeChordDetails.textContent='';}
@@ -510,11 +593,11 @@ function setNativeNavigationEnabled(value){
 }
 function refreshNativeNavigationView(){
   if(nativeNavigationDisposed||disposed||running)return;
-  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshSelectedNativeSurfaceArea();renderNativeChord();syncNativeNavigation();syncNativeObjectSelection();syncNativeSelectedFit();display('Native view moved.');
+  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();syncNativeNavigation();syncNativeObjectSelection();syncNativeSelectedFit();display('Native view moved.');
 }
 function reportNativeNavigationError(error){
   if(nativeNavigationDisposed||disposed)return;
-  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshSelectedNativeSurfaceArea();renderNativeChord();}
+  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();}
   syncNativeNavigation();syncNativeObjectSelection();syncNativeSelectedFit();display(error instanceof Error?error.message:String(error));
 }
 function nativeKeyboardSnapshot(){
@@ -561,7 +644,7 @@ function nativeKeyboardGuard(event){
 function reportNativeKeyboardError(error){
   if(nativeKeyboardPending)nativeKeyboardPending.failed=true;
   if(nativeKeyboardDisposed||disposed)return;
-  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshSelectedNativeSurfaceArea();renderNativeChord();}
+  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();}
   syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();display(error instanceof Error?error.message:String(error));
 }
 function nativeKeyboardObserver(event){
@@ -569,7 +652,7 @@ function nativeKeyboardObserver(event){
   if(nativeKeyboardDisposed||disposed||pending.failed||!event.defaultPrevented)return;
   try{
     if(event.key==='Escape'){
-      refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshSelectedNativeSurfaceArea();renderNativeChord();syncNativeNavigation();
+      refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();syncNativeNavigation();
       for(const button of list.querySelectorAll('button[aria-pressed]'))button.setAttribute('aria-pressed','false');
       syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();display('Native selection cleared. Captured chord and SDK measurements remain.');
     }else{refreshNativeNavigationView();syncNativeKeyboard();display('Visible native display geometry fitted.');}
@@ -605,7 +688,7 @@ function syncNativeSelectedFit(){
 }
 function refreshNativeSelectedFitControls(){
   if(nativeSelectedFitDisposed||disposed)return;
-  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshSelectedNativeSurfaceArea();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
+  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
 }
 function reportNativeSelectedFitError(error){
   nativeSelectedFitLastError=error;nativeSelectedFitErrorCount++;
@@ -719,7 +802,7 @@ function nativeObjectLostCapture(event){if(nativeObjectTap?.phase==='pressed'&&n
 function reportNativeObjectSelectionError(error){
   if(nativeObjectSelectionDisposed||disposed)return;
   nativeObjectSelectionLastError=error;nativeObjectSelectionErrorCount++;
-  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshSelectedNativeSurfaceArea();renderNativeChord();}
+  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();}
   syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();display(error instanceof Error?error.message:String(error));
 }
 function nativeObjectSelectionClick(event){
@@ -743,7 +826,7 @@ function nativeObjectSelectionClick(event){
     const acceptedFrame=readNativeObjectSelectionFrame();
     check(tap.epoch===nativeObjectSourceEpoch&&same(expected,acceptedFrame),
       'POSTCOMMIT: Native source or view changed after selection; accepted selection is not rolled back.');
-    refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshSelectedNativeSurfaceArea();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
+    refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
     const selected=viewer.getState().selectedGeometry;
     for(const row of list.children){const button=row.querySelector('button[aria-pressed]'),identity=row.querySelector('small');
       if(button&&identity){const value=JSON.parse(identity.textContent);button.setAttribute('aria-pressed',String(!!selected&&same(selected,value)));}}
@@ -764,7 +847,7 @@ function disposeNativeObjectSelection(){
 function render(){const state=viewer.getState(),live=!disposed&&state.status!=='context-lost',ready=live&&state.status==='ready';
   const acceptedIGES=igesFileOpen?.snapshot().accepted,importCurrent=matchingIGES(state,acceptedIGES);
   let nativePointScope=null;if(!selectedPointDisposed&&!disposed)try{nativePointScope=readNativePointScope(viewer);}catch{}
-  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshSelectedNativeSurfaceArea();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
+  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();refreshSelectedNativeCurveLength();refreshSelectedNativeSurfaceArea();renderNativeAngle();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();syncNativeObjectSelection();syncNativeSelectedFit();
   for(const[id,button]of Object.entries(buttons))button.disabled=id==='dispose'?disposed:!live||running;
   buttons.fit.disabled=!ready||running||!state.visibleGeometry.length;buttons.query.disabled=disposed||running||!state.curves.length||(!live&&!importCurrent);
   list.replaceChildren(...inventory().map(body=>{const item=document.createElement('li'),label=document.createElement('label'),checkbox=document.createElement('input');
@@ -876,17 +959,17 @@ async function runProof(){invalidateFileIntents();if(running||disposed||viewer.g
     documentBytes:manifest[0]?.bytes,contextCount:contexts.size,resources:resourceCounts(),limits:result.scope});
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}
   return result;}
-function dispose(){if(disposed)return;disposeSelectedNativeSurfaceArea();disposeSelectedNativeCurveLength();disposeNativeSelectedFit();disposeNativeObjectSelection();disposeNativeKeyboard();nativeNavigationDisposed=true;nativeNavigation?.dispose();selectedDerivativesDisposed=true;clearSelectedDerivativesContext();nativeChordDisposed=true;clearNativeChord();selectedPointDisposed=true;clearSelectedPointContext();igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
+function dispose(){if(disposed)return;disposeNativeAngle();disposeSelectedNativeSurfaceArea();disposeSelectedNativeCurveLength();disposeNativeSelectedFit();disposeNativeObjectSelection();disposeNativeKeyboard();nativeNavigationDisposed=true;nativeNavigation?.dispose();selectedDerivativesDisposed=true;clearSelectedDerivativesContext();nativeChordDisposed=true;clearNativeChord();selectedPointDisposed=true;clearSelectedPointContext();igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
   contextCount:contexts.size,errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display(receipt);return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=await(await fetch('/document.cad-document.json')).arrayBuffer();
   check(bytes.byteLength===manifest[0].bytes&&await sha(bytes)===manifest[0].sha256,'Unchanged original document bytes/hash differ');originalBytes=new Uint8Array(bytes);originalText=new TextDecoder().decode(bytes);
   documentResult=await loadBaroCadDocument(new URL('/document.cad-document.json',location.href).href);
   projection=prepareBaroCadDocumentPrimitiveNativeRefsV2(documentResult,documentOptions);for(const asset of documentResult.document.assets)sources[asset.id]=asset.source;
   viewer=createViewer(canvas,{mmToSceneUnit,background:[.035,.065,.105]});nativeFileOpen=createNativeFileOpen(viewer,{
-    onChange:snapshot=>renderNativeFileControls(snapshot),onAccepted:accepted=>{invalidateNativeObjectSelection();invalidateNativeNavigation();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();clearSelectedCurveLengthContext();clearSelectedSurfaceAreaContext();inspection.textContent='';render();display('Opened original source '+accepted.name+'.');},
+    onChange:snapshot=>renderNativeFileControls(snapshot),onAccepted:accepted=>{invalidateNativeObjectSelection();invalidateNativeNavigation();igesFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();clearSelectedCurveLengthContext();clearSelectedSurfaceAreaContext();clearNativeAngle();inspection.textContent='';render();display('Opened original source '+accepted.name+'.');},
     onError:error=>{render();display(error instanceof Error?error.message:String(error));}});
   igesFileOpen=createIGESFileOpen(viewer,{onChange:snapshot=>renderIGESFileControls(snapshot),
-    onAccepted:accepted=>{invalidateNativeObjectSelection();invalidateNativeNavigation();nativeFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();clearSelectedCurveLengthContext();clearSelectedSurfaceAreaContext();inspection.textContent='';render();display('Opened IGES geometry '+accepted.name+'.');},
+    onAccepted:accepted=>{invalidateNativeObjectSelection();invalidateNativeNavigation();nativeFileOpen?.clearAccepted();clearNativeChord();clearSelectedDerivativesContext();clearSelectedCurveLengthContext();clearSelectedSurfaceAreaContext();clearNativeAngle();inspection.textContent='';render();display('Opened IGES geometry '+accepted.name+'.');},
     onError:error=>{render();display(error instanceof Error?error.message:String(error));}});
   nativeSourceDownload=createNativeSourceDownload(viewer,canvas,{getAcceptedFile:()=>nativeFileSnapshot().accepted,
     onChange:snapshot=>renderNativeSourceDownloadControls(snapshot),onError:error=>display(error instanceof Error?error.message:String(error))});
@@ -902,6 +985,7 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=awa
     querySelectedNativeSurfaceArea,NATIVE_SURFACE_AREA_OPTIONS,inspectSelectedNativeSurfaceArea,resetSelectedNativeSurfaceArea,selectedNativeSurfaceAreaSnapshot,disposeSelectedNativeSurfaceArea,
     querySelectedNativeCurveLength,NATIVE_CURVE_LENGTH_OPTIONS,inspectSelectedNativeCurveLength,resetSelectedNativeCurveLength,selectedNativeCurveLengthSnapshot,disposeSelectedNativeCurveLength,
     querySelectedNativeDerivatives,inspectSelectedNativeDerivatives,resetSelectedNativeDerivatives,selectedNativeDerivativesSnapshot,evaluateCurveD1,evaluateSurfaceD1,
+    measureCapturedNativeAngle,captureNativeAnglePoint,resetNativeAngle,nativeAngleSnapshot,disposeNativeAngle,
     measureCapturedNativeChord,isCapturedNativeChordPointCurrent,captureNativeChordPoint,resetNativeChord,nativeChordSnapshot,
     readNativePointScope,querySelectedNativePoint,inspectSelectedNativePoint,resetSelectedNativePoint,selectedNativePointSnapshot,surfaceDomain,
     readIGESFile,createIGESFileOpen,importIGES,validateIGESImport,stageIGESFile,openIGESFile,discardIGESFile,invalidateIGESFile,igesFileSnapshot,
