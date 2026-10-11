@@ -30,3 +30,5 @@ export type { CadEditorCurveIntervalField } from './types.js';
 export { createCadEditorSplitSession } from './split-session.js';
 export type { CadEditorSplitSessionOptions, CadEditorSplitPresentation, CadEditorSplitPending,
   CadEditorSplitCandidate, CadEditorSplitSnapshot, CadEditorSplitDownload, CadEditorSplitSession } from './split-types.js';
+
+export type { CadEditorSurfaceIsoCurveAxis, CadEditorSurfaceIsoCurveCreation } from './types.js';

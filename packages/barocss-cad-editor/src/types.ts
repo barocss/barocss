@@ -4,7 +4,7 @@ import type {
   CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, SurfacePoleEditProvenance,
   CadCurveArcLengthOptions, CadCurveArcLengthResult,
   CurveCurvatureResult, CurveD2Result, CurvePoleEditProvenance, SurfaceCurvatureResult, SurfaceD2Result,
-  AffineGeometryTransformReport, SourceCurveIntervalExtractionResult, SourceSurfaceKnotInsertionResult, SourceCurveKnotInsertionResult,
+  AffineGeometryTransformReport, SourceCurveIntervalExtractionResult, SourceSurfaceKnotInsertionResult, SourceCurveKnotInsertionResult, SurfaceIsoCurveResult,
 } from '@barocss/cad';
 
 export type CadEditorExportCapability = CadDocumentExportCapability;
@@ -46,7 +46,14 @@ export class CadEditorError extends Error {
 export type CadEditorPoleField = 'xMM' | 'yMM' | 'zMM' | 'weight';
 export type CadEditorBodyTranslationField = Exclude<CadEditorPoleField, 'weight'>;
 export type CadEditorCurveIntervalField = 'min' | 'max';
-export type CadEditorDraftField = CadEditorPoleField | 'angleDegrees' | 'scaleFactor' | 'intervalMin' | 'intervalMax' | 'surfaceKnotU' | 'surfaceKnotV' | 'curveKnot';
+export type CadEditorSurfaceIsoCurveAxis = 'u' | 'v';
+export interface CadEditorSurfaceIsoCurveCreation {
+  sourceReference: CadGeometryReferenceV0;
+  assetId: string;
+  bodyId: string;
+  result: SurfaceIsoCurveResult;
+}
+export type CadEditorDraftField = CadEditorPoleField | 'angleDegrees' | 'scaleFactor' | 'intervalMin' | 'intervalMax' | 'surfaceKnotU' | 'surfaceKnotV' | 'curveKnot' | 'surfaceIsoU' | 'surfaceIsoV';
 export type CadEditorEditTarget = 'pole' | 'object' | 'rotation' | 'scale';
 export type CadEditorRotationAxis = 'x' | 'y' | 'z';
 export type CadEditorScaleAxis = 'uniform' | 'x' | 'y' | 'z';
@@ -95,12 +102,13 @@ export interface CadEditorSelectedPole extends CadEditorSurfaceSelection {
 }
 export interface CadEditorCandidate {
   token: string; baseGeneration: number; baseDisplayGeneration: number;
-  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'rename' | 'duplicate' | 'curve-interval' | 'surface-knot' | 'curve-knot';
+  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'rename' | 'duplicate' | 'curve-interval' | 'surface-knot' | 'curve-knot' | 'surface-isocurve';
   selectionTarget?: CadEditorSelectionTarget | null;
   presentation?: 'structural';
   curveInterval?: SourceCurveIntervalExtractionResult;
   curveKnot?: SourceCurveKnotInsertionResult;
   clearCurvePoleSelection?: true;
+  surfaceIsoCurve?: CadEditorSurfaceIsoCurveCreation;
   surfaceKnot?: SourceSurfaceKnotInsertionResult;
   clearSurfacePoleSelection?: true;
   displayBodyIds: string[];
@@ -144,6 +152,7 @@ export interface CadEditorSnapshot {
   lastCurveInterval: SourceCurveIntervalExtractionResult | null;
   lastSurfaceKnot: SourceSurfaceKnotInsertionResult | null;
   lastCurveKnot: SourceCurveKnotInsertionResult | null;
+  lastSurfaceIsoCurve: CadEditorSurfaceIsoCurveCreation | null;
 }
 export interface CadEditorDownload { token: string; text: string; suggestedFilename: string }
 export interface CadEditorSession {
@@ -171,6 +180,7 @@ export interface CadEditorSession {
   stageCurvePoleField(field: CadEditorPoleField, rawText: string): void;
   stageCurveIntervalField(field: CadEditorCurveIntervalField, rawText: string): void;
   stageSurfaceKnotField(axis: 'u' | 'v', rawText: string): void;
+  stageSurfaceIsoCurveField(axis: CadEditorSurfaceIsoCurveAxis, rawText: string): void;
   stageCurveKnotField(rawText: string): void;
   discardPending(): void;
   prepareApply(): CadEditorCandidate | null;

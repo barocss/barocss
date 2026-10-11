@@ -21,6 +21,8 @@ import { SurfaceKnotHandles } from './surface-knot-handles.js';
 import { useCurveKnot, curveKnotCurve } from './curve-knot.js';
 import { CurveKnotHandles } from './curve-knot-handles.js';
 import { resolveCurveControlPresentation, type CurveControlPresentation } from './curve-control-presentation.js';
+import { SurfaceIsoCurveHandles } from './surface-isocurve-handles.js';
+import { useSurfaceIsoCurve } from './surface-isocurve.js';
 
 interface MountedViewer {
   session: CadEditorSession;
@@ -142,6 +144,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
   const interval = useCurveInterval();
   const knot = useSurfaceKnot();
   const curveKnot = useCurveKnot();
+  const isoCurve = useSurfaceIsoCurve();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mountedRef = useRef<MountedViewer | null>(null);
   const propsRef = useRef(props);
@@ -216,6 +219,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     if (interval?.active) interval.noteError(error);
     if (knot?.active) knot.noteError(error);
     if (curveKnot?.isActive()) curveKnot.noteError(error);
+    if (isoCurve?.isActive()) isoCurve.noteError(error);
     try { propsRef.current.onError?.(error); } catch { /* Host callbacks do not change admission. */ }
   }
 
@@ -866,12 +870,21 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
         && canvas.width === frame.width && canvas.height === frame.height;
     } catch { return false; }
   }
+  function isCurrentIsoSurface(receipt?: CadEditorDisplayReceipt) {
+    try {
+      if (!isCurrentSurface()) return false;
+      const mounted = mountedRef.current, canvas = canvasRef.current, frame = receipt ?? documentReceipt;
+      return !!mounted && !!canvas && !!frame && sameOptions(mounted.viewer.getState(), frame.state)
+        && canvas.width === frame.width && canvas.height === frame.height;
+    } catch { return false; }
+  }
+  if (isoCurve?.session === session) isoCurve.viewport.current = { canvas: canvasRef.current, receipt: documentReceipt, isCurrentSurface: isCurrentIsoSurface };
   if (interval?.session === session) interval.viewport.current = { canvas: canvasRef.current, documentReceipt, focusReceipt: focusedReceipt, isCurrentCurve: isCurrentIntervalCurve };
   const camera = focusedReceipt?.state.camera ?? documentReceipt?.state.camera;
   const viewBusy=!ready||viewportCaptured||axisGestureActive||snapshot.disposed||snapshot.candidate!==null||snapshot.selectionTransition!==null||Object.keys(snapshot.pending).length>0;
   return <div ref={viewportRef} className={cn('cad-editor-viewport', className)} data-viewer-ready={ready}
     onKeyDownCapture={event=>{const target=event.target;
-      if(axisGestureRef.current&&(session.getSnapshot().curveSelection!==null||curveKnot?.gesture.current)&&event.key!=='Escape'
+      if(axisGestureRef.current&&(session.getSnapshot().curveSelection!==null||curveKnot?.gesture.current||isoCurve?.gesture.current)&&event.key!=='Escape'
         &&!event.nativeEvent.isComposing&&event.keyCode!==229&&!(target instanceof Element&&target.closest('input,textarea,select,[contenteditable]'))){
         event.preventDefault();event.stopPropagation();
       }}}
@@ -899,22 +912,24 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     {snapshot.view.kind === 'document' && <SelectionIsolation session={session} canvas={canvasRef.current}
       receipt={ready ? documentReceipt : null} isCurrentDocument={isCurrentDocument} busy={viewBusy}
       onError={error => report(error, 'Changing document visibility failed')} />}
-    {!interval?.active && !knot?.active && !curveKnot?.active && <SurfacePoleHandles session={session} receipt={ready?documentReceipt:null} canvas={canvasRef.current} onError={error=>report(error,'Surface point gesture failed')} />}
-    {!interval?.active && !knot?.active && !curveKnot?.active && <PoleAxisGizmo session={session} documentReceipt={ready?documentReceipt:null} curveReceipt={ready?focusedReceipt:null} canvas={canvasRef.current}
+    {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && <SurfacePoleHandles session={session} receipt={ready?documentReceipt:null} canvas={canvasRef.current} onError={error=>report(error,'Surface point gesture failed')} />}
+    {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && <PoleAxisGizmo session={session} documentReceipt={ready?documentReceipt:null} curveReceipt={ready?focusedReceipt:null} canvas={canvasRef.current}
       isCurrentCurvePresentation={isCurrentCurvePresentation}
       onGestureChange={active=>{axisGestureRef.current=active;setAxisGestureActive(active);}}
       onError={error=>report(error,'Axis point gesture failed')}/>}
     {focusedReceipt&&<p className="cad-editor-curve-view-label" data-testid="curve-view-label">Curve focus · {focusedReceipt.bodyName}<span>Other objects remain in document view.</span></p>}
-    {!interval?.active && !knot?.active && !curveKnot?.active && <CurvePoleHandles session={session} receipt={ready?focusedReceipt:null} documentReceipt={ready?documentReceipt:null}
+    {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && <CurvePoleHandles session={session} receipt={ready?focusedReceipt:null} documentReceipt={ready?documentReceipt:null}
       canvas={canvasRef.current} isCurrentPresentation={isCurrentCurvePresentation}
       onGestureChange={active=>{axisGestureRef.current=active;setAxisGestureActive(active);}} onError={error => report(error, 'Curve point gesture failed')} />}
-    {!curveKnot?.active && <SurfaceKnotHandles session={session} receipt={ready ? documentReceipt : null} canvas={canvasRef.current} isCurrentSurface={isCurrentSurface}
+    {!curveKnot?.active && !isoCurve?.active && <SurfaceKnotHandles session={session} receipt={ready ? documentReceipt : null} canvas={canvasRef.current} isCurrentSurface={isCurrentSurface}
       onError={error => report(error, 'Surface knot gesture failed')} onGestureChange={active => { axisGestureRef.current = active; setAxisGestureActive(active); }} />}
-    {!curveKnot?.active && <CurveIntervalHandles session={session} documentReceipt={ready ? documentReceipt : null} focusReceipt={ready ? focusedReceipt : null} canvas={canvasRef.current} isCurrentCurve={isCurrentIntervalCurve}
+    {!curveKnot?.active && !isoCurve?.active && <CurveIntervalHandles session={session} documentReceipt={ready ? documentReceipt : null} focusReceipt={ready ? focusedReceipt : null} canvas={canvasRef.current} isCurrentCurve={isCurrentIntervalCurve}
       onError={error => report(error, 'Curve interval gesture failed')} onGestureChange={active => { axisGestureRef.current = active; setAxisGestureActive(active); }} />}
-    <CurveKnotHandles session={session} documentReceipt={ready ? documentReceipt : null} focusReceipt={ready ? focusedReceipt : null}
+    {!isoCurve?.active && <CurveKnotHandles session={session} documentReceipt={ready ? documentReceipt : null} focusReceipt={ready ? focusedReceipt : null}
       canvas={canvasRef.current} isCurrentCurve={isCurrentKnotCurve} onError={error => report(error, 'Curve knot gesture failed')}
-      onGestureChange={active => { axisGestureRef.current = active; setAxisGestureActive(active); }} />
+      onGestureChange={active => { axisGestureRef.current = active; setAxisGestureActive(active); }} />}
+    <SurfaceIsoCurveHandles session={session} receipt={ready ? documentReceipt : null} canvas={canvasRef.current} isCurrentSurface={isCurrentIsoSurface}
+      onError={error => report(error, 'Surface iso-Curve gesture failed')} onGestureChange={active => { axisGestureRef.current = active; setAxisGestureActive(active); }} />
     {errorMessage && <p className="cad-editor-error" role="alert">{errorMessage}</p>}
   </div>;
 }

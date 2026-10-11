@@ -17,9 +17,10 @@ import { duplicateBodySourceDocument } from './body-duplicate.js';
 import { extractCurveIntervalSource } from './curve-interval.js';
 import { insertSurfaceKnotSource } from './surface-knot.js';
 import { insertCurveKnotSource } from './curve-knot.js';
+import { appendSurfaceIsoCurveSource } from './surface-isocurve.js';
 import type {
   CadEditorCandidate, CadEditorDiagnosticCode, CadEditorPoleField, CadEditorSelectedPole, CadEditorSelectedCurvePole, CadEditorView,
-  CadEditorEditTarget, CadEditorBodyTranslationField, CadEditorRotationAxis, CadEditorScaleAxis,
+  CadEditorEditTarget, CadEditorBodyTranslationField, CadEditorRotationAxis, CadEditorScaleAxis, CadEditorSurfaceIsoCurveAxis, CadEditorSurfaceIsoCurveCreation,
   CadEditorSelectionTarget, CadEditorSelectionTransition, CadEditorSession, CadEditorSessionOptions, CadEditorSnapshot, CadEditorSurfaceSelection,
 } from './types.js';
 
@@ -194,6 +195,12 @@ interface Presentation {
   editTarget: CadEditorEditTarget; rotationAxis: CadEditorRotationAxis; scaleAxis: CadEditorScaleAxis;
 }
 interface DuplicateBoundary { before: Presentation; after: Presentation }
+interface SurfaceIsoCurveBoundary { before: Presentation; after: Presentation }
+interface SurfaceIsoCurveBinding {
+  bodyId: string; reference: CadGeometryReferenceV0; source: string; surface: Surface;
+  domains: { u: [number, number]; v: [number, number] }; axis: CadEditorSurfaceIsoCurveAxis;
+  baseGeneration: number; baseDisplayGeneration: number; view: CadEditorView;
+}
 interface IntervalBoundary { bodyId: string }
 interface IntervalBinding {
   bodyId: string; reference: CadGeometryReferenceV0; source: string; curve: Curve; domain: [number, number];
@@ -225,12 +232,13 @@ interface SurfaceKnotPreparation {
   boundary?: SurfaceKnotBoundary;
   clearPoleBodyId?: string;
 }
-interface HistoryState { document: CadDocumentV1; bytes: number; duplicateBoundary?: DuplicateBoundary;
+interface HistoryState { document: CadDocumentV1; bytes: number; nativeNames?: string[]; duplicateBoundary?: DuplicateBoundary; surfaceIsoCurveBoundary?: SurfaceIsoCurveBoundary;
   intervalBoundary?: IntervalBoundary; surfaceKnotBoundary?: SurfaceKnotBoundary; curveKnotBoundary?: CurveKnotBoundary }
 interface Prepared {
   candidate: CadEditorCandidate; historyIndex?: number;
   selectionTarget?: CadEditorSelectionTarget | null; transitionToken?: string;
   structuralPresentation?: Presentation; duplicateBoundary?: DuplicateBoundary;
+  surfaceIsoCurveBoundary?: SurfaceIsoCurveBoundary; structuralBodyOnly?: boolean;
   intervalBoundary?: IntervalBoundary; clearCurvePoleBodyId?: string;
   surfaceKnotBoundary?: SurfaceKnotBoundary; clearSurfacePoleBodyId?: string;
   curveKnotBoundary?: CurveKnotBoundary;
@@ -259,8 +267,10 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   let intervalBinding: IntervalBinding | null = null;
   let surfaceKnotBinding: SurfaceKnotBinding | null = null;
   let curveKnotBinding: CurveKnotBinding | null = null;
+  let surfaceIsoCurveBinding: SurfaceIsoCurveBinding | null = null;
   let prepared: Prepared | null = null;
-  let history: HistoryState[] = [{ document: copy(accepted.document), bytes: fileBudget(serialize(accepted)) }];
+  let history: HistoryState[] = [{ document: copy(accepted.document), bytes: fileBudget(serialize(accepted)),
+    nativeNames: accepted.compiledAssets.flatMap(asset => [asset.model.name, ...asset.model.objects.map(geometry => geometry.id)]) }];
   let historyIndex = 0;
   const assetRevisionHighWater = new Map(accepted.document.assets.map(asset => [asset.id, asset.revision]));
   let dirty = true;
@@ -274,6 +284,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   let lastCurveInterval: CadEditorSnapshot['lastCurveInterval'] = null;
   let lastSurfaceKnot: CadEditorSnapshot['lastSurfaceKnot'] = null;
   let lastCurveKnot: CadEditorSnapshot['lastCurveKnot'] = null;
+  let lastSurfaceIsoCurve: CadEditorSnapshot['lastSurfaceIsoCurve'] = null;
   const listeners = new Set<() => void>();
 
   const live = () => requireEditor(!disposed, 'LIFECYCLE', 'The editor session is disposed.');
@@ -292,7 +303,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     accepted, generation, displayGeneration, displayBodyIds, view, editTarget, rotationAxis, scaleAxis, bodyCapabilities,
     selectedBodyId, selection, curveSelection, selectionTransition, pending, candidate: prepared?.candidate ?? null,
     history: { index: historyIndex, count: history.length, bytes: historyBytes(), canUndo: historyIndex > 0, canRedo: historyIndex < history.length - 1 },
-    dirty, downloadStatus, disposed, lastProvenance, lastCurveProvenance, lastBodyTranslation, lastBodyRotation, lastBodyScale, lastCurveInterval, lastSurfaceKnot, lastCurveKnot,
+    dirty, downloadStatus, disposed, lastProvenance, lastCurveProvenance, lastBodyTranslation, lastBodyRotation, lastBodyScale, lastCurveInterval, lastSurfaceKnot, lastCurveKnot, lastSurfaceIsoCurve,
   });
   const select = (input: CadEditorSurfaceSelection, document = accepted): CadEditorSelectedPole => {
     const context = { documentId: document.document.documentId, bodyId: input?.bodyId, field: 'selection-transition' };
@@ -368,6 +379,8 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       'Apply or discard the knot before selecting another original pole on this Surface.', surfaceKnotContext());
     requireEditor(!(hasCurveKnotRaw() && resolved.target.bodyId === selectedBodyId), 'INPUT',
       'Apply or discard the knot before selecting another original point on this Curve.', curveKnotContext());
+    requireEditor(!(hasSurfaceIsoCurveRaw() && resolved.target.bodyId === selectedBodyId), 'INPUT',
+      'Apply or discard the iso-Curve before selecting another pole on this Surface.', surfaceIsoCurveContext());
     prepared = null;
     if (Object.keys(pending).length > 0) {
       selectionTransition = { token: newToken(), baseGeneration: generation, target: copy(resolved.target) };
@@ -388,7 +401,12 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   const curveKnotContext = (): CadEditorError['context'] => ({ documentId: accepted.document.documentId,
     bodyId: selectedBodyId ?? undefined, field: 'curve-knot' });
   const hasCurveKnotRaw = () => Object.hasOwn(pending, 'curveKnot');
+  const surfaceIsoCurveContext = (): CadEditorError['context'] => ({ documentId: accepted.document.documentId,
+    bodyId: selectedBodyId ?? undefined, field: 'surface-isocurve' });
+  const hasSurfaceIsoCurveRaw = () => Object.hasOwn(pending, 'surfaceIsoU') || Object.hasOwn(pending, 'surfaceIsoV');
   const requireNoIntervalDraft = () => {
+    requireEditor(!hasSurfaceIsoCurveRaw(), 'INPUT',
+      'Apply or discard the iso-Curve before entering other object or pole fields.', surfaceIsoCurveContext());
     requireEditor(!hasIntervalRaw(), 'INPUT',
       'Apply or discard the interval before entering other object or pole fields.', intervalContext());
     requireEditor(!hasSurfaceKnotRaw(), 'INPUT',
@@ -508,6 +526,40 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     requireEditor(resolved.source === binding.source && resolved.geometry.kind === 'curve', 'STALE',
       'The knot must remain bound to the original complete Curve source.', context);
   };
+  const surfaceIsoCurveNative = <T>(action: () => T, message: string): T => {
+    try { return action(); } catch (cause) {
+      if (cause instanceof CadEditorError) throw cause;
+      const code = cause instanceof CadReferenceError && cause.code === CadReferenceDiagnosticCode.STALE ? 'STALE'
+        : cause instanceof CadDocumentError && cause.code === 'BUDGET' ? 'BUDGET' : 'NATIVE';
+      throw new CadEditorError(code, message, surfaceIsoCurveContext(), cause);
+    }
+  };
+  const captureSurfaceIsoCurve = (axis: CadEditorSurfaceIsoCurveAxis): SurfaceIsoCurveBinding => {
+    const context = surfaceIsoCurveContext();
+    requireEditor(editTarget === 'pole', 'INPUT', 'Select Control point before creating an iso-Curve.', context);
+    requireEditor(selectedBodyId !== null && view.kind === 'document', 'DISPLAY',
+      'Select an original Surface in document view before creating an iso-Curve.', context);
+    const reference = surfaceIsoCurveNative(() => createCadGeometryReference(accepted, { bodyId: selectedBodyId! }),
+      'Native iso-Curve source reference creation failed.').reference;
+    const resolved = surfaceIsoCurveNative(() => resolveCadGeometryReference(accepted, reference),
+      'Native iso-Curve source resolution failed.');
+    const surface = resolved.geometry;
+    requireEditor(surface.kind === 'surface', 'UNSUPPORTED', 'Iso-Curve construction requires an original Surface.', context);
+    return { bodyId: reference.bodyId, reference: copy(reference), source: resolved.source, surface: copy(surface),
+      domains: surfaceIsoCurveNative(() => surfaceDomain(surface), 'Native original Surface domain query failed.'),
+      axis, baseGeneration: generation, baseDisplayGeneration: displayGeneration, view: copy(view) };
+  };
+  const currentSurfaceIsoCurve = (binding: SurfaceIsoCurveBinding) => {
+    const context = surfaceIsoCurveContext();
+    requireEditor(editTarget === 'pole' && selectedBodyId === binding.bodyId
+      && binding.baseGeneration === generation && binding.baseDisplayGeneration === displayGeneration
+      && view.kind === 'document' && binding.view.kind === 'document', 'STALE',
+      'The iso-Curve source body or view changed. Review the parameter.', context);
+    const resolved = surfaceIsoCurveNative(() => resolveCadGeometryReference(accepted, binding.reference),
+      'Native bound iso-Curve source resolution failed.');
+    requireEditor(resolved.source === binding.source && resolved.geometry.kind === 'surface', 'STALE',
+      'The iso-Curve must remain bound to the original complete Surface source.', context);
+  };
   const requireEditable = () => {
     const context = { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: 'edit-capability' };
     requireEditor(selectedBodyId !== null, 'INPUT', 'Select an editable Surface body first.', context);
@@ -537,7 +589,8 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     bodyTranslation: CadEditorCandidate['bodyTranslation'] = null,
     bodyRotation: CadEditorCandidate['bodyRotation'] = null,
     bodyScale: CadEditorCandidate['bodyScale'] = null,
-    structural?: { presentation: Presentation; duplicateBoundary?: DuplicateBoundary },
+    structural?: { presentation: Presentation; duplicateBoundary?: DuplicateBoundary;
+      surfaceIsoCurveBoundary?: SurfaceIsoCurveBoundary; surfaceIsoCurve?: CadEditorSurfaceIsoCurveCreation; preserveBodyOnly?: true },
     interval?: IntervalPreparation, surfaceKnot?: SurfaceKnotPreparation, curveKnot?: CurveKnotPreparation): CadEditorCandidate => {
     if (interval?.clearPoleBodyId !== undefined) {
       const reference = native(() => createCadGeometryReference(result, { bodyId: interval.clearPoleBodyId! }),
@@ -563,16 +616,25 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
         'Native knot presentation body resolution failed.', result.document.documentId, context);
       requireEditor(resolved.geometry.kind === 'curve', 'STALE', 'The knot must retain its original Curve body.', context);
     }
+    const structuralTarget = structural?.presentation.selectionTarget;
+    // Only the known iso-Curve boundary retains absent pole indices literally.
+    // Duplicate and ordinary selection normalization keep their existing policy.
+    const structuralBodyOnly = structural?.preserveBodyOnly === true && structuralTarget != null
+      && structuralTarget.index === undefined && structuralTarget.uIndex === undefined && structuralTarget.vIndex === undefined;
+    if (structuralBodyOnly && structuralTarget != null) native(() => createCadGeometryReference(result, { bodyId: structuralTarget.bodyId }),
+      'Native construction body-only reference creation failed.', result.document.documentId, { field: 'surface-isocurve' });
     const proposed = structural === undefined ? undefined : {
       ...copy(structural.presentation),
       displayBodyIds: displayIds(result, structural.presentation.displayBodyIds),
       view: viewFor(result, structural.presentation.view),
       selectionTarget: structural.presentation.selectionTarget === null ? null
-        : logicalTarget(resolveTarget(structural.presentation.selectionTarget, result).target),
+        : structuralBodyOnly ? { bodyId: structural.presentation.selectionTarget.bodyId }
+          : logicalTarget(resolveTarget(structural.presentation.selectionTarget, result).target),
     };
     prepared = { candidate: { kind, result, provenance, curveProvenance, bodyTranslation, bodyRotation, bodyScale, token: newToken(), baseGeneration: generation,
       baseDisplayGeneration: displayGeneration, displayBodyIds: copy(proposed?.displayBodyIds ?? candidateDisplayIds), view: copy(proposed?.view ?? candidateView),
       ...(proposed === undefined ? {} : { selectionTarget: copy(proposed.selectionTarget), presentation: 'structural' as const }),
+      ...(structural?.surfaceIsoCurve === undefined ? {} : { surfaceIsoCurve: structural.surfaceIsoCurve }),
       ...(interval?.extraction === undefined ? {} : { curveInterval: interval.extraction }),
       ...(curveKnot?.insertion === undefined ? {} : { curveKnot: curveKnot.insertion }),
       ...(surfaceKnot?.insertion === undefined ? {} : { surfaceKnot: surfaceKnot.insertion }),
@@ -587,6 +649,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
         bodyId: postSelection.target.bodyId, uIndex: postSelection.target.uIndex, vIndex: postSelection.target.vIndex, index: postSelection.target.index,
       }, transitionToken: postSelection?.token,
       structuralPresentation: proposed, duplicateBoundary: copy(structural?.duplicateBoundary),
+      surfaceIsoCurveBoundary: copy(structural?.surfaceIsoCurveBoundary), structuralBodyOnly,
       intervalBoundary: copy(interval?.boundary), clearCurvePoleBodyId: curveKnot?.clearPoleBodyId ?? interval?.clearPoleBodyId,
       curveKnotBoundary: copy(curveKnot?.boundary),
       surfaceKnotBoundary: copy(surfaceKnot?.boundary), clearSurfacePoleBodyId: surfaceKnot?.clearPoleBodyId };
@@ -601,9 +664,11 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     const targetIndex = historyIndex + direction;
     requireEditor(targetIndex >= 0 && targetIndex < history.length, 'INPUT', 'This history direction is unavailable.');
     const target = history[targetIndex].document;
-    const boundary = direction < 0 ? history[historyIndex].duplicateBoundary : history[targetIndex].duplicateBoundary;
+    const duplicateBoundary = direction < 0 ? history[historyIndex].duplicateBoundary : history[targetIndex].duplicateBoundary;
+    const isoBoundary = direction < 0 ? history[historyIndex].surfaceIsoCurveBoundary : history[targetIndex].surfaceIsoCurveBoundary;
+    const boundary = duplicateBoundary ?? isoBoundary;
     if (boundary !== undefined) {
-      const context = { documentId: accepted.document.documentId, field: 'body-duplicate' };
+      const context = { documentId: accepted.document.documentId, field: isoBoundary === undefined ? 'body-duplicate' : 'surface-isocurve' };
       const document = copy(target);
       document.revision = nextRevision(accepted.document.revision, context);
       for (const body of accepted.document.bodies) {
@@ -628,7 +693,8 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
         document.documentId, context), context);
       const presentation = copy(direction < 0 ? boundary.before : boundary.after);
       return prepare(direction < 0 ? 'undo' : 'redo', result, [], targetIndex, undefined,
-        presentation.displayBodyIds, presentation.view, [], null, null, null, { presentation });
+        presentation.displayBodyIds, presentation.view, [], null, null, null,
+        { presentation, ...(isoBoundary === undefined ? {} : { preserveBodyOnly: true as const }) });
     }
     const document = copy(accepted.document);
     document.revision = nextRevision(document.revision);
@@ -679,6 +745,42 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       if (body.geometry.kind === 'surface' && view.kind === 'document'
         || body.geometry.kind === 'curve' && (view.kind === 'document'
           || view.kind === 'curve-focus' && view.bodyId === selectedBodyId)) return null;
+    }
+    if (hasSurfaceIsoCurveRaw()) {
+      const context = surfaceIsoCurveContext();
+      requireEditor(prepared === null, 'INPUT', 'Resolve the current candidate before creating an iso-Curve.', context);
+      requireEditor(surfaceIsoCurveBinding !== null, 'STALE', 'The original Surface parameter binding is missing.', context);
+      const binding = surfaceIsoCurveBinding, key = binding.axis === 'u' ? 'surfaceIsoU' : 'surfaceIsoV';
+      requireEditor(Object.keys(pending).every(field => field === key) && Object.hasOwn(pending, key), 'INPUT',
+        'Iso-Curve parameters cannot be mixed with other draft fields or axes.', context);
+      currentSurfaceIsoCurve(binding);
+      requireEditor(displayBodyIds.length < 4, 'BUDGET', 'Hide a body before creating an iso-Curve.', context);
+      const text = pending[key]!.trim();
+      requireEditor(/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(text), 'INPUT',
+        'The iso-Curve parameter must be a decimal or exponent number.', context);
+      const parameter = Number(text);
+      requireEditor(Number.isFinite(parameter), 'INPUT', 'The iso-Curve parameter must be finite.', context);
+      const before = currentPresentation(), document = copy(accepted.document);
+      document.revision = nextRevision(document.revision, context);
+      const reserved = new Set(history.flatMap(state => [
+        ...(state.nativeNames ?? []),
+        ...state.document.assets.map(asset => asset.id),
+        ...state.document.bodies.flatMap(body => [body.id, body.geometryId]),
+      ]));
+      for (const asset of accepted.compiledAssets) {
+        reserved.add(asset.model.name);
+        for (const geometry of asset.model.objects) reserved.add(geometry.id);
+      }
+      const appended = surfaceIsoCurveNative(() => appendSurfaceIsoCurveSource(document, binding.surface,
+        copy(binding.reference), binding.axis, parameter, [...reserved]), 'Native iso-Curve construction failed.');
+      const result = surfaceIsoCurveNative(() => admit(createCadDocument(appended.document), context),
+        'Native iso-Curve document admission failed.');
+      const transition = selectionTransition;
+      const after: Presentation = { ...copy(before), displayBodyIds: [...displayBodyIds, appended.creation.bodyId],
+        selectionTarget: transition === null ? copy(before.selectionTarget) : logicalTarget(transition.target) };
+      return prepare('surface-isocurve', result, [], undefined, transition ?? undefined, after.displayBodyIds, after.view,
+        [], null, null, null, { presentation: after, surfaceIsoCurveBoundary: { before, after },
+          surfaceIsoCurve: appended.creation, preserveBodyOnly: true });
     }
     if (hasCurveKnotRaw()) {
       const context = curveKnotContext();
@@ -1040,7 +1142,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
         pending = {};
         intervalBinding = null;
         surfaceKnotBinding = null;
-        curveKnotBinding = null;
+        curveKnotBinding = null; surfaceIsoCurveBinding = null;
       }
       selectionTransition = null; prepared = null; emit(); return null;
     },
@@ -1163,6 +1265,23 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       pending = fields; surfaceKnotBinding = Object.hasOwn(fields, key) ? binding : null;
       prepared = null; selectionTransition = null; emit();
     },
+    stageSurfaceIsoCurveField(axis, rawText) {
+      live();
+      const context = surfaceIsoCurveContext();
+      requireEditor(axis === 'u' || axis === 'v', 'INPUT', 'Choose the original U or V axis.', context);
+      requireEditor(typeof rawText === 'string' && rawText.length <= 128, 'BUDGET',
+        'Iso-Curve input must have at most 128 characters.', context);
+      const key = axis === 'u' ? 'surfaceIsoU' : 'surfaceIsoV';
+      requireEditor(Object.keys(pending).every(field => field === key), 'INPUT',
+        'Apply or discard the current draft before changing the iso-Curve axis or operation.', context);
+      const binding = surfaceIsoCurveBinding ?? captureSurfaceIsoCurve(axis);
+      requireEditor(binding.axis === axis, 'INPUT', 'Apply or discard the iso-Curve before changing its axis.', context);
+      currentSurfaceIsoCurve(binding);
+      const fields = { ...pending };
+      if (rawText === '') delete fields[key]; else fields[key] = rawText;
+      pending = fields; surfaceIsoCurveBinding = Object.hasOwn(fields, key) ? binding : null;
+      prepared = null; selectionTransition = null; emit();
+    },
     stageCurveKnotField(rawText) {
       live();
       const context = curveKnotContext();
@@ -1178,7 +1297,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       pending = fields; curveKnotBinding = Object.hasOwn(fields, 'curveKnot') ? binding : null;
       prepared = null; selectionTransition = null; emit();
     },
-    discardPending() { live(); pending = {}; intervalBinding = null; surfaceKnotBinding = null; curveKnotBinding = null; prepared = null; selectionTransition = null; emit(); },
+    discardPending() { live(); pending = {}; intervalBinding = null; surfaceKnotBinding = null; curveKnotBinding = null; surfaceIsoCurveBinding = null; prepared = null; selectionTransition = null; emit(); },
     prepareApply,
     prepareOpen(text, options) {
       live(); fileBudget(text);
@@ -1278,9 +1397,9 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
           : current.selectionTarget ?? { bodyId: selectedBodyId, uIndex: selection?.uIndex, vIndex: selection?.vIndex, index: curveSelection?.index };
       // A coefficient boundary can retain a logical body without a pole. Ordinary
       // same-inventory commits must not turn that absence into an implicit point0.
-      const bodyOnly = target !== null && current.structuralPresentation === undefined
-        && current.selectionTarget === undefined && selectedBodyId === target.bodyId
-        && selection === null && curveSelection === null;
+      const bodyOnly = target !== null && (current.structuralBodyOnly === true
+        || current.structuralPresentation === undefined && current.selectionTarget === undefined
+          && selectedBodyId === target.bodyId && selection === null && curveSelection === null);
       const clearBodyId = current.clearSurfacePoleBodyId ?? current.clearCurvePoleBodyId
         ?? (bodyOnly ? target!.bodyId : undefined);
       const clearPole = clearBodyId !== undefined && target?.bodyId === clearBodyId;
@@ -1289,7 +1408,8 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
           : current.clearCurvePoleBodyId !== undefined ? 'curve'
             : accepted.bodyBindings.find(binding => binding.bodyId === clearBodyId)?.geometryKind;
         const context = { documentId: result.document.documentId, bodyId: clearBodyId,
-          field: expectedKind === 'surface' ? 'surface-knot' : current.curveKnotBoundary !== undefined ? 'curve-knot' : 'curve-interval' };
+          field: current.structuralBodyOnly === true ? 'surface-isocurve'
+            : expectedKind === 'surface' ? 'surface-knot' : current.curveKnotBoundary !== undefined ? 'curve-knot' : 'curve-interval' };
         const reference = native(() => createCadGeometryReference(result, { bodyId: clearBodyId! }),
           'Native body-only reference creation failed.', result.document.documentId, context).reference;
         const resolved = native(() => resolveCadGeometryReference(result, reference),
@@ -1298,14 +1418,17 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       }
       const nextTarget = target === null || clearPole ? null : resolveTarget(target, result);
       const nextCapabilities = capabilities(result);
-      const state: HistoryState = { document: copy(result.document), bytes: fileBudget(serialize(result)) };
+      const state: HistoryState = { document: copy(result.document), bytes: fileBudget(serialize(result)),
+        nativeNames: result.compiledAssets.flatMap(asset => [asset.model.name, ...asset.model.objects.map(geometry => geometry.id)]) };
       if (current.candidate.kind === 'duplicate') state.duplicateBoundary = copy(current.duplicateBoundary);
+      if (current.candidate.kind === 'surface-isocurve') state.surfaceIsoCurveBoundary = copy(current.surfaceIsoCurveBoundary);
       if (current.candidate.kind === 'curve-interval') state.intervalBoundary = copy(current.intervalBoundary);
       if (current.candidate.kind === 'surface-knot') state.surfaceKnotBoundary = copy(current.surfaceKnotBoundary);
       if (current.candidate.kind === 'curve-knot') state.curveKnotBoundary = copy(current.curveKnotBoundary);
       if (current.candidate.kind === 'open') { history = [state]; historyIndex = 0; }
       else if (current.candidate.kind === 'apply' || current.candidate.kind === 'rename' || current.candidate.kind === 'duplicate'
-        || current.candidate.kind === 'curve-interval' || current.candidate.kind === 'surface-knot' || current.candidate.kind === 'curve-knot') {
+        || current.candidate.kind === 'curve-interval' || current.candidate.kind === 'surface-knot' || current.candidate.kind === 'curve-knot'
+        || current.candidate.kind === 'surface-isocurve') {
         history = [...history.slice(0, historyIndex + 1), state];
         while (history.length > HISTORY_LIMIT || historyBytes() > HISTORY_BYTES) history.shift();
         historyIndex = history.length - 1;
@@ -1330,7 +1453,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
         assetRevisionHighWater.set(asset.id, Math.max(assetRevisionHighWater.get(asset.id) ?? 0, asset.revision));
       const retainedAssetIds = new Set(history.flatMap(state => state.document.assets.map(asset => asset.id)));
       for (const id of assetRevisionHighWater.keys()) if (!retainedAssetIds.has(id)) assetRevisionHighWater.delete(id);
-      generation++; pending = {}; intervalBinding = null; surfaceKnotBinding = null; curveKnotBinding = null; prepared = null; selectionTransition = null;
+      generation++; pending = {}; intervalBinding = null; surfaceKnotBinding = null; curveKnotBinding = null; surfaceIsoCurveBinding = null; prepared = null; selectionTransition = null;
       lastProvenance = copy(current.candidate.provenance);
       lastCurveProvenance = copy(current.candidate.curveProvenance);
       lastBodyTranslation = copy(current.candidate.bodyTranslation);
@@ -1339,6 +1462,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
       lastCurveInterval = copy(current.candidate.curveInterval ?? null);
       lastSurfaceKnot = copy(current.candidate.surfaceKnot ?? null);
       lastCurveKnot = copy(current.candidate.curveKnot ?? null);
+      lastSurfaceIsoCurve = copy(current.candidate.surfaceIsoCurve ?? null);
       dirty = current.candidate.kind !== 'open'; downloadStatus = 'Not downloaded'; download = null;
       const returned = snapshot(); emit(); return returned;
     },
@@ -1358,7 +1482,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     },
     dispose() {
       if (disposed) return;
-      disposed = true; prepared = null; intervalBinding = null; surfaceKnotBinding = null; curveKnotBinding = null; selectionTransition = null; download = null; pending = {}; emit(); listeners.clear();
+      disposed = true; prepared = null; intervalBinding = null; surfaceKnotBinding = null; curveKnotBinding = null; surfaceIsoCurveBinding = null; selectionTransition = null; download = null; pending = {}; emit(); listeners.clear();
     },
   };
 }

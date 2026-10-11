@@ -783,3 +783,14 @@ Choose `Drag point` on an existing fixed constraint for the displayed Line or Po
 Held guides preserve accepted native state and the rendered frame. Each field stage checks current ownership after subscriber notifications. Escape discards only the exact gesture-owned pending map after capture release; foreign input or candidates remain corrective. Stale source, profile, point, workplane, view, camera, display options or backing invalidates the gesture. Edge-on and offscreen cases use the exact fields. Typed values retain the native solver's own acceptance rules.
 
 Undo/Redo and native authored files preserve the constraint targets and original complete mixed seed. Display resources and pointer state are not saved. This remains the existing bounded linear Line/Polyline solver; Arc/Rectangle preview, general nonlinear constraints, regions, BRep and Solids are separate capabilities.
+
+
+### Creating an independent iso-Curve from a Surface
+
+`Create iso-Curve` creates a saved Curve from an original Surface at fixed U or V. The other parameter varies through its original domain. Canvas placement uses 65 real fixed-axis D0 stations and an iso guide; the exact field supports any native-admitted value, including domain endpoints. Held guides preserve the accepted Source and frame. Release or Create performs the actual native extraction and adds a new Curve asset/body after complete document display succeeds.
+
+The original Surface, full asset Source, asset revision, sibling objects and current selection remain intact. The generated one-object Source0 belongs only to the new asset. The original authored XYZ/mm frame is retained. The Curve is an independent snapshot with its original varying knots/domain; later Surface edits do not update it automatically. No trim-edge or live feature recipe is saved. Each Create adds a Curve, including repeated parameter values.
+
+Undo removes the new inventory and restores the saved selection/display set. Redo restores its logical IDs with fresh source-qualified revisions. An original body-only selection stays body-only; no point0 is implied. Save/Open stores current native sources, without the construction receipt, guide, history or camera. Select a fresh point on the new Curve to edit it.
+
+The existing native iso provider admits both Surface degrees 1–3, grids up to 16×16, coordinates within ±10000 mm and inclusive fixed parameters. Local D0 comparisons do not certify global shape or manufacturing tolerance. Current native asset/body and display capacities remain separate gates; hide a displayed body when four are already shown. Refused creation preserves the original document and corrective draft. Degree 4/5 iso construction, Faces, Solids and parent-dependent features remain separate work.
