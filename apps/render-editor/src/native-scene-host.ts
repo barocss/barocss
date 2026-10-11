@@ -1,6 +1,6 @@
 import {createRenderNativeSceneSession, createRenderMaterialSession, prepareRenderMaterialDocument,
   validateRenderNativeSceneDocument, serializeRenderNativeSceneDocument, prepareRenderNativeSceneAppearance,
-  commitRenderNativeSceneAppearanceCandidate, deriveRenderNativeSceneBodyDuplicate, deriveRenderNativeSceneBodyRemoval, RenderEditorError, normalizeRenderEditorError} from '@barocss/render-editor';
+  commitRenderNativeSceneAppearanceCandidate, deriveRenderNativeSceneBodyDuplicate, deriveRenderNativeSceneBodyRemoval, deriveRenderNativeSceneSurfaceAddition, RenderEditorError, normalizeRenderEditorError} from '@barocss/render-editor';
 import type {RenderNativeSceneDocument, RenderNativeScenePreparation, RenderNativeScenePreparedCandidate,
   RenderNativeSceneAppearancePreparation, RenderMaterialSession, RenderMaterialSessionSnapshot,
   RenderMaterialPreparedCandidate, RenderNativeScenePose} from '@barocss/render-editor';
@@ -39,6 +39,7 @@ export interface NativeSceneHost {
   setPresenter(presenter: NativeScenePresenter | null, ownershipReader?: () => object, actualCameraReader?: () => MeshCamera): void;
   setAvailable(available: boolean): void;
   stageSceneDocument(document: RenderNativeSceneDocument): void;
+  addSurface(source: string, surfaceId: string): RenderNativeSceneAppearancePreparation;
   duplicateSelectedBody(): RenderNativeSceneAppearancePreparation;
   removeSelectedBody(): RenderNativeSceneAppearancePreparation;
   stageBodyPose(bodyId: string, patch: {readonly translationMM: readonly [number, number, number]; readonly scale: readonly [number, number, number]}): void;
@@ -414,6 +415,19 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
       presenter = next; ownershipReader = reader; actualCameraReader = cameraReader; fallbackOwner = nextFallback; acceptedOwner = nextOwner; available = next !== null; changed();});},
     setAvailable(value) {run(() => {check(typeof value === 'boolean', 'Native availability must be a boolean.'); if (!value) invalidatePose(); if (available !== value) {available = value; changed();}});},
     stageSceneDocument(document) {run(() => {noView(); clean(); stage(document); changed();});},
+    addSurface(source, surfaceId) {return run(() => {
+      noView(); clean(); check(available && presenter && nativePresented, 'The applied native preview is unavailable.');
+      check(owner() === acceptedOwner, 'The applied preview belongs to another scene. Restore the current scene before adding a Surface.');
+      if (reentered) throw new RenderEditorError('STALE_CANDIDATE', 'Native scene ownership reentry was refused.');
+      const baseline = native.getSnapshot(), material = selectedMaterial(baseline.preparation, selectedBodyId);
+      const derived = deriveRenderNativeSceneSurfaceAddition(baseline.accepted, source, surfaceId, {
+        material: material.preparation.document, reservedIds: [...retainedIds],
+      });
+      retainedPlan(derived.document);
+      if (reentered) throw new RenderEditorError('STALE_CANDIDATE', 'Native Surface addition reentry was refused.');
+      stage(derived.document); changed();
+      return commit(prepareDraft(), undefined, undefined, derived.bodyId);
+    });},
     duplicateSelectedBody() {return run(() => {
       noView(); clean(); check(available && presenter && nativePresented, 'The applied native preview is unavailable.');
       check(owner() === acceptedOwner, 'The applied preview belongs to another scene. Restore the current scene before duplicating.');

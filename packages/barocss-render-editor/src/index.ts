@@ -52,3 +52,6 @@ export {deriveRenderNativeSceneBodyDuplicate} from './native-body-duplicate.js';
 export type {RenderNativeSceneBodyDuplicateOptions, RenderNativeSceneBodyDuplicate} from './native-body-duplicate.js';
 
 export {deriveRenderNativeSceneBodyRemoval} from './native-body-remove.js';
+
+export {deriveRenderNativeSceneSurfaceAddition} from './native-surface-add.js';
+export type {RenderNativeSceneSurfaceAdditionOptions, RenderNativeSceneSurfaceAddition} from './native-surface-add.js';

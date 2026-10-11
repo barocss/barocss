@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useRef, useState, useSyncExternalStore} from 'react';
-import {Trash2, Copy, Box, FolderOpen, Save, FilePlus2, Undo2, Redo2} from 'lucide-react';
+import {Plus, Trash2, Copy, Box, FolderOpen, Save, FilePlus2, Undo2, Redo2} from 'lucide-react';
 import {createRenderMaterialSession, createRenderMaterialController, parseRenderMaterialDocument, serializeRenderMaterialDocument, parseRenderNativeSceneDocument, serializeRenderNativeSceneDocument, normalizeRenderEditorError, RenderEditorError, RENDER_MATERIAL_LIMITS, RENDER_NATIVE_SCENE_LIMITS} from '@barocss/render-editor';
 import type {RenderMaterialDocument, RenderNativeSceneDocument} from '@barocss/render-editor';
 import {MaterialEditor} from '@barocss/render-editor/react';
@@ -8,6 +8,7 @@ import {createNativeSceneHost, type NativeSceneHost} from './native-scene-host';
 import {createNativeSceneBase, createNativeSceneSeed} from './native-scene-seed';
 import {NativeSceneControls} from './native-scene-controls';
 import {NativeSceneOutliner} from './native-scene-outliner';
+import {NativeSurfaceAddDialog} from './native-surface-add-dialog';
 import {Button} from './components/ui/button';
 import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from './components/ui/dialog';
 import {Menubar, MenubarContent, MenubarItem, MenubarMenu, MenubarSeparator, MenubarShortcut, MenubarTrigger} from './components/ui/menubar';
@@ -32,6 +33,10 @@ export function MaterialApp() {
   const nativeSnapshot = useSyncExternalStore(native?.subscribe ?? subscribeEmpty, native?.getSnapshot ?? emptySnapshot, native?.getSnapshot ?? emptySnapshot);
   const [notice, setNotice] = useState('Material document · native Surface preview'), [error, setError] = useState<RenderEditorError | null>(null);
   const [pending, setPending] = useState<FileAction | null>(null), [busy, setBusy] = useState(false), [helpOpen, setHelpOpen] = useState(false), [bridgeReady, setBridgeReady] = useState(false), [filename, setFilename] = useState<string | null>(null);
+  const [surfaceAddOpen, setSurfaceAddOpen] = useState(false);
+  const addButton = useRef<HTMLButtonElement>(null), objectButton = useRef<HTMLButtonElement>(null), surfaceAddRef = useRef(false);
+  const addContext = useRef<{host: NativeSceneHost; snapshot: ReturnType<NativeSceneHost['getSnapshot']>; fileEpoch: number; bridge: MaterialPreviewBridge; previewEpoch: number} | null>(null);
+  surfaceAddRef.current = surfaceAddOpen;
   const fileInput = useRef<HTMLInputElement>(null), helpButton = useRef<HTMLButtonElement>(null), returnFocus = useRef<HTMLElement | null>(null);
   const bridge = useRef<MaterialPreviewBridge | null>(null), busyRef = useRef(false), epoch = useRef(0), pendingRef = useRef(pending), helpRef = useRef(helpOpen), mounted = useRef(true);
   const current = useRef({native, session}); current.current = {native, session}; pendingRef.current = pending; helpRef.current = helpOpen;
@@ -46,7 +51,7 @@ export function MaterialApp() {
   const savedRevision = nativeSnapshot?.savedRevision ?? (native ? null : snapshot.savedRevision);
   useEffect(() => {if (!dirty && error) {setError(null); setNotice(native ? 'Scene ready.' : 'Material ready.');}}, [accepted, dirty]);
   const stopHeld = () => {const live = bridge.current; if (live) {live.beginTransition(); live.endTransition();}};
-  const blocked = () => {const host = current.current.native?.getSnapshot(); return busyRef.current || pendingRef.current !== null || helpRef.current || !!host && (host.poseGestureActive || !!host.posePreview);};
+  const blocked = () => {const host = current.current.native?.getSnapshot(); return busyRef.current || pendingRef.current !== null || helpRef.current || surfaceAddRef.current || !!host && (host.poseGestureActive || !!host.posePreview);};
   const guard = (action: FileAction) => {
     if (blocked()) return;
     const host = current.current.native;
@@ -97,6 +102,22 @@ export function MaterialApp() {
     if (blocked()) return;
     const host = current.current.native; if (!host) return;
     try {host.selectTarget(bodyId); setError(null); const title = host.getSnapshot().targets.find(target => target.bodyId === bodyId)?.title; setNotice(title ? title + ' selected.' : 'Body selected.');} catch (cause) {report(cause);}
+  };
+  const openSurfaceAdd = () => {
+    if (blocked()) return;
+    const host = current.current.native, live = bridge.current;
+    if (!host || !live || host.getSnapshot().dirty || !host.getSnapshot().available) return;
+    stopHeld();
+    addContext.current = {host, snapshot: host.getSnapshot(), fileEpoch: epoch.current, bridge: live, previewEpoch: live.getEpoch()};
+    surfaceAddRef.current = true; setSurfaceAddOpen(true);
+  };
+  const closeSurfaceAdd = () => {surfaceAddRef.current = false; setSurfaceAddOpen(false); addContext.current = null;};
+  const addSurface = (source: string, surfaceId: string) => {
+    const value = addContext.current;
+    if (!mounted.current || !surfaceAddRef.current || !value || busyRef.current || pendingRef.current !== null || helpRef.current
+      || current.current.native !== value.host || value.host.getSnapshot() !== value.snapshot || epoch.current !== value.fileEpoch
+      || bridge.current !== value.bridge || value.bridge.getEpoch() !== value.previewEpoch) throw new RenderEditorError('STALE_CANDIDATE', 'The scene changed before Add. Close the dialog and try again.');
+    value.host.addSurface(source, surfaceId); setError(null); setNotice('Surface added. Its source and material are independent.');
   };
   const duplicateBody = () => {if (blocked()) return; const host = current.current.native; if (!host) return; stopHeld(); try {host.duplicateSelectedBody(); setError(null); setNotice('Body duplicated. Move the selected copy to separate it.');} catch (cause) {report(cause);}};
   const removeBody = () => {if (blocked()) return; const host = current.current.native; if (!host) return; stopHeld(); try {host.removeSelectedBody(); setError(null); setNotice('Body removed. Undo restores it.');} catch (cause) {report(cause);}};
@@ -155,7 +176,7 @@ export function MaterialApp() {
     };
     window.addEventListener('keydown', key); return () => window.removeEventListener('keydown', key);
   });
-  const disabled = busy || pending !== null || helpOpen || poseBusy;
+  const disabled = busy || pending !== null || helpOpen || poseBusy || surfaceAddOpen;
   const editingDisabled = disabled || !!nativeSnapshot && !nativeSnapshot.available;
   const duplicateDisabled = disabled || dirty || !nativeSnapshot?.available || nativeSnapshot.accepted.nativeDocument.assets.length >= 4 || nativeSnapshot.accepted.nativeDocument.bodies.length >= 16 || nativeSnapshot.preparation.entries.length >= 4 || nativeSnapshot.accepted.surfaceMaterials.length >= 4 || nativeSnapshot.accepted.display.visibleBodyIds.length >= 4;
   const removeDisabled = disabled || dirty || !nativeSnapshot?.available || nativeSnapshot.accepted.surfaceMaterials.length <= 1;
@@ -170,18 +191,19 @@ export function MaterialApp() {
         <MenubarItem disabled={disabled || dirty || !canUndo} onSelect={() => history('undo')}><Undo2/>Undo<MenubarShortcut>⌘Z</MenubarShortcut></MenubarItem>
         <MenubarItem disabled={disabled || dirty || !canRedo} onSelect={() => history('redo')}><Redo2/>Redo<MenubarShortcut>⇧⌘Z</MenubarShortcut></MenubarItem>
         <MenubarSeparator/><MenubarItem disabled={disabled || !dirty} onSelect={discard}>Discard draft</MenubarItem>
-      </MenubarContent></MenubarMenu>{native && <MenubarMenu><MenubarTrigger>Object</MenubarTrigger><MenubarContent><MenubarItem disabled={duplicateDisabled} onSelect={duplicateBody}><Copy/>Duplicate body</MenubarItem><MenubarItem disabled={removeDisabled} onSelect={removeBody}><Trash2/>Remove body</MenubarItem></MenubarContent></MenubarMenu>}</Menubar>
-      <div className="app-topbar-spacer"/>{native && <Button variant="ghost" size="sm" disabled={duplicateDisabled} data-testid="native-duplicate-body" onClick={duplicateBody}><Copy/>Duplicate</Button>}{native && <Button variant="ghost" size="sm" disabled={removeDisabled} data-testid="native-remove-body" onClick={removeBody}><Trash2/>Remove</Button>}{!native && <Button size="sm" disabled={disabled || !bridgeReady} data-testid="native-create-scene" onClick={createScene}>Create Scene</Button>}<Button variant="ghost" size="sm" disabled={disabled} onClick={showHelp} ref={helpButton} data-testid="material-help">Help</Button>
+      </MenubarContent></MenubarMenu>{native && <MenubarMenu><MenubarTrigger ref={objectButton}>Object</MenubarTrigger><MenubarContent><MenubarItem disabled={duplicateDisabled} onSelect={openSurfaceAdd}><Plus/>Add Surface…</MenubarItem><MenubarSeparator/><MenubarItem disabled={duplicateDisabled} onSelect={duplicateBody}><Copy/>Duplicate body</MenubarItem><MenubarItem disabled={removeDisabled} onSelect={removeBody}><Trash2/>Remove body</MenubarItem></MenubarContent></MenubarMenu>}</Menubar>
+      <div className="app-topbar-spacer"/>{native && <Button variant="ghost" size="sm" disabled={duplicateDisabled} ref={addButton} data-testid="native-add-surface" onClick={openSurfaceAdd}><Plus/>Add Surface</Button>}{native && <Button variant="ghost" size="sm" disabled={duplicateDisabled} data-testid="native-duplicate-body" onClick={duplicateBody}><Copy/>Duplicate</Button>}{native && <Button variant="ghost" size="sm" disabled={removeDisabled} data-testid="native-remove-body" onClick={removeBody}><Trash2/>Remove</Button>}{!native && <Button size="sm" disabled={disabled || !bridgeReady} data-testid="native-create-scene" onClick={createScene}>Create Scene</Button>}<Button variant="ghost" size="sm" disabled={disabled} onClick={showHelp} ref={helpButton} data-testid="material-help">Help</Button>
       <Button variant="ghost" size="sm" disabled={disabled} onClick={open} data-testid="material-open"><FolderOpen/>Open</Button><Button size="sm" disabled={disabled} onClick={save} data-testid="material-save"><Save/>Save</Button>
     </header>
     <div className="app-document-bar"><strong data-testid="material-title">{accepted.title}</strong>{filename && <span data-testid="material-filename">{filename}</span>}<span className="app-status-spacer"/><span>{dirty ? 'Draft changes' : savedRevision === accepted.revision ? 'File loaded / download requested' : 'Unsaved ' + (native ? 'scene' : 'material')}</span>
       <Button variant="ghost" size="icon-xs" aria-label="Undo change" data-testid="material-undo" disabled={disabled || dirty || !canUndo} onClick={() => history('undo')}><Undo2/></Button><Button variant="ghost" size="icon-xs" aria-label="Redo change" data-testid="material-redo" disabled={disabled || dirty || !canRedo} onClick={() => history('redo')}><Redo2/></Button>
     </div>
-    <MaterialEditor session={session} disabled={editingDisabled} onError={report} preview={<MaterialPreview controller={controller} nativeHost={native} onBridgeChange={onBridgeChange} disabled={busy || pending !== null || helpOpen} onError={report} onTarget={target}/>}/>
+    <MaterialEditor session={session} disabled={editingDisabled} onError={report} preview={<MaterialPreview controller={controller} nativeHost={native} onBridgeChange={onBridgeChange} disabled={busy || pending !== null || helpOpen || surfaceAddOpen} onError={report} onTarget={target}/>}/>
     {native && <><NativeSceneOutliner host={native} disabled={disabled} onTarget={target}/><NativeSceneControls host={native} disabled={disabled} onError={report}/></>}
     <footer className="app-status"><span role="status" data-testid="material-app-status">{error ? error.code + ': ' + error.message : notice}</span><span className="app-status-spacer"/><span data-testid="material-accepted-revision" data-revision={accepted.revision}>Applied {accepted.revision}</span><span>CPU · linear RGB</span></footer>
     <input ref={fileInput} type="file" accept={native ? '.native-scene.json,application/json' : '.material.json,application/json'} hidden data-testid="material-file-input" onChange={event => {const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; void readFile(file);}}/>
+    {surfaceAddOpen && native && <NativeSurfaceAddDialog host={native} onAdd={addSurface} onClose={closeSurfaceAdd} onError={report} onCloseFocus={() => {if (addButton.current && !addButton.current.disabled) addButton.current.focus(); else objectButton.current?.focus();}}/>}
     <Dialog open={pending !== null} onOpenChange={value => {if (!value) cancelPending();}}><DialogContent onCloseAutoFocus={event => {event.preventDefault(); returnFocus.current?.focus();}}><DialogHeader><DialogTitle>Keep draft changes?</DialogTitle><DialogDescription>Apply or Discard the draft before you {pending?.label}. Cancel keeps the current text.</DialogDescription></DialogHeader>{error && <p role="alert">{error.message}</p>}<DialogFooter><Button variant="ghost" onClick={cancelPending}>Cancel</Button><Button variant="secondary" onClick={() => finishPending(false)}>Discard</Button><Button onClick={() => finishPending(true)}>Apply</Button></DialogFooter></DialogContent></Dialog>
-    <Dialog open={helpOpen} onOpenChange={setHelpOpen}><DialogContent onCloseAutoFocus={event => {event.preventDefault(); returnFocus.current?.focus();}}><DialogHeader><DialogTitle>{native ? 'Scene editing' : 'Material editing'}</DialogTitle><DialogDescription>Apply authored changes to the current Surface Canvas.</DialogDescription></DialogHeader><div className="app-help-copy"><p>Edit Source and uniform values, then Apply. Invalid values keep the applied scene and your corrective text. The CPU sample shows linear RGB; the Canvas includes lighting and gamma.</p><p>{native ? 'Click a visible Surface or choose its body in Outliner. Position in mm and local Scale XYZ stage body pose changes. Use Canvas rings to rotate. Body, material and lighting drafts share one scene Apply and Undo/Redo history. Correct incomplete or refused Transform values before Apply or changing bodies. Discard restores applied values.' : 'Create Scene adds a second Surface and starts complete scene authoring. Until then, material files contain only shader source and supplied uniforms.'}</p><p>Drag to orbit, Shift + drag to pan, or use the wheel to zoom. Navigation changes only the local view. Select and edit bodies after Orbit. Scene camera resets the local view. Set scene camera stores it through one Apply when the scene has no drafts. Save keeps the authored camera.</p><p>{native && 'Object → Duplicate body copies the complete source asset and material with new identities. The copy starts at the same pose. Move it with the Canvas handles or Position fields. Remove body deletes the selected body, its material and an unreferenced source asset through one scene change. Undo restores them. The last editable Surface is kept. This profile supports up to four displayed bodies and four source assets. '}Apply or Discard drafts before changing files or bodies. Cancel keeps text. Save requests a download of applied authorship. Native scene files have a 2 MiB limit; material files have a 256 KiB limit. Open validates the file and applies it to this Canvas. An incompatible display context is refused.</p></div></DialogContent></Dialog>
+    <Dialog open={helpOpen} onOpenChange={setHelpOpen}><DialogContent onCloseAutoFocus={event => {event.preventDefault(); returnFocus.current?.focus();}}><DialogHeader><DialogTitle>{native ? 'Scene editing' : 'Material editing'}</DialogTitle><DialogDescription>Apply authored changes to the current Surface Canvas.</DialogDescription></DialogHeader><div className="app-help-copy"><p>Edit Source and uniform values, then Apply. Invalid values keep the applied scene and your corrective text. The CPU sample shows linear RGB; the Canvas includes lighting and gamma.</p><p>{native ? 'Click a visible Surface or choose its body in Outliner. Position in mm and local Scale XYZ stage body pose changes. Use Canvas rings to rotate. Body, material and lighting drafts share one scene Apply and Undo/Redo history. Correct incomplete or refused Transform values before Apply or changing bodies. Discard restores applied values.' : 'Create Scene adds a second Surface and starts complete scene authoring. Until then, material files contain only shader source and supplied uniforms.'}</p><p>Drag to orbit, Shift + drag to pan, or use the wheel to zoom. Navigation changes only the local view. Select and edit bodies after Orbit. Scene camera resets the local view. Set scene camera stores it through one Apply when the scene has no drafts. Save keeps the authored camera.</p><p>{native && 'Object → Add Surface imports one actual Surface from a complete original CAD source file up to 64 KiB. Choose a Surface and press Add. Other objects in that source stay in the asset. The new object starts at its source origin and copies the current applied material into an independent document. Object → Duplicate body copies the complete source asset and material with new identities. The copy starts at the same pose. Move it with the Canvas handles or Position fields. Remove body deletes the selected body, its material and an unreferenced source asset through one scene change. Undo restores them. The last editable Surface is kept. This profile supports up to four displayed bodies and four source assets. '}Apply or Discard drafts before changing files or bodies. Cancel keeps text. Save requests a download of applied authorship. Native scene files have a 2 MiB limit; material files have a 256 KiB limit. Open validates the file and applies it to this Canvas. An incompatible display context is refused.</p></div></DialogContent></Dialog>
   </main>;
 }

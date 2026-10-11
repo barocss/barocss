@@ -19,7 +19,7 @@ export interface RenderNativeSceneBodyDuplicate {
 function check(value: unknown, message: string): asserts value {
   if (!value) throw new RenderEditorError('DOCUMENT_INPUT', message);
 }
-function copyOptions(input: unknown): {name?: string; reservedIds: string[]} {
+export function copyNativeBodyIdentityOptions(input: unknown): {name?: string; reservedIds: string[]} {
   if (input === undefined) return {reservedIds: []};
   check(input !== null && typeof input === 'object' && !Array.isArray(input)
     && [Object.prototype, null].includes(Object.getPrototypeOf(input)), 'Body duplicate options require ordinary own data.');
@@ -48,7 +48,7 @@ function copyOptions(input: unknown): {name?: string; reservedIds: string[]} {
   });
   return {name: fields.name as string | undefined, reservedIds};
 }
-function freshId(stem: string, used: Set<string>): string {
+export function freshNativeBodyIdentity(stem: string, used: Set<string>): string {
   const maximum = used.size + 1;
   for (let index = 0; index < maximum; index++) {
     const suffix = index === 0 ? '_copy' : '_copy_' + (index + 1);
@@ -57,7 +57,7 @@ function freshId(stem: string, used: Set<string>): string {
   }
   throw new RenderEditorError('DOCUMENT_INPUT', 'A fresh body duplicate ID could not be generated.');
 }
-function materialTarget(entry: BaroCadDocumentPrimitiveEntryV2): RenderNativeSceneSurfaceTarget {
+export function nativeSurfaceMaterialTarget(entry: BaroCadDocumentPrimitiveEntryV2): RenderNativeSceneSurfaceTarget {
   check(entry.kind === 'surface', 'The duplicated material must bind to an actual Surface.');
   const binding = entry.binding;
   return {documentId: binding.documentId, documentRevision: binding.documentRevision, bodyId: binding.bodyId,
@@ -76,13 +76,13 @@ export function deriveRenderNativeSceneBodyDuplicate(document: RenderNativeScene
     check(body && entry?.kind === 'surface' && material && original.display.visibleBodyIds.includes(bodyId), 'Duplicate an original selected visible Surface body with a material.');
     const asset = original.nativeDocument.assets.find(value => value.id === body.assetId);
     check(asset, 'The selected body has no original source asset.');
-    const copied = copyOptions(options), native = original.nativeDocument;
+    const copied = copyNativeBodyIdentityOptions(options), native = original.nativeDocument;
     check(native.assets.length < 4 && native.bodies.length < 16 && baseline.entries.length < 4
       && original.display.visibleBodyIds.length < 4 && original.surfaceMaterials.length < 4, 'Body duplication exceeds the current native asset, body, selection or material capacity.');
     check(native.revision < 2147483647, 'The native CAD document revision is at its maximum.');
     const used = new Set([...copied.reservedIds, ...native.assets.map(value => value.id), ...native.bodies.map(value => value.id),
       ...original.surfaceMaterials.map(value => value.material.documentId)]);
-    const duplicateBodyId = freshId(body.id, used), assetId = freshId(asset.id, used), materialDocumentId = freshId(material.material.documentId, used);
+    const duplicateBodyId = freshNativeBodyIdentity(body.id, used), assetId = freshNativeBodyIdentity(asset.id, used), materialDocumentId = freshNativeBodyIdentity(material.material.documentId, used);
     const rebuilt = createCadDocument({...native, revision: native.revision + 1,
       assets: [...native.assets, {...asset, id: assetId, revision: 0}],
       bodies: [...native.bodies, {...body, id: duplicateBodyId, name: copied.name ?? body.name, assetId}]});
@@ -92,7 +92,7 @@ export function deriveRenderNativeSceneBodyDuplicate(document: RenderNativeScene
     const target = (id: string): RenderNativeSceneSurfaceTarget => {
       const found = entries.find(value => value.binding.bodyId === id);
       check(found, 'The reconstructed native body has no qualified binding.');
-      return materialTarget(found);
+      return nativeSurfaceMaterialTarget(found);
     };
     const pose = original.display.poses.find(value => value.bodyId === bodyId);
     check(original.display.poses.length === 0 || pose, 'The selected body has no authored pose.');
