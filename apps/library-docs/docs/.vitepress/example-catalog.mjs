@@ -8,6 +8,8 @@ const materialSource = { language: 'GPU mesh material', libraries: Object.freeze
 // Category describes the reader's task. A shared display host is not an
 // integration task; libraries lists public packages used by that sample.
 export const exampleCatalog = Object.freeze({
+  'svg-arc-import': item('SVG arc import', 'svg-arc-import', 'canvas2d', 'api', '/packages/canvas2d/svg-arc-import',
+    'Import an SVG endpoint arc, edit cubic controls and reopen the saved complete scene JSON.'),
   'discrete-material': item('Discrete threshold palette', 'discrete-material', 'gpu', 'language', '/packages/gpu/discrete-material',
     'Compare strict select thresholds with public CPU colour evaluation and an application display.', { language: 'GPU discrete authored Material' }),
   'cad-quantity-functions': item('CAD quantity functions', 'cad-quantity-functions', 'cad', 'language', '/packages/cad/quantity-functions',

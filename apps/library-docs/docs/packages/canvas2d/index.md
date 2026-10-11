@@ -6,6 +6,8 @@ Use Canvas2D for bounded 2D display trees, paths, sprites, frame clips and atlas
 
 Use Node 22 or later and the existing workspace dependencies. Run ordinary package-name imports in a TypeScript-capable host, such as the existing Vite or esbuild consumers. Internal `.js` specifiers need that transformation. No custom source condition is required. Plain Node and browser ESM do not resolve these TypeScript source graphs by themselves.
 
+[Import and edit an SVG arc](./svg-arc-import) to turn a complete bounded SVG into editable cubic paths, then save and reopen scene JSON. This guide identifies its separate importer source profile.
+
 ## Keep the data roles separate
 
 Scene JSON records geometry and asset references. A version 1 canvas document adds owned RGBA8 asset bytes. A PNG or captured image is derived pixels and cannot restore the editable tree. Coordinates use logical pixels with X right and Y down. DPR converts logical size to backing pixels.
