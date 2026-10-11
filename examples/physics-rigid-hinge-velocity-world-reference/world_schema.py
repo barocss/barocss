@@ -1,5 +1,6 @@
 """Strict World wire admission; imports only adopted independent Python helpers."""
 import copy
+from decimal import localcontext
 import importlib.util
 import math
 from pathlib import Path
@@ -179,7 +180,10 @@ def source_input(request):
     parsed = [];inputs = []
     for i in range(2):
         pair = pair_input(config, state, restored, i)
-        cfg, carrier, internal, memory, origin, limits = M.source_input(pair)
+        # Inherited exact binary-radius admission uses its parent's precision context.
+        with localcontext() as context:
+            context.prec = 120
+            cfg, carrier, internal, memory, origin, limits = M.source_input(pair)
         need(cfg["joints"][0]["id"] == JIDS[i])
         for j, body in enumerate(cfg["bodies"]):
             need(body["id"] == IDS[2 * i + j] and vector(body["positionM"]) == [-.1 if j == 0 else .1, 0, i])
