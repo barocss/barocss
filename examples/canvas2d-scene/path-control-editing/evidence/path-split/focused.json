@@ -1,0 +1,629 @@
+{
+  "status": "PASS",
+  "assertions": 1270,
+  "actualBrowser": false,
+  "entries": [
+    {
+      "entry": "source",
+      "accepted": 39,
+      "refused": 40,
+      "cases": [
+        {
+          "label": "literalCubic",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 6
+        },
+        {
+          "label": "literalQuadratic",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 3
+        },
+        {
+          "label": "literalLine",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 3
+        },
+        {
+          "label": "multipleMZcursor",
+          "index": 4,
+          "t": 0.25,
+          "outputLength": 6
+        },
+        {
+          "label": "sharedSeedC0",
+          "index": 1,
+          "t": 0.125,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC1",
+          "index": 1,
+          "t": 0.25,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC2",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC3",
+          "index": 1,
+          "t": 0.75,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC4",
+          "index": 1,
+          "t": 0.875,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC5",
+          "index": 1,
+          "t": 0.3,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC6",
+          "index": 1,
+          "t": 0.125,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC7",
+          "index": 1,
+          "t": 0.25,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC8",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC9",
+          "index": 1,
+          "t": 0.75,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC10",
+          "index": 1,
+          "t": 0.875,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC11",
+          "index": 1,
+          "t": 0.3,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC12",
+          "index": 1,
+          "t": 0.125,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC13",
+          "index": 1,
+          "t": 0.25,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC14",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC15",
+          "index": 1,
+          "t": 0.75,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC16",
+          "index": 1,
+          "t": 0.875,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC17",
+          "index": 1,
+          "t": 0.3,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC18",
+          "index": 1,
+          "t": 0.125,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC19",
+          "index": 1,
+          "t": 0.25,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC20",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC21",
+          "index": 1,
+          "t": 0.75,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC22",
+          "index": 1,
+          "t": 0.875,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC23",
+          "index": 1,
+          "t": 0.3,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC24",
+          "index": 1,
+          "t": 0.125,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC25",
+          "index": 1,
+          "t": 0.25,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC26",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC27",
+          "index": 1,
+          "t": 0.75,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC28",
+          "index": 1,
+          "t": 0.875,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC29",
+          "index": 1,
+          "t": 0.3,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC30",
+          "index": 1,
+          "t": 0.125,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC31",
+          "index": 1,
+          "t": 0.25,
+          "outputLength": 3
+        },
+        {
+          "label": "nullprototypecommands",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 6
+        },
+        {
+          "label": "finitebound",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 3
+        },
+        {
+          "label": "output256",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 256
+        }
+      ],
+      "sourceGetterReads": 0,
+      "oversizedArrayIndexedScans": 0,
+      "literal": [
+        {
+          "kind": "M",
+          "x": 0,
+          "y": 60
+        },
+        {
+          "kind": "C",
+          "c1x": 12.5,
+          "c1y": 30,
+          "c2x": 31.25,
+          "c2y": 40,
+          "x": 51.25,
+          "y": 52.5
+        },
+        {
+          "kind": "C",
+          "c1x": 71.25,
+          "c1y": 65,
+          "c2x": 92.5,
+          "c2y": 80,
+          "x": 110,
+          "y": 60
+        },
+        {
+          "kind": "L",
+          "x": 110,
+          "y": 120
+        },
+        {
+          "kind": "L",
+          "x": 0,
+          "y": 120
+        },
+        {
+          "kind": "Z"
+        }
+      ],
+      "oracle": "independent Bernstein parameter remapping; shared deterministic corpus reset per entry"
+    },
+    {
+      "entry": "emitted",
+      "accepted": 39,
+      "refused": 40,
+      "cases": [
+        {
+          "label": "literalCubic",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 6
+        },
+        {
+          "label": "literalQuadratic",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 3
+        },
+        {
+          "label": "literalLine",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 3
+        },
+        {
+          "label": "multipleMZcursor",
+          "index": 4,
+          "t": 0.25,
+          "outputLength": 6
+        },
+        {
+          "label": "sharedSeedC0",
+          "index": 1,
+          "t": 0.125,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC1",
+          "index": 1,
+          "t": 0.25,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC2",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC3",
+          "index": 1,
+          "t": 0.75,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC4",
+          "index": 1,
+          "t": 0.875,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC5",
+          "index": 1,
+          "t": 0.3,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC6",
+          "index": 1,
+          "t": 0.125,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC7",
+          "index": 1,
+          "t": 0.25,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC8",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC9",
+          "index": 1,
+          "t": 0.75,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC10",
+          "index": 1,
+          "t": 0.875,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC11",
+          "index": 1,
+          "t": 0.3,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC12",
+          "index": 1,
+          "t": 0.125,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC13",
+          "index": 1,
+          "t": 0.25,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC14",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC15",
+          "index": 1,
+          "t": 0.75,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC16",
+          "index": 1,
+          "t": 0.875,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC17",
+          "index": 1,
+          "t": 0.3,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC18",
+          "index": 1,
+          "t": 0.125,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC19",
+          "index": 1,
+          "t": 0.25,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC20",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC21",
+          "index": 1,
+          "t": 0.75,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC22",
+          "index": 1,
+          "t": 0.875,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC23",
+          "index": 1,
+          "t": 0.3,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC24",
+          "index": 1,
+          "t": 0.125,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC25",
+          "index": 1,
+          "t": 0.25,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC26",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC27",
+          "index": 1,
+          "t": 0.75,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC28",
+          "index": 1,
+          "t": 0.875,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC29",
+          "index": 1,
+          "t": 0.3,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC30",
+          "index": 1,
+          "t": 0.125,
+          "outputLength": 3
+        },
+        {
+          "label": "sharedSeedC31",
+          "index": 1,
+          "t": 0.25,
+          "outputLength": 3
+        },
+        {
+          "label": "nullprototypecommands",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 6
+        },
+        {
+          "label": "finitebound",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 3
+        },
+        {
+          "label": "output256",
+          "index": 1,
+          "t": 0.5,
+          "outputLength": 256
+        }
+      ],
+      "sourceGetterReads": 0,
+      "oversizedArrayIndexedScans": 0,
+      "literal": [
+        {
+          "kind": "M",
+          "x": 0,
+          "y": 60
+        },
+        {
+          "kind": "C",
+          "c1x": 12.5,
+          "c1y": 30,
+          "c2x": 31.25,
+          "c2y": 40,
+          "x": 51.25,
+          "y": 52.5
+        },
+        {
+          "kind": "C",
+          "c1x": 71.25,
+          "c1y": 65,
+          "c2x": 92.5,
+          "c2y": 80,
+          "x": 110,
+          "y": 60
+        },
+        {
+          "kind": "L",
+          "x": 110,
+          "y": 120
+        },
+        {
+          "kind": "L",
+          "x": 0,
+          "y": 120
+        },
+        {
+          "kind": "Z"
+        }
+      ],
+      "oracle": "independent Bernstein parameter remapping; shared deterministic corpus reset per entry"
+    }
+  ],
+  "hostRouting": {
+    "controlled": true,
+    "defaultEndRefuses": true,
+    "splitEndRoute": true
+  },
+  "firstFailures": [
+    {
+      "stage": "secondprobe",
+      "log": "/tmp/c2d1406-probe-second.txt",
+      "error": "ERR_ASSERTION indexundefined",
+      "repair": "refusal harness defaults applied by omitted argument count, preserving explicit undefined test input",
+      "publicAPIAssertionsExecuted": true
+    },
+    {
+      "stage": "firstprobe",
+      "log": "/tmp/c2d1406-probe-first.txt",
+      "error": "ERR_ASSERTION nullprototypecommands prefixexact",
+      "repair": "compare preserved fields/numeric values, not prototype identity; schema returns ordinary records",
+      "publicAPIAssertionsExecuted": true
+    },
+    {
+      "stage": "firsthosttypes",
+      "log": "/tmp/c2d1406-types-first.txt",
+      "exitCode": 2,
+      "errors": [
+        "TS2345",
+        "TS2531"
+      ],
+      "repair": "mode-aware target routing and narrowed heading access before browser"
+    },
+    {
+      "stage": "root/peerpreexecutionreview",
+      "findings": [
+        "reset selection when Undo removes insertion",
+        "gate preinsertion Apply/duplicateInsert",
+        "move insertion preflight into refusal try",
+        "refuse default-mode end routing"
+      ],
+      "fixedBeforeAcceptance": true
+    }
+  ],
+  "gates": {
+    "affectedBuild": {
+      "exitCode": 0,
+      "log": "/tmp/c2d1406-build.txt"
+    },
+    "strictSourceHostAndEmittedTypes": {
+      "exitCode": 0,
+      "log": "/tmp/c2d1406-types-final.txt"
+    }
+  },
+  "bounds": {
+    "sourceCommands": 256,
+    "outputCommands": 256,
+    "interpolationPoints": 6,
+    "formula": "(1-t)*a+t*b binary64; derived range checks each point"
+  },
+  "inertImportProof": "NOT_CLAIMED; helper source reviewed no DOM/GPU/fetch"
+}

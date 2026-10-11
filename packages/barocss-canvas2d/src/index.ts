@@ -106,3 +106,7 @@ export { applyImageColorKey } from "./image-color-key.js";
 export type { ImageRGBKey } from "./image-color-key.js";
 
 export { importSVGArcElement } from "./svg.js";
+
+export { intersectConvexPolygons } from './convex-intersection.js';
+
+export { splitPathSegment } from './path-split.js';

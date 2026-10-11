@@ -619,3 +619,14 @@ A host snapshots original pixels through `getImageAsset`, registers independent 
 ## Bounded SVG endpoint arc import
 
 `importSVGArcElement` is a separate solid SVG profile. It converts explicit absolute endpoint `A` commands into bounded approximate cubic controls and returns SceneV5 with the existing diagnostics shape. The legacy importer keeps its original arc refusal. The example `examples/canvas2d-scene/svg-v5.html?arcs=1` explicitly constructs an editable current tree through public Frame/Group/Path APIs, then saves and reopens a current v1 document. Source SVG parameters are not recovered from normalized controls. See Issue #1451 and the `consumer/evidence/svg-arcs` author receipt for measured scope and first failures.
+
+
+### Bounded convex polygon intersection
+
+`intersectConvexPolygons(left, right)` accepts one copied strictly convex simple contour per operand,3–32 integer points in[-4096,4096], with unique ASCII IDs. Either winding is accepted. Proper crossings, strict containment and disjoint inputs are supported; interoperand endpoint contacts or overlapping edges return UNSUPPORTED_FEATURE. Exact BigInt/rational predicates produce a canonical positive-area contour with at most64 points, then convert coordinates once to binary64. The result reuses PolygonBooleanResult with operation intersection, zero or one ResultContour1, and sourceIds in caller order as operation provenance. Caller Scene admission owns display IDs. The helper limits clipping to2048 point visits and rational intermediates to512 bits. No DOM or GPU resources are created.
+
+## Authored path subdivision
+
+`splitPathSegment(commands, index, t)` copies a validated authored path and replaces one L, Q or C segment with two same-degree segments. The required parameter is strictly between 0 and 1. Coordinates use bounded binary64 de Casteljau interpolation. The result has at most256 commands; M/Z targets and a constant selected segment are unsupported. Source validation, index/parameter errors and derived collapse remain explicit typed refusals. The helper does not change paint, handles, Scene versions or resource registration.
+
+The existing `examples/canvas2d-scene/path-control-editing/index.html?split=1` profile inserts a cubic midpoint and edits the inserted shared anchor through copied public path handles and the existing history adapter. Prepared commands reopen from genuine JSON bytes without subdivision. Its focused evidence stays in the separate `evidence/path-split/` directory. Native author proof and later exact adoption/current Root1254 qualification are separate.

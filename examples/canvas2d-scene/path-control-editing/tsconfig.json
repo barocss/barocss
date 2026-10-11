@@ -10,7 +10,7 @@
     "skipLibCheck": true,
     "lib": [
       "ES2022",
-      "DOM"
+      "DOM", "DOM.Iterable"
     ],
     "paths": {
       "@barocss/canvas2d": [

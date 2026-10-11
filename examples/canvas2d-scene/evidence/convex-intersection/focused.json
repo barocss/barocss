@@ -1,0 +1,646 @@
+{
+  "status": "PASS",
+  "checks": 988,
+  "actualBrowser": false,
+  "entries": [
+    {
+      "entry": "source",
+      "accepted": 58,
+      "refusals": 22,
+      "cases": [
+        {
+          "label": "fractional intersection",
+          "vertices": 6
+        },
+        {
+          "label": "restored edit",
+          "vertices": 5
+        },
+        {
+          "label": "opposite winding",
+          "vertices": 6
+        },
+        {
+          "label": "caller order",
+          "vertices": 6
+        },
+        {
+          "label": "strict containment",
+          "vertices": 3
+        },
+        {
+          "label": "disjoint",
+          "vertices": 0
+        },
+        {
+          "label": "coordinate4096",
+          "vertices": 3
+        },
+        {
+          "label": "32vertex maximum",
+          "vertices": 32
+        },
+        {
+          "label": "random hull0",
+          "vertices": 7
+        },
+        {
+          "label": "random hull1",
+          "vertices": 7
+        },
+        {
+          "label": "random hull2",
+          "vertices": 6
+        },
+        {
+          "label": "random hull3",
+          "vertices": 8
+        },
+        {
+          "label": "random hull4",
+          "vertices": 9
+        },
+        {
+          "label": "random hull5",
+          "vertices": 5
+        },
+        {
+          "label": "random hull6",
+          "vertices": 7
+        },
+        {
+          "label": "random hull7",
+          "vertices": 6
+        },
+        {
+          "label": "random hull8",
+          "vertices": 3
+        },
+        {
+          "label": "random hull9",
+          "vertices": 6
+        },
+        {
+          "label": "random hull10",
+          "vertices": 8
+        },
+        {
+          "label": "random hull11",
+          "vertices": 7
+        },
+        {
+          "label": "random hull12",
+          "vertices": 6
+        },
+        {
+          "label": "random hull13",
+          "vertices": 8
+        },
+        {
+          "label": "random hull14",
+          "vertices": 6
+        },
+        {
+          "label": "random hull15",
+          "vertices": 8
+        },
+        {
+          "label": "random hull16",
+          "vertices": 7
+        },
+        {
+          "label": "random hull17",
+          "vertices": 6
+        },
+        {
+          "label": "random hull18",
+          "vertices": 9
+        },
+        {
+          "label": "random hull19",
+          "vertices": 6
+        },
+        {
+          "label": "random hull20",
+          "vertices": 5
+        },
+        {
+          "label": "random hull21",
+          "vertices": 7
+        },
+        {
+          "label": "random hull22",
+          "vertices": 6
+        },
+        {
+          "label": "random hull23",
+          "vertices": 8
+        },
+        {
+          "label": "random hull24",
+          "vertices": 9
+        },
+        {
+          "label": "random hull25",
+          "vertices": 6
+        },
+        {
+          "label": "random hull26",
+          "vertices": 8
+        },
+        {
+          "label": "random hull27",
+          "vertices": 8
+        },
+        {
+          "label": "random hull28",
+          "vertices": 8
+        },
+        {
+          "label": "random hull29",
+          "vertices": 7
+        },
+        {
+          "label": "random hull30",
+          "vertices": 9
+        },
+        {
+          "label": "random hull31",
+          "vertices": 7
+        },
+        {
+          "label": "random hull32",
+          "vertices": 6
+        },
+        {
+          "label": "random hull33",
+          "vertices": 5
+        },
+        {
+          "label": "random hull34",
+          "vertices": 6
+        },
+        {
+          "label": "random hull35",
+          "vertices": 6
+        },
+        {
+          "label": "random hull36",
+          "vertices": 9
+        },
+        {
+          "label": "random hull37",
+          "vertices": 3
+        },
+        {
+          "label": "random hull38",
+          "vertices": 5
+        },
+        {
+          "label": "random hull39",
+          "vertices": 9
+        },
+        {
+          "label": "random hull40",
+          "vertices": 9
+        },
+        {
+          "label": "random hull41",
+          "vertices": 4
+        },
+        {
+          "label": "random hull42",
+          "vertices": 7
+        },
+        {
+          "label": "random hull43",
+          "vertices": 5
+        },
+        {
+          "label": "random hull44",
+          "vertices": 10
+        },
+        {
+          "label": "random hull45",
+          "vertices": 7
+        },
+        {
+          "label": "random hull46",
+          "vertices": 4
+        },
+        {
+          "label": "random hull47",
+          "vertices": 9
+        },
+        {
+          "label": "random hull48",
+          "vertices": 7
+        },
+        {
+          "label": "random hull49",
+          "vertices": 7
+        }
+      ],
+      "getters": 0,
+      "DOMReads": 0,
+      "fetchCalls": 0,
+      "literal": [
+        {
+          "x": 65,
+          "y": 55
+        },
+        {
+          "x": 68.75,
+          "y": 51.25
+        },
+        {
+          "x": 92.85714285714286,
+          "y": 52.857142857142854
+        },
+        {
+          "x": 120,
+          "y": 80
+        },
+        {
+          "x": 80,
+          "y": 120
+        },
+        {
+          "x": 65,
+          "y": 105
+        }
+      ],
+      "editedLiteral": [
+        {
+          "x": 72,
+          "y": 51
+        },
+        {
+          "x": 92.48051948051948,
+          "y": 52.48051948051948
+        },
+        {
+          "x": 120,
+          "y": 80
+        },
+        {
+          "x": 80,
+          "y": 120
+        },
+        {
+          "x": 72,
+          "y": 112
+        }
+      ],
+      "legacyOperations": 3
+    },
+    {
+      "entry": "emitted",
+      "accepted": 58,
+      "refusals": 22,
+      "cases": [
+        {
+          "label": "fractional intersection",
+          "vertices": 6
+        },
+        {
+          "label": "restored edit",
+          "vertices": 5
+        },
+        {
+          "label": "opposite winding",
+          "vertices": 6
+        },
+        {
+          "label": "caller order",
+          "vertices": 6
+        },
+        {
+          "label": "strict containment",
+          "vertices": 3
+        },
+        {
+          "label": "disjoint",
+          "vertices": 0
+        },
+        {
+          "label": "coordinate4096",
+          "vertices": 3
+        },
+        {
+          "label": "32vertex maximum",
+          "vertices": 32
+        },
+        {
+          "label": "random hull0",
+          "vertices": 7
+        },
+        {
+          "label": "random hull1",
+          "vertices": 7
+        },
+        {
+          "label": "random hull2",
+          "vertices": 6
+        },
+        {
+          "label": "random hull3",
+          "vertices": 8
+        },
+        {
+          "label": "random hull4",
+          "vertices": 9
+        },
+        {
+          "label": "random hull5",
+          "vertices": 5
+        },
+        {
+          "label": "random hull6",
+          "vertices": 7
+        },
+        {
+          "label": "random hull7",
+          "vertices": 6
+        },
+        {
+          "label": "random hull8",
+          "vertices": 3
+        },
+        {
+          "label": "random hull9",
+          "vertices": 6
+        },
+        {
+          "label": "random hull10",
+          "vertices": 8
+        },
+        {
+          "label": "random hull11",
+          "vertices": 7
+        },
+        {
+          "label": "random hull12",
+          "vertices": 6
+        },
+        {
+          "label": "random hull13",
+          "vertices": 8
+        },
+        {
+          "label": "random hull14",
+          "vertices": 6
+        },
+        {
+          "label": "random hull15",
+          "vertices": 8
+        },
+        {
+          "label": "random hull16",
+          "vertices": 7
+        },
+        {
+          "label": "random hull17",
+          "vertices": 6
+        },
+        {
+          "label": "random hull18",
+          "vertices": 9
+        },
+        {
+          "label": "random hull19",
+          "vertices": 6
+        },
+        {
+          "label": "random hull20",
+          "vertices": 5
+        },
+        {
+          "label": "random hull21",
+          "vertices": 7
+        },
+        {
+          "label": "random hull22",
+          "vertices": 6
+        },
+        {
+          "label": "random hull23",
+          "vertices": 8
+        },
+        {
+          "label": "random hull24",
+          "vertices": 9
+        },
+        {
+          "label": "random hull25",
+          "vertices": 6
+        },
+        {
+          "label": "random hull26",
+          "vertices": 8
+        },
+        {
+          "label": "random hull27",
+          "vertices": 8
+        },
+        {
+          "label": "random hull28",
+          "vertices": 8
+        },
+        {
+          "label": "random hull29",
+          "vertices": 7
+        },
+        {
+          "label": "random hull30",
+          "vertices": 9
+        },
+        {
+          "label": "random hull31",
+          "vertices": 7
+        },
+        {
+          "label": "random hull32",
+          "vertices": 6
+        },
+        {
+          "label": "random hull33",
+          "vertices": 5
+        },
+        {
+          "label": "random hull34",
+          "vertices": 6
+        },
+        {
+          "label": "random hull35",
+          "vertices": 6
+        },
+        {
+          "label": "random hull36",
+          "vertices": 9
+        },
+        {
+          "label": "random hull37",
+          "vertices": 3
+        },
+        {
+          "label": "random hull38",
+          "vertices": 5
+        },
+        {
+          "label": "random hull39",
+          "vertices": 9
+        },
+        {
+          "label": "random hull40",
+          "vertices": 9
+        },
+        {
+          "label": "random hull41",
+          "vertices": 4
+        },
+        {
+          "label": "random hull42",
+          "vertices": 7
+        },
+        {
+          "label": "random hull43",
+          "vertices": 5
+        },
+        {
+          "label": "random hull44",
+          "vertices": 10
+        },
+        {
+          "label": "random hull45",
+          "vertices": 7
+        },
+        {
+          "label": "random hull46",
+          "vertices": 4
+        },
+        {
+          "label": "random hull47",
+          "vertices": 9
+        },
+        {
+          "label": "random hull48",
+          "vertices": 7
+        },
+        {
+          "label": "random hull49",
+          "vertices": 7
+        }
+      ],
+      "getters": 0,
+      "DOMReads": 0,
+      "fetchCalls": 0,
+      "literal": [
+        {
+          "x": 65,
+          "y": 55
+        },
+        {
+          "x": 68.75,
+          "y": 51.25
+        },
+        {
+          "x": 92.85714285714286,
+          "y": 52.857142857142854
+        },
+        {
+          "x": 120,
+          "y": 80
+        },
+        {
+          "x": 80,
+          "y": 120
+        },
+        {
+          "x": 65,
+          "y": 105
+        }
+      ],
+      "editedLiteral": [
+        {
+          "x": 72,
+          "y": 51
+        },
+        {
+          "x": 92.48051948051948,
+          "y": 52.48051948051948
+        },
+        {
+          "x": 120,
+          "y": 80
+        },
+        {
+          "x": 80,
+          "y": 120
+        },
+        {
+          "x": 72,
+          "y": 112
+        }
+      ],
+      "legacyOperations": 3
+    }
+  ],
+  "algorithmOracle": "independent candidate-edge enumeration and monotone rational hull; production sequential clipping",
+  "bounds": {
+    "verticesPerOperand": 32,
+    "outputVertices": 64,
+    "clipVisits": 2048,
+    "rationalBits": 512,
+    "validPublicBitOverflowExecuted": false,
+    "validPublicVisitOverflowExecuted": false,
+    "scope": "Arithmetic/work guards source-reviewed, not manufactured overflow refusals."
+  },
+  "firstFailures": [
+    {
+      "stage": "preparation cwd",
+      "cause": "wrong package cwd made three own new docs/types at package examples; moved exactly own files to frozen examples paths before acceptance"
+    },
+    {
+      "stage": "first build",
+      "exitCode": 2,
+      "log": "/tmp/c2d1393-build.txt",
+      "codes": [
+        "TS2345",
+        "TS18048",
+        "TS2322"
+      ],
+      "repair": "explicit never-returning declarations enable preflight type narrowing"
+    },
+    {
+      "stage": "first owned host types",
+      "exitCode": 2,
+      "log": "/tmp/c2d1393-types-first.txt",
+      "codes": [
+        "TS7034",
+        "TS7005"
+      ],
+      "repair": "failure state annotated string|null"
+    },
+    {
+      "stage": "private CLI donor lookup",
+      "cause": "absent guessed /tmp/c2d1386-run-cli.py; used own private subprocess runner",
+      "effect": "read-only setup; no product/runtime failure"
+    }
+  ],
+  "gates": {
+    "affectedBuild": {
+      "exitCode": 0,
+      "log": "/tmp/c2d1393-build-ready.txt"
+    },
+    "strictSourceHostAndEmittedTypes": {
+      "exitCode": 0,
+      "log": "/tmp/c2d1393-types-ready.txt"
+    },
+    "syntax": {
+      "exitCode": 0,
+      "log": "/tmp/c2d1393-syntax.txt"
+    }
+  },
+  "baselineParent": "b946e045bdbfbde73986bbf2fdad0440b69e26ed"
+}
