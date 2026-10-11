@@ -1,0 +1,77 @@
+{
+  "sourceHead": "039f48521d90e74dc2bf23324c9f069e998cf062",
+  "result": "EXECUTION_FAILURE_INITIAL_REFERENCE_INPUT",
+  "initialRequests": 1,
+  "worldSteps": 0,
+  "nativeProjections": 0,
+  "successfulConstructorChecksRetained": 18,
+  "privateConstructorsObserved": 18,
+  "publicConstructorsObserved": 1,
+  "files": [
+    {
+      "path": "flow/source-graph.json",
+      "bytes": 65585,
+      "sha256": "34dabd17cebea9f2b3f699e4bd4599fd12b410ed9d7f10d600ae282b0e05ff1c"
+    },
+    {
+      "path": "flow/source-proof/controls.bodies.raw",
+      "bytes": 416,
+      "sha256": "336909b78c32a1bd17ece87634ed11767de4eaf9fc952aa5d9077ff91a0ad5e0"
+    },
+    {
+      "path": "flow/source-proof/controls.records.jsonl",
+      "bytes": 30590,
+      "sha256": "5c8e3557aff134dca011ce70b1beac3be18e13e923af4e760af399fe163819c3"
+    },
+    {
+      "path": "flow/source-proof/reference.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "flow/source-proof/reference.stdin.raw",
+      "bytes": 3536,
+      "sha256": "4f0a978500157b8ec7922f597a580d07f9dbdc3e485d7a941cc32c0672518f86"
+    },
+    {
+      "path": "flow/source-proof/reference.stdout.raw",
+      "bytes": 219,
+      "sha256": "e39a49a9f2172e92d810108a48e426091fc0bb89cf48243761620a8ca5c51d52"
+    },
+    {
+      "path": "flow/source-proof/result.json",
+      "bytes": 4049,
+      "sha256": "e8b797f8a4263c2f16848d8f08fc6c57665e00d637356882e6a4a51e75f28ae1"
+    },
+    {
+      "path": "flow/source.mjs",
+      "bytes": 174843,
+      "sha256": "8ed469d095be466bcfb566f01e4b5f3830daec66379a4113bd7feae92c912812"
+    },
+    {
+      "path": "flow/summary.json",
+      "bytes": 14370,
+      "sha256": "f1fd09eda551c5d3957864f0144295d37d080fd2fe9b4214f0abcd89c479236d"
+    },
+    {
+      "path": "launch/consumer.receipt.json",
+      "bytes": 704,
+      "sha256": "053ee62ac80bda81d2b067589bbd6e56769da76de82b610dbea1d42e079ae025"
+    },
+    {
+      "path": "launch/consumer.started.json",
+      "bytes": 647,
+      "sha256": "4fd1d426edef7a088224efcefea89f4d88f6053f4e49976d91b9f36740d520ac"
+    },
+    {
+      "path": "launch/consumer.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "launch/consumer.stdout",
+      "bytes": 114,
+      "sha256": "4cfda5c3d91217d12fb367b78d050ec4558000cdbde89b7a4488ec059f4c401c"
+    }
+  ]
+}

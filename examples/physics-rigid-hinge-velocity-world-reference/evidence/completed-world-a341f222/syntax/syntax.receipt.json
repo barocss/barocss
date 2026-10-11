@@ -1,0 +1,49 @@
+{
+  "sourceHead": "a341f222",
+  "sourceFreezeSha256": "f25d064ebb082e556202491000f545f41726eef3c8e426a1452a66814e6d7954",
+  "checks": [
+    {
+      "path": "consumer.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0.021977750002406538,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "native-controls.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0.021724874997744337,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "proof-storage.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0.022541874990565702,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "reference-child.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0.021417667012428865,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "runner.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0.02091554200160317,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "resume-source.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0.02109741701860912,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "modelCalls": 0
+}

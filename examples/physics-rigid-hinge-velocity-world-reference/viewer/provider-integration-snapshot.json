@@ -1,0 +1,61 @@
+{
+  "integrationHead": "5fa4a4b53cadb3850db7893f440cde4c7ec5530b",
+  "candidateProviderBase": "f40123da0eedb19245688557f865e1beb09d47ef",
+  "sameSourceFiles": 344,
+  "differentSourceFiles": 10,
+  "different": [
+    {
+      "path": "packages/barocss-cad/src/expression-parser.ts",
+      "candidateSha256": "23ae5c880951ce3aff5d793e11c030eefc9d7a45aa5d65775cf5a0904ac07737",
+      "integrationSha256": "8332b91fe2b542f6b995af88375ad84d0f25573d04893fa0f3d071820c572eaf"
+    },
+    {
+      "path": "packages/barocss-cad/src/index.ts",
+      "candidateSha256": "1dac37aef2a80963ca8ed1b47b9e1a4f7650a4391884ce77100c4ccfc1d25d50",
+      "integrationSha256": "f912f41c4c3043ccb857002792d301b28707ae527c088e19cf06ad00f9c51f4f"
+    },
+    {
+      "path": "packages/barocss-cad/src/model-compiler.ts",
+      "candidateSha256": "c8c47d407822a8d06e7b780ec6f5c2b97f9a99cf865afd837d0a320d07418d1a",
+      "integrationSha256": "bddc67c78a8c709153db29758ed4e2cbe2356642b92415f31368c65451683230"
+    },
+    {
+      "path": "packages/barocss-cad/src/parameter-semantics.ts",
+      "candidateSha256": "b8e64d4d2ee2aa9db809cc34947e6da604d4d3ba8f862f1eb678038ed61e0c2b",
+      "integrationSha256": "1402135428ab95bbeb9c171766ad339eed0b51e21a0cad530a2b4e08f2cdc3e6"
+    },
+    {
+      "path": "packages/barocss-cad/src/semantic-model.ts",
+      "candidateSha256": "a4c2658df024126fa7de55880e440375b924c454b2809902c65277a413e6ed59",
+      "integrationSha256": "e80e7dfe6e2bb9ecb475e6d77ff201d3da2711359941006f30ec234311d77e15"
+    },
+    {
+      "path": "packages/barocss-cad/src/source-ast.ts",
+      "candidateSha256": "69b2bb9e4d3a33f41e998846f76d6bbd2b360a5b6784df7683e6623d0d3f4712",
+      "integrationSha256": "c157d4ae59bf68b0fdd007ab7b2cf0b8f43a0e5fa7eb35f25f900187cbcc3efc"
+    },
+    {
+      "path": "packages/barocss-gpu/src/affine-scene-source.ts",
+      "candidateSha256": "eaf2e77bf6c05b28ed74f8713fba8af3e67a1dcf833092a2be18a7d60ddf06f2",
+      "integrationSha256": "a48c93e850ce2d1a68d3bcda59237255b08b5f4104cedb8864d3ca9fa863021d"
+    },
+    {
+      "path": "packages/barocss-gpu/src/index.ts",
+      "candidateSha256": "cc378d2b83d6a045b7130adc54d1f49f9c191531aa10db7c51adcaa23ae92088",
+      "integrationSha256": "ae4143f3162f2f4e293f91e4640bdf4261de80f5717396764f739b98682d5247"
+    },
+    {
+      "path": "packages/barocss-gpu/src/mesh-material.ts",
+      "candidateSha256": "0005f596b6ef8dbe6832cde49ecdace28da0ba1d1c9c31e7acb4286913cea886",
+      "integrationSha256": "4dc21b5a8237d5b5384613cca4fa708a0dde495197da96f3b07baf6bb29fcb86"
+    },
+    {
+      "path": "packages/barocss-viewer/src/index.ts",
+      "candidateSha256": "66c64ad4d3c0e5e442c3bf7d02bb5df7c1040e8e194f499847b093c0b781e8d9",
+      "integrationSha256": "0be281d1a8cf53f043b580fe485fc5d19fcf379dc8c2c473874e0a68b5e2dbd6"
+    }
+  ],
+  "meaning": "Pinned candidate provider source is not identical to current Integration. This native consumer does not qualify current composed Integration acceptance.",
+  "nativeWorldAncestryExitCode": 1,
+  "nativeWorldAdoptedByAncestry": false
+}

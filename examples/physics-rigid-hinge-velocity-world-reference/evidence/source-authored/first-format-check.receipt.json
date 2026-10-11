@@ -1,0 +1,11 @@
+{
+  "command": "git diff --cached --check",
+  "exitCode": 2,
+  "modelCalls": 0,
+  "failures": [
+    "harness-entry.mjs:3 new blank line at EOF",
+    "reference-controls.mjs:103 new blank line at EOF",
+    "tsconfig.json:14 new blank line at EOF"
+  ],
+  "repair": "remove trailing extra blank lines only"
+}

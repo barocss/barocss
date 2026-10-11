@@ -1,0 +1,17 @@
+{
+  "graph": "source-repeat",
+  "source": {
+    "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/controls.bodies.raw",
+    "bytes": 61984,
+    "sha256": "0f5cbc09ed349ac93f3c720b96d8cef9c7ccf772a34b55b40947fd13a4228616",
+    "completeLines": 12,
+    "trailingBytes": 13207,
+    "completeEOF": true,
+    "noUnusedBytes": true
+  },
+  "compositeManifest": null,
+  "composite": null,
+  "actualComparedBytes": 61984,
+  "actualComparedSha256": "0f5cbc09ed349ac93f3c720b96d8cef9c7ccf772a34b55b40947fd13a4228616",
+  "completeEOF": true
+}

@@ -1,0 +1,99 @@
+## 2026-10-11: 다음 HINGE2 World의 상세 준비 선택
+
+[선택 준비 계약](Physics-Hinge-Two-Body-Pair-World-Selected-Preparation)에 API·POSTCONTACT 단계·두 관절 순서·전체 rollback·partial progress·독립 참조의 정확한 wire/오류·controls·저장·종료 기준을 정리했다. [API](Physics-Hinge-World-Selected-ABI), [controls](Physics-Hinge-World-Selected-Controls), [참조와 자료](Physics-Hinge-World-Selected-Reference)는 병렬로 준비하고 Root가 충돌을 해결한 문서다. 이전 제안의 getter/schema/budget보다 이 선택이 우선한다.
+
+기존 #1179를 사용한다. 다음 목표는 원래4 sphere/2 hinge, dt1/120,1,200단계/10초다. Native `fe89b765`의 정확한 Integration 채택은 아직 확인되지 않았다. 확인 후 새 Physics 격리 작업 공간에서 파일을 나눠 구현한다. 화면·저장·열기·복구 후속 검증은 코드 시작을 막지 않는다. 현재 문서 선택만 완료했으며 새 World 구현·수치·화면 GO는 없다. 공개 범용 엔진과 Box3D 수준의 품질 목표는 [엔진 목표](Physics-3D-Engine-Target)에 남아 있다. #1399의 실제 World NO-GO와 기존 원본 실패 증거도 유지한다.
+
+# HINGE2 World 계약 제안 — 계획 상태
+
+선행 모터·보고14개×3경로와 독립 자료·출처 감사는 실제 통과했다. native `fe89b765`의 정확한 Integration 채택과 필요한 인터페이스 확인은 아직 남아 있다. 현재는 아래 계약을 구체화하는 단계다. World 코드·수치 실험·1200-step GO는 없다. 기존 [#1179](https://github.com/barocss/barocss/issues/1179#issuecomment-6104429307)를 사용하며 중복 이슈를 만들지 않는다. 화면·SaveOpen·복구 후속 검증만으로 코드 의존성을 기다리지 않는다.
+
+# #1179 HINGE2 World — source-only before-code proposal
+
+Status: proposal only. No World, model, reference, solver, control, parser, import, build, type or numerical evaluation ran for this document. Root selects the remaining choices, publishes the full contract, freezes sources and owns execution. No new Issue or Wiki write.
+
+## 1. Start evidence and unchanged fixture
+
+Use Wiki `Physics-Hinge-World-Integration-Preparation` §8 and original #1279 `reference-world.ts`/`groups.ts` at native `0de27c51574e2da6b09966c7ef0c28435d9c9592`. Preserve its original step197 physical NO-GO. The new detached #1179 flow at `95f96617` qualifies 14 report-semantic cases across three graphs. Its genuine CAP_REFUSAL is a correctly observed refusal, not an accepted physical step. Preserve first REST reference failure, one diagnostic, repaired continuation and original source/emitted identities. Root must pin exact adopted completed provider blobs before World authoring; a qualified local result alone is not adoption.
+
+Constructor input is the exact old HINGE2 fixture: dt1/120s, gravity[0,0,0], bodies in original order pairA0/pairB0/pairA1/pairB1, dynamic1kg spheres radius.1m, positions[-.1,0,0]/[.1,0,0]/[-.1,0,1]/[.1,0,1], identity q, zero v/omega, restitution0, friction static1/dynamic.7. Hinges hinge0/hinge1 have their original A/B IDs, anchors[.1,0,0]/[-.1,0,0], axis[0,0,1], limits[-.8,.8], motor speed.5rad/s/maxImpulse.0001N*m*s/maxReaction.01N*m*s. One body belongs to one hinge. No chain, extra bodies, altered ordering, explicit inertia override, CCD, sensors, filters, broadPhase/contactMode/sceneMode, gravity or moving constructor state. No raw-state restore/import API.
+
+Reuse original body parsing and private disjoint group parsing, then original single-pair scene admission on an inspection copy translated to Z0. Simulation and reference use real Z0/Z1. Never normalize simulation coordinates. Preserve original public HINGE2 refusal. Public old single-pair trajectories use another law and cannot be parity comparators for the new World.
+
+## 2. Private API and state ownership
+
+Proposed new prefix only: `examples/physics-rigid-hinge-velocity-world-reference/**`. Packages, parents, root files, lockfiles, original1279 archive, Integration and Viewer remain outside ownership.
+
+`createHingeVelocityWorldCandidate(config,{observeAttempt?}={})` returns original World methods `getState`, `step(dt,commands=[])`, `overlapSphere`, `raycast`, `dispose`, plus private `getDiagnostics`. No solver injection, queue, clock restore or alternate law. `getDiagnostics()` is null before first success and returns a deep copy afterward. Queries use accepted bodies only. Repeated dispose succeeds; every other method after dispose throws original DISPOSED / `world is disposed`.
+
+Public state retains exact original keys: stepIndex,timeSeconds,bodies,contacts,events,joints,ccdHits,pairStats. Joint reports retain id/kind/aId/bId/angleRad/linearImpulseNs/angularImpulseNms/motorImpulseNms. Accepted angle memory is the last accepted jointReport.angleRad, initially0. Raw source/POSTCONTACT/final angles are separate measurements. Commands apply only to this call and are discarded on refusal. No pending command state exists.
+
+## 3. Exact step order and reuse boundary
+
+1. Ensure active; check exact configured dt; check original MAX_STEPS; parse commands once against accepted global bodies; call original axis-only command admission for EACH hinge in order. Admit options at construction after original config/profile checks.
+2. Copy every accepted body and working transaction field. Apply original global angular command update once, body order unchanged, including empty additions and their zero signs.
+3. Original motor once per joint, joint order hinge0 then hinge1, from accepted angle memory. Record returned j. No new endpoint snap or raw-angle substitution.
+4. Original global free integration once: angular bounds, original quaternion advance, original linear impulse then gravity/force operations, movement bound, original position integration. Capture FREE.
+5. Keep original contact loop arithmetic and four cross-group pair order for all8 passes. Connected A/B pairs stay excluded. Remove ONLY old per-pass projectJoint and reaction accumulation for these selected hinges. Preserve original contact maps, events and public pairStats; nominal counts eligible32/candidate32/aabb0. Capture POSTCONTACT separately from FREE, even if identical.
+6. Pair0 then pair1: form a copied local full carrier from immutable original pair rest config, source cursor n/time=n*dt, prior accepted angle memory, and exact POSTCONTACT raw13 values. Local aIndex0/bIndex1 map explicitly to global IDs/indices. Pair-local contacts/events/ccdHits=[] and pairStats0 are an internal provider envelope, never a global counter replacement. Call adopted #1349 projection ONCE per pair. Targets are actual POSTCONTACT P/L. Write returned pair bodies to their disjoint global slots. Compute #1179 report helpers ONCE using POSTCONTACT as the correction baseline and earlier motor j; publish parent targetAngleRad as next report angle.
+7. Build finite diagnostics, fresh four cross-group separation checks and original events. Original validateResult, joint report validation, all caps, accepted-to-final movement and quality gates run before commit. No hidden pose pass, contact retry, q normalization, velocity repair or report clamp.
+8. One commit assigns bodies,contacts,events,joints,ccdHits,pairStats,activePairs,persistentPoints,sleepFrames,diagnostics and stepIndex=n+1. Time is exact `(n+1)*dt`. Return an independent public copy.
+
+Do NOT call `advanceDrivenHingePairReference` from the World: it would repeat motor and free integration. The current detached provider exposes the required #1349 projection and #1179 report helpers in source. A new small POSTCONTACT substage may only compose these unchanged helpers; it must have no motor/free call. Root freezes its precise ABI and source graph before code. There are no original old joint projections anywhere in the executed new graph.
+
+## 4. Reports, work, momentum and units
+
+For each body i, J_i=m_i*(v_FINAL-v_POSTCONTACT) in N*s and K_i=parsedScalarI_i*(omega_FINAL-omega_POSTCONTACT) in N*m*s, preserving qualified subtraction/scaling order. Joint report uses B-side J/K and earlier original motor j. K excludes motor and contact contributions. Strict norm(K_B)>.01 refuses; equality passes, no tolerance or linear-report cap. Reports are algorithmic correction jumps, not calibrated load or KKT multipliers.
+
+Per pair energy phases are SOURCE,ANGULAR,MOTOR,FREE,POSTCONTACT,PROJECTED in J. Keep parent objective in J separate. External angular work and motor signed midpoint work use unchanged #1179 operation order. Add signed contactDeltaKJ=postContactJ-freeJ and signed projectionDeltaKJ=projectedJ-postContactJ. In the selected no-contact successful profile contactDeltaK is exactly0; do not infer conservation from it. Scalar signed work may be negative. Phase KE/objective are finite/nonnegative. Motor residual compares actual signed spin midpoint work with original j*(sBefore+sAfter)*.5. No total energy conservation, damping, friction work or calibrated power claim.
+
+Fixed observation origin for each pair is its original config midpoint, including actualZ1. Raw/normalized orbital+spin L are both retained. Projection conservation targets are POSTCONTACT, not SOURCE,FREE,zero or candidateFINAL. Global/pair long-run budgets account for commands and motor; motor impulses are equal/opposite at original fixed +Z. Position/pose transport and orbital artifacts are separately measured. Never demand K_A=-K_B without accounting for changed orbital momentum.
+
+## 5. Proposed complete diagnostic/attempt schema
+
+Freeze exact keys before implementation; no implementation-defined extra payload:
+
+World accepted diagnostic `{sourceStepIndex,sourceTimeSeconds,acceptedStepIndex,acceptedTimeSeconds,fixedStepSeconds,frames,pairs,contactPasses,pairStats,calls}`. frames exact `{sourceBodies,angularBodies,motorBodies,freeBodies,postContactBodies,projectedBodies}`, each full four-body copy. pairs is fixed hinge0/hinge1 order. Each pair exact `{jointId,aId,bId,acceptedReportAngleRad,rawSourceAngleRad,rawFreeAngleRad,rawPostContactAngleRad,rawFinalAngleRad,parsedActions,motor,projection,jointReport,bodyCorrections,energyByPhase,work,reportCap,metrics,calls}`. Adopted motor/projection/report/bodyCorrections/cap key schemas unchanged. energyByPhase adds only postContactJ to original five keys. work adds only contactDeltaKJ and rebases projectionDeltaKJ to POSTCONTACT; other qualified keys/order unchanged. metrics has the six phase labels and unchanged #1349 pair metric schema. calls `{angularUpdates,freeIntegrations,motorCalls,projectionCalls,reportCalls}` are global counts4/4/2/2/2 on completed nominal steps. contactPasses=8 and original pairStats remain separate counts, not algorithmic projections.
+
+Attempt exact `{stage,sourceStepIndex,sourceTimeSeconds,attemptedStepIndex,attemptedTimeSeconds,acceptedReportAnglesRad,parsedActions,frames,pairs,contactPasses,pairStats,calls,error}`. stage enum admitted/angular-ready/motor-ready/free-ready/contact-ready/pair0-ready/pair1-ready/report-ready. Unreached full frames and pair records null; a reached pair record is atomic after its complete report/diagnostic construction. Partial successful body operations before a failed full frame are not fabricated as complete. Accepted getter never exposes this attempt.
+
+One copied observer callback after complete report-ready and before final caps/commit; known earlier calculation failures deliver one last-complete attempt then rethrow original received value. Admission errors callback0; registered observer exception propagates unchanged, callback at most1, all transaction fields retained. Unknown thrown values are not reflected/serialized by calculation catch and preserve identity; typed PhysicsError proxy behavior follows the unchanged provider boundary. Callback outside calculation catch. A known cap refusal after report-ready leaves attempt.error null, like qualified detached semantics. Root must select whether original validateResult errors are observed before or after report-ready: recommended validation inside calculation stage, last completed frame/report retained, callback before rethrow; successful caps outside catch.
+
+## 6. Independent input-only proof and fixed gates
+
+Request per reached step: original rest config, prior independently qualified accepted state/raw416B, per-call commands/raw24B each, dt, actual safe attempt/output/error plus actual six phase raw frames. Never use actual FREE/POSTCONTACT/FINAL as expected initial seed. Cold reference independently derives command/motor/free binary64 leaf operations from input, then Decimal80/120 checks all four cross-group sphere separations. The named profile requires strictly no original detector hit, including distance==sumR touch. All8 unchanged contact passes therefore have no body mutation and expected POSTCONTACT raw=expectedFREE. Candidate contact detection is not a separation oracle. Independently check every actual pass query and final cross-pair geometry. Any genuine contact/touch, unexpected event or changed no-contact POSTCONTACT is physical NO-GO; preserve actual original contact outcome, do not introduce a contact solver/reference campaign. If Root instead admits interacting contacts, that is a separate before-code model/reference decision.
+
+From independently derived POSTCONTACT, unchanged parent reference derives pose, full rows/H/native-vs-geometric inertia and Fraction optimum/certificate, then independently calculates reports/work/caps. Validate actual projection separately; no actual basis/u/row/output seed. Every actual reached pair is retained, even when later pair/cap fails. Exact source/repeat/compiled JSON/raw/zero/error/cursor/diagnostic prefix equality is required. Runtime and provenance are compared separately.
+
+| Gate | Fixed value/unit |
+|---|---|
+| Original finite/body/angular/displacement/result constraints | unchanged original errors and bounds; final accepted displacement<=10m |
+| Parent p/q/scalar row coefficient agreement |1e-12; native inertia/scales/row tags exact |
+| Expected v/omega/objective |1e-10m/s,1e-9rad/s,1e-10J |
+| Parent actual certificate |1e-10 dimensionless; exact reference rank/KKT residual0; original conditioning/pivot/resource gates unchanged |
+| Raw/normalized geometry agreement; Decimal algebra |1e-12 in declared SI unit;80/120 repeat1e-25; scalar trig separately1e-12rad |
+| Parent per-pair anchor/angle/report/limit/qnorm |1e-9m/rad/dimensionless; axis<=1degree |
+| Original World anchor/COM drift |anchor<=.002m; COM<=1e-5m over no-command trace, in addition to stronger parent per-stage gate |
+| Projection COM/P/L; command-accounted long-run P/L |1e-12m,1e-7kg*m/s,1e-7kg*m²/s |
+| Anchor velocity/transverse rate/eligible outward rate |1e-9m/s,1e-9rad/s,1e-9rad/s; eligibility exact target, no slop |
+| Free stage p/q/v/omega; j/J/K/work |1e-12m/q;1e-10m/s and rad/s;1e-12N*m*s/N*s/N*m*s/J |
+| Plane motion/no cross-group hit |Z-plane drift<=1e-12m; no detector hit/events/contacts; original32 checks |
+| Motor/reaction |abs(j)<=.0001N*m*s; strict angular norm>.01N*m*s refusal |
+
+Do not strengthen the old 2mm World anchor claim by erasing it; parent per-step1e-9 also applies to the new law. No gate guarantees all possible bounded carriers. No gate/tolerance/cap/fixture change follows first failure.
+
+## 7. Errors, rollback, controls and resources
+
+Original ensureActive→dt→MAX_STEPS→commands→per-joint axis admission priority stays. Original canonical PhysicsError/messages for structural/body/joint/command/angular/displacement/result/query/disposed errors, unchanged parent system/certificate errors and `unsafe joint reaction`, then hinge0/hinge1 strict cap messages. New private profile/diagnostic/no-contact quality messages require Root literal selection before code; do not reuse a generic success/error or invent them after trial. Unknown model/observer values retain identity. Reference null/unresolved/protocol/storage/harness errors are EXECUTION_FAILURE. A valid independent geometric/momentum/cap disagreement or nominal typed numeric refusal is physical World NO-GO.
+
+Any refused step retains all prior accepted body/raw values, contacts/events/joints/motor/report/CCD/pairStats, activePairs/cache/sleep state, accepted diagnostics, cursor/time. Attempt/call counters describe attempted work only; no increment of accepted state. Per-call commands are not replayed later. Copy controls cover config, commands, public return, diagnostics and observer payload. Transaction proof compares full internal copied store through a read-only private copied snapshot hook if Root chooses one; public getState alone cannot prove hidden cache retention. No hook can set state or alter law.
+
+Literal controls before code: public HINGE2 refusal; private exact constructor; each original invalid constructor/step/body/linear/off-axis case; pair0/pair1 separate .001+Z routing on original rest Worlds; each original .1+Z overload on a fresh named resting World with independently predicted current result (old overload receipt is not the expectation); original queryradius.2 and rays at bothZ; disposal; output/observer/config/commands copies; known movement/refusal and unknown observer identity; exact0 callback on admission, at most1 later. Nominal World cap is NO-GO even when detached report controls qualify the same refusal semantics. These short Worlds are separately counted, never counted as 1200 main steps.
+
+Main is one no-command HINGE2 trace per source/distinct-repeat/genuine compiled graph, initial+up to1200 accepted steps/10s, first failure retained, later graphs same actual prefix. No refinement or tuning. Archive original input/source/dependency pins, emitted bytes before trial, full raw416B frames/reached pair records, all independent metrics/certificates, accepted-vs-attempt refusal and step counts. Parent14/93 remain historical and are not replayed. Compact streamed JSONL gzip and source aliases only after byte/hash/EOF equality. Proposed budget reuses64MiB unique main+8MiB fixed+2MiB decoded emergency; Root must select it against authored maximum payload before code. Storage refusal is EXECUTION_FAILURE with retained prefix, never permission to drop proof or relax the limit. Record actual wall time and declared motor/free/contact/projection/report counts; no performance-equivalence promise.
+
+## 8. Root decisions before implementation and later UI boundary
+
+Required bounded choices: exact completed detached adoption/native pins; new owned prefix/API names; proposed exact diagnostic/attempt keys and known error literals; pair0 thenpair1 failure/cap priority; source cursor n in provider envelope versus attempted cursor n+1 in World; observer placement and copied hidden-store retention hook; no-contact touch refusal; guard Worlds/case counts; resource maximum. Recommended choices above are source proposals, not measurements.
+
+Only actual completed 1200-step three-graph numerical GO can support a separate native UI gate. Reuse existing Viewer recorded-frame flow; stable body/joint IDs, m/kg/s/rad units, accepted cursor/time, copied accepted poses/q, target report and separately labelled raw angle, j/J/K/cap/work/attempt status. Current root pending adoption and old failures remain visible. A failed attempted frame is evidence, never an accepted visual frame. Freeze named scene/load/render/play/pause/natural-stop/limit display/cleanup and exact actual native endpoint before UI execution; no arbitrary browser run or UI screenshot can certify independent physics. Public API/integration/release and broad networks/calibrated forces remain separate. Keep existing #1179/#660, no duplicate Issue or product push.

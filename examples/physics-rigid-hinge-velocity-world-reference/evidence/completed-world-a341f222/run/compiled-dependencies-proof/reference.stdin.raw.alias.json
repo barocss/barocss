@@ -1,0 +1,36 @@
+{
+  "graph": "compiled-dependencies",
+  "source": {
+    "representation": "composite",
+    "manifestPath": "/tmp/physics-1179-world-continuation-a341f222/source-proof/reference.stdin.raw.composite.json",
+    "logicalBytes": 131766270,
+    "logicalSha256": "9ca7129a067d0c06d34beb160044a55405589757cbf2d6a6e51b65c46333c616",
+    "completeLines": 1243,
+    "trailingBytes": 0,
+    "completeEOF": true
+  },
+  "compositeManifest": "/tmp/physics-1179-world-continuation-a341f222/source-proof/reference.stdin.raw.composite.json",
+  "composite": [
+    {
+      "path": "completed-initial.stdin.raw",
+      "offset": 0,
+      "bytes": 3536,
+      "sha256": "4f0a978500157b8ec7922f597a580d07f9dbdc3e485d7a941cc32c0672518f86",
+      "completeLines": 1,
+      "trailingBytes": 0,
+      "completeEOF": true
+    },
+    {
+      "path": "reference.stdin.raw",
+      "offset": 0,
+      "bytes": 131762734,
+      "sha256": "722957a4d20735710e210f517bd29d51777a923e003c5cdc2ca8f8583c9161d9",
+      "completeLines": 1242,
+      "trailingBytes": 0,
+      "completeEOF": true
+    }
+  ],
+  "actualComparedBytes": 131766270,
+  "actualComparedSha256": "9ca7129a067d0c06d34beb160044a55405589757cbf2d6a6e51b65c46333c616",
+  "completeEOF": true
+}

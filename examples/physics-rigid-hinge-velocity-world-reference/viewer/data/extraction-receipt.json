@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "status": "PASS",
+  "nativeWorld": "f40123da0eedb19245688557f865e1beb09d47ef",
+  "consumerHead": "a341f2224ac4bd0b1167f4a9059ab32ab331aac2",
+  "counters": {
+    "extractionAttempts": 1,
+    "compressedArtifactsAuthenticated": 43,
+    "decodedInputsAuthenticated": 3,
+    "nativeRecords": 1200,
+    "recordedFrames": 1201,
+    "rawBodyCorrespondences": 1201,
+    "physicsCalls": 0,
+    "worldSteps": 0,
+    "referenceCalls": 0
+  },
+  "inputs": [
+    {
+      "name": "main.bodies.raw",
+      "archive": "source-proof/main.bodies.raw.gz",
+      "bytes": 2995616,
+      "sha256": "d22e40616ede583bdd9526ce4e3d4f308658adfeea394e5b2845daa40d10d9f3"
+    },
+    {
+      "name": "main.records.jsonl",
+      "archive": "source-proof/main.records.jsonl.gz",
+      "bytes": 1971604,
+      "sha256": "40f7904c33d06f26090a41eb4c35322e1bdc6d49ea0bb4d4332414a9908edbe8"
+    },
+    {
+      "name": "main.native.jsonl",
+      "archive": "source-proof/main.native.jsonl.gz",
+      "bytes": 230570027,
+      "sha256": "29aa9e9ce5bd38bf658a3e94b396566a30e0904cd2d9020909d43714b46fed72"
+    }
+  ],
+  "manifest": {
+    "path": "../evidence/completed-world-a341f222/manifest.json",
+    "bytes": 23148,
+    "sha256": "60e389dbce2640f7f28378927f54cd6d2d8af203bcf374d54177a957b91d2191"
+  },
+  "output": {
+    "path": "data/recording.json",
+    "bytes": 6507999,
+    "sha256": "5d24afa5f13aa3e9c015cd1a0ae9788f88cd92653bbcae351b3f3ca0335896f5",
+    "frames": 1201
+  },
+  "negativeZeroWitnessFrames": 1002
+}

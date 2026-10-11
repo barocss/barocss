@@ -1,0 +1,181 @@
+{
+  "schema": 1,
+  "originalDirectory": "/tmp/physics-1179-recorded-viewer-native-9330df8f",
+  "executionHead": "9330df8fe74accb155706fbb419a4a1aa3866760",
+  "artifacts": [
+    {
+      "path": "cleanup.json",
+      "bytes": 163,
+      "sha256": "1f94a8802e594e33db0aea9a33bb8a8cd7784af63e43cde1594c05dfe9505e4d"
+    },
+    {
+      "path": "compiled/frame-0.png",
+      "bytes": 113947,
+      "sha256": "28958accadfba04567c2a9f4cd8ab78b7ba017e85a1bd3eb80a944feb4b3f838"
+    },
+    {
+      "path": "compiled/frame-0.rgba.gz",
+      "bytes": 8825,
+      "sha256": "b5c6138d1aae7bbffa91951f832e9ee81d95dc9232731004da2c98301cb67c96"
+    },
+    {
+      "path": "compiled/frame-1200.png",
+      "bytes": 118765,
+      "sha256": "6584f214832c78d9f32280b646b4173e94bab9bbbe661c33eab3379373d1c3d2"
+    },
+    {
+      "path": "compiled/frame-1200.rgba.gz",
+      "bytes": 8630,
+      "sha256": "4abe745bd40dd3e7400adb6d8b85688fd94c406fcb5d2a041e6b3971663f0db7"
+    },
+    {
+      "path": "compiled/frame-60.png",
+      "bytes": 131754,
+      "sha256": "bde507e28484a1db4885cfd3027800181277484abd941d124bcc0e113a1d1e54"
+    },
+    {
+      "path": "compiled/frame-60.rgba.gz",
+      "bytes": 8670,
+      "sha256": "d261a5821a73642b59b937801a947ac92249c6bfaa132cdaff27d829bf60fefb"
+    },
+    {
+      "path": "compiled/report.json.gz",
+      "bytes": 15817,
+      "sha256": "190eb60c27e4396b672767439ff0c6c956bf49f5bc6cd601e33edd5c0d35a4de"
+    },
+    {
+      "path": "compiled/restored-frame-0.rgba.gz",
+      "bytes": 8825,
+      "sha256": "b5c6138d1aae7bbffa91951f832e9ee81d95dc9232731004da2c98301cb67c96"
+    },
+    {
+      "path": "source/frame-0.png",
+      "bytes": 113947,
+      "sha256": "28958accadfba04567c2a9f4cd8ab78b7ba017e85a1bd3eb80a944feb4b3f838"
+    },
+    {
+      "path": "source/frame-0.rgba.gz",
+      "bytes": 8825,
+      "sha256": "b5c6138d1aae7bbffa91951f832e9ee81d95dc9232731004da2c98301cb67c96"
+    },
+    {
+      "path": "source/frame-1200.png",
+      "bytes": 118765,
+      "sha256": "6584f214832c78d9f32280b646b4173e94bab9bbbe661c33eab3379373d1c3d2"
+    },
+    {
+      "path": "source/frame-1200.rgba.gz",
+      "bytes": 8630,
+      "sha256": "4abe745bd40dd3e7400adb6d8b85688fd94c406fcb5d2a041e6b3971663f0db7"
+    },
+    {
+      "path": "source/frame-60.png",
+      "bytes": 131754,
+      "sha256": "bde507e28484a1db4885cfd3027800181277484abd941d124bcc0e113a1d1e54"
+    },
+    {
+      "path": "source/frame-60.rgba.gz",
+      "bytes": 8670,
+      "sha256": "d261a5821a73642b59b937801a947ac92249c6bfaa132cdaff27d829bf60fefb"
+    },
+    {
+      "path": "source/report.json.gz",
+      "bytes": 15999,
+      "sha256": "860442c8713363be64b500f1aed9f0c8af3f2b021700cfbc69f109217ae7b129"
+    },
+    {
+      "path": "source/restored-frame-0.rgba.gz",
+      "bytes": 8825,
+      "sha256": "b5c6138d1aae7bbffa91951f832e9ee81d95dc9232731004da2c98301cb67c96"
+    },
+    {
+      "path": "summary.json",
+      "bytes": 4366,
+      "sha256": "344a9b7933593deae8d284a3ad4994cf79339c66d86eae8b5784a896423410cc"
+    }
+  ],
+  "results": [
+    {
+      "mode": "source",
+      "passed": true,
+      "elapsedSeconds": 12.057665791000002,
+      "naturalElapsedSeconds": 10.076087,
+      "submissionDelta": 1200,
+      "advanceDelta": 1200,
+      "pixelHashes": [
+        {
+          "cursor": 0,
+          "sha256": "37c620759bec864e00c001c9ebf156dd0df00c29d1972b3aa35b32ebe270176a",
+          "nonBackgroundPixels": 5460
+        },
+        {
+          "cursor": 60,
+          "sha256": "7dda70f795de4751a5f87178b06e422d3a98764d8030c1fab43860491c4f6a24",
+          "nonBackgroundPixels": 5441
+        },
+        {
+          "cursor": 1200,
+          "sha256": "7e0c9189e2fb20e9afa9b165b89250af62487797e70e6ea8e605b5f347c3dee1",
+          "nonBackgroundPixels": 5260
+        }
+      ],
+      "disposedCounts": {
+        "Buffer": 0,
+        "Program": 0,
+        "VertexArray": 0,
+        "Framebuffer": 0,
+        "Texture": 0,
+        "Renderbuffer": 0,
+        "Shader": 0
+      },
+      "disposedBytes": 0,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "consoleWarnings": []
+    },
+    {
+      "mode": "compiled",
+      "passed": true,
+      "elapsedSeconds": 11.814535957999999,
+      "naturalElapsedSeconds": 10.071099167000002,
+      "submissionDelta": 1200,
+      "advanceDelta": 1200,
+      "pixelHashes": [
+        {
+          "cursor": 0,
+          "sha256": "37c620759bec864e00c001c9ebf156dd0df00c29d1972b3aa35b32ebe270176a",
+          "nonBackgroundPixels": 5460
+        },
+        {
+          "cursor": 60,
+          "sha256": "7dda70f795de4751a5f87178b06e422d3a98764d8030c1fab43860491c4f6a24",
+          "nonBackgroundPixels": 5441
+        },
+        {
+          "cursor": 1200,
+          "sha256": "7e0c9189e2fb20e9afa9b165b89250af62487797e70e6ea8e605b5f347c3dee1",
+          "nonBackgroundPixels": 5260
+        }
+      ],
+      "disposedCounts": {
+        "Buffer": 0,
+        "Program": 0,
+        "VertexArray": 0,
+        "Framebuffer": 0,
+        "Texture": 0,
+        "Renderbuffer": 0,
+        "Shader": 0
+      },
+      "disposedBytes": 0,
+      "pageErrors": [],
+      "consoleErrors": [],
+      "consoleWarnings": []
+    }
+  ],
+  "integrationObserved": {
+    "head": "ddbd947b852fa709e91b2f7c9510c0061e35ce86",
+    "worldAncestryExitCode": 1,
+    "dirty": "M packages/barocss-render/package.json\n?? examples/ai-kiosk/recordings/",
+    "meaning": "Read-only checkpoint. No current Integration browser or file validation."
+  }
+}

@@ -1,0 +1,213 @@
+{
+  "graph": "compiled-dependencies",
+  "disposition": "HINGE2_WORLD_GO",
+  "counts": {
+    "mainConstructors": 1,
+    "mainSteps": 1200,
+    "acceptedSteps": 1200,
+    "qualifiedSteps": 1200,
+    "mainReferenceRequests": 1200,
+    "nativeControls": {
+      "logical": {
+        "publicConstructors": 1,
+        "privateConstructors": 29,
+        "stepAttempts": 28,
+        "calculationAttemptsObserved": 19,
+        "acceptedSteps": 13,
+        "observerCallbacks": 19,
+        "queryCalls": 9,
+        "disposeCalls": 2,
+        "referenceRequests": 17,
+        "observedCalls": {
+          "angularUpdates": 76,
+          "freeIntegrations": 76,
+          "motorCalls": 38,
+          "projectionCalls": 36,
+          "reportCalls": 36
+        }
+      },
+      "actual": {
+        "publicConstructors": 1,
+        "privateConstructors": 29,
+        "stepAttempts": 28,
+        "calculationAttemptsObserved": 19,
+        "acceptedSteps": 13,
+        "observerCallbacks": 19,
+        "queryCalls": 9,
+        "disposeCalls": 2,
+        "referenceRequests": 17,
+        "observedCalls": {
+          "angularUpdates": 76,
+          "freeIntegrations": 76,
+          "motorCalls": 38,
+          "projectionCalls": 36,
+          "reportCalls": 36
+        }
+      },
+      "historical": null,
+      "recovery": {
+        "publicConstructors": 0,
+        "privateConstructors": 0,
+        "referenceRequests": 0
+      },
+      "combinedActual": {
+        "publicConstructors": 1,
+        "privateConstructors": 29,
+        "stepAttempts": 28,
+        "calculationAttemptsObserved": 19,
+        "acceptedSteps": 13,
+        "observerCallbacks": 19,
+        "queryCalls": 9,
+        "disposeCalls": 2,
+        "referenceRequests": 17,
+        "observedCalls": {
+          "angularUpdates": 76,
+          "freeIntegrations": 76,
+          "motorCalls": 38,
+          "projectionCalls": 36,
+          "reportCalls": 36
+        }
+      }
+    },
+    "protocolControls": {
+      "reached": 26,
+      "planned": 26,
+      "complete": true
+    }
+  },
+  "extrema": {
+    "maximumComDriftM": 0,
+    "maximumPlaneDriftM": 0,
+    "maximumAnchorGapM": 0,
+    "maximumAxisErrorRad": 0
+  },
+  "firstFailure": null,
+  "child": {
+    "pid": 41321,
+    "exitCode": 0,
+    "signal": null,
+    "stdin": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/compiled-dependencies-proof/reference.stdin.raw.alias.json",
+      "bytes": 131766270,
+      "sha256": "9ca7129a067d0c06d34beb160044a55405589757cbf2d6a6e51b65c46333c616",
+      "completeLines": 1243,
+      "trailingBytes": 0,
+      "completeEOF": true
+    },
+    "stdout": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/compiled-dependencies-proof/reference.stdout.raw.alias.json",
+      "bytes": 118876677,
+      "sha256": "69ad2a37886c9b011af83363e79b1ead9025e0f9a231f751c19bbea4e9fead49",
+      "completeLines": 1243,
+      "trailingBytes": 0,
+      "completeEOF": true
+    },
+    "stderr": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/reference.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "completeLines": 0,
+      "trailingBytes": 0,
+      "completeEOF": true
+    },
+    "completedReplies": 1243,
+    "pendingRequestIndex": null,
+    "firstFailure": null,
+    "secondaryFailures": []
+  },
+  "retainedHistoricalPrefix": null,
+  "childCloseObserved": {
+    "pid": 41321,
+    "exitCode": 0,
+    "signal": null,
+    "closed": true,
+    "stdoutClosed": true,
+    "stderrClosed": true,
+    "stdinEnded": true,
+    "completedReplies": 1243,
+    "pendingRequestIndex": null,
+    "firstFailure": null,
+    "secondaryFailures": []
+  },
+  "secondaryFailures": [],
+  "storedBudgetBytes": {
+    "main": 0,
+    "fixed": 5785,
+    "controls": 0,
+    "emergency": 0
+  },
+  "streams": {
+    "controls.records.jsonl": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/controls.records.jsonl",
+      "bytes": 3474835,
+      "sha256": "97fedbf66971e99811500ebaae49afdb7f94ae6ac971497bd8aff0a7653e62c2",
+      "completeLines": 115,
+      "trailingBytes": 0,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    },
+    "controls.bodies.raw": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/controls.bodies.raw",
+      "bytes": 61984,
+      "sha256": "0f5cbc09ed349ac93f3c720b96d8cef9c7ccf772a34b55b40947fd13a4228616",
+      "completeLines": 12,
+      "trailingBytes": 13207,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    },
+    "reference.stdin.raw": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/compiled-dependencies-proof/reference.stdin.raw.alias.json",
+      "bytes": 131766270,
+      "sha256": "9ca7129a067d0c06d34beb160044a55405589757cbf2d6a6e51b65c46333c616",
+      "completeLines": 1243,
+      "trailingBytes": 0,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    },
+    "reference.stdout.raw": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/compiled-dependencies-proof/reference.stdout.raw.alias.json",
+      "bytes": 118876677,
+      "sha256": "69ad2a37886c9b011af83363e79b1ead9025e0f9a231f751c19bbea4e9fead49",
+      "completeLines": 1243,
+      "trailingBytes": 0,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    },
+    "main.bodies.raw": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/main.bodies.raw",
+      "bytes": 2995616,
+      "sha256": "d22e40616ede583bdd9526ce4e3d4f308658adfeea394e5b2845daa40d10d9f3",
+      "completeLines": 476,
+      "trailingBytes": 2512252,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    },
+    "main.records.jsonl": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/main.records.jsonl",
+      "bytes": 1971604,
+      "sha256": "40f7904c33d06f26090a41eb4c35322e1bdc6d49ea0bb4d4332414a9908edbe8",
+      "completeLines": 1201,
+      "trailingBytes": 0,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    },
+    "main.native.jsonl": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/main.native.jsonl",
+      "bytes": 230570027,
+      "sha256": "29aa9e9ce5bd38bf658a3e94b396566a30e0904cd2d9020909d43714b46fed72",
+      "completeLines": 1200,
+      "trailingBytes": 0,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    },
+    "reference.stderr.raw": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/reference.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "completeLines": 0,
+      "trailingBytes": 0,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    }
+  }
+}

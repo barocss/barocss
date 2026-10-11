@@ -1,0 +1,12 @@
+{
+  "command": [
+    "python3",
+    "-c",
+    "from pathlib import Path; import sys; compile(Path(sys.argv[1]).read_text(), sys.argv[1], \"exec\")",
+    "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/world_schema.py"
+  ],
+  "exitCode": 0,
+  "stdout": "",
+  "stderr": "",
+  "modelCalls": 0
+}

@@ -1,0 +1,21 @@
+{
+  "entries": [
+    {
+      "name": "pixi.js",
+      "version": "7.2.4",
+      "packageJsonSha256": "53dd570d36220b0ebfa9f85f895d4bb0809bfc69f789248b6aaa5be3e0a07339",
+      "source": "/tmp/physics-1179-viewer-peer-types/node_modules/pixi.js",
+      "usedFor": "optional CAD-interop compiler peer declarations; not selected browser runtime"
+    },
+    {
+      "name": "pixi3d",
+      "version": "2.5.0",
+      "packageJsonSha256": "ad055b2373d42dbbe16e8acb3405bf5efb7a214de0e6bffde287d6bfff52ae22",
+      "source": "/tmp/physics-1179-viewer-peer-types/node_modules/pixi3d",
+      "usedFor": "optional CAD-interop compiler peer declarations; not selected browser runtime"
+    }
+  ],
+  "isolatedLockSha256": "b9dd96e88e53e37e74dc04d68191c01f09590f0694381bddae724cd2a1ac6ff7",
+  "packageScriptsDisabled": true,
+  "firstCacheFailureRetained": true
+}

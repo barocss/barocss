@@ -1,0 +1,26 @@
+{
+  "representation": "actual completed initial process plus actual continuation process",
+  "segments": [
+    {
+      "path": "completed-initial.stdin.raw",
+      "offset": 0,
+      "bytes": 3536,
+      "sha256": "4f0a978500157b8ec7922f597a580d07f9dbdc3e485d7a941cc32c0672518f86",
+      "completeLines": 1,
+      "trailingBytes": 0,
+      "completeEOF": true
+    },
+    {
+      "path": "reference.stdin.raw",
+      "offset": 0,
+      "bytes": 131762734,
+      "sha256": "722957a4d20735710e210f517bd29d51777a923e003c5cdc2ca8f8583c9161d9",
+      "completeLines": 1242,
+      "trailingBytes": 0,
+      "completeEOF": true
+    }
+  ],
+  "logicalBytes": 131766270,
+  "completeEOF": true,
+  "originalFailedInitialExcluded": true
+}

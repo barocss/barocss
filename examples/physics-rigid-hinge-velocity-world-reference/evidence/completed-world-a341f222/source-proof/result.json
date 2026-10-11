@@ -1,0 +1,250 @@
+{
+  "graph": "source",
+  "disposition": "HINGE2_WORLD_GO",
+  "counts": {
+    "mainConstructors": 1,
+    "mainSteps": 1200,
+    "acceptedSteps": 1200,
+    "qualifiedSteps": 1200,
+    "mainReferenceRequests": 1200,
+    "nativeControls": {
+      "logical": {
+        "publicConstructors": 1,
+        "privateConstructors": 29,
+        "stepAttempts": 28,
+        "calculationAttemptsObserved": 19,
+        "acceptedSteps": 13,
+        "observerCallbacks": 19,
+        "queryCalls": 9,
+        "disposeCalls": 2,
+        "referenceRequests": 17,
+        "observedCalls": {
+          "angularUpdates": 76,
+          "freeIntegrations": 76,
+          "motorCalls": 38,
+          "projectionCalls": 36,
+          "reportCalls": 36
+        }
+      },
+      "actual": {
+        "publicConstructors": 0,
+        "privateConstructors": 12,
+        "stepAttempts": 28,
+        "calculationAttemptsObserved": 19,
+        "acceptedSteps": 13,
+        "observerCallbacks": 19,
+        "queryCalls": 9,
+        "disposeCalls": 2,
+        "referenceRequests": 16,
+        "observedCalls": {
+          "angularUpdates": 76,
+          "freeIntegrations": 76,
+          "motorCalls": 38,
+          "projectionCalls": 36,
+          "reportCalls": 36
+        }
+      },
+      "historical": {
+        "publicConstructors": 1,
+        "privateConstructors": 18,
+        "failedInitialRequests": 1,
+        "completedInitialRequests": 1,
+        "worldSteps": 0,
+        "projectionCalls": 0
+      },
+      "recovery": {
+        "publicConstructors": 0,
+        "privateConstructors": 1,
+        "referenceRequests": 0
+      },
+      "combinedActual": {
+        "publicConstructors": 1,
+        "privateConstructors": 30,
+        "stepAttempts": 28,
+        "calculationAttemptsObserved": 19,
+        "acceptedSteps": 13,
+        "observerCallbacks": 19,
+        "queryCalls": 9,
+        "disposeCalls": 2,
+        "referenceRequests": 18,
+        "observedCalls": {
+          "angularUpdates": 76,
+          "freeIntegrations": 76,
+          "motorCalls": 38,
+          "projectionCalls": 36,
+          "reportCalls": 36
+        }
+      }
+    },
+    "protocolControls": {
+      "reached": 26,
+      "planned": 26,
+      "complete": true
+    }
+  },
+  "extrema": {
+    "maximumComDriftM": 0,
+    "maximumPlaneDriftM": 0,
+    "maximumAnchorGapM": 0,
+    "maximumAxisErrorRad": 0
+  },
+  "firstFailure": null,
+  "child": {
+    "pid": 89601,
+    "exitCode": 0,
+    "signal": null,
+    "stdin": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/reference.stdin.raw",
+      "bytes": 131762734,
+      "sha256": "722957a4d20735710e210f517bd29d51777a923e003c5cdc2ca8f8583c9161d9",
+      "completeLines": 1242,
+      "trailingBytes": 0,
+      "completeEOF": true
+    },
+    "stdout": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/reference.stdout.raw",
+      "bytes": 118865391,
+      "sha256": "60f9e35dbed8dda3f6f3ebbff09ddd94fb55b9702e0f21cc2746daa76f79ee02",
+      "completeLines": 1242,
+      "trailingBytes": 0,
+      "completeEOF": true
+    },
+    "stderr": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/reference.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "completeLines": 0,
+      "trailingBytes": 0,
+      "completeEOF": true
+    },
+    "completedReplies": 1242,
+    "pendingRequestIndex": null,
+    "firstFailure": null,
+    "secondaryFailures": []
+  },
+  "retainedHistoricalPrefix": {
+    "manifestSha256": "8a1c5f7fd1b3e16fd311c456a87f5fcc9300fb447a515c75f2c76a1df721420f",
+    "historicalCounts": {
+      "publicConstructors": 1,
+      "privateConstructors": 18,
+      "failedInitialRequests": 1,
+      "completedInitialRequests": 1,
+      "worldSteps": 0,
+      "projectionCalls": 0
+    },
+    "independentlyCompletedInitialRepliesReused": 1,
+    "currentChildReceiptExcludesPriorProcess": true
+  },
+  "childCloseObserved": {
+    "pid": 89601,
+    "exitCode": 0,
+    "signal": null,
+    "closed": true,
+    "stdoutClosed": true,
+    "stderrClosed": true,
+    "stdinEnded": true,
+    "completedReplies": 1242,
+    "pendingRequestIndex": null,
+    "firstFailure": null,
+    "secondaryFailures": []
+  },
+  "secondaryFailures": [],
+  "storedBudgetBytes": {
+    "main": 480973665,
+    "fixed": 8743348,
+    "controls": 8743348,
+    "emergency": 0
+  },
+  "streams": {
+    "controls.records.jsonl": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/controls.records.jsonl",
+      "bytes": 3474835,
+      "sha256": "97fedbf66971e99811500ebaae49afdb7f94ae6ac971497bd8aff0a7653e62c2",
+      "completeLines": 115,
+      "trailingBytes": 0,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    },
+    "controls.bodies.raw": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/controls.bodies.raw",
+      "bytes": 61984,
+      "sha256": "0f5cbc09ed349ac93f3c720b96d8cef9c7ccf772a34b55b40947fd13a4228616",
+      "completeLines": 12,
+      "trailingBytes": 13207,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    },
+    "completed-initial.stdin.raw": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/completed-initial.stdin.raw",
+      "bytes": 3536,
+      "sha256": "4f0a978500157b8ec7922f597a580d07f9dbdc3e485d7a941cc32c0672518f86",
+      "completeLines": 1,
+      "trailingBytes": 0,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    },
+    "completed-initial.stdout.raw": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/completed-initial.stdout.raw",
+      "bytes": 11286,
+      "sha256": "a61debde83d4b92a5946ad75f178daacc699813f3b7056a565548032cdc9c524",
+      "completeLines": 1,
+      "trailingBytes": 0,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    },
+    "reference.stdin.raw": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/reference.stdin.raw",
+      "bytes": 131762734,
+      "sha256": "722957a4d20735710e210f517bd29d51777a923e003c5cdc2ca8f8583c9161d9",
+      "completeLines": 1242,
+      "trailingBytes": 0,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    },
+    "reference.stdout.raw": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/reference.stdout.raw",
+      "bytes": 118865391,
+      "sha256": "60f9e35dbed8dda3f6f3ebbff09ddd94fb55b9702e0f21cc2746daa76f79ee02",
+      "completeLines": 1242,
+      "trailingBytes": 0,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    },
+    "main.bodies.raw": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/main.bodies.raw",
+      "bytes": 2995616,
+      "sha256": "d22e40616ede583bdd9526ce4e3d4f308658adfeea394e5b2845daa40d10d9f3",
+      "completeLines": 476,
+      "trailingBytes": 2512252,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    },
+    "main.records.jsonl": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/main.records.jsonl",
+      "bytes": 1971604,
+      "sha256": "40f7904c33d06f26090a41eb4c35322e1bdc6d49ea0bb4d4332414a9908edbe8",
+      "completeLines": 1201,
+      "trailingBytes": 0,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    },
+    "main.native.jsonl": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/main.native.jsonl",
+      "bytes": 230570027,
+      "sha256": "29aa9e9ce5bd38bf658a3e94b396566a30e0904cd2d9020909d43714b46fed72",
+      "completeLines": 1200,
+      "trailingBytes": 0,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    },
+    "reference.stderr.raw": {
+      "path": "/tmp/physics-1179-world-continuation-a341f222/source-proof/reference.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "completeLines": 0,
+      "trailingBytes": 0,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    }
+  }
+}

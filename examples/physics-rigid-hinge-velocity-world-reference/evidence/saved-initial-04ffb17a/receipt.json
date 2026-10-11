@@ -1,0 +1,17 @@
+{
+  "command": [
+    "python3",
+    "-u",
+    "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/reference.py"
+  ],
+  "exitCode": 0,
+  "elapsedSeconds": 0.0803011670068372,
+  "sourceHead": "04ffb17ab02c2cc632f711b9869dcb542fea62aa",
+  "sourceFreezeSha256": "e55ffb84c930ebccbf49e433be0a356f02d89f899e83ad4fc994a3790d1f6e5f",
+  "savedInitialRequests": 1,
+  "nativeWorldSteps": 0,
+  "nativeProjectionCalls": 0,
+  "stdinSha256": "4f0a978500157b8ec7922f597a580d07f9dbdc3e485d7a941cc32c0672518f86",
+  "stdoutSha256": "a61debde83d4b92a5946ad75f178daacc699813f3b7056a565548032cdc9c524",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

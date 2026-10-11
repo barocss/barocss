@@ -1,0 +1,52 @@
+0 verbose cli /Users/user/.nvm/versions/node/v22.22.0/bin/node /Users/user/.nvm/versions/node/v22.22.0/bin/npm
+1 info using npm@10.9.4
+2 info using node@v22.22.0
+3 silly config load:file:/Users/user/.nvm/versions/node/v22.22.0/lib/node_modules/npm/npmrc
+4 silly config load:file:/tmp/physics-1179-viewer-peer-types/.npmrc
+5 silly config load:file:/Users/user/.npmrc
+6 silly config load:file:/tmp/physics-1179-viewer-peer-types/etc/npmrc
+7 verbose title npm install pixi.js@7.2.4 pixi3d@2.5.0
+8 verbose argv "install" "--prefix" "/tmp/physics-1179-viewer-peer-types" "--no-audit" "--no-fund" "--ignore-scripts" "pixi.js@7.2.4" "pixi3d@2.5.0"
+9 verbose logfile logs-max:10 dir:/Users/user/.npm/_logs/2026-10-11T06_09_17_653Z-
+10 verbose logfile /Users/user/.npm/_logs/2026-10-11T06_09_17_653Z-debug-0.log
+11 silly logfile start cleaning logs, removing 12 files
+12 silly packumentCache heap:4345298944 maxSize:1086324736 maxEntrySize:543162368
+13 silly idealTree buildDeps
+14 silly fetch manifest pixi.js@7.2.4
+15 silly packumentCache full:https://registry.npmjs.org/pixi.js cache-miss
+16 silly logfile done cleaning log files
+17 http fetch GET 200 https://registry.npmjs.org/pixi.js 150ms (cache miss)
+18 silly fetch manifest pixi3d@2.5.0
+19 silly packumentCache full:https://registry.npmjs.org/pixi3d cache-miss
+20 http fetch GET 200 https://registry.npmjs.org/pixi3d 259ms (cache miss)
+21 silly placeDep ROOT pixi.js@ OK for:  want: 7.2.4
+22 silly placeDep ROOT pixi3d@ OK for:  want: 2.5.0
+23 verbose type system
+24 verbose stack FetchError: Invalid response body while trying to fetch https://registry.npmjs.org/pixi.js: EACCES: permission denied, mkdir '/Users/user/.npm/_cacache/content-v2/sha512/86/c3'
+24 verbose stack     at /Users/user/.nvm/versions/node/v22.22.0/lib/node_modules/npm/node_modules/minipass-fetch/lib/body.js:170:15
+24 verbose stack     at async Response.json (/Users/user/.nvm/versions/node/v22.22.0/lib/node_modules/npm/node_modules/minipass-fetch/lib/body.js:75:17)
+24 verbose stack     at async RegistryFetcher.packument (/Users/user/.nvm/versions/node/v22.22.0/lib/node_modules/npm/node_modules/pacote/lib/registry.js:98:25)
+24 verbose stack     at async RegistryFetcher.manifest (/Users/user/.nvm/versions/node/v22.22.0/lib/node_modules/npm/node_modules/pacote/lib/registry.js:128:23)
+24 verbose stack     at async #fetchManifest (/Users/user/.nvm/versions/node/v22.22.0/lib/node_modules/npm/node_modules/@npmcli/arborist/lib/arborist/build-ideal-tree.js:1202:20)
+24 verbose stack     at async #nodeFromEdge (/Users/user/.nvm/versions/node/v22.22.0/lib/node_modules/npm/node_modules/@npmcli/arborist/lib/arborist/build-ideal-tree.js:1040:19)
+24 verbose stack     at async #buildDepStep (/Users/user/.nvm/versions/node/v22.22.0/lib/node_modules/npm/node_modules/@npmcli/arborist/lib/arborist/build-ideal-tree.js:904:11)
+24 verbose stack     at async Arborist.buildIdealTree (/Users/user/.nvm/versions/node/v22.22.0/lib/node_modules/npm/node_modules/@npmcli/arborist/lib/arborist/build-ideal-tree.js:181:7)
+24 verbose stack     at async Promise.all (index 1)
+24 verbose stack     at async Arborist.reify (/Users/user/.nvm/versions/node/v22.22.0/lib/node_modules/npm/node_modules/@npmcli/arborist/lib/arborist/reify.js:131:5)
+25 error code EEXIST
+26 error syscall mkdir
+27 error path /Users/user/.npm/_cacache/content-v2/sha512/86/c3
+28 error errno EEXIST
+29 error Invalid response body while trying to fetch https://registry.npmjs.org/pixi.js: EACCES: permission denied, mkdir '/Users/user/.npm/_cacache/content-v2/sha512/86/c3'
+30 error File exists: /Users/user/.npm/_cacache/content-v2/sha512/86/c3
+31 error Remove the existing file and try again, or run npm
+32 error with --force to overwrite files recklessly.
+33 silly unfinished npm timer reify 1791698958091
+34 silly unfinished npm timer reify:loadTrees 1791698958091
+35 verbose cwd /Users/user/github/barocss/barocss
+36 verbose os Darwin 24.6.0
+37 verbose node v22.22.0
+38 verbose npm  v10.9.4
+39 verbose exit 1
+40 verbose code 1
+41 error A complete log of this run can be found in: /Users/user/.npm/_logs/2026-10-11T06_09_17_653Z-debug-0.log

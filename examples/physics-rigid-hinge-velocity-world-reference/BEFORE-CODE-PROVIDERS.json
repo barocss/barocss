@@ -1,0 +1,1416 @@
+{
+  "base": "a59eaf877cde02b2138c54dc0be03dd4a6b295b7",
+  "native1179": "fe89b76572a2acc57b114d0488dea247ebf3b25f",
+  "adoption1179": "a59eaf877cde02b2138c54dc0be03dd4a6b295b7",
+  "archive1279": "0de27c51574e2da6b09966c7ef0c28435d9c9592",
+  "pins": [
+    {
+      "path": "packages/barocss-physics/src/broadphase.ts",
+      "mode": "100644",
+      "blob": "97fa668f90ce7ac4519217d76d18d2b14389573f",
+      "bytes": 1362,
+      "sha256": "b0cf2d8f2095a47707ac5dd5ac556b69db9084f774f9a97e41bb28180aac4cba",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/cad-proxy-admission.ts",
+      "mode": "100644",
+      "blob": "21e9ffb925e9d4a3522071a6931c896e19d81411",
+      "bytes": 6226,
+      "sha256": "271dcaadfe47426fd5a6823e00b7ebce8c534c62987c4bc014f18f2b22ecd4a7",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/cad-proxy-pose.ts",
+      "mode": "100644",
+      "blob": "6f8ba7dbcc11da33106233cad4fd4bd08a862913",
+      "bytes": 1366,
+      "sha256": "813fc8607be59bf6228c42d1324324cff3187f0552bc57523c133fabfdf3f36c",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/cad-proxy-types.ts",
+      "mode": "100644",
+      "blob": "1db84bfbce0c9dd8012ce8a90802173d925456e4",
+      "bytes": 797,
+      "sha256": "58baa111a728fd85988ceb5094308ee8eb2727bc0ef289badeaf32851cad4e71",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/cad-proxy-validation.ts",
+      "mode": "100644",
+      "blob": "4169ffca53ea1892c52ee8263cfae43dd3c0ffc9",
+      "bytes": 1565,
+      "sha256": "5e586a65eb810a0881a1a69ab3700c1c44a2a94b17622eb953c8e02ee70ee399",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/cad-proxy.ts",
+      "mode": "100644",
+      "blob": "48aaa0cebf34705be679abbb718d04d7b06c0d7c",
+      "bytes": 258,
+      "sha256": "03745054fcec2bd660258fa9cf303aced00456bda3a705294c664e509882356b",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/capsule-contact.ts",
+      "mode": "100644",
+      "blob": "449c4e0a96592e5a73015da56aa519d36bc36534",
+      "bytes": 5606,
+      "sha256": "a9df21430e4e2a37b1055143a5954a6a3f997b758c46432daebc11998630f3cd",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/capsule-query-error.ts",
+      "mode": "100644",
+      "blob": "317c00fa97711ffb0416ee95c10c8bbcfb0bbfdd",
+      "bytes": 137,
+      "sha256": "fc49c7e09495dee70e9f5cea4782b29e1350f72a470a3059f1df3533768e565f",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/capsule-query.ts",
+      "mode": "100644",
+      "blob": "3f5b054dfd041ec2a48f4ce02ba5e0c6cc2b032d",
+      "bytes": 222,
+      "sha256": "ff66d04550032e0328793f52516edf1ad47fc427f954b031b5836defa14367d1",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/capsule-query/admission.ts",
+      "mode": "100644",
+      "blob": "b9ebe52774abff0f8a16841d5398c1e29cf1c499",
+      "bytes": 5247,
+      "sha256": "da3c6953478cd18761fe6f1280d5a4991353234be3a18c10fa714a50a9cd2ee1",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/capsule-query/geometry.ts",
+      "mode": "100644",
+      "blob": "c950e17da276c2938bde23c72565058a486ab91c",
+      "bytes": 2561,
+      "sha256": "52bfbc3b836178d59b24db026d3ecc9adc0031793f2edc5775bb74c6e2a17b59",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/capsule-query/profile.ts",
+      "mode": "100644",
+      "blob": "83d4befbf721522f22569ec9876ca7ae99e9765b",
+      "bytes": 303,
+      "sha256": "e74faf4a8d0d0e14765e97270619acebb4c2bff531d57bc42a0e3abf65d647ff",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/capsule-query/snapshot.ts",
+      "mode": "100644",
+      "blob": "26310c94ccf1f20a48f86a3a3a56bd2c50949a6e",
+      "bytes": 2537,
+      "sha256": "6a0994b1b55c962fe7ffc4e5fb55fd90404e1051568b16edf3adda8dc9adb7bd",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/capsule-query/sweep.ts",
+      "mode": "100644",
+      "blob": "31292e7442e5753306f7b8ef2520a3ecca61582c",
+      "bytes": 1852,
+      "sha256": "6c01e0ae4518394183c95ed0d1827e727ac6a1250c3cfa08354b757cc470ba81",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/capsule-query/types.ts",
+      "mode": "100644",
+      "blob": "63b18e78dedec379d61cbf1f5cc2ff74861d98f4",
+      "bytes": 970,
+      "sha256": "16ab382c273a05d519e4fa7495921d507278ac32dc2b8e8c4148d584dc44648f",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/ccd-box.ts",
+      "mode": "100644",
+      "blob": "476f6d5466d0a5af0988a22b07cfdc72b5fa3a06",
+      "bytes": 1969,
+      "sha256": "b53a44c39fe127cd1e9b1962e2f51847709b40ecafb9a21b74a153af7513a46d",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/ccd-pair.ts",
+      "mode": "100644",
+      "blob": "82bfee7b5bc707105c7958e4f2fd907d804ab5d5",
+      "bytes": 2101,
+      "sha256": "b193e9e6d18130989550566e0d478e510e2ca8f0fb48b303e2bb351bf20cece9",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/ccd-slab.ts",
+      "mode": "100644",
+      "blob": "559cca957710ab21db3814cb9a317b83fb9f4b07",
+      "bytes": 1116,
+      "sha256": "b82c219f0b4fd15bdc0f701a7b8b3b0779df7a128b4a57b152412f8bd7087cc9",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/ccd.ts",
+      "mode": "100644",
+      "blob": "4fa9281de68565a79225ecc777e8f2abf6e87b29",
+      "bytes": 3211,
+      "sha256": "f989fa7d68a86eb3a311e402a1992822bcd4f51cb5efc8d2c5766b0f40256eaa",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/character-controller.ts",
+      "mode": "100644",
+      "blob": "9f9e87153795d3d409d2dbcc17e54a59c36c47d4",
+      "bytes": 1363,
+      "sha256": "3895d5bcd44b99d7f036f0a8a9d95e4ced268c837a6aa293c5e09dfa791d3927",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/character/admission.ts",
+      "mode": "100644",
+      "blob": "63ae0f187e0088ee7e3581989556aa057c558d78",
+      "bytes": 4479,
+      "sha256": "c6d9a992c47241b8463971c60dec6187eac9be77c031be76a6f6bf9c045f4323",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/character/core.ts",
+      "mode": "100644",
+      "blob": "b3b1a0f1995dd453ec0014f017b35cff2a1be1ba",
+      "bytes": 4048,
+      "sha256": "394794ce99ae466fd24377cf915ff2b9e9d430136dcaf25ca398b0aa6e110f47",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/character/ground.ts",
+      "mode": "100644",
+      "blob": "1a090c24eb27cd009abaf32d919a236ed538dea1",
+      "bytes": 1233,
+      "sha256": "b06c43d6f8663e5eb204e9b80135745c36ad8788ebafc7bcfd8c22d8f71c5975",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/character/math.ts",
+      "mode": "100644",
+      "blob": "c2910318b24bdad95d5f052a4d9b27be314bf0e2",
+      "bytes": 850,
+      "sha256": "abbface9737fa8f0a0e74698929f85f3a01370a623be0fb3782825959d264a94",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/character/profile.ts",
+      "mode": "100644",
+      "blob": "ebde55b3ec9b80e37c63053b8a2f8cca9900086c",
+      "bytes": 334,
+      "sha256": "e6c57ae9bbb7f28221cf2ced05b7c17af5f575f2c6a60fa106ba5a98bb3c7c82",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/character/query.ts",
+      "mode": "100644",
+      "blob": "214e97c1cb21d40fce51f4524c7ae8dee8be208e",
+      "bytes": 2724,
+      "sha256": "09ef82614b04bfe1b364c93f8852ecdec14181b7e50c171fc1f26f2e1e02e402",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/character/slide.ts",
+      "mode": "100644",
+      "blob": "2514bec642b4491b2c8fe698f99e73f39b8adcff",
+      "bytes": 2546,
+      "sha256": "6a3a937a87f083edbdf031da013a473645224ef01e506be73c1cdafab52505f6",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/character/state.ts",
+      "mode": "100644",
+      "blob": "fe1b85092ccb3208ec2a34e9afc2f7450075cb80",
+      "bytes": 2172,
+      "sha256": "f84d71c7593e95e06e906393fee1a30f3bda1ec0691b80d465dfc1c21bdc2c66",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/character/step-assist.ts",
+      "mode": "100644",
+      "blob": "789619781bd8040a81d47300f8c83e864ed1e785",
+      "bytes": 3120,
+      "sha256": "8356f580e2d4aa201fabb058fd440b789c253e69f47e50fa1fbacc76d30ccc41",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/character/types.ts",
+      "mode": "100644",
+      "blob": "3a92148d276477256692991823861fa5c8ddf792",
+      "bytes": 2543,
+      "sha256": "3a5d0848490ea0a7be43a72a8bae2c3cc05878ada0439dd6da67438e4c51c91c",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/cloth.ts",
+      "mode": "100644",
+      "blob": "aae889141a206f6f0e26c737f7b53c72b6a7ed83",
+      "bytes": 194,
+      "sha256": "20088da3e20e782153deec6719e6946562fabe474dc5eaebe6d1ac9c20a508ce",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/cloth/admission.ts",
+      "mode": "100644",
+      "blob": "5bb268fdff41b07eab164b6217e8d17002323310",
+      "bytes": 1457,
+      "sha256": "8beee60c6d48f5afb48743f945b06484e96d3cfaf13c0816edb4ea6e00407177",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/cloth/constraints.ts",
+      "mode": "100644",
+      "blob": "b6073bcfae78f8d7fc799376f5fd76cc4e76a0ad",
+      "bytes": 1772,
+      "sha256": "a7a3985db7a7fb8d4a57a23762213372bf603903146deacfc44fb3c9315c30be",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/cloth/metrics.ts",
+      "mode": "100644",
+      "blob": "cc175423e01f6b94f5298f781ab43f31ae005202",
+      "bytes": 1805,
+      "sha256": "eed36beccf69ce65426890570055e2e65b7f76fb0de69a5af2cda429fb511cdd",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/cloth/profile.ts",
+      "mode": "100644",
+      "blob": "a85d6088ba6f9a1c2b198f51cfa2b63fc64aa10f",
+      "bytes": 655,
+      "sha256": "11ba66ccf169ca69883f331f1fcbd38b423fa98e30ee4eb6515489d1b212f33f",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/cloth/solver.ts",
+      "mode": "100644",
+      "blob": "4e326574b0ea921c636208248a850fc31b8070c1",
+      "bytes": 1395,
+      "sha256": "3aeb46169cf8f587f3e79196f3cdd21d28785cf2f7aa0a1be2fe7b5e5a466c1d",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/cloth/topology.ts",
+      "mode": "100644",
+      "blob": "e1d4b50c863ff9de6d3841422bb906e54f390a35",
+      "bytes": 1931,
+      "sha256": "5184d75dd9906e953bdb1b3e8b0b420ece01a95a400c9f8651d56d79017af203",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/cloth/types.ts",
+      "mode": "100644",
+      "blob": "358d2ae0d260a1875eab1917fc9fb49aa73c6527",
+      "bytes": 1692,
+      "sha256": "280f610d20f03c98a324e1e2defa4e29ad640986ec604cb07725417388ca35b5",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/cloth/world.ts",
+      "mode": "100644",
+      "blob": "fd6779dcb0a512146f3b1decf309e89243157b13",
+      "bytes": 2972,
+      "sha256": "586368a30bcf54389a39f370321d5890ff33a0fc8a53408bf8d1a92a84a480ae",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/collision.ts",
+      "mode": "100644",
+      "blob": "9bf38bf3762a9f1e14ea735780bcc2442ffd3913",
+      "bytes": 13433,
+      "sha256": "2ba769697e5f9c5174f30a7a9ae8dceb61c1ba03c6fb507c24b6b6f7d4240388",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/contact-manifold.ts",
+      "mode": "100644",
+      "blob": "8dc5ff4e46e77fae55d5ccd7cc4d8af37ba0c757",
+      "bytes": 4423,
+      "sha256": "4fc473bba47d820b040324d6cf6d0837001796ab34b63be444214030b8f504c4",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/dynamic-anchor-pair.ts",
+      "mode": "100644",
+      "blob": "e90e58ff2714fd4a9f65b9b7426d7af2f9c183b6",
+      "bytes": 3063,
+      "sha256": "66db021e35e76fa8a785e4468b7ccde59cd330f15bcc322ec6bd945de7efe046",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/dynamic-fixed-joint.ts",
+      "mode": "100644",
+      "blob": "df035ce12ab80b0cb98652633c129d86658443ed",
+      "bytes": 2042,
+      "sha256": "5e7c857c8b53536879c38ceb8728aaf43f2d840a9a1ceff8d5eb0d28690b021b",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/dynamic-hinge-joint.ts",
+      "mode": "100644",
+      "blob": "23f01f3361e920fba392f7b3113f1addf6517ada",
+      "bytes": 4826,
+      "sha256": "f41e935efcc92d931277c3d7ccc42921cc98049f2febcf5eee26cc7ba82aa171",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid-cad.ts",
+      "mode": "100644",
+      "blob": "a24b9d6b288e8f8fb490186f0e20328f85e72283",
+      "bytes": 304,
+      "sha256": "379e7e1c9745b630e31de4a7718c1eb093bd27c04a0850509d49ac6d3ecf01df",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid.ts",
+      "mode": "100644",
+      "blob": "e89f29859cfb024e8e86b2e99ee9920773e1f632",
+      "bytes": 208,
+      "sha256": "f0af54170c9d1afdb899ae09298a58be462496d524f0e2e75d22028081aeb44b",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/boundary.ts",
+      "mode": "100644",
+      "blob": "d68cac535bbd3b48a693519a9cba2f669bd27ec9",
+      "bytes": 1990,
+      "sha256": "ba35dd2c09d811bf632ab35f8403c3632a8f8612605873b6edd7f4ad355dd58c",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/cad-admission.ts",
+      "mode": "100644",
+      "blob": "1489a5f2bc709cffdc9eb06c9a89aba051a5d07c",
+      "bytes": 1913,
+      "sha256": "3509a84b1ea0ce9b8528d57619a69f504eda641e2b1e7db183ca58decf128071",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/cad-errors.ts",
+      "mode": "100644",
+      "blob": "ca254c22dcadac9aa6935e64f38def07209ea2ea",
+      "bytes": 572,
+      "sha256": "ab88933fdb5b51f6a299bb16a69f05452ea66f9698a5465f2cc0c35231fd6f16",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/cad-types.ts",
+      "mode": "100644",
+      "blob": "519a7db46ee28a3caf9a657316ae1fffb1855753",
+      "bytes": 759,
+      "sha256": "66e648dcdf0d7a6631d44c5f48a47cd5e1de96b7e56d6083072ae3182fa22869",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/cad-world.ts",
+      "mode": "100644",
+      "blob": "848b42919fd6db6187ca10f4fbc6d60fef5bb217",
+      "bytes": 2534,
+      "sha256": "d958f33d6aebf9b4f9d9824b1d5e2532d10f7c9e71e0e285baf309662791fd05",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/constants.ts",
+      "mode": "100644",
+      "blob": "33259b21320cd6f1c8918b14a6430d15a672302b",
+      "bytes": 450,
+      "sha256": "8573b3540bf8cb9d9957bd8be9cfef6c40f3cd381b28d77ba5712b4daf1b41c9",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/diagnostics.ts",
+      "mode": "100644",
+      "blob": "c760d418dfa52748d717d362e1ac89013d7f6826",
+      "bytes": 1106,
+      "sha256": "e983d0c68fba92c3ccf81011d26b2f0a22fe27aa2627ec0db87148a1c1037215",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/kernel.ts",
+      "mode": "100644",
+      "blob": "4320e73c30a1570d46cae0b417816d518ee6f81e",
+      "bytes": 1112,
+      "sha256": "e4ff7c5679f13483d372cc9752cc658f6e36dff751edbaca1767c6c868ef08da",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/neighbors.ts",
+      "mode": "100644",
+      "blob": "c5903946cea55d52c97e4a5bde7845f366d4d836",
+      "bytes": 2949,
+      "sha256": "2aa8f0e112cd45121052c9a0861e8320eca42280385a8a812ebc4ca1255817f3",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/pbf.ts",
+      "mode": "100644",
+      "blob": "a09cfae92b61ad7c1c6429a19bf2e21cdb4b13f5",
+      "bytes": 5161,
+      "sha256": "21f11547aa3c4954f6709ee0207c98616f76235d2e38e831699a927547a30e50",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/static-box.ts",
+      "mode": "100644",
+      "blob": "ca7cd8f74fa55b59e5e36124c39ca91c219cd078",
+      "bytes": 2463,
+      "sha256": "aad5c9a7d22e7ca93c0a0f54198a6581978bfbdd45cc18e3bbbfc77c7315545b",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/types.ts",
+      "mode": "100644",
+      "blob": "4e0d9e60cb71078245c1a2da1b3e855fbe02ce8a",
+      "bytes": 1139,
+      "sha256": "1e81f1da08ba38cc6b4434c166da88097c706e6d5f57b2a828150d40f66a8fe7",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/validation.ts",
+      "mode": "100644",
+      "blob": "016052b0582be1abc2ebef30022aebe997eeb3c8",
+      "bytes": 4393,
+      "sha256": "00d15fd97afed4f133f135fb0881bdf43ca88e8d366acd66d3660c7c09319441",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/visual-viscosity.ts",
+      "mode": "100644",
+      "blob": "ae801235b647b07e436d28024e8aa9533b28e9d2",
+      "bytes": 1265,
+      "sha256": "0b26713f05556367d8266c0010e12a521d4adefa536e6c422eac7691309bbfc3",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/fluid/world.ts",
+      "mode": "100644",
+      "blob": "772272277066175db155565bcca7ac8ad4143934",
+      "bytes": 3966,
+      "sha256": "bdfcfa50dd17096a0307d4bc4faae2c6d64dd20f0dcbb0e64d0474a175fce5bb",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/index.ts",
+      "mode": "100644",
+      "blob": "792746d9fae63459599bc2d54aeda929f31faab3",
+      "bytes": 1032,
+      "sha256": "4192fb161e8eea23d2b962b315be780e841241735ffb8282c0a63db4cb02a7c4",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/joint-motor.ts",
+      "mode": "100644",
+      "blob": "bbd51d1f946d9b3dc8d995cb45f537a56bbc333d",
+      "bytes": 1714,
+      "sha256": "392b23cf5aab021b5af32fd56e3615e78bc64f8484f98f1281f0e709b99add2a",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/joints.ts",
+      "mode": "100644",
+      "blob": "41db0ff4de0381209fe036ac8f0ed804a72966e9",
+      "bytes": 7222,
+      "sha256": "733db740db6cdfb079faab141ac876909cf57bdb372c8c018b6336d07b48528c",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/limits.ts",
+      "mode": "100644",
+      "blob": "2bc314d32d4809e9dd1814432a75b2d69dbabca8",
+      "bytes": 417,
+      "sha256": "748bad886bb7acf5fedc21b8251243b018858b7e5de2478c99fb86a9276c54c3",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/math.ts",
+      "mode": "100644",
+      "blob": "77ce11b24f77c6a4a912e82a4796aa91b208634f",
+      "bytes": 2412,
+      "sha256": "6605633830fa7fdf39f9531fbf988b52e306a6835655a318c961eb44c6b05ff8",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/persistent-box-contact.ts",
+      "mode": "100644",
+      "blob": "2cc5ddae54fda26c33c27d38ddd1e689bf529752",
+      "bytes": 3397,
+      "sha256": "4a176334c5cef1590505b53f81c8beed1658b0c00255e471ba88c438746a9c48",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/replay-compare.ts",
+      "mode": "100644",
+      "blob": "0465c04bbafb90e02df601e4ef692d9afc14577e",
+      "bytes": 1023,
+      "sha256": "918c89b8d8e84cdab25a951a44f8aa9368a904aa6a13804dafbef8ca81b421ec",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/replay-json.ts",
+      "mode": "100644",
+      "blob": "6e256b08c127c1b435a058a48e0a54287a764efe",
+      "bytes": 3296,
+      "sha256": "01f4b80861f9e9b5958fdd11175633ca1aff69de3c7c179e142415665f055fe8",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/replay-scene.ts",
+      "mode": "100644",
+      "blob": "ffc5793baa04131903bc678f5d50c915b2d071fe",
+      "bytes": 1582,
+      "sha256": "07468207326d3dd2f082e77727bdef5a984de5e72a6e5cb0a2da5229429ae436",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/replay-session.ts",
+      "mode": "100644",
+      "blob": "cb84646b92c72b95bccdd7d397b86c6639b7370b",
+      "bytes": 4558,
+      "sha256": "1d34c1376dbfc1aeca25ca0586a574f1362f41afa68dac25260ac00a5ac2618c",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/replay-types.ts",
+      "mode": "100644",
+      "blob": "c81bd85b1261261c8f2e8c925feda8f02522af48",
+      "bytes": 666,
+      "sha256": "830a839b7ca0751652e40ff8730e5e2b927cb0df2a259e23456fe1e10300703d",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/replay.ts",
+      "mode": "100644",
+      "blob": "b55ea8e5cbe512aa408cf5666d75cf84cee1f6de",
+      "bytes": 249,
+      "sha256": "6836331c3fc261272319d956c5f9f7e4b90913453a87d91673f301d8ff2d8f45",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/scene-profile.ts",
+      "mode": "100644",
+      "blob": "af1c40e223c97832eb1772bb4f86f16d3e0ee124",
+      "bytes": 1193,
+      "sha256": "6db4a7e3a5e4485d2b4b1d2b8870ebbdb425a0c336f2d8ce1286352d539de39f",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/sleep.ts",
+      "mode": "100644",
+      "blob": "b2157ff13fb205f6a0fc6270f921f384144130e1",
+      "bytes": 4402,
+      "sha256": "bea9308d3f8dcff5d9bebf20ea3de47251bd9c86c7e245430e5919356534b104",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/types.ts",
+      "mode": "100644",
+      "blob": "e5c7d367791c01cbc8893c5720c4fe18974f2707",
+      "bytes": 5118,
+      "sha256": "e8befc80c94e1b109f5024581f056639acff2c19ed445f2875e20eaf2d3bf240",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/validation.ts",
+      "mode": "100644",
+      "blob": "cba6de19d7b287d9fd4446c8599042769fff70ee",
+      "bytes": 14147,
+      "sha256": "5b0a3016c32ef19076984e6b7f529253af581c29eb9dd1adb19cc8dba185479f",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "packages/barocss-physics/src/world.ts",
+      "mode": "100644",
+      "blob": "a1a94cefb1df0871c755fb7b8e88d54a164dce3a",
+      "bytes": 19416,
+      "sha256": "f34f79ee743dff7302b5c87c56407767b7dabb61c2715c90a60826c07637dc69",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/CONTINUATION-CONTRACT.md",
+      "mode": "100644",
+      "blob": "ffee0a9952e2f419506e18cf66472b7551028b71",
+      "bytes": 9491,
+      "sha256": "36980476bc6c9fa0fb504ff8d3d0bce116ad66c80ec5067f60161e3b3a866f8a",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/CONTRACT.md",
+      "mode": "100644",
+      "blob": "6a3d73c5c54217736c3483c735d06e514c9e04c4",
+      "bytes": 104494,
+      "sha256": "fe868c5a27fe2a431ef9b7739dd141a6472a3e56803959687d32201d79f6f709",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/NEXT-WORLD-CONTRACT-PROPOSAL.md",
+      "mode": "100644",
+      "blob": "b62b6224fabb3de365cc27d7d5ebbde53dd0c40c",
+      "bytes": 17925,
+      "sha256": "6ab3173a5a20d3eb2afba76418cc8315d57270772f4afefd0ac3c1b34bff8c62",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/PRELAUNCH-REPAIR-CONTRACT.md",
+      "mode": "100644",
+      "blob": "f750a42dfdcb0e7a0c293cd6d3d1c12b3dc059a5",
+      "bytes": 966,
+      "sha256": "1e3fc49659b4a8fc83a06605c699277aae5934c8aac78b5d071de59daaef0d59",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/README.md",
+      "mode": "100644",
+      "blob": "c892ff70c8eecf49f0fea186ed830326caef5328",
+      "bytes": 2664,
+      "sha256": "144a9dd42c5e28158af1c5a6a3cae31e6521a327334038c4d6a3ca311271750f",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/REPAIR-CONTRACT.md",
+      "mode": "100644",
+      "blob": "49f4d001527b93b569c3c197c68c264bcb75156c",
+      "bytes": 3578,
+      "sha256": "bc62905fcd58cc4bf4d945f7787073235e5e81d8e50f29cf51df0a5714cf0d5f",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/RESULT.md",
+      "mode": "100644",
+      "blob": "bb5d65e6bd36db24a45ab6e5afa9a0ed1cc0c1de",
+      "bytes": 3930,
+      "sha256": "ad23b247a69d38978f3b8195db51c75949b1f5c68d9788fd809827bd3b0a6307",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/archive.mjs",
+      "mode": "100644",
+      "blob": "a7d3715488a0c92f4adaabd110546d639c50b013",
+      "bytes": 7262,
+      "sha256": "efcb30380dd4d17944fd795f9ba220d506817106d10dc27fd0b368e9e4e38096",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/base-tracked-ledger.json",
+      "mode": "100644",
+      "blob": "8bb91541ef43cdc7fd57e4a84085e1b9e05652c0",
+      "bytes": 2580653,
+      "sha256": "0ae8198cdde529c9489b32c807a64779270e81c8a7be2ecb3b93d2c14e18c041",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/bundle.mjs",
+      "mode": "100644",
+      "blob": "80765f87d83ba5e4b30fae0cc910d424c297464d",
+      "bytes": 2442,
+      "sha256": "c73c87803c7961466e9d1d4fcce6e29e966862dd5b7f15a020346fd39389fb54",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/candidate.ts",
+      "mode": "100644",
+      "blob": "5ddc4e35ff2b060eeb0d481d4aa2d71c66a47c63",
+      "bytes": 5157,
+      "sha256": "27b99ca3857944d91dd73e3e1b2f69859af155bd2ea7e3a95b72d045c6845430",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/consumer.mjs",
+      "mode": "100644",
+      "blob": "29c4b94c6a3f51d93b68133097f519d5379897d3",
+      "bytes": 24357,
+      "sha256": "e62db54340d7e35129ce6320c5216ecd61334437bb8292f8b2b918f9b4271804",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/continuation-controller.py",
+      "mode": "100644",
+      "blob": "76c99bace05093761af64f046c8d3190a483b45c",
+      "bytes": 1966,
+      "sha256": "dc2ac4840d748b0c1820663adc2dff8f8230f04dea4ba8bd935ce551d6ee697c",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/continuation-runner.mjs",
+      "mode": "100644",
+      "blob": "1c57f3d60511abb708b7b2562c6ae07ba1846ac1",
+      "bytes": 10753,
+      "sha256": "c407a0cc5e9e9a861d7ac25259fe70fbb949e9efbb13772cb676f2b9a0fd9554",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/controls.mjs",
+      "mode": "100644",
+      "blob": "3880818856fb516db5a9f3e170453bbc7f2834f5",
+      "bytes": 25542,
+      "sha256": "01ac9cec0090e0388cd652e5637638b237be2f70011924c4ce39ef318d68e306",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/copy.ts",
+      "mode": "100644",
+      "blob": "564d2d3cff6b09ecd3abe29eb5078be78a8b9515",
+      "bytes": 2412,
+      "sha256": "9422c976771232c85ac1ec070e37fee8c6a36280994ab2373e9f4c1e93dbf4a0",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/diagnostics.ts",
+      "mode": "100644",
+      "blob": "c8af35c9625cabaa564d6d2986802df719ea6a2e",
+      "bytes": 7304,
+      "sha256": "f83359dde6f7d7066957d38fed479d37c48cca7771504332c1aa4ed3ba846f21",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/entry.ts",
+      "mode": "100644",
+      "blob": "c4f28a691b9374cae97005bc4704bc1a0f830656",
+      "bytes": 299,
+      "sha256": "ac5882f0d68ceb8ed6667c557d2a9fb90c45145ada3f35b58352ff9759806b80",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/errors.ts",
+      "mode": "100644",
+      "blob": "00632265ff9a766fc920b3a5abec385a7b2cbfa4",
+      "bytes": 2152,
+      "sha256": "725871eb0c1ae32a181cf169379daf3ae9052ac1d6b1c82eb8db25a3985d7312",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/fixtures.mjs",
+      "mode": "100644",
+      "blob": "328af6def941f353c52cca87b2bf55b92294b5c1",
+      "bytes": 5660,
+      "sha256": "5717ee651bf810b91a382bbd114d13031c1d85075b4162547772586e08d621d0",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/genuine-before-receipt.json",
+      "mode": "100644",
+      "blob": "242eb85b9beb0fec10c2de58084bfd1eee73fe8e",
+      "bytes": 473,
+      "sha256": "dacc6ec0ed6875bb07fb995d696c83cc240a0825cdb60aa1b0963387d3204d1c",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/harness-entry.mjs",
+      "mode": "100644",
+      "blob": "d014e1a30fcdda002311ee05ddf9a880a56a82b9",
+      "bytes": 460,
+      "sha256": "db559c0376a52f3c0e4828bb013970f393b4d081ab53f4f6b10a5cf3e21c24d6",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/motor-stages.ts",
+      "mode": "100644",
+      "blob": "88165d1cc5b90e41d3441b376d903d571afab626",
+      "bytes": 4096,
+      "sha256": "2f1e557cc32a8ffb3559f50238b17ecbd0bc8212724839c8f736c0eec426f796",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/observer.mjs",
+      "mode": "100644",
+      "blob": "bf8e6e0f7061b911c38e42eb481bdaeefb37fa97",
+      "bytes": 2672,
+      "sha256": "938966417b7bab2a05b60df27ad863b76edb21a310e1a6eebc6f4ab74a005c8e",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/options.ts",
+      "mode": "100644",
+      "blob": "2bc1e3c0c3b5241d60f523ced1195fa755074c81",
+      "bytes": 893,
+      "sha256": "cd8b2da8324043012bc8d8326bb4c8eb88ee66de46ddd6a72d39bad32b46dedc",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/provider-adoption-receipt.json",
+      "mode": "100644",
+      "blob": "6c4791fef607736ee16136600e3be3b434f84ba7",
+      "bytes": 427,
+      "sha256": "2031b9d53c6647e6ca6b97c36ff94b6040ffede24e7a97097cfa98ea7f69f850",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/raw.mjs",
+      "mode": "100644",
+      "blob": "630ffed76a680d1aee224fcc0a2034f95caa202f",
+      "bytes": 3936,
+      "sha256": "96aceae3cdab725ea92bbd77cc1f38e20ed288f0066848d1339a7c44994e57ca",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/recording-base.mjs",
+      "mode": "100644",
+      "blob": "d0ff42fd8c9ebdef7026935a660df4d257a77f3b",
+      "bytes": 1770,
+      "sha256": "acfc5463761e23d34e04b3af095722a8c8f1b8fab9b21f7c0dbef17901106618",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/reference-controls.mjs",
+      "mode": "100644",
+      "blob": "5773ebf742a45f38ff2cbf1788d4c572ce7034cb",
+      "bytes": 7486,
+      "sha256": "2dddb75fdb967d2b15a37dd4483d4abf8be5352f1cbe8dd5186c5489ef1456fe",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/reference.py",
+      "mode": "100644",
+      "blob": "bb1947b32bb44f79953a13c38211842ee2bea144",
+      "bytes": 52948,
+      "sha256": "c4642fa0f06ca6a11a05fee3de80bb6ad19b5a29d27da423e69715bb706489fc",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/report.ts",
+      "mode": "100644",
+      "blob": "426c6529aa399f2ec2d8dce92318f64b13784f21",
+      "bytes": 3688,
+      "sha256": "b687dadc56d3bd12dabe7938bfba141344f3899a0415e6cd93f5f43a9bcd2b01",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/run-native-gates.py",
+      "mode": "100644",
+      "blob": "b1e36aa55c812205c8253c3f4ec5a8a14b7a6ff6",
+      "bytes": 3730,
+      "sha256": "5f3a56e086dd481e6747bdc165cf5a5308ec49cfb6c035446a196c88fb1e72d3",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/runner.mjs",
+      "mode": "100644",
+      "blob": "b21e69f88cf529bf0756903214a3d772d01bfac5",
+      "bytes": 7953,
+      "sha256": "d26250371b0e0ae567899ce2b9f001585b1ea566bc9a4ccf7bcf7fe54cb753f7",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/saved-prefix.mjs",
+      "mode": "100644",
+      "blob": "2c40a3fe6cfd014d45e83096ecc0aa5b05f1d5fe",
+      "bytes": 12625,
+      "sha256": "01b81262341994c688162b6370c008894972b130256285ade20392bc265bbaad",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/source-freeze.json",
+      "mode": "100644",
+      "blob": "b2a975e7d0aae041a58e3e6e4675527d17e5db46",
+      "bytes": 138686,
+      "sha256": "37d3bc4b29b275b1527f6638e1023b6868ad671a8be0cb58ae5fd55487e40fc4",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/tsconfig.json",
+      "mode": "100644",
+      "blob": "c1f62fbee1c7c0cd2c1625510a7bc84288a420bb",
+      "bytes": 256,
+      "sha256": "fb3eb0c53f0131a41a21af2989d0330bdd768646118354e27057f1117ef8bbcf",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-motor-reference/types.ts",
+      "mode": "100644",
+      "blob": "794e6e745b12ce15f282eeea266ace5853971513",
+      "bytes": 3652,
+      "sha256": "f82591f5e66f0dd5148a5c0f81fb4fc97eeaad1a4c1314d5dbc5ed0e16aaee21",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/CONTRACT.md",
+      "mode": "100644",
+      "blob": "d9437379c4c8b7bc2472942096436d285e7702cf",
+      "bytes": 21016,
+      "sha256": "305b21d75aa93b0673f15504ad79c2d15e8c1cfa2570935241c61f990708d7bb",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/README.md",
+      "mode": "100644",
+      "blob": "9b062611a71bb73c9a89822cf9a64a11666b1acf",
+      "bytes": 2442,
+      "sha256": "0ce7aa60a2e6fa35f4a721f16fdc09cafef79c927a0371f2d07f7d3c2f5c2f1d",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/RESULT.md",
+      "mode": "100644",
+      "blob": "d30610dd24699c6d5e64300835aad3fb6b29325e",
+      "bytes": 6978,
+      "sha256": "0ef5428ccfe2a3ac472449caa1e2a190b9bddf6a12e38885910164925e8397dd",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/adoption-receipts.json",
+      "mode": "100644",
+      "blob": "320ebe843aa12c3c2ac4c02e6421a53a0c9bc709",
+      "bytes": 1158,
+      "sha256": "9a2b66a80b0ee68efc994f36c2a9f0f3c494380648f0eec80bfb3b01fe0f5660",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/archive.mjs",
+      "mode": "100644",
+      "blob": "6ddec0ec653d8fd19dde47c5876d11e7aa122528",
+      "bytes": 6464,
+      "sha256": "c44c8f5a19fc41da6b26adf1395662c4bbe5433d341405382b269b39509d70a3",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/bundle.mjs",
+      "mode": "100644",
+      "blob": "302af0f975d734658f1bc4236f043863d0226587",
+      "bytes": 3701,
+      "sha256": "dc495df2278e8c3cc49d380b1bd61facfca535e0e48e9379b071a008307fd58d",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/candidate.ts",
+      "mode": "100644",
+      "blob": "e4c3fd3e5d52339e6e68c29be5c23ed615061405",
+      "bytes": 3909,
+      "sha256": "6580bb3dd049c70076e3d32225749c2b7b3e811e65a83fe43f0cf4393086105c",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/controls.mjs",
+      "mode": "100644",
+      "blob": "801affa8dce01caf74dc0f7f672957181047fcda",
+      "bytes": 9732,
+      "sha256": "ca5ab8e19a16034369e6dbf4a6617b79230757fcb44b8624ded7bc74439b97c6",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/diagnostics.ts",
+      "mode": "100644",
+      "blob": "11614e4f60f239a893bcfb5511120921b0e2c189",
+      "bytes": 2644,
+      "sha256": "c432f6f2eb4e48dbac260490489badf6be25d0711fdf866f4b096b4baee68257",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/entry.ts",
+      "mode": "100644",
+      "blob": "8c9bd906bb5fc4b65c1ed570ee16f3e389747da8",
+      "bytes": 268,
+      "sha256": "7a254ad353d1fdb9402b4607728a6c0c86bd6017249b8c49f789a0223755df34",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/freeze.mjs",
+      "mode": "100644",
+      "blob": "088fcd0278dc3ccd83f7bde778d8717c6f60216d",
+      "bytes": 1896,
+      "sha256": "99f463bb51bed46a3d769519b93197f190c45cbd72bff652e1439f7422541703",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/frozen-source.json",
+      "mode": "100644",
+      "blob": "d7a4401733d841a133a45143b7ff057556ee74aa",
+      "bytes": 68493,
+      "sha256": "6c9fdad5dd46b460b35f59f6fc130ac4ba6373df4690a361ce9afa6f83989f00",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/harness-design-review.md",
+      "mode": "100644",
+      "blob": "35aeb2213b92a4e169dc814590ec1236fbc8edee",
+      "bytes": 20397,
+      "sha256": "51c380b2b070ab759ca04a1240859749bbb2ceb9ea5e9c6ca2aba4def2f29516",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/independent-design-review.md",
+      "mode": "100644",
+      "blob": "44649a81c9c0e499bffc477688426b9cfeebe40c",
+      "bytes": 20824,
+      "sha256": "e822db9885da48a8002b7bbc692cdbc2be06c4a1bf027edc937acb3f0082364b",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/input-freeze.json",
+      "mode": "100644",
+      "blob": "5170a174d8571c09488f1c86ba308ffc25bc238d",
+      "bytes": 128916,
+      "sha256": "004836c5e62c3286832436f89a983aacdde9a1cfadb8c038f8778b39a57bf09d",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/linear-solver.ts",
+      "mode": "100644",
+      "blob": "aa92cec484f5abfdf18031d3014f4e21c1f036f0",
+      "bytes": 10603,
+      "sha256": "27a9ff150621e6a648648441e0d862fccc9814e649fb1cccd4086d35bee79663",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/literal-cases.mjs",
+      "mode": "100644",
+      "blob": "957e66a6108749508b59e8fcc86a10bc8b462c13",
+      "bytes": 2915,
+      "sha256": "ff7df9854d1e90d906764db3e85eea64e2a378ac8aee6b23f8437c35cec8d51f",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/model-design-review.md",
+      "mode": "100644",
+      "blob": "9466372a0b7ab3baeaedbc33ed3ee9f398d69147",
+      "bytes": 13889,
+      "sha256": "7ace0438e5fc13bc2459764a8eb18c21c3dc2b56283b367cf20f05af43538c1a",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/profile.ts",
+      "mode": "100644",
+      "blob": "0b963b6d78ef863b4c434153d9ad095cec93f332",
+      "bytes": 4576,
+      "sha256": "9911fb4cf26384f248d5c83144491cae099a8703a621bd653c33bb72d9f2cc0d",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/reference-controls.mjs",
+      "mode": "100644",
+      "blob": "0e49aafba66cfc8fa3ba920eda14c3cffe996ee4",
+      "bytes": 15438,
+      "sha256": "cb384fa53313e388523875a3945675b4c572e82da95b630ddb9366f2652acd87",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/reference.py",
+      "mode": "100644",
+      "blob": "37cfff38146095939dfec6c70ae314c64d89dc39",
+      "bytes": 42467,
+      "sha256": "2e062eadbaa1283f2626e51cf240f07f6c4e6714f5e409fcc443b58a24e518cc",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/rows.ts",
+      "mode": "100644",
+      "blob": "7ac921c5fc08eeaa4086db68cdf4a16fc99fef4e",
+      "bytes": 3722,
+      "sha256": "3b9d0401497d6f32bc701aa887e8020171ccd0d4747ee7faa9a04940ecfb73ae",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/runner.mjs",
+      "mode": "100644",
+      "blob": "153e1c89922718923d80caabaffca72cc3ce41a8",
+      "bytes": 17381,
+      "sha256": "9da93af8d5b9ba7ce9b5f2aff9d1423fc640f30a47b6baf14b2bc269965c18ee",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-reference/tsconfig.json",
+      "mode": "100644",
+      "blob": "b4d0d21a3e8b38152265722d40d6985422fa18db",
+      "bytes": 191,
+      "sha256": "7394b999fd5f6527a6e556b038d34dc89241d32ac81c0390b2f90cf7bef37326",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/CONTRACT.md",
+      "mode": "100644",
+      "blob": "fa3773f287b832a9bffb1109b41793f704bca017",
+      "bytes": 15060,
+      "sha256": "9063a1c173027e6dd0d5e4b8bc117be58fd65c4ba8a3aca275d9074a22f05a3e",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/README.md",
+      "mode": "100644",
+      "blob": "5e9f486e9e9a1e5c3e23fc7bb4bfe104b8f287fa",
+      "bytes": 2911,
+      "sha256": "71ea27a0434629304062d7aa076797436dca1c9ab7b4d46b9b7f23eb9fc4d059",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/RESULT.md",
+      "mode": "100644",
+      "blob": "a29def4c891ff36735828be8e71082c4d655188e",
+      "bytes": 5992,
+      "sha256": "9258112913de2c534225887a4f8849406b284c376781f24007c416059ca5093c",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/admission.ts",
+      "mode": "100644",
+      "blob": "f5df7a50b571f3e67697959a3c668cbb594fdef9",
+      "bytes": 4014,
+      "sha256": "cafa33eb8438f182b27bbfd2ba4ab91e34470ac76b4b0e2520214f9dc4c5204f",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/adoption-receipt.json",
+      "mode": "100644",
+      "blob": "cd8044ddef6d23255433a9992fdf113d29bf1e70",
+      "bytes": 430,
+      "sha256": "9991168c7cc4c463f216e6acb7bdfe6225e3ab4171b1ee58e8fa3760b32e28fc",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/archive.mjs",
+      "mode": "100644",
+      "blob": "d6f14cbda4abf21fad1cb8f8386349f749b26a0f",
+      "bytes": 3091,
+      "sha256": "6b8c34d425fb2662e501bc77db51f13b87db7d484f3a602e778d6ccb2904f94b",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/bundle.mjs",
+      "mode": "100644",
+      "blob": "c8e5346c3f2feb517503ec6fde82fd1f0a369486",
+      "bytes": 3382,
+      "sha256": "c1116e91b82ce28e07578196282ace4834746402de64fa9499e97fa09f260626",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/candidate.ts",
+      "mode": "100644",
+      "blob": "07596431937e83d4a5377537675c674ea5b384a6",
+      "bytes": 5503,
+      "sha256": "ea9c7bf81d281053a4576a66fe0944d1fe3a329485b41c02cc987e0333796532",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/controls.mjs",
+      "mode": "100644",
+      "blob": "3bc501ddc87e6496874b3fb7cc5f79b667fdb3bb",
+      "bytes": 5113,
+      "sha256": "0f94e626e7149ebaa13f0adce72dc949ca095d8495bd41ad3df768db3a27a136",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/entry.ts",
+      "mode": "100644",
+      "blob": "41b5fe7e487b1ee6c6b2cfd952dc28b653087aa8",
+      "bytes": 175,
+      "sha256": "99833764df44270990717ed45e4da67683538e3f9fd2059274f98d6374de64b4",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/freeze.mjs",
+      "mode": "100644",
+      "blob": "f399d8da004dacbf34c154830747988ff921c8c2",
+      "bytes": 1745,
+      "sha256": "906b70ba84df7438539ab1c9b1615db418f6fff3b3e3b5f30f17ac29cfbace60",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/frozen-source.json",
+      "mode": "100644",
+      "blob": "20a70869538f0378a2ba79f0ad466398e809c8cc",
+      "bytes": 58173,
+      "sha256": "4126dab207f24bb0b61b1fc3247a9f980ae7a38ec3338fd61d6acae40c4effc1",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/input-freeze.json",
+      "mode": "100644",
+      "blob": "9b0a3c4a909d0a11348316ede9d7965961196cc7",
+      "bytes": 110695,
+      "sha256": "4239a040da0d907dc5e8e979be304c179001e80afffef14b8c6b90fa8fba6006",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/parent-provenance.json",
+      "mode": "100644",
+      "blob": "3db2fcd592dbc62ab589b7c4319fd00c86338260",
+      "bytes": 334,
+      "sha256": "1e8787f1d799a4f36ae80ab14fc3fb946bdcf2d68ec31434feae8cd98e4ff860",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/profile.ts",
+      "mode": "100644",
+      "blob": "4b15573068c4097d2fa1ae1a8127a90dbc2df524",
+      "bytes": 2501,
+      "sha256": "3d7fc873d3e5ff9d6f68482e184568eca73fcb7c57f87a1e1e17b3090af79dcd",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/reference-controls.mjs",
+      "mode": "100644",
+      "blob": "ef0e9f6dd5b6b4e4fb8b480b0e8cc3201cc9e68a",
+      "bytes": 8364,
+      "sha256": "8984376ba6119b00500da767b90401725930d457fd4245e364c56cf432affe62",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/reference.py",
+      "mode": "100644",
+      "blob": "331045132a2461897f0b5445f6d2e3b2621d2a9e",
+      "bytes": 19681,
+      "sha256": "713d8aef0bfe972b39791f0c44a7441ccf1f648bf29fd5a4048ec9c3f5bc8ac5",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/runner.mjs",
+      "mode": "100644",
+      "blob": "b33249f285b675833a946eef56bc696eeb80d2a5",
+      "bytes": 9990,
+      "sha256": "4d66578b977c7768914ae5b68ce1b1dcc6e59eb35134a1f4f4041f4438694758",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-coupled-hinge-reference/tsconfig.json",
+      "mode": "100644",
+      "blob": "ff4636fa0774d534e7d10efd7cc7e26a2ea85730",
+      "bytes": 278,
+      "sha256": "f0434379014745ae28d2dfceb02c5db9bca9d482a50d30365dda5a2c1f5f361c",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-limit-diagnostic/CONTRACT.md",
+      "mode": "100644",
+      "blob": "46aee35f08a37af7342040bc58841c4eebe66c28",
+      "bytes": 7061,
+      "sha256": "dcf83a735cd1dc1ca72a63f0833e7f4863af22f7fa2c63f667612a972ec1c04d",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-limit-diagnostic/README.md",
+      "mode": "100644",
+      "blob": "fa0d8635b889862fb2b05063bd6c877310343fd5",
+      "bytes": 3070,
+      "sha256": "9061a01f1d28dcc5cb28daee7a5780d1f987159eb596ef9a6210762221222c37",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-limit-diagnostic/RESULT.md",
+      "mode": "100644",
+      "blob": "71aa73a37cce5606e8792e80e22cc0ffd60b878c",
+      "bytes": 3386,
+      "sha256": "c708caa01a7bd9748d9a9becb10e90c3051c022dedd1091f141863e088ee34d9",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-limit-diagnostic/adapter.ts",
+      "mode": "100644",
+      "blob": "d2080a8a64ff718163eae03c13238a4c864c56cf",
+      "bytes": 6977,
+      "sha256": "8919ab174525316f2b7697cfb003c7e3e4103a999ef67408ddbe99ca7b19da22",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-limit-diagnostic/archive.mjs",
+      "mode": "100644",
+      "blob": "70777e8e0b122b07f673bebe6bb2ae77588422c2",
+      "bytes": 10903,
+      "sha256": "7f86763d61509512192b77d3611d097ba81fefb845980935bc14c0331a71007e",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-limit-diagnostic/bundle.mjs",
+      "mode": "100644",
+      "blob": "3137850330600fb95e931fab4d8f3d10a6debace",
+      "bytes": 2377,
+      "sha256": "66643ba167686f783cd4939d4c49cd05fb5ee2f586445083ff671c8c09f2676d",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-limit-diagnostic/compare.mjs",
+      "mode": "100644",
+      "blob": "33a72e952d12f3bf95621eb68a1702852469d498",
+      "bytes": 1977,
+      "sha256": "5f23f45d4cd5db7f6d61f3608156b75ba65ddd4efd504de0770f764642ad3990",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-limit-diagnostic/controls.mjs",
+      "mode": "100644",
+      "blob": "6c53952a833a81a03dc66bb2349c7a31a445b13c",
+      "bytes": 6105,
+      "sha256": "b729591e36c0fcda32a8e2a8be02c4060c2d9d36f44b7f85becbcdf5208ee2ec",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-limit-diagnostic/emitted-pre-consumer.json",
+      "mode": "100644",
+      "blob": "3cd0663082b723ee19e1e6cfe62f3b0c88666c6b",
+      "bytes": 66569,
+      "sha256": "06fe669fc86a7d4df28b2c5c422c83100152821cec906750fdb4c8095edb2725",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-limit-diagnostic/entry.ts",
+      "mode": "100644",
+      "blob": "2d0c5dde537df827645dc2fc71158b73250c56ee",
+      "bytes": 136,
+      "sha256": "de5f780d74617b3dca127457085bebd1456c6a3e852464911b71f7511a1dde11",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-limit-diagnostic/frozen-inputs.json",
+      "mode": "100644",
+      "blob": "e9c55f71b0d0a7608d1876926f0e809ce9ed33d0",
+      "bytes": 6247,
+      "sha256": "988bc11ffce4c8f1a841788f805249330b5effadffb50667ea27e67ca3244f72",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-limit-diagnostic/frozen-source.json",
+      "mode": "100644",
+      "blob": "c2c9119125e93f97585594ac12f0ec856cfa8b5c",
+      "bytes": 36222,
+      "sha256": "eb679d523ad0815bd36425191d94b429262c8f364d235bd16e5b9e65f3b3a333",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-limit-diagnostic/reference-controls.mjs",
+      "mode": "100644",
+      "blob": "1d09b50fc755beb99d53ead612fbd7fbea36382e",
+      "bytes": 11231,
+      "sha256": "fa0b1fc5a6acdc3665c269a7218e98a06b673a60e8a7123d1faca8d6bc5eae21",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-limit-diagnostic/reference.py",
+      "mode": "100644",
+      "blob": "bb48c72a243b0d34ca06a657965c6e3574263446",
+      "bytes": 13970,
+      "sha256": "6f4fdc14ac1d2a94ab27829ca42c8f370ada6896545a84106ce5f5bdb72d3464",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-limit-diagnostic/runner.mjs",
+      "mode": "100644",
+      "blob": "1667fa8dbbc345d6948e13de09f32df8caab1ed3",
+      "bytes": 7255,
+      "sha256": "9bc27f2052eb9d6ef34efd9264e32b2cc0d2a1b8f7236f6c1f8de3053c27dd58",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-limit-diagnostic/tsconfig.json",
+      "mode": "100644",
+      "blob": "ffbe057311de16bd56a865c6118f8b9a9d7e0d7e",
+      "bytes": 185,
+      "sha256": "7d97438109bbd3cfc4f3634edd79f01b2db583da719da9118966dc289f8f8298",
+      "source": "integration-a59eaf87"
+    },
+    {
+      "path": "examples/physics-rigid-multi-hinge-reference/reference-world.ts",
+      "archiveCommit": "0de27c51574e2da6b09966c7ef0c28435d9c9592",
+      "blob": "0b1d02b4255d9ccde227234eacd9c07d34f66a11",
+      "bytes": 20090,
+      "sha256": "acef74a06c848eeedfc1c86ee7815a7b846e5dea1bc7de3eafd2b22120ba380c",
+      "source": "archived-original-authority-not-integration-provider"
+    },
+    {
+      "path": "examples/physics-rigid-multi-hinge-reference/groups.ts",
+      "archiveCommit": "0de27c51574e2da6b09966c7ef0c28435d9c9592",
+      "blob": "ebf248457e132279343d977a962c48de4eba0f84",
+      "bytes": 3512,
+      "sha256": "87f61c7c7cc899df2790681c131cec7d0134a783de7668b90a9b873e534b2411",
+      "source": "archived-original-authority-not-integration-provider"
+    }
+  ]
+}

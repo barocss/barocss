@@ -1,0 +1,59 @@
+{
+  "runtime": "Node22.22.0",
+  "command": "node viewer/controller-check.mjs",
+  "exitCode": 0,
+  "firstFailure": null,
+  "result": {
+    "passed": true,
+    "scope": "fake-controller-clock-only",
+    "physicsCalls": 0,
+    "publicViewerCalls": 0,
+    "checks": [
+      {
+        "name": "invalid frame and stale bindings retain last confirmed cursor",
+        "passed": true
+      },
+      {
+        "name": "submission refusal preserves cursor and makes display unknown",
+        "passed": true
+      },
+      {
+        "name": "context restore requires explicit reset and disposal is idempotent",
+        "passed": true
+      },
+      {
+        "name": "catch-up presents all intermediate frames with a bound of eight",
+        "passed": true
+      },
+      {
+        "name": "natural end presents 1200 exactly once and cancels RAF",
+        "passed": true
+      },
+      {
+        "name": "clock rejects failed advance and cancels handle zero",
+        "passed": true
+      },
+      {
+        "name": "unknown thrown payload is not serialized or read",
+        "passed": true
+      }
+    ]
+  },
+  "stdout": {
+    "bytes": 690,
+    "sha256": "acecea8e884c937f2b4305e596be201c266a9d17a93ab87bde2e095084a6aa11"
+  },
+  "stderr": {
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "sourceHashes": {
+    "app.mjs": "b34303fbcac35817d2c9a868c85b454ba89032fe779220438471f14532104b37",
+    "controller.mjs": "a5980a4d4a2ffe38c9a9d09630d3efddaa46823b50f36dbcb1bed6ddcd95e5d8",
+    "clock.mjs": "28c9dc697694fe03afab1946aeb504e67e2170f18b278e86de4f1d6d6f5151cd",
+    "index.html": "8e56fd52d1a36c0f135a3903c470c80c1465255fd0241d0abc521ebf49fcc60a",
+    "style.css": "e0729e7fd847f6ef2092581b778ce9b78e0f6f1c246e0d57668e6664a212650b",
+    "controller-check.mjs": "19c3e45e577a0dab5a9cc4bc6d9c8fbcd5680e0fb2f18e27a49965963952dbfd"
+  },
+  "actualBrowserExecuted": false
+}
