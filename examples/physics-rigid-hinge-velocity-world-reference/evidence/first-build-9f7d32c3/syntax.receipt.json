@@ -1,0 +1,119 @@
+{
+  "checks": [
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/bundle.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0.27735737498733215,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/consumer.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0.27857770799892023,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/fixture.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0.27924141599214636,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/harness-entry.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0.27205425000283867,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/native-controls.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0.2750167500053067,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/proof-storage.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0.1359875829948578,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/raw-codec.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0.020470791991101578,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/reference-child.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0.020797707984456792,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/reference-controls.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0.022322374978102744,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/reference-reply.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0.02046775000053458,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/runner.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0.02190533300745301,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/world-quality.mjs",
+      "exitCode": 0,
+      "elapsedSeconds": 0.020763250009622425,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/reference.py",
+      "exitCode": 0,
+      "elapsedSeconds": 0.027324583003064618,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/world_derivation.py",
+      "exitCode": 0,
+      "elapsedSeconds": 0.02554391699959524,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/world_observation.py",
+      "exitCode": 0,
+      "elapsedSeconds": 0.02557850000448525,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/world_schema.py",
+      "exitCode": 0,
+      "elapsedSeconds": 0.024999125016620383,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "modelCalls": 0,
+  "sourceHead": "9f7d32c37b0cbd6505a7375708ac4181ebced8b0",
+  "sourceFreezeSha256": "906a68f937b454f1c3f1a1ff5e91fc54b032e377527b2c8d5e94973b0945d986"
+}

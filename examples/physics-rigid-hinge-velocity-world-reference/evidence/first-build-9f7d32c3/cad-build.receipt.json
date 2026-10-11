@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+    "scripts/tool.mjs",
+    "build"
+  ],
+  "cwd": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/packages/barocss-cad",
+  "exitCode": 0,
+  "elapsedSeconds": 3.8431804580031894,
+  "sourceHead": "9f7d32c37b0cbd6505a7375708ac4181ebced8b0",
+  "sourceFreezeSha256": "906a68f937b454f1c3f1a1ff5e91fc54b032e377527b2c8d5e94973b0945d986",
+  "modelCalls": 0
+}
