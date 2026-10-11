@@ -16,6 +16,8 @@ The [CAD language practice examples](./language-examples) add typed weighted Sur
 | 1 | `@curve`, `@extrude` | Finite signed decimal literals | schemaVersion 1,sourceVersion 1 |
 | 2 | `@curve`, `@surface`, `@extrude`, `@parameter` | Bounded typed expressions | schemaVersion 2,sourceVersion 2 |
 
+For the separate newer Source3 dialect, read [quantity functions](./quantity-functions) and [open its language example](/examples/language#cad-quantity-functions). Matching provider `4f93558d` admits typed `@function` declarations and named calls with explicit `{sourceVersion:3}`; IR version is 3 and native Model version remains 0. The table, compiler options and complete programs on this page retain their older Source0/1/2 profiles.
+
 ### Choose an editable example
 
 | Input | Editable example |

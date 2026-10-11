@@ -158,4 +158,8 @@ Source2 admits at most 64 Parameters and 16 geometry declarations. Fields keep t
 
 The center pole is 24 mm high, while the original Surface center is `96/7` mm. Weight 4→1 changes that center to 6 mm without moving any pole. After Reset, rise 24→36 mm at weight 4 gives `144/7` mm. The four entire boundary curves stay fixed; an off-center probe shows that weight also changes XY parameterization. The displayed 17×17 grid and 34 evaluated U/V paths are sampled geometry, not the control net or Solid topology.
 
+## Compute dimensions with typed quantity functions
+
+[Open CAD quantity functions](/examples/language#cad-quantity-functions) and read [the complete Source3 guide](./quantity-functions). Its separate `4f93558d` provider adds named calls, closed defaults and lexical length/scalar formals. Initial width/depth/height are 100/25/100 mm; changing the default factor from 2 to 1 halves only height. It retains the full four-object Model and displays a sampled open extrusion, without upgrading the Source0/2 inputs above.
+
 [Model language](./language) · [CAD API](./api) · [Other geometry examples](./examples) · [Limits](./limits)

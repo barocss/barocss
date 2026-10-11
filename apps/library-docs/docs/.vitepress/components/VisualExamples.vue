@@ -4,12 +4,13 @@ import { exampleCatalog, exampleHref } from '../example-catalog.mjs'
 import * as runtime from '../generated/visual.js'
 import * as advanced from '../generated/advanced-shader.js'
 import * as reusableShader from '../generated/reusable-shader.js'
+import * as cadQuantityFunctions from '../generated/cad-quantity-functions.js'
 import * as unicode from '../generated/unicode-label.js'
 import * as diagram from '../generated/diagram-label.js'
 import * as pathEdit from '../generated/path-edit.js'
 import * as svgExport from '../generated/svg-export.js'
 import * as radialSvgExport from '../generated/radial-svg-export.js'
-const presets={...runtime.presets,...advanced.presets,...unicode.presets,...diagram.presets,...pathEdit.presets,...svgExport.presets,...radialSvgExport.presets,...reusableShader.presets}
+const presets={...runtime.presets,...advanced.presets,...unicode.presets,...diagram.presets,...pathEdit.presets,...svgExport.presets,...radialSvgExport.presets,...reusableShader.presets,...cadQuantityFunctions.presets}
 const props=defineProps({category:{type:String,default:'all'}})
 const categoryNames={library:'Library examples',language:'Language examples',integration:'Integrated workflows'}
 const purposeNames={api:'Library API',language:'Language',integration:'Integrated workflow'}
@@ -89,7 +90,7 @@ const titles=Object.fromEntries(Object.entries(presets).map(([key,preset])=>[key
 const isMaterial=()=>presets[selected.value].kind==='material'
 const control=()=>presets[selected.value].control || {name:'amount',min:0,max:1,step:.05,default:0}
 let acceptedAmount=0
-const describeError=e=>(typeof e?.code==='string' ? e.code+': ' : '')+(e?.message || String(e))+(isAdvanced() && typeof e?.cause?.code==='string' ? ' ('+e.cause.code+': '+e.cause.message+')' : '')+(isSVG()&&Array.isArray(e?.diagnostics) ? ' '+JSON.stringify(e.diagnostics) : '')
+const describeError=e=>(typeof e?.code==='string' ? e.code+': ' : '')+(e?.message || String(e))+(isAdvanced() && typeof e?.cause?.code==='string' ? ' ('+e.cause.code+': '+e.cause.message+')' : '')+((isSVG()||presets[selected.value].kind==='cad-quantity-functions')&&Array.isArray(e?.diagnostics) ? ' '+JSON.stringify(e.diagnostics) : '')
 async function select(kind){
   stopAnimation();advancedControls.value=[];advancedValues.value={};pathHistory.value={canUndo:false,canRedo:false};
   controller?.dispose(); controller=undefined; actionBusy.value=false; selected.value=kind; epoch.value++; error.value=''; output.value=''; amount.value=presets[kind].control?.default || 0; acceptedAmount=amount.value;
@@ -100,7 +101,7 @@ async function select(kind){
     if(isUnicode()||isDiagram())await document.fonts?.ready;
     if(selectionEpoch!==epoch.value)return;
     if(isOwnedCanvas()){const next=newOwnedElement();let pathCandidate;const candidate=isPath()?(pathCandidate=pathEdit.createPathEditExample(next,source.value,pathCallbacks(selectionEpoch,()=>pathCandidate))):isSVG()?await svgModule().createSvgExportExample(next,source.value):diagram.createDiagramLabelExample(next,source.value);if(selectionEpoch!==epoch.value){candidate.dispose();return}controller=candidate;ownedSlot.value.replaceChildren(next)}
-    else controller=isAdvanced()?advancedModule().createAdvancedShaderExample(canvas.value,source.value):isUnicode()?unicode.createUnicodeTextExample(canvas.value,source.value):runtime.createExample(canvas.value,kind,source.value);
+    else controller=isAdvanced()?advancedModule().createAdvancedShaderExample(canvas.value,source.value):isUnicode()?unicode.createUnicodeTextExample(canvas.value,source.value):presets[kind].kind==='cad-quantity-functions'?cadQuantityFunctions.createExample(canvas.value,kind,source.value):runtime.createExample(canvas.value,kind,source.value);
     const data=controller.report();if(isAdvanced())syncAdvanced(data);if(isPath())syncPath(data);output.value=JSON.stringify(data,null,2)
   }catch(e){if(selectionEpoch===epoch.value)error.value=describeError(e)}
 }

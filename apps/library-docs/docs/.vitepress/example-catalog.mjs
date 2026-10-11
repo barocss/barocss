@@ -8,6 +8,8 @@ const materialSource = { language: 'GPU mesh material', libraries: Object.freeze
 // Category describes the reader's task. A shared display host is not an
 // integration task; libraries lists public packages used by that sample.
 export const exampleCatalog = Object.freeze({
+  'cad-quantity-functions': item('CAD quantity functions', 'cad-quantity-functions', 'cad', 'language', '/packages/cad/quantity-functions',
+    'Compose typed length functions with named arguments and defaults, then inspect the complete model and call receipts.', cadDisplay('CAD source3')),
   'reusable-shader': item('Reusable palette shader', 'reusable-shader', 'gpu', 'language', '/packages/gpu/reusable-shader',
     'Compose a bounded float easing function and a color palette function over a diagonal UV wave.', { language: 'GPU repeating UV material with authored functions' }),
   'radial-svg-export': item('Radial SVG export', 'radial-svg-export', 'canvas2d', 'api', '/packages/canvas2d/radial-svg-export',
