@@ -164,3 +164,6 @@ export type {NativeSurfaceUV01BindingRequest,PreparedNativeSurfaceUV01Binding,Na
 
 export {prepareNativeSurfaceUV01ShaderSource,NativeSurfaceUV01ShaderSourceError} from './native-surface-uv01-shader-source.js';
 export type {NativeSurfaceUV01ShaderSourceRequest,PreparedNativeSurfaceUV01ShaderSource,NativeSurfaceUV01ShaderSourceCode} from './native-surface-uv01-shader-source.js';
+
+export {compileParameterizedAffineSceneSource,SceneParameterSourceError} from './scene-parameter-source.js';
+export type {SceneParameterCode,SceneParameterDiagnostic,SceneParameterDeclaration,ParameterizedAffineSceneAst,SceneParameter,CompiledParameterizedAffineSceneSource} from './scene-parameter-source.js';

@@ -1,5 +1,5 @@
 import { parseAffineSceneAst, analyzeSceneAst } from './scene-front.js';
-import type { SceneAst, SceneToken } from './scene-front.js';
+import type { SceneAst, SceneToken, AffineSceneAst } from './scene-front.js';
 import { lowerAffineSceneShaders } from './compiler.js';
 import type { SceneShaders } from './compiler.js';
 import { copyGpuData, freezeGpuData } from './gpu-data.js';
@@ -37,7 +37,13 @@ function sourceError(message: string): SceneError {
 export function compileAffineSceneSource(source: unknown): CompiledAffineSceneSource {
   if (typeof source !== 'string') throw sourceError('Source must be a string');
   const ast = parseAffineSceneAst(source);
+  const { scene, shaders } = lowerAffineSceneAst(ast);
+  return Object.freeze({ format: 'barocss-gpu-affine-scene-source', version: 0,
+    profile: 'source2-local-positive-xyz-min-step-v0', source, scene, shaders });
+}
 
+/** INTERNAL owned syntax-view lowering; never a public imported-AST admission API. */
+export function lowerAffineSceneAst(ast: AffineSceneAst): { scene: AffineScene2; shaders: SceneShaders } {
   // Validate all scale declarations, including selectors that match no object.
   // Keep selectors and empty rules for the existing semantic identity checks.
   const scaleRules = ast.rules.map(rule => ({
@@ -106,6 +112,5 @@ export function compileAffineSceneSource(source: unknown): CompiledAffineSceneSo
   };
   freezeGpuData(scene);
   const trustedShaders = freezeGpuData({ vertex: shaders.vertex, fragment: shaders.fragment });
-  return Object.freeze({ format: 'barocss-gpu-affine-scene-source', version: 0,
-    profile: 'source2-local-positive-xyz-min-step-v0', source, scene, shaders: trustedShaders });
+  return Object.freeze({ scene, shaders: trustedShaders });
 }

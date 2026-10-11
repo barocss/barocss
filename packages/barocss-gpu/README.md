@@ -2751,3 +2751,47 @@ preparation is separate from linking, attribute uploads, frames and pixels.
 
 One new palette source/emitted/file/cold flow:
 `node examples/gpu-scene/material-color-return-function-flow.mjs --output /absolute/fresh-directory`.
+
+
+## Typed literal Scene2 parameter references
+
+`compileParameterizedAffineSceneSource(source)` is a separate opt-in CPU authoring
+entry. Existing `compileAffineSceneSource`, Scene0/1 AST and renderer defaults
+remain unchanged. It accepts literal scalar, scene-length and degree parameters:
+
+```css
+@scene parameter_pair {
+  version:2;
+  @param extent:length(2scene);
+  @param gain:scalar(.5);
+  @param yaw:angle(30deg);
+  sphere #left; sphere #right;
+}
+sphere { radius:$extent; scale:$gain $gain $gain; color:#ABC; }
+#left { translate:-3 0 0; }
+#right { translate:3 0 0; rotate-y:$yaw; }
+```
+
+Headers precede parameters, and parameters precede objects. Up to16 unique ASCII
+names declare immutable numeric literals; `$name` references match the field's
+quantity. Scene lengths and scalars stay within ±1000; degrees within ±360.
+Lengths are scene-coordinate values, with no implicit CAD millimetre conversion.
+Existing positivity, Float32 shape checks, scale.01..100 and cascade still apply
+to every use, including overridden fields and unmatched type selectors.
+
+The distinct eight-field v0 source result retains the full original source, its
+separate authored AST, original parameter/reference tokens and ranges, resolved
+metadata, existing AffineScene2 and trusted shaders. Private numeric-token views
+are derived data. No imported AST, runtime override, arithmetic, function, loop,
+new kernel, GLSL uniform or linked renderer is supplied. Old source entrypoints
+continue to refuse parameter syntax.
+
+Source64KiB, two bounded65536-token scans, cumulative4096 AST/parameter/reference
+work, references1536 and existing32objects/128rules/512fields remain fixed.
+The complete copied/frozen ordinary result is bounded to2MiB UTF16/UTF8;
+source spelling and native data stay separate from canonical resolved zero.
+SceneParameterSourceError codes INPUT/SYNTAX/TYPE/RANGE/BUDGET/SCENE retain original
+UTF16/LF diagnostic positions and actual base compiler causes.
+
+One source/emitted/file/cold flow:
+`node examples/gpu-scene/scene-literal-parameter-flow.mjs --output /absolute/fresh-directory`.
