@@ -11,6 +11,7 @@ import { Label } from './ui/label.js';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog.js';
 import { CadEditorViewNavigator, VIEW_SIDES, type NativeViewSide } from './view-navigator.js';
 import { DrivingDimensionHandles, sameDrivingData as same } from './driving-dimension-handles.js';
+import { DrivingAnchorHandles } from './driving-anchor-handles.js';
 
 type NativeProfile = DrivenMixedSketchLinesResult['target']['profiles'][number];
 type NativeSegmentMapping = DrivenMixedSketchLinesResult['segmentMappings'][number];
@@ -131,6 +132,8 @@ export function CadEditorDrivingSketchEditor(props: CadEditorDrivingSketchEditor
   const [ready, setReady] = useState(false), [captured, setCaptured] = useState(false), [gesturing, setGesturing] = useState(false);
   const [receipt, setReceipt] = useState<CadEditorDrivingSketchDisplayReceipt | null>(null), [error, setError] = useState<CadEditorError | null>(null);
   const [activeDimension, setActiveDimension] = useState<string | null>(null), [add, setAdd] = useState<AddDraft | null>(null), [addHelp, setAddHelp] = useState(false);
+  const [activeAnchor, setActiveAnchor] = useState<string | null>(null);
+  useEffect(() => { setActiveAnchor(null); }, [session, snapshot.view.profileId]);
   const addRef = useRef(add); addRef.current = add; const [, refreshCommands] = useState(0);
   function captureFor(pointerId: number) { return [document.documentElement, ...document.querySelectorAll('*')].some(element => element.hasPointerCapture(pointerId)); }
   function hasCapture() { return [...pointers.current].some(captureFor); }
@@ -175,9 +178,10 @@ export function CadEditorDrivingSketchEditor(props: CadEditorDrivingSketchEditor
       || viewportRef.current?.getAttribute('data-driving-ready') !== 'true' || mounted.viewer.getState().status !== 'ready'
       || document.querySelector('[role="dialog"][data-state="open"],[role="menu"]') !== null;
   }
-  function isCurrentFrame(value: CadEditorDrivingSketchDisplayReceipt) {
+  function isCurrentFrame(value: CadEditorDrivingSketchDisplayReceipt, ownCandidateToken?: string) {
     const mounted = mountedRef.current, now = session.getSnapshot();
-    if (!mounted || mounted.admitting || mounted.optionsRefused || mounted.unavailable || !aligned(mounted) || !optionsCurrent(mounted) || now.disposed || now.candidate
+    if (!mounted || mounted.admitting || mounted.optionsRefused || mounted.unavailable || !aligned(mounted) || !optionsCurrent(mounted) || now.disposed
+      || (ownCandidateToken === undefined ? now.candidate !== null : now.candidate?.token !== ownCandidateToken)
       || value.generation !== now.generation || value.displayGeneration !== now.displayGeneration || !same(value.view, now.view)
       || !same(value.selection, now.selection) || !same(mounted.selection, now.selection) || viewportRef.current?.getAttribute('data-driving-ready') !== 'true') return false;
     const state = mounted.viewer.getState(); return state.status === 'ready' && same(state.camera, value.state.camera)
@@ -396,7 +400,9 @@ export function CadEditorDrivingSketchEditor(props: CadEditorDrivingSketchEditor
         onWheelCapture={event => { if (commandBlocked()) { event.preventDefault(); event.stopPropagation(); } }}
         onKeyDownCapture={event => { if (event.key === 'Escape' || commandBlocked()) { event.preventDefault(); event.stopPropagation(); } }} />
       <CadEditorViewNavigator camera={ready ? receipt?.state.camera ?? null : null} disabled={navigationBusy} onChoose={changeView} />
-      <DrivingDimensionHandles session={session} canvas={ready ? canvasRef.current : null} receipt={ready ? receipt : null} constraintId={handleId}
+      <DrivingDimensionHandles session={session} canvas={ready ? canvasRef.current : null} receipt={ready ? receipt : null} constraintId={activeAnchor === null ? handleId : null}
+        isCurrentFrame={isCurrentFrame} onError={report} onGestureChange={active => { gestureRef.current = active; setGesturing(active); }} />
+      <DrivingAnchorHandles session={session} canvas={ready ? canvasRef.current : null} receipt={ready ? receipt : null} constraintId={activeAnchor}
         isCurrentFrame={isCurrentFrame} onError={report} onGestureChange={active => { gestureRef.current = active; setGesturing(active); }} />
       {error && <p className="cad-editor-viewport-error" role="alert">{actionable(error)}</p>}
     </div>
@@ -408,6 +414,7 @@ export function CadEditorDrivingSketchEditor(props: CadEditorDrivingSketchEditor
             <div className="cad-editor-help-body">
               <p>Dimensions use signed local X or Y millimetres on the authored workplane, from point A to point B. A distance needs a fixed integer anchor on that axis. Typed fractional distances remain subject to native refusal.</p>
               <p>The canvas handle changes one existing distance, with a directly fixed integer point A and the selected solved point B. Movement rounds its displacement to the nearest 1 mm. Release applies one change. Escape or pointer cancellation cancels only owned movement. Use the field when the view cannot show a handle.</p>
+              <p>Choose Drag point on a fixed constraint to move its local X/Y target on the original workplane. The grip rounds local displacement to 1 mm. Both fields are one native command on release. The original authored seed stays unchanged. Escape discards only the gesture-owned draft; unrelated or newer input remains.</p>
               <p>Local axes come from the actual workplane; the displayed World Curve already includes that mapping. The handle does not move seed points, anchors or profiles. Pending guides are not a solved geometry preview.</p>
               <p>The original mixed seed, all profiles and the full active constraint list stay in the file. Solved target points and generated World Curves are derived. Removing a constraint deletes its definition; Undo restores it. No hidden disabled definitions are saved.</p>
               <p>DOF and rank describe only the actual selected Line and Polyline scalar scope. Arc and Rectangle previews do not expand that scope. Supported additions are fixed, horizontal, vertical and coincident constraints. Point and segment choices use actual selected-scope native IDs.</p>
@@ -429,10 +436,10 @@ export function CadEditorDrivingSketchEditor(props: CadEditorDrivingSketchEditor
       {!editableView ? <p>This profile is a read-only preview. Constraints use the selected Line and Polyline scope.</p> : <>
         <div className="cad-editor-field"><Label htmlFor={id + '-point'}>Point</Label><select id={id + '-point'} data-testid="driving-point" value={snapshot.selection?.native.pointId ?? ''} disabled={busy || pending}
           onChange={event => action(() => { const binding = pointBindings.find(value => value.pointId === event.target.value);
-            if (binding) session.selectPoint(snapshot.view.profileId, binding.pointId, { generation: snapshot.generation, native: binding }); })}>
+            if (binding) { setActiveAnchor(null); session.selectPoint(snapshot.view.profileId, binding.pointId, { generation: snapshot.generation, native: binding }); } })}>
           <option value="" disabled>Select a point</option>{pointBindings.map((point, index) => <option value={point.pointId} key={point.pointId}>Point {index + 1}</option>)}</select></div>
         {dimensions.length > 0 && <div className="cad-editor-field"><Label htmlFor={id + '-dimension'}>Canvas dimension</Label><select id={id + '-dimension'} data-testid="driving-dimension" value={handleId ?? ''} disabled={busy || pending}
-          onChange={event => action(() => { if (!Object.keys(session.getSnapshot().pending.fields).length) setActiveDimension(event.target.value); })}>
+          onChange={event => action(() => { if (!Object.keys(session.getSnapshot().pending.fields).length) { setActiveAnchor(null); setActiveDimension(event.target.value); } })}>
           <option value="" disabled>Choose a dimension</option>{dimensions.map((dimension, index) => <option value={dimension.id} key={dimension.id}>{constraintLabel(dimension)} {index + 1}</option>)}</select></div>}
       </>}
       <div className="cad-editor-actions"><Button type="button" data-testid="driving-apply" disabled={busy || !pending} onClick={() => action(() => session.prepareApply())}>Apply</Button>
@@ -442,6 +449,18 @@ export function CadEditorDrivingSketchEditor(props: CadEditorDrivingSketchEditor
         <div className="driving-constraint-title"><strong>{constraintLabel(constraint)}</strong><Button type="button" variant="ghost" size="xs" data-testid={'driving-remove-' + constraint.id} disabled={busy || pending}
           onClick={() => action(() => session.prepareConstraintRemoval(constraint.id))}>Remove</Button></div>
         <p className="cad-editor-properties-note">{definitionNote(constraint)}</p>
+        {constraint.kind === 'fixed' && <Button type="button" size="xs" variant="outline" className="driving-anchor-choose" data-testid={'driving-anchor-' + constraint.id}
+          aria-pressed={activeAnchor === constraint.id && snapshot.selection?.native.pointId === constraint.pointId}
+          disabled={busy || pending || !editableView || !pointBindings.some(point => point.pointId === constraint.pointId)}
+          onClick={() => action(() => {
+            const now = session.getSnapshot(), binding = now.accepted.target.worldPointBindings.find(point => point.profileId === now.view.profileId && point.pointId === constraint.pointId);
+            if (!binding || now.candidate || Object.keys(now.pending.fields).length) return;
+            session.selectPoint(now.view.profileId, binding.pointId, { generation: now.generation, native: binding });
+            const after = session.getSnapshot();
+            if (after.selection?.native.pointId !== binding.pointId || after.generation !== now.generation || after.candidate || Object.keys(after.pending.fields).length)
+              throw fault('The fixed point changed during selection. Review the values.', 'driving-anchor');
+            setActiveAnchor(constraint.id);
+          })}>Drag point</Button>}
         {(constraint.kind === 'distance-x' || constraint.kind === 'distance-y') && scalarField(constraint, 'distanceMM', constraint.distanceMM, 'Distance (mm)')}
         {constraint.kind === 'fixed' && <div className="driving-fixed-fields">{scalarField(constraint, 'xMM', constraint.target[0], 'X (mm)')}{scalarField(constraint, 'yMM', constraint.target[1], 'Y (mm)')}</div>}
       </section>)}</div>

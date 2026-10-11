@@ -353,3 +353,13 @@ text.assembly-translation-guide[data-axis="z"] { fill:#8babcf; stroke:none; }
 .curve-knot-handle:focus-visible { stroke: #ffffff; stroke-width: 3; }
 .curve-knot-label { fill: #e3edda; font-size: 10px; pointer-events: none; }
 .curve-knot-status { position: absolute; bottom: 8px; left: 8px; max-width: calc(100% - 16px); margin: 0; padding: 3px 6px; border: 1px solid var(--border); border-radius: 3px; background: var(--background); color: var(--muted-foreground); font-size: 10px; pointer-events: none; }
+
+.driving-anchor-controls { position:absolute; inset:0; pointer-events:none; z-index:3; }
+.driving-anchor-svg { display:block; overflow:hidden; pointer-events:none; }
+.driving-anchor-handle { fill:#bad598; stroke:#eef5e7; stroke-width:1.5; pointer-events:all; cursor:grab; touch-action:none; }
+.driving-anchor-handle:active { cursor:grabbing; }
+.driving-anchor-handle:focus-visible { outline:none; stroke:#fff; stroke-width:3; }
+.driving-anchor-guide { stroke:#b8c9ac; stroke-width:1; fill:none; pointer-events:none; }
+.driving-anchor-ghost { fill:none; stroke:#e5bf77; stroke-width:2; stroke-dasharray:4 3; pointer-events:none; }
+.driving-anchor-status { position:absolute; left:8px; bottom:8px; margin:0; padding:3px 6px; border:1px solid var(--border); border-radius:3px; background:var(--background); color:var(--muted-foreground); font-size:10px; pointer-events:none; }
+.driving-anchor-choose { margin:2px 0 5px; }
