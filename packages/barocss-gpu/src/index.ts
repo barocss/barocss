@@ -223,3 +223,7 @@ export type { EngineUVWebGPUOptions, EngineUVWebGPUOriginals, EngineUVWebGPURef,
 // Trusted WGSL expression for original native Surface normalized UV01.
 export { lowerNativeSurfaceUV01MaterialWGSL } from './native-surface-uv01-material-wgsl.js';
 export type { LoweredNativeSurfaceUV01MaterialWGSL } from './native-surface-uv01-material-wgsl.js';
+
+// Complete trusted WebGPU program for original native Surface normalized UV01.
+export { lowerNativeSurfaceUV01ProgramWGSL } from './native-surface-uv01-program-wgsl.js';
+export type { LoweredNativeSurfaceUV01ProgramWGSL } from './native-surface-uv01-program-wgsl.js';
