@@ -368,3 +368,39 @@ arguments pass unchanged to the SDK; only zero arguments read physical drafts.
 Existing source/compiled server modes and fixture routes remain unchanged.
 New first-mount APIs, arbitrary backend switches, full authored Save/Open,
 editor history and release acceptance remain separate.
+
+## Inspect selected original derivatives (#1473)
+
+Select an original Surface or Curve. Use the existing native U/V or t inputs.
+Click **Inspect selected native derivatives** to show its original authored XYZ
+point in millimetres and its raw first derivative vectors. Curve dP/dt and
+Surface dP/dU/dP/dV use millimetres per original dimensionless parameter. The
+complete report includes the unchanged original source, Model, reference,
+parameters, native domains and the whole public CAD D1 result.
+
+The example uses `querySelectedNativeDerivatives(viewer, expected, input)`.
+`expected` contains the complete `{source, model, ref}` pin. Surface input is
+exactly `{u, v}`; Curve input is exactly `{t}`. Every parameter must be an
+explicit finite number. The helper checks owned data and the complete current
+source, Model and selection before one public D1 evaluation. It checks them
+again before returning a copied eight-field report. It uses the existing
+8192-value/depth-16 copy limit, arrays up to 512, records up to 64 fields, and
+strings up to 65536 UTF-8 bytes and code units. These limits are bounded input
+checks, not a maximum workload certificate.
+
+Raw zero vectors are valid. An exact C0 interior knot can refuse D1 even when
+its position can be evaluated. Provider endpoint and error rules remain intact.
+The vectors are not normalized and do not include display pose or scale.
+This report does not certify regularity, outward orientation or global accuracy.
+It does not create a normal, angle, marker or new SDK method.
+
+Inspection and **Reset derivative report** preserve the separate point report,
+captured chord, all SDK measurements, File intents and import provenance.
+Reset clears only this derivative report and keeps the parameter drafts. A
+same-current invalid query keeps the last completed report. A changed selection,
+hidden selected object, source, mode, Clear or Dispose clears it. A known
+successful same-source reopen also clears it. View, pose and CSS changes keep
+it when its full original pin is current. Retained selected CPU geometry can
+still be inspected after presentation loss or unavailability; new GPU selection
+remains blocked. No new renderer, provider build or release follows from this
+example operation.
