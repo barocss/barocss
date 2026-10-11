@@ -12,6 +12,8 @@ The [diagram label guide](./diagram-labels) combines ASCII ellipsis with a separ
 
 [Edit quadratic and cubic controls](./path-editing) with public `setPath`, copied paint and local-coordinate mapping. [Try the path editor](/playground#path-edit) for a completed drag, one-edit Undo/Redo and physical JSON Save/Open; this uses its own matching Canvas source profile.
 
+[Export a linear SVG](./svg-export) from the [SVG API example](/examples/library#svg-export). Compare the native canvas and actual SVG image, download display SVG, or save editable JSON for fresh Open and another gradient edit. It uses the named public exporter at its stated newer source profile.
+
 ## Create and submit a retained object
 
 Use a browser host with a TypeScript-capable bundler and the workspace package dependency. Put this HTML in the host page and use the following module as its `main.ts` entry. The bundler resolves public imports and transforms TypeScript; the browser receives JavaScript.

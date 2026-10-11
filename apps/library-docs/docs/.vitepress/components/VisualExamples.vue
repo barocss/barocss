@@ -6,7 +6,8 @@ import * as advanced from '../generated/advanced-shader.js'
 import * as unicode from '../generated/unicode-label.js'
 import * as diagram from '../generated/diagram-label.js'
 import * as pathEdit from '../generated/path-edit.js'
-const presets={...runtime.presets,...advanced.presets,...unicode.presets,...diagram.presets,...pathEdit.presets}
+import * as svgExport from '../generated/svg-export.js'
+const presets={...runtime.presets,...advanced.presets,...unicode.presets,...diagram.presets,...pathEdit.presets,...svgExport.presets}
 const props=defineProps({category:{type:String,default:'all'}})
 const categoryNames={library:'Library examples',language:'Language examples',integration:'Integrated workflows'}
 const purposeNames={api:'Library API',language:'Language',integration:'Integrated workflow'}
@@ -39,21 +40,22 @@ let controller, animationFrame
 const actionBusy=ref(false), ownedSlot=ref(), documentFile=ref()
 const isDiagram=()=>presets[selected.value].kind==='diagram'
 const isPath=()=>presets[selected.value].kind==='path'
-const isOwnedCanvas=()=>isDiagram()||isPath()
+const isSVG=()=>presets[selected.value].kind==='svg'
+const isOwnedCanvas=()=>isDiagram()||isPath()||isSVG()
 const pathHistory=ref({canUndo:false,canRedo:false})
 function syncPath(data){pathHistory.value={canUndo:!!data.history?.canUndo,canRedo:!!data.history?.canRedo}}
 function pathCallbacks(token,resolve){return {onChange(data,acceptedSource){const candidate=resolve();if(candidate&&controller===candidate&&token===epoch.value){source.value=acceptedSource;syncPath(data);output.value=JSON.stringify(data,null,2);error.value=''}},onError(e){const candidate=resolve();if(candidate&&controller===candidate&&token===epoch.value)error.value=describeError(e)}}}
-function newOwnedElement(){if(isPath()){const panel=document.createElement('div');panel.style.cssText='position:relative;width:100%;aspect-ratio:8/5';return panel}const next=document.createElement('canvas');next.setAttribute('aria-label','Actual example output');next.style.cssText='display:block;width:100%;height:auto;background:#101820;border-radius:8px';return next}
-function downloadCanvasDocument(text,filename){const blob=new Blob([text],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=filename;document.body.append(link);try{link.click()}finally{link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}}
+function newOwnedElement(){if(isSVG()){const panel=document.createElement('div');panel.style.cssText='display:grid;gap:12px;width:100%';return panel}if(isPath()){const panel=document.createElement('div');panel.style.cssText='position:relative;width:100%;aspect-ratio:8/5';return panel}const next=document.createElement('canvas');next.setAttribute('aria-label','Actual example output');next.style.cssText='display:block;width:100%;height:auto;background:#101820;border-radius:8px';return next}
+function downloadCanvasDocument(text,filename,type='application/json'){const blob=new Blob([text],{type}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=filename;document.body.append(link);try{link.click()}finally{link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}}
 async function openCanvasDocument(event){
  const file=event.target.files?.[0];event.target.value='';if(!file||actionBusy.value||!isOwnedCanvas())return;
- const openEpoch=epoch.value,prior=controller,openingPath=isPath();actionBusy.value=true;error.value='';let candidate;
+ const openEpoch=epoch.value,prior=controller,openingPath=isPath(),openingSVG=isSVG();actionBusy.value=true;error.value='';let candidate;
  try{
   if(file.size>48*1024*1024)throw new Error('Canvas document exceeds 48 MiB');
   const text=await file.text();if(openEpoch!==epoch.value)return;
-  const next=newOwnedElement();let pathCandidate;candidate=openingPath?await pathEdit.openPathEditExample(next,text,pathCallbacks(openEpoch,()=>pathCandidate)):await diagram.openDiagramLabelExample(next,text);pathCandidate=candidate;
+  const next=newOwnedElement();let pathCandidate;candidate=openingPath?await pathEdit.openPathEditExample(next,text,pathCallbacks(openEpoch,()=>pathCandidate)):openingSVG?await svgExport.openSvgExportExample(next,text):await diagram.openDiagramLabelExample(next,text);pathCandidate=candidate;
   if(openEpoch!==epoch.value){candidate.dispose();candidate=undefined;return}
-  ownedSlot.value.replaceChildren(next);controller=candidate;candidate=undefined;prior?.dispose();const data=controller.report();if(isPath()){syncPath(data);source.value=JSON.stringify({quadratic:data.paths.find(item=>item.id==='QuadraticPath').commands,cubic:data.paths.find(item=>item.id==='CubicPath').commands},null,2)}output.value=JSON.stringify(data,null,2);
+  ownedSlot.value.replaceChildren(next);controller=candidate;candidate=undefined;prior?.dispose();const data=controller.report();if(isPath()){syncPath(data);source.value=JSON.stringify({quadratic:data.paths.find(item=>item.id==='QuadraticPath').commands,cubic:data.paths.find(item=>item.id==='CubicPath').commands},null,2)}if(isSVG())source.value=JSON.stringify(data.scene,null,2);output.value=JSON.stringify(data,null,2);
  }catch(e){candidate?.dispose();if(openEpoch===epoch.value)error.value=describeError(e)}
  finally{if(openEpoch===epoch.value)actionBusy.value=false}
 }
@@ -83,7 +85,7 @@ const titles=Object.fromEntries(Object.entries(presets).map(([key,preset])=>[key
 const isMaterial=()=>presets[selected.value].kind==='material'
 const control=()=>presets[selected.value].control || {name:'amount',min:0,max:1,step:.05,default:0}
 let acceptedAmount=0
-const describeError=e=>(typeof e?.code==='string' ? e.code+': ' : '')+(e?.message || String(e))+(isAdvanced() && typeof e?.cause?.code==='string' ? ' ('+e.cause.code+': '+e.cause.message+')' : '')
+const describeError=e=>(typeof e?.code==='string' ? e.code+': ' : '')+(e?.message || String(e))+(isAdvanced() && typeof e?.cause?.code==='string' ? ' ('+e.cause.code+': '+e.cause.message+')' : '')+(isSVG()&&Array.isArray(e?.diagnostics) ? ' '+JSON.stringify(e.diagnostics) : '')
 async function select(kind){
   stopAnimation();advancedControls.value=[];advancedValues.value={};pathHistory.value={canUndo:false,canRedo:false};
   controller?.dispose(); controller=undefined; actionBusy.value=false; selected.value=kind; epoch.value++; error.value=''; output.value=''; amount.value=presets[kind].control?.default || 0; acceptedAmount=amount.value;
@@ -93,17 +95,17 @@ async function select(kind){
   try{
     if(isUnicode()||isDiagram())await document.fonts?.ready;
     if(selectionEpoch!==epoch.value)return;
-    if(isOwnedCanvas()){const next=newOwnedElement();let pathCandidate;controller=isPath()?(pathCandidate=pathEdit.createPathEditExample(next,source.value,pathCallbacks(selectionEpoch,()=>pathCandidate))):diagram.createDiagramLabelExample(next,source.value);ownedSlot.value.replaceChildren(next)}
+    if(isOwnedCanvas()){const next=newOwnedElement();let pathCandidate;const candidate=isPath()?(pathCandidate=pathEdit.createPathEditExample(next,source.value,pathCallbacks(selectionEpoch,()=>pathCandidate))):isSVG()?await svgExport.createSvgExportExample(next,source.value):diagram.createDiagramLabelExample(next,source.value);if(selectionEpoch!==epoch.value){candidate.dispose();return}controller=candidate;ownedSlot.value.replaceChildren(next)}
     else controller=isAdvanced()?advanced.createAdvancedShaderExample(canvas.value,source.value):isUnicode()?unicode.createUnicodeTextExample(canvas.value,source.value):runtime.createExample(canvas.value,kind,source.value);
     const data=controller.report();if(isAdvanced())syncAdvanced(data);if(isPath())syncPath(data);output.value=JSON.stringify(data,null,2)
   }catch(e){if(selectionEpoch===epoch.value)error.value=describeError(e)}
 }
-function apply(){stopAnimation();error.value='';try{const data=controller.update(source.value);if(isAdvanced())syncAdvanced(data);if(isPath())syncPath(data);output.value=JSON.stringify(data,null,2)}catch(e){error.value=describeError(e);if(isAdvanced()||isUnicode()||isOwnedCanvas()){const retained=controller.report();if(!retained.available)output.value=JSON.stringify(retained,null,2)}}}
+async function apply(){if(actionBusy.value||!controller)return;stopAnimation();error.value='';const applyEpoch=epoch.value,current=controller;actionBusy.value=true;try{const data=await current.update(source.value);if(applyEpoch!==epoch.value||controller!==current)return;if(isAdvanced())syncAdvanced(data);if(isPath())syncPath(data);output.value=JSON.stringify(data,null,2)}catch(e){if(applyEpoch===epoch.value&&controller===current){error.value=describeError(e);if(isAdvanced()||isUnicode()||isOwnedCanvas()){const retained=current.report();if(!retained.available)output.value=JSON.stringify(retained,null,2)}}}finally{if(applyEpoch===epoch.value&&controller===current)actionBusy.value=false}}
 function adjust(){error.value='';try{output.value=JSON.stringify(controller.setAmount(Number(amount.value)),null,2);acceptedAmount=Number(amount.value)}catch(e){amount.value=acceptedAmount;error.value=describeError(e)}}
 async function act(id){
  if(actionBusy.value||!controller)return;
  const actionEpoch=epoch.value,current=controller;actionBusy.value=true;error.value='';
- try{const result=await current.action(id);if(actionEpoch!==epoch.value)return;if(isOwnedCanvas()&&id==='save-document'){downloadCanvasDocument(result.documentText,result.filename);output.value=JSON.stringify(result.report,null,2);return}if(isPath())syncPath(result.report||result);if(id==='resize-100'&&typeof result.acceptedSource==='string')source.value=result.acceptedSource;if(id==='reload'&&typeof result.native?.source==='string')source.value=result.native.source;output.value=JSON.stringify(result,null,2)}
+ try{const result=await current.action(id);if(actionEpoch!==epoch.value)return;if(isSVG()&&id==='save-svg'){downloadCanvasDocument(result.svg,result.filename,'image/svg+xml');output.value=JSON.stringify(result.report,null,2);return}if(isOwnedCanvas()&&id==='save-document'){downloadCanvasDocument(result.documentText,result.filename);output.value=JSON.stringify(result.report,null,2);return}if(isPath())syncPath(result.report||result);if(id==='resize-100'&&typeof result.acceptedSource==='string')source.value=result.acceptedSource;if(id==='reload'&&typeof result.native?.source==='string')source.value=result.native.source;output.value=JSON.stringify(result,null,2)}
  catch(e){if(actionEpoch===epoch.value)error.value=describeError(e)}
  finally{if(actionEpoch===epoch.value)actionBusy.value=false}
 }
@@ -125,7 +127,7 @@ onBeforeUnmount(()=>{epoch.value++;window.removeEventListener('hashchange',onLoc
   <p class="example-purpose">{{libraryNames[exampleCatalog[selected].library]}} · {{purposeNames[exampleCatalog[selected].category]}} · <a :href="exampleCatalog[selected].guide">Read this example's guide</a></p>
   <h2>{{presets[selected].title || 'Loading examples'}}</h2>
   <p class="explain">{{presets[selected].description || (selected==='curve' ? 'The cyan line is evaluated geometry. Orange points define the control polygon. Coordinates are millimetres.' : selected==='scene' ? 'Each accepted source edit compiles and draws one SDF frame. Change a size, angle or color, then select Run input.' : selected==='surface' ? 'CAD evaluates the rational patch. A 17 × 17 grid becomes a GPU triangle mesh. Pale lines show its sampled U/V grid. This display does not certify a Solid.' : 'The same sampled CAD patch uses an opaque fragment material. The host supplies amount; compilation creates no timer.')}}</p>
-  <div class="example-grid"><div><label for="visual-source">Editable input · {{presets[selected].language}}</label><textarea id="visual-source" v-model="source" spellcheck="false" aria-label="Example source"/><div class="example-actions"><button :disabled="!controller || actionBusy" @click="apply">Run input</button><button :disabled="!ready" @click="select(selected)">Reset example</button></div></div><figure><div v-if="isOwnedCanvas()" :key="epoch" ref="ownedSlot"/><canvas v-else :key="epoch" ref="canvas" width="640" height="420" aria-label="Actual example output"/><figcaption>{{isAdvanced() ? 'Actual WebGL2 output from this example host and public material lowering.' : isPath() ? 'Drag a control point to edit its curve.' : isDiagram() ? 'Ellipsized label and separate bitmap outline from public Canvas2D APIs.' : isUnicode() ? 'Browser-prepared RGBA label displayed by the public Canvas2D GlyphRun renderer.' : 'Actual output from the selected public API.'}}</figcaption></figure></div>
+  <div class="example-grid"><div><label for="visual-source">Editable input · {{presets[selected].language}}</label><textarea id="visual-source" v-model="source" spellcheck="false" aria-label="Example source"/><div class="example-actions"><button :disabled="!controller || actionBusy" @click="apply">Run input</button><button :disabled="!ready" @click="select(selected)">Reset example</button></div></div><figure><div v-if="isOwnedCanvas()" :key="epoch" ref="ownedSlot"/><canvas v-else :key="epoch" ref="canvas" width="640" height="420" aria-label="Actual example output"/><figcaption>{{isSVG() ? 'Canvas2D preview and actual exported SVG image from the accepted scene.' : isAdvanced() ? 'Actual WebGL2 output from this example host and public material lowering.' : isPath() ? 'Drag a control point to edit its curve.' : isDiagram() ? 'Ellipsized label and separate bitmap outline from public Canvas2D APIs.' : isUnicode() ? 'Browser-prepared RGBA label displayed by the public Canvas2D GlyphRun renderer.' : 'Actual output from the selected public API.'}}</figcaption></figure></div>
   <label v-if="isMaterial()" class="uniform-control">{{control().name}} = {{amount}}<input v-model="amount" aria-label="Material amount" type="range" :min="control().min" :max="control().max" :step="control().step" @input="adjust"/></label>
   <div v-if="isAdvanced()" class="advanced-controls">
     <label v-for="item in advancedControls" :key="item.name" class="uniform-control">{{item.name}} = {{Number(advancedValues[item.name]).toFixed(2)}}<input :value="advancedValues[item.name]" :aria-label="'Shader '+item.name" type="range" :min="item.min" :max="item.max" :step="presets[selected].controls.find(c=>c.name===item.name)?.step || .05" @input="stopAnimation();adjustAdvanced(item.name,$event.target.value)"/></label>
@@ -133,7 +135,7 @@ onBeforeUnmount(()=>{epoch.value++;window.removeEventListener('hashchange',onLoc
     <p class="explain">UV coordinates drive the pattern. Play advances phase in this example's host. Source compilation creates no clock. <a :href="selected==='caustics-shader' ? '/packages/gpu/caustics-shader' : '/packages/gpu/advanced-shader'">Read the shader layers and controls</a>.</p>
   </div>
   <div v-if="presets[selected].actions" class="example-actions"><button v-for="action in presets[selected].actions" :key="action.id" :disabled="!controller || actionBusy || (isPath() && action.id==='undo' && !pathHistory.canUndo) || (isPath() && action.id==='redo' && !pathHistory.canRedo)" @click="act(action.id)">{{action.label}}</button></div>
-  <div v-if="isOwnedCanvas()" class="example-actions"><button :disabled="!controller || actionBusy" @click="documentFile.click()">{{isPath() ? 'Open path JSON' : 'Open diagram JSON'}}</button><input ref="documentFile" type="file" accept=".json,application/json" :aria-label="isPath() ? 'Path JSON file' : 'Diagram JSON file'" hidden @change="openCanvasDocument"/></div>
+  <div v-if="isOwnedCanvas()" class="example-actions"><button :disabled="!controller || actionBusy" @click="documentFile.click()">{{isPath() ? 'Open path JSON' : isSVG() ? 'Open editable JSON' : 'Open diagram JSON'}}</button><input ref="documentFile" type="file" accept=".json,application/json" :aria-label="isPath() ? 'Path JSON file' : isSVG() ? 'Editable scene JSON file' : 'Diagram JSON file'" hidden @change="openCanvasDocument"/></div>
   <p v-if="error" role="alert" class="example-error">Input refused: {{error}}. The last accepted output stays visible while the sample remains live.</p>
   <details open><summary>Actual result data</summary><pre class="example-report">{{output}}</pre></details>
 </section>
