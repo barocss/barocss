@@ -432,3 +432,40 @@ it when its full original pin is current. Retained selected CPU geometry can
 still be inspected after presentation loss or unavailability; new GPU selection
 remains blocked. No new renderer, provider build or release follows from this
 example operation.
+
+
+## Focused native canvas keys (#1493)
+
+Open or load an original native Source0 scene. Focus its canvas with Tab or a
+pointer click. Press **F** to fit the current visible display geometry. Press
+**Escape** to clear the current Surface or Curve selection. The shortcuts are
+available for an idle ready original native scene. They work independently of
+**Navigate native view**. The initial document and other viewer modes do not
+use these shortcuts.
+
+The example reuses public `Viewer.attachKeyboardControls`. It handles only
+unmodified canvas-target F/f and Escape. Input fields, Shift, Alt, Ctrl, Meta,
+repeat and composition events are ignored. It does not move focus or add a
+global key listener. An event already handled by another listener is skipped.
+The SDK prevents the default action only after its command succeeds. A current
+all-hidden native scene remains ready, but F reports that no visible geometry
+can be fitted. Fit uses sampled visible display geometry and accepted display
+poses; it does not certify original geometry extrema or a selected-body bound.
+
+F keeps selection, original point and derivative reports, parameter drafts,
+captured chord, all SDK measurement caches and File/import provenance.
+Escape clears selection, the point and derivative reports, and their U/V/t
+drafts. It keeps the source-qualified captured chord, SDK caches, camera and
+File/import provenance. Existing body rows and canvas focus remain connected.
+The narrow refresh may revalidate stored pins through public CAD compile/D0;
+it does not run a new measurement or write the SDK measurement caches.
+
+Presentation loss, unavailability, other modes and Dispose retire the keyboard
+adapter. A restored hardware context does not undo the SDK's sticky loss state.
+Original errors pass through once. A host refresh error after a successful SDK
+command is a postcommit error; no camera, selection or framebuffer rollback
+is promised. The local keyboard listeners and public adapter are removed before
+pointer, File and Viewer disposal. Proof hooks `nativeKeyboardSnapshot`,
+`syncNativeKeyboard` and `disposeNativeKeyboard` return copied local
+`{attached, disposed, status}` diagnostics and read no Viewer state after local
+disposal. No new SDK method, module, renderer, provider or release is added.
