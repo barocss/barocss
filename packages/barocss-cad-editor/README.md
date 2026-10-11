@@ -178,21 +178,39 @@ Canonical file bounds are 2097152 UTF-8 bytes/code units; each source is at most
 262144 and aggregate source is at most1048576 bytes. The actual CAD parser and
 validator enforce these bounds. Raw fields retain the 128-character limit.
 
-A Surface body is editable when its selected coefficients meet the native profile:
-ASCII ID1–48, degrees1–3, grid axes2–16/at most256poles, coordinates±10000mm
+A Surface body is editable when its selected coefficients meet the current native profile:
+ASCII ID1–48, degrees1–5, grid axes2–16/at most256poles, coordinates±1000000mm
 and weights1e-6..1e6. Multi-object assets and a different Model name are supported
-through actual `editSourceSurfaceControlNet`. Complete `result.source/model`
+through actual `editSourceSurfaceControlNetWide` and
+`validateSourceSurfaceControlNetWideEdit`. Complete `result.source/model`
 retain Model name/order, sibling coefficients, comments, whitespace and untouched
-literal spelling. `result.edit` is the selected Surface child proof; it never
-replaces the full asset. Its provenance remains the pole edit receipt. The owned
+literal spelling. `result.surface` and `result.provenance` describe the selected
+native coefficients; they never replace the full asset. The owned
 native validator reconstructs the provider proof; internal validation work is
 separate from the direct editor operation. Native no-op preserves exact spelling
 and revisions. Original Curve XYZ/weight editing supports degree1–5, 2–64 poles,
 at most70 knots, coordinates within ±1000000mm, weights1e-6..1e6 and native IDs
 within the ASCII1–48 profile. It uses the actual complete-source Curve writer and
 requires matching explicit Curve focus for Apply; the narrower focused display
-limits below still apply. Unsupported selected Curve/Surface profiles remain
-read-only. Actual source binding/size/native/display failures retain prior state.
+requirements below still apply. A selected Curve or Surface outside its current
+native profile cannot be edited through that action. Actual source
+binding/size/native/display failures retain corrective raw and prior accepted state.
+
+Surface Move, Rotate and Scale reuse actual native affine transformation and the
+wide complete-source writer. All transformed original Surface poles, up to256,
+enter one private request. Temporary affine result IDs and sources are validation
+evidence and are never adopted as authored geometry. Native degree1–5 is supported,
+but affine admission separately requires original/transformed XYZ and matrix
+translation within ±10000mm, and original knot parameters within ±10000. A Surface
+may therefore support point editing while refusing an object transform. Weights,
+knots, original IDs and untouched siblings remain unchanged. No clamp or implicit
+source extraction is used. Existing actual document presentation and history gates
+remain in effect.
+
+These are current provider admission requirements, not the final commercial
+modeling scope. Surface preview uses existing native degree1–5 D0 evaluation;
+canonical document Curve sampling retains its separate degree1–3 profile. A native
+source edit is not a promise that every full asset can be displayed.
 
 `createCadEditorSession(document,{displayBodyIds})` and `prepareOpen(text,options)`
 choose unique existing1–4body IDs. When a document has at most4bodies, the default
@@ -472,7 +490,8 @@ consumer and Integration screen/file/recovery validation are separate states.
 The app's source-preserving flow checks actual native points and full Source0
 preservation before and after genuine native Download/fresh Open/re-edit. A
 same-asset degree5 Curve can be source-edit legal yet refuse default whole-asset
-preview; a separate hidden degree5 asset remains untouched. No degree5 display,
+preview; a separate hidden degree5 asset remains untouched. That earlier checkpoint
+does not establish general degree5 Curve document display,
 packed/parity/publication or commercial quality certificate follows.
 
 ## Native parameter table lifecycle

@@ -35,7 +35,7 @@ function actionableMessage(error: CadEditorError): string {
   const details = diagnosticText(error);
   let cause: unknown = error;
   for (let index = 0; index < 5 && cause instanceof Error; index++) {
-    if (cause.name === 'SourceSurfaceControlNetError' && 'code' in cause && cause.code === 'BINDING') {
+    if ((cause.name === 'SourceSurfaceControlNetError' || cause.name === 'SourceSurfaceControlNetWideError') && 'code' in cause && cause.code === 'BINDING') {
       return 'This Surface source cannot preserve this edit. Choose another Surface.';
     }
     cause = cause.cause;
@@ -48,7 +48,7 @@ function actionableMessage(error: CadEditorError): string {
   if (error.code === 'BUDGET') return 'Use a shorter value and try again.';
   if (error.context.field === 'view' || /curve-focus|document view|focused Curve/i.test(details)) return 'Focus the selected Curve, or return to document view for a Surface.';
   if (error.context.field === 'edit-capability') return 'Choose a supported object to change control points.';
-  if (error.code === 'UNSUPPORTED') return 'These points are outside the editing limits. Choose another object or open Help.';
+  if (error.code === 'UNSUPPORTED') return 'Cannot edit these points with the current tool. Open Help or choose another object.';
   if (error.code === 'STALE') return 'Select the control pole again, then apply the change.';
   if (error.code === 'LIFECYCLE') return 'Reopen the document to continue editing.';
   return 'The change was not applied. Check the values and try again.';
@@ -119,21 +119,21 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
           aria-label="Control point editing help">Help</Button></DialogTrigger>
         <DialogContent className="cad-editor-help-dialog">
           <DialogHeader><DialogTitle>Control point editing help</DialogTitle>
-            <DialogDescription>Editing limits and document details.</DialogDescription></DialogHeader>
+            <DialogDescription>Current native requirements and document details.</DialogDescription></DialogHeader>
           <div className="cad-editor-help-body">
-            <section><h3>Editing limits</h3>
+            <section><h3>Current editing requirements</h3>
               <p>The native document can contain 1–4 source assets and up to 16 bodies. The viewport displays 1–4 chosen bodies at a time.</p>
               <p>Choose the displayed bodies in the object list. You can select and inspect a hidden body. Show it before using Fit Selected.</p>
               <p>Double-click a displayed object to fit it in the canvas. The first click uses the normal object selection. Fitting changes only the camera and uses the same view as Fit Selected. Finish a drag, apply or discard a draft, and close menus or dialogs before fitting. Empty or ambiguous hits cannot fit an object.</p>
               <p>A supported Surface can be edited in document view even when its source contains other objects or its Model name differs from its Surface ID. Select Focus Curve to edit a supported Curve in its separate focused view.</p>
-              <p>The selected Surface must have degree 1–3, 2–16 control poles on each grid axis and at most 256 poles. Coordinates must stay within ±10000 mm, weights within 0.000001–1000000 and the native Surface ID within 48 characters.</p>
+              <p>The current native Surface point writer supports degree 1–5, 2–16 control poles on each grid axis and at most 256 poles. Coordinates can be within ±1000000 mm, weights within 0.000001–1000000 and the native Surface ID within 48 characters. Apply uses the wide complete-source writer and its native validator.</p>
               <p>Source0 assets support 1–16 objects and at most 262144 UTF-16 code units and UTF-8 bytes. Pole edits require directly authored numeric coefficient bindings. The native provider can refuse unsupported bindings or source budgets during Apply.</p>
               <p>Display parsing reads the whole source asset, including hidden sibling objects. Hiding bodies does not remove those siblings from the source or bypass parsing limits.</p>
               <p>A native source edit does not prove display support. A degree 5 Curve in the displayed Surface's asset still reaches the actual Viewer sampling refusal. A degree 5 Curve in a separate hidden asset is preserved without a sampling or display claim.</p>
               <p>Coordinates use authored X, Y and Z in mm. They map directly to the display axes. The editor does not silently swap or convert axes.</p>
               <p>U and V select an original Surface control pole. Coordinates and weight edit its native coefficients. Display samples are separate from these coefficients.</p>
               <p>Curve points use one original pole index, displayed as Point 1, Point 2 and so on. Curve editing supports native degree 1–5, 2–64 poles and at most 70 knots, coordinates within ±1000000 mm, weights 0.000001–1000000 and native Curve IDs within 48 characters. The native full-source writer and validator own profile and coefficient-binding refusal.</p>
-              <p>The separate focused display compiles the complete selected asset, keeps 1–4 original objects and at most 65536 UTF-8 bytes and code units, and samples the selected Curve uniformly at 65 original parameters. It does not extract a smaller source or replace native coefficients with samples. The canonical document route retains its existing degree 1–3 display limits.</p>
+              <p>The separate focused display compiles the complete selected asset, keeps 1–4 original objects and at most 65536 UTF-8 bytes and code units, and samples the selected Curve uniformly at 65 original parameters. It does not extract a smaller source or replace native coefficients with samples. Canonical document Curve sampling retains its current degree 1–3 profile; Surface display uses native degree 1–5 evaluation.</p>
               <p>The focused Viewer additionally requires source Model and selected Curve IDs within its ASCII 1–64 profile, and sampled coordinates after positive display scaling within ±1000 scene units. These display limits are narrower than native source editing; a native candidate can still be refused for display.</p>
               <p>Focus Curve and Return to document view are explicit display-only changes. They retain source, history, native draft and download state. Return loads the current accepted document with its retained canonical display subset and camera; a refused return keeps the focused view.</p>
               <p>Focused display has no Viewer document or document-body bindings. Its copied receipt separately qualifies the actual canonical body, asset, complete source Model and original Curve. Uniform samples are derived observations, not certified adaptive tessellation or geometric accuracy.</p>
@@ -157,26 +157,27 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
               <p>Factor is a ratio: 1 keeps the size, 2 doubles it and 0.5 halves it. Enter a finite positive factor from 0.001 to 100. Zero, negative values and reflection are not supported. Native coordinate, matrix or display limits can still refuse a change.</p>
               <p>Drag the square handle. Axis handles invert the actual perspective projection; All uses the screen-diagonal distance from its captured start as a ratio. Snap factor rounds the change from 1 using a separate step from 0.001 to 1. Arrow keys apply 1.1 or 0.9 without snapping, or one factor step with snapping.</p>
               <p>The pending square and Factor field show the proposed ratio. The full accepted shape stays unchanged until release and successful admission. One accepted change adds one history entry. Escape or pointer cancellation discards only the owned draft; a refusal retains the raw factor for correction.</p>
-              <p>Scaling uses the native affine provider and complete-source writers. Original IDs, weights, knots, sibling objects and other assets are preserved. Curve scaling requires its matching focused view; Surface scaling requires document view. Surface edits use private validated batches of at most 16 poles. Temporary IDs, mode, axes and snapping are not saved in the native document or recovery copy.</p>
+              <p>Scaling uses the native affine provider and complete-source writers. Original IDs, weights, knots, sibling objects and other assets are preserved. Curve scaling requires its matching focused view; Surface scaling requires document view. The wide Surface writer receives all transformed original poles in one private request. Temporary IDs, mode, axes and snapping are not saved in the native document or recovery copy.</p>
             </section>
             <section><h3>Moving an object</h3>
               <p>Choose Move object in the viewport toolbar to translate the entire selected Curve or Surface. Offsets use mm from the current accepted position. The original point selected by U/V or Point is the movement grip; it is not a certified center.</p>
               <p>Drag an XY, XZ or YZ plane handle to move along two world axes. The third axis stays unchanged. A nearly edge-on or offscreen plane is hidden. Each movement snap step applies from the captured pointer start. Right and Left increase or decrease the first named axis; Up and Down change the second. Release applies one complete native move; Escape cancels only the owned draft.</p>
               <p>Native affine transformation computes every original pole. Source-preserving writers apply the resulting coordinates to the complete original asset. Knots, weights, geometry IDs, sibling objects and other assets stay unchanged. Temporary native transform geometry is validation evidence; it is not a new saved object or a replacement source.</p>
-              <p>The current object movement profile uses coordinates, translation and original parameters within ±10000 mm; Curve degree 1–5 with 2–64 poles, or Surface degree 1–3 with 2–16 poles per axis and at most 256. Source bindings, native numeric or display limits can still refuse a change. Curve moves require matching Curve focus; Surface moves require document view.</p>
-              <p>Large Surface grids use private batches of at most 16 native pole edits. All batches must validate before one complete document candidate is prepared. One accepted movement adds one history entry. A failed batch retains the original source and offsets.</p>
+              <p>The current native affine profile supports Curve and Surface degree 1–5, with 2–64 Curve poles or 2–16 Surface poles per axis and at most 256 Surface poles. Original and transformed coordinates, matrix translation and original knots must remain within ±10000. Coordinate and translation values use mm; knot values are original parameters. This affine requirement is separate from the wider Surface point-edit range. Source bindings, native numeric or display requirements can still refuse a change. Curve moves require matching Curve focus; Surface moves require document view.</p>
+              <p>The wide Surface writer applies all transformed original poles in one private, validated complete-source request. One accepted movement adds one history entry. A refusal retains the original source and offsets.</p>
               <p>The control net shifts as a pending ghost. The full accepted shape changes only after release, native validation and the actual rendered frame. Changing tools requires an empty draft and does not edit source or history. Open resets the tool to Control point. Move settings and temporary transform IDs are not stored in the native document or recovery copy.</p>
             </section>
             <section><h3>Rotating an object</h3>
               <p>Choose Rotate object in the viewport toolbar. The selected original point is the pivot. Select a world X, Y or Z axis button, then drag the projected ring or enter an angle in degrees. Positive angles follow the right-hand rule. The current action accepts angles from -360 to 360 degrees.</p>
               <p>Snap angle uses a separate degree step from 0.001 to 180. It does not use the movement step in mm. Arrow keys on the ring rotate by one degree without snapping, or by the selected angle step. A full turn is a native no-op.</p>
               <p>The ring is projected from its world plane through the actual camera. A nearly edge-on plane, offscreen ring or near-pivot pointer can be refused. Choose another view or fit the selected grip. Ring angles are display observations, not certified topology picks.</p>
-              <p>Angle and marker changes remain pending. The actual native affine engine rotates every original coefficient around the captured pivot. Full-source writers retain original IDs, knots, weights and siblings, using private bounded batches. The native matrix translation and generated coordinates remain within the same ±10000 profile; rotation about a distant pivot can be refused rather than clamped.</p>
+              <p>Angle and marker changes remain pending. The actual native affine engine rotates every original coefficient around the captured pivot. Full-source writers retain original IDs, knots, weights and siblings. The native matrix translation and generated coordinates remain within the current ±10000 mm affine profile; rotation about a distant pivot can be refused rather than clamped.</p>
               <p>Release prepares one native candidate. The actual Viewer and fresh rendered frame gate one history entry. Escape or pointer cancellation clears only owned current raw; a changed axis, pivot, view or raw value retains corrective data. Axis/mode settings and temporary transform IDs are not saved. Open resets Control point and Z rotation axis.</p>
             </section>
             <section><h3>Complete source preservation</h3>
               <p>Apply uses the native source-preserving edit provider's complete result.source and result.model. The source keeps untouched spelling, whitespace and comments. The Model keeps its name, object order, native IDs and sibling objects. Only the requested coordinate or weight literals change.</p>
-              <p>The selected single-Surface result.edit is a child proof. Its source and model do not replace the complete asset. The editor adopts the complete result.source in the selected asset and rebuilds the document through the native API.</p>
+              <p>The wide Surface result.surface and provenance describe the selected native coefficients. The complete result.source and result.model remain authority for the whole asset. The editor adopts that complete source and rebuilds the document through the native API.</p>
+              <p>These ranges describe current native and display admission. They do not define the final modeling scope. A native-valid change still needs actual display admission; no source extraction, silent conversion or numeric clamp bypasses a refusal.</p>
               <p>Only the document and edited asset revisions advance. Canonical asset, body and geometry IDs keep their associations. Other asset revisions and hidden source bytes remain unchanged. An exact native no-op keeps the original source, revisions and history.</p>
               <p>Successful native validation is followed by complete selected-asset Viewer admission and a fresh RGBA frame read. A refused source, binding or display keeps the accepted source, history, draft, selection and current view.</p>
             </section>
@@ -297,7 +298,7 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
       onClick={() => action(() => session.selectCurvePole({ bodyId: snapshot.selectedBodyId!, index: 0 }))}>Select a point</Button>}
     {!interval?.active && pole ? <>
       {selection && capability?.canEditSurfacePole === false && <p className="cad-editor-readonly" role="status" data-testid="cad-editor-readonly-surface">
-        These control points are read-only. Choose an editable Surface to change them.
+        Cannot edit these points. Open Help for details, or choose another Surface.
       </p>}
       {selection && snapshot.view.kind !== 'document' && <p role="status" className="cad-editor-readonly">Return to document view to edit Surface points.</p>}
       {curveSelection && capability?.canEditCurvePole === false && <p role="status" className="cad-editor-readonly" data-testid="cad-editor-readonly-curve">These Curve points are outside the editing limits. Open Help or choose another Curve.</p>}
@@ -324,7 +325,7 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
         </select></div>}
       <h3 className="cad-editor-heading">{scaleMode ? 'Scale' : rotationMode ? 'Rotation' : objectMode ? 'Object offset (mm)' : 'Coordinates and weight'}</h3>
       {Object.keys(pending).length > 0 && <p className="cad-editor-draft-status">Unapplied changes</p>}
-      {transformMode && !(scaleMode?capability?.canScaleBody:rotationMode?capability?.canRotateBody:capability?.canTranslateBody) && <p className="cad-editor-readonly" role="status">This object is outside the movement limits. Choose Control point editing or another object.</p>}
+      {transformMode && !(scaleMode?capability?.canScaleBody:rotationMode?capability?.canRotateBody:capability?.canTranslateBody) && <p className="cad-editor-readonly" role="status">Cannot transform this object. Use Control point editing, or open Help for details.</p>}
       {transformMode && (!(scaleMode?capability?.canScaleBody:rotationMode?capability?.canRotateBody:capability?.canTranslateBody) || !canEdit || snapshot.view.kind==='document'&&!snapshot.displayBodyIds.includes(snapshot.selectedBodyId!)) && <div className="cad-editor-field">
         <Label htmlFor={`${id}-edit-target`}>Target</Label><select id={`${id}-edit-target`} data-testid="inspector-edit-target" value={snapshot.editTarget} disabled={busy||Object.keys(pending).length>0||transition!==null}
           onChange={event=>action(()=>session.setEditTarget(event.target.value as 'pole'|'object'|'rotation'|'scale'))}><option value="pole">Control point</option><option value="object" disabled={!capability?.canTranslateBody}>Object</option><option value="rotation" disabled={!capability?.canRotateBody}>Rotate object</option><option value="scale" disabled={!capability?.canScaleBody}>Scale object</option></select></div>}

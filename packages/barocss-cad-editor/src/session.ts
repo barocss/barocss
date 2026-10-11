@@ -1,11 +1,11 @@
 import {
   CadReferenceDiagnosticCode, CadReferenceError, CadCurveArcLengthError, CadDocumentError,
   SourceCurveIntervalExtractionError, curveDomain,
-  createCadDocument, createCadGeometryReference, editSourceSurfaceControlNet, editSourceCurveControlPolygon,
+  createCadDocument, createCadGeometryReference, editSourceSurfaceControlNetWide, editSourceCurveControlPolygon,
   evaluateCurveD2, evaluateSurfaceD2, evaluateCurveCurvature, evaluateSurfaceCurvature,
   exportCadDocument, getCadDocumentExportCapabilities, inspectCadDocumentExport,
   parseCadDocument, queryCadDocumentCurveArcLength, resolveCadGeometryReference, serializeCadDocument,
-  validateCadDocumentResult, validateSourceSurfaceControlNetEdit, validateSourceCurveControlPolygonEdit,
+  validateCadDocumentResult, validateSourceSurfaceControlNetWideEdit, validateSourceCurveControlPolygonEdit,
 } from '@barocss/cad';
 import type { CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, Curve, CurvePoleEdit, SurfacePoleEdit,
   SourceCurveIntervalExtractionResult } from '@barocss/cad';
@@ -114,9 +114,9 @@ function capabilities(result: CadDocumentResult): CadEditorSnapshot['bodyCapabil
     else {
       const countU = geometry.controlPoints.length, countV = geometry.controlPoints[0].length;
       if (!/^[A-Za-z_][A-Za-z0-9_-]{0,47}$/.test(geometry.id)
-        || geometry.degreeU < 1 || geometry.degreeU > 3 || geometry.degreeV < 1 || geometry.degreeV > 3
+        || geometry.degreeU < 1 || geometry.degreeU > 5 || geometry.degreeV < 1 || geometry.degreeV > 5
         || countU < 2 || countU > 16 || countV < 2 || countV > 16 || countU * countV > 256
-        || !geometry.controlPoints.every(row => row.length === countV && row.every(point => point.every(value => Number.isFinite(value) && Math.abs(value) <= 10000)))
+        || !geometry.controlPoints.every(row => row.length === countV && row.every(point => point.every(value => Number.isFinite(value) && Math.abs(value) <= 1e6)))
         || !geometry.weights.every(row => row.length === countV && row.every(value => Number.isFinite(value) && value >= 1e-6 && value <= 1e6))) reason = 'surface-profile';
     }
     const canTranslateBody = withinTranslationProfile(geometry, reason === null);
@@ -719,11 +719,11 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     if (Object.keys(pending).length === 0) { emit(); return null; }
     const edit: SurfacePoleEdit = { uIndex: selection.uIndex, vIndex: selection.vIndex, ...pendingValues(selection.bodyId) };
     const resolved = native(() => resolveCadGeometryReference(accepted, selection!.reference), 'Native selected Surface resolution failed.', accepted.document.documentId);
-    // The complete source is authoritative. The nested one-Surface edit is child proof only.
-    const edited = native(() => editSourceSurfaceControlNet({ source: resolved.source, sourceVersion: 0,
+    // Only the native writer's complete source is authoritative for this asset.
+    const edited = native(() => editSourceSurfaceControlNetWide({ source: resolved.source, sourceVersion: 0,
       surfaceId: resolved.geometry.id, edits: { poleEdits: [edit] } }),
     'Native complete-source Surface edit failed.', accepted.document.documentId, { bodyId: selection.bodyId });
-    native(() => validateSourceSurfaceControlNetEdit(edited), 'Native complete-source edit validation failed.',
+    native(() => validateSourceSurfaceControlNetWideEdit(edited), 'Native complete-source edit validation failed.',
       accepted.document.documentId, { bodyId: selection.bodyId });
     if (edited.report.noOp) {
       if (transition !== null) switchTarget(transition.target);
@@ -734,7 +734,7 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
     document.assets = document.assets.map(asset => asset.id === selection!.reference.assetId
       ? { ...asset, source: edited.source, revision: nextRevision(asset.revision) } : asset);
     const result = admit(native(() => createCadDocument(document), 'Native edited document creation failed.', document.documentId));
-    return prepare('apply', result, edited.edit.provenance, undefined, transition ?? undefined);
+    return prepare('apply', result, edited.provenance, undefined, transition ?? undefined);
   };
 
   const resolveAnalysis = (reference: CadGeometryReferenceV0) => {

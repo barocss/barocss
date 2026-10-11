@@ -1,7 +1,7 @@
 import {
-  editSourceCurveControlPolygon, editSourceSurfaceControlNet,
+  editSourceCurveControlPolygon, editSourceSurfaceControlNetWide,
   transformNativeGeometryAffine, validateAffineGeometryTransform,
-  validateSourceCurveControlPolygonEdit, validateSourceSurfaceControlNetEdit,
+  validateSourceCurveControlPolygonEdit, validateSourceSurfaceControlNetWideEdit,
 } from '@barocss/cad';
 import type {
   AffineGeometryTransformReport, CadAffineMatrix3x4, Curve, CurvePoleEdit, CurvePoleEditProvenance,
@@ -80,17 +80,14 @@ export function transformBodySource(source: string, model: Model, original: Curv
   } else {
     const poleEdits: SurfacePoleEdit[] = transformed.geometry.controlPoints.flatMap((row, uIndex) =>
       row.map((point, vIndex) => ({ uIndex, vIndex, ...values(point) })));
-    // The existing source writer admits at most 16 poles/64 scalar patches per call.
-    // All chunks stay private until the complete native candidate is admitted.
-    for (let index = 0; index < poleEdits.length; index += 16) {
-      const edited = editSourceSurfaceControlNet({ source: currentSource, sourceVersion: 0,
-        surfaceId: original.id, edits: { poleEdits: poleEdits.slice(index, index + 16) } });
-      validateSourceSurfaceControlNetEdit(edited);
-      currentSource = edited.source;
-      selected = edited.model.objects.find(object => object.id === original.id)!;
-      noOp = noOp && edited.report.noOp;
-      provenance.push(...edited.edit.provenance);
-    }
+    // The wide native writer admits the complete transformed grid in one private request.
+    const edited = editSourceSurfaceControlNetWide({ source: currentSource, sourceVersion: 0,
+      surfaceId: original.id, edits: { poleEdits } });
+    validateSourceSurfaceControlNetWideEdit(edited);
+    currentSource = edited.source;
+    selected = edited.surface;
+    noOp = edited.report.noOp;
+    provenance.push(...edited.provenance);
   }
   // Temporary affine identity is proof only; the persisted selected identity is always original.id.
   const expected = { ...transformed.geometry, id: original.id };
