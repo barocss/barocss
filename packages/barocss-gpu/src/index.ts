@@ -200,3 +200,8 @@ export type { DiscreteAuthoredMaterialRequest, DiscreteAuthoredMaterialSample } 
 
 export { compileEngineUVTextureMaterial, validateEngineUVTextureMaterialIR, lowerEngineUVTextureMaterial } from './mesh-material.js';
 export type { EngineMaterialSampler, EngineUVTextureMaterialExpression, EngineUVTextureMaterialIR, LoweredEngineUVTextureMaterial } from './mesh-material.js';
+
+export { lowerMeshMaterialWGSL } from './mesh-material-wgsl.js';
+export type { LoweredMeshMaterialWGSL } from './mesh-material-wgsl.js';
+export { prepareWebGPUPrimitiveFrame, mountPrimitiveBackendViewport, PrimitiveBackendError, PrimitiveBackendDiagnosticCode } from './webgpu-primitive-viewport.js';
+export type { PreparedWebGPUPrimitiveFrame, PrimitiveBackendMode, PrimitiveBackendOptions, PrimitiveBackendViewport, PrimitiveBackendStatus, PrimitiveBackendPick, PrimitiveBackendLimits } from './webgpu-primitive-viewport.js';

@@ -3256,3 +3256,138 @@ After the affected GPU build, run the one source/emitted/IR/text/file/cold flow:
 ```sh
 node examples/gpu-scene/engine-uv-texture-material-flow.mjs --output /absolute/fresh-directory
 ```
+
+## Opt-in WebGPU primitive backend (#1512)
+
+This API uses the existing complete original native frame and legacy Material
+IR. Native code, builds and source/file flows are separate from actual GPU
+qualification. The required same-target browser access is currently denied by
+administrator policy; real WebGPU/device/screen qualification is pending. The
+preserved WebGL2 APIs remain available and their default selection is unchanged.
+
+The first admitted profile is frame version `0`, qualified scene version `2`,
+exactly one Surface, `particles: null`, explicit existing camera and zero or one
+matching legacy Mesh material. Optional existing MeshLighting is supported.
+Prepare the genuine packet from original CAD source, retain its qualified
+`{modelId, geometryId}` reference, and pass the complete frame:
+
+```ts
+// frame is the complete original {version, scene, options, particles, materials}.
+const prepared = prepareWebGPUPrimitiveFrame(frame, canvas.width, canvas.height);
+const viewport = await mountPrimitiveBackendViewport(canvas, frame, {
+  backend: 'webgpu',
+  fallbackCanvas: null,
+});
+viewport.status;
+await viewport.updateFrame(editedOriginalFrame);
+await viewport.resize(512, 512);
+const rgba = await viewport.readPixels();
+const hit = await viewport.pick(256, 256);
+viewport.select(hit.ref);
+viewport.select(null);
+viewport.dispose();
+```
+
+The renderer re-admits complete original frames; `prepared` is CPU data, never
+a trusted runtime shortcut. Geometry-parameter changes supply a freshly derived
+packet from the original CAD source. Camera, light, pose and material-uniform
+changes use the same complete frame contract. Curves, multiple Surfaces,
+particles, cloth, EngineUV/nativeUV/discrete/texture materials, multi-light
+catalogs and other profiles refuse before device work. Nothing is silently
+omitted. Existing native limits are 4096 vertices, 7938 triangles and 16 material
+uniforms.
+
+`lowerMeshMaterialWGSL(input)` reconstructs the complete unchanged legacy
+MeshMaterialIR and returns exactly `format`, `version`, `profile`, `material`,
+`expression`, `declarations`, `uniformLayout`, `uniformByteLength`. Format is
+`barocss-gpu-mesh-material-wgsl`, version `0`, profile
+`mesh-opaque-fragment-wgsl-v0`. The material parameter block is always 64 bytes,
+four vec4 slots. Layout records retain `name`, `type`, `min`, `max`, `default`,
+plus `index`, `byteOffset`, `access`; source order determines offset `4*i`.
+Trusted accesses use generated material slot/component expressions, never
+caller names as WGSL symbols. Executed Float32 coefficients/defaults/bounds that become
+nonfinite or underflow refuse `MeshMaterialError` with `RANGE`. Existing
+compiler budgets and old public IR types remain unchanged.
+
+`prepareWebGPUPrimitiveFrame(input, width, height)` calls common native frame
+admission and returns exactly `format`, `version`, `profile`, `frame`, `wgsl`,
+`frameUniforms`, `materialUniforms`. Format is
+`barocss-gpu-webgpu-primitive-frame`, version `0`, profile
+`qualified-surface-v0`. Metadata is fresh frozen ordinary data; independently
+owned Float32 views remain mutable. Frame uniforms contain view/projection/light/
+style in 160 bytes; material uniforms use 64 bytes. Original source, native F64
+control/knots/weights/mm and qualified IDs stay separate from display F32
+positions/world normals/U16 indices and resolved uniform values. Prepared
+geometry already includes the display transform; no second mm conversion occurs.
+
+Existing right-handed camera data is retained. The OpenGL clip-depth interval
+−1..1 becomes WebGPU 0..1 only through `(z+w)/2`. Rendering is one indexed
+triangle list, no culling/blending, `depth24plus` with `less`, group0 binding0
+for frame uniforms and binding1 for material uniforms. Existing power2.2 color
+decode/output encoding and single-directional/ambient response are preserved.
+No CPU/GPU numerical equality or native texture pairing is promised.
+
+Options have exactly `backend: 'webgpu' | 'webgl2' | 'auto'` and
+`fallbackCanvas: HTMLCanvasElement | null`. A supplied fallback canvas must be a
+distinct current-realm canvas. `auto` attempts WebGPU and uses startup fallback
+only for an admitted profile's capability/initialization failure. Before WebGPU
+context acquisition the original fresh canvas may use WebGL2; after acquisition
+only the explicit fresh fallback canvas can be used. No host canvas is created
+silently, and an acquired WebGPU canvas is never switched to WebGL2.
+
+The facade exposes copied `frame` and `selected`, actual `canvas`, and status
+with exactly `backend`, `state`, `generation`, `fallbackReason`, `limits`.
+States are `ready`, `lost`, `disposed`, `failed`. Limits are actual numeric
+`maxTextureDimension2D`, `maxBufferSize`, `maxUniformBufferBindingSize`,
+`maxColorAttachments`, `maxColorAttachmentBytesPerSample`, `maxVertexBuffers`,
+`maxVertexAttributes`, `maxBindGroups`, `maxVertexBufferArrayStride`, or `null`
+for the fallback. No device or GPU handle is public.
+
+`readPixels()` returns fresh canonical RGBA in top-left row order, converting
+BGRA or preserved WebGL2 bottom-left rows. WebGPU `pick(x,y)` requires bounded
+integer canvas pixels and reads the real depth-matched identity attachment;
+identity zero is a miss. Its result is exactly `{generation, ref}`. WebGL2
+fallback picking explicitly refuses `UNSUPPORTED`. `select(ref|null)` accepts
+only the admitted qualified reference; selecting a reference does not certify
+a physical hit. No bounds-based hit substitution is provided.
+
+Only one asynchronous operation may be pending. Overlapping mutations,
+readbacks and selection refuse `BUSY`; candidate snapshots precede the first
+await. Accepted generation advances only after submission/presentation/error
+checks. Candidate failure retains accepted resources; failed presentation
+attempts accepted-color recovery, whose failure is terminal. Resize commits
+backing dimensions with presentation and restores prior dimensions/color after
+refusal when needed. The 10-second wait timeout is terminal and prevents scope/
+resource reuse; late completion releases owned candidates. Queue completion
+alone is not screen evidence.
+
+Device loss is terminal `lost`, retaining the CPU frame and cleaning owned
+resources. There is no automatic device-loss-time fallback. `dispose()` is
+idempotent and destroys owned buffers/textures/device, unconfigures the owned
+context and clears references. Preserved WebGL2 errors retain their actual
+causes. Errors use `PrimitiveBackendError` and codes `INPUT`, `PROFILE`, `BUDGET`,
+`UNSUPPORTED`, `INIT`, `DEVICE_LOST`, `RENDER`, `STATE`, `BUSY`; messages are
+bounded to 1024 characters. Local errors have no fabricated cause; reflection
+and inherited provider failures retain actual causes.
+
+Canvas sides are at most 1024 and total pixels at most 1048576. Actual device
+limits must admit dimensions 1024, buffer 4194304, uniform binding 160, two color
+attachments/eight bytes per sample, two vertex buffers/attributes, one bind group
+and stride12. Accepted plus candidate use at most 11 owned buffers, six textures
+and two pipeline/module/group references, including one serial readback buffer.
+Per-frame geometry/uniform logical buffers are at most 146156 bytes; readback is
+at most 4194304 bytes with 256-byte padded rows. Shader text is capped at 64KiB.
+These are bounded logical allocations, not measured driver memory.
+
+The one source/emitted/original-frame/WGSL/file/cold flow is:
+
+```sh
+node examples/gpu-scene/webgpu-primitive-vertical-flow.mjs --output /absolute/fresh-directory
+```
+
+That CPU flow does not qualify shader execution. Actual adapter/device limits,
+WGSL compilation, same-scene WebGPU/WebGL2 pixels, screen/console, updates,
+physical hit/miss, startup fallback and cleanup require the separately authorized
+real GPU phase. Device-loss proof, integration, consumer display and publication
+remain separate stages. The denied original browser target must not be bypassed
+through another browser/tool/origin/port.
