@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Focus, Undo2 } from 'lucide-react';
 import { CadEditorError } from '../types.js';
 import type { CadEditorSession, CadEditorSnapshot } from '../types.js';
 import type { CadEditorDisplayReceipt } from './types.js';
@@ -23,6 +25,7 @@ interface Operation {
 interface Props {
   session: CadEditorSession;
   canvas: HTMLCanvasElement | null;
+  toolbarContainer?: HTMLElement | null;
   receipt: CadEditorDisplayReceipt | null;
   isCurrentDocument: () => boolean;
   busy: boolean;
@@ -167,7 +170,7 @@ export function SelectionIsolation(props: Props) {
   const blocked = !available() || operation.current !== null;
   const canIsolate = snapshot.selectedBodyId !== null && snapshot.displayBodyIds.includes(snapshot.selectedBodyId)
     && snapshot.displayBodyIds.length > 1;
-  return <div className="cad-editor-visibility-tools" role="group" aria-label="Document visibility" data-testid="document-visibility-tools">
+  const toolbar = <div className="cad-editor-visibility-tools" role="group" aria-label="Document visibility" data-testid="document-visibility-tools">
     {(['isolate', 'restore'] as const).map(kind => <button key={kind} type="button" className="cad-editor-visibility-button"
       data-testid={kind === 'isolate' ? 'document-isolate-selected' : 'document-restore-visibility'}
       aria-label={kind === 'isolate' ? 'Isolate selected body' : 'Restore previous visibility'}
@@ -180,7 +183,8 @@ export function SelectionIsolation(props: Props) {
         }
       }}
       onClick={event => { if (!event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) submit(kind); }}>
-      {kind === 'isolate' ? 'Isolate' : 'Restore'}
+      {kind === 'isolate' ? <Focus size={16} aria-hidden="true" /> : <Undo2 size={16} aria-hidden="true" />}
     </button>)}
   </div>;
+  return props.toolbarContainer === undefined ? toolbar : props.toolbarContainer === null ? null : createPortal(toolbar, props.toolbarContainer);
 }

@@ -945,3 +945,9 @@ This layout reduces vertical space and scrolling. It does not change the Canvas 
 The Canvas offers discrete U/V copy commands and display-only parameter guides from actual original Surface D0 points and the current camera. A short projected chord indicates each parameter direction. Clipped or degenerate guides are omitted. The guides do not select a point or certify a Face normal or global winding.
 
 Native degree, control-net, coordinate, Source and document/display limits still apply. Local mapped D0/D1 observations do not certify global orientation, topology, Solid geometry or a double-reversal result. This is an independent generated copy; it does not reverse the original Source in place.
+
+### Canvas command rail
+
+The Canvas groups the existing editing, visibility and construction commands in one stable rail beside the view navigator. Commands use icons with accessible names and tooltip titles. U/V labels distinguish the Surface axes; Q/W/E/R identify editing shortcuts. Commands wrap to fit the available width. Each action has a 36px hit target and a visible keyboard focus ring. At narrow window widths, the rail moves below the navigator.
+
+Only the existing command toolbars move into the rail. Their controllers, settings, geometry guides, Help state, input guards and Native approval paths remain mounted in the viewport. Resizing the viewport does not replace the rail targets. Empty rail space permits Canvas gestures. This changes command presentation; geometry support, Source data, history rules and Canvas size remain governed by the existing editor.

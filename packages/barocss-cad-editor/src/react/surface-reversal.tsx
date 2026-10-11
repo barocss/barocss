@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { ArrowLeftRight, CircleHelp } from 'lucide-react';
 import { createCadGeometryReference, surfaceDomain, evaluateSurface } from '@barocss/cad';
 import { CadEditorError, type CadEditorSession } from '../types.js';
 import type { CadEditorDisplayReceipt } from './types.js';
@@ -9,6 +11,7 @@ import { Button } from './ui/button.js';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog.js';
 
 interface Props {
+  toolbarContainer?: HTMLElement | null;
   session: CadEditorSession; canvas: HTMLCanvasElement | null; receipt: CadEditorDisplayReceipt | null;
   isCurrentSurface: (receipt: CadEditorDisplayReceipt, ownCandidateToken?: string) => boolean;
   busy: boolean; onError: (error: CadEditorError) => void;
@@ -128,24 +131,13 @@ export function SurfaceReversalControls(props: Props) {
       markers.push({ axis, start, end, direction });
     } catch { /* Native D0 or projection refusal omits this axis guide, not the discrete command. */ }
   }
-  return <>
-    {markers.length > 0 && rect && <div className="surface-reversal-overlay"><svg className="surface-reversal-svg" width={rect.width} height={rect.height} viewBox={`0 0 ${rect.width} ${rect.height}`} aria-hidden="true">
-      {markers.map(marker => <g key={marker.axis} data-axis={marker.axis}>
-        {marker.direction && <g><line className="surface-reversal-direction" data-axis={marker.axis} data-testid={`surface-reversal-${marker.axis}-direction`}
-          x1={marker.direction.x} y1={marker.direction.y} x2={marker.direction.tipX} y2={marker.direction.tipY} />
-          <polygon className="surface-reversal-arrow" data-axis={marker.axis} points={marker.direction.arrow} /></g>}
-        {(['start', 'end'] as const).map(endpoint => { const point = marker[endpoint]; return point && <g key={endpoint}>
-          <circle className="surface-reversal-point" data-axis={marker.axis} data-endpoint={endpoint} data-testid={`surface-reversal-${marker.axis}-${endpoint}`} cx={point.xCss} cy={point.yCss} r={4} />
-          <text className="surface-reversal-label" data-axis={marker.axis} x={point.xCss + 8} y={point.yCss + (endpoint === 'start' ? -8 : 14)}>{marker.axis.toUpperCase()} {endpoint}</text>
-        </g>; })}
-      </g>)}
-    </svg></div>}
-    <div className="surface-reversal-tools" role="toolbar" aria-label="Surface parameter direction">
-      {(['u', 'v'] as const).map(axis => <Button key={axis} type="button" variant="ghost" size="sm" className="surface-reversal-create" data-testid={`surface-reversal-${axis}`} disabled={busy} onClick={() => create(axis)}
+  const toolbar = <div className="surface-reversal-tools" role="toolbar" aria-label="Surface parameter direction">
+      {(['u', 'v'] as const).map(axis => <Button key={axis} type="button" variant="ghost" size="sm" className="surface-reversal-create" data-testid={`surface-reversal-${axis}`} aria-label={`Reverse ${axis.toUpperCase()} copy`} title={`Reverse ${axis.toUpperCase()} copy`} disabled={busy} onClick={() => create(axis)}
         onKeyDown={event => { if ((event.key === 'Enter' || event.key === ' ') && (event.nativeEvent.isComposing || event.keyCode === 229
-          || event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)) { event.preventDefault(); event.stopPropagation(); } }}>Reverse {axis.toUpperCase()} copy</Button>)}
+          || event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)) { event.preventDefault(); event.stopPropagation(); } }}>{props.toolbarContainer === undefined ? <>Reverse {axis.toUpperCase()} copy</>
+            : <><ArrowLeftRight size={16} aria-hidden="true" /><span aria-hidden="true">{axis.toUpperCase()}</span></>}</Button>)}
       <Dialog open={helpOpen} onOpenChange={value => { if (value && (busy || !props.receipt || !available(props.receipt))) return; help.current = value; setHelpOpen(value); }}>
-        <DialogTrigger asChild><Button ref={helpTrigger} type="button" variant="ghost" size="sm" data-testid="surface-reversal-help" disabled={props.busy}>Help</Button></DialogTrigger>
+        <DialogTrigger asChild><Button ref={helpTrigger} type="button" variant="ghost" size="sm" data-testid="surface-reversal-help" aria-label="Surface direction help" title="Surface direction help" disabled={props.busy}>{props.toolbarContainer === undefined ? 'Help' : <CircleHelp size={16} aria-hidden="true" />}</Button></DialogTrigger>
         <DialogContent className="cad-editor-help-dialog" data-testid="surface-reversal-help-dialog" onCloseAutoFocus={event => {
           event.preventDefault(); if (visible() && helpTrigger.current?.isConnected && !helpTrigger.current.disabled) helpTrigger.current.focus({ preventScroll: true }); }}>
           <DialogHeader><DialogTitle>Reversed Surface copy</DialogTitle><DialogDescription>Reverse one parameter direction in a copy. Keep the original.</DialogDescription></DialogHeader>
@@ -159,6 +151,20 @@ export function SurfaceReversalControls(props: Props) {
         </DialogContent>
       </Dialog>
       {error && <span className="surface-reversal-error" role="alert" data-testid="surface-reversal-error">Cannot make this copy. Open Help.</span>}
-    </div>
+    </div>;
+  return <>
+    {markers.length > 0 && rect && <div className="surface-reversal-overlay"><svg className="surface-reversal-svg" width={rect.width} height={rect.height} viewBox={`0 0 ${rect.width} ${rect.height}`} aria-hidden="true">
+      {markers.map(marker => <g key={marker.axis} data-axis={marker.axis}>
+        {marker.direction && <g><line className="surface-reversal-direction" data-axis={marker.axis} data-testid={`surface-reversal-${marker.axis}-direction`}
+          x1={marker.direction.x} y1={marker.direction.y} x2={marker.direction.tipX} y2={marker.direction.tipY} />
+          <polygon className="surface-reversal-arrow" data-axis={marker.axis} points={marker.direction.arrow} /></g>}
+        {(['start', 'end'] as const).map(endpoint => { const point = marker[endpoint]; return point && <g key={endpoint}>
+          <circle className="surface-reversal-point" data-axis={marker.axis} data-endpoint={endpoint} data-testid={`surface-reversal-${marker.axis}-${endpoint}`} cx={point.xCss} cy={point.yCss} r={4} />
+          <text className="surface-reversal-label" data-axis={marker.axis} x={point.xCss + 8} y={point.yCss + (endpoint === 'start' ? -8 : 14)}>{marker.axis.toUpperCase()} {endpoint}</text>
+        </g>; })}
+      </g>)}
+    </svg></div>}
+    {props.toolbarContainer === undefined ? toolbar
+      : props.toolbarContainer === null ? null : createPortal(toolbar, props.toolbarContainer)}
   </>;
 }

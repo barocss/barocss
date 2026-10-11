@@ -469,3 +469,16 @@ text.assembly-translation-guide[data-axis="z"] { fill:#8babcf; stroke:none; }
 .surface-reversal-direction { fill:none; stroke:#dce7d2; stroke-width:1.5; pointer-events:none; }
 .surface-reversal-arrow { fill:#dce7d2; stroke:none; pointer-events:none; }
 .surface-reversal-error { max-width:240px; color:#ffd2ce; font-size:10px; line-height:1.4; overflow-wrap:anywhere; }
+
+/* One stable command rail; empty space continues to receive Canvas gestures. */
+.cad-editor-canvas-command-rail { position:absolute; top:8px; left:8px; right:240px; z-index:4; display:flex; flex-wrap:wrap; align-items:flex-start; gap:4px; pointer-events:none; }
+.cad-editor-canvas-command-rail[data-view-kind="curve-focus"] { top:56px; }
+.cad-editor-command-group { display:flex; flex-wrap:wrap; align-items:center; gap:4px; min-width:0; max-width:100%; padding:4px; border:1px solid #414a50; border-radius:5px; background:#22292ded; pointer-events:none; }
+.cad-editor-command-group:empty { display:none; }
+.cad-editor-command-group > :is(.cad-editor-native-tools,.cad-editor-visibility-tools,.curve-reversal-tools,.surface-reversal-tools) { position:static; display:flex; flex-wrap:wrap; align-items:center; gap:4px; min-width:0; max-width:100%; width:auto; margin:0; padding:0; border:0; border-radius:0; background:transparent; pointer-events:none; }
+.cad-editor-command-group :is(.cad-editor-native-tools,.cad-editor-visibility-tools,.curve-reversal-tools,.surface-reversal-tools) button { min-width:36px; width:auto; height:36px; min-height:36px; padding:4px 8px; font-size:11px; white-space:nowrap; pointer-events:auto; }
+.cad-editor-command-group .cad-editor-native-tools button[data-testid^="native-tool-"] { width:36px; padding:4px; }
+.cad-editor-command-group button:focus-visible { outline:2px solid #b8d599; outline-offset:1px; }
+.cad-editor-command-group button > svg { width:16px; height:16px; flex-shrink:0; pointer-events:none; }
+.cad-editor-command-group [role="alert"] { flex-basis:100%; }
+@media(max-width:799px) { .cad-editor-canvas-command-rail { top:92px; right:8px; } .cad-editor-canvas-command-rail[data-view-kind="curve-focus"] { top:92px; } }

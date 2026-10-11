@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { CircleHelp, TrendingUp } from 'lucide-react';
 import { createCadGeometryReference } from '@barocss/cad';
 import { CadEditorError, type CadEditorSession } from '../types.js';
 import type { CadEditorDisplayReceipt } from './types.js';
@@ -8,6 +10,7 @@ import { Button } from './ui/button.js';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog.js';
 
 interface Props {
+  toolbarContainer?: HTMLElement | null;
   session: CadEditorSession;
   canvas: HTMLCanvasElement | null;
   receipt: CadEditorDisplayReceipt | null;
@@ -111,16 +114,17 @@ export function SurfaceDegreeElevationControls(props: Props) {
   }, [props.canvas, helpOpen]);
   if (!selected || !displayed || snapshot.view.kind !== 'document') return null;
   const busy = props.busy || helpOpen || snapshot.disposed || !!snapshot.candidate || !!snapshot.selectionTransition || Object.keys(snapshot.pending).length > 0;
-  return <div className="cad-editor-native-tools" style={{ top: 88 }} role="toolbar" aria-label="Surface degree">
+  const toolbar = <div className="cad-editor-native-tools" style={props.toolbarContainer === undefined ? { top: 88 } : undefined} role="toolbar" aria-label="Surface degree">
     {(['u', 'v'] as const).map(axis => { const degree = axis === 'u' ? selected!.surface.degreeU : selected!.surface.degreeV;
-      return <Button key={axis} type="button" variant="ghost" size="sm" style={{ width: 'auto', fontSize: 10, padding: '3px 7px' }}
-        aria-label={'Raise ' + axis.toUpperCase() + ' degree'} data-testid={'surface-degree-' + axis} disabled={busy || degree >= 5}
+      return <Button key={axis} type="button" variant="ghost" size="sm" style={props.toolbarContainer === undefined ? { width: 'auto', fontSize: 10, padding: '3px 7px' } : undefined}
+        aria-label={'Raise ' + axis.toUpperCase() + ' degree'} title={'Raise ' + axis.toUpperCase() + ' degree (' + degree + (degree < 5 ? ' to ' + (degree + 1) : '') + ')'} data-testid={'surface-degree-' + axis} disabled={busy || degree >= 5}
         onKeyDown={event => { if ((event.key === 'Enter' || event.key === ' ') && (event.nativeEvent.isComposing || event.keyCode === 229
           || event.repeat || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey)) { event.preventDefault(); event.stopPropagation(); } }}
-        onClick={() => raise(axis)}>{axis.toUpperCase()} {degree}{degree < 5 ? ' → ' + (degree + 1) : ''}</Button>; })}
+        onClick={() => raise(axis)}>{props.toolbarContainer === undefined ? <>{axis.toUpperCase()} {degree}{degree < 5 ? ' → ' + (degree + 1) : ''}</>
+          : <><TrendingUp size={16} aria-hidden="true" /><span aria-hidden="true">{axis.toUpperCase()}</span></>}</Button>; })}
     <Dialog open={helpOpen} onOpenChange={value => { if (value && (busy || !props.receipt || !available(props.receipt))) return; help.current = value; setHelpOpen(value); }}>
-      <DialogTrigger asChild><Button ref={helpTrigger} type="button" variant="ghost" size="sm" style={{ width: 'auto', fontSize: 10, padding: '3px 7px' }}
-        data-testid="surface-degree-help" disabled={props.busy}>Help</Button></DialogTrigger>
+      <DialogTrigger asChild><Button ref={helpTrigger} type="button" variant="ghost" size="sm" style={props.toolbarContainer === undefined ? { width: 'auto', fontSize: 10, padding: '3px 7px' } : undefined}
+        data-testid="surface-degree-help" aria-label="Surface degree help" title="Surface degree help" disabled={props.busy}>{props.toolbarContainer === undefined ? 'Help' : <CircleHelp size={16} aria-hidden="true" />}</Button></DialogTrigger>
       <DialogContent className="cad-editor-help-dialog" data-testid="surface-degree-help-dialog"
         onCloseAutoFocus={event => { event.preventDefault(); if (helpTrigger.current?.isConnected && !helpTrigger.current.disabled) helpTrigger.current.focus({ preventScroll: true }); }}>
         <DialogHeader><DialogTitle>Raise Surface degree</DialogTitle><DialogDescription>Raise one original axis by one degree. Keep the Surface shape.</DialogDescription></DialogHeader>
@@ -134,4 +138,6 @@ export function SurfaceDegreeElevationControls(props: Props) {
     </Dialog>
     {error && <span role="alert" data-testid="surface-degree-error" style={{ alignSelf: 'center', fontSize: 10 }}>Cannot raise this degree. Open Help.</span>}
   </div>;
+  return props.toolbarContainer === undefined ? toolbar
+    : props.toolbarContainer === null ? null : createPortal(toolbar, props.toolbarContainer);
 }
