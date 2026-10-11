@@ -460,3 +460,7 @@ export type { SourceLineWidthMaterialBodyGraphV0, SourceLineWidthMaterialBodyGra
 
 export { buildExactPairedVLinearSurfaceIntersection, validateExactPairedVLinearSurfaceIntersection, ExactPairedVLinearSurfaceIntersectionError, ExactPairedVLinearSurfaceIntersectionDiagnosticCode } from './exact-paired-vlinear-surface-intersection.js';
 export type { ExactPairedVLinearSurfaceIntersectionRequest, ExactPairedVLinearSurfaceIntersectionOptions, ExactPairedVLinearSurfaceIntersectionReport, ExactPairedVLinearSurfaceIntersectionResult } from './exact-paired-vlinear-surface-intersection.js';
+
+
+export { buildPairedSurfaceUVSplitFaces, validatePairedSurfaceUVSplitFaces, PairedSurfaceUVSplitFacesError, PairedSurfaceUVSplitFacesDiagnosticCode } from './paired-surface-uv-split-faces.js';
+export type { PairedSurfaceUVSplitFacesRequest, PairedSurfaceUVSplitFacesOptions, PairedSurfaceUVSplitFacesReport, PairedSurfaceUVSplitFacesResult } from './paired-surface-uv-split-faces.js';

@@ -9499,3 +9499,16 @@ The World Curve has one real millimetre Source0/Model1. UV Curves retain dimensi
 `validateExactPairedVLinearSurfaceIntersection(result)` reconstructs once from the complete request, compares every retained field and bit, and returns a copied report. Request/result envelopes are2MiB/4MiB in UTF16 and UTF8 with1M own values. One shared bounded rational context enforces exact conversion; all sources, models, proof and observations count toward the limits.
 
 Run `node examples/cad-nurbs/exact-paired-vlinear-surface-intersection-demo.mjs --source <output-directory>`. Issue1499 tracks native exact paired curves. Original-UV trimmed Faces, topology, general Surface intersections, Body/Solid, manufacturing, Viewer and Editor remain separate.
+
+
+## Complementary original-UV Faces from an exact paired intersection
+
+`buildPairedSurfaceUVSplitFaces({ section, options })` consumes a complete exact paired intersection. It constructs two Faces on original Surface A inside the declared U window and full original V range. The original Surface, both parent UV curves, all original source Models and the shared World cut remain unchanged. The result covers that window; it does not split the Surface outside it.
+
+Two actual isocurves and two source-backed interval extractions provide the lower and upper natural boundaries. Four fixed-U Lines join their actual endpoints to the shared cut. One World Source0/Model8 holds the original Surface and seven World Curves. Dimensionless UV boundaries and the six-Vertex, seven-Edge, two-Face graph remain in complete owned data.
+
+Exact whole-edge composition, strict cut-to-boundary gaps and the original Surface's injective XY projection certify two embedded disks with disjoint interiors and a closed union equal to the selected UV window. The shared cut has opposite Uses. One common requested orientation changes both loops once; native Curves are not reversed. UV areas are exact dimensionless diagnostics, not physical Surface areas.
+
+Native interval extraction may round a coefficient. A nonzero whole model residual causes refusal even if sampled errors are small. No Source or old interval kernel is altered to force admission. Complete request/result limits are4MiB/16MiB in UTF16 and UTF8 with4M own values; all original and child occurrences count.
+
+`validatePairedSurfaceUVSplitFaces(result)` reconstructs once, compares every field and bit, and returns a copied report. Run `node examples/cad-nurbs/paired-surface-uv-split-faces-demo.mjs --source <output-directory>`. Issue1511 tracks native complementary Faces. Body, occupied-volume Boolean, general or holed trims, manufacturing, Viewer and Editor remain separate.
