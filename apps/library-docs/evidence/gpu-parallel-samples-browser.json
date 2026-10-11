@@ -1,0 +1,755 @@
+{
+  "development": {
+    "receiptKind": "gpu-parallel-samples-development",
+    "flows": {
+      "weave-shader": {
+        "source": "@shader #woven_grid {\n  @uniform density: float(2,12,6);\n  @uniform warp: float(0,1,.85);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform weft: float(0,1,.7);\n  @let u: float(fract(uv_u));\n  @let v: float(fract(uv_v));\n  @let vertical: float(pow(sin(u*density*6.283185307179586+phase)*.5+.5,2));\n  @let horizontal: float(pow(cos(v*density*6.283185307179586-phase)*.5+.5,2));\n  @let threads: color(mix(#091B2A,#D39C64,vertical*warp));\n  @fragment { color: mix(threads,#58C5CF,horizontal*weft); }\n}",
+        "initial": {
+          "backend": "Example WebGL2 host \u00b7 public lowered UV material",
+          "sourceProfile": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+          "shaderId": "woven_grid",
+          "uniforms": {
+            "density": 6,
+            "warp": 0.85,
+            "phase": 0,
+            "weft": 0.7
+          },
+          "controls": [
+            {
+              "name": "density",
+              "type": "float",
+              "min": 2,
+              "max": 12,
+              "default": 6
+            },
+            {
+              "name": "warp",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.85
+            },
+            {
+              "name": "phase",
+              "type": "float",
+              "min": 0,
+              "max": 6.283185307179586,
+              "default": 0
+            },
+            {
+              "name": "weft",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.7
+            }
+          ],
+          "loweredExpression": "clamp(mix(mix(vec3(0.00063818284216702193,0.0071550370045730324,0.018912983423721504),vec3(0.65922399181338731,0.33922333493532669,0.12752977781342206),clamp(((((sin((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))*0.50000000000000000)+0.50000000000000000)*((sin((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))*0.50000000000000000)+0.50000000000000000))*mat_u_1),0.0,1.0)),vec3(0.096266123063339690,0.56680973489663822,0.63204261762064140),clamp(((((cos((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2))*0.50000000000000000)+0.50000000000000000)*((cos((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2))*0.50000000000000000)+0.50000000000000000))*mat_u_3),0.0,1.0)),vec3(0.0),vec3(1.0))",
+          "nodeCount": 63,
+          "depth": 12,
+          "frameCount": 1,
+          "available": true
+        },
+        "edited": {
+          "backend": "Example WebGL2 host \u00b7 public lowered UV material",
+          "sourceProfile": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+          "shaderId": "woven_grid",
+          "uniforms": {
+            "density": 6.25,
+            "warp": 0.85,
+            "phase": 0.05,
+            "weft": 0.7
+          },
+          "controls": [
+            {
+              "name": "density",
+              "type": "float",
+              "min": 2,
+              "max": 12,
+              "default": 6
+            },
+            {
+              "name": "warp",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.85
+            },
+            {
+              "name": "phase",
+              "type": "float",
+              "min": 0,
+              "max": 6.283185307179586,
+              "default": 0
+            },
+            {
+              "name": "weft",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.7
+            }
+          ],
+          "loweredExpression": "clamp(mix(mix(vec3(0.00063818284216702193,0.0071550370045730324,0.018912983423721504),vec3(0.65922399181338731,0.33922333493532669,0.12752977781342206),clamp(((((sin((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))*0.50000000000000000)+0.50000000000000000)*((sin((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))*0.50000000000000000)+0.50000000000000000))*mat_u_1),0.0,1.0)),vec3(0.096266123063339690,0.56680973489663822,0.63204261762064140),clamp(((((cos((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2))*0.50000000000000000)+0.50000000000000000)*((cos((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2))*0.50000000000000000)+0.50000000000000000))*mat_u_3),0.0,1.0)),vec3(0.0),vec3(1.0))",
+          "nodeCount": 63,
+          "depth": 12,
+          "frameCount": 3,
+          "available": true
+        },
+        "paused": {
+          "backend": "Example WebGL2 host \u00b7 public lowered UV material",
+          "sourceProfile": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+          "shaderId": "woven_grid",
+          "uniforms": {
+            "density": 6.25,
+            "warp": 0.85,
+            "phase": 1.943054692825181,
+            "weft": 0.7
+          },
+          "controls": [
+            {
+              "name": "density",
+              "type": "float",
+              "min": 2,
+              "max": 12,
+              "default": 6
+            },
+            {
+              "name": "warp",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.85
+            },
+            {
+              "name": "phase",
+              "type": "float",
+              "min": 0,
+              "max": 6.283185307179586,
+              "default": 0
+            },
+            {
+              "name": "weft",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.7
+            }
+          ],
+          "loweredExpression": "clamp(mix(mix(vec3(0.00063818284216702193,0.0071550370045730324,0.018912983423721504),vec3(0.65922399181338731,0.33922333493532669,0.12752977781342206),clamp(((((sin((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))*0.50000000000000000)+0.50000000000000000)*((sin((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))*0.50000000000000000)+0.50000000000000000))*mat_u_1),0.0,1.0)),vec3(0.096266123063339690,0.56680973489663822,0.63204261762064140),clamp(((((cos((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2))*0.50000000000000000)+0.50000000000000000)*((cos((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2))*0.50000000000000000)+0.50000000000000000))*mat_u_3),0.0,1.0)),vec3(0.0),vec3(1.0))",
+          "nodeCount": 63,
+          "depth": 12,
+          "frameCount": 194,
+          "available": true
+        },
+        "alert": "Input refused: SYNTAX: SYNTAX: Unsupported material function [257,264). The last accepted output stays visible while the sample remains live.",
+        "exactReportRetained": true,
+        "reset": {
+          "backend": "Example WebGL2 host \u00b7 public lowered UV material",
+          "sourceProfile": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+          "shaderId": "woven_grid",
+          "uniforms": {
+            "density": 6,
+            "warp": 0.85,
+            "phase": 0,
+            "weft": 0.7
+          },
+          "controls": [
+            {
+              "name": "density",
+              "type": "float",
+              "min": 2,
+              "max": 12,
+              "default": 6
+            },
+            {
+              "name": "warp",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.85
+            },
+            {
+              "name": "phase",
+              "type": "float",
+              "min": 0,
+              "max": 6.283185307179586,
+              "default": 0
+            },
+            {
+              "name": "weft",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.7
+            }
+          ],
+          "loweredExpression": "clamp(mix(mix(vec3(0.00063818284216702193,0.0071550370045730324,0.018912983423721504),vec3(0.65922399181338731,0.33922333493532669,0.12752977781342206),clamp(((((sin((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))*0.50000000000000000)+0.50000000000000000)*((sin((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))*0.50000000000000000)+0.50000000000000000))*mat_u_1),0.0,1.0)),vec3(0.096266123063339690,0.56680973489663822,0.63204261762064140),clamp(((((cos((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2))*0.50000000000000000)+0.50000000000000000)*((cos((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2))*0.50000000000000000)+0.50000000000000000))*mat_u_3),0.0,1.0)),vec3(0.0),vec3(1.0))",
+          "nodeCount": 63,
+          "depth": 12,
+          "frameCount": 1,
+          "available": true
+        },
+        "footerGuide": "/packages/gpu/weave-shader"
+      },
+      "contour-shader": {
+        "source": "@shader #contour_bands {\n  @uniform frequency: float(1,8,3);\n  @uniform bands: float(2,12,6);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform contrast: float(0,1,.8);\n  @let u: float(fract(uv_u));\n  @let v: float(fract(uv_v));\n  @let elevation: float((sin(u*frequency*6.283185307179586+phase)+cos(v*frequency*6.283185307179586-phase)+2)*.25);\n  @let band: float(fract(elevation*bands));\n  @let line: float(clamp(1-band*10,0,1)*contrast);\n  @let terrain: color(mix(#143B38,#DCD4A5,elevation));\n  @fragment { color: mix(terrain,#091719,line); }\n}",
+        "initial": {
+          "backend": "Example WebGL2 host \u00b7 public lowered UV material",
+          "sourceProfile": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+          "shaderId": "contour_bands",
+          "uniforms": {
+            "frequency": 3,
+            "bands": 6,
+            "phase": 0,
+            "contrast": 0.8
+          },
+          "controls": [
+            {
+              "name": "frequency",
+              "type": "float",
+              "min": 1,
+              "max": 8,
+              "default": 3
+            },
+            {
+              "name": "bands",
+              "type": "float",
+              "min": 2,
+              "max": 12,
+              "default": 6
+            },
+            {
+              "name": "phase",
+              "type": "float",
+              "min": 0,
+              "max": 6.283185307179586,
+              "default": 0
+            },
+            {
+              "name": "contrast",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.8
+            }
+          ],
+          "loweredExpression": "clamp(mix(mix(vec3(0.0036972395789001307,0.039947171001525582,0.035614369684918767),vec3(0.72267245360025456,0.66611696877585080,0.38377464648797521),clamp((((sin((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))+cos((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2)))+2.0000000000000000)*0.25000000000000000),0.0,1.0)),vec3(0.00063818284216702193,0.0050282034568555354,0.0060405936548498127),clamp((clamp((1.0000000000000000-(fract(((((sin((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))+cos((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2)))+2.0000000000000000)*0.25000000000000000)*mat_u_1))*10.000000000000000)),0.0000000000000000,1.0000000000000000)*mat_u_3),0.0,1.0)),vec3(0.0),vec3(1.0))",
+          "nodeCount": 63,
+          "depth": 16,
+          "frameCount": 1,
+          "available": true
+        },
+        "edited": {
+          "backend": "Example WebGL2 host \u00b7 public lowered UV material",
+          "sourceProfile": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+          "shaderId": "contour_bands",
+          "uniforms": {
+            "frequency": 3,
+            "bands": 6.5,
+            "phase": 0.05,
+            "contrast": 0.8
+          },
+          "controls": [
+            {
+              "name": "frequency",
+              "type": "float",
+              "min": 1,
+              "max": 8,
+              "default": 3
+            },
+            {
+              "name": "bands",
+              "type": "float",
+              "min": 2,
+              "max": 12,
+              "default": 6
+            },
+            {
+              "name": "phase",
+              "type": "float",
+              "min": 0,
+              "max": 6.283185307179586,
+              "default": 0
+            },
+            {
+              "name": "contrast",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.8
+            }
+          ],
+          "loweredExpression": "clamp(mix(mix(vec3(0.0036972395789001307,0.039947171001525582,0.035614369684918767),vec3(0.72267245360025456,0.66611696877585080,0.38377464648797521),clamp((((sin((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))+cos((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2)))+2.0000000000000000)*0.25000000000000000),0.0,1.0)),vec3(0.00063818284216702193,0.0050282034568555354,0.0060405936548498127),clamp((clamp((1.0000000000000000-(fract(((((sin((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))+cos((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2)))+2.0000000000000000)*0.25000000000000000)*mat_u_1))*10.000000000000000)),0.0000000000000000,1.0000000000000000)*mat_u_3),0.0,1.0)),vec3(0.0),vec3(1.0))",
+          "nodeCount": 63,
+          "depth": 16,
+          "frameCount": 3,
+          "available": true
+        },
+        "paused": {
+          "backend": "Example WebGL2 host \u00b7 public lowered UV material",
+          "sourceProfile": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+          "shaderId": "contour_bands",
+          "uniforms": {
+            "frequency": 3,
+            "bands": 6.5,
+            "phase": 0.9866546928347273,
+            "contrast": 0.8
+          },
+          "controls": [
+            {
+              "name": "frequency",
+              "type": "float",
+              "min": 1,
+              "max": 8,
+              "default": 3
+            },
+            {
+              "name": "bands",
+              "type": "float",
+              "min": 2,
+              "max": 12,
+              "default": 6
+            },
+            {
+              "name": "phase",
+              "type": "float",
+              "min": 0,
+              "max": 6.283185307179586,
+              "default": 0
+            },
+            {
+              "name": "contrast",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.8
+            }
+          ],
+          "loweredExpression": "clamp(mix(mix(vec3(0.0036972395789001307,0.039947171001525582,0.035614369684918767),vec3(0.72267245360025456,0.66611696877585080,0.38377464648797521),clamp((((sin((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))+cos((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2)))+2.0000000000000000)*0.25000000000000000),0.0,1.0)),vec3(0.00063818284216702193,0.0050282034568555354,0.0060405936548498127),clamp((clamp((1.0000000000000000-(fract(((((sin((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))+cos((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2)))+2.0000000000000000)*0.25000000000000000)*mat_u_1))*10.000000000000000)),0.0000000000000000,1.0000000000000000)*mat_u_3),0.0,1.0)),vec3(0.0),vec3(1.0))",
+          "nodeCount": 63,
+          "depth": 16,
+          "frameCount": 171,
+          "available": true
+        },
+        "alert": "Input refused: SYNTAX: SYNTAX: Unsupported material function [263,270). The last accepted output stays visible while the sample remains live.",
+        "exactReportRetained": true,
+        "reset": {
+          "backend": "Example WebGL2 host \u00b7 public lowered UV material",
+          "sourceProfile": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+          "shaderId": "contour_bands",
+          "uniforms": {
+            "frequency": 3,
+            "bands": 6,
+            "phase": 0,
+            "contrast": 0.8
+          },
+          "controls": [
+            {
+              "name": "frequency",
+              "type": "float",
+              "min": 1,
+              "max": 8,
+              "default": 3
+            },
+            {
+              "name": "bands",
+              "type": "float",
+              "min": 2,
+              "max": 12,
+              "default": 6
+            },
+            {
+              "name": "phase",
+              "type": "float",
+              "min": 0,
+              "max": 6.283185307179586,
+              "default": 0
+            },
+            {
+              "name": "contrast",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.8
+            }
+          ],
+          "loweredExpression": "clamp(mix(mix(vec3(0.0036972395789001307,0.039947171001525582,0.035614369684918767),vec3(0.72267245360025456,0.66611696877585080,0.38377464648797521),clamp((((sin((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))+cos((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2)))+2.0000000000000000)*0.25000000000000000),0.0,1.0)),vec3(0.00063818284216702193,0.0050282034568555354,0.0060405936548498127),clamp((clamp((1.0000000000000000-(fract(((((sin((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))+cos((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2)))+2.0000000000000000)*0.25000000000000000)*mat_u_1))*10.000000000000000)),0.0000000000000000,1.0000000000000000)*mat_u_3),0.0,1.0)),vec3(0.0),vec3(1.0))",
+          "nodeCount": 63,
+          "depth": 16,
+          "frameCount": 1,
+          "available": true
+        },
+        "footerGuide": "/packages/gpu/contour-shader"
+      },
+      "halftone-shader": {
+        "source": "@shader #halftone_dots {\n  @uniform density: float(2,12,6);\n  @uniform size: float(0,.8,.4);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform ink: float(0,1,.9);\n  @fragment { color: mix(#F3EAD7,#182F43,smoothstep(1.2,1.6,(cos(fract(uv_u)*(density*6.283185307179586)-phase)+cos(fract(uv_v)*(density*6.283185307179586)))+size)*ink); }\n}",
+        "initial": {
+          "backend": "Example WebGL2 host \u00b7 public lowered UV material",
+          "sourceProfile": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+          "shaderId": "halftone_dots",
+          "uniforms": {
+            "density": 6,
+            "size": 0.4,
+            "phase": 0,
+            "ink": 0.9
+          },
+          "controls": [
+            {
+              "name": "density",
+              "type": "float",
+              "min": 2,
+              "max": 12,
+              "default": 6
+            },
+            {
+              "name": "size",
+              "type": "float",
+              "min": 0,
+              "max": 0.8,
+              "default": 0.4
+            },
+            {
+              "name": "phase",
+              "type": "float",
+              "min": 0,
+              "max": 6.283185307179586,
+              "default": 0
+            },
+            {
+              "name": "ink",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.9
+            }
+          ],
+          "loweredExpression": "clamp(mix(vec3(0.89938451304652944,0.82772579445503369,0.68703081215462491),vec3(0.0055217448502396585,0.024222942067534239,0.052841625522879028),clamp((clamp(((clamp(((((cos(((fract(v_engine_uv.x)*(mat_u_0*6.2831853071795862))-mat_u_2))+cos((fract(v_engine_uv.y)*(mat_u_0*6.2831853071795862))))+mat_u_1)-1.2000000000000000)*2.4999999999999991),0.0000000000000000,1.0000000000000000)*clamp(((((cos(((fract(v_engine_uv.x)*(mat_u_0*6.2831853071795862))-mat_u_2))+cos((fract(v_engine_uv.y)*(mat_u_0*6.2831853071795862))))+mat_u_1)-1.2000000000000000)*2.4999999999999991),0.0000000000000000,1.0000000000000000))*(3.0000000000000000-(2.0000000000000000*clamp(((((cos(((fract(v_engine_uv.x)*(mat_u_0*6.2831853071795862))-mat_u_2))+cos((fract(v_engine_uv.y)*(mat_u_0*6.2831853071795862))))+mat_u_1)-1.2000000000000000)*2.4999999999999991),0.0000000000000000,1.0000000000000000)))),0.0000000000000000,1.0000000000000000)*mat_u_3),0.0,1.0)),vec3(0.0),vec3(1.0))",
+          "nodeCount": 92,
+          "depth": 16,
+          "frameCount": 1,
+          "available": true
+        },
+        "edited": {
+          "backend": "Example WebGL2 host \u00b7 public lowered UV material",
+          "sourceProfile": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+          "shaderId": "halftone_dots",
+          "uniforms": {
+            "density": 6,
+            "size": 0.44,
+            "phase": 0.05,
+            "ink": 0.9
+          },
+          "controls": [
+            {
+              "name": "density",
+              "type": "float",
+              "min": 2,
+              "max": 12,
+              "default": 6
+            },
+            {
+              "name": "size",
+              "type": "float",
+              "min": 0,
+              "max": 0.8,
+              "default": 0.4
+            },
+            {
+              "name": "phase",
+              "type": "float",
+              "min": 0,
+              "max": 6.283185307179586,
+              "default": 0
+            },
+            {
+              "name": "ink",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.9
+            }
+          ],
+          "loweredExpression": "clamp(mix(vec3(0.89938451304652944,0.82772579445503369,0.68703081215462491),vec3(0.0055217448502396585,0.024222942067534239,0.052841625522879028),clamp((clamp(((clamp(((((cos(((fract(v_engine_uv.x)*(mat_u_0*6.2831853071795862))-mat_u_2))+cos((fract(v_engine_uv.y)*(mat_u_0*6.2831853071795862))))+mat_u_1)-1.2000000000000000)*2.4999999999999991),0.0000000000000000,1.0000000000000000)*clamp(((((cos(((fract(v_engine_uv.x)*(mat_u_0*6.2831853071795862))-mat_u_2))+cos((fract(v_engine_uv.y)*(mat_u_0*6.2831853071795862))))+mat_u_1)-1.2000000000000000)*2.4999999999999991),0.0000000000000000,1.0000000000000000))*(3.0000000000000000-(2.0000000000000000*clamp(((((cos(((fract(v_engine_uv.x)*(mat_u_0*6.2831853071795862))-mat_u_2))+cos((fract(v_engine_uv.y)*(mat_u_0*6.2831853071795862))))+mat_u_1)-1.2000000000000000)*2.4999999999999991),0.0000000000000000,1.0000000000000000)))),0.0000000000000000,1.0000000000000000)*mat_u_3),0.0,1.0)),vec3(0.0),vec3(1.0))",
+          "nodeCount": 92,
+          "depth": 16,
+          "frameCount": 3,
+          "available": true
+        },
+        "paused": {
+          "backend": "Example WebGL2 host \u00b7 public lowered UV material",
+          "sourceProfile": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+          "shaderId": "halftone_dots",
+          "uniforms": {
+            "density": 6,
+            "size": 0.44,
+            "phase": 2.576734692839483,
+            "ink": 0.9
+          },
+          "controls": [
+            {
+              "name": "density",
+              "type": "float",
+              "min": 2,
+              "max": 12,
+              "default": 6
+            },
+            {
+              "name": "size",
+              "type": "float",
+              "min": 0,
+              "max": 0.8,
+              "default": 0.4
+            },
+            {
+              "name": "phase",
+              "type": "float",
+              "min": 0,
+              "max": 6.283185307179586,
+              "default": 0
+            },
+            {
+              "name": "ink",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.9
+            }
+          ],
+          "loweredExpression": "clamp(mix(vec3(0.89938451304652944,0.82772579445503369,0.68703081215462491),vec3(0.0055217448502396585,0.024222942067534239,0.052841625522879028),clamp((clamp(((clamp(((((cos(((fract(v_engine_uv.x)*(mat_u_0*6.2831853071795862))-mat_u_2))+cos((fract(v_engine_uv.y)*(mat_u_0*6.2831853071795862))))+mat_u_1)-1.2000000000000000)*2.4999999999999991),0.0000000000000000,1.0000000000000000)*clamp(((((cos(((fract(v_engine_uv.x)*(mat_u_0*6.2831853071795862))-mat_u_2))+cos((fract(v_engine_uv.y)*(mat_u_0*6.2831853071795862))))+mat_u_1)-1.2000000000000000)*2.4999999999999991),0.0000000000000000,1.0000000000000000))*(3.0000000000000000-(2.0000000000000000*clamp(((((cos(((fract(v_engine_uv.x)*(mat_u_0*6.2831853071795862))-mat_u_2))+cos((fract(v_engine_uv.y)*(mat_u_0*6.2831853071795862))))+mat_u_1)-1.2000000000000000)*2.4999999999999991),0.0000000000000000,1.0000000000000000)))),0.0000000000000000,1.0000000000000000)*mat_u_3),0.0,1.0)),vec3(0.0),vec3(1.0))",
+          "nodeCount": 92,
+          "depth": 16,
+          "frameCount": 210,
+          "available": true
+        },
+        "alert": "Input refused: SYNTAX: SYNTAX: Unsupported material function [233,240). The last accepted output stays visible while the sample remains live.",
+        "exactReportRetained": true,
+        "reset": {
+          "backend": "Example WebGL2 host \u00b7 public lowered UV material",
+          "sourceProfile": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+          "shaderId": "halftone_dots",
+          "uniforms": {
+            "density": 6,
+            "size": 0.4,
+            "phase": 0,
+            "ink": 0.9
+          },
+          "controls": [
+            {
+              "name": "density",
+              "type": "float",
+              "min": 2,
+              "max": 12,
+              "default": 6
+            },
+            {
+              "name": "size",
+              "type": "float",
+              "min": 0,
+              "max": 0.8,
+              "default": 0.4
+            },
+            {
+              "name": "phase",
+              "type": "float",
+              "min": 0,
+              "max": 6.283185307179586,
+              "default": 0
+            },
+            {
+              "name": "ink",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.9
+            }
+          ],
+          "loweredExpression": "clamp(mix(vec3(0.89938451304652944,0.82772579445503369,0.68703081215462491),vec3(0.0055217448502396585,0.024222942067534239,0.052841625522879028),clamp((clamp(((clamp(((((cos(((fract(v_engine_uv.x)*(mat_u_0*6.2831853071795862))-mat_u_2))+cos((fract(v_engine_uv.y)*(mat_u_0*6.2831853071795862))))+mat_u_1)-1.2000000000000000)*2.4999999999999991),0.0000000000000000,1.0000000000000000)*clamp(((((cos(((fract(v_engine_uv.x)*(mat_u_0*6.2831853071795862))-mat_u_2))+cos((fract(v_engine_uv.y)*(mat_u_0*6.2831853071795862))))+mat_u_1)-1.2000000000000000)*2.4999999999999991),0.0000000000000000,1.0000000000000000))*(3.0000000000000000-(2.0000000000000000*clamp(((((cos(((fract(v_engine_uv.x)*(mat_u_0*6.2831853071795862))-mat_u_2))+cos((fract(v_engine_uv.y)*(mat_u_0*6.2831853071795862))))+mat_u_1)-1.2000000000000000)*2.4999999999999991),0.0000000000000000,1.0000000000000000)))),0.0000000000000000,1.0000000000000000)*mat_u_3),0.0,1.0)),vec3(0.0),vec3(1.0))",
+          "nodeCount": 92,
+          "depth": 16,
+          "frameCount": 1,
+          "available": true
+        },
+        "footerGuide": "/packages/gpu/halftone-shader"
+      }
+    },
+    "mobile": {
+      "scrollWidth": 390,
+      "width": 390
+    },
+    "logs": [],
+    "qualification": "Actual new Manual UV programs only. Public CPU receipts do not assert pixel parity; no original blockedGPU1095 scene replay."
+  },
+  "images": {
+    "weave-shader": {
+      "path": "apps/library-docs/docs/public/examples/weave-shader.jpg",
+      "bytes": 14593,
+      "sha256": "cfa4c1dc33b58940b8fa581271a890d90459d057c51fc509ca8533228cd11e2d",
+      "width": 462,
+      "height": 303,
+      "variant": "Original source and default uniforms; phase0, paused",
+      "uneditedNativeBytes": true
+    },
+    "contour-shader": {
+      "path": "apps/library-docs/docs/public/examples/contour-shader.jpg",
+      "bytes": 24584,
+      "sha256": "773af6e569b2cf119beb6b9a8514acf1eb00a3fc8d1a5914ef05fba7fe654ffc",
+      "width": 462,
+      "height": 303,
+      "variant": "Original source and default uniforms; phase0, paused",
+      "uneditedNativeBytes": true
+    },
+    "halftone-shader": {
+      "path": "apps/library-docs/docs/public/examples/halftone-shader.jpg",
+      "bytes": 12362,
+      "sha256": "649edf2aab8fbea6169354fe059730f5ff5f08192630c5d8fac9011d85d9a594",
+      "width": 462,
+      "height": 303,
+      "variant": "Original source and default uniforms; phase0, paused",
+      "uneditedNativeBytes": true
+    }
+  },
+  "sourceAndCPUAndGuideMatch": true,
+  "limits": [
+    "Only new independent Manual repeatingUV samples tested; no #1095 blocked-scene relocation or equivalent acceptance.",
+    "CPU binary64 linear RGB is separate from actual WebGL2 pixels/display conversion.",
+    "Existing whole-gallery/module/globalRoot/device/performance acceptance not rerun."
+  ],
+  "production": {
+    "receiptKind": "gpu-parallel-samples-production",
+    "flows": {
+      "weave-shader": {
+        "guideSourceMatches": true,
+        "image": {
+          "complete": true,
+          "height": 303,
+          "src": "/examples/weave-shader.jpg",
+          "width": 462
+        },
+        "sourceMatches": true,
+        "initial": {
+          "shaderId": "woven_grid",
+          "uniforms": {
+            "density": 6,
+            "warp": 0.85,
+            "phase": 0,
+            "weft": 0.7
+          },
+          "nodeCount": 63,
+          "depth": 12,
+          "available": true
+        },
+        "edited": {
+          "uniforms": {
+            "density": 6,
+            "warp": 0.85,
+            "phase": 0.05,
+            "weft": 0.7
+          },
+          "frameCount": 2,
+          "available": true
+        },
+        "alert": "Input refused: SYNTAX: SYNTAX: Unsupported material function [257,264). The last accepted output stays visible while the sample remains live.",
+        "exactReportRetained": true,
+        "footerGuide": "/packages/gpu/weave-shader"
+      },
+      "contour-shader": {
+        "guideSourceMatches": true,
+        "image": {
+          "complete": true,
+          "height": 303,
+          "src": "/examples/contour-shader.jpg",
+          "width": 462
+        },
+        "sourceMatches": true,
+        "initial": {
+          "shaderId": "contour_bands",
+          "uniforms": {
+            "frequency": 3,
+            "bands": 6,
+            "phase": 0,
+            "contrast": 0.8
+          },
+          "nodeCount": 63,
+          "depth": 16,
+          "available": true
+        },
+        "edited": {
+          "uniforms": {
+            "frequency": 3,
+            "bands": 6,
+            "phase": 0.05,
+            "contrast": 0.8
+          },
+          "frameCount": 2,
+          "available": true
+        },
+        "alert": "Input refused: SYNTAX: SYNTAX: Unsupported material function [263,270). The last accepted output stays visible while the sample remains live.",
+        "exactReportRetained": true,
+        "footerGuide": "/packages/gpu/contour-shader"
+      },
+      "halftone-shader": {
+        "guideSourceMatches": true,
+        "image": {
+          "complete": true,
+          "height": 303,
+          "src": "/examples/halftone-shader.jpg",
+          "width": 462
+        },
+        "sourceMatches": true,
+        "initial": {
+          "shaderId": "halftone_dots",
+          "uniforms": {
+            "density": 6,
+            "size": 0.4,
+            "phase": 0,
+            "ink": 0.9
+          },
+          "nodeCount": 92,
+          "depth": 16,
+          "available": true
+        },
+        "edited": {
+          "uniforms": {
+            "density": 6,
+            "size": 0.4,
+            "phase": 0.05,
+            "ink": 0.9
+          },
+          "frameCount": 2,
+          "available": true
+        },
+        "alert": "Input refused: SYNTAX: SYNTAX: Unsupported material function [233,240). The last accepted output stays visible while the sample remains live.",
+        "exactReportRetained": true,
+        "footerGuide": "/packages/gpu/halftone-shader"
+      }
+    },
+    "mobile": {
+      "scrollWidth": 390,
+      "width": 390
+    },
+    "catalog37": true,
+    "newCatalogNames": true,
+    "filteredContour": true,
+    "logs": []
+  },
+  "build": {
+    "seconds": 25.43,
+    "pages": 99,
+    "internalLinks": 5358,
+    "imageAssets": 46,
+    "downloadAssets": 2,
+    "presets": 37,
+    "categories": {
+      "api": 7,
+      "language": 29,
+      "integration": 1
+    },
+    "generatedModules": 6,
+    "manifestHashes": "matched",
+    "advancedBundleBytes": 122610,
+    "ownSourceInputs": 239,
+    "ownDistInputs": 0
+  },
+  "builtImagesByteEqual": true
+}

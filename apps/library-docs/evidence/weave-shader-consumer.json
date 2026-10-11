@@ -1,0 +1,784 @@
+{
+  "status": "passed",
+  "nodeVersion": "v22.22.0",
+  "sourceSHA256": "b5eec52460ea1f87bc9d45dfa70958561e148296b810c4d6fa4d622484a295ef",
+  "provenance": {
+    "sourcePin": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+    "verifiedBlobs": 242,
+    "ownSourceInputs": 239,
+    "ownDistInputs": 0,
+    "host": "CPU public compile/binding/evaluation consumer; no GL",
+    "oldVisualPinUnchanged": "5f5ad866205a21510ac69552e704cc162fa253b5"
+  },
+  "failedCandidates": [],
+  "source": "@shader #woven_grid {\n  @uniform density: float(2,12,6);\n  @uniform warp: float(0,1,.85);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform weft: float(0,1,.7);\n  @let u: float(fract(uv_u));\n  @let v: float(fract(uv_v));\n  @let vertical: float(pow(sin(u*density*6.283185307179586+phase)*.5+.5,2));\n  @let horizontal: float(pow(cos(v*density*6.283185307179586-phase)*.5+.5,2));\n  @let threads: color(mix(#091B2A,#D39C64,vertical*warp));\n  @fragment { color: mix(threads,#58C5CF,horizontal*weft); }\n}",
+  "materialProfile": "engine-opaque-uv-repeating-fragment-v0",
+  "shaderId": "woven_grid",
+  "declaredUniforms": [
+    {
+      "name": "density",
+      "type": "float",
+      "min": 2,
+      "max": 12,
+      "default": 6
+    },
+    {
+      "name": "warp",
+      "type": "float",
+      "min": 0,
+      "max": 1,
+      "default": 0.85
+    },
+    {
+      "name": "phase",
+      "type": "float",
+      "min": 0,
+      "max": 6.283185307179586,
+      "default": 0
+    },
+    {
+      "name": "weft",
+      "type": "float",
+      "min": 0,
+      "max": 1,
+      "default": 0.7
+    }
+  ],
+  "canonicalExpression": {
+    "nodes": 63,
+    "depth": 12,
+    "scope": "Public final expanded IR; compiler also charges definitions/reuse"
+  },
+  "lowered": {
+    "expression": "clamp(mix(mix(vec3(0.00063818284216702193,0.0071550370045730324,0.018912983423721504),vec3(0.65922399181338731,0.33922333493532675,0.12752977781342206),clamp(((((sin((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))*0.50000000000000000)+0.50000000000000000)*((sin((((fract(v_engine_uv.x)*mat_u_0)*6.2831853071795862)+mat_u_2))*0.50000000000000000)+0.50000000000000000))*mat_u_1),0.0,1.0)),vec3(0.096266123063339690,0.56680973489663822,0.63204261762064140),clamp(((((cos((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2))*0.50000000000000000)+0.50000000000000000)*((cos((((fract(v_engine_uv.y)*mat_u_0)*6.2831853071795862)-mat_u_2))*0.50000000000000000)+0.50000000000000000))*mat_u_3),0.0,1.0)),vec3(0.0),vec3(1.0))",
+    "uniformDeclarations": "uniform float mat_u_0;\nuniform float mat_u_1;\nuniform float mat_u_2;\nuniform float mat_u_3;",
+    "uniformLayout": [
+      {
+        "name": "density",
+        "type": "float",
+        "min": 2,
+        "max": 12,
+        "default": 6,
+        "glslName": "mat_u_0"
+      },
+      {
+        "name": "warp",
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 0.85,
+        "glslName": "mat_u_1"
+      },
+      {
+        "name": "phase",
+        "type": "float",
+        "min": 0,
+        "max": 6.283185307179586,
+        "default": 0,
+        "glslName": "mat_u_2"
+      },
+      {
+        "name": "weft",
+        "type": "float",
+        "min": 0,
+        "max": 1,
+        "default": 0.7,
+        "glslName": "mat_u_3"
+      }
+    ],
+    "inputDeclarations": "in vec2 v_engine_uv;"
+  },
+  "completeScene": {
+    "format": "barocss-gpu-engine-scene",
+    "version": 0,
+    "id": "advanced_uv_scene",
+    "coordinateSystem": "right-handed-y-up",
+    "positionUnit": "scene",
+    "background": [
+      0,
+      0,
+      0
+    ],
+    "camera": {
+      "eye": [
+        0,
+        0,
+        3
+      ],
+      "target": [
+        0,
+        0,
+        0
+      ],
+      "up": [
+        0,
+        1,
+        0
+      ],
+      "fovYDegrees": 45,
+      "near": 0.1,
+      "far": 10
+    },
+    "geometries": [
+      {
+        "format": "barocss-gpu-triangle-geometry",
+        "version": 0,
+        "id": "advanced_uv_quad",
+        "coordinateSystem": "right-handed-y-up",
+        "positionUnit": "scene",
+        "winding": "ccw",
+        "positions": [
+          -1,
+          -1,
+          0,
+          1,
+          -1,
+          0,
+          1,
+          1,
+          0,
+          -1,
+          1,
+          0
+        ],
+        "normals": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1
+        ],
+        "uvs": [
+          0,
+          0,
+          1,
+          0,
+          1,
+          1,
+          0,
+          1
+        ],
+        "indices": [
+          0,
+          1,
+          2,
+          0,
+          2,
+          3
+        ]
+      }
+    ],
+    "materials": [
+      {
+        "id": "advanced_uv_material",
+        "type": "unlit",
+        "colorSpace": "linear",
+        "color": [
+          1,
+          1,
+          1
+        ]
+      }
+    ],
+    "nodes": [
+      {
+        "id": "advanced_uv_node",
+        "type": "mesh",
+        "parentId": null,
+        "translation": [
+          0,
+          0,
+          0
+        ],
+        "rotationXYZW": [
+          0,
+          0,
+          0,
+          1
+        ],
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "visible": true,
+        "geometryId": "advanced_uv_quad",
+        "materialId": "advanced_uv_material"
+      }
+    ]
+  },
+  "completeCompanion": {
+    "format": "barocss-gpu-engine-uv-repeating-material-bindings",
+    "version": 0,
+    "sceneId": "advanced_uv_scene",
+    "bindings": [
+      {
+        "materialId": "advanced_uv_material",
+        "material": {
+          "format": "barocss-gpu-engine-uv-repeating-material",
+          "version": 0,
+          "profile": "engine-opaque-uv-repeating-fragment-v0",
+          "source": "@shader #woven_grid {\n  @uniform density: float(2,12,6);\n  @uniform warp: float(0,1,.85);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform weft: float(0,1,.7);\n  @let u: float(fract(uv_u));\n  @let v: float(fract(uv_v));\n  @let vertical: float(pow(sin(u*density*6.283185307179586+phase)*.5+.5,2));\n  @let horizontal: float(pow(cos(v*density*6.283185307179586-phase)*.5+.5,2));\n  @let threads: color(mix(#091B2A,#D39C64,vertical*warp));\n  @fragment { color: mix(threads,#58C5CF,horizontal*weft); }\n}",
+          "shaderId": "woven_grid",
+          "uniforms": [
+            {
+              "name": "density",
+              "type": "float",
+              "min": 2,
+              "max": 12,
+              "default": 6
+            },
+            {
+              "name": "warp",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.85
+            },
+            {
+              "name": "phase",
+              "type": "float",
+              "min": 0,
+              "max": 6.283185307179586,
+              "default": 0
+            },
+            {
+              "name": "weft",
+              "type": "float",
+              "min": 0,
+              "max": 1,
+              "default": 0.7
+            }
+          ],
+          "expression": {
+            "kind": "call",
+            "type": "color",
+            "name": "mix",
+            "args": [
+              {
+                "kind": "call",
+                "type": "color",
+                "name": "mix",
+                "args": [
+                  {
+                    "kind": "color",
+                    "type": "color",
+                    "hex": "#091B2A",
+                    "linear": [
+                      0.0006381828421670219,
+                      0.007155037004573032,
+                      0.018912983423721504
+                    ]
+                  },
+                  {
+                    "kind": "color",
+                    "type": "color",
+                    "hex": "#D39C64",
+                    "linear": [
+                      0.6592239918133873,
+                      0.33922333493532675,
+                      0.12752977781342206
+                    ]
+                  },
+                  {
+                    "kind": "binary",
+                    "type": "float",
+                    "operator": "*",
+                    "left": {
+                      "kind": "binary",
+                      "type": "float",
+                      "operator": "*",
+                      "left": {
+                        "kind": "binary",
+                        "type": "float",
+                        "operator": "+",
+                        "left": {
+                          "kind": "binary",
+                          "type": "float",
+                          "operator": "*",
+                          "left": {
+                            "kind": "call",
+                            "type": "float",
+                            "name": "sin",
+                            "args": [
+                              {
+                                "kind": "binary",
+                                "type": "float",
+                                "operator": "+",
+                                "left": {
+                                  "kind": "binary",
+                                  "type": "float",
+                                  "operator": "*",
+                                  "left": {
+                                    "kind": "binary",
+                                    "type": "float",
+                                    "operator": "*",
+                                    "left": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "fract",
+                                      "args": [
+                                        {
+                                          "kind": "input",
+                                          "type": "float",
+                                          "name": "uv_u"
+                                        }
+                                      ]
+                                    },
+                                    "right": {
+                                      "kind": "uniform",
+                                      "type": "float",
+                                      "name": "density"
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "float",
+                                    "type": "float",
+                                    "value": 6.283185307179586
+                                  }
+                                },
+                                "right": {
+                                  "kind": "uniform",
+                                  "type": "float",
+                                  "name": "phase"
+                                }
+                              }
+                            ]
+                          },
+                          "right": {
+                            "kind": "float",
+                            "type": "float",
+                            "value": 0.5
+                          }
+                        },
+                        "right": {
+                          "kind": "float",
+                          "type": "float",
+                          "value": 0.5
+                        }
+                      },
+                      "right": {
+                        "kind": "binary",
+                        "type": "float",
+                        "operator": "+",
+                        "left": {
+                          "kind": "binary",
+                          "type": "float",
+                          "operator": "*",
+                          "left": {
+                            "kind": "call",
+                            "type": "float",
+                            "name": "sin",
+                            "args": [
+                              {
+                                "kind": "binary",
+                                "type": "float",
+                                "operator": "+",
+                                "left": {
+                                  "kind": "binary",
+                                  "type": "float",
+                                  "operator": "*",
+                                  "left": {
+                                    "kind": "binary",
+                                    "type": "float",
+                                    "operator": "*",
+                                    "left": {
+                                      "kind": "call",
+                                      "type": "float",
+                                      "name": "fract",
+                                      "args": [
+                                        {
+                                          "kind": "input",
+                                          "type": "float",
+                                          "name": "uv_u"
+                                        }
+                                      ]
+                                    },
+                                    "right": {
+                                      "kind": "uniform",
+                                      "type": "float",
+                                      "name": "density"
+                                    }
+                                  },
+                                  "right": {
+                                    "kind": "float",
+                                    "type": "float",
+                                    "value": 6.283185307179586
+                                  }
+                                },
+                                "right": {
+                                  "kind": "uniform",
+                                  "type": "float",
+                                  "name": "phase"
+                                }
+                              }
+                            ]
+                          },
+                          "right": {
+                            "kind": "float",
+                            "type": "float",
+                            "value": 0.5
+                          }
+                        },
+                        "right": {
+                          "kind": "float",
+                          "type": "float",
+                          "value": 0.5
+                        }
+                      }
+                    },
+                    "right": {
+                      "kind": "uniform",
+                      "type": "float",
+                      "name": "warp"
+                    }
+                  }
+                ]
+              },
+              {
+                "kind": "color",
+                "type": "color",
+                "hex": "#58C5CF",
+                "linear": [
+                  0.09626612306333969,
+                  0.5668097348966382,
+                  0.6320426176206414
+                ]
+              },
+              {
+                "kind": "binary",
+                "type": "float",
+                "operator": "*",
+                "left": {
+                  "kind": "binary",
+                  "type": "float",
+                  "operator": "*",
+                  "left": {
+                    "kind": "binary",
+                    "type": "float",
+                    "operator": "+",
+                    "left": {
+                      "kind": "binary",
+                      "type": "float",
+                      "operator": "*",
+                      "left": {
+                        "kind": "call",
+                        "type": "float",
+                        "name": "cos",
+                        "args": [
+                          {
+                            "kind": "binary",
+                            "type": "float",
+                            "operator": "-",
+                            "left": {
+                              "kind": "binary",
+                              "type": "float",
+                              "operator": "*",
+                              "left": {
+                                "kind": "binary",
+                                "type": "float",
+                                "operator": "*",
+                                "left": {
+                                  "kind": "call",
+                                  "type": "float",
+                                  "name": "fract",
+                                  "args": [
+                                    {
+                                      "kind": "input",
+                                      "type": "float",
+                                      "name": "uv_v"
+                                    }
+                                  ]
+                                },
+                                "right": {
+                                  "kind": "uniform",
+                                  "type": "float",
+                                  "name": "density"
+                                }
+                              },
+                              "right": {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 6.283185307179586
+                              }
+                            },
+                            "right": {
+                              "kind": "uniform",
+                              "type": "float",
+                              "name": "phase"
+                            }
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "float",
+                        "type": "float",
+                        "value": 0.5
+                      }
+                    },
+                    "right": {
+                      "kind": "float",
+                      "type": "float",
+                      "value": 0.5
+                    }
+                  },
+                  "right": {
+                    "kind": "binary",
+                    "type": "float",
+                    "operator": "+",
+                    "left": {
+                      "kind": "binary",
+                      "type": "float",
+                      "operator": "*",
+                      "left": {
+                        "kind": "call",
+                        "type": "float",
+                        "name": "cos",
+                        "args": [
+                          {
+                            "kind": "binary",
+                            "type": "float",
+                            "operator": "-",
+                            "left": {
+                              "kind": "binary",
+                              "type": "float",
+                              "operator": "*",
+                              "left": {
+                                "kind": "binary",
+                                "type": "float",
+                                "operator": "*",
+                                "left": {
+                                  "kind": "call",
+                                  "type": "float",
+                                  "name": "fract",
+                                  "args": [
+                                    {
+                                      "kind": "input",
+                                      "type": "float",
+                                      "name": "uv_v"
+                                    }
+                                  ]
+                                },
+                                "right": {
+                                  "kind": "uniform",
+                                  "type": "float",
+                                  "name": "density"
+                                }
+                              },
+                              "right": {
+                                "kind": "float",
+                                "type": "float",
+                                "value": 6.283185307179586
+                              }
+                            },
+                            "right": {
+                              "kind": "uniform",
+                              "type": "float",
+                              "name": "phase"
+                            }
+                          }
+                        ]
+                      },
+                      "right": {
+                        "kind": "float",
+                        "type": "float",
+                        "value": 0.5
+                      }
+                    },
+                    "right": {
+                      "kind": "float",
+                      "type": "float",
+                      "value": 0.5
+                    }
+                  }
+                },
+                "right": {
+                  "kind": "uniform",
+                  "type": "float",
+                  "name": "weft"
+                }
+              }
+            ]
+          }
+        },
+        "uniforms": {}
+      }
+    ]
+  },
+  "admittedQuad": {
+    "vertices": 4,
+    "triangles": 2,
+    "draws": 1,
+    "originalUVs": [
+      0,
+      0,
+      1,
+      0,
+      1,
+      1,
+      0,
+      1
+    ]
+  },
+  "resolvedUniforms": {
+    "density": 6,
+    "warp": 0.85,
+    "phase": 0,
+    "weft": 0.7
+  },
+  "samples": [
+    {
+      "name": "origin_defaults",
+      "uv": [
+        0,
+        0
+      ],
+      "uniforms": {},
+      "reference": {
+        "warmRatio": 0.2125,
+        "coolRatio": 0.7,
+        "linearRGB": [
+          0.10956258631890319,
+          0.4200826795221042,
+          0.4550280480039088
+        ]
+      },
+      "sample": {
+        "format": "barocss-gpu-authored-material-sample",
+        "version": 0,
+        "profile": "binary64-linear-rgb-v0",
+        "colorSpace": "linear-rgb",
+        "uvUnit": "dimensionless",
+        "uniforms": {
+          "density": 6,
+          "warp": 0.85,
+          "phase": 0,
+          "weft": 0.7
+        },
+        "uv": [
+          0,
+          0
+        ],
+        "linearRGB": [
+          0.10956258631890319,
+          0.4200826795221042,
+          0.4550280480039088
+        ]
+      }
+    },
+    {
+      "name": "warm_thread_peak",
+      "uv": [
+        0.041666666666666664,
+        0.08333333333333333
+      ],
+      "uniforms": {},
+      "reference": {
+        "warmRatio": 0.85,
+        "coolRatio": 0,
+        "linearRGB": [
+          0.5604361204677042,
+          0.28941309024571366,
+          0.11123725865496698
+        ]
+      },
+      "sample": {
+        "format": "barocss-gpu-authored-material-sample",
+        "version": 0,
+        "profile": "binary64-linear-rgb-v0",
+        "colorSpace": "linear-rgb",
+        "uvUnit": "dimensionless",
+        "uniforms": {
+          "density": 6,
+          "warp": 0.85,
+          "phase": 0,
+          "weft": 0.7
+        },
+        "uv": [
+          0.041666666666666664,
+          0.08333333333333333
+        ],
+        "linearRGB": [
+          0.5604361204677042,
+          0.28941309024571366,
+          0.11123725865496698
+        ]
+      }
+    },
+    {
+      "name": "origin_phase_pi",
+      "uv": [
+        0,
+        0
+      ],
+      "uniforms": {
+        "phase": 3.141592653589793
+      },
+      "reference": {
+        "warmRatio": 0.21250000000000008,
+        "coolRatio": 0,
+        "linearRGB": [
+          0.14058766724855137,
+          0.07771955031485822,
+          0.04199405223153288
+        ]
+      },
+      "sample": {
+        "format": "barocss-gpu-authored-material-sample",
+        "version": 0,
+        "profile": "binary64-linear-rgb-v0",
+        "colorSpace": "linear-rgb",
+        "uvUnit": "dimensionless",
+        "uniforms": {
+          "density": 6,
+          "warp": 0.85,
+          "phase": 3.141592653589793,
+          "weft": 0.7
+        },
+        "uv": [
+          0,
+          0
+        ],
+        "linearRGB": [
+          0.14058766724855137,
+          0.07771955031485822,
+          0.04199405223153288
+        ]
+      }
+    }
+  ],
+  "refusals": [
+    {
+      "stage": "compile",
+      "diagnostic": {
+        "code": "SYNTAX",
+        "message": "Unsupported material function",
+        "start": 257,
+        "end": 264
+      }
+    },
+    {
+      "stage": "evaluate",
+      "uniforms": {
+        "weft": 2
+      },
+      "code": "UNIFORM",
+      "causeName": "MeshMaterialError",
+      "causeCode": "UNIFORM",
+      "message": "Uniform weft outside its finite declared range"
+    }
+  ],
+  "acceptedImmutableReferenceAndValueRetained": true,
+  "callerInputsUnchanged": true,
+  "freshFrozenPublicCopies": true,
+  "actualGL": false,
+  "pixelParity": "not checked",
+  "scope": "One selected public compile/reconstruction/lowering/full-quad binding/three analytic binary64 RGB evaluations and genuine syntax/uniform refusals; no renderer or provider suite"
+}

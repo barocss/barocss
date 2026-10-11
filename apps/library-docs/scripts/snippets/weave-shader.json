@@ -1,0 +1,40 @@
+{
+  "kind": "advanced",
+  "title": "Woven grid shader",
+  "label": "Woven grid shader",
+  "anchor": "weave-shader",
+  "language": "GPU repeating UV material · engine-opaque-uv-repeating-fragment-v0",
+  "source": "@shader #woven_grid {\n  @uniform density: float(2,12,6);\n  @uniform warp: float(0,1,.85);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform weft: float(0,1,.7);\n  @let u: float(fract(uv_u));\n  @let v: float(fract(uv_v));\n  @let vertical: float(pow(sin(u*density*6.283185307179586+phase)*.5+.5,2));\n  @let horizontal: float(pow(cos(v*density*6.283185307179586-phase)*.5+.5,2));\n  @let threads: color(mix(#091B2A,#D39C64,vertical*warp));\n  @fragment { color: mix(threads,#58C5CF,horizontal*weft); }\n}",
+  "sourceProfile": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+  "controls": [
+    {
+      "name": "density",
+      "min": 2,
+      "max": 12,
+      "step": 0.25,
+      "default": 6
+    },
+    {
+      "name": "warp",
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "default": 0.85
+    },
+    {
+      "name": "phase",
+      "min": 0,
+      "max": 6.283185307179586,
+      "step": 0.05,
+      "default": 0
+    },
+    {
+      "name": "weft",
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "default": 0.7
+    }
+  ],
+  "description": "Squared waves form warm vertical warp threads and cool horizontal weft threads. Adjust thread density, each layer strength or phase. This is a two-axis color pattern, not a textile geometry or physical weaving simulation."
+}

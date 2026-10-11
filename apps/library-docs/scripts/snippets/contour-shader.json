@@ -1,0 +1,40 @@
+{
+  "kind": "advanced",
+  "title": "GPU contour material · elevation colors and contour lines",
+  "label": "Contour bands shader",
+  "anchor": "contour-shader",
+  "language": "GPU repeating UV material · engine-opaque-uv-repeating-fragment-v0",
+  "source": "@shader #contour_bands {\n  @uniform frequency: float(1,8,3);\n  @uniform bands: float(2,12,6);\n  @uniform phase: float(0,6.283185307179586,0);\n  @uniform contrast: float(0,1,.8);\n  @let u: float(fract(uv_u));\n  @let v: float(fract(uv_v));\n  @let elevation: float((sin(u*frequency*6.283185307179586+phase)+cos(v*frequency*6.283185307179586-phase)+2)*.25);\n  @let band: float(fract(elevation*bands));\n  @let line: float(clamp(1-band*10,0,1)*contrast);\n  @let terrain: color(mix(#143B38,#DCD4A5,elevation));\n  @fragment { color: mix(terrain,#091719,line); }\n}",
+  "sourceProfile": "7e96b959746a3fee957644fd1b5ccaf79c992c6c",
+  "controls": [
+    {
+      "name": "frequency",
+      "min": 1,
+      "max": 8,
+      "step": 0.25,
+      "default": 3
+    },
+    {
+      "name": "bands",
+      "min": 2,
+      "max": 12,
+      "step": 0.5,
+      "default": 6
+    },
+    {
+      "name": "phase",
+      "min": 0,
+      "max": 6.283185307179586,
+      "step": 0.05,
+      "default": 0
+    },
+    {
+      "name": "contrast",
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "default": 0.8
+    }
+  ],
+  "description": "Two bounded UV waves define a scalar elevation. Fractional elevation bands darken narrow contour lines over a green-to-sand palette. Change spatial frequency, band count, line contrast or explicit phase; the quad remains fixed."
+}

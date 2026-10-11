@@ -291,3 +291,10 @@ The `timeSeconds` uniform has min0, max2 and default0. It lowers to the generate
 The SDF scene renderer and indexed mesh renderer have separate inputs. A CPU Engine scene prepares hierarchy and query data; it does not supply a general Engine renderer in this API profile. Read [public Engine declarations](./reference#declarations-6908f7b659fc) when using that separate format.
 
 [Scene language](./language) · [Material language](./material-language) · [Quickstart](./quickstart) · [API](./api) · [Limits](./limits)
+
+
+## Repeat UV patterns with explicit controls
+
+[Woven grid](./weave-shader), [contour bands](./contour-shader) and [halftone dots](./halftone-shader) are separate complete material programs. Each guide explains its source, controls, numerical checks and actual browser image. Open its language sample to edit the program and inspect the result.
+
+These examples reuse the Manual's public repeating-UV material profile and its app-owned WebGL2 quad. The host supplies phase and Play/Pause. Compilation and CPU evaluation create no clock or renderer. The displayed patterns change color, not native geometry.

@@ -77,3 +77,10 @@ Call the selected renderer's `dispose()` when its view is removed. It is idempot
 Source snapshot: local Git `5f5ad866205a21510ac69552e704cc162fa253b5`. `packages/barocss-gpu/package.json` (Manifest; local source), [public root](/packages/gpu/reference#declarations-5523de18ed63), `packages/barocss-gpu/README.md` (package README; local source). Source references identify that fixed snapshot. This native source commit is local-only; public declaration references open in this portal. Local source is the authority for this manual.
 
 [Overview](./) · [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits](./limits)
+
+
+## Repeat UV patterns with explicit controls
+
+[Woven grid](./weave-shader), [contour bands](./contour-shader) and [halftone dots](./halftone-shader) are separate complete material programs. Each guide explains its source, controls, numerical checks and actual browser image. Open its language sample to edit the program and inspect the result.
+
+These examples reuse the Manual's public repeating-UV material profile and its app-owned WebGL2 quad. The host supplies phase and Play/Pause. Compilation and CPU evaluation create no clock or renderer. The displayed patterns change color, not native geometry.
