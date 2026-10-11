@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && vite build"
   },
   "dependencies": {
+    "@barocss/cad": "workspace:*",
     "@barocss/render-editor": "workspace:*",
     "react": "19.2.3",
     "react-dom": "19.2.3",

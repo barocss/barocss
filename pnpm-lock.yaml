@@ -343,6 +343,9 @@ importers:
 
   apps/render-editor:
     dependencies:
+      '@barocss/cad':
+        specifier: workspace:*
+        version: link:../../packages/barocss-cad
       '@barocss/viewer':
         specifier: 'workspace:*'
         version: 'link:../../packages/barocss-viewer'
