@@ -26,6 +26,14 @@ export interface SceneRepeatDeclaration {
 export interface SceneGenerationRecord {
   nodeId: string; prefix: string; index: number; declaration: SourceRange;
 }
+/** Original predicate tokens and potential identity survive either selected outcome. */
+export interface SceneConditionalDeclaration {
+  kind: 'conditional'; prefix: SceneToken; type: SceneToken; left: SceneToken; operator: SceneToken;
+  right: SceneToken; tokens: SceneToken[]; range: SourceRange;
+}
+export interface SceneConditionalDecision {
+  nodeId: string; prefix: string; included: boolean; declaration: SourceRange;
+}
 type Quantity = 'scalar' | 'length' | 'angle';
 export interface SceneParameterDeclaration {
   kind: 'parameter'; name: SceneToken; quantity: SceneToken; literal: SceneToken; range: SourceRange;
@@ -66,7 +74,7 @@ function sourceRanges(source: string): (start: number, end: number) => SourceRan
   };
 }
 /** One bounded original-token scan; parentheses are needed only for the new declarations. */
-function scan(source: string, range: (start: number, end: number) => SourceRange, productMode = false): SceneToken[] {
+function scan(source: string, range: (start: number, end: number) => SourceRange, productMode = false, conditionalMode = false): SceneToken[] {
   const tokens: SceneToken[] = [];
   let offset = 0;
   while (offset < source.length) {
@@ -81,8 +89,8 @@ function scan(source: string, range: (start: number, end: number) => SourceRange
       offset = end + 2; continue;
     }
     const start = offset;
-    if ('{}:;@()'.includes(source[offset]) || productMode && source[offset] === '*') offset++;
-    else while (offset < source.length && !/[\s{}:;@()]/.test(source[offset]) && !(productMode && source[offset] === '*') &&
+    if ('{}:;@()'.includes(source[offset]) || productMode && source[offset] === '*' || conditionalMode && source[offset] === '<') offset++;
+    else while (offset < source.length && !/[\s{}:;@()]/.test(source[offset]) && !(productMode && source[offset] === '*') && !(conditionalMode && source[offset] === '<') &&
       !source.startsWith('/*', offset) && !source.startsWith('//', offset)) offset++;
     if (tokens.length === 65536) fail('BUDGET', 'Parameterized scene token limit exceeded', range(start, offset));
     tokens.push({ text: source.slice(start, offset), range: range(start, offset) });
@@ -107,7 +115,7 @@ function literalValue(quantity: Quantity, literal: SceneToken): number {
   if (!Number.isFinite(value) || Math.abs(value) > maximum) fail('RANGE', `Parameter ${quantity} must be finite within ${maximum}`, literal.range);
   return value === 0 ? 0 : value;
 }
-function definitions(source: string, tokens: SceneToken[], range: (start: number, end: number) => SourceRange, repeats?: SceneRepeatDeclaration[]): Definition[] {
+function definitions(source: string, tokens: SceneToken[], range: (start: number, end: number) => SourceRange, repeats?: SceneRepeatDeclaration[], conditions?: SceneConditionalDeclaration[]): Definition[] {
   const eof: SceneToken = { text: '', range: range(source.length, source.length) };
   let cursor = 0, phase: 'headers' | 'parameters' | 'objects' = 'headers';
   const peek = () => tokens[cursor] ?? eof;
@@ -146,6 +154,25 @@ function definitions(source: string, tokens: SceneToken[], range: (start: number
         repeats.push({ kind: 'repeat', prefix, type, count, tokens: tokens.slice(tokenStart, cursor), range: range(start.range.start, end.range.end) });
         continue;
       }
+      if (conditions && peek().text === 'when') {
+        if (conditions.length === 8) fail('BUDGET', 'Scene exceeds 8 conditional declarations', start.range);
+        const tokenStart = cursor - 1;
+        phase = 'objects'; take(); const prefix = take();
+        if (!NAME.test(prefix.text)) fail('SYNTAX', 'Conditional prefix requires ASCII1..32', prefix.range);
+        if (conditions.some(condition => condition.prefix.text === prefix.text)) fail('TYPE', 'Duplicate conditional prefix', prefix.range);
+        expect(':'); const type = take();
+        if (!SHAPES.includes(type.text)) fail('TYPE', 'Conditional requires an existing Scene shape', type.range);
+        expect('('); const left = take(), operator = take(), right = take();
+        if (!REFERENCE.test(left.text) || !REFERENCE.test(right.text))
+          fail('SYNTAX', 'Condition requires exactly two parameter references', !REFERENCE.test(left.text) ? left.range : right.range);
+        if (operator.text !== '<') fail('SYNTAX', 'Condition requires one strict < comparison', operator.range);
+        if (left.range.end === operator.range.start || operator.range.end === right.range.start)
+          fail('SYNTAX', 'Comparison requires whitespace or comments around <', operator.range);
+        expect(')'); const end = expect(';');
+        conditions.push({ kind: 'conditional', prefix, type, left, operator, right,
+          tokens: tokens.slice(tokenStart, cursor), range: range(start.range.start, end.range.end) });
+        continue;
+      }
       if (peek().text !== 'param') fail('SYNTAX', 'Only @param declarations are supported inside this scene profile', peek().range);
       if (phase === 'objects') fail('SYNTAX', 'Parameters must precede object declarations', start.range);
       phase = 'parameters'; take(); const name = take();
@@ -167,8 +194,12 @@ function definitions(source: string, tokens: SceneToken[], range: (start: number
   }
   expect('}');
   // A new declaration in/after a style is never silently removed by masking.
-  for (; cursor < tokens.length; cursor++) if (tokens[cursor].text === '@' && tokens[cursor + 1]?.text === 'param')
-    fail('SYNTAX', 'Parameters must be declared before scene objects and styles', tokens[cursor].range);
+  for (; cursor < tokens.length; cursor++) {
+    if (tokens[cursor].text === '@' && tokens[cursor + 1]?.text === 'param')
+      fail('SYNTAX', 'Parameters must be declared before scene objects and styles', tokens[cursor].range);
+    if (conditions && tokens[cursor].text === '@' && tokens[cursor + 1]?.text === 'when')
+      fail('SYNTAX', 'Conditions must be declared inside the scene object phase', tokens[cursor].range);
+  }
   return result;
 }
 function baseWork(ast: AffineSceneAst): number {
@@ -219,17 +250,20 @@ type SceneParameterData = {
   source: string; ast: ParameterizedAffineSceneAst; parameters: SceneParameter[]; scene: AffineScene2; shaders: SceneShaders;
 };
 type FiniteRepeatSceneData = SceneParameterData & { repeatDeclarations: SceneRepeatDeclaration[]; generation: SceneGenerationRecord[] };
+type ConditionalSceneData = SceneParameterData & { conditionalDeclarations: SceneConditionalDeclaration[]; decisions: SceneConditionalDecision[] };
 export function compileSceneParameterData(input: unknown, productMode: boolean | 'arithmetic', repeatMode: true): FiniteRepeatSceneData;
+export function compileSceneParameterData(input: unknown, productMode: boolean | 'arithmetic', repeatMode: 'conditional'): ConditionalSceneData;
 export function compileSceneParameterData(input: unknown, productMode?: boolean | 'arithmetic'): SceneParameterData;
-export function compileSceneParameterData(input: unknown, productMode: boolean | 'arithmetic' = false, repeatMode = false): SceneParameterData | FiniteRepeatSceneData {
+export function compileSceneParameterData(input: unknown, productMode: boolean | 'arithmetic' = false, repeatMode: boolean | 'conditional' = false): SceneParameterData | FiniteRepeatSceneData | ConditionalSceneData {
   if (typeof input !== 'string') fail('INPUT', 'Complete parameterized scene source must be text', { start: 0, end: 0, line: 1, column: 1 });
   const source = input;
   if (source.length > 65536 || new TextEncoder().encode(source).length > 65536)
     fail('BUDGET', 'Parameterized scene source exceeds64KiB UTF16/UTF8', { start: 0, end: source.length, line: 1, column: 1 });
   const arithmeticMode = productMode === 'arithmetic';
-  const range = sourceRanges(source), tokens = scan(source, range, productMode !== false);
-  const repeats = repeatMode ? [] as SceneRepeatDeclaration[] : undefined;
-  const declared = definitions(source, tokens, range, repeats);
+  const range = sourceRanges(source), tokens = scan(source, range, productMode !== false, repeatMode === 'conditional');
+  const repeats = repeatMode === true ? [] as SceneRepeatDeclaration[] : undefined;
+  const conditions = repeatMode === 'conditional' ? [] as SceneConditionalDeclaration[] : undefined;
+  const declared = definitions(source, tokens, range, repeats, conditions);
   // Indexed UTF16 units are essential: code-point iteration would shift every
   // original range after a surrogate pair in a comment preceding parameters.
   const masked = source.split('');
@@ -237,27 +271,14 @@ export function compileSceneParameterData(input: unknown, productMode: boolean |
     if (!/[\r\n\u2028\u2029]/.test(masked[i])) masked[i] = ' '; };
   for (const definition of declared) mask(definition.declaration.range);
   if (repeats) for (const repeat of repeats) mask(repeat.range);
+  if (conditions) for (const condition of conditions) mask(condition.range);
   const base = delegated(() => parseAffineSceneAst(masked.join('')), range(0, 0));
   const authoredDeclarations = base.declarations;
-  const generatedCount = repeats?.reduce((sum, repeat) => sum + Number(repeat.count.text), 0) ?? 0;
+  const generatedCount = repeats?.reduce((sum, repeat) => sum + Number(repeat.count.text), 0) ?? conditions?.length ?? 0;
   const explicitCount = authoredDeclarations.reduce((sum, declaration) => sum + (declaration.kind === 'object' ? 1 : 0), 0);
   if (repeatMode && explicitCount + generatedCount > 32) fail('BUDGET', 'Expanded scene exceeds32 objects', base.range);
-  let work = baseWork(base) + 4 * declared.length + 10 * (repeats?.length ?? 0) + 4 * generatedCount, uses = 0;
+  let work = baseWork(base) + 4 * declared.length + 10 * (repeats?.length ?? 0) + 15 * (conditions?.length ?? 0) + 4 * generatedCount, uses = 0;
   if (work > 4096) fail('BUDGET', 'Parameterized scene exceeds4096 cumulative AST work nodes', base.range);
-  // All expanded count/work is admitted before creating generated object or provenance arrays.
-  const generation: SceneGenerationRecord[] = [];
-  if (repeats) {
-    const ids = new Set(authoredDeclarations.filter(declaration => declaration.kind === 'object').map(declaration => declaration.id.text.slice(1)));
-    const expanded: AffineSceneAst['declarations'] = [...authoredDeclarations];
-    for (const repeat of repeats) for (let index = 0; index < Number(repeat.count.text); index++) {
-      const nodeId = repeat.prefix.text + '_' + index;
-      if (ids.has(nodeId)) fail('TYPE', 'Generated object ID collides with an existing object', repeat.prefix.range);
-      ids.add(nodeId);
-      expanded.push({ kind: 'object', type: repeat.type, id: { text: '#' + nodeId, range: repeat.prefix.range }, range: repeat.range });
-      generation.push({ nodeId, prefix: repeat.prefix.text, index, declaration: repeat.range });
-    }
-    base.declarations = expanded.sort((a, b) => a.range.start - b.range.start);
-  }
   const byName = new Map(declared.map(definition => [definition.declaration.name.text, definition]));
   const scanByStart = productMode ? new Map(tokens.map((token, index) => [token.range.start, index])) : null;
   const chargedUse = (definition: Definition, token: SceneToken) => {
@@ -272,6 +293,41 @@ export function compileSceneParameterData(input: unknown, productMode: boolean |
     if (!definition) fail('TYPE', 'Unknown parameter reference', token.range);
     return definition;
   };
+  // All expanded count/work is admitted before creating generated object or provenance arrays.
+  const generation: SceneGenerationRecord[] = [];
+  const decisions: SceneConditionalDecision[] = [];
+  if (conditions) {
+    // Charge and type every predicate before private candidate expansion.
+    for (const condition of conditions) {
+      const left = reference(condition.left), right = reference(condition.right);
+      if (left.quantity !== right.quantity) fail('TYPE', 'Comparison requires the same quantity', condition.operator.range);
+      chargedUse(left, condition.left); chargedUse(right, condition.right);
+      decisions.push({ nodeId: condition.prefix.text + '_0', prefix: condition.prefix.text,
+        included: left.value < right.value, declaration: condition.range });
+    }
+    const ids = new Set(authoredDeclarations.filter(declaration => declaration.kind === 'object').map(declaration => declaration.id.text.slice(1)));
+    for (const condition of conditions) {
+      const nodeId = condition.prefix.text + '_0';
+      if (ids.has(nodeId)) fail('TYPE', 'Potential conditional object ID collides with an existing object', condition.prefix.range);
+      ids.add(nodeId);
+    }
+    const expanded: AffineSceneAst['declarations'] = [...authoredDeclarations];
+    for (const condition of conditions) expanded.push({ kind: 'object', type: condition.type,
+      id: { text: '#' + condition.prefix.text + '_0', range: condition.prefix.range }, range: condition.range });
+    base.declarations = expanded.sort((a, b) => a.range.start - b.range.start);
+  }
+  if (repeats) {
+    const ids = new Set(authoredDeclarations.filter(declaration => declaration.kind === 'object').map(declaration => declaration.id.text.slice(1)));
+    const expanded: AffineSceneAst['declarations'] = [...authoredDeclarations];
+    for (const repeat of repeats) for (let index = 0; index < Number(repeat.count.text); index++) {
+      const nodeId = repeat.prefix.text + '_' + index;
+      if (ids.has(nodeId)) fail('TYPE', 'Generated object ID collides with an existing object', repeat.prefix.range);
+      ids.add(nodeId);
+      expanded.push({ kind: 'object', type: repeat.type, id: { text: '#' + nodeId, range: repeat.prefix.range }, range: repeat.range });
+      generation.push({ nodeId, prefix: repeat.prefix.text, index, declaration: repeat.range });
+    }
+    base.declarations = expanded.sort((a, b) => a.range.start - b.range.start);
+  }
   const resolvedRules: AffineSceneAst['rules'] = [];
   // Resolved token arrays are staged only after original work plus every added
   // product/use has been admitted. The maps below retain bounded original tokens.
@@ -344,13 +400,42 @@ export function compileSceneParameterData(input: unknown, productMode: boolean |
       fieldResults.set(field, values); authoredLiterals.set(field, originals);
     }
   }
+  const falseIds = new Set(decisions.filter(decision => !decision.included).map(decision => decision.nodeId));
+  if (conditions) {
+    // Charge the exact private active view BEFORE arrays/copies and actual lowerers.
+    let activeWork = 0;
+    for (const declaration of base.declarations) {
+      if (declaration.kind === 'object') { if (!falseIds.has(declaration.id.text.slice(1))) activeWork++; }
+      else activeWork += 1 + declaration.field.literals.length;
+    }
+    for (const rule of base.rules) {
+      if (rule.selector.text.startsWith('#') && falseIds.has(rule.selector.text.slice(1))) continue;
+      activeWork++;
+      for (const field of rule.declarations) activeWork += 1 + fieldResults.get(field)!.length;
+    }
+    if (work + activeWork > 4096) fail('BUDGET', 'Conditional scene exceeds4096 cumulative AST work nodes', base.range);
+    work += activeWork;
+  }
   for (const rule of base.rules) resolvedRules.push({ ...copyGpuData(rule),
     declarations: rule.declarations.map(field => ({ ...copyGpuData(field),
       literals: fieldResults.get(field)!.map(plan => ({ text: plan.text ?? plan.original.text, range: { ...(plan.range ?? plan.original.range) } })) })) });
   const resolved: AffineSceneAst = { ...copyGpuData(base), source, rules: resolvedRules };
-  const lowered = delegated(() => lowerAffineSceneAst(resolved), range(0, 0));
-  for (const shader of Object.values(lowered.shaders)) if (shader.length > 65536 || new TextEncoder().encode(shader).length > 65536)
-    fail('BUDGET', 'Complete parameterized scene shader exceeds64KiB', base.range);
+  const shaderBudget = (shaders: SceneShaders) => {
+    for (const shader of Object.values(shaders)) if (shader.length > 65536 || new TextEncoder().encode(shader).length > 65536)
+      fail('BUDGET', 'Complete parameterized scene shader exceeds64KiB', base.range);
+  };
+  let lowered = delegated(() => lowerAffineSceneAst(resolved), range(0, 0));
+  shaderBudget(lowered.shaders);
+  if (conditions) {
+    // The complete potential candidate has passed unchanged semantics, including
+    // false shape relationships. Filter only its genuine false identities.
+    const active: AffineSceneAst = { ...resolved,
+      declarations: resolved.declarations.filter(declaration => declaration.kind !== 'object' || !falseIds.has(declaration.id.text.slice(1))),
+      rules: resolved.rules.filter(rule => !rule.selector.text.startsWith('#') || !falseIds.has(rule.selector.text.slice(1))),
+    };
+    lowered = delegated(() => lowerAffineSceneAst(active), range(0, 0));
+    shaderBudget(lowered.shaders);
+  }
   const ast: ParameterizedAffineSceneAst = { schema: 'barocss-gpu-parameterized-affine-scene-ast', schemaVersion: 0, sourceVersion: 2, source,
     header: base.header, name: base.name, range: base.range,
     declarations: [...authoredDeclarations, ...declared.map(definition => definition.declaration)].sort((a, b) => a.range.start - b.range.start),
@@ -359,5 +444,5 @@ export function compileSceneParameterData(input: unknown, productMode: boolean |
     unit: definition.quantity === 'length' ? 'scene' : definition.quantity === 'angle' ? 'deg' : 'dimensionless', value: definition.value,
     definition: definition.declaration.range, uses: definition.uses }));
   const data = { source, ast, parameters, scene: lowered.scene, shaders: lowered.shaders };
-  return repeats ? { ...data, repeatDeclarations: repeats, generation } : data;
+  return conditions ? { ...data, conditionalDeclarations: conditions, decisions } : repeats ? { ...data, repeatDeclarations: repeats, generation } : data;
 }

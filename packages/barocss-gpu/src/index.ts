@@ -182,3 +182,6 @@ export type { SceneRepeatDeclaration, SceneGenerationRecord, FiniteRepeatAffineS
 
 export { prepareNativeDirectionalLightShaderSource, DirectionalLightShaderSourceError } from './native-directional-light-shader-source.js';
 export type { DirectionalLightShaderSourceCode, DirectionalLightShaderSlot, DirectionalLightShaderExecutionLight, DirectionalLightShaderExecution, DirectionalLightShaderABI, PreparedDirectionalLightShaderSource } from './native-directional-light-shader-source.js';
+
+export { compileConditionalAffineSceneSource } from './scene-conditional-source.js';
+export type { SceneConditionalDeclaration, SceneConditionalDecision, ConditionalAffineSceneAst, CompiledConditionalAffineSceneSource } from './scene-conditional-source.js';
