@@ -130,6 +130,8 @@ The original domain is `[0,1]`. The host evaluates101 uniformly spaced parameter
 
 ## Query a Curve with an original domain
 
+[Insert a knot into a complete source0 Curve](./curve-knot-insertion) to compare a changed control polygon with retained sampled shape at the same original parameters. The native-data illustration and producer observations have separate sampling counts; the operation adds no gallery/editor/GPU workflow.
+
 This complete module uses source0 with knot domain 2..7:
 
 ```ts
