@@ -17,6 +17,10 @@ Here `renderer` is the live `SceneRenderer` from the [quickstart](./quickstart),
 
 `setCamera(camera)` returns the same `{ok:true}` or `{ok:false,error}` shape. Camera changes affect presentation. They do not edit source or native CAD geometry. `resize(width,height)` throws on invalid dimensions or failed allocation. Stop calls after `dispose()`.
 
+## Compile typed generation before displaying it
+
+The [generated scene guide](./generated-scene) preserves complete authored Source2, typed values, repeat IDs and conditional decisions alongside its selected scene. Re-find public token ranges after every accepted source edit. Its Canvas2D diagnostic host stages a drawing before adoption; no Source2 `SceneRenderer`, shader execution or public bounds result is implied. The older live-renderer recipe above keeps its stated Source0/1 scope.
+
 ## Display a CAD Surface
 
 Use CAD to sample the native Surface. Keep the original model and the tessellation report. Pass the resulting packet to GPU with one explicit conversion:

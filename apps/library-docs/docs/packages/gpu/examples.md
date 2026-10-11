@@ -2,7 +2,7 @@
 
 Start the [visual playground](/playground). It runs the real source APIs in your browser. Choose **GPU scene** to edit shapes, or **GPU material** to change the color of a CAD-derived mesh. Each example shows its input, accepted result and diagnostics.
 
-These examples describe the local experimental `@barocss/gpu` version0.0.0 at source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`. The scene samples use source1; the material samples use `mesh-opaque-fragment-v0`. The images show the browser-rendered samples.
+The original scene and mesh-material examples below describe the local experimental `@barocss/gpu` version0.0.0 at source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`. The scene samples use source1; the material samples use `mesh-opaque-fragment-v0`. The images show the browser-rendered samples.
 
 ## Procedural UV plasma
 
@@ -15,6 +15,10 @@ The [interference caustics example](./caustics-shader) combines crossing wave fi
 [Reuse a float easing function and a color palette](./reusable-shader) in the [new language example](/examples/language#reusable-shader). Its complete `@fn` program uses a separate newer source profile; it changes fragment color on a fixed UV quad and adds no Scene shape or clock.
 
 Use [GPU compositions](./composition-examples) for style precedence, local rotations and a material transition window. Each source is complete and editable in the playground.
+
+## Typed parameters, repeats and conditions
+
+[Open Generated scene](/examples/language#generated-scene) and read [the complete Source2 input](./generated-scene). Compare equality, stable repeat IDs and a third stud at the common origin. The separate profile supplies frozen source/AST/scene/shader data; an application Canvas2D view draws diagnostic local boxes while the shader text remains unexecuted.
 
 ## Inspect material color without a display
 

@@ -8,6 +8,8 @@ const materialSource = { language: 'GPU mesh material', libraries: Object.freeze
 // Category describes the reader's task. A shared display host is not an
 // integration task; libraries lists public packages used by that sample.
 export const exampleCatalog = Object.freeze({
+  'generated-scene': item('Generated scene', 'generated-scene', 'gpu', 'language', '/packages/gpu/generated-scene',
+    'Edit typed inputs, finite repeats and strict conditions, then inspect actual generated objects and application diagnostic boxes.', { language: 'GPU Source2 typed mixed generation' }),
   'viewer-display-pose': item('Viewer display pose', 'viewer-display-pose', 'viewer', 'api', '/packages/viewer/display-pose',
     'Measure native millimetre coordinates, move only the displayed pose, then project and select the same surface.'),
   'cad-adaptive-sampling': item('CAD adaptive sampling', 'cad-adaptive-sampling', 'cad', 'api', '/packages/cad/adaptive-curve-sampling',

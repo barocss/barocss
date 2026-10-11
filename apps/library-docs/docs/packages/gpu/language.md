@@ -4,6 +4,10 @@ The scene language declares simple 3D objects and assigns their properties. The 
 
 This page describes source0 and source1 at local source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`. The language is a bounded scene format. CSS selectors, JavaScript expressions and arbitrary GLSL are separate formats and are not accepted here.
 
+## Typed Source2 generation
+
+Use [Generate a scene with typed inputs](./generated-scene) for the separate `4dcb0ebb` Source2 compiler with `@param`, `@repeat` and `@when`. Its application displays coefficient-based diagnostic boxes and does not execute the derived shaders. This page keeps its older Source0/1 parser and `mountScene` contracts.
+
 ## Practice styles and local transforms
 
 The [GPU composition examples](./composition-examples) show type styles with ID overrides, rounded-box dimensions and local capsule endpoints under rotation. Complete sources and actual images accompany the live examples.
@@ -12,7 +16,7 @@ The [GPU composition examples](./composition-examples) show type styles with ID 
 
 | Input | Purpose | CPU entry | Drawing entry |
 | --- | --- | --- | --- |
-| `@scene` text | Declare SDF primitives and their style | `parseScene`, `compileGpu` | `mountScene` |
+| Source0/1 `@scene` text | Declare SDF primitives and their style | `parseScene`, `compileGpu` | `mountScene` |
 | `@shader` text | Set an opaque mesh fragment color | `compileMeshMaterial` | `MeshRenderer.setMaterial` |
 | `EngineSceneV0` data | Prepare CPU hierarchy, transforms, bounds and draws | `prepareEngineScene` | No general Engine renderer in this source snapshot |
 | CAD `@model` text | Define CAD geometry in model units | `compileCadModel` from CAD | Tessellate, convert, then mount an admitted mesh |

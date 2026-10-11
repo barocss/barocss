@@ -1,0 +1,46 @@
+{
+  "kind": "generated-scene",
+  "title": "GPU scene language · typed repeat and condition",
+  "label": "Generated scene",
+  "anchor": "generated-scene",
+  "language": "GPU Scene Source2",
+  "guide": "/packages/gpu/generated-scene",
+  "description": "Compile typed parameters, repeated studs and a conditional marker. This application draws transformed local diagnostic boxes from the selected Scene2 coefficients; it does not execute the derived shader text or render spheres.",
+  "source": "/* 설계 π 😀: authored repeats and conditions; preserve CRLF. */\r\n@scene generated_plate {\r\n  version:2;\r\n  background:#102030;\r\n  @param used:length(2scene);\r\n  @param limit:length(3scene);\r\n  @param gain:scalar(.15);\r\n  box #plate;\r\n  @repeat studs:sphere(2);\r\n  @when marker:sphere($used < $limit);\r\n}\r\nbox {\r\n  color:#294560;\r\n  size:6 .5 3;\r\n  translate:0 -.6 0;\r\n}\r\nsphere {\r\n  color:#42C8D5;\r\n  radius:calc($limit * $gain);\r\n  translate:-0 0 0;\r\n}\r\n#studs_0 { translate:-2 -0 0; }\r\n#studs_1 { translate:2 0 0; }\r\n#marker_0 {\r\n  color:#F6C453;\r\n  translate:0 1.5 0;\r\n}\r\n",
+  "actions": [
+    {
+      "id": "exclude-marker",
+      "label": "Exclude marker · used = limit"
+    },
+    {
+      "id": "include-marker",
+      "label": "Include marker · used < limit"
+    },
+    {
+      "id": "add-stud",
+      "label": "Use three studs"
+    }
+  ],
+  "expected": {
+    "initialIds": [
+      "plate",
+      "studs_0",
+      "studs_1",
+      "marker_0"
+    ],
+    "sphereRadiusScene": 0.44999999999999996,
+    "excludedIds": [
+      "plate",
+      "studs_0",
+      "studs_1"
+    ],
+    "addedIds": [
+      "plate",
+      "studs_0",
+      "studs_1",
+      "studs_2",
+      "marker_0"
+    ],
+    "qualification": "Source-backed expectations; selected execution pending."
+  }
+}
