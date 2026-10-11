@@ -4,7 +4,7 @@ import type {
   CadDocumentResult, CadDocumentV1, CadGeometryReferenceV0, SurfacePoleEditProvenance,
   CadCurveArcLengthOptions, CadCurveArcLengthResult,
   CurveCurvatureResult, CurveD2Result, CurvePoleEditProvenance, SurfaceCurvatureResult, SurfaceD2Result,
-  AffineGeometryTransformReport, SourceCurveIntervalExtractionResult, SourceSurfaceKnotInsertionResult, SourceCurveKnotInsertionResult, SurfaceIsoCurveResult, JoinedCurveResult, SourceSurfaceDegreeElevationResult, ExtractedSurfaceRegionResult,
+  AffineGeometryTransformReport, SourceCurveIntervalExtractionResult, SourceSurfaceKnotInsertionResult, SourceCurveKnotInsertionResult, SurfaceIsoCurveResult, JoinedCurveResult, SourceSurfaceDegreeElevationResult, ExtractedSurfaceRegionResult, CurveParameterSplitResult,
 } from '@barocss/cad';
 
 export type CadEditorExportCapability = CadDocumentExportCapability;
@@ -48,6 +48,13 @@ export type CadEditorBodyTranslationField = Exclude<CadEditorPoleField, 'weight'
 export type CadEditorCurveIntervalField = 'min' | 'max';
 export type CadEditorSurfaceIsoCurveAxis = 'u' | 'v';
 export type CadEditorSurfaceDegreeElevationAxis = 'u' | 'v';
+export interface CadEditorCurveSplitCreation {
+  sourceReference: CadGeometryReferenceV0;
+  assetId: string;
+  lowerBodyId: string;
+  upperBodyId: string;
+  result: CurveParameterSplitResult;
+}
 export type CadEditorSurfaceRegionField = 'uMin' | 'uMax' | 'vMin' | 'vMax';
 export interface CadEditorSurfaceRegionCreation {
   sourceReference: CadGeometryReferenceV0;
@@ -69,7 +76,7 @@ export interface CadEditorSurfaceIsoCurveCreation {
   result: SurfaceIsoCurveResult;
 }
 export type CadEditorDraftField = CadEditorPoleField | 'angleDegrees' | 'scaleFactor' | 'intervalMin' | 'intervalMax' | 'surfaceKnotU' | 'surfaceKnotV' | 'curveKnot' | 'surfaceIsoU' | 'surfaceIsoV'
-  | 'surfaceRegionUMin' | 'surfaceRegionUMax' | 'surfaceRegionVMin' | 'surfaceRegionVMax';
+  | 'surfaceRegionUMin' | 'surfaceRegionUMax' | 'surfaceRegionVMin' | 'surfaceRegionVMax' | 'curveSplit';
 export type CadEditorEditTarget = 'pole' | 'object' | 'rotation' | 'scale';
 export type CadEditorRotationAxis = 'x' | 'y' | 'z';
 export type CadEditorScaleAxis = 'uniform' | 'x' | 'y' | 'z';
@@ -118,7 +125,7 @@ export interface CadEditorSelectedPole extends CadEditorSurfaceSelection {
 }
 export interface CadEditorCandidate {
   token: string; baseGeneration: number; baseDisplayGeneration: number;
-  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'rename' | 'duplicate' | 'curve-interval' | 'surface-knot' | 'curve-knot' | 'surface-isocurve' | 'curve-join' | 'surface-degree-elevation' | 'surface-region';
+  kind: 'apply' | 'open' | 'undo' | 'redo' | 'display' | 'rename' | 'duplicate' | 'curve-interval' | 'surface-knot' | 'curve-knot' | 'surface-isocurve' | 'curve-join' | 'surface-degree-elevation' | 'surface-region' | 'curve-split';
   selectionTarget?: CadEditorSelectionTarget | null;
   presentation?: 'structural';
   curveInterval?: SourceCurveIntervalExtractionResult;
@@ -126,6 +133,7 @@ export interface CadEditorCandidate {
   clearCurvePoleSelection?: true;
   surfaceIsoCurve?: CadEditorSurfaceIsoCurveCreation;
   surfaceRegion?: CadEditorSurfaceRegionCreation;
+  curveSplit?: CadEditorCurveSplitCreation;
   curveJoin?: CadEditorCurveJoinCreation;
   surfaceKnot?: SourceSurfaceKnotInsertionResult;
   surfaceDegreeElevation?: SourceSurfaceDegreeElevationResult;
@@ -173,6 +181,7 @@ export interface CadEditorSnapshot {
   lastCurveKnot: SourceCurveKnotInsertionResult | null;
   lastSurfaceIsoCurve: CadEditorSurfaceIsoCurveCreation | null;
   lastSurfaceRegion: CadEditorSurfaceRegionCreation | null;
+  lastCurveSplit: CadEditorCurveSplitCreation | null;
   lastCurveJoin: CadEditorCurveJoinCreation | null;
   lastSurfaceDegreeElevation: SourceSurfaceDegreeElevationResult | null;
 }
@@ -205,6 +214,7 @@ export interface CadEditorSession {
   stageSurfaceIsoCurveField(axis: CadEditorSurfaceIsoCurveAxis, rawText: string): void;
   stageSurfaceRegionField(field: CadEditorSurfaceRegionField, rawText: string): void;
   stageCurveKnotField(rawText: string): void;
+  stageCurveSplitField(rawText: string): void;
   discardPending(): void;
   prepareApply(): CadEditorCandidate | null;
   prepareOpen(text: string, options?: CadEditorSessionOptions): CadEditorCandidate;

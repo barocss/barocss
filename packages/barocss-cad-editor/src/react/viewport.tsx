@@ -19,6 +19,8 @@ import { SelectionIsolation } from './selection-isolation.js';
 import { SurfaceDegreeElevationControls } from './surface-degree-elevation.js';
 import { useSurfaceRegion } from './surface-region.js';
 import { SurfaceRegionHandles } from './surface-region-handles.js';
+import { useCurveSplit, curveSplitCurve } from './curve-split.js';
+import { CurveSplitHandles } from './curve-split-handles.js';
 import { useSurfaceKnot, surfaceKnotSurface } from './surface-knot.js';
 import { SurfaceKnotHandles } from './surface-knot-handles.js';
 import { useCurveKnot, curveKnotCurve } from './curve-knot.js';
@@ -150,6 +152,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
   const curveKnot = useCurveKnot();
   const isoCurve = useSurfaceIsoCurve();
   const region = useSurfaceRegion();
+  const split = useCurveSplit();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mountedRef = useRef<MountedViewer | null>(null);
   const propsRef = useRef(props);
@@ -226,6 +229,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     if (curveKnot?.isActive()) curveKnot.noteError(error);
     if (isoCurve?.isActive()) isoCurve.noteError(error);
     if (region?.isActive()) region.noteError(error);
+    if (split?.isActive()) split.noteError(error);
     try { propsRef.current.onError?.(error); } catch { /* Host callbacks do not change admission. */ }
   }
 
@@ -791,7 +795,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     } catch { return false; }
   }
   function isCurrentSurface() {
-    return !region?.isActive() && isCurrentSurfaceBase();
+    return !region?.isActive() && !split?.isActive() && isCurrentSurfaceBase();
   }
   function isCurrentSurfaceBase() {
     try {
@@ -809,7 +813,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
   }
   function isCurrentCurvePresentation(presentation: CurveControlPresentation) {
     try {
-      if (curveKnot?.isActive() || region?.isActive()) return false;
+      if (curveKnot?.isActive() || region?.isActive() || split?.isActive()) return false;
       const mounted = mountedRef.current, canvas = canvasRef.current, current = session.getSnapshot();
       if (!mounted || mounted.session !== session || propsRef.current.session !== session || !canvas || !ready
         || mounted.admitting || mounted.unavailable || mounted.optionsRefused || current.disposed
@@ -835,7 +839,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     } catch { return false; }
   }
   function isCurrentKnotCurve() {
-    if (region?.isActive()) return false;
+    if (region?.isActive() || split?.isActive()) return false;
     try {
       const selected = curveKnotCurve(session), mounted = mountedRef.current, canvas = canvasRef.current;
       if (!selected || !mounted || mounted.session !== session || propsRef.current.session !== session || !canvas || !ready
@@ -892,7 +896,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     try {
       const current = session.getSnapshot(), mounted = mountedRef.current, canvas = canvasRef.current;
       if (!isCurrentDocument() || !mounted || !canvas || axisGestureRef.current || hasViewportCapture()
-        || interval?.isActive() || knot?.active || curveKnot?.isActive() || isoCurve?.isActive() || region?.isActive()
+        || interval?.isActive() || knot?.active || curveKnot?.isActive() || isoCurve?.isActive() || region?.isActive() || split?.isActive()
         || current.selectionTransition || Object.keys(current.pending).length
         || (ownCandidateToken === undefined ? current.candidate !== null : current.candidate?.token !== ownCandidateToken)
         || current.selectedBodyId === null || !sameOptions(mounted.viewer.getState(), receipt.state)
@@ -909,7 +913,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
   function isCurrentBodyMovePresentation(presentation: BodyMovePresentation, ownCandidateToken?: string) {
     try {
       const mounted=mountedRef.current,canvas=canvasRef.current,current=session.getSnapshot();
-      if(region?.isActive()||!mounted||mounted.session!==session||propsRef.current.session!==session||!canvas||!ready||mounted.admitting||mounted.unavailable||mounted.optionsRefused
+      if(region?.isActive()||split?.isActive()||!mounted||mounted.session!==session||propsRef.current.session!==session||!canvas||!ready||mounted.admitting||mounted.unavailable||mounted.optionsRefused
         ||current.disposed||current.selectionTransition||(ownCandidateToken===undefined?current.candidate!==null:current.candidate?.token!==ownCandidateToken)
         ||mounted.generation!==current.generation||mounted.displayGeneration!==current.displayGeneration||presentation.generation!==current.generation||presentation.displayGeneration!==current.displayGeneration
         ||!sameOptions(mounted.view,current.view)||!sameOptions(presentation.view,current.view)
@@ -928,12 +932,29 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
   function isCurrentRegionSurface(receipt?: CadEditorDisplayReceipt, ownCandidateToken?: string) {
     try {
       const current = session.getSnapshot(), mounted = mountedRef.current, canvas = canvasRef.current, frame = receipt ?? documentReceipt;
-      if (interval?.isActive() || knot?.active || curveKnot?.isActive() || isoCurve?.isActive() || !isCurrentSurfaceBase()
+      if (split?.isActive() || interval?.isActive() || knot?.active || curveKnot?.isActive() || isoCurve?.isActive() || !isCurrentSurfaceBase()
         || current.selectionTransition || (ownCandidateToken === undefined ? current.candidate !== null : current.candidate?.token !== ownCandidateToken)) return false;
       return !!mounted && !!canvas && !!frame && sameOptions(mounted.viewer.getState(), frame.state)
         && canvas.width === frame.width && canvas.height === frame.height;
     } catch { return false; }
   }
+  function isCurrentSplitCurve(receipt?: CadEditorDisplayReceipt, ownCandidateToken?: string) {
+    try {
+      const selected = curveSplitCurve(session), mounted = mountedRef.current, canvas = canvasRef.current, frame = receipt ?? documentReceipt;
+      if (!selected || !mounted || !canvas || !frame || !isCurrentDocument() || mounted.focus
+        || interval?.isActive() || knot?.active || curveKnot?.isActive() || isoCurve?.isActive() || region?.isActive()
+        || selected.snapshot.selectionTransition || Object.keys(selected.snapshot.pending).some(key => key !== 'curveSplit')
+        || (ownCandidateToken === undefined ? selected.snapshot.candidate !== null : selected.snapshot.candidate?.token !== ownCandidateToken)
+        || !sameOptions(mounted.viewer.getState(), frame.state) || canvas.width !== frame.width || canvas.height !== frame.height) return false;
+      const state = mounted.viewer.getState(), binding = state.document?.bodyBindings.find(body => body.bodyId === selected.reference.bodyId);
+      const displayed = state.documentBodies.find(body => body.binding.bodyId === selected.reference.bodyId);
+      return !!binding && binding.geometryKind === 'curve' && binding.assetId === selected.reference.assetId && binding.geometryId === selected.reference.geometryId
+        && sameOptions(state.document, selected.snapshot.accepted) && sameOptions(state.selectedGeometry, displayed?.ref ?? null)
+        && (!displayed || displayed.ref.kind === 'curve' && displayed.ref.curveId === selected.curve.id
+          && displayed.binding.documentRevision === selected.reference.documentRevision && displayed.binding.assetRevision === selected.reference.assetRevision);
+    } catch { return false; }
+  }
+  if (split?.session === session) split.viewport.current = { canvas: canvasRef.current, receipt: documentReceipt, isCurrentCurve: isCurrentSplitCurve };
   if (region?.session === session) region.viewport.current = { canvas: canvasRef.current, receipt: documentReceipt, isCurrentSurface: isCurrentRegionSurface };
   if (isoCurve?.session === session) isoCurve.viewport.current = { canvas: canvasRef.current, receipt: documentReceipt, isCurrentSurface: isCurrentIsoSurface };
   if (interval?.session === session) interval.viewport.current = { canvas: canvasRef.current, documentReceipt, focusReceipt: focusedReceipt, isCurrentCurve: isCurrentIntervalCurve };
@@ -941,7 +962,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
   const viewBusy=!ready||viewportCaptured||axisGestureActive||snapshot.disposed||snapshot.candidate!==null||snapshot.selectionTransition!==null||Object.keys(snapshot.pending).length>0;
   return <div ref={viewportRef} className={cn('cad-editor-viewport', className)} data-viewer-ready={ready}
     onKeyDownCapture={event=>{const target=event.target;
-      if(axisGestureRef.current&&(session.getSnapshot().curveSelection!==null||session.getSnapshot().editTarget==='object'&&session.getSnapshot().selection===null||curveKnot?.gesture.current||isoCurve?.gesture.current||region?.gesture.current)&&event.key!=='Escape'
+      if(axisGestureRef.current&&(session.getSnapshot().curveSelection!==null||session.getSnapshot().editTarget==='object'&&session.getSnapshot().selection===null||curveKnot?.gesture.current||isoCurve?.gesture.current||region?.gesture.current||split?.gesture.current)&&event.key!=='Escape'
         &&!event.nativeEvent.isComposing&&event.keyCode!==229&&!(target instanceof Element&&target.closest('input,textarea,select,[contenteditable]'))){
         event.preventDefault();event.stopPropagation();
       }}}
@@ -969,30 +990,32 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     {snapshot.view.kind === 'document' && <SelectionIsolation session={session} canvas={canvasRef.current}
       receipt={ready ? documentReceipt : null} isCurrentDocument={isCurrentDocument} busy={viewBusy}
       onError={error => report(error, 'Changing document visibility failed')} />}
-    {snapshot.view.kind === 'document' && !interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active
+    {snapshot.view.kind === 'document' && !interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active
       && <SurfaceDegreeElevationControls session={session} canvas={canvasRef.current} receipt={ready ? documentReceipt : null}
         isCurrentSurface={isCurrentDegreeSurface} busy={viewBusy} onError={cause => report(cause, 'Raising Surface degree failed')} />}
-    {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && <SurfacePoleHandles session={session} receipt={ready?documentReceipt:null} canvas={canvasRef.current} onError={error=>report(error,'Surface point gesture failed')} />}
-    {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && <PoleAxisGizmo session={session} documentReceipt={ready?documentReceipt:null} curveReceipt={ready?focusedReceipt:null} canvas={canvasRef.current}
+    {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && <SurfacePoleHandles session={session} receipt={ready?documentReceipt:null} canvas={canvasRef.current} onError={error=>report(error,'Surface point gesture failed')} />}
+    {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && <PoleAxisGizmo session={session} documentReceipt={ready?documentReceipt:null} curveReceipt={ready?focusedReceipt:null} canvas={canvasRef.current}
       isCurrentCurvePresentation={isCurrentCurvePresentation}
       isCurrentBodyMovePresentation={isCurrentBodyMovePresentation}
       onGestureChange={active=>{axisGestureRef.current=active;setAxisGestureActive(active);}}
       onError={error=>report(error,'Axis point gesture failed')}/>}
     {focusedReceipt&&<p className="cad-editor-curve-view-label" data-testid="curve-view-label">Curve focus · {focusedReceipt.bodyName}<span>Other objects remain in document view.</span></p>}
-    {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && <CurvePoleHandles session={session} receipt={ready?focusedReceipt:null} documentReceipt={ready?documentReceipt:null}
+    {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && <CurvePoleHandles session={session} receipt={ready?focusedReceipt:null} documentReceipt={ready?documentReceipt:null}
       canvas={canvasRef.current} isCurrentPresentation={isCurrentCurvePresentation}
       onGestureChange={active=>{axisGestureRef.current=active;setAxisGestureActive(active);}} onError={error => report(error, 'Curve point gesture failed')} />}
-    {!curveKnot?.active && !isoCurve?.active && !region?.active && <SurfaceKnotHandles session={session} receipt={ready ? documentReceipt : null} canvas={canvasRef.current} isCurrentSurface={isCurrentSurface}
+    {!curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && <SurfaceKnotHandles session={session} receipt={ready ? documentReceipt : null} canvas={canvasRef.current} isCurrentSurface={isCurrentSurface}
       onError={error => report(error, 'Surface knot gesture failed')} onGestureChange={active => { axisGestureRef.current = active; setAxisGestureActive(active); }} />}
-    {!curveKnot?.active && !isoCurve?.active && !region?.active && <CurveIntervalHandles session={session} documentReceipt={ready ? documentReceipt : null} focusReceipt={ready ? focusedReceipt : null} canvas={canvasRef.current} isCurrentCurve={isCurrentIntervalCurve}
+    {!curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && <CurveIntervalHandles session={session} documentReceipt={ready ? documentReceipt : null} focusReceipt={ready ? focusedReceipt : null} canvas={canvasRef.current} isCurrentCurve={isCurrentIntervalCurve}
       onError={error => report(error, 'Curve interval gesture failed')} onGestureChange={active => { axisGestureRef.current = active; setAxisGestureActive(active); }} />}
-    {!isoCurve?.active && !region?.active && <CurveKnotHandles session={session} documentReceipt={ready ? documentReceipt : null} focusReceipt={ready ? focusedReceipt : null}
+    {!isoCurve?.active && !region?.active && !split?.active && <CurveKnotHandles session={session} documentReceipt={ready ? documentReceipt : null} focusReceipt={ready ? focusedReceipt : null}
       canvas={canvasRef.current} isCurrentCurve={isCurrentKnotCurve} onError={error => report(error, 'Curve knot gesture failed')}
       onGestureChange={active => { axisGestureRef.current = active; setAxisGestureActive(active); }} />}
-    {!region?.active && <SurfaceIsoCurveHandles session={session} receipt={ready ? documentReceipt : null} canvas={canvasRef.current} isCurrentSurface={isCurrentIsoSurface}
+    {!region?.active && !split?.active && <SurfaceIsoCurveHandles session={session} receipt={ready ? documentReceipt : null} canvas={canvasRef.current} isCurrentSurface={isCurrentIsoSurface}
       onError={error => report(error, 'Surface iso-Curve gesture failed')} onGestureChange={active => { axisGestureRef.current = active; setAxisGestureActive(active); }} />}
-    <SurfaceRegionHandles session={session} receipt={ready ? documentReceipt : null} canvas={canvasRef.current} isCurrentSurface={isCurrentRegionSurface}
-      onError={error => report(error, 'Surface region gesture failed')} onGestureChange={active => { axisGestureRef.current = active; setAxisGestureActive(active); }} />
+    {!split?.active && <SurfaceRegionHandles session={session} receipt={ready ? documentReceipt : null} canvas={canvasRef.current} isCurrentSurface={isCurrentRegionSurface}
+      onError={error => report(error, 'Surface region gesture failed')} onGestureChange={active => { axisGestureRef.current = active; setAxisGestureActive(active); }} />}
+    <CurveSplitHandles session={session} receipt={ready ? documentReceipt : null} canvas={canvasRef.current} isCurrentCurve={isCurrentSplitCurve}
+      onError={error => report(error, 'Curve split gesture failed')} onGestureChange={active => { axisGestureRef.current = active; setAxisGestureActive(active); }} />
     {errorMessage && <p className="cad-editor-error" role="alert">{errorMessage}</p>}
   </div>;
 }

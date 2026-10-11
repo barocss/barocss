@@ -398,3 +398,21 @@ text.assembly-translation-guide[data-axis="z"] { fill:#8babcf; stroke:none; }
 .surface-region-label { fill:#e3edda; font-size:10px; paint-order:stroke; stroke:#171e24; stroke-width:3px; pointer-events:none; }
 .surface-region-status { position:absolute; left:8px; bottom:8px; max-width:calc(100% - 16px); margin:0; padding:3px 6px; border:1px solid var(--border); border-radius:3px; background:var(--background); color:var(--muted-foreground); font-size:10px; pointer-events:none; }
 .surface-region-panel [role="alert"],.surface-region-error { margin:5px 0; color:#ffd2ce; font-size:10px; line-height:1.4; overflow-wrap:anywhere; }
+
+/* Contextual Curve split controls retain the existing Canvas size. */
+.curve-split-panel { padding-block:6px; border-top:1px solid var(--border); }
+.curve-split-panel .cad-editor-field { grid-template-columns:62px minmax(0,1fr); margin-block:5px; }
+.curve-split-panel .cad-editor-field input { height:27px; min-width:0; padding:3px 6px; font-size:11px; }
+.curve-split-toolbar,.curve-split-mode { display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin-block:5px; }
+.curve-split-toolbar [data-slot="button"],.curve-split-mode [data-slot="button"] { height:25px; min-height:25px; padding:3px 7px; font-size:10px; }
+.curve-split-overlay { position:absolute; inset:0; z-index:3; pointer-events:none; }
+.curve-split-svg { display:block; overflow:hidden; pointer-events:none; }
+.curve-split-guide { fill:none; stroke:#9aafb8; stroke-width:1; pointer-events:none; }
+.curve-split-ghost { fill:none; stroke:#e5bf77; stroke-width:2; stroke-dasharray:4 3; pointer-events:none; }
+.curve-split-handle { fill:#bad598; stroke:#eef5e7; stroke-width:1.5; pointer-events:all; touch-action:none; cursor:grab; }
+.curve-split-handle:active { cursor:grabbing; }
+.curve-split-handle:focus-visible { outline:none; stroke:#fff; stroke-width:3; }
+.curve-split-handle[aria-disabled="true"] { opacity:.45; cursor:default; }
+.curve-split-label { fill:#e3edda; font-size:10px; paint-order:stroke; stroke:#171e24; stroke-width:3px; pointer-events:none; }
+.curve-split-status { position:absolute; left:8px; bottom:8px; max-width:calc(100% - 16px); margin:0; padding:3px 6px; border:1px solid var(--border); border-radius:3px; background:var(--background); color:var(--muted-foreground); font-size:10px; pointer-events:none; }
+.curve-split-panel [role="alert"],.curve-split-error { margin:5px 0; color:#ffd2ce; font-size:10px; line-height:1.4; overflow-wrap:anywhere; }

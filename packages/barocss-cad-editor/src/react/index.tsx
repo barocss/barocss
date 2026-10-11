@@ -10,6 +10,7 @@ import { SurfaceKnotProvider } from './surface-knot.js';
 import { CurveKnotProvider } from './curve-knot.js';
 import { SurfaceIsoCurveProvider } from './surface-isocurve.js';
 import { SurfaceRegionProvider } from './surface-region.js';
+import { CurveSplitProvider } from './curve-split.js';
 import { useCadEditorSnapshot } from './use-session.js';
 
 export function CadEditor({ className, ...props }: CadEditorProps) {
@@ -20,6 +21,7 @@ export function CadEditor({ className, ...props }: CadEditorProps) {
   const curveKnotGestureRef = useRef(false);
   const isoGestureRef = useRef(false);
   const regionGestureRef = useRef(false);
+  const splitGestureRef = useRef(false);
   const snapshot = useCadEditorSnapshot(props.session);
   useEffect(() => {
     if (Object.keys(snapshot.pending).length === 0 && !snapshot.selectionTransition && !snapshot.candidate) {
@@ -46,7 +48,7 @@ export function CadEditor({ className, ...props }: CadEditorProps) {
     event.preventDefault();
     event.stopPropagation();
     const current = props.session.getSnapshot();
-    if (knotGestureRef.current || curveKnotGestureRef.current || isoGestureRef.current || regionGestureRef.current || Object.keys(current.pending).length > 0 || current.selectionTransition || current.candidate) {
+    if (knotGestureRef.current || curveKnotGestureRef.current || isoGestureRef.current || regionGestureRef.current || splitGestureRef.current || Object.keys(current.pending).length > 0 || current.selectionTransition || current.candidate) {
       setKeyboardError('Apply or discard your draft before using history.');
       onError(new CadEditorError('INPUT', 'History shortcuts require no pending draft, selection decision or candidate.', { field: 'history' }));
       return;
@@ -69,6 +71,7 @@ export function CadEditor({ className, ...props }: CadEditorProps) {
   return <div className={cn('cad-editor', className)} onKeyDown={historyKey}
     onCompositionStartCapture={() => { composingRef.current = true; }}
     onCompositionEndCapture={() => { composingRef.current = false; }}>
+    <CurveSplitProvider session={props.session} onError={onError} onGestureChange={active => { splitGestureRef.current = active; }}>
     <SurfaceRegionProvider session={props.session} onError={onError} onGestureChange={active => { regionGestureRef.current = active; }}>
     <CurveIntervalProvider session={props.session} onError={onError}>
     <SurfaceKnotProvider session={props.session} onError={onError} onGestureChange={active => { knotGestureRef.current = active; }}>
@@ -81,6 +84,7 @@ export function CadEditor({ className, ...props }: CadEditorProps) {
     </SurfaceKnotProvider>
     </CurveIntervalProvider>
     </SurfaceRegionProvider>
+    </CurveSplitProvider>
     {keyboardError && <p className="cad-editor-history-error" role="alert">{keyboardError}</p>}
   </div>;
 }
