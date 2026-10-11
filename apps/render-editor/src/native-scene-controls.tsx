@@ -30,7 +30,7 @@ export function NativeSceneControls({host, disabled, onError}: Props) {
     if (previous.current.accepted !== snapshot.accepted || previous.current.dirty && !snapshot.dirty) setRaw(values(snapshot.draftDocument.display.lighting));
     previous.current = {accepted: snapshot.accepted, dirty: snapshot.dirty};
   }, [snapshot.accepted, snapshot.dirty, snapshot.draftDocument]);
-  const locked = disabled || snapshot.poseGestureActive || !!snapshot.posePreview || !snapshot.available || snapshot.disposed;
+  const locked = disabled || snapshot.poseGestureActive || !!snapshot.posePreview || snapshot.surfacePoleGestureActive || !snapshot.available || snapshot.disposed;
   const bodyTitle = snapshot.accepted.nativeDocument.bodies.find(body => body.id === snapshot.selectedBodyId)?.name ?? snapshot.selectedBodyId;
   const change = (index: number, value: string) => {
     if (locked || value.length > 256) return;
@@ -49,7 +49,7 @@ export function NativeSceneControls({host, disabled, onError}: Props) {
   if (!portal) return null;
   return createPortal(<section className="re-native-controls" aria-label="Native scene controls">
     <div className="re-material-heading"><h2 data-testid="native-properties-body-title" title={bodyTitle}>{bodyTitle}</h2><span>Properties</span></div>
-    <NativeTransformInspector host={host} disabled={disabled} onError={onError}/>
+    <NativeTransformInspector host={host} disabled={locked} onError={onError}/>
     <NativeSurfaceControlInspector host={host} disabled={disabled} onError={onError}/>
     <div className="re-material-heading"><h2>Lighting</h2><span>{snapshot.invalidLighting ? 'Correct fields' : 'Scene draft'}</span></div>
     {field(0)}{field(1)}<div className="re-native-direction" style={{display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))'}}>{[2, 3, 4].map(field)}</div>

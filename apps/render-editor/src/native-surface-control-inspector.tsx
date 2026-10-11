@@ -21,16 +21,17 @@ function selectedSurface(snapshot: NativeSceneHostSnapshot) {
   if (surface?.kind !== 'surface') return null;
   return {body, surface, shared: snapshot.accepted.nativeDocument.bodies.filter(other => other.assetId === body.assetId && other.id !== body.id).length};
 }
-function readBinding(snapshot: NativeSceneHostSnapshot, previous?: RawBinding): RawBinding {
+function readBinding(snapshot: NativeSceneHostSnapshot): RawBinding {
   const selected = selectedSurface(snapshot);
-  let uIndex = 0, vIndex = 0;
-  if (previous && selected && previous.bodyId === snapshot.selectedBodyId && previous.accepted.documentId === snapshot.accepted.documentId) {
-    if (previous.uIndex >= 0 && previous.uIndex < selected.surface.controlPoints.length) uIndex = previous.uIndex;
-    if (previous.vIndex >= 0 && previous.vIndex < selected.surface.controlPoints[uIndex].length) vIndex = previous.vIndex;
-  }
+  const selection = snapshot.selectedSurfacePole;
+  const uIndex = selection.bodyId === snapshot.selectedBodyId ? selection.uIndex : 0;
+  const vIndex = selection.bodyId === snapshot.selectedBodyId ? selection.vIndex : 0;
   const point = selected?.surface.controlPoints[uIndex]?.[vIndex], weight = selected?.surface.weights[uIndex]?.[vIndex];
+  const patch = snapshot.surfacePoleBodyId === snapshot.selectedBodyId && snapshot.surfacePoleDraftPatch?.uIndex === uIndex
+    && snapshot.surfacePoleDraftPatch.vIndex === vIndex ? snapshot.surfacePoleDraftPatch : null;
   return {accepted: snapshot.accepted, bodyId: snapshot.selectedBodyId, resetEpoch: snapshot.surfacePoleInputResetEpoch,
-    uIndex, vIndex, values: point && weight !== undefined ? [...point, weight].map(text) : []};
+    uIndex, vIndex, values: patch ? [patch.xMM, patch.yMM, patch.zMM, patch.weight].map(text)
+      : point && weight !== undefined ? [...point, weight].map(text) : []};
 }
 function inRange(value: number, index: number): boolean {
   return Number.isFinite(value) && (index < 3 ? Math.abs(value) <= 1e6 : value >= 1e-6 && value <= 1e6);
@@ -42,29 +43,28 @@ export function NativeSurfaceControlInspector({host, disabled, onError}: Props) 
   const [stored, setStored] = useState(() => readBinding(snapshot)), binding = useRef(stored);
   const [error, setError] = useState<RenderEditorError | null>(null);
   const changed = stored.accepted !== snapshot.accepted || stored.bodyId !== snapshot.selectedBodyId
-    || stored.resetEpoch !== snapshot.surfacePoleInputResetEpoch;
-  const current = changed ? readBinding(snapshot, stored) : stored;
+    || stored.resetEpoch !== snapshot.surfacePoleInputResetEpoch || stored.uIndex !== snapshot.selectedSurfacePole.uIndex
+    || stored.vIndex !== snapshot.selectedSurfacePole.vIndex;
+  const current = changed ? readBinding(snapshot) : stored;
   if (changed) {binding.current = current; setStored(current); setError(null);}
   const selected = selectedSurface(snapshot);
-  const locked = disabled || snapshot.poseGestureActive || !!snapshot.posePreview || !snapshot.available || snapshot.disposed;
+  const locked = disabled || snapshot.poseGestureActive || !!snapshot.posePreview || snapshot.surfacePoleGestureActive || !snapshot.available || snapshot.disposed;
   const refused = snapshot.invalidSurfacePole && snapshot.surfacePoleBodyId === current.bodyId;
   const parsed = current.values.map(numeric), invalid = parsed.length === 4 && !parsed.every(inRange);
   const report = (cause: unknown) => {setError(normalizeRenderEditorError(cause)); onError(cause);};
   const choose = (axis: 'u' | 'v', index: number) => {
     const live = host.getSnapshot(), surface = selectedSurface(live);
-    if (disabled || live.dirty || live.poseGestureActive || live.posePreview || !live.available || live.disposed || !surface) return;
+    if (disabled || live.dirty || live.poseGestureActive || live.posePreview || live.surfacePoleGestureActive || !live.available || live.disposed || !surface) return;
     const before = binding.current;
     if (live.accepted !== before.accepted || live.selectedBodyId !== before.bodyId || live.surfacePoleInputResetEpoch !== before.resetEpoch) return;
     const uIndex = axis === 'u' ? index : before.uIndex, vIndex = axis === 'v' ? index : before.vIndex;
     if (!Number.isInteger(index) || uIndex < 0 || vIndex < 0 || uIndex >= surface.surface.controlPoints.length
       || vIndex >= surface.surface.controlPoints[uIndex].length) return;
-    const next = {...before, uIndex, vIndex,
-      values: [...surface.surface.controlPoints[uIndex][vIndex], surface.surface.weights[uIndex][vIndex]].map(text)};
-    binding.current = next; setStored(next); setError(null);
+    try {host.selectSurfacePole(uIndex, vIndex); setError(null);} catch (cause) {report(cause);}
   };
   const update = (index: number, value: string) => {
     const live = host.getSnapshot(), surface = selectedSurface(live), before = binding.current;
-    if (disabled || value.length > 256 || live.poseGestureActive || live.posePreview || !live.available || live.disposed
+    if (disabled || value.length > 256 || live.poseGestureActive || live.posePreview || live.surfacePoleGestureActive || !live.available || live.disposed
       || !surface || surface.shared || live.accepted !== before.accepted || live.selectedBodyId !== before.bodyId
       || live.surfacePoleInputResetEpoch !== before.resetEpoch) return;
     const values = [...before.values]; values[index] = value;

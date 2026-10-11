@@ -58,3 +58,6 @@ export type {RenderNativeSceneSurfaceAdditionOptions, RenderNativeSceneSurfaceAd
 
 export {deriveRenderNativeSceneSurfacePoleEdit} from './native-surface-pole-edit.js';
 export type {RenderNativeSceneSurfacePolePatch} from './native-surface-pole-edit.js';
+
+export {prepareRenderNativeSceneSurfacePoleControls, deriveRenderNativeSceneSurfacePoleAxisDrag} from "./native-surface-pole-controls.js";
+export type {RenderNativeSceneSurfacePoleSelection, RenderNativeSceneSurfacePolePoint, RenderNativeSceneSurfacePoleControls} from "./native-surface-pole-controls.js";

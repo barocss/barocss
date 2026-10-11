@@ -249,3 +249,18 @@ body:has(:is(.app-shell--mixed,.app-shell--scene)) [data-slot="dialog-content"] 
 .re-material-host .re-native-pole-weight { margin: 4px 6px; }
 .re-material-host .re-native-pole-weight label { margin: 0; font-size: 10px; }
 .re-material-host .re-native-surface-control-inspector .re-native-transform-vector > span { min-width: 0; }
+
+/* Native editing targets share the existing Canvas and one active handle surface. */
+.re-material-host .re-native-target-toolbar { position: absolute; top: 6px; left: 6px; z-index: 5; display: flex; gap: 3px; padding: 2px; border: 1px solid #41454a; border-radius: 3px; background: #222428e8; }
+.re-material-host .re-native-target-toolbar button { min-height: 22px; padding: 1px 5px; font-size: 10px; line-height: 18px; }
+.re-material-host .re-native-target-toolbar button[aria-pressed="true"] { background: #354862; color: #d9eaff; border-color: #6195d0; }
+.re-material-host .re-native-gizmo .re-gizmo-toolbar { top: 36px; }
+.re-material-host .re-native-pole-markers { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; overflow: hidden; pointer-events: none; touch-action: none; }
+.re-material-host .re-native-pole-markers circle { fill: #253448; stroke: #a3bddf; stroke-width: 1.5px; pointer-events: all; cursor: pointer; }
+.re-material-host .re-native-pole-markers circle[data-active="true"] { fill: #ffe084; stroke: #27272a; stroke-width: 2px; }
+.re-material-host .re-native-pole-markers circle:hover { stroke: #fff3c3; }
+.re-material-host .re-native-pole-controls .re-gizmo-status { display: none; }
+.re-material-host .re-native-pole-status { position: absolute; left: 6px; bottom: 6px; z-index: 4; max-width: calc(100% - 100px); padding: 3px 5px; border-radius: 3px; background: #222428ed; color: #d7dbe2; font-size: 10px; }
+.re-material-host .re-native-pole-status details { max-width: 360px; overflow-wrap: anywhere; }
+.re-material-host .re-native-pole-status summary { cursor: pointer; }
+.re-material-host .re-native-pole-status p { margin: 3px 0; }
