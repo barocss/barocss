@@ -214,6 +214,10 @@
       "./exact-paired-vlinear-surface-intersection-result": {
         "types": "./dist/exact-paired-vlinear-surface-intersection-result.d.ts",
         "import": "./dist/exact-paired-vlinear-surface-intersection-result.js"
+      },
+      "./paired-surface-uv-split-faces-result": {
+        "types": "./dist/paired-surface-uv-split-faces-result.d.ts",
+        "import": "./dist/paired-surface-uv-split-faces-result.js"
       }
     }
   },
@@ -430,6 +434,10 @@
     "./exact-paired-vlinear-surface-intersection-result": {
       "types": "./src/exact-paired-vlinear-surface-intersection-result.ts",
       "import": "./src/exact-paired-vlinear-surface-intersection-result.ts"
+    },
+    "./paired-surface-uv-split-faces-result": {
+      "types": "./src/paired-surface-uv-split-faces-result.ts",
+      "import": "./src/paired-surface-uv-split-faces-result.ts"
     }
   },
   "files": [

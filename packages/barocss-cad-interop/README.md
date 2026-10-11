@@ -3944,3 +3944,38 @@ actual published JS and physical strict DTS. Each run preserves two signed files
 and loads them in a distinct process. Four original data files total 54,416 bytes;
 the two standalone requests are comparison data. No renderer, URL, serializer,
 edit, dispose, publication or release API is added.
+
+## Complete paired original-UV split Face result ingestion
+
+Use the optional `@barocss/cad-interop/paired-surface-uv-split-faces-result` entry.
+`parseBaroCadPairedSurfaceUVSplitFacesResult(text)` reads strict JSON text.
+`readBaroCadPairedSurfaceUVSplitFacesResult(value)` reads caller-owned record data.
+Both return `{native, validationReport, profile, sourceText}`. Native retains the complete
+saved result11. The validation report is a separate copy of the actual matching CAD report.
+Only profile metadata is deeply frozen; native and report are independent mutable data.
+Text remains exact, and owned admission has `sourceText: null`.
+
+This entry preserves both original Sources, Models3+3 and siblings, both original UVs,
+whole parent and iso/interval receipts, WorldModel8, six vertices, seven edges, two loops,
+two Faces/eight Uses, exact proof and 35 observations. Parent D1 is direct; outer D1 is
+an evaluated/native-refused union. UV areas9/8+15/8=3 are dimensionless. The native scope
+is the original-A proper U window and full original V. Original B is retained.
+
+Strict limits are16MiB raw/canonical text and4M own occurrences per pass. Unicode,
+duplicate-key, finite-number, signed-zero, descriptor, cycle and alias rules retain the
+existing strict codec algorithm. Native request4MiB and inherited Source limits stay
+unchanged. INPUT/JSON/OWNED/BUDGET/SCHEMA/NATIVE errors preserve the actual failure;
+NATIVE retains its structured CAD cause. No URL, bytes, serializer or dispose API is added.
+
+The portable verifier reads four unchanged original example files. Run Source before own
+builds, then affected CAD/Interop build/type/lint gates, then actual published JS and strict
+physical DTS. Each mode includes a genuine fresh process that parses two saved files.
+It retains full values, source text, reports, original signs, refusal contexts and references.
+
+```sh
+node packages/barocss-cad-interop/examples/paired-surface-uv-split-faces-result-verify.mjs --source --output /absolute/fresh/source-output
+node packages/barocss-cad-interop/examples/paired-surface-uv-split-faces-result-verify.mjs --emitted --output /absolute/fresh/emitted-output
+```
+
+Retained Face data does not grant a new construction, renderer, B split, sewn manifold,
+Body/Solid, physical area, global error, manufacturing or publication capability.
