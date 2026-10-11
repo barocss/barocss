@@ -1,0 +1,5362 @@
+{
+  "status": "PASS_SCOPED_NATIVE_FLOW_WITH_READONLY_TOOL_RECOVERY",
+  "actualBrowser": true,
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+  "logical": [
+    600,
+    300
+  ],
+  "DPR": 2,
+  "backing": [
+    1200,
+    600
+  ],
+  "frameBytes": 2880000,
+  "changedFrameBytes": 1080,
+  "stages": [
+    {
+      "label": "DefaultNoCDisabled",
+      "host": {
+        "generation": 1,
+        "scene": {
+          "version": 29,
+          "unit": "logical-px",
+          "contextId": "SVGArcBefore",
+          "nodes": [
+            {
+              "kind": "path",
+              "id": "Before",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "visible": true,
+              "alpha": 1,
+              "hitMode": "auto",
+              "commands": [
+                {
+                  "kind": "M",
+                  "x": 0,
+                  "y": 0
+                },
+                {
+                  "kind": "L",
+                  "x": 600,
+                  "y": 0
+                },
+                {
+                  "kind": "L",
+                  "x": 600,
+                  "y": 300
+                },
+                {
+                  "kind": "L",
+                  "x": 0,
+                  "y": 300
+                },
+                {
+                  "kind": "Z"
+                }
+              ],
+              "fill": {
+                "color": [
+                  0.92,
+                  0.96,
+                  1,
+                  1
+                ],
+                "rule": "nonzero"
+              }
+            }
+          ]
+        },
+        "canonical": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SVGArcBefore\",\"nodes\":[{\"kind\":\"path\",\"id\":\"Before\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":0,\"y\":0},{\"kind\":\"L\",\"x\":600,\"y\":0},{\"kind\":\"L\",\"x\":600,\"y\":300},{\"kind\":\"L\",\"x\":0,\"y\":300},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.92,0.96,1,1],\"rule\":\"nonzero\"}}]}",
+        "source5": null,
+        "diagnostics": null,
+        "sourceText": null,
+        "ids": [
+          "Before"
+        ],
+        "pointers": [],
+        "routes": [],
+        "disposed": false,
+        "busy": false,
+        "counts": {
+          "imports": 0,
+          "svgUploads": 0,
+          "jsonUploads": 0,
+          "edits": 0,
+          "saves": 0,
+          "opens": 0,
+          "candidates": 1,
+          "accepted": 1,
+          "disposes": 0,
+          "binds": 1,
+          "unbinds": 0,
+          "subscriptions": 1,
+          "subscriptionsRemoved": 0
+        },
+        "failure": null,
+        "refusals": [],
+        "PNG": 0
+      },
+      "facilities": {
+        "contexts": [
+          {
+            "id": 1,
+            "canvasId": "live",
+            "lost": false,
+            "error": 0,
+            "calls": {
+              "draw": 2,
+              "read": 0
+            },
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 4
+              },
+              "program": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 0,
+                "live": 3
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "texture": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "renderbuffer": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          }
+        ],
+        "canvasesCreated": 1,
+        "twoD": [],
+        "pointerAdded": 14,
+        "pointerRemoved": 0,
+        "pointerActive": 14,
+        "listeners": [
+          {
+            "id": 1,
+            "targetId": "open-svg",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 2,
+            "targetId": "arc-command",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 3,
+            "targetId": "arc-control",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 4,
+            "targetId": "arc-control-apply",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 5,
+            "targetId": "arc-edit",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 6,
+            "targetId": "arc-refuse",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 7,
+            "targetId": "arc-save",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 8,
+            "targetId": "arc-open-button",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 9,
+            "targetId": "arc-open",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 10,
+            "targetId": "arc-dispose",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 11,
+            "targetId": "window",
+            "type": "pagehide",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 12,
+            "targetId": "live",
+            "type": "webglcontextlost",
+            "category": "canvas",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 13,
+            "targetId": "live",
+            "type": "webglcontextrestored",
+            "category": "canvas",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 14,
+            "targetId": "live",
+            "type": "pointerdown",
+            "category": "canvas",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          }
+        ],
+        "fileTexts": 0,
+        "inputChanges": 0,
+        "inputFiles": [],
+        "downloads": [],
+        "hashes": [],
+        "bitmaps": [],
+        "urls": [],
+        "decodeCalls": 0,
+        "images": [],
+        "nativeErrors": []
+      }
+    },
+    {
+      "label": "OnePhysicalSourceSVGImportedCurrent29",
+      "host": {
+        "generation": 2,
+        "scene": {
+          "version": 29,
+          "unit": "logical-px",
+          "contextId": "SVGArcBoard",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "visible": true,
+              "alpha": 1,
+              "hitMode": "auto",
+              "width": 600,
+              "height": 300,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "visible": true,
+                  "alpha": 1,
+                  "hitMode": "auto",
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "SourceBackgroundPath",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 300
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 300
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.12549019607843137,
+                          0.1568627450980392,
+                          0.2196078431372549,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "SourceGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 90,
+                        "y": 15,
+                        "scaleX": 2,
+                        "scaleY": 2,
+                        "rotation": 0.08726646259971647
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "visible": true,
+                          "alpha": 1,
+                          "hitMode": "auto",
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 60,
+                              "y": 120
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 120
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 129.39134040641824,
+                              "c1y": 120,
+                              "c2x": 119.21718389045948,
+                              "c2y": 117.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 114.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 110.39140805477025,
+                              "c2x": 100,
+                              "c2y": 105.30432979679088,
+                              "x": 100,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 60,
+                              "y": 100
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 4,
+                            "cap": "butt",
+                            "join": "bevel",
+                            "dash": {
+                              "lengths": [],
+                              "offset": 0
+                            },
+                            "miterLimit": 4
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "canonical": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SVGArcBoard\",\"nodes\":[{\"kind\":\"frame\",\"id\":\"SvgViewport1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":600,\"height\":300,\"fill\":[0,0,0,0],\"clip\":true,\"children\":[{\"kind\":\"group\",\"id\":\"SvgViewBox1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"SourceBackgroundPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":0,\"y\":0},{\"kind\":\"L\",\"x\":600,\"y\":0},{\"kind\":\"L\",\"x\":600,\"y\":300},{\"kind\":\"L\",\"x\":0,\"y\":300},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.12549019607843137,0.1568627450980392,0.2196078431372549,1],\"rule\":\"nonzero\"}},{\"kind\":\"group\",\"id\":\"SourceGroup\",\"layer\":1,\"transform\":{\"x\":90,\"y\":15,\"scaleX\":2,\"scaleY\":2,\"rotation\":0.08726646259971647},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"ArcPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":60,\"y\":120},{\"kind\":\"L\",\"x\":140,\"y\":120},{\"kind\":\"C\",\"c1x\":129.39134040641824,\"c1y\":120,\"c2x\":119.21718389045948,\"c2y\":117.89286319269165,\"x\":111.7157287525381,\"y\":114.14213562373095},{\"kind\":\"C\",\"c1x\":104.21427361461672,\"c1y\":110.39140805477025,\"c2x\":100,\"c2y\":105.30432979679088,\"x\":100,\"y\":100},{\"kind\":\"L\",\"x\":60,\"y\":100},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.13333333333333333,0.4,0.8,1],\"rule\":\"nonzero\"},\"stroke\":{\"color\":[0.9333333333333333,0.9490196078431372,1,1],\"width\":4,\"cap\":\"butt\",\"join\":\"bevel\",\"dash\":{\"lengths\":[],\"offset\":0},\"miterLimit\":4}}]}]}]}]}",
+        "source5": {
+          "version": 5,
+          "unit": "logical-px",
+          "contextId": "SVGArcBoard",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "width": 600,
+              "height": 300,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "SourceBackgroundPath",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 300
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 300
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.12549019607843137,
+                          0.1568627450980392,
+                          0.2196078431372549,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "SourceGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 90,
+                        "y": 15,
+                        "scaleX": 2,
+                        "scaleY": 2,
+                        "rotation": 0.08726646259971647
+                      },
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 60,
+                              "y": 120
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 120
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 129.39134040641824,
+                              "c1y": 120,
+                              "c2x": 119.21718389045948,
+                              "c2y": 117.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 114.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 110.39140805477025,
+                              "c2x": 100,
+                              "c2y": 105.30432979679088,
+                              "x": 100,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 60,
+                              "y": 100
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 4
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "diagnostics": {
+          "viewport": {
+            "width": 600,
+            "height": 300
+          },
+          "viewBox": {
+            "x": 0,
+            "y": 0,
+            "width": 600,
+            "height": 300
+          },
+          "generatedIds": [
+            "SvgViewBox1",
+            "SvgViewport1"
+          ],
+          "pathIds": [
+            "SourceBackgroundPath",
+            "ArcPath"
+          ],
+          "groupIds": [
+            "SourceGroup"
+          ]
+        },
+        "sourceText": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"SVGArcBoard\" width=\"600\" height=\"300\" viewBox=\"0 0 600 300\">\n  <path id=\"SourceBackgroundPath\" fill=\"#202838\" d=\"M 0 0 L 600 0 L 600 300 L 0 300 Z\"/>\n  <g id=\"SourceGroup\" transform=\"translate(90 15) rotate(5) scale(2)\">\n    <path id=\"ArcPath\" fill=\"#2266cc\" fill-rule=\"nonzero\" stroke=\"#eef2ff\" stroke-width=\"4\" stroke-linejoin=\"bevel\" stroke-linecap=\"butt\" d=\"M 60 120 L 140 120 A 20 40 90 0 1 100 100 L 60 100 Z\"/>\n  </g>\n</svg>\n",
+        "ids": [
+          "SvgViewport1",
+          "SvgViewBox1",
+          "SourceBackgroundPath",
+          "SourceGroup",
+          "ArcPath"
+        ],
+        "pointers": [],
+        "routes": [],
+        "disposed": false,
+        "busy": false,
+        "counts": {
+          "imports": 1,
+          "svgUploads": 1,
+          "jsonUploads": 0,
+          "edits": 0,
+          "saves": 0,
+          "opens": 0,
+          "candidates": 2,
+          "accepted": 2,
+          "disposes": 1,
+          "binds": 2,
+          "unbinds": 1,
+          "subscriptions": 2,
+          "subscriptionsRemoved": 1
+        },
+        "failure": null,
+        "refusals": [],
+        "PNG": 0
+      },
+      "facilities": {
+        "contexts": [
+          {
+            "id": 1,
+            "canvasId": "live",
+            "lost": false,
+            "error": 0,
+            "calls": {
+              "draw": 2,
+              "read": 0
+            },
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 0
+              },
+              "program": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 3,
+                "live": 0
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "texture": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "renderbuffer": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          },
+          {
+            "id": 2,
+            "canvasId": "live",
+            "lost": false,
+            "error": 0,
+            "calls": {
+              "draw": 5,
+              "read": 3
+            },
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 4
+              },
+              "program": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 0,
+                "live": 3
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "texture": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "renderbuffer": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          }
+        ],
+        "canvasesCreated": 2,
+        "twoD": [],
+        "pointerAdded": 17,
+        "pointerRemoved": 3,
+        "pointerActive": 14,
+        "listeners": [
+          {
+            "id": 1,
+            "targetId": "open-svg",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 2,
+            "targetId": "arc-command",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 3,
+            "targetId": "arc-control",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 4,
+            "targetId": "arc-control-apply",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 5,
+            "targetId": "arc-edit",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 6,
+            "targetId": "arc-refuse",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 7,
+            "targetId": "arc-save",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 8,
+            "targetId": "arc-open-button",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 9,
+            "targetId": "arc-open",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 10,
+            "targetId": "arc-dispose",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 11,
+            "targetId": "window",
+            "type": "pagehide",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 12,
+            "targetId": "live",
+            "type": "webglcontextlost",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 13,
+            "targetId": "live",
+            "type": "webglcontextrestored",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 14,
+            "targetId": "live",
+            "type": "pointerdown",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 15,
+            "targetId": "live",
+            "type": "webglcontextlost",
+            "category": "canvas",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 16,
+            "targetId": "live",
+            "type": "webglcontextrestored",
+            "category": "canvas",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 17,
+            "targetId": "live",
+            "type": "pointerdown",
+            "category": "canvas",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          }
+        ],
+        "fileTexts": 1,
+        "inputChanges": 1,
+        "inputFiles": [
+          [
+            {
+              "name": "source.svg",
+              "size": 476,
+              "type": "image/svg+xml"
+            }
+          ]
+        ],
+        "downloads": [],
+        "hashes": [],
+        "bitmaps": [],
+        "urls": [],
+        "decodeCalls": 0,
+        "images": [],
+        "nativeErrors": []
+      }
+    },
+    {
+      "label": "SelectedFirstCC2XPlus12IndependentOracleAPIOnly",
+      "host": {
+        "generation": 3,
+        "scene": {
+          "version": 29,
+          "unit": "logical-px",
+          "contextId": "SVGArcBoard",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "visible": true,
+              "alpha": 1,
+              "hitMode": "auto",
+              "width": 600,
+              "height": 300,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "visible": true,
+                  "alpha": 1,
+                  "hitMode": "auto",
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "SourceBackgroundPath",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 300
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 300
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.12549019607843137,
+                          0.1568627450980392,
+                          0.2196078431372549,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "SourceGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 90,
+                        "y": 15,
+                        "scaleX": 2,
+                        "scaleY": 2,
+                        "rotation": 0.08726646259971647
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "visible": true,
+                          "alpha": 1,
+                          "hitMode": "auto",
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 60,
+                              "y": 120
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 120
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 129.39134040641824,
+                              "c1y": 120,
+                              "c2x": 131.21718389045947,
+                              "c2y": 117.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 114.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 110.39140805477025,
+                              "c2x": 100,
+                              "c2y": 105.30432979679088,
+                              "x": 100,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 60,
+                              "y": 100
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 4,
+                            "cap": "butt",
+                            "join": "bevel",
+                            "dash": {
+                              "lengths": [],
+                              "offset": 0
+                            },
+                            "miterLimit": 4
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "canonical": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SVGArcBoard\",\"nodes\":[{\"kind\":\"frame\",\"id\":\"SvgViewport1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":600,\"height\":300,\"fill\":[0,0,0,0],\"clip\":true,\"children\":[{\"kind\":\"group\",\"id\":\"SvgViewBox1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"SourceBackgroundPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":0,\"y\":0},{\"kind\":\"L\",\"x\":600,\"y\":0},{\"kind\":\"L\",\"x\":600,\"y\":300},{\"kind\":\"L\",\"x\":0,\"y\":300},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.12549019607843137,0.1568627450980392,0.2196078431372549,1],\"rule\":\"nonzero\"}},{\"kind\":\"group\",\"id\":\"SourceGroup\",\"layer\":1,\"transform\":{\"x\":90,\"y\":15,\"scaleX\":2,\"scaleY\":2,\"rotation\":0.08726646259971647},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"ArcPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":60,\"y\":120},{\"kind\":\"L\",\"x\":140,\"y\":120},{\"kind\":\"C\",\"c1x\":129.39134040641824,\"c1y\":120,\"c2x\":131.21718389045947,\"c2y\":117.89286319269165,\"x\":111.7157287525381,\"y\":114.14213562373095},{\"kind\":\"C\",\"c1x\":104.21427361461672,\"c1y\":110.39140805477025,\"c2x\":100,\"c2y\":105.30432979679088,\"x\":100,\"y\":100},{\"kind\":\"L\",\"x\":60,\"y\":100},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.13333333333333333,0.4,0.8,1],\"rule\":\"nonzero\"},\"stroke\":{\"color\":[0.9333333333333333,0.9490196078431372,1,1],\"width\":4,\"cap\":\"butt\",\"join\":\"bevel\",\"dash\":{\"lengths\":[],\"offset\":0},\"miterLimit\":4}}]}]}]}]}",
+        "source5": {
+          "version": 5,
+          "unit": "logical-px",
+          "contextId": "SVGArcBoard",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "width": 600,
+              "height": 300,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "SourceBackgroundPath",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 300
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 300
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.12549019607843137,
+                          0.1568627450980392,
+                          0.2196078431372549,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "SourceGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 90,
+                        "y": 15,
+                        "scaleX": 2,
+                        "scaleY": 2,
+                        "rotation": 0.08726646259971647
+                      },
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 60,
+                              "y": 120
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 120
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 129.39134040641824,
+                              "c1y": 120,
+                              "c2x": 119.21718389045948,
+                              "c2y": 117.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 114.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 110.39140805477025,
+                              "c2x": 100,
+                              "c2y": 105.30432979679088,
+                              "x": 100,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 60,
+                              "y": 100
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 4
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "diagnostics": {
+          "viewport": {
+            "width": 600,
+            "height": 300
+          },
+          "viewBox": {
+            "x": 0,
+            "y": 0,
+            "width": 600,
+            "height": 300
+          },
+          "generatedIds": [
+            "SvgViewBox1",
+            "SvgViewport1"
+          ],
+          "pathIds": [
+            "SourceBackgroundPath",
+            "ArcPath"
+          ],
+          "groupIds": [
+            "SourceGroup"
+          ]
+        },
+        "sourceText": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"SVGArcBoard\" width=\"600\" height=\"300\" viewBox=\"0 0 600 300\">\n  <path id=\"SourceBackgroundPath\" fill=\"#202838\" d=\"M 0 0 L 600 0 L 600 300 L 0 300 Z\"/>\n  <g id=\"SourceGroup\" transform=\"translate(90 15) rotate(5) scale(2)\">\n    <path id=\"ArcPath\" fill=\"#2266cc\" fill-rule=\"nonzero\" stroke=\"#eef2ff\" stroke-width=\"4\" stroke-linejoin=\"bevel\" stroke-linecap=\"butt\" d=\"M 60 120 L 140 120 A 20 40 90 0 1 100 100 L 60 100 Z\"/>\n  </g>\n</svg>\n",
+        "ids": [
+          "SvgViewport1",
+          "SvgViewBox1",
+          "SourceBackgroundPath",
+          "SourceGroup",
+          "ArcPath"
+        ],
+        "pointers": [],
+        "routes": [],
+        "disposed": false,
+        "busy": false,
+        "counts": {
+          "imports": 1,
+          "svgUploads": 1,
+          "jsonUploads": 0,
+          "edits": 1,
+          "saves": 0,
+          "opens": 0,
+          "candidates": 3,
+          "accepted": 3,
+          "disposes": 2,
+          "binds": 3,
+          "unbinds": 2,
+          "subscriptions": 3,
+          "subscriptionsRemoved": 2
+        },
+        "failure": null,
+        "refusals": [],
+        "PNG": 0
+      },
+      "facilities": {
+        "contexts": [
+          {
+            "id": 1,
+            "canvasId": "live",
+            "lost": false,
+            "error": 0,
+            "calls": {
+              "draw": 2,
+              "read": 0
+            },
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 0
+              },
+              "program": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 3,
+                "live": 0
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "texture": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "renderbuffer": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          },
+          {
+            "id": 2,
+            "canvasId": "live",
+            "lost": false,
+            "error": 0,
+            "calls": {
+              "draw": 5,
+              "read": 3
+            },
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 0
+              },
+              "program": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 3,
+                "live": 0
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "texture": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "renderbuffer": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          },
+          {
+            "id": 3,
+            "canvasId": "live",
+            "lost": false,
+            "error": 0,
+            "calls": {
+              "draw": 5,
+              "read": 3
+            },
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 4
+              },
+              "program": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 0,
+                "live": 3
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "texture": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "renderbuffer": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          }
+        ],
+        "canvasesCreated": 3,
+        "twoD": [],
+        "pointerAdded": 20,
+        "pointerRemoved": 6,
+        "pointerActive": 14,
+        "listeners": [
+          {
+            "id": 1,
+            "targetId": "open-svg",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 2,
+            "targetId": "arc-command",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 3,
+            "targetId": "arc-control",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 4,
+            "targetId": "arc-control-apply",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 5,
+            "targetId": "arc-edit",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 6,
+            "targetId": "arc-refuse",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 7,
+            "targetId": "arc-save",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 8,
+            "targetId": "arc-open-button",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 9,
+            "targetId": "arc-open",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 10,
+            "targetId": "arc-dispose",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 11,
+            "targetId": "window",
+            "type": "pagehide",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 12,
+            "targetId": "live",
+            "type": "webglcontextlost",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 13,
+            "targetId": "live",
+            "type": "webglcontextrestored",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 14,
+            "targetId": "live",
+            "type": "pointerdown",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 15,
+            "targetId": "live",
+            "type": "webglcontextlost",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 16,
+            "targetId": "live",
+            "type": "webglcontextrestored",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 17,
+            "targetId": "live",
+            "type": "pointerdown",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 18,
+            "targetId": "live",
+            "type": "webglcontextlost",
+            "category": "canvas",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 19,
+            "targetId": "live",
+            "type": "webglcontextrestored",
+            "category": "canvas",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 20,
+            "targetId": "live",
+            "type": "pointerdown",
+            "category": "canvas",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          }
+        ],
+        "fileTexts": 1,
+        "inputChanges": 1,
+        "inputFiles": [
+          [
+            {
+              "name": "source.svg",
+              "size": 476,
+              "type": "image/svg+xml"
+            }
+          ]
+        ],
+        "downloads": [],
+        "hashes": [],
+        "bitmaps": [],
+        "urls": [],
+        "decodeCalls": 0,
+        "images": [],
+        "nativeErrors": []
+      }
+    },
+    {
+      "label": "ActualPointerAndScreenshotBeforeInvalidDraft",
+      "host": {
+        "generation": 3,
+        "scene": {
+          "version": 29,
+          "unit": "logical-px",
+          "contextId": "SVGArcBoard",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "visible": true,
+              "alpha": 1,
+              "hitMode": "auto",
+              "width": 600,
+              "height": 300,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "visible": true,
+                  "alpha": 1,
+                  "hitMode": "auto",
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "SourceBackgroundPath",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 300
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 300
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.12549019607843137,
+                          0.1568627450980392,
+                          0.2196078431372549,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "SourceGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 90,
+                        "y": 15,
+                        "scaleX": 2,
+                        "scaleY": 2,
+                        "rotation": 0.08726646259971647
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "visible": true,
+                          "alpha": 1,
+                          "hitMode": "auto",
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 60,
+                              "y": 120
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 120
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 129.39134040641824,
+                              "c1y": 120,
+                              "c2x": 131.21718389045947,
+                              "c2y": 117.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 114.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 110.39140805477025,
+                              "c2x": 100,
+                              "c2y": 105.30432979679088,
+                              "x": 100,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 60,
+                              "y": 100
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 4,
+                            "cap": "butt",
+                            "join": "bevel",
+                            "dash": {
+                              "lengths": [],
+                              "offset": 0
+                            },
+                            "miterLimit": 4
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "canonical": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SVGArcBoard\",\"nodes\":[{\"kind\":\"frame\",\"id\":\"SvgViewport1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":600,\"height\":300,\"fill\":[0,0,0,0],\"clip\":true,\"children\":[{\"kind\":\"group\",\"id\":\"SvgViewBox1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"SourceBackgroundPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":0,\"y\":0},{\"kind\":\"L\",\"x\":600,\"y\":0},{\"kind\":\"L\",\"x\":600,\"y\":300},{\"kind\":\"L\",\"x\":0,\"y\":300},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.12549019607843137,0.1568627450980392,0.2196078431372549,1],\"rule\":\"nonzero\"}},{\"kind\":\"group\",\"id\":\"SourceGroup\",\"layer\":1,\"transform\":{\"x\":90,\"y\":15,\"scaleX\":2,\"scaleY\":2,\"rotation\":0.08726646259971647},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"ArcPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":60,\"y\":120},{\"kind\":\"L\",\"x\":140,\"y\":120},{\"kind\":\"C\",\"c1x\":129.39134040641824,\"c1y\":120,\"c2x\":131.21718389045947,\"c2y\":117.89286319269165,\"x\":111.7157287525381,\"y\":114.14213562373095},{\"kind\":\"C\",\"c1x\":104.21427361461672,\"c1y\":110.39140805477025,\"c2x\":100,\"c2y\":105.30432979679088,\"x\":100,\"y\":100},{\"kind\":\"L\",\"x\":60,\"y\":100},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.13333333333333333,0.4,0.8,1],\"rule\":\"nonzero\"},\"stroke\":{\"color\":[0.9333333333333333,0.9490196078431372,1,1],\"width\":4,\"cap\":\"butt\",\"join\":\"bevel\",\"dash\":{\"lengths\":[],\"offset\":0},\"miterLimit\":4}}]}]}]}]}",
+        "source5": {
+          "version": 5,
+          "unit": "logical-px",
+          "contextId": "SVGArcBoard",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "width": 600,
+              "height": 300,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "SourceBackgroundPath",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 300
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 300
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.12549019607843137,
+                          0.1568627450980392,
+                          0.2196078431372549,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "SourceGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 90,
+                        "y": 15,
+                        "scaleX": 2,
+                        "scaleY": 2,
+                        "rotation": 0.08726646259971647
+                      },
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 60,
+                              "y": 120
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 120
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 129.39134040641824,
+                              "c1y": 120,
+                              "c2x": 119.21718389045948,
+                              "c2y": 117.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 114.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 110.39140805477025,
+                              "c2x": 100,
+                              "c2y": 105.30432979679088,
+                              "x": 100,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 60,
+                              "y": 100
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 4
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "diagnostics": {
+          "viewport": {
+            "width": 600,
+            "height": 300
+          },
+          "viewBox": {
+            "x": 0,
+            "y": 0,
+            "width": 600,
+            "height": 300
+          },
+          "generatedIds": [
+            "SvgViewBox1",
+            "SvgViewport1"
+          ],
+          "pathIds": [
+            "SourceBackgroundPath",
+            "ArcPath"
+          ],
+          "groupIds": [
+            "SourceGroup"
+          ]
+        },
+        "sourceText": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"SVGArcBoard\" width=\"600\" height=\"300\" viewBox=\"0 0 600 300\">\n  <path id=\"SourceBackgroundPath\" fill=\"#202838\" d=\"M 0 0 L 600 0 L 600 300 L 0 300 Z\"/>\n  <g id=\"SourceGroup\" transform=\"translate(90 15) rotate(5) scale(2)\">\n    <path id=\"ArcPath\" fill=\"#2266cc\" fill-rule=\"nonzero\" stroke=\"#eef2ff\" stroke-width=\"4\" stroke-linejoin=\"bevel\" stroke-linecap=\"butt\" d=\"M 60 120 L 140 120 A 20 40 90 0 1 100 100 L 60 100 Z\"/>\n  </g>\n</svg>\n",
+        "ids": [
+          "SvgViewport1",
+          "SvgViewBox1",
+          "SourceBackgroundPath",
+          "SourceGroup",
+          "ArcPath"
+        ],
+        "pointers": [
+          {
+            "point": {
+              "x": 230.21689380126142,
+              "y": 248.10772826340025
+            },
+            "hit": "ArcPath",
+            "trusted": true
+          }
+        ],
+        "routes": [
+          "stage:ArcPath"
+        ],
+        "disposed": false,
+        "busy": false,
+        "counts": {
+          "imports": 1,
+          "svgUploads": 1,
+          "jsonUploads": 0,
+          "edits": 1,
+          "saves": 0,
+          "opens": 0,
+          "candidates": 3,
+          "accepted": 3,
+          "disposes": 2,
+          "binds": 3,
+          "unbinds": 2,
+          "subscriptions": 3,
+          "subscriptionsRemoved": 2
+        },
+        "failure": null,
+        "refusals": [],
+        "PNG": 0
+      },
+      "facilities": {
+        "contexts": [
+          {
+            "id": 1,
+            "canvasId": "live",
+            "lost": false,
+            "error": 0,
+            "calls": {
+              "draw": 2,
+              "read": 0
+            },
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 0
+              },
+              "program": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 3,
+                "live": 0
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "texture": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "renderbuffer": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          },
+          {
+            "id": 2,
+            "canvasId": "live",
+            "lost": false,
+            "error": 0,
+            "calls": {
+              "draw": 5,
+              "read": 3
+            },
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 0
+              },
+              "program": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 3,
+                "live": 0
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "texture": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "renderbuffer": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          },
+          {
+            "id": 3,
+            "canvasId": "live",
+            "lost": false,
+            "error": 0,
+            "calls": {
+              "draw": 5,
+              "read": 3
+            },
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 4
+              },
+              "program": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 0,
+                "live": 3
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "texture": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "renderbuffer": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          }
+        ],
+        "canvasesCreated": 3,
+        "twoD": [],
+        "pointerAdded": 20,
+        "pointerRemoved": 6,
+        "pointerActive": 14,
+        "listeners": [
+          {
+            "id": 1,
+            "targetId": "open-svg",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 2,
+            "targetId": "arc-command",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 3,
+            "targetId": "arc-control",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 4,
+            "targetId": "arc-control-apply",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 5,
+            "targetId": "arc-edit",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 6,
+            "targetId": "arc-refuse",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 7,
+            "targetId": "arc-save",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 8,
+            "targetId": "arc-open-button",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 9,
+            "targetId": "arc-open",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 10,
+            "targetId": "arc-dispose",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 11,
+            "targetId": "window",
+            "type": "pagehide",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 12,
+            "targetId": "live",
+            "type": "webglcontextlost",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 13,
+            "targetId": "live",
+            "type": "webglcontextrestored",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 14,
+            "targetId": "live",
+            "type": "pointerdown",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 15,
+            "targetId": "live",
+            "type": "webglcontextlost",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 16,
+            "targetId": "live",
+            "type": "webglcontextrestored",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 17,
+            "targetId": "live",
+            "type": "pointerdown",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 18,
+            "targetId": "live",
+            "type": "webglcontextlost",
+            "category": "canvas",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 19,
+            "targetId": "live",
+            "type": "webglcontextrestored",
+            "category": "canvas",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 20,
+            "targetId": "live",
+            "type": "pointerdown",
+            "category": "canvas",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          }
+        ],
+        "fileTexts": 1,
+        "inputChanges": 1,
+        "inputFiles": [
+          [
+            {
+              "name": "source.svg",
+              "size": 476,
+              "type": "image/svg+xml"
+            }
+          ]
+        ],
+        "downloads": [],
+        "hashes": [],
+        "bitmaps": [],
+        "urls": [],
+        "decodeCalls": 0,
+        "images": [],
+        "nativeErrors": []
+      }
+    },
+    {
+      "label": "BlankCoordinateRefusedBeforeCandidateDraftRetained",
+      "host": {
+        "generation": 3,
+        "scene": {
+          "version": 29,
+          "unit": "logical-px",
+          "contextId": "SVGArcBoard",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "visible": true,
+              "alpha": 1,
+              "hitMode": "auto",
+              "width": 600,
+              "height": 300,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "visible": true,
+                  "alpha": 1,
+                  "hitMode": "auto",
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "SourceBackgroundPath",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 300
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 300
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.12549019607843137,
+                          0.1568627450980392,
+                          0.2196078431372549,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "SourceGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 90,
+                        "y": 15,
+                        "scaleX": 2,
+                        "scaleY": 2,
+                        "rotation": 0.08726646259971647
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "visible": true,
+                          "alpha": 1,
+                          "hitMode": "auto",
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 60,
+                              "y": 120
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 120
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 129.39134040641824,
+                              "c1y": 120,
+                              "c2x": 131.21718389045947,
+                              "c2y": 117.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 114.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 110.39140805477025,
+                              "c2x": 100,
+                              "c2y": 105.30432979679088,
+                              "x": 100,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 60,
+                              "y": 100
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 4,
+                            "cap": "butt",
+                            "join": "bevel",
+                            "dash": {
+                              "lengths": [],
+                              "offset": 0
+                            },
+                            "miterLimit": 4
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "canonical": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SVGArcBoard\",\"nodes\":[{\"kind\":\"frame\",\"id\":\"SvgViewport1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":600,\"height\":300,\"fill\":[0,0,0,0],\"clip\":true,\"children\":[{\"kind\":\"group\",\"id\":\"SvgViewBox1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"SourceBackgroundPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":0,\"y\":0},{\"kind\":\"L\",\"x\":600,\"y\":0},{\"kind\":\"L\",\"x\":600,\"y\":300},{\"kind\":\"L\",\"x\":0,\"y\":300},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.12549019607843137,0.1568627450980392,0.2196078431372549,1],\"rule\":\"nonzero\"}},{\"kind\":\"group\",\"id\":\"SourceGroup\",\"layer\":1,\"transform\":{\"x\":90,\"y\":15,\"scaleX\":2,\"scaleY\":2,\"rotation\":0.08726646259971647},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"ArcPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":60,\"y\":120},{\"kind\":\"L\",\"x\":140,\"y\":120},{\"kind\":\"C\",\"c1x\":129.39134040641824,\"c1y\":120,\"c2x\":131.21718389045947,\"c2y\":117.89286319269165,\"x\":111.7157287525381,\"y\":114.14213562373095},{\"kind\":\"C\",\"c1x\":104.21427361461672,\"c1y\":110.39140805477025,\"c2x\":100,\"c2y\":105.30432979679088,\"x\":100,\"y\":100},{\"kind\":\"L\",\"x\":60,\"y\":100},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.13333333333333333,0.4,0.8,1],\"rule\":\"nonzero\"},\"stroke\":{\"color\":[0.9333333333333333,0.9490196078431372,1,1],\"width\":4,\"cap\":\"butt\",\"join\":\"bevel\",\"dash\":{\"lengths\":[],\"offset\":0},\"miterLimit\":4}}]}]}]}]}",
+        "source5": {
+          "version": 5,
+          "unit": "logical-px",
+          "contextId": "SVGArcBoard",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "width": 600,
+              "height": 300,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "SourceBackgroundPath",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 300
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 300
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.12549019607843137,
+                          0.1568627450980392,
+                          0.2196078431372549,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "SourceGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 90,
+                        "y": 15,
+                        "scaleX": 2,
+                        "scaleY": 2,
+                        "rotation": 0.08726646259971647
+                      },
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 60,
+                              "y": 120
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 120
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 129.39134040641824,
+                              "c1y": 120,
+                              "c2x": 119.21718389045948,
+                              "c2y": 117.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 114.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 110.39140805477025,
+                              "c2x": 100,
+                              "c2y": 105.30432979679088,
+                              "x": 100,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 60,
+                              "y": 100
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 4
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "diagnostics": {
+          "viewport": {
+            "width": 600,
+            "height": 300
+          },
+          "viewBox": {
+            "x": 0,
+            "y": 0,
+            "width": 600,
+            "height": 300
+          },
+          "generatedIds": [
+            "SvgViewBox1",
+            "SvgViewport1"
+          ],
+          "pathIds": [
+            "SourceBackgroundPath",
+            "ArcPath"
+          ],
+          "groupIds": [
+            "SourceGroup"
+          ]
+        },
+        "sourceText": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"SVGArcBoard\" width=\"600\" height=\"300\" viewBox=\"0 0 600 300\">\n  <path id=\"SourceBackgroundPath\" fill=\"#202838\" d=\"M 0 0 L 600 0 L 600 300 L 0 300 Z\"/>\n  <g id=\"SourceGroup\" transform=\"translate(90 15) rotate(5) scale(2)\">\n    <path id=\"ArcPath\" fill=\"#2266cc\" fill-rule=\"nonzero\" stroke=\"#eef2ff\" stroke-width=\"4\" stroke-linejoin=\"bevel\" stroke-linecap=\"butt\" d=\"M 60 120 L 140 120 A 20 40 90 0 1 100 100 L 60 100 Z\"/>\n  </g>\n</svg>\n",
+        "ids": [
+          "SvgViewport1",
+          "SvgViewBox1",
+          "SourceBackgroundPath",
+          "SourceGroup",
+          "ArcPath"
+        ],
+        "pointers": [
+          {
+            "point": {
+              "x": 230.21689380126142,
+              "y": 248.10772826340025
+            },
+            "hit": "ArcPath",
+            "trusted": true
+          }
+        ],
+        "routes": [
+          "stage:ArcPath"
+        ],
+        "disposed": false,
+        "busy": false,
+        "counts": {
+          "imports": 1,
+          "svgUploads": 1,
+          "jsonUploads": 0,
+          "edits": 1,
+          "saves": 0,
+          "opens": 0,
+          "candidates": 3,
+          "accepted": 3,
+          "disposes": 2,
+          "binds": 3,
+          "unbinds": 2,
+          "subscriptions": 3,
+          "subscriptionsRemoved": 2
+        },
+        "failure": {
+          "code": "INVALID_SCENE",
+          "message": "Canvas2DError: Choose a cubic control and enter both coordinates"
+        },
+        "refusals": [],
+        "PNG": 0
+      },
+      "facilities": {
+        "contexts": [
+          {
+            "id": 1,
+            "canvasId": "live",
+            "lost": false,
+            "error": 0,
+            "calls": {
+              "draw": 2,
+              "read": 0
+            },
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 0
+              },
+              "program": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 3,
+                "live": 0
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "texture": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "renderbuffer": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          },
+          {
+            "id": 2,
+            "canvasId": "live",
+            "lost": false,
+            "error": 0,
+            "calls": {
+              "draw": 5,
+              "read": 3
+            },
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 0
+              },
+              "program": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 3,
+                "live": 0
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "texture": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "renderbuffer": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          },
+          {
+            "id": 3,
+            "canvasId": "live",
+            "lost": false,
+            "error": 0,
+            "calls": {
+              "draw": 5,
+              "read": 5
+            },
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 4
+              },
+              "program": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 0,
+                "live": 3
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 0,
+                "live": 2
+              },
+              "texture": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "renderbuffer": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          }
+        ],
+        "canvasesCreated": 3,
+        "twoD": [],
+        "pointerAdded": 20,
+        "pointerRemoved": 6,
+        "pointerActive": 14,
+        "listeners": [
+          {
+            "id": 1,
+            "targetId": "open-svg",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 2,
+            "targetId": "arc-command",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 3,
+            "targetId": "arc-control",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 4,
+            "targetId": "arc-control-apply",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 5,
+            "targetId": "arc-edit",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 6,
+            "targetId": "arc-refuse",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 7,
+            "targetId": "arc-save",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 8,
+            "targetId": "arc-open-button",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 9,
+            "targetId": "arc-open",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 10,
+            "targetId": "arc-dispose",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 11,
+            "targetId": "window",
+            "type": "pagehide",
+            "category": "control",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 12,
+            "targetId": "live",
+            "type": "webglcontextlost",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 13,
+            "targetId": "live",
+            "type": "webglcontextrestored",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 14,
+            "targetId": "live",
+            "type": "pointerdown",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 15,
+            "targetId": "live",
+            "type": "webglcontextlost",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 16,
+            "targetId": "live",
+            "type": "webglcontextrestored",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 17,
+            "targetId": "live",
+            "type": "pointerdown",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 18,
+            "targetId": "live",
+            "type": "webglcontextlost",
+            "category": "canvas",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 19,
+            "targetId": "live",
+            "type": "webglcontextrestored",
+            "category": "canvas",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          },
+          {
+            "id": 20,
+            "targetId": "live",
+            "type": "pointerdown",
+            "category": "canvas",
+            "capture": false,
+            "active": true,
+            "adds": 1,
+            "removes": 0
+          }
+        ],
+        "fileTexts": 1,
+        "inputChanges": 1,
+        "inputFiles": [
+          [
+            {
+              "name": "source.svg",
+              "size": 476,
+              "type": "image/svg+xml"
+            }
+          ]
+        ],
+        "downloads": [],
+        "hashes": [],
+        "bitmaps": [],
+        "urls": [],
+        "decodeCalls": 0,
+        "images": [],
+        "nativeErrors": []
+      }
+    },
+    {
+      "label": "TerminalAll3NativeResources20CallbacksRetiredBeforeClose",
+      "host": {
+        "generation": 3,
+        "scene": {
+          "version": 29,
+          "unit": "logical-px",
+          "contextId": "SVGArcBoard",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "visible": true,
+              "alpha": 1,
+              "hitMode": "auto",
+              "width": 600,
+              "height": 300,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "visible": true,
+                  "alpha": 1,
+                  "hitMode": "auto",
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "SourceBackgroundPath",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 300
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 300
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.12549019607843137,
+                          0.1568627450980392,
+                          0.2196078431372549,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "SourceGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 90,
+                        "y": 15,
+                        "scaleX": 2,
+                        "scaleY": 2,
+                        "rotation": 0.08726646259971647
+                      },
+                      "visible": true,
+                      "alpha": 1,
+                      "hitMode": "auto",
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "visible": true,
+                          "alpha": 1,
+                          "hitMode": "auto",
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 60,
+                              "y": 120
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 120
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 129.39134040641824,
+                              "c1y": 120,
+                              "c2x": 131.21718389045947,
+                              "c2y": 117.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 114.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 110.39140805477025,
+                              "c2x": 100,
+                              "c2y": 105.30432979679088,
+                              "x": 100,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 60,
+                              "y": 100
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 4,
+                            "cap": "butt",
+                            "join": "bevel",
+                            "dash": {
+                              "lengths": [],
+                              "offset": 0
+                            },
+                            "miterLimit": 4
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "canonical": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SVGArcBoard\",\"nodes\":[{\"kind\":\"frame\",\"id\":\"SvgViewport1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":600,\"height\":300,\"fill\":[0,0,0,0],\"clip\":true,\"children\":[{\"kind\":\"group\",\"id\":\"SvgViewBox1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"SourceBackgroundPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":0,\"y\":0},{\"kind\":\"L\",\"x\":600,\"y\":0},{\"kind\":\"L\",\"x\":600,\"y\":300},{\"kind\":\"L\",\"x\":0,\"y\":300},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.12549019607843137,0.1568627450980392,0.2196078431372549,1],\"rule\":\"nonzero\"}},{\"kind\":\"group\",\"id\":\"SourceGroup\",\"layer\":1,\"transform\":{\"x\":90,\"y\":15,\"scaleX\":2,\"scaleY\":2,\"rotation\":0.08726646259971647},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"ArcPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":60,\"y\":120},{\"kind\":\"L\",\"x\":140,\"y\":120},{\"kind\":\"C\",\"c1x\":129.39134040641824,\"c1y\":120,\"c2x\":131.21718389045947,\"c2y\":117.89286319269165,\"x\":111.7157287525381,\"y\":114.14213562373095},{\"kind\":\"C\",\"c1x\":104.21427361461672,\"c1y\":110.39140805477025,\"c2x\":100,\"c2y\":105.30432979679088,\"x\":100,\"y\":100},{\"kind\":\"L\",\"x\":60,\"y\":100},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.13333333333333333,0.4,0.8,1],\"rule\":\"nonzero\"},\"stroke\":{\"color\":[0.9333333333333333,0.9490196078431372,1,1],\"width\":4,\"cap\":\"butt\",\"join\":\"bevel\",\"dash\":{\"lengths\":[],\"offset\":0},\"miterLimit\":4}}]}]}]}]}",
+        "source5": {
+          "version": 5,
+          "unit": "logical-px",
+          "contextId": "SVGArcBoard",
+          "nodes": [
+            {
+              "kind": "frame",
+              "id": "SvgViewport1",
+              "layer": 0,
+              "transform": {
+                "x": 0,
+                "y": 0,
+                "scaleX": 1,
+                "scaleY": 1,
+                "rotation": 0
+              },
+              "width": 600,
+              "height": 300,
+              "fill": [
+                0,
+                0,
+                0,
+                0
+              ],
+              "clip": true,
+              "children": [
+                {
+                  "kind": "group",
+                  "id": "SvgViewBox1",
+                  "layer": 0,
+                  "transform": {
+                    "x": 0,
+                    "y": 0,
+                    "scaleX": 1,
+                    "scaleY": 1,
+                    "rotation": 0
+                  },
+                  "children": [
+                    {
+                      "kind": "path",
+                      "id": "SourceBackgroundPath",
+                      "layer": 0,
+                      "transform": {
+                        "x": 0,
+                        "y": 0,
+                        "scaleX": 1,
+                        "scaleY": 1,
+                        "rotation": 0
+                      },
+                      "commands": [
+                        {
+                          "kind": "M",
+                          "x": 0,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 0
+                        },
+                        {
+                          "kind": "L",
+                          "x": 600,
+                          "y": 300
+                        },
+                        {
+                          "kind": "L",
+                          "x": 0,
+                          "y": 300
+                        },
+                        {
+                          "kind": "Z"
+                        }
+                      ],
+                      "fill": {
+                        "color": [
+                          0.12549019607843137,
+                          0.1568627450980392,
+                          0.2196078431372549,
+                          1
+                        ],
+                        "rule": "nonzero"
+                      }
+                    },
+                    {
+                      "kind": "group",
+                      "id": "SourceGroup",
+                      "layer": 1,
+                      "transform": {
+                        "x": 90,
+                        "y": 15,
+                        "scaleX": 2,
+                        "scaleY": 2,
+                        "rotation": 0.08726646259971647
+                      },
+                      "children": [
+                        {
+                          "kind": "path",
+                          "id": "ArcPath",
+                          "layer": 0,
+                          "transform": {
+                            "x": 0,
+                            "y": 0,
+                            "scaleX": 1,
+                            "scaleY": 1,
+                            "rotation": 0
+                          },
+                          "commands": [
+                            {
+                              "kind": "M",
+                              "x": 60,
+                              "y": 120
+                            },
+                            {
+                              "kind": "L",
+                              "x": 140,
+                              "y": 120
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 129.39134040641824,
+                              "c1y": 120,
+                              "c2x": 119.21718389045948,
+                              "c2y": 117.89286319269165,
+                              "x": 111.7157287525381,
+                              "y": 114.14213562373095
+                            },
+                            {
+                              "kind": "C",
+                              "c1x": 104.21427361461672,
+                              "c1y": 110.39140805477025,
+                              "c2x": 100,
+                              "c2y": 105.30432979679088,
+                              "x": 100,
+                              "y": 100
+                            },
+                            {
+                              "kind": "L",
+                              "x": 60,
+                              "y": 100
+                            },
+                            {
+                              "kind": "Z"
+                            }
+                          ],
+                          "fill": {
+                            "color": [
+                              0.13333333333333333,
+                              0.4,
+                              0.8,
+                              1
+                            ],
+                            "rule": "nonzero"
+                          },
+                          "stroke": {
+                            "color": [
+                              0.9333333333333333,
+                              0.9490196078431372,
+                              1,
+                              1
+                            ],
+                            "width": 4
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "diagnostics": {
+          "viewport": {
+            "width": 600,
+            "height": 300
+          },
+          "viewBox": {
+            "x": 0,
+            "y": 0,
+            "width": 600,
+            "height": 300
+          },
+          "generatedIds": [
+            "SvgViewBox1",
+            "SvgViewport1"
+          ],
+          "pathIds": [
+            "SourceBackgroundPath",
+            "ArcPath"
+          ],
+          "groupIds": [
+            "SourceGroup"
+          ]
+        },
+        "sourceText": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"SVGArcBoard\" width=\"600\" height=\"300\" viewBox=\"0 0 600 300\">\n  <path id=\"SourceBackgroundPath\" fill=\"#202838\" d=\"M 0 0 L 600 0 L 600 300 L 0 300 Z\"/>\n  <g id=\"SourceGroup\" transform=\"translate(90 15) rotate(5) scale(2)\">\n    <path id=\"ArcPath\" fill=\"#2266cc\" fill-rule=\"nonzero\" stroke=\"#eef2ff\" stroke-width=\"4\" stroke-linejoin=\"bevel\" stroke-linecap=\"butt\" d=\"M 60 120 L 140 120 A 20 40 90 0 1 100 100 L 60 100 Z\"/>\n  </g>\n</svg>\n",
+        "ids": [
+          "SvgViewport1",
+          "SvgViewBox1",
+          "SourceBackgroundPath",
+          "SourceGroup",
+          "ArcPath"
+        ],
+        "pointers": [
+          {
+            "point": {
+              "x": 230.21689380126142,
+              "y": 248.10772826340025
+            },
+            "hit": "ArcPath",
+            "trusted": true
+          }
+        ],
+        "routes": [
+          "stage:ArcPath"
+        ],
+        "disposed": true,
+        "busy": false,
+        "counts": {
+          "imports": 1,
+          "svgUploads": 1,
+          "jsonUploads": 0,
+          "edits": 1,
+          "saves": 0,
+          "opens": 0,
+          "candidates": 3,
+          "accepted": 3,
+          "disposes": 3,
+          "binds": 3,
+          "unbinds": 3,
+          "subscriptions": 3,
+          "subscriptionsRemoved": 3
+        },
+        "failure": {
+          "code": "INVALID_SCENE",
+          "message": "Canvas2DError: Choose a cubic control and enter both coordinates"
+        },
+        "refusals": [],
+        "PNG": 0
+      },
+      "facilities": {
+        "contexts": [
+          {
+            "id": 1,
+            "canvasId": "live",
+            "lost": false,
+            "error": 0,
+            "calls": {
+              "draw": 2,
+              "read": 0
+            },
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 0
+              },
+              "program": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 3,
+                "live": 0
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "texture": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "renderbuffer": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          },
+          {
+            "id": 2,
+            "canvasId": "live",
+            "lost": false,
+            "error": 0,
+            "calls": {
+              "draw": 5,
+              "read": 3
+            },
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 0
+              },
+              "program": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 3,
+                "live": 0
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "texture": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "renderbuffer": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          },
+          {
+            "id": 3,
+            "canvasId": "live",
+            "lost": false,
+            "error": 0,
+            "calls": {
+              "draw": 5,
+              "read": 5
+            },
+            "resources": {
+              "shader": {
+                "created": 4,
+                "deleted": 4,
+                "live": 0
+              },
+              "program": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "buffer": {
+                "created": 3,
+                "deleted": 3,
+                "live": 0
+              },
+              "vao": {
+                "created": 2,
+                "deleted": 2,
+                "live": 0
+              },
+              "texture": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "fbo": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              },
+              "renderbuffer": {
+                "created": 0,
+                "deleted": 0,
+                "live": 0
+              }
+            }
+          }
+        ],
+        "canvasesCreated": 3,
+        "twoD": [],
+        "pointerAdded": 20,
+        "pointerRemoved": 20,
+        "pointerActive": 0,
+        "listeners": [
+          {
+            "id": 1,
+            "targetId": "open-svg",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 2,
+            "targetId": "arc-command",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 3,
+            "targetId": "arc-control",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 4,
+            "targetId": "arc-control-apply",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 5,
+            "targetId": "arc-edit",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 6,
+            "targetId": "arc-refuse",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 7,
+            "targetId": "arc-save",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 8,
+            "targetId": "arc-open-button",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 9,
+            "targetId": "arc-open",
+            "type": "change",
+            "category": "control",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 10,
+            "targetId": "arc-dispose",
+            "type": "click",
+            "category": "control",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 11,
+            "targetId": "window",
+            "type": "pagehide",
+            "category": "control",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 12,
+            "targetId": "live",
+            "type": "webglcontextlost",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 13,
+            "targetId": "live",
+            "type": "webglcontextrestored",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 14,
+            "targetId": "live",
+            "type": "pointerdown",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 15,
+            "targetId": "live",
+            "type": "webglcontextlost",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 16,
+            "targetId": "live",
+            "type": "webglcontextrestored",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 17,
+            "targetId": "live",
+            "type": "pointerdown",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 18,
+            "targetId": "live",
+            "type": "webglcontextlost",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 19,
+            "targetId": "live",
+            "type": "webglcontextrestored",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          },
+          {
+            "id": 20,
+            "targetId": "live",
+            "type": "pointerdown",
+            "category": "canvas",
+            "capture": false,
+            "active": false,
+            "adds": 1,
+            "removes": 1
+          }
+        ],
+        "fileTexts": 1,
+        "inputChanges": 1,
+        "inputFiles": [
+          [
+            {
+              "name": "source.svg",
+              "size": 476,
+              "type": "image/svg+xml"
+            }
+          ]
+        ],
+        "downloads": [],
+        "hashes": [],
+        "bitmaps": [],
+        "urls": [],
+        "decodeCalls": 0,
+        "images": [],
+        "nativeErrors": []
+      }
+    }
+  ],
+  "final": {
+    "label": "TerminalAll3NativeResources20CallbacksRetiredBeforeClose",
+    "host": {
+      "generation": 3,
+      "scene": {
+        "version": 29,
+        "unit": "logical-px",
+        "contextId": "SVGArcBoard",
+        "nodes": [
+          {
+            "kind": "frame",
+            "id": "SvgViewport1",
+            "layer": 0,
+            "transform": {
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "rotation": 0
+            },
+            "visible": true,
+            "alpha": 1,
+            "hitMode": "auto",
+            "width": 600,
+            "height": 300,
+            "fill": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "clip": true,
+            "children": [
+              {
+                "kind": "group",
+                "id": "SvgViewBox1",
+                "layer": 0,
+                "transform": {
+                  "x": 0,
+                  "y": 0,
+                  "scaleX": 1,
+                  "scaleY": 1,
+                  "rotation": 0
+                },
+                "visible": true,
+                "alpha": 1,
+                "hitMode": "auto",
+                "children": [
+                  {
+                    "kind": "path",
+                    "id": "SourceBackgroundPath",
+                    "layer": 0,
+                    "transform": {
+                      "x": 0,
+                      "y": 0,
+                      "scaleX": 1,
+                      "scaleY": 1,
+                      "rotation": 0
+                    },
+                    "visible": true,
+                    "alpha": 1,
+                    "hitMode": "auto",
+                    "commands": [
+                      {
+                        "kind": "M",
+                        "x": 0,
+                        "y": 0
+                      },
+                      {
+                        "kind": "L",
+                        "x": 600,
+                        "y": 0
+                      },
+                      {
+                        "kind": "L",
+                        "x": 600,
+                        "y": 300
+                      },
+                      {
+                        "kind": "L",
+                        "x": 0,
+                        "y": 300
+                      },
+                      {
+                        "kind": "Z"
+                      }
+                    ],
+                    "fill": {
+                      "color": [
+                        0.12549019607843137,
+                        0.1568627450980392,
+                        0.2196078431372549,
+                        1
+                      ],
+                      "rule": "nonzero"
+                    }
+                  },
+                  {
+                    "kind": "group",
+                    "id": "SourceGroup",
+                    "layer": 1,
+                    "transform": {
+                      "x": 90,
+                      "y": 15,
+                      "scaleX": 2,
+                      "scaleY": 2,
+                      "rotation": 0.08726646259971647
+                    },
+                    "visible": true,
+                    "alpha": 1,
+                    "hitMode": "auto",
+                    "children": [
+                      {
+                        "kind": "path",
+                        "id": "ArcPath",
+                        "layer": 0,
+                        "transform": {
+                          "x": 0,
+                          "y": 0,
+                          "scaleX": 1,
+                          "scaleY": 1,
+                          "rotation": 0
+                        },
+                        "visible": true,
+                        "alpha": 1,
+                        "hitMode": "auto",
+                        "commands": [
+                          {
+                            "kind": "M",
+                            "x": 60,
+                            "y": 120
+                          },
+                          {
+                            "kind": "L",
+                            "x": 140,
+                            "y": 120
+                          },
+                          {
+                            "kind": "C",
+                            "c1x": 129.39134040641824,
+                            "c1y": 120,
+                            "c2x": 131.21718389045947,
+                            "c2y": 117.89286319269165,
+                            "x": 111.7157287525381,
+                            "y": 114.14213562373095
+                          },
+                          {
+                            "kind": "C",
+                            "c1x": 104.21427361461672,
+                            "c1y": 110.39140805477025,
+                            "c2x": 100,
+                            "c2y": 105.30432979679088,
+                            "x": 100,
+                            "y": 100
+                          },
+                          {
+                            "kind": "L",
+                            "x": 60,
+                            "y": 100
+                          },
+                          {
+                            "kind": "Z"
+                          }
+                        ],
+                        "fill": {
+                          "color": [
+                            0.13333333333333333,
+                            0.4,
+                            0.8,
+                            1
+                          ],
+                          "rule": "nonzero"
+                        },
+                        "stroke": {
+                          "color": [
+                            0.9333333333333333,
+                            0.9490196078431372,
+                            1,
+                            1
+                          ],
+                          "width": 4,
+                          "cap": "butt",
+                          "join": "bevel",
+                          "dash": {
+                            "lengths": [],
+                            "offset": 0
+                          },
+                          "miterLimit": 4
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "canonical": "{\"version\":29,\"unit\":\"logical-px\",\"contextId\":\"SVGArcBoard\",\"nodes\":[{\"kind\":\"frame\",\"id\":\"SvgViewport1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"width\":600,\"height\":300,\"fill\":[0,0,0,0],\"clip\":true,\"children\":[{\"kind\":\"group\",\"id\":\"SvgViewBox1\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"SourceBackgroundPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":0,\"y\":0},{\"kind\":\"L\",\"x\":600,\"y\":0},{\"kind\":\"L\",\"x\":600,\"y\":300},{\"kind\":\"L\",\"x\":0,\"y\":300},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.12549019607843137,0.1568627450980392,0.2196078431372549,1],\"rule\":\"nonzero\"}},{\"kind\":\"group\",\"id\":\"SourceGroup\",\"layer\":1,\"transform\":{\"x\":90,\"y\":15,\"scaleX\":2,\"scaleY\":2,\"rotation\":0.08726646259971647},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"children\":[{\"kind\":\"path\",\"id\":\"ArcPath\",\"layer\":0,\"transform\":{\"x\":0,\"y\":0,\"scaleX\":1,\"scaleY\":1,\"rotation\":0},\"visible\":true,\"alpha\":1,\"hitMode\":\"auto\",\"commands\":[{\"kind\":\"M\",\"x\":60,\"y\":120},{\"kind\":\"L\",\"x\":140,\"y\":120},{\"kind\":\"C\",\"c1x\":129.39134040641824,\"c1y\":120,\"c2x\":131.21718389045947,\"c2y\":117.89286319269165,\"x\":111.7157287525381,\"y\":114.14213562373095},{\"kind\":\"C\",\"c1x\":104.21427361461672,\"c1y\":110.39140805477025,\"c2x\":100,\"c2y\":105.30432979679088,\"x\":100,\"y\":100},{\"kind\":\"L\",\"x\":60,\"y\":100},{\"kind\":\"Z\"}],\"fill\":{\"color\":[0.13333333333333333,0.4,0.8,1],\"rule\":\"nonzero\"},\"stroke\":{\"color\":[0.9333333333333333,0.9490196078431372,1,1],\"width\":4,\"cap\":\"butt\",\"join\":\"bevel\",\"dash\":{\"lengths\":[],\"offset\":0},\"miterLimit\":4}}]}]}]}]}",
+      "source5": {
+        "version": 5,
+        "unit": "logical-px",
+        "contextId": "SVGArcBoard",
+        "nodes": [
+          {
+            "kind": "frame",
+            "id": "SvgViewport1",
+            "layer": 0,
+            "transform": {
+              "x": 0,
+              "y": 0,
+              "scaleX": 1,
+              "scaleY": 1,
+              "rotation": 0
+            },
+            "width": 600,
+            "height": 300,
+            "fill": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "clip": true,
+            "children": [
+              {
+                "kind": "group",
+                "id": "SvgViewBox1",
+                "layer": 0,
+                "transform": {
+                  "x": 0,
+                  "y": 0,
+                  "scaleX": 1,
+                  "scaleY": 1,
+                  "rotation": 0
+                },
+                "children": [
+                  {
+                    "kind": "path",
+                    "id": "SourceBackgroundPath",
+                    "layer": 0,
+                    "transform": {
+                      "x": 0,
+                      "y": 0,
+                      "scaleX": 1,
+                      "scaleY": 1,
+                      "rotation": 0
+                    },
+                    "commands": [
+                      {
+                        "kind": "M",
+                        "x": 0,
+                        "y": 0
+                      },
+                      {
+                        "kind": "L",
+                        "x": 600,
+                        "y": 0
+                      },
+                      {
+                        "kind": "L",
+                        "x": 600,
+                        "y": 300
+                      },
+                      {
+                        "kind": "L",
+                        "x": 0,
+                        "y": 300
+                      },
+                      {
+                        "kind": "Z"
+                      }
+                    ],
+                    "fill": {
+                      "color": [
+                        0.12549019607843137,
+                        0.1568627450980392,
+                        0.2196078431372549,
+                        1
+                      ],
+                      "rule": "nonzero"
+                    }
+                  },
+                  {
+                    "kind": "group",
+                    "id": "SourceGroup",
+                    "layer": 1,
+                    "transform": {
+                      "x": 90,
+                      "y": 15,
+                      "scaleX": 2,
+                      "scaleY": 2,
+                      "rotation": 0.08726646259971647
+                    },
+                    "children": [
+                      {
+                        "kind": "path",
+                        "id": "ArcPath",
+                        "layer": 0,
+                        "transform": {
+                          "x": 0,
+                          "y": 0,
+                          "scaleX": 1,
+                          "scaleY": 1,
+                          "rotation": 0
+                        },
+                        "commands": [
+                          {
+                            "kind": "M",
+                            "x": 60,
+                            "y": 120
+                          },
+                          {
+                            "kind": "L",
+                            "x": 140,
+                            "y": 120
+                          },
+                          {
+                            "kind": "C",
+                            "c1x": 129.39134040641824,
+                            "c1y": 120,
+                            "c2x": 119.21718389045948,
+                            "c2y": 117.89286319269165,
+                            "x": 111.7157287525381,
+                            "y": 114.14213562373095
+                          },
+                          {
+                            "kind": "C",
+                            "c1x": 104.21427361461672,
+                            "c1y": 110.39140805477025,
+                            "c2x": 100,
+                            "c2y": 105.30432979679088,
+                            "x": 100,
+                            "y": 100
+                          },
+                          {
+                            "kind": "L",
+                            "x": 60,
+                            "y": 100
+                          },
+                          {
+                            "kind": "Z"
+                          }
+                        ],
+                        "fill": {
+                          "color": [
+                            0.13333333333333333,
+                            0.4,
+                            0.8,
+                            1
+                          ],
+                          "rule": "nonzero"
+                        },
+                        "stroke": {
+                          "color": [
+                            0.9333333333333333,
+                            0.9490196078431372,
+                            1,
+                            1
+                          ],
+                          "width": 4
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "diagnostics": {
+        "viewport": {
+          "width": 600,
+          "height": 300
+        },
+        "viewBox": {
+          "x": 0,
+          "y": 0,
+          "width": 600,
+          "height": 300
+        },
+        "generatedIds": [
+          "SvgViewBox1",
+          "SvgViewport1"
+        ],
+        "pathIds": [
+          "SourceBackgroundPath",
+          "ArcPath"
+        ],
+        "groupIds": [
+          "SourceGroup"
+        ]
+      },
+      "sourceText": "<svg xmlns=\"http://www.w3.org/2000/svg\" id=\"SVGArcBoard\" width=\"600\" height=\"300\" viewBox=\"0 0 600 300\">\n  <path id=\"SourceBackgroundPath\" fill=\"#202838\" d=\"M 0 0 L 600 0 L 600 300 L 0 300 Z\"/>\n  <g id=\"SourceGroup\" transform=\"translate(90 15) rotate(5) scale(2)\">\n    <path id=\"ArcPath\" fill=\"#2266cc\" fill-rule=\"nonzero\" stroke=\"#eef2ff\" stroke-width=\"4\" stroke-linejoin=\"bevel\" stroke-linecap=\"butt\" d=\"M 60 120 L 140 120 A 20 40 90 0 1 100 100 L 60 100 Z\"/>\n  </g>\n</svg>\n",
+      "ids": [
+        "SvgViewport1",
+        "SvgViewBox1",
+        "SourceBackgroundPath",
+        "SourceGroup",
+        "ArcPath"
+      ],
+      "pointers": [
+        {
+          "point": {
+            "x": 230.21689380126142,
+            "y": 248.10772826340025
+          },
+          "hit": "ArcPath",
+          "trusted": true
+        }
+      ],
+      "routes": [
+        "stage:ArcPath"
+      ],
+      "disposed": true,
+      "busy": false,
+      "counts": {
+        "imports": 1,
+        "svgUploads": 1,
+        "jsonUploads": 0,
+        "edits": 1,
+        "saves": 0,
+        "opens": 0,
+        "candidates": 3,
+        "accepted": 3,
+        "disposes": 3,
+        "binds": 3,
+        "unbinds": 3,
+        "subscriptions": 3,
+        "subscriptionsRemoved": 3
+      },
+      "failure": {
+        "code": "INVALID_SCENE",
+        "message": "Canvas2DError: Choose a cubic control and enter both coordinates"
+      },
+      "refusals": [],
+      "PNG": 0
+    },
+    "facilities": {
+      "contexts": [
+        {
+          "id": 1,
+          "canvasId": "live",
+          "lost": false,
+          "error": 0,
+          "calls": {
+            "draw": 2,
+            "read": 0
+          },
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            },
+            "renderbuffer": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "id": 2,
+          "canvasId": "live",
+          "lost": false,
+          "error": 0,
+          "calls": {
+            "draw": 5,
+            "read": 3
+          },
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            },
+            "renderbuffer": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        },
+        {
+          "id": 3,
+          "canvasId": "live",
+          "lost": false,
+          "error": 0,
+          "calls": {
+            "draw": 5,
+            "read": 5
+          },
+          "resources": {
+            "shader": {
+              "created": 4,
+              "deleted": 4,
+              "live": 0
+            },
+            "program": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "buffer": {
+              "created": 3,
+              "deleted": 3,
+              "live": 0
+            },
+            "vao": {
+              "created": 2,
+              "deleted": 2,
+              "live": 0
+            },
+            "texture": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            },
+            "fbo": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            },
+            "renderbuffer": {
+              "created": 0,
+              "deleted": 0,
+              "live": 0
+            }
+          }
+        }
+      ],
+      "canvasesCreated": 3,
+      "twoD": [],
+      "pointerAdded": 20,
+      "pointerRemoved": 20,
+      "pointerActive": 0,
+      "listeners": [
+        {
+          "id": 1,
+          "targetId": "open-svg",
+          "type": "change",
+          "category": "control",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 2,
+          "targetId": "arc-command",
+          "type": "change",
+          "category": "control",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 3,
+          "targetId": "arc-control",
+          "type": "change",
+          "category": "control",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 4,
+          "targetId": "arc-control-apply",
+          "type": "click",
+          "category": "control",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 5,
+          "targetId": "arc-edit",
+          "type": "click",
+          "category": "control",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 6,
+          "targetId": "arc-refuse",
+          "type": "click",
+          "category": "control",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 7,
+          "targetId": "arc-save",
+          "type": "click",
+          "category": "control",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 8,
+          "targetId": "arc-open-button",
+          "type": "click",
+          "category": "control",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 9,
+          "targetId": "arc-open",
+          "type": "change",
+          "category": "control",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 10,
+          "targetId": "arc-dispose",
+          "type": "click",
+          "category": "control",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 11,
+          "targetId": "window",
+          "type": "pagehide",
+          "category": "control",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 12,
+          "targetId": "live",
+          "type": "webglcontextlost",
+          "category": "canvas",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 13,
+          "targetId": "live",
+          "type": "webglcontextrestored",
+          "category": "canvas",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 14,
+          "targetId": "live",
+          "type": "pointerdown",
+          "category": "canvas",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 15,
+          "targetId": "live",
+          "type": "webglcontextlost",
+          "category": "canvas",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 16,
+          "targetId": "live",
+          "type": "webglcontextrestored",
+          "category": "canvas",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 17,
+          "targetId": "live",
+          "type": "pointerdown",
+          "category": "canvas",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 18,
+          "targetId": "live",
+          "type": "webglcontextlost",
+          "category": "canvas",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 19,
+          "targetId": "live",
+          "type": "webglcontextrestored",
+          "category": "canvas",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        },
+        {
+          "id": 20,
+          "targetId": "live",
+          "type": "pointerdown",
+          "category": "canvas",
+          "capture": false,
+          "active": false,
+          "adds": 1,
+          "removes": 1
+        }
+      ],
+      "fileTexts": 1,
+      "inputChanges": 1,
+      "inputFiles": [
+        [
+          {
+            "name": "source.svg",
+            "size": 476,
+            "type": "image/svg+xml"
+          }
+        ]
+      ],
+      "downloads": [],
+      "hashes": [],
+      "bitmaps": [],
+      "urls": [],
+      "decodeCalls": 0,
+      "images": [],
+      "nativeErrors": []
+    }
+  },
+  "nativeBefore": {
+    "stroke": {
+      "local": {
+        "x": 125.80156531431015,
+        "y": 115.79039436182724
+      },
+      "world": {
+        "x": 320.4621091082178,
+        "y": 267.62821163398274
+      },
+      "pixel": [
+        640,
+        535
+      ],
+      "rgba": [
+        32,
+        40,
+        56,
+        255
+      ],
+      "hit": "SourceBackgroundPath"
+    },
+    "inside": {
+      "local": {
+        "x": 80,
+        "y": 110
+      },
+      "world": {
+        "x": 230.21688829019448,
+        "y": 248.10775241980932
+      },
+      "pixel": [
+        460,
+        496
+      ],
+      "rgba": [
+        34,
+        102,
+        204,
+        255
+      ],
+      "hit": "ArcPath"
+    }
+  },
+  "nativeAfter": {
+    "stroke": {
+      "local": {
+        "x": 125.80156531431015,
+        "y": 115.79039436182724
+      },
+      "world": {
+        "x": 320.4621091082178,
+        "y": 267.62821163398274
+      },
+      "pixel": [
+        640,
+        535
+      ],
+      "rgba": [
+        238,
+        242,
+        255,
+        255
+      ],
+      "hit": "ArcPath"
+    },
+    "inside": {
+      "local": {
+        "x": 80,
+        "y": 110
+      },
+      "world": {
+        "x": 230.21688829019448,
+        "y": 248.10775241980932
+      },
+      "pixel": [
+        460,
+        496
+      ],
+      "rgba": [
+        34,
+        102,
+        204,
+        255
+      ],
+      "hit": "ArcPath"
+    }
+  },
+  "literalOracle": {
+    "p": {
+      "x": 140,
+      "y": 120
+    },
+    "c": {
+      "c1x": 129.39134040641824,
+      "c1y": 120,
+      "c2x": 119.21718389045948,
+      "c2y": 117.89286319269165,
+      "x": 111.7157287525381,
+      "y": 114.14213562373095
+    },
+    "edited": {
+      "c1x": 129.39134040641824,
+      "c1y": 120,
+      "c2x": 131.21718389045947,
+      "c2y": 117.89286319269165,
+      "x": 111.7157287525381,
+      "y": 114.14213562373095
+    },
+    "stroke": {
+      "x": 125.80156531431015,
+      "y": 115.79039436182724
+    },
+    "inside": {
+      "x": 80,
+      "y": 110
+    }
+  },
+  "bernstein": [
+    {
+      "t": 0.25,
+      "before": {
+        "x": 132.159946480312,
+        "y": 119.61215475559305
+      },
+      "after": {
+        "x": 133.847446480312,
+        "y": 119.61215475559305
+      },
+      "expectedDeltaX": 1.6875,
+      "deltaY": 0
+    },
+    {
+      "t": 0.5,
+      "before": {
+        "x": 124.6926627053964,
+        "y": 118.47759065022574
+      },
+      "after": {
+        "x": 129.1926627053964,
+        "y": 118.47759065022574
+      },
+      "expectedDeltaX": 4.5,
+      "deltaY": 0
+    },
+    {
+      "t": 0.75,
+      "before": {
+        "x": 117.80797976591717,
+        "y": 116.63976512567828
+      },
+      "after": {
+        "x": 122.87047976591717,
+        "y": 116.63976512567828
+      },
+      "expectedDeltaX": 5.0625,
+      "deltaY": 0
+    }
+  ],
+  "apiDocument": "{\"format\":\"barocss-canvas-document\",\"version\":1,\"scene\":\"{\\\"version\\\":29,\\\"unit\\\":\\\"logical-px\\\",\\\"contextId\\\":\\\"SVGArcBoard\\\",\\\"nodes\\\":[{\\\"kind\\\":\\\"frame\\\",\\\"id\\\":\\\"SvgViewport1\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"width\\\":600,\\\"height\\\":300,\\\"fill\\\":[0,0,0,0],\\\"clip\\\":true,\\\"children\\\":[{\\\"kind\\\":\\\"group\\\",\\\"id\\\":\\\"SvgViewBox1\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"children\\\":[{\\\"kind\\\":\\\"path\\\",\\\"id\\\":\\\"SourceBackgroundPath\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"commands\\\":[{\\\"kind\\\":\\\"M\\\",\\\"x\\\":0,\\\"y\\\":0},{\\\"kind\\\":\\\"L\\\",\\\"x\\\":600,\\\"y\\\":0},{\\\"kind\\\":\\\"L\\\",\\\"x\\\":600,\\\"y\\\":300},{\\\"kind\\\":\\\"L\\\",\\\"x\\\":0,\\\"y\\\":300},{\\\"kind\\\":\\\"Z\\\"}],\\\"fill\\\":{\\\"color\\\":[0.12549019607843137,0.1568627450980392,0.2196078431372549,1],\\\"rule\\\":\\\"nonzero\\\"}},{\\\"kind\\\":\\\"group\\\",\\\"id\\\":\\\"SourceGroup\\\",\\\"layer\\\":1,\\\"transform\\\":{\\\"x\\\":90,\\\"y\\\":15,\\\"scaleX\\\":2,\\\"scaleY\\\":2,\\\"rotation\\\":0.08726646259971647},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"children\\\":[{\\\"kind\\\":\\\"path\\\",\\\"id\\\":\\\"ArcPath\\\",\\\"layer\\\":0,\\\"transform\\\":{\\\"x\\\":0,\\\"y\\\":0,\\\"scaleX\\\":1,\\\"scaleY\\\":1,\\\"rotation\\\":0},\\\"visible\\\":true,\\\"alpha\\\":1,\\\"hitMode\\\":\\\"auto\\\",\\\"commands\\\":[{\\\"kind\\\":\\\"M\\\",\\\"x\\\":60,\\\"y\\\":120},{\\\"kind\\\":\\\"L\\\",\\\"x\\\":140,\\\"y\\\":120},{\\\"kind\\\":\\\"C\\\",\\\"c1x\\\":129.39134040641824,\\\"c1y\\\":120,\\\"c2x\\\":131.21718389045947,\\\"c2y\\\":117.89286319269165,\\\"x\\\":111.7157287525381,\\\"y\\\":114.14213562373095},{\\\"kind\\\":\\\"C\\\",\\\"c1x\\\":104.21427361461672,\\\"c1y\\\":110.39140805477025,\\\"c2x\\\":100,\\\"c2y\\\":105.30432979679088,\\\"x\\\":100,\\\"y\\\":100},{\\\"kind\\\":\\\"L\\\",\\\"x\\\":60,\\\"y\\\":100},{\\\"kind\\\":\\\"Z\\\"}],\\\"fill\\\":{\\\"color\\\":[0.13333333333333333,0.4,0.8,1],\\\"rule\\\":\\\"nonzero\\\"},\\\"stroke\\\":{\\\"color\\\":[0.9333333333333333,0.9490196078431372,1,1],\\\"width\\\":4,\\\"cap\\\":\\\"butt\\\",\\\"join\\\":\\\"bevel\\\",\\\"dash\\\":{\\\"lengths\\\":[],\\\"offset\\\":0},\\\"miterLimit\\\":4}}]}]}]}]}\",\"assets\":[]}",
+  "artifactQualification": "API serialization only; not UI Save or genuine download",
+  "disposedMethod": {
+    "code": "INVALID_SCENE",
+    "message": "consumer disposed"
+  },
+  "errors": [],
+  "rejections": [],
+  "allNativeBeforeClose": true,
+  "old1451": "PARTIAL_SESSION_LOST and duplicate physical delivery INCOMPLETE remain immutable",
+  "broader1254_674": "UNRUN",
+  "console": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (File not found)"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x10c000cf600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x10c000cf600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x10c000cf600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+    },
+    {
+      "type": "warning",
+      "text": "[.WebGL-0x10c000cf600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+    }
+  ],
+  "requests": [
+    "http://127.0.0.1:31448/examples/canvas2d-scene/svg-v5.html?arcs=1",
+    "http://127.0.0.1:31448/packages/barocss-canvas2d/dist/index.js",
+    "http://127.0.0.1:31448/packages/barocss-canvas2d/consumer/svg-arcs.mjs",
+    "http://127.0.0.1:31448/packages/barocss-canvas2d/dist/document.js"
+  ],
+  "externalRequests": [],
+  "frozenTerminalDriverStatus": "PASS",
+  "originalPhase1Transport": {
+    "status": "FIRST_RESULT_DELIVERY_INTERRUPTED_BY_STALE_MODAL",
+    "originalPhase1Log": "/tmp/c2d-parallel-B-runtime/phase1.log",
+    "originalPhase1ResultDelivered": false,
+    "sameFlowScreenshotExists": true,
+    "separateCLIUploadWithFiles": false,
+    "phase1Replayed": false,
+    "noPathsClearAttempt": {
+      "log": "/tmp/c2d-parallel-B-runtime/clear-stale-modal-no-paths.log",
+      "exit": 1,
+      "error": "'files' argument: expected string, received undefined",
+      "setFilesCalled": false
+    },
+    "phase2": "UNRUN",
+    "nativeSelectedEditCompletion": "pending readonly recovery; no PASS claim"
+  },
+  "sameFirstFlowRecovery": {
+    "status": "READONLY_RECOVERY_OF_SAME_FIRST_FLOW",
+    "originalToolStatus": "FIRST_RESULT_DELIVERY_INTERRUPTED_BY_STALE_MODAL",
+    "browserContexts": 1,
+    "contextPages": 1,
+    "pageURL": "http://127.0.0.1:31448/examples/canvas2d-scene/svg-v5.html?arcs=1",
+    "noNavigationOrProductReplay": true
+  },
+  "toolMetadataBootstrap": {
+    "status": "READONLY_TOOL_METADATA_BOOTSTRAP",
+    "source": "public recorded page.consoleMessages()/requests() history; not recovered original collector",
+    "contexts": 1,
+    "pages": 1,
+    "url": "http://127.0.0.1:31448/examples/canvas2d-scene/svg-v5.html?arcs=1",
+    "counts": {
+      "imports": 1,
+      "svgUploads": 1,
+      "jsonUploads": 0,
+      "edits": 1,
+      "saves": 0,
+      "opens": 0,
+      "candidates": 3,
+      "accepted": 3,
+      "disposes": 2,
+      "binds": 3,
+      "unbinds": 2,
+      "subscriptions": 3,
+      "subscriptionsRemoved": 2
+    },
+    "console": [
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 404 (File not found)"
+      },
+      {
+        "type": "warning",
+        "text": "[.WebGL-0x10c000cf600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+      },
+      {
+        "type": "warning",
+        "text": "[.WebGL-0x10c000cf600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+      },
+      {
+        "type": "warning",
+        "text": "[.WebGL-0x10c000cf600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+      },
+      {
+        "type": "warning",
+        "text": "[.WebGL-0x10c000cf600]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+      }
+    ],
+    "requests": [
+      "http://127.0.0.1:31448/examples/canvas2d-scene/svg-v5.html?arcs=1",
+      "http://127.0.0.1:31448/packages/barocss-canvas2d/dist/index.js",
+      "http://127.0.0.1:31448/packages/barocss-canvas2d/consumer/svg-arcs.mjs",
+      "http://127.0.0.1:31448/packages/barocss-canvas2d/dist/document.js"
+    ],
+    "noProductReplay": true
+  },
+  "rootScreenshotReview": "/tmp/c2d1548-root-screenshot-review.json",
+  "rootTerminalReview": "/tmp/c2d1548-root-terminal-review.json",
+  "closeStatus": {
+    "rootReviewedBeforeClose": true,
+    "recoveryClientDetachedExit": 0,
+    "originalOwnedBrowserClosedExit": 0,
+    "sourceServer": {
+      "PID": 57830,
+      "verifiedCommand": "/opt/homebrew/Cellar/python@3.13/3.13.5/Frameworks/Python.framework/Versions/3.13/Resources/Python.app/Contents/MacOS/Python -m http.server 31448 --bind 127.0.0.1 --directory /tmp/c2d-parallel-B-source",
+      "signal": "SIGTERM",
+      "rootTerminalReview": "/tmp/c2d1548-root-terminal-review.json"
+    },
+    "port31448Absent": true,
+    "serverSIGTERMQualification": "expected exact owned process termination; not a test PASS"
+  },
+  "sourceSHA256": "ae32b97ddffa98073c5c8f96a676ddd5c78b547a8c55ad037110ec6094326c07",
+  "frozenDriverSHA256": "563a4576d51c18e28a9d6f08c2789f2a7a2fb8af42b320059b994b075379368b",
+  "networkQualification": "public recorded page.requests history and remaining recovery-client collectors; not a reconstructed original driver collector or all browser network traffic"
+}
