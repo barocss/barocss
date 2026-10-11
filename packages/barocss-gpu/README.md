@@ -2846,3 +2846,34 @@ This CPU compiler creates no linked renderer/frame/TEN/pixel/lifetime receipt.
 
 One source/emitted/literal-control/file/cold flow:
 `node examples/gpu-scene/scene-flat-arithmetic-flow.mjs --output /absolute/fresh-directory`.
+
+
+### Authored native directional light catalog (#1472)
+
+`prepareNativeDirectionalLights(input)` admits a separate CPU catalog with
+format `barocss-gpu-native-directional-lights`, version0 and profile
+`native-world-directional-linear-v0`. Its exact fields are format, version,
+profile, sourceId, revision, ambientStrength and lights. The sourceId is the
+outer document ID; revision is an authored context tag. The host must match
+them to its current document and join native TEN/frame context.
+
+Each ordered light has nodeId, label, enabled, directionScene, colorLinearRGB
+and intensity. Stable nodeId identifies a scene-root light, not a Body or mesh.
+Up to four lights, including disabled entries, use right-handed Y-up world
+surface-to-light directions, explicit linear-sRGB RGB and dimensionless
+intensity0..1. Every entry validates. Direction magnitude and signed original
+values remain in the catalog; only independent execution copies normalize
+direction with max-absolute scaling and hypot. Ambient and each intensity
+are bounded independently; this CPU provider performs no clamp or encoding.
+
+The result has catalog and execution. Both are fresh, deeply frozen ordinary
+data without caller mutation or shared object references. Dense own arrays,
+exact data fields, bounded IDs/labels and a16KiB signed-result cap are enforced.
+Errors expose INPUT, VERSION, BUDGET, IDENTITY or NUMERICAL; reflection failures
+retain their actual cause. Existing singleton MeshLighting and scene APIs stay
+unchanged. No automatic file upgrade or renderer dispatch occurs.
+
+This stage proves authored catalog/file reconstruction and derived CPU directions.
+New native frames, shader/uniform consumption, linked programs, pixels, Viewer
+accepted state, recovery/disposal and Render history/versioned files remain
+separate stages under #1445. Point/Spot lights and attachment remain future work.

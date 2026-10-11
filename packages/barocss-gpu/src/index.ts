@@ -173,3 +173,6 @@ export type {MultiplicativeAffineSceneAst,CompiledMultiplicativeAffineSceneSourc
 
 export {compileArithmeticAffineSceneSource} from './scene-arithmetic-source.js';
 export type {ArithmeticAffineSceneAst,CompiledArithmeticAffineSceneSource} from './scene-arithmetic-source.js';
+
+export { prepareNativeDirectionalLights, NativeDirectionalLightsError, NativeDirectionalLightsDiagnosticCode } from './native-directional-lights.js';
+export type { NativeDirectionalLightV0, NativeDirectionalLightsV0, NativeDirectionalLightExecution, PreparedNativeDirectionalLights } from './native-directional-lights.js';
