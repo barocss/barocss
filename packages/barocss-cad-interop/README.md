@@ -4055,3 +4055,25 @@ signed saves and genuine fresh Node22 saved-file reads. Source and published JS
 are separate executions; strict physical declaration compilation checks actual
 published types without source fallback. Neutral CPU ingestion does not imply
 integrated UI/SaveOpen/recovery/context/lifetime or release acceptance.
+
+
+## Complete saved paired curved MaterialBody results
+
+Import `@barocss/cad-interop/paired-surface-material-body-result` to read the complete saved CAD result. This CPU reader preserves the original result and returns a separate validation Report.
+
+```ts
+import { parseBaroCadPairedSurfaceMaterialBodyResult, readBaroCadPairedSurfaceMaterialBodyResult } from '@barocss/cad-interop/paired-surface-material-body-result';
+
+const loaded = parseBaroCadPairedSurfaceMaterialBodyResult(savedText);
+const copied = readBaroCadPairedSurfaceMaterialBodyResult(loaded.native);
+```
+
+Each result has `native`, `validationReport`, `profile`, and `sourceText`. Native data and the Report remain independently mutable. Only the metadata profile is frozen. Parsing keeps the entire input text; own-data reading sets `sourceText` to null.
+
+The reader retains all ten native fields, both complementary Face parents, four complete closure receipts, six separate qualified Source images, Models8/3/5, topology8V/12E/6F/24Uses, observations, exact parameter correspondences, occupied-region Phi and its volume proof. Original signed zeros and Source text are preserved. Native `solid` and `restrictedSolidCertified` stay true; generic Boolean and general curved-solid properties stay false. Profile construction and certification capabilities describe direct reader APIs. Native matching internally reconstructs the supplied Body with its real inherited work.
+
+Primitive input guards, strict Unicode/JSON and own-data checks precede the exact schema/version guard and one native whole-result validation. The reader copies the actual returned Report independently. Only native-call failures receive `NATIVE` and retain the original cause; codec failures keep their codes.
+
+Limits are16MiB UTF8/UTF16/canonical JSON and4M occurrences per pass. Native request8MiB and all native Source, object and rational limits remain separate. Aggregate limit edges are untested. No renderer, URL/bytes, serializer, dispose, source edit, direct construction, new Solid certificate, mass/inertia, manufacturing or publication API is provided.
+
+The example verifier admits the two original complete results, checks selected refusals, preserves exact signed files, and reads those files in a fresh process. The physical type contract uses actual CAD declarations. Request fixtures are comparison data. Integrated UI, Save/Open, recovery and lifetime acceptance remain separate.

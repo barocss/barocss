@@ -226,6 +226,10 @@
       "./paired-surface-uv-face-classification-result": {
         "types": "./dist/paired-surface-uv-face-classification-result.d.ts",
         "import": "./dist/paired-surface-uv-face-classification-result.js"
+      },
+      "./paired-surface-material-body-result": {
+        "types": "./dist/paired-surface-material-body-result.d.ts",
+        "import": "./dist/paired-surface-material-body-result.js"
       }
     }
   },
@@ -454,6 +458,10 @@
     "./paired-surface-uv-face-classification-result": {
       "types": "./src/paired-surface-uv-face-classification-result.ts",
       "import": "./src/paired-surface-uv-face-classification-result.ts"
+    },
+    "./paired-surface-material-body-result": {
+      "types": "./src/paired-surface-material-body-result.ts",
+      "import": "./src/paired-surface-material-body-result.ts"
     }
   },
   "files": [
