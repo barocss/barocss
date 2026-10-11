@@ -9572,3 +9572,86 @@ A new eight-Vertex, twelve-Edge, six-Face graph has twenty-four Uses, twelve exa
 `validatePairedRoofDifferenceBody(result)` rebuilds once and compares the complete owned result. Request/result caps are8/16MiB with4M own values and fixed-point sizing. These are refusal envelopes, not a guarantee that every accepted operand pair fits. The existing request-local rational limits remain unchanged and root Float conversions are zero.
 
 Run `node examples/cad-nurbs/paired-roof-difference-body-demo.mjs --source <output-directory>`. Issue1544 tracks this constructive difference profile. General Boolean, pinched wedges, crossings, arbitrary difference membership, manufacturing and renderer acceptance remain separate. Complete source/UV/topology requests and cold reconstruction are required; no new codec is added.
+
+## Qualified translated-strip Body binary STL (#1559)
+
+`exportQualifiedTranslatedStripBodyBinaryStl(mesh, options)` accepts the **whole**
+version-0 `tessellateQualifiedTranslatedStripBody` result. It calls the existing
+whole-result validator once, retains the complete copied native input, and exports
+only that packet's original indexed triangles, in their original order. It does
+not accept an unrelated Body/packet cast, resample, weld, snap, rescale, or rebuild
+native CAD from STL.
+
+```ts
+const result = exportQualifiedTranslatedStripBodyBinaryStl(mesh, {
+  evaluationId: 'body_stl',
+  maximumVertices: 290,
+  maximumTriangles: 576,
+  maximumBytes: 28884,
+});
+const independentReport = validateQualifiedTranslatedStripBodyBinaryStl(result);
+```
+
+The other public names are `QualifiedTranslatedStripBodyBinaryStlError`,
+`QualifiedTranslatedStripBodyBinaryStlDiagnosticCode`, and the Options,
+VertexLoss, Report and Result types with the same prefix. The whole-result STL
+validator reconstructs once, bit-compares every field/byte, and returns an
+independent copied report. The package has no public generic STL reader or Node
+filesystem dependency.
+
+### Format, arithmetic and admission
+
+- Exactly 80 header bytes, a uint32 little-endian triangle count, and 50 bytes per
+  triangle: 12 little-endian Float32 values followed by uint16 zero (no colors)
+- Fixed ASCII header `BaroCSS binary STL | mm convention | approximate facets`,
+  padded with zero bytes; exact length `84 + 50 * triangleCount`, at most 28,884
+- Every unique binary64 packet vertex is compared with its `Math.fround` XYZ,
+  retaining source/rounded bits (including signed zero), component displacement,
+  exact rational squared displacement in mm², and measured `Math.hypot` mm loss
+- Every quantized facet receives an exact rational cross-product collapse test;
+  approximate geometric Float32 normals must be finite, unit within 1e-5, and
+  have an exact strictly positive dot product with the quantized cross
+- Nonfinite coordinates, collapse, normal and budget failures are atomic; bytes
+  are allocated only after all vertex/facet guards. Errors preserve the actual
+  phase, vertex/triangle index, new-work counters and original validator cause
+- One new rational context has 200,000 operations/GCD steps, 8,192 integer bits
+  and 5,000 fraction characters. It performs zero rational-to-float conversions
+- Complete request JSON is capped at 4 MiB and result JSON at 8 MiB in both UTF-16
+  code units and UTF-8 bytes, including signed zero and a final newline. Own-data
+  limits remain 4,194,304 values, depth 64, 64 record fields and 8,192 generic array
+  elements. Only the root `bytes` field permits 28,884 dense uint8 values; negative
+  zero bytes, sparse arrays, getters, cycles and nonplain prototypes are refused
+
+Wrapping a parent mesh near its own limit can exceed the exporter request budget;
+there is no promise that every parent result fits. Existing native/provider caps
+are unchanged. The report separates inherited mesh work from deliberate new
+coordinate rounding, normal rounding and exact binary writes; API file reads and
+writes remain zero.
+
+### Meaning and file acceptance
+
+Millimetres are an explicit caller convention, **not embedded STL units metadata**.
+STL loses authoritative native IDs, UV trims and editable topology. Original
+Source/Body/mesh remain authoritative in the retained result. Facets and normals
+are approximate and global geometric error is uncertified. Serialization or file
+success does not certify STL watertightness, manifoldness, an embedded valid Solid,
+manufacturing tolerance, renderer/Loader acceptance, or commercial CAD parity.
+
+The bounded executable flow constructs one fresh MAIN from original Sources and
+native parents, exports it, physically writes an STL, freshly reads it, and audits
+all facet bytes and all vertex losses. Malformed public mesh and owned-result
+controls must preserve the accepted file and original objects. Separate private
+arithmetic controls exercise nonzero loss/collapse without claiming public native
+mesh admission. No previous parent campaign is replayed.
+
+```sh
+pnpm --filter @barocss/cad build:library
+node examples/cad-nurbs/qualified-strip-binary-stl-demo.mjs --source /tmp/stl-unique-output
+```
+
+Cloud takeover provenance: base `3100cb8445c2834afc358e2590fd144152abd7d2`,
+Node 22.23.3 and pnpm 9.15.9. Its CAD provider/example blobs match historical
+parent `86b1d7aeba0591eda0d09e79225af6ed20bdf9e8`; the historical Node24.19
+execution environment is not claimed. The detailed frozen schema is mirrored in
+[the before-code contract](https://github.com/barocss/barocss/issues/1559#issuecomment-6109205543),
+with its [input-failure clarification](https://github.com/barocss/barocss/issues/1559#issuecomment-6109218241).

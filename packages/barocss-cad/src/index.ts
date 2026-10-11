@@ -484,3 +484,7 @@ export type { PairedSurfaceMaterialBodyWorldPointQuery, PairedSurfaceMaterialBod
 // Actual strictly positive paired-roof occupied difference Body.
 export { buildPairedRoofDifferenceBody, validatePairedRoofDifferenceBody, PairedRoofDifferenceBodyError, PairedRoofDifferenceBodyDiagnosticCode } from './paired-roof-difference-body.js';
 export type { PairedRoofDifferenceBodyRequest, PairedRoofDifferenceBodyOptions, PairedRoofDifferenceBodyReport, PairedRoofDifferenceBodyResult } from './paired-roof-difference-body.js';
+
+// Bounded binary STL exchange from the whole qualified translated-strip Body mesh.
+export { exportQualifiedTranslatedStripBodyBinaryStl, validateQualifiedTranslatedStripBodyBinaryStl, QualifiedTranslatedStripBodyBinaryStlError, QualifiedTranslatedStripBodyBinaryStlDiagnosticCode } from './qualified-strip-binary-stl.js';
+export type { QualifiedTranslatedStripBodyBinaryStlOptions, QualifiedTranslatedStripBodyBinaryStlVertexLoss, QualifiedTranslatedStripBodyBinaryStlReport, QualifiedTranslatedStripBodyBinaryStlResult } from './qualified-strip-binary-stl.js';
