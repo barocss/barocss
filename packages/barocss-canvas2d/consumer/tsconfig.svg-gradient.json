@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": false,
+    "skipLibCheck": true,
+    "moduleDetection": "force",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "paths": {
+      "@barocss/canvas2d": [
+        "../src/index.ts"
+      ]
+    }
+  },
+  "files": [
+    "current-v29-svg.mjs",
+    "svg-gradient-types.ts"
+  ]
+}

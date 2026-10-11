@@ -193,6 +193,15 @@ export function exportSceneSVG(input: unknown, logicalSize: Size): SVGExportResu
 
 /** Export the Scene29 solid/two-opaque-stop linear subset for native SVG display. */
 export function exportSceneLinearSVG(input: unknown, logicalSize: Size): SVGExportResult {
+  return exportGradientProfile(input, logicalSize, 'linear');
+}
+
+/** Export copied Scene29 solid, linear and concentric opaque radial paint to native SVG. */
+export function exportSceneGradientSVG(input: unknown, logicalSize: Size): SVGExportResult {
+  return exportGradientProfile(input, logicalSize, 'gradient');
+}
+
+function exportGradientProfile(input: unknown, logicalSize: Size, profile: 'linear' | 'gradient'): SVGExportResult {
   const scene = validateScene(input);
   const { size } = validateSize(logicalSize, 1);
   const diagnostics: SVGExportDiagnostic[] = [];
@@ -241,6 +250,11 @@ export function exportSceneLinearSVG(input: unknown, logicalSize: Size): SVGExpo
           if (paint(linear.endColor) === null) {
             unsupported(node.id, 'linear end RGB is outside the 8-bit SVG paint grid');
           }
+        } else if (profile === 'gradient' && 'radial' in node.fill) {
+          const radial = node.fill.radial;
+          if (radial.startColor[3] !== 1 || radial.endColor[3] !== 1) unsupported(node.id, 'radial stop alpha must be 1');
+          if (paint(radial.startColor) === null) unsupported(node.id, 'radial start RGB is outside the 8-bit SVG paint grid');
+          if (paint(radial.endColor) === null) unsupported(node.id, 'radial end RGB is outside the 8-bit SVG paint grid');
         } else unsupported(node.id, 'radial fill has no SVG subset mapping');
       }
       if (node.stroke) {
@@ -265,12 +279,12 @@ export function exportSceneLinearSVG(input: unknown, logicalSize: Size): SVGExpo
   function definitions(nodes: NodeV29[]): void {
     for (const node of nodes) {
       if (node.kind === 'group') definitions(node.children);
-      else if (node.kind === 'path' && node.fill && 'linear' in node.fill) {
-        if (gradientIds.size >= 32) throw new Canvas2DError('SCENE_LIMIT', 'SVG exceeds 32 linear definitions');
+      else if (node.kind === 'path' && node.fill && ('linear' in node.fill || (profile === 'gradient' && 'radial' in node.fill))) {
+        if (gradientIds.size >= 32) throw new Canvas2DError('SCENE_LIMIT', profile === 'linear' ? 'SVG exceeds 32 linear definitions' : 'SVG exceeds 32 gradient definitions');
         let id: string;
         do {
           if (++candidateIndex > 289) throw new Canvas2DError('SCENE_LIMIT', 'SVG gradient ID search exceeds its bound');
-          id = `C2DLinearGradient${candidateIndex}`;
+          id = `${profile === 'linear' ? 'C2DLinearGradient' : 'C2DGradient'}${candidateIndex}`;
         } while (used.has(id));
         used.add(id);
         gradientIds.set(node.id, id);
@@ -296,15 +310,26 @@ export function exportSceneLinearSVG(input: unknown, logicalSize: Size): SVGExpo
   function emitDefinitions(nodes: NodeV29[]): void {
     for (const node of nodes) {
       if (node.kind === 'group') emitDefinitions(node.children);
-      else if (node.kind === 'path' && node.fill && 'linear' in node.fill) {
-        const linear = node.fill.linear;
-        append(`<linearGradient id="${gradientIds.get(node.id)}" gradientUnits="userSpaceOnUse" ` +
-          'spreadMethod="pad" color-interpolation="sRGB" ' +
-          `x1="${number(linear.from.x)}" y1="${number(linear.from.y)}" ` +
-          `x2="${number(linear.to.x)}" y2="${number(linear.to.y)}">`);
-        append(`<stop offset="0" stop-color="${paint(linear.startColor)}" stop-opacity="1"/>`);
-        append(`<stop offset="1" stop-color="${paint(linear.endColor)}" stop-opacity="1"/>`);
-        append('</linearGradient>');
+      else if (node.kind === 'path' && node.fill && ('linear' in node.fill || (profile === 'gradient' && 'radial' in node.fill))) {
+        const fill = node.fill;
+        if ('linear' in fill) {
+          const linear = fill.linear;
+          append(`<linearGradient id="${gradientIds.get(node.id)}" gradientUnits="userSpaceOnUse" ` +
+            'spreadMethod="pad" color-interpolation="sRGB" ' +
+            `x1="${number(linear.from.x)}" y1="${number(linear.from.y)}" ` +
+            `x2="${number(linear.to.x)}" y2="${number(linear.to.y)}">`);
+        } else if ('radial' in fill) {
+          const radial = fill.radial;
+          append(`<radialGradient id="${gradientIds.get(node.id)}" gradientUnits="userSpaceOnUse" ` +
+            'spreadMethod="pad" color-interpolation="sRGB" ' +
+            `cx="${number(radial.center.x)}" cy="${number(radial.center.y)}" ` +
+            `fx="${number(radial.center.x)}" fy="${number(radial.center.y)}" fr="0" r="${number(radial.radius)}">`);
+        }
+        const gradient = 'linear' in fill ? fill.linear : 'radial' in fill ? fill.radial : null;
+        if (!gradient) continue;
+        append(`<stop offset="0" stop-color="${paint(gradient.startColor)}" stop-opacity="1"/>`);
+        append(`<stop offset="1" stop-color="${paint(gradient.endColor)}" stop-opacity="1"/>`);
+        append('linear' in fill ? '</linearGradient>' : '</radialGradient>');
       }
     }
   }
@@ -333,7 +358,7 @@ export function exportSceneLinearSVG(input: unknown, logicalSize: Size): SVGExpo
         if ('color' in node.fill) {
           attributes.push(`fill="${paint(node.fill.color)}"`, `fill-rule="${node.fill.rule}"`,
             `fill-opacity="${number(node.fill.color[3] * alpha)}"`);
-        } else if ('linear' in node.fill) {
+        } else if ('linear' in node.fill || (profile === 'gradient' && 'radial' in node.fill)) {
           attributes.push(`fill="url(#${gradientIds.get(node.id)})"`, `fill-rule="${node.fill.rule}"`,
             `fill-opacity="${number(alpha)}"`);
         }

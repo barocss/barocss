@@ -590,3 +590,10 @@ All three arguments are required. Complete ordinary asset shape, radius and dens
 Linear fills require two opaque endpoint colors on the existing 8-bit RGB grid (rounding tolerance `1e-12`). Original local endpoints use SVG `userSpaceOnUse`, `pad` and explicit `sRGB` interpolation. Positive path/group transforms preserve local gradient coordinates. Inherited alpha and visibility multiply each leaf fill/stroke opacity, without isolated group opacity. Solid fills/strokes retain the existing paint restrictions. Unsupported radial fills, stop transparency, masks, node kinds, hit settings, pivots, signed scales, stroke styles, layers or colors return complete diagnostics and no SVG.
 
 The existing full scene validator copies input before export and keeps its 1 MiB, 256-node, depth-16, 32-path and 256-command-per-path limits. Endpoints closer than `0.001` remain `INVALID_SCENE`. The new native profile does not apply the legacy importer's extra wrapper admission. Definitions are deterministic, at most 32 with 64 stops, and skip every source ID. Output contains local references only and is bounded to 1 MiB of ASCII code units/UTF-8 bytes before fragments are assembled; an output overflow throws `SCENE_LIMIT`. This does not certify GPU precision admission, arbitrary native SVG hit behavior, edge raster parity, color management or device coverage.
+
+
+### Native gradient SVG
+
+`exportSceneGradientSVG(scene, logicalSize)` exports the bounded Scene29 group/Path profile with solid, linear and concentric radial fills. Gradient stops must be opaque and use the existing eight-bit RGB grid. Local gradient coordinates, inherited leaf alpha and visibility remain explicit. Unsupported fields return diagnostics without an SVG. The old solid and linear export profiles keep their behavior.
+
+Open `consumer/current-v29-svg.html?gradient=1` to display the exported file with the browser's native SVG reader. The original Scene remains editable. Native gradient SVG display does not extend our solid-only SVG importer. See `consumer/evidence/svg-gradient/` for actual file/interior-pixel/lifetime proof and limits; no device-edge parity or release claim follows.

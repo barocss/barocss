@@ -1,0 +1,223 @@
+{
+  "status": "PASS",
+  "assertions": 197,
+  "actualBrowser": false,
+  "successfulPairedRuns": 1,
+  "entries": [
+    {
+      "entry": "source",
+      "newProfileAcceptedCases": 6,
+      "legacyComparisonCases": 3,
+      "mapOwnershipExtraCalls": 2,
+      "unsupported": 11,
+      "malformed": 13,
+      "sourceLimitWitness": {
+        "sourceUTF8Bytes": 1270036,
+        "code": "SCENE_LIMIT",
+        "message": "scene snapshot exceeds 1 MiB",
+        "byteBudgetBranchMeasured": true
+      },
+      "getterReads": 0,
+      "DOMReadsDuringCalls": 0,
+      "fetchCallsDuringCalls": 0,
+      "importInertnessMeasured": false,
+      "refusals": [
+        {
+          "label": "stopAlpha",
+          "features": [
+            "radial stop alpha must be 1"
+          ]
+        },
+        {
+          "label": "startGrid",
+          "features": [
+            "radial start RGB is outside the 8-bit SVG paint grid"
+          ]
+        },
+        {
+          "label": "endGrid",
+          "features": [
+            "radial end RGB is outside the 8-bit SVG paint grid"
+          ]
+        },
+        {
+          "label": "pivot",
+          "features": [
+            "nonzero pivot has no SVG subset mapping"
+          ]
+        },
+        {
+          "label": "signed",
+          "features": [
+            "signed scale has no SVG subset mapping"
+          ]
+        },
+        {
+          "label": "layer",
+          "features": [
+            "layer must equal sibling index"
+          ]
+        },
+        {
+          "label": "hitMode",
+          "features": [
+            "hitMode must be auto"
+          ]
+        },
+        {
+          "label": "strokeCap",
+          "features": [
+            "stroke requires butt/bevel, empty zero-offset dash and miterLimit 4"
+          ]
+        },
+        {
+          "label": "groupHitArea",
+          "features": [
+            "group hitArea has no SVG subset mapping"
+          ]
+        },
+        {
+          "label": "hiddenComplete",
+          "features": [
+            "radial stop alpha must be 1",
+            "linear end RGB is outside the 8-bit SVG paint grid"
+          ]
+        }
+      ],
+      "largestLegal": {
+        "commands": 8192,
+        "definitions": 32,
+        "stops": 64,
+        "sourceUTF8Bytes": 463092,
+        "SVGASCIIBytes": 310604
+      },
+      "outputOverflow": "Enforced while appending; no fabricated public overflow case",
+      "legacyPrefixSHA256": "a47e606d244d68b92291a85197b9dff66149d0400fbc48015d1044878443e82d"
+    },
+    {
+      "entry": "emitted",
+      "newProfileAcceptedCases": 6,
+      "legacyComparisonCases": 3,
+      "mapOwnershipExtraCalls": 2,
+      "unsupported": 11,
+      "malformed": 13,
+      "sourceLimitWitness": {
+        "sourceUTF8Bytes": 1270036,
+        "code": "SCENE_LIMIT",
+        "message": "scene snapshot exceeds 1 MiB",
+        "byteBudgetBranchMeasured": true
+      },
+      "getterReads": 0,
+      "DOMReadsDuringCalls": 0,
+      "fetchCallsDuringCalls": 0,
+      "importInertnessMeasured": false,
+      "refusals": [
+        {
+          "label": "stopAlpha",
+          "features": [
+            "radial stop alpha must be 1"
+          ]
+        },
+        {
+          "label": "startGrid",
+          "features": [
+            "radial start RGB is outside the 8-bit SVG paint grid"
+          ]
+        },
+        {
+          "label": "endGrid",
+          "features": [
+            "radial end RGB is outside the 8-bit SVG paint grid"
+          ]
+        },
+        {
+          "label": "pivot",
+          "features": [
+            "nonzero pivot has no SVG subset mapping"
+          ]
+        },
+        {
+          "label": "signed",
+          "features": [
+            "signed scale has no SVG subset mapping"
+          ]
+        },
+        {
+          "label": "layer",
+          "features": [
+            "layer must equal sibling index"
+          ]
+        },
+        {
+          "label": "hitMode",
+          "features": [
+            "hitMode must be auto"
+          ]
+        },
+        {
+          "label": "strokeCap",
+          "features": [
+            "stroke requires butt/bevel, empty zero-offset dash and miterLimit 4"
+          ]
+        },
+        {
+          "label": "groupHitArea",
+          "features": [
+            "group hitArea has no SVG subset mapping"
+          ]
+        },
+        {
+          "label": "hiddenComplete",
+          "features": [
+            "radial stop alpha must be 1",
+            "linear end RGB is outside the 8-bit SVG paint grid"
+          ]
+        }
+      ],
+      "largestLegal": {
+        "commands": 8192,
+        "definitions": 32,
+        "stops": 64,
+        "sourceUTF8Bytes": 463092,
+        "SVGASCIIBytes": 310604
+      },
+      "outputOverflow": "Enforced while appending; no fabricated public overflow case",
+      "legacyPrefixSHA256": "a47e606d244d68b92291a85197b9dff66149d0400fbc48015d1044878443e82d"
+    }
+  ],
+  "parent": "ebae6a1409467638b3c2aeaac7049991c368180e",
+  "types": {
+    "common": {
+      "exit": 0,
+      "log": "/tmp/c2d1428-common-types.txt"
+    },
+    "scoped": {
+      "exit": 0,
+      "log": "/tmp/c2d1428-scoped-ready-types.txt"
+    },
+    "firstScopedFailure": {
+      "log": "/tmp/c2d1428-scoped-types.txt",
+      "attribution": "13 host JSDoc/nullability diagnostics repaired before browser"
+    }
+  },
+  "firstRecords": [
+    {
+      "log": "/tmp/c2d1428-focused-first-failure.txt",
+      "attribution": "Fixture omitted required Scene29 common and normalized stroke fields; INVALID_SCENE before XML assertions."
+    },
+    {
+      "log": "/tmp/c2d1428-focused-second-probe.txt",
+      "attribution": "Fixture expected INVALID_SCENE for size accessor; existing public contract returned INVALID_SIZE."
+    },
+    {
+      "log": "/tmp/c2d1428-focused-third-probe.txt",
+      "attribution": "Largest filled path fixture was open; repaired M+254L+Z retains 256 commands."
+    },
+    {
+      "log": "/tmp/c2d1428-focused-fourth-failure.txt",
+      "attribution": "Appended collision path fixture omitted required Scene29 common fields."
+    }
+  ],
+  "log": "/tmp/c2d1428-focused-final-probe.txt",
+  "browser": "UNRUN"
+}

@@ -11,7 +11,9 @@ import * as api from '@barocss/canvas2d';
 import { LOGICAL_SIZE, createCurrentSVGFixture, applyCurrentSVGEdit,
   compareCurrentSVGSemantics, createTreeFromImportedSVG } from '../examples/canvas2d-scene/current-v29-svg-fixture.mjs';
 
-if (new URLSearchParams(location.search).get("linear") === "1") {
+if (new URLSearchParams(location.search).get("gradient") === "1") {
+  await startGradientConsumer();
+} else if (new URLSearchParams(location.search).get("linear") === "1") {
   await startLinearConsumer();
 } else {
 const options = { logicalSize: LOGICAL_SIZE, dpr: 1 };
@@ -443,4 +445,61 @@ async function startLinearConsumer() {
     get original() { return original; }, get restored() { return restored; }, get draft() { return draft; },
     get nativeImage() { return nativeImage; }, get scratch() { return scratch; } } });
   document.documentElement.dataset.svgReady = 'ready'; show('Linear SVG ready');
+}
+
+/** New native display mode. Legacy and linear routes above retain their own behavior. */
+async function startGradientConsumer(){
+ const size={width:320,height:220},opts={logicalSize:size,dpr:1};
+ const pose=(x=0,y=0,scaleX=1,scaleY=1,rotation=0)=>({x,y,scaleX,scaleY,rotation});
+ /** @param {number} w @param {number} h @param {number} [x] @param {number} [y] @returns {import('@barocss/canvas2d').PathCommand[]} */
+ const box=(w,h,x=0,y=0)=>[{kind:'M',x,y},{kind:'L',x:x+w,y},{kind:'L',x:x+w,y:y+h},{kind:'L',x,y:y+h},{kind:'Z'}];
+ const commands=[...box(80,80),...box(16,16,8,8)];
+ /** @param {number} radius @param {number} [cx] @returns {Pick<Parameters<Tree['createPath']>[0],'commands'|'fill'|'stroke'>} */
+ const radialPaint=(radius,cx=40)=>({commands,fill:{rule:'evenodd',radial:{center:{x:cx,y:40},radius,startColor:[1,0,0,1],endColor:[0,0,1,1]}},stroke:{width:8,color:[1,1,1,.5]}});
+ const tree=api.createDisplayTree('GradientSVGScene');
+ tree.stage.addChild(tree.createPath({id:'Background',layer:0,transform:pose(),commands:box(320,220),fill:{rule:'nonzero',color:[32/255,40/255,56/255,1]}}));
+ const group=tree.createContainer({id:'GradientGroup',layer:1,transform:pose(20,20,1.25,.75,.2),alpha:.5});
+ group.addChild(tree.createPath({id:'RadialPath',layer:0,transform:pose(20,20),alpha:.8,...radialPaint(40)}));
+ group.addChild(tree.createPath({id:'LinearPath',layer:1,transform:pose(140,20),commands:box(80,40),fill:{rule:'nonzero',linear:{from:{x:0,y:0},to:{x:80,y:0},startColor:[0,1,0,1],endColor:[0,0,1,1]}}}));tree.stage.addChild(group);
+ tree.stage.addChild(tree.createPath({id:'C2DGradient1',layer:2,transform:pose(245,155),commands:box(25,25),fill:{rule:'nonzero',color:[0,1,0,1]}}));
+ const canvas=/** @type {HTMLCanvasElement} */(element('#original')),checkedGL=canvas.getContext('webgl2',{alpha:true,premultipliedAlpha:true,antialias:false,preserveDrawingBuffer:true,stencil:true});if(!checkedGL)throw Error('WebGL2 unavailable');const gl=checkedGL;
+ /** @type {Record<string,Resource>} */const resources={};
+ /** @type {number[]} */const errors=[];
+ const methods=/** @type {Record<string,(...args:any[])=>any>} */(/** @type {unknown} */(gl));
+ for(const name of ['Buffer','VertexArray','Shader','Program','Texture','Framebuffer','Renderbuffer']){const live=new Set(),row=resources[name]={created:0,deleted:0,live:0},create=methods['create'+name].bind(gl),remove=methods['delete'+name].bind(gl);methods['create'+name]=(...args)=>{const obj=create(...args);if(obj){live.add(obj);row.created++;row.live=live.size;}return obj;};methods['delete'+name]=obj=>{remove(obj);if(live.delete(obj)){row.deleted++;row.live=live.size;}};}
+ const renderer=api.createCanvas2D(canvas,opts);renderer.updateScene(tree.snapshot());renderer.render();
+ let disposed=false,generation=0,edits=0,exports=0,saves=0,opens=0;
+ /** @type {string|null} */let lastSVG=null;
+ /** @type {string|null} */let nativeText=null;
+ /** @type {string|null} */let nativeURL=null;
+ /** @type {string|null} */let failure=null;
+ /** @type {number[]|null} */let nativePixels=null;
+ /** @type {number[]|null} */let terminalFrame=null;
+ /** @type {unknown} */let refusal=null;
+ /** @type {Tree|null} */let draft=null;
+ let nativeImage=/** @type {HTMLImageElement} */(element('#native-svg'));
+ const images=new Set([nativeImage]),urls=new Set(),scratch=document.createElement('canvas');
+ /** @type {(()=>void)[]} */const subscriptions=[];
+ /** @type {{point:import('@barocss/canvas2d').Point,hit:string|null,trusted:boolean}[]} */const pointers=[];
+ const status=element('#status'),output=element('#observation'),lifecycle={creates:1,disposes:0,binds:1,unbinds:0,uploads:0};
+ function active(){if(disposed)throw Error('Consumer disposed');}
+ function check(){const code=gl.getError();if(code!==gl.NO_ERROR)errors.push(code);}
+ function fullFrame(){if(disposed)return [...(terminalFrame??[])];const bytes=new Uint8Array(281600);gl.readPixels(0,0,320,220,gl.RGBA,gl.UNSIGNED_BYTE,bytes);check();return [...bytes];}
+ function observe(){return{mode:'gradient',disposed,edits,exports,saves,opens,jsonSaves:0,jsonOpens:0,pngs:0,lastSVG,nativeText,nativePixels,refusal,failure,draft:draft?.snapshot()??null,scene:tree.snapshot(),canonical:api.stringifySceneJSON(tree.snapshot()),lifecycle:{...lifecycle},pointers:[...pointers],resources,errors:[...errors],scratch:{width:scratch.width,height:scratch.height},activeURLs:urls.size,nativeImages:[...images].map(i=>({src:i.getAttribute('src'),naturalWidth:i.naturalWidth,naturalHeight:i.naturalHeight}))};}
+ function show(/** @type {string} */message){status.textContent=message;const o=observe();output.textContent=JSON.stringify({...o,lastSVG:lastSVG?.length,nativeText:nativeText?.length,nativePixels:nativePixels?'Retained native pixels':null,scene:'Editable source',canonical:'Canonical source'},null,2);}
+ function edit(){active();const path=tree.get('RadialPath');if(path?.kind!=='path')throw Error('RadialPath missing');path.setPath(edits===0?radialPaint(30):radialPaint(45,45));renderer.updateScene(tree.snapshot());renderer.render();edits++;show('Original radial paint edited');}
+ function save(){active();exports++;const result=api.exportSceneGradientSVG(tree.snapshot(),size);if(!result.ok)throw Error('Gradient export refused: '+JSON.stringify(result.diagnostics));lastSVG=result.svg;saves++;const url=URL.createObjectURL(new Blob([lastSVG],{type:'image/svg+xml'}));urls.add(url);const a=document.createElement('a');a.href=url;a.download='gradient-scene.svg';a.click();URL.revokeObjectURL(url);urls.delete(url);show('Gradient SVG downloaded');return result;}
+ function refuse(){active();const before=api.stringifySceneJSON(tree.snapshot()),frame=fullFrame();draft=api.createDisplayTreeFromScene(tree.snapshot());const path=draft.get('RadialPath');if(path?.kind!=='path')throw Error('Draft radial missing');const fill=path.data.fill;if(!fill||!('radial'in fill))throw Error('Radial fill missing');path.setPath({commands:path.data.commands,fill:{rule:fill.rule,radial:{...fill.radial,startColor:[1,0,0,.5]}},stroke:path.data.stroke});exports++;const result=api.exportSceneGradientSVG(draft.snapshot(),size);if(result.ok)throw Error('Transparent stop unexpectedly exported');const after=fullFrame();refusal={diagnostics:result.diagnostics,retained:before===api.stringifySceneJSON(tree.snapshot()),fullFrameBytes:frame.length,fullFrameEqual:frame.every((v,i)=>v===after[i]),draftRetained:true};show('Unsupported draft refused; original retained');return refusal;}
+ /** @param {string} text */function inspectXML(text){if(new TextEncoder().encode(text).length>1048576)throw Error('SVG exceeds 1 MiB');const parsed=new DOMParser().parseFromString(text,'image/svg+xml');if(parsed.doctype||parsed.querySelector('parsererror'))throw Error('Malformed SVG');
+  const allowed=/** @type {Record<string,string[]>} */({svg:['xmlns','id','width','height','viewBox','preserveAspectRatio'],g:['id','transform'],path:['id','d','transform','fill','fill-rule','fill-opacity','stroke','stroke-width','stroke-opacity','stroke-linejoin','stroke-linecap'],defs:[],linearGradient:['id','gradientUnits','spreadMethod','color-interpolation','x1','y1','x2','y2'],radialGradient:['id','gradientUnits','spreadMethod','color-interpolation','cx','cy','fx','fy','fr','r'],stop:['offset','stop-color','stop-opacity']});
+  for(const e of Array.from(parsed.querySelectorAll('*'))){if(e.namespaceURI!=='http://www.w3.org/2000/svg'||!allowed[e.localName]||Array.from(e.attributes).some(a=>!allowed[e.localName].includes(a.name)||(/url\(/.test(a.value)&&!/^url\(#[A-Za-z][A-Za-z0-9_-]*\)$/.test(a.value))))throw Error('Native SVG structure outside this profile');}return parsed;}
+ /** @param {string} text */async function openText(text){active();const token=++generation;inspectXML(text);const url=URL.createObjectURL(new Blob([text],{type:'image/svg+xml'}));urls.add(url);const candidate=document.createElement('img');candidate.id='native-svg';candidate.width=320;candidate.height=220;candidate.alt='Uploaded native radial and linear SVG';images.add(candidate);candidate.src=url;let accepted=false;
+  try{await candidate.decode();if(disposed||token!==generation)throw Error('Native image superseded');scratch.width=320;scratch.height=220;const context=scratch.getContext('2d',{willReadFrequently:true});if(!context)throw Error('2D unavailable');context.drawImage(candidate,0,0,320,220);const pixels=[...context.getImageData(0,0,320,220).data];if(disposed||token!==generation)throw Error('Native image superseded');const old=nativeImage;old.replaceWith(candidate);old.removeAttribute('src');if(nativeURL){URL.revokeObjectURL(nativeURL);urls.delete(nativeURL);}nativeImage=candidate;nativeURL=url;nativeText=text;nativePixels=pixels;opens++;accepted=true;show('Saved native SVG displayed');
+  }finally{scratch.width=0;scratch.height=0;if(!accepted){candidate.removeAttribute('src');URL.revokeObjectURL(url);urls.delete(url);}}}
+ const pointer=(/** @type {PointerEvent} */event)=>{if(disposed)return;const r=canvas.getBoundingClientRect(),point={x:(event.clientX-r.left)*320/r.width,y:(event.clientY-r.top)*220/r.height},hit=renderer.hitTest(point);tree.dispatchPointer({type:'pointerdown',pointerId:event.pointerId,point,hit});pointers.push({point,hit:hit?.id??null,trusted:event.isTrusted});show('Source pointer dispatched');};canvas.addEventListener('pointerdown',pointer);
+ function dispose(){if(disposed)return;terminalFrame=fullFrame();canvas.removeEventListener('pointerdown',pointer);lifecycle.unbinds++;renderer.dispose();lifecycle.disposes++;check();disposed=true;generation++;for(const remove of subscriptions)remove();for(const url of urls)URL.revokeObjectURL(url);urls.clear();nativeURL=null;for(const img of images)img.removeAttribute('src');scratch.width=0;scratch.height=0;for(const c of document.querySelectorAll('button,input'))/** @type {HTMLButtonElement|HTMLInputElement} */(c).disabled=true;document.documentElement.dataset.svgReady='disposed';show('Disposed');}
+ /** @param {EventTarget} target @param {string} type @param {EventListener} fn */function listen(target,type,fn){target.addEventListener(type,fn);subscriptions.push(()=>target.removeEventListener(type,fn));}
+ /** @param {()=>unknown} fn */const action=fn=>()=>{void Promise.resolve().then(async()=>{await fn();}).catch(error=>{if(!disposed){failure=String(error);show('Operation refused');}});};
+ listen(element('#save'),'click',action(save));listen(element('#edit'),'click',action(edit));listen(element('#refuse'),'click',action(refuse));listen(element('#dispose'),'click',dispose);const input=/** @type {HTMLInputElement} */(element('#open'));listen(element('#open-button'),'click',()=>input.click());listen(input,'change',action(async()=>{const file=input.files?.[0];input.value='';if(!file)return;lifecycle.uploads++;const token=++generation,text=await file.text();if(disposed||token!==generation)return;await openText(text);}));listen(window,'pagehide',dispose);
+ Object.assign(window,{__svgGradientConsumer:{observe,edit,save,refuse,openText,dispose,fullFrame,get tree(){return tree;},get renderer(){return renderer;},get canvas(){return canvas;},get scratch(){return scratch;},get nativeImage(){return nativeImage;}}});document.documentElement.dataset.svgReady='ready';show('Gradient SVG ready');
 }

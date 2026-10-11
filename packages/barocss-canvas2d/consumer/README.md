@@ -359,3 +359,10 @@ The existing `nine-slice.html` host retains its original palette and resize/edit
 ### Linear SVG display profile
 
 Open `current-v29-svg.html?linear=1` for copied Scene29 linear-path SVG export. The existing solid mode remains the default. The linear mode exports an edited transformed path, opens the genuine downloaded SVG for native browser display, and separately saves/opens the original editable Canvas JSON document. SVG display does not use the solid-only importer. A radial corrective draft is retained on export refusal. The bounded evidence is in `evidence/svg-linear/`; selected interior comparisons and exact source/file/lifetime receipts have their own declared scope, separate from broader integrated acceptance.
+
+
+### Native gradient SVG
+
+`exportSceneGradientSVG(scene, logicalSize)` exports the bounded Scene29 group/Path profile with solid, linear and concentric radial fills. Gradient stops must be opaque and use the existing eight-bit RGB grid. Local gradient coordinates, inherited leaf alpha and visibility remain explicit. Unsupported fields return diagnostics without an SVG. The old solid and linear export profiles keep their behavior.
+
+Open `consumer/current-v29-svg.html?gradient=1` to display the exported file with the browser's native SVG reader. The original Scene remains editable. Native gradient SVG display does not extend our solid-only SVG importer. See `consumer/evidence/svg-gradient/` for actual file/interior-pixel/lifetime proof and limits; no device-edge parity or release claim follows.

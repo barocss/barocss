@@ -96,3 +96,5 @@ export type { BrowserEllipsizedTextOptions, BrowserEllipsizedTextRaster } from '
 export { outlineImageAsset } from './image-outline.js';
 
 export { exportSceneLinearSVG } from './svg-export.js';
+
+export { exportSceneGradientSVG } from './svg-export.js';

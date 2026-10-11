@@ -17,7 +17,16 @@ body{margin:24px;font:15px system-ui;color:#172238;background:#f4f6fa}button{mar
 <p id="status" role="status">Preparing</p>
 <section><div><h2>Original Scene29</h2><canvas id="original"></canvas></div><div><h2>Opened SVG</h2><canvas id="opened"></canvas></div><div id="native-panel" hidden><h2>Native SVG file</h2><img id="native-svg" width="320" height="220" alt="Uploaded native linear SVG"></div></section>
 <pre id="observation"></pre><script type="module">
-if (new URLSearchParams(location.search).get('linear') === '1') {
+if (new URLSearchParams(location.search).get('gradient') === '1') {
+  document.querySelector('#native-panel').hidden = false;
+  document.querySelector('#opened').parentElement.hidden = true;
+  document.querySelector('h1').textContent = 'Scene29 gradient SVG export';
+  document.querySelector('body > p').textContent = 'Save solid, linear and concentric radial artwork as native SVG. The original Scene remains editable; opening the file displays its saved vector artwork.';
+  document.querySelector('#native-svg').alt = 'Uploaded native radial and linear SVG';
+  document.querySelector('#open-button').textContent = 'Display native SVG';
+  document.querySelector('#edit').textContent = 'Edit original radial paint';
+  document.querySelector('#refuse').textContent = 'Refuse unsupported gradient draft';
+} else if (new URLSearchParams(location.search).get('linear') === '1') {
   document.querySelector('#linear-controls').hidden = false;
   document.querySelector('#native-panel').hidden = false;
   document.querySelector('h1').textContent = 'Scene29 linear SVG export';
