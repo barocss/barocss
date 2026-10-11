@@ -1,5 +1,4 @@
 import ts from 'typescript';
-import { declarationAnchor, repairSourceLinks } from './source-links.mjs';
 import { execFileSync } from 'node:child_process';
 import { readFile, writeFile, mkdir, mkdtemp, rm, access, symlink, readlink } from 'node:fs/promises';
 import { dirname, resolve, relative } from 'node:path';
@@ -172,37 +171,7 @@ else {
       }
     }
     await writeFile(baselineFile, JSON.stringify(surface, null, 2) + '\n');
-    for (const p of packages) {
-      const lines = ['---','outline: 2','---',`# ${p.name} public signatures`,'',`Package version: \`${p.version}\`. Declaration snapshot: \`${catalog.commit.slice(0,12)}\`.`, '', 'Use [task API guidance](./api), [examples](./examples) and [limits](./limits) for semantics, ownership, errors and lifecycle. These signatures come from actual public entry exports. They do not prove execution or general support beyond those guides. Unannotated returns/types are inferred by the source checker; peer type-checking and emitted declaration equivalence did not run. Private/protected members and implementation bodies are excluded.',''];
-      const seenNames = new Map(), firstAnchors = new Map();
-      for (const e of p.entries) for (const symbol of e.symbols) {
-        const base = symbol.name.toLowerCase().replace(/[^a-z0-9_-]/g, '');
-        const occurrence = seenNames.get(base) || 0;
-        symbol.anchor = base + (occurrence ? '-' + occurrence : '');
-        seenNames.set(base, occurrence + 1);
-        if (!firstAnchors.has(symbol.name)) firstAnchors.set(symbol.name, symbol.anchor);
-      }
-      const groups = new Map();
-      for (const e of p.entries) for (const group of e.groups || []) {
-        const names = groups.get(group.source) || new Set();
-        group.names.forEach(name => names.add(name)); groups.set(group.source, names);
-      }
-      lines.push('## Public declaration groups', '', 'Choose a public declaration group. File paths and the exact local commit are provenance; no unavailable GitHub URL is required.', '');
-      for (const [source,names] of [...groups].sort(([a],[b]) => a.localeCompare(b))) {
-        lines.push(`### ${source.split('/').at(-1)} {#${declarationAnchor(source)}}`, '', `Local source: \`${source}\` at \`${catalog.commit}\`.`, '', [...names].map(name => `[${name}](#${firstAnchors.get(name)})`).join(' · '), '');
-      }
-      for (const e of p.entries) {
-        const importName = p.name + (e.key === '.' ? '' : e.key.slice(1));
-        lines.push(`## ${importName}`, '', `Entry: \`${e.source}\`. ${e.provenance}.`, '');
-        if (e.cssOnly) { lines.push('Stylesheet entry. It has no JavaScript symbol namespace.', ''); continue; }
-        for (const s of e.symbols) {
-          lines.push(`### ${s.name} {#${s.anchor}}`, '', `<details><summary>Show ${s.kind} signature</summary>`, '', '```ts', s.signatures.join('\n'), '```', '', '</details>', '', `Local declaration: \`${s.source}:${s.line}\` at \`${catalog.commit.slice(0,12)}\`.`, '');
-        }
-      }
-      lines.push('Local declaration paths and SHA record provenance. GitHub source links are exposed only when that exact commit is confirmed remotely. Reference extraction is not a registry, tarball, emitted-JS or browser acceptance result.', '');
-      await writeFile(resolve(app, `docs/packages/${p.slug}/reference.md`), lines.join('\n'));
-    }
-    console.log(JSON.stringify(await repairSourceLinks(surface)));
+    console.log(JSON.stringify({ status: 'written', evidence: 'evidence/public-api.json', packages: packages.length }));
   } else if (process.argv.includes('--check')) {
     const baseline = JSON.parse(await readFile(baselineFile, 'utf8'));
     const differences = delta(baseline.packages, surface.packages);

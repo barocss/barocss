@@ -65,7 +65,7 @@ Uniform conversion refuses lost nonzero components, repeated parameters and adja
 
 `loadBaroCadModelSet` reads its manifest of up to four source entries. Qualified set/object identity prevents ID collisions across sources. Its primitive projection has a separate four-total-object cap. Complete native16 does not expand that cap.
 
-Use [the public entry inventory](./api#public-entry-inventory) for document, assembly, model-set and Boolean graph operations. Boolean contours, filled planar material, extrusion Shell mesh and native mass properties are different outputs; do not interchange their inputs by shape guessing.
+Boolean contours, filled planar material, extrusion Shell mesh and native mass properties are different outputs; do not interchange their inputs by shape guessing.
 
 ## Export a display artifact
 
@@ -77,6 +77,6 @@ Three result disposal releases owned Group/geometry/material; Babylon disposal r
 
 ---
 
-Source snapshot: local Git `5f5ad866205a21510ac69552e704cc162fa253b5`. `packages/barocss-cad-interop/package.json` (Manifest; local source), [public root](/packages/cad-interop/reference#declarations-9cb9edb1215a), `packages/barocss-cad-interop/README.md` (package README; local source). Source references identify that fixed snapshot. This native source commit is local-only; public declaration references open in this portal. Local source is the authority for this manual.
+Source snapshot: local Git `5f5ad866205a21510ac69552e704cc162fa253b5`. `packages/barocss-cad-interop/package.json` (Manifest; local source), `packages/barocss-cad-interop/src/index.ts`, `packages/barocss-cad-interop/README.md` (package README; local source). Source references identify that fixed snapshot. This native source commit is local-only. Local source is the authority for this manual.
 
 [Overview](./) · [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits](./limits)

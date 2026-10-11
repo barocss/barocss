@@ -79,5 +79,3 @@ try {
 ```
 
 This separate profile fixes topology, two pins and a simulation sphere. Its arrays are copied for caller display. Cloth has its own public `reset()`; do not infer that method on the rigid world. The profile does not admit arbitrary cloth meshes or calibrated fabric stress. Keep the copied simulated state separate from any display layer.
-
-[API](./api) · [Public signatures](./reference) · [Limits and errors](./limits)

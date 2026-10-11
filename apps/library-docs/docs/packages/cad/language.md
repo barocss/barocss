@@ -2,7 +2,7 @@
 
 The CAD language describes native rational B-spline geometry and bounded construction intent. It is data for `compileCadModel`, not browser CSS. Use the selected source dialect explicitly. All dialects produce native `Model` version 0 in millimetres.
 
-[Compile and evaluate examples](./examples#run-the-complete-cpu-examples) · [Open the CAD playground](/playground#cad-surface) · [Public compiler signature](./reference#compilecadmodel)
+[Compile and evaluate examples](./examples#run-the-complete-cpu-examples) · [Open the CAD playground](/playground#cad-surface) · [Compiler API](./api#core-signatures)
 
 ## Practice complete CAD inputs
 
@@ -327,6 +327,6 @@ Parsing checks bounds before further growth. Native validation still applies aft
 
 ## API reference
 
-These source0/1/2 language forms belong to the experimental CAD compiler (`0.0.0-experimental`). [Compiler and result types](./reference#declarations-f70a5b13ba9d), [native math](./reference#declarations-96418e2ec250) and [expression data types](./reference#declarations-d66dfcde533b) describe the public API used above. The newer [qualified Body API](./body-1301) is a separate construction family; it adds no language declaration to these grammars.
+These source0/1/2 language forms belong to the experimental CAD compiler (`0.0.0-experimental`). [Compiler contracts](./api#core-signatures), [native domain and derivative queries](./guides#query-original-parameters-and-derivatives) and [typed expression rules](./language#parameters-and-expressions-in-source2) describe the public API used above. The newer [qualified Body API](./body-1301) is a separate construction family; it adds no language declaration to these grammars.
 
 [Overview](./) · [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits](./limits)

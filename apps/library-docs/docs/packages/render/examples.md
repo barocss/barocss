@@ -72,5 +72,3 @@ Declare alternate binding paths/action names in one host `RenderContract`. Use t
 Register ordinary function/class React components. Object-valued memo/forwardRef registrations are unsupported by this renderer. Stable node IDs become React keys; moving or replacing nodes can still remount them. The host owns controlled state and focus.
 
 `Renderer` validates again and can throw. Use a host error boundary and keep last-valid-screen state; the renderer is not a storage manager or recovery boundary. `classesFor` supplies fixed utility strings for validated Layout/Card nodes. Start the [Browser CSS runtime](/packages/browser/) separately if you want those utilities styled. Without it, the example remains ordinary unstyled HTML. Unmount React and destroy host-owned CSS/listeners when closing the application.
-
-[API](./api) · [Public signatures](./reference) · [Limits and errors](./limits)

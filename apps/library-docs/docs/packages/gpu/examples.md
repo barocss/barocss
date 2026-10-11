@@ -294,7 +294,7 @@ if (!candidate.ok) console.log(candidate.diagnostics); // SYNTAX: unsupported fu
 
 The `timeSeconds` uniform has min0, max2 and default0. It lowers to the generated name `mat_u_0`; renderer bindings use the declared name `timeSeconds`. The compiler and lowerer create no timer, canvas or frame. The host supplies the time value and adopts the result through `setMaterial`. Read [caller time and cleanup](./material-language#supply-caller-time-on-demand) for that lifecycle.
 
-The SDF scene renderer and indexed mesh renderer have separate inputs. A CPU Engine scene prepares hierarchy and query data; it does not supply a general Engine renderer in this API profile. Read [public Engine declarations](./reference#declarations-6908f7b659fc) when using that separate format.
+The SDF scene renderer and indexed mesh renderer have separate inputs. A CPU Engine scene prepares hierarchy and query data; it does not supply a general Engine renderer in this API profile. Read [CPU Engine guide](./guides#prepare-a-general-engine-scene-on-cpu) when using that separate format.
 
 [Scene language](./language) · [Material language](./material-language) · [Quickstart](./quickstart) · [API](./api) · [Limits](./limits)
 

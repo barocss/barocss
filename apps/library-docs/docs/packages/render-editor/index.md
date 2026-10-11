@@ -12,6 +12,4 @@ The original sources/IDs are authority. Display packets, derived poses, GPU prog
 
 [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits and errors](./limits)
 
-[Public root](/packages/render-editor/reference#declarations-7ff934513450)
-
 `packages/barocss-render-editor/package.json` (Manifest and version; local source) · `packages/barocss-render-editor/README.md` (Package task notes; local source)

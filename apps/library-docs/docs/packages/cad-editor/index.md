@@ -12,6 +12,4 @@ The canonical document mode retains complete original Source0 assets and asset-q
 
 [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits and errors](./limits)
 
-[Root API](/packages/cad-editor/reference#declarations-28f2fd7859c8)
-
 `packages/barocss-cad-editor/package.json` (Manifest and version; local source) · `packages/barocss-cad-editor/README.md` (Package task notes; local source)

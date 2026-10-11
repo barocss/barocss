@@ -105,5 +105,3 @@ Serialized data contains complete accepted native source and identities. Draft t
 Open, Undo and Redo use complete candidate admission too. Resolve pending fields with Apply, Discard or Cancel before replacing a document, and retain the live session while reading a proposed file. Bind file names to the actual accepted Open candidate. Derived mesh/PNG output is separate from this editable native document.
 
 The [CAD playground](/playground#cad-surface) illustrates original Surface versus derived display geometry. It does not implement CAD Editor's candidate, history or file decisions.
-
-[API](./api) · [Public signatures](./reference) · [Limits and errors](./limits)

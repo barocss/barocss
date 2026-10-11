@@ -8,6 +8,4 @@ Lengths use metres, mass uses kilograms and time uses seconds. CAD uses millimet
 
 [Quickstart](./quickstart) · [Guides](./guides) · [API](./api) · [Examples](./examples) · [Limits and errors](./limits)
 
-[Rigid public root](/packages/physics/reference#declarations-e7855e28b690)
-
 `packages/barocss-physics/package.json` (Manifest and version; local source) · `packages/barocss-physics/README.md` (Package task notes; local source)

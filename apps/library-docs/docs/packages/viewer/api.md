@@ -1,13 +1,10 @@
 # Viewer public API
 
-Read the [complete public signature reference](./reference) for exact exported functions, types and public class members. This task page explains their support, ownership, errors and lifecycle.
-
-
 Only `@barocss/viewer` is exported. `createViewer(canvas:HTMLCanvasElement,options:ViewerOptions):Viewer` validates `mmToSceneUnit`, background RGB and optional lighting. Viewer is also a public class; prefer the factory for option validation.
 
 ## Core method contracts
 
-| Signature | Arguments / result | Boundary |
+| Method | Arguments / result | Boundary |
 | --- | --- | --- |
 | `loadNative(source, options): void` | Complete Source0 text, sample counts, optional matching Curve display profile. | Real loader admission; no source mutation. |
 | `loadNativeUrl(url, options, transport?): Promise<void>` | URL plus native display options and caller transport. | Stale replacement refuses; caller owns cancellation. |
@@ -32,8 +29,6 @@ Qualified inspection: `pickShell`, `pickQualifiedFace`, `sampleQualifiedFace`, `
 Display: `setVisibleGeometry`, `setSurfaceMaterial`, `setFluidFrame`, `setClothFrame`, `applyMotionFrame`, `applyGeometryMotionFrame`, `resetMotion`, `fit`, `fitGeometry`, `attachPointerControls`, `attachKeyboardControls`.
 
 These methods are profile-specific. The retained pose method names do not create an active Motion package.
-
-[Exact public method signatures, arguments and exported Viewer types](/packages/viewer/reference#declarations-7b22356f8dac) · [Public sample result fields re-exported by root](/packages/viewer/reference#declarations-8b3e2d3311bd)
 
 ## Errors and ownership
 

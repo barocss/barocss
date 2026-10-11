@@ -1,10 +1,10 @@
 # Versions and availability
 
-The [catalog](/packages/), generated public signatures and original examples use local Integration source commit `5f5ad866205a21510ac69552e704cc162fa253b5` from 10 October 2026 as their baseline. The catalog records package versions and export maps at that commit.
+The [catalog](/packages/), API guidance and original examples use local Integration source commit `5f5ad866205a21510ac69552e704cc162fa253b5` from 10 October 2026 as their baseline. The catalog records package versions and export maps at that commit.
 
 Newer task guides state their own execution profile. For example, [Unicode labels](/packages/canvas2d/unicode-labels), [diagram labels](/packages/canvas2d/diagram-labels) and [path control editing](/packages/canvas2d/path-editing) use separate fixed source profiles. Read the selected guide's profile before using its APIs. Unless another profile is stated, the version and export-map statements on this page describe the catalog baseline.
 
-[Linear SVG export](/packages/canvas2d/svg-export) uses `@barocss/canvas2d` version `0.0.0-experimental` at fixed source `572ca35de6581b634c11919de9a1881bf5a72d28`. Its public root entry adds `exportSceneLinearSVG`; the source-default root and `@barocss/canvas2d/document` entries remain the matching execution paths. This separate profile does not update baseline signatures or earlier examples. The legacy SVG exporter and solid-only importer keep their own contracts; gradient display export does not establish gradient import, parity or publication.
+[Linear SVG export](/packages/canvas2d/svg-export) uses `@barocss/canvas2d` version `0.0.0-experimental` at fixed source `572ca35de6581b634c11919de9a1881bf5a72d28`. Its public root entry adds `exportSceneLinearSVG`; the source-default root and `@barocss/canvas2d/document` entries remain the matching execution paths. This separate profile does not update baseline API evidence or earlier examples. The legacy SVG exporter and solid-only importer keep their own contracts; gradient display export does not establish gradient import, parity or publication.
 
 ## Choose an execution path
 
@@ -36,4 +36,4 @@ Kit, Browser and Server have source manifest version `0.12.0` in this snapshot. 
 
 Renderer work tracked under #1183 and #1184 is not an available public runtime quickstart here. Use only actual exports at the fixed source commit. Do not infer professional CAD parity, format parity or whole-engine support from one bounded example.
 
-The catalog baseline commit is local-only: GitHub commit lookup returned HTTP422 No commit found on 10 October 2026. Public declaration references therefore open in this portal. Other repository paths remain plain provenance text. A pinned GitHub source link is allowed only after the exact commit is confirmed remotely. Do not substitute a moving remote branch as the manual's version.
+The catalog baseline commit is local-only: GitHub commit lookup returned HTTP422 No commit found on 10 October 2026. Declaration paths remain plain provenance text. Read the task API guides for usage and behavior. A pinned GitHub source link is allowed only after the exact commit is confirmed remotely. Do not substitute a moving remote branch as the manual's version.
