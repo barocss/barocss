@@ -23,6 +23,7 @@ import { CurveKnotHandles } from './curve-knot-handles.js';
 import { resolveCurveControlPresentation, type CurveControlPresentation } from './curve-control-presentation.js';
 import { SurfaceIsoCurveHandles } from './surface-isocurve-handles.js';
 import { useSurfaceIsoCurve } from './surface-isocurve.js';
+import { resolveBodyMovePresentation, type BodyMovePresentation } from './body-move-presentation.js';
 
 interface MountedViewer {
   session: CadEditorSession;
@@ -878,13 +879,32 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
         && canvas.width === frame.width && canvas.height === frame.height;
     } catch { return false; }
   }
+  function isCurrentBodyMovePresentation(presentation: BodyMovePresentation, ownCandidateToken?: string) {
+    try {
+      const mounted=mountedRef.current,canvas=canvasRef.current,current=session.getSnapshot();
+      if(!mounted||mounted.session!==session||propsRef.current.session!==session||!canvas||!ready||mounted.admitting||mounted.unavailable||mounted.optionsRefused
+        ||current.disposed||current.selectionTransition||(ownCandidateToken===undefined?current.candidate!==null:current.candidate?.token!==ownCandidateToken)
+        ||mounted.generation!==current.generation||mounted.displayGeneration!==current.displayGeneration||presentation.generation!==current.generation||presentation.displayGeneration!==current.displayGeneration
+        ||!sameOptions(mounted.view,current.view)||!sameOptions(presentation.view,current.view)
+        ||!sameOptions(propsRef.current.displayOptions.viewer,mounted.options.viewer)
+        ||!sameOptions(documentOptions(propsRef.current.displayOptions.document,[]),documentOptions(mounted.options.document,[]))
+        ||!canvas.isConnected||!canvas.getClientRects().length||canvas.width!==presentation.receipt.width||canvas.height!==presentation.receipt.height
+        ||viewportRef.current?.dataset.viewerReady!=='true')return false;
+      const rect=canvas.getBoundingClientRect();if(rect.width<=0||rect.height<=0||['hidden','collapse'].includes(getComputedStyle(canvas).visibility))return false;
+      const state=mounted.viewer.getState();if(state.status!=='ready'||!sameOptions(state,presentation.receipt.state)||!Object.is(state.mmToSceneUnit,mounted.options.viewer.mmToSceneUnit))return false;
+      const actual=resolveBodyMovePresentation(current,presentation.kind==='document'?presentation.receipt:null,presentation.kind==='focus'?presentation.receipt:null);
+      return!!actual&&actual.kind===presentation.kind&&sameOptions(actual.reference,presentation.reference)&&actual.source===presentation.source
+        &&sameOptions(actual.geometry,presentation.geometry)&&sameOptions(actual.anchorMM,presentation.anchorMM)
+        &&(actual.kind==='document'?!mounted.focus&&isCurrentDocument():!!mounted.focus&&sameOptions(mounted.focus.reference,actual.reference)&&sameOptions(mounted.focus.preview,actual.receipt.preview));
+    }catch{return false;}
+  }
   if (isoCurve?.session === session) isoCurve.viewport.current = { canvas: canvasRef.current, receipt: documentReceipt, isCurrentSurface: isCurrentIsoSurface };
   if (interval?.session === session) interval.viewport.current = { canvas: canvasRef.current, documentReceipt, focusReceipt: focusedReceipt, isCurrentCurve: isCurrentIntervalCurve };
   const camera = focusedReceipt?.state.camera ?? documentReceipt?.state.camera;
   const viewBusy=!ready||viewportCaptured||axisGestureActive||snapshot.disposed||snapshot.candidate!==null||snapshot.selectionTransition!==null||Object.keys(snapshot.pending).length>0;
   return <div ref={viewportRef} className={cn('cad-editor-viewport', className)} data-viewer-ready={ready}
     onKeyDownCapture={event=>{const target=event.target;
-      if(axisGestureRef.current&&(session.getSnapshot().curveSelection!==null||curveKnot?.gesture.current||isoCurve?.gesture.current)&&event.key!=='Escape'
+      if(axisGestureRef.current&&(session.getSnapshot().curveSelection!==null||session.getSnapshot().editTarget==='object'&&session.getSnapshot().selection===null||curveKnot?.gesture.current||isoCurve?.gesture.current)&&event.key!=='Escape'
         &&!event.nativeEvent.isComposing&&event.keyCode!==229&&!(target instanceof Element&&target.closest('input,textarea,select,[contenteditable]'))){
         event.preventDefault();event.stopPropagation();
       }}}
@@ -915,6 +935,7 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && <SurfacePoleHandles session={session} receipt={ready?documentReceipt:null} canvas={canvasRef.current} onError={error=>report(error,'Surface point gesture failed')} />}
     {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && <PoleAxisGizmo session={session} documentReceipt={ready?documentReceipt:null} curveReceipt={ready?focusedReceipt:null} canvas={canvasRef.current}
       isCurrentCurvePresentation={isCurrentCurvePresentation}
+      isCurrentBodyMovePresentation={isCurrentBodyMovePresentation}
       onGestureChange={active=>{axisGestureRef.current=active;setAxisGestureActive(active);}}
       onError={error=>report(error,'Axis point gesture failed')}/>}
     {focusedReceipt&&<p className="cad-editor-curve-view-label" data-testid="curve-view-label">Curve focus · {focusedReceipt.bodyName}<span>Other objects remain in document view.</span></p>}

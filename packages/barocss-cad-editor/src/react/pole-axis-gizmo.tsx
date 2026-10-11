@@ -6,6 +6,7 @@ import type {CadEditorDisplayReceipt, CadEditorCurvePresentationReceipt} from '.
 import {useCadEditorSnapshot} from './use-session.js';
 import {Button} from './ui/button.js';
 import {resolveCurveControlPresentation, sameCurveControlData, type CurveControlPresentation} from './curve-control-presentation.js';
+import {resolveBodyMovePresentation, type BodyMovePresentation} from './body-move-presentation.js';
 import type {PolePoint} from './curve-pole-projection.js';
 import {ObjectRotationGizmo} from './object-rotation-gizmo.js';
 import {ObjectScaleGizmo} from './object-scale-gizmo.js';
@@ -22,6 +23,7 @@ interface Props {
   onError: (error: CadEditorError) => void;
   onGestureChange: (active: boolean) => void;
   isCurrentCurvePresentation: (presentation: CurveControlPresentation) => boolean;
+  isCurrentBodyMovePresentation: (presentation: BodyMovePresentation, ownCandidateToken?: string) => boolean;
 }
 export interface Control {
   point: PolePoint;
@@ -30,6 +32,7 @@ export interface Control {
   kind: 'surface' | 'curve';
   receipt: Pick<CadEditorDisplayReceipt, 'state' | 'width' | 'height'>;
   curvePresentation?: CurveControlPresentation;
+  bodyMovePresentation?: BodyMovePresentation;
 }
 interface Gesture {
   pointerId: number;
@@ -64,7 +67,8 @@ function sameRaw(a:Partial<Record<CadEditorPoleField,string>>,b:Partial<Record<C
 }
 
 function currentControl(snapshot:CadEditorSnapshot, documentReceipt:CadEditorDisplayReceipt|null, curveReceipt:CadEditorCurvePresentationReceipt|null,
-  isCurrentCurve?:(presentation:CurveControlPresentation)=>boolean):Control|null {
+  isCurrentCurve?:(presentation:CurveControlPresentation)=>boolean,
+  isCurrentBodyMove?:(presentation:BodyMovePresentation, ownCandidateToken?:string)=>boolean, ownCandidateToken?:string):Control|null {
   if (snapshot.disposed) return null;
   const surface = snapshot.selection, curve = snapshot.curveSelection;
   const capability = snapshot.bodyCapabilities.find(body => body.bodyId === snapshot.selectedBodyId);
@@ -82,6 +86,9 @@ function currentControl(snapshot:CadEditorSnapshot, documentReceipt:CadEditorDis
       point:[...presentation.curve.controlPoints[curve.index]],key:`curve:${curve.bodyId}:${curve.index}`,
       reference:curve.reference,kind:'curve',receipt:presentation.receipt,curvePresentation:presentation};
   }
+  const body=resolveBodyMovePresentation(snapshot,documentReceipt,curveReceipt);
+  if(body&&(!isCurrentBodyMove||isCurrentBodyMove(body,ownCandidateToken)))return {point:[...body.anchorMM],
+    key:`body:${body.geometry.kind}:${body.reference.bodyId}`,reference:body.reference,kind:body.geometry.kind,receipt:body.receipt,bodyMovePresentation:body};
   return null;
 }
 
@@ -120,7 +127,7 @@ export function PoleAxisGizmo(props:Props) {
     catch {stepError = 'Enter a snap distance from 0.000001 to 1000000 mm.';}
   }
   let control:Control|null = null;
-  try {control = currentControl(snapshot,props.documentReceipt,props.curveReceipt);} catch { /* Unavailable bindings have no handles. */ }
+  try {control = currentControl(snapshot,props.documentReceipt,props.curveReceipt,props.isCurrentCurvePresentation,props.isCurrentBodyMovePresentation);} catch { /* Unavailable bindings have no handles. */ }
   // Retain captured DOM until the plane gesture can reject a stale anchor.
   if(planeMoving&&!control)control=planeControl.current;
   const objectMode = snapshot.editTarget === 'object';
@@ -137,9 +144,18 @@ export function PoleAxisGizmo(props:Props) {
       &&!!rect&&rect.width>0&&rect.height>0&&!['hidden','collapse'].includes(getComputedStyle(canvas).visibility)
       &&!canvas.closest('[data-direct-host-busy="true"],[data-panel-resizing="true"]')
       &&document.querySelector('[role="dialog"][data-state="open"],[role="menu"]')===null&&!otherCurveCapture(own);}
+  function moveContext(control:Control,own?:Gesture,token?:string):boolean {
+    if(!control.bodyMovePresentation)return curveContext(control,own);
+    const now=latest.current,canvas=now.canvas,rect=canvas?.getBoundingClientRect();
+    return now.isCurrentBodyMovePresentation(control.bodyMovePresentation,token)&&canvas?.isConnected===true&&canvas.getClientRects().length>0
+      &&!!rect&&rect.width>0&&rect.height>0&&!['hidden','collapse'].includes(getComputedStyle(canvas).visibility)
+      &&!canvas.closest('[data-direct-host-busy="true"],[data-panel-resizing="true"]')
+      &&document.querySelector('[role="dialog"][data-state="open"],[role="menu"]')===null&&!otherCurveCapture(own);
+  }
   useEffect(()=>{if(pointerCaptured&&!viewportHasCapture())setPointerCaptured(false);});
   function available(state:CadEditorSnapshot,target:CadEditorEditTarget):boolean {
     const cap=state.bodyCapabilities.find(body=>body.bodyId===state.selectedBodyId);
+    if(target!=='object'&&!state.selection&&!state.curveSelection)return false;
     return target==='object'?cap?.canTranslateBody===true:target==='rotation'?cap?.canRotateBody===true
       :target==='scale'?cap?.canScaleBody===true:state.selection?cap?.canEditSurfacePole===true:cap?.canEditCurvePole===true;
   }
@@ -148,7 +164,7 @@ export function PoleAxisGizmo(props:Props) {
       const state=session.getSnapshot(),now=latest.current;
       if(gesture.current||transformGesture.current||viewportHasCapture()||state.disposed||state.candidate||state.selectionTransition||Object.keys(state.pending).length
         ||!available(state,target))return false;
-      const control=currentControl(state,now.documentReceipt,now.curveReceipt,now.isCurrentCurvePresentation);if(!control||!curveContext(control))return false;
+      const control=currentControl(state,now.documentReceipt,now.curveReceipt,now.isCurrentCurvePresentation,now.isCurrentBodyMovePresentation);if(!control||!moveContext(control))return false;
       const restoreScope=document.activeElement?.closest('.context-mode-controls,.cad-editor-plane-controls');
       session.setEditTarget(target);
       if(restoreScope)now.canvas?.closest('.cad-editor-viewport')?.querySelector<HTMLButtonElement>('[data-testid="native-tool-'+target+'"]')?.focus({preventScroll:true});
@@ -161,7 +177,7 @@ export function PoleAxisGizmo(props:Props) {
     return matching&&!gesture.current&&!transformGesture.current&&!viewportHasCapture()&&!state.disposed
       &&state.candidate===null&&state.selectionTransition===null&&Object.keys(state.pending).length===0
       &&now.canvas?.isConnected===true&&now.canvas.closest('.cad-editor-viewport')?.getAttribute('data-viewer-ready')==='true'
-      &&(()=>{const control=currentControl(state,now.documentReceipt,now.curveReceipt,now.isCurrentCurvePresentation);return control!==null&&curveContext(control);})();
+      &&(()=>{const control=currentControl(state,now.documentReceipt,now.curveReceipt,now.isCurrentCurvePresentation,now.isCurrentBodyMovePresentation);return control!==null&&moveContext(control);})();
   }
   function chooseAxis(mode:'rotation'|'scale',axis:CadEditorRotationAxis|CadEditorScaleAxis){
     try{if(!settingsAllowed(mode))return;if(mode==='rotation')session.setRotationAxis(axis as CadEditorRotationAxis);else session.setScaleAxis(axis);}
@@ -245,14 +261,24 @@ export function PoleAxisGizmo(props:Props) {
   function isOwned(g:Gesture,capture=true,token?:string) {
     const now=latest.current,state = now.session.getSnapshot();
     const pole = state.selection ?? state.curveSelection;
-    const key = state.selection ? `surface:${state.selection.bodyId}:${state.selection.uIndex}:${state.selection.vIndex}`
+    const key = g.control.bodyMovePresentation ? `body:${g.control.kind}:${state.selectedBodyId}` : state.selection ? `surface:${state.selection.bodyId}:${state.selection.uIndex}:${state.selection.vIndex}`
       : state.curveSelection ? `curve:${state.curveSelection.bodyId}:${state.curveSelection.index}` : '';
     if (state.editTarget !== g.editTarget || state.disposed || (token===undefined?state.candidate!==null:state.candidate?.token!==token) || state.selectionTransition || state.generation !== g.generation
       || state.displayGeneration !== g.displayGeneration || key !== g.control.key
-      || !same(pole?.reference,g.control.reference) || !sameRaw(state.pending,g.raw)) return false;
+      || (!g.control.bodyMovePresentation&&!same(pole?.reference,g.control.reference)) || !sameRaw(state.pending,g.raw)) return false;
     try {
-      const control = currentControl(state,now.documentReceipt,now.curveReceipt,now.isCurrentCurvePresentation);
+      const control = currentControl(state,now.documentReceipt,now.curveReceipt,now.isCurrentCurvePresentation,now.isCurrentBodyMovePresentation,token);
       const rect = now.canvas?.getBoundingClientRect();
+      if(control?.bodyMovePresentation)return now.session===g.session&&moveContext(control,g,token)
+        &&sameCurveControlData(control.bodyMovePresentation.source,g.control.bodyMovePresentation?.source)
+        &&sameCurveControlData(control.bodyMovePresentation.geometry,g.control.bodyMovePresentation?.geometry)
+        &&sameCurveControlData(control.bodyMovePresentation.view,g.control.bodyMovePresentation?.view)
+        &&sameCurveControlData(control.point,g.control.point)&&control.key===g.control.key&&sameCurveControlData(control.reference,g.control.reference)
+        &&!!rect&&rect.left===g.rect.left&&rect.top===g.rect.top&&rect.width===g.rect.width&&rect.height===g.rect.height
+        &&sameCurveControlData(control.receipt.state.camera,g.control.receipt.state.camera)
+        &&Object.is(control.receipt.state.mmToSceneUnit,g.control.receipt.state.mmToSceneUnit)
+        &&now.canvas?.width===g.control.receipt.width&&now.canvas.height===g.control.receipt.height
+        &&(!capture||g.element.hasPointerCapture(g.pointerId));
       return !!control && control.key === g.control.key && same(control.reference,g.control.reference)
         && !!rect && rect.left === g.rect.left && rect.top === g.rect.top && rect.width === g.rect.width && rect.height === g.rect.height
         && control.receipt.width === g.control.receipt.width && control.receipt.height === g.control.receipt.height
@@ -270,7 +296,7 @@ export function PoleAxisGizmo(props:Props) {
     const g = gesture.current; if (!g) return;
     const owned = restore && isOwned(g,false);
     finishGesture(g);
-    if (owned) try {session.discardPending();} catch (cause) {failure(cause);}
+    if (owned&&(!g.control.bodyMovePresentation||isOwned(g,false))) try {g.session.discardPending();} catch (cause) {failure(cause);}
   }
   function checkCurrent(g:Gesture,capture=true) {
     if (!isOwned(g,capture)) throw new CadEditorError('STALE','The point or view changed. Review the pending values.',{field:'pole-axis-drag'});
@@ -285,11 +311,11 @@ export function PoleAxisGizmo(props:Props) {
   function begin(event:ReactPointerEvent<SVGCircleElement>,axis:PoleAxis) {
     if (!event.isPrimary || event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
     event.preventDefault();event.stopPropagation();
-    if (!control || !canvas || stepError || busy) return;
+    if (!control || !canvas || stepError || busy || control.bodyMovePresentation&&snapshot.editTarget!=='object') return;
     try {
       const before = session.getSnapshot(), now = latest.current;
-      const selected = currentControl(before,now.documentReceipt,now.curveReceipt,now.isCurrentCurvePresentation), bounds = canvas.getBoundingClientRect();
-      if (!selected || selected.key !== control.key || !curveContext(selected) || before.candidate || before.selectionTransition || Object.keys(before.pending).length)
+      const selected = currentControl(before,now.documentReceipt,now.curveReceipt,now.isCurrentCurvePresentation,now.isCurrentBodyMovePresentation), bounds = canvas.getBoundingClientRect();
+      if (!selected || selected.key !== control.key || !moveContext(selected) || before.candidate || before.selectionTransition || Object.keys(before.pending).length)
         throw new CadEditorError('STALE','Select the current point, then move its axis.',{field:'pole-axis-drag'});
       const projection = projectPoleAxis(selected.point,selected.receipt.state.camera,selected.receipt.state.mmToSceneUnit,
         bounds.width,bounds.height,selected.receipt.width,selected.receipt.height,axis);
@@ -300,26 +326,29 @@ export function PoleAxisGizmo(props:Props) {
         startY:event.clientY-bounds.top,rect:{left:bounds.left,top:bounds.top,width:bounds.width,height:bounds.height},
         cameraKey:JSON.stringify(selected.receipt.state.camera),step:snapEnabled ? parseMovementSnapStep(stepRaw) : null,moved:false,raw:{}};
       setMovingAxis(axis);latest.current.onGestureChange(true);
-    } catch (cause) {failure(cause);}
+      if(selected.bodyMovePresentation)checkCurrent(gesture.current);
+    } catch (cause) {cancel(false);failure(cause);}
   }
   function move(event:ReactPointerEvent<SVGCircleElement>) {
     const g = gesture.current; if (!g || event.pointerId !== g.pointerId) return;
     event.preventDefault();event.stopPropagation();
     try {
       checkCurrent(g);
+      if(g.control.bodyMovePresentation&&(!event.isPrimary||event.buttons!==1||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)){cancel(true);return;}
       const x = event.clientX-g.rect.left, y = event.clientY-g.rect.top;
       if (!g.moved && Math.hypot(x-g.startX,y-g.startY) <= 3) return;
       const point = movePoleOnAxis(g.projection,g.axis,g.startX,g.startY,x,y,g.step);
       const value = g.editTarget === 'object' ? axisPointerDisplacement(g.projection,g.startX,g.startY,x,y,g.step) : point[g.axis];
-      g.moved = true; g.raw[fields[g.axis]] = stage(g.control.kind,g.axis,value,g.editTarget);
-      if(g.control.kind==='curve')checkCurrent(g);
+      g.moved = true; g.raw[fields[g.axis]] = rawNumber(value); stage(g.control.kind,g.axis,value,g.editTarget);
+      if(g.control.kind==='curve'||g.control.bodyMovePresentation)checkCurrent(g);
     } catch (cause) {cancel(false);failure(cause);}
   }
   function end(event:ReactPointerEvent<SVGCircleElement>) {
     const g = gesture.current; if (!g || event.pointerId !== g.pointerId) return;
     event.preventDefault();event.stopPropagation();
+    if(g.control.bodyMovePresentation&&(!event.isPrimary||event.button!==0||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)){cancel(true);return;}
     try {checkCurrent(g);finishGesture(g);if (g.moved) {
-      if(g.control.kind!=='curve')session.prepareApply();
+      if(g.control.kind!=='curve'&&!g.control.bodyMovePresentation)session.prepareApply();
       else {checkCurrent(g,false);const proposed=g.session.prepareApply();if(!proposed&&Object.keys(g.session.getSnapshot().pending).length===0)g.raw={};
         if(!isOwned(g,false,proposed?.token)){if(proposed&&g.session.getSnapshot().candidate?.token===proposed.token)g.session.cancelCandidate(proposed.token);
           throw new CadEditorError('STALE','The axis change was replaced during preparation. Review the draft.',{field:'pole-axis-drag'});}}
@@ -331,24 +360,30 @@ export function PoleAxisGizmo(props:Props) {
       : event.key === 'ArrowLeft' || event.key === 'ArrowDown' ? -1 : 0;
     if (!direction || event.repeat || event.nativeEvent.isComposing || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
     event.preventDefault();event.stopPropagation();
-    if (busy || stepError) return;
+    if (busy || stepError || control?.bodyMovePresentation&&snapshot.editTarget!=='object') return;
     try {
       const before = session.getSnapshot(), now = latest.current;
-      const selected = currentControl(before,now.documentReceipt,now.curveReceipt,now.isCurrentCurvePresentation);
-      if (!selected || !control || selected.key !== control.key || !curveContext(selected) || before.candidate || before.selectionTransition || Object.keys(before.pending).length) return;
+      const selected = currentControl(before,now.documentReceipt,now.curveReceipt,now.isCurrentCurvePresentation,now.isCurrentBodyMovePresentation);
+      if (!selected || !control || selected.key !== control.key || !moveContext(selected) || before.candidate || before.selectionTransition || Object.keys(before.pending).length) return;
       const delta = (snapEnabled ? parseMovementSnapStep(stepRaw) : 1)*direction;
+      const frozenRect=now.canvas!.getBoundingClientRect();
       const raw=stage(selected.kind,axis,before.editTarget === 'object' ? delta : selected.point[axis]+delta,before.editTarget);
-      if(selected.kind==='curve') {
+      if(selected.kind==='curve'||selected.bodyMovePresentation) {
         const contextCurrent=(token?:string,empty=false)=>{const props=latest.current,state=props.session.getSnapshot();
-          const control=currentControl(state,props.documentReceipt,props.curveReceipt,props.isCurrentCurvePresentation),rect=props.canvas?.getBoundingClientRect();
+          const control=currentControl(state,props.documentReceipt,props.curveReceipt,props.isCurrentCurvePresentation,props.isCurrentBodyMovePresentation,token),rect=props.canvas?.getBoundingClientRect();
           return props.session===session&&!state.disposed&&!state.selectionTransition&&(token===undefined?state.candidate===null:state.candidate?.token===token)
             &&state.generation===before.generation&&state.displayGeneration===before.displayGeneration&&state.editTarget===before.editTarget
-            &&sameCurveControlData(state.curveSelection,before.curveSelection)&&sameRaw(state.pending,empty?{}:{[fields[axis]]:raw})
-            &&!!control&&control.key===selected.key&&curveContext(control)&&control.curvePresentation?.source===selected.curvePresentation?.source
+            &&sameCurveControlData(state.curveSelection,before.curveSelection)&&sameCurveControlData(state.selection,before.selection)&&sameRaw(state.pending,empty?{}:{[fields[axis]]:raw})
+            &&!!control&&control.key===selected.key&&moveContext(control,undefined,token)&&control.curvePresentation?.source===selected.curvePresentation?.source
+            &&sameCurveControlData(control.bodyMovePresentation?.source,selected.bodyMovePresentation?.source)
+            &&sameCurveControlData(control.bodyMovePresentation?.geometry,selected.bodyMovePresentation?.geometry)
+            &&sameCurveControlData(control.bodyMovePresentation?.view,selected.bodyMovePresentation?.view)
+            &&sameCurveControlData(control.reference,selected.reference)
             &&sameCurveControlData(control.curvePresentation?.view,selected.curvePresentation?.view)
             &&sameCurveControlData(control.receipt.state.camera,selected.receipt.state.camera)
             &&Object.is(control.receipt.state.mmToSceneUnit,selected.receipt.state.mmToSceneUnit)&&!!rect
-            &&props.canvas?.width===selected.receipt.width&&props.canvas.height===selected.receipt.height;};
+            &&props.canvas?.width===selected.receipt.width&&props.canvas.height===selected.receipt.height
+            &&(!selected.bodyMovePresentation||rect.left===frozenRect.left&&rect.top===frozenRect.top&&rect.width===frozenRect.width&&rect.height===frozenRect.height);};
         if(!contextCurrent())throw new CadEditorError('STALE','The axis draft changed during staging. Review the values.',{field:'pole-axis-drag'});
         const proposed=session.prepareApply();
         if(!contextCurrent(proposed?.token,proposed===null)){
@@ -370,7 +405,7 @@ export function PoleAxisGizmo(props:Props) {
       </Button>)}
     </div>
     <svg className="cad-editor-axis-svg" width={rect.width} height={rect.height} viewBox={`0 0 ${rect.width} ${rect.height}`} aria-label="Selected control point axes">
-      {projections.map((p,axisIndex) => {
+      {(!control.bodyMovePresentation||objectMode)&&projections.map((p,axisIndex) => {
         if (!p) return null;
         const axis = axisIndex as PoleAxis, x = p.xCss+p.dirX*64, y = p.yCss+p.dirY*64;
         const disabled = stepError !== null || (busy && movingAxis !== axis);
@@ -389,15 +424,16 @@ export function PoleAxisGizmo(props:Props) {
     </svg>
     {(objectMode||planeMoving)&&<ObjectPlaneGizmo session={session} control={control} canvas={canvas} snapStep={snapEnabled?step:null}
       isCurrentCurvePresentation={props.isCurrentCurvePresentation}
+      isCurrentBodyMovePresentation={props.isCurrentBodyMovePresentation}
       disabled={(busy&&!planeMoving)||stepError!==null} onError={failure}
       onGestureChange={active=>{planeControl.current=active?control:null;transformGesture.current=active;setPlaneMoving(active);latest.current.onGestureChange(active);}}/>}
-    {rotationMode&&<ObjectRotationGizmo session={session} control={control} canvas={canvas} snapStep={angularSnap?angularStep:null}
+    {rotationMode&&!control.bodyMovePresentation&&<ObjectRotationGizmo session={session} control={control} canvas={canvas} snapStep={angularSnap?angularStep:null}
       disabled={(busy&&!rotationMoving)||angularError!==null} onError={failure}
       onGestureChange={active=>{transformGesture.current=active;setRotationMoving(active);latest.current.onGestureChange(active);}}/>}
-    {scaleMode&&<ObjectScaleGizmo session={session} control={control} canvas={canvas} snapStep={scaleSnap?scaleStep:null}
+    {scaleMode&&!control.bodyMovePresentation&&<ObjectScaleGizmo session={session} control={control} canvas={canvas} snapStep={scaleSnap?scaleStep:null}
       disabled={(busy&&!scaleMoving)||scaleError!==null} onError={failure}
       onGestureChange={active=>{transformGesture.current=active;setScaleMoving(active);latest.current.onGestureChange(active);}}/>}
-    <div className="cad-editor-axis-palette" aria-label={scaleMode?'Scale settings':rotationMode?'Rotation settings':'Movement settings'}>
+    {(!control.bodyMovePresentation||objectMode)&&<div className="cad-editor-axis-palette" aria-label={scaleMode?'Scale settings':rotationMode?'Rotation settings':'Movement settings'}>
       <div className="pole-move-title">{scaleMode?'Scale object':rotationMode?'Rotate object':objectMode?'Move object':'Move control point'} <span>{scaleMode?'XYZ · ×':rotationMode?'XYZ · deg':'XYZ · mm'}</span></div>
       <div className="context-mode-controls" hidden={!scaleMode}>
         <div className="context-axis-row"><span>Axes</span><div className="context-axis-buttons" role="group" aria-label="Scale axes" data-testid="scale-axis">
@@ -435,6 +471,6 @@ export function PoleAxisGizmo(props:Props) {
         {(movingAxis!==null||pending||visible<3)&&<p role="status" data-testid="pole-axis-status">{movingAxis!==null?'Release to apply · Escape cancels'
           :pending?'Values pending':visible===0?'Fit the selected point or use its fields.':'Use Isometric to reach other axes.'}</p>}
       </div>
-    </div>
+    </div>}
   </div>;
 }

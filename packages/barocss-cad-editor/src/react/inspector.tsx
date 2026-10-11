@@ -83,9 +83,12 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
   const rotationMode = snapshot.editTarget === 'rotation';
   const scaleMode = snapshot.editTarget === 'scale';
   const transformMode = objectMode||rotationMode||scaleMode;
+  const bodyOnly = pole === null && snapshot.selectedBodyId !== null && (selectedKind === 'surface' || selectedKind === 'curve');
+  const canMoveBody = capability?.canTranslateBody === true && (snapshot.view.kind === 'document'
+    || selectedKind === 'curve' && snapshot.view.bodyId === snapshot.selectedBodyId);
   const scaleComposing=useRef(false);
   const rotationComposing=useRef(false);
-  const canEdit = selection !== null ? (scaleMode ? capability?.canScaleBody === true : rotationMode ? capability?.canRotateBody === true : objectMode ? capability?.canTranslateBody === true : capability?.canEditSurfacePole === true) && snapshot.view.kind === 'document'
+  const canEdit = objectMode && bodyOnly ? canMoveBody : selection !== null ? (scaleMode ? capability?.canScaleBody === true : rotationMode ? capability?.canRotateBody === true : objectMode ? capability?.canTranslateBody === true : capability?.canEditSurfacePole === true) && snapshot.view.kind === 'document'
     : curveSelection !== null && (scaleMode ? capability?.canScaleBody === true : rotationMode ? capability?.canRotateBody === true : objectMode ? capability?.canTranslateBody === true : capability?.canEditCurvePole === true) && (snapshot.view.kind === 'document' || snapshot.view.kind === 'curve-focus' && snapshot.view.bodyId === curveSelection.bodyId);
   useEffect(() => {
     if (!transition) {
@@ -130,6 +133,7 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
           <div className="cad-editor-help-body">
             <section><h3>Current editing requirements</h3>
               <p>The native document can contain 1–4 source assets and up to 16 bodies. The viewport displays 1–4 chosen bodies at a time.</p>
+              <p>Move object also works after a coefficient change clears the point selection. Its Canvas anchor is the native control-hull box centre, used only for translation display. Rotate and Scale still require an original selected point.</p>
               <p>Choose the displayed bodies in the object list. You can select and inspect a hidden body. Show it before using Fit Selected.</p>
               <p>Double-click a displayed object to fit it in the canvas. The first click uses the normal object selection. Fitting changes only the camera and uses the same view as Fit Selected. Finish a drag, apply or discard a draft, and close menus or dialogs before fitting. Empty or ambiguous hits cannot fit an object.</p>
               <p>Supported Surfaces and Curves can use point, Move, Rotate and Scale editing in document view. The whole source remains authority when its Model name differs from its geometry ID. Focus Curve is an optional separate view.</p>
@@ -309,7 +313,16 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
     {!knot?.active && !isoCurve?.active && selectedKind === 'surface' && selection === null && snapshot.selectedBodyId && <Button type="button" variant="outline" size="sm"
       data-testid="surface-select-point" disabled={candidate !== null || snapshot.disposed || transition !== null || Object.keys(pending).length > 0}
       onClick={() => action(() => session.selectSurfacePole({ bodyId: snapshot.selectedBodyId!, uIndex: 0, vIndex: 0 }))}>Select a point</Button>}
-    {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && pole ? <>
+    {!interval?.active&&!knot?.active&&!curveKnot?.active&&!isoCurve?.active&&bodyOnly&&!objectMode
+      &&snapshot.view.kind==='document'&&!snapshot.displayBodyIds.includes(snapshot.selectedBodyId!)&&<Button type="button" variant="outline" size="sm"
+        data-testid="inspector-move-body" disabled={busy||!canMoveBody||transition!==null||Object.keys(pending).length>0}
+        onClick={()=>action(()=>{const current=session.getSnapshot();
+          if(current.selectedBodyId!==snapshot.selectedBodyId||current.generation!==snapshot.generation||current.displayGeneration!==snapshot.displayGeneration
+            ||current.selection!==null||current.curveSelection!==null||current.candidate||current.selectionTransition||current.disposed||Object.keys(current.pending).length
+            ||document.querySelector('[role="dialog"][data-state="open"],[role="menu"]')||document.activeElement?.closest('[data-direct-host-busy="true"],[data-panel-resizing="true"]'))
+            throw new CadEditorError('STALE','The selected body changed. Review the object.',{field:'body-translation'});
+          session.setEditTarget('object');})}>Move object</Button>}
+    {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && (pole || objectMode && bodyOnly) ? <>
       {selection && capability?.canEditSurfacePole === false && <p className="cad-editor-readonly" role="status" data-testid="cad-editor-readonly-surface">
         Cannot edit these points. Open Help for details, or choose another Surface.
       </p>}
@@ -340,7 +353,7 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
       {transformMode && !(scaleMode?capability?.canScaleBody:rotationMode?capability?.canRotateBody:capability?.canTranslateBody) && <p className="cad-editor-readonly" role="status">Cannot transform this object. Use Control point editing, or open Help for details.</p>}
       {transformMode && (!(scaleMode?capability?.canScaleBody:rotationMode?capability?.canRotateBody:capability?.canTranslateBody) || !canEdit || snapshot.view.kind==='document'&&!snapshot.displayBodyIds.includes(snapshot.selectedBodyId!)) && <div className="cad-editor-field">
         <Label htmlFor={`${id}-edit-target`}>Target</Label><select id={`${id}-edit-target`} data-testid="inspector-edit-target" value={snapshot.editTarget} disabled={busy||Object.keys(pending).length>0||transition!==null}
-          onChange={event=>action(()=>session.setEditTarget(event.target.value as 'pole'|'object'|'rotation'|'scale'))}><option value="pole">Control point</option><option value="object" disabled={!capability?.canTranslateBody}>Object</option><option value="rotation" disabled={!capability?.canRotateBody}>Rotate object</option><option value="scale" disabled={!capability?.canScaleBody}>Scale object</option></select></div>}
+          onChange={event=>action(()=>session.setEditTarget(event.target.value as 'pole'|'object'|'rotation'|'scale'))}><option value="pole">Control point</option><option value="object" disabled={!capability?.canTranslateBody}>Object</option><option value="rotation" disabled={!pole||!capability?.canRotateBody}>Rotate object</option><option value="scale" disabled={!pole||!capability?.canScaleBody}>Scale object</option></select></div>}
       {rotationMode&&<>
         <p className="cad-editor-grip-note">{snapshot.rotationAxis.toUpperCase()} axis · Selected grip</p>
         <div className="cad-editor-field"><Label htmlFor={`${id}-rotation-angle`}>Angle (deg)</Label>
@@ -369,7 +382,7 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
         <Label htmlFor={`${id}-${field}`}>{objectMode ? 'Offset '+field[0].toUpperCase() : label}</Label>
         <Input id={`${id}-${field}`} type="text" inputMode="decimal" disabled={busy || !canEdit}
           className={Object.hasOwn(pending, field) ? 'cad-editor-pending-input' : undefined}
-          value={pending[field] ?? (objectMode?'0':numberText(pole.accepted[field]))} data-testid={`cad-editor-${field}`}
+          value={pending[field] ?? (objectMode?'0':numberText(pole!.accepted[field]))} data-testid={`cad-editor-${field}`}
           onFocus={event => { lastFieldRef.current = event.currentTarget; }}
           onCompositionStart={() => { composingFieldsRef.current.add(field); }}
           onCompositionEnd={() => { composingFieldsRef.current.delete(field); }}
@@ -388,7 +401,7 @@ export function CadEditorInspector({ session, onError, onAnalysis, onLength, cla
           }}
           onChange={event => action(() => { if(objectMode&&field!=='weight')session.stageBodyTranslationField(field,event.target.value); else if (curveSelection) session.stageCurvePoleField(field, event.target.value); else session.stageSurfacePoleField(field, event.target.value); })}
           aria-describedby={Object.hasOwn(pending, field) ? `${id}-${field}-accepted` : undefined} />
-        {Object.hasOwn(pending, field) && <span id={`${id}-${field}-accepted`} className="cad-editor-accepted">Current: {objectMode?'0':numberText(pole.accepted[field])}</span>}
+        {Object.hasOwn(pending, field) && <span id={`${id}-${field}-accepted`} className="cad-editor-accepted">Current: {objectMode?'0':numberText(pole!.accepted[field])}</span>}
       </div>)}
       {(canEdit || Object.keys(pending).length > 0) && <div className="cad-editor-actions">
         <Button type="button" disabled={busy || !canEdit || Object.keys(pending).length === 0} data-testid="cad-editor-apply"

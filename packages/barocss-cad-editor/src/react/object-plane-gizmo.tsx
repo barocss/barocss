@@ -3,18 +3,21 @@ import {resolveCadGeometryReference} from '@barocss/cad';
 import {CadEditorError,type CadEditorSession,type CadEditorSnapshot,type CadEditorDraftField,type CadEditorBodyTranslationField} from '../types.js';
 import type {Control} from './pole-axis-gizmo.js';
 import {resolveCurveControlPresentation, sameCurveControlData, type CurveControlPresentation} from './curve-control-presentation.js';
+import {resolveBodyMovePresentation,type BodyMovePresentation} from './body-move-presentation.js';
 import {preparePlaneTranslationProjection,planeTranslationDisplacement,type ObjectMovePlane,type PlaneTranslationProjection} from './plane-translation-projection.js';
 
 interface Props {
   session:CadEditorSession;control:Control;canvas:HTMLCanvasElement;snapStep:number|null;disabled:boolean;
   onError:(error:CadEditorError)=>void;onGestureChange:(active:boolean)=>void;
   isCurrentCurvePresentation?:(presentation:CurveControlPresentation)=>boolean;
+  isCurrentBodyMovePresentation?:(presentation:BodyMovePresentation,ownCandidateToken?:string)=>boolean;
 }
 interface Gesture {
   pointerId:number;element:SVGPolygonElement;control:Control;projection:PlaneTranslationProjection;
   generation:number;displayGeneration:number;view:CadEditorSnapshot['view'];source:string;cameraKey:string;
   rect:{left:number;top:number;width:number;height:number};startX:number;startY:number;step:number|null;moved:boolean;
   raw:Partial<Record<CadEditorDraftField,string>>;
+  session:CadEditorSession;
 }
 const fields:CadEditorBodyTranslationField[]=['xMM','yMM','zMM'];
 const planes:ObjectMovePlane[]=['xy','xz','yz'];
@@ -27,7 +30,7 @@ const rawNumber=(value:number)=>Object.is(value,-0)?'-0':String(value);
 /** Two display-plane offsets use the existing single native object-translation admission. */
 export function ObjectPlaneGizmo(props:Props) {
   const latest=useRef(props);latest.current=props;
-  const gesture=useRef<Gesture|null>(null),pointerIds=useRef(new Set<number>());
+  const gesture=useRef<Gesture|null>(null),pointerIds=useRef(new Set<number>()),composing=useRef(false);
   const state=props.session.getSnapshot(),bounds=props.canvas.getBoundingClientRect();
   const projections=new Map<ObjectMovePlane,PlaneTranslationProjection>();
   for(const plane of planes)try{
@@ -42,12 +45,25 @@ export function ObjectPlaneGizmo(props:Props) {
   function otherCapture(own?:Gesture){
     const viewport=latest.current.canvas.closest('.cad-editor-viewport');
     if(!viewport)return true;
-    return [...pointerIds.current].some(id=>[viewport,...viewport.querySelectorAll('*')].some(node=>
+    const elements=latest.current.control.bodyMovePresentation?[document.documentElement,...document.querySelectorAll('*')]:[viewport,...viewport.querySelectorAll('*')];
+    return [...pointerIds.current].some(id=>elements.some(node=>
       !(own&&id===own.pointerId&&node===own.element)&&node.hasPointerCapture(id)));
   }
-  function currentSource(snapshot:CadEditorSnapshot):string|null {
+  function currentSource(snapshot:CadEditorSnapshot,ownCandidateToken?:string):string|null {
     const now=latest.current,selected=snapshot.selection??snapshot.curveSelection;
     const cap=snapshot.bodyCapabilities.find(body=>body.bodyId===snapshot.selectedBodyId);
+    if(now.control.bodyMovePresentation){
+      if(snapshot.editTarget!=='object'||snapshot.disposed||snapshot.selectionTransition||!cap?.canTranslateBody||composing.current
+        ||(ownCandidateToken===undefined?snapshot.candidate!==null:snapshot.candidate?.token!==ownCandidateToken)
+        ||!now.canvas.isConnected||!now.canvas.getClientRects().length||!['visible'].includes(getComputedStyle(now.canvas).visibility)
+        ||now.canvas.closest('[data-direct-host-busy="true"],[data-panel-resizing="true"]')
+        ||document.querySelector('[role="dialog"][data-state="open"],[role="menu"]')!==null)return null;
+      const prior=now.control.bodyMovePresentation,presentation=resolveBodyMovePresentation(snapshot,prior.kind==='document'?prior.receipt:null,prior.kind==='focus'?prior.receipt:null);
+      if(!presentation||!now.isCurrentBodyMovePresentation?.(presentation,ownCandidateToken)
+        ||!sameCurveControlData(presentation.reference,now.control.reference)||!samePoint(presentation.anchorMM,now.control.point)
+        ||!sameCurveControlData(presentation.geometry,prior.geometry)||presentation.source!==prior.source)return null;
+      return presentation.source;
+    }
     if(snapshot.editTarget!=='object'||snapshot.disposed||snapshot.candidate||snapshot.selectionTransition||!cap?.canTranslateBody
       ||!selected||selected.bodyId!==snapshot.selectedBodyId||!same(selected.reference,now.control.reference)
       ||!now.canvas.isConnected||!now.canvas.getClientRects().length
@@ -74,15 +90,16 @@ export function ObjectPlaneGizmo(props:Props) {
       return resolved.source;
     }catch{return null;}
   }
-  function owned(current:Gesture,requireCapture=true){
+  function owned(current:Gesture,requireCapture=true,ownCandidateToken?:string){
     const now=latest.current,snapshot=now.session.getSnapshot(),rect=now.canvas.getBoundingClientRect();
     const selected=snapshot.selection??snapshot.curveSelection;
-    const key=snapshot.selection?`surface:${snapshot.selection.bodyId}:${snapshot.selection.uIndex}:${snapshot.selection.vIndex}`
+    const key=current.control.bodyMovePresentation?`body:${current.control.kind}:${snapshot.selectedBodyId}`:snapshot.selection?`surface:${snapshot.selection.bodyId}:${snapshot.selection.uIndex}:${snapshot.selection.vIndex}`
       :snapshot.curveSelection?`curve:${snapshot.curveSelection.bodyId}:${snapshot.curveSelection.index}`:'';
     return snapshot.generation===current.generation&&snapshot.displayGeneration===current.displayGeneration&&same(snapshot.view,current.view)
-      &&key===current.control.key&&same(selected?.reference,current.control.reference)&&sameRaw(snapshot.pending,current.raw)
+      &&(!current.control.bodyMovePresentation||now.session===current.session&&now.canvas.width===current.control.receipt.width&&now.canvas.height===current.control.receipt.height)
+      &&key===current.control.key&&(current.control.bodyMovePresentation||same(selected?.reference,current.control.reference))&&sameRaw(snapshot.pending,current.raw)
       &&now.control.key===current.control.key&&same(now.control.reference,current.control.reference)&&samePoint(now.control.point,current.control.point)
-      &&currentSource(snapshot)===current.source&&JSON.stringify(now.control.receipt.state.camera)===current.cameraKey
+      &&currentSource(snapshot,ownCandidateToken)===current.source&&JSON.stringify(now.control.receipt.state.camera)===current.cameraKey
       &&now.control.receipt.width===current.control.receipt.width&&now.control.receipt.height===current.control.receipt.height
       &&Object.is(now.control.receipt.state.mmToSceneUnit,current.control.receipt.state.mmToSceneUnit)&&Object.is(now.snapStep,current.step)
       &&rect.left===current.rect.left&&rect.top===current.rect.top&&rect.width===current.rect.width&&rect.height===current.rect.height
@@ -95,17 +112,21 @@ export function ObjectPlaneGizmo(props:Props) {
   function cancel(restore:boolean){
     const current=gesture.current;if(!current)return;
     const restoreRaw=restore&&owned(current,false);finish(current);
-    if(restoreRaw)try{latest.current.session.discardPending();}catch(cause){failure(cause);}
+    if(restoreRaw&&(!current.control.bodyMovePresentation||owned(current,false)))try{current.session.discardPending();}catch(cause){failure(cause);}
   }
   function check(current:Gesture){if(!owned(current))throw new CadEditorError('STALE','The object, view or draft changed. Review the pending offsets.',{field:'body-plane-drag'});}
   useEffect(()=>{
-    const down=(event:PointerEvent)=>{if(event.target instanceof Element&&latest.current.canvas.closest('.cad-editor-viewport')?.contains(event.target))pointerIds.current.add(event.pointerId);};
-    const release=(event:PointerEvent)=>{if(event.type!=='lostpointercapture')pointerIds.current.delete(event.pointerId);};
+    let listening=true;
+    const captured=(id:number)=>[document.documentElement,...document.querySelectorAll('*')].some(element=>element.hasPointerCapture(id));
+    const down=(event:PointerEvent)=>{pointerIds.current.add(event.pointerId);};
+    const release=(event:PointerEvent)=>{if(!captured(event.pointerId))pointerIds.current.delete(event.pointerId);setTimeout(()=>{if(listening&&!captured(event.pointerId))pointerIds.current.delete(event.pointerId);},0);};
     const escape=(event:KeyboardEvent)=>{if(event.key==='Escape'&&gesture.current){event.preventDefault();event.stopPropagation();cancel(true);}};
+    const start=()=>{if(gesture.current?.control.bodyMovePresentation)cancel(true);composing.current=true;},end=()=>{composing.current=false;};
     window.addEventListener('pointerdown',down,true);window.addEventListener('pointerup',release,true);window.addEventListener('pointercancel',release,true);
     window.addEventListener('lostpointercapture',release,true);window.addEventListener('keydown',escape,true);
-    return()=>{window.removeEventListener('pointerdown',down,true);window.removeEventListener('pointerup',release,true);window.removeEventListener('pointercancel',release,true);
-      window.removeEventListener('lostpointercapture',release,true);window.removeEventListener('keydown',escape,true);cancel(true);pointerIds.current.clear();};
+    window.addEventListener('compositionstart',start,true);window.addEventListener('compositionend',end,true);
+    return()=>{listening=false;window.removeEventListener('pointerdown',down,true);window.removeEventListener('pointerup',release,true);window.removeEventListener('pointercancel',release,true);
+      window.removeEventListener('lostpointercapture',release,true);window.removeEventListener('keydown',escape,true);window.removeEventListener('compositionstart',start,true);window.removeEventListener('compositionend',end,true);cancel(true);pointerIds.current.clear();composing.current=false;};
   },[props.session]);
   useEffect(()=>{const current=gesture.current;if(current&&!owned(current))cancel(false);});
   function begin(event:ReactPointerEvent<SVGPolygonElement>,plane:ObjectMovePlane){
@@ -121,8 +142,9 @@ export function ObjectPlaneGizmo(props:Props) {
       event.currentTarget.setPointerCapture(event.pointerId);event.currentTarget.focus({preventScroll:true});
       gesture.current={pointerId:event.pointerId,element:event.currentTarget,control:structuredClone(now.control),projection,generation:snapshot.generation,
         displayGeneration:snapshot.displayGeneration,view:structuredClone(snapshot.view),source,cameraKey:JSON.stringify(now.control.receipt.state.camera),
-        rect:{left:rect.left,top:rect.top,width:rect.width,height:rect.height},startX:x,startY:y,step:now.snapStep,moved:false,raw:{}};
+        rect:{left:rect.left,top:rect.top,width:rect.width,height:rect.height},startX:x,startY:y,step:now.snapStep,moved:false,raw:{},session:now.session};
       now.onGestureChange(true);
+      if(now.control.bodyMovePresentation)check(gesture.current);
     }catch(cause){cancel(false);failure(cause);}
   }
   function move(event:ReactPointerEvent<SVGPolygonElement>){
@@ -130,11 +152,12 @@ export function ObjectPlaneGizmo(props:Props) {
     event.preventDefault();event.stopPropagation();
     try{
       check(current);const x=event.clientX-current.rect.left,y=event.clientY-current.rect.top;
+      if(current.control.bodyMovePresentation&&(!event.isPrimary||event.buttons!==1&&event.type!=='pointerup'||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)){cancel(true);return;}
       if(!current.moved&&Math.hypot(x-current.startX,y-current.startY)<=3)return;
       const offsets=planeTranslationDisplacement(current.projection,current.startX,current.startY,x,y,current.step);
       for(const axis of current.projection.axes){
         check(current);const field=fields[axis],raw=rawNumber(offsets[axis]);
-        latest.current.session.stageBodyTranslationField(field,raw);current.raw[field]=raw;
+        current.raw[field]=raw;current.session.stageBodyTranslationField(field,raw);
         check(current);
       }
       current.moved=true;
@@ -142,9 +165,15 @@ export function ObjectPlaneGizmo(props:Props) {
   }
   function end(event:ReactPointerEvent<SVGPolygonElement>){
     if(gesture.current?.pointerId!==event.pointerId)return;
+    if(gesture.current.control.bodyMovePresentation&&(!event.isPrimary||event.button!==0||event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)){event.preventDefault();event.stopPropagation();cancel(true);return;}
     move(event);const current=gesture.current;if(!current)return;
     event.preventDefault();event.stopPropagation();
-    try{check(current);finish(current);if(current.moved)latest.current.session.prepareApply();}
+    try{check(current);finish(current);if(current.moved){
+      if(current.control.bodyMovePresentation){if(!owned(current,false))throw new CadEditorError('STALE','The object or draft changed after release.',{field:'body-plane-drag'});
+        const proposed=current.session.prepareApply();if(!proposed&&Object.keys(current.session.getSnapshot().pending).length===0)current.raw={};
+        if(!owned(current,false,proposed?.token)){if(proposed&&current.session.getSnapshot().candidate?.token===proposed.token)current.session.cancelCandidate(proposed.token);
+          throw new CadEditorError('STALE','The movement changed during preparation. Review the offsets.',{field:'body-plane-drag'});}}
+      else latest.current.session.prepareApply();}}
     catch(cause){cancel(false);failure(cause);}
   }
   function keyboard(event:ReactKeyboardEvent<SVGPolygonElement>,plane:ObjectMovePlane){
@@ -166,7 +195,19 @@ export function ObjectPlaneGizmo(props:Props) {
         ||now.canvas.getBoundingClientRect().left!==rect.left||now.canvas.getBoundingClientRect().top!==rect.top
         ||now.canvas.getBoundingClientRect().width!==rect.width||now.canvas.getBoundingClientRect().height!==rect.height)
         throw new CadEditorError('STALE','The object or draft changed. Review the pending offsets.',{field:'body-plane-drag'});
-      now.session.prepareApply();
+      if(now.control.bodyMovePresentation){
+        const contextCurrent=(token?:string,empty=false)=>{const latestProps=latest.current,current=latestProps.session.getSnapshot(),bounds=latestProps.canvas.getBoundingClientRect();
+          return latestProps.session===now.session&&latestProps.canvas===now.canvas&&current.generation===snapshot.generation&&current.displayGeneration===snapshot.displayGeneration
+            &&sameCurveControlData(current.view,snapshot.view)&&sameCurveControlData(current.selection,snapshot.selection)&&sameCurveControlData(current.curveSelection,snapshot.curveSelection)
+            &&sameRaw(current.pending,empty?{}:{[field]:raw})&&currentSource(current,token)===source&&!otherCapture()
+            &&sameCurveControlData(latestProps.control.receipt.state.camera,now.control.receipt.state.camera)&&Object.is(latestProps.snapStep,step)
+            &&latestProps.canvas.width===now.control.receipt.width&&latestProps.canvas.height===now.control.receipt.height
+            &&bounds.left===rect.left&&bounds.top===rect.top&&bounds.width===rect.width&&bounds.height===rect.height;};
+        if(!contextCurrent())throw new CadEditorError('STALE','The movement changed during staging.',{field:'body-plane-drag'});
+        const proposed=now.session.prepareApply();if(!contextCurrent(proposed?.token,proposed===null)){
+          if(proposed&&now.session.getSnapshot().candidate?.token===proposed.token)now.session.cancelCandidate(proposed.token);
+          throw new CadEditorError('STALE','The movement changed during preparation. Review the offsets.',{field:'body-plane-drag'});}
+      }else now.session.prepareApply();
     }catch(cause){failure(cause);}
   }
   if(!projections.size)return null;

@@ -794,3 +794,30 @@ The original Surface, full asset Source, asset revision, sibling objects and cur
 Undo removes the new inventory and restores the saved selection/display set. Redo restores its logical IDs with fresh source-qualified revisions. An original body-only selection stays body-only; no point0 is implied. Save/Open stores current native sources, without the construction receipt, guide, history or camera. Select a fresh point on the new Curve to edit it.
 
 The existing native iso provider admits both Surface degrees 1–3, grids up to 16×16, coordinates within ±10000 mm and inclusive fixed parameters. Local D0 comparisons do not certify global shape or manufacturing tolerance. Current native asset/body and display capacities remain separate gates; hide a displayed body when four are already shown. Refused creation preserves the original document and corrective draft. Degree 4/5 iso construction, Faces, Solids and parent-dependent features remain separate work.
+
+
+### Move a body without a selected control point
+
+A selected original Curve or Surface can use Move after a coefficient operation
+clears its control-point selection. The compact viewport Move button enables the
+existing axis and plane handles without selecting an implicit point. When no pole
+is selected, the grip uses the actual native control-hull bounds box center. This
+is a display anchor for translation, not a pole or center of mass. A real selected
+pole keeps its existing grip. Rotate and Scale retain their selected-pole pivots.
+
+The private presentation binds the full original Source, qualified body reference,
+actual document or matching Curve focus, Viewer frame and both session epochs.
+Hidden objects have exact offset fields and no Canvas handles. Native affine
+transformation and the complete-source writers remain the geometry authority.
+Their existing coordinate, knot and display limits remain in force. Held gestures
+retain accepted geometry; release proposes one whole-source translation. The
+actual Viewer must approve it before one history entry is accepted. Escape restores
+only gesture-owned raw after release; foreign drafts and tokens are retained.
+
+Apply, Undo and Redo retain the current absence of a selected pole. If the user
+explicitly selects a pole later, that selection remains current intent. Save stores
+native Sources and body bindings, not the temporary grip or pole-selection state.
+Open restores the existing selection policy; a new coefficient boundary can clear
+the pole before another body-only Move. The host command palette keeps its existing
+selection eligibility; this entry point is the viewport Move control. This feature
+does not provide general Solid movement or change the Rotate/Scale pivot policy.

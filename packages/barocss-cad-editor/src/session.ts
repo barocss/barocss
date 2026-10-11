@@ -575,11 +575,18 @@ export function createCadEditorSession(initialDocument: CadDocumentV1, options?:
   const requireBodyTransformEditable = (operation: 'translation' | 'rotation' | 'scale') => {
     const context = { documentId: accepted.document.documentId, bodyId: selectedBodyId ?? undefined, field: `body-${operation}` };
     const selected = selection ?? curveSelection;
-    requireEditor(selected !== null && selected.bodyId === selectedBodyId, 'INPUT', 'Select an original object first.', context);
-    const capability = bodyCapabilities.find(body => body.bodyId === selected.bodyId);
+    requireEditor(selectedBodyId !== null && (selected !== null
+      ? selected.bodyId === selectedBodyId : operation === 'translation'),
+    'INPUT', 'Select an original object first.', context);
+    const bodyId = selectedBodyId;
+    const capability = bodyCapabilities.find(body => body.bodyId === bodyId);
     requireEditor((operation === 'scale' ? capability?.canScaleBody : operation === 'rotation' ? capability?.canRotateBody : capability?.canTranslateBody) === true,
       'UNSUPPORTED', `This object is outside the native ${operation} profile.`, context);
-    return native(() => resolveCadGeometryReference(accepted, selected.reference),
+    // Translation has no pivot. Rotation and scale still require the selected pole.
+    const reference = selected !== null ? selected.reference
+      : native(() => createCadGeometryReference(accepted, { bodyId }),
+        'Native object translation reference creation failed.', accepted.document.documentId, context).reference;
+    return native(() => resolveCadGeometryReference(accepted, reference),
       `Native object ${operation} reference resolution failed.`, accepted.document.documentId, context);
   };
   const prepare = (kind: CadEditorCandidate['kind'], result: CadDocumentResult,
