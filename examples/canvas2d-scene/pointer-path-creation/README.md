@@ -37,3 +37,10 @@ The width control is disabled without a supported selection, during a pending ge
 Select a created Q/C path with a stroke, enter exactly #RRGGBB, and apply its outline RGB. Its fill and current stroke width stay the same. Stroke alpha, cap, join, dash, commands and pose remain. Undo/Redo restore complete scenes and the new field. Save/Open keep the numeric color and stable image bytes. Invalid text stays available for correction and preserves accepted state.
 
 The control is disabled without a supported selection, during a pending gesture and after Dispose. The existing MAIN validation copy checks the actual64KiB bound and exact byte-normalized strokeRGB, then maps only copied strokeRGB3 to original defaults for immutable profile checks. Actual accepted data retains its independent outline color. Earlier source/evidence stays at its native paths; bounded outline proof lives in evidence/stroke-rgb/.
+
+
+## Canvas view controls (#1500)
+
+Pan X/Pan Y move the canvas view; Zoom changes its scale. Pan uses canonical integer text from-64 to64. Zoom offers0.75,1,1.1,1.25. Apply view admits a complete renderer before replacement. Reset view restores the original12,8,1.1 view while retaining artwork, selection and history. Pending gestures disable these controls. An unchanged view is a no-op. Invalid view text stays available for correction and does not replace accepted state.
+
+Camera state belongs to this host and stays outside the Scene/history/document. Existing fresh renderers use the accepted host view and existing public point conversions. The actual new view/reset pixel and hit proof is under evidence/view-controls/. Its document-snapshot.json is public API serialization evidence, not a native UI download. Mixed editing/Open/history flows after a camera change remain separate unrun acceptance. Earlier limits, styles, assets and native files stay preserved.
