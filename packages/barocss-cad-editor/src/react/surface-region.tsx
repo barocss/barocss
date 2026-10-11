@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { Crop } from 'lucide-react';
 import { createCadGeometryReference, surfaceDomain } from '@barocss/cad';
 import { CadEditorError, type CadEditorSession, type CadEditorSurfaceRegionField } from '../types.js';
 import type { CadEditorDisplayReceipt } from './types.js';
@@ -159,8 +160,8 @@ export function SurfaceRegionControls({ session }: { session: CadEditorSession }
       run();
     } catch (cause) { mode!.report(cause); }
   }
-  return <div className="surface-region-panel">{!mode.active ? <Button type="button" variant="outline" size="sm" data-testid="surface-region-open" disabled={busy || foreign}
-    onClick={() => action(mode.open, false, true)}>Extract region</Button> : <div className="surface-region-mode" data-testid="surface-region-mode">
+  return <div className="surface-region-panel">{!mode.active ? <Button type="button" variant="outline" size="sm" data-testid="surface-region-open" className="cad-editor-operation-icon" aria-label="Extract region" title="Extract region" disabled={busy || foreign}
+    onClick={() => action(mode.open, false, true)}><Crop size={16} aria-hidden="true" /></Button> : <div className="surface-region-mode" data-testid="surface-region-mode">
       <div className="cad-editor-inspector-title"><h3 className="cad-editor-heading">Extract region</h3><Dialog open={helpOpen} onOpenChange={setHelpOpen}>
         <DialogTrigger asChild><Button type="button" variant="ghost" size="xs" data-testid="surface-region-help" disabled={mode.gesture.current}>Help</Button></DialogTrigger>
         <DialogContent className="cad-editor-help-dialog" data-testid="surface-region-help-dialog"><DialogHeader><DialogTitle>Surface region</DialogTitle><DialogDescription>Create an independent Surface. Keep the original.</DialogDescription></DialogHeader>

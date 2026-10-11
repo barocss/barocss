@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { PencilLine } from 'lucide-react';
 import { CadEditorError } from '../types.js';
 import type { CadEditorSession } from '../types.js';
 import { Button } from './ui/button.js';
@@ -80,7 +81,7 @@ export function CadEditorBodyRename({ session, onError }: CadEditorBodyRenamePro
   }
   return <Dialog open={currentDraft !== null} onOpenChange={next => { if (next) open(); else if (!busy) close(); }}>
     <DialogTrigger asChild><Button ref={triggerRef} type="button" variant="outline" size="sm" disabled={!body || busy}
-      className="cad-editor-body-rename-trigger" data-testid="body-rename-open">Rename object</Button></DialogTrigger>
+      className="cad-editor-body-rename-trigger cad-editor-operation-icon" aria-label="Rename object" title="Rename object" data-testid="body-rename-open"><PencilLine size={16} aria-hidden="true" /></Button></DialogTrigger>
     <DialogContent className="cad-editor-help-dialog cad-editor-body-rename-dialog" data-testid="body-rename-dialog" showCloseButton={!busy}
       onOpenAutoFocus={event => { event.preventDefault(); inputRef.current?.focus({ preventScroll: true }); }}
       onCloseAutoFocus={event => { event.preventDefault(); if (triggerRef.current?.isConnected && !triggerRef.current.disabled) triggerRef.current.focus({ preventScroll: true }); }}

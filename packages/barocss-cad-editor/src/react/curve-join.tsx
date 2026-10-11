@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import { Combine } from 'lucide-react';
 import { createCadGeometryReference, type CadGeometryReferenceV0 } from '@barocss/cad';
 import { CadEditorError, type CadEditorSession } from '../types.js';
 import { sameIntervalData as same } from './curve-interval.js';
@@ -131,8 +132,8 @@ export function CurveJoinControls({ session, onError }: { session: CadEditorSess
   const choices = snapshot.accepted.document.bodies.filter(body => body.id !== draft?.leftBodyId
     && snapshot.accepted.bodyBindings.some(binding => binding.bodyId === body.id && binding.geometryKind === 'curve'));
   return <Dialog open={draft !== null} onOpenChange={next => { if (next) open(); else close(); }}>
-    <DialogTrigger asChild><Button ref={trigger} type="button" variant="outline" size="sm" data-testid="curve-join-open"
-      disabled={busy || !leftIsCurve || !selectedBody || snapshot.view.kind !== 'document'}>Join Curves</Button></DialogTrigger>
+    <DialogTrigger asChild><Button ref={trigger} type="button" variant="outline" size="sm" className="cad-editor-operation-icon" aria-label="Join Curves" title="Join Curves" data-testid="curve-join-open"
+      disabled={busy || !leftIsCurve || !selectedBody || snapshot.view.kind !== 'document'}><Combine size={16} aria-hidden="true" /></Button></DialogTrigger>
     <DialogContent ref={content} className="cad-editor-help-dialog" data-testid="curve-join-dialog"
       onOpenAutoFocus={event => { event.preventDefault(); nextField.current?.focus({ preventScroll: true }); }}
       onCloseAutoFocus={event => { event.preventDefault(); if (trigger.current?.isConnected && !trigger.current.disabled) trigger.current.focus({ preventScroll: true }); else canvas?.focus({ preventScroll: true }); }}>

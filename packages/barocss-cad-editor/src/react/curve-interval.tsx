@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { BetweenHorizontalEnd } from 'lucide-react';
 import { createCadGeometryReference, curveDomain, type Curve } from '@barocss/cad';
 import { CadEditorError, type CadEditorSession } from '../types.js';
 import type { CadEditorCurvePresentationReceipt, CadEditorDisplayReceipt } from './types.js';
@@ -142,8 +143,8 @@ export function CurveIntervalControls({ session }: { session: CadEditorSession }
     catch (cause) { fail(cause); }
   }
   return <div className="curve-interval-panel">
-    {!controller.active ? <Button type="button" variant="outline" size="sm" data-testid="curve-interval-open" disabled={disabled || foreign || !selected}
-      onClick={() => { try { assertCurrent(true); controller.open(); setDiagnostic(null); } catch (cause) { fail(cause); } }}>Restrict interval</Button>
+    {!controller.active ? <Button type="button" variant="outline" size="sm" data-testid="curve-interval-open" className="cad-editor-operation-icon" aria-label="Restrict interval" title="Restrict interval" disabled={disabled || foreign || !selected}
+      onClick={() => { try { assertCurrent(true); controller.open(); setDiagnostic(null); } catch (cause) { fail(cause); } }}><BetweenHorizontalEnd size={16} aria-hidden="true" /></Button>
       : <div data-testid="curve-interval-mode" className="curve-interval-toolbar">
         <div className="cad-editor-inspector-title"><h3 className="cad-editor-heading">Curve interval</h3><Dialog>
           <DialogTrigger asChild><Button type="button" variant="ghost" size="xs" data-testid="curve-interval-help" disabled={controller.gesturing}>Help</Button></DialogTrigger>

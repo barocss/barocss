@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { ScanLine } from 'lucide-react';
 import { createCadGeometryReference, surfaceDomain } from '@barocss/cad';
 import { CadEditorError, type CadEditorSession, type CadEditorSurfaceIsoCurveAxis } from '../types.js';
 import type { CadEditorDisplayReceipt } from './types.js';
@@ -163,7 +164,7 @@ export function SurfaceIsoCurveControls({ session }: { session: CadEditorSession
     } catch (cause) { mode!.report(cause); }
   }
   return <div className="surface-isocurve-panel">{!mode.active
-    ? <Button type="button" variant="outline" size="sm" data-testid="surface-isocurve-open" disabled={busy || foreign} onClick={() => action(mode.open, false, true)}>Create iso-Curve</Button>
+    ? <Button type="button" variant="outline" size="sm" data-testid="surface-isocurve-open" className="cad-editor-operation-icon" aria-label="Create iso-Curve" title="Create iso-Curve" disabled={busy || foreign} onClick={() => action(mode.open, false, true)}><ScanLine size={16} aria-hidden="true" /></Button>
     : <div data-testid="surface-isocurve-mode" className="surface-isocurve-mode">
       <div className="cad-editor-inspector-title"><h3 className="cad-editor-heading">Create iso-Curve</h3><Dialog open={helpOpen} onOpenChange={setHelpOpen}>
         <DialogTrigger asChild><Button type="button" variant="ghost" size="xs" data-testid="surface-isocurve-help" disabled={mode.gesture.current}>Help</Button></DialogTrigger>
