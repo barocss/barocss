@@ -2590,3 +2590,37 @@ MeshMaterial/EngineUV, Scene or renderer contracts.
 
 One source/emitted/file/cold CPU flow:
 `node examples/gpu-scene/native-surface-uv01-geometry-flow.mjs --output /absolute/fresh-directory`.
+
+## Source-native Surface UV01 material binding (CPU)
+
+`prepareNativeSurfaceUV01MaterialBinding(unknown)` accepts five own data fields:
+`format: 'barocss-gpu-native-surface-uv01-binding-request'`, `version: 0`, a
+source-qualified `geometry` request, distinct native UV01 `material` IR and an
+explicit `uniforms` record. It snapshots at most 16 finite own uniform values,
+validates the new material, lowers its newly canonical IR through the public
+lowerer, resolves declared defaults/ranges, then rebuilds the original native
+geometry. Material validation and lowering each perform their own snapshot and
+compile: two material reconstructions and one geometry producer call. Existing
+source/work/copy/native sampling bounds apply; no trusted bypass is added.
+
+The seven-field v0 result has profile `source0-surface-opaque-uv01-binding-v0`,
+`geometry`, canonical `material`, resolved `uniforms` and trusted `lowered` text.
+Ordinary data is fresh and deeply frozen; `geometry.uv01` remains an independently
+owned mutable Float32 view. A consumer must re-admit source rather than trust a
+modified returned view. Uniform zeros canonicalize to +0; original geometry U/V,
+source, domain, control/knots/weights/signs and material source spelling remain.
+
+`NativeSurfaceUV01BindingError` reports INPUT/MATERIAL/UNIFORM/GEOMETRY with bounded
+messages, actual cause chains and original material/geometry source offsets.
+Unspecified values use declared defaults; undeclared, nonfinite or out-of-range
+values are refused. This CPU candidate qualifies its source/native/material data,
+not external document/body/asset/TEN pins or repeated model-name namespaces.
+Shader IDs remain separate from original native identity.
+
+No frame admission, vertex attribute, program link, rendering, lifetime or scene
+scale/axis conversion is supplied. Legacy MeshMaterial/Frame0 and generic EngineUV
+formats remain distinct. Actual visible Surface/context matching needs an explicit
+new companion/frame profile and a separately verified renderer operation.
+
+One joint source/emitted/file/cold CPU flow:
+`node examples/gpu-scene/native-surface-uv01-binding-flow.mjs --output /absolute/fresh-directory`.

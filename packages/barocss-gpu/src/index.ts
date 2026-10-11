@@ -158,3 +158,6 @@ export type {NativeSurfaceUV01MaterialExpression,NativeSurfaceUV01MaterialIR,Low
 
 export {prepareNativeSurfaceUV01Geometry,NativeSurfaceUV01GeometryError} from './native-surface-uv01-geometry.js';
 export type {NativeSurfaceUV01GeometryRequest,PreparedNativeSurfaceUV01Geometry,NativeSurfaceUV01GeometryCode} from './native-surface-uv01-geometry.js';
+
+export {prepareNativeSurfaceUV01MaterialBinding,NativeSurfaceUV01BindingError} from './native-surface-uv01-binding.js';
+export type {NativeSurfaceUV01BindingRequest,PreparedNativeSurfaceUV01Binding,NativeSurfaceUV01BindingCode} from './native-surface-uv01-binding.js';
