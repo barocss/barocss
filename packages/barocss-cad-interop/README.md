@@ -3792,3 +3792,49 @@ Use `--mode emitted` after the affected package builds to check actual
 published JavaScript and declarations. Three original complete cases cover
 width 5 forward, width 8 forward and the separate width 8 reverse witness.
 Their requests and three cold Models are data, not additional admissions.
+
+
+## Qualified Body boundary mesh — Pixi3D
+
+Optional entry: `@barocss/cad-interop/qualified-body-boundary-mesh-pixi3d`.
+Use the pinned optional peers PixiJS 7.2.4 and Pixi3D 2.5.0 with `pixi3d/pixi7`.
+The caller supplies a live Camera and LightingEnvironment on the same WebGL2 Renderer.
+
+```ts
+import { BaroCADQualifiedBodyBoundaryMeshPixi3DLoader }
+  from '@barocss/cad-interop/qualified-body-boundary-mesh-pixi3d';
+
+const loader = new BaroCADQualifiedBodyBoundaryMeshPixi3DLoader(
+  { unitsPerMillimeter: 0.001 },
+  { camera, lighting },
+);
+const result = loader.parse(originalWholeResultText);
+// Or: loader.read(originalWholeResultObject).
+stage.addChild(result.root);
+// The caller renders the stage with its existing Renderer.
+result.dispose();
+```
+
+Input is the complete qualified Body boundary mesh result, including its original
+Body, options, packet, edge paths, Face samples, render chunks, proof and report.
+The returned `data` retains the complete neutral Read: native, independent actual
+validation report, frozen profile, exact source text and CPU projection.
+The detached identity Container3D has six Mesh3D children with original Face names
+and readonly source-qualified Face bindings. Positions and facet normals are
+independent Float32 arrays; indices are independent Uint32 arrays. Authored XYZ
+is retained with one 0.001 scale. Native UV, maps, quantization gaps and nullable
+C0 normal observations remain complete CPU data. No texture UV is invented.
+
+`dispose()` releases captured original roots, meshes, geometries and materials
+once. Caller Camera, Lighting, Renderer, stage, canvas and current foreign
+geometry/material pointers remain caller-owned. CPU data and arrays remain
+readable. Shader programs belong to the renderer/library cache.
+
+The caller owns rendering, staging and callbacks. This entry has no URL loader,
+byte input, public serializer, source editor or geometry operation. A displayed
+facet normal does not certify native smoothness, a generic Solid, global error
+or manufacturing tolerance. The neutral profile remains renderer-neutral.
+
+Run the dedicated example verifier with `--source` before own library builds and
+`--emitted` after builds. Actual headed browser, published declaration and saved
+file acceptance are recorded separately from implementation and publication.

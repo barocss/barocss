@@ -198,6 +198,10 @@
       "./source-line-width-face": {
         "types": "./dist/source-line-width-face.d.ts",
         "import": "./dist/source-line-width-face.js"
+      },
+      "./qualified-body-boundary-mesh-pixi3d": {
+        "types": "./dist/qualified-body-boundary-mesh-pixi3d.d.ts",
+        "import": "./dist/qualified-body-boundary-mesh-pixi3d.js"
       }
     }
   },
@@ -398,6 +402,10 @@
     "./source-line-width-face": {
       "types": "./src/source-line-width-face.ts",
       "import": "./src/source-line-width-face.ts"
+    },
+    "./qualified-body-boundary-mesh-pixi3d": {
+      "types": "./src/qualified-body-boundary-mesh-pixi3d.ts",
+      "import": "./src/qualified-body-boundary-mesh-pixi3d.ts"
     }
   },
   "files": [
