@@ -650,3 +650,57 @@ Local disposal removes the new controls before Viewer disposal.
 The exact four example paths belong to Issue1534. Native implementation,
 independent source adoption, integrated runtime acceptance and release have
 separate records. This feature does not establish those later stages.
+
+## Capture three original points for an angle
+
+Open a supported original Source0 or IGES file. Select an original Surface or
+Curve. Enter its original U/V or t in the selected-point controls. Choose
+**Capture angle point** for the first endpoint. Select and enter the vertex,
+then capture it. Capture the third endpoint to calculate the angle at the
+second point. The next valid capture starts a new first point.
+**Reset angle points** clears only this captured set and report.
+
+The unsigned angle is in degrees from 0 to 180. Its two legs use original
+authored point coordinates in millimetres, before display scale and poses.
+Both legs must have finite positive represented lengths. A zero leg refuses
+the capture. Equal first and third points can produce 0 degrees when the
+vertex legs are nonzero. Opposite nonzero legs can produce 180 degrees.
+This is a point angle, not a Curve tangent, Surface normal, Solid dihedral,
+screen angle or certified global angular precision.
+
+The helper `measureCapturedNativeAngle(viewer,first,vertex,third)` takes exactly
+four arguments. All three complete point reports are copied and checked before
+Viewer reads. Each keeps the whole Source0, Model, original tagged reference,
+domain, parameters and native point. The existing pure captured-point validator
+checks current original authority and fresh D0 coordinates. All three points
+must share the same whole source and Model. Selection and visibility may differ.
+No SDK measurement call or cache write supplies the angle legs.
+
+The second capture uses the same helper with the first point repeated as the
+third point. Its temporary 0-degree report is discarded. This step applies the
+full numerical policy. A nonzero leg can refuse if normalized products cannot
+be represented. The current first point stays stored on refusal. A failed third
+capture keeps the accepted first and vertex. A failed next-first capture keeps
+the completed report. No epsilon, clamp, D1/D2 substitute or fallback is used.
+
+The full ten-field report is copied into the technical disclosure. Each point
+allows 8192 values and depth16. Combined input and output allow 32768 values,
+depth18 and safe JSON up to8MiB. Overflow refuses the whole result. These limits
+do not certify every maximum workload. Numeric copies preserve signed zero;
+JSON text does not show its bit identity.
+
+Selection changes, Escape, hiding captured geometry, camera, poses and canvas
+size keep stored points while their whole original authority remains current.
+A new capture needs a current selected object. Source or Model changes, mode
+changes, Clear and Dispose clear the set. Known successful source acceptance
+also clears it when the bytes match. Failed source or point queries keep a
+still-current set. File staging, Discard and pending reads keep the set.
+Retained selected CPU geometry can still capture and calculate after graphics
+loss or unavailable presentation. New graphics selection follows its old rules.
+
+Capture and Reset keep separate point, derivative, chord, area and length reports,
+parameter drafts, SDK caches and File/import provenance under their own scopes.
+The new controls do not replace rows or change focus. Snapshot, Reset and local
+Dispose take no arguments. The eight-field snapshot is copied. Local disposal
+comes first; new hooks read no Viewer after it. Issue1540 records native work,
+exact source adoption, integrated runtime acceptance and release separately.
