@@ -9512,3 +9512,15 @@ Exact whole-edge composition, strict cut-to-boundary gaps and the original Surfa
 Native interval extraction may round a coefficient. A nonzero whole model residual causes refusal even if sampled errors are small. No Source or old interval kernel is altered to force admission. Complete request/result limits are4MiB/16MiB in UTF16 and UTF8 with4M own values; all original and child occurrences count.
 
 `validatePairedSurfaceUVSplitFaces(result)` reconstructs once, compares every field and bit, and returns a copied report. Run `node examples/cad-nurbs/paired-surface-uv-split-faces-demo.mjs --source <output-directory>`. Issue1511 tracks native complementary Faces. Body, occupied-volume Boolean, general or holed trims, manufacturing, Viewer and Editor remain separate.
+
+### Original-B XZ complementary Faces from a full exact paired section
+
+`buildPairedSurfaceBUVSplitFaces(section, options)` constructs two Faces on original Surface B inside its mapped U window and full original V range. It retains the complete paired section, original sources and Models, both original UV curves, and the unchanged shared World curve. B must have an injective affine XZ projection and a positive original-UA to original-UB map.
+
+Natural boundary curves use original UB. The shared World curve and B pcurve keep their original UA parameter and knots. Each Use stores its own native interval. Two actual isocurve and two full source interval receipts bind the natural boundaries. One World Source0/Model8 contains original B and seven World curves. Dimensionless UV curves and topology remain in the complete JSON result.
+
+Whole coefficient proofs bind all seven edges to original B. Strict cut gaps, opposite shared Uses and exact UV areas prove two embedded disks with disjoint interiors covering the declared window. UV areas include the affine map Jacobian and stay rational. They are not physical Surface areas. Root work records 35 edge stations and 210 direct D0/D1 attempts; inherited parent and interval work remains separate.
+
+`validatePairedSurfaceBUVSplitFaces(result)` rebuilds once and compares all owned data. Run `node examples/cad-nurbs/paired-surface-b-uv-split-faces-demo.mjs --source <output-directory>`. Issue1519 tracks this native result. Outside-window splits, sewn manifolds, Bodies, Solids, material Boolean and manufacturing certificates remain outside this API.
+
+Request/result caps are 4/16 MiB, with bounded ownership and the existing rational context. Failure returns no partial Faces. Full World source cold compilation restores geometry; a complete request and result are required to restore UV topology.

@@ -464,3 +464,7 @@ export type { ExactPairedVLinearSurfaceIntersectionRequest, ExactPairedVLinearSu
 
 export { buildPairedSurfaceUVSplitFaces, validatePairedSurfaceUVSplitFaces, PairedSurfaceUVSplitFacesError, PairedSurfaceUVSplitFacesDiagnosticCode } from './paired-surface-uv-split-faces.js';
 export type { PairedSurfaceUVSplitFacesRequest, PairedSurfaceUVSplitFacesOptions, PairedSurfaceUVSplitFacesReport, PairedSurfaceUVSplitFacesResult } from './paired-surface-uv-split-faces.js';
+
+// Original-B XZ Faces from a full exact paired section (private CPU data).
+export { buildPairedSurfaceBUVSplitFaces, validatePairedSurfaceBUVSplitFaces, PairedSurfaceBUVSplitFacesError, PairedSurfaceBUVSplitFacesDiagnosticCode } from './paired-surface-b-uv-split-faces.js';
+export type { PairedSurfaceBUVSplitFacesRequest, PairedSurfaceBUVSplitFacesOptions, PairedSurfaceBUVSplitFacesReport, PairedSurfaceBUVSplitFacesResult } from './paired-surface-b-uv-split-faces.js';
