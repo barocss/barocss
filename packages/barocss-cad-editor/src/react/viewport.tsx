@@ -3,7 +3,7 @@ import { createViewer } from '@barocss/viewer';
 import type { Viewer, ViewerKeyboardControls, ViewerPointerControls, ViewerState } from '@barocss/viewer';
 import { CadEditorError } from '../types.js';
 import type { CadEditorSession, CadEditorView } from '../types.js';
-import type { CadDocumentResult } from '@barocss/cad';
+import { createCadGeometryReference, type CadDocumentResult } from '@barocss/cad';
 import { cn } from '../lib/utils.js';
 import { useCadEditorSnapshot } from './use-session.js';
 import type { CadEditorDisplayOptions, CadEditorDisplayReceipt, CadEditorCurveFocusReceipt, CadEditorCurvePresentationReceipt, CadEditorViewportProps } from './types.js';
@@ -16,6 +16,7 @@ import { SurfacePoleHandles } from './surface-pole-handles.js';
 import { PoleAxisGizmo } from './pole-axis-gizmo.js';
 import { CadEditorViewNavigator, VIEW_SIDES, type NativeViewSide } from './view-navigator.js';
 import { SelectionIsolation } from './selection-isolation.js';
+import { SurfaceDegreeElevationControls } from './surface-degree-elevation.js';
 import { useSurfaceKnot, surfaceKnotSurface } from './surface-knot.js';
 import { SurfaceKnotHandles } from './surface-knot-handles.js';
 import { useCurveKnot, curveKnotCurve } from './curve-knot.js';
@@ -879,6 +880,24 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
         && canvas.width === frame.width && canvas.height === frame.height;
     } catch { return false; }
   }
+  function isCurrentDegreeSurface(receipt: CadEditorDisplayReceipt, ownCandidateToken?: string) {
+    try {
+      const current = session.getSnapshot(), mounted = mountedRef.current, canvas = canvasRef.current;
+      if (!isCurrentDocument() || !mounted || !canvas || axisGestureRef.current || hasViewportCapture()
+        || interval?.isActive() || knot?.active || curveKnot?.isActive() || isoCurve?.isActive()
+        || current.selectionTransition || Object.keys(current.pending).length
+        || (ownCandidateToken === undefined ? current.candidate !== null : current.candidate?.token !== ownCandidateToken)
+        || current.selectedBodyId === null || !sameOptions(mounted.viewer.getState(), receipt.state)
+        || canvas.width !== receipt.width || canvas.height !== receipt.height) return false;
+      const selected = createCadGeometryReference(current.accepted, { bodyId: current.selectedBodyId });
+      if (selected.geometry.kind !== 'surface') return false;
+      const state = mounted.viewer.getState(), body = state.documentBodies.find(value => value.binding.bodyId === selected.reference.bodyId);
+      return !!body && sameOptions(state.document, current.accepted) && sameOptions(state.selectedGeometry, body.ref)
+        && body.binding.assetId === selected.reference.assetId && body.binding.geometryKind === 'surface'
+        && body.binding.geometryId === selected.reference.geometryId && body.binding.documentRevision === selected.reference.documentRevision
+        && body.binding.assetRevision === selected.reference.assetRevision;
+    } catch { return false; }
+  }
   function isCurrentBodyMovePresentation(presentation: BodyMovePresentation, ownCandidateToken?: string) {
     try {
       const mounted=mountedRef.current,canvas=canvasRef.current,current=session.getSnapshot();
@@ -932,6 +951,9 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     {snapshot.view.kind === 'document' && <SelectionIsolation session={session} canvas={canvasRef.current}
       receipt={ready ? documentReceipt : null} isCurrentDocument={isCurrentDocument} busy={viewBusy}
       onError={error => report(error, 'Changing document visibility failed')} />}
+    {snapshot.view.kind === 'document' && !interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active
+      && <SurfaceDegreeElevationControls session={session} canvas={canvasRef.current} receipt={ready ? documentReceipt : null}
+        isCurrentSurface={isCurrentDegreeSurface} busy={viewBusy} onError={cause => report(cause, 'Raising Surface degree failed')} />}
     {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && <SurfacePoleHandles session={session} receipt={ready?documentReceipt:null} canvas={canvasRef.current} onError={error=>report(error,'Surface point gesture failed')} />}
     {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && <PoleAxisGizmo session={session} documentReceipt={ready?documentReceipt:null} curveReceipt={ready?focusedReceipt:null} canvas={canvasRef.current}
       isCurrentCurvePresentation={isCurrentCurvePresentation}
