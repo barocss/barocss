@@ -2,7 +2,7 @@
   "node": "v22.22.0",
   "base": "a59eaf877cde02b2138c54dc0be03dd4a6b295b7",
   "beforeCodeHead": "2ef344eb",
-  "stage": "admission-context-repair-before-saved-initial-evaluation",
+  "stage": "source-continuation-before-unexecuted-stages",
   "sources": [
     {
       "path": "examples/physics-rigid-coupled-hinge-reference/CONTRACT.md",
@@ -541,8 +541,8 @@
     },
     {
       "path": "examples/physics-rigid-hinge-velocity-world-reference/consumer.mjs",
-      "bytes": 11444,
-      "sha256": "53e39e4ad3806f818549c5a9f773d493354809bf7b43cea79a34eab115f443db"
+      "bytes": 12945,
+      "sha256": "56bf5e416dce9664d5e078b729e5d00638f2327d5ead410df5713bbd50e97060"
     },
     {
       "path": "examples/physics-rigid-hinge-velocity-world-reference/copy.ts",
@@ -571,8 +571,8 @@
     },
     {
       "path": "examples/physics-rigid-hinge-velocity-world-reference/native-controls.mjs",
-      "bytes": 22275,
-      "sha256": "74cee2df4d0e5434a20f3bd1e175cb108ac0d397d3fd8fc46ca8f5f7c1718f7a"
+      "bytes": 26750,
+      "sha256": "d7e0916b76d1cd1d12725dbb49db8185253c46c8a433e246a2f06584733f71fc"
     },
     {
       "path": "examples/physics-rigid-hinge-velocity-world-reference/options.ts",
@@ -601,8 +601,8 @@
     },
     {
       "path": "examples/physics-rigid-hinge-velocity-world-reference/proof-storage.mjs",
-      "bytes": 6895,
-      "sha256": "1b2061c5746fd23b385fa6f4a8cf4a6b7834b15ccba05e3a6d40d7e6ead96a8b"
+      "bytes": 8632,
+      "sha256": "de814b38cf7124b81a583681b733f4965e29448a059dd77f8579a4ce368209f6"
     },
     {
       "path": "examples/physics-rigid-hinge-velocity-world-reference/raw-codec.mjs",
@@ -611,8 +611,8 @@
     },
     {
       "path": "examples/physics-rigid-hinge-velocity-world-reference/reference-child.mjs",
-      "bytes": 8423,
-      "sha256": "ba2414667903bbe83a796b4263feb7ab0e2443213e31d3a903d442732139e511"
+      "bytes": 8652,
+      "sha256": "5f94494886b25535dffd9f2b4960e5ea1d8c7f89538fce77233be8acaaeb06f5"
     },
     {
       "path": "examples/physics-rigid-hinge-velocity-world-reference/reference-controls.mjs",
@@ -631,8 +631,8 @@
     },
     {
       "path": "examples/physics-rigid-hinge-velocity-world-reference/runner.mjs",
-      "bytes": 2637,
-      "sha256": "0b44473d2a3503e0ff031f88f30d213e982f86e20baf3a47c4632286c9ff13a2"
+      "bytes": 2863,
+      "sha256": "ba5edc8cdce46647bb2c05fa90d8414ce57e1757065d95b83b15bcd1c8fe676c"
     },
     {
       "path": "examples/physics-rigid-hinge-velocity-world-reference/stages.ts",
@@ -2543,6 +2543,16 @@
       "path": "examples/physics-rigid-hinge-velocity-world-reference/INITIAL-REFERENCE-REPAIR.md",
       "bytes": 3913,
       "sha256": "125233c2f0248ba2afa1919befd5e5342dbef47d0945d221cd1ed2dc84a69dd8"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/resume-source.mjs",
+      "bytes": 4328,
+      "sha256": "0086d94e492dd2e1a3c4aeff7999a24e895174e64b87a39399fbf5a727e4e879"
+    },
+    {
+      "path": "examples/physics-rigid-hinge-velocity-world-reference/SOURCE-CONTINUATION-CONTRACT.md",
+      "bytes": 6029,
+      "sha256": "b7391c3f57f6789658e51a85e6d981578b18cf77be6012cce5301413f30a959e"
     }
   ],
   "toolOrigins": {
@@ -2556,5 +2566,6 @@
     }
   },
   "oldNative14And93Replayed": false,
-  "beforeCodeRepair": "1179#6105770710"
+  "beforeCodeRepair": "1179#6105770710",
+  "savedInitialCompletionSource": "04ffb17ab02c2cc632f711b9869dcb542fea62aa"
 }

@@ -1,4 +1,4 @@
-import {openSync, closeSync, readSync, writeSync, fsyncSync, mkdirSync, writeFileSync} from 'node:fs';
+import {openSync, closeSync, readSync, writeSync, fsyncSync, mkdirSync, writeFileSync, existsSync, readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {resolve} from 'node:path';
 
@@ -36,8 +36,10 @@ export class ProofStorage {
     if (!this.channels.has(name)) {
       const path = resolve(this.directory, name);
       const sourcePath = this.sourceDirectory === null ? null : resolve(this.sourceDirectory, name);
+      const composite = sourcePath !== null && existsSync(sourcePath + '.composite.json') ? JSON.parse(readFileSync(sourcePath + '.composite.json')) : null;
+      const segments = composite?.segments.map(segment => ({...segment, fd: openSync(resolve(this.sourceDirectory, segment.path), 'r')})) ?? null;
       this.channels.set(name, {path, sourcePath, fd: sourcePath === null ? openSync(path, 'wx') : openSync(sourcePath, 'r'),
-        bytes: 0, hash: createHash('sha256'), lines: 0, trailing: 0, closed: false});
+        segments, bytes: 0, hash: createHash('sha256'), lines: 0, trailing: 0, closed: false});
     }
     return this.channels.get(name);
   }
@@ -61,9 +63,19 @@ export class ProofStorage {
       const expected = Buffer.alloc(bytes.length);
       let read = 0;
       while (read < bytes.length) {
-        const count = readSync(channel.fd, expected, read, bytes.length - read, offset + read);
-        if (count === 0) break;
-        read += count;
+        let count;
+        if (channel.segments === null) count = readSync(channel.fd, expected, read, bytes.length - read, offset + read);
+        else {
+          let logicalStart = 0, selected = null;
+          for (const segment of channel.segments) {
+            if (offset + read < logicalStart + segment.bytes) { selected = {...segment, logicalStart}; break; }
+            logicalStart += segment.bytes;
+          }
+          if (selected === null) break;
+          const local = offset + read - selected.logicalStart;
+          count = readSync(selected.fd, expected, read, Math.min(bytes.length - read, selected.bytes - local), (selected.offset ?? 0) + local);
+        }
+        if (count === 0) break; read += count;
       }
       if (read !== bytes.length || !expected.equals(bytes)) {
         this.saveEmergency(name, offset, bytes, expected.subarray(0, read));
@@ -103,16 +115,25 @@ export class ProofStorage {
     let noUnusedBytes = true;
     if (this.sourceDirectory !== null && completeEOF) {
       const extra = Buffer.alloc(1);
-      noUnusedBytes = readSync(channel.fd, extra, 0, 1, channel.bytes) === 0;
+      noUnusedBytes = channel.segments === null ? readSync(channel.fd, extra, 0, 1, channel.bytes) === 0 :
+        channel.bytes === channel.segments.reduce((sum, segment) => sum + segment.bytes, 0);
     }
+    for (const segment of channel.segments ?? []) closeSync(segment.fd);
     closeSync(channel.fd); channel.closed = true;
-    channel.receipt = {path: channel.sourcePath ?? channel.path, bytes: channel.bytes,
+    channel.receipt = {path: channel.segments !== null ? channel.path + '.alias.json' : channel.sourcePath ?? channel.path, bytes: channel.bytes,
       sha256: channel.hash.digest('hex'), completeLines: channel.lines, trailingBytes: channel.trailing,
       completeEOF, noUnusedBytes};
     if (!noUnusedBytes) this.fail('parity', 'PROOF_BYTES_DIFFER', 'hinge World proof bytes differ between graphs');
     if (channel.sourcePath !== null) {
       const alias = Buffer.from(JSON.stringify({
-      graph: this.graph, source: channel.receipt, actualComparedBytes: channel.bytes,
+      graph: this.graph, source: channel.segments === null ? {...channel.receipt, path: channel.sourcePath} : {
+        representation: 'composite', manifestPath: channel.sourcePath + '.composite.json',
+        logicalBytes: channel.bytes, logicalSha256: channel.receipt.sha256,
+        completeLines: channel.receipt.completeLines, trailingBytes: channel.receipt.trailingBytes,
+        completeEOF: channel.receipt.completeEOF,
+      },
+      compositeManifest: channel.segments === null ? null : channel.sourcePath + '.composite.json',
+      composite: channel.segments?.map(({fd, ...segment}) => segment) ?? null, actualComparedBytes: channel.bytes,
       actualComparedSha256: channel.receipt.sha256, completeEOF,
       }, null, 2) + '\n');
       this.charge('fixed', alias.length);

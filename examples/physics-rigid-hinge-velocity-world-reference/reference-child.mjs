@@ -8,11 +8,12 @@ const EXIT_MISSING = tuple('reply', 'IPC_REPLY_MISSING', 'hinge World reference 
 
 /** One actual in-flight request. Raw files are written before send/parse. */
 export class ReferenceChild {
-  constructor(storage, script, python = 'python3') {
+  constructor(storage, script, python = 'python3', logicalPrefix = {requestBytes: 0, replyBytes: 0, requests: 0}) {
     this.storage = storage; this.pending = null; this.buffer = Buffer.alloc(0);
     this.sent = 0; this.completed = 0; this.firstFailure = null; this.secondaryFailures = [];
     this.stdoutClosed = false; this.stderrClosed = false; this.stdinEnded = false; this.closed = false;
     this.exitCode = null; this.signal = null;
+    this.logicalPrefix = logicalPrefix;
     this.child = spawn(python, ['-u', resolve(script)], {stdio: ['pipe', 'pipe', 'pipe']});
     this.closedPromise = new Promise(resolveClose => { this.resolveClose = resolveClose; });
     this.child.on('error', () => this.reject(tuple('spawn', 'IPC_SPAWN_FAILED', 'hinge World reference process could not start')));
@@ -64,8 +65,8 @@ export class ReferenceChild {
         catch { throw new ProofFailure('reply', 'IPC_REPLY_JSON_INVALID', 'hinge World reference reply is not valid JSON'); }
         const pending = this.pending; this.pending = null; this.completed++;
         const channel = this.storage.channels.get('reference.stdout.raw');
-        this.lastReply = {stream: 'reference.stdout.raw', offset: channel.bytes - this.buffer.length - line.length,
-          bytes: line.length, requestIndex: pending.index};
+        this.lastReply = {stream: 'reference.stdout.raw', offset: this.logicalPrefix.replyBytes + channel.bytes - this.buffer.length - line.length,
+          bytes: line.length, requestIndex: this.logicalPrefix.requests + pending.index};
         pending.resolve(reply);
       }
     } catch (error) {
@@ -89,6 +90,7 @@ export class ReferenceChild {
       const failure = error instanceof ProofFailure ? error.safe() : tuple('request', 'IPC_STDIN_PERSIST_FAILED', 'hinge World reference request could not be stored');
       this.reject(failure); throw new ProofFailure(failure.phase, failure.code, failure.message);
     }
+    this.lastRequest.offset += this.logicalPrefix.requestBytes;
     const index = ++this.sent;
     const response = new Promise((resolveReply, rejectReply) => { this.pending = {index, bucket, resolve: resolveReply, reject: rejectReply}; });
     // Attach immediately while a backpressured write awaits drain; keep the original rejection for the caller.

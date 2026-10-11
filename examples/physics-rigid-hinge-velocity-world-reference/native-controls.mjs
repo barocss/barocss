@@ -9,7 +9,7 @@ const angular = (bodyId, z) => ({ kind: 'angularImpulse', bodyId, angularImpulse
 const copy = value => structuredClone(value);
 
 /** Fixed controls. All constructors and steps occur only when Root calls this function. */
-export async function runNativeControls({ createWorld, createOriginalWorld, PhysicsError, askReference, record }) {
+export async function runNativeControls({ createWorld, createOriginalWorld, PhysicsError, askReference, record, resumePrefix = null }) {
   assert.equal(typeof createWorld, 'function');
   assert.equal(typeof createOriginalWorld, 'function');
   assert.equal(typeof PhysicsError, 'function');
@@ -21,6 +21,31 @@ export async function runNativeControls({ createWorld, createOriginalWorld, Phys
   const receipts = [];
   let firstFailure = null;
   let I0 = null, S0 = null, initialCheckpoint = null;
+  // Root authenticates and imports these exact original bytes before calling this hook.
+  // Reused evidence contributes logical controls, never new native/reference calls.
+  if (resumePrefix !== null) {
+    const names = ['public-HINGE2-admission',
+      ...['config-null', 'config-extra', 'mass-zero', 'duplicate-id', 'sparse-bodies', 'sparse-joints',
+        'body-order', 'joint-order', 'gravity', 'mass-profile', 'inertia-presence', 'pair1-offset', 'axis', 'motor', 'chain'].map(name => 'constructor-' + name),
+      'options-extra', 'options-accessor', 'constructor-input-copy', 'W0-initial-native'];
+    assert.equal(resumePrefix.records.length, 20);
+    assert.deepEqual(resumePrefix.records.map(value => value.name), names);
+    assert.ok(resumePrefix.records.slice(0, 19).every(value => value.passed === true));
+    for (const value of resumePrefix.records) assert.deepEqual(value.zeroPaths, negativeZeroPaths(value));
+    assert.deepEqual(resumePrefix.historicalCounts, { publicConstructors: 1, privateConstructors: 18,
+      failedInitialRequests: 1, completedInitialRequests: 1, worldSteps: 0, projectionCalls: 0 });
+    assert.deepEqual(resumePrefix.records[19].request, resumePrefix.I0);
+    assert.deepEqual(resumePrefix.records[19].snapshot, resumePrefix.initialCheckpoint);
+    assert.deepEqual(resumePrefix.records[18].snapshot, resumePrefix.initialCheckpoint);
+    assert.equal(resumePrefix.I0.op, 'initial');
+    assert.deepEqual(resumePrefix.I0.config, makeWorldFixture());
+    assert.equal(resumePrefix.I0.sourceRawHex, rawBodiesHex(resumePrefix.I0.sourceState.bodies));
+    assert.equal(resumePrefix.I0.sourceRawHex, rawBodiesHex(resumePrefix.initialCheckpoint.bodies));
+    validateReply(resumePrefix.I0, resumePrefix.initialReply);
+    assert.equal(resumePrefix.initialReply.ok, true);
+    assert.equal(resumePrefix.initialReply.referenceStatus, 'RETURN');
+    receipts.push(...resumePrefix.records.map(value => ({ name: value.name, passed: value.passed ?? true })));
+  }
   const save = async (name, receipt, raw = []) => {
     const value = { type: 'native-control', name, ...receipt };
     value.zeroPaths = negativeZeroPaths(value);
@@ -61,6 +86,9 @@ export async function runNativeControls({ createWorld, createOriginalWorld, Phys
   async function ask(request) {
     counts.referenceRequests++;
     const reply = await askReference(request);
+    return validateReply(request, reply);
+  }
+  function validateReply(request, reply) {
     assert.deepEqual(Object.keys(reply ?? {}).sort(), ['ok', 'resolved', 'executionFailure', 'referenceStatus', 'metrics', 'reference', 'violations', 'error'].sort());
     assert.equal(typeof reply.ok, 'boolean');
     if (!reply || reply.resolved !== true || reply.executionFailure !== false) {
@@ -108,8 +136,17 @@ export async function runNativeControls({ createWorld, createOriginalWorld, Phys
     const state = context.world.getState(), request = { op: 'initial', config: copy(context.config),
       sourceState: state, sourceRawHex: rawBodiesHex(state.bodies),
       negativeZeroPaths: { sourceState: negativeZeroPaths(state), commands: [], attempt: [], output: [] } };
-    await save(context.name + '-initial-native', { request, snapshot: context.world.getTransactionSnapshot() }, [rawBodies(state.bodies)]);
-    const reference = await ask(request);
+    let reference;
+    if (resumePrefix === null) {
+      await save(context.name + '-initial-native', { request, snapshot: context.world.getTransactionSnapshot() }, [rawBodies(state.bodies)]);
+      reference = await ask(request);
+    } else {
+      // A fresh runtime instance must reproduce the authenticated original constructor.
+      assert.deepEqual(request, resumePrefix.I0);
+      assert.deepEqual(context.world.getTransactionSnapshot(), resumePrefix.initialCheckpoint);
+      assert.deepEqual(negativeZeroPaths(context.world.getTransactionSnapshot()), negativeZeroPaths(resumePrefix.initialCheckpoint));
+      reference = validateReply(request, resumePrefix.initialReply);
+    }
     const passed = reference.ok === true && reference.referenceStatus === 'RETURN';
     if (passed) { I0 = copy(request); initialCheckpoint = context.world.getTransactionSnapshot(); }
     await save(context.name + '-initial', { passed, nativeRecord: context.name + '-initial-native', reference });
@@ -167,6 +204,7 @@ export async function runNativeControls({ createWorld, createOriginalWorld, Phys
     return true;
   }
 
+  if (resumePrefix === null) {
   // P0: unchanged public admission refusal, no trajectory.
   counts.publicConstructors++;
   await save('public-HINGE2-admission', { passed: true, error: expectError(() => createOriginalWorld(makeWorldFixture()),
@@ -202,15 +240,25 @@ export async function runNativeControls({ createWorld, createOriginalWorld, Phys
     const error = expectError(() => createWorld(makeWorldFixture(), options), 'INVALID_CONFIG', OPTIONS);
     assert.equal(getterCalls, 0); await save('options-' + (accessor ? 'accessor' : 'extra'), { passed: true, error, getterCalls });
   }
+  }
 
   const w0 = construct('W0', { mutate: true });
   assert.equal(w0.world.getDiagnostics(), null);
   const constructorState = w0.world.getTransactionSnapshot();
+  if (resumePrefix === null) {
   const originalConfig = copy(w0.config);
   w0.config.bodies[0].positionM[0] = 99; w0.config.joints[0].motor.targetSpeedRadps = 99;
   assert.deepEqual(w0.world.getTransactionSnapshot(), constructorState);
   w0.config = originalConfig;
   await save('constructor-input-copy', { passed: true, snapshot: constructorState });
+  } else {
+    assert.deepEqual(constructorState, resumePrefix.initialCheckpoint);
+    assert.deepEqual(w0.world.getState(), resumePrefix.I0.sourceState);
+    assert.equal(rawBodiesHex(w0.world.getState().bodies), resumePrefix.I0.sourceRawHex);
+    assert.deepEqual(w0.config, resumePrefix.I0.config);
+    assert.deepEqual(negativeZeroPaths(w0.world.getState()), resumePrefix.I0.negativeZeroPaths.sourceState);
+    assert.equal(w0.observer.attempts.length, 0);
+  }
   if (await setup(w0)) {
     const checkpoint = w0.world.getTransactionSnapshot(), state = w0.world.getState(), raw = rawBodiesHex(state.bodies);
     const guards = [
@@ -305,9 +353,27 @@ export async function runNativeControls({ createWorld, createOriginalWorld, Phys
       callbackCount: 1, priorAcceptedRetained: true, before, after: context.world.getTransactionSnapshot(),
       actualAttempt: reached[0], actualCalls: reached[0].calls, referenceRequests: 0 }, [rawBodies(before.bodies)]);
   }
-  assert.equal(counts.publicConstructors, 1); assert.equal(counts.privateConstructors, 29);
+  const actualCounts = copy(counts), logicalCounts = copy(counts);
+  const historicalCounts = resumePrefix === null ? null : copy(resumePrefix.historicalCounts);
+  const recoveryCounts = { publicConstructors: 0, privateConstructors: resumePrefix === null ? 0 : 1, referenceRequests: 0 };
+  const combinedActualCounts = copy(actualCounts);
+  if (resumePrefix !== null) {
+    logicalCounts.publicConstructors += 1;
+    // Seventeen old rejected private constructors plus the current logical W0 instance.
+    logicalCounts.privateConstructors += 17;
+    logicalCounts.referenceRequests += 1;
+    combinedActualCounts.publicConstructors += historicalCounts.publicConstructors;
+    combinedActualCounts.privateConstructors += historicalCounts.privateConstructors;
+    combinedActualCounts.referenceRequests += historicalCounts.failedInitialRequests + historicalCounts.completedInitialRequests;
+  }
+  assert.equal(logicalCounts.publicConstructors, 1); assert.equal(logicalCounts.privateConstructors, 29);
+  assert.equal(actualCounts.publicConstructors, resumePrefix === null ? 1 : 0);
+  assert.equal(actualCounts.privateConstructors, resumePrefix === null ? 29 : 12);
   assert.ok(counts.stepAttempts <= 28);
-  return { passed: firstFailure === null, firstFailure, counts, receipts,
+  return { passed: firstFailure === null, firstFailure, counts: logicalCounts, receipts,
+    actualCounts, historicalCounts, recoveryCounts, combinedActualCounts,
+    reusedPrefix: resumePrefix === null ? null : { records: 20, initialReplyReused: true,
+      originalFailedInitialRetained: true, sourceRecordsWrittenAgain: false },
     I0, S0, initialCheckpoint,
     declaredPopulation: { publicConstructors: 1, privateConstructors: 29, maximumSteps: 28 },
     includesUnobservedInternalCalls: false, nonemptyCacheRollbackClaimed: false, stepLimitReachedClaimed: false };

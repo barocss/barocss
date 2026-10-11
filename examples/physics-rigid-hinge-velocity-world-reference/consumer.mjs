@@ -9,6 +9,7 @@ import {qualifyReply} from './reference-reply.mjs';
 import {ReferenceChild} from './reference-child.mjs';
 import {ProofStorage, ProofFailure, LIMITS} from './proof-storage.mjs';
 import {worldQuality} from './world-quality.mjs';
+import {retainPrefix, writeCompositeReference} from './resume-source.mjs';
 
 class NumericalFailure extends Error {
   constructor(failures, requestIndex) { super('independent numerical comparison failed'); this.failures = failures; this.requestIndex = requestIndex; }
@@ -40,9 +41,16 @@ function guard(child) {
   if (child.closed) throw new ProofFailure('reply', 'IPC_REPLY_MISSING', 'hinge World reference exited before its reply');
 }
 
-export async function runGraph(module, graph, directory, referencePath, sourceDirectory = null) {
+export async function runGraph(module, graph, directory, referencePath, sourceDirectory = null, resumePrefix = null) {
   const storage = new ProofStorage(directory, graph, sourceDirectory);
-  const child = new ReferenceChild(storage, referencePath);
+  if (resumePrefix !== null) retainPrefix(storage, resumePrefix);
+  const logicalPrefix = resumePrefix === null ? {requestBytes: 0, replyBytes: 0, requests: 0} :
+    {requestBytes: resumePrefix.initialInputBytes.length, replyBytes: resumePrefix.initialOutputBytes.length, requests: 1};
+  const child = new ReferenceChild(storage, referencePath, 'python3', logicalPrefix);
+  if (resumePrefix !== null) {
+    child.lastRequest = {stream: 'reference.stdin.raw', offset: 0, bytes: logicalPrefix.requestBytes};
+    child.lastReply = {stream: 'reference.stdout.raw', offset: 0, bytes: logicalPrefix.replyBytes, requestIndex: 1};
+  }
   const counts = {mainConstructors: 0, mainSteps: 0, acceptedSteps: 0, qualifiedSteps: 0, mainReferenceRequests: 0,
     nativeControls: null, protocolControls: null};
   let firstFailure = null, disposition = 'UNMEASURED', nativeResult = null;
@@ -69,13 +77,15 @@ export async function runGraph(module, graph, directory, referencePath, sourceDi
   let world = null;
   try {
     nativeResult = await runNativeControls({createWorld, createOriginalWorld: module.createPhysicsWorld,
-      PhysicsError: module.PhysicsError, askReference: async request => {
+      PhysicsError: module.PhysicsError, resumePrefix, askReference: async request => {
         const reply = await askReference(request);
         const qualification = qualifyReply(reply, request);
         if (!qualification.qualified) throw new NumericalFailure(qualification.failures, child.completed);
         return reply;
       }, record});
-    counts.nativeControls = nativeResult.counts;
+    counts.nativeControls = {logical: nativeResult.counts, actual: nativeResult.actualCounts,
+      historical: nativeResult.historicalCounts, recovery: nativeResult.recoveryCounts,
+      combinedActual: nativeResult.combinedActualCounts};
     if (nativeResult.firstFailure !== null) firstFailure = nativeResult.firstFailure;
     if (nativeResult.firstFailure !== null || nativeResult.I0 === null || nativeResult.S0 === null)
       throw new NumericalFailure(['native control or required accepted checkpoint did not qualify'], child.completed);
@@ -159,9 +169,19 @@ export async function runGraph(module, graph, directory, referencePath, sourceDi
     !receipt.stdout.completeEOF || !receipt.stderr.completeEOF)) {
     firstFailure ??= receipt.firstFailure; disposition = 'GRAPH_NO_COMPLETE_PROOF';
   }
+  if (resumePrefix !== null && receipt !== null) {
+    try { writeCompositeReference(directory, resumePrefix, receipt); }
+    catch {
+      const failure = {phase: 'proof', code: 'PROOF_PERSIST_FAILED', message: 'hinge World proof could not be stored'};
+      firstFailure ??= failure; secondaryFailures.push(failure); disposition = 'GRAPH_NO_COMPLETE_PROOF';
+    }
+  }
   const finished = storage.finishAll(disposition !== 'GRAPH_NO_COMPLETE_PROOF');
   for (const failure of finished.failures) { firstFailure ??= failure; secondaryFailures.push(failure); disposition = 'GRAPH_NO_COMPLETE_PROOF'; }
   const result = {graph, disposition, counts, extrema, firstFailure, child: receipt,
+    retainedHistoricalPrefix: resumePrefix === null ? null : {manifestSha256: resumePrefix.manifestSha256,
+      historicalCounts: resumePrefix.historicalCounts, independentlyCompletedInitialRepliesReused: 1,
+      currentChildReceiptExcludesPriorProcess: true},
     childCloseObserved: {pid: child.child.pid ?? null, exitCode: child.exitCode, signal: child.signal,
       closed: child.closed, stdoutClosed: child.stdoutClosed, stderrClosed: child.stderrClosed,
       stdinEnded: child.stdinEnded, completedReplies: child.completed,
