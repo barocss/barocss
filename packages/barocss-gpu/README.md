@@ -3895,3 +3895,56 @@ node examples/gpu-scene/native-surface-uv01-wgsl-flow.mjs --output /absolute/fre
 
 Actual native UV01 WebGPU program/frame/render/pixels, consumer display and
 publication require separate receipts.
+
+## Multiple original Surface WebGPU viewport (#1553)
+
+`mountMultiSurfaceWebGPUViewport(canvas, completeFrame, { width, height })`
+selects required WebGPU for **1..4 original qualified Surfaces** and0..4 legacy
+MeshMaterial bindings. Use complete common frame0, scene2, explicit camera and
+`particles:null`. Existing global MeshLighting is optional. Curve, empty,
+particle, cloth, EngineUV, nativeUV01, texture and light-entity profiles are not
+admitted by this route. Existing single-Surface and WebGL APIs keep their contracts.
+
+Each full `(modelId,geometryId)` pair is distinct, including shared native geometry
+IDs under different model aliases. GPU retains independently copied native
+packets/parameters/poses/material CSS and Number coefficients. Existing common
+preflight applies native-mm/display transforms once. Private position/normal/U16
+execution bytes and camera160/material64 blocks are explicitly little-endian.
+Caller source-document/TEN relationships remain the caller's authority.
+
+One shared rgba8unorm/r32uint/depth24plus target draws entries in admitted order.
+Tokens1..N map full refs;0 is background. Native gamma2.2, inherited singleton
+lighting and direct background clear are preserved. Actual canvas configuration
+admits fixedRGBA8; no preferred-format assumption or automatic fallback is used.
+
+The returned viewport exposes `canvas`, fresh frozen `frame`, copied `selected`
+and eight-field `status`. Async `updateFrame`, `resize`, `readPixels` and `pick`
+allow one pending operation. `pick(x,y)` reads a top-left backing pixel and returns
+`{generation,ref}` from the actual identity attachment. `select(ref|null)` only
+changes metadata; it does not highlight or increment generation. Candidate updates
+retain a still-present full selection; validation refusals preserve accepted state.
+Failed presentation attempts restore accepted pixels; failed recovery is terminal.
+
+Dimensions1..1024/product1048576, per-program64KiB and signed ordinary
+`{frame,programs}`2MiB limits are bounded separately from upload charges. Status
+resources are eleven logical fields: per-entry5buffers/224uniformbytes, N pipelines
+and bindgroups, three shared textures, padded index/readback storage and logical
+4-byte depth charge. Candidate32MiB and overlap/readback64MiB are caps, not measured
+physical memory or driver-private allocation certificates. Required device limits
+are the nine named fields; private prepared data is not a public input shortcut.
+
+`MultiSurfaceWebGPUError` has INPUT/PROFILE/BUDGET/REPRESENTATION/UNSUPPORTED/INIT/
+DEVICE_LOST/RENDER/STATE/BUSY codes and bounded messages. Actual causes are retained.
+Device loss is terminal lost; timeout/recovery/cleanup failures are terminal failed.
+Each device await is capped at10s; epoch cancellation prevents late commits.
+`dispose()` invalidates waits, attempts every owned cleanup and releases this route's
+canvas claim. First disposal reports cleanup failures; repeated disposal is a no-op.
+No foreign device/context is released.
+
+Native source/API/file/cold qualification uses
+`node examples/gpu-scene/multi-surface-webgpu-flow.mjs --output ABS_FRESH` after
+`build:library` with Node22. This flow checks original native source reconstruction,
+trusted source/program/packing/identity/resource contracts and public emitted exports.
+It uses no fake GPU. Actual shader compilation/device/pixels/shared-depth picking,
+update retention/file remount/loss/driver cleanup and consumer adoption require
+separate genuine browser receipts. Native code is not publication or release.
