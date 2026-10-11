@@ -853,3 +853,16 @@ the existing provider. Its local D0/D1 observations and genuine derivative refus
 are retained; they do not certify global error, G1/G2 continuity, wire topology,
 manufacturing tolerance or a Solid. A refused operation retains the original accepted
 document and the dialog's corrective Next Curve choice.
+
+
+### Raise the degree of an original Surface
+
+`session.prepareSurfaceDegreeElevation('u' | 'v')` proposes one native degree step for the selected original Surface in document view. No pole selection is required. The contextual Canvas commands Raise U degree and Raise V degree use the complete original Source and its qualified native reference. Existing pending input, another candidate or a selection transition must be resolved first. Actual whole-Viewer approval precedes one history entry; accepted document and asset revisions each advance once.
+
+The existing native `elevateSourceSurfaceAxisDegree` and whole validator retain all untouched Source spans, Model and geometry IDs, siblings, domains and the opposite axis degree/knots. Only the selected Surface's four native value spans are replaced in the same asset. This creates additional coefficients without claiming a global shape or tolerance certificate. Local native D0 observations are bounded evidence.
+
+Degree is discrete. Each Canvas command raises its selected axis exactly once. The current native profile accepts selected degree1–4 to2–5 on a single Bezier or exact C0 Bernstein chain; general lower-multiplicity knot structures are refused. Original selected-axis poles must not exceed13, elevated poles16, opposite poles16 and total256. Native Source256KiB/Model16, XYZ10000mm and positive bounded weights remain separate limits. The UI disables a degree5 axis; direct Root requests retain genuine native refusal and cause.
+
+Elevation changes the coefficient basis. Actual acceptance and Undo/Redo across that boundary clear old U/V pole selection and retain the logical body and view. A same-number index is never treated as the original coefficient; select a new pole explicitly before point editing. Native or display refusal keeps the accepted Source, frame, history and prior pole. Save/Open persists the elevated native document, with no live degree recipe, history or selection.
+
+The bounded author flow is `apps/cad-editor/flows/surface-degree-elevation-flow.mjs`, using the unchanged complete16-object/72000-byte weighted Surface fixture. Source/public-compiled actual Canvas, history and file qualification is recorded separately from native CPU readiness, integration and release. This feature does not qualify general topology, Solid, G1/G2 or manufacturing.
