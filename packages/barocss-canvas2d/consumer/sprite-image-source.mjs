@@ -139,7 +139,17 @@ function bind() {
 /** @param {string} message */
 function submit(message) { active(); const next = tree.snapshot(); renderer.updateScene(next); accepted = next; renderer.render(); show(message); }
 /** @param {string} imageId @param {import('@barocss/canvas2d').SourceRect|null} [crop] */
-function setImageSource(imageId, crop = null) { active(); sprite.setImageSource(imageId, crop); submit(`Image ${imageId}${crop ? ' cropped' : ' full'}`); }
+function setImageSource(imageId, crop = null) {
+  active(); const prior = sprite.data;
+  sprite.setImageSource(imageId, crop);
+  const next = tree.snapshot();
+  try { renderer.updateScene(next); }
+  catch (error) {
+    sprite.setImageSource(prior.imageId, prior.sourceRect ?? null);
+    throw error;
+  }
+  accepted = next; renderer.render(); show(`Image ${imageId}${crop ? ' cropped' : ' full'}`);
+}
 async function documentText() { return serializeCanvasDocument(accepted, id => hostAssets.get(id) ?? null); }
 /** @param {string} imageId @param {import('@barocss/canvas2d').SourceRect|null} [crop] */
 async function rejected(imageId, crop = null) {

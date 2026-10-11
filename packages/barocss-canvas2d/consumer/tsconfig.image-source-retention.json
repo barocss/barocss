@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["sprite-image-source.mjs"]
+}
