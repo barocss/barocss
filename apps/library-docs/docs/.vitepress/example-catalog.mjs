@@ -8,6 +8,8 @@ const materialSource = { language: 'GPU mesh material', libraries: Object.freeze
 // Category describes the reader's task. A shared display host is not an
 // integration task; libraries lists public packages used by that sample.
 export const exampleCatalog = Object.freeze({
+  'reusable-shader': item('Reusable palette shader', 'reusable-shader', 'gpu', 'language', '/packages/gpu/reusable-shader',
+    'Compose a bounded float easing function and a color palette function over a diagonal UV wave.', { language: 'GPU repeating UV material with authored functions' }),
   'radial-svg-export': item('Radial SVG export', 'radial-svg-export', 'canvas2d', 'api', '/packages/canvas2d/radial-svg-export',
     'Edit a local radial gradient, export its native SVG image and reopen the complete editable scene JSON.'),
   'weave-shader': item('Woven grid shader', 'weave-shader', 'gpu', 'language', '/packages/gpu/weave-shader',

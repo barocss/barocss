@@ -3,12 +3,13 @@ import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { exampleCatalog, exampleHref } from '../example-catalog.mjs'
 import * as runtime from '../generated/visual.js'
 import * as advanced from '../generated/advanced-shader.js'
+import * as reusableShader from '../generated/reusable-shader.js'
 import * as unicode from '../generated/unicode-label.js'
 import * as diagram from '../generated/diagram-label.js'
 import * as pathEdit from '../generated/path-edit.js'
 import * as svgExport from '../generated/svg-export.js'
 import * as radialSvgExport from '../generated/radial-svg-export.js'
-const presets={...runtime.presets,...advanced.presets,...unicode.presets,...diagram.presets,...pathEdit.presets,...svgExport.presets,...radialSvgExport.presets}
+const presets={...runtime.presets,...advanced.presets,...unicode.presets,...diagram.presets,...pathEdit.presets,...svgExport.presets,...radialSvgExport.presets,...reusableShader.presets}
 const props=defineProps({category:{type:String,default:'all'}})
 const categoryNames={library:'Library examples',language:'Language examples',integration:'Integrated workflows'}
 const purposeNames={api:'Library API',language:'Language',integration:'Integrated workflow'}
@@ -63,7 +64,8 @@ async function openCanvasDocument(event){
 }
 const isUnicode=()=>presets[selected.value].kind==='unicode'
 const advancedControls=ref([]), advancedValues=ref({}), playing=ref(false)
-const isAdvanced=()=>presets[selected.value].kind==='advanced'
+const isAdvanced=()=>presets[selected.value].kind==='advanced'||presets[selected.value].kind==='advanced-functions'
+const advancedModule=()=>presets[selected.value].kind==='advanced-functions'?reusableShader:advanced
 function stopAnimation(){playing.value=false;if(animationFrame!==undefined)cancelAnimationFrame(animationFrame);animationFrame=undefined}
 function syncAdvanced(data){advancedControls.value=data.controls||[];advancedValues.value={...(data.uniforms||{})}}
 function adjustAdvanced(name,value){error.value='';try{const data=controller.setUniform(name,Number(value));syncAdvanced(data);output.value=JSON.stringify(data,null,2)}catch(e){error.value=describeError(e);const retained=controller.report();syncAdvanced(retained);if(!retained.available)output.value=JSON.stringify(retained,null,2);stopAnimation()}}
@@ -98,7 +100,7 @@ async function select(kind){
     if(isUnicode()||isDiagram())await document.fonts?.ready;
     if(selectionEpoch!==epoch.value)return;
     if(isOwnedCanvas()){const next=newOwnedElement();let pathCandidate;const candidate=isPath()?(pathCandidate=pathEdit.createPathEditExample(next,source.value,pathCallbacks(selectionEpoch,()=>pathCandidate))):isSVG()?await svgModule().createSvgExportExample(next,source.value):diagram.createDiagramLabelExample(next,source.value);if(selectionEpoch!==epoch.value){candidate.dispose();return}controller=candidate;ownedSlot.value.replaceChildren(next)}
-    else controller=isAdvanced()?advanced.createAdvancedShaderExample(canvas.value,source.value):isUnicode()?unicode.createUnicodeTextExample(canvas.value,source.value):runtime.createExample(canvas.value,kind,source.value);
+    else controller=isAdvanced()?advancedModule().createAdvancedShaderExample(canvas.value,source.value):isUnicode()?unicode.createUnicodeTextExample(canvas.value,source.value):runtime.createExample(canvas.value,kind,source.value);
     const data=controller.report();if(isAdvanced())syncAdvanced(data);if(isPath())syncPath(data);output.value=JSON.stringify(data,null,2)
   }catch(e){if(selectionEpoch===epoch.value)error.value=describeError(e)}
 }

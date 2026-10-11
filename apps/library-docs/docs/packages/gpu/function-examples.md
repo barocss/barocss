@@ -4,6 +4,8 @@ Choose an independent sample to inspect its full source and change its host inpu
 
 The examples use public `compileMeshMaterial`, `validateMeshMaterialIR` and `lowerMeshMaterial` for local experimental `@barocss/gpu` version0.0.0 at source snapshot `5f5ad866205a21510ac69552e704cc162fa253b5`, profile `mesh-opaque-fragment-v0`. Several source functions expand to arithmetic or the smaller sin/cos/mix/clamp IR. The source function and its lowered form can therefore have different names.
 
+These eleven original samples cover built-ins at that snapshot. For authored reusable functions, read [the separate `@fn` easing and palette guide](./reusable-shader) and [open its language example](/examples/language#reusable-shader). Its newer profile allows one bounded float parameter with a float or color result; it does not alter the complete programs below.
+
 ## Run and interpret a sample
 
 Use the Open sample links below to run a program in the browser. See [Use the interactive examples](/concepts/run-examples) for input selection, browser requirements and result interpretation. Each standalone program declares `amount:float(0,1,0)`. The shared host control has step .05 and initial value 0. Choose .5 and 1 to compare the midpoint and endpoint. Changes are explicit input adoption; there is no timer or per-frame performance promise.

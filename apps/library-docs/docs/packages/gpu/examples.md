@@ -12,6 +12,8 @@ The [interference caustics example](./caustics-shader) combines crossing wave fi
 
 ## More scene and material examples
 
+[Reuse a float easing function and a color palette](./reusable-shader) in the [new language example](/examples/language#reusable-shader). Its complete `@fn` program uses a separate newer source profile; it changes fragment color on a fixed UV quad and adds no Scene shape or clock.
+
 Use [GPU compositions](./composition-examples) for style precedence, local rotations and a material transition window. Each source is complete and editable in the playground.
 
 ## Inspect material color without a display

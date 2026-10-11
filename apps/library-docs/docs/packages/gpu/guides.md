@@ -52,6 +52,8 @@ The packet preserves authored XYZ in millimetres and declares right-handed Y-up.
 
 ## Bind a material and retain accepted state
 
+For pure reusable expressions, follow [the easing and palette shader](./reusable-shader) and [open its language example](/examples/language#reusable-shader). Its separate newer source profile admits bounded `@fn` float/color results while retaining the existing public material APIs. The caller supplies UV, uniforms and time; the older examples below keep their stated profiles.
+
 Compile the material before mounting its mesh. If the first `setMaterial` call fails, dispose that newly mounted renderer before reporting the setup error. For a later uniform edit, update host state only when `setMaterial` succeeds. A refused candidate keeps the accepted binding while the context remains live.
 
 The [material setup recipe](./material-language#complete-blend-material) includes a named slider listener and cleanup. The [caller-time recipe](./material-language#supply-caller-time-on-demand) maps elapsed seconds into the declared0..2 range and samples only on a button click. Both remove caller-owned listeners before renderer disposal. These source-backed host recipes are separate from the recorded playground browser checks.
