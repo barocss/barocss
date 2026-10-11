@@ -3838,3 +3838,46 @@ or manufacturing tolerance. The neutral profile remains renderer-neutral.
 Run the dedicated example verifier with `--source` before own library builds and
 `--emitted` after builds. Actual headed browser, published declaration and saved
 file acceptance are recorded separately from implementation and publication.
+
+
+## Saved paired Surface intersection branch receipts
+
+Import `parseBaroCadPairedSurfaceIntersectionBranch` and
+`readBaroCadPairedSurfaceIntersectionBranch` from the optional
+`@barocss/cad-interop/paired-surface-intersection-branch` entry. Parse a saved
+complete native JSON result, or read descriptor-owned CPU data. Each eligible
+call validates the entire copied result once through the matching CAD validator.
+The native validator reconstructs the branch internally and returns a report.
+
+The result has exactly `native`, `validationReport`, `profile` and `sourceText`.
+It retains both complete Sources and Models, source-qualified Surface identities,
+original UV domains and station schedule, native points and derivatives, every
+corrector/trial/chart/tangent receipt, work counts, numeric signs and quality flags.
+Native data and the separate report are independent mutable copies. Only the
+metadata profile is deeply frozen. `sourceText` is the exact admitted JSON text,
+or `null` for an owned-data read. Matching Model names or Surface IDs do not merge
+the two source contexts.
+
+The dedicated input codec limits raw and canonical JSON plus one newline to
+4 MiB in both UTF8 bytes and UTF16 units, with 1,048,576 value occurrences,
+depth 64, 8,192 array elements, 64 record fields, 262,144 string units and
+128 key units. It preserves finite standard JSON numbers and numeric negative
+zero; duplicate decoded keys, getters, hidden fields, cycles and sparse arrays
+are refused. Existing native request and Source limits still apply.
+
+`BaroCadPairedSurfaceIntersectionBranchReadError` uses
+`INPUT`, `JSON`, `OWNED`, `BUDGET`, `SCHEMA` or `NATIVE`. A native refusal keeps
+the original error, structured context and cause chain. This entry accepts
+complete Result4 with the native report schema/version 0. It has no renderer,
+transport, byte-input, serializer or cleanup API.
+
+The stored result is a sampled seeded local branch. Exact trim Curves, paired
+pcurves, every possible branch, whole-span error, turning/contact classification,
+topology, Body, Solid and manufacturing certification remain outside this reader.
+No new tracing or Source editing API is provided.
+
+The bounded verifier is
+`examples/paired-surface-intersection-branch-verify.mjs`. Source and emitted
+checks have separate execution receipts. Library availability, exact local
+adoption, integrated UI/file/recovery acceptance and npm publication are separate
+states.

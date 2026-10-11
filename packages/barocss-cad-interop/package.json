@@ -202,6 +202,10 @@
       "./qualified-body-boundary-mesh-pixi3d": {
         "types": "./dist/qualified-body-boundary-mesh-pixi3d.d.ts",
         "import": "./dist/qualified-body-boundary-mesh-pixi3d.js"
+      },
+      "./paired-surface-intersection-branch": {
+        "types": "./dist/paired-surface-intersection-branch.d.ts",
+        "import": "./dist/paired-surface-intersection-branch.js"
       }
     }
   },
@@ -406,6 +410,10 @@
     "./qualified-body-boundary-mesh-pixi3d": {
       "types": "./src/qualified-body-boundary-mesh-pixi3d.ts",
       "import": "./src/qualified-body-boundary-mesh-pixi3d.ts"
+    },
+    "./paired-surface-intersection-branch": {
+      "types": "./src/paired-surface-intersection-branch.ts",
+      "import": "./src/paired-surface-intersection-branch.ts"
     }
   },
   "files": [
