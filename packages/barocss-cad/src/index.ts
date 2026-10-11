@@ -430,3 +430,7 @@ export type { ConvexPlanarFaceExtrusionRequest, ConvexPlanarFaceExtrusionOptions
 
 export { tracePairedSurfaceIntersectionBranch, validatePairedSurfaceIntersectionBranch, PairedSurfaceIntersectionBranchError, PairedSurfaceIntersectionBranchDiagnosticCode } from './paired-surface-intersection-branch.js';
 export type { PairedSurfaceIntersectionBranchRequest, PairedSurfaceIntersectionBranchOptions, PairedSurfaceIntersectionBranchReport, PairedSurfaceIntersectionBranchResult } from './paired-surface-intersection-branch.js';
+
+
+export { splitTranslatedStripBodyByPlane, validateTranslatedStripPlaneSplit, serializeTranslatedStripPlaneSplit, parseTranslatedStripPlaneSplit, TranslatedStripPlaneSplitError, TranslatedStripPlaneSplitDiagnosticCode } from './translated-strip-plane-split.js';
+export type { TranslatedStripPlaneSplitRequest, TranslatedStripPlaneSplitOptions, TranslatedStripPlaneSplitReport, TranslatedStripPlaneSplitResult } from './translated-strip-plane-split.js';
