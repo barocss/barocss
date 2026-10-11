@@ -68,6 +68,7 @@ const mmToSceneUnit=.13,fixedCamera={eye:[4,3,7],target:[.35,.2,.3],up:[0,1,0],f
 let documentResult=null,originalBytes=null,originalText='',projection=[],manifest=[],viewer=null,running=false,disposed=false,result=null,nativeFileOpen=null,nativeSourceDownload=null,igesFileOpen=null;
 let igesStatus='empty',hasIGESProvenance=false;
 let nativeNavigation=null,nativeNavigationDisposed=false;
+let nativeKeyboardAdapter=null,nativeKeyboardDisposed=false,nativeKeyboardStatus='empty',nativeKeyboardPending=null;
 let selectedPointScope=null,selectedPointReport=null,selectedPointEpoch=0,selectedPointDisposed=false;
 let nativeChordFirst=null,nativeChordReport=null,nativeChordEpoch=0,nativeChordDisposed=false;
 let selectedDerivativesScope=null,selectedDerivativesReport=null,selectedDerivativesEpoch=0,selectedDerivativesDisposed=false;
@@ -369,10 +370,68 @@ function reportNativeNavigationError(error){
   if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();}
   syncNativeNavigation();display(error instanceof Error?error.message:String(error));
 }
+function nativeKeyboardSnapshot(){
+  check(arguments.length===0,'Keyboard snapshot takes no arguments.');
+  return clone({attached:!!nativeKeyboardAdapter,disposed:nativeKeyboardDisposed,status:nativeKeyboardStatus});
+}
+function nativeKeyboardEligible(state){return!running&&!disposed&&!nativeKeyboardDisposed&&state.status==='ready'
+  &&!!state.native&&typeof state.native.source==='string'&&state.native.source.length>0
+  &&state.native.model?.version===0&&state.native.model.lengthUnit==='mm'
+  &&Array.isArray(state.native.model.objects)&&state.native.model.objects.length>=1&&state.native.model.objects.length<=4
+  &&!state.document&&!state.modelSet&&!state.assembly&&!state.shell&&!state.qualifiedFaceScene
+  &&!state.uniformCurve&&!state.selectedUniformCurve&&!state.mixedDepth;}
+function detachNativeKeyboard(){
+  canvas.removeEventListener('keydown',nativeKeyboardObserver);
+  const adapter=nativeKeyboardAdapter;nativeKeyboardAdapter=null;nativeKeyboardPending=null;adapter?.dispose();
+}
+function syncNativeKeyboard(){
+  check(arguments.length===0,'Keyboard sync takes no arguments.');
+  if(nativeKeyboardDisposed||disposed)return nativeKeyboardSnapshot();
+  if(running){detachNativeKeyboard();return nativeKeyboardSnapshot();}
+  const state=viewer.getState();nativeKeyboardStatus=state.status;
+  if(!nativeKeyboardEligible(state))detachNativeKeyboard();
+  else if(!nativeKeyboardAdapter){
+    nativeKeyboardAdapter=viewer.attachKeyboardControls({onError:reportNativeKeyboardError});
+    canvas.addEventListener('keydown',nativeKeyboardObserver);
+  }
+  return nativeKeyboardSnapshot();
+}
+function disposeNativeKeyboard(){
+  check(arguments.length===0,'Keyboard disposal takes no arguments.');
+  if(nativeKeyboardDisposed)return nativeKeyboardSnapshot();
+  nativeKeyboardDisposed=true;canvas.removeEventListener('keydown',nativeKeyboardGuard,true);detachNativeKeyboard();return nativeKeyboardSnapshot();
+}
+function nativeKeyboardCandidate(event){return event.target===canvas&&!event.repeat&&!event.isComposing
+  &&!event.altKey&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&['f','F','Escape'].includes(event.key);}
+function nativeKeyboardGuard(event){
+  if(nativeKeyboardDisposed||disposed||!nativeKeyboardCandidate(event))return;
+  nativeKeyboardPending=null;
+  if(event.defaultPrevented){detachNativeKeyboard();return;}
+  const snapshot=syncNativeKeyboard();
+  if(!snapshot.attached){event.stopImmediatePropagation();return;}
+  nativeKeyboardPending={event,failed:false};
+}
+function reportNativeKeyboardError(error){
+  if(nativeKeyboardPending)nativeKeyboardPending.failed=true;
+  if(nativeKeyboardDisposed||disposed)return;
+  if(!running){refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();}
+  syncNativeNavigation();syncNativeKeyboard();display(error instanceof Error?error.message:String(error));
+}
+function nativeKeyboardObserver(event){
+  const pending=nativeKeyboardPending;if(!pending||pending.event!==event)return;nativeKeyboardPending=null;
+  if(nativeKeyboardDisposed||disposed||pending.failed||!event.defaultPrevented)return;
+  try{
+    if(event.key==='Escape'){
+      refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();
+      for(const button of list.querySelectorAll('button[aria-pressed]'))button.setAttribute('aria-pressed','false');
+      syncNativeKeyboard();display('Native selection cleared. Captured chord and SDK measurements remain.');
+    }else{refreshNativeNavigationView();syncNativeKeyboard();display('Visible native display geometry fitted.');}
+  }catch(error){reportNativeKeyboardError(error);}
+}
 function render(){const state=viewer.getState(),live=!disposed&&state.status!=='context-lost',ready=live&&state.status==='ready';
   const acceptedIGES=igesFileOpen?.snapshot().accepted,importCurrent=matchingIGES(state,acceptedIGES);
   let nativePointScope=null;if(!selectedPointDisposed&&!disposed)try{nativePointScope=readNativePointScope(viewer);}catch{}
-  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();
+  refreshSelectedNativePoint();refreshSelectedNativeDerivatives();renderNativeChord();syncNativeNavigation();syncNativeKeyboard();
   for(const[id,button]of Object.entries(buttons))button.disabled=id==='dispose'?disposed:!live||running;
   buttons.fit.disabled=!ready||running||!state.visibleGeometry.length;buttons.query.disabled=disposed||running||!state.curves.length||(!live&&!importCurrent);
   list.replaceChildren(...inventory().map(body=>{const item=document.createElement('li'),label=document.createElement('label'),checkbox=document.createElement('input');
@@ -484,7 +543,7 @@ async function runProof(){invalidateFileIntents();if(running||disposed||viewer.g
     documentBytes:manifest[0]?.bytes,contextCount:contexts.size,resources:resourceCounts(),limits:result.scope});
     try{await fetch('/result',{method:'POST',body:JSON.stringify(result)});}catch(error){result.recordingError=error.message;}}
   return result;}
-function dispose(){if(disposed)return;nativeNavigationDisposed=true;nativeNavigation?.dispose();selectedDerivativesDisposed=true;clearSelectedDerivativesContext();nativeChordDisposed=true;clearNativeChord();selectedPointDisposed=true;clearSelectedPointContext();igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
+function dispose(){if(disposed)return;disposeNativeKeyboard();nativeNavigationDisposed=true;nativeNavigation?.dispose();selectedDerivativesDisposed=true;clearSelectedDerivativesContext();nativeChordDisposed=true;clearNativeChord();selectedPointDisposed=true;clearSelectedPointContext();igesFileOpen?.dispose();nativeSourceDownload?.dispose();nativeFileOpen?.dispose();viewer.dispose();viewer.dispose();disposed=true;render();const receipt={status:viewer.getState().status,resources:resourceCounts(),glErrors:glErrors(),
   contextCount:contexts.size,errors:[...errors],warnings:[...warnings]};if(result)result.disposal=receipt;display(receipt);return receipt;}
 try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=await(await fetch('/document.cad-document.json')).arrayBuffer();
   check(bytes.byteLength===manifest[0].bytes&&await sha(bytes)===manifest[0].sha256,'Unchanged original document bytes/hash differ');originalBytes=new Uint8Array(bytes);originalText=new TextDecoder().decode(bytes);
@@ -498,9 +557,11 @@ try{manifest=await(await fetch('/fixture-manifest.json')).json();const bytes=awa
     onError:error=>{render();display(error instanceof Error?error.message:String(error));}});
   nativeSourceDownload=createNativeSourceDownload(viewer,canvas,{getAcceptedFile:()=>nativeFileSnapshot().accepted,
     onChange:snapshot=>renderNativeSourceDownloadControls(snapshot),onError:error=>display(error instanceof Error?error.message:String(error))});
+  canvas.addEventListener('keydown',nativeKeyboardGuard,true);
   nativeNavigation=createNativePointerNavigation(viewer,canvas,{isIdle:()=>!running&&!disposed,onViewChange:refreshNativeNavigationView,onError:reportNativeNavigationError});
   replace();lossExtension=[...contexts][0].getExtension('WEBGL_lose_context');
   window.__viewerReplacementProof={viewer,createViewer,prepareViewerNativeSceneAppearance,preparePrimitiveSceneFrame,compileMeshMaterial,validateMeshMaterialIR,PrimitiveSceneRecoveryError,
+    nativeKeyboardSnapshot,syncNativeKeyboard,disposeNativeKeyboard,
     createNativePointerNavigation,setNativeNavigationEnabled,syncNativeNavigation,nativeNavigationSnapshot,invalidateNativeNavigation,
     querySelectedNativeDerivatives,inspectSelectedNativeDerivatives,resetSelectedNativeDerivatives,selectedNativeDerivativesSnapshot,evaluateCurveD1,evaluateSurfaceD1,
     measureCapturedNativeChord,isCapturedNativeChordPointCurrent,captureNativeChordPoint,resetNativeChord,nativeChordSnapshot,
