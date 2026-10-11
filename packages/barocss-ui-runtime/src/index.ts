@@ -263,7 +263,7 @@ export function createUiRuntime(options: UiRuntimeOptions): UiRuntime {
       if (first === false) return false;
       if (first.done || !validModule(first.value)) throw new Error('Invalid UI module record');
       const record = first.value;
-      if (committed?.record.bundleDigest === record.bundleDigest) {
+      if (committed?.record.moduleId === record.moduleId && committed.record.bundleDigest === record.bundleDigest) {
         active = committed;
         active.element.hidden = false;
         sendInit(active, record.initialState);
