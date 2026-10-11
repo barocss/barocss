@@ -1,3 +1,4 @@
+import { checkExampleCatalog } from './check-example-catalog.mjs';
 import { repairSourceLinks } from './source-links.mjs';
 import { readFile, readdir, access } from 'node:fs/promises';
 import { resolve, dirname, extname } from 'node:path';
@@ -73,4 +74,5 @@ for (const page of pages) {
   }
 }
 await repairSourceLinks(JSON.parse(await readFile(resolve(app, 'evidence/public-api.json'), 'utf8')), { check: true });
-console.log(JSON.stringify({ pages: pages.length, packages: 12, checkedInternalLinks: links, checkedImageAssets: assets, checkedDownloadAssets: downloads, manifestHashes: 'matched', sourceCommit: inventory.commit }));
+const exampleCatalog = await checkExampleCatalog(app);
+console.log(JSON.stringify({ exampleCatalog, pages: pages.length, packages: 12, checkedInternalLinks: links, checkedImageAssets: assets, checkedDownloadAssets: downloads, manifestHashes: 'matched', sourceCommit: inventory.commit }));

@@ -1,11 +1,39 @@
 <script setup>
-import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { exampleCatalog, exampleHref } from '../example-catalog.mjs'
 import * as runtime from '../generated/visual.js'
 import * as advanced from '../generated/advanced-shader.js'
 import * as unicode from '../generated/unicode-label.js'
 import * as diagram from '../generated/diagram-label.js'
 import * as pathEdit from '../generated/path-edit.js'
 const presets={...runtime.presets,...advanced.presets,...unicode.presets,...diagram.presets,...pathEdit.presets}
+const props=defineProps({category:{type:String,default:'all'}})
+const categoryNames={library:'Library examples',language:'Language examples',integration:'Integrated workflows'}
+const purposeNames={api:'Library API',language:'Language',integration:'Integrated workflow'}
+const libraryNames={cad:'CAD',gpu:'GPU',canvas2d:'Canvas2D',viewer:'Viewer',physics:'Physics'}
+const category=ref(props.category==='all'?'library':props.category),library=ref(props.category==='integration'?'all':'cad'),outsideGroup=ref('')
+const scopeAllows=kind=>props.category==='all'||props.category==='library'||exampleCatalog[kind].category===props.category
+const categoryAllows=kind=>category.value==='library'||exampleCatalog[kind].category===category.value
+const categoryKeys=computed(()=>Object.keys(presets).filter(categoryAllows))
+const libraryOptions=computed(()=>Object.keys(libraryNames).filter(name=>categoryKeys.value.some(key=>exampleCatalog[key].library===name)))
+const visibleKeys=computed(()=>categoryKeys.value.filter(key=>library.value==='all'||exampleCatalog[key].library===library.value))
+const optionGroups=computed(()=>Object.entries(purposeNames).map(([purpose,label])=>({label,keys:visibleKeys.value.filter(key=>exampleCatalog[key].category===purpose)})).filter(group=>group.keys.length))
+function locationKind(){try{const anchor=decodeURIComponent(window.location.hash.slice(1));return Object.keys(presets).find(kind=>presets[kind].anchor===anchor)}catch{return undefined}}
+function writeLocation(kind){const hash='#'+presets[kind].anchor;if(window.location.hash!==hash)window.history.pushState(window.history.state,'',hash)}
+async function chooseExample(kind){if(!visibleKeys.value.includes(kind))return;outsideGroup.value='';const token=epoch.value+1;await select(kind);if(epoch.value===token)writeLocation(kind)}
+async function changeLibrary(value){library.value=value;if(!visibleKeys.value.includes(selected.value))await chooseExample(visibleKeys.value[0])}
+async function changeCategory(value){category.value=value;outsideGroup.value='';if(library.value!=='all'&&!libraryOptions.value.includes(library.value))library.value='all';if(!visibleKeys.value.includes(selected.value))await chooseExample(visibleKeys.value[0])}
+async function selectLocation(force=false){
+ const requested=locationKind();
+ if(requested&&scopeAllows(requested)){
+  outsideGroup.value='';if(props.category==='all')category.value=exampleCatalog[requested].category==='api'?'library':exampleCatalog[requested].category;
+  library.value=exampleCatalog[requested].library;if(force||requested!==selected.value||!controller)await select(requested);return
+ }
+ outsideGroup.value=requested||'';
+ if(force||!controller||!window.location.hash){if(!window.location.hash){category.value=props.category==='all'?'library':props.category;library.value=props.category==='integration'?'all':'cad'}if(!libraryOptions.value.includes(library.value))library.value='all';const fallback=visibleKeys.value[0];if(fallback&&(force||fallback!==selected.value||!controller))await select(fallback)}
+}
+function onLocation(){selectLocation().catch(e=>{error.value=describeError(e)})}
+watch(()=>props.category,async value=>{category.value=value==='all'?'library':value;library.value=value==='integration'?'all':'cad';try{await selectLocation(true)}catch(e){error.value=describeError(e)}})
 const selected=ref('scene'), source=ref(''), output=ref(''), error=ref(''), canvas=ref(), ready=ref(false), epoch=ref(0), amount=ref(0)
 let controller, animationFrame
 const actionBusy=ref(false), ownedSlot=ref(), documentFile=ref()
@@ -79,12 +107,22 @@ async function act(id){
  catch(e){if(actionEpoch===epoch.value)error.value=describeError(e)}
  finally{if(actionEpoch===epoch.value)actionBusy.value=false}
 }
-onMounted(async()=>{try{ready.value=true;await select(Object.keys(anchors).find(kind=>anchors[kind]===window.location.hash.slice(1)) || 'scene')}catch(e){error.value=describeError(e)}})
-onBeforeUnmount(()=>{epoch.value++;stopAnimation();controller?.dispose()})
+onMounted(async()=>{try{ready.value=true;window.addEventListener('hashchange',onLocation);window.addEventListener('popstate',onLocation);await selectLocation(true)}catch(e){error.value=describeError(e)}})
+onBeforeUnmount(()=>{epoch.value++;window.removeEventListener('hashchange',onLocation);window.removeEventListener('popstate',onLocation);stopAnimation();controller?.dispose()})
 </script>
 <template>
 <section class="visual-examples" aria-label="Runnable visual examples" :data-ready="ready && !!controller" :data-selected="selected">
-  <div class="example-tabs"><button v-for="(title,kind) in titles" :key="kind" :id="anchors[kind]" :disabled="!ready" :aria-pressed="selected===kind" @click="select(kind)">{{title}}</button></div>
+  <div class="example-anchor-index" aria-hidden="true"><span v-for="(anchor,kind) in anchors" :key="kind" :id="anchor"/></div>
+  <nav class="example-categories" aria-label="Example categories">
+    <template v-for="(label,value) in categoryNames" :key="value"><button v-if="props.category==='all'" :aria-pressed="category===value" @click="changeCategory(value)">{{label}}</button><a v-else :href="'/examples/'+value" :aria-current="category===value ? 'page' : undefined">{{label}}</a></template>
+  </nav>
+  <div class="example-selection">
+    <label>Library<select aria-label="Example library" :value="library" :disabled="!ready" @change="changeLibrary($event.target.value)"><option value="all">All libraries</option><option v-for="name in libraryOptions" :key="name" :value="name">{{libraryNames[name]}}</option></select></label>
+    <label>Example<select aria-label="Example" :value="selected" :disabled="!ready" @change="chooseExample($event.target.value)"><optgroup v-for="group in optionGroups" :key="group.label" :label="group.label"><option v-for="kind in group.keys" :key="kind" :value="kind">{{titles[kind]}}</option></optgroup></select></label>
+    <p>{{visibleKeys.length}} examples · <a href="/examples/">Browse the catalog</a></p>
+  </div>
+  <p v-if="outsideGroup" class="explain">The requested example belongs to another category. <a :href="exampleHref(outsideGroup)">Open {{titles[outsideGroup]}}</a>.</p>
+  <p class="example-purpose">{{libraryNames[exampleCatalog[selected].library]}} · {{purposeNames[exampleCatalog[selected].category]}} · <a :href="exampleCatalog[selected].guide">Read this example's guide</a></p>
   <h2>{{presets[selected].title || 'Loading examples'}}</h2>
   <p class="explain">{{presets[selected].description || (selected==='curve' ? 'The cyan line is evaluated geometry. Orange points define the control polygon. Coordinates are millimetres.' : selected==='scene' ? 'Each accepted source edit compiles and draws one SDF frame. Change a size, angle or color, then select Run input.' : selected==='surface' ? 'CAD evaluates the rational patch. A 17 × 17 grid becomes a GPU triangle mesh. Pale lines show its sampled U/V grid. This display does not certify a Solid.' : 'The same sampled CAD patch uses an opaque fragment material. The host supplies amount; compilation creates no timer.')}}</p>
   <div class="example-grid"><div><label for="visual-source">Editable input · {{presets[selected].language}}</label><textarea id="visual-source" v-model="source" spellcheck="false" aria-label="Example source"/><div class="example-actions"><button :disabled="!controller || actionBusy" @click="apply">Run input</button><button :disabled="!ready" @click="select(selected)">Reset example</button></div></div><figure><div v-if="isOwnedCanvas()" :key="epoch" ref="ownedSlot"/><canvas v-else :key="epoch" ref="canvas" width="640" height="420" aria-label="Actual example output"/><figcaption>{{isAdvanced() ? 'Actual WebGL2 output from this example host and public material lowering.' : isPath() ? 'Drag a control point to edit its curve.' : isDiagram() ? 'Ellipsized label and separate bitmap outline from public Canvas2D APIs.' : isUnicode() ? 'Browser-prepared RGBA label displayed by the public Canvas2D GlyphRun renderer.' : 'Actual output from the selected public API.'}}</figcaption></figure></div>
@@ -108,5 +146,5 @@ onBeforeUnmount(()=>{epoch.value++;stopAnimation();controller?.dispose()})
 .VPDoc:has(.visual-examples) .VPDocFooter { display: none !important; }
 </style>
 <style scoped>
-.visual-examples h2{font-size:24px;font-weight:650;line-height:1.35;margin:18px 0 8px}.visual-examples details{margin-top:18px}.visual-examples summary{font-weight:600;cursor:pointer}.visual-examples{border:1px solid var(--vp-c-divider);border-radius:12px;padding:20px;margin:20px 0}.example-tabs,.example-actions{display:flex;gap:8px;flex-wrap:wrap}.example-tabs button,.example-actions button{padding:7px 12px;border:1px solid var(--vp-c-divider);border-radius:7px;background:var(--vp-c-bg-soft);font-weight:600}.example-tabs button[aria-pressed=true],.example-actions button:first-child{background:var(--vp-c-brand-3);color:white}.example-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:20px;margin-top:18px}.example-grid label{display:block;font-size:13px;font-weight:600}.example-grid textarea{width:100%;height:420px;resize:vertical;border:1px solid var(--vp-c-divider);border-radius:8px;padding:12px;font:13px/1.6 monospace;background:var(--vp-c-bg-soft);white-space:pre}.example-grid figure{margin:0}.example-grid canvas{display:block;width:100%;height:auto;background:#101820;border-radius:8px}.example-grid figcaption{font-size:12px;color:var(--vp-c-text-2)}.example-actions{margin-top:8px}.example-report{max-height:280px;overflow:auto;padding:12px;background:var(--vp-c-bg-soft);font-size:13px;line-height:1.6;border-radius:8px}.example-error{padding:12px;background:var(--vp-c-danger-soft);overflow-wrap:anywhere}.uniform-control{display:flex;gap:16px;align-items:center;margin:16px 0}.uniform-control input{width:240px}.explain{font-size:15px}@media(max-width:850px){.example-grid{grid-template-columns:1fr}.example-grid textarea{height:300px}.visual-examples h2{font-size:24px;font-weight:650;line-height:1.35;margin:18px 0 8px}.visual-examples details{margin-top:18px}.visual-examples summary{font-weight:600;cursor:pointer}.visual-examples{padding:12px}}
+.example-anchor-index{height:0;overflow:hidden}.example-categories{display:flex;flex-wrap:wrap;gap:8px}.example-categories button,.example-categories a{padding:6px 10px;border-bottom:2px solid transparent;font-weight:600}.example-categories [aria-pressed=true],.example-categories [aria-current=page]{border-color:var(--vp-c-brand-1);color:var(--vp-c-brand-1)}.example-selection{display:grid;grid-template-columns:180px minmax(0,1fr);gap:16px;margin:18px 0}.example-selection label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600}.example-selection select{width:100%;padding:8px;border:1px solid var(--vp-c-divider);border-radius:6px;background:var(--vp-c-bg-soft)}.example-selection p{grid-column:1/-1;margin:0;font-size:13px}.example-purpose{font-size:13px;color:var(--vp-c-text-2)}@media(max-width:600px){.example-selection{grid-template-columns:1fr}}.visual-examples h2{font-size:24px;font-weight:650;line-height:1.35;margin:18px 0 8px}.visual-examples details{margin-top:18px}.visual-examples summary{font-weight:600;cursor:pointer}.visual-examples{border:1px solid var(--vp-c-divider);border-radius:12px;padding:20px;margin:20px 0}.example-tabs,.example-actions{display:flex;gap:8px;flex-wrap:wrap}.example-tabs button,.example-actions button{padding:7px 12px;border:1px solid var(--vp-c-divider);border-radius:7px;background:var(--vp-c-bg-soft);font-weight:600}.example-tabs button[aria-pressed=true],.example-actions button:first-child{background:var(--vp-c-brand-3);color:white}.example-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:20px;margin-top:18px}.example-grid label{display:block;font-size:13px;font-weight:600}.example-grid textarea{width:100%;height:420px;resize:vertical;border:1px solid var(--vp-c-divider);border-radius:8px;padding:12px;font:13px/1.6 monospace;background:var(--vp-c-bg-soft);white-space:pre}.example-grid figure{margin:0}.example-grid canvas{display:block;width:100%;height:auto;background:#101820;border-radius:8px}.example-grid figcaption{font-size:12px;color:var(--vp-c-text-2)}.example-actions{margin-top:8px}.example-report{max-height:280px;overflow:auto;padding:12px;background:var(--vp-c-bg-soft);font-size:13px;line-height:1.6;border-radius:8px}.example-error{padding:12px;background:var(--vp-c-danger-soft);overflow-wrap:anywhere}.uniform-control{display:flex;gap:16px;align-items:center;margin:16px 0}.uniform-control input{width:240px}.explain{font-size:15px}@media(max-width:850px){.example-grid{grid-template-columns:1fr}.example-grid textarea{height:300px}.visual-examples h2{font-size:24px;font-weight:650;line-height:1.35;margin:18px 0 8px}.visual-examples details{margin-top:18px}.visual-examples summary{font-weight:600;cursor:pointer}.visual-examples{padding:12px}}
 </style>

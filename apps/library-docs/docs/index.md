@@ -9,8 +9,8 @@ hero:
       text: Choose a library
       link: /packages/
     - theme: alt
-      text: Run visual examples
-      link: /playground
+      text: Browse examples
+      link: /examples/
     - theme: alt
       text: Read shared concepts
       link: /concepts/coordinates
@@ -31,7 +31,7 @@ features:
 
 ## See an actual result
 
-[Run twenty-one editable examples](/playground): CAD geometry and parameters; GPU scenes and eleven material functions; native Viewer load/clear/reload, Canvas2D rectangle/hit testing and manual Physics steps. Read the [CAD language](/packages/cad/language), [GPU scene language](/packages/gpu/language), [GPU material language](/packages/gpu/material-language) and [function gallery](/packages/gpu/function-examples) beside their inputs.
+[Browse the example catalog](/examples/) by library, source language or integrated workflow. Edit a complete input, inspect its actual result and follow the selected guide. Use [language practice](/examples/language) for CAD declarations, GPU scene styles and material expressions, or [the integrated CAD-to-GPU example](/examples/integration) for the native-to-display handoff.
 
 ## Pick your first task
 
