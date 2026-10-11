@@ -48,13 +48,13 @@ export function NativeSurfaceControlInspector({host, disabled, onError}: Props) 
   const current = changed ? readBinding(snapshot) : stored;
   if (changed) {binding.current = current; setStored(current); setError(null);}
   const selected = selectedSurface(snapshot);
-  const locked = disabled || snapshot.poseGestureActive || !!snapshot.posePreview || snapshot.surfacePoleGestureActive || !snapshot.available || snapshot.disposed;
+  const locked = disabled || snapshot.poseGestureActive || !!snapshot.posePreview || snapshot.surfacePoleGestureActive || !!snapshot.surfacePolePreview || !snapshot.available || snapshot.disposed;
   const refused = snapshot.invalidSurfacePole && snapshot.surfacePoleBodyId === current.bodyId;
   const parsed = current.values.map(numeric), invalid = parsed.length === 4 && !parsed.every(inRange);
   const report = (cause: unknown) => {setError(normalizeRenderEditorError(cause)); onError(cause);};
   const choose = (axis: 'u' | 'v', index: number) => {
     const live = host.getSnapshot(), surface = selectedSurface(live);
-    if (disabled || live.dirty || live.poseGestureActive || live.posePreview || live.surfacePoleGestureActive || !live.available || live.disposed || !surface) return;
+    if (disabled || live.dirty || live.poseGestureActive || live.posePreview || live.surfacePoleGestureActive || live.surfacePolePreview || !live.available || live.disposed || !surface) return;
     const before = binding.current;
     if (live.accepted !== before.accepted || live.selectedBodyId !== before.bodyId || live.surfacePoleInputResetEpoch !== before.resetEpoch) return;
     const uIndex = axis === 'u' ? index : before.uIndex, vIndex = axis === 'v' ? index : before.vIndex;
@@ -64,7 +64,7 @@ export function NativeSurfaceControlInspector({host, disabled, onError}: Props) 
   };
   const update = (index: number, value: string) => {
     const live = host.getSnapshot(), surface = selectedSurface(live), before = binding.current;
-    if (disabled || value.length > 256 || live.poseGestureActive || live.posePreview || live.surfacePoleGestureActive || !live.available || live.disposed
+    if (disabled || value.length > 256 || live.poseGestureActive || live.posePreview || live.surfacePoleGestureActive || live.surfacePolePreview || !live.available || live.disposed
       || !surface || surface.shared || live.accepted !== before.accepted || live.selectedBodyId !== before.bodyId
       || live.surfacePoleInputResetEpoch !== before.resetEpoch) return;
     const values = [...before.values]; values[index] = value;
@@ -104,7 +104,9 @@ export function NativeSurfaceControlInspector({host, disabled, onError}: Props) 
       </div>
       <fieldset className="re-native-transform-row"><legend>Control point (source mm)</legend><div className="re-native-transform-vector">{['X', 'Y', 'Z'].map((axis, index) => <span key={axis}>{field(index, axis)}</span>)}</div></fieldset>
       <div className="re-native-pole-weight">{field(3, 'Weight')}</div>
-      <p className="re-material-caption">{refused ? 'Correct point fields.' : snapshot.surfacePoleDraftActive ? 'Point draft · Apply scene to display.' : 'Original source coordinates · grid indices, not UV.'}</p>
+      <p className="re-material-caption">{snapshot.surfacePoleGestureActive ? 'Live Surface preview · release applies.'
+        : snapshot.surfacePolePreview ? 'Surface preview retained · Cancel transform to restore.'
+          : refused ? 'Correct point fields.' : snapshot.surfacePoleDraftActive ? 'Point draft · Apply scene to display.' : 'Original source coordinates · grid indices, not UV.'}</p>
       {(invalid || refused) && <div id="native-pole-error" className="re-native-transform-error" data-testid="native-pole-error" role="alert">
         <p>{invalid ? 'XYZ: −1000000 to 1000000 mm. Weight: 0.000001 to 1000000.' : 'This control point could not be staged. Correct the values or Discard.'}</p>
         {error && <details><summary>Details</summary><p>{error.message}</p></details>}

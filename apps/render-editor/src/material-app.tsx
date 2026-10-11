@@ -48,12 +48,12 @@ export function MaterialApp() {
   useEffect(() => () => {native?.dispose();}, [native]);
   const report = (cause: unknown) => {setError(normalizeRenderEditorError(cause)); setNotice('Correct the draft, then try again.');};
   const dirty = nativeSnapshot?.dirty ?? snapshot.dirty;
-  const poseBusy = !!nativeSnapshot && (nativeSnapshot.poseGestureActive || nativeSnapshot.surfacePoleGestureActive || !!nativeSnapshot.posePreview);
+  const poseBusy = !!nativeSnapshot && (nativeSnapshot.poseGestureActive || nativeSnapshot.surfacePoleGestureActive || !!nativeSnapshot.surfacePolePreview || !!nativeSnapshot.posePreview);
   const accepted = nativeSnapshot?.accepted ?? snapshot.accepted, canUndo = nativeSnapshot?.canUndo ?? snapshot.canUndo, canRedo = nativeSnapshot?.canRedo ?? snapshot.canRedo;
   const savedRevision = nativeSnapshot?.savedRevision ?? (native ? null : snapshot.savedRevision);
   useEffect(() => {if (!dirty && error) {setError(null); setNotice(native ? 'Scene ready.' : 'Material ready.');}}, [accepted, dirty]);
   const stopHeld = () => {const live = bridge.current; if (live) {live.beginTransition(); live.endTransition();}};
-  const blocked = () => {const host = current.current.native?.getSnapshot(); return busyRef.current || pendingRef.current !== null || helpRef.current || surfaceAddRef.current || !!host && (host.poseGestureActive || host.surfacePoleGestureActive || !!host.posePreview);};
+  const blocked = () => {const host = current.current.native?.getSnapshot(); return busyRef.current || pendingRef.current !== null || helpRef.current || surfaceAddRef.current || !!host && (host.poseGestureActive || host.surfacePoleGestureActive || !!host.surfacePolePreview || !!host.posePreview);};
   const guard = (action: FileAction) => {
     if (blocked()) return;
     const host = current.current.native;
