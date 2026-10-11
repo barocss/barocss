@@ -981,3 +981,7 @@ Idle object operations use 36px icon buttons. Their previous command names remai
 ### Driving Sketch command icons
 
 The Driving Sketch Inspector uses 16px icons in 36px buttons for Help, Add, Remove and fixed-point Drag point. Each command keeps its previous accessible name and title. Existing constraint IDs, guards, handlers, point selection and pressed state remain in place. Constraint definitions, DOF/rank, values, field labels, errors and active Apply/Discard/Add/Cancel decisions retain their text. Help keeps the operation explanation available on demand.
+
+### Driving Canvas feedback
+
+Driving dimension and fixed-point overlays show status only during an actual gesture. The status uses the existing rounded local displacement: one axis for a distance, and local X/Y for a fixed point. Idle instructions remain in optional Help and the grip title. Geometry guides, Native admission, draft ownership, capture cancellation, errors and field editing retain their existing behavior.

@@ -167,5 +167,5 @@ export function DrivingAnchorHandles(props: Props) {
       onPointerDown={begin} onPointerMove={move} onPointerUp={end}
       onPointerCancel={event => { if (gesture.current?.pointerId === event.pointerId) cancel(true); }}
       onLostPointerCapture={event => { if (gesture.current?.pointerId === event.pointerId) cancel(true); }}><title>Drag local XY in 1 mm steps</title></circle>
-  </svg><p className="driving-anchor-status" data-testid="driving-anchor-status" role="status">Fixed point · Local XY · 1 mm steps · Escape cancels</p></div>;
+  </svg>{g && <p className="driving-anchor-status" data-testid="driving-anchor-status" role="status">ΔX {text(g.delta[0])} mm · ΔY {text(g.delta[1])} mm</p>}</div>;
 }
