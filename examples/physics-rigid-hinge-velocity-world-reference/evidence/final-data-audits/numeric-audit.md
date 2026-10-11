@@ -16,6 +16,14 @@ consumer.mjs records native result before reference comparison; requires callbac
 
 ## Saved-data extraction
 
+## Final scope and non-vacuity conclusion
+
+The SOURCE proof contains197 nonzero motor impulses and197 nonzero motor-work records PER pair, then1003 blocked records with j=0. The upper target .8 is first reached at step197 (1.6416666666666666s), remains .8 through step1200/time10, and the motor speed metadata remains .5. Step100 is .39791546289052054rad, so the response is not a fixed .8 fixture or a stationary constructor replay. Body0 moves from x=-.1 to-.09210609940028851; its final quaternion is[0,0,-.19866933079506124,.9800665778412416]. There are199 distinct PROJECTED raw frame hashes. Tiny final velocity/spin residuals remain (approximately4.77e-19m/s and1.22e-17rad/s components); this audit does not claim literal zero motion after the stop.
+
+All2400 SOURCE parent replies qualify both actual native and rounded-frame certificates; expected row counts are2398 base11 and2 active12. Nonzero independent errors are real: maximum expected angular velocity error5.551115123125783e-17rad/s, quaternion error2.2887833992611187e-16, raw/normalized geometry difference1.1102230246251565e-16, Decimal repeat1.410833468077949e-79. Thus native zero COM/plane/anchor/axis extrema are not a claim that every independent geometric/rounding residual is mathematically zero.
+
+After this SOURCE audit, Root reported the full consumer exit0/503.0324376669887s and all3×1200 GO. Final summary data records all3 terminal GO. Full three-graph raw IPC/alias/compiled provenance authentication is a SEPARATE audit; this document individually inspected SOURCE numeric records and does not relabel them as three independently inspected traces. No Viewer/public/integration/release acceptance follows. Root may preserve the exact successful saved-data audit program at `/tmp/physics-1179-world-final-numeric-audit.py`; it was saved after execution and was not rerun. The program performs data parsing/hashing/raw encoding checks only, not physics or reference evaluation.
+
 ```json
 {
   "stats": {
