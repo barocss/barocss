@@ -14,8 +14,9 @@ import { buildCadAdaptiveSampling } from '../../scripts/build-cad-adaptive-sampl
 import { buildGeneratedScene } from '../../scripts/build-generated-scene.mjs'
 import { buildSvgArcImport } from '../../scripts/build-svg-arc-import.mjs'
 import { buildRadialSvgExport } from '../../scripts/build-radial-svg-export.mjs'
+import { buildMaterialBench } from '../../scripts/build-material-bench.mjs'
 const appRoot = fileURLToPath(new URL('../../', import.meta.url))
-await Promise.all([buildAdvancedShader(appRoot), buildUnicodeLabel(appRoot), buildDiagramLabel(appRoot), buildPathEdit(appRoot), buildSvgExport(appRoot), buildRadialSvgExport(appRoot), buildReusableShader(appRoot), buildCadQuantityFunctions(appRoot), buildDiscreteMaterial(appRoot), buildSvgArcImport(appRoot), buildViewerDisplayPose(appRoot), buildCadAdaptiveSampling(appRoot), buildGeneratedScene(appRoot)])
+await Promise.all([buildAdvancedShader(appRoot), buildUnicodeLabel(appRoot), buildDiagramLabel(appRoot), buildPathEdit(appRoot), buildSvgExport(appRoot), buildRadialSvgExport(appRoot), buildReusableShader(appRoot), buildCadQuantityFunctions(appRoot), buildDiscreteMaterial(appRoot), buildSvgArcImport(appRoot), buildViewerDisplayPose(appRoot), buildCadAdaptiveSampling(appRoot), buildGeneratedScene(appRoot), buildMaterialBench(appRoot)])
 const packages = ['kit', 'browser', 'server', 'render', 'gpu', 'cad', 'cad-interop', 'canvas2d', 'viewer', 'physics', 'cad-editor', 'render-editor']
 const names = { 'cad-interop': 'CAD Interop (Loader)', 'cad-editor': 'CAD Editor', 'render-editor': 'Render Editor', canvas2d: 'Canvas2D', gpu: 'GPU', cad: 'CAD' }
 const common = [

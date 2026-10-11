@@ -1,3 +1,7 @@
+<script setup>
+import MaterialBench from '../../.vitepress/components/MaterialBench.vue'
+</script>
+
 # GPU mesh material language
 
 The material language computes the opaque fragment color of an admitted mesh. It accepts a small typed expression language and bounded scalar uniforms. Use the [live material example](/playground#gpu-material) to change the host-controlled blend and see the mesh color change.
@@ -17,6 +21,18 @@ The [advanced shader example](./advanced-shader) combines UV wrapping, domain di
 ## Combine functions in a complete material
 
 The [transition-window material](./composition-examples#material-transition-window) combines `clamp`, `smoothstep`, `rgb` and `mix` with one explicit uniform. Compare complete input, source-derived ratios and actual output images.
+
+## Inspect the compilation stages
+
+<MaterialBench />
+
+This bench uses the same fixed `5f5ad866205a21510ac69552e704cc162fa253b5` public source profile as this guide. It runs ordinary `compileMeshMaterial`, explicitly calls `validateMeshMaterialIR`, then calls `lowerMeshMaterial`. It emits trusted GLSL **text**, without creating a renderer, evaluating color, executing GLSL or requesting a GPU device.
+
+The initial complete blend is compiled once on client mount. Try **unknown()** to obtain a real source-offset diagnostic: the entire last accepted compiled IR, reconstructed IR and GLSL stay unchanged. **Correct blend, default .5** adopts a new candidate in the same model. Across those three attempts the direct application call counts are compile **3**, validate **2**, lower **2**. Editing the draft and selecting Source / IR / Validated IR / GLSL make no API calls. The Source view shows the current draft; the other views show the last accepted result.
+
+The public compiler deeply freezes its IR; validation reconstructs a fresh frozen IR. Reports copied for the application UI have separate ownership and are not themselves the public frozen values. Validation reparses source, and lowering invokes validation again. The displayed counters count only explicit application calls, not internal work, cache hits or measured latency. Final expression-tree statistics count expanded tree occurrences, including repeated subtrees; they are not parser allocation counts.
+
+The static SVG is a topology aid, not a timing animation. Use Left/Right, Home/End within the stage tabs and Tab to leave the tablist. Reduced-motion removes the optional highlight transition. Server rendering provides the explanation and loading state; the real CPU model starts on the client. Browser keyboard/reduced-motion acceptance and a screenshot remain pending in the cloud delivery; source checks do not replace those observations.
 
 ## Complete blend material
 

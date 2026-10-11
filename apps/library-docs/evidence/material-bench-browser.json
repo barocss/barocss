@@ -1,0 +1,19 @@
+{
+  "status": "UNRUN",
+  "reason": "Parent verified cloud-browser and executor localhost network namespace isolation. This lane does not claim actual browser guide/keyboard/reduced-motion observations.",
+  "cloudEvidenceAdaptation": "Parent approved unchanged CPU/source pin and UI implementation, with genuine browser/device acceptance UNRUN and screenshot absent. Original eventual acceptance remains open.",
+  "sourceChecksOnly": [
+    "Roving tablist arrow/Home/End hooks",
+    "Tab exits naturally",
+    "Reduced-motion CSS disables transition",
+    "Dynamic text uses Vue escaped text bindings",
+    "SSR explanation/loading and one client model mount"
+  ],
+  "pending": [
+    "Actual guide navigation and draft interaction",
+    "Actual keyboard focus and tab order",
+    "Reduced-motion observation",
+    "Final native screenshot at docs/public/examples/material-bench.jpg"
+  ],
+  "graphics": "No renderer, color evaluator, GLSL execution or GPU device proof requested or claimed"
+}

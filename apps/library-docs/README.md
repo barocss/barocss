@@ -84,3 +84,9 @@ The screen reports the complete sampling report and actual selected native recor
 The interactive host changes original public AST literal/count token ranges and compiles the complete candidate before adoption. Strict equality excludes the marker. A third stud gets a stable generated ID and the common style's position; repetition does not auto-place it. False candidates retain their ID reservation and full semantic checks.
 
 No public generated-Scene2 renderer or direct mesh bridge is admitted at this pin. The application draws transformed local diagnostic boxes around actual resolved box/sphere coefficients. It uses scale, X/Y/Z rotations, translation and a fixed oblique projection. Sphere boxes are guides, not rendered spheres. The public bounds preparer is not called; derived shaders remain text. Application clipping and unsupported diagram shapes are separate from public compiler admission. CPU source/control/refusal observations, actual diagnostic bitmap, local integration and graphics acceptance keep separate receipts.
+
+## Material compilation bench
+
+The GPU material-language guide now includes a separate CPU-only concept widget at the existing 5f5ad866 source pin. It does not add a catalog preset or change the existing 45 entries / 14 catalog modules. Build its generated module with `node scripts/build-material-bench.mjs`; run its one focused public-API flow with `node scripts/check-material-bench.mjs` (Node22). VitePress configuration builds the module for dev/build.
+
+Evidence: `evidence/material-bench-consumer.json`, `evidence/material-bench-browser.json`, and `evidence/material-bench-checkpoint.md`. Cloud source/CPU/build checks are separate from the still-UNRUN genuine guide, keyboard, reduced-motion and screenshot acceptance. No renderer, GLSL execution or GPU proof is claimed.
