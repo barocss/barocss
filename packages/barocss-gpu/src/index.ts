@@ -208,3 +208,6 @@ export type { PreparedWebGPUPrimitiveFrame, PrimitiveBackendMode, PrimitiveBacke
 
 export { prepareEngineUVTextureMaterialBindings, EngineUVTextureMaterialBindingsError, EngineUVTextureMaterialBindingsDiagnosticCode } from './engine-uv-texture-material-bindings.js';
 export type { EngineUVTextureMaterialBindingV0, EngineUVTextureMaterialBindingsV0, EngineUVTextureMaterialSamplerBinding, PreparedEngineUVTextureMaterialBindings } from './engine-uv-texture-material-bindings.js';
+
+export { lowerEngineUVTextureMaterialWGSL } from './engine-uv-texture-material-wgsl.js';
+export type { LoweredEngineUVTextureMaterialWGSL } from './engine-uv-texture-material-wgsl.js';

@@ -3524,3 +3524,102 @@ pnpm --filter @barocss/gpu exec tsc
 pnpm --filter @barocss/gpu exec esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --alias:@barocss/cad=../barocss-cad/src/index.ts --outfile=dist/index.js
 node examples/gpu-scene/engine-uv-texture-material-bindings-flow.mjs --output /absolute/fresh-directory
 ```
+
+## Typed EngineUV texture WGSL source lowering (CPU, #1184)
+
+`lowerEngineUVTextureMaterialWGSL(input)` validates complete original
+EngineUVTextureMaterialIR once and lowers its typed expression directly to
+trusted WGSL. It does not translate GLSL or accept caller shader text:
+
+```ts
+const compiled = compileEngineUVTextureMaterial(`
+@shader #wgsl_image_palette {
+  @uniform amount: float(0, 1, .25);
+  @sampler paint: sampler2d;
+  @fragment { color: mix(sample(paint, uv_u, uv_v), #203040, amount); }
+}`);
+if (compiled.ok) {
+  const lowered = lowerEngineUVTextureMaterialWGSL(compiled.material);
+  lowered.expression;
+  lowered.declarations;
+  lowered.uniformLayout;
+  lowered.samplerLayout;
+}
+```
+
+Result has exactly ten fields: `format`, `version`, `profile`, `material`,
+`expression`, `declarations`, `uniformLayout`, `uniformByteLength`, `inputName`,
+`samplerLayout`. Format is `barocss-gpu-engine-uv-texture-material-wgsl`, version
+`0`, profile `engine-opaque-uv-texture-fragment-wgsl-v0`. Complete original
+material/source/aliases and Number coefficients remain separately owned and
+frozen. No new grammar or source IR type is introduced.
+
+Numeric parameters reuse four vec4 slots and a fixed 64-byte block. Layout
+records retain `name`, `type`, `min`, `max`, `default`, plus `index`, `byteOffset`,
+`access`; float offsets are `4*index`, with trusted
+`materialParams.slot[floor(index/4)]` component accesses. Complete declarations
+include the MaterialParams struct and uniform at group0/binding1, texture at
+group1/binding0 and sampler at group1/binding1, plus owned decode/mix helpers.
+The containing shader supplies a trusted local `material_uv: vec2<f32>` named
+by `inputName`; this does not declare a vertex varying, location or native UV
+mapping.
+
+The sole sampler layout has exactly twelve fields: `name`, `type`, `textureName`,
+`samplerName`, `group`, `textureBinding`, `samplerBinding`, `colorSpace`,
+`rowOrigin`, `filter`, `wrapS`, `wrapT`. It retains source name/type, uses
+`material_tex_0`, `material_sampler_0`, group1/bindings0 and1, `srgb`,
+`bottom-left`, `nearest` and two `clamp-to-edge` values. Layout and declarations
+are retained even when the alias is unused. They are source/binding contracts,
+not active GPU resources. Alias names are not material IDs, texture IDs or
+device units. The separate CPU join remains responsible for resource identity;
+this operation neither calls it nor allocates upload buffers or handles.
+
+Typed float/color/uniform/input/unary/binary/call/sample nodes are traversed
+directly. EngineUV leaves read `material_uv.x/y`; samples visit both coordinate
+children and emit explicit `textureSampleLevel` at level0 with UV clamped to
+0..1. One owned piecewise sRGB helper clamps encoded RGB, uses low/12.92 or
+`pow((encoded+.055)/1.055,2.4)`, selecting low at encoded≤.04045. Future execution
+requires unorm texture storage/view, nearest/clamp and a single level: hardware
+sRGB decode together with this helper would decode twice. Original bottom-left
+rows remain in row0 and V remains unchanged; no `1-V` is emitted.
+
+Literal colors retain historical power2.2 coefficients; scalar mix is already
+canonical typed arithmetic. The owned color-mix helper clamps its scalar ratio,
+and whole-material linear RGB remains clamped to 0..1. This operation emits no
+output display transfer. Uploads, interpolation, actual texture samples and pixel
+values are not proved by trusted source text.
+
+Emitted literals use admitted Float32 values, exponential8 spelling and an `f`
+suffix. Original F64 declaration bounds/defaults remain in metadata; their
+execution admission and emitted coefficients use `Math.fround`. Nonfinite,
+overflow or nonzero-to-zero underflow refuses `MeshMaterialError` with `RANGE`.
+Signed execution zero is preserved. No CPU/F32/GPU numerical equality is promised.
+
+Inherited source 64KiB, tokens 4096, definition/expanded work 256, depth16 and
+own-data limits remain. The new visitor counts at most256 nodes/depth16,
+including sample and both coordinates. Combined declarations plus expression
+are capped at65536 UTF16 units and UTF8 bytes; complete signed JSON result is
+capped at2097152 units and bytes before an independent copied/frozen output.
+All output arrays/records are fresh across calls; there are no mutable packed
+views, input mutation/freezing, callbacks, result caches or partial results.
+
+Actual validator `INPUT`, `IR`, `BUDGET`, diagnostics and reflection causes pass
+through unchanged. New emission `RANGE`, `BUDGET`, `IR` uses bounded messages,
+start/end0 and no fabricated source span or cause. Old legacy WGSL and GLSL
+profiles/types remain unchanged. This does not add EngineUV textures to the
+#1512 native Surface viewport. Discrete selection, repeating `fract`, nativeUV,
+renderer/device/pipeline/module validation, image evaluation, frame/pixels,
+selection/updates/retention/fallback/loss/lifetime, consumer and publication
+support remain separate.
+
+For the affected build and the one new source/emitted/full-original-file/cold
+flow, use Node.js22 from the repository root. Pin CAD to the local accepted
+source rather than a shared live Integration link; the qualifier audits all
+normalized package paths and unchanged parent bytes. No shared links or package
+manifests are changed:
+
+```sh
+pnpm --filter @barocss/gpu exec tsc
+pnpm --filter @barocss/gpu exec esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --alias:@barocss/cad=../barocss-cad/src/index.ts --outfile=dist/index.js
+node examples/gpu-scene/engine-uv-texture-material-wgsl-flow.mjs --output /absolute/fresh-directory
+```
