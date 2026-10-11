@@ -24,6 +24,20 @@ This is an original-source download, not project Save As. It can remain availabl
 Files must contain 1 to 65,536 UTF-8 bytes. The filename and extension do not determine the geometry. Unsupported or invalid files leave the accepted original scene in place when presentation recovery is available.
 This opens native geometry, without Face topology, a saved document, Shell, assembly or editing history. It does not upload or save your file.</p></details>
 </section>
+<section aria-label="Local IGES geometry file">
+<label>IGES geometry file <input id="iges-file-choice" type="file" accept=".igs,.iges" aria-label="IGES geometry file" disabled></label>
+<label><input id="iges-yup-confirmed" type="checkbox" aria-label="Authored XYZ matches Viewer Y-up" disabled> Authored XYZ matches Viewer Y-up</label>
+<button id="open-iges-file" disabled>Open IGES geometry</button><button id="discard-iges-file" disabled>Discard IGES choice</button>
+<p id="staged-iges-file" role="status" aria-live="polite">No IGES file choice.</p>
+<p id="accepted-iges-file" role="status" aria-live="polite">No IGES file is accepted.</p>
+<details><summary>Accepted IGES import provenance</summary><pre id="iges-import-details"></pre></details>
+<details id="iges-file-help"><summary>About IGES geometry files</summary>
+<p>Choose an IGES file, confirm that its authored XYZ matches this Y-up view, then select Open. Choosing or discarding a file changes no accepted geometry.
+Open retains the complete original file and import result. It displays all one to four admitted native Curve or Surface objects with a fitted view, without rotating or normalizing their coefficients.
+The supported writer profile uses IGES 5.3 ASCII, exact 80-column records with LF, millimetres and scale 1. Raw files may contain up to 1 MiB. Unsupported formats or display profiles leave the accepted data in place when presentation recovery succeeds.
+Generated native IDs identify the imported objects; directory labels may be truncated. Import does not recover original authored IDs, source spelling, topology or editing history.
+After IGES Open, the source download offers generated imported Source0, not the raw IGES file. File choices and retained CPU provenance can remain available after presentation loss; new Open needs an available Viewer.</p></details>
+</section>
 <fieldset><legend>Document scene and appearance</legend>
 <label>Material time seconds <input id="mounted-appearance-time" aria-label="Material time seconds" type="text" inputmode="decimal" value="0.5" disabled></label>
 <label>Material amount <input id="mounted-appearance-amount" aria-label="Material amount" type="text" inputmode="decimal" value="0.75" disabled></label>
