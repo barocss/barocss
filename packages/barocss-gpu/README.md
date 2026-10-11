@@ -3391,3 +3391,136 @@ physical hit/miss, startup fallback and cleanup require the separately authorize
 real GPU phase. Device-loss proof, integration, consumer display and publication
 remain separate stages. The denied original browser target must not be bypassed
 through another browser/tool/origin/port.
+
+## Authored EngineUV sampler and texture resource join (CPU, #1184)
+
+`prepareEngineUVTextureMaterialBindings(sceneInput, textureInput, materialInput)`
+joins complete original scene0, unchanged texture companion0 and a distinct
+authored Material companion. The texture companion still has exactly five
+fields: `format`, `version`, `sceneId`, `textures`, `bindings`. The new authored
+companion has exactly four: `format`, `version`, `sceneId`, `bindings`:
+
+```ts
+const compiled = compileEngineUVTextureMaterial(`
+@shader #image_palette {
+  @uniform amount: float(0, 1, .25);
+  @sampler paint: sampler2d;
+  @fragment { color: mix(sample(paint, uv_u, uv_v), #203040, amount); }
+}`);
+if (compiled.ok) {
+  const authored = {
+    format: 'barocss-gpu-engine-uv-texture-material-bindings',
+    version: 0,
+    sceneId: originalScene.id,
+    bindings: [{
+      materialId: originalScene.materials[0].id,
+      material: compiled.material,
+      uniforms: { amount: -0 },
+    }],
+  };
+  const prepared = prepareEngineUVTextureMaterialBindings(
+    originalScene, originalTextures, authored,
+  );
+  prepared.samplerBindings;
+  prepared.loweredBindings;
+}
+```
+
+Each authored entry has exactly `materialId`, `material`, `uniforms`. Up to eight
+unique existing scene materials are admitted. The reconstructed single sampler
+alias maps to the texture companion binding with the same `materialId`.
+Sampler spelling never implies a texture ID, and shader ID is not scene material
+membership. Every authored material requires that actual texture binding, even
+when its declared alias is unused or the material is hidden. Two differently
+named material-local aliases may share one texture. Empty authored bindings are
+valid; all supplied catalog members still undergo admission.
+
+The prepared result has exactly eight fields: `scene`, `textureBindings`,
+`materialBindings`, `resolvedBindings`, `loweredBindings`, `samplerBindings`,
+`textures`, `pixelBytes`. Resolved entries are
+`{materialId, binding: {material, uniforms}}`; lowered entries are
+`{materialId, lowered}`. Sampler references are exactly
+`{materialId, name, textureId, glslName}`, where `glslName` is `mat_s_0`, not a
+device unit or resource handle. Returned scene and upload records reuse the
+actual complete texture provider result.
+
+`materialBindings` retains independently snapshotted original complete-source
+IR and supplied Number signs, including `-0`. Resolved material is validated
+source reconstruction; omitted uniforms use declaration-order defaults and
+resolved numeric zeros become `+0`. Uniform overrides require ordinary own
+records with at most 16 enumerable ASCII identifier keys of 1..32 characters,
+finite Number values, declared membership and inclusive original ranges.
+Supplied and declared/default `__proto__` always refuse `UNIFORM`.
+`constructor`, `prototype` and `toString` are safe only when actually declared;
+resolution uses own-name membership and `Object.fromEntries`.
+
+All ordinary output metadata is frozen and independent from inputs and other
+calls. The texture provider intentionally shares its frozen original texture
+references within one result. Its Uint8 upload buffers and geometry Float32/
+index buffers remain mutable derived views, never caller aliases or original
+authority. Original bottom-left byte order, dimensionless UVs, scene material/
+texture IDs and right-handed-y-up scene units remain unchanged. No native
+parameter conversion, caller mutation/freezing, cache or prepared shortcut is
+added. Same-ID source or pixel changes require complete original-input admission.
+
+Admission order is exact authored header/version/IDs and binding length, entry
+headers and aggregate source/uniform counts, independent own snapshots, actual
+material validation, safe uniform resolution and actual lowering per entry,
+one complete texture provider call, then joint scene/material/texture references.
+Validation plus public lowering reconstructs source twice per entry, at most
+16 times. The texture call performs the one complete scene admission. Inherited
+texture preparation allocates admitted Uint8 buffers before outer joint-reference
+checks; a refused candidate is unpublished CPU data. There is no universal
+preallocation-refusal guarantee or partial accepted output.
+
+New authored limits are eight bindings, aggregate source 65536 UTF16 units and
+UTF8 bytes, declared/supplied uniform totals 128 each and 16 per entry. Each exact
+three-field entry snapshot is bounded to 8192 visited values/depth 24, arrays 256,
+records 16 keys and strings 65536 units. Source limits precede snapshots/provider
+calls. Inputs require current-realm ordinary records and dense enumerable own
+arrays; accessors, hidden/symbol fields, cycles and foreign prototypes refuse
+without getter invocation. Original Material companion JSON is capped at 2097152 UTF16 units and
+UTF8 bytes; aggregate lowered-wrapper JSON at 1048576 units and bytes. Existing
+compiler work/depth/text limits and texture/geometry caps remain. Texture limits
+are eight textures, 32 bindings, dimensions 1..1024 and 4194304 byte-channel slots
+or 1048576 texels. No small whole-result JSON cap is imposed on geometry/pixels.
+
+`EngineUVTextureMaterialBindingsError` has codes `INPUT`, `VERSION`, `BUDGET`,
+`REFERENCE`, `UNIFORM`, `MATERIAL`, `TEXTURE`, `SCENE`, with prefix
+`Engine UV texture material bindings: ` and messages bounded to 1024 characters.
+Own reflective operations produce fresh `INPUT` with an own exact cause,
+including undefined or branded errors. Local guards stay outside reflection
+catches and have no fabricated cause. Header structure uses `INPUT`, companion
+format/version uses `VERSION`, and cardinality/work/text ceilings use `BUDGET`.
+Material-provider direct `BUDGET` remains
+`BUDGET`; other actual material failures use `MATERIAL`. Texture-provider
+`SCENE`, `BUDGET`, `REFERENCE` retain their classification; other failures use
+`TEXTURE`. Actual provider errors and diagnostic chains remain causes, with no
+invented source offsets or stronger promise about old provider internals.
+
+Old numeric binders, compiler, texture catalog and renderer remain unchanged.
+This stage qualifies source/catalog composition only. Sampled RGB, texture
+upload, programs, device units, frame pixels, rollback/loss/disposal, UI,
+consumer display and publication require separate acceptance. #1184 remains
+open for its graphics gates; this API does not fulfill them.
+
+After the affected GPU build, run the one source/emitted/original-file/cold flow:
+
+```sh
+node examples/gpu-scene/engine-uv-texture-material-bindings-flow.mjs --output /absolute/fresh-directory
+```
+
+### Frozen-parent source custody for a reproducible rerun
+
+With Node.js 22 active, run this affected build and flow sequence from the
+repository root. The browser bundle explicitly pins `@barocss/cad` to the local
+accepted CAD source. A shared `node_modules` link can otherwise resolve CAD from
+a live Integration checkout instead of the frozen parent. The qualifier uses
+the same local source pin and audits all normalized source-graph paths. These
+commands do not edit shared links or package manifests:
+
+```sh
+pnpm --filter @barocss/gpu exec tsc
+pnpm --filter @barocss/gpu exec esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --alias:@barocss/cad=../barocss-cad/src/index.ts --outfile=dist/index.js
+node examples/gpu-scene/engine-uv-texture-material-bindings-flow.mjs --output /absolute/fresh-directory
+```

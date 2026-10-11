@@ -205,3 +205,6 @@ export { lowerMeshMaterialWGSL } from './mesh-material-wgsl.js';
 export type { LoweredMeshMaterialWGSL } from './mesh-material-wgsl.js';
 export { prepareWebGPUPrimitiveFrame, mountPrimitiveBackendViewport, PrimitiveBackendError, PrimitiveBackendDiagnosticCode } from './webgpu-primitive-viewport.js';
 export type { PreparedWebGPUPrimitiveFrame, PrimitiveBackendMode, PrimitiveBackendOptions, PrimitiveBackendViewport, PrimitiveBackendStatus, PrimitiveBackendPick, PrimitiveBackendLimits } from './webgpu-primitive-viewport.js';
+
+export { prepareEngineUVTextureMaterialBindings, EngineUVTextureMaterialBindingsError, EngineUVTextureMaterialBindingsDiagnosticCode } from './engine-uv-texture-material-bindings.js';
+export type { EngineUVTextureMaterialBindingV0, EngineUVTextureMaterialBindingsV0, EngineUVTextureMaterialSamplerBinding, PreparedEngineUVTextureMaterialBindings } from './engine-uv-texture-material-bindings.js';
