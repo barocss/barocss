@@ -46,7 +46,7 @@ export {commitRenderNativeSceneAppearanceCandidate} from './native-scene-appeara
 export * from './parametric-scene-document-v3.js';
 export * from './parametric-scene-session-v3.js';
 export {prepareRenderNativeSceneGizmo, deriveRenderNativeSceneGizmoPose} from './native-scene-gizmo.js';
-export type {RenderNativeSceneGizmoSpace} from './native-scene-gizmo.js';
+export type {RenderNativeSceneGizmoSpace, RenderNativeSceneGizmoPivot} from './native-scene-gizmo.js';
 
 export {deriveRenderNativeSceneBodyDuplicate} from './native-body-duplicate.js';
 export type {RenderNativeSceneBodyDuplicateOptions, RenderNativeSceneBodyDuplicate} from './native-body-duplicate.js';

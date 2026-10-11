@@ -45,7 +45,7 @@ export function NativeTransformInspector({host, disabled, onError}: Props) {
   const parsed = current.values.map(numeric), invalid = !parsed.every(inRange);
   const refused = snapshot.invalidBodyPose && snapshot.invalidBodyPoseBodyId === current.bodyId;
   const row = (kind: 'position' | 'scale', offset: number) => <fieldset className="re-native-transform-row">
-    <legend>{kind === 'position' ? 'Position (mm)' : 'Scale'}</legend>
+    <legend>{kind === 'position' ? 'Origin position (mm)' : 'Scale'}</legend>
     <div className="re-native-transform-vector">{axes.map((axis, component) => {
       const index = offset + component, id = 'native-' + kind + '-' + axis;
       return <label key={axis} htmlFor={id}><span>{axis.toUpperCase()}</span><input id={id} data-testid={id} aria-label={(kind === 'position' ? 'Position ' + axis.toUpperCase() + ' in mm' : 'Scale ' + axis.toUpperCase())} aria-invalid={!inRange(parsed[index], index) || refused && error !== null} aria-describedby={invalid || refused ? 'native-transform-error' : undefined} type="text" inputMode="decimal" maxLength={256} value={current.values[index]} disabled={locked} onChange={event => update(index, event.target.value)}/></label>;
@@ -54,7 +54,7 @@ export function NativeTransformInspector({host, disabled, onError}: Props) {
   return <section className="re-native-transform-inspector" aria-label="Body transform" data-testid="native-transform-inspector" data-body-id={current.bodyId}>
     <div className="re-material-heading"><h2>Transform</h2><span>{refused ? 'Correct fields' : 'Body draft'}</span></div>
     {row('position', 0)}{row('scale', 3)}
-    <p className="re-native-rotation-cue">Rotate with Canvas handles.</p>
+    <p className="re-native-rotation-cue">Rotate with Canvas handles. Position describes the object origin.</p>
     {(invalid || refused) && <div id="native-transform-error" data-testid="native-transform-error" className="re-native-transform-error" role="alert">
       <p>{invalid ? 'Position: −10000 to 10000 mm. Scale: 0.001 to 100.' : 'This pose could not be staged. Correct the values.'}</p>
       {error && <details><summary>Details</summary><p>{error.message}</p></details>}
