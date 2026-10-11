@@ -481,4 +481,8 @@ text.assembly-translation-guide[data-axis="z"] { fill:#8babcf; stroke:none; }
 .cad-editor-command-group button:focus-visible { outline:2px solid #b8d599; outline-offset:1px; }
 .cad-editor-command-group button > svg { width:16px; height:16px; flex-shrink:0; pointer-events:none; }
 .cad-editor-command-group [role="alert"] { flex-basis:100%; }
+.ruled-surface-tools { display:flex; flex-wrap:wrap; align-items:center; gap:4px; pointer-events:none; }
+.cad-editor-command-group .ruled-surface-tools button { display:inline-flex; align-items:center; justify-content:center; gap:4px; width:36px; height:36px; min-width:36px; min-height:36px; padding:4px; pointer-events:auto; }
+.ruled-surface-create { background:#b8d59c; color:#1b2517; }
+.ruled-surface-error { margin:6px 0; color:#ffd2ce; font-size:11px; line-height:1.4; overflow-wrap:anywhere; }
 @media(max-width:799px) { .cad-editor-canvas-command-rail { top:92px; right:8px; } .cad-editor-canvas-command-rail[data-view-kind="curve-focus"] { top:92px; } }

@@ -25,6 +25,7 @@ import { useSurfaceSplit } from './surface-split.js';
 import { SurfaceSplitHandles } from './surface-split-handles.js';
 import { CurveReversalControls } from './curve-reversal.js';
 import { SurfaceReversalControls } from './surface-reversal.js';
+import { RuledSurfaceControls } from './ruled-surface.js';
 import { useSurfaceKnot, surfaceKnotSurface } from './surface-knot.js';
 import { SurfaceKnotHandles } from './surface-knot-handles.js';
 import { useCurveKnot, curveKnotCurve } from './curve-knot.js';
@@ -1043,6 +1044,9 @@ export function CadEditorViewport(props: CadEditorViewportProps) {
     {snapshot.view.kind === 'document' && !interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active
       && <CurveReversalControls session={session} canvas={canvasRef.current} toolbarContainer={constructionContainer} receipt={ready ? documentReceipt : null}
         isCurrentCurve={isCurrentReversalCurve} busy={viewBusy} onError={cause => report(cause, 'Making a reversed Curve copy failed')} />}
+    {snapshot.view.kind === 'document' && !interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active
+      && <RuledSurfaceControls session={session} canvas={canvasRef.current} toolbarContainer={constructionContainer} receipt={ready ? documentReceipt : null}
+        isCurrentCurve={isCurrentReversalCurve} busy={viewBusy} onError={cause => report(cause, 'Building a Surface between Curves failed')} />}
     {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active && <SurfacePoleHandles session={session} receipt={ready?documentReceipt:null} canvas={canvasRef.current} onError={error=>report(error,'Surface point gesture failed')} />}
     {!interval?.active && !knot?.active && !curveKnot?.active && !isoCurve?.active && !region?.active && !split?.active && !surfaceSplit?.active && <PoleAxisGizmo session={session} toolbarContainer={editingContainer} documentReceipt={ready?documentReceipt:null} curveReceipt={ready?focusedReceipt:null} canvas={canvasRef.current}
       isCurrentCurvePresentation={isCurrentCurvePresentation}

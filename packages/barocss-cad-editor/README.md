@@ -951,3 +951,11 @@ Native degree, control-net, coordinate, Source and document/display limits still
 The Canvas groups the existing editing, visibility and construction commands in one stable rail beside the view navigator. Commands use icons with accessible names and tooltip titles. U/V labels distinguish the Surface axes; Q/W/E/R identify editing shortcuts. Commands wrap to fit the available width. Each action has a 36px hit target and a visible keyboard focus ring. At narrow window widths, the rail moves below the navigator.
 
 Only the existing command toolbars move into the rail. Their controllers, settings, geometry guides, Help state, input guards and Native approval paths remain mounted in the viewport. Resizing the viewport does not replace the rail targets. Empty rail space permits Canvas gestures. This changes command presentation; geometry support, Source data, history rules and Canvas size remain governed by the existing editor.
+
+### Surface between original Curves
+
+`session.prepareRuledSurface(secondBodyId)` uses the selected original Curve as the first section and a second original Curve from the document. The Native knot-alignment constructor and whole validator create the rational Surface. The complete generated Model3 Source, including both aligned section Curves, enters one new asset and Surface body. Original complete Sources, revisions, siblings and bindings remain intact.
+
+The Construct rail icon opens a concise section chooser. Hidden second Curves remain available. Native basis, domain, knot, weight and capacity rules decide whether the pair is supported; refusal keeps the choice available for correction. Whole-document and current Viewport approval precede one history entry. Undo and Redo preserve structural IDs with current references and revision highwater.
+
+Native ID-mode preflight may make up to four calls. It retries only the exact typed untouched/refined ID-policy refusal before construction. Other Native failures propagate. This does not remap domains, reverse sections, produce a Solid, certify G1/G2 continuity or preserve a live construction recipe in saved geometry.
