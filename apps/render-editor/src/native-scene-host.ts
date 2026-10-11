@@ -1,6 +1,6 @@
 import {createRenderNativeSceneSession, createRenderMaterialSession, prepareRenderMaterialDocument,
   validateRenderNativeSceneDocument, serializeRenderNativeSceneDocument, prepareRenderNativeSceneAppearance,
-  commitRenderNativeSceneAppearanceCandidate, RenderEditorError, normalizeRenderEditorError} from '@barocss/render-editor';
+  commitRenderNativeSceneAppearanceCandidate, deriveRenderNativeSceneBodyDuplicate, RenderEditorError, normalizeRenderEditorError} from '@barocss/render-editor';
 import type {RenderNativeSceneDocument, RenderNativeScenePreparation, RenderNativeScenePreparedCandidate,
   RenderNativeSceneAppearancePreparation, RenderMaterialSession, RenderMaterialSessionSnapshot,
   RenderMaterialPreparedCandidate, RenderNativeScenePose} from '@barocss/render-editor';
@@ -39,6 +39,7 @@ export interface NativeSceneHost {
   setPresenter(presenter: NativeScenePresenter | null, ownershipReader?: () => object, actualCameraReader?: () => MeshCamera): void;
   setAvailable(available: boolean): void;
   stageSceneDocument(document: RenderNativeSceneDocument): void;
+  duplicateSelectedBody(): RenderNativeSceneAppearancePreparation;
   stageBodyPose(bodyId: string, patch: {readonly translationMM: readonly [number, number, number]; readonly scale: readonly [number, number, number]}): void;
   setBodyPoseInputInvalid(bodyId: string): void;
   stageLighting(lighting: MeshLighting): void;
@@ -124,6 +125,11 @@ function selectedMaterial(preparation: RenderNativeScenePreparation, bodyId: str
   check(material, 'This editor requires an authored material on a visible native Surface.');
   return material;
 }
+function documentIds(document: RenderNativeSceneDocument): Set<string> {
+  return new Set([...document.nativeDocument.assets.map(asset => asset.id),
+    ...document.nativeDocument.bodies.map(body => body.id),
+    ...document.surfaceMaterials.map(binding => binding.material.documentId)]);
+}
 
 /** Viewer background is constructor-owned; numeric zero and negative zero share the same display context. */
 export function assertNativeScenePreviewContext(context: RenderNativeSceneAppearancePreparation['context'],
@@ -137,6 +143,7 @@ export function assertNativeScenePreviewContext(context: RenderNativeSceneAppear
 /** App composition only. Whole native candidates and history remain the SDK session's authority. */
 export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSceneHost {
   const native = createRenderNativeSceneSession(base);
+  let retainedIds = documentIds(native.getSnapshot().accepted);
   let selectedBodyId = selectedMaterial(native.getSnapshot().preparation, '').target.bodyId;
   let local = createRenderMaterialSession(selectedMaterial(native.getSnapshot().preparation, selectedBodyId).preparation.document);
   let draftDocument = native.getSnapshot().accepted, invalidLighting = false;
@@ -208,6 +215,12 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     return () => {if (locked) {reentered = true; throw new RenderEditorError('STALE_CANDIDATE', 'Native scene listener changes are locked.');} listeners.delete(listener);};
   };
   const clean = () => {check(!snapshot.dirty, 'Apply or Discard scene changes before this action.');};
+  const retainedPlan = (document: RenderNativeSceneDocument, reset = false): Set<string> => {
+    const plan = reset ? new Set<string>() : new Set(retainedIds);
+    for (const id of documentIds(document)) plan.add(id);
+    check(plan.size <= 2048, 'Native body ID reservations exceed the 2048-ID limit. Open a scene to start a new reservation scope.');
+    return plan;
+  };
   const readOwner = (reader: (() => object) | undefined, fallback: object): object => {
     if (!reader) return fallback;
     const prototype = Object.getPrototypeOf(reader), source = Function.prototype.toString.call(reader);
@@ -318,10 +331,12 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     const result = Object.freeze({document: selected.preparation.document, sample: selected.preparation.sample, purpose: candidate.purpose});
     materialCandidates.set(result, {candidate, generation, used: false}); return result;
   };
-  const commit = (candidate: RenderNativeScenePreparedCandidate, beforeCommit?: NativeScenePresenter, explicitCamera?: MeshCamera) => {
+  const commit = (candidate: RenderNativeScenePreparedCandidate, beforeCommit?: NativeScenePresenter, explicitCamera?: MeshCamera, preferredBodyId?: string) => {
     const token = candidate !== null && typeof candidate === 'object' ? candidates.get(candidate) : undefined;
     if (!token || token.used || token.generation !== generation) throw new RenderEditorError('STALE_CANDIDATE', 'The scene candidate is stale, foreign, forged, or already used.');
     check(available && presenter, 'The native preview is unavailable.');
+    // Provenance admission above precedes candidate reads and reservation planning.
+    const nextRetainedIds = retainedPlan(candidate.preparation.document, candidate.purpose === 'open' || !nativePresented);
     const active = presenter;
     const previousCamera = displayCamera(), previousOwner = owner(), camera = explicitCamera ?? (!nativePresented || candidate.purpose === 'open'
       ? cameraCopy(candidate.preparation.document.display.camera) : previousCamera);
@@ -329,7 +344,8 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
     let nextBody = selectedBodyId;
     try {
       const result = commitRenderNativeSceneAppearanceCandidate(native, candidate, prepared => {
-        const selected = selectedMaterial(prepared.authored, selectedBodyId);
+        const selected = selectedMaterial(prepared.authored, preferredBodyId ?? selectedBodyId);
+        check(preferredBodyId === undefined || selected.target.bodyId === preferredBodyId, 'The duplicated body has no qualified Surface material.');
         nextBody = selected.target.bodyId;
         nextStore.local = createRenderMaterialSession(selected.preparation.document);
         if (beforeCommit) synchronous(beforeCommit, prepared, camera);
@@ -342,6 +358,7 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
         if (reentered) throw new RenderEditorError('STALE_CANDIDATE', 'Native scene presenter reentry was refused.');
       });
       token.used = true;
+      retainedIds = nextRetainedIds;
       acceptedOwner = nextStore.owner!;
       local.dispose(); local = nextStore.local!; nextStore.local = null;
       selectedBodyId = nextBody; draftDocument = native.getSnapshot().accepted;
@@ -396,6 +413,24 @@ export function createNativeSceneHost(base: RenderNativeSceneDocument): NativeSc
       presenter = next; ownershipReader = reader; actualCameraReader = cameraReader; fallbackOwner = nextFallback; acceptedOwner = nextOwner; available = next !== null; changed();});},
     setAvailable(value) {run(() => {check(typeof value === 'boolean', 'Native availability must be a boolean.'); if (!value) invalidatePose(); if (available !== value) {available = value; changed();}});},
     stageSceneDocument(document) {run(() => {noView(); clean(); stage(document); changed();});},
+    duplicateSelectedBody() {return run(() => {
+      noView(); clean(); check(available && presenter && nativePresented, 'The applied native preview is unavailable.');
+      check(owner() === acceptedOwner, 'The applied preview belongs to another scene. Restore the current scene before duplicating.');
+      if (reentered) throw new RenderEditorError('STALE_CANDIDATE', 'Native scene ownership reentry was refused.');
+      const original = native.getSnapshot().accepted;
+      const selected = original.nativeDocument.bodies.find(body => body.id === selectedBodyId);
+      check(selected, 'The active native body is missing.');
+      const copyName = selected.name + ' copy';
+      const derived = deriveRenderNativeSceneBodyDuplicate(original, selectedBodyId, {
+        name: new TextEncoder().encode(copyName).length <= 128 ? copyName : selected.name,
+        reservedIds: [...retainedIds],
+      });
+      // Refuse exhausted reservations before changing even the corrective SDK draft.
+      retainedPlan(derived.document);
+      if (reentered) throw new RenderEditorError('STALE_CANDIDATE', 'Native body duplication reentry was refused.');
+      stage(derived.document); changed();
+      return commit(prepareDraft(), undefined, undefined, derived.bodyId);
+    });},
     stageBodyPose(bodyId, patch) {run(() => {
       noView(); check(available, 'The native preview is unavailable.');
       check(typeof bodyId === 'string' && bodyId === selectedBodyId
