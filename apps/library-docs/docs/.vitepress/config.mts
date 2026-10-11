@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitepress'
 import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module'
 import { buildAdvancedShader } from '../../scripts/build-advanced-shader.mjs'
 import { buildUnicodeLabel } from '../../scripts/build-unicode-label.mjs'
 import { buildDiagramLabel } from '../../scripts/build-diagram-label.mjs'
@@ -22,7 +23,7 @@ const catalog = { text: 'Packages', items: packages.map(p => ({ text: names[p] |
 const sidebar = Object.fromEntries(packages.map(p => [`/packages/${p}/`, [
   { text: names[p] || p[0].toUpperCase() + p.slice(1), items: [
     { text: 'Overview', link: `/packages/${p}/` },
-    ...(packages.indexOf(p) < 3 ? [] : ['quickstart', 'guides', ...(p === 'cad' || p === 'gpu' ? ['language'] : []), ...(p === 'cad' ? ['language-examples', 'body-1301', 'body-boundary-mesh', 'nurbs-loft-graph'] : []), ...(p === 'cad-interop' ? ['loft-graph-ingestion'] : []), ...(p === 'gpu' ? ['advanced-shader', 'caustics-shader', 'composition-examples', 'material-language', 'function-examples', 'cpu-material-evaluation'] : []), ...(p === 'canvas2d' ? ['unicode-labels', 'diagram-labels', 'path-editing', 'svg-export'] : []), 'api', 'reference', 'examples', 'limits'].map(page => ({ text: { 'svg-export': 'Export SVG and editable JSON', 'path-editing': 'Edit path controls', 'diagram-labels': 'Diagram labels', 'unicode-labels': 'Unicode labels', language: 'Language reference', 'language-examples': 'Language practice', 'caustics-shader': 'Interference caustics', 'advanced-shader': 'Procedural shader lab', 'composition-examples': 'Scene and material compositions', 'nurbs-loft-graph': 'Edit sections and a Loft', 'loft-graph-ingestion': 'Read Loft graphs and updates', 'body-1301': 'Body and topology', 'body-boundary-mesh': 'Body boundary mesh', 'cpu-material-evaluation': 'CPU material color', 'material-language': 'Material language', 'function-examples': 'Material function examples', quickstart: 'Quickstart', guides: 'Guides', api: 'API reference', reference: 'Public signatures', examples: 'Examples', limits: 'Limits and lifecycle' }[page], link: `/packages/${p}/${page}` })))
+    ...(packages.indexOf(p) < 3 ? [] : ['quickstart', 'guides', ...(p === 'cad' || p === 'gpu' ? ['language'] : []), ...(p === 'cad' ? ['language-examples', 'rational-surface', 'body-1301', 'body-boundary-mesh', 'nurbs-loft-graph'] : []), ...(p === 'cad-interop' ? ['loft-graph-ingestion'] : []), ...(p === 'gpu' ? ['advanced-shader', 'caustics-shader', 'composition-examples', 'material-language', 'function-examples', 'cpu-material-evaluation'] : []), ...(p === 'canvas2d' ? ['unicode-labels', 'diagram-labels', 'path-editing', 'svg-export'] : []), 'api', 'reference', 'examples', 'limits'].map(page => ({ text: { 'rational-surface': 'Rational surface weights', 'svg-export': 'Export SVG and editable JSON', 'path-editing': 'Edit path controls', 'diagram-labels': 'Diagram labels', 'unicode-labels': 'Unicode labels', language: 'Language reference', 'language-examples': 'Language practice', 'caustics-shader': 'Interference caustics', 'advanced-shader': 'Procedural shader lab', 'composition-examples': 'Scene and material compositions', 'nurbs-loft-graph': 'Edit sections and a Loft', 'loft-graph-ingestion': 'Read Loft graphs and updates', 'body-1301': 'Body and topology', 'body-boundary-mesh': 'Body boundary mesh', 'cpu-material-evaluation': 'CPU material color', 'material-language': 'Material language', 'function-examples': 'Material function examples', quickstart: 'Quickstart', guides: 'Guides', api: 'API reference', reference: 'Public signatures', examples: 'Examples', limits: 'Limits and lifecycle' }[page], link: `/packages/${p}/${page}` })))
   ] }, { text: 'Shared concepts', items: common }, catalog
 ]]))
 export default defineConfig({
@@ -30,6 +31,10 @@ export default defineConfig({
   description: 'Task guides and public API contracts for the BaroCSS library family.',
   lang: 'en-US',
   cleanUrls: true,
+  vite: { plugins: [{ name: 'library-docs-linked-search-css', configureServer(server) {
+    const css = createRequire(import.meta.url).resolve('@docsearch/css')
+    if (!server.config.server.fs.allow.includes(css)) server.config.server.fs.allow.push(css)
+  } }] },
   head: [['link', { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }]],
   lastUpdated: false,
   themeConfig: {

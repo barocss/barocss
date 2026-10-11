@@ -52,6 +52,8 @@ console.log(d1.point, d1.derivative);
 
 ## Sample a Surface for display
 
+Use [the quadratic rational Surface](./rational-surface) to compare a fixed nine-pole definition with evaluated center/off-center points. Its two typed Parameters change the interior while retaining the boundary curves. The guide separates coefficient poles, sampled U/V lines and GPU display.
+
 Call `tessellateSurface(surface,{countU,countV,revision})` after native validation. It samples uniform original U/V parameters including endpoints and returns `{packet,report}`. The host supplies revision; it records provenance, not freshness. Packet arrays use U-major rows and preserve native XYZ in mm under the declared right-handed Y-up convention.
 
 Normals come from area-weighted incident triangles. They are preview normals rather than exact derivative normals. The five probes per cell report `maxSampledDeviationMM` with `certified:false`. Increasing the grid can improve a sampled display but cannot turn this report into a global error bound. Collapsed triangles and inconsistent normals refuse; no repair silently changes the packet.

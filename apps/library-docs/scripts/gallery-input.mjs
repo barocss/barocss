@@ -12,7 +12,7 @@ export async function readGallery() {
       gallery[key] = preset;
     }
   }
-  if (Object.keys(gallery).length !== 23) throw Error('Expected twenty-three additional sample presets');
+  if (Object.keys(gallery).length !== 24) throw Error('Expected twenty-four additional sample presets');
   return gallery;
 }
 
