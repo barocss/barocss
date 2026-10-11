@@ -3623,3 +3623,107 @@ pnpm --filter @barocss/gpu exec tsc
 pnpm --filter @barocss/gpu exec esbuild src/index.ts --bundle --format=esm --platform=browser --target=es2022 --alias:@barocss/cad=../barocss-cad/src/index.ts --outfile=dist/index.js
 node examples/gpu-scene/engine-uv-texture-material-wgsl-flow.mjs --output /absolute/fresh-directory
 ```
+
+## Complete authored unlit EngineUV WGSL program (source only, #1184)
+
+`lowerEngineUVTextureProgramWGSL(input)` accepts original
+EngineUVTextureMaterialIR only. It calls the existing typed WGSL lowerer once,
+including one complete original-source reconstruction, then generates a complete
+trusted vertex/fragment module. Caller lowered text, modules, callbacks and saved
+generated code are not authority:
+
+```ts
+const compiled = compileEngineUVTextureMaterial(`
+@shader #unlit_image_palette {
+  @uniform amount: float(0, 1, .25);
+  @sampler paint: sampler2d;
+  @fragment { color: mix(sample(paint, uv_u, uv_v), #203040, amount); }
+}`);
+if (compiled.ok) {
+  const program = lowerEngineUVTextureProgramWGSL(compiled.material);
+  program.code;
+  program.entryPoints;
+  program.vertexLayout;
+  program.abi;
+}
+```
+
+The fresh frozen result has exactly nine fields: `format`, `version`, `profile`,
+`lowered`, `code`, `entryPoints`, `vertexLayout`, `abi`, `targets`. Format is
+`barocss-gpu-engine-uv-texture-program-wgsl`, version `0`, profile
+`engine-opaque-unlit-uv-texture-program-wgsl-v0`. `lowered` retains the complete
+existing lowerer output and original material. Entry points are exactly
+`{vertex: 'engine_uv_vertex', fragment: 'engine_uv_fragment'}`.
+
+Vertex layout has two six-field records: `slot`, `location`, `stride`, `format`,
+`semantic`, `stepMode`. Position is float32x3/slot0/location0/stride12; UV is
+float32x2/slot1/location1/stride8; both use `stepMode: 'vertex'`. Original local
+positions use right-handed-y-up scene units. World/view/projection matrices are
+column-major. Vertex code applies world, then view/projection, and converts
+OpenGL clip depth once with `(clip.z+clip.w)*.5`. Perspective UV location0 is
+unchanged: no native mm conversion, Surface-domain normalization or V flip.
+
+The exact seven-field ABI is `frame`, `material`, `draw`, `clipDepth`,
+`uvTransform`, `outputTransfer`, `identity`:
+
+| Block | Exact contract |
+| --- | --- |
+| frame | group0/binding0, 128 bytes, view offset0/projection offset64, column-major; six fields `group`, `binding`, `byteLength`, `viewByteOffset`, `projectionByteOffset`, `matrixOrder` |
+| material | group0/binding1, 64 bytes; three fields `group`, `binding`, `byteLength`; existing lowerer slots and Float32 admission |
+| draw | group2/binding0, 80 bytes, world offset0/identity offset64, column-major; six fields `group`, `binding`, `byteLength`, `worldByteOffset`, `identityByteOffset`, `matrixOrder` |
+
+Draw storage is a 64-byte mat4x4 plus a 16-byte vec4 of uint identity data.
+Texture/sampler use the exact existing sole sampler layout at group1/bindings0
+and1, nearest/clamp/level0. A future runtime therefore requires three bind groups.
+These are source ABI records, not created descriptors, buffers or resources.
+No instance-matrix packing helper is added.
+
+`clipDepth` is `gl-to-webgpu-z-half`, `uvTransform` is `none`, and
+`outputTransfer` is `linear-to-srgb-piecewise`. The fragment supplies local
+`material_uv = input.uv`, evaluates the trusted clamped authored linear color,
+then encodes clamped linear RGB: at≤.0031308 use `12.92*x`; otherwise
+`1.055*pow(x,1/2.4)-.055`. Alpha is1. This authored profile is unlit: no normals,
+lighting, extra base tint or unbound-unlit substitution is inserted. A lit
+profile requires a separate contract. Sample decoding remains the existing
+single standard sRGB decode from unorm data; hardware sRGB double decoding and
+legacy display gamma2.2 are not substituted.
+
+Identity has exactly `location`, `format`, `zeroMeaning`, `min`, `max`:
+location1/`r32uint`/`background`/1/4294967295. The fragment writes
+`draw.identity.x` directly, not a float varying, ordinal or shaderId. Targets
+have exactly `location`, `format`, `blend`: location0/`rgba8unorm`/false and
+location1/`r32uint`/false. A future runtime owns nonzero-token mapping to actual
+scene/node/geometry IDs and clears identity to zero. This source generator does
+not validate host tokens or implement picking.
+
+Original F64/source/UV/aliases stay authoritative inside `lowered`; code and
+ABI are separate derived observations. Ordinary records/arrays are recursively
+frozen and independently owned across calls, with immutable strings and no
+caller aliases, handles, caches or mutable typed views. Complete module text
+is capped at65536 UTF16 units and UTF8 bytes. Complete signed JSON result is
+capped at2097152 units and bytes before freezing, counted without joining the
+whole JSON. Existing lowerer errors and diagnostic/reflection cause chains pass
+through unchanged. Only new module/result ceilings add `MeshMaterialError`
+`BUDGET`, with bounded message/start=end0 and no fabricated source cause.
+Inherited Float32 underflow/overflow, work256/depth16 and source/IR limits remain.
+
+This operation adds no runtime or fallback. Actual shader-module validation,
+device limits/alignment, pipelines, uploads, interpolation, sampled/output
+pixels, token mapping, accepted/candidate resources, selection, updates,
+retention, device loss, cleanup, consumer and publication remain separate.
+The #1512 native Surface profile does not implicitly accept this generic texture
+program; an unavailable compatible fallback is not claimed.
+
+With Node.js22 active, first run the two build commands in the preceding recipe:
+scoped `tsc` and browser ESM `esbuild` with the explicit local CAD alias. They produce the direct emitted
+artifact. This new qualifier does not create that `dist` artifact. Then run the
+standalone source/emitted/API/original-file/cold qualifier:
+
+```sh
+node examples/gpu-scene/engine-uv-texture-program-flow.mjs --output /absolute/fresh-directory
+```
+
+Save complete originals rather than generated code. The qualifier pins all
+unchanged package source inputs and local CAD dependency resolution, then one
+fresh Node.js22 child reconstructs source before regenerating the program. Source qualification
+does not complete #1184's real graphics gate.

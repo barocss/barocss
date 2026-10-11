@@ -211,3 +211,6 @@ export type { EngineUVTextureMaterialBindingV0, EngineUVTextureMaterialBindingsV
 
 export { lowerEngineUVTextureMaterialWGSL } from './engine-uv-texture-material-wgsl.js';
 export type { LoweredEngineUVTextureMaterialWGSL } from './engine-uv-texture-material-wgsl.js';
+
+export { lowerEngineUVTextureProgramWGSL } from './engine-uv-texture-program-wgsl.js';
+export type { LoweredEngineUVTextureProgramWGSL } from './engine-uv-texture-program-wgsl.js';
