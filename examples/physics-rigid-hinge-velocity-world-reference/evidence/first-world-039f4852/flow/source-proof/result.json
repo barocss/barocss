@@ -1,0 +1,132 @@
+{
+  "graph": "source",
+  "disposition": "GRAPH_NO_COMPLETE_PROOF",
+  "counts": {
+    "mainConstructors": 0,
+    "mainSteps": 0,
+    "acceptedSteps": 0,
+    "qualifiedSteps": 0,
+    "mainReferenceRequests": 0,
+    "nativeControls": null,
+    "protocolControls": null
+  },
+  "extrema": {
+    "maximumComDriftM": 0,
+    "maximumPlaneDriftM": 0,
+    "maximumAnchorGapM": 0,
+    "maximumAxisErrorRad": 0
+  },
+  "firstFailure": {
+    "phase": "reply",
+    "code": "IPC_REPLY_SCHEMA_INVALID",
+    "message": "hinge World reference reply schema is invalid"
+  },
+  "child": {
+    "pid": 54194,
+    "exitCode": null,
+    "signal": "SIGTERM",
+    "stdin": {
+      "path": "/tmp/physics-1179-world-first-039f4852/source-proof/reference.stdin.raw",
+      "bytes": 3536,
+      "sha256": "4f0a978500157b8ec7922f597a580d07f9dbdc3e485d7a941cc32c0672518f86",
+      "completeLines": 1,
+      "trailingBytes": 0,
+      "completeEOF": true
+    },
+    "stdout": {
+      "path": "/tmp/physics-1179-world-first-039f4852/source-proof/reference.stdout.raw",
+      "bytes": 219,
+      "sha256": "e39a49a9f2172e92d810108a48e426091fc0bb89cf48243761620a8ca5c51d52",
+      "completeLines": 1,
+      "trailingBytes": 0,
+      "completeEOF": true
+    },
+    "stderr": {
+      "path": "/tmp/physics-1179-world-first-039f4852/source-proof/reference.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "completeLines": 0,
+      "trailingBytes": 0,
+      "completeEOF": true
+    },
+    "completedReplies": 1,
+    "pendingRequestIndex": null,
+    "firstFailure": {
+      "phase": "close",
+      "code": "IPC_EXIT_SIGNAL",
+      "message": "hinge World reference process terminated by signal"
+    },
+    "secondaryFailures": []
+  },
+  "childCloseObserved": {
+    "pid": 54194,
+    "exitCode": null,
+    "signal": "SIGTERM",
+    "closed": true,
+    "stdoutClosed": true,
+    "stderrClosed": true,
+    "stdinEnded": true,
+    "completedReplies": 1,
+    "pendingRequestIndex": null,
+    "firstFailure": {
+      "phase": "close",
+      "code": "IPC_EXIT_SIGNAL",
+      "message": "hinge World reference process terminated by signal"
+    },
+    "secondaryFailures": []
+  },
+  "secondaryFailures": [],
+  "storedBudgetBytes": {
+    "main": 0,
+    "fixed": 34761,
+    "controls": 34761,
+    "emergency": 0
+  },
+  "streams": {
+    "controls.records.jsonl": {
+      "path": "/tmp/physics-1179-world-first-039f4852/source-proof/controls.records.jsonl",
+      "bytes": 30590,
+      "sha256": "5c8e3557aff134dca011ce70b1beac3be18e13e923af4e760af399fe163819c3",
+      "completeLines": 20,
+      "trailingBytes": 0,
+      "completeEOF": false,
+      "noUnusedBytes": true
+    },
+    "controls.bodies.raw": {
+      "path": "/tmp/physics-1179-world-first-039f4852/source-proof/controls.bodies.raw",
+      "bytes": 416,
+      "sha256": "336909b78c32a1bd17ece87634ed11767de4eaf9fc952aa5d9077ff91a0ad5e0",
+      "completeLines": 0,
+      "trailingBytes": 416,
+      "completeEOF": false,
+      "noUnusedBytes": true
+    },
+    "reference.stdin.raw": {
+      "path": "/tmp/physics-1179-world-first-039f4852/source-proof/reference.stdin.raw",
+      "bytes": 3536,
+      "sha256": "4f0a978500157b8ec7922f597a580d07f9dbdc3e485d7a941cc32c0672518f86",
+      "completeLines": 1,
+      "trailingBytes": 0,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    },
+    "reference.stdout.raw": {
+      "path": "/tmp/physics-1179-world-first-039f4852/source-proof/reference.stdout.raw",
+      "bytes": 219,
+      "sha256": "e39a49a9f2172e92d810108a48e426091fc0bb89cf48243761620a8ca5c51d52",
+      "completeLines": 1,
+      "trailingBytes": 0,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    },
+    "reference.stderr.raw": {
+      "path": "/tmp/physics-1179-world-first-039f4852/source-proof/reference.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "completeLines": 0,
+      "trailingBytes": 0,
+      "completeEOF": true,
+      "noUnusedBytes": true
+    }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/Users/user/.nvm/versions/node/v22.22.0/bin/node",
+    "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss/examples/physics-rigid-hinge-velocity-world-reference/runner.mjs",
+    "/tmp/physics-1179-world-first-039f4852"
+  ],
+  "cwd": "/Users/user/.codex/worktrees/physics-hinge-world-1179/barocss",
+  "sourceHead": "039f48521d90e74dc2bf23324c9f069e998cf062",
+  "sourceFreezeSha256": "906a68f937b454f1c3f1a1ff5e91fc54b032e377527b2c8d5e94973b0945d986",
+  "emittedLedgerSha256": "00d78b5e5cf8d60ae77efb69eb520e9578b436009cd5f3815f3a894a83e9cad7",
+  "output": "/tmp/physics-1179-world-first-039f4852",
+  "pid": 54108
+}
