@@ -2820,3 +2820,29 @@ syntax/type/range/budget errors use original spans and actual Scene causes remai
 
 One new source/emitted/manual-file/cold flow:
 `node examples/gpu-scene/scene-quantity-product-flow.mjs --output /absolute/fresh-directory`.
+
+
+## Flat typed Scene arithmetic
+
+`compileArithmeticAffineSceneSource` opts in to `calc($left + $right)`,
+`calc($left - $right)` and the existing two-reference product. Each atom has
+exactly two declared parameters and one operator. Addition/subtraction require
+the same quantity: scalar, scene-coordinate length or degree angle. Products
+require at least one scalar. Result quantity must match the coefficient slot.
+
+Whitespace or comments surround + and -; hyphen names and signed/exponent
+initializers retain their existing meaning. Products keep compact spelling.
+The original literal and product entries/profiles retain their accepted syntax
+and addition refusals. The new result/AST has a distinct arithmetic profile,
+retaining six original tokens, exact operand use ranges and whole-atom private
+numeric ranges. No nested/general expressions, literal operands, division,
+initializer formulas, external overrides, runtime uniforms or CAD unit conversion.
+
+Original Number operation order, finite magnitude1000 for scalar/length and360
+for degrees, canonical resultzero+0, old native shape/F32/scale/cascade checks,
+4096 original+expression/use work,1536uses,16params,source64KiB/result2MiB remain.
+Original source/comments/-0/Unicode/ranges are preserved in fresh frozen data.
+This CPU compiler creates no linked renderer/frame/TEN/pixel/lifetime receipt.
+
+One source/emitted/literal-control/file/cold flow:
+`node examples/gpu-scene/scene-flat-arithmetic-flow.mjs --output /absolute/fresh-directory`.

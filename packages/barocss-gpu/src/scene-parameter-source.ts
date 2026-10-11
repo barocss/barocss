@@ -193,14 +193,15 @@ export function finishSceneParameterSource<T>(owned: T, range: SourceRange): T {
   return freezeGpuData(copyGpuData(owned));
 }
 /** INTERNAL trusted sibling mode; the public literal entry never enables products. */
-export function compileSceneParameterData(input: unknown, productMode = false): {
+export function compileSceneParameterData(input: unknown, productMode: boolean | 'arithmetic' = false): {
   source: string; ast: ParameterizedAffineSceneAst; parameters: SceneParameter[]; scene: AffineScene2; shaders: SceneShaders;
 } {
   if (typeof input !== 'string') fail('INPUT', 'Complete parameterized scene source must be text', { start: 0, end: 0, line: 1, column: 1 });
   const source = input;
   if (source.length > 65536 || new TextEncoder().encode(source).length > 65536)
     fail('BUDGET', 'Parameterized scene source exceeds64KiB UTF16/UTF8', { start: 0, end: source.length, line: 1, column: 1 });
-  const range = sourceRanges(source), tokens = scan(source, range, productMode), declared = definitions(source, tokens, range);
+  const arithmeticMode = productMode === 'arithmetic';
+  const range = sourceRanges(source), tokens = scan(source, range, productMode !== false), declared = definitions(source, tokens, range);
   // Indexed UTF16 units are essential: code-point iteration would shift every
   // original range after a surrogate pair in a comment preceding parameters.
   const masked = source.split('');
@@ -239,9 +240,15 @@ export function compileSceneParameterData(input: unknown, productMode = false): 
           const start = scanByStart!.get(token.range.start)!;
           const atom = tokens.slice(start, start + 6);
           const at = (i: number) => atom[i] ?? { text: '', range: token.range };
-          for (const [i, expected] of [[0, 'calc'], [1, '('], [3, '*'], [5, ')']] as const)
+          for (const [i, expected] of [[0, 'calc'], [1, '('], [3, arithmeticMode ? at(3).text : '*'], [5, ')']] as const)
             if (at(i).text !== expected || at(i).range.end > field.range.end)
-              fail('SYNTAX', 'Product requires calc($NAME * $NAME)', at(i).range);
+              fail('SYNTAX', arithmeticMode ? 'Arithmetic requires calc($NAME OP $NAME)' : 'Product requires calc($NAME * $NAME)', at(i).range);
+          const operator = at(3).text;
+          if (arithmeticMode && !['+', '-', '*'].includes(operator))
+            fail('SYNTAX', 'Arithmetic operator requires +, -, or *', at(3).range);
+          if (arithmeticMode && operator !== '*' &&
+            (at(3).range.start === at(2).range.end || at(4).range.start === at(3).range.end))
+            fail('SYNTAX', 'Addition and subtraction require whitespace or comments around the operator', at(3).range);
           if (!REFERENCE.test(at(2).text) || !REFERENCE.test(at(4).text))
             fail('SYNTAX', 'Product requires exactly two parameter references', !REFERENCE.test(at(2).text) ? at(2).range : at(4).range);
           const end = at(5).range.end, atomRange = range(token.range.start, end);
@@ -250,18 +257,25 @@ export function compileSceneParameterData(input: unknown, productMode = false): 
           if (last >= field.literals.length || field.literals[last].range.end !== end)
             fail('SYNTAX', 'Product must be one complete coefficient component', atomRange);
           const a = reference(at(2)), b = reference(at(4));
-          if (a.quantity !== 'scalar' && b.quantity !== 'scalar')
-            fail('TYPE', 'Product requires at least one scalar quantity', at(3).range);
-          const quantity = a.quantity === 'scalar' ? b.quantity : a.quantity;
+          let quantity: Quantity;
+          if (arithmeticMode && operator !== '*') {
+            if (a.quantity !== b.quantity) fail('TYPE', 'Addition and subtraction require the same quantity', at(3).range);
+            quantity = a.quantity;
+          } else {
+            if (a.quantity !== 'scalar' && b.quantity !== 'scalar')
+              fail('TYPE', 'Product requires at least one scalar quantity', at(3).range);
+            quantity = a.quantity === 'scalar' ? b.quantity : a.quantity;
+          }
           const expected = slot(field.property.text);
-          if (!expected || quantity !== expected) fail('TYPE', 'Product quantity does not match its coefficient slot', atomRange);
+          if (!expected || quantity !== expected) fail('TYPE', arithmeticMode ? 'Arithmetic quantity does not match its coefficient slot' : 'Product quantity does not match its coefficient slot', atomRange);
           const originalTokenWork = 6 - (last - index + 1);
           if (work + originalTokenWork + 3 > 4096) fail('BUDGET', 'Parameterized scene exceeds4096 cumulative AST work nodes', atomRange);
           work += originalTokenWork + 3;
           chargedUse(a, at(2)); chargedUse(b, at(4));
-          const value = a.value * b.value, maximum = quantity === 'angle' ? 360 : 1000;
+          const value = arithmeticMode && operator === '+' ? a.value + b.value : arithmeticMode && operator === '-' ? a.value - b.value : a.value * b.value;
+          const maximum = quantity === 'angle' ? 360 : 1000;
           if (!Number.isFinite(value) || Math.abs(value) > maximum)
-            fail('RANGE', 'Product must be finite within its quantity bounds', atomRange);
+            fail('RANGE', arithmeticMode ? 'Arithmetic must be finite within its quantity bounds' : 'Product must be finite within its quantity bounds', atomRange);
           originals.push(...atom);
           values.push({ original: token, text: String(value === 0 ? 0 : value) + (quantity === 'angle' ? 'deg' : ''), range: atomRange });
           index = last; continue;

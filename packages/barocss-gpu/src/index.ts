@@ -170,3 +170,6 @@ export type {SceneParameterCode,SceneParameterDiagnostic,SceneParameterDeclarati
 
 export {compileMultiplicativeAffineSceneSource} from './scene-product-source.js';
 export type {MultiplicativeAffineSceneAst,CompiledMultiplicativeAffineSceneSource} from './scene-product-source.js';
+
+export {compileArithmeticAffineSceneSource} from './scene-arithmetic-source.js';
+export type {ArithmeticAffineSceneAst,CompiledArithmeticAffineSceneSource} from './scene-arithmetic-source.js';
